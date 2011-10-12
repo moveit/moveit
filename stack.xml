@@ -1,0 +1,11 @@
+<stack>
+  <description brief="moveit">Implementation of generic components for planning and execution of motions.</description>
+  <author>Maintained by Sachin Chitta, Ioan Sucan</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit</url>
+  <depend stack="ros" />
+  <depend stack="ros_comm" /> <!-- rosconsole -->
+  <depend stack="robot_model" /> 
+
+</stack>
