@@ -1,0 +1,48 @@
+Index: src/ompl/util/src/Console.cpp
+===================================================================
+--- src/ompl/util/src/Console.cpp
++++ src/ompl/util/src/Console.cpp
+@@ -33,6 +33,7 @@
+ *********************************************************************/
+ 
+ /* Author: Ioan Sucan */
++#include <ros/console.h>
+ 
+ #include "ompl/util/Console.h"
+ #include <boost/thread/mutex.hpp>
+@@ -41,7 +42,34 @@
+ #include <cstdio>
+ #include <cstdarg>
+ 
+-static ompl::msg::OutputHandlerSTD DEFAULT_OUTPUT_HANDLER;
++namespace ompl
++{
++  
++    namespace msg
++    {
++    
++	class OutputHandlerROS : public OutputHandler
++	{
++	public:
++	    
++	    OutputHandlerROS(void) : OutputHandler()
++	    {
++	    }
++	    
++	    virtual void error(const std::string &text) { ROS_ERROR("%s", text.c_str()); }
++	    
++	    virtual void warn(const std::string &text) { ROS_WARN("%s", text.c_str()); }
++
++	    virtual void inform(const std::string &text) { ROS_INFO("%s", text.c_str()); }
++
++	    virtual void debug(const std::string &text) { ROS_DEBUG("%s", text.c_str()); }
++	    	    
++	};
++
++    }
++}	
++
++static ompl::msg::OutputHandlerROS DEFAULT_OUTPUT_HANDLER;
+ static ompl::msg::OutputHandler   *OUTPUT_HANDLER = static_cast<ompl::msg::OutputHandler*>(&DEFAULT_OUTPUT_HANDLER);
+ static ompl::msg::OutputHandler   *PREVIOUS_OH = OUTPUT_HANDLER;
+ static boost::mutex                LOCK; // it is likely the outputhandler does some I/O, so we serialize it

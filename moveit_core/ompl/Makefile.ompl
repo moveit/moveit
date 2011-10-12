@@ -1,0 +1,19 @@
+include Makefile.params
+
+all: copied
+
+# We build from a tarball from the latest version of ompl
+
+include $(shell rospack find mk)/download_unpack_build.mk
+
+copied: wiped $(SOURCE_DIR)/unpacked
+	   touch copied
+
+wipe:
+	rm -rf copied patched
+
+wiped: Makefile.ompl Makefile.params
+	make -f Makefile wipeNoClean
+	touch wiped
+
+clean:
