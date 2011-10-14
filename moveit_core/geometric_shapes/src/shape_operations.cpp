@@ -160,10 +160,10 @@ struct ltVertexIndex
 
 }
     
-shapes::Mesh* createMeshFromVertices(const std::vector<btVector3> &vertices, const std::vector<unsigned int> &triangles)
+Mesh* createMeshFromVertices(const std::vector<btVector3> &vertices, const std::vector<unsigned int> &triangles)
 {
   unsigned int nt = triangles.size() / 3;
-  shapes::Mesh *mesh = new shapes::Mesh(vertices.size(), nt);
+  Mesh *mesh = new Mesh(vertices.size(), nt);
   for (unsigned int i = 0 ; i < vertices.size() ; ++i)
   {
     mesh->vertices[3 * i    ] = vertices[i].getX();
@@ -187,7 +187,7 @@ shapes::Mesh* createMeshFromVertices(const std::vector<btVector3> &vertices, con
   return mesh;
 }
     
-shapes::Mesh* createMeshFromVertices(const std::vector<btVector3> &source)
+Mesh* createMeshFromVertices(const std::vector<btVector3> &source)
 {
   if (source.size() < 3)
     return NULL;
@@ -243,7 +243,7 @@ shapes::Mesh* createMeshFromVertices(const std::vector<btVector3> &source)
   // copy the data to a mesh structure 
   unsigned int nt = triangles.size() / 3;
 	
-  shapes::Mesh *mesh = new shapes::Mesh(vt.size(), nt);
+  Mesh *mesh = new Mesh(vt.size(), nt);
   for (unsigned int i = 0 ; i < vt.size() ; ++i)
   {
     mesh->vertices[3 * i    ] = vt[i].point.getX();
@@ -268,7 +268,7 @@ shapes::Mesh* createMeshFromVertices(const std::vector<btVector3> &source)
   return mesh;
 }
     
-shapes::Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale)
+Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale)
 {
   resource_retriever::Retriever retriever;
   resource_retriever::MemoryResource res;
@@ -341,10 +341,10 @@ shapes::Mesh* createMeshFromFilename(const std::string& filename, const btVector
     ROS_WARN_STREAM("Can't find meshes in " << filename);
     return NULL;
   }
-  return shapes::createMeshFromAsset(scene->mMeshes[node->mMeshes[0]], node->mTransformation, scale);
+  return createMeshFromAsset(scene->mMeshes[node->mMeshes[0]], node->mTransformation, scale);
 }
 
-shapes::Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const btVector3& scale)
+Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const btVector3& scale)
 {
   if (!a->HasFaces())
   {
@@ -365,7 +365,7 @@ shapes::Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform,
       return NULL;
     }
   
-  shapes::Mesh *mesh = new shapes::Mesh(a->mNumVertices, a->mNumFaces);
+  Mesh *mesh = new Mesh(a->mNumVertices, a->mNumFaces);
 
   // copy vertices
   for (unsigned int i = 0 ; i < a->mNumVertices ; ++i)
@@ -417,4 +417,146 @@ shapes::Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform,
   return mesh;
 }
 
+Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
+{
+    Shape *shape = NULL;
+    if (shape_msg.type == moveit_msgs::Shape::SPHERE)
+    {
+	if (shape_msg.dimensions.size() != 1)
+	    ROS_ERROR("Unexpected number of dimensions in sphere definition");
+	else
+	    shape = new Sphere(shape_msg.dimensions[0]);
+    }
+    else
+	if (shape_msg.type == moveit_msgs::Shape::BOX)
+	{
+	    if (shape_msg.dimensions.size() != 3)
+		ROS_ERROR("Unexpected number of dimensions in box definition");
+	    else
+		shape = new Box(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2]);
+	}
+	else
+	    if (shape_msg.type == moveit_msgs::Shape::CYLINDER)
+	    {
+		if (shape_msg.dimensions.size() != 2)
+		    ROS_ERROR("Unexpected number of dimensions in cylinder definition");
+		else
+		    shape = new Cylinder(shape_msg.dimensions[0], shape_msg.dimensions[1]);
+	    }   
+	    else
+		if (shape_msg.type == moveit_msgs::Shape::MESH)
+		{
+		    if (shape_msg.dimensions.size() != 0)
+			ROS_ERROR("Unexpected number of dimensions in mesh definition");
+		    else
+		    {
+			if (shape_msg.triangles.size() % 3 != 0)
+			    ROS_ERROR("Number of triangle indices is not divisible by 3");
+			else
+			{
+			    if (shape_msg.triangles.empty() || shape_msg.vertices.empty())
+				ROS_ERROR("Mesh definition is empty");
+			    else
+			    {
+				std::vector<btVector3>    vertices(shape_msg.vertices.size());
+				std::vector<unsigned int> triangles(shape_msg.triangles.size());
+				for (unsigned int i = 0 ; i < shape_msg.vertices.size() ; ++i)
+				    vertices[i].setValue(shape_msg.vertices[i].x, shape_msg.vertices[i].y, shape_msg.vertices[i].z);
+				for (unsigned int i = 0 ; i < shape_msg.triangles.size() ; ++i)
+				    triangles[i] = shape_msg.triangles[i];
+				shape = createMeshFromVertices(vertices, triangles);
+			    }
+			}
+		    }
+		}
+    
+    if (shape == NULL)
+	ROS_ERROR("Unable to construct shape corresponding to shape_msgect of type %d", (int)shape_msg.type);
+    
+    return shape;
 }
+
+bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, double padding)
+{
+    shape_msg.dimensions.clear();
+    shape_msg.vertices.clear();
+    shape_msg.triangles.clear();
+    if (shape->type == SPHERE)
+    {
+	shape_msg.type = moveit_msgs::Shape::SPHERE;
+	shape_msg.dimensions.push_back(static_cast<const Sphere*>(shape)->radius + padding);
+    }
+    else
+	if (shape->type == BOX)
+	{
+	    shape_msg.type = moveit_msgs::Shape::BOX;
+	    const double* sz = static_cast<const Box*>(shape)->size;	
+	    shape_msg.dimensions.push_back(sz[0] + padding*2.0);
+	    shape_msg.dimensions.push_back(sz[1] + padding*2.0);
+	    shape_msg.dimensions.push_back(sz[2] + padding*2.0);
+	}
+	else
+	    if (shape->type == CYLINDER)
+	    {	
+		shape_msg.type = moveit_msgs::Shape::CYLINDER;
+		shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->radius + padding);
+		shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->length + padding*2.0);
+	    }
+	    else
+		if (shape->type == MESH)
+		{
+		    shape_msg.type = moveit_msgs::Shape::MESH;
+		    
+		    const Mesh *mesh = static_cast<const Mesh*>(shape);
+		    const unsigned int t3 = mesh->triangleCount * 3;
+		    
+		    shape_msg.vertices.resize(mesh->vertexCount);
+		    shape_msg.triangles.resize(t3);
+		    
+		    double sx = 0.0, sy = 0.0, sz = 0.0;
+		    for (unsigned int i = 0 ; i < mesh->vertexCount ; ++i)
+		    {
+			unsigned int i3 = i * 3;
+			shape_msg.vertices[i].x = mesh->vertices[i3];
+			shape_msg.vertices[i].y = mesh->vertices[i3 + 1];
+			shape_msg.vertices[i].z = mesh->vertices[i3 + 2];
+			sx += shape_msg.vertices[i].x;
+			sy += shape_msg.vertices[i].y;
+			sz += shape_msg.vertices[i].z;
+		    }
+		    // the center of the mesh
+		    sx /= (double)mesh->vertexCount;
+		    sy /= (double)mesh->vertexCount;
+		    sz /= (double)mesh->vertexCount;
+		    
+		    // scale the mesh
+		    for (unsigned int i = 0 ; i < mesh->vertexCount ; ++i)
+		    {
+			// vector from center to the vertex
+			double dx = shape_msg.vertices[i].x - sx;
+			double dy = shape_msg.vertices[i].y - sy;
+			double dz = shape_msg.vertices[i].z - sz;
+			
+			double ndx = ((dx > 0) ? dx+padding : dx-padding);
+			double ndy = ((dy > 0) ? dy+padding : dy-padding);
+			double ndz = ((dz > 0) ? dz+padding : dz-padding);
+			
+			shape_msg.vertices[i].x = sx + ndx;
+			shape_msg.vertices[i].y = sy + ndy;
+			shape_msg.vertices[i].z = sz + ndz;
+		    }
+		    
+		    for (unsigned int i = 0 ; i < t3  ; ++i)
+			shape_msg.triangles[i] = mesh->triangles[i];
+		}
+		else
+		{
+		    ROS_ERROR("Unable to construct shape message for shape of type %d", (int)shape->type);
+		    return false;
+		}
+    
+    return true;
+}
+
+}
+

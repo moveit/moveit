@@ -40,6 +40,8 @@
 #include "geometric_shapes/shapes.h"
 #include "geometric_shapes/bodies.h"
 #include <LinearMath/btTransform.h>
+#include <moveit_msgs/Shape.h>
+#include <geometry_msgs/Pose.h>
 #include <vector>
 
 namespace bodies
@@ -56,5 +58,6 @@ namespace bodies
     /** \brief Create a body from a given shape */
     Body* createBodyFromShape(const shapes::Shape *shape);
     
+    Body* constructBodyFromMsg(const moveit_msgs::Shape &shape, const geometry_msgs::Pose &pose);
 }
 #endif
