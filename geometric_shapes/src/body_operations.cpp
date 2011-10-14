@@ -35,6 +35,7 @@
 /** \author Ioan Sucan, E. Gil Jones */
 
 #include <geometric_shapes/body_operations.h>
+#include <geometric_shapes/shape_operations.h>
 #include <ros/console.h>
 
 bodies::Body* bodies::createBodyFromShape(const shapes::Shape *shape)
@@ -81,3 +82,21 @@ void bodies::maskPosesInsideBodyVectors(const std::vector<btTransform>& poses,
 	mask[i] = !inside;
     }
 }
+
+bodies::Body* bodies::constructBodyFromMsg(const moveit_msgs::Shape &shape_msg, const geometry_msgs::Pose &pose)
+{
+    shapes::Shape *shape = shapes::constructShapeFromMsg(shape_msg);
+    if (shape)
+    {
+	Body *body = createBodyFromShape(shape);
+	if (body)
+	{
+	    body->setPose(btTransform(btQuaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
+				      btVector3(pose.position.x, pose.position.y, pose.position.z)));
+	    return body;
+	}
+    }
+    
+    return NULL;
+}
+

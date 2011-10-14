@@ -38,44 +38,50 @@
 #define GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
 
 #include "geometric_shapes/shapes.h"
-
+#include <moveit_msgs/Shape.h>
 #include <vector>
 #include <LinearMath/btVector3.h>
 #include <assimp/aiMesh.h>
 
 namespace shapes
 {
-  
-  /** \brief Load a mesh from a set of vertices. Triangles are
-      constructed using index values from the triangles
-      vector. Triangle k has vertices at index values triangles[3k],
-      triangles[3k+1], triangles[3k+2]  */
-  Mesh* createMeshFromVertices(const std::vector<btVector3> &vertices, const std::vector<unsigned int> &triangles);
-  
-  /** \brief Load a mesh from a set of vertices. Every 3 vertices
-      are considered a triangle. Repeating vertices are identified
-      and the set of triangle indices is constructed. The normal at
-      each triangle is also computed */
-  Mesh* createMeshFromVertices(const std::vector<btVector3> &source);
-  
-  /** \brief Load a mesh from a file that contains a mesh that can be loaded by assimp */
-  Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale = btVector3(1.0, 1.0, 1.0));
-  
-  /** \brief Load a mesh from an assimp datastructure */
-  Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const btVector3& scale);
-  
-  /** \brief Create a copy of a shape */
-  Shape* cloneShape(const Shape *shape);
-  
-  /** \brief Create a copy of a static shape */
-  StaticShape* cloneShape(const StaticShape *shape);
-  
-  /** \brief Create a copy of a vector of shapes */
-  std::vector<Shape*> cloneShapeVector(const std::vector<Shape*> &shapes);
-  
-  /** \brief Free the memory for a vector of shapes */
-  void deleteShapeVector(std::vector<Shape*>& shapes);
-  
+    
+    /** \brief Load a mesh from a set of vertices. Triangles are
+	constructed using index values from the triangles
+	vector. Triangle k has vertices at index values triangles[3k],
+	triangles[3k+1], triangles[3k+2]  */
+    Mesh* createMeshFromVertices(const std::vector<btVector3> &vertices, const std::vector<unsigned int> &triangles);
+    
+    /** \brief Load a mesh from a set of vertices. Every 3 vertices
+	are considered a triangle. Repeating vertices are identified
+	and the set of triangle indices is constructed. The normal at
+	each triangle is also computed */
+    Mesh* createMeshFromVertices(const std::vector<btVector3> &source);
+    
+    /** \brief Load a mesh from a file that contains a mesh that can be loaded by assimp */
+    Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale = btVector3(1.0, 1.0, 1.0));
+    
+    /** \brief Load a mesh from an assimp datastructure */
+    Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const btVector3& scale);
+    
+    /** \brief Create a copy of a shape */
+    Shape* cloneShape(const Shape *shape);
+    
+    /** \brief Create a copy of a static shape */
+    StaticShape* cloneShape(const StaticShape *shape);
+    
+    /** \brief Create a copy of a vector of shapes */
+    std::vector<Shape*> cloneShapeVector(const std::vector<Shape*> &shapes);
+    
+    /** \brief Free the memory for a vector of shapes */
+    void deleteShapeVector(std::vector<Shape*>& shapes);
+    
+    /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
+    Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg);    
+
+    /** \brief Construct the message that corresponds to the shape and optionally add padding. Return false on failure. */
+    bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, double padding = 0.0);
+    
 }
 
 #endif
