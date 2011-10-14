@@ -1,0 +1,23 @@
+<package>
+  <description brief="A set of robot models">
+    A set of robot models that can be instantiated from a parsed URDF file.
+  </description>
+  <author>Ioan Sucan/isucan@willowgarage.com</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.ros.org/wiki/urdf</url>
+
+  <depend package="urdf"/>
+  <depend package="rosconsole" />
+  <depend package="geometric_shapes"/>
+  <depend package="resource_retriever"/>
+  <depend package="bullet"/>
+
+  <rosdep name="assimp" />
+
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_models `rosboost-cfg --lflags thread`"/>
+  </export>
+  
+  <platform os="ubuntu" version="10.04"/>
+</package>
