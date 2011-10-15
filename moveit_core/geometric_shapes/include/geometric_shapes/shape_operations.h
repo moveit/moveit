@@ -42,6 +42,7 @@
 #include <vector>
 #include <LinearMath/btVector3.h>
 #include <assimp/aiMesh.h>
+#include <iostream>
 
 namespace shapes
 {
@@ -81,6 +82,9 @@ namespace shapes
 
     /** \brief Construct the message that corresponds to the shape and optionally add padding. Return false on failure. */
     bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, double padding = 0.0);
+    
+    /** \brief Print information about this shape */
+    void printShape(const Shape *shape, std::ostream &out = std::cout);
     
 }
 
