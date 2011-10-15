@@ -558,5 +558,35 @@ bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, do
     return true;
 }
 
+void printShape(const Shape *shape, std::ostream &out)
+{
+    if (shape)
+    {
+	switch (shape->type)
+	{
+	case SPHERE:
+	    out << "Sphere[radius=" << static_cast<const Sphere*>(shape)->radius << "]" << std::endl;
+	    break;
+	case CYLINDER:
+	    out << "Cylinder[radius=" << static_cast<const Cylinder*>(shape)->radius
+		<< ", length=" << static_cast<const Cylinder*>(shape)->length << "]" << std::endl;
+	    break;
+	case BOX:
+	    out << "Box[x=length=" << static_cast<const Box*>(shape)->size[0] << ", y=width=" << static_cast<const Box*>(shape)->size[1]
+		<< "z=height=" << static_cast<const Box*>(shape)->size[2] << "]" << std::endl;
+	    break;
+	case MESH:
+	    out << "Mesh[vertices=" << static_cast<const Mesh*>(shape)->vertexCount << ", triangles="
+		<< static_cast<const Mesh*>(shape)->triangleCount << "]" << std::endl;
+            break;
+	default:
+	    out << "Unknown shape" << std::endl;
+	    break;
+	}
+    }
+    
+}
 }
 
+    
+    

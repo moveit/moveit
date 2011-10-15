@@ -59,5 +59,6 @@ namespace bodies
     Body* createBodyFromShape(const shapes::Shape *shape);
     
     Body* constructBodyFromMsg(const moveit_msgs::Shape &shape, const geometry_msgs::Pose &pose);
+
 }
 #endif

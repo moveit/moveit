@@ -99,4 +99,3 @@ bodies::Body* bodies::constructBodyFromMsg(const moveit_msgs::Shape &shape_msg, 
     
     return NULL;
 }
-
