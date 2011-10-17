@@ -198,6 +198,11 @@ public:
     
     virtual std::vector<double> computeJointStateValues(const btTransform& transform) const = 0;
 
+    virtual unsigned int getParameterCount(void) const
+    {
+	return 0;
+    }
+    
   private:
 
     /** \brief Name of the joint */
@@ -656,7 +661,12 @@ public:
 
   /** \brief Get the root joint */
   const JointModel* getRoot(void) const;
-	
+
+  const std::string& getModelFrame(void) const
+  {
+      return "";
+  }
+  
   /** \brief Provide interface to get an exclusive lock to change the model. Use carefully! */
   void exclusiveLock(void) const;
 	

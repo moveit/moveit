@@ -7,5 +7,7 @@
   <depend stack="ros" />
   <depend stack="ros_comm" /> <!-- rosconsole -->
   <depend stack="robot_model" /> 
+  <depend stack="bullet" /> 
+  <depend stack="assimp" /> 
 
 </stack>

@@ -34,38 +34,51 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef TF_STORAGE_TRANSFORMS_
+#ifndef PLANNING_COORDINATES_TRANSFORMS_w
 #define TF_STORAGE_TRANSFORMS_
 
 #include <LinearMath/btTransform.h>
 #include <string>
 #include <map>
 
-namespace tf_storage
+namespace planning_coordinates
 {
 
-    class TransformSet
+    class Transforms
     {
-	TransformSet(const std::string &target_frame) : target_frame_(target_frame)
+    public:
+	Transforms(const std::string &target_frame) : target_frame_(target_frame), kstate_(NULL)
 	{
 	}
 	
-	~TransformSet(void)
+	~Transforms(void)
 	{
 	}
 	
-	void transformPose(geometry_msgs::PoseStamped &pose);
-	void transformPoint(geometry_msgs::PointStamped &point);
-	void transformQuaternion(geometry_msgs::QuaternionStamped &quat);
-	void transformTransform(geometry_msgs::TransformStamped &transf);
+	const std::string& getPlanningFrame(void) const;
+	bool isFixedFrame(const std::string &frame) const;
 	
-	void recordTransformToTarget(void);
+	void setKinematicState(const planning_models::KinematicState &kstate)
+	{
+	    if (kstate.getKinematicModel()->getModelFrame() != target_frame_)
+		ROS_ERROR("Target frame is assumed to be '%s' but the model of the kinematic state places the robot in frame '%s'",
+			  target_frame_.c_str(), kstate.getKinematicModel()->getModelFrame().c_str());
+	    else
+		kstate_ = &kstate;
+	}
+	
+	void transformVector3(btVector3 &v_out, const btVector3 &v_in, const std::string &from_frame) const;
+	void transformQuaternion(btQuaternion &q_out, const btQuaternion &q_in, const std::string &from_frame) const;
+	void transformMatrix(btMatrix3x3 &m_out, const btMatrix3x3 &m_in, const std::string &from_frame) const;
+	void transformTransform(btTransform &t_out, const btTransform &t_in, const std::string &from_frame) const;
 	
     private:
 	
-	std::map<std::string, btTransform> transforms_;
-    }
-	
+	std::string                            target_frame_;
+	const planning_models::KinematicState *kstate_;
+	std::map<std::string, btTransform>     transforms_;
+    };
+    
 }
 
 #endif

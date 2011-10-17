@@ -1,0 +1,24 @@
+<package>
+  <description brief="ompl_interface">
+
+     ompl_interface
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/ompl_interface</url>
+
+  <depend package="rosconsole" />
+  <depend package="ompl" />
+  <depend package="planning_models"/>
+  <depend package="arm_navigation_msgs"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl_interface"/>
+  </export>
+
+  <platform os="ubuntu" version="10.04"/>
+
+</package>
+
