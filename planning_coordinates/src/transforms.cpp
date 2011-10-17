@@ -85,3 +85,8 @@ void planning_coordinates::Transforms::transformTransform(btTransform &t_out, co
 {
     t_out = getTransformToTargetFrame(from_frame) * t_in;
 }
+
+void planning_coordinates::Transforms::recordTransformFromFrame(const btTransform &t, const std::string &from_frame)
+{
+    transforms_[from_frame] = t;
+}
