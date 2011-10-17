@@ -68,6 +68,8 @@ namespace planning_coordinates
 
 	const btTransform& getTransformToTargetFrame(const std::string &from_frame) const;
 	
+	void recordTransformFromFrame(const btTransform &t, const std::string &from_frame);
+	
     private:
 	
 	std::string                            target_frame_;
