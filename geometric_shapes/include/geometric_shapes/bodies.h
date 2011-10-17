@@ -374,9 +374,6 @@ namespace bodies
 	BoundingCylinder          bounding_cylinder_;
     };
     
-    /** \brief Compute a bounding sphere to enclose a set of bounding spheres */
-    void mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, BoundingSphere &mergedSphere);
-    
     class BodyVector
     {
     public:

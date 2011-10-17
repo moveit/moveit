@@ -65,6 +65,37 @@ bodies::Body* bodies::createBodyFromShape(const shapes::Shape *shape)
   return body;
 }
 
+void bodies::mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, BoundingSphere &mergedSphere)
+{
+    if (spheres.empty())
+    {
+	mergedSphere.center.setValue(btScalar(0), btScalar(0), btScalar(0));
+	mergedSphere.radius = 0.0;
+    }
+    else
+    {
+	mergedSphere = spheres[0];
+	for (unsigned int i = 1 ; i < spheres.size() ; ++i)
+	{
+	    if (spheres[i].radius <= 0.0)
+		continue;
+	    double d = spheres[i].center.distance(mergedSphere.center);
+	    if (d + mergedSphere.radius <= spheres[i].radius)
+	    {
+		mergedSphere.center = spheres[i].center;
+		mergedSphere.radius = spheres[i].radius;
+	    }
+	    else
+		if (d + spheres[i].radius > mergedSphere.radius)
+		{
+		    btVector3 delta = mergedSphere.center - spheres[i].center;
+		    mergedSphere.radius = (delta.length() + spheres[i].radius + mergedSphere.radius)/2.0;
+		    mergedSphere.center = delta.normalized() * (mergedSphere.radius - spheres[i].radius) + spheres[i].center;
+		}
+	}
+    }
+}
+
 void bodies::maskPosesInsideBodyVectors(const std::vector<btTransform>& poses,
                                         const std::vector<bodies::BodyVector*>& bvs,
                                         std::vector<bool>& mask) 
@@ -91,8 +122,13 @@ bodies::Body* bodies::constructBodyFromMsg(const moveit_msgs::Shape &shape_msg, 
 	Body *body = createBodyFromShape(shape);
 	if (body)
 	{
-	    body->setPose(btTransform(btQuaternion(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
-				      btVector3(pose.position.x, pose.position.y, pose.position.z)));
+	    btQuaternion q(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+	    if (fabs(q.length2() - 1.0) > 1e-3)
+	    {
+		ROS_ERROR("Quaternion is not normalized. Assuming identity.");
+		q = btQuaternion(0.0, 0.0, 0.0, 1.0);
+	    }
+	    body->setPose(btTransform(q,btVector3(pose.position.x, pose.position.y, pose.position.z)));
 	    return body;
 	}
     }
