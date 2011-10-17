@@ -44,37 +44,6 @@
 #include <iostream>
 #include <cmath>
 
-void bodies::mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, BoundingSphere &mergedSphere)
-{
-    if (spheres.empty())
-    {
-	mergedSphere.center.setValue(btScalar(0), btScalar(0), btScalar(0));
-	mergedSphere.radius = 0.0;
-    }
-    else
-    {
-	mergedSphere = spheres[0];
-	for (unsigned int i = 1 ; i < spheres.size() ; ++i)
-	{
-	    if (spheres[i].radius <= 0.0)
-		continue;
-	    double d = spheres[i].center.distance(mergedSphere.center);
-	    if (d + mergedSphere.radius <= spheres[i].radius)
-	    {
-		mergedSphere.center = spheres[i].center;
-		mergedSphere.radius = spheres[i].radius;
-	    }
-	    else
-		if (d + spheres[i].radius > mergedSphere.radius)
-		{
-		    btVector3 delta = mergedSphere.center - spheres[i].center;
-		    mergedSphere.radius = (delta.length() + spheres[i].radius + mergedSphere.radius)/2.0;
-		    mergedSphere.center = delta.normalized() * (mergedSphere.radius - spheres[i].radius) + spheres[i].center;
-		}
-	}
-    }
-}
-
 namespace bodies
 {
     static const double ZERO = 1e-9;
