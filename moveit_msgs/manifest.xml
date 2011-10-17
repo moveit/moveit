@@ -1,0 +1,23 @@
+<package>
+  <description brief="moveit_msgs">
+
+     moveit_msgs
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_msgs</url>
+  <depend package="std_msgs"/>
+  <depend package="actionlib_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="trajectory_msgs"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include"/>
+  </export>
+
+</package>
+
+
