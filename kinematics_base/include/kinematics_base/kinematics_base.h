@@ -38,10 +38,12 @@
 #define KINEMATICS_BASE_
 
 #include <geometry_msgs/PoseStamped.h>
-#include <arm_navigation_msgs/RobotState.h>
+#include <moveit_msgs/RobotState.h>
 
 #include <kinematics_msgs/GetPositionIK.h>
 #include <kinematics_msgs/GetPositionFK.h>
+
+#include <boost/function.hpp>
 
 namespace kinematics {
 
@@ -62,6 +64,10 @@ namespace kinematics {
    */
   class KinematicsBase{
     public:
+      
+      /** @brief The signature for a callback that can compute IK */
+      typedef boost::function<void(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_solution, int &error_code)> IKCallbackFn;
+      
       /**
        * @brief Given a desired pose of the end-effector, compute the joint angles to reach it
        * @param ik_link_name - the name of the link for which IK is being computed
@@ -84,7 +90,7 @@ namespace kinematics {
        */
        virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                      const std::vector<double> &ik_seed_state,
-                                     const double &timeout,
+                                     double timeout,
                                      std::vector<double> &solution,
                                      int &error_code) = 0;      
 
@@ -98,10 +104,10 @@ namespace kinematics {
        */
        virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                      const std::vector<double> &ik_seed_state,
-                                     const double &timeout,
+				     double timeout,
                                      std::vector<double> &solution,
-                                     const boost::function<void(const geometry_msgs::Pose &ik_pose,const std::vector<double> &ik_solution,int &error_code)> &desired_pose_callback,
-                                     const boost::function<void(const geometry_msgs::Pose &ik_pose,const std::vector<double> &ik_solution,int &error_code)> &solution_callback,
+                                     const IKCallbackFn &desired_pose_callback,
+                                     const IKCallbackFn &solution_callback,
                                      int &error_code) = 0;      
 
       /**
@@ -118,7 +124,7 @@ namespace kinematics {
        * @brief  Initialization function for the kinematics
        * @return True if initialization was successful, false otherwise
        */
-      virtual bool initialize(std::string name) = 0;
+      virtual bool initialize(const std::string &name) = 0;
 
       /**
        * @brief  Return the frame in which the kinematics is operating
