@@ -1,0 +1,21 @@
+# This service contains the definition for a request to the motion
+# planner and the output it provides
+
+MotionPlanRequest motion_plan_request
+
+---
+
+# A solution trajectory, if found
+RobotTrajectory trajectory
+
+# The corresponding robot state
+RobotState robot_state
+
+# Planning time
+duration planning_time
+
+# Error code - encodes the overall reason for failure
+MoveItErrorCodes error_code
+
+# More detailed error codes (optional) - encode information about each point in the returned trajectory
+MoveItErrorCodes[] trajectory_error_codes
