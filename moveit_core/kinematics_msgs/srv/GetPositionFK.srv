@@ -1,0 +1,18 @@
+# A service definition for a standard forward kinematics service
+# The frame_id in the header message is the frame in which 
+# the forward kinematics poses will be returned
+Header header
+
+# A vector of link name for which forward kinematics must be computed
+string[] fk_link_names
+
+# A robot state consisting of joint names and joint positions to be used for forward kinematics
+moveit_msgs/RobotState robot_state
+---
+# The resultant vector of PoseStamped messages that contains the (stamped) poses of the requested links
+geometry_msgs/PoseStamped[] pose_stamped
+
+# The list of link names corresponding to the poses
+string[] fk_link_names
+
+moveit_msgs/MoveItErrorCodes error_code
