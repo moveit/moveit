@@ -34,10 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_COORDINATES_TRANSFORMS_w
-#define TF_STORAGE_TRANSFORMS_
+#ifndef PLANNING_COORDINATES_TRANSFORMS_
+#define PLANNING_COORDINATES_TRANSFORMS_
 
 #include <LinearMath/btTransform.h>
+#include <planning_models/kinematic_state.h>
 #include <string>
 #include <map>
 
@@ -58,19 +59,14 @@ namespace planning_coordinates
 	const std::string& getPlanningFrame(void) const;
 	bool isFixedFrame(const std::string &frame) const;
 	
-	void setKinematicState(const planning_models::KinematicState &kstate)
-	{
-	    if (kstate.getKinematicModel()->getModelFrame() != target_frame_)
-		ROS_ERROR("Target frame is assumed to be '%s' but the model of the kinematic state places the robot in frame '%s'",
-			  target_frame_.c_str(), kstate.getKinematicModel()->getModelFrame().c_str());
-	    else
-		kstate_ = &kstate;
-	}
+	void setKinematicState(const planning_models::KinematicState &kstate);
 	
 	void transformVector3(btVector3 &v_out, const btVector3 &v_in, const std::string &from_frame) const;
 	void transformQuaternion(btQuaternion &q_out, const btQuaternion &q_in, const std::string &from_frame) const;
 	void transformMatrix(btMatrix3x3 &m_out, const btMatrix3x3 &m_in, const std::string &from_frame) const;
 	void transformTransform(btTransform &t_out, const btTransform &t_in, const std::string &from_frame) const;
+
+	const btTransform& getTransformToTargetFrame(const std::string &from_frame) const;
 	
     private:
 	
