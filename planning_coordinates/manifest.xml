@@ -1,0 +1,19 @@
+<package>
+  <description brief="planning_coordinates">
+
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planning_coordinates</url>
+  <depend package="geometry_msgs"/>
+  <depend package="bullet"/>
+  <depend package="planning_models"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" />
+  </export>
+
+</package>
+

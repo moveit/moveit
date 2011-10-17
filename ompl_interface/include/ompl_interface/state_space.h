@@ -32,6 +32,47 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#include <tf_storage/transforms.h>
+#ifndef OMPL_INTERFACE_STATE_SPACE_
+#define OMPL_INTERFACE_STATE_SPACE_
+
+#include <ompl/base/StateSpace.h>
+#include <ompl/tools/spaces/StateSpaceCollection.h>
+#include <planning_models/kinematic_model.h>
+#include <planning_models/kinematic_state.h>
+
+namespace ompl_interface
+{
+    
+    class KMStateSpace
+    {
+    public:
+	KMStateSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
+	
+	const ompl::base::StateSpacePtr& getOMPLSpace(void) const;
+	
+	void copyToKinematicState(const std::vector<planning_models::KinematicState::JointState*> &js, const ompl::base::State *state);
+	
+	void copyToOMPLState(ompl::base::State *state, const std::vector<const planning_models::KinematicState::JointState*> &js);
+	
+	double* getOMPLStateValueAddress(const std::string &joint_name, ompl::base::State *state);
+	const double* getOMPLStateValueAddress(const std::string &joint_name, const ompl::base::State *state);
+	
+	void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
+    
+    private:
+	
+	void constructSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
+	
+	std::vector<const planning_models::KinematicModel::JointModel*> joints_;
+	std::vector<std::size_t>                                        joint_mapping_;	   
+	ompl::base::StateSpacePtr                                       space_;
+	std::vector<ompl::base::StateSpacePtr>                          all_components_;
+	ompl::StateAddress                                              state_address_;
+    };
+    
+}
+
+#endif
+    
