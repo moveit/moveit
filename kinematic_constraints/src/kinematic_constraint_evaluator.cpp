@@ -102,7 +102,7 @@ std::pair<bool, double> kinematic_constraints::JointConstraintEvaluator::decide(
 	ROS_INFO("Constraint %s:: Joint name: %s, actual value: %f, desired value: %f, tolerance_above: %f, tolerance_below: %f",
 		 result ? "satisfied" : "violated", joint->getName().c_str(), current_joint_position, jc_.position, jc_.tolerance_above, jc_.tolerance_below);
     
-    return std::make_pair(result, fabs(dif));
+    return std::make_pair(result, jc_.weight * fabs(dif));
 }
 
 void kinematic_constraints::JointConstraintEvaluator::clear(void)
@@ -153,8 +153,7 @@ bool kinematic_constraints::PositionConstraintEvaluator::use(const moveit_msgs::
 	if (tf_.isFixedFrame(pc_.constraint_region_pose.header.frame_id))
 	{
 	    tf_.transformTransform(constraint_region_pose_, constraint_region_pose_, pc_.constraint_region_pose.header.frame_id);
-	    if (constraint_region_)
-		constraint_region_->setPose(constraint_region_pose_);
+	    constraint_region_->setPose(constraint_region_pose_);
 	    mobileFrame_ = false;
 	}
 	else
@@ -168,16 +167,17 @@ bool kinematic_constraints::PositionConstraintEvaluator::use(const moveit_msgs::
 namespace kinematic_constraints
 {
     // helper function to avoid code duplication
-    static inline std::pair<bool, double> finishPositionConstraintEvaluatorDecision(const btVector3 &pt, const btVector3 &desired, const std::string &link_name, bool result, bool verbose)
+    static inline std::pair<bool, double> finishPositionConstraintEvaluatorDecision(const btVector3 &pt, const btVector3 &desired,
+										    const moveit_msgs::PositionConstraint &pc, bool result, bool verbose)
     {
 	if (verbose)
 	    ROS_INFO("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
-		     result ? "satisfied" : "violated", link_name.c_str(),
+		     result ? "satisfied" : "violated", pc.link_name.c_str(),
 		     desired.x(), desired.y(), desired.z(), pt.x(), pt.y(), pt.z());
 	double dx = desired.x() - pt.x();
 	double dy = desired.y() - pt.y();
 	double dz = desired.z() - pt.z();
-	return std::make_pair(result, sqrt(dx * dx + dy * dy + dz * dz));
+	return std::make_pair(result, pc.weight * sqrt(dx * dx + dy * dy + dz * dz));
     }
 }
 
@@ -206,12 +206,12 @@ std::pair<bool, double> kinematic_constraints::PositionConstraintEvaluator::deci
 	constraint_region_->setPose(tmp);
 	bool result = constraint_region_->containsPoint(pt, false);  
 	lock_.unlock();
-	return finishPositionConstraintEvaluatorDecision(pt, tmp.getOrigin(), pc_.link_name, result, verbose);
+	return finishPositionConstraintEvaluatorDecision(pt, tmp.getOrigin(), pc_, result, verbose);
     }
     else
     {
 	bool result = constraint_region_->containsPoint(pt, false);  
-	return finishPositionConstraintEvaluatorDecision(pt, constraint_region_->getPose().getOrigin(), pc_.link_name, result, verbose);
+	return finishPositionConstraintEvaluatorDecision(pt, constraint_region_->getPose().getOrigin(), pc_, result, verbose);
     }
 }
 
@@ -339,7 +339,7 @@ std::pair<bool, double> kinematic_constraints::OrientationConstraintEvaluator::d
 		 oc_.absolute_roll_tolerance, oc_.absolute_pitch_tolerance, oc_.absolute_yaw_tolerance);
     }
     
-    return std::make_pair(result, fabs(roll) + fabs(pitch) + fabs(yaw));
+    return std::make_pair(result, oc_.weight * (fabs(roll) + fabs(pitch) + fabs(yaw)));
 }
 
 const moveit_msgs::OrientationConstraint& kinematic_constraints::OrientationConstraintEvaluator::getConstraintMessage(void) const
@@ -478,12 +478,19 @@ bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const std::vect
 }
 */
 
-bool kinematic_constraints::KinematicConstraintEvaluatorSet::decide(const planning_models::KinematicState &state, bool verbose) const
+std::pair<bool, double> kinematic_constraints::KinematicConstraintEvaluatorSet::decide(const planning_models::KinematicState &state, bool verbose) const
 {
+    bool result = true;
+    double d = 0.0;
     for (unsigned int i = 0 ; i < kce_.size() ; ++i)
-	if (!kce_[i]->decide(state, verbose).first)
-	    return false;
-    return true;
+    {
+	const std::pair<bool, double> &r = kce_[i]->decide(state, verbose);
+	if (!r.first)
+	    result = false;
+	d += r.second;
+    }
+    
+    return std::make_pair(result, d);
 }
 
 void kinematic_constraints::KinematicConstraintEvaluatorSet::print(std::ostream &out) const
