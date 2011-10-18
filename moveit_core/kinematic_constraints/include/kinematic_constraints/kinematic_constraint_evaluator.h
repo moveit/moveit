@@ -237,7 +237,7 @@ namespace kinematic_constraints
 	//	bool add(const std::vector<moveit_msgs::VisibilityConstraint> &pc);
 	
 	/** \brief Decide whether the set of constraints is satisfied  */
-	bool decide(const planning_models::KinematicState &state, bool verbose = false) const;
+	std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
 	
 	/** \brief Print the constraint data */
 	void print(std::ostream &out = std::cout) const;
