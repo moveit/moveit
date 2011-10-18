@@ -48,6 +48,7 @@
 #include <iostream>
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace kinematic_constraints
 {
@@ -81,7 +82,9 @@ namespace kinematic_constraints
 	mutable planning_coordinates::Transforms  tf_;	
 	mutable boost::mutex                      lock_;
     };
-    
+
+    typedef boost::shared_ptr<KinematicConstraintEvaluator> KinematicConstraintEvaluatorPtr;
+
     class JointConstraintEvaluator : public KinematicConstraintEvaluator
     {
     public:  
@@ -223,7 +226,10 @@ namespace kinematic_constraints
 	
 	/** \brief Clear the stored constraints */
 	void clear(void);
-	
+
+	/** \brief Add all known constraints */
+	bool add(const moveit_msgs::Constraints &c);
+
 	/** \brief Add a set of joint constraints */
 	bool add(const std::vector<moveit_msgs::JointConstraint> &jc);
 	
@@ -272,14 +278,17 @@ namespace kinematic_constraints
 	const planning_models::KinematicModel          &model_;
 	const planning_coordinates::Transforms         &tf_;
 	
-	std::vector<KinematicConstraintEvaluator*>      kce_;
+	std::vector<KinematicConstraintEvaluatorPtr>    kce_;
 
 	std::vector<moveit_msgs::JointConstraint>       jc_;
 	std::vector<moveit_msgs::PositionConstraint>    pc_;
 	std::vector<moveit_msgs::OrientationConstraint> oc_;
 	//	std::vector<moveit_msgs::VisibilityConstraint>  vc_;
-    };
-} // planning_environment
+    };    
+    
+    typedef boost::shared_ptr<KinematicConstraintEvaluatorSet> KinematicConstraintEvaluatorSetPtr;
+    
+}
 
 
 #endif
