@@ -50,18 +50,18 @@ const ompl::base::StateSpacePtr& ompl_interface::KMStateSpace::getOMPLSpace(void
     return space_;
 }      
 
-double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::string &joint_name, ompl::base::State *state)
+double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::string &joint_name, ompl::base::State *state) const
 {
     return state_address_.getValueAddressAtName(joint_name, state);    
 }
 
-const double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::string &joint_name, const ompl::base::State *state)
+const double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::string &joint_name, const ompl::base::State *state) const
 {
     return state_address_.getValueAddressAtName(joint_name, state);    
 }
 
 void ompl_interface::KMStateSpace::copyToKinematicState(const std::vector<planning_models::KinematicState::JointState*> &js,
-							const ompl::base::State *state)
+							const ompl::base::State *state) const
     
 {	
     const ompl::base::CompoundState *cstate = state->as<ompl::base::CompoundState>();
@@ -163,7 +163,7 @@ void ompl_interface::KMStateSpace::setPlanningVolume(double minX, double maxX, d
 }
 
 void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ssc,
-						  const std::vector<const planning_models::KinematicModel::JointModel*> &joints)
+						  const std::vector<const planning_models::KinematicModel::JointModel*> &joints) 
 {
     joints_ = joints;		
     space_.reset();

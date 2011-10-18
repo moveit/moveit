@@ -485,7 +485,11 @@ public:
                     const KinematicModel* parent_model);
     
     ~JointModelGroup(void);
-
+    
+    const KinematicModel* getParentModel(void)const
+    {
+    }
+    
     const std::string& getName() const
     {
       return name_;
