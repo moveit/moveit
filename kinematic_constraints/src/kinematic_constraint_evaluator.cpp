@@ -411,8 +411,6 @@ void kinematic_constraints::VisibilityConstraintEvaluator::print(std::ostream &o
 */
 void kinematic_constraints::KinematicConstraintEvaluatorSet::clear(void)
 {
-    for (unsigned int i = 0 ; i < kce_.size() ; ++i)
-	delete kce_[i];
     kce_.clear();	
     jc_.clear();
     pc_.clear();
@@ -428,7 +426,7 @@ bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const std::vect
 	JointConstraintEvaluator *ev = new JointConstraintEvaluator(model_, tf_);
 	bool u = ev->use(jc[i]);
 	result = result && u;
-	kce_.push_back(ev);
+	kce_.push_back(KinematicConstraintEvaluatorPtr(ev));
 	jc_.push_back(jc[i]);
     }
     return result;
@@ -442,7 +440,7 @@ bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const std::vect
 	PositionConstraintEvaluator *ev = new PositionConstraintEvaluator(model_, tf_);
 	bool u = ev->use(pc[i]);
 	result = result && u;	
-	kce_.push_back(ev);
+	kce_.push_back(KinematicConstraintEvaluatorPtr(ev));
 	pc_.push_back(pc[i]);
     }
     return result;
@@ -456,10 +454,18 @@ bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const std::vect
 	OrientationConstraintEvaluator *ev = new OrientationConstraintEvaluator(model_, tf_);
 	bool u = ev->use(oc[i]);
 	result = result && u;	
-	kce_.push_back(ev);
+	kce_.push_back(KinematicConstraintEvaluatorPtr(ev));
 	oc_.push_back(oc[i]);
     }
     return result;
+}
+
+bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const moveit_msgs::Constraints &c)
+{
+    bool j = add(c.joint_constraints);
+    bool p = add(c.position_constraints);
+    bool o = add(c.orientation_constraints);
+    return j && p && o;
 }
 
 /*
