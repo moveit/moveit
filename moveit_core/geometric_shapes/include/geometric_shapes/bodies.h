@@ -73,16 +73,14 @@ namespace bodies
     {
     public:
 	
-	Body(void)
+	Body(void) : shape_(NULL), scale_(1.0), padding_(0.0), type_(shapes::UNKNOWN_SHAPE)
 	{
-	    scale_ = 1.0;
-	    padding_ = 0.0;
 	    pose_.setIdentity();
-	    type_ = shapes::UNKNOWN_SHAPE;
 	}
 	
 	virtual ~Body(void)
 	{
+	    delete shape_;
 	}
 	
 	/** \brief Get the type of shape this body represents */
@@ -133,10 +131,12 @@ namespace bodies
 	}
 	
 	/** \brief Set the dimensions of the body (from corresponding shape) */
-	void setDimensions(const shapes::Shape *shape)
+	void setDimensions(const shapes::Shape *shape);
+	
+	/** \brief Get the shape that corresponds to this body */
+	const shapes::Shape* getShape(void) const
 	{
-	    useDimensions(shape);
-	    updateInternalData();
+	    return shape_;
 	}
 	
 	/** \brief Check is a point is inside the body */
@@ -171,10 +171,12 @@ namespace bodies
 	virtual void updateInternalData(void) = 0;
 	virtual void useDimensions(const shapes::Shape *shape) = 0;
 	
-	shapes::ShapeType type_;
-	btTransform       pose_;	
+	shapes::Shape    *shape_;
 	double            scale_;
 	double            padding_;	
+	shapes::ShapeType type_;
+	btTransform       pose_;	
+
     };
     
     /** \brief Definition of a sphere */
@@ -400,7 +402,6 @@ namespace bodies
 
 	const Body* getBody(unsigned int i) const;
 	
-	BoundingSphere getBoundingSphere(unsigned int i) const;
 	double getBoundingSphereRadiusSquared(unsigned int i) const;
 	
     private:

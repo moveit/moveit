@@ -35,6 +35,7 @@
 /** \author Ioan Sucan */
 
 #include "geometric_shapes/bodies.h"
+#include "geometric_shapes/shape_operations.h"
 #include "geometric_shapes/body_operations.h"
 
 #include <ros/console.h>
@@ -78,6 +79,15 @@ namespace bodies
 	    }
 	};
     }
+}
+
+void bodies::Body::setDimensions(const shapes::Shape *shape)
+{
+    if (shape_)
+	delete shape_;
+    shape_ = shapes::cloneShape(shape);
+    useDimensions(shape);
+    updateInternalData();
 }
 
 bool bodies::Sphere::containsPoint(const btVector3 &p, bool verbose) const 
@@ -913,23 +923,9 @@ const bodies::Body* bodies::BodyVector::getBody(unsigned int i) const
 	return bodies_[i];
 }
 
-bodies::BoundingSphere bodies::BodyVector::getBoundingSphere(unsigned int i) const
-{
-    BoundingSphere sphere;
-    if (i >= bodies_.size())
-    {
-	ROS_ERROR("There is no body at index %u", i);
-	sphere.radius = 0.0;
-	sphere.center = btVector3(0.0, 0.0, 0.0);
-    }
-    else
-	bodies_[i]->computeBoundingSphere(sphere);
-    return sphere;
-}
-
 double bodies::BodyVector::getBoundingSphereRadiusSquared(unsigned int i) const
 {
-    if(i >= rsqrs_.size()) 
+    if (i >= rsqrs_.size()) 
     {
 	ROS_ERROR("There is no body at index %u", i);
 	return -1.0;
