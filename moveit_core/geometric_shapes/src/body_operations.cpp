@@ -96,24 +96,6 @@ void bodies::mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, Bo
     }
 }
 
-void bodies::maskPosesInsideBodyVectors(const std::vector<btTransform>& poses,
-                                        const std::vector<bodies::BodyVector*>& bvs,
-                                        std::vector<bool>& mask) 
-{
-    mask.resize(poses.size(), false);
-    for (unsigned int i = 0; i < poses.size(); i++)
-    {
-	bool inside = false;
-	const btVector3& pt = poses[i].getOrigin();
-	for (unsigned int j = 0; !inside && j < bvs.size(); j++)
-	{
-	    for (unsigned int k = 0 ; !inside && k < bvs[j]->getSize(); ++k)
-		inside = bvs[j]->containsPoint(pt);
-	}
-	mask[i] = !inside;
-    }
-}
-
 bodies::Body* bodies::constructBodyFromMsg(const moveit_msgs::Shape &shape_msg, const geometry_msgs::Pose &pose)
 {
     shapes::Shape *shape = shapes::constructShapeFromMsg(shape_msg);

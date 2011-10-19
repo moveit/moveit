@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 * 
-*  Copyright (c) 2008, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 * 
 *  Redistribution and use in source and binary forms, with or without
@@ -32,30 +32,67 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan, E. Gil Jones */
-
-#ifndef GEOMETRIC_SHAPES_BODY_OPERATIONS_
-#define GEOMETRIC_SHAPES_BODY_OPERATIONS_
+/** \author Ioan Sucan */
 
 #include "geometric_shapes/shapes.h"
-#include "geometric_shapes/bodies.h"
-#include <LinearMath/btTransform.h>
-#include <moveit_msgs/Shape.h>
-#include <geometry_msgs/Pose.h>
-#include <vector>
+#include <ros/console.h>
 
-namespace bodies
+shapes::ShapeVector::ShapeVector(void)
 {
-
-    /** \brief Create a body from a given shape */
-    Body* createBodyFromShape(const shapes::Shape *shape);
-    
-    /** \brief Create a body from a given shape */
-    Body* constructBodyFromMsg(const moveit_msgs::Shape &shape, const geometry_msgs::Pose &pose);
-
-    /** \brief Compute a bounding sphere to enclose a set of bounding spheres */
-    void mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, BoundingSphere &mergedSphere);
-    
-
 }
-#endif
+
+shapes::ShapeVector::~ShapeVector(void)
+{
+    clear();
+}
+
+void shapes::ShapeVector::addShape(Shape* shape)
+{
+    shapes_.push_back(shape);
+}
+
+void shapes::ShapeVector::addShape(StaticShape* shape)
+{
+    sshapes_.push_back(shape);
+}
+
+void shapes::ShapeVector::clear(void)
+{
+    for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
+	delete shapes_[i];
+    shapes_.clear();
+    for (std::size_t i = 0 ; i < sshapes_.size() ; ++i)
+	delete sshapes_[i];
+    sshapes_.clear();
+}
+
+std::size_t shapes::ShapeVector::getCount(void) const
+{
+    return shapes_.size();
+}
+
+std::size_t shapes::ShapeVector::getStaticCount(void) const
+{
+    return sshapes_.size();
+}
+
+const shapes::Shape* shapes::ShapeVector::getShape(unsigned int i) const
+{
+    if (i >= shapes_.size())
+    {
+	ROS_ERROR("There is no shape at index %u", i);
+	return NULL;
+    }
+    return shapes_[i];
+}
+
+const shapes::StaticShape* shapes::ShapeVector::getStaticShape(unsigned int i) const
+{
+    if (i >= sshapes_.size())
+    {
+	ROS_ERROR("There is no static shape at index %u", i);
+	return NULL;
+    }
+    return sshapes_[i];
+}
+

@@ -901,6 +901,11 @@ void bodies::BodyVector::addBody(const shapes::Shape *shape, const btTransform& 
     addBody(body);
 }
 
+std::size_t bodies::BodyVector::getCount(void) const
+{
+    return bodies_.size();
+}
+
 void bodies::BodyVector::setPose(unsigned int i, const btTransform& pose)
 {
     if (i >= bodies_.size())

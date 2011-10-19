@@ -393,10 +393,7 @@ namespace bodies
 	
 	void setPose(unsigned int i, const btTransform& pose);
 	
-	std::size_t getSize() const
-	{
-	    return bodies_.size();
-	}
+	std::size_t getCount(void) const;
 	
 	bool containsPoint(const btVector3 &p, bool verbose = false) const;
 
