@@ -38,6 +38,7 @@
 #define GEOMETRIC_SHAPES_SHAPES_
 
 #include <cstdlib>
+#include <vector>
 
 /** Definition of various shapes. No properties such as position are
     included. These are simply the descriptions and dimensions of
@@ -219,6 +220,33 @@ namespace shapes
 	double a, b, c, d;
     };
     
+    class ShapeVector
+    {
+    public:
+	
+	ShapeVector(void);
+	~ShapeVector(void);
+	
+	/** \brief Add a shape to the list of maintained shapes */
+	void addShape(Shape* shape);
+
+	/** \brief Add a static shape to the list of maintained shapes */
+	void addShape(StaticShape* shape);
+	
+	void clear(void);
+	
+	std::size_t getCount(void) const;
+	std::size_t getStaticCount(void) const;
+
+	const Shape* getShape(unsigned int i) const;
+	const StaticShape* getStaticShape(unsigned int i) const;
+	
+    private:
+	
+	std::vector<Shape*>       shapes_;
+	std::vector<StaticShape*> sshapes_;
+	
+    };
 }
 
 #endif
