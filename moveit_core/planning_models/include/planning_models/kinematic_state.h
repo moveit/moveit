@@ -37,481 +37,535 @@
 #ifndef PLANNING_MODELS_KINEMATIC_STATE_
 #define PLANNING_MODELS_KINEMATIC_STATE_
 
-#include "kinematic_model.h"
+#include "planning_models/kinematic_model.h"
 
 /** \brief Main namespace */
 namespace planning_models
 {
-
-/** \brief Definition of a kinematic state - the parts of the robot
-    state which can change.  It is not thread safe, however multiple 
-    instances can be created */
-class KinematicState 
-{
-
-public:
-  
-  class JointState; /** \brief Forward definition of a joint state */;
-  
-  class LinkState; /** \brief Forward definition of a link state */
-
-  class AttachedBodyState; /** \brief Forward definition of an attached body state */
-
-  class JointGroupState; /** \brief Forward definition of a joint group state */
-
-  class JointState
-  {
-  public: 
     
-    /** brief Constructs the joint state from the model */
-    JointState(const KinematicModel::JointModel* jm);
-
-    ~JointState()
+    /** \brief Definition of a kinematic state - the parts of the robot
+	state which can change. Const members are thread safe */
+    class KinematicState 
     {
-    }
-
-    /** \brief Sets the internal values from the joint_value_map */
-    bool setJointStateValues(const std::map<std::string, double>& joint_value_map);
-
-    /** \brief Sets the internal values from the joint_value_map, returning states that aren't being set */
-    bool setJointStateValues(const std::map<std::string, double>& joint_value_map,
-                             std::vector<std::string>& missing_states);
-    
-    /** \brief Sets the internal values from the supplied vector, which are assumed to be in the required order*/
-    bool setJointStateValues(const std::vector<double>& joint_value_vector);
-    
-    /** \brief Sets the internal values from the supplied array, which are assumed to be in the required order*/
-    bool setJointStateValues(const double *joint_value_vector);
-
-    /** \brief Sets the internal values from the transform */
-    bool setJointStateValues(const btTransform& transform);
-
-    /** \brief Specifies whether or not all values associated with a joint are defined in the 
-        supplied joint value map */
-    bool allJointStateValuesAreDefined(const std::map<std::string, double>& joint_value_map) const;
-
-    /** \brief returns a pair of the low and high bounds for the given joint value.
-        Supplied name should be externally defined name. */
-    bool getJointValueBounds(const std::string& value_name, double& low, double& high) const;
-    
-    /** \brief gets all bounds for a particular joint */
-    const std::map<std::string, std::pair<double, double> >& getAllJointValueBounds() const;
-
-    /** \brief Checks if the current joint state values are all within the bounds set in the model */
-    bool areJointStateValuesWithinBounds() const;
-
-    const std::string& getName() const 
-    {
-      return joint_model_->getName();
-    }
-    
-    /** \brief Gets the number of dimensions for a joint */
-    unsigned int getDimension() 
-    {
-      return joint_state_values_.size();
-    }
-
-    /** \brief Gets the joint state values stored in the required order */
-    const std::vector<double>& getJointStateValues() const;
-
-    /** \brief Gets the required name order for the joint state values */
-    const std::vector<std::string>& getJointStateNameOrder() const;
-
-    /** \brief Gets the current variable transform */
-    const btTransform& getVariableTransform() const 
-    {
-      return variable_transform_;
-    }
-    
-    /** \brief Gets the joint model */
-    const KinematicModel::JointModel* getJointModel() const
-    {
-      return joint_model_;
-    }
-
-    const std::map<std::string, unsigned int>& getJointStateIndexMap() const
-    {
-      return joint_state_index_map_;
-    }
-
-    const std::string& getParentFrameId() const
-    {
-      return joint_model_->getParentFrameId();
-    }
-
-    const std::string& getChildFrameId() const
-    {
-      return joint_model_->getChildFrameId();
-    }
-
-  private:
-    
-    const KinematicModel::JointModel* joint_model_;
-    
-    /** \brief the local transform (computed by forward kinematics) */
-    btTransform variable_transform_; 
-      
-    std::map<std::string, unsigned int> joint_state_index_map_;
-
-    std::vector<std::string> joint_state_name_order_;
-
-    std::vector<double> joint_state_values_;
-  };
-
-  class LinkState 
-  {
-  public:
-    LinkState(const KinematicModel::LinkModel* lm);
-
-    ~LinkState();
-
-    const std::string& getName() const 
-    {
-      return link_model_->getName();
-    }
-
-    void setParentJointState(const JointState* js) 
-    {
-      parent_joint_state_ = js;
-    }
-    
-    void setParentLinkState(const LinkState* ls)
-    {
-      parent_link_state_ = ls;
-    }
-
-    void updateGivenGlobalLinkTransform(const btTransform& transform)
-    {
-      global_link_transform_ = transform;
-      global_collision_body_transform_.mult(global_link_transform_, link_model_->getCollisionOriginTransform());
-      updateAttachedBodies();
-    }
-    
-    /** \brief Recompute global_collision_body_transform and global_link_transform */
-    void computeTransform(void);
-    
-    //updates all attached bodies given set link transforms
-    void updateAttachedBodies();
-
-    const KinematicModel::LinkModel* getLinkModel() const 
-    {
-      return link_model_;
-    }
-    
-    const JointState* getParentJointState() const
-    {
-      return parent_joint_state_;
-    }
-
-    const LinkState* getParentLinkState() const
-    {
-      return parent_link_state_;
-    }
-
-    const std::vector<AttachedBodyState*>& getAttachedBodyStateVector() const
-    {
-      return attached_body_state_vector_;
-    }
-
-    const btTransform& getGlobalLinkTransform() const 
-    {
-      return global_link_transform_;
-    }
-
-    const btTransform& getGlobalCollisionBodyTransform() const
-    {
-      return global_collision_body_transform_;
-    }
-
-  private:
-    
-    const KinematicModel::LinkModel* link_model_;
-
-    const JointState* parent_joint_state_;
-
-    const LinkState* parent_link_state_;
-
-    std::vector<AttachedBodyState*> attached_body_state_vector_;
-
-    /** \brief The global transform this link forwards (computed by forward kinematics) */
-    btTransform global_link_transform_;
-    
-    /** \brief The global transform for this link (computed by forward kinematics) */
-    btTransform global_collision_body_transform_;    
-  };
-
-  class AttachedBodyState 
-  {
-  public:
-    AttachedBodyState(const KinematicModel::AttachedBodyModel* abm, const LinkState* parent_link_state);
-    
-    ~AttachedBodyState()
-    {
-    }
-
-    const std::string& getName() const
-    {
-      return attached_body_model_->getName();
-    }
-
-    const std::string& getAttachedLinkName() const
-    {
-      return attached_body_model_->getAttachedLinkModel()->getName();
-    }
-    
-    const KinematicModel::AttachedBodyModel* getAttachedBodyModel() const
-    {
-      return attached_body_model_;
-    }
-
-    /** \brief Recompute global_collision_body_transform */
-    void computeTransform(void);
-
-    const std::vector<btTransform>& getGlobalCollisionBodyTransforms() const
-    {
-      return global_collision_body_transforms_;
-    }
-
-  private:
-    const KinematicModel::AttachedBodyModel* attached_body_model_;
-
-    const LinkState* parent_link_state_;
-
-    /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
-    std::vector<btTransform> global_collision_body_transforms_;
-    
-  };
-
-  class JointStateGroup
-  {
-  public:
-	    
-    JointStateGroup(const KinematicModel::JointModelGroup* jmg, const KinematicState* owner);
-
-    //JointGroupState(const JointGroupState* jgs)
-
-    ~JointStateGroup(void)
-    {
-    }
-
-    const KinematicModel::JointModelGroup* getJointModelGroup() {
-      return joint_model_group_;
-    }
-
-    const std::string& getName() const 
-    {
-      return joint_model_group_->getName();
-    }
-
-    unsigned int getDimension() const
-    {
-      return dimension_;
-    }
-
-    /** \brief Perform forward kinematics starting at the roots
-        within a group. Links that are not in the group are also
-        updated, but transforms for joints that are not in the
-        group are not recomputed.  */    
-    bool setKinematicState(const std::vector<double>& joint_state_values);
-    
-    /** \brief Perform forward kinematics starting at the roots
-        within a group. Links that are not in the group are also
-        updated, but transforms for joints that are not in the
-        group are not recomputed.  */
-    bool setKinematicState(const std::map<std::string, double>& joint_state_map);
-
-    /** compute transforms using current joint values */
-    void updateKinematicLinks();	
-
-    /** \brief Check if a joint is part of this group */
-    bool hasJointState(const std::string &joint) const;
-
-    /** \brief Check if a link is updated by this group */
-    bool updatesLinkState(const std::string& joint) const;
-
-    /** \brief Get a joint state by its name */
-    JointState* getJointState(const std::string &joint) const;
-
-    void getKinematicStateValues(std::vector<double>& joint_state_values) const;
-    
-    void getKinematicStateValues(std::map<std::string, double>& joint_state_values) const;
-   
-    /** \brief Bring the group to a default state. All joints are
-        at 0. If 0 is not within the bounds of the joint, the
-        middle of the bounds is used. */
-    void setKinematicStateToDefault();
-
-    const std::vector<JointState*>& getJointRoots() const 
-    {
-      return joint_roots_;
-    }
-
-    const std::map<std::string, unsigned int>& getKinematicStateIndexMap() const
-    {
-      return kinematic_state_index_map_;
-    }
-    
-    const std::vector<std::string>& getJointNames() const
-    {
-      return joint_names_;
-    }
-
-    const std::vector<JointState*>& getJointStateVector() const
-    {
-      return joint_state_vector_;
-    }
-	    
-  private:
-    
-    /** \brief The kinematic model that owns the group */
-    boost::shared_ptr<KinematicModel> kinematic_model_;	    
-
-    const KinematicModel::JointModelGroup* joint_model_group_;
-    
-    unsigned int dimension_;
-    std::map<std::string, unsigned int> kinematic_state_index_map_;
-
-    /** \brief Names of joints in the order they appear in the group state */
-    std::vector<std::string> joint_names_;
-
-    /** \brief Joint instances in the order they appear in the group state */
-    std::vector<JointState*> joint_state_vector_;
-
-    /** \brief A map from joint names to their instances */
-    std::map<std::string, JointState*> joint_state_map_;
-
-     /** \brief The list of joints that are roots in this group */
-    std::vector<JointState*> joint_roots_;
-
-    /** \brief The list of links that are updated when computeTransforms() is called, in the order they are updated */
-    std::vector<LinkState*> updated_links_;	    
-  };
-
-  KinematicState(const KinematicModel* kinematic_model);
-  
-  KinematicState(const KinematicState& state);
-
-  ~KinematicState(void);
-
-  bool setKinematicState(const std::vector<double>& joint_state_values);
-  
-  bool setKinematicState(const std::map<std::string, double>& joint_state_map);
-
-  bool setKinematicState(const std::map<std::string, double>& joint_state_map,
-                         std::vector<std::string>& missing_links);
-
-  void getKinematicStateValues(std::vector<double>& joint_state_values) const;
-
-  void getKinematicStateValues(std::map<std::string, double>& joint_state_values) const;
-
-  void updateKinematicLinks();
-
-  bool updateKinematicStateWithLinkAt(const std::string& link_name, const btTransform& transform);
-
-  const KinematicModel* getKinematicModel() const 
-  {
-    return kinematic_model_;
-  } 
-
-  unsigned int getDimension() const {
-    return dimension_;
-  }
-  
-  std::vector<LinkState*> getChildLinkStates(const std::string& link_name) const;
-
-  void setKinematicStateToDefault();
-
-  bool areJointsWithinBounds(const std::vector<std::string>& joints) const;
-
-  bool isJointWithinBounds(const std::string& joint) const;
-
-  /** \brief Get a group by its name */
-  const JointStateGroup* getJointStateGroup(const std::string &name) const;
-
-  /** \brief Get a group by its name */
-  JointStateGroup* getJointStateGroup(const std::string &name);
 	
-  /** \brief Check if a group exists */
-  bool hasJointStateGroup(const std::string &name) const;
+    public:
+	
+	/** \brief Forward definition of a joint state */;
+	class JointState;
+	
+	/** \brief Forward definition of a link state */
+	class LinkState;
+	
+	/** \brief Forward definition of an attached body */
+	class AttachedBody; 
+	
+	/** \brief Forward definition of a joint group state */
+	class JointGroupState; 
+	
+	class JointState
+	{
+	    friend class KinematicState;
+	public: 
+	    
+	    /** brief Constructs the joint state from the model */
+	    JointState(const KinematicState *state, const KinematicModel::JointModel* jm);
+	    ~JointState(void);
+	    
+	    /** \brief Sets the internal values from a map of joint variable names to actual values */
+	    bool setJointStateValues(const std::map<std::string, double>& joint_value_map);
 
-  /** \brief Check if a joint is part of this state */
-  bool hasJointState(const std::string &joint) const;
-  
-  /** \brief Check if a link is updated by this state */
-  bool hasLinkState(const std::string& joint) const;
+	    /** \brief Sets the internal values from a map of joint
+		variable names to actual values. The function also
+		fills the missing vector with the variable names that
+		were not set. */
+	    bool setJointStateValues(const std::map<std::string, double>& joint_value_map,
+				     std::vector<std::string>& missing);
+	    
+	    /** \brief Sets the internal values from the supplied vector, which are assumed to be in the required order */
+	    bool setJointStateValues(const std::vector<double>& joint_value_vector);
+	    
+	    /** \brief Sets the internal values from the supplied
+		array, which are assumed to be in the required
+		order. This function is intended to be fast, does no
+		input checking and should be used carefully. */
+	    bool setJointStateValues(const double *joint_value_vector);
+	    
+	    /** \brief Sets the internal values from the transform */
+	    bool setJointStateValues(const btTransform& transform);
+	    
+	    /** \brief Specifies whether or not all values associated with a joint are defined in the 
+		supplied joint value map */
+	    bool allJointStateValuesAreDefined(const std::map<std::string, double>& joint_value_map) const;
+	    
+	    /** \brief Checks if the current joint state values are all within the bounds set in the model */
+	    bool statisfiesBounds(void) const;
+	    
+	    const std::string& getName(void) const 
+	    {
+		return joint_model_->getName();
+	    }
 
-  /** \brief Get a joint state by its name */
-  JointState* getJointState(const std::string &joint) const;
+	    const KinematicState* getKinematicState(void) const
+	    {
+		return kinematic_state_;
+	    }
+	    
+	    unsigned int getDimension(void) const
+	    {
+		return joint_model_->getVariableCount();
+	    }
 
-  /** \brief Get a link state by its name */
-  LinkState* getLinkState(const std::string &link) const;
+	    /** \brief Gets the joint state values stored in the required order */
+	    const std::vector<double>& getJointStateValues(void) const
+	    {
+		return joint_state_values_;
+	    }
+	    
+	    /** \brief Gets the required name order for the joint state values */
+	    const std::vector<std::string>& getJointStateNameOrder(void) const
+	    {
+		return joint_state_name_order_;
+	    }
+	    
+	    /** \brief Gets the current variable transform */
+	    const btTransform& getVariableTransform(void) const 
+	    {
+		return variable_transform_;
+	    }
+	    
+	    /** \brief Gets the joint model */
+	    const KinematicModel::JointModel* getJointModel(void) const
+	    {
+		return joint_model_;
+	    }
+	    
+	    const std::map<std::string, unsigned int>& getJointStateIndexMap(void) const
+	    {
+		return joint_state_index_map_;
+	    }
+	    
+	private:
+	    
+	    /** \brief The kinematic state this joint is part of */
+	    const KinematicState               *kinematic_state_;
+	    
+	    /** \brief The joint model this state corresponds to */
+	    const KinematicModel::JointModel   *joint_model_;
+	    
+	    /** \brief Tthe local transform (computed by forward kinematics) */
+	    btTransform                         variable_transform_; 
+	    
+	    /** \brief The joint values given in the order indicated by joint_state_index_map_ */
+	    std::vector<double>                 joint_state_values_;
+	    
+	    /** \brief This map ensures the same ordering of variable values with respect to variable names */
+	    std::map<std::string, unsigned int> joint_state_index_map_;
+	    
+	    /** \brief The expected order of variable names for this joint */
+	    std::vector<std::string>            joint_state_name_order_;
+	};
+	
+	class LinkState 
+	{
+	    friend class KinematicState;
+	public:
 
-  /** \brief Get an attached body state by its name */
-  AttachedBodyState* getAttachedBodyState(const std::string &attached) const;
+	    LinkState(const KinematicState *state, const KinematicModel::LinkModel* lm);
+	    ~LinkState(void);
+	    
+	    const std::string& getName(void) const 
+	    {
+		return link_model_->getName();
+	    }
 
-  const std::vector<JointState*>& getJointStateVector() const 
-  {
-    return joint_state_vector_;
-  }
+	    const KinematicState* getKinematicState(void) const
+	    {
+		return kinematic_state_;
+	    }
 
-  std::vector<JointState*>& getJointStateVector()
-  {
-    return joint_state_vector_;
-  }
+	    void updateGivenGlobalLinkTransform(const btTransform& transform);
+	    
+	    /** \brief Recompute global_collision_body_transform and global_link_transform */
+	    void computeTransform(void);
+	    
+	    /** \brief Update all attached bodies given set link transforms */
+	    void updateAttachedBodies(void);
+	    
+	    const KinematicModel::LinkModel* getLinkModel(void) const 
+	    {
+		return link_model_;
+	    }
+	    
+	    const JointState* getParentJointState(void) const
+	    {
+		return parent_joint_state_;
+	    }
+	    
+	    const LinkState* getParentLinkState(void) const
+	    {
+		return parent_link_state_;
+	    }
+	    
+	    const std::vector<AttachedBody*>& getAttachedBodyStateVector() const
+	    {
+		return attached_body_state_vector_;
+	    }
+	    
+	    const btTransform& getGlobalLinkTransform(void) const 
+	    {
+		return global_link_transform_;
+	    }
+	    
+	    const btTransform& getGlobalCollisionBodyTransform(void) const
+	    {
+		return global_collision_body_transform_;
+	    }
+	    
+	    void attachBody(const std::string &id,
+			    const boost::shared_ptr<shapes::ShapeVector> &shapes,
+			    const std::vector<btTransform> &attach_trans,
+			    const std::vector<std::string> &touch_links);
+	    
+	    void clearAttachedBodies(void);
+	    
+	private:
+	    
+	    const KinematicState            *kinematic_state_;
+	    
+	    const KinematicModel::LinkModel *link_model_;
+	    
+	    const JointState                *parent_joint_state_;
+	    
+	    const LinkState                 *parent_link_state_;
+	    
+	    std::vector<AttachedBody*>       attached_body_vector_;
+	    
+	    /** \brief The global transform this link forwards (computed by forward kinematics) */
+	    btTransform                      global_link_transform_;
+	    
+	    /** \brief The global transform for this link (computed by forward kinematics) */
+	    btTransform                      global_collision_body_transform_;    
+	};
 
-  const std::vector<LinkState*>& getLinkStateVector() const 
-  {
-    return link_state_vector_;
-  } 
-  
-  const std::vector<const AttachedBodyState*>& getAttachedBodyStateVector() const
-  {
-    return attached_body_state_vector_;
-  }
-  
-  const std::map<std::string, JointStateGroup*>& getJointStateGroupMap() const
-  {
-    return joint_state_group_map_;
-  }
+	struct AttachedBodyProperties
+	{
+	    /** \brief The geometries of the attached body */
+	    boost::shared_ptr<shapes::ShapeVector> shapes_;
+	    
+	    /** \brief The constant transforms applied to the link (need to be specified by user) */
+	    std::vector<btTransform>               attach_trans_;
+	    
+	    /** \brief The set of links this body is allowed to touch */
+	    std::vector<std::string>               touch_links_;
+	    
+	    /** string id for reference */
+	    std::string                            id_;
+	};
+	
+	/** \brief Class defining bodies that can be attached to robot
+	    links. This is useful when handling objects picked up by
+	    the robot. */
+	class AttachedBody
+	{
+	    friend class KinematicState;	    
+	public:
+	    
+	    /** \brief Construct an attached body for a specified \e link. The name of this body is \e id and it consists of \e shapes that 
+		attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
+	    AttachedBody(const LinkState *link, const std::string &id,
+			 const boost::shared_ptr<shapes::ShapeVector> &shapes,
+			 const std::vector<btTransform> &attach_trans,
+			 const std::vector<std::string> &touch_links);
 
-  void getJointStateGroupNames(std::vector<std::string>& names) const;
-		
-  const std::map<std::string, unsigned int> getKinematicStateIndexMap() const
-  {
-    return kinematic_state_index_map_;
-  }
+	    /** \brief Construct an attached body for a specified \e
+		link, but share its properties (name, shapes, fixed
+		transforms, touched links) with another instance. This
+		allows more efficient copying of states. */
+	    AttachedBody(const LinkState *link, const boost::shared_ptr<AttachedBodyProperties> &properties);
+	    
+	    ~AttachedBody(void);
 
-  /** \brief Print information about the constructed model */
-  void printStateInfo(std::ostream &out = std::cout) const;
+	    const std::string& getName(void) const
+	    {
+		return properties_->id_;
+	    }
+	    
+	    const std::string& getAttachedLinkName(void) const
+	    {
+		return parent_link_state_->getName();
+	    }
 
-  /** \brief Print the pose of every link */
-  void printTransforms(std::ostream &out = std::cout) const;
+	    const shapes::ShapeVector* getShapes(void) const 
+	    {
+		return properties_->shapes_.get();
+	    }
+	    
+	    const std::vector<btTransform>& getAttachedBodyFixedTransforms(void) const
+	    {
+		return properties_->attach_trans_;
+	    }
+	    
+	    const std::vector<std::string>& getTouchLinks() const
+	    {
+		return properties_->touch_links_;
+	    }
 
-  void printTransform(const std::string &st, const btTransform &t, std::ostream &out = std::cout) const;
+	    const std::vector<btTransform>& getGlobalCollisionBodyTransforms(void) const
+	    {
+		return global_collision_body_transforms_;
+	    }
 
-  //  const btTransform& getRootTransform() const;
-  
-private:
+	    /** \brief Recompute global_collision_body_transform */
+	    void computeTransform(void);
 
-  void setLinkStatesParents();
+	private:
+	    
+	    /** \brief The link that owns this attached body */
+	    const LinkState                          *parent_link_state_;
+	    boost::shared_ptr<AttachedBodyProperties> properties_;
+	    
+	    /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
+	    std::vector<btTransform>                  global_collision_body_transform_;	    
+	};
+	
+	class JointStateGroup
+	{
+	public:
+	    
+	    JointStateGroup(const KinematicState *state, const KinematicModel::JointModelGroup *jmg);
+	    ~JointStateGroup(void);
+	    
+	    const KinematicState* getKinematicState(void) const
+	    {
+		return kinematic_state_;
+	    }
 
-  const KinematicModel* kinematic_model_;
+	    const KinematicModel::JointModelGroup* getJointModelGroup(void)
+	    {
+		return joint_model_group_;
+	    }
+	    
+	    const std::string& getName(void) const 
+	    {
+		return joint_model_group_->getName();
+	    }
+	    
+	    unsigned int getDimension(void) const
+	    {
+		return joint_model_group_->getVariableCount();
+	    }
+	    
+	    /** \brief Perform forward kinematics starting at the roots
+		within a group. Links that are not in the group are also
+		updated, but transforms for joints that are not in the
+		group are not recomputed.  */    
+	    bool setStateValues(const std::vector<double>& joint_state_values);
+	    
+	    /** \brief Perform forward kinematics starting at the roots
+		within a group. Links that are not in the group are also
+		updated, but transforms for joints that are not in the
+		group are not recomputed.  */
+	    bool setStateValues(const std::map<std::string, double>& joint_state_map);
+	    
+	    /** Compute transforms using current joint values */
+	    void updateLinkTransforms(void);	
+	    
+	    /** \brief Check if a joint is part of this group */
+	    bool hasJointState(const std::string &joint) const;
+	    
+	    /** \brief Check if a link is updated by this group */
+	    bool updatesLinkState(const std::string& joint) const;
+	    
+	    /** \brief Get a joint state by its name */
+	    JointState* getJointState(const std::string &joint) const;
+	    
+	    void getKinematicStateValues(std::vector<double>& joint_state_values) const;
+	    
+	    void getKinematicStateValues(std::map<std::string, double>& joint_state_values) const;
+	    
+	    /** \brief Bring the group to a default state. All joints are
+		at 0. If 0 is not within the bounds of the joint, the
+		middle of the bounds is used. */
+	    void setDefaultValues(void);
+	    
+	    const std::vector<JointState*>& getJointRoots() const 
+	    {
+		return joint_roots_;
+	    }
+	    
+	    const std::map<std::string, unsigned int>& getKinematicStateIndexMap() const
+	    {
+		return kinematic_state_index_map_;
+	    }
+	    
+	    const std::vector<std::string>& getJointNames() const
+	    {
+		return joint_names_;
+	    }
+	    
+	    const std::vector<JointState*>& getJointStateVector() const
+	    {
+		return joint_state_vector_;
+	    }
+	    
+	private:
+	    
+	    KinematicState                        *kinematic_state_;
+	    const KinematicModel::JointModelGroup *joint_model_group_;
+	    
+	    std::map<std::string, unsigned int>    joint_variables_index_map_;
+	    
+	    /** \brief Names of joint variables in the order they appear in the group state */
+	    std::vector<std::string>               joint_names_;
+	    
+	    /** \brief Joint instances in the order they appear in the group state */
+	    std::vector<JointState*>               joint_state_vector_;
+	    
+	    /** \brief A map from joint names to their instances */
+	    std::map<std::string, JointState*>     joint_state_map_;
+	    
+	    /** \brief The list of joints that are roots in this group */
+	    std::vector<JointState*>               joint_roots_;
+	    
+	    /** \brief The list of links that are updated when computeTransforms() is called, in the order they are updated */
+	    std::vector<LinkState*>                updated_links_;	    
+	};
+	
+	KinematicState(const KinematicModel &kinematic_model);
+	
+	KinematicState(const KinematicState& state);
+	
+	~KinematicState(void);
+	
+	bool setStateValues(const std::vector<double>& joint_state_values);
+	
+	bool setStateValues(const std::map<std::string, double>& joint_state_map);
+	
+	bool setStateValues(const std::map<std::string, double>& joint_state_map,
+			    std::vector<std::string>& missing_joints);
+	
+	void getStateValues(std::vector<double>& joint_state_values) const;
+	
+	void getStateValues(std::map<std::string, double>& joint_state_values) const;
+	
+	void updateLinkTransforms(void);
+	
+	bool updateStateWithLinkAt(const std::string& link_name, const btTransform& transform);
+	
+	const KinematicModel& getKinematicModel(void) const 
+	{
+	    return kinematic_model_;
+	} 
+	
+	unsigned int getDimension(void) const
+	{
+	    return kinematic_model_.getVariableCount();
+	}
+	
+	void setDefaultValues(void);
+	
+	bool areJointsWithinBounds(const std::vector<std::string>& joints) const;
+	
+	bool isJointWithinBounds(const std::string& joint) const;
+	
+	/** \brief Get a group by its name */
+	const JointStateGroup* getJointStateGroup(const std::string &name) const;
+	
+	/** \brief Get a group by its name */
+	JointStateGroup* getJointStateGroup(const std::string &name);
+	
+	/** \brief Check if a group exists */
+	bool hasJointStateGroup(const std::string &name) const;
+	
+	/** \brief Check if a joint is part of this state */
+	bool hasJointState(const std::string &joint) const;
+	
+	/** \brief Check if a link is updated by this state */
+	bool hasLinkState(const std::string& joint) const;
+	
+	/** \brief Get a joint state by its name */
+	const JointState* getJointState(const std::string &joint) const;
 
-  unsigned int dimension_;
-  std::map<std::string, unsigned int> kinematic_state_index_map_;
+	/** \brief Get a joint state by its name */
+	JointState* getJointState(const std::string &joint);
+	
+	/** \brief Get a link state by its name */
+	LinkState* getLinkState(const std::string &link) const;
+	
+	/** \brief Get an attached body state by its name */
+	AttachedBody* getAttachedBody(const std::string &id) const;
+	
+	const std::vector<JointState*>& getJointStateVector() const 
+	{
+	    return joint_state_vector_;
+	}
+	
+	std::vector<JointState*>& getJointStateVector()
+	{
+	    return joint_state_vector_;
+	}
+	
+	const std::vector<LinkState*>& getLinkStateVector() const 
+	{
+	    return link_state_vector_;
+	} 
+	
+	const std::vector<const AttachedBodyState*>& getAttachedBodyStateVector() const
+	{
+	    return attached_body_state_vector_;
+	}
+	
+	const std::map<std::string, JointStateGroup*>& getJointStateGroupMap() const
+	{
+	    return joint_state_group_map_;
+	}
+	
+	void getJointStateGroupNames(std::vector<std::string>& names) const;
+	
+	const std::map<std::string, unsigned int> getKinematicStateIndexMap() const
+	{
+	    return kinematic_state_index_map_;
+	}
+	
+	/** \brief Print information about the constructed model */
+	void printStateInfo(std::ostream &out = std::cout) const;
+	
+	/** \brief Print the pose of every link */
+	void printTransforms(std::ostream &out = std::cout) const;
+	
+	void printTransform(const std::string &st, const btTransform &t, std::ostream &out = std::cout) const;
+	
+	/** \brief Get the global transform applied to the entire tree of links */
+	const btTransform& getRootTransform(void) const;
+	
+	/** \brief Set the global transform applied to the entire tree of links */
+	void setRootTransform(const btTransform &transform);
+	
+    private:
+	
+	void setLinkStatesParents();
+	
+	const KinematicModel* kinematic_model_;
+	
+	unsigned int dimension_;
+	std::map<std::string, unsigned int> kinematic_state_index_map_;
+	
+	std::vector<JointState*> joint_state_vector_;
+	std::map<std::string, JointState*> joint_state_map_;
+	
+	std::vector<LinkState*> link_state_vector_;
+	std::map<std::string, LinkState*> link_state_map_;
+	
+	/** \brief Additional transform to be applied to the tree of links */
+	btTransform                             root_transform_;
 
-  std::vector<JointState*> joint_state_vector_;
-  std::map<std::string, JointState*> joint_state_map_;
 
-  std::vector<LinkState*> link_state_vector_;
-  std::map<std::string, LinkState*> link_state_map_;
-
-  //vector of bodies, owned by states
-  std::vector<const AttachedBodyState*> attached_body_state_vector_;
-  
-  std::map<std::string, JointStateGroup*> joint_state_group_map_;
-};
-
+	//vector of bodies, owned by states
+	std::vector<const AttachedBodyState*> attached_body_state_vector_;
+	
+	std::map<std::string, JointStateGroup*> joint_state_group_map_;
+    };
+    
 }
 
 #endif

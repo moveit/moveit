@@ -34,15 +34,15 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_COORDINATES_TRANSFORMS_
-#define PLANNING_COORDINATES_TRANSFORMS_
+#ifndef PLANNING_MODELS_TRANSFORMS_
+#define PLANNING_MODELS_TRANSFORMS_
 
 #include <LinearMath/btTransform.h>
 #include <planning_models/kinematic_state.h>
 #include <string>
 #include <map>
 
-namespace planning_coordinates
+namespace planning_models
 {
 
     class Transforms

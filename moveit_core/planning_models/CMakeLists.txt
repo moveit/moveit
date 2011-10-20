@@ -5,7 +5,7 @@ rosbuild_add_boost_directories()
 
 set(ROS_BUILD_TYPE Debug)
 
-rosbuild_add_library(planning_models src/kinematic_model.cpp src/kinematic_state.cpp)
+rosbuild_add_library(planning_models src/kinematic_model.cpp src/kinematic_state.cpp src/transforms.cpp)
 rosbuild_link_boost(planning_models thread)
 
 # Unit tests
