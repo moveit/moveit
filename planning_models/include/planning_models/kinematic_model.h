@@ -38,6 +38,7 @@
 #define PLANNING_MODELS_KINEMATIC_MODEL_
 
 #include <urdf/model.h>
+#include <srdf/model.h>
 #include <LinearMath/btTransform.h>
 #include <geometric_shapes/shapes.h>
 
@@ -62,43 +63,6 @@ namespace planning_models
 	
 	/** \brief Forward definition of a link */
 	class LinkModel;	
-
-	struct GroupConfig
-	{
-	    GroupConfig()
-	    {
-	    }
-	    
-	    GroupConfig(const std::string &name) : name_(name)
-	    { 
-	    }
-	    
-	    void addChain(const std::string &base_link, const std::string &tip_link)
-	    {
-		chains_.push_back(std::make_pair(base_link, tip_link));
-	    }
-
-	    void addLink(const std::string &link)
-	    {
-		links_.push_back(link);
-	    }
-	    
-	    void addJoint(const std::string &joint)
-	    {
-		joints_.push_back(joint);
-	    }
-	    
-	    void addSubgroup(const std::string &subgroup)
-	    {
-		subgroups_.push_back(subgroup);
-	    }
-	    
-	    std::string                                       name_;
-	    std::vector<std::pair<std::string, std::string> > chains_;
-	    std::vector<std::string>                          joints_;
-	    std::vector<std::string>                          links_;
-	    std::vector<std::string>                          subgroups_;
-	};
 	
 	/** \brief A joint from the robot. Models the transform that
 	    this joint applies in the kinematic chain. A joint
@@ -429,7 +393,12 @@ namespace planning_models
 	    {
 		return joint_model_vector_;
 	    }
-	    
+
+	    const std::vector<const JointModel*>& getFixedJointModels(void) const
+	    {
+		return fixed_joints_;
+	    }	    
+
 	    const std::vector<std::string>& getJointModelNames(void) const
 	    {
 		return joint_model_name_vector_;
@@ -440,7 +409,7 @@ namespace planning_models
 		return joint_roots_;
 	    }
 	    
-	    const std::vector<const LinkModel*>& getGroupLinkModels(void) const
+	    const std::vector<const LinkModel*>& getLinkModels(void) const
 	    {
 		return group_link_model_vector_;
 	    }
@@ -450,12 +419,12 @@ namespace planning_models
 		return ik_links_.find(link_name) != ik_links_.end();
 	    }
 	    
-	    const std::vector<std::string>& getGroupLinkNames() const
+	    const std::vector<std::string>& getLinkModelNames(void) const
 	    {
 		return link_model_name_vector_;
 	    }
 	    
-	    const std::vector<const LinkModel*>& getUpdatedLinkModels() const
+	    const std::vector<const LinkModel*>& getUpdatedLinkModels(void) const
 	    {
 		return updated_link_model_vector_;
 	    }
@@ -488,8 +457,8 @@ namespace planning_models
 	    /** \brief The list of joint models that are roots in this group */
  	    std::vector<const JointModel*>           joint_roots_;
 	    
-	    /** \brief The joints that have at least one DOF (not fixed) */
-	    std::vector<const JointModel*>           active_joints_;
+	    /** \brief The joints that have no DOF (fixed) */
+	    std::vector<const JointModel*>           fixed_joints_;	    
 	    
 	    /** \brief The links that are on the direct lineage between joints
 		and joint_roots_, as well as the children of the joint leafs.
@@ -513,8 +482,7 @@ namespace planning_models
 	KinematicModel(const KinematicModel &source);
 	
 	/** \brief Construct a kinematic model from a parsed description and a list of planning groups */
-	KinematicModel(const urdf::Model &model, 
-		       const std::vector<GroupConfig>& group_configs);
+	KinematicModel(const urdf::Model &model, const srdf::Model &smodel);
 	
 	/** \brief Destructor. Clear all memory. */
 	virtual ~KinematicModel(void);
@@ -597,7 +565,7 @@ namespace planning_models
 	
 	bool hasJointModelGroup(const std::string& group) const;
 	
-	bool addJointModelGroup(const GroupConfig& group);
+	bool addJointModelGroup(const srdf::Model::Group& group);
 	
 	void removeJointModelGroup(const std::string& group);
 	
@@ -608,7 +576,7 @@ namespace planning_models
 	    return joint_model_group_map_;
 	}
 	
-	const std::map<std::string, GroupConfig>& getJointModelGroupConfigMap(void) const
+	const std::map<std::string, srdf::Model::Group>& getJointModelGroupConfigMap(void) const
 	{
 	    return joint_model_group_config_map_;
 	}
@@ -651,14 +619,14 @@ namespace planning_models
 	/** \brief The root joint */
 	JointModel                             *root_;
 	
-	std::map<std::string, JointModelGroup*> joint_model_group_map_;
-	std::map<std::string, GroupConfig>      joint_model_group_config_map_;
-	std::vector<std::string>                joint_model_group_names_;
+	std::map<std::string, JointModelGroup*>   joint_model_group_map_;
+	std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
+	std::vector<std::string>                  joint_model_group_names_;
 	
-	void buildGroups(const std::vector<GroupConfig> &group_config);
+	void buildGroups(const std::vector<srdf::Model::Group> &group_config);
 	
-	JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link);
-	JointModel* constructJointModel(const urdf::Joint *urdfJointModel,  const urdf::Link *child_link);
+	JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
+	JointModel* constructJointModel(const urdf::Joint *urdfJointModel, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
 	LinkModel* constructLinkModel(const urdf::Link *urdfLink);
 	boost::shared_ptr<shapes::Shape> constructShape(const urdf::Geometry *geom);
 	
