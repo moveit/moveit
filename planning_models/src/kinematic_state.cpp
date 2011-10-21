@@ -134,24 +134,24 @@ bool planning_models::KinematicState::setStateValues(const std::vector<double>& 
 
 bool planning_models::KinematicState::setStateValues(const std::map<std::string, double>& joint_state_map) 
 {
-    bool all_set = true;
+    bool all_ok = true;
     for (unsigned int i = 0 ; i < joint_state_vector_.size() ; ++i)
 	if (!joint_state_vector_[i]->setJointStateValues(joint_state_map))
-	    all_set = false;
+	    all_ok = false;
     updateLinkTransforms();
-    return all_set;
+    return all_ok;
 }
 
 bool planning_models::KinematicState::setStateValues(const std::map<std::string, double>& joint_state_map,
 						     std::vector<std::string>& missing) 
 {
     missing.clear();
-    bool all_set = true;
+    bool all_ok = true;
     for(unsigned int i = 0 ; i < joint_state_vector_.size() ; ++i)
 	if (!joint_state_vector_[i]->setJointStateValues(joint_state_map, missing))
-	    all_set = false;
+	    all_ok = false;
     updateLinkTransforms();
-    return all_set;
+    return all_ok;
 }
 
 void planning_models::KinematicState::getStateValues(std::vector<double>& joint_state_values) const
@@ -357,33 +357,47 @@ bool planning_models::KinematicState::JointState::setJointStateValues(const doub
 
 bool planning_models::KinematicState::JointState::setJointStateValues(const std::map<std::string, double>& joint_value_map, std::vector<std::string>& missing)
 {
-    bool has_all = true;
     bool has_any = false;
-    
+    unsigned int used_values = 0;
     for (std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.begin(); it != joint_variables_index_map_.end(); ++it)
     {
 	std::map<std::string, double>::const_iterator it2 = joint_value_map.find(it->first);
 	if (it2 == joint_value_map.end())
-	{
-	    has_all = false;
 	    missing.push_back(it->first);
-	    continue;
-	}
-	else 
+	else
+	{
 	    has_any = true;	
-	joint_state_values_[it->second] = it2->second;
+	    joint_state_values_[it->second] = it2->second;
+	    ++used_values;
+	}
     }
     
     if (has_any) 
 	joint_model_->updateTransform(joint_state_values_, variable_transform_);
     
-    return has_all;
+    if (used_values != joint_value_map.size())
+    {
+	ROS_WARN("Unknown variable names were specified for joint '%s'", getName().c_str());
+	return false;
+    }
+    return true;
 }
 
 bool planning_models::KinematicState::JointState::setJointStateValues(const std::map<std::string, double>& joint_value_map)
 {
-    std::vector<std::string> dummy;
-    return setJointStateValues(joint_value_map, dummy);
+    bool ok = true;
+    for (std::map<std::string, double>::const_iterator it = joint_value_map.begin() ; it != joint_value_map.end() ; ++it)
+    {
+	std::map<std::string, unsigned int>::const_iterator it2 = joint_variables_index_map_.find(it->first);
+	if (it2 == joint_variables_index_map_.end())
+	{
+	    ok = false;
+	    ROS_WARN("Variable '%s' is not known to joint '%s'", it->first.c_str(), getName().c_str());
+	}
+	else
+	    joint_state_values_[it2->second] = it->second;
+    }
+    return ok;
 }
 
 bool planning_models::KinematicState::JointState::setJointStateValues(const btTransform& transform)
@@ -586,12 +600,12 @@ bool planning_models::KinematicState::JointStateGroup::setStateValues(const std:
 
 bool planning_models::KinematicState::JointStateGroup::setStateValues(const std::map<std::string, double>& joint_state_map) 
 {
-    bool all_set = true;
+    bool all_ok = true;
     for(unsigned int i = 0; i < joint_state_vector_.size(); ++i)
 	if (!joint_state_vector_[i]->setJointStateValues(joint_state_map))
-	    all_set = false;
+	    all_ok = false;
     updateLinkTransforms();
-    return all_set;
+    return all_ok;
 }
 
 void planning_models::KinematicState::JointStateGroup::updateLinkTransforms(void) 
