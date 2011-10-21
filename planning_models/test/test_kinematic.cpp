@@ -416,37 +416,7 @@ TEST(FK, OneRobot)
     
     // end hack
 
-    /*
-    std::vector<std::string> gc_joints;
-    gc_joints.push_back("base_joint");
-    gc_joints.push_back("joint_a");
-    gc_joints.push_back("joint_c");
-    std::vector<std::string> subgroups;
-    std::vector<planning_models::KinematicModel::GroupConfig> gcs;
-    gcs.push_back(planning_models::KinematicModel::GroupConfig("base_from_joints", gc_joints, subgroups));
-    
-    //defining this in the list before the actual subgroup to make sure that works
-    std::vector<std::string> extra_joint;
-    extra_joint.push_back("joint_c");
-    subgroups.push_back("base_from_base_to_tip");
-    gcs.push_back(planning_models::KinematicModel::GroupConfig("base_with_subgroups", extra_joint, subgroups));
-    
-    //not making this all the way to joint_c intentionally
-    gcs.push_back(planning_models::KinematicModel::GroupConfig("base_from_base_to_tip","odom_combined","link_b"));
-    
-    //now adding a fake one
-    subgroups.push_back("monkey_group");
-    gcs.push_back(planning_models::KinematicModel::GroupConfig("base_with_bad_subgroups", extra_joint, subgroups));
-    
-    std::vector<planning_models::KinematicModel::MultiDofConfig> multi_dof_configs;
-    planning_models::KinematicModel::MultiDofConfig config("base_joint");
-    config.type = "Planar";
-    config.parent_frame_id = "odom_combined";
-    config.child_frame_id = "base_link";
-    multi_dof_configs.push_back(config);
-    */
     planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
-    model->printModelInfo(std::cout);
 
     //testing that the two planning groups are the same
     const planning_models::KinematicModel::JointModelGroup* g_one = model->getJointModelGroup("base_from_joints");
