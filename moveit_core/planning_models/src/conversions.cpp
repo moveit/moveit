@@ -189,8 +189,37 @@ bool planning_models::robotStateToKinematicState(const Transforms &tf, const mov
     return robotStateToKinematicStateHelper(&tf, robot_state, state);
 }
 
-void planning_models::kinematicStateToRobotState(KinematicState& state, moveit_msgs::RobotState &robot_state)
+void planning_models::kinematicStateToRobotState(const KinematicState& state, moveit_msgs::RobotState &robot_state)
 {
+    kinematicStateToJointState(state, robot_state.joint_state);
+    const std::vector<KinematicState::JointState*> &js = state.getJointStateVector();
 
+    for (std::size_t i = 0 ; i < js.size() ; ++i)
+  	if (js[i]->getDimension() > 1)
+	{
+	    const btTransform &t = js[i]->getVariableTransform();
+	    const btQuaternion &q = t.getRotation();
+	    geometry_msgs::Pose p;
+	    p.position.x = t.getOrigin().getX(); p.position.y = t.getOrigin().getY(); p.position.z = t.getOrigin().getZ();
+	    p.orientation.x = q.getX(); p.orientation.y = q.getY(); p.orientation.z = q.getZ(); p.orientation.w = q.getW();
+	    robot_state.multi_dof_joint_state.joint_names.push_back(js[i]->getName());
+	    robot_state.multi_dof_joint_state.frame_ids.push_back(state.getKinematicModel()->getModelFrame());
+	    robot_state.multi_dof_joint_state.child_frame_ids.push_back(js[i]->getJointModel()->getChildLinkModel()->getName());
+	    robot_state.multi_dof_joint_state.poses.push_back(p);
+	}
+}
+
+void planning_models::kinematicStateToJointState(const KinematicState& state, sensor_msgs::JointState &joint_state)
+{
+    const std::vector<KinematicState::JointState*> &js = state.getJointStateVector();
+
+    for (std::size_t i = 0 ; i < js.size() ; ++i)
+	if (js[i]->getDimension() == 1)
+	{
+	    joint_state.name.push_back(js[i]->getName());
+	    joint_state.position.push_back(js[i]->getJointStateValues()[0]);
+	}
+
+    joint_state.header.frame_id = state.getKinematicModel()->getModelFrame();
 }
 

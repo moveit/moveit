@@ -38,6 +38,7 @@
 
 planning_models::KinematicState::KinematicState(const KinematicModelPtr &kinematic_model) : kinematic_model_(kinematic_model)
 {    
+    root_transform_.setIdentity();
     buildState();
 }
 
@@ -87,6 +88,8 @@ void planning_models::KinematicState::buildState(void)
 
 planning_models::KinematicState::KinematicState(const KinematicState &ks) : kinematic_model_(ks.getKinematicModel())
 {
+    root_transform_ = ks.root_transform_;
+    
     // construct state
     buildState();
     // copy attached bodies
@@ -356,7 +359,8 @@ bool planning_models::KinematicState::JointState::setJointStateValues(const doub
 }
 
 bool planning_models::KinematicState::JointState::setJointStateValues(const std::map<std::string, double>& joint_value_map, std::vector<std::string>& missing)
-{
+{  
+    joint_state_values_.resize(joint_state_name_order_.size());
     bool has_any = false;
     unsigned int used_values = 0;
     for (std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.begin(); it != joint_variables_index_map_.end(); ++it)
@@ -381,10 +385,11 @@ bool planning_models::KinematicState::JointState::setJointStateValues(const std:
 	return false;
     }
     return true;
-}
+} 
 
 bool planning_models::KinematicState::JointState::setJointStateValues(const std::map<std::string, double>& joint_value_map)
 {
+    joint_state_values_.resize(joint_state_name_order_.size());
     bool ok = true;
     for (std::map<std::string, double>::const_iterator it = joint_value_map.begin() ; it != joint_value_map.end() ; ++it)
     {
@@ -397,6 +402,7 @@ bool planning_models::KinematicState::JointState::setJointStateValues(const std:
 	else
 	    joint_state_values_[it2->second] = it->second;
     }
+    joint_model_->updateTransform(joint_state_values_, variable_transform_);
     return ok;
 }
 
@@ -449,6 +455,7 @@ void planning_models::KinematicState::LinkState::computeTransform(void)
     global_link_transform_.mult(parent_link_state_ ? parent_link_state_->global_link_transform_ : kinematic_state_->getRootTransform(), link_model_->getJointOriginTransform());
     global_link_transform_ *= parent_joint_state_->getVariableTransform();
     global_collision_body_transform_.mult(global_link_transform_, link_model_->getCollisionOriginTransform());
+    
     updateAttachedBodies();
 }
 

@@ -47,8 +47,8 @@ namespace planning_models
     bool robotStateToKinematicState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, KinematicState& state);
     bool robotStateToKinematicState(const moveit_msgs::RobotState &robot_state, KinematicState& state);
 
-    void kinematicStateToRobotState(KinematicState& state, moveit_msgs::RobotState &robot_state);
-
+    void kinematicStateToRobotState(const KinematicState& state, moveit_msgs::RobotState &robot_state);
+    void kinematicStateToJointState(const KinematicState& state, sensor_msgs::JointState &joint_state);
 }
 
 #endif

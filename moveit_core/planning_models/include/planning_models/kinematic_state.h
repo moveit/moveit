@@ -164,7 +164,8 @@ namespace planning_models
 	    /** \brief The expected order of variable names for this joint */
 	    std::vector<std::string>            joint_state_name_order_;
 	};
-		struct AttachedBodyProperties
+
+	struct AttachedBodyProperties
 	{
 	    /** \brief The geometries of the attached body */
 	    boost::shared_ptr<shapes::ShapeVector> shapes_;
@@ -222,7 +223,7 @@ namespace planning_models
 		return properties_->attach_trans_;
 	    }
 	    
-	    const std::vector<std::string>& getTouchLinks() const
+	    const std::vector<std::string>& getTouchLinks(void) const
 	    {
 		return properties_->touch_links_;
 	    }
@@ -497,17 +498,12 @@ namespace planning_models
 	/** \brief Get a link state by its name */
 	LinkState* getLinkState(const std::string &link);
 	
-	const std::vector<JointState*>& getJointStateVector() const 
+	const std::vector<JointState*>& getJointStateVector(void) const 
 	{
 	    return joint_state_vector_;
 	}
-	
-	std::vector<JointState*>& getJointStateVector()
-	{
-	    return joint_state_vector_;
-	}
-	
-	const std::vector<LinkState*>& getLinkStateVector() const 
+		
+	const std::vector<LinkState*>& getLinkStateVector(void) const 
 	{
 	    return link_state_vector_;
 	} 
@@ -519,7 +515,7 @@ namespace planning_models
 	
 	void getJointStateGroupNames(std::vector<std::string>& names) const;
 	
-	const std::map<std::string, unsigned int> getKinematicStateIndeMxap(void) const
+	const std::map<std::string, unsigned int> getJointVariablesIndexMap(void) const
 	{
 	    return joint_variables_index_map_;
 	}
