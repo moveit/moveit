@@ -65,6 +65,10 @@ namespace planning_models
 
 	struct GroupConfig
 	{
+	    GroupConfig()
+	    {
+	    }
+	    
 	    GroupConfig(const std::string &name) : name_(name)
 	    { 
 	    }
@@ -138,10 +142,10 @@ namespace planning_models
 		return child_link_model_;
 	    }
 	    
-	    /** \brief Gets the lower and upper bounds for a variable */
+	    /** \brief Gets the lower and upper bounds for a variable. Return false if variable was not found */
 	    bool getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const;
 	    
-	    /** \brief Sets the lower and upper bounds for a variable */
+	    /** \brief Sets the lower and upper bounds for a variable. Return false if variable was not found */
 	    bool setVariableBounds(const std::string& variable, double low, double high);
 	    
 	    /** \brief Provides a default value for the joint given the joint bounds.
@@ -150,14 +154,20 @@ namespace planning_models
 	    virtual void getDefaultValues(std::map<std::string, double> &values) const;
 	    
 	    /** \brief Check if a particular variable satisfies the specified bounds */
-	    virtual bool isVariableWithinBounds(const std::string& variable, const double& value) const; 
+	    virtual bool isVariableWithinBounds(const std::string& variable, double value) const; 
 	    
 	    /** \brief Get the names of the variables that make up this joint. For single DOF joints, this will be just the joint name */
-	    void getVariableNames(std::vector<std::string> &names) const;
-
-	    /** \brief Get the names of the variable suffixes that are attached to joint names to construct the variable names. For single DOF joints, this will be empty. */
-	    void getLocalVariableNames(std::vector<std::string> &names) const;
+	    const std::vector<std::string>& getVariableNames(void) const
+	    {
+		return variable_names_;
+	    }
 	    
+	    /** \brief Get the names of the variable suffixes that are attached to joint names to construct the variable names. For single DOF joints, this will be empty. */
+	    const std::vector<std::string>& getLocalVariableNames(void) const
+	    {
+		return local_names_;
+	    }
+	    	    
 	    /** \brief Check if a particular variable is known to this joint */
 	    bool hasVariable(const std::string &variable) const
 	    {
@@ -194,6 +204,9 @@ namespace planning_models
 	    
 	    /** \brief The local names to use for the variables that make up this joint */
 	    std::vector<std::string>                          local_names_;
+
+	    /** \brief The full names to use for the variables that make up this joint */
+	    std::vector<std::string>                          variable_names_;
 	    
 	    /** \brief The link before this joint */
 	    LinkModel                                        *parent_link_model_;
@@ -270,12 +283,17 @@ namespace planning_models
 	    
 	    PrismaticJointModel(const PrismaticJointModel& joint) : JointModel(joint)
 	    {
-		axis_ = joint->axis_;
+		axis_ = joint.axis_;
 	    }
 	    
 	    virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;	    
-	    virtual void computeJointStateValues(const btTransform& transf, const std::vector<double> &joint_values) const;
+	    virtual void computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const;
 	    virtual void updateTransform(const std::vector<double>& joint_values, btTransform &transf) const;
+
+	    const btVector3& getAxis(void) const
+	    {
+		return axis_;
+	    }
 
 	protected:
 	    /** \brief The axis of the joint */
@@ -292,18 +310,23 @@ namespace planning_models
 	    
 	    RevoluteJointModel(const RevoluteJointModel& joint) : JointModel(joint)
 	    {
-		axis_ = joint->axis_;
-		continuous_ = joint->continuous_;
+		axis_ = joint.axis_;
+		continuous_ = joint.continuous_;
 	    }
 
 	    virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;	    
-	    virtual void computeJointStateValues(const btTransform& transf, const std::vector<double> &joint_values) const;
+	    virtual void computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const;
 	    virtual void updateTransform(const std::vector<double>& joint_values, btTransform &transf) const;
 
 	    /** \brief Check if this joint wraps around */
 	    bool isContinuous(void) const
 	    {
 		return continuous_;
+	    }
+	    
+	    const btVector3& getAxis(void) const
+	    {
+		return axis_;
 	    }
 	    
 	protected:
@@ -379,6 +402,7 @@ namespace planning_models
 	
 	class JointModelGroup
 	{
+	    friend class KinematicModel;
 	public:
 	    
 	    JointModelGroup(const std::string& name, const std::vector<const JointModel*>& joint_vector, const KinematicModel *parent_model);
@@ -471,6 +495,9 @@ namespace planning_models
 		and joint_roots_, as well as the children of the joint leafs.
 		May not be in any particular order */
 	    std::vector<const LinkModel*>            group_link_model_vector_;
+	    
+	    /** \brief The names of the links in this group */
+	    std::vector<std::string>                 link_model_name_vector_;
 	    
 	    /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
 	    std::vector<const LinkModel*>            updated_link_model_vector_;
@@ -566,13 +593,13 @@ namespace planning_models
 	}
 	
 	/** \brief Print information about the constructed model */
-	void printModelInfo(std::ostream &out = std::cout) const;w
+	void printModelInfo(std::ostream &out = std::cout) const;
 	
-	bool hasModelGroup(const std::string& group) const;
+	bool hasJointModelGroup(const std::string& group) const;
 	
-	bool addModelGroup(const GroupConfig& group);
+	bool addJointModelGroup(const GroupConfig& group);
 	
-	void removeModelGroup(const std::string& group);
+	void removeJointModelGroup(const std::string& group);
 	
 	const JointModelGroup* getJointModelGroup(const std::string& name) const;
 
@@ -586,7 +613,7 @@ namespace planning_models
 	    return joint_model_group_config_map_;
 	}
 	
-	std::vector<std::string> getJointModelGroupNames(void) const;
+	const std::vector<std::string>& getJointModelGroupNames(void) const;
 	
 	/** \brief Get the number of variables that describe this model */
 	unsigned int getVariableCount(void) const
@@ -626,7 +653,8 @@ namespace planning_models
 	
 	std::map<std::string, JointModelGroup*> joint_model_group_map_;
 	std::map<std::string, GroupConfig>      joint_model_group_config_map_;
-
+	std::vector<std::string>                joint_model_group_names_;
+	
 	void buildGroups(const std::vector<GroupConfig> &group_config);
 	
 	JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link);

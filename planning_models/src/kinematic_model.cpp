@@ -36,6 +36,8 @@
 
 #include <planning_models/kinematic_model.h>
 #include <geometric_shapes/shape_operations.h>
+#include <boost/math/constants/constants.hpp>
+#include <limits>
 #include <queue>
 #include <ros/console.h>
 #include <cmath>
@@ -56,7 +58,7 @@ planning_models::KinematicModel::KinematicModel(const urdf::Model &model,
 	    variable_count_ += joint_model_vector_[i]->getVariableCount();
 	std::stringstream ss;
 	printModelInfo(ss);
-	ROS_DEBUG(ss.str().c_str());
+	ROS_DEBUG_STREAM(ss.str());
     }
     else
     {
@@ -85,12 +87,12 @@ const std::string& planning_models::KinematicModel::getName(void) const
     return model_name_;
 }
 
-bool planning_models::KinematicModel::hasModelGroup(const std::string &name) const
+bool planning_models::KinematicModel::hasJointModelGroup(const std::string &name) const
 {
     return joint_model_group_map_.find(name) != joint_model_group_map_.end();
 }
 
-const planning_models::KinematicModel::JointModelGroup* planning_models::KinematicModel::getModelGroup(const std::string& name) const
+const planning_models::KinematicModel::JointModelGroup* planning_models::KinematicModel::getJointModelGroup(const std::string& name) const
 {
     std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(name);
     if (it == joint_model_group_map_.end())
@@ -148,7 +150,7 @@ void planning_models::KinematicModel::buildGroups(const std::vector<GroupConfig>
 		if (all_subgroups_added)
 		{
 		    //only get one chance to do it right
-		    if (addModelGroup(group_configs[i]))
+		    if (addJointModelGroup(group_configs[i]))
 		    {
 			processed[i] = true;
 			added = true;
@@ -164,9 +166,9 @@ void planning_models::KinematicModel::buildGroups(const std::vector<GroupConfig>
 	    ROS_WARN_STREAM("Could not process group '" << group_configs[i].name_ << "' due to unmet subgroup dependencies");
 }
 
-void planning_models::KinematicModel::removeModelGroup(const std::string& group)
+void planning_models::KinematicModel::removeJointModelGroup(const std::string& group)
 {
-    if (getModelGroup(group))
+    if (getJointModelGroup(group))
     {
 	delete joint_model_group_map_[group];
 	joint_model_group_map_.erase(group);
@@ -174,7 +176,7 @@ void planning_models::KinematicModel::removeModelGroup(const std::string& group)
     }
 }
 
-bool planning_models::KinematicModel::addModelGroup(const planning_models::KinematicModel::GroupConfig& gc)
+bool planning_models::KinematicModel::addJointModelGroup(const planning_models::KinematicModel::GroupConfig& gc)
 {
     if (joint_model_group_map_.find(gc.name_) != joint_model_group_map_.end())
     {
@@ -192,7 +194,6 @@ bool planning_models::KinematicModel::addModelGroup(const planning_models::Kinem
 	if (base_link && tip_link)
 	{
 	    const LinkModel* lm = tip_link;
-	    bool ok = false;
 	    std::vector<const JointModel*> chain;
 	    while (lm)
 	    {
@@ -247,6 +248,7 @@ bool planning_models::KinematicModel::addModelGroup(const planning_models::Kinem
     JointModelGroup *jmg = new JointModelGroup(gc.name_, joints, this);
     joint_model_group_map_[gc.name_] = jmg;
     joint_model_group_config_map_[gc.name_] = gc;
+    joint_model_group_names_.push_back(gc.name_);
     
     // if we consist of just one chain, assume IK can be performed for that chain
     if (gc.chains_.size() == 1 && gc.joints_.empty() && gc.links_.empty() && gc.subgroups_.empty() && !jset.empty())
@@ -257,7 +259,7 @@ bool planning_models::KinematicModel::addModelGroup(const planning_models::Kinem
 
 planning_models::KinematicModel::JointModel* planning_models::KinematicModel::buildRecursive(LinkModel *parent, const urdf::Link *link)
 {  
-    JointModel *joint = constructJointModel(link->parent_joint.get(), link, multi_dof_configs);
+    JointModel *joint = constructJointModel(link->parent_joint.get(), link);
     if (joint == NULL)
 	return NULL;
     joint_model_map_[joint->name_] = joint;
@@ -365,7 +367,7 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
 {
     ROS_ASSERT(urdf_link);
     
-    LinkModel *result = new LinkModel(this);
+    LinkModel *result = new LinkModel();
     result->name_ = urdf_link->name;
     
     if (urdf_link->collision && urdf_link->collision->geometry)
@@ -468,12 +470,9 @@ const planning_models::KinematicModel::LinkModel* planning_models::KinematicMode
 	return it->second;
 }
 
-void planning_models::KinematicModel::getJointModelGroupNames(std::vector<std::string> &groups) const
+const std::vector<std::string>& planning_models::KinematicModel::getJointModelGroupNames(void) const
 {
-    groups.clear();
-    groups.reserve(joint_model_group_map_.size());
-    for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end() ; ++it)
-	groups.push_back(it->second->name_);
+    return joint_model_group_names_;
 }
 
 void planning_models::KinematicModel::getLinkModelNames(std::vector<std::string> &links) const
@@ -644,7 +643,7 @@ planning_models::KinematicModel::JointModel::~JointModel(void)
 {
 }
 
-void planning_models::KinematicModel::JointModel::setVariableBounds(const std::string& variable, double low, double high)
+bool planning_models::KinematicModel::JointModel::setVariableBounds(const std::string& variable, double low, double high)
 {     
     if (joint_variable_bounds_.find(variable) == joint_variable_bounds_.end())
     {
@@ -652,6 +651,7 @@ void planning_models::KinematicModel::JointModel::setVariableBounds(const std::s
 	return false;
     }
     joint_variable_bounds_[variable] = std::make_pair(low, high);
+    return true;
 }
 
 bool planning_models::KinematicModel::JointModel::getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const
@@ -668,8 +668,8 @@ bool planning_models::KinematicModel::JointModel::getVariableBounds(const std::s
 
 void planning_models::KinematicModel::JointModel::getDefaultValues(std::map<std::string, double> &values) const
 {
-    for (std::map<std::string, std::pair<double, double> >::const_iterator it = joint_state_bounds_.begin() ;
-	 it != joint_state_bounds_.end() ; ++it)
+    for (std::map<std::string, std::pair<double, double> >::const_iterator it = joint_variable_bounds_.begin() ;
+	 it != joint_variable_bounds_.end() ; ++it)
     {
 	//zero is a valid value
 	if (it->second.first <= 0.0 && it->second.second >= 0.0)
@@ -687,19 +687,6 @@ bool planning_models::KinematicModel::JointModel::isVariableWithinBounds(const s
     if (value < bounds.first || value > bounds.second) 
 	return false;
     return true;
-}
-
-void planning_models::KinematicModel::JointModel::getVariableNames(std::vector<std::string> &names) const
-{
-    names.clear();
-    for (std::map<std::string, std::pair<double, double> >::const_iterator it = joint_state_bounds_.begin() ;
-	 it != joint_state_bounds_.end() ; ++it)
-	names.push_back(it->first);
-}
-
-void planning_models::KinematicModel::JointModel::getLocalVariableNames(std::vector<std::string> &names) const
-{
-    names = local_names_;
 }
 
 void planning_models::KinematicModel::FixedJointModel::computeTransform(const std::vector<double>& /* joint_values */, btTransform &transf) const
@@ -720,10 +707,12 @@ planning_models::KinematicModel::PlanarJointModel::PlanarJointModel(const std::s
 {
     local_names_.push_back("x");
     local_names_.push_back("y");
-    local_names_.push_back("theta");
-    joint_variable_bounds_[name_ + "." + local_names_[0]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-    joint_variable_bounds_[name_ + "." + local_names_[1]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-    joint_variable_bounds_[name_ + "." + local_names_[2]] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
+    local_names_.push_back("theta"); 
+    for (int i = 0 ; i < 3 ; ++i)
+	variable_names_.push_back(name_ + "." + local_names_[i]);
+    joint_variable_bounds_[variable_names_[0]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+    joint_variable_bounds_[variable_names_[1]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+    joint_variable_bounds_[variable_names_[2]] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
 }
 
 void planning_models::KinematicModel::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const 
@@ -755,27 +744,29 @@ planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const st
     local_names_.push_back("rot_y");
     local_names_.push_back("rot_z");
     local_names_.push_back("rot_w");
-    joint_variable_bounds_[name_ + "." + local_names_[0]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-    joint_variable_bounds_[name_ + "." + local_names_[1]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-    joint_variable_bounds_[name_ + "." + local_names_[2]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-    joint_variable_bounds_[name_ + "." + local_names_[3]] = std::make_pair(-1.0, 1.0);
-    joint_variable_bounds_[name_ + "." + local_names_[4]] = std::make_pair(-1.0, 1.0);
-    joint_variable_bounds_[name_ + "." + local_names_[5]] = std::make_pair(-1.0, 1.0);
-    joint_variable_bounds_[name_ + "." + local_names_[6]] = std::make_pair(-1.0, 1.0);
+    for (int i = 0 ; i < 7 ; ++i)
+	variable_names_.push_back(name_ + "." + local_names_[i]);
+    joint_variable_bounds_[variable_names_[0]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+    joint_variable_bounds_[variable_names_[1]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+    joint_variable_bounds_[variable_names_[2]] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+    joint_variable_bounds_[variable_names_[3]] = std::make_pair(-1.0, 1.0);
+    joint_variable_bounds_[variable_names_[4]] = std::make_pair(-1.0, 1.0);
+    joint_variable_bounds_[variable_names_[5]] = std::make_pair(-1.0, 1.0);
+    joint_variable_bounds_[variable_names_[6]] = std::make_pair(-1.0, 1.0);
 }
 
-void planning_models::KinematicModel::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &trasnf) const 
+void planning_models::KinematicModel::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const 
 {
     updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, btTransform &trasnf) const 
+void planning_models::KinematicModel::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, btTransform &transf) const 
 {
     transf.setOrigin(btVector3(joint_values[0], joint_values[1], joint_values[2]));
     transf.setRotation(btQuaternion(joint_values[3], joint_values[4], joint_values[5], joint_values[6]));
 }
 
-void planning_models::KinematicModel::FloatingJointModel::computeJointStateValues(const btTransform& transform, std::vector<double> &joint_values) const 
+void planning_models::KinematicModel::FloatingJointModel::computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const 
 {
     joint_values.resize(7);
     joint_values[0] = transf.getOrigin().x();
@@ -796,20 +787,21 @@ void planning_models::KinematicModel::FloatingJointModel::getDefaultValues(std::
 planning_models::KinematicModel::PrismaticJointModel::PrismaticJointModel(const std::string& name) : JointModel(name), axis_(0.0, 0.0, 0.0) 
 {
     joint_variable_bounds_[name_] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+    variable_names_.push_back(name_);
 }
 
-void planning_models::KinematicModel::PrismaticJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &tranf) const 
+void planning_models::KinematicModel::PrismaticJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const 
 {
     transf.getBasis().setIdentity();
     updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::PrismaticJointModel::updateTransform(const std::vector<double>& joint_values, btTransform &tranf) const 
+void planning_models::KinematicModel::PrismaticJointModel::updateTransform(const std::vector<double>& joint_values, btTransform &transf) const 
 {
     transf.setOrigin(axis_ * joint_values[0]);
 }
 
-void planning_models::KinematicModel::PrismaticJointModel::computeJointStateValues(const btTransform& transf, const std::vector<double> &joint_values) const
+void planning_models::KinematicModel::PrismaticJointModel::computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const
 {
     joint_values.resize(1);
     joint_values[0] = transf.getOrigin().dot(axis_);
@@ -819,20 +811,21 @@ planning_models::KinematicModel::RevoluteJointModel::RevoluteJointModel(const st
 												   axis_(0.0, 0.0, 0.0), continuous_(false)
 {
     joint_variable_bounds_[name_] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
+    variable_names_.push_back(name_);
 }
 
 void planning_models::KinematicModel::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const 
 {
-    transf.setOrigin(0.0, 0.0, 0.0);
+    transf.setOrigin(btVector3(0.0, 0.0, 0.0));
     updateTransform(joint_values, transf);
 }
 
 void planning_models::KinematicModel::RevoluteJointModel::updateTransform(const std::vector<double>& joint_values, btTransform &transf) const 
 {
-    transf.setRotation(btQuaternion(axis_, val));
+    transf.setRotation(btQuaternion(axis_, joint_values[0]));
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::computeJointStateValues(const btTransform& transform, std::vector<double> &joint_values) const
+void planning_models::KinematicModel::RevoluteJointModel::computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const
 {
     joint_values.resize(1);
     const btQuaternion &q = transf.getRotation();
@@ -864,7 +857,7 @@ planning_models::KinematicModel::LinkModel::~LinkModel(void)
 planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::string& group_name,
                                                                   const std::vector<const JointModel*> &group_joints,
                                                                   const KinematicModel* parent_model) :
-    name_(group_name), parent_model_(parent_model)
+    parent_model_(parent_model), name_(group_name)
 {
     joint_model_vector_ = group_joints;
     joint_model_name_vector_.resize(group_joints.size());
@@ -907,7 +900,11 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     for(unsigned int i = 0 ; i < group_joints.size() ; ++i)
 	group_links_set.insert(group_joints[i]->getChildLinkModel());
     for(std::set<const LinkModel*>::iterator it = group_links_set.begin(); it != group_links_set.end(); ++it)
+    {
 	group_link_model_vector_.push_back(*it);
+	link_model_name_vector_.push_back(group_link_model_vector_.back()->getName());
+    }
+    
     
     //these subtrees are distinct, so we can stack their updated links on top of each other
     for (unsigned int i = 0 ; i < joint_roots_.size() ; ++i)
@@ -938,7 +935,7 @@ bool planning_models::KinematicModel::JointModelGroup::hasJointModel(const std::
 
 const planning_models::KinematicModel::JointModel* planning_models::KinematicModel::JointModelGroup::getJointModel(const std::string &name)
 {
-    std::map<std::string, JointModel*>::const_iterator it = joint_model_map_.find(name);
+    std::map<std::string, const JointModel*>::const_iterator it = joint_model_map_.find(name);
     if (it == joint_model_map_.end())
     {
 	ROS_ERROR("Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
@@ -974,6 +971,6 @@ void planning_models::KinematicModel::printModelInfo(std::ostream &out) const
 	out << "   " << it->first << ":" << std::endl;
 	const std::vector<std::string> &jnt = it->second->getJointModelNames();
 	for (std::size_t k = 0 ; k < jnt.size() ; ++k)
-	    out << "      " << jnt[i] << std::endl;
+	    out << "      " << jnt[k] << std::endl;
     }
 }
