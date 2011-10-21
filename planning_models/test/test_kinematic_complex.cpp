@@ -196,7 +196,21 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
 
 
     planning_models::KinematicState ks(kin_model2);
+    ks.setDefaultValues();
+    std::map<std::string, double> jv;
+    jv["base_joint.x"] = 0.433;
+    ks.setStateValues(jv);
+    moveit_msgs::RobotState robot_state;
+    planning_models::kinematicStateToRobotState(ks, robot_state); 
+    std::cout << robot_state << std::endl;
     
+    planning_models::KinematicState ks2(kin_model2);
+    robotStateToKinematicState(robot_state, ks2);
+    std::vector<double> v1;
+    ks.getStateValues(v1);
+    std::vector<double> v2;
+    ks2.getStateValues(v2);
+    EXPECT_TRUE(v1 == v2);
 }
 
 

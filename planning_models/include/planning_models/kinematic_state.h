@@ -71,6 +71,9 @@ namespace planning_models
 	    JointState(const KinematicState *state, const KinematicModel::JointModel* jm);
 	    ~JointState(void);
 	    
+	    /** \brief Set the value of a particular variable for this joint */
+	    bool setJointVariableValue(const std::string &variable, double value);
+	    
 	    /** \brief Sets the internal values from a map of joint variable names to actual values */
 	    bool setJointStateValues(const std::map<std::string, double>& joint_value_map);
 

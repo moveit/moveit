@@ -341,6 +341,19 @@ planning_models::KinematicState::JointState::~JointState(void)
 {
 }
 
+bool planning_models::KinematicState::JointState::setJointVariableValue(const std::string &variable, double value)
+{    
+    joint_state_values_.resize(joint_state_name_order_.size());
+    std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.find(variable);
+    if (it != joint_variables_index_map_.end())
+    {
+	joint_state_values_[it->second] = value;
+	return true;
+    }
+    else
+	return false;
+}
+
 bool planning_models::KinematicState::JointState::setJointStateValues(const std::vector<double>& joint_state_values)
 {
     if (joint_state_values.size() != joint_state_name_order_.size())
