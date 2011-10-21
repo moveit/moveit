@@ -60,7 +60,7 @@ namespace planning_models
 	class AttachedBody; 
 	
 	/** \brief Forward definition of a joint group state */
-	class JointGroupState; 
+	class JointStateGroup; 
 	
 	class JointState
 	{
