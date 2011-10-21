@@ -36,7 +36,6 @@
 
 #include <planning_models/transforms.h>
 
-
 const std::string& planning_models::Transforms::getPlanningFrame(void) const
 {
     return target_frame_;
