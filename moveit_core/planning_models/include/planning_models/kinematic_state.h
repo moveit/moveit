@@ -75,14 +75,13 @@ namespace planning_models
 	    bool setJointVariableValue(const std::string &variable, double value);
 	    
 	    /** \brief Sets the internal values from a map of joint variable names to actual values */
-	    bool setJointStateValues(const std::map<std::string, double>& joint_value_map);
+	    void setJointStateValues(const std::map<std::string, double>& joint_value_map);
 
 	    /** \brief Sets the internal values from a map of joint
 		variable names to actual values. The function also
 		fills the missing vector with the variable names that
 		were not set. */
-	    bool setJointStateValues(const std::map<std::string, double>& joint_value_map,
-				     std::vector<std::string>& missing);
+	    void setJointStateValues(const std::map<std::string, double>& joint_value_map, std::vector<std::string>& missing);
 	    
 	    /** \brief Sets the internal values from the supplied vector, which are assumed to be in the required order */
 	    bool setJointStateValues(const std::vector<double>& joint_value_vector);
@@ -91,10 +90,10 @@ namespace planning_models
 		array, which are assumed to be in the required
 		order. This function is intended to be fast, does no
 		input checking and should be used carefully. */
-	    bool setJointStateValues(const double *joint_value_vector);
+	    void setJointStateValues(const double *joint_value_vector);
 	    
 	    /** \brief Sets the internal values from the transform */
-	    bool setJointStateValues(const btTransform& transform);
+	    void setJointStateValues(const btTransform& transform);
 	    
 	    /** \brief Specifies whether or not all values associated with a joint are defined in the 
 		supplied joint value map */
@@ -371,7 +370,7 @@ namespace planning_models
 		within a group. Links that are not in the group are also
 		updated, but transforms for joints that are not in the
 		group are not recomputed.  */
-	    bool setStateValues(const std::map<std::string, double>& joint_state_map);
+	    void setStateValues(const std::map<std::string, double>& joint_state_map);
 	    
 	    /** Compute transforms using current joint values */
 	    void updateLinkTransforms(void);	
@@ -445,10 +444,9 @@ namespace planning_models
 	
 	bool setStateValues(const std::vector<double>& joint_state_values);
 	
-	bool setStateValues(const std::map<std::string, double>& joint_state_map);
+	void setStateValues(const std::map<std::string, double>& joint_state_map);
 	
-	bool setStateValues(const std::map<std::string, double>& joint_state_map,
-			    std::vector<std::string>& missing);
+	void setStateValues(const std::map<std::string, double>& joint_state_map, std::vector<std::string>& missing);
 	
 	void getStateValues(std::vector<double>& joint_state_values) const;
 	

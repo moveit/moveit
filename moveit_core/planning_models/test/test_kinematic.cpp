@@ -202,12 +202,12 @@ TEST(LoadingAndFK, SimpleRobot)
     
     //testing incomplete state
     std::vector<std::string> missing_states;
-    EXPECT_TRUE(state.setStateValues(joint_values, missing_states));
+    state.setStateValues(joint_values, missing_states);
     ASSERT_EQ(missing_states.size(), 1);
     EXPECT_EQ(missing_states[0], std::string("base_joint.theta"));
     joint_values["base_joint.theta"] = 0.0;
     
-    EXPECT_TRUE(state.setStateValues(joint_values, missing_states));
+    state.setStateValues(joint_values, missing_states);
     ASSERT_EQ(missing_states.size(), 0);
     
     EXPECT_NEAR(10.0, state.getLinkState("base_link")->getGlobalLinkTransform().getOrigin().x(), 1e-5);
