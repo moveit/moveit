@@ -54,16 +54,16 @@ namespace planning_models
 	    joint_state_map[joint_state.name[i]] = joint_state.position[i];
 	
 	if (missing == NULL)
-	    return state.setStateValues(joint_state_map);
+	    state.setStateValues(joint_state_map);
 	else
 	{
 	    std::vector<std::string> missing_variables;
-	    bool result = state.setStateValues(joint_state_map, missing_variables);
+	    state.setStateValues(joint_state_map, missing_variables);
 	    missing->clear();
 	    for (unsigned int i = 0; i < missing_variables.size(); ++i)
 		missing->insert(missing_variables[i]);
-	    return result;
 	}
+	return true;
     }
 
     static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState &mjs, KinematicState &state, const Transforms *tf)

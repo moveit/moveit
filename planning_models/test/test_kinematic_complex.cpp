@@ -202,7 +202,6 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     ks.setStateValues(jv);
     moveit_msgs::RobotState robot_state;
     planning_models::kinematicStateToRobotState(ks, robot_state); 
-    std::cout << robot_state << std::endl;
     
     planning_models::KinematicState ks2(kin_model2);
     robotStateToKinematicState(robot_state, ks2);
