@@ -393,7 +393,7 @@ namespace planning_models
 		middle of the bounds is used. */
 	    void setDefaultValues(void);
 	    
-	    const std::vector<JointState*>& getJointRoots() const 
+	    const std::vector<JointState*>& getJointRoots(void) const 
 	    {
 		return joint_roots_;
 	    }
@@ -488,17 +488,11 @@ namespace planning_models
 	bool hasLinkState(const std::string& joint) const;
 	
 	/** \brief Get a joint state by its name */
-	const JointState* getJointState(const std::string &joint) const;
-
-	/** \brief Get a joint state by its name */
-	JointState* getJointState(const std::string &joint);
+	JointState* getJointState(const std::string &joint) const;
 
 	/** \brief Get a link state by its name */
-	const LinkState* getLinkState(const std::string &link) const;
+	LinkState* getLinkState(const std::string &link) const;
 
-	/** \brief Get a link state by its name */
-	LinkState* getLinkState(const std::string &link);
-	
 	const std::vector<JointState*>& getJointStateVector(void) const 
 	{
 	    return joint_state_vector_;

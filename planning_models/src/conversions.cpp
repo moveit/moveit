@@ -38,6 +38,17 @@
 #include <ros/console.h>
 #include <set>
 
+bool planning_models::quatFromMsg(const geometry_msgs::Quaternion &qmsg, btQuaternion &q)
+{
+    q = btQuaternion(qmsg.x, qmsg.y, qmsg.z, qmsg.w);
+    if (fabs(q.length2() - 1.0) > 1e-3)
+    {
+	q = btQuaternion(0.0, 0.0, 0.0, 1.0);
+	return false;
+    }
+    return true;
+}
+
 namespace planning_models
 {
     static bool jointStateToKinematicState(const sensor_msgs::JointState &joint_state, KinematicState& state, std::set<std::string> *missing)
@@ -82,13 +93,10 @@ namespace planning_models
 	for (unsigned int i = 0 ; i < mjs.joint_names.size(); ++i)
 	{	    
 	    const geometry_msgs::Pose &p = mjs.poses[i];
-	    btQuaternion q(p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w);
-	    if (fabs(q.length2() - 1.0) > 1e-3)
-	    {
+	    btQuaternion q;
+	    if (!quatFromMsg(p.orientation, q))
 		ROS_WARN("MultiDOFJointState message has incorrect quaternion specification for joint '%s'. Assuming identity.",
-			 mjs.joint_names[i].c_str());
-		q = btQuaternion(0.0, 0.0, 0.0, 1.0);
-	    }
+			 mjs.joint_names[i].c_str());	    
 	    transf[i] = btTransform(q, btVector3(p.position.x, p.position.y, p.position.z));
 	    
 	    // if frames do not mach, attempt to transform

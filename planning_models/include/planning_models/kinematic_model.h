@@ -387,7 +387,7 @@ namespace planning_models
 	    bool hasJointModel(const std::string &joint) const;
 	    
 	    /** \brief Get a joint by its name */
-	    const JointModel* getJointModel(const std::string &joint);
+	    const JointModel* getJointModel(const std::string &joint) const;
 	    
 	    const std::vector<const JointModel*>& getJointModels(void) const
 	    {

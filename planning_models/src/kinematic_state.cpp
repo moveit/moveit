@@ -269,7 +269,7 @@ bool planning_models::KinematicState::hasLinkState(const std::string& link) cons
     return link_state_map_.find(link) != link_state_map_.end();
 }
 
-const planning_models::KinematicState::JointState* planning_models::KinematicState::getJointState(const std::string &name) const
+planning_models::KinematicState::JointState* planning_models::KinematicState::getJointState(const std::string &name) const
 {
     std::map<std::string, JointState*>::const_iterator it = joint_state_map_.find(name);
     if (it == joint_state_map_.end())
@@ -281,32 +281,8 @@ const planning_models::KinematicState::JointState* planning_models::KinematicSta
 	return it->second;
 }
 
-planning_models::KinematicState::JointState* planning_models::KinematicState::getJointState(const std::string &name)
-{
-    std::map<std::string, JointState*>::const_iterator it = joint_state_map_.find(name);
-    if (it == joint_state_map_.end())
-    {
-	ROS_ERROR("Joint state '%s' not found", name.c_str());
-	return NULL;
-    }
-    else
-	return it->second;
-}
-
-const planning_models::KinematicState::LinkState* planning_models::KinematicState::getLinkState(const std::string &name) const
+planning_models::KinematicState::LinkState* planning_models::KinematicState::getLinkState(const std::string &name) const
 {   
-    std::map<std::string, LinkState*>::const_iterator it = link_state_map_.find(name);
-    if (it == link_state_map_.end())
-    {
-	ROS_ERROR("Joint state '%s' not found", name.c_str());
-	return NULL;
-    }
-    else
-	return it->second;
-}
-
-planning_models::KinematicState::LinkState* planning_models::KinematicState::getLinkState(const std::string &name)
-{
     std::map<std::string, LinkState*>::const_iterator it = link_state_map_.find(name);
     if (it == link_state_map_.end())
     {
