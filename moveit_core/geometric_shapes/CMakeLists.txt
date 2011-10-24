@@ -18,9 +18,11 @@ set(ROS_BUILD_TYPE Release)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 
-rosbuild_add_library(${PROJECT_NAME} src/shape_operations.cpp
-				     src/bodies.cpp
-				     src/body_operations.cpp)
+rosbuild_add_library(${PROJECT_NAME}
+  src/shapes.cpp
+  src/shape_operations.cpp
+  src/bodies.cpp
+  src/body_operations.cpp)
 
 # Unit tests
 rosbuild_add_gtest(test_point_inclusion test/test_point_inclusion.cpp)
