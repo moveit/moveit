@@ -20,3 +20,7 @@ target_link_libraries(test_kinematic assimp)
 rosbuild_add_gtest(test_kinematic_complex test/test_kinematic_complex.cpp)
 target_link_libraries(test_kinematic_complex planning_models)
 target_link_libraries(test_kinematic_complex assimp)
+
+rosbuild_add_gtest(test_transforms test/test_transforms.cpp)
+target_link_libraries(test_transforms planning_models)
+target_link_libraries(test_transforms assimp)
