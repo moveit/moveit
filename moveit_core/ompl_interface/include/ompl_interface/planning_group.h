@@ -39,10 +39,12 @@
 
 #include <ompl/tools/spaces/StateSpaceCollection.h>
 #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/base/GoalLazySamples.h>
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
+#include <planning_models/transforms.h>
 #include <ompl_interface/state_space.h>
-#include <arm_navigation_msgs/GetMotionPlan.h>
+#include <moveit_msgs/GetMotionPlan.h>
 #include <boost/shared_ptr.hpp>
 
 namespace ompl_interface
@@ -52,55 +54,42 @@ namespace ompl_interface
     {
     public:
 	
-	PlanningGroup(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModel::JointModelGroup *jmg) :
-	    jmg_(jmg), state_space_(ssc, jmg->getJointModels()), ssetup_(state_space_.getOMPLSpace()), state_sampler_(ssetup_.getStateSpace()->allocStateSampler())
-	{
-	}
-	
-	virtual ~PlanningGroup(void)
-	{
-	}
+	PlanningGroup(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModel::JointModelGroup *jmg, const planning_models::Transforms &tf);
+	virtual ~PlanningGroup(void);
 
 	/* @brief Return the name of the group this planner is operating on */
-	std::string getName()
+	const std::string& getName(void)
 	{
 	    return jmg_->getName();
-	};
+	}
 
-	bool computePlan(arm_navigation_msgs::GetMotionPlan::Request &request, 
-			 arm_navigation_msgs::GetMotionPlan::Response &response);
-
+	bool setupPlanningContext(const planning_models::KinematicState &current_state,
+				  const moveit_msgs::RobotState &start_state,
+				  const moveit_msgs::Constraints &goal_constraints, 
+				  const moveit_msgs::Constraints &path_constraints);
+	
+	ompl::geometric::SimpleSetup& getPlanningContext(void)
+	{
+	    return ssetup_;
+	}
+	
     protected:
-
-	/*
-	  @brief Check whether the request is valid. This function must be implemented by every derived class.
-	  @param The motion planning request
-	  @param The motion planner response
-	*/
-	virtual bool isRequestValid(arm_navigation_msgs::GetMotionPlan::Request &request,
-				    arm_navigation_msgs::GetMotionPlan::Response &response);
 	
-	/*
-	  @brief Set the start. This function must be implemented by every derived class.
-	  @param The motion planning request
-	  @param The motion planner response
-	*/
-	virtual bool setStart(arm_navigation_msgs::GetMotionPlan::Request &request,
-			      arm_navigation_msgs::GetMotionPlan::Response &response);
+	struct J_Data;
+	struct IK_Data;
 	
-	/*
-	  @brief Set the start. This function must be implemented by every derived class.
-	  @param The motion planning request
-	  @param The motion planner response
-	*/
-	virtual bool setGoal(arm_navigation_msgs::GetMotionPlan::Request &request,
-			     arm_navigation_msgs::GetMotionPlan::Response &response);
-	
+	bool samplingFuncJ(J_Data *data, const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
+	bool samplingFuncIK(IK_Data *data, const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
 	
 	const planning_models::KinematicModel::JointModelGroup *jmg_;
 	KMStateSpace                                            state_space_;
 	ompl::geometric::SimpleSetup                            ssetup_;	
 	ompl::base::StateSamplerPtr                             state_sampler_;
+	planning_models::Transforms                             tf_;
+	
+	unsigned int                                            max_goal_samples_;
+	unsigned int                                            max_goal_sampling_attempts_;
+	
 	ompl::RNG                                               rng_;
     };
     
