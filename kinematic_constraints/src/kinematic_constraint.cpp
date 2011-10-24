@@ -34,12 +34,13 @@
 
 /** \author Ioan Sucan */
 
-#include <kinematic_constraints/kinematic_constraint_evaluator.h>
+#include <kinematic_constraints/kinematic_constraint.h>
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
+#include <planning_models/conversions.h>
 #include <limits>
 
-bool kinematic_constraints::JointConstraintEvaluator::use(const moveit_msgs::JointConstraint &jc)
+bool kinematic_constraints::JointConstraint::use(const moveit_msgs::JointConstraint &jc)
 {
     jc_ = jc;
     joint_model_ = model_.getJointModel(jc_.joint_name);
@@ -48,17 +49,17 @@ bool kinematic_constraints::JointConstraintEvaluator::use(const moveit_msgs::Joi
     {
 	// check if we have to wrap angles when computing distances
 	const planning_models::KinematicModel::RevoluteJointModel *revolute_joint = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model_);
-	if (revolute_joint && revolute_joint->continuous_)
+	if (revolute_joint && revolute_joint->isContinuous())
 	    cont_ = true;
 
 	// check if the joint has 1 DOF (the only kind we can handle)
-	if (joint_model_->getParameterCount() == 0)
+	if (joint_model_->getVariableCount() == 0)
 	{
 	    ROS_ERROR_STREAM("Joint " << jc_.joint_name << " has no parameters to constrain");
 	    joint_model_ = NULL;
 	}
 	else
-	    if (joint_model_->getParameterCount() > 1)
+	    if (joint_model_->getVariableCount() > 1)
 	    {
 		ROS_ERROR_STREAM("Joint " << jc_.joint_name << " has more than one parameter to constrain. This type of constraint is not appropriate.");
 		joint_model_ = NULL;
@@ -67,7 +68,7 @@ bool kinematic_constraints::JointConstraintEvaluator::use(const moveit_msgs::Joi
     return joint_model_ != NULL;
 }
 
-std::pair<bool, double> kinematic_constraints::JointConstraintEvaluator::decide(const planning_models::KinematicState &state, bool verbose) const
+std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
 {
     if (!joint_model_)
 	return std::make_pair(true, 0.0);
@@ -105,17 +106,17 @@ std::pair<bool, double> kinematic_constraints::JointConstraintEvaluator::decide(
     return std::make_pair(result, jc_.weight * fabs(dif));
 }
 
-void kinematic_constraints::JointConstraintEvaluator::clear(void)
+void kinematic_constraints::JointConstraint::clear(void)
 {
     joint_model_ = NULL;
 }
 
-const moveit_msgs::JointConstraint& kinematic_constraints::JointConstraintEvaluator::getConstraintMessage(void) const
+const moveit_msgs::JointConstraint& kinematic_constraints::JointConstraint::getConstraintMessage(void) const
 {
     return jc_;    
 }
 
-void kinematic_constraints::JointConstraintEvaluator::print(std::ostream &out) const
+void kinematic_constraints::JointConstraint::print(std::ostream &out) const
 {		
     if (joint_model_)
     {
@@ -132,7 +133,7 @@ void kinematic_constraints::JointConstraintEvaluator::print(std::ostream &out) c
 	out << "No constraint" << std::endl;
 }
 
-bool kinematic_constraints::PositionConstraintEvaluator::use(const moveit_msgs::PositionConstraint &pc)
+bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionConstraint &pc)
 {
     pc_ = pc;
     link_model_ = model_.getLinkModel(pc_.link_name);
@@ -142,13 +143,10 @@ bool kinematic_constraints::PositionConstraintEvaluator::use(const moveit_msgs::
     if (link_model_ && constraint_region_)
     {
 	const geometry_msgs::Pose &msg = pc_.constraint_region_pose.pose;
-	constraint_region_pose_ = btTransform(btQuaternion(msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w),
-					      btVector3(msg.position.x, msg.position.y, msg.position.z));
-	if (fabs(constraint_region_pose_.getRotation().length2() - 1.0) > 1e-3)
-	{
-	    ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc_.link_name.c_str());
-	    constraint_region_pose_.setRotation(btQuaternion(0.0, 0.0, 0.0, 1.0));
-	}
+	btQuaternion qr;
+	if (!planning_models::quatFromMsg(msg.orientation, qr))
+	    ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc_.link_name.c_str());	
+	constraint_region_pose_ = btTransform(qr, btVector3(msg.position.x, msg.position.y, msg.position.z));
 	
 	if (tf_.isFixedFrame(pc_.constraint_region_pose.header.frame_id))
 	{
@@ -167,8 +165,8 @@ bool kinematic_constraints::PositionConstraintEvaluator::use(const moveit_msgs::
 namespace kinematic_constraints
 {
     // helper function to avoid code duplication
-    static inline std::pair<bool, double> finishPositionConstraintEvaluatorDecision(const btVector3 &pt, const btVector3 &desired,
-										    const moveit_msgs::PositionConstraint &pc, bool result, bool verbose)
+    static inline std::pair<bool, double> finishPositionConstraintDecision(const btVector3 &pt, const btVector3 &desired,
+									   const moveit_msgs::PositionConstraint &pc, bool result, bool verbose)
     {
 	if (verbose)
 	    ROS_INFO("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
@@ -181,7 +179,7 @@ namespace kinematic_constraints
     }
 }
 
-std::pair<bool, double> kinematic_constraints::PositionConstraintEvaluator::decide(const planning_models::KinematicState &state, bool verbose) const
+std::pair<bool, double> kinematic_constraints::PositionConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
 {
     if (!link_model_ || !constraint_region_)
 	return std::make_pair(true, 0.0);
@@ -206,16 +204,16 @@ std::pair<bool, double> kinematic_constraints::PositionConstraintEvaluator::deci
 	constraint_region_->setPose(tmp);
 	bool result = constraint_region_->containsPoint(pt, false);  
 	lock_.unlock();
-	return finishPositionConstraintEvaluatorDecision(pt, tmp.getOrigin(), pc_, result, verbose);
+	return finishPositionConstraintDecision(pt, tmp.getOrigin(), pc_, result, verbose);
     }
     else
     {
 	bool result = constraint_region_->containsPoint(pt, false);  
-	return finishPositionConstraintEvaluatorDecision(pt, constraint_region_->getPose().getOrigin(), pc_, result, verbose);
+	return finishPositionConstraintDecision(pt, constraint_region_->getPose().getOrigin(), pc_, result, verbose);
     }
 }
 
-void kinematic_constraints::PositionConstraintEvaluator::print(std::ostream &out) const
+void kinematic_constraints::PositionConstraint::print(std::ostream &out) const
 {
     if (link_model_ && constraint_region_)
     {
@@ -252,29 +250,26 @@ void kinematic_constraints::PositionConstraintEvaluator::print(std::ostream &out
 	out << "No constraint" << std::endl;
 }
 
-const moveit_msgs::PositionConstraint& kinematic_constraints::PositionConstraintEvaluator::getConstraintMessage(void) const
+const moveit_msgs::PositionConstraint& kinematic_constraints::PositionConstraint::getConstraintMessage(void) const
 {
     return pc_;
 }
 
-void kinematic_constraints::PositionConstraintEvaluator::clear(void)
+void kinematic_constraints::PositionConstraint::clear(void)
 {
     link_model_ = NULL;
     constraint_region_.reset();
 }
 
-bool kinematic_constraints::OrientationConstraintEvaluator::use(const moveit_msgs::OrientationConstraint &oc)
+bool kinematic_constraints::OrientationConstraint::use(const moveit_msgs::OrientationConstraint &oc)
 {
     oc_ = oc;
     link_model_ = model_.getLinkModel(oc_.link_name);
-    btQuaternion q = btQuaternion(oc_.orientation.quaternion.x, oc_.orientation.quaternion.y, oc_.orientation.quaternion.z, oc_.orientation.quaternion.w);
-    if (fabs(q.length2() - 1.0) > 1e-3)
-    {
+    btQuaternion q;
+    if (!planning_models::quatFromMsg(oc_.orientation.quaternion, q))
 	ROS_WARN("Orientation constraint is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", 
 		 oc_.orientation.quaternion.x, oc_.orientation.quaternion.y, oc_.orientation.quaternion.z, oc_.orientation.quaternion.w);
-	q = btQuaternion(0.0, 0.0, 0.0, 1.0);
-    }
-
+    
     if (tf_.isFixedFrame(oc_.orientation.header.frame_id))
     {
 	tf_.transformQuaternion(q, q, oc_.orientation.header.frame_id);
@@ -291,12 +286,12 @@ bool kinematic_constraints::OrientationConstraintEvaluator::use(const moveit_msg
     return link_model_ != NULL;
 }
 
-void kinematic_constraints::OrientationConstraintEvaluator::clear(void)
+void kinematic_constraints::OrientationConstraint::clear(void)
 {
     link_model_ = NULL;
 }
 
-std::pair<bool, double> kinematic_constraints::OrientationConstraintEvaluator::decide(const planning_models::KinematicState &state, bool verbose) const
+std::pair<bool, double> kinematic_constraints::OrientationConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
 {
     if (!link_model_)
 	return std::make_pair(true, 0.0);
@@ -342,12 +337,12 @@ std::pair<bool, double> kinematic_constraints::OrientationConstraintEvaluator::d
     return std::make_pair(result, oc_.weight * (fabs(roll) + fabs(pitch) + fabs(yaw)));
 }
 
-const moveit_msgs::OrientationConstraint& kinematic_constraints::OrientationConstraintEvaluator::getConstraintMessage(void) const
+const moveit_msgs::OrientationConstraint& kinematic_constraints::OrientationConstraint::getConstraintMessage(void) const
 {
     return oc_;
 }
 
-void kinematic_constraints::OrientationConstraintEvaluator::print(std::ostream &out) const
+void kinematic_constraints::OrientationConstraint::print(std::ostream &out) const
 {
     if (link_model_)
     {
@@ -360,23 +355,23 @@ void kinematic_constraints::OrientationConstraintEvaluator::print(std::ostream &
 }
 
 /*
-const moveit_msgs::VisibilityConstraint& kinematic_constraints::VisibilityConstraintEvaluator::getConstraintMessage(void) const
+const moveit_msgs::VisibilityConstraint& kinematic_constraints::VisibilityConstraint::getConstraintMessage(void) const
 {
     return vc_;
 }
 
-void kinematic_constraints::VisibilityConstraintEvaluator::clear(void)
+void kinematic_constraints::VisibilityConstraint::clear(void)
 {
 }
 
-bool kinematic_constraints::VisibilityConstraintEvaluator::use(const moveit_msgs::VisibilityConstraint &vc)
+bool kinematic_constraints::VisibilityConstraint::use(const moveit_msgs::VisibilityConstraint &vc)
 {
     vc_ = vc;
     tf::poseMsgToTF(m_vc.sensor_pose.pose,m_sensor_offset_pose);
     return true;
 }
 
-bool kinematic_constraints::VisibilityConstraintEvaluator::decide(const planning_models::KinematicState* state, bool verbose) const
+bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::KinematicState* state, bool verbose) const
 {
     const planning_models::KinematicState::LinkState* link_state = state->getLinkState(vc_.target_link);
     
@@ -402,14 +397,14 @@ bool kinematic_constraints::VisibilityConstraintEvaluator::decide(const planning
 	return false;
 }
 
-void kinematic_constraints::VisibilityConstraintEvaluator::print(std::ostream &out) const
+void kinematic_constraints::VisibilityConstraint::print(std::ostream &out) const
 {
     out << "Visibility constraint for sensor on link '" << vc_.sensor_pose.header.frame_id << "'" << std::endl;
 }
 
 
 */
-void kinematic_constraints::KinematicConstraintEvaluatorSet::clear(void)
+void kinematic_constraints::KinematicConstraintSet::clear(void)
 {
     kce_.clear();	
     jc_.clear();
@@ -418,49 +413,49 @@ void kinematic_constraints::KinematicConstraintEvaluatorSet::clear(void)
     //    vc_.clear();    
 }
 
-bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const std::vector<moveit_msgs::JointConstraint> &jc)
+bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::JointConstraint> &jc)
 {
     bool result = true;
     for (unsigned int i = 0 ; i < jc.size() ; ++i)
     {
-	JointConstraintEvaluator *ev = new JointConstraintEvaluator(model_, tf_);
+	JointConstraint *ev = new JointConstraint(model_, tf_);
 	bool u = ev->use(jc[i]);
 	result = result && u;
-	kce_.push_back(KinematicConstraintEvaluatorPtr(ev));
+	kce_.push_back(KinematicConstraintPtr(ev));
 	jc_.push_back(jc[i]);
     }
     return result;
 }
 
-bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const std::vector<moveit_msgs::PositionConstraint> &pc)
+bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::PositionConstraint> &pc)
 {
     bool result = true;
     for (unsigned int i = 0 ; i < pc.size() ; ++i)
     {
-	PositionConstraintEvaluator *ev = new PositionConstraintEvaluator(model_, tf_);
+	PositionConstraint *ev = new PositionConstraint(model_, tf_);
 	bool u = ev->use(pc[i]);
 	result = result && u;	
-	kce_.push_back(KinematicConstraintEvaluatorPtr(ev));
+	kce_.push_back(KinematicConstraintPtr(ev));
 	pc_.push_back(pc[i]);
     }
     return result;
 }
 
-bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const std::vector<moveit_msgs::OrientationConstraint> &oc)
+bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::OrientationConstraint> &oc)
 {
     bool result = true;
     for (unsigned int i = 0 ; i < oc.size() ; ++i)
     {
-	OrientationConstraintEvaluator *ev = new OrientationConstraintEvaluator(model_, tf_);
+	OrientationConstraint *ev = new OrientationConstraint(model_, tf_);
 	bool u = ev->use(oc[i]);
 	result = result && u;	
-	kce_.push_back(KinematicConstraintEvaluatorPtr(ev));
+	kce_.push_back(KinematicConstraintPtr(ev));
 	oc_.push_back(oc[i]);
     }
     return result;
 }
 
-bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const moveit_msgs::Constraints &c)
+bool kinematic_constraints::KinematicConstraintSet::add(const moveit_msgs::Constraints &c)
 {
     bool j = add(c.joint_constraints);
     bool p = add(c.position_constraints);
@@ -469,12 +464,12 @@ bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const moveit_ms
 }
 
 /*
-bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const std::vector<moveit_msgs::VisibilityConstraint> &vc)
+bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::VisibilityConstraint> &vc)
 {
     bool result = true;
     for (unsigned int i = 0 ; i < vc.size() ; ++i)
     {
-	VisibilityConstraintEvaluator *ev = new VisibilityConstraintEvaluator(model_);
+	VisibilityConstraint *ev = new VisibilityConstraint(model_);
 	bool u = ev->use(vc[i]);
 	result = result && u;
 	kce_.push_back(ev);
@@ -484,7 +479,7 @@ bool kinematic_constraints::KinematicConstraintEvaluatorSet::add(const std::vect
 }
 */
 
-std::pair<bool, double> kinematic_constraints::KinematicConstraintEvaluatorSet::decide(const planning_models::KinematicState &state, bool verbose) const
+std::pair<bool, double> kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state, bool verbose) const
 {
     bool result = true;
     double d = 0.0;
@@ -499,7 +494,7 @@ std::pair<bool, double> kinematic_constraints::KinematicConstraintEvaluatorSet::
     return std::make_pair(result, d);
 }
 
-void kinematic_constraints::KinematicConstraintEvaluatorSet::print(std::ostream &out) const
+void kinematic_constraints::KinematicConstraintSet::print(std::ostream &out) const
 {
     out << kce_.size() << " kinematic constraints" << std::endl;
     for (unsigned int i = 0 ; i < kce_.size() ; ++i)

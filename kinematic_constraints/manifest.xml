@@ -11,7 +11,6 @@
 
   <depend package="planning_models"/>
   <depend package="geometric_shapes"/>
-  <depend package="planning_coordinates"/>
   <depend package="moveit_msgs"/>
 
 </package>
