@@ -178,11 +178,11 @@ namespace ompl_interface
 	{
 	    planning_models::KinematicState *st = NULL;
 	    lock_.lock();
-	    std::map<boost::thread::id, planning_models::KinematicState*>::const_iterator it = thread_states_.find(boost::this_thread::id());
+	    std::map<boost::thread::id, planning_models::KinematicState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
 	    if (it == thread_states_.end())
 	    {
 		st = new planning_models::KinematicState(start_state_);
-		thread_states_[boost::this_thread::id()] = st;
+		thread_states_[boost::this_thread::get_id()] = st;
 	    }
 	    else
 		st = it->second;
@@ -190,19 +190,19 @@ namespace ompl_interface
 	    return st;
 	}
 	
-	virtual double distanceGoal(const State *st) const
+	virtual double distanceGoal(const ompl::base::State *st) const
 	{
 	    planning_models::KinematicState *s = getStateStorage();
 	    kspace_.copyToKinematicState(*s, st);
-	    const std::pair<bool, double> &r = ks_.decide(*s);
+	    const std::pair<bool, double> &r = ks_->decide(*s);
 	    return r.second;
 	}
 	
-	virtual bool isSatisfied(const State *st, double *distance) const
+	virtual bool isSatisfied(const ompl::base::State *st, double *distance) const
 	{
 	    planning_models::KinematicState *s = getStateStorage();
 	    kspace_.copyToKinematicState(*s, st);
-	    const std::pair<bool, double> &r = ks_.decide(*s);
+	    const std::pair<bool, double> &r = ks_->decide(*s);
 	    if (distance)
 		*distance = r.second;
 	    return r.first;	    
@@ -299,9 +299,9 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
     
     // ******************* set up the sampler (based on path constraints)    
 
-    if (!request.motion_plan_request.path_constraints.joint_constraints.empty() ||
-	!request.motion_plan_request.path_constraints.position_constraints.empty() ||
-	!request.motion_plan_request.path_constraints.orientation_constraints.empty())
+    if (!path_constraints.joint_constraints.empty() ||
+	!path_constraints.position_constraints.empty() ||
+	!path_constraints.orientation_constraints.empty())
     {
 	// we need a new sampler for the state space
     }
@@ -320,27 +320,25 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
     
     // if we have position and/or orientation constraints on links that we can perform IK for,
     // we will use a sampleable goal region that employs IK to sample goals
-    for (std::size_t p = 0 ; p < request.motion_plan_request.goal_constraints.position_constraints.size() ; ++p)
-	if (jmg_->supportsIK(request.motion_plan_request.goal_constraints.position_constraints[p].link_name))
-	    for (std::size_t o = 0 ; o < request.motion_plan_request.goal_constraints.orientation_constraints.size() ; ++o)
-		if (request.motion_plan_request.goal_constraints.position_constraints[p].link_name == 
-		    request.motion_plan_request.goal_constraints.orientation_constraints[o].link_name)
-		    ik_data.reset(new IK_Data(tf_, request.motion_plan_request.goal_constraints.position_constraints[p],
-					      request.motion_plan_request.goal_constraints.orientation_constraints[o]));
+    for (std::size_t p = 0 ; p < goal_constraints.position_constraints.size() ; ++p)
+	if (jmg_->supportsIK(goal_constraints.position_constraints[p].link_name))
+	    for (std::size_t o = 0 ; o < goal_constraints.orientation_constraints.size() ; ++o)
+		if (goal_constraints.position_constraints[p].link_name == goal_constraints.orientation_constraints[o].link_name)
+		    ik_data.reset(new IK_Data(tf_, goal_constraints.position_constraints[p], goal_constraints.orientation_constraints[o]));
     if (!ik_data)
-	for (std::size_t p = 0 ; p < request.motion_plan_request.goal_constraints.position_constraints.size() ; ++p)
-	    if (jmg_->supportsIK(request.motion_plan_request.goal_constraints.position_constraints[p].link_name))
-		ik_data.reset(new IK_Data(tf_, request.motion_plan_request.goal_constraints.position_constraints[p]));
+	for (std::size_t p = 0 ; p < goal_constraints.position_constraints.size() ; ++p)
+	    if (jmg_->supportsIK(goal_constraints.position_constraints[p].link_name))
+		ik_data.reset(new IK_Data(tf_, goal_constraints.position_constraints[p]));
     if (!ik_data)
-	for (std::size_t o = 0 ; o < request.motion_plan_request.goal_constraints.orientation_constraints.size() ; ++o)
-	    if (jmg_->supportsIK(request.motion_plan_request.goal_constraints.orientation_constraints[o].link_name))
-		ik_data.reset(new IK_Data(tf_, request.motion_plan_request.goal_constraints.orientation_constraints[o]));
+	for (std::size_t o = 0 ; o < goal_constraints.orientation_constraints.size() ; ++o)
+	    if (jmg_->supportsIK(goal_constraints.orientation_constraints[o].link_name))
+		ik_data.reset(new IK_Data(tf_, goal_constraints.orientation_constraints[o]));
 
     // if we cannot perform IK but there are joint constraints that we can use to construct goal samples,
     // we again use a sampleable goal region
-    if (!ik_data && !request.motion_plan_request.goal_constraints.joint_constraints.empty())
+    if (!ik_data && !goal_constraints.joint_constraints.empty())
     {
-	j_data.reset(new J_Data(jmg_, request.motion_plan_request.goal_constraints.joint_constraints));
+	j_data.reset(new J_Data(jmg_, goal_constraints.joint_constraints));
 	// if there are no valid constraints, just ignore the constraints
 	if (j_data->constrained_joints_count_ == 0)
 	    j_data.reset();
