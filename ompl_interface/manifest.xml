@@ -14,7 +14,6 @@
   <depend package="planning_models"/>
   <depend package="kinematic_constraints"/>
   <depend package="kinematics_base"/>
-  <depend package="planning_coordinates"/>
   <depend package="moveit_msgs"/>
 
   <export>

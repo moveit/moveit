@@ -39,8 +39,12 @@
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 
-ompl_interface::KMStateSpace::KMStateSpace(ompl::StateSpaceCollection &ssc,
-					   const std::vector<const planning_models::KinematicModel::JointModel*> &joints)
+ompl_interface::KMStateSpace::KMStateSpace(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModel::JointModelGroup* jmg) : jmg_(jmg)
+{
+    constructSpace(ssc, jmg_->getJointModels());
+}
+
+ompl_interface::KMStateSpace::KMStateSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints) : jmg_(NULL)
 {
     constructSpace(ssc, joints);
 }
@@ -60,8 +64,20 @@ const double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::
     return state_address_.getValueAddressAtName(joint_name, state);    
 }
 
-void ompl_interface::KMStateSpace::copyToKinematicState(const std::vector<planning_models::KinematicState::JointState*> &js,
-							const ompl::base::State *state) const
+void ompl_interface::KMStateSpace::copyToKinematicState(planning_models::KinematicState &kstate, const ompl::base::State *state) const
+{
+    if (jmg_)
+	copyToKinematicState(kstate.getJointStateGroup(jmg_->getName())->getJointStateVector(), state);
+    else
+    {
+	std::vector<planning_models::KinematicState::JointState*> js(joints_.size(), NULL);
+	for (std::size_t i = 0 ; i < joints_.size() ; ++i)
+	    js[i] = kstate.getJointState(joints_[i]->getName());
+	copyToKinematicState(js, state);
+    }
+}
+
+void ompl_interface::KMStateSpace::copyToKinematicState(const std::vector<planning_models::KinematicState::JointState*> &js, const ompl::base::State *state) const
     
 {	
     const ompl::base::CompoundState *cstate = state->as<ompl::base::CompoundState>();
@@ -103,8 +119,20 @@ void ompl_interface::KMStateSpace::copyToKinematicState(const std::vector<planni
 			ROS_ERROR("Cannot convert OMPL state to kinematic state");  
 }
 
-void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state,
-						   const std::vector<const planning_models::KinematicState::JointState*> &js)
+void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState &kstate) const
+{
+    if (jmg_)
+	copyToOMPLState(state, kstate.getJointStateGroup(jmg_->getName())->getJointStateVector());
+    else
+    {
+	std::vector<planning_models::KinematicState::JointState*> js(joints_.size(), NULL);
+	for (std::size_t i = 0 ; i < joints_.size() ; ++i)
+	    js[i] = kstate.getJointState(joints_[i]->getName());
+	copyToOMPLState(state, js);
+    }
+}
+
+void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, const std::vector<planning_models::KinematicState::JointState*> &js) const
 {
     ompl::base::CompoundState *cstate = state->as<ompl::base::CompoundState>();
     unsigned int j = 0;		
@@ -162,13 +190,11 @@ void ompl_interface::KMStateSpace::setPlanningVolume(double minX, double maxX, d
 	    }		
 }
 
-void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ssc,
-						  const std::vector<const planning_models::KinematicModel::JointModel*> &joints) 
+void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints) 
 {
     joints_ = joints;		
     space_.reset();
     joint_mapping_.clear();
-    joint_names_.clear();
     all_components_.clear();
     
     ompl::base::RealVectorStateSpace *rv = NULL;		
@@ -187,7 +213,7 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
 	
 	const planning_models::KinematicModel::RevoluteJointModel* revolute_joint = 
 	    dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joints[i]);
-	if (revolute_joint && revolute_joint->continuous_)
+	if (revolute_joint && revolute_joint->isContinuous())
 	{
 	    ompl::base::SO2StateSpace *space = new ompl::base::SO2StateSpace();
 	    space->setName(revolute_joint->getName());
