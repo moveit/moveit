@@ -23,6 +23,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/shape_operations.cpp
   src/bodies.cpp
   src/body_operations.cpp)
+target_link_libraries(${PROJECT_NAME} assimp)
 
 # Unit tests
 rosbuild_add_gtest(test_point_inclusion test/test_point_inclusion.cpp)

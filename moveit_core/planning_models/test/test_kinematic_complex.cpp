@@ -210,6 +210,13 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     std::vector<double> v2;
     ks2.getStateValues(v2);
     EXPECT_TRUE(v1 == v2);
+
+    geometry_msgs::Quaternion q;
+    q.x = q.y = q.z = q.w = 0.0;
+    btQuaternion tq;
+    EXPECT_FALSE(planning_models::quatFromMsg(q, tq));
+    EXPECT_TRUE(tq.getW() == 1.0);
+    
 }
 
 
