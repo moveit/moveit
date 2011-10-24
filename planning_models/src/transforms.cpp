@@ -36,6 +36,17 @@
 
 #include <planning_models/transforms.h>
 
+planning_models::Transforms::Transforms(const std::string &target_frame) : target_frame_(target_frame), kstate_(NULL)
+{
+    btTransform t;
+    t.setIdentity();
+    transforms_[target_frame_] = t;
+}
+
+planning_models::Transforms::~Transforms(void)
+{
+}
+
 const std::string& planning_models::Transforms::getPlanningFrame(void) const
 {
     return target_frame_;

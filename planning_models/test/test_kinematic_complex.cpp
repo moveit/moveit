@@ -38,12 +38,6 @@
 #include <planning_models/kinematic_state.h>
 #include <planning_models/conversions.h>
 #include <gtest/gtest.h>
-#include <sstream>
-#include <ctype.h>
-#include <ros/package.h>
-
-//urdf location relative to the planning_models path
-static const std::string rel_path = "/test_urdf/robot.xml";
 
 class LoadPlanningModelsPr2 : public testing::Test 
 {
@@ -51,8 +45,7 @@ protected:
     
     virtual void SetUp()
     {
-	full_path_ = ros::package::getPath("planning_models")+rel_path;
-	urdf_ok_ = urdf_model_.initFile(full_path_);
+	urdf_ok_ = urdf_model_.initFile("test/urdf/robot.xml");
     };
     
     virtual void TearDown() 
@@ -215,8 +208,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     q.x = q.y = q.z = q.w = 0.0;
     btQuaternion tq;
     EXPECT_FALSE(planning_models::quatFromMsg(q, tq));
-    EXPECT_TRUE(tq.getW() == 1.0);
-    
+    EXPECT_TRUE(tq.getW() == 1.0);    
 }
 
 

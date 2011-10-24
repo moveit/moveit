@@ -48,13 +48,8 @@ namespace planning_models
     class Transforms
     {
     public:
-	Transforms(const std::string &target_frame) : target_frame_(target_frame), kstate_(NULL)
-	{
-	}
-	
-	~Transforms(void)
-	{
-	}
+	Transforms(const std::string &target_frame);
+	~Transforms(void);
 	
 	const std::string& getPlanningFrame(void) const;
 	bool isFixedFrame(const std::string &frame) const;
