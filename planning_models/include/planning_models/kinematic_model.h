@@ -92,6 +92,12 @@ namespace planning_models
 		return name_;
 	    }
 	    
+	    /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
+	    int getTreeIndex(void) const
+	    {
+		return tree_index_;
+	    }
+	    
 	    /** \brief Get the link that this joint connects to. The
 		robot is assumed to start with a joint, so the root
 		joint will return a NULL pointer here. */
@@ -180,6 +186,9 @@ namespace planning_models
 	    
 	    /** \brief Map from variable names to high and low bounds */
 	    std::map<std::string, std::pair<double, double> > joint_variable_bounds_;
+
+	    /** \brief The index assigned to this joint when traversing the kinematic tree in depth first fashion */
+	    int                                               tree_index_;	    
 	};
 	
 	/** \brief A fixed joint */
@@ -313,9 +322,16 @@ namespace planning_models
 	    
 	    ~LinkModel(void);
 	    
+	    /** \brief The name of this link */
 	    const std::string& getName(void) const
 	    {
 		return name_;
+	    }
+
+	    /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
+	    int getTreeIndex(void) const
+	    {
+		return tree_index_;
 	    }
 	    
 	    const JointModel* getParentJointModel(void) const
@@ -362,6 +378,9 @@ namespace planning_models
 	    
 	    /** \brief The collision geometry of the link */
 	    boost::shared_ptr<shapes::Shape> shape_;
+
+	    /** \brief The index assigned to this link when traversing the kinematic tree in depth first fashion */
+	    int                              tree_index_;
 	};
 	
 	class JointModelGroup

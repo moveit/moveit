@@ -37,6 +37,7 @@
 #include <planning_models/kinematic_model.h>
 #include <geometric_shapes/shape_operations.h>
 #include <boost/math/constants/constants.hpp>
+#include <algorithm>
 #include <limits>
 #include <queue>
 #include <ros/console.h>
@@ -79,6 +80,19 @@ planning_models::KinematicModel::~KinematicModel(void)
 	delete joint_model_vector_[i];
     for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
 	delete link_model_vector_[i];
+}
+
+namespace planning_models
+{
+    static bool orderJointsByIndex(const KinematicModel::JointModel *a, const KinematicModel::JointModel *b)
+    {
+	return a->getTreeIndex() < b->getTreeIndex();
+    }
+    
+    static bool orderLinksByIndex(const KinematicModel::LinkModel *a, const KinematicModel::LinkModel *b)
+    {
+	return a->getTreeIndex() < b->getTreeIndex();
+    }
 }
 
 const std::string& planning_models::KinematicModel::getName(void) const
@@ -243,6 +257,8 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
     std::vector<const JointModel*> joints;
     for (std::set<const JointModel*>::iterator it = jset.begin() ; it != jset.end() ; ++it)
 	joints.push_back(*it);
+
+    std::sort(joints.begin(), joints.end(), &orderJointsByIndex);
     
     JointModelGroup *jmg = new JointModelGroup(gc.name_, joints, this);
     joint_model_group_map_[gc.name_] = jmg;
@@ -262,12 +278,14 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::bu
     if (joint == NULL)
 	return NULL;
     joint_model_map_[joint->name_] = joint;
+    joint->tree_index_ = joint_model_vector_.size();
     joint_model_vector_.push_back(joint);
     joint->parent_link_model_ = parent;
     joint->child_link_model_ = constructLinkModel(link);
     if (parent == NULL)
 	joint->child_link_model_->joint_origin_transform_.setIdentity();
     link_model_map_[joint->child_link_model_->name_] = joint->child_link_model_;
+    joint->child_link_model_->tree_index_ = link_model_vector_.size();
     link_model_vector_.push_back(joint->child_link_model_);
     if (joint->child_link_model_->shape_)
 	link_models_with_collision_geometry_vector_.push_back(joint->child_link_model_);
@@ -639,15 +657,14 @@ std::vector<std::string> planning_models::KinematicModel::getChildJointModelName
 /* ------------------------ JointModel ------------------------ */
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :
-    name_(name), parent_link_model_(NULL), child_link_model_(NULL)
+    name_(name), parent_link_model_(NULL), child_link_model_(NULL), tree_index_(-1)
 {
 }
 
 planning_models::KinematicModel::JointModel::JointModel(const JointModel& joint) :
-    parent_link_model_(NULL), child_link_model_(NULL)
+    name_(joint.name_), parent_link_model_(NULL), child_link_model_(NULL),
+    joint_variable_bounds_(joint.joint_variable_bounds_), tree_index_(joint.tree_index_)
 {
-    name_ = joint.name_;
-    joint_variable_bounds_ = joint.joint_variable_bounds_;
 }
 
 planning_models::KinematicModel::JointModel::~JointModel(void)
@@ -663,7 +680,8 @@ bool planning_models::KinematicModel::JointModel::setVariableBounds(const std::s
     }
     joint_variable_bounds_[variable] = std::make_pair(low, high);
     return true;
-}
+}    ;
+
 
 bool planning_models::KinematicModel::JointModel::getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const
 {
@@ -845,7 +863,7 @@ void planning_models::KinematicModel::RevoluteJointModel::computeJointStateValue
 
 /* ------------------------ LinkModel ------------------------ */
 
-planning_models::KinematicModel::LinkModel::LinkModel(void) : parent_joint_model_(NULL)
+planning_models::KinematicModel::LinkModel::LinkModel(void) : parent_joint_model_(NULL), tree_index_(-1)
 {
     joint_origin_transform_.setIdentity();
     collision_origin_transform_.setIdentity();
@@ -855,7 +873,7 @@ planning_models::KinematicModel::LinkModel::LinkModel(const LinkModel &link_mode
     name_(link_model.name_), 
     joint_origin_transform_(link_model.joint_origin_transform_),
     collision_origin_transform_(link_model.collision_origin_transform_),
-    shape_(link_model.shape_)
+    shape_(link_model.shape_), tree_index_(link_model.tree_index_)
 {
 }
 
@@ -910,10 +928,10 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     for (unsigned int i = 0 ; i < group_joints.size() ; ++i)
 	group_links_set.insert(group_joints[i]->getChildLinkModel());
     for (std::set<const LinkModel*>::iterator it = group_links_set.begin(); it != group_links_set.end(); ++it)
-    {
-	group_link_model_vector_.push_back(*it);
-	link_model_name_vector_.push_back(group_link_model_vector_.back()->getName());
-    }
+    	group_link_model_vector_.push_back(*it);
+    std::sort(group_link_model_vector_.begin(), group_link_model_vector_.end(), &orderLinksByIndex);
+    for (std::size_t i = 0 ; i < group_link_model_vector_.size() ; ++i)
+	link_model_name_vector_.push_back(group_link_model_vector_[i]->getName());
     
     // these subtrees are distinct, so we can stack their updated links on top of each other
     for (unsigned int i = 0 ; i < joint_roots_.size() ; ++i)
@@ -953,7 +971,6 @@ const planning_models::KinematicModel::JointModel* planning_models::KinematicMod
     else
 	return it->second;
 }
-
     
 void planning_models::KinematicModel::printModelInfo(std::ostream &out) const
 {
