@@ -34,15 +34,14 @@
 
 /** \author Ioan Sucan */
 
-#ifndef KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_EVALUATOR_
-#define KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_EVALUATOR_
+#ifndef KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
+#define KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
 
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
-#include <planning_coordinates/transforms.h>
+#include <planning_models/transforms.h>
 
 #include <geometric_shapes/bodies.h>
-#include <LinearMath/btTransform.h>
 #include <moveit_msgs/Constraints.h>
 
 #include <iostream>
@@ -53,15 +52,15 @@
 namespace kinematic_constraints
 {
     
-    class KinematicConstraintEvaluator
+    class KinematicConstraint
     {
     public:
 	
-	KinematicConstraintEvaluator(const planning_models::KinematicModel &model, const planning_coordinates::Transforms &tf) : model_(model), tf_(tf)
+	KinematicConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : model_(model), tf_(tf)
 	{
 	}
 	
-	virtual ~KinematicConstraintEvaluator(void)
+	virtual ~KinematicConstraint(void)
 	{
 	}
 	
@@ -78,18 +77,18 @@ namespace kinematic_constraints
 	
     protected:
 	
-	const planning_models::KinematicModel    &model_;
-	mutable planning_coordinates::Transforms  tf_;	
-	mutable boost::mutex                      lock_;
+	const planning_models::KinematicModel &model_;
+	mutable planning_models::Transforms    tf_;	
+	mutable boost::mutex                   lock_;
     };
 
-    typedef boost::shared_ptr<KinematicConstraintEvaluator> KinematicConstraintEvaluatorPtr;
+    typedef boost::shared_ptr<KinematicConstraint> KinematicConstraintPtr;
 
-    class JointConstraintEvaluator : public KinematicConstraintEvaluator
+    class JointConstraint : public KinematicConstraint
     {
     public:  
 	
-	JointConstraintEvaluator(const planning_models::KinematicModel &model, const planning_coordinates::Transforms &tf) : KinematicConstraintEvaluator(model, tf), joint_model_(NULL), cont_(false)
+	JointConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : KinematicConstraint(model, tf), joint_model_(NULL), cont_(false)
 	{
 	}
 	
@@ -116,11 +115,11 @@ namespace kinematic_constraints
     };
     
     
-    class OrientationConstraintEvaluator : public KinematicConstraintEvaluator
+    class OrientationConstraint : public KinematicConstraint
     {
     public:
 	
-	OrientationConstraintEvaluator(const planning_models::KinematicModel &model, const planning_coordinates::Transforms &tf) : KinematicConstraintEvaluator(model, tf), link_model_(NULL)
+	OrientationConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : KinematicConstraint(model, tf), link_model_(NULL)
 	{
 	}
 	
@@ -148,11 +147,11 @@ namespace kinematic_constraints
 	bool                                              mobileFrame_;
     };
     
-    class PositionConstraintEvaluator : public KinematicConstraintEvaluator
+    class PositionConstraint : public KinematicConstraint
     {
     public:
 	
-	PositionConstraintEvaluator(const planning_models::KinematicModel &model, const planning_coordinates::Transforms &tf) : KinematicConstraintEvaluator(model, tf), link_model_(NULL)
+	PositionConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : KinematicConstraint(model, tf), link_model_(NULL)
 	{
 	}
 	
@@ -182,11 +181,11 @@ namespace kinematic_constraints
     };
 
     /*    
-    class VisibilityConstraintEvaluator : public KinematicConstraintEvaluator
+    class VisibilityConstraint : public KinematicConstraint
     {
     public:
 	
-	VisibilityConstraintEvaluator(const planning_models::KinematicModel &model) : KinematicConstraintEvaluator(model, tf)
+	VisibilityConstraint(const planning_models::KinematicModel &model) : KinematicConstraint(model, tf)
 	{
 	}
 	
@@ -211,15 +210,15 @@ namespace kinematic_constraints
     };
     */
 
-    class KinematicConstraintEvaluatorSet
+    class KinematicConstraintSet
     {
     public:
 	
-	KinematicConstraintEvaluatorSet(const planning_models::KinematicModel &model, const planning_coordinates::Transforms &tf) : model_(model), tf_(tf)
+	KinematicConstraintSet(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : model_(model), tf_(tf)
 	{
 	}
 	
-	~KinematicConstraintEvaluatorSet(void)
+	~KinematicConstraintSet(void)
 	{
 	    clear();
 	}
@@ -276,9 +275,9 @@ namespace kinematic_constraints
     protected:
 
 	const planning_models::KinematicModel          &model_;
-	const planning_coordinates::Transforms         &tf_;
+	const planning_models::Transforms              &tf_;
 	
-	std::vector<KinematicConstraintEvaluatorPtr>    kce_;
+	std::vector<KinematicConstraintPtr>             kce_;
 
 	std::vector<moveit_msgs::JointConstraint>       jc_;
 	std::vector<moveit_msgs::PositionConstraint>    pc_;
@@ -286,7 +285,7 @@ namespace kinematic_constraints
 	//	std::vector<moveit_msgs::VisibilityConstraint>  vc_;
     };    
     
-    typedef boost::shared_ptr<KinematicConstraintEvaluatorSet> KinematicConstraintEvaluatorSetPtr;
+    typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr;
     
 }
 
