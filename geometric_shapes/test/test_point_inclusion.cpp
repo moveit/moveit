@@ -218,17 +218,17 @@ TEST(CylinderPointContainment, SimpleOutside)
 
 TEST(CylinderPointContainment, CylinderPadding)
 {
-  shapes::Cylinder shape(1.0, 4.0);
-  bodies::Body* cylinder = new bodies::Cylinder(&shape);
-  bool contains = cylinder->containsPoint(0,1.01,0);
-  EXPECT_FALSE(contains);
-  cylinder->setPadding(.02);
-  contains = cylinder->containsPoint(0,1.01,0);
-  EXPECT_TRUE(contains);
-  cylinder->setPadding(0.0);
-  bodies::BoundingSphere bsphere;
-  cylinder->computeBoundingSphere(bsphere);
-  EXPECT_TRUE(bsphere.radius > 2.0);
+    shapes::Cylinder shape(1.0, 4.0);
+    bodies::Body* cylinder = new bodies::Cylinder(&shape);
+    bool contains = cylinder->containsPoint(0,1.01,0);
+    EXPECT_FALSE(contains);
+    cylinder->setPadding(.02);
+    contains = cylinder->containsPoint(0,1.01,0);
+    EXPECT_TRUE(contains);
+    cylinder->setPadding(0.0);
+    bodies::BoundingSphere bsphere;
+    cylinder->computeBoundingSphere(bsphere);
+    EXPECT_TRUE(bsphere.radius > 2.0);
 }
 
 int main(int argc, char **argv)

@@ -39,6 +39,8 @@
 
 #include "geometric_shapes/shapes.h"
 #include <LinearMath/btTransform.h>
+#include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <vector>
 
 /**
@@ -73,14 +75,13 @@ namespace bodies
     {
     public:
 	
-	Body(void) : shape_(NULL), scale_(1.0), padding_(0.0), type_(shapes::UNKNOWN_SHAPE)
+	Body(void) : scale_(1.0), padding_(0.0), type_(shapes::UNKNOWN_SHAPE)
 	{
 	    pose_.setIdentity();
 	}
 	
 	virtual ~Body(void)
 	{
-	    delete shape_;
 	}
 	
 	/** \brief Get the type of shape this body represents */
@@ -133,27 +134,21 @@ namespace bodies
 	/** \brief Set the dimensions of the body (from corresponding shape) */
 	void setDimensions(const shapes::Shape *shape);
 	
-	/** \brief Get the shape that corresponds to this body */
-	const shapes::Shape* getShape(void) const
-	{
-	    return shape_;
-	}
-	
 	/** \brief Check is a point is inside the body */
-	bool containsPoint(double x, double y, double z) const
+	bool containsPoint(double x, double y, double z, bool verbose = false) const
 	{
-	    return containsPoint(btVector3(btScalar(x), btScalar(y), btScalar(z)));
+	    return containsPoint(btVector3(btScalar(x), btScalar(y), btScalar(z)), verbose);
 	}
+		
+	/** \brief Check is a point is inside the body */
+	virtual bool containsPoint(const btVector3 &p, bool verbose = false) const = 0;	
 	
 	/** \brief Check is a ray intersects the body, and find the
 	    set of intersections, in order, along the ray. A maximum
 	    number of intersections can be specified as well. If that
 	    number is 0, all intersections are returned */
 	virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const = 0;
-	
-	/** \brief Check is a point is inside the body */
-	virtual bool containsPoint(const btVector3 &p, bool verbose = false) const = 0;	
-	
+
 	/** \brief Compute the volume of the body. This method includes
 	    changes induced by scaling and padding */
 	virtual double computeVolume(void) const = 0;
@@ -166,12 +161,18 @@ namespace bodies
 	    pose. Scaling and padding are accounted for. */
 	virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const = 0;
 	
+	boost::shared_ptr<Body> cloneAt(const btTransform &pose) const
+	{
+	    return cloneAt(pose, padding_, scale_);
+	}
+	
+	virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scaling) const = 0;
+	
     protected:
 	
 	virtual void updateInternalData(void) = 0;
 	virtual void useDimensions(const shapes::Shape *shape) = 0;
 	
-	shapes::Shape    *shape_;
 	double            scale_;
 	double            padding_;	
 	shapes::ShapeType type_;
@@ -203,14 +204,19 @@ namespace bodies
 	virtual void computeBoundingSphere(BoundingSphere &sphere) const;
 	virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
 	virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
+
+	virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scale) const;
 	
     protected:
 	
 	virtual void useDimensions(const shapes::Shape *shape);
 	virtual void updateInternalData(void);
 	
+	// shape-dependent data
+	double    radius_;
+
+	// pose/padding/scaling-dependent values & values computed for convenience and fast upcoming computations
 	btVector3 center_;
-	double    radius_;	
 	double    radiusU_;
 	double    radius2_;		    
     };
@@ -239,20 +245,25 @@ namespace bodies
 	virtual void computeBoundingSphere(BoundingSphere &sphere) const;
 	virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
 	virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
-	
+
+	virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scale) const;
+
     protected:
 	
 	virtual void useDimensions(const shapes::Shape *shape);
 	virtual void updateInternalData(void);
-	
+
+	// shape-dependent data
+	double    length_;
+	double    radius_;
+
+	// pose/padding/scaling-dependent values & values computed for convenience and fast upcoming computations
 	btVector3 center_;
 	btVector3 normalH_;
 	btVector3 normalB1_;
-	btVector3 normalB2_;
-	
-	double    length_;
+	btVector3 normalB2_;	
+
 	double    length2_;	
-	double    radius_;
 	double    radiusU_;
 	double    radiusB_;
 	double    radiusBSqr_;
@@ -285,12 +296,20 @@ namespace bodies
 	virtual void computeBoundingSphere(BoundingSphere &sphere) const;
 	virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
 	virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
-	
+
+	virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scale) const;
+
     protected:
 	
 	virtual void useDimensions(const shapes::Shape *shape); // (x, y, z) = (length, width, height)	    
 	virtual void updateInternalData(void);
 	
+	// shape-dependent data
+	double    length_;
+	double    width_;
+	double    height_;	
+
+	// pose/padding/scaling-dependent values & values computed for convenience and fast upcoming computations
 	btVector3 center_;
 	btVector3 normalL_;
 	btVector3 normalW_;
@@ -299,9 +318,6 @@ namespace bodies
 	btVector3 corner1_;
 	btVector3 corner2_;
 	
-	double    length_;
-	double    width_;
-	double    height_;	
 	double    length2_;
 	double    width2_;
 	double    height2_;	
@@ -317,11 +333,13 @@ namespace bodies
 	ConvexMesh(void) : Body()
 	{	    
 	    type_ = shapes::MESH;
+	    scaled_vertices_ = NULL;
 	}
 	
 	ConvexMesh(const shapes::Shape *shape) : Body()
 	{	  
 	    type_ = shapes::MESH;
+	    scaled_vertices_ = NULL;
 	    setDimensions(shape);
 	}
 	
@@ -336,20 +354,11 @@ namespace bodies
 	virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
 	virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
 	
-	const std::vector<unsigned int>& getTriangles(void) const
-	{
-	    return triangles_;
-	}
-	
-	const std::vector<btVector3>& getVertices(void) const
-	{
-	    return vertices_;
-	}
-	
-	const std::vector<btVector3>& getScaledVertices(void) const
-	{
-	    return scaled_vertices_;
-	}
+	const std::vector<unsigned int>& getTriangles(void) const;
+	const std::vector<btVector3>& getVertices(void) const;
+	const std::vector<btVector3>& getScaledVertices(void) const;
+
+	virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scale) const;
 	
     protected:
 	
@@ -359,21 +368,35 @@ namespace bodies
 	unsigned int countVerticesBehindPlane(const btVector4& planeNormal) const;
 	bool isPointInsidePlanes(const btVector3& point) const;
 	
-	std::vector<btVector4>    planes_;
-	std::vector<btVector3>    vertices_;
-	std::vector<btVector3>    scaled_vertices_;
-	std::vector<unsigned int> triangles_;
-	btTransform               i_pose_;
+	struct MeshData
+	{
+	    std::vector<btVector4>    planes_;
+	    std::vector<btVector3>    vertices_;
+	    std::vector<unsigned int> triangles_;
+	    btVector3                 mesh_center_;
+	    double                    mesh_radiusB_;
+	    btVector3                 box_offset_;
+	    btVector3                 box_size_;
+	    BoundingCylinder          bounding_cylinder_;
+	};
 	
-	btVector3                 center_;
-	btVector3                 mesh_center_;
-	double                    radiusB_;
-	double                    radiusBSqr_;
-	double                    mesh_radiusB_;
+	// shape-dependent data; keep this in one struct so that a cheap pointer copy can be done in cloneAt()
+	boost::shared_ptr<MeshData> mesh_data_;
 	
-	btVector3                 box_offset_;
-	Box                       bounding_box_;
-	BoundingCylinder          bounding_cylinder_;
+	// pose/padding/scaling-dependent values & values computed for convenience and fast upcoming computations
+	btTransform                 i_pose_;	
+	btVector3                   center_;
+	double                      radiusB_;
+	double                      radiusBSqr_;
+	Box                         bounding_box_;
+	
+	// pointer to an array of scaled vertices
+	// if the padding is 0 & scaling is 1, then there is no need to have scaled vertices; we can just point to the vertices in mesh_data_
+	// otherwise, point to scaled_vertices_storage_
+	std::vector<btVector3>     *scaled_vertices_;
+
+    private:
+	boost::scoped_ptr<std::vector<btVector3> > scaled_vertices_storage_;	
     };
     
     class BodyVector

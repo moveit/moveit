@@ -35,32 +35,29 @@
 /** \author Ioan Sucan */
 
 #include "geometric_shapes/bodies.h"
-#include "geometric_shapes/shape_operations.h"
 #include "geometric_shapes/body_operations.h"
 
 #include <ros/console.h>
 #include <LinearMath/btConvexHull.h>
-
+#include <boost/math/constants/constants.hpp>
+#include <limits>
 #include <algorithm>
-#include <iostream>
-#include <cmath>
 
 namespace bodies
 {
-    static const double ZERO = 1e-9;
-    
-    /** \brief Compute the square of the distance between a ray and a point 
-	Note: this requires 'dir' to be normalized */
-    static inline double distanceSQR(const btVector3& p, const btVector3& origin, const btVector3& dir)
-    {
-	btVector3 a = p - origin;
-	double d = dir.dot(a);
-	return a.length2() - d * d;
-    }
-    
     namespace detail
     {
+	static const double ZERO = 1e-9;
 	
+	/** \brief Compute the square of the distance between a ray and a point 
+	    Note: this requires 'dir' to be normalized */
+	static inline double distanceSQR(const btVector3& p, const btVector3& origin, const btVector3& dir)
+	{
+	    btVector3 a = p - origin;
+	    double d = dir.dot(a);
+	    return a.length2() - d * d;
+	}
+    	
 	// temp structure for intersection points (used for ordering them)
 	struct intersc
 	{
@@ -83,9 +80,6 @@ namespace bodies
 
 void bodies::Body::setDimensions(const shapes::Shape *shape)
 {
-    if (shape_)
-	delete shape_;
-    shape_ = shapes::cloneShape(shape);
     useDimensions(shape);
     updateInternalData();
 }
@@ -107,9 +101,20 @@ void bodies::Sphere::updateInternalData(void)
     center_ = pose_.getOrigin();
 }
 
+boost::shared_ptr<bodies::Body> bodies::Sphere::cloneAt(const btTransform &pose, double padding, double scale) const
+{
+    Sphere *s = new Sphere();
+    s->radius_ = radius_;
+    s->padding_ = padding;
+    s->scale_ = scale;
+    s->pose_ = pose;
+    s->updateInternalData();
+    return boost::shared_ptr<Body>(s);
+}
+
 double bodies::Sphere::computeVolume(void) const
 {
-    return 4.0 * M_PI * radiusU_ * radiusU_ * radiusU_ / 3.0;
+    return 4.0 * boost::math::constants::pi<double>() * radiusU_ * radiusU_ * radiusU_ / 3.0;
 }
 
 void bodies::Sphere::computeBoundingSphere(BoundingSphere &sphere) const
@@ -128,7 +133,7 @@ void bodies::Sphere::computeBoundingCylinder(BoundingCylinder &cylinder) const
 
 bool bodies::Sphere::intersectsRay(const btVector3& origin, const btVector3& dir, std::vector<btVector3> *intersections, unsigned int count) const
 {
-    if (distanceSQR(center_, origin, dir) > radius2_) return false;
+    if (detail::distanceSQR(center_, origin, dir) > radius2_) return false;
     
     bool result = false;
     
@@ -139,11 +144,11 @@ bool bodies::Sphere::intersectsRay(const btVector3& origin, const btVector3& dir
     btVector3 Q = center_ + w;
     double x = radius2_ - w.length2();
     
-    if (fabs(x) < ZERO)
+    if (fabs(x) < detail::ZERO)
     { 
 	w = Q - origin;
 	double dpQv = w.dot(dir);
-	if (dpQv > ZERO)
+	if (dpQv > detail::ZERO)
 	{
 	    if (intersections)
 		intersections->push_back(Q);
@@ -161,7 +166,7 @@ bool bodies::Sphere::intersectsRay(const btVector3& origin, const btVector3& dir
 	    w = B - origin;
 	    double dpBv = w.dot(dir);
 	    
-	    if (dpAv > ZERO)
+	    if (dpAv > detail::ZERO)
 	    {	
 		result = true;
 		if (intersections)
@@ -172,7 +177,7 @@ bool bodies::Sphere::intersectsRay(const btVector3& origin, const btVector3& dir
 		}
 	    }
 	    
-	    if (dpBv > ZERO)
+	    if (dpBv > detail::ZERO)
 	    {
 		result = true;
 		if (intersections)
@@ -227,9 +232,21 @@ void bodies::Cylinder::updateInternalData(void)
     d2_ = tmp - length2_;
 }
 
+boost::shared_ptr<bodies::Body> bodies::Cylinder::cloneAt(const btTransform &pose, double padding, double scale) const
+{
+    Cylinder *c = new Cylinder();
+    c->length_ = length_;
+    c->radius_ = radius_;
+    c->padding_ = padding;
+    c->scale_ = scale;
+    c->pose_ = pose;
+    c->updateInternalData();
+    return boost::shared_ptr<Body>(c);
+}
+
 double bodies::Cylinder::computeVolume(void) const
 {
-    return 2.0 * M_PI * radius2_ * length2_;
+    return 2.0 * boost::math::constants::pi<double>() * radius2_ * length2_;
 }
 
 void bodies::Cylinder::computeBoundingSphere(BoundingSphere &sphere) const
@@ -247,13 +264,13 @@ void bodies::Cylinder::computeBoundingCylinder(BoundingCylinder &cylinder) const
 
 bool bodies::Cylinder::intersectsRay(const btVector3& origin, const btVector3& dir, std::vector<btVector3> *intersections, unsigned int count) const
 {
-    if (distanceSQR(center_, origin, dir) > radiusBSqr_) return false;
+    if (detail::distanceSQR(center_, origin, dir) > radiusBSqr_) return false;
     
     std::vector<detail::intersc> ipts;
     
     // intersect bases
     double tmp = normalH_.dot(dir);
-    if (fabs(tmp) > ZERO)
+    if (fabs(tmp) > detail::ZERO)
     {
 	double tmp2 = -normalH_.dot(origin);
 	double t1 = (tmp2 - d1_) / tmp;
@@ -263,7 +280,7 @@ bool bodies::Cylinder::intersectsRay(const btVector3& origin, const btVector3& d
 	    btVector3 p1(origin + dir * t1);
 	    btVector3 v1(p1 - center_);
 	    v1 = v1 - normalH_.dot(v1) * normalH_;
-	    if (v1.length2() < radius2_ + ZERO)
+	    if (v1.length2() < radius2_ + detail::ZERO)
 	    {
 		if (intersections == NULL)
 		    return true;
@@ -279,7 +296,7 @@ bool bodies::Cylinder::intersectsRay(const btVector3& origin, const btVector3& d
 	    btVector3 p2(origin + dir * t2);
 	    btVector3 v2(p2 - center_);
 	    v2 = v2 - normalH_.dot(v2) * normalH_;
-	    if (v2.length2() < radius2_ + ZERO)
+	    if (v2.length2() < radius2_ + detail::ZERO)
 	    {
 		if (intersections == NULL)
 		    return true;
@@ -299,7 +316,7 @@ bool bodies::Cylinder::intersectsRay(const btVector3& origin, const btVector3& d
 	double b = 2.0 * ROD.dot(VD);
 	double c = ROD.length2() - radius2_;
 	double d = b * b - 4.0 * a * c;
-	if (d > 0.0 && fabs(a) > ZERO)
+	if (d > 0.0 && fabs(a) > detail::ZERO)
 	{
 	    d = sqrt(d);
 	    double e = -a * 2.0;
@@ -311,7 +328,7 @@ bool bodies::Cylinder::intersectsRay(const btVector3& origin, const btVector3& d
 		btVector3 p1(origin + dir * t1);
 		btVector3 v1(center_ - p1);
 		
-		if (fabs(normalH_.dot(v1)) < length2_ + ZERO)
+		if (fabs(normalH_.dot(v1)) < length2_ + detail::ZERO)
 		{
 		    if (intersections == NULL)
 			return true;
@@ -326,7 +343,7 @@ bool bodies::Cylinder::intersectsRay(const btVector3& origin, const btVector3& d
 		btVector3 p2(origin + dir * t2);    
 		btVector3 v2(center_ - p2);
 		
-		if (fabs(normalH_.dot(v2)) < length2_ + ZERO)
+		if (fabs(normalH_.dot(v2)) < length2_ + detail::ZERO)
 		{
 		    if (intersections == NULL)
 			return true;
@@ -401,6 +418,19 @@ void bodies::Box::updateInternalData(void)
     corner2_ = center_ + tmp;
 }
 
+boost::shared_ptr<bodies::Body> bodies::Box::cloneAt(const btTransform &pose, double padding, double scale) const
+{
+    Box *b = new Box();
+    b->length_ = length_;
+    b->width_ = width_;
+    b->height_ = height_;
+    b->padding_ = padding;
+    b->scale_ = scale;
+    b->pose_ = pose;
+    b->updateInternalData();
+    return boost::shared_ptr<Body>(b);
+}
+
 double bodies::Box::computeVolume(void) const
 {
     return 8.0 * length2_ * width2_ * height2_;
@@ -446,17 +476,17 @@ void bodies::Box::computeBoundingCylinder(BoundingCylinder &cylinder) const
 
 bool bodies::Box::intersectsRay(const btVector3& origin, const btVector3& dir, std::vector<btVector3> *intersections, unsigned int count) const
 {  
-    if (distanceSQR(center_, origin, dir) > radius2_) return false;
+    if (detail::distanceSQR(center_, origin, dir) > radius2_) return false;
     
-    double t_near = -INFINITY;
-    double t_far  = INFINITY;
+    double t_near = -std::numeric_limits<double>::infinity();
+    double t_far  = std::numeric_limits<double>::infinity();
     
     for (int i = 0; i < 3; i++)
     {
 	const btVector3 &vN = i == 0 ? normalL_ : (i == 1 ? normalW_ : normalH_);
 	double dp = vN.dot(dir);
 	
-	if (fabs(dp) > ZERO)
+	if (fabs(dp) > detail::ZERO)
 	{
 	    double t1 = vN.dot(corner1_ - origin) / dp;
 	    double t2 = vN.dot(corner2_ - origin) / dp;
@@ -508,7 +538,7 @@ bool bodies::Box::intersectsRay(const btVector3& origin, const btVector3& dir, s
     
     if (intersections)
     {
-	if (t_far - t_near > ZERO)
+	if (t_far - t_near > detail::ZERO)
 	{
 	    intersections->push_back(t_near * dir + origin);
 	    if (count > 1)
@@ -522,11 +552,12 @@ bool bodies::Box::intersectsRay(const btVector3& origin, const btVector3& dir, s
 }
 
 bool bodies::ConvexMesh::containsPoint(const btVector3 &p, bool verbose) const
-{
+{  
+    if (!mesh_data_) return false;
     if (bounding_box_.containsPoint(p))
     {
 	btVector3 ip(i_pose_ * p);
-	ip = mesh_center_ + (ip - mesh_center_) * scale_;
+	ip = mesh_data_->mesh_center_ + (ip - mesh_data_->mesh_center_) * scale_;
 	return isPointInsidePlanes(ip);
     }
     else
@@ -535,10 +566,11 @@ bool bodies::ConvexMesh::containsPoint(const btVector3 &p, bool verbose) const
 
 void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
 {  
+    mesh_data_.reset(new MeshData());
     const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(shape);
     
-    double maxX = -INFINITY, maxY = -INFINITY, maxZ = -INFINITY;
-    double minX =  INFINITY, minY =  INFINITY, minZ  = INFINITY;
+    double maxX = -std::numeric_limits<double>::infinity(), maxY = -std::numeric_limits<double>::infinity(), maxZ = -std::numeric_limits<double>::infinity();
+    double minX =  std::numeric_limits<double>::infinity(), minY =  std::numeric_limits<double>::infinity(), minZ  = std::numeric_limits<double>::infinity();
     
     for(unsigned int i = 0; i < mesh->vertexCount ; ++i)
     {
@@ -559,17 +591,15 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     if (maxY < minY) maxY = minY = 0.0;
     if (maxZ < minZ) maxZ = minZ = 0.0;
     
-    shapes::Box *box_shape = new shapes::Box(maxX - minX, maxY - minY, maxZ - minZ);
-    bounding_box_.setDimensions(box_shape);
-    delete box_shape;
+    mesh_data_->box_size_.setValue(maxX - minX, maxY - minY, maxZ - minZ);
     
-    box_offset_.setValue((minX + maxX) / 2.0, (minY + maxY) / 2.0, (minZ + maxZ) / 2.0);
+    mesh_data_->box_offset_.setValue((minX + maxX) / 2.0, (minY + maxY) / 2.0, (minZ + maxZ) / 2.0);
     
-    planes_.clear();
-    triangles_.clear();
-    vertices_.clear();
-    mesh_radiusB_ = 0.0;
-    mesh_center_.setValue(btScalar(0), btScalar(0), btScalar(0));
+    mesh_data_->planes_.clear();
+    mesh_data_->triangles_.clear();
+    mesh_data_->vertices_.clear();
+    mesh_data_->mesh_radiusB_ = 0.0;
+    mesh_data_->mesh_center_.setValue(btScalar(0), btScalar(0), btScalar(0));
     
     double xdim = maxX - minX;
     double ydim = maxY - minY;
@@ -582,29 +612,32 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     unsigned int off2;
     
     double cyl_length;
-    double maxdist = -INFINITY;
+    double maxdist = -std::numeric_limits<double>::infinity();
     
-    if(xdim > ydim && xdim > zdim) {
-	
+    if (xdim > ydim && xdim > zdim)
+    {
 	off1 = 1;
 	off2 = 2;
-	pose1 = box_offset_.y();
-	pose2 = box_offset_.z();
+	pose1 = mesh_data_->box_offset_.y();
+	pose2 = mesh_data_->box_offset_.z();
 	cyl_length = xdim;
-    } else if(ydim > zdim) {
+    }
+    else if(ydim > zdim)
+    {
 	off1 = 0;
 	off2 = 2;
-	pose1 = box_offset_.x();
-	pose2 = box_offset_.z();
+	pose1 = mesh_data_->box_offset_.x();
+	pose2 = mesh_data_->box_offset_.z();
 	cyl_length = ydim;
-    } else {
+    }
+    else
+    {
 	off1 = 0;
 	off2 = 1;
-	pose1 = box_offset_.x();
-	pose2 = box_offset_.y();
+	pose1 = mesh_data_->box_offset_.x();
+	pose2 = mesh_data_->box_offset_.y();
 	cyl_length = zdim;
     }
-    
     
     btVector3 *vertices = new btVector3[mesh->vertexCount];
     for(unsigned int i = 0; i < mesh->vertexCount ; ++i)
@@ -616,12 +649,11 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
 	double dista = mesh->vertices[3 * i + off1]-pose1;
 	double distb = mesh->vertices[3 * i + off2]-pose2;
 	double dist = sqrt(((dista*dista)+(distb*distb)));
-	if(dist > maxdist) {
+	if(dist > maxdist)
 	    maxdist = dist;
-	}
     }
-    bounding_cylinder_.radius = maxdist;
-    bounding_cylinder_.length = cyl_length;
+    mesh_data_->bounding_cylinder_.radius = maxdist;
+    mesh_data_->bounding_cylinder_.length = cyl_length;
     
     HullDesc hd(QF_TRIANGLES, mesh->vertexCount, vertices);
     HullResult hr;
@@ -630,25 +662,25 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     {
 	//	std::cout << "Convex hull has " << hr.m_OutputVertices.size() << " vertices (down from " << mesh->vertexCount << "), " << hr.mNumFaces << " faces" << std::endl;
 	
-	vertices_.reserve(hr.m_OutputVertices.size());
+	mesh_data_->vertices_.reserve(hr.m_OutputVertices.size());
 	btVector3 sum(0, 0, 0);	
 	
 	for (int j = 0 ; j < hr.m_OutputVertices.size() ; ++j)
 	{
-	    vertices_.push_back(hr.m_OutputVertices[j]);
+	    mesh_data_->vertices_.push_back(hr.m_OutputVertices[j]);
 	    sum = sum + hr.m_OutputVertices[j];
 	}
 	
-	mesh_center_ = sum / (double)(hr.m_OutputVertices.size());
-	for (unsigned int j = 0 ; j < vertices_.size() ; ++j)
+	mesh_data_->mesh_center_ = sum / (double)(hr.m_OutputVertices.size());
+	for (unsigned int j = 0 ; j < mesh_data_->vertices_.size() ; ++j)
 	{
-	    double dist = vertices_[j].distance2(mesh_center_);
-	    if (dist > mesh_radiusB_)
-		mesh_radiusB_ = dist;
+	    double dist = mesh_data_->vertices_[j].distance2(mesh_data_->mesh_center_);
+	    if (dist > mesh_data_->mesh_radiusB_)
+		mesh_data_->mesh_radiusB_ = dist;
 	}
 	
-	mesh_radiusB_ = sqrt(mesh_radiusB_);
-	triangles_.reserve(hr.m_Indices.size());
+	mesh_data_->mesh_radiusB_ = sqrt(mesh_data_->mesh_radiusB_);
+	mesh_data_->triangles_.reserve(hr.m_Indices.size());
 	for (unsigned int j = 0 ; j < hr.mNumFaces ; ++j)
 	{
 	    const btVector3 &p1 = hr.m_OutputVertices[hr.m_Indices[j * 3    ]];
@@ -681,13 +713,13 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
 		}
 		
 		if (behindPlane > 0)
-		    ROS_DEBUG("Approximate plane: %d of %d points are behind the plane", behindPlane, (int)vertices_.size());
+		    ROS_DEBUG("Approximate plane: %d of %d points are behind the plane", behindPlane, (int)mesh_data_->vertices_.size());
 		
-		planes_.push_back(planeEquation);
+		mesh_data_->planes_.push_back(planeEquation);
 		
-		triangles_.push_back(hr.m_Indices[j * 3 + 0]);
-		triangles_.push_back(hr.m_Indices[j * 3 + 1]);
-		triangles_.push_back(hr.m_Indices[j * 3 + 2]);
+		mesh_data_->triangles_.push_back(hr.m_Indices[j * 3 + 0]);
+		mesh_data_->triangles_.push_back(hr.m_Indices[j * 3 + 1]);
+		mesh_data_->triangles_.push_back(hr.m_Indices[j * 3 + 2]);
 	    }
 	}
     }
@@ -696,31 +728,71 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     
     hl.ReleaseResult(hr);    
     delete[] vertices;
-    
 }
 
 void bodies::ConvexMesh::updateInternalData(void) 
 {
+    if (!mesh_data_)
+	return;
     btTransform pose = pose_;
-    pose.setOrigin(pose_ * box_offset_);
+    pose.setOrigin(pose_ * mesh_data_->box_offset_); 
+
+    boost::scoped_ptr<shapes::Box> box_shape(new shapes::Box(mesh_data_->box_size_.getX(), mesh_data_->box_size_.getY(), mesh_data_->box_size_.getZ()));
+    bounding_box_.setDimensions(box_shape.get());
     bounding_box_.setPose(pose);
     bounding_box_.setPadding(padding_);
     bounding_box_.setScale(scale_);
     
     i_pose_ = pose_.inverse();
-    center_ = pose_ * mesh_center_;
-    radiusB_ = mesh_radiusB_ * scale_ + padding_;
+    center_ = pose_ * mesh_data_->mesh_center_;
+    radiusB_ = mesh_data_->mesh_radiusB_ * scale_ + padding_;
     radiusBSqr_ = radiusB_ * radiusB_;
     
-    scaled_vertices_.resize(vertices_.size());
-    for (unsigned int i = 0 ; i < vertices_.size() ; ++i)
+    // compute the scaled vertices, if needed
+    if (padding_ == 0.0 && scale_ == 1.0)
+	scaled_vertices_ = &mesh_data_->vertices_;
+    else
     {
-	btVector3 v(vertices_[i] - mesh_center_);
-	btScalar l = v.length();
-	scaled_vertices_[i] = mesh_center_ + v * (scale_ + (l > ZERO ? padding_ / l : 0.0));
+	if (!scaled_vertices_storage_)
+	    scaled_vertices_storage_.reset(new std::vector<btVector3>());
+	scaled_vertices_ = scaled_vertices_storage_.get();
+	scaled_vertices_storage_->resize(mesh_data_->vertices_.size());
+	for (unsigned int i = 0 ; i < mesh_data_->vertices_.size() ; ++i)
+	{
+	    btVector3 v(mesh_data_->vertices_[i] - mesh_data_->mesh_center_);
+	    btScalar l = v.length();
+	    scaled_vertices_storage_->at(i) = mesh_data_->mesh_center_ + v * (scale_ + (l > detail::ZERO ? padding_ / l : 0.0));
+	}
     }
 }
+const std::vector<unsigned int>& bodies::ConvexMesh::getTriangles(void) const
+{
+    static std::vector<unsigned int> empty;
+    return mesh_data_ ? mesh_data_->triangles_ : empty;
+}
 
+const std::vector<btVector3>& bodies::ConvexMesh::getVertices(void) const
+{
+    static std::vector<btVector3> empty;
+    return mesh_data_ ? mesh_data_->vertices_ : empty;
+}
+
+const std::vector<btVector3>& bodies::ConvexMesh::getScaledVertices(void) const
+{
+    return scaled_vertices_ ? *scaled_vertices_ : getVertices();
+}
+
+boost::shared_ptr<bodies::Body> bodies::ConvexMesh::cloneAt(const btTransform &pose, double padding, double scale) const
+{
+    ConvexMesh *m = new ConvexMesh();
+    m->mesh_data_ = mesh_data_;
+    m->padding_ = padding;
+    m->scale_ = scale;
+    m->pose_ = pose;
+    m->updateInternalData();
+    return boost::shared_ptr<Body>(m);
+}
+	
 void bodies::ConvexMesh::computeBoundingSphere(BoundingSphere &sphere) const
 {
     sphere.center = center_;
@@ -729,8 +801,8 @@ void bodies::ConvexMesh::computeBoundingSphere(BoundingSphere &sphere) const
 
 void bodies::ConvexMesh::computeBoundingCylinder(BoundingCylinder &cylinder) const
 {
-    cylinder.length = bounding_cylinder_.length;
-    cylinder.radius = bounding_cylinder_.radius;
+    cylinder.length = mesh_data_ ? mesh_data_->bounding_cylinder_.length : 0.0;
+    cylinder.radius = mesh_data_ ? mesh_data_->bounding_cylinder_.radius : 0.0;
     //need to do rotation correctly to get pose, which bounding box does
     BoundingCylinder cyl;
     bounding_box_.computeBoundingCylinder(cyl);
@@ -739,10 +811,10 @@ void bodies::ConvexMesh::computeBoundingCylinder(BoundingCylinder &cylinder) con
 
 bool bodies::ConvexMesh::isPointInsidePlanes(const btVector3& point) const
 {
-    unsigned int numplanes = planes_.size();
+    unsigned int numplanes = mesh_data_->planes_.size();
     for (unsigned int i = 0 ; i < numplanes ; ++i)
     {
-	const btVector4& plane = planes_[i];
+	const btVector4& plane = mesh_data_->planes_[i];
 	btScalar dist = plane.dot(point) + plane.getW() - padding_ - btScalar(1e-6);
 	if (dist > btScalar(0))
 	    return false;
@@ -752,11 +824,11 @@ bool bodies::ConvexMesh::isPointInsidePlanes(const btVector3& point) const
 
 unsigned int bodies::ConvexMesh::countVerticesBehindPlane(const btVector4& planeNormal) const
 {
-    unsigned int numvertices = vertices_.size();
+    unsigned int numvertices = mesh_data_->vertices_.size();
     unsigned int result = 0;
     for (unsigned int i = 0 ; i < numvertices ; ++i)
     {
-	btScalar dist = planeNormal.dot(vertices_[i]) + planeNormal.getW() - btScalar(1e-6);
+	btScalar dist = planeNormal.dot(mesh_data_->vertices_[i]) + planeNormal.getW() - btScalar(1e-6);
 	if (dist > btScalar(0))
 	    result++;
     }
@@ -766,19 +838,21 @@ unsigned int bodies::ConvexMesh::countVerticesBehindPlane(const btVector4& plane
 double bodies::ConvexMesh::computeVolume(void) const
 {
     double volume = 0.0;
-    for (unsigned int i = 0 ; i < triangles_.size() / 3 ; ++i)
-    {
-	const btVector3 &v1 = vertices_[triangles_[3*i + 0]];
-	const btVector3 &v2 = vertices_[triangles_[3*i + 1]];
-	const btVector3 &v3 = vertices_[triangles_[3*i + 2]];
-	volume += v1.x()*v2.y()*v3.z() + v2.x()*v3.y()*v1.z() + v3.x()*v1.y()*v2.z() - v1.x()*v3.y()*v2.z() - v2.x()*v1.y()*v3.z() - v3.x()*v2.y()*v1.z();
-    }
+    if (mesh_data_)
+	for (unsigned int i = 0 ; i < mesh_data_->triangles_.size() / 3 ; ++i)
+	{
+	    const btVector3 &v1 = mesh_data_->vertices_[mesh_data_->triangles_[3*i + 0]];
+	    const btVector3 &v2 = mesh_data_->vertices_[mesh_data_->triangles_[3*i + 1]];
+	    const btVector3 &v3 = mesh_data_->vertices_[mesh_data_->triangles_[3*i + 2]];
+	    volume += v1.x()*v2.y()*v3.z() + v2.x()*v3.y()*v1.z() + v3.x()*v1.y()*v2.z() - v1.x()*v3.y()*v2.z() - v2.x()*v1.y()*v3.z() - v3.x()*v2.y()*v1.z();
+	}
     return fabs(volume)/6.0;
 }
 
 bool bodies::ConvexMesh::intersectsRay(const btVector3& origin, const btVector3& dir, std::vector<btVector3> *intersections, unsigned int count) const
 {
-    if (distanceSQR(center_, origin, dir) > radiusBSqr_) return false;
+    if (!mesh_data_) return false;
+    if (detail::distanceSQR(center_, origin, dir) > radiusBSqr_) return false;
     if (!bounding_box_.intersectsRay(origin, dir)) return false;
     
     // transform the ray into the coordinate frame of the mesh
@@ -790,23 +864,23 @@ bool bodies::ConvexMesh::intersectsRay(const btVector3& origin, const btVector3&
     bool result = false;
     
     // for each triangle 
-    const unsigned int nt = triangles_.size() / 3;
+    const unsigned int nt = mesh_data_->triangles_.size() / 3;
     for (unsigned int i = 0 ; i < nt ; ++i)
     {
-	btScalar tmp = planes_[i].dot(dr);
-	if (fabs(tmp) > ZERO)
+	btScalar tmp = mesh_data_->planes_[i].dot(dr);
+	if (fabs(tmp) > detail::ZERO)
 	{
-	    double t = -(planes_[i].dot(orig) + planes_[i].getW()) / tmp;
+	    double t = -(mesh_data_->planes_[i].dot(orig) + mesh_data_->planes_[i].getW()) / tmp;
 	    if (t > 0.0)
 	    {
 		const int i3 = 3 * i;
-		const int v1 = triangles_[i3 + 0];
-		const int v2 = triangles_[i3 + 1];
-		const int v3 = triangles_[i3 + 2];
+		const int v1 = mesh_data_->triangles_[i3 + 0];
+		const int v2 = mesh_data_->triangles_[i3 + 1];
+		const int v3 = mesh_data_->triangles_[i3 + 2];
 		
-		const btVector3 &a = scaled_vertices_[v1];
-		const btVector3 &b = scaled_vertices_[v2];
-		const btVector3 &c = scaled_vertices_[v3];
+		const btVector3 &a = scaled_vertices_->at(v1);
+		const btVector3 &b = scaled_vertices_->at(v2);
+		const btVector3 &c = scaled_vertices_->at(v3);
 		
 		btVector3 cb(c - b);
 		btVector3 ab(a - b);

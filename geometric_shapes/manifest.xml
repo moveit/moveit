@@ -14,10 +14,13 @@
   <rosdep name="assimp" />
 
   <export>
-    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lgeometric_shapes"/>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lgeometric_shapes"/>
   </export>
   
   <platform os="ubuntu" version="10.04"/>
+  <platform os="ubuntu" version="10.10"/>
+  <platform os="ubuntu" version="11.04"/>
+  <platform os="ubuntu" version="11.10"/>
 </package>
 
 

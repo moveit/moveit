@@ -196,14 +196,9 @@ std::pair<bool, double> kinematic_constraints::PositionConstraint::decide(const 
 
     if (mobileFrame_)
     {	
-	// in this case we need to lock as we are modifying the internal state of the class (the mutable members)
 	btTransform tmp;
-	lock_.lock();
-	tf_.setKinematicState(state);
-	tf_.transformTransform(tmp, constraint_region_pose_, pc_.constraint_region_pose.header.frame_id);
-	constraint_region_->setPose(tmp);
-	bool result = constraint_region_->containsPoint(pt, false);  
-	lock_.unlock();
+	tf_.transformTransform(state, tmp, constraint_region_pose_, pc_.constraint_region_pose.header.frame_id);
+	bool result = constraint_region_->cloneAt(tmp)->containsPoint(pt, false);
 	return finishPositionConstraintDecision(pt, tmp.getOrigin(), pc_, result, verbose);
     }
     else
@@ -308,10 +303,7 @@ std::pair<bool, double> kinematic_constraints::OrientationConstraint::decide(con
     if (mobileFrame_)
     {
 	btMatrix3x3 tmp;
-	lock_.lock();
-	tf_.setKinematicState(state);
-	tf_.transformMatrix(tmp, rotation_matrix_, oc_.orientation.header.frame_id);
-	lock_.unlock();
+	tf_.transformMatrix(state, tmp, rotation_matrix_, oc_.orientation.header.frame_id);
 	btMatrix3x3 diff = tmp.inverse() * link_state->getGlobalLinkTransform().getBasis();
 	diff.getEulerYPR(yaw, pitch, roll);	
     }

@@ -47,7 +47,6 @@
 #include <iostream>
 #include <vector>
 #include <boost/shared_ptr.hpp>
-#include <boost/thread/mutex.hpp>
 
 namespace kinematic_constraints
 {
@@ -78,8 +77,7 @@ namespace kinematic_constraints
     protected:
 	
 	const planning_models::KinematicModel &model_;
-	mutable planning_models::Transforms    tf_;	
-	mutable boost::mutex                   lock_;
+	const planning_models::Transforms     &tf_;
     };
 
     typedef boost::shared_ptr<KinematicConstraint> KinematicConstraintPtr;
