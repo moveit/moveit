@@ -50,8 +50,11 @@ bool kinematic_constraints::JointConstraint::use(const moveit_msgs::JointConstra
 	// check if we have to wrap angles when computing distances
 	const planning_models::KinematicModel::RevoluteJointModel *revolute_joint = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model_);
 	if (revolute_joint && revolute_joint->isContinuous())
+	{
 	    cont_ = true;
-
+	    jc_.position = btNormalizeAngle(jc_.position);	    
+	}
+	
 	// check if the joint has 1 DOF (the only kind we can handle)
 	if (joint_model_->getVariableCount() == 0)
 	{
@@ -87,12 +90,16 @@ std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const pla
     // compute signed shortest distance for continuous joints
     if (cont_)
     {
-	dif = btNormalizeAngle(current_joint_position) - btNormalizeAngle(jc_.position);
+	dif = btNormalizeAngle(current_joint_position) - jc_.position;
+
 	if (dif > SIMD_PI)
 	    dif = SIMD_2_PI - dif; 
 	else
 	    if (dif < -SIMD_PI)
-		dif = -dif - SIMD_2_PI;
+		dif += SIMD_2_PI; // we include a sign change to have dif > 0
+	// however, we want to include proper sign for diff, as the tol below is may be different from tol above
+	if (current_joint_position < jc_.position)
+	    dif = -dif;
     }
     else
 	dif = current_joint_position - jc_.position;
