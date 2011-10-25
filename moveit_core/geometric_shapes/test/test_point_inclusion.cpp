@@ -35,6 +35,8 @@
 /** \Author Ioan Sucan */
 
 #include <geometric_shapes/bodies.h>
+#include <geometric_shapes/shape_operations.h>
+#include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 
 TEST(SpherePointContainment, SimpleInside)
@@ -229,6 +231,20 @@ TEST(CylinderPointContainment, CylinderPadding)
     bodies::BoundingSphere bsphere;
     cylinder->computeBoundingSphere(bsphere);
     EXPECT_TRUE(bsphere.radius > 2.0);
+    delete cylinder;
+}
+
+TEST(MeshPointContainment, Pr2Forearm)
+{
+    shapes::Mesh *ms = shapes::createMeshFromFilename("file://" + (boost::filesystem::current_path() / "test/resources/forearm_roll.stl").string());
+    EXPECT_EQ(ms->vertexCount, 2338);
+    bodies::Body *m = new bodies::ConvexMesh(ms);
+    btTransform t;
+    t.setIdentity();
+    t.getOrigin().setX(1.0);
+    EXPECT_FALSE(m->cloneAt(t)->containsPoint(-1.0, 0.0, 0.0));
+    delete m;
+    delete ms;
 }
 
 int main(int argc, char **argv)
