@@ -43,6 +43,7 @@
 
 #include <ros/console.h>
 #include <resource_retriever/retriever.h>
+
 #include <assimp/assimp.hpp>     
 #include <assimp/aiScene.h>      
 #include <assimp/aiPostProcess.h>
@@ -273,17 +274,18 @@ Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale
   resource_retriever::Retriever retriever;
   resource_retriever::MemoryResource res;
   try {
-    res = retriever.get(filename);
+    res = retriever.get(filename); 
   } catch (resource_retriever::Exception& e) {
     ROS_ERROR("%s", e.what());
     return NULL;
   }
-	
+  
   if (res.size == 0) {
     ROS_WARN("Retrieved empty mesh for resource '%s'", filename.c_str());
     return NULL;
   } 
-  
+
+
   // Create an instance of the Importer class
   Assimp::Importer importer;
 

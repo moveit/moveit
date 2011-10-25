@@ -25,8 +25,8 @@ rosbuild_add_library(${PROJECT_NAME}
   src/body_operations.cpp)
 target_link_libraries(${PROJECT_NAME} assimp)
 
+
 # Unit tests
 rosbuild_add_gtest(test_point_inclusion test/test_point_inclusion.cpp)
 target_link_libraries(test_point_inclusion ${PROJECT_NAME})
-target_link_libraries(test_point_inclusion assimp)
-
+rosbuild_link_boost(test_point_inclusion system filesystem)
