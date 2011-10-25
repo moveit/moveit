@@ -54,22 +54,24 @@ namespace planning_models
 	const std::string& getPlanningFrame(void) const;
 	bool isFixedFrame(const std::string &frame) const;
 	
-	void setKinematicState(const planning_models::KinematicState &kstate);
-	
+	const btTransform& getTransformToTargetFrame(const std::string &from_frame) const;
 	void transformVector3(btVector3 &v_out, const btVector3 &v_in, const std::string &from_frame) const;
 	void transformQuaternion(btQuaternion &q_out, const btQuaternion &q_in, const std::string &from_frame) const;
 	void transformMatrix(btMatrix3x3 &m_out, const btMatrix3x3 &m_in, const std::string &from_frame) const;
 	void transformTransform(btTransform &t_out, const btTransform &t_in, const std::string &from_frame) const;
 
-	const btTransform& getTransformToTargetFrame(const std::string &from_frame) const;
+	const btTransform& getTransformToTargetFrame(const planning_models::KinematicState &kstate, const std::string &from_frame) const;
+	void transformVector3(const planning_models::KinematicState &kstate, btVector3 &v_out, const btVector3 &v_in, const std::string &from_frame) const;
+	void transformQuaternion(const planning_models::KinematicState &kstate, btQuaternion &q_out, const btQuaternion &q_in, const std::string &from_frame) const;
+	void transformMatrix(const planning_models::KinematicState &kstate, btMatrix3x3 &m_out, const btMatrix3x3 &m_in, const std::string &from_frame) const;
+	void transformTransform(const planning_models::KinematicState &kstate, btTransform &t_out, const btTransform &t_in, const std::string &from_frame) const;
 	
 	void recordTransformFromFrame(const btTransform &t, const std::string &from_frame);
 	
     private:
 	
-	std::string                            target_frame_;
-	const planning_models::KinematicState *kstate_;
-	std::map<std::string, btTransform>     transforms_;
+	std::string                        target_frame_;
+	std::map<std::string, btTransform> transforms_;
     };
     
 }
