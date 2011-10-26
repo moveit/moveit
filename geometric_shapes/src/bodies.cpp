@@ -367,21 +367,16 @@ bool bodies::Cylinder::intersectsRay(const btVector3& origin, const btVector3& d
 
 bool bodies::Box::containsPoint(const btVector3 &p, bool verbose) const 
 {
-    /*  if(verbose)
-	fprintf(stderr,"Actual: %f,%f,%f \nDesired: %f,%f,%f \nTolerance:%f,%f,%f\n",p.x(),p.y(),p.z(),center_.x(),center_.y(),center_.z(),length2_,width2_,height2_);*/
     btVector3 v = p - center_;
     double pL = v.dot(normalL_);
-    
     if (fabs(pL) > length2_)
 	return false;
     
     double pW = v.dot(normalW_);
-    
     if (fabs(pW) > width2_)
 	return false;
     
     double pH = v.dot(normalH_);
-    
     if (fabs(pH) > height2_)
 	return false;
     

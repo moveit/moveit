@@ -3,7 +3,7 @@
 # The robot link this constraint refers to
 string link_name
 
-# The desired orientation of the robot link specified as a quaternion, wrt the header frame
+# The desired orientation of the robot link specified as a quaternion
 geometry_msgs/QuaternionStamped orientation
 
 # optional RPY error tolerances specified if 

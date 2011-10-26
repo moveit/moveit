@@ -38,6 +38,7 @@
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
+#include <boost/scoped_ptr.hpp>
 #include <limits>
 
 bool kinematic_constraints::JointConstraint::use(const moveit_msgs::JointConstraint &jc)
@@ -58,16 +59,21 @@ bool kinematic_constraints::JointConstraint::use(const moveit_msgs::JointConstra
 	// check if the joint has 1 DOF (the only kind we can handle)
 	if (joint_model_->getVariableCount() == 0)
 	{
-	    ROS_ERROR_STREAM("Joint " << jc_.joint_name << " has no parameters to constrain");
+	    ROS_ERROR_STREAM("Joint '" << jc_.joint_name << "' has no parameters to constrain");
 	    joint_model_ = NULL;
 	}
 	else
 	    if (joint_model_->getVariableCount() > 1)
 	    {
-		ROS_ERROR_STREAM("Joint " << jc_.joint_name << " has more than one parameter to constrain. This type of constraint is not appropriate.");
+		ROS_ERROR_STREAM("Joint '" << jc_.joint_name << "' has more than one parameter to constrain. This type of constraint is not supported.");
 		joint_model_ = NULL;
 	    }
-    }    
+	if (jc_.weight <= std::numeric_limits<double>::epsilon())
+	{
+	    ROS_WARN_STREAM("The weight on constraint for joint '" << jc_.joint_name << "' should be positive");
+	    jc_.weight = std::numeric_limits<double>::epsilon();
+	}
+    }
     return joint_model_ != NULL;
 }
 
@@ -80,7 +86,7 @@ std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const pla
     
     if (!joint)
     {
-	ROS_WARN_STREAM("No joint in state with name " << jc_.joint_name);
+	ROS_WARN_STREAM("No joint in state with name '" << jc_.joint_name << "'");
 	return std::make_pair(false, 0.0);
     }
     
@@ -107,7 +113,7 @@ std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const pla
     // check bounds
     bool result = dif <= jc_.tolerance_above && dif >= -jc_.tolerance_below;
     if (verbose)
-	ROS_INFO("Constraint %s:: Joint name: %s, actual value: %f, desired value: %f, tolerance_above: %f, tolerance_below: %f",
+	ROS_INFO("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: %f, tolerance_below: %f",
 		 result ? "satisfied" : "violated", joint->getName().c_str(), current_joint_position, jc_.position, jc_.tolerance_above, jc_.tolerance_below);
     
     return std::make_pair(result, jc_.weight * fabs(dif));
@@ -145,7 +151,9 @@ bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionC
     pc_ = pc;
     link_model_ = model_.getLinkModel(pc_.link_name);
     offset_ = btVector3(pc_.target_point_offset.x, pc_.target_point_offset.y, pc_.target_point_offset.z);
-    constraint_region_.reset(bodies::createBodyFromShape(shapes::constructShapeFromMsg(pc_.constraint_region_shape)));
+    boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc_.constraint_region_shape));
+    if (shape)
+	constraint_region_.reset(bodies::createBodyFromShape(shape.get()));
 
     if (link_model_ && constraint_region_)
     {
@@ -163,6 +171,13 @@ bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionC
 	}
 	else
        	    mobileFrame_ = true;
+
+	if (pc_.weight <= std::numeric_limits<double>::epsilon())
+	{
+	    ROS_WARN_STREAM("The weight on position constraint for link '" << pc_.link_name << "' should be positive");
+	    pc_.weight = std::numeric_limits<double>::epsilon();
+	}
+
 	return true;
     }
     else
@@ -195,17 +210,17 @@ std::pair<bool, double> kinematic_constraints::PositionConstraint::decide(const 
     
     if (!link_state) 
     {
-	ROS_WARN_STREAM("No link in state with name " << pc_.link_name);
+	ROS_WARN_STREAM("No link in state with name '" << pc_.link_name << "'");
 	return std::make_pair(false, 0.0);
     }
     
     const btVector3 &pt = link_state->getGlobalLinkTransform()(offset_);
-
+    
     if (mobileFrame_)
     {	
 	btTransform tmp;
 	tf_.transformTransform(state, tmp, constraint_region_pose_, pc_.constraint_region_pose.header.frame_id);
-	bool result = constraint_region_->cloneAt(tmp)->containsPoint(pt, false);
+	bool result = constraint_region_->cloneAt(tmp)->containsPoint(pt, true);
 	return finishPositionConstraintDecision(pt, tmp.getOrigin(), pc_, result, verbose);
     }
     else
@@ -269,7 +284,7 @@ bool kinematic_constraints::OrientationConstraint::use(const moveit_msgs::Orient
     link_model_ = model_.getLinkModel(oc_.link_name);
     btQuaternion q;
     if (!planning_models::quatFromMsg(oc_.orientation.quaternion, q))
-	ROS_WARN("Orientation constraint is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", 
+	ROS_WARN("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc_.link_name.c_str(),
 		 oc_.orientation.quaternion.x, oc_.orientation.quaternion.y, oc_.orientation.quaternion.z, oc_.orientation.quaternion.w);
     
     if (tf_.isFixedFrame(oc_.orientation.header.frame_id))
@@ -283,6 +298,12 @@ bool kinematic_constraints::OrientationConstraint::use(const moveit_msgs::Orient
     {
 	rotation_matrix_ = btMatrix3x3(q);
 	mobileFrame_ = true;
+    }
+
+    if (oc_.weight <= std::numeric_limits<double>::epsilon())
+    {
+	ROS_WARN_STREAM("The weight on orientation constraint for link '" << oc_.link_name << "' should be positive");
+	oc_.weight = std::numeric_limits<double>::epsilon();
     }
     
     return link_model_ != NULL;
@@ -302,7 +323,7 @@ std::pair<bool, double> kinematic_constraints::OrientationConstraint::decide(con
     
     if (!link_state) 
     {
-	ROS_WARN_STREAM("No link in state with name " << oc_.link_name);
+	ROS_WARN_STREAM("No link in state with name '" << oc_.link_name << "'");
 	return std::make_pair(false, 0.0);
     }
     
@@ -376,7 +397,7 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
     
     if (!link_state)
     {
-	ROS_WARN_STREAM("No link state for link " << vc_.target_link);
+	ROS_WARN_STREAM("No link state for link '" << vc_.target_link << "'");
 	return false;
     }
     
