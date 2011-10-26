@@ -40,39 +40,50 @@
 #include <planning_models/conversions.h>
 #include <boost/scoped_ptr.hpp>
 #include <limits>
+kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) :
+    model_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
+{
+}
 
+kinematic_constraints::KinematicConstraint::~KinematicConstraint(void)
+{
+}
+	
 bool kinematic_constraints::JointConstraint::use(const moveit_msgs::JointConstraint &jc)
 {
-    jc_ = jc;
-    joint_model_ = model_.getJointModel(jc_.joint_name);
-    cont_ = false;
+    joint_model_ = model_.getJointModel(jc.joint_name);
+    joint_is_continuous_ = false;
     if (joint_model_)
     {
 	// check if we have to wrap angles when computing distances
 	const planning_models::KinematicModel::RevoluteJointModel *revolute_joint = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model_);
 	if (revolute_joint && revolute_joint->isContinuous())
 	{
-	    cont_ = true;
-	    jc_.position = btNormalizeAngle(jc_.position);	    
+	    joint_is_continuous_ = true;
+	    joint_position_ = btNormalizeAngle(jc.position);	    
 	}
+	else
+	    joint_position_ = jc.position;
 	
 	// check if the joint has 1 DOF (the only kind we can handle)
 	if (joint_model_->getVariableCount() == 0)
 	{
-	    ROS_ERROR_STREAM("Joint '" << jc_.joint_name << "' has no parameters to constrain");
+	    ROS_ERROR_STREAM("Joint '" << jc.joint_name << "' has no parameters to constrain");
 	    joint_model_ = NULL;
 	}
 	else
 	    if (joint_model_->getVariableCount() > 1)
 	    {
-		ROS_ERROR_STREAM("Joint '" << jc_.joint_name << "' has more than one parameter to constrain. This type of constraint is not supported.");
+		ROS_ERROR_STREAM("Joint '" << jc.joint_name << "' has more than one parameter to constrain. This type of constraint is not supported.");
 		joint_model_ = NULL;
 	    }
-	if (jc_.weight <= std::numeric_limits<double>::epsilon())
-	{
-	    ROS_WARN_STREAM("The weight on constraint for joint '" << jc_.joint_name << "' should be positive");
-	    jc_.weight = std::numeric_limits<double>::epsilon();
-	}
+	joint_tolerance_above_ = jc.tolerance_above;
+	joint_tolerance_below_ = jc.tolerance_below;
+	
+	if (jc.weight <= std::numeric_limits<double>::epsilon())
+	    ROS_WARN_STREAM("The weight on constraint for joint '" << jc.joint_name << "' should be positive");
+	else
+	    constraint_weight_ = jc.weight;
     }
     return joint_model_ != NULL;
 }
@@ -82,11 +93,11 @@ std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const pla
     if (!joint_model_)
 	return std::make_pair(true, 0.0);
     
-    const planning_models::KinematicState::JointState *joint = state.getJointState(jc_.joint_name);
+    const planning_models::KinematicState::JointState *joint = state.getJointState(joint_model_->getName());
     
     if (!joint)
     {
-	ROS_WARN_STREAM("No joint in state with name '" << jc_.joint_name << "'");
+	ROS_WARN_STREAM("No joint in state with name '" << joint_model_->getName() << "'");
 	return std::make_pair(false, 0.0);
     }
     
@@ -94,9 +105,9 @@ std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const pla
     double dif = 0.0;
     
     // compute signed shortest distance for continuous joints
-    if (cont_)
+    if (joint_is_continuous_)
     {
-	dif = btNormalizeAngle(current_joint_position) - jc_.position;
+	dif = btNormalizeAngle(current_joint_position) - joint_position_;
 
 	if (dif > SIMD_PI)
 	    dif = SIMD_2_PI - dif; 
@@ -104,19 +115,19 @@ std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const pla
 	    if (dif < -SIMD_PI)
 		dif += SIMD_2_PI; // we include a sign change to have dif > 0
 	// however, we want to include proper sign for diff, as the tol below is may be different from tol above
-	if (current_joint_position < jc_.position)
+	if (current_joint_position < joint_position_)
 	    dif = -dif;
     }
     else
-	dif = current_joint_position - jc_.position;
+	dif = current_joint_position - joint_position_;
     
     // check bounds
-    bool result = dif <= jc_.tolerance_above && dif >= -jc_.tolerance_below;
+    bool result = dif <= joint_tolerance_above_ && dif >= -joint_tolerance_below_;
     if (verbose)
 	ROS_INFO("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: %f, tolerance_below: %f",
-		 result ? "satisfied" : "violated", joint->getName().c_str(), current_joint_position, jc_.position, jc_.tolerance_above, jc_.tolerance_below);
+		 result ? "satisfied" : "violated", joint->getName().c_str(), current_joint_position, joint_position_, joint_tolerance_above_, joint_tolerance_below_);
     
-    return std::make_pair(result, jc_.weight * fabs(dif));
+    return std::make_pair(result, constraint_weight_ * fabs(dif));
 }
 
 void kinematic_constraints::JointConstraint::clear(void)
@@ -124,22 +135,17 @@ void kinematic_constraints::JointConstraint::clear(void)
     joint_model_ = NULL;
 }
 
-const moveit_msgs::JointConstraint& kinematic_constraints::JointConstraint::getConstraintMessage(void) const
-{
-    return jc_;    
-}
-
 void kinematic_constraints::JointConstraint::print(std::ostream &out) const
 {		
     if (joint_model_)
     {
-	out << "Joint constraint for joint " << jc_.joint_name << ": " << std::endl;
+	out << "Joint constraint for joint " << joint_model_->getName() << ": " << std::endl;
 	out << "  value = ";	    
-	out << jc_.position << "; ";
+	out << joint_position_ << "; ";
 	out << "  tolerance below = ";	    
-	out << jc_.tolerance_below << "; ";	
+	out << joint_tolerance_below_ << "; ";	
 	out << "  tolerance above = ";
-	out << jc_.tolerance_above << "; ";
+	out << joint_tolerance_above_ << "; ";
 	out << std::endl;
     }
     else
@@ -148,36 +154,39 @@ void kinematic_constraints::JointConstraint::print(std::ostream &out) const
 
 bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionConstraint &pc)
 {
-    pc_ = pc;
-    link_model_ = model_.getLinkModel(pc_.link_name);
-    offset_ = btVector3(pc_.target_point_offset.x, pc_.target_point_offset.y, pc_.target_point_offset.z);
-    boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc_.constraint_region_shape));
+    link_model_ = model_.getLinkModel(pc.link_name);
+    offset_ = btVector3(pc.target_point_offset.x, pc.target_point_offset.y, pc.target_point_offset.z);
+    boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region_shape));
     if (shape)
 	constraint_region_.reset(bodies::createBodyFromShape(shape.get()));
 
     if (link_model_ && constraint_region_)
     {
-	const geometry_msgs::Pose &msg = pc_.constraint_region_pose.pose;
+	const geometry_msgs::Pose &msg = pc.constraint_region_pose.pose;
 	btQuaternion qr;
 	if (!planning_models::quatFromMsg(msg.orientation, qr))
-	    ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc_.link_name.c_str());	
+	    ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());	
 	constraint_region_pose_ = btTransform(qr, btVector3(msg.position.x, msg.position.y, msg.position.z));
 	
-	if (tf_.isFixedFrame(pc_.constraint_region_pose.header.frame_id))
+	if (tf_.isFixedFrame(pc.constraint_region_pose.header.frame_id))
 	{
-	    tf_.transformTransform(constraint_region_pose_, constraint_region_pose_, pc_.constraint_region_pose.header.frame_id);
+	    tf_.transformTransform(constraint_region_pose_, constraint_region_pose_, pc.constraint_region_pose.header.frame_id);
+	    constraint_frame_id_ = tf_.getPlanningFrame();
 	    constraint_region_->setPose(constraint_region_pose_);
-	    mobileFrame_ = false;
+	    mobile_frame_ = false;
 	}
 	else
-       	    mobileFrame_ = true;
-
-	if (pc_.weight <= std::numeric_limits<double>::epsilon())
 	{
-	    ROS_WARN_STREAM("The weight on position constraint for link '" << pc_.link_name << "' should be positive");
-	    pc_.weight = std::numeric_limits<double>::epsilon();
+	    constraint_frame_id_ = pc.constraint_region_pose.header.frame_id;
+	    mobile_frame_ = true;
 	}
+	
 
+	if (pc.weight <= std::numeric_limits<double>::epsilon())
+	    ROS_WARN_STREAM("The weight on position constraint for link '" << pc.link_name << "' should be positive");
+	else
+	    constraint_weight_ = pc.weight;
+	
 	return true;
     }
     else
@@ -187,17 +196,16 @@ bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionC
 namespace kinematic_constraints
 {
     // helper function to avoid code duplication
-    static inline std::pair<bool, double> finishPositionConstraintDecision(const btVector3 &pt, const btVector3 &desired,
-									   const moveit_msgs::PositionConstraint &pc, bool result, bool verbose)
+    static inline std::pair<bool, double> finishPositionConstraintDecision(const btVector3 &pt, const btVector3 &desired, const std::string &name,
+									   double weight, bool result, bool verbose)
     {
 	if (verbose)
 	    ROS_INFO("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
-		     result ? "satisfied" : "violated", pc.link_name.c_str(),
-		     desired.x(), desired.y(), desired.z(), pt.x(), pt.y(), pt.z());
+		     result ? "satisfied" : "violated", name.c_str(), desired.x(), desired.y(), desired.z(), pt.x(), pt.y(), pt.z());
 	double dx = desired.x() - pt.x();
 	double dy = desired.y() - pt.y();
 	double dz = desired.z() - pt.z();
-	return std::make_pair(result, pc.weight * sqrt(dx * dx + dy * dy + dz * dz));
+	return std::make_pair(result, weight * sqrt(dx * dx + dy * dy + dz * dz));
     }
 }
 
@@ -206,27 +214,27 @@ std::pair<bool, double> kinematic_constraints::PositionConstraint::decide(const 
     if (!link_model_ || !constraint_region_)
 	return std::make_pair(true, 0.0);
     
-    const planning_models::KinematicState::LinkState *link_state = state.getLinkState(pc_.link_name);
+    const planning_models::KinematicState::LinkState *link_state = state.getLinkState(link_model_->getName());
     
     if (!link_state) 
     {
-	ROS_WARN_STREAM("No link in state with name '" << pc_.link_name << "'");
+	ROS_WARN_STREAM("No link in state with name '" << link_model_->getName() << "'");
 	return std::make_pair(false, 0.0);
     }
     
     const btVector3 &pt = link_state->getGlobalLinkTransform()(offset_);
     
-    if (mobileFrame_)
+    if (mobile_frame_)
     {	
 	btTransform tmp;
-	tf_.transformTransform(state, tmp, constraint_region_pose_, pc_.constraint_region_pose.header.frame_id);
-	bool result = constraint_region_->cloneAt(tmp)->containsPoint(pt, true);
-	return finishPositionConstraintDecision(pt, tmp.getOrigin(), pc_, result, verbose);
+	tf_.transformTransform(state, tmp, constraint_region_pose_, constraint_frame_id_);
+	bool result = constraint_region_->cloneAt(tmp)->containsPoint(pt);
+	return finishPositionConstraintDecision(pt, tmp.getOrigin(), link_model_->getName(), constraint_weight_, result, verbose);
     }
     else
     {
-	bool result = constraint_region_->containsPoint(pt, false);  
-	return finishPositionConstraintDecision(pt, constraint_region_->getPose().getOrigin(), pc_, result, verbose);
+	bool result = constraint_region_->containsPoint(pt);  
+	return finishPositionConstraintDecision(pt, constraint_region_->getPose().getOrigin(), link_model_->getName(), constraint_weight_, result, verbose);
     }
 }
 
@@ -234,42 +242,24 @@ void kinematic_constraints::PositionConstraint::print(std::ostream &out) const
 {
     if (link_model_ && constraint_region_)
     {
-	out << "Position constraint on link '" << pc_.link_name << "'" << std::endl;
-	if (pc_.constraint_region_shape.type == moveit_msgs::Shape::SPHERE)
+	out << "Position constraint on link '" << link_model_->getName() << "'" << std::endl;
+	if (constraint_region_->getType() == shapes::SPHERE)
+	    out << "Spherical constraint region of radius " << constraint_region_->getDimensions()[0] << std::endl;
+	else if (constraint_region_->getType() == shapes::BOX)
 	{
-	    if (pc_.constraint_region_shape.dimensions.empty())
-		out << "No radius specified for spherical constraint region.";
-	    else
-		out << "Spherical constraint region with radius " << pc_.constraint_region_shape.dimensions[0] << std::endl;
+	    const std::vector<double> &s = constraint_region_->getDimensions();	    
+	    out << "Box constraint region with dimensions " << s[0] << " x " << s[1] << " x "  <<  s[2] << std::endl;
 	}
-	else if (pc_.constraint_region_shape.type == moveit_msgs::Shape::BOX)
+	else if (constraint_region_->getType() == shapes::CYLINDER)
 	{
-	    if (pc_.constraint_region_shape.dimensions.size() < 3)
-		out << "Length, width, height must be specified for box constraint region.";
-	    else
-		out << "Box constraint region with dimensions " << pc_.constraint_region_shape.dimensions[0] << " x "  
-		    << pc_.constraint_region_shape.dimensions[1] << " x "  <<  pc_.constraint_region_shape.dimensions[2] << std::endl;
+	    const std::vector<double> &s = constraint_region_->getDimensions();	    
+	    out << "Cylinder constraint region with radius " << s[0] << " and length "  << s[1] << std::endl;
 	}
-	else if (pc_.constraint_region_shape.type == moveit_msgs::Shape::CYLINDER)
-	{
-	    if(pc_.constraint_region_shape.dimensions.size() < 2)
-		out << "Radius and height must be specified for cylinder constraint region.";
-	    else
-		out << "Cylinder constraint region with radius " << pc_.constraint_region_shape.dimensions[0] << " and length "  
-		    << pc_.constraint_region_shape.dimensions[1] << std::endl;
-	}
-	else if (pc_.constraint_region_shape.type == moveit_msgs::Shape::MESH)
-	{
-	    out << "Mesh type constraint region.";
-	}
+	else if (constraint_region_->getType() == shapes::MESH)
+	    out << "Mesh type constraint region." << std::endl;
     }
     else
 	out << "No constraint" << std::endl;
-}
-
-const moveit_msgs::PositionConstraint& kinematic_constraints::PositionConstraint::getConstraintMessage(void) const
-{
-    return pc_;
 }
 
 void kinematic_constraints::PositionConstraint::clear(void)
@@ -280,31 +270,34 @@ void kinematic_constraints::PositionConstraint::clear(void)
 
 bool kinematic_constraints::OrientationConstraint::use(const moveit_msgs::OrientationConstraint &oc)
 {
-    oc_ = oc;
-    link_model_ = model_.getLinkModel(oc_.link_name);
+    link_model_ = model_.getLinkModel(oc.link_name);
     btQuaternion q;
-    if (!planning_models::quatFromMsg(oc_.orientation.quaternion, q))
-	ROS_WARN("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc_.link_name.c_str(),
-		 oc_.orientation.quaternion.x, oc_.orientation.quaternion.y, oc_.orientation.quaternion.z, oc_.orientation.quaternion.w);
+    if (!planning_models::quatFromMsg(oc.orientation.quaternion, q))
+	ROS_WARN("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc.link_name.c_str(),
+		 oc.orientation.quaternion.x, oc.orientation.quaternion.y, oc.orientation.quaternion.z, oc.orientation.quaternion.w);
     
-    if (tf_.isFixedFrame(oc_.orientation.header.frame_id))
+    if (tf_.isFixedFrame(oc.orientation.header.frame_id))
     {
-	tf_.transformQuaternion(q, q, oc_.orientation.header.frame_id);
-	rotation_matrix_ = btMatrix3x3(q);
-	rotation_matrix_inv_ = rotation_matrix_.inverse();
-	mobileFrame_ = false;
+	tf_.transformQuaternion(q, q, oc.orientation.header.frame_id);
+	desired_rotation_frame_id_ = tf_.getPlanningFrame();
+	desired_rotation_matrix_ = btMatrix3x3(q);
+	desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse();
+	mobile_frame_ = false;
     }
     else
     {
-	rotation_matrix_ = btMatrix3x3(q);
-	mobileFrame_ = true;
+	desired_rotation_frame_id_ = oc.orientation.header.frame_id;
+	desired_rotation_matrix_ = btMatrix3x3(q);
+	mobile_frame_ = true;
     }
 
-    if (oc_.weight <= std::numeric_limits<double>::epsilon())
-    {
-	ROS_WARN_STREAM("The weight on orientation constraint for link '" << oc_.link_name << "' should be positive");
-	oc_.weight = std::numeric_limits<double>::epsilon();
-    }
+    if (oc.weight <= std::numeric_limits<double>::epsilon())
+	ROS_WARN_STREAM("The weight on orientation constraint for link '" << oc.link_name << "' should be positive");
+    else
+	constraint_weight_ = oc.weight;
+    absolute_yaw_tolerance_ = oc.absolute_yaw_tolerance;
+    absolute_pitch_tolerance_ = oc.absolute_pitch_tolerance;
+    absolute_roll_tolerance_ = oc.absolute_roll_tolerance;
     
     return link_model_ != NULL;
 }
@@ -319,66 +312,59 @@ std::pair<bool, double> kinematic_constraints::OrientationConstraint::decide(con
     if (!link_model_)
 	return std::make_pair(true, 0.0);
     
-    const planning_models::KinematicState::LinkState *link_state = state.getLinkState(oc_.link_name);
+    const planning_models::KinematicState::LinkState *link_state = state.getLinkState(link_model_->getName());
     
     if (!link_state) 
     {
-	ROS_WARN_STREAM("No link in state with name '" << oc_.link_name << "'");
+	ROS_WARN_STREAM("No link in state with name '" << link_model_->getName() << "'");
 	return std::make_pair(false, 0.0);
     }
     
     btScalar yaw, pitch, roll;
-    if (mobileFrame_)
+    if (mobile_frame_)
     {
 	btMatrix3x3 tmp;
-	tf_.transformMatrix(state, tmp, rotation_matrix_, oc_.orientation.header.frame_id);
+	tf_.transformMatrix(state, tmp, desired_rotation_matrix_, desired_rotation_frame_id_);
 	btMatrix3x3 diff = tmp.inverse() * link_state->getGlobalLinkTransform().getBasis();
 	diff.getEulerYPR(yaw, pitch, roll);	
     }
     else
     {
-	btMatrix3x3 diff = rotation_matrix_inv_ * link_state->getGlobalLinkTransform().getBasis();
+	btMatrix3x3 diff = desired_rotation_matrix_inv_ * link_state->getGlobalLinkTransform().getBasis();
 	diff.getEulerYPR(yaw, pitch, roll);
     }
     
-    bool result = fabs(roll) < oc_.absolute_roll_tolerance && fabs(pitch) < oc_.absolute_pitch_tolerance && fabs(yaw) < oc_.absolute_yaw_tolerance;
+    bool result = fabs(roll) < absolute_roll_tolerance_ && fabs(pitch) < absolute_pitch_tolerance_ && fabs(yaw) < absolute_yaw_tolerance_;
     
     if (verbose)
     {
-	btQuaternion quat;
-	link_state->getGlobalLinkTransform().getBasis().getRotation(quat);
+	btQuaternion q_act, q_des;
+	link_state->getGlobalLinkTransform().getBasis().getRotation(q_act);
+	desired_rotation_matrix_.getRotation(q_des); 
 	ROS_INFO("Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion actual: %f %f %f %f, error: roll=%f, pitch=%f, yaw=%f, tolerance: roll=%f, pitch=%f, yaw=%f",
-		 result ? "satisfied" : "violated", oc_.link_name.c_str(),
-		 oc_.orientation.quaternion.x, oc_.orientation.quaternion.y, oc_.orientation.quaternion.z, oc_.orientation.quaternion.w,
-		 quat.getX(), quat.getY(), quat.getZ(), quat.getW(), roll, pitch, yaw, 
-		 oc_.absolute_roll_tolerance, oc_.absolute_pitch_tolerance, oc_.absolute_yaw_tolerance);
+		 result ? "satisfied" : "violated", link_model_->getName().c_str(),
+		 q_des.getX(), q_des.getY(), q_des.getZ(), q_des.getW(), 
+		 q_act.getX(), q_act.getY(), q_act.getZ(), q_act.getW(), roll, pitch, yaw, 
+		 absolute_roll_tolerance_, absolute_pitch_tolerance_, absolute_yaw_tolerance_);
     }
     
-    return std::make_pair(result, oc_.weight * (fabs(roll) + fabs(pitch) + fabs(yaw)));
-}
-
-const moveit_msgs::OrientationConstraint& kinematic_constraints::OrientationConstraint::getConstraintMessage(void) const
-{
-    return oc_;
+    return std::make_pair(result, constraint_weight_ * (fabs(roll) + fabs(pitch) + fabs(yaw)));
 }
 
 void kinematic_constraints::OrientationConstraint::print(std::ostream &out) const
 {
     if (link_model_)
     {
-	out << "Orientation constraint on link '" << oc_.link_name << "'" << std::endl;
-	out << "Desired orientation:" << oc_.orientation.quaternion.x << "," <<  oc_.orientation.quaternion.y << "," 
-	    <<  oc_.orientation.quaternion.z << "," << oc_.orientation.quaternion.w << std::endl;
+	out << "Orientation constraint on link '" << link_model_->getName() << "'" << std::endl;
+	btQuaternion q_des;
+	desired_rotation_matrix_.getRotation(q_des); 
+	out << "Desired orientation:" << q_des.getX() << "," <<  q_des.getY() << ","  <<  q_des.getZ() << "," << q_des.getW() << std::endl;
     }
     else
 	out << "No constraint" << std::endl;
 }
 
 /*
-const moveit_msgs::VisibilityConstraint& kinematic_constraints::VisibilityConstraint::getConstraintMessage(void) const
-{
-    return vc_;
-}
 
 void kinematic_constraints::VisibilityConstraint::clear(void)
 {

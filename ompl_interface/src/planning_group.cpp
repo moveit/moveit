@@ -76,10 +76,10 @@ namespace ompl_interface
 	
 	void usePosition(const moveit_msgs::PositionConstraint &pc)
 	{
-	    shapes::Shape *shape = shapes::constructShapeFromMsg(pc.constraint_region_shape);
+	    boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region_shape));
 	    if (shape)
 	    {
-		region_body_.reset(bodies::createBodyFromShape(shape));
+		region_body_.reset(bodies::createBodyFromShape(shape.get()));
 		if (region_body_)
 		{
 		    link_name_ = pc.link_name;
@@ -221,8 +221,8 @@ namespace ompl_interface
 
 bool ompl_interface::PlanningGroup::samplingFuncIK(IK_Data *data, const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal)
 {
-    //    if (gls->getStatesCount() >= max_goal_samples_)   ENABLE
-    //	return false;
+    if (gls->getStateCount() >= max_goal_samples_)   
+	return false;
     if (gls->samplingAttemptsCount() >= max_goal_sampling_attempts_)
 	return false;
     if (data->have_position_ && data->have_orientation_)
@@ -247,8 +247,8 @@ bool ompl_interface::PlanningGroup::samplingFuncIK(IK_Data *data, const ompl::ba
 
 bool ompl_interface::PlanningGroup::samplingFuncJ(J_Data *data, const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal)
 {
-    //    if (gls->getStatesCount() >= max_goal_samples_) ENABLE
-    //	return false;
+    if (gls->getStateCount() >= max_goal_samples_) 
+    	return false;
     if (gls->samplingAttemptsCount() >= max_goal_sampling_attempts_)
 	return false;
     
@@ -305,8 +305,8 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
     {
 	// we need a new sampler for the state space
     }
-    //    else ENABLE
-    //	ssetup_.getStateSpace()->clearStateSamplerAllocator();
+    else
+    	ssetup_.getStateSpace()->clearStateSampleAllocator();
     
 
 

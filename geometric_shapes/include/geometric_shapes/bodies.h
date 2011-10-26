@@ -131,6 +131,9 @@ namespace bodies
 	    return pose_;
 	}
 	
+	/** \brief Get the dimensions associated to this body (as read from corresponding shape) */
+	virtual std::vector<double> getDimensions(void) const = 0;
+		
 	/** \brief Set the dimensions of the body (from corresponding shape) */
 	void setDimensions(const shapes::Shape *shape);
 	
@@ -198,7 +201,10 @@ namespace bodies
 	virtual ~Sphere(void)
 	{
 	}
-	
+
+	/** \brief Get the radius of the sphere */
+	virtual std::vector<double> getDimensions(void) const;
+
 	virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
 	virtual double computeVolume(void) const;
 	virtual void computeBoundingSphere(BoundingSphere &sphere) const;
@@ -239,6 +245,9 @@ namespace bodies
 	virtual ~Cylinder(void)
 	{
 	}
+
+	/** \brief Get the radius & length of the cylinder */
+	virtual std::vector<double> getDimensions(void) const;
 	
 	virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
 	virtual double computeVolume(void) const;
@@ -290,7 +299,10 @@ namespace bodies
 	virtual ~Box(void)
 	{
 	}
-	
+
+	/** \brief Get the length & width & height (x, y, z) of the box */
+	virtual std::vector<double> getDimensions(void) const;
+
 	virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
 	virtual double computeVolume(void) const;
 	virtual void computeBoundingSphere(BoundingSphere &sphere) const;
@@ -346,6 +358,9 @@ namespace bodies
 	virtual ~ConvexMesh(void)
 	{
 	}	
+
+	/** \brief Returns an empty vector */
+	virtual std::vector<double> getDimensions(void) const;
 	
 	virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
 	virtual double computeVolume(void) const;

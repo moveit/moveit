@@ -94,6 +94,12 @@ void bodies::Sphere::useDimensions(const shapes::Shape *shape) // radius
     radius_ = static_cast<const shapes::Sphere*>(shape)->radius;
 }
 
+std::vector<double> bodies::Sphere::getDimensions(void) const
+{
+    std::vector<double> d(1, radius_);
+    return d;
+}
+
 void bodies::Sphere::updateInternalData(void)
 {
     radiusU_ = radius_ * scale_ + padding_;
@@ -211,6 +217,14 @@ void bodies::Cylinder::useDimensions(const shapes::Shape *shape) // (length, rad
 {
     length_ = static_cast<const shapes::Cylinder*>(shape)->length;
     radius_ = static_cast<const shapes::Cylinder*>(shape)->radius;
+}
+
+std::vector<double> bodies::Cylinder::getDimensions(void) const
+{
+    std::vector<double> d(2);
+    d[0] = radius_;
+    d[1] = length_;
+    return d;
 }
 
 void bodies::Cylinder::updateInternalData(void)
@@ -389,6 +403,15 @@ void bodies::Box::useDimensions(const shapes::Shape *shape) // (x, y, z) = (leng
     length_ = size[0];
     width_  = size[1];
     height_ = size[2];
+}
+
+std::vector<double> bodies::Box::getDimensions(void) const
+{
+    std::vector<double> d(3);
+    d[0] = length_;
+    d[1] = width_;
+    d[2] = height_;
+    return d;
 }
 
 void bodies::Box::updateInternalData(void) 
@@ -723,6 +746,11 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     
     hl.ReleaseResult(hr);    
     delete[] vertices;
+}
+
+std::vector<double> bodies::ConvexMesh::getDimensions(void) const
+{
+    return std::vector<double>();
 }
 
 void bodies::ConvexMesh::updateInternalData(void) 
