@@ -55,13 +55,8 @@ namespace kinematic_constraints
     {
     public:
 	
-	KinematicConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : model_(model), tf_(tf)
-	{
-	}
-	
-	virtual ~KinematicConstraint(void)
-	{
-	}
+	KinematicConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf);
+	virtual ~KinematicConstraint(void);
 	
 	/** \brief Clear the stored constraint */
 	virtual void clear(void) = 0;
@@ -74,10 +69,17 @@ namespace kinematic_constraints
 	{
 	}
 	
+	/** \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function. */
+	double getConstraintWeight(void) const
+	{
+	    return constraint_weight_;
+	}
+	
     protected:
 	
 	const planning_models::KinematicModel &model_;
 	const planning_models::Transforms     &tf_;
+	double                                 constraint_weight_;	
     };
 
     typedef boost::shared_ptr<KinematicConstraint> KinematicConstraintPtr;
@@ -86,7 +88,7 @@ namespace kinematic_constraints
     {
     public:  
 	
-	JointConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : KinematicConstraint(model, tf), joint_model_(NULL), cont_(false)
+	JointConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : KinematicConstraint(model, tf), joint_model_(NULL)
 	{
 	}
 	
@@ -102,14 +104,11 @@ namespace kinematic_constraints
 	/** \brief Print the constraint data */
 	virtual void print(std::ostream &out = std::cout) const;
 	
-	/** \brief Get the constraint message */
-	const moveit_msgs::JointConstraint& getConstraintMessage(void) const;
-	
     protected:
 	
 	const planning_models::KinematicModel::JointModel *joint_model_;	
-	bool                                               cont_;
-	moveit_msgs::JointConstraint                       jc_;
+	bool                                               joint_is_continuous_;
+	double                                             joint_position_, joint_tolerance_above_, joint_tolerance_below_;
     };
     
     
@@ -133,16 +132,34 @@ namespace kinematic_constraints
 	/** \brief Print the constraint data */
 	void print(std::ostream &out = std::cout) const;
 	
-	/** \brief Get the constraint message */
-	const moveit_msgs::OrientationConstraint& getConstraintMessage(void) const;
+	const btMatrix3x3& getDesiredRotationMatrix(void) const
+	{
+	    return desired_rotation_matrix_;
+	}
+	
+	double getYawTolerance(void) const
+	{
+	    return absolute_yaw_tolerance_;
+	}
+	
+	double getPitchTolerance(void) const
+	{	    
+	    return absolute_pitch_tolerance_;
+	}
+
+	double getRollTolerance(void) const
+	{
+	    return absolute_roll_tolerance_;
+	}
 	
     protected:
 
-	const planning_models::KinematicModel::LinkModel *link_model_;		
-	moveit_msgs::OrientationConstraint                oc_;	
-	btMatrix3x3                                       rotation_matrix_;
-	btMatrix3x3                                       rotation_matrix_inv_;
-	bool                                              mobileFrame_;
+	const planning_models::KinematicModel::LinkModel *link_model_;
+	btMatrix3x3                                       desired_rotation_matrix_;
+	btMatrix3x3                                       desired_rotation_matrix_inv_;
+	std::string                                       desired_rotation_frame_id_;
+	bool                                              mobile_frame_;
+	double                                            absolute_roll_tolerance_, absolute_pitch_tolerance_, absolute_yaw_tolerance_;
     };
     
     class PositionConstraint : public KinematicConstraint
@@ -163,18 +180,20 @@ namespace kinematic_constraints
 	virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
 	
 	/** \brief Print the constraint data */
-	void print(std::ostream &out = std::cout) const;
-	
-	/** \brief Get the constraint message */
-	const moveit_msgs::PositionConstraint& getConstraintMessage(void) const;
+	void print(std::ostream &out = std::cout) const;	
+
+	const boost::shared_ptr<bodies::Body>& getConstraintRegion(void) const
+	{
+	    return constraint_region_;
+	}
 	
     protected:
 	
-	moveit_msgs::PositionConstraint                   pc_;
 	btVector3                                         offset_;
 	boost::shared_ptr<bodies::Body>                   constraint_region_;
 	btTransform                                       constraint_region_pose_;
-	bool                                              mobileFrame_;	
+	bool                                              mobile_frame_;	
+	std::string                                       constraint_frame_id_;
 	const planning_models::KinematicModel::LinkModel *link_model_;		
     };
 
@@ -203,7 +222,6 @@ namespace kinematic_constraints
 	const moveit_msgs::VisibilityConstraint& getConstraintMessage(void) const;
 	
     protected:	
-	moveit_msgs::VisibilityConstraint                 vc_;
 	btTransform                                       sensor_offset_pose_;
     };
     */
