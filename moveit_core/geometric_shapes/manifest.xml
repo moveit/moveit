@@ -11,6 +11,8 @@
   <depend package="rosconsole" />
   <depend package="resource_retriever"/>
   <depend package="moveit_msgs"/>
+  <depend package="random_numbers"/>
+
   <rosdep name="assimp" />
 
   <export>

@@ -306,9 +306,9 @@ bool kinematic_constraints::OrientationConstraint::use(const moveit_msgs::Orient
 	ROS_WARN_STREAM("The weight on orientation constraint for link '" << oc.link_name << "' should be positive");
     else
 	constraint_weight_ = oc.weight;
-    absolute_yaw_tolerance_ = oc.absolute_yaw_tolerance;
-    absolute_pitch_tolerance_ = oc.absolute_pitch_tolerance;
-    absolute_roll_tolerance_ = oc.absolute_roll_tolerance;
+    absolute_yaw_tolerance_ = fabs(oc.absolute_yaw_tolerance);
+    absolute_pitch_tolerance_ = fabs(oc.absolute_pitch_tolerance);
+    absolute_roll_tolerance_ = fabs(oc.absolute_roll_tolerance);
     
     return link_model_ != NULL;
 }

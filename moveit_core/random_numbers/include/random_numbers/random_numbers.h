@@ -34,14 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_MODELS_RANDOM_NUMBERS_
-#define PLANNING_MODELS_RANDOM_NUMBERS_
+#ifndef RANDOM_NUMBERS_RANDOM_NUMBERS_
+#define RANDOM_NUMBERS_RANDOM_NUMBERS_
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real.hpp>
 #include <boost/random/variate_generator.hpp>
 
-namespace planning_models
+namespace random_numbers
 {
     /** \brief Random number generation (wrapper for boost). An instance of this class
         cannot be used by multiple threads at once (member functions

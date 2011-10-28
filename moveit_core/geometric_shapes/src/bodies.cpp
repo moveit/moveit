@@ -84,6 +84,21 @@ void bodies::Body::setDimensions(const shapes::Shape *shape)
     updateInternalData();
 }
 
+bool bodies::Body::samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result)
+{
+    BoundingSphere bs;
+    computeBoundingSphere(bs);
+    for (unsigned int i = 0 ; i < max_attempts ; ++i)
+    {
+	result.setValue(rng.uniformReal(bs.center.x() - bs.radius, bs.center.x() + bs.radius),
+			rng.uniformReal(bs.center.y() - bs.radius, bs.center.y() + bs.radius),
+			rng.uniformReal(bs.center.z() - bs.radius, bs.center.z() + bs.radius));
+	if (containsPoint(result))
+	    return true;
+    }
+    return false;
+}
+
 bool bodies::Sphere::containsPoint(const btVector3 &p, bool verbose) const 
 {
     return (center_ - p).length2() < radius2_;
@@ -135,6 +150,19 @@ void bodies::Sphere::computeBoundingCylinder(BoundingCylinder &cylinder) const
     cylinder.radius = radiusU_;
     cylinder.length = radiusU_;
     
+}
+
+bool bodies::Sphere::samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result)
+{
+    for (unsigned int i = 0 ; i < max_attempts ; ++i)
+    {
+	result.setValue(rng.uniformReal(center_.x() - radiusU_, center_.x() + radiusU_),
+			rng.uniformReal(center_.y() - radiusU_, center_.y() + radiusU_),
+			rng.uniformReal(center_.z() - radiusU_, center_.z() + radiusU_));
+	if (containsPoint(result))
+	    return true;
+    }
+    return false;
 }
 
 bool bodies::Sphere::intersectsRay(const btVector3& origin, const btVector3& dir, std::vector<btVector3> *intersections, unsigned int count) const
@@ -244,6 +272,22 @@ void bodies::Cylinder::updateInternalData(void)
     double tmp = -normalH_.dot(center_);
     d1_ = tmp + length2_;
     d2_ = tmp - length2_;
+}
+
+bool bodies::Cylinder::samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result)
+{
+    // sample a point on the base disc of the cylinder
+    double a = rng.uniformReal(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
+    double r = rng.uniformReal(-radiusU_, radiusU_);
+    double x = cos(a) * r;
+    double y = sin(a) * r;
+    
+    // sample e height
+    double z = rng.uniformReal(-length2_, length2_);
+    
+    result.setValue(x, y, z);
+    result = pose_(result);
+    return true;
 }
 
 boost::shared_ptr<bodies::Body> bodies::Cylinder::cloneAt(const btTransform &pose, double padding, double scale) const
@@ -376,6 +420,15 @@ bool bodies::Cylinder::intersectsRay(const btVector3& origin, const btVector3& d
     for (unsigned int i = 0 ; i < n ; ++i)
 	intersections->push_back(ipts[i].pt);
     
+    return true;
+}	
+
+bool bodies::Box::samplePointInside(random_numbers::RNG &rng, unsigned int /* max_attempts */, btVector3 &result)
+{
+    result.setValue(rng.uniformReal(-length2_, length2_),
+		    rng.uniformReal(-width2_, width2_),
+		    rng.uniformReal(-height2_, height2_));
+    result = pose_(result);
     return true;
 }
 

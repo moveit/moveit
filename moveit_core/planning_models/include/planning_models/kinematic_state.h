@@ -400,7 +400,7 @@ namespace planning_models
 	    }
 
 	    /** \brief Return the instance of a random number generator */
-	    RNG& getRNG(void);
+	    random_numbers::RNG& getRNG(void);
 	    
 	private:	    
 
@@ -426,7 +426,7 @@ namespace planning_models
 		to allocate the random number generator if many state instances are generated. For this reason, the generator
 		is allocated on a need basis, by the getRNG() function. Never use the rng_ member directly, but call 
 		getRNG() instead. */
-	    boost::scoped_ptr<RNG>                 rng_;
+	    boost::scoped_ptr<random_numbers::RNG> rng_;
 	};
 	
 	KinematicState(const KinematicModelPtr &kinematic_model);
@@ -522,7 +522,7 @@ namespace planning_models
 	void setRootTransform(const btTransform &transform);
 
 	/** \brief Return the instance of a random number generator */
-	RNG& getRNG(void);
+	random_numbers::RNG& getRNG(void);
 	
     private:
 	
@@ -549,7 +549,7 @@ namespace planning_models
 	    to allocate the random number generator if many state instances are generated. For this reason, the generator
 	    is allocated on a need basis, by the getRNG() function. Never use the rng_ member directly, but call 
 	    getRNG() instead. */
-	boost::scoped_ptr<RNG>                  rng_;
+	boost::scoped_ptr<random_numbers::RNG>  rng_;
     };
     
     typedef boost::shared_ptr<KinematicState> KinematicStatePtr;

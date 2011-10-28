@@ -73,11 +73,6 @@ planning_models::KinematicModel::KinematicModel(const urdf::Model &model, const 
     }
 }
 
-planning_models::KinematicModel::KinematicModel(const KinematicModel &source)
-{
-    copyFrom(source);
-}
-
 planning_models::KinematicModel::~KinematicModel(void)
 {
     for (std::map<std::string, JointModelGroup*>::iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end() ; ++it)
@@ -120,28 +115,6 @@ const planning_models::KinematicModel::JointModelGroup* planning_models::Kinemat
 	return NULL;
     }
     return it->second;
-}
-
-void planning_models::KinematicModel::copyFrom(const KinematicModel &source)
-{
-    if (&source == this)
-	return;
-    model_name_ = source.model_name_;
-    model_frame_ = source.model_frame_;
-    variable_count_ = source.variable_count_;
-    
-    if (source.root_)
-    {
-	root_ = copyRecursive(NULL, source.root_->child_link_model_);
-	
-	const std::map<std::string, srdf::Model::Group> &group_config_map = source.getJointModelGroupConfigMap();
-	std::vector<srdf::Model::Group> group_configs;
-	for (std::map<std::string, srdf::Model::Group>::const_iterator it = group_config_map.begin() ; it != group_config_map.end() ; ++it)
-	    group_configs.push_back(it->second);
-	buildGroups(group_configs);
-    }
-    else 
-	root_ = NULL;
 }
 
 void planning_models::KinematicModel::buildGroups(const std::vector<srdf::Model::Group>& group_configs) 
@@ -530,52 +503,6 @@ void planning_models::KinematicModel::getJointModelNames(std::vector<std::string
 	joints.push_back(joint_model_vector_[i]->getName());
 }
 
-planning_models::KinematicModel::JointModel* planning_models::KinematicModel::copyRecursive(LinkModel *parent, const LinkModel *link)
-{
-    JointModel *joint = copyJointModel(link->parent_joint_model_);
-    joint_model_map_[joint->name_] = joint;
-    joint_model_vector_.push_back(joint);
-    joint->parent_link_model_ = parent;
-    joint->child_link_model_ = new LinkModel(*link);
-    link_model_map_[joint->child_link_model_->name_] = joint->child_link_model_;
-    joint->child_link_model_->parent_joint_model_ = joint;
-    
-    for (unsigned int i = 0 ; i < link->child_joint_models_.size() ; ++i)
-	joint->child_link_model_->child_joint_models_.push_back(copyRecursive(joint->child_link_model_, link->child_joint_models_[i]->child_link_model_));
-    
-    return joint;
-}
-
-planning_models::KinematicModel::JointModel* planning_models::KinematicModel::copyJointModel(const JointModel *joint)
-{
-    JointModel *newJoint = NULL;
-    
-    if (dynamic_cast<const FixedJointModel*>(joint))
-    {
-	newJoint = new FixedJointModel(static_cast<const FixedJointModel&>(*joint));
-    }
-    else if (dynamic_cast<const FloatingJointModel*>(joint))
-    {
-	newJoint = new FloatingJointModel(static_cast<const FloatingJointModel&>(*joint));
-    }
-    else if (dynamic_cast<const PlanarJointModel*>(joint))
-    {
-	newJoint = new PlanarJointModel(static_cast<const PlanarJointModel&>(*joint));
-    }
-    else if (dynamic_cast<const PrismaticJointModel*>(joint))
-    {
-	newJoint = new PrismaticJointModel(static_cast<const PrismaticJointModel&>(*joint));
-    }
-    else if (dynamic_cast<const RevoluteJointModel*>(joint))
-    {
-	newJoint = new RevoluteJointModel(static_cast<const RevoluteJointModel&>(*joint));
-    }
-    else
-	ROS_FATAL("Unimplemented type of joint");
-    
-    return newJoint;
-}
-
 void planning_models::KinematicModel::getChildLinkModels(const KinematicModel::LinkModel *parent, std::vector<const KinematicModel::LinkModel*> &links) const
 {
     links.clear();
@@ -671,13 +598,6 @@ planning_models::KinematicModel::JointModel::JointModel(const std::string& name)
 {
 }
 
-planning_models::KinematicModel::JointModel::JointModel(const JointModel& joint) :
-    name_(joint.name_), local_names_(joint.local_names_), variable_names_(joint.variable_names_),
-    variable_bounds_(joint.variable_bounds_), variable_index_(joint.variable_index_), 
-    parent_link_model_(NULL), child_link_model_(NULL), tree_index_(joint.tree_index_)
-{
-}
-
 planning_models::KinematicModel::JointModel::~JointModel(void)
 {
 }
@@ -715,7 +635,7 @@ void planning_models::KinematicModel::JointModel::getDefaultValues(std::vector<d
     }
 }
 
-void planning_models::KinematicModel::JointModel::getRandomValues(RNG &rng, std::map<std::string, double> &values) const
+void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers::RNG &rng, std::map<std::string, double> &values) const
 {   
     std::vector<double> rv;
     rv.reserve(variable_names_.size());
@@ -724,7 +644,7 @@ void planning_models::KinematicModel::JointModel::getRandomValues(RNG &rng, std:
 	values[variable_names_[i]] = rv[i];
 }
 
-void planning_models::KinematicModel::JointModel::getRandomValues(RNG &rng, std::vector<double> &values) const
+void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const
 {
     std::size_t i = 0;
     for (std::vector<std::pair<double, double> >::const_iterator it = variable_bounds_.begin() ; it != variable_bounds_.end() ; ++it, ++i)
@@ -842,7 +762,7 @@ void planning_models::KinematicModel::FloatingJointModel::getDefaultValues(std::
     values[s - 1] = 1.0;
 }
 
-void planning_models::KinematicModel::FloatingJointModel::getRandomValues(RNG &rng, std::vector<double> &values) const
+void planning_models::KinematicModel::FloatingJointModel::getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const
 {
     std::size_t s = values.size();
     values.resize(s + 7);
@@ -912,18 +832,9 @@ planning_models::KinematicModel::LinkModel::LinkModel(void) : parent_joint_model
     collision_origin_transform_.setIdentity();
 }
 
-planning_models::KinematicModel::LinkModel::LinkModel(const LinkModel &link_model) :
-    name_(link_model.name_), 
-    joint_origin_transform_(link_model.joint_origin_transform_),
-    collision_origin_transform_(link_model.collision_origin_transform_),
-    shape_(link_model.shape_), tree_index_(link_model.tree_index_)
-{
-}
-
 planning_models::KinematicModel::LinkModel::~LinkModel(void)
 {
 }
-
 
 /* ------------------------ JointModelGroup ------------------------ */
 planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::string& group_name,

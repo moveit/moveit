@@ -38,6 +38,8 @@
 #define KINEMATIC_CONSTRAINTS_CONSTRAINT_SAMPLERS_
 
 #include "kinematic_constraints/kinematic_constraint.h"
+#include <random_numbers/random_numbers.h>
+#include <kinematics_base/kinematics_base.h>
 
 namespace kinematic_constraints
 {
@@ -53,12 +55,13 @@ namespace kinematic_constraints
 	{
 	}
 	
-	virtual bool sample(std::vector<double> &values) = 0;
+	virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100, 
+			    const planning_models::KinematicState::JointStateGroup *jsg = NULL) = 0;
 	
     protected:
 	
 	const planning_models::KinematicModel::JointModelGroup *jmg_;
-	planning_models::RNG                                    rng_;
+	random_numbers::RNG                                     rng_;
     };
     
 	
@@ -67,7 +70,8 @@ namespace kinematic_constraints
     public:
 	
 	JointConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const std::vector<JointConstraint> &jc);
-	virtual bool sample(std::vector<double> &values);
+	virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100, 
+			    const planning_models::KinematicState::JointStateGroup *jsg = NULL);
 
     protected:
 	
@@ -91,15 +95,14 @@ namespace kinematic_constraints
 	IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
 			    const OrientationConstraint &oc);
 
-	virtual bool sample(std::vector<double> &values);
-
+	virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100, 
+			    const planning_models::KinematicState::JointStateGroup *jsg = NULL);
+	
     protected:
 	
-	bool                  have_position_;
-	bool                  have_orientation_;
-	boost::shared_ptr<PositionConstraint>    pc_;
-	boost::shared_ptr<OrientationConstraint> oc_;
-	
+	boost::shared_ptr<PositionConstraint>         pc_;
+	boost::shared_ptr<OrientationConstraint>      oc_;
+	boost::shared_ptr<kinematics::KinematicsBase> kb_;
     };
     
 }
