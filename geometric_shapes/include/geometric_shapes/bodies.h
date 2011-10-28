@@ -41,6 +41,7 @@
 #include <LinearMath/btTransform.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <random_numbers/random_numbers.h>
 #include <vector>
 
 /**
@@ -156,6 +157,11 @@ namespace bodies
 	    changes induced by scaling and padding */
 	virtual double computeVolume(void) const = 0;
 	
+	/** \brief Sample a point that is included in the body using a given random number generator. Sometimes multiple attempts need to be generated; 
+	    the function terminates with failure (returns false) after \e max_attempts attempts. If the call is successful (returns true) the point is
+	    written to \e result */
+	virtual bool samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result);
+	
 	/** \brief Compute the bounding radius for the body, in its current
 	    pose. Scaling and padding are accounted for. */
 	virtual void computeBoundingSphere(BoundingSphere &sphere) const = 0;
@@ -179,8 +185,8 @@ namespace bodies
 	double            scale_;
 	double            padding_;	
 	shapes::ShapeType type_;
-	btTransform       pose_;	
-
+	btTransform       pose_;
+	
     };
     
     /** \brief Definition of a sphere */
@@ -207,6 +213,7 @@ namespace bodies
 
 	virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
 	virtual double computeVolume(void) const;
+	virtual bool samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result);
 	virtual void computeBoundingSphere(BoundingSphere &sphere) const;
 	virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
 	virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
@@ -251,6 +258,7 @@ namespace bodies
 	
 	virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
 	virtual double computeVolume(void) const;
+	virtual bool samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result);
 	virtual void computeBoundingSphere(BoundingSphere &sphere) const;
 	virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
 	virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
@@ -305,6 +313,7 @@ namespace bodies
 
 	virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
 	virtual double computeVolume(void) const;
+	virtual bool samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result);
 	virtual void computeBoundingSphere(BoundingSphere &sphere) const;
 	virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
 	virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;

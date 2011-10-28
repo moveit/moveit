@@ -37,11 +37,11 @@
 #ifndef PLANNING_MODELS_KINEMATIC_MODEL_
 #define PLANNING_MODELS_KINEMATIC_MODEL_
 
-#include "planning_models/random_numbers.h"
 #include <urdf/model.h>
 #include <srdf/model.h>
 #include <LinearMath/btTransform.h>
 #include <geometric_shapes/shapes.h>
+#include <random_numbers/random_numbers.h>
 
 #include <boost/shared_ptr.hpp>
 #include <iostream>
@@ -82,10 +82,8 @@ namespace planning_models
 	{
 	    friend class KinematicModel;	   
 	public:
+
 	    JointModel(const std::string& name);
-	    
-	    JointModel(const JointModel& joint);
-	    
 	    virtual ~JointModel(void);
 	    
 	    /** \brief Get the name of the joint */
@@ -123,7 +121,7 @@ namespace planning_models
 	    void getDefaultValues(std::map<std::string, double> &values) const;
 
 	    /** \brief Provides a random values for the joint given the joint bounds. The map is NOT cleared; elements are only added (or overwritten). */
-	    void getRandomValues(RNG &rng, std::map<std::string, double> &values) const;
+	    void getRandomValues(random_numbers::RNG &rng, std::map<std::string, double> &values) const;
 
 	    /** \brief Provides a default value for the joint given the joint bounds.
 		Most joints will use the default, but the quaternion for floating
@@ -131,7 +129,7 @@ namespace planning_models
 	    virtual void getDefaultValues(std::vector<double> &values) const;
 
 	    /** \brief Provides a random values for the joint given the joint bounds. The vector is NOT cleared; elements are only added with push_back */
-	    virtual void getRandomValues(RNG &rng, std::vector<double> &values) const;
+	    virtual void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
 	    
 	    /** \brief Check if a particular variable satisfies the specified bounds */
 	    virtual bool isVariableWithinBounds(const std::string& variable, double value) const; 
@@ -214,10 +212,6 @@ namespace planning_models
 	    {
 	    }
 	    
-	    FixedJointModel(const FixedJointModel& joint): JointModel(joint)
-	    {
-	    }
-	    
 	    virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;
 	    virtual void computeJointStateValues(const btTransform& trans, std::vector<double>& joint_values) const;
 	    virtual void updateTransform(const std::vector<double>& joint_values, btTransform &transf) const;
@@ -230,10 +224,6 @@ namespace planning_models
 	public:
 	    
 	    PlanarJointModel(const std::string& name);
-	    
-	    PlanarJointModel(const PlanarJointModel& joint) : JointModel(joint)
-	    {
-	    }
 	    
 	    virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;
 	    virtual void computeJointStateValues(const btTransform& transf, std::vector<double>& joint_values) const;
@@ -248,16 +238,11 @@ namespace planning_models
 	    
 	    FloatingJointModel(const std::string& name);
 	    
-	    FloatingJointModel(const FloatingJointModel& joint) : JointModel(joint)
-	    {
-	    }
-	    
 	    virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;
 	    virtual void computeJointStateValues(const btTransform& transf, std::vector<double>& joint_values) const;	    
 	    virtual void updateTransform(const std::vector<double>& joint_values, btTransform &transf) const;
-	    virtual void getRandomValues(RNG &rng, std::vector<double> &values) const;
-	    virtual void getDefaultValues(std::vector<double>& values) const;
-	    
+	    virtual void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
+	    virtual void getDefaultValues(std::vector<double>& values) const;	    
 	};
 
 	/** \brief A prismatic joint */
@@ -267,11 +252,6 @@ namespace planning_models
 	public:
 	    
 	    PrismaticJointModel(const std::string& name);
-	    
-	    PrismaticJointModel(const PrismaticJointModel& joint) : JointModel(joint)
-	    {
-		axis_ = joint.axis_;
-	    }
 	    
 	    virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;	    
 	    virtual void computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const;
@@ -295,12 +275,6 @@ namespace planning_models
 	    
 	    RevoluteJointModel(const std::string& name);
 	    
-	    RevoluteJointModel(const RevoluteJointModel& joint) : JointModel(joint)
-	    {
-		axis_ = joint.axis_;
-		continuous_ = joint.continuous_;
-	    }
-
 	    virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;	    
 	    virtual void computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const;
 	    virtual void updateTransform(const std::vector<double>& joint_values, btTransform &transf) const;
@@ -331,9 +305,6 @@ namespace planning_models
 	public:
 	    
 	    LinkModel(void);
-	    
-	    LinkModel(const LinkModel& link_model);
-	    
 	    ~LinkModel(void);
 	    
 	    /** \brief The name of this link */
@@ -521,9 +492,6 @@ namespace planning_models
 	    std::set<std::string>                    ik_links_;
 	};
 	
-	/** \brief Construct a kinematic model from another one */
-	KinematicModel(const KinematicModel &source);
-	
 	/** \brief Construct a kinematic model from a parsed description and a list of planning groups */
 	KinematicModel(const urdf::Model &model, const srdf::Model &smodel);
 	
@@ -639,8 +607,6 @@ namespace planning_models
 
     protected:
 	
-	void copyFrom(const KinematicModel &source);
-
 	/** \brief The name of the model */
 	std::string                             model_name_;	
 
@@ -682,9 +648,6 @@ namespace planning_models
 	JointModel* constructJointModel(const urdf::Joint *urdfJointModel, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
 	LinkModel* constructLinkModel(const urdf::Link *urdfLink);
 	boost::shared_ptr<shapes::Shape> constructShape(const urdf::Geometry *geom);
-	
-	JointModel* copyJointModel(const JointModel *joint);
-	JointModel* copyRecursive(LinkModel *parent, const LinkModel *link);
     };
     
     typedef boost::shared_ptr<KinematicModel> KinematicModelPtr;

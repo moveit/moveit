@@ -11,7 +11,10 @@
 
   <depend package="planning_models"/>
   <depend package="geometric_shapes"/>
+  <depend package="random_numbers"/>
   <depend package="moveit_msgs"/>
+  <depend package="kinematics_base"/>
+  <depend package="kinematics_msgs"/>
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lkinematic_constraints"/>

@@ -34,19 +34,22 @@
 
 /* Author: Ioan Sucan */
 
-#include "planning_models/random_numbers.h"
+#include "random_numbers/random_numbers.h"
 
 #include <boost/random/lagged_fibonacci.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/scoped_ptr.hpp>
 
 /// Compute the first seed to be used; this function should be called only once
 static boost::uint32_t firstSeed(void)
 {
-    return (boost::uint32_t)(boost::posix_time::microsec_clock::universal_time() -
-			     boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds();
+    boost::scoped_ptr<int> mem(new int());
+    return (boost::uint32_t)((boost::posix_time::microsec_clock::universal_time() -
+			      boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds() +
+			     (unsigned long long)(mem.get()));
 }
 
 /// We use a different random number generator for the seeds of the
@@ -63,15 +66,15 @@ static boost::uint32_t nextSeed(void)
     return v;
 }
 
-planning_models::RNG::RNG(void) : generator_(nextSeed()),
-				  uniDist_(0, 1),
-				  uni_(generator_, uniDist_)
+random_numbers::RNG::RNG(void) : generator_(nextSeed()),
+				 uniDist_(0, 1),
+				 uni_(generator_, uniDist_)
 {
 }
 
 // From: "Uniform Random Rotations", Ken Shoemake, Graphics Gems III,
 //       pg. 124-132
-void planning_models::RNG::quaternion(double value[4])
+void random_numbers::RNG::quaternion(double value[4])
 {
     double x0 = uni_();
     double r1 = sqrt(1.0 - x0), r2 = sqrt(x0);
@@ -85,7 +88,7 @@ void planning_models::RNG::quaternion(double value[4])
 }
 
 // From "Effective Sampling and Distance Metrics for 3D Rigid Body Path Planning", by James Kuffner, ICRA 2004
-void planning_models::RNG::eulerRPY(double value[3])
+void random_numbers::RNG::eulerRPY(double value[3])
 {
     value[0] = boost::math::constants::pi<double>() * (2.0 * uni_() - 1.0);
     value[1] = acos(1.0 - 2.0 * uni_()) + boost::math::constants::pi<double>() / 2.0;

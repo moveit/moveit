@@ -12,6 +12,7 @@
   <depend package="rosconsole" />
   <depend package="geometric_shapes"/>
   <depend package="resource_retriever"/>
+  <depend package="random_numbers"/>
   <depend package="bullet"/>
   <depend package="moveit_msgs"/>
   <depend package="geometry_msgs"/>
@@ -19,7 +20,7 @@
   <rosdep name="assimp" />
 
   <export>
-    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_models `rosboost-cfg --lflags thread,date_time`"/>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_models"/>
   </export>
   
   <platform os="ubuntu" version="10.04"/>

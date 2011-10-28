@@ -148,6 +148,11 @@ namespace kinematic_constraints
 	virtual bool enabled(void) const;
 	void print(std::ostream &out = std::cout) const;
 	
+	const planning_models::KinematicModel::LinkModel* getLinkModel(void) const
+	{
+	    return link_model_;
+	}
+	
 	const btMatrix3x3& getDesiredRotationMatrix(void) const
 	{
 	    return desired_rotation_matrix_;
@@ -191,6 +196,11 @@ namespace kinematic_constraints
 	virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;	
 	virtual bool enabled(void) const;
 	void print(std::ostream &out = std::cout) const;	
+
+	const planning_models::KinematicModel::LinkModel* getLinkModel(void) const
+	{
+	    return link_model_;
+	}
 
 	const boost::shared_ptr<bodies::Body>& getConstraintRegion(void) const
 	{

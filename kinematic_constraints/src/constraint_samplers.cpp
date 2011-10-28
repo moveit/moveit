@@ -35,6 +35,8 @@
 /** \author Ioan Sucan */
 
 #include "kinematic_constraints/constraint_samplers.h"
+#include <boost/math/constants/constants.hpp>
+#include <ros/console.h>
 #include <algorithm>
 
 kinematic_constraints::JointConstraintSampler::JointConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
@@ -69,8 +71,10 @@ kinematic_constraints::JointConstraintSampler::JointConstraintSampler(const plan
 	}
 }
 
-bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &values)
+bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &values, unsigned int /* max_attempts */, 
+							   const planning_models::KinematicState::JointStateGroup * /* jsg */)
 {
+    values.resize(jmg_->getVariableCount());    
     // enforce the constraints for the constrained components (could be all of them)
     for (std::size_t i = 0 ; i < jc_.size() ; ++i)
 	values[index_[i]] = rng_.uniformReal(std::max(bounds_[i].first, jc_[i].getDesiredJointPosition() - jc_[i].getJointToleranceBelow()),
@@ -93,15 +97,16 @@ bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &
 
 kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
 								const PositionConstraint &pc, const OrientationConstraint &oc) :
-    ConstraintSampler(jmg), have_position_(true), have_orientation_(true), pc_(new PositionConstraint(pc)), oc_(new OrientationConstraint(oc))
+    ConstraintSampler(jmg), pc_(new PositionConstraint(pc)), oc_(new OrientationConstraint(oc))
 {
-    
+    if (pc_->getLinkModel()->getName() != oc_->getLinkModel()->getName())
+	ROS_FATAL("Position and orientation constraints need to be specified for the same link in order to use IK-based sampling");
 }
 
 	
 kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
 								const PositionConstraint &pc) :
-    ConstraintSampler(jmg), have_position_(true), have_orientation_(false), pc_(new PositionConstraint(pc))
+    ConstraintSampler(jmg), pc_(new PositionConstraint(pc))
 {
 
 }
@@ -109,13 +114,127 @@ kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const planning_m
 
 kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
 								const OrientationConstraint &oc) :
-    ConstraintSampler(jmg), have_position_(false), have_orientation_(true), oc_(new OrientationConstraint(oc))
+    ConstraintSampler(jmg), oc_(new OrientationConstraint(oc))
 {
 
 }
 
-bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &values)
+bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &values, unsigned int max_attempts, 
+							const planning_models::KinematicState::JointStateGroup *jsg)
 {
-    
+    // make sure we at least have a chance of sampling using IK
+    if (!pc_ && !oc_)
+	return false;
+    if (!kb_)
+	return false;
+    if (pc_)
+    {
+	if (!jmg_->supportsIK(pc_->getLinkModel()->getName()))
+	    return false;	
+    }
+    else
+	if (!jmg_->supportsIK(oc_->getLinkModel()->getName()))
+	    return false;	
+
+    for (unsigned int a = 0 ; a < max_attempts ; ++a)
+    {
+	// sample a point in the constraint region
+	btVector3 point;
+	if (pc_)
+	{
+	    if (!pc_->getConstraintRegion()->samplePointInside(rng_, max_attempts, point))
+		return false;
+	}
+	else
+	{
+	    // do FK for rand state
+	    if (!jsg)
+	    {
+		ROS_WARN("An initial JointStateGroup is needed to sample possible link positions");
+		return false;
+	    }
+	    planning_models::KinematicState ks(*(jsg->getKinematicState()));
+	    planning_models::KinematicState::JointStateGroup *tmp = ks.getJointStateGroup(jmg_->getName());
+	    if (tmp)
+	    {
+		tmp->setRandomValues();
+		point = ks.getLinkState(pc_->getLinkModel()->getName())->getGlobalLinkTransform().getOrigin();
+	    }
+	    else
+	    {
+		ROS_ERROR("Passed a JointStateGroup for a mismatching JointModelGroup");
+		return false;
+	    }
+	}
+	
+	btQuaternion quat;
+	if (oc_)
+	{
+	    // sample a rotation matrix within the allowed bounds
+	    double rpy[3];
+	    rng_.eulerRPY(rpy);
+	    btMatrix3x3 diff;
+	    diff.setEulerYPR(rpy[0] * oc_->getRollTolerance() / boost::math::constants::pi<double>(),
+			     rpy[1] * oc_->getPitchTolerance() / boost::math::constants::pi<double>(),
+			     rpy[2] * oc_->getYawTolerance() / boost::math::constants::pi<double>());
+	    (oc_->getDesiredRotationMatrix() * diff).getRotation(quat);
+	}
+	else
+	{
+	    // sample a random orientation
+	    double q[4];
+	    rng_.quaternion(q);
+	    quat = btQuaternion(q[0], q[1], q[2], q[3]);
+	}
+	
+	// we now have the transform we wish to perform IK for
+	geometry_msgs::Pose ik_query;
+	ik_query.position.x = point.x();
+	ik_query.position.y = point.y();
+	ik_query.position.z = point.z();
+	ik_query.orientation.x = quat.x();
+	ik_query.orientation.y = quat.y();
+	ik_query.orientation.z = quat.z();
+	ik_query.orientation.w = quat.w();
+	
+	const std::vector<std::string> &ik_jnames = kb_->getJointNames();
+	
+	// sample a seed value
+	std::vector<double> seed;
+	if (jsg)
+	{
+	    planning_models::KinematicState ks(*(jsg->getKinematicState()));
+	    planning_models::KinematicState::JointStateGroup *tmp = ks.getJointStateGroup(jmg_->getName());
+	    if (tmp)
+	    {
+		tmp->setRandomValues();	
+		std::map<std::string, double> v;
+		tmp->getGroupStateValues(v);
+		for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
+		    seed.push_back(v[ik_jnames[i]]);
+	    }
+	    else
+		seed.resize(ik_jnames.size(), 0.0);
+	}
+	else
+	    seed.resize(ik_jnames.size(), 0.0);
+	
+	std::vector<double> sol;
+	int error;
+	
+	if (kb_->searchPositionIK(ik_query, seed, 0.5, sol, error))
+	{
+	    std::map<std::string, double> s;
+	    for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
+		s[ik_jnames[i]] = sol[i];
+	    const std::vector<std::string> &nm = jmg_->getJointModelNames();
+	    values.resize(jmg_->getVariableCount());    
+	    for (std::size_t i = 0 ; i < nm.size() ; ++i)
+		values[i] = s[nm[i]];
+	    return true;
+	}
+	else
+	    ROS_DEBUG("IK solved failed with error %d", error);
+    }
     return false;
 }
