@@ -38,6 +38,7 @@
 #define PLANNING_MODELS_KINEMATIC_STATE_
 
 #include "planning_models/kinematic_model.h"
+#include <boost/scoped_ptr.hpp>
 
 /** \brief Main namespace */
 namespace planning_models
@@ -68,36 +69,36 @@ namespace planning_models
 	public: 
 	    
 	    /** brief Constructs the joint state from the model */
-	    JointState(const KinematicState *state, const KinematicModel::JointModel* jm);
+	    JointState(const KinematicModel::JointModel* jm);
 	    ~JointState(void);
 	    
 	    /** \brief Set the value of a particular variable for this joint */
-	    bool setJointVariableValue(const std::string &variable, double value);
+	    bool setVariableValue(const std::string &variable, double value);
 	    
 	    /** \brief Sets the internal values from a map of joint variable names to actual values */
-	    void setJointStateValues(const std::map<std::string, double>& joint_value_map);
+	    void setVariableValues(const std::map<std::string, double>& value_map);
 
 	    /** \brief Sets the internal values from a map of joint
 		variable names to actual values. The function also
 		fills the missing vector with the variable names that
 		were not set. */
-	    void setJointStateValues(const std::map<std::string, double>& joint_value_map, std::vector<std::string>& missing);
+	    void setVariableValues(const std::map<std::string, double>& value_map, std::vector<std::string>& missing);
 	    
 	    /** \brief Sets the internal values from the supplied vector, which are assumed to be in the required order */
-	    bool setJointStateValues(const std::vector<double>& joint_value_vector);
+	    bool setVariableValues(const std::vector<double>& value_vector);
 	    
 	    /** \brief Sets the internal values from the supplied
 		array, which are assumed to be in the required
 		order. This function is intended to be fast, does no
 		input checking and should be used carefully. */
-	    void setJointStateValues(const double *joint_value_vector);
+	    void setVariableValues(const double *value_vector);
 	    
 	    /** \brief Sets the internal values from the transform */
-	    void setJointStateValues(const btTransform& transform);
+	    void setVariableValues(const btTransform& transform);
 	    
 	    /** \brief Specifies whether or not all values associated with a joint are defined in the 
 		supplied joint value map */
-	    bool allJointStateValuesAreDefined(const std::map<std::string, double>& joint_value_map) const;
+	    bool allVariablesAreDefined(const std::map<std::string, double>& value_map) const;
 	    
 	    /** \brief Checks if the current joint state values are all within the bounds set in the model */
 	    bool satisfiesBounds(void) const;
@@ -107,26 +108,21 @@ namespace planning_models
 		return joint_model_->getName();
 	    }
 
-	    const KinematicState* getKinematicState(void) const
-	    {
-		return kinematic_state_;
-	    }
-	    
-	    unsigned int getDimension(void) const
+	    unsigned int getVariableCount(void) const
 	    {
 		return joint_model_->getVariableCount();
 	    }
 
 	    /** \brief Gets the joint state values stored in the required order */
-	    const std::vector<double>& getJointStateValues(void) const
+	    const std::vector<double>& getVariableValues(void) const
 	    {
 		return joint_state_values_;
 	    }
 	    
 	    /** \brief Gets the required name order for the joint state values */
-	    const std::vector<std::string>& getJointStateNameOrder(void) const
+	    const std::vector<std::string>& getVariableNames(void) const
 	    {
-		return joint_state_name_order_;
+		return joint_model_->getVariableNames();
 	    }
 	    
 	    /** \brief Gets the current variable transform */
@@ -141,15 +137,12 @@ namespace planning_models
 		return joint_model_;
 	    }
 	    
-	    const std::map<std::string, unsigned int>& getJointStateIndexMap(void) const
+	    const std::map<std::string, unsigned int>& getVariableIndexMap(void) const
 	    {
-		return joint_variables_index_map_;
+		return joint_model_->getVariableIndexMap();
 	    }
 	    
 	private:
-	    
-	    /** \brief The kinematic state this joint is part of */
-	    const KinematicState               *kinematic_state_;
 	    
 	    /** \brief The joint model this state corresponds to */
 	    const KinematicModel::JointModel   *joint_model_;
@@ -159,12 +152,6 @@ namespace planning_models
 	    
 	    /** \brief The joint values given in the order indicated by joint_variables_index_map_ */
 	    std::vector<double>                 joint_state_values_;
-	    
-	    /** \brief This map ensures the same ordering of variable values with respect to variable names */
-	    std::map<std::string, unsigned int> joint_variables_index_map_;
-	    
-	    /** \brief The expected order of variable names for this joint */
-	    std::vector<std::string>            joint_state_name_order_;
 	};
 
 	struct AttachedBodyProperties
@@ -315,6 +302,7 @@ namespace planning_models
 	    
 	private:
 	    
+	    /** \brief The kinematic state this link is part of */
 	    const KinematicState            *kinematic_state_;
 	    
 	    const KinematicModel::LinkModel *link_model_;
@@ -355,7 +343,7 @@ namespace planning_models
 		return joint_model_group_->getName();
 	    }
 	    
-	    unsigned int getDimension(void) const
+	    unsigned int getVariableCount(void) const
 	    {
 		return joint_model_group_->getVariableCount();
 	    }
@@ -393,35 +381,34 @@ namespace planning_models
 		middle of the bounds is used. */
 	    void setDefaultValues(void);
 	    
+	    /** \brief Sample a random state in accordance with the type of joints employed */
+	    void setRandomValues(void);
+	    
 	    const std::vector<JointState*>& getJointRoots(void) const 
 	    {
 		return joint_roots_;
 	    }
 	    
-	    const std::map<std::string, unsigned int>& getJointVariablesIndexMap(void) const
-	    {
-		return joint_variables_index_map_;
-	    }
-	    
 	    const std::vector<std::string>& getJointNames(void) const
 	    {
-		return joint_names_;
+		return joint_model_group_->getJointModelNames();
 	    }
 	    
 	    const std::vector<JointState*>& getJointStateVector(void) const
 	    {
 		return joint_state_vector_;
 	    }
+
+	    /** \brief Return the instance of a random number generator */
+	    RNG& getRNG(void);
 	    
-	private:
-	    
+	private:	    
+
+	    /** \brief The kinematic state this group is part of */
 	    KinematicState                        *kinematic_state_;
+	    
+	    /** \brief The model of the group that corresponds to this state */
 	    const KinematicModel::JointModelGroup *joint_model_group_;
-	    
-	    std::map<std::string, unsigned int>    joint_variables_index_map_;
-	    
-	    /** \brief Names of joint variables in the order they appear in the group state */
-	    std::vector<std::string>               joint_names_;
 	    
 	    /** \brief Joint instances in the order they appear in the group state */
 	    std::vector<JointState*>               joint_state_vector_;
@@ -434,6 +421,12 @@ namespace planning_models
 	    
 	    /** \brief The list of links that are updated when computeTransforms() is called, in the order they are updated */
 	    std::vector<LinkState*>                updated_links_;	    
+	    
+	    /** \brief For certain operations a group needs a random number generator. However, it may be slightly expensive
+		to allocate the random number generator if many state instances are generated. For this reason, the generator
+		is allocated on a need basis, by the getRNG() function. Never use the rng_ member directly, but call 
+		getRNG() instead. */
+	    boost::scoped_ptr<RNG>                 rng_;
 	};
 	
 	KinematicState(const KinematicModelPtr &kinematic_model);
@@ -461,12 +454,15 @@ namespace planning_models
 	    return kinematic_model_;
 	} 
 	
-	unsigned int getDimension(void) const
+	unsigned int getVariableCount(void) const
 	{
 	    return kinematic_model_->getVariableCount();
 	}
 	
 	void setDefaultValues(void);
+
+	/** \brief Sample a random state in accordance with the type of joints employed */
+	void setRandomValues(void);
 	
 	bool satisfiesBounds(const std::vector<std::string>& joints) const;
 	
@@ -510,10 +506,6 @@ namespace planning_models
 	
 	void getJointStateGroupNames(std::vector<std::string>& names) const;
 	
-	const std::map<std::string, unsigned int> getJointVariablesIndexMap(void) const
-	{
-	    return joint_variables_index_map_;
-	}
 	
 	/** \brief Print information about the constructed model */
 	void printStateInfo(std::ostream &out = std::cout) const;
@@ -528,25 +520,36 @@ namespace planning_models
 	
 	/** \brief Set the global transform applied to the entire tree of links */
 	void setRootTransform(const btTransform &transform);
+
+	/** \brief Return the instance of a random number generator */
+	RNG& getRNG(void);
 	
     private:
 	
 	void buildState(void);	
-
-	KinematicModelPtr                       kinematic_model_;
 	
-	std::map<std::string, unsigned int>     joint_variables_index_map_;
+	KinematicModelPtr                       kinematic_model_;
 	
 	std::vector<JointState*>                joint_state_vector_;
 	std::map<std::string, JointState*>      joint_state_map_;
 	
+	/** \brief The states for all the links in the robot */
 	std::vector<LinkState*>                 link_state_vector_;
+
+	/** \brief A map from link names to their corresponding states */
 	std::map<std::string, LinkState*>       link_state_map_;
 	
 	/** \brief Additional transform to be applied to the tree of links */
 	btTransform                             root_transform_;
 
+	/** \brief A map from group names to instances of the group state */
 	std::map<std::string, JointStateGroup*> joint_state_group_map_;
+	
+	/** \brief For certain operations a state needs a random number generator. However, it may be slightly expensive
+	    to allocate the random number generator if many state instances are generated. For this reason, the generator
+	    is allocated on a need basis, by the getRNG() function. Never use the rng_ member directly, but call 
+	    getRNG() instead. */
+	boost::scoped_ptr<RNG>                  rng_;
     };
     
     typedef boost::shared_ptr<KinematicState> KinematicStatePtr;

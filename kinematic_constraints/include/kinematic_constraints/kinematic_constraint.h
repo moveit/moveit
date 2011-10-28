@@ -64,6 +64,13 @@ namespace kinematic_constraints
 	/** \brief Decide whether the constraint is satisfied in the indicated state */
 	virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const = 0;
 	
+	/** \brief This function returns true if this constraint is
+	    configured and able to decide whether states do meet the
+	    constraint or not. If this function returns false it means
+	    that decide() will always return true -- there is no
+	    constraint to be checked. */
+	virtual bool enabled(void) const = 0;
+	
 	/** \brief Print the constraint data */
 	virtual void print(std::ostream &out = std::cout) const
 	{
@@ -77,8 +84,8 @@ namespace kinematic_constraints
 	
     protected:
 	
-	const planning_models::KinematicModel &model_;
-	const planning_models::Transforms     &tf_;
+	const planning_models::KinematicModel *model_;
+	const planning_models::Transforms     *tf_;
 	double                                 constraint_weight_;	
     };
 
@@ -91,18 +98,33 @@ namespace kinematic_constraints
 	JointConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : KinematicConstraint(model, tf), joint_model_(NULL)
 	{
 	}
-	
-	/** \brief This function assumes the constraint has been transformed into the proper frame, if such a transform is needed */
-	bool use(const moveit_msgs::JointConstraint &jc);
 
-	/** \brief Decide whether the constraint is satisfied in the indicated state */
+	bool use(const moveit_msgs::JointConstraint &jc);
 	virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
-	
-	/** \brief Clear the stored constraint */
+	virtual bool enabled(void) const;
 	virtual void clear(void);
-	
-	/** \brief Print the constraint data */
 	virtual void print(std::ostream &out = std::cout) const;
+	
+	/** \brief Get the joint model this constraint operates on */
+	const planning_models::KinematicModel::JointModel* getJointModel(void) const
+	{
+	    return joint_model_;
+	}
+	
+	double getDesiredJointPosition(void) const
+	{
+	    return joint_position_;
+	}
+	
+	double getJointToleranceAbove(void) const
+	{
+	    return joint_tolerance_above_;
+	}
+	
+	double getJointToleranceBelow(void) const
+	{
+	    return joint_tolerance_below_;
+	}
 	
     protected:
 	
@@ -120,16 +142,10 @@ namespace kinematic_constraints
 	{
 	}
 	
-	/** \brief This function assumes the constraint has been transformed into the proper frame, if such a transform is needed */
-	bool use(const moveit_msgs::OrientationConstraint &pc);
-	
-	/** \brief Clear the stored constraint */
+	bool use(const moveit_msgs::OrientationConstraint &pc);	
 	virtual void clear(void);
-	
-	/** \brief Decide whether the constraint is satisfied in the indicated state */
 	virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
-	
-	/** \brief Print the constraint data */
+	virtual bool enabled(void) const;
 	void print(std::ostream &out = std::cout) const;
 	
 	const btMatrix3x3& getDesiredRotationMatrix(void) const
@@ -170,16 +186,10 @@ namespace kinematic_constraints
 	{
 	}
 	
-	/** \brief This function assumes the constraint has been transformed into the proper frame, if such a transform is needed */
-	bool use(const moveit_msgs::PositionConstraint &pc);
-	
-	/** \brief Clear the stored constraint */
+	bool use(const moveit_msgs::PositionConstraint &pc);	
 	virtual void clear(void);
-	
-	/** \brief Decide whether the constraint is satisfied in the indicated state */
-	virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
-	
-	/** \brief Print the constraint data */
+	virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;	
+	virtual bool enabled(void) const;
 	void print(std::ostream &out = std::cout) const;	
 
 	const boost::shared_ptr<bodies::Body>& getConstraintRegion(void) const

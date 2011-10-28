@@ -145,7 +145,7 @@ namespace planning_models
 		tf_problem = true;
 	    }
 	    
-	    joint_state->setJointStateValues(transf[i]);
+	    joint_state->setVariableValues(transf[i]);
 	}
 	
 	return !tf_problem && !error;
@@ -203,7 +203,7 @@ void planning_models::kinematicStateToRobotState(const KinematicState& state, mo
     const std::vector<KinematicState::JointState*> &js = state.getJointStateVector();
 
     for (std::size_t i = 0 ; i < js.size() ; ++i)
-  	if (js[i]->getDimension() > 1)
+  	if (js[i]->getVariableCount() > 1)
 	{
 	    const btTransform &t = js[i]->getVariableTransform();
 	    const btQuaternion &q = t.getRotation();
@@ -222,10 +222,10 @@ void planning_models::kinematicStateToJointState(const KinematicState& state, se
     const std::vector<KinematicState::JointState*> &js = state.getJointStateVector();
 
     for (std::size_t i = 0 ; i < js.size() ; ++i)
-	if (js[i]->getDimension() == 1)
+	if (js[i]->getVariableCount() == 1)
 	{
 	    joint_state.name.push_back(js[i]->getName());
-	    joint_state.position.push_back(js[i]->getJointStateValues()[0]);
+	    joint_state.position.push_back(js[i]->getVariableValues()[0]);
 	}
 
     joint_state.header.frame_id = state.getKinematicModel()->getModelFrame();

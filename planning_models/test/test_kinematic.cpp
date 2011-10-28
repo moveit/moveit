@@ -107,7 +107,7 @@ TEST(Loading, SimpleRobot)
     EXPECT_EQ(state_values["base_joint.rot_w"], 1.0);
     
     EXPECT_EQ(std::string("myrobot"), model->getName());
-    EXPECT_EQ((unsigned int)7, new_state.getDimension());
+    EXPECT_EQ((unsigned int)7, new_state.getVariableCount());
     
     const std::vector<planning_models::KinematicModel::LinkModel*>& links = model->getLinkModels();
     EXPECT_EQ((unsigned int)1, links.size());
@@ -148,9 +148,9 @@ TEST(LoadingAndFK, SimpleRobot)
     static const std::string MODEL1_INFO = 
 	"Model myrobot in frame odom_combined, of dimension 3\n"
 	"Joint values bounds:\n"
-	"   base_joint.theta [-3.14159, 3.14159]\n"
 	"   base_joint.x [DBL_MIN, DBL_MAX]\n"
 	"   base_joint.y [DBL_MIN, DBL_MAX]\n"
+	"   base_joint.theta [-3.14159, 3.14159]\n"
 	"Available groups: \n"
 	"   base (of dimension 3):\n"
 	"    joints:\n"
@@ -182,13 +182,13 @@ TEST(LoadingAndFK, SimpleRobot)
     planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
     planning_models::KinematicState state(model);
     
-    EXPECT_EQ((unsigned int)3, state.getDimension());
+    EXPECT_EQ((unsigned int)3, state.getVariableCount());
     
     state.setDefaultValues();
     
     const std::vector<planning_models::KinematicState::JointState*>& joint_states = state.getJointStateVector();
     EXPECT_EQ((unsigned int)1, joint_states.size());
-    EXPECT_EQ((unsigned int)3, joint_states[0]->getJointStateValues().size());
+    EXPECT_EQ((unsigned int)3, joint_states[0]->getVariableValues().size());
     
     
     std::stringstream ssi;
@@ -220,8 +220,8 @@ TEST(LoadingAndFK, SimpleRobot)
     EXPECT_NEAR(8.0, new_state.getLinkState("base_link")->getGlobalLinkTransform().getOrigin().y(), 1e-5);
     EXPECT_NEAR(0.0, new_state.getLinkState("base_link")->getGlobalLinkTransform().getOrigin().z(), 1e-5);
     
-    const std::map<std::string, unsigned int>& ind_map = state.getJointVariablesIndexMap();
-    std::vector<double> jv(state.getDimension(), 0.0);
+    const std::map<std::string, unsigned int>& ind_map = model->getJointVariablesIndexMap();
+    std::vector<double> jv(state.getVariableCount(), 0.0);
     jv[ind_map.at("base_joint.x")] = 10.0;
     jv[ind_map.at("base_joint.y")] = 8.0;
     jv[ind_map.at("base_joint.theta")] = 0.0;
@@ -338,9 +338,9 @@ TEST(FK, OneRobot)
     static const std::string MODEL2_INFO = 
 	"Model one_robot in frame odom_combined, of dimension 5\n"
 	"Joint values bounds: \n"
-	"   base_joint.theta [-3.14159, 3.14159]\n"
 	"   base_joint.x [DBL_MIN, DBL_MAX]\n"
 	"   base_joint.y [DBL_MIN, DBL_MAX]\n"
+	"   base_joint.theta [-3.14159, 3.14159]\n"
 	"   joint_a [-3.14159, 3.14159]\n"
 	"   joint_c [0.00000, 0.08900]\n"
 	"\n"
@@ -479,7 +479,7 @@ TEST(FK, OneRobot)
     
     planning_models::KinematicState state(model);
     
-    EXPECT_EQ((unsigned int)5, state.getDimension());
+    EXPECT_EQ((unsigned int)5, state.getVariableCount());
     
     state.setDefaultValues();
     
@@ -542,9 +542,7 @@ TEST(FK, OneRobot)
     
     //bonus bounds lookup test
     std::vector<std::string> jn;
-    jn.push_back("base_joint.x");
-    jn.push_back("base_joint.y");
-    jn.push_back("base_joint.theta");
+    jn.push_back("base_joint");
     EXPECT_TRUE(state.satisfiesBounds(jn));
     
     jn.push_back("monkey");
