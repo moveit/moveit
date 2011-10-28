@@ -84,7 +84,7 @@ void ompl_interface::KMStateSpace::copyToKinematicState(const std::vector<planni
     unsigned int j = 0;		
     for (unsigned int i = 0 ; i < all_components_.size() ; ++i)
 	if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SO2)
-	    js[joint_mapping_[j++]]->setJointStateValues(&cstate->as<ompl::base::SO2StateSpace::StateType>(i)->value);
+	    js[joint_mapping_[j++]]->setVariableValues(&cstate->as<ompl::base::SO2StateSpace::StateType>(i)->value);
 	else
 	    if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SE2)
 	    {
@@ -92,7 +92,7 @@ void ompl_interface::KMStateSpace::copyToKinematicState(const std::vector<planni
 		values[0] = cstate->as<ompl::base::SE2StateSpace::StateType>(i)->getX();
 		values[1] = cstate->as<ompl::base::SE2StateSpace::StateType>(i)->getY();
 		values[2] = cstate->as<ompl::base::SE2StateSpace::StateType>(i)->getYaw();
-		js[joint_mapping_[j++]]->setJointStateValues(values);
+		js[joint_mapping_[j++]]->setVariableValues(values);
 	    }
 	    else
 		if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SE3)
@@ -105,7 +105,7 @@ void ompl_interface::KMStateSpace::copyToKinematicState(const std::vector<planni
 		    values[4] = cstate->as<ompl::base::SE3StateSpace::StateType>(i)->rotation().y;
 		    values[5] = cstate->as<ompl::base::SE3StateSpace::StateType>(i)->rotation().z;
 		    values[6] = cstate->as<ompl::base::SE3StateSpace::StateType>(i)->rotation().w;
-		    js[joint_mapping_[j++]]->setJointStateValues(values);
+		    js[joint_mapping_[j++]]->setVariableValues(values);
 		}
 		else
 		    if (all_components_[i]->getType() == ompl::base::STATE_SPACE_REAL_VECTOR)
@@ -113,7 +113,7 @@ void ompl_interface::KMStateSpace::copyToKinematicState(const std::vector<planni
 			const double *vals = cstate->as<ompl::base::RealVectorStateSpace::StateType>(i)->values;
 			const unsigned int d = all_components_[i]->getDimension();
 			for (unsigned int k = 0 ; k < d ; ++k)
-			    js[joint_mapping_[j++]]->setJointStateValues(vals + k);
+			    js[joint_mapping_[j++]]->setVariableValues(vals + k);
 		    }
 		    else
 			ROS_ERROR("Cannot convert OMPL state to kinematic state");  
@@ -138,11 +138,11 @@ void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, con
     unsigned int j = 0;		
     for (unsigned int i = 0 ; i < all_components_.size() ; ++i)
 	if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SO2)
-	    cstate->as<ompl::base::SO2StateSpace::StateType>(i)->value = js[joint_mapping_[j++]]->getJointStateValues()[0];
+	    cstate->as<ompl::base::SO2StateSpace::StateType>(i)->value = js[joint_mapping_[j++]]->getVariableValues()[0];
 	else
 	    if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SE2)
 	    {
-		const std::vector<double> &values = js[joint_mapping_[j++]]->getJointStateValues();
+		const std::vector<double> &values = js[joint_mapping_[j++]]->getVariableValues();
 		cstate->as<ompl::base::SE2StateSpace::StateType>(i)->setX(values[0]);
 		cstate->as<ompl::base::SE2StateSpace::StateType>(i)->setY(values[1]);
 		cstate->as<ompl::base::SE2StateSpace::StateType>(i)->setYaw(values[2]);
@@ -150,7 +150,7 @@ void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, con
 	    else
 		if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SE3)
 		{	
-		    const std::vector<double> &values = js[joint_mapping_[j++]]->getJointStateValues();
+		    const std::vector<double> &values = js[joint_mapping_[j++]]->getVariableValues();
 		    cstate->as<ompl::base::SE3StateSpace::StateType>(i)->setXYZ(values[0], values[1], values[2]);
 		    ompl::base::SO3StateSpace::StateType &rot = cstate->as<ompl::base::SE3StateSpace::StateType>(i)->rotation();
 		    rot.x = values[3];
@@ -164,7 +164,7 @@ void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, con
 			double *vals = cstate->as<ompl::base::RealVectorStateSpace::StateType>(i)->values;
 			const unsigned int d = all_components_[i]->getDimension();
 			for (unsigned int k = 0 ; k < d ; ++k)
-			    vals[k] = js[joint_mapping_[j++]]->getJointStateValues()[0];
+			    vals[k] = js[joint_mapping_[j++]]->getVariableValues()[0];
 		    }
 		    else
 			ROS_ERROR("Cannot convert kinematic state to OMPL state");  

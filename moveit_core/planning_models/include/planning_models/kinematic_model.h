@@ -37,17 +37,19 @@
 #ifndef PLANNING_MODELS_KINEMATIC_MODEL_
 #define PLANNING_MODELS_KINEMATIC_MODEL_
 
+#include "planning_models/random_numbers.h"
 #include <urdf/model.h>
 #include <srdf/model.h>
 #include <LinearMath/btTransform.h>
 #include <geometric_shapes/shapes.h>
 
+#include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <vector>
 #include <string>
 #include <map>
 #include <set>
-#include <boost/shared_ptr.hpp>
+
 
 /** \brief Main namespace */
 namespace planning_models
@@ -115,18 +117,27 @@ namespace planning_models
 	    /** \brief Gets the lower and upper bounds for a variable. Return false if variable was not found */
 	    bool getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const;
 	    
-	    /** \brief Sets the lower and upper bounds for a variable. Return false if variable was not found */
-	    bool setVariableBounds(const std::string& variable, double low, double high);
-	    
 	    /** \brief Provides a default value for the joint given the joint bounds.
 		Most joints will use the default, but the quaternion for floating
-		point values needs something else */
-	    virtual void getDefaultValues(std::map<std::string, double> &values) const;
+		point values needs something else. The map is NOT cleared; elements are only added  (or overwritten). */
+	    void getDefaultValues(std::map<std::string, double> &values) const;
+
+	    /** \brief Provides a random values for the joint given the joint bounds. The map is NOT cleared; elements are only added (or overwritten). */
+	    void getRandomValues(RNG &rng, std::map<std::string, double> &values) const;
+
+	    /** \brief Provides a default value for the joint given the joint bounds.
+		Most joints will use the default, but the quaternion for floating
+		point values needs something else. The vector is NOT cleared; elements are only added with push_back */
+	    virtual void getDefaultValues(std::vector<double> &values) const;
+
+	    /** \brief Provides a random values for the joint given the joint bounds. The vector is NOT cleared; elements are only added with push_back */
+	    virtual void getRandomValues(RNG &rng, std::vector<double> &values) const;
 	    
 	    /** \brief Check if a particular variable satisfies the specified bounds */
 	    virtual bool isVariableWithinBounds(const std::string& variable, double value) const; 
 	    
-	    /** \brief Get the names of the variables that make up this joint. For single DOF joints, this will be just the joint name */
+	    /** \brief Get the names of the variables that make up this joint, in the order they appear in corresponding states.
+		For single DOF joints, this will be just the joint name. */
 	    const std::vector<std::string>& getVariableNames(void) const
 	    {
 		return variable_names_;
@@ -141,19 +152,18 @@ namespace planning_models
 	    /** \brief Check if a particular variable is known to this joint */
 	    bool hasVariable(const std::string &variable) const
 	    {
-		return joint_variable_bounds_.find(variable) != joint_variable_bounds_.end();
+		return variable_index_.find(variable) != variable_index_.end();
 	    }
 	    
-	    /** \brief Get the bounds specified for all the variables */
-	    const std::map<std::string, std::pair<double, double> >& getVariableBounds(void) const 
-	    {
-		return joint_variable_bounds_;
-	    }
-
 	    /** \brief Get the number of variables that describe this joint */
 	    unsigned int getVariableCount(void) const
 	    {
-		return joint_variable_bounds_.size();
+		return variable_names_.size();
+	    }
+	    
+	    const std::map<std::string, unsigned int>& getVariableIndexMap(void) const
+	    {
+		return variable_index_;
 	    }
 	    
 	    /** \brief Given the joint values for a joint, compute the corresponding transform */
@@ -177,6 +187,12 @@ namespace planning_models
 
 	    /** \brief The full names to use for the variables that make up this joint */
 	    std::vector<std::string>                          variable_names_;
+
+	    /** \brief The bounds for each variable (low, high) in the same order as variable_names_ */
+	    std::vector<std::pair<double, double> >           variable_bounds_;
+	    
+	    /** \brief Map from variable names to the corresponding index in variable_names_ */
+	    std::map<std::string, unsigned int>               variable_index_;
 	    
 	    /** \brief The link before this joint */
 	    LinkModel                                        *parent_link_model_;
@@ -184,9 +200,6 @@ namespace planning_models
 	    /** \brief The link after this joint */
 	    LinkModel                                        *child_link_model_;
 	    
-	    /** \brief Map from variable names to high and low bounds */
-	    std::map<std::string, std::pair<double, double> > joint_variable_bounds_;
-
 	    /** \brief The index assigned to this joint when traversing the kinematic tree in depth first fashion */
 	    int                                               tree_index_;	    
 	};
@@ -242,7 +255,8 @@ namespace planning_models
 	    virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;
 	    virtual void computeJointStateValues(const btTransform& transf, std::vector<double>& joint_values) const;	    
 	    virtual void updateTransform(const std::vector<double>& joint_values, btTransform &transf) const;
-	    virtual void getDefaultValues(std::map<std::string, double>& values) const;
+	    virtual void getRandomValues(RNG &rng, std::vector<double> &values) const;
+	    virtual void getDefaultValues(std::vector<double>& values) const;
 	    
 	};
 
@@ -450,6 +464,11 @@ namespace planning_models
 	    
 	    std::vector<std::string> getUpdatedLinkModelNames(void) const;
 
+	    const std::map<std::string, unsigned int>& getJointVariablesIndexMap(void) const
+	    {
+		return joint_variables_index_map_;
+	    }
+	    
 	    /** \brief Get the number of variables that describe this joint group */
 	    unsigned int getVariableCount(void) const
 	    {
@@ -475,6 +494,11 @@ namespace planning_models
 	    
 	    /** \brief The list of joint models that are roots in this group */
  	    std::vector<const JointModel*>           joint_roots_;
+	    
+	    /** \brief The group includes all the joint variables that make up the joints the group consists of. 
+		This map gives the position in the state vector of the group for each of these variables.
+		Additionaly, it includes the names of the joints and the index for the first variable of that joint. */
+	    std::map<std::string, unsigned int>      joint_variables_index_map_;
 	    
 	    /** \brief The joints that have no DOF (fixed) */
 	    std::vector<const JointModel*>           fixed_joints_;	    
@@ -608,6 +632,11 @@ namespace planning_models
 	    return variable_count_;
 	}
 
+	const std::map<std::string, unsigned int>& getJointVariablesIndexMap(void) const
+	{
+	    return joint_variables_index_map_;
+	}
+
     protected:
 	
 	void copyFrom(const KinematicModel &source);
@@ -634,6 +663,11 @@ namespace planning_models
 
 	/** \brief Get the number of variables necessary to describe this model */
 	unsigned int                            variable_count_;
+
+	/** \brief The state includes all the joint variables that make up the joints the state consists of. 
+	    This map gives the position in the state vector of the group for each of these variables.
+	    Additionaly, it includes the names of the joints and the index for the first variable of that joint. */
+	std::map<std::string, unsigned int>     joint_variables_index_map_;
 	
 	/** \brief The root joint */
 	JointModel                             *root_;

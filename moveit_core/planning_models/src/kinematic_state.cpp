@@ -42,27 +42,25 @@ planning_models::KinematicState::KinematicState(const KinematicModelPtr &kinemat
     buildState();
 }
 
+planning_models::RNG& planning_models::KinematicState::getRNG(void)
+{
+    if (!rng_)
+	rng_.reset(new RNG());
+    return *rng_;
+}
+
 void planning_models::KinematicState::buildState(void)
 {
     const std::vector<KinematicModel::JointModel*>& joint_model_vector = kinematic_model_->getJointModels();
     joint_state_vector_.resize(joint_model_vector.size());
     
     // create joint states
-    unsigned int vector_index_counter = 0;
     for (unsigned int i = 0; i < joint_model_vector.size(); ++i)
     {
-	joint_state_vector_[i] = new JointState(this, joint_model_vector[i]);
+	joint_state_vector_[i] = new JointState(joint_model_vector[i]);
 	joint_state_map_[joint_state_vector_[i]->getName()] = joint_state_vector_[i];
-	
-	const std::vector<std::string>& name_order = joint_state_vector_[i]->getJointStateNameOrder();
-	for (unsigned int j = 0; j < name_order.size(); j++)
-	{
-	    joint_state_map_[name_order[j]] = joint_state_vector_[i];
-	    joint_variables_index_map_[name_order[j]] = vector_index_counter + j;
-	}
-	vector_index_counter += joint_state_vector_[i]->getDimension();
     }
-
+    
     // create link states
     const std::vector<KinematicModel::LinkModel*>& link_model_vector = kinematic_model_->getLinkModels();
     link_state_vector_.resize(link_model_vector.size());
@@ -120,16 +118,16 @@ planning_models::KinematicState::~KinematicState(void)
 
 bool planning_models::KinematicState::setStateValues(const std::vector<double>& joint_state_values)
 {
-    if (joint_state_values.size() != getDimension())
+    if (joint_state_values.size() != getVariableCount())
 	return false;
     
     unsigned int value_counter = 0;
     for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
     {
-	unsigned int dim = joint_state_vector_[i]->getDimension();
+	unsigned int dim = joint_state_vector_[i]->getVariableCount();
 	if (dim != 0)
 	{
-	    joint_state_vector_[i]->setJointStateValues(&joint_state_values[value_counter]);
+	    joint_state_vector_[i]->setVariableValues(&joint_state_values[value_counter]);
 	    value_counter += dim;
 	}
     }
@@ -140,7 +138,7 @@ bool planning_models::KinematicState::setStateValues(const std::vector<double>& 
 void planning_models::KinematicState::setStateValues(const std::map<std::string, double>& joint_state_map) 
 {
     for (unsigned int i = 0 ; i < joint_state_vector_.size() ; ++i)
-	joint_state_vector_[i]->setJointStateValues(joint_state_map);
+	joint_state_vector_[i]->setVariableValues(joint_state_map);
     updateLinkTransforms();
 }
 
@@ -148,7 +146,7 @@ void planning_models::KinematicState::setStateValues(const std::map<std::string,
 {
     missing.clear();
     for(unsigned int i = 0 ; i < joint_state_vector_.size() ; ++i)
-	joint_state_vector_[i]->setJointStateValues(joint_state_map, missing);
+	joint_state_vector_[i]->setVariableValues(joint_state_map, missing);
     updateLinkTransforms();
 }
 
@@ -157,7 +155,7 @@ void planning_models::KinematicState::getStateValues(std::vector<double>& joint_
     joint_state_values.clear();
     for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
     {
-	const std::vector<double> &jv = joint_state_vector_[i]->getJointStateValues();
+	const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
 	joint_state_values.insert(joint_state_values.end(), jv.begin(), jv.end());
     }
 }
@@ -167,8 +165,8 @@ void planning_models::KinematicState::getStateValues(std::map<std::string,double
     joint_state_values.clear();
     for (std::size_t i = 0; i < joint_state_vector_.size(); ++i)
     {
-	const std::vector<double> &jsv = joint_state_vector_[i]->getJointStateValues();
-	const std::vector<std::string> &jsn = joint_state_vector_[i]->getJointStateNameOrder();
+	const std::vector<double> &jsv = joint_state_vector_[i]->getVariableValues();
+	const std::vector<std::string> &jsn = joint_state_vector_[i]->getVariableNames();
 	for (std::size_t j = 0 ; j < jsv.size(); ++j) 
 	    joint_state_values[jsn[j]] = jsv[j]; 
     }
@@ -209,6 +207,15 @@ void planning_models::KinematicState::setDefaultValues(void)
     for (unsigned int i = 0  ; i < joint_state_vector_.size() ; ++i)
 	joint_state_vector_[i]->getJointModel()->getDefaultValues(default_joint_states);
     setStateValues(default_joint_states);
+}
+
+void planning_models::KinematicState::setRandomValues(void)
+{
+    RNG &rng = getRNG();
+    std::map<std::string, double> random_joint_states;    
+    for (std::size_t i = 0  ; i < joint_state_vector_.size() ; ++i)
+	joint_state_vector_[i]->getJointModel()->getRandomValues(rng, random_joint_states);
+    setStateValues(random_joint_states);    
 }
 
 bool planning_models::KinematicState::satisfiesBounds(const std::string& joint) const
@@ -295,28 +302,24 @@ planning_models::KinematicState::LinkState* planning_models::KinematicState::get
 
 //-------------------- JointState ---------------------
 
-planning_models::KinematicState::JointState::JointState(const KinematicState *state, const planning_models::KinematicModel::JointModel *jm) :
-    kinematic_state_(state), joint_model_(jm)
+planning_models::KinematicState::JointState::JointState(const planning_models::KinematicModel::JointModel *jm) : joint_model_(jm)
 {
-    joint_state_name_order_ = joint_model_->getVariableNames();
-    for (std::size_t i = 0 ; i < joint_state_name_order_.size() ; ++i)
-	joint_variables_index_map_[joint_state_name_order_[i]] = i;
-    joint_state_values_.resize(joint_state_name_order_.size());    
-
+    joint_state_values_.resize(getVariableCount());    
+    
     variable_transform_.setIdentity();
-    std::map<std::string, double> values;
+    std::vector<double> values;
     joint_model_->getDefaultValues(values);
-    setJointStateValues(values);
+    setVariableValues(values);
 }
 
 planning_models::KinematicState::JointState::~JointState(void)
 {
 }
 
-bool planning_models::KinematicState::JointState::setJointVariableValue(const std::string &variable, double value)
+bool planning_models::KinematicState::JointState::setVariableValue(const std::string &variable, double value)
 {    
-    std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.find(variable);
-    if (it != joint_variables_index_map_.end())
+    std::map<std::string, unsigned int>::const_iterator it = getVariableIndexMap().find(variable);
+    if (it != getVariableIndexMap().end())
     {
 	joint_state_values_[it->second] = value;
 	return true;
@@ -325,25 +328,26 @@ bool planning_models::KinematicState::JointState::setJointVariableValue(const st
 	return false;
 }
 
-bool planning_models::KinematicState::JointState::setJointStateValues(const std::vector<double>& joint_state_values)
+bool planning_models::KinematicState::JointState::setVariableValues(const std::vector<double>& joint_state_values)
 {
-    if (joint_state_values.size() != joint_state_name_order_.size())
+    if (joint_state_values.size() != getVariableCount())
 	return false;
     joint_state_values_ = joint_state_values;
     joint_model_->updateTransform(joint_state_values, variable_transform_);
     return true;
 }
 
-void planning_models::KinematicState::JointState::setJointStateValues(const double *joint_state_values)
+void planning_models::KinematicState::JointState::setVariableValues(const double *joint_state_values)
 {
     std::copy(joint_state_values, joint_state_values + joint_state_values_.size(), joint_state_values_.begin());
     joint_model_->updateTransform(joint_state_values_, variable_transform_);
 }
 
-void planning_models::KinematicState::JointState::setJointStateValues(const std::map<std::string, double>& joint_value_map, std::vector<std::string>& missing)
+void planning_models::KinematicState::JointState::setVariableValues(const std::map<std::string, double>& joint_value_map, std::vector<std::string>& missing)
 {  
     bool has_any = false;
-    for (std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.begin(); it != joint_variables_index_map_.end(); ++it)
+    const std::map<std::string, unsigned int> &vim = getVariableIndexMap();
+    for (std::map<std::string, unsigned int>::const_iterator it = vim.begin(); it != vim.end(); ++it)
     {
 	std::map<std::string, double>::const_iterator it2 = joint_value_map.find(it->first);
 	if (it2 == joint_value_map.end())
@@ -359,22 +363,23 @@ void planning_models::KinematicState::JointState::setJointStateValues(const std:
 	joint_model_->updateTransform(joint_state_values_, variable_transform_);
 } 
 
-void planning_models::KinematicState::JointState::setJointStateValues(const std::map<std::string, double>& joint_value_map)
+void planning_models::KinematicState::JointState::setVariableValues(const std::map<std::string, double>& joint_value_map)
 {
     bool update = false;
+    const std::map<std::string, unsigned int> &vim = getVariableIndexMap();
     // iterate over the shorter list, for efficiency reasons
-    if (joint_value_map.size() <= joint_variables_index_map_.size())
+    if (joint_value_map.size() <= vim.size())
 	for (std::map<std::string, double>::const_iterator it = joint_value_map.begin() ; it != joint_value_map.end() ; ++it)
 	{
-	    std::map<std::string, unsigned int>::const_iterator it2 = joint_variables_index_map_.find(it->first);
-	    if (it2 != joint_variables_index_map_.end())
+	    std::map<std::string, unsigned int>::const_iterator it2 = vim.find(it->first);
+	    if (it2 != vim.end())
 	    {
 		joint_state_values_[it2->second] = it->second;
 		update = true;
 	    }	
 	}
     else
-	for (std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.begin(); it != joint_variables_index_map_.end(); ++it)
+	for (std::map<std::string, unsigned int>::const_iterator it = vim.begin(); it != vim.end(); ++it)
 	{
 	    std::map<std::string, double>::const_iterator it2 = joint_value_map.find(it->first);
 	    if (it2 != joint_value_map.end())
@@ -387,15 +392,16 @@ void planning_models::KinematicState::JointState::setJointStateValues(const std:
 	joint_model_->updateTransform(joint_state_values_, variable_transform_);
 }
 
-void planning_models::KinematicState::JointState::setJointStateValues(const btTransform& transform)
+void planning_models::KinematicState::JointState::setVariableValues(const btTransform& transform)
 {
     joint_model_->computeJointStateValues(transform, joint_state_values_);
     joint_model_->updateTransform(joint_state_values_, variable_transform_);
 }
 
-bool planning_models::KinematicState::JointState::allJointStateValuesAreDefined(const std::map<std::string, double>& joint_value_map) const
+bool planning_models::KinematicState::JointState::allVariablesAreDefined(const std::map<std::string, double>& joint_value_map) const
 {
-    for (std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.begin() ; it != joint_variables_index_map_.end() ; ++it)
+    const std::map<std::string, unsigned int> &vim = getVariableIndexMap();
+    for (std::map<std::string, unsigned int>::const_iterator it = vim.begin() ; it != vim.end() ; ++it)
 	if (joint_value_map.find(it->first) == joint_value_map.end())
 	    return false;
     return true;
@@ -403,8 +409,9 @@ bool planning_models::KinematicState::JointState::allJointStateValuesAreDefined(
 
 bool planning_models::KinematicState::JointState::satisfiesBounds(void) const
 {
-    for (std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.begin() ; it != joint_variables_index_map_.end(); ++it)
- 	if (!joint_model_->isVariableWithinBounds(it->first, joint_state_values_[it->second]))
+    const std::vector<std::string> &vn = getVariableNames();
+    for (std::size_t i = 0 ; i < vn.size() ; ++i)
+	if (!joint_model_->isVariableWithinBounds(vn[i], joint_state_values_[i]))
 	    return false;
     return true;
 }
@@ -510,7 +517,6 @@ planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_model
     kinematic_state_(state), joint_model_group_(jmg)
 {
     const std::vector<const KinematicModel::JointModel*>& joint_model_vector = jmg->getJointModels();
-    unsigned int vector_index_counter = 0;
     for (std::size_t i = 0; i < joint_model_vector.size() ; ++i)
     {
 	if (!kinematic_state_->hasJointState(joint_model_vector[i]->getName()))
@@ -520,13 +526,7 @@ planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_model
 	}
 	JointState* js = kinematic_state_->getJointState(joint_model_vector[i]->getName());
 	joint_state_vector_.push_back(js);
-	joint_names_.push_back(joint_model_vector[i]->getName());
 	joint_state_map_[joint_model_vector[i]->getName()] = js;
-	unsigned int joint_dim = js->getDimension();
-	const std::vector<std::string>& name_order = joint_state_vector_[i]->getJointStateNameOrder();
-	for (std::size_t j = 0; j < name_order.size(); ++j) 
-	    joint_variables_index_map_[name_order[j]] = vector_index_counter + j;
-	vector_index_counter += joint_dim;
     }
     const std::vector<const KinematicModel::LinkModel*>& link_model_vector = jmg->getUpdatedLinkModels();
     for (unsigned int i = 0; i < link_model_vector.size(); i++)
@@ -553,6 +553,13 @@ planning_models::KinematicState::JointStateGroup::~JointStateGroup(void)
 {
 }
 
+planning_models::RNG& planning_models::KinematicState::JointStateGroup::getRNG(void)
+{
+    if (!rng_)
+	rng_.reset(new RNG());
+    return *rng_;
+}
+
 bool planning_models::KinematicState::JointStateGroup::hasJointState(const std::string &joint) const
 {
     return joint_state_map_.find(joint) != joint_state_map_.end();
@@ -568,16 +575,16 @@ bool planning_models::KinematicState::JointStateGroup::updatesLinkState(const st
 
 bool planning_models::KinematicState::JointStateGroup::setStateValues(const std::vector<double> &joint_state_values)
 {
-    if (joint_state_values.size() != getDimension())
+    if (joint_state_values.size() != getVariableCount())
 	return false;
     
     unsigned int value_counter = 0;
     for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
     {
-	unsigned int dim = joint_state_vector_[i]->getDimension();
+	unsigned int dim = joint_state_vector_[i]->getVariableCount();
 	if (dim != 0)
 	{
-	    joint_state_vector_[i]->setJointStateValues(&joint_state_values[value_counter]);
+	    joint_state_vector_[i]->setVariableValues(&joint_state_values[value_counter]);
 	    value_counter += dim;
 	}
     }
@@ -588,7 +595,7 @@ bool planning_models::KinematicState::JointStateGroup::setStateValues(const std:
 void planning_models::KinematicState::JointStateGroup::setStateValues(const std::map<std::string, double>& joint_state_map) 
 {
     for(unsigned int i = 0; i < joint_state_vector_.size(); ++i)
-	joint_state_vector_[i]->setJointStateValues(joint_state_map);
+	joint_state_vector_[i]->setVariableValues(joint_state_map);
     updateLinkTransforms();
 }
 
@@ -606,12 +613,21 @@ void planning_models::KinematicState::JointStateGroup::setDefaultValues(void)
     setStateValues(default_joint_values);
 }
 
+void planning_models::KinematicState::JointStateGroup::setRandomValues(void)
+{
+    RNG &rng = getRNG();
+    std::map<std::string, double> random_joint_states;    
+    for (std::size_t i = 0  ; i < joint_state_vector_.size() ; ++i)
+	joint_state_vector_[i]->getJointModel()->getRandomValues(rng, random_joint_states);
+    setStateValues(random_joint_states);    
+}
+
 void planning_models::KinematicState::JointStateGroup::getGroupStateValues(std::vector<double>& joint_state_values) const
 {
     joint_state_values.clear();
     for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
     {
-	const std::vector<double> &jv = joint_state_vector_[i]->getJointStateValues();
+	const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
 	joint_state_values.insert(joint_state_values.end(), jv.begin(), jv.end());
     }
 }
@@ -621,8 +637,8 @@ void planning_models::KinematicState::JointStateGroup::getGroupStateValues(std::
     joint_state_values.clear();
     for (std::size_t i = 0; i < joint_state_vector_.size(); ++i)
     {
-	const std::vector<double> &jsv = joint_state_vector_[i]->getJointStateValues();
-	const std::vector<std::string> &jsn = joint_state_vector_[i]->getJointStateNameOrder();
+	const std::vector<double> &jsv = joint_state_vector_[i]->getVariableValues();
+	const std::vector<std::string> &jsn = joint_state_vector_[i]->getVariableNames();
 	for (std::size_t j = 0 ; j < jsv.size(); ++j) 
 	    joint_state_values[jsn[j]] = jsv[j]; 
     }

@@ -40,8 +40,9 @@
 #include <planning_models/conversions.h>
 #include <boost/scoped_ptr.hpp>
 #include <limits>
+
 kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) :
-    model_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
+    model_(&model), tf_(&tf), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
 
@@ -51,7 +52,7 @@ kinematic_constraints::KinematicConstraint::~KinematicConstraint(void)
 	
 bool kinematic_constraints::JointConstraint::use(const moveit_msgs::JointConstraint &jc)
 {
-    joint_model_ = model_.getJointModel(jc.joint_name);
+    joint_model_ = model_->getJointModel(jc.joint_name);
     joint_is_continuous_ = false;
     if (joint_model_)
     {
@@ -101,7 +102,7 @@ std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const pla
 	return std::make_pair(false, 0.0);
     }
     
-    double current_joint_position = joint->getJointStateValues()[0];
+    double current_joint_position = joint->getVariableValues()[0];
     double dif = 0.0;
     
     // compute signed shortest distance for continuous joints
@@ -130,6 +131,11 @@ std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const pla
     return std::make_pair(result, constraint_weight_ * fabs(dif));
 }
 
+bool kinematic_constraints::JointConstraint::enabled(void) const
+{
+    return joint_model_;
+}
+
 void kinematic_constraints::JointConstraint::clear(void)
 {
     joint_model_ = NULL;
@@ -154,7 +160,7 @@ void kinematic_constraints::JointConstraint::print(std::ostream &out) const
 
 bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionConstraint &pc)
 {
-    link_model_ = model_.getLinkModel(pc.link_name);
+    link_model_ = model_->getLinkModel(pc.link_name);
     offset_ = btVector3(pc.target_point_offset.x, pc.target_point_offset.y, pc.target_point_offset.z);
     boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region_shape));
     if (shape)
@@ -168,10 +174,10 @@ bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionC
 	    ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());	
 	constraint_region_pose_ = btTransform(qr, btVector3(msg.position.x, msg.position.y, msg.position.z));
 	
-	if (tf_.isFixedFrame(pc.constraint_region_pose.header.frame_id))
+	if (tf_->isFixedFrame(pc.constraint_region_pose.header.frame_id))
 	{
-	    tf_.transformTransform(constraint_region_pose_, constraint_region_pose_, pc.constraint_region_pose.header.frame_id);
-	    constraint_frame_id_ = tf_.getPlanningFrame();
+	    tf_->transformTransform(constraint_region_pose_, constraint_region_pose_, pc.constraint_region_pose.header.frame_id);
+	    constraint_frame_id_ = tf_->getPlanningFrame();
 	    constraint_region_->setPose(constraint_region_pose_);
 	    mobile_frame_ = false;
 	}
@@ -227,7 +233,7 @@ std::pair<bool, double> kinematic_constraints::PositionConstraint::decide(const 
     if (mobile_frame_)
     {	
 	btTransform tmp;
-	tf_.transformTransform(state, tmp, constraint_region_pose_, constraint_frame_id_);
+	tf_->transformTransform(state, tmp, constraint_region_pose_, constraint_frame_id_);
 	bool result = constraint_region_->cloneAt(tmp)->containsPoint(pt);
 	return finishPositionConstraintDecision(pt, tmp.getOrigin(), link_model_->getName(), constraint_weight_, result, verbose);
     }
@@ -268,18 +274,23 @@ void kinematic_constraints::PositionConstraint::clear(void)
     constraint_region_.reset();
 }
 
+bool kinematic_constraints::PositionConstraint::enabled(void) const
+{
+    return link_model_ && constraint_region_;
+}
+
 bool kinematic_constraints::OrientationConstraint::use(const moveit_msgs::OrientationConstraint &oc)
 {
-    link_model_ = model_.getLinkModel(oc.link_name);
+    link_model_ = model_->getLinkModel(oc.link_name);
     btQuaternion q;
     if (!planning_models::quatFromMsg(oc.orientation.quaternion, q))
 	ROS_WARN("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc.link_name.c_str(),
 		 oc.orientation.quaternion.x, oc.orientation.quaternion.y, oc.orientation.quaternion.z, oc.orientation.quaternion.w);
     
-    if (tf_.isFixedFrame(oc.orientation.header.frame_id))
+    if (tf_->isFixedFrame(oc.orientation.header.frame_id))
     {
-	tf_.transformQuaternion(q, q, oc.orientation.header.frame_id);
-	desired_rotation_frame_id_ = tf_.getPlanningFrame();
+	tf_->transformQuaternion(q, q, oc.orientation.header.frame_id);
+	desired_rotation_frame_id_ = tf_->getPlanningFrame();
 	desired_rotation_matrix_ = btMatrix3x3(q);
 	desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse();
 	mobile_frame_ = false;
@@ -307,6 +318,11 @@ void kinematic_constraints::OrientationConstraint::clear(void)
     link_model_ = NULL;
 }
 
+bool kinematic_constraints::OrientationConstraint::enabled(void) const
+{
+    return link_model_;
+}
+
 std::pair<bool, double> kinematic_constraints::OrientationConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
 {
     if (!link_model_)
@@ -324,7 +340,7 @@ std::pair<bool, double> kinematic_constraints::OrientationConstraint::decide(con
     if (mobile_frame_)
     {
 	btMatrix3x3 tmp;
-	tf_.transformMatrix(state, tmp, desired_rotation_matrix_, desired_rotation_frame_id_);
+	tf_->transformMatrix(state, tmp, desired_rotation_matrix_, desired_rotation_frame_id_);
 	btMatrix3x3 diff = tmp.inverse() * link_state->getGlobalLinkTransform().getBasis();
 	diff.getEulerYPR(yaw, pitch, roll);	
     }
