@@ -439,6 +439,8 @@ namespace planning_models
 	    {
 		return joint_variables_index_map_;
 	    }
+
+	    void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
 	    
 	    /** \brief Get the number of variables that describe this joint group */
 	    unsigned int getVariableCount(void) const
@@ -570,6 +572,8 @@ namespace planning_models
 	{
 	    return model_frame_;
 	}
+	
+	void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
 	
 	/** \brief Print information about the constructed model */
 	void printModelInfo(std::ostream &out = std::cout) const;

@@ -72,7 +72,7 @@ kinematic_constraints::JointConstraintSampler::JointConstraintSampler(const plan
 }
 
 bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &values, unsigned int /* max_attempts */, 
-							   const planning_models::KinematicState::JointStateGroup * /* jsg */)
+							   const planning_models::KinematicState * /* ks */)
 {
     values.resize(jmg_->getVariableCount());    
     // enforce the constraints for the constrained components (could be all of them)
@@ -95,38 +95,78 @@ bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &
 
 
 
-kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
+kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocator &ik_alloc,
+								const planning_models::KinematicModel::JointModelGroup *jmg,
 								const PositionConstraint &pc, const OrientationConstraint &oc) :
-    ConstraintSampler(jmg), pc_(new PositionConstraint(pc)), oc_(new OrientationConstraint(oc))
+    ConstraintSampler(jmg), ik_alloc_(ik_alloc), pc_(new PositionConstraint(pc)), oc_(new OrientationConstraint(oc))
 {
     if (pc_->getLinkModel()->getName() != oc_->getLinkModel()->getName())
 	ROS_FATAL("Position and orientation constraints need to be specified for the same link in order to use IK-based sampling");
 }
 
 	
-kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
+kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocator &ik_alloc,
+								const planning_models::KinematicModel::JointModelGroup *jmg,
 								const PositionConstraint &pc) :
-    ConstraintSampler(jmg), pc_(new PositionConstraint(pc))
+    ConstraintSampler(jmg), ik_alloc_(ik_alloc), pc_(new PositionConstraint(pc))
 {
-
 }
 
 
-kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
+kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocator &ik_alloc,
+								const planning_models::KinematicModel::JointModelGroup *jmg,
 								const OrientationConstraint &oc) :
-    ConstraintSampler(jmg), oc_(new OrientationConstraint(oc))
+    ConstraintSampler(jmg), ik_alloc_(ik_alloc), oc_(new OrientationConstraint(oc))
 {
+}
 
+bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
+{
+    kb_ = ik_alloc_(jmg_);
+    if (!kb_)
+    {
+	ROS_ERROR("Failed to allocate IK solver");
+	return false;
+    }
+
+    // the ik solver must cover the same joints as the group
+    const std::vector<std::string> &ik_jnames = kb_->getJointNames();
+    const std::map<std::string, unsigned int> &g_map = jmg_->getJointVariablesIndexMap();
+    
+    if (ik_jnames.size() != g_map.size())
+    {
+	ROS_ERROR_STREAM("Group '" << jmg_->getName() << "' does not have the same set of joints as the employed IK solver");
+	return false;
+    }
+    
+    ik_joint_bijection_.clear();    
+    for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
+    {
+	std::map<std::string, unsigned int>::const_iterator it = g_map.find(ik_jnames[i]);
+	if (it == g_map.end())
+	{
+	    ROS_ERROR_STREAM("IK solver computes joint values for joint '" << ik_jnames[i] << "' but group '" << jmg_->getName() << "' does not contain such a joint.");
+	    return false;
+	}
+	const planning_models::KinematicModel::JointModel *jm = jmg_->getJointModel(ik_jnames[i]);
+	for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
+	    ik_joint_bijection_.push_back(it->second + k);
+    }
+    return true;
 }
 
 bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &values, unsigned int max_attempts, 
-							const planning_models::KinematicState::JointStateGroup *jsg)
+							const planning_models::KinematicState *ks)
 {
-    // make sure we at least have a chance of sampling using IK
+    // make sure we at least have a chance of sampling using IK; we need at least some kind of constraint
     if (!pc_ && !oc_)
 	return false;
+
+    // load an IK solver if we need to 
     if (!kb_)
-	return false;
+	if (!loadIKSolver())
+	    return false;
+    
     if (pc_)
     {
 	if (!jmg_->supportsIK(pc_->getLinkModel()->getName()))
@@ -148,17 +188,17 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
 	else
 	{
 	    // do FK for rand state
-	    if (!jsg)
+	    if (!ks)
 	    {
-		ROS_WARN("An initial JointStateGroup is needed to sample possible link positions");
+		ROS_WARN("An initial kinematic state is needed to sample possible link positions");
 		return false;
 	    }
-	    planning_models::KinematicState ks(*(jsg->getKinematicState()));
-	    planning_models::KinematicState::JointStateGroup *tmp = ks.getJointStateGroup(jmg_->getName());
+	    planning_models::KinematicState tempState(*ks);
+	    planning_models::KinematicState::JointStateGroup *tmp = tempState.getJointStateGroup(jmg_->getName());
 	    if (tmp)
 	    {
 		tmp->setRandomValues();
-		point = ks.getLinkState(pc_->getLinkModel()->getName())->getGlobalLinkTransform().getOrigin();
+		point = tempState.getLinkState(pc_->getLinkModel()->getName())->getGlobalLinkTransform().getOrigin();
 	    }
 	    else
 	    {
@@ -197,44 +237,33 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
 	ik_query.orientation.z = quat.z();
 	ik_query.orientation.w = quat.w();
 	
-	const std::vector<std::string> &ik_jnames = kb_->getJointNames();
-	
-	// sample a seed value
-	std::vector<double> seed;
-	if (jsg)
-	{
-	    planning_models::KinematicState ks(*(jsg->getKinematicState()));
-	    planning_models::KinematicState::JointStateGroup *tmp = ks.getJointStateGroup(jmg_->getName());
-	    if (tmp)
-	    {
-		tmp->setRandomValues();	
-		std::map<std::string, double> v;
-		tmp->getGroupStateValues(v);
-		for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
-		    seed.push_back(v[ik_jnames[i]]);
-	    }
-	    else
-		seed.resize(ik_jnames.size(), 0.0);
-	}
-	else
-	    seed.resize(ik_jnames.size(), 0.0);
-	
-	std::vector<double> sol;
-	int error;
-	
-	if (kb_->searchPositionIK(ik_query, seed, 0.5, sol, error))
-	{
-	    std::map<std::string, double> s;
-	    for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
-		s[ik_jnames[i]] = sol[i];
-	    const std::vector<std::string> &nm = jmg_->getJointModelNames();
-	    values.resize(jmg_->getVariableCount());    
-	    for (std::size_t i = 0 ; i < nm.size() ; ++i)
-		values[i] = s[nm[i]];
+	if (callIK(ik_query, 0.5, values))
 	    return true;
-	}
-	else
-	    ROS_DEBUG("IK solved failed with error %d", error);
     }
+    return false;
+}
+
+bool kinematic_constraints::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, std::vector<double> &solution)
+{
+    // sample a seed value
+    std::vector<double> vals;
+    jmg_->getRandomValues(rng_, vals);
+    ROS_ASSERT(vals.size() == ik_joint_bijection_.size());
+    std::vector<double> seed(ik_joint_bijection_.size(), 0.0);
+    for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
+	seed[ik_joint_bijection_[i]] = vals[i];
+    
+    std::vector<double> ik_sol;
+    int error;
+    
+    if (kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
+    {
+	ROS_ASSERT(ik_sol.size() == ik_joint_bijection_.size());
+	for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
+	    solution[i] = ik_sol[ik_joint_bijection_[i]];
+	return true;
+    }
+    else
+	ROS_DEBUG("IK solved failed with error %d", error);
     return false;
 }

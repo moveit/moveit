@@ -591,6 +591,12 @@ std::vector<std::string> planning_models::KinematicModel::getChildJointModelName
 }
 
 
+void planning_models::KinematicModel::getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const
+{
+    for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
+	joint_model_vector_[i]->getRandomValues(rng, values);
+}
+
 /* ------------------------ JointModel ------------------------ */
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :
@@ -646,9 +652,8 @@ void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers
 
 void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const
 {
-    std::size_t i = 0;
-    for (std::vector<std::pair<double, double> >::const_iterator it = variable_bounds_.begin() ; it != variable_bounds_.end() ; ++it, ++i)
-	values[i] = rng.uniformReal(it->first, it->second);
+    for (std::vector<std::pair<double, double> >::const_iterator it = variable_bounds_.begin() ; it != variable_bounds_.end() ; ++it)
+	values.push_back(rng.uniformReal(it->first, it->second));
 }
 
 bool planning_models::KinematicModel::JointModel::isVariableWithinBounds(const std::string& variable, double value) const 
@@ -915,9 +920,8 @@ planning_models::KinematicModel::JointModelGroup::~JointModelGroup(void)
 std::vector<std::string> planning_models::KinematicModel::JointModelGroup::getUpdatedLinkModelNames(void) const
 {
     std::vector<std::string> ret_vec;
-    for(unsigned int i = 0; i < updated_link_model_vector_.size(); i++) {
+    for(unsigned int i = 0; i < updated_link_model_vector_.size(); i++) 
 	ret_vec.push_back(updated_link_model_vector_[i]->getName());
-    }
     return ret_vec;
 }    
 
@@ -936,6 +940,12 @@ const planning_models::KinematicModel::JointModel* planning_models::KinematicMod
     }
     else
 	return it->second;
+}
+
+void planning_models::KinematicModel::JointModelGroup::getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const
+{
+    for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
+	joint_model_vector_[i]->getRandomValues(rng, values);
 }
     
 void planning_models::KinematicModel::printModelInfo(std::ostream &out) const
