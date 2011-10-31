@@ -86,8 +86,20 @@ void planning_models::KinematicState::buildState(void)
 	joint_state_group_map_[it->first] = new JointStateGroup(this, it->second);
 }
 
-planning_models::KinematicState::KinematicState(const KinematicState &ks) : kinematic_model_(ks.getKinematicModel())
+planning_models::KinematicState::KinematicState(const KinematicState &ks)
 {
+    copyFrom(ks);
+}
+
+planning_models::KinematicState& planning_models::KinematicState::operator=(const KinematicState &other)
+{
+    copyFrom(other);
+    return *this;
+}
+
+void planning_models::KinematicState::copyFrom(const KinematicState &ks)
+{
+    kinematic_model_ = ks.getKinematicModel();
     root_transform_ = ks.root_transform_;
     
     // construct state

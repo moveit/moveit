@@ -524,9 +524,12 @@ namespace planning_models
 	/** \brief Return the instance of a random number generator */
 	random_numbers::RNG& getRNG(void);
 	
+	KinematicState& operator=(const KinematicState &other);
+	
     private:
 	
 	void buildState(void);	
+	void copyFrom(const KinematicState &ks);
 	
 	KinematicModelPtr                       kinematic_model_;
 	

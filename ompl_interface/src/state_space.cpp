@@ -132,6 +132,42 @@ void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, con
     }
 }
 
+void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, const std::vector<double> &values) const
+{
+    ompl::base::CompoundState *cstate = state->as<ompl::base::CompoundState>();
+    unsigned int j = 0;		
+    for (unsigned int i = 0 ; i < all_components_.size() ; ++i)
+	if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SO2)
+	    cstate->as<ompl::base::SO2StateSpace::StateType>(i)->value = values[variable_mapping_[j++]];
+    	else
+	    if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SE2)
+	    {
+		cstate->as<ompl::base::SE2StateSpace::StateType>(i)->setX(values[variable_mapping_[j]]);
+		cstate->as<ompl::base::SE2StateSpace::StateType>(i)->setY(values[variable_mapping_[j] + 1]);
+		cstate->as<ompl::base::SE2StateSpace::StateType>(i)->setYaw(values[variable_mapping_[j++] + 2]);
+	    }
+	    else
+		if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SE3)
+		{	
+		    cstate->as<ompl::base::SE3StateSpace::StateType>(i)->setXYZ(values[variable_mapping_[j]], values[variable_mapping_[j] + 1], values[variable_mapping_[j] + 2]);
+		    ompl::base::SO3StateSpace::StateType &rot = cstate->as<ompl::base::SE3StateSpace::StateType>(i)->rotation();
+		    rot.x = values[variable_mapping_[j] + 3];
+		    rot.y = values[variable_mapping_[j] + 4];
+		    rot.z = values[variable_mapping_[j] + 5];
+		    rot.w = values[variable_mapping_[j++] + 6];
+		}
+		else
+		    if (all_components_[i]->getType() == ompl::base::STATE_SPACE_REAL_VECTOR)
+		    {
+			double *vals = cstate->as<ompl::base::RealVectorStateSpace::StateType>(i)->values;
+			const unsigned int d = all_components_[i]->getDimension();
+			for (unsigned int k = 0 ; k < d ; ++k)
+			    vals[k] = values[variable_mapping_[j++]];
+		    }
+		    else
+			ROS_ERROR("Cannot convert vector of doubles to OMPL state");  
+}
+
 void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, const std::vector<planning_models::KinematicState::JointState*> &js) const
 {
     ompl::base::CompoundState *cstate = state->as<ompl::base::CompoundState>();
@@ -195,10 +231,13 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
     joints_ = joints;		
     space_.reset();
     joint_mapping_.clear();
+    variable_mapping_.clear();
     all_components_.clear();
     
     ompl::base::RealVectorStateSpace *rv = NULL;		
     std::vector<std::size_t> rv_joints;
+    std::vector<std::size_t> rv_var;
+    std::size_t nvar = 0;
     for (std::size_t i = 0 ; i < joints.size() ; ++i)
     {
 	// if we have already created this space, reuse it
@@ -206,6 +245,8 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
 	{
 	    space_ = space_ + ssc.getSpace(joints[i]->getName());
 	    joint_mapping_.push_back(i);
+	    variable_mapping_.push_back(nvar);
+	    nvar += joints[i]->getVariableCount();
 	    continue;
 	}
 	
@@ -218,6 +259,7 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
 	    ompl::base::SO2StateSpace *space = new ompl::base::SO2StateSpace();
 	    space->setName(revolute_joint->getName());
 	    joint_mapping_.push_back(i);
+	    variable_mapping_.push_back(nvar++);
 	    to_add.reset(space);
 	}
 	else
@@ -229,6 +271,8 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
 		ompl::base::SE2StateSpace *space = new ompl::base::SE2StateSpace();
 		space->setName(planar_joint->getName());
 		joint_mapping_.push_back(i);
+		variable_mapping_.push_back(nvar);
+		nvar += 3;		
 		to_add.reset(space);
 	    }
 	    else
@@ -240,6 +284,8 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
 		    ompl::base::SE3StateSpace *space = new ompl::base::SE3StateSpace();
 		    space->setName(floating_joint->getName());
 		    joint_mapping_.push_back(i);
+		    variable_mapping_.push_back(nvar);
+		    nvar += 7;
 		    to_add.reset(space);			    
 		}
 		else
@@ -254,6 +300,7 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
 			joints[i]->getVariableBounds(joints[i]->getName(), bounds);
 			rv->addDimension(joints[i]->getName(), bounds.first, bounds.second);
 			rv_joints.push_back(i);
+			rv_var.push_back(nvar++);
 		    }
 		}
 		// otherwise, unprocessed joint (fixed)
@@ -278,7 +325,8 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
 	    if (!rv_name.empty())
 		rv_name += ",";
 	    rv_name += joints[rv_joints[i]]->getName();
-	    joint_mapping_.push_back(rv_joints[i]);
+	    joint_mapping_.push_back(rv_joints[i]);	
+	    variable_mapping_.push_back(rv_var[i]);
 	}
 	// if so, reuse that instance and delete the current one
 	if (ssc.haveSpace(rv_name))

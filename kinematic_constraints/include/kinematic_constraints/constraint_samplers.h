@@ -40,6 +40,7 @@
 #include "kinematic_constraints/kinematic_constraint.h"
 #include <random_numbers/random_numbers.h>
 #include <kinematics_base/kinematics_base.h>
+#include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 
 namespace kinematic_constraints
@@ -65,7 +66,8 @@ namespace kinematic_constraints
 	random_numbers::RNG                                     rng_;
     };
     
-	
+    typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
+    
     class JointConstraintSampler : public ConstraintSampler
     {
     public:

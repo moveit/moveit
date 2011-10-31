@@ -32,9 +32,10 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author Ioan Sucan */
 
 #include <kinematic_constraints/kinematic_constraint.h>
+#include <kinematic_constraints/constraint_samplers.h>
 #include <gtest/gtest.h>
 
 class LoadPlanningModelsPr2 : public testing::Test 
@@ -136,6 +137,28 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
     const std::pair<bool, double> &p2 = jc.decide(ks);
     EXPECT_TRUE(p2.first);
     EXPECT_NEAR(p2.second, 0.003185, 1e-4);
+}
+
+TEST_F(LoadPlanningModelsPr2, JointConstraintSampler)
+{    
+    planning_models::KinematicState ks(kmodel);
+    ks.setDefaultValues();
+    
+    planning_models::Transforms tf(kmodel->getModelFrame());
+
+    kinematic_constraints::JointConstraint jc(*kmodel, tf);
+    moveit_msgs::JointConstraint jcm;
+
+    jcm.joint_name = "l_wrist_roll_joint";
+    jcm.position = 3.14;
+    jcm.tolerance_above = 0.04;
+    jcm.tolerance_below = 0.02;
+    jcm.weight = 1.0;  
+
+    EXPECT_TRUE(jc.use(jcm));
+
+    kinematic_constraints::JointConstraintSampler jcs;
+    
 }
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
