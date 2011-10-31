@@ -69,11 +69,12 @@ namespace ompl_interface
 	/// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
 	void copyToOMPLState(ompl::base::State *state, const std::vector<planning_models::KinematicState::JointState*> &js) const;
 	
+	/// Copy the data from a value vector that corresponds to the state of the considered joint model group (or array of joints)
+	void copyToOMPLState(ompl::base::State *state, const std::vector<double> &values) const;
+
 	/// Copy the data from a kinematic state to an OMPL state. Only needed joint states are copied
 	void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState &kstate) const;
 	
-
-
 	/// Get the double value that corresponds to a joint name, directly from an OMPL state
 	double* getOMPLStateValueAddress(const std::string &joint_name, ompl::base::State *state) const;
 
@@ -100,6 +101,9 @@ namespace ompl_interface
 
 	/// The order in which the joints were used to construct the OMPL state space
 	std::vector<std::size_t>                                        joint_mapping_;	   
+
+	/// The order in which the joint variables were used to construct the OMPL state space
+	std::vector<std::size_t>                                        variable_mapping_;	   
 	
 	/// The state space that corresponds to the specified joints
 	ompl::base::StateSpacePtr                                       space_;
@@ -111,23 +115,6 @@ namespace ompl_interface
 	ompl::StateAddress                                              state_address_;
     };
     
-    /*
-    class KinematicStateConvertor
-    {
-    public:
-	KinematicStateConvertor(const KMStateSpace &kss, const planning_models::KinematicState &full_state) : kss_(kss), full_state_(full_state)
-	{
-	}
-	
-	const planning_models::KinematicState& convertToKinematicState(const ompl::base::State *state) const;
-	
-    private:
-
-	const KMStateSpace                                                     &kss_;	
-	mutable std::map<boost::thread::id, planning_models::KinematicStatePtr> states_;
-	mutable boost::mutex                                                    lock_;
-    };
-    */
 	
 }
 

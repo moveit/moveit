@@ -15,6 +15,7 @@
   <depend package="kinematic_constraints"/>
   <depend package="kinematics_base"/>
   <depend package="moveit_msgs"/>
+  <depend package="fcl_interface"/>
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl_interface"/>

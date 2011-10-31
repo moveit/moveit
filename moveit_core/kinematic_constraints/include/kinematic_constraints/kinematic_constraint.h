@@ -153,6 +153,11 @@ namespace kinematic_constraints
 	    return link_model_;
 	}
 	
+	const std::string& getReferenceFrame(void) const
+	{
+	    return desired_rotation_frame_id_;
+	}
+	
 	const btMatrix3x3& getDesiredRotationMatrix(void) const
 	{
 	    return desired_rotation_matrix_;
@@ -205,6 +210,11 @@ namespace kinematic_constraints
 	const boost::shared_ptr<bodies::Body>& getConstraintRegion(void) const
 	{
 	    return constraint_region_;
+	}
+
+	const std::string& getReferenceFrame(void) const
+	{
+	    return constraint_frame_id_;
 	}
 	
     protected:
@@ -322,6 +332,10 @@ namespace kinematic_constraints
     };    
     
     typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr;
+    
+    /** \brief Merge two sets of constraints into one. This just does appending of all constraints except joint constraints. For joint constraints,
+	the bounds specified in \e first take precedence over \e second */
+    moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second);
     
 }
 

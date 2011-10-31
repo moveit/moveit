@@ -523,3 +523,33 @@ void kinematic_constraints::KinematicConstraintSet::print(std::ostream &out) con
 	kce_[i]->print(out);
 }
 
+moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second)
+{
+    moveit_msgs::Constraints r = first;
+
+    // merge joint constraints
+    for (std::size_t i = 0 ; i < second.joint_constraints.size() ; ++i)
+    {
+	bool keep = true;
+	for (std::size_t j = 0 ; j < first.joint_constraints.size() ; ++j)
+	    if (second.joint_constraints[i].joint_name == first.joint_constraints[j].joint_name)
+	    {
+		keep = false;
+		break;
+	    }
+	if (keep)
+	    r.joint_constraints.push_back(second.joint_constraints[i]);
+    }
+ 
+    // merge rest of constraints   
+    for (std::size_t i = 0 ; i < second.position_constraints.size() ; ++i)
+	r.position_constraints.push_back(second.position_constraints[i]);
+    
+    for (std::size_t i = 0 ; i < second.orientation_constraints.size() ; ++i)
+	r.orientation_constraints.push_back(second.orientation_constraints[i]);
+
+    for (std::size_t i = 0 ; i < second.visibility_constraints.size() ; ++i)
+	r.visibility_constraints.push_back(second.visibility_constraints[i]);
+    
+    return r;
+}

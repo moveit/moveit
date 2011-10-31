@@ -389,6 +389,9 @@ namespace planning_models
 	    
 	    /** \brief Check if a joint is part of this group */
 	    bool hasJointModel(const std::string &joint) const;
+
+	    /** \brief Check if a link is part of this group */
+	    bool hasLinkModel(const std::string &link) const;
 	    
 	    /** \brief Get a joint by its name */
 	    const JointModel* getJointModel(const std::string &joint) const;

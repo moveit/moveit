@@ -40,9 +40,8 @@
 #include <ompl/tools/spaces/StateSpaceCollection.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/base/GoalLazySamples.h>
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
-#include <planning_models/transforms.h>
+
+#include <kinematic_constraints/constraint_samplers.h>
 #include <ompl_interface/state_space.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <boost/shared_ptr.hpp>
@@ -54,7 +53,8 @@ namespace ompl_interface
     {
     public:
 	
-	PlanningGroup(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModel::JointModelGroup *jmg, const planning_models::Transforms &tf);
+	PlanningGroup(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModelPtr &kmodel,
+		      const planning_models::KinematicModel::JointModelGroup *jmg, const planning_models::Transforms &tf);
 	virtual ~PlanningGroup(void);
 
 	/* @brief Return the name of the group this planner is operating on */
@@ -75,20 +75,23 @@ namespace ompl_interface
 	
     protected:
 	
-	struct J_Data;
-	struct IK_Data;
+	kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
+	ompl::base::StateSamplerPtr allocConstrainedSampler(const ompl::base::StateSpace *ss, const moveit_msgs::Constraints *constraints) const;
 	
-	bool samplingFuncJ(J_Data *data, const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
-	bool samplingFuncIK(IK_Data *data, const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
-	
+	planning_models::KinematicModelPtr                      kmodel_;
 	const planning_models::KinematicModel::JointModelGroup *jmg_;
 	KMStateSpace                                            state_space_;
 	ompl::geometric::SimpleSetup                            ssetup_;	
-	ompl::base::StateSamplerPtr                             state_sampler_;
 	planning_models::Transforms                             tf_;
 	
 	unsigned int                                            max_goal_samples_;
-	unsigned int                                            max_goal_sampling_attempts_;
+	unsigned int                                            max_sampling_attempts_;
+	
+	planning_models::KinematicState                         start_state_;
+	moveit_msgs::Constraints                                path_constraints_;
+	moveit_msgs::Constraints                                goal_constraints_;
+	
+	kinematic_constraints::IKConstraintSampler::IKAllocator ik_allocator_;
 	
 	ompl::RNG                                               rng_;
     };

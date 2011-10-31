@@ -930,6 +930,11 @@ bool planning_models::KinematicModel::JointModelGroup::hasJointModel(const std::
     return joint_model_map_.find(joint) != joint_model_map_.end();
 }
 
+bool planning_models::KinematicModel::JointModelGroup::hasLinkModel(const std::string &link) const
+{
+    return std::find(link_model_name_vector_.begin(), link_model_name_vector_.end(), link) != link_model_name_vector_.end();
+}
+
 const planning_models::KinematicModel::JointModel* planning_models::KinematicModel::JointModelGroup::getJointModel(const std::string &name) const
 {
     std::map<std::string, const JointModel*>::const_iterator it = joint_model_map_.find(name);
