@@ -227,6 +227,11 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
 	    quat = btQuaternion(q[0], q[1], q[2], q[3]);
 	}
 	
+	// if there is an offset, we need to undo the induced rotation in the sampled transform origin (point)
+	if (pc_ && pc_->hasLinkOffset())
+	    // the rotation matrix that corresponds to the desired orientation
+	    point = point - btMatrix3x3(quat) * pc_->getLinkOffset();
+	
 	// we now have the transform we wish to perform IK for
 	geometry_msgs::Pose ik_query;
 	ik_query.position.x = point.x();

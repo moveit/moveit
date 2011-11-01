@@ -157,7 +157,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintSampler)
 
     EXPECT_TRUE(jc.use(jcm));
 
-    kinematic_constraints::JointConstraintSampler jcs;
+    //    kinematic_constraints::JointConstraintSampler jcs;
     
 }
 
