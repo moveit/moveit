@@ -162,6 +162,7 @@ bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionC
 {
     link_model_ = model_->getLinkModel(pc.link_name);
     offset_ = btVector3(pc.target_point_offset.x, pc.target_point_offset.y, pc.target_point_offset.z);
+    has_offset_ = offset_.length2() > std::numeric_limits<double>::epsilon();
     boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region_shape));
     if (shape)
 	constraint_region_.reset(bodies::createBodyFromShape(shape.get()));

@@ -82,6 +82,16 @@ namespace kinematic_constraints
 	    return constraint_weight_;
 	}
 	
+	const planning_models::KinematicModel& getKinematicModel(void) const
+	{
+	    return *model_;
+	}
+	
+	const planning_models::Transforms& getTransforms(void) const
+	{
+	    return *tf_;
+	}
+	
     protected:
 	
 	const planning_models::KinematicModel *model_;
@@ -157,6 +167,11 @@ namespace kinematic_constraints
 	{
 	    return desired_rotation_frame_id_;
 	}
+
+	bool mobileReferenceFrame(void) const
+	{
+	    return mobile_frame_;
+	}
 	
 	const btMatrix3x3& getDesiredRotationMatrix(void) const
 	{
@@ -206,7 +221,17 @@ namespace kinematic_constraints
 	{
 	    return link_model_;
 	}
-
+	
+	const btVector3& getLinkOffset(void) const
+	{
+	    return offset_;
+	}
+	
+	bool hasLinkOffset(void) const
+	{
+	    return has_offset_;
+	}
+	
 	const boost::shared_ptr<bodies::Body>& getConstraintRegion(void) const
 	{
 	    return constraint_region_;
@@ -217,9 +242,15 @@ namespace kinematic_constraints
 	    return constraint_frame_id_;
 	}
 	
+	bool mobileReferenceFrame(void) const
+	{
+	    return mobile_frame_;
+	}
+	
     protected:
 	
 	btVector3                                         offset_;
+	bool                                              has_offset_;
 	boost::shared_ptr<bodies::Body>                   constraint_region_;
 	btTransform                                       constraint_region_pose_;
 	bool                                              mobile_frame_;	
