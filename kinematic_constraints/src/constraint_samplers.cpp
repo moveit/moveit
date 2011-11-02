@@ -42,7 +42,7 @@
 kinematic_constraints::ConstraintSampler::ConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg) : jmg_(jmg)
 {
     if (!jmg_)
-	ROS_FATAL("NULL group specified for constraint sampler");
+        ROS_FATAL("NULL group specified for constraint sampler");
 }
 
 kinematic_constraints::ConstraintSampler::~ConstraintSampler(void)
@@ -66,16 +66,16 @@ kinematic_constraints::JointConstraintSampler::JointConstraintSampler(const plan
             continue;
         std::pair<double, double> bounds;
         jm->getVariableBounds(jm->getName(), bounds);
-	bounds.first = std::max(bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow());
-	bounds.second = std::min(bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove());
-	if (bounds.first > bounds.second)
-	    ROS_WARN_STREAM("The constraints for joint '" << jm->getName() << "' are such that there are no possible values for this joint. Ignoring constraint.");
-	else
-	{
-	    bounded.insert(jm);	
-	    bounds_.push_back(bounds);
-	    index_.push_back(vim.find(jm->getName())->second);
-	}
+        bounds.first = std::max(bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow());
+        bounds.second = std::min(bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove());
+        if (bounds.first > bounds.second)
+            ROS_WARN_STREAM("The constraints for joint '" << jm->getName() << "' are such that there are no possible values for this joint. Ignoring constraint.");
+        else
+        {
+            bounded.insert(jm);        
+            bounds_.push_back(bounds);
+            index_.push_back(vim.find(jm->getName())->second);
+        }
     }
     
     // get a separate list of joints that are not bounded; we will sample these randomly
@@ -143,7 +143,7 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
         return false;
     }
     else
-	ROS_DEBUG("IKConstraintSampler successfully loaded IK solver");
+        ROS_DEBUG("IKConstraintSampler successfully loaded IK solver");
     
     // the ik solver must cover the same joints as the group
     const std::vector<std::string> &ik_jnames = kb_->getJointNames();
@@ -172,11 +172,11 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
     ik_frame_ = kb_->getBaseFrame();
     transform_ik_ = ik_frame_ != jmg_->getParentModel()->getModelFrame();
     if (transform_ik_)
-	if (!jmg_->getParentModel()->hasLinkModel(ik_frame_))
-	{
-	    ROS_ERROR_STREAM("The IK solver expects requests in frame '" << ik_frame_ << "' but this frame is not known to the sampler. Ignoring transformation (IK may fail)");
-	    transform_ik_ = false;
-	}
+        if (!jmg_->getParentModel()->hasLinkModel(ik_frame_))
+        {
+            ROS_ERROR_STREAM("The IK solver expects requests in frame '" << ik_frame_ << "' but this frame is not known to the sampler. Ignoring transformation (IK may fail)");
+            transform_ik_ = false;
+        }
     return true;
 }
 
@@ -241,9 +241,9 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             btMatrix3x3 diff;
             diff.setEulerYPR(rpy[2] * oc_->getYawTolerance() / boost::math::constants::pi<double>(),
                              rpy[1] * oc_->getPitchTolerance() / boost::math::constants::pi<double>(),
-			     rpy[0] * oc_->getRollTolerance() / boost::math::constants::pi<double>());
+                             rpy[0] * oc_->getRollTolerance() / boost::math::constants::pi<double>());
             (oc_->getDesiredRotationMatrix() * diff).getRotation(quat);
-	}
+        }
         else
         {
             // sample a random orientation
@@ -257,30 +257,30 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             // the rotation matrix that corresponds to the desired orientation
             point = point - btMatrix3x3(quat) * pc_->getLinkOffset();
 
-	// we now have the transform we wish to perform IK for, in the planning frame
-	
-	if (transform_ik_ && ks)
-	{
-	    // we need to convert this transform to the frame expected by the IK solver
-	    // both the planning frame and the frame for the IK are assumed to be robot links
-	    btTransform ikq(quat, point);
-	    
-	    const planning_models::KinematicState::LinkState *ls = ks->getLinkState(ik_frame_);
-	    ikq = ls->getGlobalLinkTransform().inverse() * ikq;
-	    
-	    point = ikq.getOrigin();
-	    quat = ikq.getRotation();
-	}
+        // we now have the transform we wish to perform IK for, in the planning frame
+        
+        if (transform_ik_ && ks)
+        {
+            // we need to convert this transform to the frame expected by the IK solver
+            // both the planning frame and the frame for the IK are assumed to be robot links
+            btTransform ikq(quat, point);
+            
+            const planning_models::KinematicState::LinkState *ls = ks->getLinkState(ik_frame_);
+            ikq = ls->getGlobalLinkTransform().inverse() * ikq;
+            
+            point = ikq.getOrigin();
+            quat = ikq.getRotation();
+        }
 
-	geometry_msgs::Pose ik_query;
-	ik_query.position.x = point.x();
-	ik_query.position.y = point.y();
-	ik_query.position.z = point.z();
-	ik_query.orientation.x = quat.x();
-	ik_query.orientation.y = quat.y();
-	ik_query.orientation.z = quat.z();
-	ik_query.orientation.w = quat.w();	
-	
+        geometry_msgs::Pose ik_query;
+        ik_query.position.x = point.x();
+        ik_query.position.y = point.y();
+        ik_query.position.z = point.z();
+        ik_query.orientation.x = quat.x();
+        ik_query.orientation.y = quat.y();
+        ik_query.orientation.z = quat.z();
+        ik_query.orientation.w = quat.w();        
+        
         if (callIK(ik_query, ik_timeout_, values))
             return true;
     }
@@ -303,8 +303,8 @@ bool kinematic_constraints::IKConstraintSampler::callIK(const geometry_msgs::Pos
     if (kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
     {
         ROS_ASSERT(ik_sol.size() == ik_joint_bijection_.size());
-	solution.resize(ik_joint_bijection_.size());
-	for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
+        solution.resize(ik_joint_bijection_.size());
+        for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
             solution[i] = ik_sol[ik_joint_bijection_[i]];
         return true;
     }
