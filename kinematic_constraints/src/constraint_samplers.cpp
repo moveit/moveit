@@ -39,6 +39,17 @@
 #include <ros/console.h>
 #include <algorithm>
 
+kinematic_constraints::ConstraintSampler::ConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg) : jmg_(jmg)
+{
+    if (!jmg_)
+	ROS_FATAL("NULL group specified for constraint sampler");
+}
+
+kinematic_constraints::ConstraintSampler::~ConstraintSampler(void)
+{
+}
+
+
 kinematic_constraints::JointConstraintSampler::JointConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
                                                                       const std::vector<JointConstraint> &jc) : ConstraintSampler(jmg)
 {
@@ -53,14 +64,20 @@ kinematic_constraints::JointConstraintSampler::JointConstraintSampler(const plan
         const planning_models::KinematicModel::JointModel *jm = jc[i].getJointModel();
         if (!jmg_->hasJointModel(jm->getName()))
             continue;
-        bounded.insert(jm);
         std::pair<double, double> bounds;
         jm->getVariableBounds(jm->getName(), bounds);
-        bounds_.push_back(bounds);
-        index_.push_back(vim.find(jm->getName())->second);
-        jc_.push_back(jc[i]);
+	bounds.first = std::max(bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow());
+	bounds.second = std::min(bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove());
+	if (bounds.first > bounds.second)
+	    ROS_WARN_STREAM("The constraints for joint '" << jm->getName() << "' are such that there are no possible values for this joint. Ignoring constraint.");
+	else
+	{
+	    bounded.insert(jm);	
+	    bounds_.push_back(bounds);
+	    index_.push_back(vim.find(jm->getName())->second);
+	}
     }
-
+    
     // get a separate list of joints that are not bounded; we will sample these randomly
     const std::vector<const planning_models::KinematicModel::JointModel*> &joints = jmg_->getJointModels();
     for (std::size_t i = 0 ; i < joints.size() ; ++i)
@@ -76,9 +93,8 @@ bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &
 {
     values.resize(jmg_->getVariableCount());    
     // enforce the constraints for the constrained components (could be all of them)
-    for (std::size_t i = 0 ; i < jc_.size() ; ++i)
-        values[index_[i]] = rng_.uniformReal(std::max(bounds_[i].first, jc_[i].getDesiredJointPosition() - jc_[i].getJointToleranceBelow()),
-                                             std::min(bounds_[i].second, jc_[i].getDesiredJointPosition() + jc_[i].getJointToleranceAbove()));
+    for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
+        values[index_[i]] = rng_.uniformReal(bounds_[i].first, bounds_[i].second);
     
     // sample the rest of the components
     for (std::size_t i = 0 ; i < unbounded_.size() ; ++i)
@@ -92,8 +108,6 @@ bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &
     // we are always successful
     return true;
 }
-
-
 
 kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocator &ik_alloc,
                                                                 const planning_models::KinematicModel::JointModelGroup *jmg,

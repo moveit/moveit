@@ -34,7 +34,10 @@
 
 /* Author Ioan Sucan */
 
+#include <pluginlib/class_loader.h>
+
 #include <kinematic_constraints/kinematic_constraint.h>
+#include <kinematic_constraints/constraint_samplers.h>
 #include <gtest/gtest.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
@@ -43,19 +46,51 @@ protected:
 
     virtual void SetUp()
     {
+	srdf::Model::Group g_weird;
+	g_weird.name_ = "weird_group";
+	g_weird.joints_.push_back("head_pan_joint");
+	g_weird.joints_.push_back("torso_lift_joint");
+	g_weird.joints_.push_back("r_shoulder_pan_joint");
+	g_weird.joints_.push_back("r_wrist_roll_joint");
+	g_weird.joints_.push_back("l_shoulder_pan_joint");
+	g_weird.joints_.push_back("l_wrist_roll_joint");
+	srdf_model.groups_.push_back(g_weird);	
+
         urdf_model.initFile("../planning_models/test/urdf/robot.xml");
         kmodel.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
+	kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base","kinematics::KinematicsBase"));
+	
+	ik_solver_name_ = "pr2_arm_kinematics/PR2ArmKinematicsPlugin";
+	if (kinematics_loader_->isClassAvailable(ik_solver_name_))
+	    ik_allocator_ = boost::bind(&LoadPlanningModelsPr2::allocIKSolver, this, _1);
+	else
+	    ROS_ERROR("PR2 IK solver plugin not found");
     };
 
     virtual void TearDown()
     {
     }
 
+    boost::shared_ptr<kinematics::KinematicsBase> allocIKSolver(const planning_models::KinematicModel::JointModelGroup *jmg)
+    {
+	boost::shared_ptr<kinematics::KinematicsBase> result;
+	if (kinematics_loader_)
+	{
+	    result.reset(kinematics_loader_->createClassInstance(ik_solver_name_));
+	    if (result)
+		result->initialize(jmg->getName());
+	}
+	return result;
+    }
+    
 protected:
 
-    urdf::Model                        urdf_model;
-    srdf::Model                        srdf_model;
-    planning_models::KinematicModelPtr kmodel;
+    urdf::Model                                                            urdf_model;
+    srdf::Model                                                            srdf_model;
+    planning_models::KinematicModelPtr                                     kmodel; 
+    std::string                                                            ik_solver_name_;
+    boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
+    kinematic_constraints::IKConstraintSampler::IKAllocator                ik_allocator_;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
@@ -64,78 +99,60 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     ks.setDefaultValues();
     planning_models::Transforms tf(kmodel->getModelFrame());
 
-    kinematic_constraints::JointConstraint jc(*kmodel, tf);
-    moveit_msgs::JointConstraint jcm;
-    jcm.joint_name = "head_pan_joint";
-    jcm.position = 0.4;
-    jcm.tolerance_above = 0.1;
-    jcm.tolerance_below = 0.05;
-    jcm.weight = 1.0;
+    kinematic_constraints::JointConstraint jc1(*kmodel, tf);
+    moveit_msgs::JointConstraint jcm1;
+    jcm1.joint_name = "head_pan_joint";
+    jcm1.position = 0.42;
+    jcm1.tolerance_above = 0.01;
+    jcm1.tolerance_below = 0.05;
+    jcm1.weight = 1.0;
+    EXPECT_TRUE(jc1.use(jcm1));
 
-    EXPECT_TRUE(jc.use(jcm));
-    const std::pair<bool, double> &p1 = jc.decide(ks);
-    EXPECT_FALSE(p1.first);
-    EXPECT_NEAR(p1.second, jcm.position, 1e-6);
+    kinematic_constraints::JointConstraint jc2(*kmodel, tf);
+    moveit_msgs::JointConstraint jcm2;
+    jcm2.joint_name = "l_shoulder_pan_joint";
+    jcm2.position = 0.9;
+    jcm2.tolerance_above = 0.1;
+    jcm2.tolerance_below = 0.05;
+    jcm2.weight = 1.0;
+    EXPECT_TRUE(jc2.use(jcm2));
 
-    std::map<std::string, double> jvals;
-    jvals[jcm.joint_name] = 0.41;
-    ks.setStateValues(jvals);
+    kinematic_constraints::JointConstraint jc3(*kmodel, tf);
+    moveit_msgs::JointConstraint jcm3;
+    jcm3.joint_name = "r_wrist_roll_joint";
+    jcm3.position = 0.7;
+    jcm3.tolerance_above = 0.14;
+    jcm3.tolerance_below = 0.005;
+    jcm3.weight = 1.0;
+    EXPECT_TRUE(jc3.use(jcm3));
+    
+    kinematic_constraints::JointConstraint jc4(*kmodel, tf);
+    moveit_msgs::JointConstraint jcm4;
+    jcm4.joint_name = "torso_lift_joint";
+    jcm4.position = 0.2;
+    jcm4.tolerance_above = 0.09;
+    jcm4.tolerance_below = 0.01;
+    jcm4.weight = 1.0;
+    EXPECT_TRUE(jc4.use(jcm4));
+    
+    std::vector<kinematic_constraints::JointConstraint> js;
+    js.push_back(jc1);
+    js.push_back(jc2);
+    js.push_back(jc3);
+    js.push_back(jc4);
+    
+    kinematic_constraints::JointConstraintSampler jcs(kmodel->getJointModelGroup("weird_group"), js);
+    EXPECT_EQ(jcs.getConstrainedJointCount(), 4);
+    EXPECT_EQ(jcs.getUnconstrainedJointCount(), 2);
 
-    const std::pair<bool, double> &p2 = jc.decide(ks);
-    EXPECT_TRUE(p2.first);
-    EXPECT_NEAR(p2.second, 0.01, 1e-6);
-
-    jvals[jcm.joint_name] = 0.46;
-    ks.setStateValues(jvals);
-    EXPECT_TRUE(jc.decide(ks).first);
-
-    jvals[jcm.joint_name] = 0.501;
-    ks.setStateValues(jvals);
-    EXPECT_FALSE(jc.decide(ks).first);
-
-    jvals[jcm.joint_name] = 0.39;
-    ks.setStateValues(jvals);
-    EXPECT_TRUE(jc.decide(ks).first);
-
-    jvals[jcm.joint_name] = 0.34;
-    ks.setStateValues(jvals);
-    EXPECT_FALSE(jc.decide(ks).first);
-
-}
-
-TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
-{
-    planning_models::KinematicState ks(kmodel);
-    ks.setDefaultValues();
-
-    planning_models::Transforms tf(kmodel->getModelFrame());
-
-    kinematic_constraints::JointConstraint jc(*kmodel, tf);
-    moveit_msgs::JointConstraint jcm;
-
-    jcm.joint_name = "l_wrist_roll_joint";
-    jcm.position = 3.14;
-    jcm.tolerance_above = 0.04;
-    jcm.tolerance_below = 0.02;
-    jcm.weight = 1.0;
-
-    EXPECT_TRUE(jc.use(jcm));
-
-    std::map<std::string, double> jvals;
-    jvals[jcm.joint_name] = 3.17;
-    ks.setStateValues(jvals);
-
-    const std::pair<bool, double> &p1 = jc.decide(ks);
-    EXPECT_TRUE(p1.first);
-    EXPECT_NEAR(p1.second, 0.03, 1e-6);
-
-
-    jvals[jcm.joint_name] = -3.14;
-    ks.setStateValues(jvals);
-
-    const std::pair<bool, double> &p2 = jc.decide(ks);
-    EXPECT_TRUE(p2.first);
-    EXPECT_NEAR(p2.second, 0.003185, 1e-4);
+    for (int t = 0 ; t < 1000 ; ++t)
+    {
+	std::vector<double> values;
+	EXPECT_TRUE(jcs.sample(values));
+	ks.getJointStateGroup("weird_group")->setStateValues(values);
+	for (unsigned int i = 0 ; i < js.size() ; ++i)
+	    EXPECT_TRUE(js[i].decide(ks).first);
+    }
 }
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
@@ -175,51 +192,6 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     EXPECT_FALSE(p2.first);
 }
 
-TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
-{
-    planning_models::KinematicState ks(kmodel);
-    ks.setDefaultValues();
-    planning_models::Transforms tf(kmodel->getModelFrame());
-
-    kinematic_constraints::PositionConstraint pc(*kmodel, tf);
-    moveit_msgs::PositionConstraint pcm;
-
-    pcm.link_name = "l_wrist_roll_link";
-    pcm.target_point_offset.x = 0;
-    pcm.target_point_offset.y = 0;
-    pcm.target_point_offset.z = 0;
-    pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
-    pcm.constraint_region_shape.dimensions.push_back(0.38);
-
-    pcm.constraint_region_pose.header.frame_id = "r_wrist_roll_link";
-    pcm.constraint_region_pose.pose.position.x = 0.0;
-    pcm.constraint_region_pose.pose.position.y = 0.0;
-    pcm.constraint_region_pose.pose.position.z = 0.0;
-    pcm.constraint_region_pose.pose.orientation.x = 0.0;
-    pcm.constraint_region_pose.pose.orientation.y = 0.0;
-    pcm.constraint_region_pose.pose.orientation.z = 0.0;
-    pcm.constraint_region_pose.pose.orientation.w = 1.0;
-    pcm.weight = 1.0;
-
-    EXPECT_FALSE(tf.isFixedFrame(pcm.link_name));
-    EXPECT_TRUE(pc.use(pcm));
-
-    const std::pair<bool, double> &p1 = pc.decide(ks);
-    EXPECT_TRUE(p1.first);
-
-    pcm.constraint_region_shape.type = moveit_msgs::Shape::BOX;
-    pcm.constraint_region_shape.dimensions.resize(3);
-    pcm.constraint_region_shape.dimensions[0] = 0.2;
-    pcm.constraint_region_shape.dimensions[1] = 1.25;
-    pcm.constraint_region_shape.dimensions[2] = 0.1;
-    EXPECT_TRUE(pc.use(pcm));
-
-    std::map<std::string, double> jvals;
-    jvals["l_shoulder_pan_joint"] = 0.4;
-    ks.setStateValues(jvals);
-    const std::pair<bool, double> &p2 = pc.decide(ks);
-    EXPECT_TRUE(p2.first);
-}
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 {
