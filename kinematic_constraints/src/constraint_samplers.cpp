@@ -112,7 +112,7 @@ bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &
 kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocator &ik_alloc,
                                                                 const planning_models::KinematicModel::JointModelGroup *jmg,
                                                                 const PositionConstraint &pc, const OrientationConstraint &oc) :
-    ConstraintSampler(jmg), ik_alloc_(ik_alloc), pc_(new PositionConstraint(pc)), oc_(new OrientationConstraint(oc))
+    ConstraintSampler(jmg), ik_alloc_(ik_alloc), pc_(new PositionConstraint(pc)), oc_(new OrientationConstraint(oc)), ik_timeout_(0.5)
 {
     if (pc_->getLinkModel()->getName() != oc_->getLinkModel()->getName())
         ROS_FATAL("Position and orientation constraints need to be specified for the same link in order to use IK-based sampling");
@@ -122,7 +122,7 @@ kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocato
 kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocator &ik_alloc,
                                                                 const planning_models::KinematicModel::JointModelGroup *jmg,
                                                                 const PositionConstraint &pc) :
-    ConstraintSampler(jmg), ik_alloc_(ik_alloc), pc_(new PositionConstraint(pc))
+    ConstraintSampler(jmg), ik_alloc_(ik_alloc), pc_(new PositionConstraint(pc)), ik_timeout_(0.5)
 {
 }
 
@@ -130,7 +130,7 @@ kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocato
 kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocator &ik_alloc,
                                                                 const planning_models::KinematicModel::JointModelGroup *jmg,
                                                                 const OrientationConstraint &oc) :
-    ConstraintSampler(jmg), ik_alloc_(ik_alloc), oc_(new OrientationConstraint(oc))
+    ConstraintSampler(jmg), ik_alloc_(ik_alloc), oc_(new OrientationConstraint(oc)), ik_timeout_(0.5)
 {
 }
 
@@ -142,7 +142,9 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
         ROS_ERROR("Failed to allocate IK solver");
         return false;
     }
-
+    else
+	ROS_DEBUG("IKConstraintSampler successfully loaded IK solver");
+    
     // the ik solver must cover the same joints as the group
     const std::vector<std::string> &ik_jnames = kb_->getJointNames();
     const std::map<std::string, unsigned int> &g_map = jmg_->getJointVariablesIndexMap();
@@ -166,6 +168,15 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
         for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
             ik_joint_bijection_.push_back(it->second + k);
     }
+
+    ik_frame_ = kb_->getBaseFrame();
+    transform_ik_ = ik_frame_ != jmg_->getParentModel()->getModelFrame();
+    if (transform_ik_)
+	if (!jmg_->getParentModel()->hasLinkModel(ik_frame_))
+	{
+	    ROS_ERROR_STREAM("The IK solver expects requests in frame '" << ik_frame_ << "' but this frame is not known to the sampler. Ignoring transformation (IK may fail)");
+	    transform_ik_ = false;
+	}
     return true;
 }
 
@@ -189,7 +200,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
     else
         if (!jmg_->supportsIK(oc_->getLinkModel()->getName()))
             return false;        
-
+    
     for (unsigned int a = 0 ; a < max_attempts ; ++a)
     {
         // sample a point in the constraint region
@@ -212,7 +223,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             if (tmp)
             {
                 tmp->setRandomValues();
-                point = tempState.getLinkState(pc_->getLinkModel()->getName())->getGlobalLinkTransform().getOrigin();
+                point = tempState.getLinkState(oc_->getLinkModel()->getName())->getGlobalLinkTransform().getOrigin();
             }
             else
             {
@@ -228,11 +239,11 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             double rpy[3];
             rng_.eulerRPY(rpy);
             btMatrix3x3 diff;
-            diff.setEulerYPR(rpy[0] * oc_->getRollTolerance() / boost::math::constants::pi<double>(),
+            diff.setEulerYPR(rpy[2] * oc_->getYawTolerance() / boost::math::constants::pi<double>(),
                              rpy[1] * oc_->getPitchTolerance() / boost::math::constants::pi<double>(),
-                             rpy[2] * oc_->getYawTolerance() / boost::math::constants::pi<double>());
+			     rpy[0] * oc_->getRollTolerance() / boost::math::constants::pi<double>());
             (oc_->getDesiredRotationMatrix() * diff).getRotation(quat);
-        }
+	}
         else
         {
             // sample a random orientation
@@ -245,18 +256,32 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
         if (pc_ && pc_->hasLinkOffset())
             // the rotation matrix that corresponds to the desired orientation
             point = point - btMatrix3x3(quat) * pc_->getLinkOffset();
-        
-        // we now have the transform we wish to perform IK for
-        geometry_msgs::Pose ik_query;
-        ik_query.position.x = point.x();
-        ik_query.position.y = point.y();
-        ik_query.position.z = point.z();
-        ik_query.orientation.x = quat.x();
-        ik_query.orientation.y = quat.y();
-        ik_query.orientation.z = quat.z();
-        ik_query.orientation.w = quat.w();
-        
-        if (callIK(ik_query, 0.5, values))
+
+	// we now have the transform we wish to perform IK for, in the planning frame
+	
+	if (transform_ik_ && ks)
+	{
+	    // we need to convert this transform to the frame expected by the IK solver
+	    // both the planning frame and the frame for the IK are assumed to be robot links
+	    btTransform ikq(quat, point);
+	    
+	    const planning_models::KinematicState::LinkState *ls = ks->getLinkState(ik_frame_);
+	    ikq = ls->getGlobalLinkTransform().inverse() * ikq;
+	    
+	    point = ikq.getOrigin();
+	    quat = ikq.getRotation();
+	}
+
+	geometry_msgs::Pose ik_query;
+	ik_query.position.x = point.x();
+	ik_query.position.y = point.y();
+	ik_query.position.z = point.z();
+	ik_query.orientation.x = quat.x();
+	ik_query.orientation.y = quat.y();
+	ik_query.orientation.z = quat.z();
+	ik_query.orientation.w = quat.w();	
+	
+        if (callIK(ik_query, ik_timeout_, values))
             return true;
     }
     return false;
@@ -278,7 +303,8 @@ bool kinematic_constraints::IKConstraintSampler::callIK(const geometry_msgs::Pos
     if (kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
     {
         ROS_ASSERT(ik_sol.size() == ik_joint_bijection_.size());
-        for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
+	solution.resize(ik_joint_bijection_.size());
+	for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
             solution[i] = ik_sol[ik_joint_bijection_[i]];
         return true;
     }

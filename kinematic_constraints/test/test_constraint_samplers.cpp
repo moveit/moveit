@@ -56,6 +56,11 @@ protected:
 	g_weird.joints_.push_back("l_wrist_roll_joint");
 	srdf_model.groups_.push_back(g_weird);	
 
+	srdf::Model::Group l_arm;
+	l_arm.name_ = "left_arm";
+	l_arm.chains_.push_back(std::make_pair("l_shoulder_pan_link", "l_wrist_roll_link"));
+	srdf_model.groups_.push_back(l_arm);
+	
         urdf_model.initFile("../planning_models/test/urdf/robot.xml");
         kmodel.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
 	kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base","kinematics::KinematicsBase"));
@@ -93,7 +98,7 @@ protected:
     kinematic_constraints::IKConstraintSampler::IKAllocator                ik_allocator_;
 };
 
-TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
+TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
 {
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
@@ -155,7 +160,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     }
 }
 
-TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
+TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
 {
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
@@ -169,7 +174,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = 0;
     pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
-    pcm.constraint_region_shape.dimensions.push_back(0.1);
+    pcm.constraint_region_shape.dimensions.push_back(0.001);
 
     pcm.constraint_region_pose.header.frame_id = kmodel->getModelFrame();
     pcm.constraint_region_pose.pose.position.x = 0.55;
@@ -182,18 +187,54 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.weight = 1.0;
 
     EXPECT_TRUE(pc.use(pcm));
-    const std::pair<bool, double> &p1 = pc.decide(ks);
-    EXPECT_TRUE(p1.first);
+    
+    kinematic_constraints::OrientationConstraint oc(*kmodel, tf);
+    moveit_msgs::OrientationConstraint ocm;
 
-    std::map<std::string, double> jvals;
-    jvals["torso_lift_joint"] = 0.4;
-    ks.setStateValues(jvals);
-    const std::pair<bool, double> &p2 = pc.decide(ks);
-    EXPECT_FALSE(p2.first);
+    ocm.link_name = "l_wrist_roll_link";
+    ocm.orientation.header.frame_id = kmodel->getModelFrame();
+    ocm.orientation.quaternion.x = 0.0;
+    ocm.orientation.quaternion.y = 0.0;
+    ocm.orientation.quaternion.z = 0.0;
+    ocm.orientation.quaternion.w = 1.0;
+    ocm.absolute_roll_tolerance = 0.2;
+    ocm.absolute_pitch_tolerance = 0.1;
+    ocm.absolute_yaw_tolerance = 0.4;
+    ocm.weight = 1.0;
+
+    EXPECT_TRUE(oc.use(ocm));
+
+    kinematic_constraints::IKConstraintSampler iks1(ik_allocator_, kmodel->getJointModelGroup("left_arm"), pc, oc);
+    for (int t = 0 ; t < 100 ; ++t)
+    {
+	std::vector<double> values;
+	EXPECT_TRUE(iks1.sample(values, 100, &ks));
+	ks.getJointStateGroup("left_arm")->setStateValues(values);    
+	EXPECT_TRUE(pc.decide(ks).first);
+	EXPECT_TRUE(oc.decide(ks).first);
+    }
+
+    kinematic_constraints::IKConstraintSampler iks2(ik_allocator_, kmodel->getJointModelGroup("left_arm"), pc);
+    for (int t = 0 ; t < 100 ; ++t)
+    {
+	std::vector<double> values;
+	EXPECT_TRUE(iks2.sample(values, 100, &ks));
+	ks.getJointStateGroup("left_arm")->setStateValues(values);    
+	EXPECT_TRUE(pc.decide(ks).first);
+    }
+    
+    kinematic_constraints::IKConstraintSampler iks3(ik_allocator_, kmodel->getJointModelGroup("left_arm"), oc);
+    for (int t = 0 ; t < 100 ; ++t)
+    {
+	std::vector<double> values;
+	EXPECT_TRUE(iks3.sample(values, 100, &ks));
+	ks.getJointStateGroup("left_arm")->setStateValues(values);    
+	EXPECT_TRUE(oc.decide(ks).first);
+    }    
 }
 
 
-TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
+TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
@@ -208,9 +249,9 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
     ocm.orientation.quaternion.y = 0.0;
     ocm.orientation.quaternion.z = 0.0;
     ocm.orientation.quaternion.w = 1.0;
-    ocm.absolute_roll_tolerance = 0.1;
-    ocm.absolute_pitch_tolerance = 0.1;
-    ocm.absolute_yaw_tolerance = 0.1;
+    ocm.absolute_roll_tolerance = 0.01;
+    ocm.absolute_pitch_tolerance = 0.01;
+    ocm.absolute_yaw_tolerance = 0.01;
     ocm.weight = 1.0;
 
     EXPECT_TRUE(oc.use(ocm));
@@ -228,5 +269,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
+    ros::init(argc, argv, "iks_test");
+    
     return RUN_ALL_TESTS();
 }

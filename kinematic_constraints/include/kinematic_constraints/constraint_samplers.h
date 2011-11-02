@@ -109,7 +109,17 @@ namespace kinematic_constraints
         IKConstraintSampler(const IKAllocator &ik_alloc,
                             const planning_models::KinematicModel::JointModelGroup *jmg,
                             const OrientationConstraint &oc);
-
+	
+	double getIKTimeout(void) const
+	{
+	    return ik_timeout_;
+	}
+	
+	void setIKTimeout(double timeout)
+	{
+	    ik_timeout_ = timeout;
+	}
+	
         virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100,
                             const planning_models::KinematicState *ks = NULL);
 
@@ -122,7 +132,10 @@ namespace kinematic_constraints
         boost::shared_ptr<PositionConstraint>         pc_;
         boost::shared_ptr<OrientationConstraint>      oc_;
         boost::shared_ptr<kinematics::KinematicsBase> kb_;
-        std::vector<unsigned int>                     ik_joint_bijection_;
+	double                                        ik_timeout_;
+	std::vector<unsigned int>                     ik_joint_bijection_;
+	std::string                                   ik_frame_;
+	bool                                          transform_ik_;
     };
 
 }
