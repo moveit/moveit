@@ -49,14 +49,10 @@ namespace kinematic_constraints
     class ConstraintSampler
     {
     public:
-        ConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg) : jmg_(jmg)
-        {
-        }
+        ConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg);
 
-        virtual ~ConstraintSampler(void)
-        {
-        }
-
+        virtual ~ConstraintSampler(void);
+	
         virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100,
                             const planning_models::KinematicState *ks = NULL) = 0;
 
@@ -75,12 +71,21 @@ namespace kinematic_constraints
         JointConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const std::vector<JointConstraint> &jc);
         virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100,
                             const planning_models::KinematicState *ks = NULL);
-
+	
+	std::size_t getConstrainedJointCount(void) const
+	{
+	    return bounds_.size();
+	}
+	
+	std::size_t getUnconstrainedJointCount(void) const
+	{
+	    return unbounded_.size();
+	}
+	
     protected:
 
-        std::vector<JointConstraint>            jc_;
-        std::vector<std::pair<double, double> > bounds_;
-        std::vector<unsigned int>               index_;
+        std::vector<std::pair<double, double> >                         bounds_;
+        std::vector<unsigned int>                                       index_;
 
         std::vector<const planning_models::KinematicModel::JointModel*> unbounded_;
         std::vector<unsigned int>                                       uindex_;
