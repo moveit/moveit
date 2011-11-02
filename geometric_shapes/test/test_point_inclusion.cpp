@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -54,7 +54,7 @@ TEST(SpherePointContainment, SimpleInside)
 }
 
 TEST(SpherePointContainment, SimpleOutside)
-{ 
+{
     shapes::Sphere shape(1.0);
     bodies::Body* sphere = new bodies::Sphere(&shape);
     sphere->setScale(0.95);
@@ -64,12 +64,12 @@ TEST(SpherePointContainment, SimpleOutside)
 }
 
 TEST(SpherePointContainment, ComplexInside)
-{ 
+{
     shapes::Sphere shape(1.0);
     bodies::Body* sphere = new bodies::Sphere(&shape);
     sphere->setScale(0.95);
     btTransform pose;
-    pose.setIdentity();    
+    pose.setIdentity();
     pose.setOrigin(btVector3(btScalar(1),btScalar(1),btScalar(1)));
     sphere->setPose(pose);
     bool contains = sphere->containsPoint(0.5,1,1.0);
@@ -78,12 +78,12 @@ TEST(SpherePointContainment, ComplexInside)
 }
 
 TEST(SpherePointContainment, ComplexOutside)
-{   
+{
     shapes::Sphere shape(1.0);
     bodies::Body* sphere = new bodies::Sphere(&shape);
     sphere->setScale(0.95);
     btTransform pose;
-    pose.setIdentity();    
+    pose.setIdentity();
     pose.setOrigin(btVector3(btScalar(1),btScalar(1),btScalar(1)));
     sphere->setPose(pose);
     bool contains = sphere->containsPoint(0.5,0.0,0.0);
@@ -101,7 +101,7 @@ TEST(SphereRayIntersection, SimpleRay1)
     btVector3 ray_d(-1, 0, 0);
     std::vector<btVector3> p;
     bool intersect = sphere->intersectsRay(ray_o, ray_d, &p);
-    
+
     delete sphere;
     EXPECT_TRUE(intersect);
     EXPECT_EQ(2, (int)p.size());
@@ -119,14 +119,14 @@ TEST(SphereRayIntersection, SimpleRay2)
     btVector3 ray_d(1, 0, 0);
     std::vector<btVector3> p;
     bool intersect = sphere->intersectsRay(ray_o, ray_d, &p);
-    
+
     delete sphere;
     EXPECT_FALSE(intersect);
     EXPECT_EQ(0, (int)p.size());
 }
 
 TEST(BoxPointContainment, SimpleInside)
-{    
+{
     shapes::Box shape(1.0, 2.0, 3.0);
     bodies::Body* box = new bodies::Box(&shape);
     box->setScale(0.95);
@@ -154,16 +154,16 @@ TEST(BoxPointContainment, SimpleOutside)
 
 
 TEST(BoxPointContainment, ComplexInside)
-{  
+{
     shapes::Box shape(1.0, 1.0, 1.0);
     bodies::Body* box = new bodies::Box(&shape);
     box->setScale(1.01);
     btTransform pose;
-    pose.setIdentity();    
+    pose.setIdentity();
     pose.setOrigin(btVector3(btScalar(1),btScalar(1),btScalar(1)));
     btQuaternion quat(btVector3(btScalar(1), btScalar(0), btScalar(0)), M_PI/3.0);
     pose.setRotation(quat);
-    box->setPose(pose);    
+    box->setPose(pose);
 
     bool contains = box->containsPoint(1.5,1.0,1.5);
     EXPECT_TRUE(contains);
@@ -172,24 +172,24 @@ TEST(BoxPointContainment, ComplexInside)
     btVector3 p;
     for (int i = 0 ; i < 1000 ; ++i)
     {
-	EXPECT_TRUE(box->samplePointInside(r, 100, p));
-	EXPECT_TRUE(box->containsPoint(p));
+        EXPECT_TRUE(box->samplePointInside(r, 100, p));
+        EXPECT_TRUE(box->containsPoint(p));
     }
-    
+
     delete box;
 }
 
 TEST(BoxPointContainment, ComplexOutside)
-{    
+{
     shapes::Box shape(1.0, 1.0, 1.0);
     bodies::Body* box = new bodies::Box(&shape);
     box->setScale(1.01);
     btTransform pose;
-    pose.setIdentity();    
+    pose.setIdentity();
     pose.setOrigin(btVector3(btScalar(1),btScalar(1),btScalar(1)));
     btQuaternion quat(btVector3(btScalar(1), btScalar(0), btScalar(0)), M_PI/3.0);
     pose.setRotation(quat);
-    box->setPose(pose);    
+    box->setPose(pose);
 
     bool contains = box->containsPoint(1.5,1.5,1.5);
     delete box;
@@ -201,16 +201,16 @@ TEST(BoxRayIntersection, SimpleRay1)
     shapes::Box shape(1.0, 1.0, 3.0);
     bodies::Body* box = new bodies::Box(&shape);
     box->setScale(0.95);
-    
+
     btVector3 ray_o(10, 0.449, 0);
     btVector3 ray_d(-1, 0, 0);
     std::vector<btVector3> p;
-    
+
     bool intersect = box->intersectsRay(ray_o, ray_d, &p);
-    
+
     //    for (unsigned int i = 0; i < p.size() ; ++i)
-    //	printf("intersection at %f, %f, %f\n", p[i].x(), p[i].y(), p[i].z());
-    
+    //        printf("intersection at %f, %f, %f\n", p[i].x(), p[i].y(), p[i].z());
+
     delete box;
     EXPECT_TRUE(intersect);
 }
@@ -255,8 +255,8 @@ TEST(CylinderPointContainment, CylinderPadding)
     btVector3 p;
     for (int i = 0 ; i < 1000 ; ++i)
     {
-	EXPECT_TRUE(cylinder->samplePointInside(r, 100, p));
-	EXPECT_TRUE(cylinder->containsPoint(p));
+        EXPECT_TRUE(cylinder->samplePointInside(r, 100, p));
+        EXPECT_TRUE(cylinder->containsPoint(p));
     }
     delete cylinder;
 }
@@ -275,19 +275,19 @@ TEST(MeshPointContainment, Pr2Forearm)
     btVector3 p;
     bool found = false;
     for (int i = 0 ; i < 10 ; ++i)
-	if (m->samplePointInside(r, 10000, p))
-	{
-	    found = true;
-	    EXPECT_TRUE(m->containsPoint(p));
-	}
+        if (m->samplePointInside(r, 10000, p))
+        {
+            found = true;
+            EXPECT_TRUE(m->containsPoint(p));
+        }
     EXPECT_TRUE(found);
-    
+
     delete m;
     delete ms;
 }
 
 int main(int argc, char **argv)
-{ 
+{
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
