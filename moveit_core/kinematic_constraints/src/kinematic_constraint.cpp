@@ -350,7 +350,7 @@ std::pair<bool, double> kinematic_constraints::OrientationConstraint::decide(con
         btMatrix3x3 diff = desired_rotation_matrix_inv_ * link_state->getGlobalLinkTransform().getBasis();
         diff.getEulerYPR(yaw, pitch, roll);
     }
-    
+
     bool result = fabs(roll) < absolute_roll_tolerance_ && fabs(pitch) < absolute_pitch_tolerance_ && fabs(yaw) < absolute_yaw_tolerance_;
 
     if (verbose)
