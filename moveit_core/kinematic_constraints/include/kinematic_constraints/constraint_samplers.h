@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -45,81 +45,81 @@
 
 namespace kinematic_constraints
 {
-    
+
     class ConstraintSampler
     {
     public:
-	ConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg) : jmg_(jmg)
-	{
-	}
+        ConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg) : jmg_(jmg)
+        {
+        }
 
-	virtual ~ConstraintSampler(void)
-	{
-	}
-	
-	virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100, 
-			    const planning_models::KinematicState *ks = NULL) = 0;
-	
+        virtual ~ConstraintSampler(void)
+        {
+        }
+
+        virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100,
+                            const planning_models::KinematicState *ks = NULL) = 0;
+
     protected:
-	
-	const planning_models::KinematicModel::JointModelGroup *jmg_;
-	random_numbers::RNG                                     rng_;
+
+        const planning_models::KinematicModel::JointModelGroup *jmg_;
+        random_numbers::RNG                                     rng_;
     };
-    
+
     typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
-    
+
     class JointConstraintSampler : public ConstraintSampler
     {
     public:
-	
-	JointConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const std::vector<JointConstraint> &jc);
-	virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100, 
-			    const planning_models::KinematicState *ks = NULL);
+
+        JointConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const std::vector<JointConstraint> &jc);
+        virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100,
+                            const planning_models::KinematicState *ks = NULL);
 
     protected:
-	
-	std::vector<JointConstraint>            jc_;	
-	std::vector<std::pair<double, double> > bounds_;
-	std::vector<unsigned int>               index_;
-	
-	std::vector<const planning_models::KinematicModel::JointModel*> unbounded_;
-	std::vector<unsigned int>                                       uindex_;
+
+        std::vector<JointConstraint>            jc_;
+        std::vector<std::pair<double, double> > bounds_;
+        std::vector<unsigned int>               index_;
+
+        std::vector<const planning_models::KinematicModel::JointModel*> unbounded_;
+        std::vector<unsigned int>                                       uindex_;
     };
-	
+
     class IKConstraintSampler : public ConstraintSampler
     {
     public:
 
-	/// function type that allocates an IK solver
-	typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> IKAllocator;
-	
-	IKConstraintSampler(const IKAllocator &ik_alloc,
-			    const planning_models::KinematicModel::JointModelGroup *jmg,
-			    const PositionConstraint &pc, const OrientationConstraint &oc);
-	
-	IKConstraintSampler(const IKAllocator &ik_alloc,
-			    const planning_models::KinematicModel::JointModelGroup *jmg,
-			    const PositionConstraint &pc);
+        /// function type that allocates an IK solver
+        typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> IKAllocator;
 
-	IKConstraintSampler(const IKAllocator &ik_alloc,
-			    const planning_models::KinematicModel::JointModelGroup *jmg,
-			    const OrientationConstraint &oc);
+        IKConstraintSampler(const IKAllocator &ik_alloc,
+                            const planning_models::KinematicModel::JointModelGroup *jmg,
+                            const PositionConstraint &pc, const OrientationConstraint &oc);
 
-	virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100, 
-			    const planning_models::KinematicState *ks = NULL);
-	
+        IKConstraintSampler(const IKAllocator &ik_alloc,
+                            const planning_models::KinematicModel::JointModelGroup *jmg,
+                            const PositionConstraint &pc);
+
+        IKConstraintSampler(const IKAllocator &ik_alloc,
+                            const planning_models::KinematicModel::JointModelGroup *jmg,
+                            const OrientationConstraint &oc);
+
+        virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100,
+                            const planning_models::KinematicState *ks = NULL);
+
     protected:
-	
-	bool callIK(const geometry_msgs::Pose &ik_query, double timeout, std::vector<double> &solution);
-	bool loadIKSolver(void);	
 
-	IKAllocator                                   ik_alloc_;
-	boost::shared_ptr<PositionConstraint>         pc_;
-	boost::shared_ptr<OrientationConstraint>      oc_;
-	boost::shared_ptr<kinematics::KinematicsBase> kb_;
-	std::vector<unsigned int>                     ik_joint_bijection_;
+        bool callIK(const geometry_msgs::Pose &ik_query, double timeout, std::vector<double> &solution);
+        bool loadIKSolver(void);
+
+        IKAllocator                                   ik_alloc_;
+        boost::shared_ptr<PositionConstraint>         pc_;
+        boost::shared_ptr<OrientationConstraint>      oc_;
+        boost::shared_ptr<kinematics::KinematicsBase> kb_;
+        std::vector<unsigned int>                     ik_joint_bijection_;
     };
-    
+
 }
 
 

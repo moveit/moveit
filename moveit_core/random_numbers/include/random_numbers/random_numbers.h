@@ -67,13 +67,13 @@ namespace random_numbers
         {
             return (upper_bound - lower_bound) * uni_() + lower_bound;
         }
-	
+
         /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w) */
         void   quaternion(double value[4]);
 
         /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range [-pi, pi). The computed value has the order (roll, pitch, yaw) */
         void   eulerRPY(double value[3]);
-	
+
     private:
 
         boost::mt19937                                                           generator_;

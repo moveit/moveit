@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -38,25 +38,25 @@
 #include <kinematic_constraints/constraint_samplers.h>
 #include <gtest/gtest.h>
 
-class LoadPlanningModelsPr2 : public testing::Test 
+class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-    
+
     virtual void SetUp()
     {
-	urdf_model.initFile("../planning_models/test/urdf/robot.xml");
-	kmodel.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
+        urdf_model.initFile("../planning_models/test/urdf/robot.xml");
+        kmodel.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
     };
-    
-    virtual void TearDown() 
+
+    virtual void TearDown()
     {
     }
-    
+
 protected:
-    
+
     urdf::Model                        urdf_model;
-    srdf::Model                        srdf_model;  
-    planning_models::KinematicModelPtr kmodel;    
+    srdf::Model                        srdf_model;
+    planning_models::KinematicModelPtr kmodel;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
@@ -72,7 +72,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     jcm.tolerance_above = 0.1;
     jcm.tolerance_below = 0.05;
     jcm.weight = 1.0;
-    
+
     EXPECT_TRUE(jc.use(jcm));
     const std::pair<bool, double> &p1 = jc.decide(ks);
     EXPECT_FALSE(p1.first);
@@ -81,34 +81,34 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     std::map<std::string, double> jvals;
     jvals[jcm.joint_name] = 0.41;
     ks.setStateValues(jvals);
-    
+
     const std::pair<bool, double> &p2 = jc.decide(ks);
     EXPECT_TRUE(p2.first);
     EXPECT_NEAR(p2.second, 0.01, 1e-6);
 
     jvals[jcm.joint_name] = 0.46;
-    ks.setStateValues(jvals); 
+    ks.setStateValues(jvals);
     EXPECT_TRUE(jc.decide(ks).first);
 
     jvals[jcm.joint_name] = 0.501;
-    ks.setStateValues(jvals); 
+    ks.setStateValues(jvals);
     EXPECT_FALSE(jc.decide(ks).first);
 
     jvals[jcm.joint_name] = 0.39;
-    ks.setStateValues(jvals); 
+    ks.setStateValues(jvals);
     EXPECT_TRUE(jc.decide(ks).first);
 
     jvals[jcm.joint_name] = 0.34;
-    ks.setStateValues(jvals); 
+    ks.setStateValues(jvals);
     EXPECT_FALSE(jc.decide(ks).first);
 
 }
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
-{    
+{
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
-    
+
     planning_models::Transforms tf(kmodel->getModelFrame());
 
     kinematic_constraints::JointConstraint jc(*kmodel, tf);
@@ -118,32 +118,32 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
     jcm.position = 3.14;
     jcm.tolerance_above = 0.04;
     jcm.tolerance_below = 0.02;
-    jcm.weight = 1.0;  
+    jcm.weight = 1.0;
 
     EXPECT_TRUE(jc.use(jcm));
 
     std::map<std::string, double> jvals;
     jvals[jcm.joint_name] = 3.17;
-    ks.setStateValues(jvals); 
+    ks.setStateValues(jvals);
 
     const std::pair<bool, double> &p1 = jc.decide(ks);
     EXPECT_TRUE(p1.first);
     EXPECT_NEAR(p1.second, 0.03, 1e-6);
 
 
-    jvals[jcm.joint_name] = -3.14; 
-    ks.setStateValues(jvals); 
-    
+    jvals[jcm.joint_name] = -3.14;
+    ks.setStateValues(jvals);
+
     const std::pair<bool, double> &p2 = jc.decide(ks);
     EXPECT_TRUE(p2.first);
     EXPECT_NEAR(p2.second, 0.003185, 1e-4);
 }
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintSampler)
-{    
+{
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
-    
+
     planning_models::Transforms tf(kmodel->getModelFrame());
 
     kinematic_constraints::JointConstraint jc(*kmodel, tf);
@@ -153,16 +153,16 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintSampler)
     jcm.position = 3.14;
     jcm.tolerance_above = 0.04;
     jcm.tolerance_below = 0.02;
-    jcm.weight = 1.0;  
+    jcm.weight = 1.0;
 
     EXPECT_TRUE(jc.use(jcm));
 
     //    kinematic_constraints::JointConstraintSampler jcs;
-    
+
 }
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
-{    
+{
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
     planning_models::Transforms tf(kmodel->getModelFrame());
@@ -176,7 +176,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.target_point_offset.z = 0;
     pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
     pcm.constraint_region_shape.dimensions.push_back(0.1);
-    
+
     pcm.constraint_region_pose.header.frame_id = kmodel->getModelFrame();
     pcm.constraint_region_pose.pose.position.x = 0.55;
     pcm.constraint_region_pose.pose.position.y = 0.2;
@@ -185,7 +185,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.constraint_region_pose.pose.orientation.y = 0.0;
     pcm.constraint_region_pose.pose.orientation.z = 0.0;
     pcm.constraint_region_pose.pose.orientation.w = 1.0;
-    pcm.weight = 1.0;  
+    pcm.weight = 1.0;
 
     EXPECT_TRUE(pc.use(pcm));
     const std::pair<bool, double> &p1 = pc.decide(ks);
@@ -193,13 +193,13 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 
     std::map<std::string, double> jvals;
     jvals["torso_lift_joint"] = 0.4;
-    ks.setStateValues(jvals); 
+    ks.setStateValues(jvals);
     const std::pair<bool, double> &p2 = pc.decide(ks);
     EXPECT_FALSE(p2.first);
 }
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
-{    
+{
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
     planning_models::Transforms tf(kmodel->getModelFrame());
@@ -213,7 +213,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     pcm.target_point_offset.z = 0;
     pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
     pcm.constraint_region_shape.dimensions.push_back(0.38);
-    
+
     pcm.constraint_region_pose.header.frame_id = "r_wrist_roll_link";
     pcm.constraint_region_pose.pose.position.x = 0.0;
     pcm.constraint_region_pose.pose.position.y = 0.0;
@@ -222,9 +222,9 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     pcm.constraint_region_pose.pose.orientation.y = 0.0;
     pcm.constraint_region_pose.pose.orientation.z = 0.0;
     pcm.constraint_region_pose.pose.orientation.w = 1.0;
-    pcm.weight = 1.0;  
+    pcm.weight = 1.0;
 
-    EXPECT_FALSE(tf.isFixedFrame(pcm.link_name));  
+    EXPECT_FALSE(tf.isFixedFrame(pcm.link_name));
     EXPECT_TRUE(pc.use(pcm));
 
     const std::pair<bool, double> &p1 = pc.decide(ks);
@@ -239,13 +239,13 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 
     std::map<std::string, double> jvals;
     jvals["l_shoulder_pan_joint"] = 0.4;
-    ks.setStateValues(jvals); 
+    ks.setStateValues(jvals);
     const std::pair<bool, double> &p2 = pc.decide(ks);
-    EXPECT_TRUE(p2.first);    
+    EXPECT_TRUE(p2.first);
 }
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
-{    
+{
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
     planning_models::Transforms tf(kmodel->getModelFrame());
@@ -261,21 +261,21 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
     ocm.orientation.quaternion.w = 1.0;
     ocm.absolute_roll_tolerance = 0.1;
     ocm.absolute_pitch_tolerance = 0.1;
-    ocm.absolute_yaw_tolerance = 0.1;    
-    ocm.weight = 1.0;  
+    ocm.absolute_yaw_tolerance = 0.1;
+    ocm.weight = 1.0;
 
     EXPECT_TRUE(oc.use(ocm));
 
     const std::pair<bool, double> &p1 = oc.decide(ks);
     EXPECT_FALSE(p1.first);
-    
+
     ocm.orientation.header.frame_id = ocm.link_name;
     EXPECT_TRUE(oc.use(ocm));
     const std::pair<bool, double> &p2 = oc.decide(ks);
     EXPECT_TRUE(p2.first);
 }
 
-	
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

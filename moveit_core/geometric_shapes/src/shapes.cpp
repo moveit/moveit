@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -59,10 +59,10 @@ void shapes::ShapeVector::addShape(StaticShape* shape)
 void shapes::ShapeVector::clear(void)
 {
     for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
-	delete shapes_[i];
+        delete shapes_[i];
     shapes_.clear();
     for (std::size_t i = 0 ; i < sshapes_.size() ; ++i)
-	delete sshapes_[i];
+        delete sshapes_[i];
     sshapes_.clear();
 }
 
@@ -80,8 +80,8 @@ const shapes::Shape* shapes::ShapeVector::getShape(unsigned int i) const
 {
     if (i >= shapes_.size())
     {
-	ROS_ERROR("There is no shape at index %u", i);
-	return NULL;
+        ROS_ERROR("There is no shape at index %u", i);
+        return NULL;
     }
     return shapes_[i];
 }
@@ -90,9 +90,8 @@ const shapes::StaticShape* shapes::ShapeVector::getStaticShape(unsigned int i) c
 {
     if (i >= sshapes_.size())
     {
-	ROS_ERROR("There is no static shape at index %u", i);
-	return NULL;
+        ROS_ERROR("There is no static shape at index %u", i);
+        return NULL;
     }
     return sshapes_[i];
 }
-

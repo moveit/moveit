@@ -1,13 +1,13 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
- * 
+ *
  *  Copyright (c) 2008, Willow Garage, Inc.
  *  All rights reserved.
- * 
+ *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
  *  are met:
- * 
+ *
  *   * Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
  *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
  *   * Neither the name of the Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
- * 
+ *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -46,46 +46,46 @@
 
 namespace shapes
 {
-    
+
     /** \brief Load a mesh from a set of vertices. Triangles are
-	constructed using index values from the triangles
-	vector. Triangle k has vertices at index values triangles[3k],
-	triangles[3k+1], triangles[3k+2]  */
+        constructed using index values from the triangles
+        vector. Triangle k has vertices at index values triangles[3k],
+        triangles[3k+1], triangles[3k+2]  */
     Mesh* createMeshFromVertices(const std::vector<btVector3> &vertices, const std::vector<unsigned int> &triangles);
-    
+
     /** \brief Load a mesh from a set of vertices. Every 3 vertices
-	are considered a triangle. Repeating vertices are identified
-	and the set of triangle indices is constructed. The normal at
-	each triangle is also computed */
+        are considered a triangle. Repeating vertices are identified
+        and the set of triangle indices is constructed. The normal at
+        each triangle is also computed */
     Mesh* createMeshFromVertices(const std::vector<btVector3> &source);
-    
+
     /** \brief Load a mesh from a file that contains a mesh that can be loaded by assimp */
     Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale = btVector3(1.0, 1.0, 1.0));
-    
+
     /** \brief Load a mesh from an assimp datastructure */
     Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const btVector3& scale);
-    
+
     /** \brief Create a copy of a shape */
     Shape* cloneShape(const Shape *shape);
-    
+
     /** \brief Create a copy of a static shape */
     StaticShape* cloneShape(const StaticShape *shape);
-    
+
     /** \brief Create a copy of a vector of shapes */
     std::vector<Shape*> cloneShapeVector(const std::vector<Shape*> &shapes);
-    
+
     /** \brief Free the memory for a vector of shapes */
     void deleteShapeVector(std::vector<Shape*>& shapes);
-    
+
     /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
-    Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg);    
+    Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg);
 
     /** \brief Construct the message that corresponds to the shape and optionally add padding. Return false on failure. */
     bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, double padding = 0.0);
-    
+
     /** \brief Print information about this shape */
     void printShape(const Shape *shape, std::ostream &out = std::cout);
-    
+
 }
 
 #endif

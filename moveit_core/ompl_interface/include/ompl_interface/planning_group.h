@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -48,54 +48,54 @@
 
 namespace ompl_interface
 {
-    
+
     class PlanningGroup
     {
     public:
-	
-	PlanningGroup(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModelPtr &kmodel,
-		      const planning_models::KinematicModel::JointModelGroup *jmg, const planning_models::Transforms &tf);
-	virtual ~PlanningGroup(void);
 
-	/* @brief Return the name of the group this planner is operating on */
-	const std::string& getName(void)
-	{
-	    return jmg_->getName();
-	}
+        PlanningGroup(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModelPtr &kmodel,
+                      const planning_models::KinematicModel::JointModelGroup *jmg, const planning_models::Transforms &tf);
+        virtual ~PlanningGroup(void);
 
-	bool setupPlanningContext(const planning_models::KinematicState &current_state,
-				  const moveit_msgs::RobotState &start_state,
-				  const moveit_msgs::Constraints &goal_constraints, 
-				  const moveit_msgs::Constraints &path_constraints);
-	
-	ompl::geometric::SimpleSetup& getPlanningContext(void)
-	{
-	    return ssetup_;
-	}
-	
+        /* @brief Return the name of the group this planner is operating on */
+        const std::string& getName(void)
+        {
+            return jmg_->getName();
+        }
+
+        bool setupPlanningContext(const planning_models::KinematicState &current_state,
+                                  const moveit_msgs::RobotState &start_state,
+                                  const moveit_msgs::Constraints &goal_constraints,
+                                  const moveit_msgs::Constraints &path_constraints);
+
+        ompl::geometric::SimpleSetup& getPlanningContext(void)
+        {
+            return ssetup_;
+        }
+
     protected:
-	
-	kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
-	ompl::base::StateSamplerPtr allocConstrainedSampler(const ompl::base::StateSpace *ss, const moveit_msgs::Constraints *constraints) const;
-	
-	planning_models::KinematicModelPtr                      kmodel_;
-	const planning_models::KinematicModel::JointModelGroup *jmg_;
-	KMStateSpace                                            state_space_;
-	ompl::geometric::SimpleSetup                            ssetup_;	
-	planning_models::Transforms                             tf_;
-	
-	unsigned int                                            max_goal_samples_;
-	unsigned int                                            max_sampling_attempts_;
-	
-	planning_models::KinematicState                         start_state_;
-	moveit_msgs::Constraints                                path_constraints_;
-	moveit_msgs::Constraints                                goal_constraints_;
-	
-	kinematic_constraints::IKConstraintSampler::IKAllocator ik_allocator_;
-	
-	ompl::RNG                                               rng_;
+
+        kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
+        ompl::base::StateSamplerPtr allocConstrainedSampler(const ompl::base::StateSpace *ss, const moveit_msgs::Constraints *constraints) const;
+
+        planning_models::KinematicModelPtr                      kmodel_;
+        const planning_models::KinematicModel::JointModelGroup *jmg_;
+        KMStateSpace                                            state_space_;
+        ompl::geometric::SimpleSetup                            ssetup_;
+        planning_models::Transforms                             tf_;
+
+        unsigned int                                            max_goal_samples_;
+        unsigned int                                            max_sampling_attempts_;
+
+        planning_models::KinematicState                         start_state_;
+        moveit_msgs::Constraints                                path_constraints_;
+        moveit_msgs::Constraints                                goal_constraints_;
+
+        kinematic_constraints::IKConstraintSampler::IKAllocator ik_allocator_;
+
+        ompl::RNG                                               rng_;
     };
-    
+
     typedef boost::shared_ptr<PlanningGroup> PlanningGroupPtr;
 }
 

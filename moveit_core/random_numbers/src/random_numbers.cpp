@@ -48,8 +48,8 @@ static boost::uint32_t firstSeed(void)
 {
     boost::scoped_ptr<int> mem(new int());
     return (boost::uint32_t)((boost::posix_time::microsec_clock::universal_time() -
-			      boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds() +
-			     (unsigned long long)(mem.get()));
+                              boost::posix_time::ptime(boost::date_time::min_date_time)).total_microseconds() +
+                             (unsigned long long)(mem.get()));
 }
 
 /// We use a different random number generator for the seeds of the
@@ -67,8 +67,8 @@ static boost::uint32_t nextSeed(void)
 }
 
 random_numbers::RNG::RNG(void) : generator_(nextSeed()),
-				 uniDist_(0, 1),
-				 uni_(generator_, uniDist_)
+                                 uniDist_(0, 1),
+                                 uni_(generator_, uniDist_)
 {
 }
 
