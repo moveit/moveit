@@ -912,8 +912,8 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
         updated_link_model_vector_.insert(updated_link_model_vector_.end(), links.begin(), links.end());
     }
     for (std::size_t i = 0; i < updated_link_model_vector_.size(); i++)
-	updated_link_model_name_vector_.push_back(updated_link_model_vector_[i]->getName());
-    
+        updated_link_model_name_vector_.push_back(updated_link_model_vector_[i]->getName());
+
 }
 
 planning_models::KinematicModel::JointModelGroup::~JointModelGroup(void)

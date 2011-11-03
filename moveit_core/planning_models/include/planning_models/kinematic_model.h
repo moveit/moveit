@@ -437,10 +437,10 @@ namespace planning_models
             }
 
             const std::vector<std::string>& getUpdatedLinkModelNames(void) const
-	    {
-		return updated_link_model_name_vector_;
-	    }
-	    
+            {
+                return updated_link_model_name_vector_;
+            }
+
             const std::map<std::string, unsigned int>& getJointVariablesIndexMap(void) const
             {
                 return joint_variables_index_map_;
@@ -493,8 +493,8 @@ namespace planning_models
             /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
             std::vector<const LinkModel*>            updated_link_model_vector_;
 
-	    /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
-	    std::vector<std::string>                 updated_link_model_name_vector_;
+            /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
+            std::vector<std::string>                 updated_link_model_name_vector_;
 
             /** \brief The number of variables necessary to describe this group of joints */
             unsigned int                             variable_count_;

@@ -222,6 +222,26 @@ namespace planning_models
                 return global_collision_body_transforms_;
             }
 
+            double getScale(void) const
+            {
+                return scale_;
+            }
+
+            double getPadding(void) const
+            {
+                return padding_;
+            }
+
+            void setPadding(double padding)
+            {
+                padding_ = padding;
+            }
+
+            void setScale(double scale)
+            {
+                scale_ = scale;
+            }
+
             /** \brief Recompute global_collision_body_transform */
             void computeTransform(void);
 
@@ -230,6 +250,9 @@ namespace planning_models
             /** \brief The link that owns this attached body */
             const LinkState                          *parent_link_state_;
             boost::shared_ptr<AttachedBodyProperties> properties_;
+
+            double                                    padding_;
+            double                                    scale_;
 
             /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
             std::vector<btTransform>                  global_collision_body_transforms_;

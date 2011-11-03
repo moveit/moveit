@@ -1,0 +1,27 @@
+<package>
+  <description brief="collision_detection">
+
+     collision_detection
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/collision_detection</url>
+
+  <depend package="rosconsole" />
+  <depend package="geometric_shapes"/>
+  <depend package="planning_models"/>
+  
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lcollision_detection"/>
+  </export>
+  
+  <platform os="ubuntu" version="10.04"/>
+  <platform os="ubuntu" version="10.10"/>
+  <platform os="ubuntu" version="11.04"/>
+  <platform os="ubuntu" version="11.10"/>
+
+</package>
+
+
