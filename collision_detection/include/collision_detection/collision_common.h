@@ -1,13 +1,13 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
- * 
+ *
  *  Copyright (c) 2011, Willow Garage, Inc.
  *  All rights reserved.
- * 
+ *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
  *  are met:
- * 
+ *
  *   * Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
  *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
  *   * Neither the name of the Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
- * 
+ *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -44,32 +44,32 @@ namespace collision_detection
 {
     enum BodyType
     {
-	ROBOT_LINK,
-	ROBOT_ATTACHED,
-	WORLD_OBJECT
+        ROBOT_LINK,
+        ROBOT_ATTACHED,
+        WORLD_OBJECT
     };
-        
+
     /** \brief Definition of a contact point */
     struct Contact
     {
-	/** \brief contact position */
-	btVector3   pos;     
-	/** \brief normal unit vector at contact */
-	btVector3   normal;  
-	/** \brief depth (penetration between bodies) */
-	double      depth;
-	
-	/** \brief The first body involved in the contact */
-	std::string body_name_1;
-	BodyType    body_type_1;
-	
-	/** \brief The first body involved in the contact */
-	std::string body_name_2;
-	BodyType    body_type_2;
-	
-	/** \brief If this contact is considered allowed (based on AllowedCollisionMatrix) */
-	bool        allowed;
+        /** \brief contact position */
+        btVector3   pos;
+        /** \brief normal unit vector at contact */
+        btVector3   normal;
+        /** \brief depth (penetration between bodies) */
+        double      depth;
+
+        /** \brief The first body involved in the contact */
+        std::string body_name_1;
+        BodyType    body_type_1;
+
+        /** \brief The first body involved in the contact */
+        std::string body_name_2;
+        BodyType    body_type_2;
+
+        /** \brief If this contact is considered allowed (based on AllowedCollisionMatrix) */
+        bool        allowed;
     };
 }
 
-#endif 
+#endif
