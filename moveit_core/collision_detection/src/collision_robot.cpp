@@ -1,13 +1,13 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
- * 
+ *
  *  Copyright (c) 2011, Willow Garage, Inc.
  *  All rights reserved.
- * 
+ *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
  *  are met:
- * 
+ *
  *   * Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
  *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
  *   * Neither the name of the Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
- * 
+ *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -45,14 +45,14 @@ double collision_detection::CollisionRobot::getLinkPadding(const std::string &li
 {
     std::map<std::string, double>::const_iterator it = link_padding_.find(link_name);
     if (it != link_padding_.end())
-	return it->second;
+        return it->second;
     else
-	return 0.0;
+        return 0.0;
 }
 
 void collision_detection::CollisionRobot::setLinkPadding(const std::map<std::string, double> &padding)
 {
-    link_padding_ = padding;	    
+    link_padding_ = padding;
 }
 
 const std::map<std::string, double> &collision_detection::CollisionRobot::getLinkPadding(void) const
@@ -69,14 +69,14 @@ double collision_detection::CollisionRobot::getLinkScale(const std::string &link
 {
     std::map<std::string, double>::const_iterator it = link_scale_.find(link_name);
     if (it != link_scale_.end())
-	return it->second;
+        return it->second;
     else
-	return 1.0;
+        return 1.0;
 }
 
 void collision_detection::CollisionRobot::setLinkScale(const std::map<std::string, double> &scale)
 {
-    link_scale_ = scale;	    
+    link_scale_ = scale;
 }
 
 const std::map<std::string, double> &collision_detection::CollisionRobot::getLinkScale(void) const

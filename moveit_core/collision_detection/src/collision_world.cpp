@@ -1,13 +1,13 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
- * 
+ *
  *  Copyright (c) 2011, Willow Garage, Inc.
  *  All rights reserved.
- * 
+ *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
  *  are met:
- * 
+ *
  *   * Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
  *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
  *   * Neither the name of the Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
- * 
+ *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -38,34 +38,34 @@
 #include <ros/console.h>
 
 bool collision_detection::CollisionWorld::isCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, std::vector<Contact> &contacts,
-						      unsigned int max_total, unsigned int max_per_pair) const
+                                                      unsigned int max_total, unsigned int max_per_pair) const
 {
     bool result = robot.isSelfCollision(state, contacts, max_total, max_per_pair);
     if (contacts.size() < max_total)
     {
-	bool result2 = isWorldCollision(robot, state, contacts, max_total, max_per_pair);
-	result = result && result2;
-    }	    
+        bool result2 = isWorldCollision(robot, state, contacts, max_total, max_per_pair);
+        result = result && result2;
+    }
     return result;
 }
 
-bool collision_detection::CollisionWorld::isCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm, 
-						      std::vector<Contact> &contacts, unsigned int max_total, unsigned int max_per_pair) const
+bool collision_detection::CollisionWorld::isCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm,
+                                                      std::vector<Contact> &contacts, unsigned int max_total, unsigned int max_per_pair) const
 {
     bool result = robot.isSelfCollision(state, acm, contacts, max_total, max_per_pair);
     if (contacts.size() < max_total)
     {
-	bool result2 = isWorldCollision(robot, state, acm, contacts, max_total, max_per_pair);
-	result = result && result2;
-    }	    
+        bool result2 = isWorldCollision(robot, state, acm, contacts, max_total, max_per_pair);
+        result = result && result2;
+    }
     return result;
 }
 
 void collision_detection::CollisionWorld::addObjects(const std::string &ns, const std::vector<shapes::Shape*> &shapes, const std::vector<btTransform> &poses)
 {
     if (shapes.size() != poses.size())
-	ROS_ERROR("Number of shapes and number of poses do not match. Not adding any objects to collision world.");
+        ROS_ERROR("Number of shapes and number of poses do not match. Not adding any objects to collision world.");
     else
-	for (std::size_t i = 0 ; i < shapes.size() ; ++i)
-	    addObject(ns, shapes[i], poses[i]);
+        for (std::size_t i = 0 ; i < shapes.size() ; ++i)
+            addObject(ns, shapes[i], poses[i]);
 }
