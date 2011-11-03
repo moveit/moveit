@@ -110,7 +110,11 @@ void planning_models::KinematicState::copyFrom(const KinematicState &ks)
         const std::vector<AttachedBody*> &ab = ks.link_state_vector_[i]->getAttachedBodyVector();
         LinkState *ls = link_state_map_[ks.link_state_vector_[i]->getName()];
         for (std::size_t j = 0 ; j < ab.size() ; ++j)
+        {
             ls->attachBody(ab[j]->properties_);
+            ls->attached_body_vector_.back()->setScale(ab[j]->getScale());
+            ls->attached_body_vector_.back()->setPadding(ab[j]->getPadding());
+        }
     }
     std::map<std::string, double> current_joint_values;
     ks.getStateValues(current_joint_values);
@@ -489,7 +493,7 @@ planning_models::KinematicState::AttachedBody::AttachedBody(const planning_model
                                                             const std::string &id, const boost::shared_ptr<shapes::ShapeVector> &shapes,
                                                             const std::vector<btTransform> &attach_trans,
                                                             const std::vector<std::string> &touch_links) :
-    parent_link_state_(parent_link_state)
+    parent_link_state_(parent_link_state), padding_(0.0), scale_(1.0)
 {
     properties_.reset(new AttachedBodyProperties());
     properties_->id_ = id;
@@ -504,7 +508,7 @@ planning_models::KinematicState::AttachedBody::AttachedBody(const planning_model
 
 planning_models::KinematicState::AttachedBody::AttachedBody(const planning_models::KinematicState::LinkState* parent_link_state,
                                                             const boost::shared_ptr<AttachedBodyProperties> &properties) :
-    parent_link_state_(parent_link_state), properties_(properties)
+    parent_link_state_(parent_link_state), properties_(properties), padding_(0.0), scale_(1.0)
 {
     global_collision_body_transforms_.resize(properties_->attach_trans_.size());
     for(std::size_t i = 0 ; i < global_collision_body_transforms_.size() ; ++i)

@@ -136,6 +136,13 @@ kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const IKAllocato
 
 bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
 {
+    if (!ik_alloc_)
+    {
+	ROS_ERROR("No IK allocator specified");
+	return false;
+    }
+    
+    // allocate the solver
     kb_ = ik_alloc_(jmg_);
     if (!kb_)
     {
@@ -155,6 +162,7 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
         return false;
     }
     
+    // compute a mapping between the group state and the IK solution
     ik_joint_bijection_.clear();    
     for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
     {
@@ -169,6 +177,7 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
             ik_joint_bijection_.push_back(it->second + k);
     }
 
+    // check if we need to transform the request into the coordinate frame expected by IK
     ik_frame_ = kb_->getBaseFrame();
     transform_ik_ = ik_frame_ != jmg_->getParentModel()->getModelFrame();
     if (transform_ik_)
@@ -177,6 +186,24 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
             ROS_ERROR_STREAM("The IK solver expects requests in frame '" << ik_frame_ << "' but this frame is not known to the sampler. Ignoring transformation (IK may fail)");
             transform_ik_ = false;
         }
+
+    // check if IK is performed for the desired link
+    bool wrong_link = false;
+    if (pc_)
+    {
+	if (kb_->getToolFrame() != pc_->getLinkModel()->getName())
+	    wrong_link = true;
+    }
+    else
+	if (kb_->getToolFrame() != oc_->getLinkModel()->getName())
+	    wrong_link = true;
+    if (wrong_link)
+    {
+	ROS_ERROR("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.", 
+		  pc_ ? pc_->getLinkModel()->getName().c_str() : oc_->getLinkModel()->getName().c_str(), kb_->getToolFrame().c_str());
+	return false;
+    }
+    
     return true;
 }
 
@@ -190,16 +217,10 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
     // load an IK solver if we need to 
     if (!kb_)
         if (!loadIKSolver())
-            return false;
-    
-    if (pc_)
-    {
-        if (!jmg_->supportsIK(pc_->getLinkModel()->getName()))
-            return false;        
-    }
-    else
-        if (!jmg_->supportsIK(oc_->getLinkModel()->getName()))
-            return false;        
+	{
+	    kb_.reset();
+	    return false;
+	}    
     
     for (unsigned int a = 0 ; a < max_attempts ; ++a)
     {
