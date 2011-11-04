@@ -38,16 +38,21 @@
 #define COLLISION_DETECTION_COLLISION_COMMON_
 
 #include <LinearMath/btTransform.h>
+#include <vector>
 #include <string>
 
 namespace collision_detection
 {
-    enum BodyType
+    namespace BodyTypes
     {
-        ROBOT_LINK,
-        ROBOT_ATTACHED,
-        WORLD_OBJECT
-    };
+        enum Type
+        {
+            ROBOT_LINK,
+            ROBOT_ATTACHED,
+            WORLD_OBJECT
+        };
+    }
+    typedef BodyTypes::Type BodyType;
 
     /** \brief Definition of a contact point */
     struct Contact
@@ -70,6 +75,39 @@ namespace collision_detection
         /** \brief If this contact is considered allowed (based on AllowedCollisionMatrix) */
         bool        allowed;
     };
+
+    /** \brief Representation of a collision checking result */
+    struct CollisionResult
+    {
+        CollisionResult(void) : collision(false),
+                                distance(0.0),
+                                direction(0.0, 0.0, 0.0)
+        {
+        }
+
+        bool                 collision;
+        double               distance;
+        btVector3            direction;
+        std::vector<Contact> contacts;
+    };
+
+    /** \brief Representation of a collision checking request */
+    struct CollisionRequest
+    {
+        CollisionRequest(void) : distance(false),
+                                 contacts(false),
+                                 max_contacts(1),
+                                 max_contacts_per_pair(1)
+        {
+        }
+
+        bool        distance;
+        bool        contacts;
+        std::size_t max_contacts;
+        std::size_t max_contacts_per_pair;
+    };
+
+
 }
 
 #endif

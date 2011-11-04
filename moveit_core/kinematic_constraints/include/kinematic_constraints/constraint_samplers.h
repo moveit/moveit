@@ -64,6 +64,9 @@ namespace kinematic_constraints
 
     typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
 
+    /// function type that allocates an IK solver
+    typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> IKAllocator;
+
     class JointConstraintSampler : public ConstraintSampler
     {
     public:
@@ -94,9 +97,6 @@ namespace kinematic_constraints
     class IKConstraintSampler : public ConstraintSampler
     {
     public:
-
-        /// function type that allocates an IK solver
-        typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> IKAllocator;
 
         IKConstraintSampler(const IKAllocator &ik_alloc,
                             const planning_models::KinematicModel::JointModelGroup *jmg,

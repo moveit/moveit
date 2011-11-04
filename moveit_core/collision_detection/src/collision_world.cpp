@@ -37,28 +37,19 @@
 #include "collision_detection/collision_world.h"
 #include <ros/console.h>
 
-bool collision_detection::CollisionWorld::isCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, std::vector<Contact> &contacts,
-                                                      unsigned int max_total, unsigned int max_per_pair) const
+void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const
 {
-    bool result = robot.isSelfCollision(state, contacts, max_total, max_per_pair);
-    if (contacts.size() < max_total)
-    {
-        bool result2 = isWorldCollision(robot, state, contacts, max_total, max_per_pair);
-        result = result && result2;
-    }
-    return result;
+    robot.checkSelfCollision(req, res, state);
+    if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+        checkWorldCollision(req, res, robot, state);
 }
 
-bool collision_detection::CollisionWorld::isCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm,
-                                                      std::vector<Contact> &contacts, unsigned int max_total, unsigned int max_per_pair) const
+/** \brief Check whether the model is in collision with itself or the world. Allowed collisions are ignored. */
+void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const
 {
-    bool result = robot.isSelfCollision(state, acm, contacts, max_total, max_per_pair);
-    if (contacts.size() < max_total)
-    {
-        bool result2 = isWorldCollision(robot, state, acm, contacts, max_total, max_per_pair);
-        result = result && result2;
-    }
-    return result;
+    robot.checkSelfCollision(req, res, state, acm);
+    if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+        checkWorldCollision(req, res, robot, state, acm);
 }
 
 void collision_detection::CollisionWorld::addObjects(const std::string &ns, const std::vector<shapes::Shape*> &shapes, const std::vector<btTransform> &poses)

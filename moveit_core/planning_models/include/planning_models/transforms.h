@@ -74,6 +74,7 @@ namespace planning_models
         std::map<std::string, btTransform> transforms_;
     };
 
+    typedef boost::shared_ptr<Transforms> TransformsPtr;
 }
 
 #endif

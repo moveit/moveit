@@ -291,7 +291,8 @@ namespace kinematic_constraints
     {
     public:
 
-        KinematicConstraintSet(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : model_(model), tf_(tf)
+        KinematicConstraintSet(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+            model_(model), tf_(tf)
         {
         }
 
@@ -351,8 +352,8 @@ namespace kinematic_constraints
         */
     protected:
 
-        const planning_models::KinematicModel          &model_;
-        const planning_models::Transforms              &tf_;
+        planning_models::KinematicModelPtr              model_;
+        planning_models::TransformsPtr                  tf_;
 
         std::vector<KinematicConstraintPtr>             kce_;
 

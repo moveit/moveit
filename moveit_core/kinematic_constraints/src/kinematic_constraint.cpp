@@ -441,7 +441,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     bool result = true;
     for (unsigned int i = 0 ; i < jc.size() ; ++i)
     {
-        JointConstraint *ev = new JointConstraint(model_, tf_);
+        JointConstraint *ev = new JointConstraint(*model_, *tf_);
         bool u = ev->use(jc[i]);
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));
@@ -455,7 +455,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     bool result = true;
     for (unsigned int i = 0 ; i < pc.size() ; ++i)
     {
-        PositionConstraint *ev = new PositionConstraint(model_, tf_);
+        PositionConstraint *ev = new PositionConstraint(*model_, *tf_);
         bool u = ev->use(pc[i]);
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));
@@ -469,7 +469,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     bool result = true;
     for (unsigned int i = 0 ; i < oc.size() ; ++i)
     {
-        OrientationConstraint *ev = new OrientationConstraint(model_, tf_);
+        OrientationConstraint *ev = new OrientationConstraint(*model_, *tf_);
         bool u = ev->use(oc[i]);
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));

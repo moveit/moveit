@@ -52,22 +52,10 @@ namespace collision_detection
         }
 
         /** \brief Check for self collision. Any collision between any pair of links is considered. Contacts are not computed. */
-        virtual bool isSelfCollision(const planning_models::KinematicState &state) const = 0;
+        virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const = 0;
 
         /** \brief Check for self collision. Allowed collisions are ignored. Contacts are not computed. */
-        virtual bool isSelfCollision(const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
-
-        /** \brief Check for self collision but also get the list of contacts (collisions). Any collision between any pair of links is considered.
-            The maximum total number of contacts to be returned can be specified (\e max_total),
-            and the maximum number of contacts per pair of objects that are in collision can also be specified (\e max_per_pair). */
-        virtual bool isSelfCollision(const planning_models::KinematicState &state, std::vector<Contact> &contacts,
-                                     unsigned int max_total = 1, unsigned int max_per_pair = 1) const = 0;
-
-        /** \brief Check for self collision but also get the list of contacts (collisions). Contacts from allowed collisions are still stored but do not count towards
-            the boolean return value of the function. The maximum total number of contacts to be returned can be specified (\e max_total),
-            and the maximum number of contacts per pair of objects that are in collision can also be specified (\e max_per_pair). */
-        virtual bool isSelfCollision(const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm,
-                                     std::vector<Contact> &contacts, unsigned int max_total = 1, unsigned int max_per_pair = 1) const = 0;
+        virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
 
         void setLinkPadding(const std::string &link_name, double padding);
         double getLinkPadding(const std::string &link_name) const;
@@ -85,6 +73,7 @@ namespace collision_detection
         std::map<std::string, double>      link_scale_;
     };
 
+    typedef boost::shared_ptr<CollisionRobot> CollisionRobotPtr;
 }
 
 #endif

@@ -61,46 +61,17 @@ namespace collision_detection
         /**********************************************************************/
 
         /** \brief Check whether the model is in collision with itself or the world. Any collisions are considered. */
-        bool isCollision(const CollisionRobot &robot, const planning_models::KinematicState &state) const
-        {
-            return robot.isSelfCollision(state) || isWorldCollision(robot, state);
-        }
+        void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
 
         /** \brief Check whether the model is in collision with itself or the world. Allowed collisions are ignored. */
-        bool isCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const
-        {
-            return robot.isSelfCollision(state, acm) || isWorldCollision(robot, state, acm);
-        }
-
-        /** \brief Check for self and world collisions but also get the list of contacts (collisions). Any collision is considered.
-            The maximum total number of contacts to be returned can be specified (\e max_total),
-            and the maximum number of contacts per pair of objects that are in collision can also be specified (\e max_per_pair). */
-        bool isCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, std::vector<Contact> &contacts,
-                         unsigned int max_total = 1, unsigned int max_per_pair = 1) const;
-
-        /** \brief Check for self and world collisions but also get the list of contacts (collisions). Contacts from allowed collisions are still stored but do not count towards
-            the boolean return value of the function. The maximum total number of contacts to be returned can be specified (\e max_total),
-            and the maximum number of contacts per pair of objects that are in collision can also be specified (\e max_per_pair). */
-        bool isCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm,
-                         std::vector<Contact> &contacts, unsigned int max_total = 1, unsigned int max_per_pair = 1) const;
+        void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
 
         /** \brief Check whether the model is in collision with the world. Any collisions between a robot link and the world are considered. Self collisions are not checked. */
-        virtual bool isWorldCollision(const CollisionRobot &robot, const planning_models::KinematicState &state) const = 0;
+        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const = 0;
 
         /** \brief Check whether the model is in collision with the world. Allowed collisions are ignored. Self collisions are not checked. */
-        virtual bool isWorldCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
+        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
 
-        /** \brief Check for world collisions but also get the list of contacts (collisions). Any collision between any pair of links is considered.
-            The maximum total number of contacts to be returned can be specified (\e max_total),
-            and the maximum number of contacts per pair of objects that are in collision can also be specified (\e max_per_pair). */
-        virtual bool isWorldCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, std::vector<Contact> &contacts,
-                                      unsigned int max_total = 1, unsigned int max_per_pair = 1) const = 0;
-
-        /** \brief Check for world collisions but also get the list of contacts (collisions). Contacts from allowed collisions are still stored but do not count towards
-            the boolean return value of the function. The maximum total number of contacts to be returned can be specified (\e max_total),
-            and the maximum number of contacts per pair of objects that are in collision can also be specified (\e max_per_pair). */
-        virtual bool isWorldCollision(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm,
-                                      std::vector<Contact> &contacts, unsigned int max_total = 1, unsigned int max_per_pair = 1) const = 0;
 
 
         /**********************************************************************/
@@ -152,6 +123,7 @@ namespace collision_detection
 
     };
 
+    typedef boost::shared_ptr<CollisionWorld> CollisionWorldPtr;
 }
 
 #endif

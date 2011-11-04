@@ -95,7 +95,7 @@ protected:
     planning_models::KinematicModelPtr                                     kmodel; 
     std::string                                                            ik_solver_name_;
     boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
-    kinematic_constraints::IKConstraintSampler::IKAllocator                ik_allocator_;
+    kinematic_constraints::IKAllocator                                     ik_allocator_;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
