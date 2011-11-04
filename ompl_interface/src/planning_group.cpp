@@ -49,6 +49,7 @@ ompl_interface::PlanningGroup::PlanningGroup(const planning_models::KinematicMod
 {
     planning_context_.start_state_.reset(new planning_models::KinematicState(planning_scene_->getKinematicModel()));
     planning_context_.ssetup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
+    planning_context_.ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
 }
 
 ompl_interface::PlanningGroup::~PlanningGroup(void)
@@ -194,9 +195,10 @@ ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedS
     if (km_state_space_.getOMPLSpace().get() != ss)
         ROS_FATAL("Attempted to allocate a state sampler for an unknown state space");
     const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(planning_context_.path_constraints_);
-    if (!cs)
-        ROS_FATAL("Unable to allocate constrained sampler");
-    return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
+    if (cs)
+        return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
+    else
+        return ss->allocDefaultStateSampler();
 }
 
 kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getConstraintsSampler(const moveit_msgs::Constraints &constr) const
@@ -285,14 +287,8 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
     km_state_space_.copyToOMPLState(ompl_start_state.get(), *planning_context_.start_state_);
     planning_context_.ssetup_.setStartState(ompl_start_state);
 
-    // ******************* set up the sampler (based on path constraints)
+    // ******************* set the path constraints to use
     planning_context_.path_constraints_ = path_constraints;
-    if (getConstraintsSampler(path_constraints))
-        // we need a new sampler for the state space
-        planning_context_.ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
-    else
-        planning_context_.ssetup_.getStateSpace()->clearStateSampleAllocator();
-
 
     // ******************* set up the goal representation, based on goal constraints
 
