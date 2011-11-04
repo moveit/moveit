@@ -44,7 +44,7 @@
 #include <kinematic_constraints/constraint_samplers.h>
 #include <planning_scene/planning_scene.h>
 
-#include "ompl_interface/km_state_space.h"
+#include "ompl_interface/detail/km_state_space.h"
 
 namespace ompl_interface
 {
@@ -69,7 +69,7 @@ namespace ompl_interface
         virtual ~PlanningGroup(void);
 
         /* @brief Return the name of the group this planner is operating on */
-        const std::string& getName(void)
+        const std::string& getName(void) const
         {
             return jmg_->getName();
         }
@@ -108,7 +108,6 @@ namespace ompl_interface
                                   const moveit_msgs::RobotState &start_state,
                                   const moveit_msgs::Constraints &goal_constraints,
                                   const moveit_msgs::Constraints &path_constraints);
-
 
     protected:
 

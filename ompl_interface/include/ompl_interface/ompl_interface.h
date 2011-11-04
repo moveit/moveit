@@ -37,8 +37,9 @@
 #ifndef OMPL_INTERFACE_OMPL_INTERFACE_
 #define OMPL_INTERFACE_OMPL_INTERFACE_
 
+#include "ompl_interface/planning_group.h"
+
 #include <ompl/tools/spaces/StateSpaceCollection.h>
-#include <ompl_interface/planning_group.h>
 #include <string>
 #include <map>
 
@@ -48,14 +49,23 @@ namespace ompl_interface
     {
     public:
 
-        OMPLInterface(void)
+        OMPLInterface(const planning_scene::PlanningScenePtr &scene) : scene_(scene)
         {
         }
 
+        virtual ~OMPLInterface(void)
+        {
+        }
+
+        void setup(void);
+
     protected:
 
-        ompl::StateSpaceCollection              ssc_;
+        virtual void configurePlanningGroup(const planning_models::KinematicModel::JointModelGroup *jmg);
+
+        planning_scene::PlanningScenePtr        scene_;
         std::map<std::string, PlanningGroupPtr> planning_groups_;
+        ompl::StateSpaceCollection              ssc_;
     };
 }
 

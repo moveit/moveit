@@ -17,6 +17,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(${PROJECT_NAME}
-  src/km_state_space.cpp
+  src/ompl_interface.cpp
   src/planning_group.cpp
+  src/detail/km_state_space.cpp
+  src/detail/state_validity_checker.cpp
   src/detail/threadsafe_state_storage.cpp)

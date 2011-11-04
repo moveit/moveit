@@ -47,44 +47,11 @@ namespace ompl_interface
     {
     public:
 
-        StateValidityChecker(const PlanningGroup *pg) :
-            ompl::base::StateValidityChecker(pg->getPlanningContext().ssetup_.getSpaceInformation()), pg_(pg)
-        {
-            cr_with_distance_.distance = true;
-        }
+        StateValidityChecker(const PlanningGroup *pg);
 
-        void updatePlanningContext(void)
-        {
-            tss_.reset(new TSStorage(pg->getPlanningContext().start_state_));
-        }
-
-        virtual bool isValid(const ompl::base::State *state) const
-        {
-            planning_models::KinematicState *kstate = tss_->getStateStorage();
-            pg_->getKMStateSpace().copyToKinematicState(*kstate, state);
-            if (!pg_->getPlanningContext()->kcs_->decide(*kstate).first)
-                return false;
-
-            collision_detection::CollisionResult res;
-            pg_->getPlanningScene()->checkCollision(cr_simple_, res, *kstate);
-            return res.collision;
-        }
-
-        virtual bool isValid(const ompl::base::State *state, double &dist) const
-        {
-            planning_models::KinematicState *kstate = tss_->getStateStorage();
-            pg_->getKMStateSpace().copyToKinematicState(*kstate, state);
-            std::pair<bool, double> &r = pg_->getPlanningContext()->kcs_->decide(*kstate);
-            if (!r.first)
-            {
-                dist = r.second;
-                return false;
-            }
-            collision_detection::CollisionResult res;
-            pg_->getPlanningScene()->checkCollision(cr_with_distance_, res, *kstate);
-            dist = res.distance;
-            return res.collision;
-        }
+        void updatePlanningContext(void);
+        virtual bool isValid(const ompl::base::State *state) const;
+        virtual bool isValid(const ompl::base::State *state, double &dist) const;
 
     protected:
 
