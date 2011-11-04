@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef OMPL_INTERFACE_STATE_SPACE_
-#define OMPL_INTERFACE_STATE_SPACE_
+#ifndef OMPL_INTERFACE_KM_STATE_SPACE_
+#define OMPL_INTERFACE_KM_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
 #include <ompl/tools/spaces/StateSpaceCollection.h>

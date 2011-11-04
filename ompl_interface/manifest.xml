@@ -15,13 +15,17 @@
   <depend package="kinematic_constraints"/>
   <depend package="kinematics_base"/>
   <depend package="moveit_msgs"/>
-<!--  <depend package="fcl_interface"/> -->
+  <depend package="collision_detection"/> 
+  <depend package="planning_scene"/> 
 
   <export>
-    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl_interface"/>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl_interface `rosboost-cfg --lflags thread`"/>
   </export>
 
   <platform os="ubuntu" version="10.04"/>
+  <platform os="ubuntu" version="10.10"/>
+  <platform os="ubuntu" version="11.04"/>
+  <platform os="ubuntu" version="11.10"/>
 
 </package>
 

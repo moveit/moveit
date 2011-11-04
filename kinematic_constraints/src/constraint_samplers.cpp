@@ -138,8 +138,8 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
 {
     if (!ik_alloc_)
     {
-	ROS_ERROR("No IK allocator specified");
-	return false;
+        ROS_ERROR("No IK allocator specified");
+        return false;
     }
     
     // allocate the solver
@@ -191,17 +191,17 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
     bool wrong_link = false;
     if (pc_)
     {
-	if (kb_->getToolFrame() != pc_->getLinkModel()->getName())
-	    wrong_link = true;
+        if (kb_->getToolFrame() != pc_->getLinkModel()->getName())
+            wrong_link = true;
     }
     else
-	if (kb_->getToolFrame() != oc_->getLinkModel()->getName())
-	    wrong_link = true;
+        if (kb_->getToolFrame() != oc_->getLinkModel()->getName())
+            wrong_link = true;
     if (wrong_link)
     {
-	ROS_ERROR("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.", 
-		  pc_ ? pc_->getLinkModel()->getName().c_str() : oc_->getLinkModel()->getName().c_str(), kb_->getToolFrame().c_str());
-	return false;
+        ROS_ERROR("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.", 
+                  pc_ ? pc_->getLinkModel()->getName().c_str() : oc_->getLinkModel()->getName().c_str(), kb_->getToolFrame().c_str());
+        return false;
     }
     
     return true;
@@ -217,10 +217,10 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
     // load an IK solver if we need to 
     if (!kb_)
         if (!loadIKSolver())
-	{
-	    kb_.reset();
-	    return false;
-	}    
+        {
+            kb_.reset();
+            return false;
+        }    
     
     for (unsigned int a = 0 ; a < max_attempts ; ++a)
     {

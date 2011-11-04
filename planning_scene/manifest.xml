@@ -1,0 +1,22 @@
+<package>
+  <description brief="planning_scene">
+
+     planning_scene
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planning_scene</url>
+  <depend package="moveit_msgs"/>
+  <depend package="urdf"/>
+  <depend package="srdf"/>
+  <depend package="planning_models"/>
+  <depend package="kinematic_constraints"/>
+  <depend package="collision_detection"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`"/>
+  </export>
+
+</package>

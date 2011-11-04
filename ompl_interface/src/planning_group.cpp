@@ -34,16 +34,19 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include <ompl_interface/planning_group.h>
+#include "ompl_interface/planning_group.h"
+#include "ompl_interface/detail/threadsafe_state_storage.h"
+
 #include <geometric_shapes/shape_operations.h>
 #include <geometric_shapes/body_operations.h>
 #include <planning_models/conversions.h>
 
-ompl_interface::PlanningGroup::PlanningGroup(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModelPtr &kmodel,
-                                             const planning_models::KinematicModel::JointModelGroup *jmg, const planning_models::Transforms &tf) :
-    kmodel_(kmodel), jmg_(jmg), state_space_(ssc, jmg), ssetup_(state_space_.getOMPLSpace()), tf_(tf),
-    max_goal_samples_(10), max_sampling_attempts_(10000), start_state_(kmodel)
+ompl_interface::PlanningGroup::PlanningGroup(const planning_models::KinematicModel::JointModelGroup *jmg,
+                                             const planning_scene::PlanningScenePtr &scene, ompl::StateSpaceCollection &ssc) :
+    jmg_(jmg), planning_scene_(scene), km_state_space_(ssc, jmg), planning_context_(km_state_space_),
+    max_goal_samples_(10), max_sampling_attempts_(10000)
 {
+    planning_context_.start_state_.reset(new planning_models::KinematicState(planning_scene_->getKinematicModel()));
 }
 
 ompl_interface::PlanningGroup::~PlanningGroup(void)
@@ -57,10 +60,9 @@ namespace ompl_interface
     class ConstrainedGoalSampler : public ompl::base::GoalLazySamples
     {
     public:
-        ConstrainedGoalSampler(const ompl::base::SpaceInformationPtr &si, const KMStateSpace &kspace, const planning_models::KinematicState &start_state,
-                               unsigned int max_sampling_attempts,  unsigned int max_goal_samples, const kinematic_constraints::ConstraintSamplerPtr &cs) :
-            ompl::base::GoalLazySamples(si, boost::bind(&ConstrainedGoalSampler::sampleC, this, _1, _2), false),
-            kss_(kspace), start_state_(start_state), max_sampling_attempts_(max_sampling_attempts), max_goal_samples_(max_goal_samples_), cs_(cs)
+        ConstrainedGoalSampler(const PlanningGroup *pg, const kinematic_constraints::ConstraintSamplerPtr &cs) :
+            ompl::base::GoalLazySamples(pg->getPlanningContext().ssetup_.getSpaceInformation(), boost::bind(&ConstrainedGoalSampler::sampleC, this, _1, _2), false),
+            pg_(pg), cs_(cs)
         {
             startSampling();
         }
@@ -69,68 +71,47 @@ namespace ompl_interface
 
         bool sampleC(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal)
         {
-            if (gls->samplingAttemptsCount() >= max_sampling_attempts_)
+            if (gls->samplingAttemptsCount() >= pg_->getMaximumSamplingAttempts())
                 return false;
-            if (gls->getStateCount() >= max_goal_samples_)
+            if (gls->getStateCount() >= pg_->getMaximumGoalSamples())
                 return false;
             std::vector<double> values;
-            if (cs_->sample(values, max_sampling_attempts_, &start_state_))
+            if (cs_->sample(values, pg_->getMaximumSamplingAttempts(), pg_->getPlanningContext().start_state_.get()))
             {
-                kss_.copyToOMPLState(newGoal, values);
+                pg_->getKMStateSpace().copyToOMPLState(newGoal, values);
                 return true;
             }
             return false;
         }
 
-        const KMStateSpace                         &kss_;
-        planning_models::KinematicState             start_state_;
-        unsigned int                                max_sampling_attempts_;
-        unsigned int                                max_goal_samples_;
+        const PlanningGroup                        *pg_;
         kinematic_constraints::ConstraintSamplerPtr cs_;
     };
 
     class ConstrainedGoalRegion : public ompl::base::GoalRegion
     {
     public:
-        ConstrainedGoalRegion(const ompl::base::SpaceInformationPtr &si, const KMStateSpace &kspace, const planning_models::KinematicState &start_state,
-                              const kinematic_constraints::KinematicConstraintSetPtr &ks) : ompl::base::GoalRegion(si), kspace_(kspace), start_state_(start_state), ks_(ks)
+        ConstrainedGoalRegion(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks) :
+            ompl::base::GoalRegion(pg->getPlanningContext().ssetup_.getSpaceInformation()), pg_(pg), ks_(ks),
+            tss_(*pg->getPlanningContext().start_state_)
         {
         }
 
         virtual ~ConstrainedGoalRegion(void)
         {
-            for (std::map<boost::thread::id, planning_models::KinematicState*>::iterator it = thread_states_.begin() ; it != thread_states_.end() ; ++it)
-                delete it->second;
-        }
-
-        planning_models::KinematicState* getStateStorage(void) const
-        {
-            planning_models::KinematicState *st = NULL;
-            lock_.lock();
-            std::map<boost::thread::id, planning_models::KinematicState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
-            if (it == thread_states_.end())
-            {
-                st = new planning_models::KinematicState(start_state_);
-                thread_states_[boost::this_thread::get_id()] = st;
-            }
-            else
-                st = it->second;
-            lock_.unlock();
-            return st;
         }
 
         virtual double distanceGoal(const ompl::base::State *st) const
         {
-            planning_models::KinematicState *s = getStateStorage();
-            kspace_.copyToKinematicState(*s, st);
-            const std::pair<bool, double> &r = ks_->decide(*s);
-            return r.second;
+            planning_models::KinematicState *s = tss_.getStateStorage();
+            pg_->getKMStateSpace().copyToKinematicState(*s, st);
+            return ks_->decide(*s).second;
         }
 
         virtual bool isSatisfied(const ompl::base::State *st, double *distance) const
         {
-            planning_models::KinematicState *s = getStateStorage();
-            kspace_.copyToKinematicState(*s, st);
+            planning_models::KinematicState *s = tss_.getStateStorage();
+            pg_->getKMStateSpace().copyToKinematicState(*s, st);
             const std::pair<bool, double> &r = ks_->decide(*s);
             if (distance)
                 *distance = r.second;
@@ -139,29 +120,26 @@ namespace ompl_interface
 
     protected:
 
-        const KMStateSpace                                                   &kspace_;
-        planning_models::KinematicState                                       start_state_;
-        kinematic_constraints::KinematicConstraintSetPtr                      ks_;
-        mutable std::map<boost::thread::id, planning_models::KinematicState*> thread_states_;
-        mutable boost::mutex                                                  lock_;
+        const PlanningGroup                             *pg_;
+        kinematic_constraints::KinematicConstraintSetPtr ks_;
+        TSStateStorage                                   tss_;
     };
 
     class ConstrainedSampler : public ompl::base::StateSampler
     {
     public:
-        ConstrainedSampler(const KMStateSpace &kspace, const planning_models::KinematicState &start_state,
-                           unsigned int max_attempts, const kinematic_constraints::ConstraintSamplerPtr &cs) :
-            ompl::base::StateSampler(kspace.getOMPLSpace().get()), kspace_(kspace), default_(kspace.getOMPLSpace()->allocDefaultStateSampler()),
-            start_state_(start_state), max_attempts_(max_attempts), cs_(cs)
+        ConstrainedSampler(const PlanningGroup *pg, const kinematic_constraints::ConstraintSamplerPtr &cs) :
+            ompl::base::StateSampler(pg->getKMStateSpace().getOMPLSpace().get()),
+            pg_(pg), default_(space_->allocDefaultStateSampler()), cs_(cs)
         {
         }
 
         bool sampleC(ompl::base::State *state)
         {
             std::vector<double> values;
-            if (cs_->sample(values, max_attempts_, &start_state_))
+            if (cs_->sample(values, pg_->getMaximumSamplingAttempts(), pg_->getPlanningContext().start_state_.get()))
             {
-                kspace_.copyToOMPLState(state, values);
+                pg_->getKMStateSpace().copyToOMPLState(state, values);
                 return true;
             }
             return false;
@@ -187,22 +165,20 @@ namespace ompl_interface
 
     private:
 
-        const KMStateSpace                         &kspace_;
+        const PlanningGroup                        *pg_;
         ompl::base::StateSamplerPtr                 default_;
-        planning_models::KinematicState             start_state_;
-        unsigned int                                max_attempts_;
         kinematic_constraints::ConstraintSamplerPtr cs_;
     };
 }
 
-ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocConstrainedSampler(const ompl::base::StateSpace *ss, const moveit_msgs::Constraints *constraints) const
+ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
 {
-    if (state_space_.getOMPLSpace().get() != ss)
+    if (km_state_space_.getOMPLSpace().get() != ss)
         ROS_FATAL("Attempted to allocate a state sampler for an unknown state space");
-    const boost::shared_ptr<kinematic_constraints::ConstraintSampler> &cs = getConstraintsSampler(*constraints);
+    const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(planning_context_.path_constraints_);
     if (!cs)
         ROS_FATAL("Unable to allocate constrained sampler");
-    return ompl::base::StateSamplerPtr(new ConstrainedSampler(state_space_, start_state_, max_sampling_attempts_, cs));
+    return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
 }
 
 kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getConstraintsSampler(const moveit_msgs::Constraints &constr) const
@@ -217,8 +193,10 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
             for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
                 if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
                 {
-                    boost::scoped_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(*kmodel_, tf_));
-                    boost::scoped_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(*kmodel_, tf_));
+                    boost::scoped_ptr<kinematic_constraints::PositionConstraint> pc
+                        (new kinematic_constraints::PositionConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
+                    boost::scoped_ptr<kinematic_constraints::OrientationConstraint> oc
+                        (new kinematic_constraints::OrientationConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
                     if (pc->use(constr.position_constraints[p]) && oc->use(constr.orientation_constraints[o]))
                         sampler.reset(new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, *pc, *oc));
                 }
@@ -227,7 +205,8 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
         for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
             if (jmg_->supportsIK(constr.position_constraints[p].link_name))
             {
-                boost::scoped_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(*kmodel_, tf_));
+                boost::scoped_ptr<kinematic_constraints::PositionConstraint> pc
+                    (new kinematic_constraints::PositionConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
                 if (pc->use(constr.position_constraints[p]))
                     sampler.reset(new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, *pc));
             }
@@ -236,7 +215,8 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
         for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
             if (jmg_->supportsIK(constr.orientation_constraints[o].link_name))
             {
-                boost::scoped_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(*kmodel_, tf_));
+                boost::scoped_ptr<kinematic_constraints::OrientationConstraint> oc
+                    (new kinematic_constraints::OrientationConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
                 if (oc->use(constr.orientation_constraints[o]))
                     sampler.reset(new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, *oc));
             }
@@ -248,7 +228,7 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
         std::vector<kinematic_constraints::JointConstraint> jc;
         for (std::size_t i = 0 ; i < constr.joint_constraints.size() ; ++i)
         {
-            kinematic_constraints::JointConstraint j(*kmodel_, tf_);
+            kinematic_constraints::JointConstraint j(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms());
             if (j.use(constr.joint_constraints[i]))
                 jc.push_back(j);
         }
@@ -274,43 +254,40 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
         return false;
     }
 
-
     // ******************* set up the starting state for the plannig context
     // get the starting state
-    start_state_ = current_state;
-    planning_models::robotStateToKinematicState(tf_, start_state, start_state_);
-
-    // \TODO set the collision world to this full robot state
-
+    *planning_context_.start_state_ = current_state;
+    planning_models::robotStateToKinematicState(*planning_scene_->getTransforms(), start_state, *planning_context_.start_state_);
 
     // convert the input state to the corresponding OMPL state
-    ompl::base::ScopedState<> ompl_start_state(state_space_.getOMPLSpace());
-    state_space_.copyToOMPLState(ompl_start_state.get(), start_state_);
-    ssetup_.setStartState(ompl_start_state);
+    ompl::base::ScopedState<> ompl_start_state(km_state_space_.getOMPLSpace());
+    km_state_space_.copyToOMPLState(ompl_start_state.get(), *planning_context_.start_state_);
+    planning_context_.ssetup_.setStartState(ompl_start_state);
 
     // ******************* set up the sampler (based on path constraints)
-    path_constraints_ = path_constraints;
+    planning_context_.path_constraints_ = path_constraints;
     if (getConstraintsSampler(path_constraints))
         // we need a new sampler for the state space
-        ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocConstrainedSampler, this, _1, &path_constraints_));
+        planning_context_.ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
     else
-            ssetup_.getStateSpace()->clearStateSampleAllocator();
+        planning_context_.ssetup_.getStateSpace()->clearStateSampleAllocator();
 
 
     // ******************* set up the goal representation, based on goal constraints
 
     // first, we add path constraints to the goal ones
-    goal_constraints_ = kinematic_constraints::mergeConstraints(goal_constraints, path_constraints);
-    const kinematic_constraints::ConstraintSamplerPtr &gsampler = getConstraintsSampler(goal_constraints_);
+    planning_context_.goal_constraints_ = kinematic_constraints::mergeConstraints(goal_constraints, path_constraints);
+    const kinematic_constraints::ConstraintSamplerPtr &gsampler = getConstraintsSampler(planning_context_.goal_constraints_);
     if (gsampler)
-        ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalSampler(ssetup_.getSpaceInformation(), state_space_, start_state_, max_sampling_attempts_, max_goal_samples_, gsampler)));
+        planning_context_.ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalSampler(this, gsampler)));
     else
     {
         // the constraints are such that we cannot easily sample the goal region,
         // so we use a simpler goal region specification
-        kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(*kmodel_, tf_));
-        ks->add(goal_constraints_);
-        ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalRegion(ssetup_.getSpaceInformation(), state_space_, start_state_, ks)));
+        kinematic_constraints::KinematicConstraintSetPtr ks
+            (new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
+        ks->add(planning_context_.goal_constraints_);
+        planning_context_.ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalRegion(this, ks)));
     }
 
     return true;

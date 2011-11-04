@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <ompl_interface/state_space.h>
+#include "ompl_interface/km_state_space.h"
 #include <ros/console.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
