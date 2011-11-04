@@ -1,13 +1,13 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
-* 
+*
 *  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
-* 
+*
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions
 *  are met:
-* 
+*
 *   * Redistributions of source code must retain the above copyright
 *     notice, this list of conditions and the following disclaimer.
 *   * Redistributions in binary form must reproduce the above
@@ -17,7 +17,7 @@
 *   * Neither the name of the Willow Garage nor the names of its
 *     contributors may be used to endorse or promote products derived
 *     from this software without specific prior written permission.
-* 
+*
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -43,69 +43,69 @@
 
 namespace srdf
 {
-    
+
     class Model
     {
     public:
 
-	struct Group
-	{
-	    std::string                                       name_;
-	    std::vector<std::pair<std::string, std::string> > chains_;
-	    std::vector<std::string>                          joints_;
-	    std::vector<std::string>                          links_;
-	    std::vector<std::string>                          subgroups_;
-	};
-	
-	struct VirtualJoint
-	{
-	    std::string name_;
-	    std::string type_;
-	    std::string parent_frame_;
-	    std::string child_link_;
-	};
-	
-	struct EndEffector
-	{
-	    std::string name_;
-	    std::string parent_link_;
-	    std::string component_group_;
-	};
-		    
-	const std::string& getName(void) const
-	{
-	    return name_;
-	}
-	
-	const std::vector<std::pair<std::string, std::string> >& getDisabledCollisions(void) const
-	{
-	    return disabled_collisions_;
-	}
-	
-	const std::vector<Group>& getGroups(void) const
-	{
-	    return groups_;
-	}
-	
-	const std::vector<VirtualJoint>& getVirtualJoints(void) const
-	{
-	    return virtual_joints_;
-	}
+        struct Group
+        {
+            std::string                                       name_;
+            std::vector<std::pair<std::string, std::string> > chains_;
+            std::vector<std::string>                          joints_;
+            std::vector<std::string>                          links_;
+            std::vector<std::string>                          subgroups_;
+        };
 
-	const std::vector<EndEffector>& getEndEffectors(void) const
-	{
-	    return end_effectors_;
-	}
-	
-	//    private:
+        struct VirtualJoint
+        {
+            std::string name_;
+            std::string type_;
+            std::string parent_frame_;
+            std::string child_link_;
+        };
 
-	std::string                                       name_;
-	std::vector<Group>                                groups_;
-	std::vector<VirtualJoint>                         virtual_joints_;
-	std::vector<EndEffector>                          end_effectors_;
-	std::vector<std::pair<std::string, std::string> > disabled_collisions_;
-	
+        struct EndEffector
+        {
+            std::string name_;
+            std::string parent_link_;
+            std::string component_group_;
+        };
+
+        const std::string& getName(void) const
+        {
+            return name_;
+        }
+
+        const std::vector<std::pair<std::string, std::string> >& getDisabledCollisions(void) const
+        {
+            return disabled_collisions_;
+        }
+
+        const std::vector<Group>& getGroups(void) const
+        {
+            return groups_;
+        }
+
+        const std::vector<VirtualJoint>& getVirtualJoints(void) const
+        {
+            return virtual_joints_;
+        }
+
+        const std::vector<EndEffector>& getEndEffectors(void) const
+        {
+            return end_effectors_;
+        }
+
+        //    private:
+
+        std::string                                       name_;
+        std::vector<Group>                                groups_;
+        std::vector<VirtualJoint>                         virtual_joints_;
+        std::vector<EndEffector>                          end_effectors_;
+        std::vector<std::pair<std::string, std::string> > disabled_collisions_;
+
     };
-    
+
 }
 #endif

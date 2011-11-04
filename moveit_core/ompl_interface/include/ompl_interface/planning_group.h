@@ -109,6 +109,11 @@ namespace ompl_interface
                                   const moveit_msgs::Constraints &goal_constraints,
                                   const moveit_msgs::Constraints &path_constraints);
 
+        bool solve(double timeout)
+        {
+            return planning_context_.ssetup_.solve(timeout);
+        }
+
     protected:
 
         kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
