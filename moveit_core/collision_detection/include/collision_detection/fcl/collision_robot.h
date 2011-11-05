@@ -32,54 +32,41 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author Ioan Sucan */
 
-#ifndef COLLISION_DETECTION_COLLISION_ROBOT_
-#define COLLISION_DETECTION_COLLISION_ROBOT_
+#ifndef COLLISION_DETECTION_FCL_COLLISION_ROBOT_
+#define COLLISION_DETECTION_FCL_COLLISION_ROBOT_
 
-#include "collision_detection/collision_matrix.h"
-#include <planning_models/kinematic_state.h>
+#include "collision_detection/collision_robot.h"
+#include <fcl/broad_phase_collision.h>
+#include <boost/shared_ptr.hpp>
 
 namespace collision_detection
 {
 
-    class CollisionRobot
+    class CollisionRobotFCL : public CollisionRobot
     {
     public:
 
-        CollisionRobot(const planning_models::KinematicModelPtr &kmodel, double padding = 0.0, double scale = 1.0);
-
-        virtual ~CollisionRobot(void)
-        {
-        }
+        CollisionRobotFCL(const planning_models::KinematicModelPtr &kmodel, double padding = 0.0, double scale = 1.0);
 
         /** \brief Check for self collision. Any collision between any pair of links is considered. Contacts are not computed. */
-        virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const = 0;
+        virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const;
 
         /** \brief Check for self collision. Allowed collisions are ignored. Contacts are not computed. */
-        virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
-
-        void setLinkPadding(const std::string &link_name, double padding);
-        double getLinkPadding(const std::string &link_name) const;
-        void setLinkPadding(const std::map<std::string, double> &padding);
-        const std::map<std::string, double> &getLinkPadding(void) const;
-        void setLinkScale(const std::string &link_name, double scale);
-        double getLinkScale(const std::string &link_name) const;
-        void setLinkScale(const std::map<std::string, double> &scale);
-        const std::map<std::string, double> &getLinkScale(void) const;
-        void setPadding(double padding);
-        void setScale(double scale);
+        virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
 
     protected:
 
         virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
 
-        planning_models::KinematicModelPtr kmodel_;
-        std::map<std::string, double>      link_padding_;
-        std::map<std::string, double>      link_scale_;
+        fcl::CollisionObject* createCollisionObject(const shapes::StaticShape *shape, double scale, double padding) const;
+        fcl::CollisionObject* createCollisionObject(const shapes::Shape *shape, double scale, double padding) const;
+
+        boost::shared_ptr<fcl::BroadPhaseCollisionManager> geom_manager_;
+        std::map<std::string, fcl::CollisionObject*>       geom_map_;
     };
 
-    typedef boost::shared_ptr<CollisionRobot> CollisionRobotPtr;
 }
 
 #endif
