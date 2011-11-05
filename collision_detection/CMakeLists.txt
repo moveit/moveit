@@ -28,4 +28,6 @@ rosbuild_add_library(${PROJECT_NAME}
   src/collision_world.cpp 
   src/collision_robot.cpp
   src/collision_matrix.cpp
-  src/collision_objects.cpp)
+  src/collision_objects.cpp
+  src/fcl/collision_robot.cpp
+  src/fcl/collision_world.cpp)

@@ -52,7 +52,7 @@ namespace collision_detection
         {
         }
 
-        ~CollisionWorld(void)
+        virtual ~CollisionWorld(void)
         {
         }
 

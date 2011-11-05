@@ -339,7 +339,7 @@ namespace planning_models
                 return collision_origin_transform_;
             }
 
-            const boost::shared_ptr<shapes::Shape>& getLinkShape(void) const
+            const boost::shared_ptr<shapes::Shape>& getShape(void) const
             {
                 return shape_;
             }
