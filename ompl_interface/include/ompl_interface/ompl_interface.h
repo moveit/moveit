@@ -45,6 +45,14 @@
 
 namespace ompl_interface
 {
+
+    struct PlannerConfigs
+    {
+        std::string                        name;
+        std::string                        group;
+        std::map<std::string, std::string> config;
+    };
+
     class OMPLInterface
     {
     public:
@@ -57,12 +65,17 @@ namespace ompl_interface
         {
         }
 
-        void setup(void);
-	bool solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
-	
-    protected:
+        void setup(const std::vector<PlannerConfigs> &pconfig);
 
-        virtual void configurePlanningGroup(const planning_models::KinematicModel::JointModelGroup *jmg);
+        const PlanningGroupPtr& getPlanningConfiguration(const std::string &config) const;
+
+        bool solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
+        bool solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints, double timeout);
+        bool solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints,
+                   const moveit_msgs::Constraints &path_constraints, double timeout);
+
+
+    protected:
 
         planning_scene::PlanningScenePtr        scene_;
         std::map<std::string, PlanningGroupPtr> planning_groups_;

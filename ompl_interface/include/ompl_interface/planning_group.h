@@ -56,24 +56,25 @@ namespace ompl_interface
         }
 
         ompl::geometric::SimpleSetup                     ssetup_;
-	ompl::ParallelPlan                               pplan_;
-	planning_models::KinematicStatePtr               start_state_;
+        ompl::ParallelPlan                               pplan_;
+        planning_models::KinematicStatePtr               start_state_;
         moveit_msgs::Constraints                         path_constraints_;
         moveit_msgs::Constraints                         goal_constraints_;
         kinematic_constraints::KinematicConstraintSetPtr kset_;
     };
-    
+
     class PlanningGroup
     {
     public:
 
-        PlanningGroup(const planning_models::KinematicModel::JointModelGroup *jmg, const planning_scene::PlanningScenePtr &scene, ompl::StateSpaceCollection &ssc);
+        PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
+                      const std::map<std::string, std::string> &config, const planning_scene::PlanningScenePtr &scene, ompl::StateSpaceCollection &ssc);
         virtual ~PlanningGroup(void);
 
-        /* @brief Return the name of the group this planner is operating on */
+        /* \brief Return the name of this planning group. This is not always the same as the name of the joint group the planner is operating on */
         const std::string& getName(void) const
         {
-            return jmg_->getName();
+            return name_;
         }
 
         const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void) const
@@ -106,20 +107,23 @@ namespace ompl_interface
             return max_goal_samples_;
         }
 
-        bool setupPlanningContext(const planning_models::KinematicState &current_state,
-                                  const moveit_msgs::RobotState &start_state,
+        bool setupPlanningContext(const planning_models::KinematicState &start_state,
                                   const moveit_msgs::Constraints &goal_constraints,
                                   const moveit_msgs::Constraints &path_constraints);
 
         bool solve(double timeout, unsigned int count);
 
-	void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
-	
+        bool getSolutionPath(moveit_msgs::RobotTrajectory &traj) const;
+        void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
+
     protected:
 
         kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
         ompl::base::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
+        ompl::base::PlannerPtr plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
+                                                const std::map<std::string, std::string> &config) const;
 
+        std::string                                             name_;
         const planning_models::KinematicModel::JointModelGroup *jmg_;
         planning_scene::PlanningScenePtr                        planning_scene_;
         KMStateSpace                                            km_state_space_;
