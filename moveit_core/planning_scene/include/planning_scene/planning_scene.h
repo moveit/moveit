@@ -49,7 +49,8 @@ namespace planning_scene
     public:
         PlanningScene(const urdf::Model &urdf_model, const srdf::Model &srdf_model) :
             kmodel_(new planning_models::KinematicModel(urdf_model, srdf_model)),
-            tf_(new planning_models::Transforms(kmodel_->getModelFrame()))
+            tf_(new planning_models::Transforms(kmodel_->getModelFrame())),
+	    kstate_(kmodel_)
         {
         }
 
@@ -62,6 +63,11 @@ namespace planning_scene
             return kmodel_;
         }
 
+	const planning_models::KinematicState& getCurrentState(void) const
+	{
+	    return kstate_;
+	}
+	
         const planning_models::TransformsPtr& getTransforms(void) const
         {
             return tf_;
@@ -92,6 +98,7 @@ namespace planning_scene
 
         planning_models::KinematicModelPtr            kmodel_;
         planning_models::TransformsPtr                tf_;
+	planning_models::KinematicState               kstate_;	
         collision_detection::CollisionRobotPtr        crobot_;
         collision_detection::CollisionWorldPtr        cworld_;
         collision_detection::AllowedCollisionMatrix   acm_;

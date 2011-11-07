@@ -38,7 +38,7 @@
 #define OMPL_INTERFACE_OMPL_INTERFACE_
 
 #include "ompl_interface/planning_group.h"
-
+#include <moveit_msgs/GetMotionPlan.h>
 #include <ompl/tools/spaces/StateSpaceCollection.h>
 #include <string>
 #include <map>
@@ -58,7 +58,8 @@ namespace ompl_interface
         }
 
         void setup(void);
-
+	bool solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
+	
     protected:
 
         virtual void configurePlanningGroup(const planning_models::KinematicModel::JointModelGroup *jmg);
