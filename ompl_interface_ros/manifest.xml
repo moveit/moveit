@@ -1,0 +1,18 @@
+<package>
+  <description brief="ompl_interface_ros">
+
+     ompl_interface_ros
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/ompl_interface_ros</url>
+
+  <depend package="roscpp"/>
+  <depend package="rosconsole"/>
+  <depend package="ompl_interface"/>
+  <depend package="moveit_msgs"/>
+</package>
+
+
