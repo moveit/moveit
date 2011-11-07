@@ -38,6 +38,7 @@
 #define OMPL_INTERFACE_PLANNING_GROUP_
 
 #include <ompl/tools/spaces/StateSpaceCollection.h>
+#include <ompl/tools/multiplan/ParallelPlan.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/base/GoalLazySamples.h>
 #include <moveit_msgs/GetMotionPlan.h>
@@ -50,17 +51,18 @@ namespace ompl_interface
 {
     struct PlanningContext
     {
-        PlanningContext(const KMStateSpace &ks) : ssetup_(ks.getOMPLSpace())
+        PlanningContext(const KMStateSpace &ks) : ssetup_(ks.getOMPLSpace()), pplan_(ssetup_.getProblemDefinition())
         {
         }
 
         ompl::geometric::SimpleSetup                     ssetup_;
-        planning_models::KinematicStatePtr               start_state_;
+	ompl::ParallelPlan                               pplan_;
+	planning_models::KinematicStatePtr               start_state_;
         moveit_msgs::Constraints                         path_constraints_;
         moveit_msgs::Constraints                         goal_constraints_;
         kinematic_constraints::KinematicConstraintSetPtr kset_;
     };
-
+    
     class PlanningGroup
     {
     public:
@@ -109,11 +111,10 @@ namespace ompl_interface
                                   const moveit_msgs::Constraints &goal_constraints,
                                   const moveit_msgs::Constraints &path_constraints);
 
-        bool solve(double timeout)
-        {
-            return planning_context_.ssetup_.solve(timeout);
-        }
+        bool solve(double timeout, unsigned int count);
 
+	void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
+	
     protected:
 
         kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;

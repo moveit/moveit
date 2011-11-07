@@ -311,3 +311,62 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
 
     return true;
 }
+
+bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
+{
+    return planning_context_.ssetup_.solve(timeout);
+}
+
+void ompl_interface::PlanningGroup::fillResponse(moveit_msgs::GetMotionPlan::Response &res) const
+{	
+    planning_models::kinematicStateToRobotState(*planning_context_.start_state_, res.robot_state);
+    res.planning_time = ros::Duration(planning_context_.ssetup_.getLastPlanComputationTime());
+    const ompl::geometric::PathGeometric &pg = planning_context_.ssetup_.getSolutionPath();
+    planning_models::KinematicState ks = *planning_context_.start_state_;
+    const std::vector<planning_models::KinematicModel::JointModel*> &jnt = planning_scene_->getKinematicModel()->getJointModels();
+    std::vector<const planning_models::KinematicModel::JointModel*> onedof;
+    std::vector<const planning_models::KinematicModel::JointModel*> mdof;    
+    res.trajectory.joint_trajectory.header.frame_id = planning_scene_->getKinematicModel()->getModelFrame();
+    for (std::size_t i = 0 ; i < jnt.size() ; ++i)
+	if (jnt[i]->getVariableCount() == 1)
+	{
+	    res.trajectory.joint_trajectory.joint_names.push_back(jnt[i]->getName());
+	    onedof.push_back(jnt[i]);
+	}
+    	else
+	{
+	    res.trajectory.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
+	    res.trajectory.multi_dof_joint_trajectory.frame_ids.push_back(planning_scene_->getKinematicModel()->getModelFrame());
+	    res.trajectory.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
+	    mdof.push_back(jnt[i]);
+	}
+    if (!onedof.empty())
+	res.trajectory.joint_trajectory.points.resize(pg.states.size());
+    if (!mdof.empty())
+	res.trajectory.multi_dof_joint_trajectory.points.resize(pg.states.size());
+    for (std::size_t i = 0 ; i < pg.states.size() ; ++i)
+    {
+	km_state_space_.copyToKinematicState(ks, pg.states[i]);
+	if (!onedof.empty())
+	{
+	    res.trajectory.joint_trajectory.points[i].positions.resize(onedof.size());
+	    for (std::size_t j = 0 ; j < onedof.size() ; ++j)
+		res.trajectory.joint_trajectory.points[i].positions[j] = ks.getJointState(onedof[j]->getName())->getVariableValues()[0];
+	    res.trajectory.joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+	}
+	if (!mdof.empty())
+	{
+	    res.trajectory.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
+	    for (std::size_t j = 0 ; j < mdof.size() ; ++j)
+	    {
+		const btTransform &t = ks.getJointState(mdof[j]->getName())->getVariableTransform();
+		const btQuaternion &q = t.getRotation();
+		geometry_msgs::Pose &p = res.trajectory.multi_dof_joint_trajectory.points[i].poses[j];
+		p.position.x = t.getOrigin().getX(); p.position.y = t.getOrigin().getY(); p.position.z = t.getOrigin().getZ();
+		p.orientation.x = q.getX(); p.orientation.y = q.getY(); p.orientation.z = q.getZ(); p.orientation.w = q.getW();	
+	    }
+	    res.trajectory.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+	}
+    }
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+}
