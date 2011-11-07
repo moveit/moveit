@@ -42,14 +42,74 @@
 #include <geometric_shapes/body_operations.h>
 #include <planning_models/conversions.h>
 
-ompl_interface::PlanningGroup::PlanningGroup(const planning_models::KinematicModel::JointModelGroup *jmg,
+#include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/rrt/pRRT.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/LazyRRT.h>
+#include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/sbl/SBL.h>
+#include <ompl/geometric/planners/sbl/pSBL.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
+#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
+#include <ompl/contrib/rrt_star/RRTstar.h>
+#include <ompl/geometric/planners/prm/PRM.h>
+
+ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
+                                                                       const std::map<std::string, std::string> &config) const
+{
+    ompl::base::Planner *p = NULL;
+    if (planner == "geometric::RRT")
+        p = new ompl::geometric::RRT(si);
+    else if (planner == "geometric::RRTConnect")
+        p = new ompl::geometric::RRTConnect(si);
+    else if (planner == "geometric::pRRT")
+        p = new ompl::geometric::pRRT(si);
+    else if (planner == "geometric::LazyRRT")
+        p = new ompl::geometric::LazyRRT(si);
+    else if (planner == "geometric::EST")
+        p = new ompl::geometric::EST(si);
+    else if (planner == "geometric::SBL")
+        p = new ompl::geometric::SBL(si);
+    else if (planner == "geometric::pSBL")
+        p = new ompl::geometric::pSBL(si);
+    else if (planner == "geometric::KPIECE")
+        p = new ompl::geometric::KPIECE1(si);
+    else if (planner == "geometric::BKPIECE")
+        p = new ompl::geometric::BKPIECE1(si);
+    else if (planner == "geometric::LBKPIECE")
+        p = new ompl::geometric::LBKPIECE1(si);
+    else if (planner == "geometric::RRTStar")
+        p = new ompl::geometric::RRTstar(si);
+    else if (planner == "geometric::PRM")
+        p = new ompl::geometric::PRM(si);
+    else
+        ROS_WARN("Unknown planner type: %s", planner.c_str());
+    if (p)
+        p->setParams(config);
+    return ompl::base::PlannerPtr(p);
+}
+
+ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
+                                             const std::map<std::string, std::string> &config,
                                              const planning_scene::PlanningScenePtr &scene, ompl::StateSpaceCollection &ssc) :
-    jmg_(jmg), planning_scene_(scene), km_state_space_(ssc, jmg), planning_context_(km_state_space_),
+    name_(name), jmg_(jmg), planning_scene_(scene), km_state_space_(ssc, jmg), planning_context_(km_state_space_),
     max_goal_samples_(10), max_sampling_attempts_(10000)
 {
     planning_context_.start_state_.reset(new planning_models::KinematicState(planning_scene_->getKinematicModel()));
     planning_context_.ssetup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
     planning_context_.ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
+    if (!config.empty())
+    {
+        std::map<std::string, std::string>::const_iterator it = config.find("type");
+        if (it == config.end())
+            ROS_WARN("Attribute 'type' not specified for planning group '%s'", name_.c_str());
+        else
+        {
+            std::map<std::string, std::string> rest = config; rest.erase("type");
+            planning_context_.ssetup_.setPlannerAllocator(boost::bind(&PlanningGroup::plannerAllocator, this, _1, name, rest));
+        }
+    }
 }
 
 ompl_interface::PlanningGroup::~PlanningGroup(void)
@@ -91,7 +151,7 @@ namespace ompl_interface
             for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
                 if (cs_->sample(values, ma, pg_->getPlanningContext().start_state_.get()))
                 {
-                    s->getJointStateGroup(pg_->getName())->setStateValues(values);
+                    s->getJointStateGroup(pg_->getJointModelGroup()->getName())->setStateValues(values);
                     if (ks_->decide(*s).first)
                     {
                         pg_->getKMStateSpace().copyToOMPLState(newGoal, values);
@@ -258,8 +318,7 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
     return sampler;
 }
 
-bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::KinematicState &current_state,
-                                                         const moveit_msgs::RobotState &start_state,
+bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::KinematicState &start_state,
                                                          const moveit_msgs::Constraints &goal_constraints,
                                                          const moveit_msgs::Constraints &path_constraints)
 {
@@ -275,9 +334,8 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
     }
 
     // ******************* set up the starting state for the plannig context
-    // get the starting state
-    *planning_context_.start_state_ = current_state;
-    planning_models::robotStateToKinematicState(*planning_scene_->getTransforms(), start_state, *planning_context_.start_state_);
+    // set the starting state
+    *planning_context_.start_state_ = start_state;
 
     // notify the state validity checker about the new starting state
     static_cast<StateValidityChecker*>(planning_context_.ssetup_.getStateValidityChecker().get())->updatePlanningContext();
@@ -317,56 +375,65 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
     return planning_context_.ssetup_.solve(timeout);
 }
 
-void ompl_interface::PlanningGroup::fillResponse(moveit_msgs::GetMotionPlan::Response &res) const
-{	
-    planning_models::kinematicStateToRobotState(*planning_context_.start_state_, res.robot_state);
-    res.planning_time = ros::Duration(planning_context_.ssetup_.getLastPlanComputationTime());
+bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory &traj) const
+{
+    if (!planning_context_.ssetup_.haveSolutionPath())
+        return false;
+
     const ompl::geometric::PathGeometric &pg = planning_context_.ssetup_.getSolutionPath();
     planning_models::KinematicState ks = *planning_context_.start_state_;
     const std::vector<planning_models::KinematicModel::JointModel*> &jnt = planning_scene_->getKinematicModel()->getJointModels();
     std::vector<const planning_models::KinematicModel::JointModel*> onedof;
-    std::vector<const planning_models::KinematicModel::JointModel*> mdof;    
-    res.trajectory.joint_trajectory.header.frame_id = planning_scene_->getKinematicModel()->getModelFrame();
+    std::vector<const planning_models::KinematicModel::JointModel*> mdof;
+    traj.joint_trajectory.header.frame_id = planning_scene_->getKinematicModel()->getModelFrame();
     for (std::size_t i = 0 ; i < jnt.size() ; ++i)
-	if (jnt[i]->getVariableCount() == 1)
-	{
-	    res.trajectory.joint_trajectory.joint_names.push_back(jnt[i]->getName());
-	    onedof.push_back(jnt[i]);
-	}
-    	else
-	{
-	    res.trajectory.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
-	    res.trajectory.multi_dof_joint_trajectory.frame_ids.push_back(planning_scene_->getKinematicModel()->getModelFrame());
-	    res.trajectory.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
-	    mdof.push_back(jnt[i]);
-	}
+        if (jnt[i]->getVariableCount() == 1)
+        {
+            traj.joint_trajectory.joint_names.push_back(jnt[i]->getName());
+            onedof.push_back(jnt[i]);
+        }
+            else
+        {
+            traj.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
+            traj.multi_dof_joint_trajectory.frame_ids.push_back(planning_scene_->getKinematicModel()->getModelFrame());
+            traj.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
+            mdof.push_back(jnt[i]);
+        }
     if (!onedof.empty())
-	res.trajectory.joint_trajectory.points.resize(pg.states.size());
+        traj.joint_trajectory.points.resize(pg.states.size());
     if (!mdof.empty())
-	res.trajectory.multi_dof_joint_trajectory.points.resize(pg.states.size());
+        traj.multi_dof_joint_trajectory.points.resize(pg.states.size());
     for (std::size_t i = 0 ; i < pg.states.size() ; ++i)
     {
-	km_state_space_.copyToKinematicState(ks, pg.states[i]);
-	if (!onedof.empty())
-	{
-	    res.trajectory.joint_trajectory.points[i].positions.resize(onedof.size());
-	    for (std::size_t j = 0 ; j < onedof.size() ; ++j)
-		res.trajectory.joint_trajectory.points[i].positions[j] = ks.getJointState(onedof[j]->getName())->getVariableValues()[0];
-	    res.trajectory.joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
-	}
-	if (!mdof.empty())
-	{
-	    res.trajectory.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
-	    for (std::size_t j = 0 ; j < mdof.size() ; ++j)
-	    {
-		const btTransform &t = ks.getJointState(mdof[j]->getName())->getVariableTransform();
-		const btQuaternion &q = t.getRotation();
-		geometry_msgs::Pose &p = res.trajectory.multi_dof_joint_trajectory.points[i].poses[j];
-		p.position.x = t.getOrigin().getX(); p.position.y = t.getOrigin().getY(); p.position.z = t.getOrigin().getZ();
-		p.orientation.x = q.getX(); p.orientation.y = q.getY(); p.orientation.z = q.getZ(); p.orientation.w = q.getW();	
-	    }
-	    res.trajectory.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
-	}
+        km_state_space_.copyToKinematicState(ks, pg.states[i]);
+        if (!onedof.empty())
+        {
+            traj.joint_trajectory.points[i].positions.resize(onedof.size());
+            for (std::size_t j = 0 ; j < onedof.size() ; ++j)
+                traj.joint_trajectory.points[i].positions[j] = ks.getJointState(onedof[j]->getName())->getVariableValues()[0];
+            traj.joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+        }
+        if (!mdof.empty())
+        {
+            traj.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
+            for (std::size_t j = 0 ; j < mdof.size() ; ++j)
+            {
+                const btTransform &t = ks.getJointState(mdof[j]->getName())->getVariableTransform();
+                const btQuaternion &q = t.getRotation();
+                geometry_msgs::Pose &p = traj.multi_dof_joint_trajectory.points[i].poses[j];
+                p.position.x = t.getOrigin().getX(); p.position.y = t.getOrigin().getY(); p.position.z = t.getOrigin().getZ();
+                p.orientation.x = q.getX(); p.orientation.y = q.getY(); p.orientation.z = q.getZ(); p.orientation.w = q.getW();
+            }
+            traj.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+        }
     }
+    return true;
+}
+
+void ompl_interface::PlanningGroup::fillResponse(moveit_msgs::GetMotionPlan::Response &res) const
+{
+    planning_models::kinematicStateToRobotState(*planning_context_.start_state_, res.robot_state);
+    res.planning_time = ros::Duration(planning_context_.ssetup_.getLastPlanComputationTime());
+    getSolutionPath(res.trajectory);
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
