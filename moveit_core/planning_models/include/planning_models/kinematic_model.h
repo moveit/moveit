@@ -654,6 +654,7 @@ namespace planning_models
         std::map<std::string, JointModelGroup*>   joint_model_group_map_;
         std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
         std::vector<std::string>                  joint_model_group_names_;
+        std::vector<srdf::Model::GroupState>      default_states_;
 
         void buildGroups(const std::vector<srdf::Model::Group> &group_config);
 
