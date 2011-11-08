@@ -62,6 +62,7 @@ planning_models::KinematicModel::KinematicModel(const urdf::Model &model, const 
             joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
             variable_count_ += joint_model_vector_[i]->getVariableCount();
         }
+        default_states_ = smodel.getGroupStates();
         std::stringstream ss;
         printModelInfo(ss);
         ROS_DEBUG_STREAM(ss.str());

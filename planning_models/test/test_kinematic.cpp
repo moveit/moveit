@@ -77,21 +77,20 @@ TEST(Loading, SimpleRobot)
         "   </link>"
         "</robot>";
 
-    srdf::Model srdfModel;
-
-    // hack:
-    srdf::Model::VirtualJoint config;
-    config.name_ = "base_joint";
-    config.type_ = "floating";
-    config.parent_frame_ = "odom_combined";
-    config.child_link_ = "base_link";
-    srdfModel.virtual_joints_.push_back(config);
-    // end hack
-
+    static const std::string SMODEL0 = 
+	"<?xml version=\"1.0\" ?>"
+        "<robot name=\"myrobot\">"
+	"<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"floating\"/>"
+	"</robot>";
+    
     urdf::Model urdfModel;
     urdfModel.initString(MODEL0);
 
+    srdf::Model srdfModel;
+    srdfModel.initString(urdfModel, SMODEL0);
 
+    EXPECT_TRUE(srdfModel.getVirtualJoints().size() == 1);
+    
     planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
     planning_models::KinematicState state(model);
 
@@ -160,24 +159,20 @@ TEST(LoadingAndFK, SimpleRobot)
         "    roots:\n"
         "      base_joint";
 
-    srdf::Model srdfModel;
-
-    // hack:
-    srdf::Model::VirtualJoint config;
-    config.name_ = "base_joint";
-    config.type_ = "planar";
-    config.parent_frame_ = "odom_combined";
-    config.child_link_ = "base_link";
-    srdfModel.virtual_joints_.push_back(config);
-
-    srdf::Model::Group gb;
-    gb.name_ = "base";
-    gb.joints_.push_back(config.name_);
-    srdfModel.groups_.push_back(gb);
-    // end hack
-
+    static const std::string SMODEL1 = 
+	"<?xml version=\"1.0\" ?>"
+        "<robot name=\"myrobot\">"
+	"<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"planar\"/>"
+	"<group name=\"base\">"
+	"<joint name=\"base_joint\"/>"
+	"</group>"
+	"</robot>";
+    
     urdf::Model urdfModel;
     urdfModel.initString(MODEL1);
+
+    srdf::Model srdfModel;
+    srdfModel.initString(urdfModel, SMODEL1);
 
     planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
     planning_models::KinematicState state(model);
@@ -378,43 +373,32 @@ TEST(FK, OneRobot)
         "     roots:\n"
         "      base_joint";
 
+    static const std::string SMODEL2 = 
+	"<?xml version=\"1.0\" ?>"
+        "<robot name=\"one_robot\">"
+	"<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"planar\"/>"
+	"<group name=\"base_from_joints\">"
+	"<joint name=\"base_joint\"/>"
+	"<joint name=\"joint_a\"/>"
+	"<joint name=\"joint_c\"/>"
+	"</group>"
+	"<group name=\"base_with_subgroups\">"
+	"<group name=\"base_from_base_to_tip\"/>"
+	"<joint name=\"joint_c\"/>"
+	"</group>"
+	"<group name=\"base_from_base_to_tip\">"
+	"<chain base_link=\"base_link\" tip_link=\"link_b\"/>"
+	"</group>"
+	"<group name=\"base_with_bad_subgroups\">"
+	"<group name=\"error\"/>"
+	"</group>"
+	"</robot>";
+
     urdf::Model urdfModel;
     urdfModel.initString(MODEL2);
 
     srdf::Model srdfModel;
-
-    // hack:
-    srdf::Model::VirtualJoint config;
-    config.name_ = "base_joint";
-    config.type_ = "planar";
-    config.parent_frame_ = "odom_combined";
-    config.child_link_ = "base_link";
-    srdfModel.virtual_joints_.push_back(config);
-
-    srdf::Model::Group gbj;
-    gbj.name_ = "base_from_joints";
-    gbj.joints_.push_back("base_joint");
-    gbj.joints_.push_back("joint_a");
-    gbj.joints_.push_back("joint_c");
-    srdfModel.groups_.push_back(gbj);
-
-    srdf::Model::Group gbs;
-    gbs.name_ = "base_with_subgroups";
-    gbs.joints_.push_back("joint_c");
-    gbs.subgroups_.push_back("base_from_base_to_tip");
-    srdfModel.groups_.push_back(gbs);
-
-    srdf::Model::Group gbc;
-    gbc.name_ = "base_from_base_to_tip";
-    gbc.chains_.push_back(std::make_pair("base_link", "link_b"));
-    srdfModel.groups_.push_back(gbc);
-
-    gbs.subgroups_.push_back("error");
-    gbs.name_ = "base_with_bad_subgroups";
-    srdfModel.groups_.push_back(gbs);
-
-
-    // end hack
+    srdfModel.initString(urdfModel, SMODEL2);
 
     planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
 

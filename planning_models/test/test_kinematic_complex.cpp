@@ -45,7 +45,8 @@ protected:
 
     virtual void SetUp()
     {
-        urdf_ok_ = urdf_model_.initFile("test/urdf/robot.xml");
+        urdf_ok_ = urdf_model_.initFile("test/urdf/robot.xml");	
+	srdf_ok_ = srdf_model_.initFile(urdf_model_, "test/srdf/robot.xml");
     };
 
     virtual void TearDown()
@@ -55,47 +56,46 @@ protected:
 protected:
 
     urdf::Model urdf_model_;
+    srdf::Model srdf_model_;
     bool        urdf_ok_;
-    std::string full_path_;
+    bool        srdf_ok_;
 
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
 {
-    ASSERT_TRUE(urdf_ok_) << full_path_;
+    ASSERT_TRUE(urdf_ok_);
+    ASSERT_TRUE(srdf_ok_);
     ASSERT_EQ(urdf_model_.getName(), "pr2_test");
+    ASSERT_EQ(srdf_model_.getName(), "pr2_test");
 }
 
 TEST_F(LoadPlanningModelsPr2, MultidofInit)
 {
-    //hack:
     srdf::Model srdfModel;
-    //end hack
 
     // with no world multidof we should get a fixed joint
     planning_models::KinematicModel kin_model0(urdf_model_, srdfModel);
     EXPECT_TRUE(kin_model0.getRoot()->getVariableCount() == 0);
 
-    // hack:
-    srdf::Model::VirtualJoint config;
-    config.name_ = "base_joint";
-    config.type_ = "planar";
-    config.parent_frame_ = "base_footprint";
-    config.child_link_ = "base_footprint";
-    srdfModel.virtual_joints_.push_back(config);
-    // end hack
+    static const std::string SMODEL1 = 
+	"<?xml version=\"1.0\" ?>"
+        "<robot name=\"pr2_test\">"
+	"<virtual_joint name=\"base_joint\" child_link=\"base_footprint\" parent_frame=\"base_footprint\" type=\"planar\"/>"
+	"</robot>";
+    srdfModel.initString(urdf_model_, SMODEL1);
 
     planning_models::KinematicModel kin_model1(urdf_model_, srdfModel);
     ASSERT_TRUE(kin_model1.getRoot() != NULL);
     EXPECT_EQ(kin_model1.getModelFrame(), "base_footprint");
-
-    //now this should work with an non-identity transform
-    config.name_ = "world_joint";
-    config.type_ = "floating";
-    config.parent_frame_ = "odom_combined";
-    config.child_link_ = "base_footprint";
-    srdfModel.virtual_joints_[0] = config;
-
+    
+    static const std::string SMODEL2 = 
+	"<?xml version=\"1.0\" ?>"
+        "<robot name=\"pr2_test\">"
+	"<virtual_joint name=\"world_joint\" child_link=\"base_footprint\" parent_frame=\"odom_combined\" type=\"floating\"/>"
+	"</robot>";
+    srdfModel.initString(urdf_model_, SMODEL2);
+    
     planning_models::KinematicModel kin_model2(urdf_model_, srdfModel);
     ASSERT_TRUE(kin_model2.getRoot() != NULL);
     EXPECT_EQ(kin_model2.getModelFrame(), "odom_combined");
@@ -103,35 +103,21 @@ TEST_F(LoadPlanningModelsPr2, MultidofInit)
 
 TEST_F(LoadPlanningModelsPr2, GroupInit)
 {
-    //hack:
+    static const std::string SMODEL1 = 
+	"<?xml version=\"1.0\" ?>"
+        "<robot name=\"pr2_test\">"
+	"<virtual_joint name=\"base_joint\" child_link=\"base_footprint\" parent_frame=\"base_footprint\" type=\"planar\"/>"
+	"<group name=\"left_arm_base_tip\">"
+	"<chain base_link=\"monkey_base\" tip_link=\"monkey_tip\"/>"
+	"</group>"
+	"<group name=\"left_arm_joints\">"
+	"<joint name=\"l_monkey_pan_joint\"/>"
+	"<joint name=\"l_monkey_fles_joint\"/>"
+	"</group>"
+	"</robot>";
+
     srdf::Model srdfModel;
-
-    srdf::Model::VirtualJoint config;
-    config.name_ = "base_joint";
-    config.type_ = "planar";
-    config.parent_frame_ = "base_footprint";
-    config.child_link_ = "base_footprint";
-    srdfModel.virtual_joints_.push_back(config);
-
-
-    srdf::Model::Group g1;
-    g1.name_ = "left_arm_base_tip";
-    g1.chains_.push_back(std::make_pair("monkey_base", "monkey_tip"));
-    srdfModel.groups_.push_back(g1);
-
-    srdf::Model::Group g2;
-    g2.name_ = "left_arm_joints";
-    g2.joints_.push_back("l_monkey_pan_joint");
-    g2.joints_.push_back("l_monkey_lift_joint");
-    g2.joints_.push_back("l_monkey_arm_roll_joint");
-    g2.joints_.push_back("l_monkey_flex_joint");
-    g2.joints_.push_back("l_monkey_roll_joint");
-    g2.joints_.push_back("l_monkey_flex_link");
-    g2.joints_.push_back("l_monkey_roll_link");
-
-    srdfModel.groups_.push_back(g2);
-    // end hack
-
+    srdfModel.initString(urdf_model_, SMODEL1);
     planning_models::KinematicModel kin_model1(urdf_model_, srdfModel);
 
     const planning_models::KinematicModel::JointModelGroup* left_arm_base_tip_group = kin_model1.getJointModelGroup("left_arm_base_tip");
@@ -139,24 +125,26 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
 
     const planning_models::KinematicModel::JointModelGroup* left_arm_joints_group = kin_model1.getJointModelGroup("left_arm_joints");
     ASSERT_TRUE(left_arm_joints_group == NULL);
-
-    srdf::Model::Group g3;
-    g3.name_ = "left_arm_base_tip";
-    g3.chains_.push_back(std::make_pair("l_shoulder_pan_link", "l_wrist_roll_link"));
-
-    srdf::Model::Group g4;
-    g4.name_ = "left_arm_joints";
-    g4.joints_.push_back("l_shoulder_pan_joint");
-    g4.joints_.push_back("l_shoulder_lift_joint");
-    g4.joints_.push_back("l_upper_arm_roll_joint");
-    g4.joints_.push_back("l_elbow_flex_joint");
-    g4.joints_.push_back("l_forearm_roll_joint");
-    g4.joints_.push_back("l_wrist_flex_joint");
-    g4.joints_.push_back("l_wrist_roll_joint");
-
-    srdfModel.groups_[0] = g3;
-    srdfModel.groups_[1] = g4;
-
+    
+    static const std::string SMODEL2 = 
+	"<?xml version=\"1.0\" ?>"
+        "<robot name=\"pr2_test\">"
+	"<virtual_joint name=\"base_joint\" child_link=\"base_footprint\" parent_frame=\"base_footprint\" type=\"planar\"/>"
+	"<group name=\"left_arm_base_tip\">"
+	"<chain base_link=\"l_shoulder_pan_link\" tip_link=\"l_wrist_roll_link\"/>"
+	"</group>"
+	"<group name=\"left_arm_joints\">"
+	"<joint name=\"l_shoulder_pan_joint\"/>"
+	"<joint name=\"l_shoulder_lift_joint\"/>"
+	"<joint name=\"l_upper_arm_roll_joint\"/>"
+	"<joint name=\"l_elbow_flex_joint\"/>"
+	"<joint name=\"l_forearm_roll_joint\"/>"
+	"<joint name=\"l_wrist_flex_joint\"/>"
+	"<joint name=\"l_wrist_roll_joint\"/>"
+	"</group>"
+	"</robot>";
+    srdfModel.initString(urdf_model_, SMODEL2);
+    
     planning_models::KinematicModelPtr kin_model2(new planning_models::KinematicModel(urdf_model_, srdfModel));
 
     left_arm_base_tip_group = kin_model2->getJointModelGroup("left_arm_base_tip");

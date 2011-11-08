@@ -45,7 +45,8 @@ protected:
 
     virtual void SetUp()
     {
-        urdf_ok_ = urdf_model_.initFile("test/urdf/robot.xml");
+        urdf_ok_ = urdf_model_.initFile("test/urdf/robot.xml");    
+	srdf_ok_ = srdf_model_.initFile(urdf_model_, "test/srdf/robot.xml");
     };
 
     virtual void TearDown()
@@ -55,8 +56,9 @@ protected:
 protected:
 
     urdf::Model urdf_model_;
+    srdf::Model srdf_model_;
     bool        urdf_ok_;
-
+    bool        srdf_ok_;
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
@@ -64,22 +66,12 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
     ASSERT_TRUE(urdf_ok_);
     ASSERT_EQ(urdf_model_.getName(), "pr2_test");
 
-    // hack
-    srdf::Model srdf_model;
-    srdf::Model::VirtualJoint vj;
-    vj.child_link_ = "base_footprint";
-    vj.parent_frame_ = "planning_frame";
-    vj.type_ = "planar";
-    vj.name_ = "world_joint";
-    srdf_model.virtual_joints_.push_back(vj);
-    // end hack
-
-    planning_models::KinematicModelPtr kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model));
+    planning_models::KinematicModelPtr kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
 
 
-    planning_models::Transforms tf("planning_frame");
+    planning_models::Transforms tf(kmodel->getModelFrame());
 
     btTransform t1;
     t1.setIdentity();
@@ -98,14 +90,14 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
     EXPECT_TRUE(tf.isFixedFrame("some_frame_1"));
     EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
-    EXPECT_TRUE(tf.isFixedFrame("planning_frame"));
+    EXPECT_TRUE(tf.isFixedFrame(kmodel->getModelFrame()));
 
     btTransform x;
     x.setIdentity();
     tf.transformTransform(ks, x, x, "some_frame_2");
     EXPECT_TRUE(x == t2);
 
-    tf.transformTransform(ks, x, x, "planning_frame");
+    tf.transformTransform(ks, x, x, kmodel->getModelFrame());
     EXPECT_TRUE(x == t2);
 
     x.setIdentity();
