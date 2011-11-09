@@ -38,11 +38,13 @@
 #include <collision_detection/allvalid/collision_world.h>
 #include <collision_detection/allvalid/collision_robot.h>
 
-void planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model) 
+bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model) 
 {
     kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
     tf_.reset(new planning_models::Transforms(kmodel_->getModelFrame()));
     kstate_.reset(new planning_models::KinematicState(kmodel_));
     crobot_.reset(new collision_detection::CollisionRobotAllValid(kmodel_));
     cworld_.reset(new collision_detection::CollisionWorldAllValid());
+    configured_ = true;
+    return true;
 }

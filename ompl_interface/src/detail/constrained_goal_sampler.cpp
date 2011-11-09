@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/constrained_goal_sampler.h"
+#include "ompl_interface/detail/constrained_goal_sampler.h"
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks,
                                                                const kinematic_constraints::ConstraintSamplerPtr &cs) :

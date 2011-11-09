@@ -48,7 +48,7 @@ namespace planning_scene
     class PlanningScene
     {
     public:
-	PlanningScene(void)
+	PlanningScene(void) : configured_(false)
 	{
 	}
 	
@@ -56,7 +56,7 @@ namespace planning_scene
 	{
 	}	
 	
-	void configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model);
+	virtual bool configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model);
 	
         const planning_models::KinematicModelPtr& getKinematicModel(void) const
         {
@@ -93,7 +93,12 @@ namespace planning_scene
         {
             cworld_->checkCollision(req, res, *crobot_, kstate, acm_);
         }
-
+	
+	bool isConfigured(void) const
+	{
+	    return configured_;
+	}
+	
     private:
 
         planning_models::KinematicModelPtr            kmodel_;
@@ -102,6 +107,8 @@ namespace planning_scene
         collision_detection::CollisionRobotPtr        crobot_;
         collision_detection::CollisionWorldPtr        cworld_;
         collision_detection::AllowedCollisionMatrix   acm_;
+	bool                                          configured_;
+	
     };
 
     typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;

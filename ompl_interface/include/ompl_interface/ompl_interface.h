@@ -57,7 +57,7 @@ namespace ompl_interface
     {
     public:
 
-        OMPLInterface(void) 
+        OMPLInterface(void) : configured_(false)
         {
         }
 
@@ -65,7 +65,7 @@ namespace ompl_interface
         {
         }
 
-        void configure(const planning_scene::PlanningScenePtr &scene, const std::vector<PlannerConfigs> &pconfig);
+        bool configure(const planning_scene::PlanningScenePtr &scene, const std::vector<PlannerConfigs> &pconfig);
 
         void setMaximumSamplingAttempts(unsigned int max_sampling_attempts);
         void setMaximumGoalSamples(unsigned int max_goal_samples);
@@ -78,11 +78,17 @@ namespace ompl_interface
         bool solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints,
                    const moveit_msgs::Constraints &path_constraints, double timeout);
 
+	bool isConfigured(void) const
+	{
+	    return configured_;
+	}
+	
     protected:
 
         planning_scene::PlanningScenePtr        scene_;
         std::map<std::string, PlanningGroupPtr> planning_groups_;
         ompl::StateSpaceCollection              ssc_;
+	bool                                    configured_;
     };
 }
 

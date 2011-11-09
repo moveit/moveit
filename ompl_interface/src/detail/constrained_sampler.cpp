@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/constrained_sampler.h"
+#include "ompl_interface/detail/constrained_sampler.h"
 
 ompl_interface::ConstrainedSampler::ConstrainedSampler(const PlanningGroup *pg, const kinematic_constraints::ConstraintSamplerPtr &cs) :
     ompl::base::StateSampler(pg->getKMStateSpace().getOMPLSpace().get()),

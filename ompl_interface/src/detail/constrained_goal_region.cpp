@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/constrained_goal_region.h"
+#include "ompl_interface/detail/constrained_goal_region.h"
 
 ompl_interface::ConstrainedGoalRegion::ConstrainedGoalRegion(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks) :
     ompl::base::GoalRegion(pg->getPlanningContext().ssetup_.getSpaceInformation()), pg_(pg), ks_(ks),

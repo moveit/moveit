@@ -37,9 +37,15 @@
 #include "ompl_interface/ompl_interface.h"
 #include <planning_models/conversions.h>
 
-void ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScenePtr &scene, const std::vector<PlannerConfigs> &pconfig)
+bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScenePtr &scene, const std::vector<PlannerConfigs> &pconfig)
 {
     scene_ = scene;
+    if (!scene_ || !scene_->isConfigured())
+    {
+	ROS_ERROR("Cannot configure OMPL interface without configured planning scene");
+	return false;
+    }    
+    
     for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
     {
         const planning_models::KinematicModel::JointModelGroup *jmg = scene_->getKinematicModel()->getJointModelGroup(pconfig[i].group);
@@ -53,6 +59,8 @@ void ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
             std::map<std::string, std::string> empty;
             planning_groups_[it->first].reset(new PlanningGroup(it->first, it->second, empty, scene_, ssc_));
         }
+    configured_ = true;
+    return true;
 }
 
 void ompl_interface::OMPLInterface::setMaximumSamplingAttempts(unsigned int max_sampling_attempts)
