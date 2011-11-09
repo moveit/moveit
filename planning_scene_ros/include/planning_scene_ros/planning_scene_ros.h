@@ -42,50 +42,27 @@
 
 namespace planning_scene_ros
 {
-    
+
     class PlanningSceneROS : public planning_scene::PlanningScene
     {
     public:
-	PlanningSceneROS(const std::string &robot_description) :
-	    planning_scene::PlanningScene(), nh_("~"), robot_description_(robot_description)
-	{
-	    loadRobotFromParamServer();
-	    // read allowed collision matrix updates + set it for the planning scene
-	}
-	
-    private:
-	
-	void loadRobotFromParamServer(void)
-	{
-	    std::string content;
-	    if (nh_.getParam(robot_description_, content))
-	    {
-		if (urdf_.initString(content))
-		{
-		    std::string scontent;
-		    if (nh_.getParam(robot_description_ + "_semantic", scontent))
-		    {
-			if (srdf_.initString(urdf_, scontent))
-			    configure(urdf_, srdf_);
-			else
-			    ROS_ERROR("Unable to parse SRDF");
-		    }
-		    else
-			ROS_ERROR("Robot semantic description not found. Did you forget to remap '%s_semantic'?", robot_description_.c_str());
-		}
-		else
-		    ROS_ERROR("Unable to parse URDF");
-	    }
-	    else
-		ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
-	}
+        PlanningSceneROS(const std::string &robot_description) :
+            planning_scene::PlanningScene(), nh_("~"), robot_description_(robot_description)
+        {
+            loadRobotFromParamServer();
+            // read allowed collision matrix updates + set it for the planning scene
+        }
 
-	ros::NodeHandle nh_;
-	std::string     robot_description_;
-	urdf::Model     urdf_;
-	srdf::Model     srdf_;	
+    private:
+
+        bool loadRobotFromParamServer(void);
+
+        ros::NodeHandle nh_;
+        std::string     robot_description_;
+        urdf::Model     urdf_;
+        srdf::Model     srdf_;
     };
-    
+
 }
 
 #endif
