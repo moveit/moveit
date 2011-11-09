@@ -32,22 +32,60 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#include "ompl_interface_ros/ompl_interface_ros.h"
+#ifndef PLANNING_SCENE_PLANNING_SCENE_ROS_
+#define PLANNING_SCENE_PLANNING_SCENE_ROS_
 
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const std::string &robot_description) : ompl_interface::OMPLInterface(), nh_("~")
+#include <ros/ros.h>
+#include <planning_scene/planning_scene.h>
+
+namespace planning_scene_ros
 {
-    planning_scene_ = new planning_scene_ros::PlanningSceneROS(robot_description);
-    planning_scene_ptr_.reset(planning_scene_);
     
-    // read configs from param server
-    std::vector<ompl_interface::PlannerConfigs> pconfig;
-    configure(planning_scene_ptr_, pconfig);
-    plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLInterfaceROS::computePlan, this);
+    class PlanningSceneROS : public planning_scene::PlanningScene
+    {
+    public:
+	PlanningSceneROS(const std::string &robot_description) :
+	    planning_scene::PlanningScene(), nh_("~"), robot_description_(robot_description)
+	{
+	    loadRobotFromParamServer();
+	    // read allowed collision matrix updates + set it for the planning scene
+	}
+	
+    private:
+	
+	void loadRobotFromParamServer(void)
+	{
+	    std::string content;
+	    if (nh_.getParam(robot_description_, content))
+	    {
+		if (urdf_.initString(content))
+		{
+		    std::string scontent;
+		    if (nh_.getParam(robot_description_ + "_semantic", scontent))
+		    {
+			if (srdf_.initString(urdf_, scontent))
+			    configure(urdf_, srdf_);
+			else
+			    ROS_ERROR("Unable to parse SRDF");
+		    }
+		    else
+			ROS_ERROR("Robot semantic description not found. Did you forget to remap '%s_semantic'?", robot_description_.c_str());
+		}
+		else
+		    ROS_ERROR("Unable to parse URDF");
+	    }
+	    else
+		ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
+	}
+
+	ros::NodeHandle nh_;
+	std::string     robot_description_;
+	urdf::Model     urdf_;
+	srdf::Model     srdf_;	
+    };
+    
 }
 
-bool ompl_interface_ros::OMPLInterfaceROS::computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
-{    
-    return false;
-}
+#endif

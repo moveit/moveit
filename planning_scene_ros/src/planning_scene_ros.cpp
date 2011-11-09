@@ -32,22 +32,6 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#include "ompl_interface_ros/ompl_interface_ros.h"
-
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const std::string &robot_description) : ompl_interface::OMPLInterface(), nh_("~")
-{
-    planning_scene_ = new planning_scene_ros::PlanningSceneROS(robot_description);
-    planning_scene_ptr_.reset(planning_scene_);
-    
-    // read configs from param server
-    std::vector<ompl_interface::PlannerConfigs> pconfig;
-    configure(planning_scene_ptr_, pconfig);
-    plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLInterfaceROS::computePlan, this);
-}
-
-bool ompl_interface_ros::OMPLInterfaceROS::computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
-{    
-    return false;
-}
+#include "planning_scene_ros/planning_scene_ros.h"
