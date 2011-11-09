@@ -35,35 +35,24 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include <ompl_interface/ompl_interface.h>
+#include <planning_scene_ros/planning_scene_ros.h>
 
 namespace ompl_interface_ros
 {
-    class OMPLInterfaceROS
+    class OMPLInterfaceROS : public ompl_interface::OMPLInterface
     {  
     public:
 	
-	OMPLInterfaceROS(void) : oint_()
-        {
-	    // read configs from param server
-	    std::vector<ompl_interface::PlannerConfigs> pconfig;
-	    oint_.setup(pconfig);
-	    
-	    plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLInterfaceROS::computePlan, this);
-	}
+	OMPLInterfaceROS(const std::string &robot_description);
 
-	bool computePlan(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
-	{
-	    
-	    return oint_.solve(req, res);
-	}
+	bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
 	
-    private:
-	
+    private:	
 
-	ros::NodeHandle                      nh_;  
-	ros::ServiceServer                   plan_service_;
-	planning_scene_ros::PlanningSceneROS planning_scene_;
-	ompl_interface::OMPLInterface        oint_;	
+	ros::NodeHandle                       nh_;  
+	ros::ServiceServer                    plan_service_;
+	planning_scene_ros::PlanningSceneROS *planning_scene_;
+	planning_scene::PlanningScenePtr      planning_scene_ptr_;
     };
     
 }
