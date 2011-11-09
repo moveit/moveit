@@ -34,31 +34,39 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
-#define OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
+#include "ompl_interface/constrained_sampler.h"
 
-#include <planning_models/kinematic_state.h>
-#include <boost/thread.hpp>
-
-namespace ompl_interface
+ompl_interface::ConstrainedSampler::ConstrainedSampler(const PlanningGroup *pg, const kinematic_constraints::ConstraintSamplerPtr &cs) :
+    ompl::base::StateSampler(pg->getKMStateSpace().getOMPLSpace().get()),
+    pg_(pg), default_(space_->allocDefaultStateSampler()), cs_(cs)
 {
-
-    class TSStateStorage
-    {
-    public:
-
-        TSStateStorage(const planning_models::KinematicModelPtr &kmodel);
-        TSStateStorage(const planning_models::KinematicState &start_state);
-        ~TSStateStorage(void);
-
-        planning_models::KinematicState* getStateStorage(void) const;
-
-    private:
-
-        planning_models::KinematicState                                       start_state_;
-        mutable std::map<boost::thread::id, planning_models::KinematicState*> thread_states_;
-        mutable boost::mutex                                                  lock_;
-    };
-
 }
-#endif
+
+bool ompl_interface::ConstrainedSampler::sampleC(ompl::base::State *state)
+{
+    std::vector<double> values;
+    if (cs_->sample(values, pg_->getMaximumSamplingAttempts(), pg_->getPlanningContext().start_state_.get()))
+    {
+        pg_->getKMStateSpace().copyToOMPLState(state, values);
+        return true;
+    }
+    return false;
+}
+
+void ompl_interface::ConstrainedSampler::sampleUniform(ompl::base::State *state)
+{
+    if (!sampleC(state))
+        default_->sampleUniform(state);
+}
+
+void ompl_interface::ConstrainedSampler::sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
+{
+    if (!sampleC(state))
+        default_->sampleUniformNear(state, near, distance);
+}
+
+void ompl_interface::ConstrainedSampler::sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
+{
+    if (!sampleC(state))
+        default_->sampleGaussian(state, mean, stdDev);
+}

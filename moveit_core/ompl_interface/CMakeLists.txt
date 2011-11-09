@@ -21,4 +21,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/planning_group.cpp
   src/detail/km_state_space.cpp
   src/detail/state_validity_checker.cpp
-  src/detail/threadsafe_state_storage.cpp)
+  src/detail/threadsafe_state_storage.cpp
+  src/detail/constrained_sampler.cpp
+  src/detail/constrained_goal_sampler.cpp
+  src/detail/constrained_goal_region.cpp)
