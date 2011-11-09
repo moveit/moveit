@@ -40,20 +40,21 @@
 namespace ompl_interface_ros
 {
     class OMPLInterfaceROS : public ompl_interface::OMPLInterface
-    {  
+    {
     public:
-	
-	OMPLInterfaceROS(const std::string &robot_description);
 
-	bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
-	
-    private:	
+        OMPLInterfaceROS(const std::string &robot_description);
 
-	ros::NodeHandle                       nh_;  
-	ros::ServiceServer                    plan_service_;
-	planning_scene_ros::PlanningSceneROS *planning_scene_;
-	planning_scene::PlanningScenePtr      planning_scene_ptr_;
+        bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
+
+        void run(void);
+
+    private:
+
+        ros::NodeHandle                       nh_;
+        ros::ServiceServer                    plan_service_;
+        planning_scene_ros::PlanningSceneROS *planning_scene_;
+        planning_scene::PlanningScenePtr      planning_scene_ptr_;
     };
-    
-}
 
+}

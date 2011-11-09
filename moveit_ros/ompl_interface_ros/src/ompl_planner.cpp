@@ -32,44 +32,21 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#include "planning_scene_ros/planning_scene_ros.h"
+#include "ompl_interface_ros/ompl_interface_ros.h"
 
-bool planning_scene_ros::PlanningSceneROS::loadRobotFromParamServer(void)
+int main(int argc, char **argv)
 {
-    std::string name;
-    if (nh_.searchParam(robot_description_, name))
-    {
-        std::string content;
-        if (nh_.getParam(name, content))
-        {
-            if (urdf_.initString(content))
-            {
-                if (nh_.searchParam(robot_description_ + "_semantic", name))
-                {
-                    std::string scontent;
-                    if (nh_.getParam(name, scontent))
-                    {
-                        if (srdf_.initString(urdf_, scontent))
-                            return configure(urdf_, srdf_);
-                        else
-                            ROS_ERROR("Unable to parse SRDF");
-                    }
-                    else
-                        ROS_ERROR("Robot semantic description not found. Did you forget to remap '%s_semantic'?", robot_description_.c_str());
-                }
-                else
-                    ROS_ERROR("Robot semantic description not found. Did you forget to remap '%s_semantic'?", robot_description_.c_str());
-            }
-            else
-                ROS_ERROR("Unable to parse URDF");
-        }
-        else
-            ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
-    }
-    else
-        ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
+    ros::init(argc, argv, "ompl_planning");
 
-    return false;
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+
+    ompl_interface_ros::OMPLInterfaceROS o("robot_description");
+    o.run();
+
+    ros::waitForShutdown();
+
+    return 0;
 }

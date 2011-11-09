@@ -35,19 +35,39 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include "ompl_interface_ros/ompl_interface_ros.h"
+#include <sstream>
 
 ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const std::string &robot_description) : ompl_interface::OMPLInterface(), nh_("~")
 {
     planning_scene_ = new planning_scene_ros::PlanningSceneROS(robot_description);
     planning_scene_ptr_.reset(planning_scene_);
-    
-    // read configs from param server
-    std::vector<ompl_interface::PlannerConfigs> pconfig;
-    configure(planning_scene_ptr_, pconfig);
-    plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLInterfaceROS::computePlan, this);
+    if (planning_scene_->isConfigured())
+    {
+        // read configs from param server
+        std::vector<ompl_interface::PlannerConfigs> pconfig;
+        if (configure(planning_scene_ptr_, pconfig))
+        {
+            plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLInterfaceROS::computePlan, this);
+        }
+    }
 }
 
 bool ompl_interface_ros::OMPLInterfaceROS::computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
-{    
+{
     return false;
+}
+
+void ompl_interface_ros::OMPLInterfaceROS::run(void)
+{
+    if (isConfigured())
+    {
+        std::stringstream ss;
+        planning_scene_->getKinematicModel()->printModelInfo(ss);
+        ROS_INFO("%s", ss.str().c_str());
+        ROS_INFO("OMPL planning node started.");
+    }
+    else
+    {
+        ROS_ERROR("Cannot start OMPL planning node.");
+    }
 }
