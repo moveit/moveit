@@ -34,31 +34,35 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
-#define OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
+#ifndef OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
+#define OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
 
-#include <planning_models/kinematic_state.h>
-#include <boost/thread.hpp>
+#include "ompl_interface/planning_group.h"
+#include <ompl/base/StateSampler.h>
+#include <kinematic_constraints/constraint_samplers.h>
 
 namespace ompl_interface
 {
-
-    class TSStateStorage
+    class ConstrainedSampler : public ompl::base::StateSampler
     {
     public:
+        ConstrainedSampler(const PlanningGroup *pg, const kinematic_constraints::ConstraintSamplerPtr &cs);
 
-        TSStateStorage(const planning_models::KinematicModelPtr &kmodel);
-        TSStateStorage(const planning_models::KinematicState &start_state);
-        ~TSStateStorage(void);
+        virtual void sampleUniform(ompl::base::State *state);
 
-        planning_models::KinematicState* getStateStorage(void) const;
+        virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance);
+
+        virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev);
 
     private:
 
-        planning_models::KinematicState                                       start_state_;
-        mutable std::map<boost::thread::id, planning_models::KinematicState*> thread_states_;
-        mutable boost::mutex                                                  lock_;
+        bool sampleC(ompl::base::State *state);
+
+        const PlanningGroup                        *pg_;
+        ompl::base::StateSamplerPtr                 default_;
+        kinematic_constraints::ConstraintSamplerPtr cs_;
     };
 
 }
+
 #endif

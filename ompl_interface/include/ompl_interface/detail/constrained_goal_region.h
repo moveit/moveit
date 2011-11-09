@@ -34,31 +34,32 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
-#define OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
+#ifndef OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_REGION_
+#define OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_REGION_
 
-#include <planning_models/kinematic_state.h>
-#include <boost/thread.hpp>
+#include "ompl_interface/planning_group.h"
+#include "ompl_interface/detail/threadsafe_state_storage.h"
+#include <ompl/base/GoalRegion.h>
+#include <kinematic_constraints/kinematic_constraint.h>
 
 namespace ompl_interface
 {
 
-    class TSStateStorage
+    class ConstrainedGoalRegion : public ompl::base::GoalRegion
     {
     public:
+        ConstrainedGoalRegion(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks);
 
-        TSStateStorage(const planning_models::KinematicModelPtr &kmodel);
-        TSStateStorage(const planning_models::KinematicState &start_state);
-        ~TSStateStorage(void);
+        virtual double distanceGoal(const ompl::base::State *st) const;
+        virtual bool isSatisfied(const ompl::base::State *st, double *distance) const;
 
-        planning_models::KinematicState* getStateStorage(void) const;
+    protected:
 
-    private:
-
-        planning_models::KinematicState                                       start_state_;
-        mutable std::map<boost::thread::id, planning_models::KinematicState*> thread_states_;
-        mutable boost::mutex                                                  lock_;
+        const PlanningGroup                             *pg_;
+        kinematic_constraints::KinematicConstraintSetPtr ks_;
+        TSStateStorage                                   tss_;
     };
 
 }
+
 #endif

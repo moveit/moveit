@@ -34,31 +34,27 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
-#define OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
+#include "ompl_interface/constrained_goal_region.h"
 
-#include <planning_models/kinematic_state.h>
-#include <boost/thread.hpp>
-
-namespace ompl_interface
+ompl_interface::ConstrainedGoalRegion::ConstrainedGoalRegion(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks) :
+    ompl::base::GoalRegion(pg->getPlanningContext().ssetup_.getSpaceInformation()), pg_(pg), ks_(ks),
+    tss_(*pg->getPlanningContext().start_state_)
 {
-
-    class TSStateStorage
-    {
-    public:
-
-        TSStateStorage(const planning_models::KinematicModelPtr &kmodel);
-        TSStateStorage(const planning_models::KinematicState &start_state);
-        ~TSStateStorage(void);
-
-        planning_models::KinematicState* getStateStorage(void) const;
-
-    private:
-
-        planning_models::KinematicState                                       start_state_;
-        mutable std::map<boost::thread::id, planning_models::KinematicState*> thread_states_;
-        mutable boost::mutex                                                  lock_;
-    };
-
 }
-#endif
+
+double ompl_interface::ConstrainedGoalRegion::distanceGoal(const ompl::base::State *st) const
+{
+    planning_models::KinematicState *s = tss_.getStateStorage();
+    pg_->getKMStateSpace().copyToKinematicState(*s, st);
+    return ks_->decide(*s).second;
+}
+
+bool ompl_interface::ConstrainedGoalRegion::isSatisfied(const ompl::base::State *st, double *distance) const
+{
+    planning_models::KinematicState *s = tss_.getStateStorage();
+    pg_->getKMStateSpace().copyToKinematicState(*s, st);
+    const std::pair<bool, double> &r = ks_->decide(*s);
+    if (distance)
+        *distance = r.second;
+    return r.first;
+}

@@ -34,31 +34,41 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
-#define OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
+#include "ompl_interface/constrained_goal_sampler.h"
 
-#include <planning_models/kinematic_state.h>
-#include <boost/thread.hpp>
-
-namespace ompl_interface
+ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks,
+                                                               const kinematic_constraints::ConstraintSamplerPtr &cs) :
+    ompl::base::GoalLazySamples(pg->getPlanningContext().ssetup_.getSpaceInformation(), boost::bind(&ConstrainedGoalSampler::sampleC, this, _1, _2), false),
+    pg_(pg), ks_(ks), cs_(cs), tss_(*pg->getPlanningContext().start_state_)
 {
-
-    class TSStateStorage
-    {
-    public:
-
-        TSStateStorage(const planning_models::KinematicModelPtr &kmodel);
-        TSStateStorage(const planning_models::KinematicState &start_state);
-        ~TSStateStorage(void);
-
-        planning_models::KinematicState* getStateStorage(void) const;
-
-    private:
-
-        planning_models::KinematicState                                       start_state_;
-        mutable std::map<boost::thread::id, planning_models::KinematicState*> thread_states_;
-        mutable boost::mutex                                                  lock_;
-    };
-
+    startSampling();
 }
-#endif
+
+bool ompl_interface::ConstrainedGoalSampler::sampleC(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal)
+{
+    unsigned int ma = pg_->getMaximumSamplingAttempts();
+
+    // terminate after too many attempts
+    if (gls->samplingAttemptsCount() >= ma)
+        return false;
+    // terminate after a maximum number of samples
+    if (gls->getStateCount() >= pg_->getMaximumGoalSamples())
+        return false;
+    // terminate the sampling thread when a solution has been found
+    if (gls->isAchieved())
+        return false;
+
+    planning_models::KinematicState *s = tss_.getStateStorage();
+    std::vector<double> values;
+    for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
+        if (cs_->sample(values, ma, pg_->getPlanningContext().start_state_.get()))
+        {
+            s->getJointStateGroup(pg_->getJointModelGroup()->getName())->setStateValues(values);
+            if (ks_->decide(*s).first)
+            {
+                pg_->getKMStateSpace().copyToOMPLState(newGoal, values);
+                return true;
+            }
+        }
+    return false;
+}

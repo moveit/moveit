@@ -67,13 +67,16 @@ namespace ompl_interface
 
         void setup(const std::vector<PlannerConfigs> &pconfig);
 
+        void setMaximumSamplingAttempts(unsigned int max_sampling_attempts);
+        void setMaximumGoalSamples(unsigned int max_goal_samples);
+        void setMaximumPlanningThreads(unsigned int max_planning_threads);
+
         const PlanningGroupPtr& getPlanningConfiguration(const std::string &config) const;
 
         bool solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
         bool solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints, double timeout);
         bool solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints,
                    const moveit_msgs::Constraints &path_constraints, double timeout);
-
 
     protected:
 

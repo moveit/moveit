@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef OMPL_INTERFACE_KM_STATE_SPACE_
-#define OMPL_INTERFACE_KM_STATE_SPACE_
+#ifndef OMPL_INTERFACE_DETAIL_KM_STATE_SPACE_
+#define OMPL_INTERFACE_DETAIL_KM_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
 #include <ompl/tools/spaces/StateSpaceCollection.h>
@@ -46,7 +46,10 @@
 namespace ompl_interface
 {
 
-    /// Construction of OMPL state space from kinematic joints
+    /// Construction of OMPL state space from kinematic joints. This
+    /// class is a wrapper around OMPL's representation of state
+    /// spaces and allows efficient conversions between OMPL states and
+    /// KinematicState
     class KMStateSpace
     {
     public:

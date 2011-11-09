@@ -107,9 +107,30 @@ namespace ompl_interface
             return max_goal_samples_;
         }
 
+        unsigned int getMaximumPlanningThreads(void) const
+        {
+            return max_planning_threads_;
+        }
+
+        void setMaximumSamplingAttempts(unsigned int max_sampling_attempts)
+        {
+            max_sampling_attempts_ = max_sampling_attempts;
+        }
+
+        void setMaximumGoalSamples(unsigned int max_goal_samples)
+        {
+            max_goal_samples_ = max_goal_samples;
+        }
+
+        void setMaximumPlanningThreads(unsigned int max_planning_threads)
+        {
+            max_planning_threads_ = max_planning_threads;
+        }
+
         bool setupPlanningContext(const planning_models::KinematicState &start_state,
                                   const moveit_msgs::Constraints &goal_constraints,
                                   const moveit_msgs::Constraints &path_constraints);
+        void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
         bool solve(double timeout, unsigned int count);
 
@@ -131,6 +152,7 @@ namespace ompl_interface
 
         unsigned int                                            max_goal_samples_;
         unsigned int                                            max_sampling_attempts_;
+        unsigned int                                            max_planning_threads_;
 
         kinematic_constraints::IKAllocator                      ik_allocator_;
         ompl::RNG                                               rng_;

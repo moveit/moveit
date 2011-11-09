@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_INTERFACE_STATE_VALIDITY_CHECKER_
-#define OMPL_INTERFACE_STATE_VALIDITY_CHECKER_
+#ifndef OMPL_INTERFACE_DETAIL_STATE_VALIDITY_CHECKER_
+#define OMPL_INTERFACE_DETAIL_STATE_VALIDITY_CHECKER_
 
 #include "ompl_interface/planning_group.h"
 #include "ompl_interface/detail/threadsafe_state_storage.h"
