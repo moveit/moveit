@@ -57,7 +57,7 @@ namespace ompl_interface
     {
     public:
 
-        OMPLInterface(const planning_scene::PlanningScenePtr &scene) : scene_(scene)
+        OMPLInterface(void) 
         {
         }
 
@@ -65,7 +65,7 @@ namespace ompl_interface
         {
         }
 
-        void setup(const std::vector<PlannerConfigs> &pconfig);
+        void configure(const planning_scene::PlanningScenePtr &scene, const std::vector<PlannerConfigs> &pconfig);
 
         void setMaximumSamplingAttempts(unsigned int max_sampling_attempts);
         void setMaximumGoalSamples(unsigned int max_goal_samples);

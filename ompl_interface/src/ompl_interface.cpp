@@ -37,8 +37,9 @@
 #include "ompl_interface/ompl_interface.h"
 #include <planning_models/conversions.h>
 
-void ompl_interface::OMPLInterface::setup(const std::vector<PlannerConfigs> &pconfig)
+void ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScenePtr &scene, const std::vector<PlannerConfigs> &pconfig)
 {
+    scene_ = scene;
     for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
     {
         const planning_models::KinematicModel::JointModelGroup *jmg = scene_->getKinematicModel()->getJointModelGroup(pconfig[i].group);

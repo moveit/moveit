@@ -39,6 +39,7 @@
 
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
+#include <planning_models/transforms.h>
 #include <collision_detection/collision_world.h>
 
 namespace planning_scene
@@ -47,17 +48,16 @@ namespace planning_scene
     class PlanningScene
     {
     public:
-        PlanningScene(const urdf::Model &urdf_model, const srdf::Model &srdf_model) :
-            kmodel_(new planning_models::KinematicModel(urdf_model, srdf_model)),
-            tf_(new planning_models::Transforms(kmodel_->getModelFrame())),
-	    kstate_(kmodel_)
-        {
-        }
-
-        ~PlanningScene(void)
-        {
-        }
-
+	PlanningScene(void)
+	{
+	}
+	
+        virtual ~PlanningScene(void)
+	{
+	}	
+	
+	void configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model);
+	
         const planning_models::KinematicModelPtr& getKinematicModel(void) const
         {
             return kmodel_;
@@ -65,7 +65,7 @@ namespace planning_scene
 
 	const planning_models::KinematicState& getCurrentState(void) const
 	{
-	    return kstate_;
+	    return *kstate_;
 	}
 	
         const planning_models::TransformsPtr& getTransforms(void) const
@@ -98,7 +98,7 @@ namespace planning_scene
 
         planning_models::KinematicModelPtr            kmodel_;
         planning_models::TransformsPtr                tf_;
-	planning_models::KinematicState               kstate_;	
+	planning_models::KinematicStatePtr            kstate_;	
         collision_detection::CollisionRobotPtr        crobot_;
         collision_detection::CollisionWorldPtr        cworld_;
         collision_detection::AllowedCollisionMatrix   acm_;
