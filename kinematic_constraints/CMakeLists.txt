@@ -26,6 +26,3 @@ rosbuild_add_library(${PROJECT_NAME}
 # Unit tests
 rosbuild_add_gtest(test_constraints test/test_constraints.cpp)
 target_link_libraries(test_constraints ${PROJECT_NAME})
-
-rosbuild_add_gtest(test_constraint_samplers test/test_constraint_samplers.cpp)
-target_link_libraries(test_constraint_samplers ${PROJECT_NAME})
