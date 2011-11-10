@@ -1,0 +1,18 @@
+<package>
+  <description brief="test_kinematic_constraints">
+
+     test_kinematic_constraints
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/test_kinematic_constraints</url>
+  <depend package="roscpp"/>
+  <depend package="kinematic_constraints"/>
+  <depend package="pluginlib"/>
+  <depend package="planning_scene_ros"/>
+
+</package>
+
+
