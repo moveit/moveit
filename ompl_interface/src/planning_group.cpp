@@ -114,6 +114,7 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
             planning_context_.ssetup_.setPlannerAllocator(boost::bind(&PlanningGroup::plannerAllocator, this, _1, name, rest));
         }
     }
+    planning_context_.kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
 }
 
 ompl_interface::PlanningGroup::~PlanningGroup(void)
@@ -224,7 +225,9 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
 
     // ******************* set the path constraints to use
     planning_context_.path_constraints_ = path_constraints;
-
+    planning_context_.kset_->clear();
+    planning_context_.kset_->add(path_constraints);
+    
     // ******************* set up the goal representation, based on goal constraints
 
     // first, we add path constraints to the goal ones
@@ -259,9 +262,13 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
         if (count <= max_planning_threads_)
         {
             planning_context_.pplan_.clearPlanners();
-            for (unsigned int i = 0 ; i < count ; ++i)
-                planning_context_.pplan_.addPlannerAllocator(planning_context_.ssetup_.getPlannerAllocator());
-            return planning_context_.pplan_.solve(timeout, 1, count, true);
+	    if (planning_context_.ssetup_.getPlannerAllocator())
+		for (unsigned int i = 0 ; i < count ; ++i)		
+		    planning_context_.pplan_.addPlannerAllocator(planning_context_.ssetup_.getPlannerAllocator());
+	    else
+		for (unsigned int i = 0 ; i < count ; ++i)		
+		    planning_context_.pplan_.addPlanner(ompl::geometric::getDefaultPlanner(planning_context_.ssetup_.getGoal()));
+	    return planning_context_.pplan_.solve(timeout, 1, count, true);
         }
         else
         {
@@ -270,8 +277,12 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
             for (int i = 0 ; i < n ; ++i)
             {
                 planning_context_.pplan_.clearPlanners();
-                for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)
-                    planning_context_.pplan_.addPlannerAllocator(planning_context_.ssetup_.getPlannerAllocator());
+		if (planning_context_.ssetup_.getPlannerAllocator())
+		    for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)
+			planning_context_.pplan_.addPlannerAllocator(planning_context_.ssetup_.getPlannerAllocator());
+		else
+		    for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)		
+			planning_context_.pplan_.addPlanner(ompl::geometric::getDefaultPlanner(planning_context_.ssetup_.getGoal()));
                 bool r = planning_context_.pplan_.solve(timeout, 1, max_planning_threads_, true);
                 result = result && r;
             }
@@ -279,8 +290,12 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
             if (n)
             {
                 planning_context_.pplan_.clearPlanners();
-                for (int i = 0 ; i < n ; ++i)
-                    planning_context_.pplan_.addPlannerAllocator(planning_context_.ssetup_.getPlannerAllocator());
+		if (planning_context_.ssetup_.getPlannerAllocator())
+		    for (int i = 0 ; i < n ; ++i)
+			planning_context_.pplan_.addPlannerAllocator(planning_context_.ssetup_.getPlannerAllocator());
+		else
+		    for (int i = 0 ; i < n ; ++i)		
+			planning_context_.pplan_.addPlanner(ompl::geometric::getDefaultPlanner(planning_context_.ssetup_.getGoal()));
                 bool r = planning_context_.pplan_.solve(timeout, 1, n, true);
                 result = result && r;
             }
