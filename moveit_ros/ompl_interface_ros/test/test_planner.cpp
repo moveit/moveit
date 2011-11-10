@@ -56,7 +56,7 @@ TEST(OmplPlanning, Simple)
     EXPECT_TRUE(scene.isConfigured());
     
     mplan_req.motion_plan_request.group_name = "right_arm";
-    mplan_req.motion_plan_request.num_planning_attempts = 2;
+    mplan_req.motion_plan_request.num_planning_attempts = 5;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
     const std::vector<std::string>& joint_names = scene.getKinematicModel()->getJointModelGroup("right_arm")->getJointModelNames();
     mplan_req.motion_plan_request.goal_constraints.joint_constraints.resize(joint_names.size());

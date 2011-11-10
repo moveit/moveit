@@ -46,19 +46,26 @@ namespace planning_scene_ros
     class PlanningSceneROS : public planning_scene::PlanningScene
     {
     public:
-        PlanningSceneROS(const std::string &robot_description) :
-            planning_scene::PlanningScene(), nh_("~"), robot_description_(robot_description)
-        {
-            loadRobotFromParamServer();
-            // read allowed collision matrix updates + set it for the planning scene
-        }
+        PlanningSceneROS(const std::string &robot_description);
 
-    private:
+	const std::string& getRobotDescription(void) const
+	{
+	    return robot_description_;
+	}
+	
+    protected:
 
         bool loadRobotFromParamServer(void);
-
+	void configureDefaultCollisionMatrix(void);
+	void configureDefaultPadding(void);
+	
         ros::NodeHandle nh_;
         std::string     robot_description_;
+	double          default_robot_padd_;
+	double          default_robot_scale_;
+	double          default_object_padd_;
+	double          default_attached_padd_;
+	
         urdf::Model     urdf_;
         srdf::Model     srdf_;
     };
