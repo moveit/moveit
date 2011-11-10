@@ -56,7 +56,7 @@ namespace planning_scene
 	{
 	}	
 	
-	virtual bool configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model);
+	bool configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model);
 	
         const planning_models::KinematicModelPtr& getKinematicModel(void) const
         {
