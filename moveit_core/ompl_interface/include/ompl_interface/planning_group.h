@@ -144,6 +144,11 @@ namespace ompl_interface
                                   const moveit_msgs::Constraints &path_constraints);
         void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
+        void setIKAllocator(const kinematic_constraints::IKAllocator &ik_alloc)
+        {
+            ik_allocator_ = ik_alloc;
+        }
+
         bool solve(double timeout, unsigned int count);
 
         bool getSolutionPath(moveit_msgs::RobotTrajectory &traj) const;

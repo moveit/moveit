@@ -555,9 +555,11 @@ namespace planning_models
             return joint_model_vector_;
         }
 
-        /** \brief Get the array of joint names, in the order they
-            appear in the robot state. */
-        void getJointModelNames(std::vector<std::string> &joints) const;
+        /** \brief Get the array of joint names, in the order they appear in the robot state. */
+        const std::vector<std::string>& getJointModelNames(void) const
+        {
+            return joint_model_names_vector_;
+        }
 
         /** \brief Get the array of joints, in the order they should be
             updated*/
@@ -571,8 +573,16 @@ namespace planning_models
             return link_models_with_collision_geometry_vector_;
         }
 
-        /** \brief Get the link names in the order they should be updated */
-        void getLinkModelNames(std::vector<std::string> &links) const;
+        const std::vector<std::string>& getLinkModelNamesWithCollisionGeometry(void) const
+        {
+            return link_model_names_with_collision_geometry_vector_;
+        }
+
+        /** \brief Get the link names */
+        const std::vector<std::string>& getLinkModelNames(void) const
+        {
+            return link_model_names_vector_;
+        }
 
         /** \brief Get the root joint */
         const JointModel* getRoot(void) const;
@@ -631,14 +641,23 @@ namespace planning_models
         /** \brief The vector of links that are updated when computeTransforms() is called, in the order they are updated */
         std::vector<LinkModel*>                 link_model_vector_;
 
+        /** \brief The vector of link names that corresponds to link_model_vector_ */
+        std::vector<std::string>                link_model_names_vector_;
+
         /** \brief Only links that have collision geometry specified */
         std::vector<LinkModel*>                 link_models_with_collision_geometry_vector_;
+
+        /** \brief The vector of link names that corresponds to link_models_with_collision_geometry_vector_ */
+        std::vector<std::string>                link_model_names_with_collision_geometry_vector_;
 
         /** \brief A map from joint names to their instances */
         std::map<std::string, JointModel*>      joint_model_map_;
 
         /** \brief The vector of joints in the model, in the order they appear in the state vector */
         std::vector<JointModel*>                joint_model_vector_;
+
+        /** \brief The vector of joint names that corresponds to joint_model_vector_ */
+        std::vector<std::string>                joint_model_names_vector_;
 
         /** \brief Get the number of variables necessary to describe this model */
         unsigned int                            variable_count_;

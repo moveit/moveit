@@ -260,6 +260,7 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::bu
     joint_model_map_[joint->name_] = joint;
     joint->tree_index_ = joint_model_vector_.size();
     joint_model_vector_.push_back(joint);
+    joint_model_names_vector_.push_back(joint->getName());
     joint->parent_link_model_ = parent;
     joint->child_link_model_ = constructLinkModel(link);
     if (parent == NULL)
@@ -267,8 +268,12 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::bu
     link_model_map_[joint->child_link_model_->name_] = joint->child_link_model_;
     joint->child_link_model_->tree_index_ = link_model_vector_.size();
     link_model_vector_.push_back(joint->child_link_model_);
+    link_model_names_vector_.push_back(link_model_vector_.back()->getName());
     if (joint->child_link_model_->shape_)
+    {
         link_models_with_collision_geometry_vector_.push_back(joint->child_link_model_);
+        link_model_names_with_collision_geometry_vector_.push_back(link_models_with_collision_geometry_vector_.back()->getName());
+    }
     joint->child_link_model_->parent_joint_model_ = joint;
 
     for (unsigned int i = 0 ; i < link->child_links.size() ; ++i)
@@ -486,22 +491,6 @@ const planning_models::KinematicModel::LinkModel* planning_models::KinematicMode
 const std::vector<std::string>& planning_models::KinematicModel::getJointModelGroupNames(void) const
 {
     return joint_model_group_names_;
-}
-
-void planning_models::KinematicModel::getLinkModelNames(std::vector<std::string> &links) const
-{
-    links.clear();
-    links.reserve(link_model_vector_.size());
-    for(unsigned int i = 0; i < link_model_vector_.size(); ++i)
-        links.push_back(link_model_vector_[i]->getName());
-}
-
-void planning_models::KinematicModel::getJointModelNames(std::vector<std::string> &joints) const
-{
-    joints.clear();
-    joints.reserve(joint_model_vector_.size());
-    for (unsigned int i = 0 ; i < joint_model_vector_.size() ; ++i)
-        joints.push_back(joint_model_vector_[i]->getName());
 }
 
 void planning_models::KinematicModel::getChildLinkModels(const KinematicModel::LinkModel *parent, std::vector<const KinematicModel::LinkModel*> &links) const
