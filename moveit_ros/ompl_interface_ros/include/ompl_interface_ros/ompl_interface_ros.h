@@ -53,6 +53,7 @@ namespace ompl_interface_ros
 
     protected:
 	
+	std::vector<std::string> getAdditionalConfigGroupNames(void);	
 	void configureIKSolvers(void);
 	bool configurePlanners(void);
 	

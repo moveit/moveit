@@ -106,24 +106,113 @@ ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const std::string &robot_
     }
 }
 
+std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConfigGroupNames(void)
+{  
+    XmlRpc::XmlRpcValue group_list;
+    std::vector<std::string> group_names;
+    
+    // read the list of group names that have additional configurations
+    if (nh_.getParam("groups", group_list))
+    {
+	ROS_INFO("Found additional configurations for planning groups on param server");
+	if (group_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
+	{
+	    for (int32_t i = 0; i < group_list.size(); ++i) 
+	    {
+		if (group_list[i].getType() == XmlRpc::XmlRpcValue::TypeString)
+		{
+		    std::string gnm = static_cast<std::string>(group_list[i]);
+		    if (planning_scene_->getKinematicModel()->hasJointModelGroup(gnm))
+			group_names.push_back(gnm);
+		    else
+			ROS_ERROR("Additional configuration specified for group '%s', but that group is not known to the kinematic model.", gnm.c_str());
+		}
+		else
+		    ROS_ERROR("Group names should be strings");
+	    }
+	}
+	else
+	    ROS_ERROR("Group list should be of XmlRpc Array type");
+    }
+    else
+	ROS_INFO("No additional configurations for planning groups found on param server");    
+    
+    return group_names;
+}
+
 void ompl_interface_ros::OMPLInterfaceROS::configureIKSolvers(void)
-{
-    const std::string &rd = planning_scene_->getRobotDescription(); // this one is resolved & remapped
+{   
+    std::vector<std::string> group_names = getAdditionalConfigGroupNames();
     std::map<std::string, std::vector<std::string> > possible_ik_solvers;  
 
-    // read from param server
+    // read the list of plugin names for possible IK solvers
+    for (std::size_t i = 0 ; i < group_names.size() ; ++i)
+    {
+	std::string ksolver;
+	if (nh_.getParam(group_names[i] + "/kinematics_solver", ksolver))
+	{
+	    std::stringstream ss(ksolver);
+	    while (ss.good() && !ss.eof())
+	    {
+		std::string solver; ss >> solver >> std::ws;
+		possible_ik_solvers[group_names[i]].push_back(solver);
+		ROS_INFO("Using IK solver '%s' for group '%s'.", solver.c_str(), group_names[i].c_str());
+	    }
+	}
+    }
 
     ik_loader_.reset(new IKLoader(possible_ik_solvers));
     kinematic_constraints::IKAllocator ik_allocator = boost::bind(&IKLoader::allocIKSolver, ik_loader_.get(), _1);
     for (std::map<std::string, ompl_interface::PlanningGroupPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
 	it->second->setIKAllocator(ik_allocator);
 }
- 
+
 bool ompl_interface_ros::OMPLInterfaceROS::configurePlanners(void)
 {
-    const std::string &rd = planning_scene_->getRobotDescription(); // this one is resolved & remapped
+    std::vector<std::string> group_names = getAdditionalConfigGroupNames();
+
+    // read the planning configuration for each group
     std::vector<ompl_interface::PlannerConfigs> pconfig;
-    // read from param server
+    for (std::size_t i = 0 ; i < group_names.size() ; ++i)
+    {
+	XmlRpc::XmlRpcValue config_names;
+	if (nh_.getParam(group_names[i] + "/planner_configs", config_names))
+	{
+	    if (config_names.getType() == XmlRpc::XmlRpcValue::TypeArray)
+	    {
+		for (int32_t j = 0; j < config_names.size() ; ++j) 
+		    if (config_names[j].getType() == XmlRpc::XmlRpcValue::TypeString)
+		    {
+			std::string planner_config = static_cast<std::string>(config_names[j]);
+			XmlRpc::XmlRpcValue xml_config;
+			if (nh_.getParam("planner_configs/" + planner_config, xml_config))
+			{
+			    if (xml_config.getType() == XmlRpc::XmlRpcValue::TypeStruct)
+			    {
+				ompl_interface::PlannerConfigs pc;
+				pc.name = group_names[i] + "[" + planner_config + "]";
+				pc.group = group_names[i];
+				ROS_INFO("Configuring '%s'...", pc.name.c_str());
+				for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin() ; it != xml_config.end() ; ++it)
+				    pc.config[it->first] = static_cast<std::string>(it->second);
+				pconfig.push_back(pc);
+			    }
+			    else
+				ROS_ERROR("A planning configuration should be of type XmlRpc Struct type (for configuration '%s')", planner_config.c_str());
+			}
+			else
+			    ROS_ERROR("Could not find the planner configuration '%s' on the param server", planner_config.c_str());
+		    }
+		    else
+			ROS_ERROR("Planner configuration names must be of type string (for group '%s')", group_names[i].c_str());
+	    }
+	    else
+		ROS_ERROR("The planner_configs argument of a group configuration should be an array of strings (for group '%s')", group_names[i].c_str());
+	}
+	else
+	    ROS_INFO("Group '%s' mentioned for additional configuration but no planner_configs specified. Using default settings.", group_names[i].c_str());
+    }
+    
     return configure(planning_scene_ptr_, pconfig);
 }
 
@@ -138,7 +227,7 @@ void ompl_interface_ros::OMPLInterfaceROS::run(void)
     {
         std::stringstream ss;
         planning_scene_->getKinematicModel()->printModelInfo(ss);
-        ROS_INFO("%s", ss.str().c_str());
+	//        ROS_INFO("%s", ss.str().c_str());
         ROS_INFO("OMPL planning node started.");
     }
     else
