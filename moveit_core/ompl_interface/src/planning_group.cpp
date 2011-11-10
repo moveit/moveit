@@ -96,12 +96,12 @@ ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const omp
 ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
                                              const std::map<std::string, std::string> &config,
                                              const planning_scene::PlanningScenePtr &scene, ompl::StateSpaceCollection &ssc) :
-    name_(name), jmg_(jmg), planning_scene_(scene), km_state_space_(ssc, jmg), planning_context_(km_state_space_),
+    name_(name), jmg_(jmg), planning_scene_(scene), km_state_space_(ssc, jmg), ssetup_(km_state_space_.getOMPLSpace()),
+    pplan_(ssetup_.getProblemDefinition()), start_state_(scene->getKinematicModel()),
     max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
 {
-    planning_context_.start_state_.reset(new planning_models::KinematicState(planning_scene_->getKinematicModel()));
-    planning_context_.ssetup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
-    planning_context_.ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
+    ssetup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
+    ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
     if (!config.empty())
     {
         std::map<std::string, std::string>::const_iterator it = config.find("type");
@@ -111,10 +111,11 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
         {
             // remove the 'type' parameter; the rest are parameters for the planner itself
             std::map<std::string, std::string> rest = config; rest.erase("type");
-            planning_context_.ssetup_.setPlannerAllocator(boost::bind(&PlanningGroup::plannerAllocator, this, _1, name, rest));
+            ssetup_.setPlannerAllocator(boost::bind(&PlanningGroup::plannerAllocator, this, _1, name, rest));
         }
     }
-    planning_context_.kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
+    path_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
+    goal_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
 }
 
 ompl_interface::PlanningGroup::~PlanningGroup(void)
@@ -125,7 +126,7 @@ ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedS
 {
     if (km_state_space_.getOMPLSpace().get() != ss)
         ROS_FATAL("Attempted to allocate a state sampler for an unknown state space");
-    const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(planning_context_.path_constraints_);
+    const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_constraints_);
     if (cs)
         return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
     else
@@ -213,62 +214,58 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
 
     // ******************* set up the starting state for the plannig context
     // set the starting state
-    *planning_context_.start_state_ = start_state;
+    start_state_ = start_state;
 
     // notify the state validity checker about the new starting state
-    static_cast<StateValidityChecker*>(planning_context_.ssetup_.getStateValidityChecker().get())->updatePlanningContext();
+    static_cast<StateValidityChecker*>(ssetup_.getStateValidityChecker().get())->updatePlanningContext();
 
     // convert the input state to the corresponding OMPL state
     ompl::base::ScopedState<> ompl_start_state(km_state_space_.getOMPLSpace());
-    km_state_space_.copyToOMPLState(ompl_start_state.get(), *planning_context_.start_state_);
-    planning_context_.ssetup_.setStartState(ompl_start_state);
+    km_state_space_.copyToOMPLState(ompl_start_state.get(), start_state_);
+    ssetup_.setStartState(ompl_start_state);
 
     // ******************* set the path constraints to use
-    planning_context_.path_constraints_ = path_constraints;
-    planning_context_.kset_->clear();
-    planning_context_.kset_->add(path_constraints);
-    
+    path_constraints_ = path_constraints;
+    path_kset_->clear();
+    path_kset_->add(path_constraints);
+
     // ******************* set up the goal representation, based on goal constraints
 
     // first, we add path constraints to the goal ones
-    planning_context_.goal_constraints_ = kinematic_constraints::mergeConstraints(goal_constraints, path_constraints);
-
-    // construct a constraint evaluator for the goal region
-    kinematic_constraints::KinematicConstraintSetPtr ks
-        (new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
-    ks->add(planning_context_.goal_constraints_);
-
-    const kinematic_constraints::ConstraintSamplerPtr &gsampler = getConstraintsSampler(planning_context_.goal_constraints_);
+    goal_constraints_ = kinematic_constraints::mergeConstraints(goal_constraints, path_constraints);
+    goal_kset_->clear();
+    goal_kset_->add(goal_constraints_);
+    const kinematic_constraints::ConstraintSamplerPtr &gsampler = getConstraintsSampler(goal_constraints_);
     if (gsampler)
         // we can sample from the constraint specification
-        planning_context_.ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalSampler(this, ks, gsampler)));
+        ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalSampler(this, goal_kset_, gsampler)));
     else
         // the constraints are such that we cannot easily sample the goal region,
         // so we use a simpler goal region specification
-        planning_context_.ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalRegion(this, ks)));
+        ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalRegion(this, goal_kset_)));
 
     return true;
 }
 
 bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
 {
-    planning_context_.ssetup_.getGoal()->clearSolutionPaths();
+    ssetup_.getGoal()->clearSolutionPaths();
 
     if (count <= 1)
-        return planning_context_.ssetup_.solve(timeout);
+        return ssetup_.solve(timeout);
     else
     {
-        planning_context_.pplan_.clearHybridizationPaths();
+        pplan_.clearHybridizationPaths();
         if (count <= max_planning_threads_)
         {
-            planning_context_.pplan_.clearPlanners();
-	    if (planning_context_.ssetup_.getPlannerAllocator())
-		for (unsigned int i = 0 ; i < count ; ++i)		
-		    planning_context_.pplan_.addPlannerAllocator(planning_context_.ssetup_.getPlannerAllocator());
-	    else
-		for (unsigned int i = 0 ; i < count ; ++i)		
-		    planning_context_.pplan_.addPlanner(ompl::geometric::getDefaultPlanner(planning_context_.ssetup_.getGoal()));
-	    return planning_context_.pplan_.solve(timeout, 1, count, true);
+            pplan_.clearPlanners();
+            if (ssetup_.getPlannerAllocator())
+                for (unsigned int i = 0 ; i < count ; ++i)
+                    pplan_.addPlannerAllocator(ssetup_.getPlannerAllocator());
+            else
+                for (unsigned int i = 0 ; i < count ; ++i)
+                    pplan_.addPlanner(ompl::geometric::getDefaultPlanner(ssetup_.getGoal()));
+            return pplan_.solve(timeout, 1, count, true);
         }
         else
         {
@@ -276,27 +273,27 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
             bool result = true;
             for (int i = 0 ; i < n ; ++i)
             {
-                planning_context_.pplan_.clearPlanners();
-		if (planning_context_.ssetup_.getPlannerAllocator())
-		    for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)
-			planning_context_.pplan_.addPlannerAllocator(planning_context_.ssetup_.getPlannerAllocator());
-		else
-		    for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)		
-			planning_context_.pplan_.addPlanner(ompl::geometric::getDefaultPlanner(planning_context_.ssetup_.getGoal()));
-                bool r = planning_context_.pplan_.solve(timeout, 1, max_planning_threads_, true);
+                pplan_.clearPlanners();
+                if (ssetup_.getPlannerAllocator())
+                    for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)
+                        pplan_.addPlannerAllocator(ssetup_.getPlannerAllocator());
+                else
+                    for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)
+                        pplan_.addPlanner(ompl::geometric::getDefaultPlanner(ssetup_.getGoal()));
+                bool r = pplan_.solve(timeout, 1, max_planning_threads_, true);
                 result = result && r;
             }
             n = count % max_planning_threads_;
             if (n)
             {
-                planning_context_.pplan_.clearPlanners();
-		if (planning_context_.ssetup_.getPlannerAllocator())
-		    for (int i = 0 ; i < n ; ++i)
-			planning_context_.pplan_.addPlannerAllocator(planning_context_.ssetup_.getPlannerAllocator());
-		else
-		    for (int i = 0 ; i < n ; ++i)		
-			planning_context_.pplan_.addPlanner(ompl::geometric::getDefaultPlanner(planning_context_.ssetup_.getGoal()));
-                bool r = planning_context_.pplan_.solve(timeout, 1, n, true);
+                pplan_.clearPlanners();
+                if (ssetup_.getPlannerAllocator())
+                    for (int i = 0 ; i < n ; ++i)
+                        pplan_.addPlannerAllocator(ssetup_.getPlannerAllocator());
+                else
+                    for (int i = 0 ; i < n ; ++i)
+                        pplan_.addPlanner(ompl::geometric::getDefaultPlanner(ssetup_.getGoal()));
+                bool r = pplan_.solve(timeout, 1, n, true);
                 result = result && r;
             }
             return result;
@@ -306,11 +303,11 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
 
 bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory &traj) const
 {
-    if (!planning_context_.ssetup_.haveSolutionPath())
+    if (!ssetup_.haveSolutionPath())
         return false;
 
-    const ompl::geometric::PathGeometric &pg = planning_context_.ssetup_.getSolutionPath();
-    planning_models::KinematicState ks = *planning_context_.start_state_;
+    const ompl::geometric::PathGeometric &pg = ssetup_.getSolutionPath();
+    planning_models::KinematicState ks = start_state_;
     const std::vector<planning_models::KinematicModel::JointModel*> &jnt = planning_scene_->getKinematicModel()->getJointModels();
     std::vector<const planning_models::KinematicModel::JointModel*> onedof;
     std::vector<const planning_models::KinematicModel::JointModel*> mdof;
@@ -361,8 +358,8 @@ bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory
 
 void ompl_interface::PlanningGroup::fillResponse(moveit_msgs::GetMotionPlan::Response &res) const
 {
-    planning_models::kinematicStateToRobotState(*planning_context_.start_state_, res.robot_state);
-    res.planning_time = ros::Duration(planning_context_.ssetup_.getLastPlanComputationTime());
+    planning_models::kinematicStateToRobotState(start_state_, res.robot_state);
+    res.planning_time = ros::Duration(ssetup_.getLastPlanComputationTime());
     getSolutionPath(res.trajectory);
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 }

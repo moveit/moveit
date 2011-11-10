@@ -78,17 +78,17 @@ namespace ompl_interface
         bool solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints,
                    const moveit_msgs::Constraints &path_constraints, double timeout);
 
-	bool isConfigured(void) const
-	{
-	    return configured_;
-	}
-	
+        bool isConfigured(void) const
+        {
+            return configured_;
+        }
+
     protected:
 
         planning_scene::PlanningScenePtr        scene_;
         std::map<std::string, PlanningGroupPtr> planning_groups_;
         ompl::StateSpaceCollection              ssc_;
-	bool                                    configured_;
+        bool                                    configured_;
     };
 }
 

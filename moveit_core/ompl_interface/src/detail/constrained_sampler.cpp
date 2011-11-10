@@ -45,7 +45,7 @@ ompl_interface::ConstrainedSampler::ConstrainedSampler(const PlanningGroup *pg, 
 bool ompl_interface::ConstrainedSampler::sampleC(ompl::base::State *state)
 {
     std::vector<double> values;
-    if (cs_->sample(values, pg_->getMaximumSamplingAttempts(), pg_->getPlanningContext().start_state_.get()))
+    if (cs_->sample(values, pg_->getMaximumSamplingAttempts(), &pg_->getStartState()))
     {
         pg_->getKMStateSpace().copyToOMPLState(state, values);
         return true;

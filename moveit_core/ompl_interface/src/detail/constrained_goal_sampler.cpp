@@ -38,8 +38,8 @@
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks,
                                                                const kinematic_constraints::ConstraintSamplerPtr &cs) :
-    ompl::base::GoalLazySamples(pg->getPlanningContext().ssetup_.getSpaceInformation(), boost::bind(&ConstrainedGoalSampler::sampleC, this, _1, _2), false),
-    pg_(pg), ks_(ks), cs_(cs), tss_(*pg->getPlanningContext().start_state_)
+    ompl::base::GoalLazySamples(pg->getOMPLContext().getSpaceInformation(), boost::bind(&ConstrainedGoalSampler::sampleC, this, _1, _2), false),
+    pg_(pg), ks_(ks), cs_(cs), tss_(pg->getStartState())
 {
     startSampling();
 }
@@ -61,7 +61,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleC(const ompl::base::GoalLazyS
     planning_models::KinematicState *s = tss_.getStateStorage();
     std::vector<double> values;
     for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
-        if (cs_->sample(values, ma, pg_->getPlanningContext().start_state_.get()))
+        if (cs_->sample(values, ma, &pg_->getStartState()))
         {
             s->getJointStateGroup(pg_->getJointModelGroup()->getName())->setStateValues(values);
             if (ks_->decide(*s).first)
