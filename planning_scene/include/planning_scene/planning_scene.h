@@ -99,7 +99,7 @@ namespace planning_scene
 	    return configured_;
 	}
 	
-    private:
+    protected:
 
         planning_models::KinematicModelPtr            kmodel_;
         planning_models::TransformsPtr                tf_;
