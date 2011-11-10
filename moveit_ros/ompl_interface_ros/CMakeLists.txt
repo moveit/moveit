@@ -27,3 +27,7 @@ rosbuild_add_library(${PROJECT_NAME} src/ompl_interface_ros.cpp)
 
 rosbuild_add_executable(ompl_planner src/ompl_planner.cpp)
 target_link_libraries(ompl_planner ${PROJECT_NAME})
+
+# Unit tests
+rosbuild_add_gtest(test_planner test/test_planner.cpp)
+target_link_libraries(test_planner ${PROJECT_NAME})

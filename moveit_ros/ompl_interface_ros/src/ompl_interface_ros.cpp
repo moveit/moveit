@@ -54,7 +54,7 @@ ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const std::string &robot_
 
 bool ompl_interface_ros::OMPLInterfaceROS::computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
 {
-    return false;
+    return solve(req, res);
 }
 
 void ompl_interface_ros::OMPLInterfaceROS::run(void)
