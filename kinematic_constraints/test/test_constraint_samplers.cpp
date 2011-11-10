@@ -38,6 +38,7 @@
 
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <kinematic_constraints/constraint_samplers.h>
+#include <ros/ros.h>
 #include <gtest/gtest.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
@@ -45,25 +46,25 @@ class LoadPlanningModelsPr2 : public testing::Test
 protected:
 
     virtual void SetUp()
-    {
-	srdf::Model::Group g_weird;
-	g_weird.name_ = "weird_group";
-	g_weird.joints_.push_back("head_pan_joint");
-	g_weird.joints_.push_back("torso_lift_joint");
-	g_weird.joints_.push_back("r_shoulder_pan_joint");
-	g_weird.joints_.push_back("r_wrist_roll_joint");
-	g_weird.joints_.push_back("l_shoulder_pan_joint");
-	g_weird.joints_.push_back("l_wrist_roll_joint");
-	srdf_model.groups_.push_back(g_weird);	
-
-	srdf::Model::Group l_arm;
-	l_arm.name_ = "left_arm";
-	l_arm.chains_.push_back(std::make_pair("l_shoulder_pan_link", "l_wrist_roll_link"));
-	srdf_model.groups_.push_back(l_arm);
+    {     
+	urdf_model.initFile("../planning_models/test/urdf/robot.xml");
+	static const std::string SRDF_XML =
+	    "<robot name=\"pr2_test\">"
+	    "<group name=\"weird_group\">"
+	    "<joint name=\"head_pan_joint\"/>"
+	    "<joint name=\"torso_lift_joint\"/>"
+	    "<joint name=\"r_shoulder_pan_joint\"/>"
+	    "<joint name=\"r_wrist_roll_joint\"/>"
+	    "<joint name=\"l_shoulder_pan_joint\"/>"
+	    "<joint name=\"l_wrist_roll_joint\"/>"
+	    "<group/>"
+	    "<group name=\"left_arm\">"
+	    "<chain base_link=\"l_shoulder_pan_link\" tip_link=\"l_wrist_roll_link\"/>"
+	    "<group/>"
+	    "</robot>";
 	
-        urdf_model.initFile("../planning_models/test/urdf/robot.xml");
         kmodel.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
-	kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base","kinematics::KinematicsBase"));
+	kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
 	
 	ik_solver_name_ = "pr2_arm_kinematics/PR2ArmKinematicsPlugin";
 	if (kinematics_loader_->isClassAvailable(ik_solver_name_))

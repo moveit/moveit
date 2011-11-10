@@ -111,8 +111,10 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
         {
             // remove the 'type' parameter; the rest are parameters for the planner itself
             std::map<std::string, std::string> rest = config; rest.erase("type");
-            ssetup_.setPlannerAllocator(boost::bind(&PlanningGroup::plannerAllocator, this, _1, name, rest));
-        }
+            ssetup_.setPlannerAllocator(boost::bind(&PlanningGroup::plannerAllocator, this, _1, it->second, rest));
+	    ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
+		     name.c_str(), it->second.c_str());
+	}
     }
     path_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
     goal_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));

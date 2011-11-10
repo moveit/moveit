@@ -48,7 +48,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <set>
 
 
 /** \brief Main namespace */
@@ -421,11 +420,6 @@ namespace planning_models
                 return group_link_model_vector_;
             }
 
-            bool supportsIK(const std::string &link_name) const
-            {
-                return ik_links_.find(link_name) != ik_links_.end();
-            }
-
             const std::vector<std::string>& getLinkModelNames(void) const
             {
                 return link_model_name_vector_;
@@ -498,9 +492,6 @@ namespace planning_models
 
             /** \brief The number of variables necessary to describe this group of joints */
             unsigned int                             variable_count_;
-
-            /** \brief The set of link names for which inverse kinematics can be performed */
-            std::set<std::string>                    ik_links_;
         };
 
         /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
