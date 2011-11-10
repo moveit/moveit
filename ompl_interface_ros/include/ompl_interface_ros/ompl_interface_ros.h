@@ -39,6 +39,8 @@
 
 namespace ompl_interface_ros
 {
+    class IKLoader;
+    
     class OMPLInterfaceROS : public ompl_interface::OMPLInterface
     {
     public:
@@ -49,12 +51,18 @@ namespace ompl_interface_ros
 
         void run(void);
 
-    private:
-
+    protected:
+	
+	void configureIKSolvers(void);
+	bool configurePlanners(void);
+	
         ros::NodeHandle                       nh_;
         ros::ServiceServer                    plan_service_;
         planning_scene_ros::PlanningSceneROS *planning_scene_;
-        planning_scene::PlanningScenePtr      planning_scene_ptr_;
+        planning_scene::PlanningScenePtr      planning_scene_ptr_; 
+	
+    private:
+	boost::shared_ptr<IKLoader>           ik_loader_;	
     };
 
 }

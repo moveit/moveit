@@ -32,44 +32,104 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, E. Gil Jones */
 
 #include "planning_scene_ros/planning_scene_ros.h"
 
-bool planning_scene_ros::PlanningSceneROS::loadRobotFromParamServer(void)
+planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_description) :
+    planning_scene::PlanningScene(), nh_("~")
 {
-    std::string name;
-    if (nh_.searchParam(robot_description_, name))
+    if (nh_.searchParam(robot_description, robot_description_))
     {
-        std::string content;
-        if (nh_.getParam(name, content))
-        {
-            if (urdf_.initString(content))
-            {
-                if (nh_.searchParam(robot_description_ + "_semantic", name))
-                {
-                    std::string scontent;
-                    if (nh_.getParam(name, scontent))
-                    {
-                        if (srdf_.initString(urdf_, scontent))
-                            return configure(urdf_, srdf_);
-                        else
-                            ROS_ERROR("Unable to parse SRDF");
-                    }
-                    else
-                        ROS_ERROR("Robot semantic description not found. Did you forget to remap '%s_semantic'?", robot_description_.c_str());
-                }
-                else
-                    ROS_ERROR("Robot semantic description not found. Did you forget to remap '%s_semantic'?", robot_description_.c_str());
-            }
-            else
-                ROS_ERROR("Unable to parse URDF");
-        }
-        else
-            ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
+	if (loadRobotFromParamServer())
+	{
+	    configureDefaultCollisionMatrix();
+	    configureDefaultPadding();
+	}
     }
     else
-        ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
+	ROS_ERROR("Unable to find ROS parameter for robot description. Did you forget to remap '%s'?", robot_description.c_str());
+}
 
+void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
+{
+    // no collisions allowed by default
+    acm_.setEntry(kmodel_->getLinkModelNamesWithCollisionGeometry(),
+		  kmodel_->getLinkModelNamesWithCollisionGeometry(), false);
+    
+    // allow collisions for pairs that have been disabled
+    const std::vector<std::pair<std::string, std::string> >&dc = srdf_.getDisabledCollisions();
+    for (std::size_t i = 0 ; i < dc.size() ; ++i)
+	acm_.setEntry(dc[i].first, dc[i].second, true);
+
+    // read overriding values from the param server
+    
+    // first we do default collision operations
+    if (!nh_.hasParam(robot_description_ + "_planning/default_collision_operations"))
+	ROS_DEBUG("No additional default collision operations specified");
+    else
+    {
+	ROS_DEBUG("Reading additional default collision operations");
+
+	XmlRpc::XmlRpcValue coll_ops;
+	nh_.getParam(robot_description_ + "_planning/default_collision_operations", coll_ops);
+	
+	if (coll_ops.getType() != XmlRpc::XmlRpcValue::TypeArray)
+	{
+	    ROS_WARN("default_collision_operations is not an array");
+	    return;
+	}
+	
+	if (coll_ops.size() == 0)
+	{
+	    ROS_WARN("No collision operations in default collision operations");
+	    return;
+	}
+	
+	for (int i = 0 ; i < coll_ops.size() ; ++i)
+	{
+	    if (!coll_ops[i].hasMember("object1") || !coll_ops[i].hasMember("object2") || !coll_ops[i].hasMember("operation"))
+	    {
+		ROS_WARN("All collision operations must have two objects and an operation");
+		continue;
+	    }
+	    acm_.setEntry(std::string(coll_ops[i]["object1"]), std::string(coll_ops[i]["object2"]), std::string(coll_ops[i]["operation"]) == "disable");
+	}
+    }
+}
+
+
+
+void planning_scene_ros::PlanningSceneROS::configureDefaultPadding(void)
+{
+    nh_.param(robot_description_ + "_planning/default_robot_padding", default_robot_padd_, 0.0);
+    nh_.param(robot_description_ + "_planning/default_robot_scale", default_robot_scale_, 1.0);
+    nh_.param(robot_description_ + "_planning/default_object_padding", default_object_padd_, 0.0);
+    nh_.param(robot_description_ + "_planning/default_attached_padding", default_attached_padd_, 0.0);
+}
+
+bool planning_scene_ros::PlanningSceneROS::loadRobotFromParamServer(void)
+{
+    std::string content;
+    if (nh_.getParam(robot_description_, content))
+    {
+	if (urdf_.initString(content))
+	{
+	    std::string scontent;
+	    if (nh_.getParam(robot_description_ + "_semantic", scontent))
+	    {
+		if (srdf_.initString(urdf_, scontent))
+		    return configure(urdf_, srdf_);
+		else
+		    ROS_ERROR("Unable to parse SRDF");
+	    }
+	    else
+		ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
+	}
+	else
+	    ROS_ERROR("Unable to parse URDF");
+    }
+    else
+	ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
     return false;
 }
