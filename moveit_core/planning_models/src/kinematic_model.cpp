@@ -42,6 +42,7 @@
 #include <queue>
 #include <ros/console.h>
 #include <cmath>
+#include <set>
 
 /* ------------------------ KinematicModel ------------------------ */
 planning_models::KinematicModel::KinematicModel(const urdf::Model &model, const srdf::Model &smodel)
@@ -244,10 +245,6 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
     joint_model_group_map_[gc.name_] = jmg;
     joint_model_group_config_map_[gc.name_] = gc;
     joint_model_group_names_.push_back(gc.name_);
-
-    // if we consist of just one chain, assume IK can be performed for that chain
-    if (gc.chains_.size() == 1 && gc.joints_.empty() && gc.links_.empty() && gc.subgroups_.empty() && !jset.empty())
-        jmg->ik_links_.insert(gc.chains_[0].second);
 
     return true;
 }

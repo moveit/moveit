@@ -38,6 +38,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <ros/console.h>
 #include <algorithm>
+#include <set>
 
 kinematic_constraints::ConstraintSampler::ConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg) : jmg_(jmg)
 {
