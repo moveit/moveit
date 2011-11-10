@@ -42,10 +42,10 @@ bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
     scene_ = scene;
     if (!scene_ || !scene_->isConfigured())
     {
-	ROS_ERROR("Cannot configure OMPL interface without configured planning scene");
-	return false;
-    }    
-    
+        ROS_ERROR("Cannot configure OMPL interface without configured planning scene");
+        return false;
+    }
+
     for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
     {
         const planning_models::KinematicModel::JointModelGroup *jmg = scene_->getKinematicModel()->getJointModelGroup(pconfig[i].group);
