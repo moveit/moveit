@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     spinner.start();
 
     ompl_interface_ros::OMPLInterfaceROS o("robot_description");
-    o.run();
+    o.status();
 
     ros::waitForShutdown();
 

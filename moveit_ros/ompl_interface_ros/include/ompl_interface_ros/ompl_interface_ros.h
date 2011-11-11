@@ -40,7 +40,7 @@
 namespace ompl_interface_ros
 {
     class IKLoader;
-    
+
     class OMPLInterfaceROS : public ompl_interface::OMPLInterface
     {
     public:
@@ -49,21 +49,21 @@ namespace ompl_interface_ros
 
         bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
 
-        void run(void);
+        void status(void);
 
     protected:
-	
-	std::vector<std::string> getAdditionalConfigGroupNames(void);	
-	void configureIKSolvers(void);
-	bool configurePlanners(void);
-	
+
+        std::vector<std::string> getAdditionalConfigGroupNames(void);
+        void configureIKSolvers(void);
+        bool configurePlanners(void);
+
         ros::NodeHandle                       nh_;
         ros::ServiceServer                    plan_service_;
         planning_scene_ros::PlanningSceneROS *planning_scene_;
-        planning_scene::PlanningScenePtr      planning_scene_ptr_; 
-	
+        planning_scene::PlanningScenePtr      planning_scene_ptr_;
+
     private:
-	boost::shared_ptr<IKLoader>           ik_loader_;	
+        boost::shared_ptr<IKLoader>           ik_loader_;
     };
 
 }
