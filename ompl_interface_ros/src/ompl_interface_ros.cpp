@@ -184,6 +184,24 @@ bool ompl_interface_ros::OMPLInterfaceROS::configurePlanners(void)
     std::vector<ompl_interface::PlannerConfigs> pconfig;
     for (std::size_t i = 0 ; i < group_names.size() ; ++i)
     {
+        // get parameters specific for the group
+        std::string projection_evaluator, lvsf;
+        nh_.getParam(group_names[i] + "/projection_evaluator", projection_evaluator);
+        nh_.getParam(group_names[i] + "/longest_valid_segment_fraction", lvsf);
+
+        // set the parameters (if any) for the default group configuration;
+        if (!projection_evaluator.empty() || !lvsf.empty())
+        {
+            ompl_interface::PlannerConfigs pc;
+            pc.name = group_names[i];
+            pc.group = group_names[i];
+            if (!projection_evaluator.empty())
+                pc.config["projection_evaluator"] = projection_evaluator;
+            if (!lvsf.empty())
+                pc.config["longest_valid_segment_fraction"] = lvsf;
+            pconfig.push_back(pc);
+        }
+
         XmlRpc::XmlRpcValue config_names;
         if (nh_.getParam(group_names[i] + "/planner_configs", config_names))
         {
@@ -201,6 +219,14 @@ bool ompl_interface_ros::OMPLInterfaceROS::configurePlanners(void)
                                 ompl_interface::PlannerConfigs pc;
                                 pc.name = group_names[i] + "[" + planner_config + "]";
                                 pc.group = group_names[i];
+
+                                // inherit parameters from the group (which can be overriden)
+                                if (!projection_evaluator.empty())
+                                    pc.config["projection_evaluator"] = projection_evaluator;
+                                if (!lvsf.empty())
+                                    pc.config["longest_valid_segment_fraction"] = lvsf;
+
+                                // read parameters specific for this configuration
                                 ROS_INFO("Configuring '%s'...", pc.name.c_str());
                                 for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin() ; it != xml_config.end() ; ++it)
                                     pc.config[it->first] = static_cast<std::string>(it->second);
@@ -222,6 +248,8 @@ bool ompl_interface_ros::OMPLInterfaceROS::configurePlanners(void)
             ROS_INFO("Group '%s' mentioned for additional configuration but no planner_configs specified. Using default settings.", group_names[i].c_str());
     }
 
+    // this call will configure planning for all groups known to the kinematic model
+    // and it will use additional configuration options, if available
     return configure(planning_scene_ptr_, pconfig);
 }
 
