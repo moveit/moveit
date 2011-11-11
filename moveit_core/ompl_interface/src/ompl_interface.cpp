@@ -50,7 +50,7 @@ bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
     {
         const planning_models::KinematicModel::JointModelGroup *jmg = scene_->getKinematicModel()->getJointModelGroup(pconfig[i].group);
         if (jmg)
-	    planning_groups_[pconfig[i].name].reset(new PlanningGroup(pconfig[i].name, jmg, pconfig[i].config, scene_, ssc_));	
+            planning_groups_[pconfig[i].name].reset(new PlanningGroup(pconfig[i].name, jmg, pconfig[i].config, scene_, ssc_));
     }
     const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& groups = scene_->getKinematicModel()->getJointModelGroupMap();
     for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
@@ -124,6 +124,8 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
         pg->second->fillResponse(res);
         return true;
     }
+    else
+        ROS_INFO("Unable to solve the planning problem");
     return false;
 }
 

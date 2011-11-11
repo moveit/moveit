@@ -331,6 +331,6 @@ bool kinematic_constraints::IKConstraintSampler::callIK(const geometry_msgs::Pos
         return true;
     }
     else
-        ROS_DEBUG("IK solved failed with error %d", error);
+        ROS_DEBUG("IK solver failed with error %d", error);
     return false;
 }
