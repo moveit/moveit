@@ -87,7 +87,7 @@ ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const omp
     else if (planner == "geometric::PRM")
         p = new ompl::geometric::PRM(si);
     else
-        ROS_WARN("Unknown planner type: %s", planner.c_str());
+        ROS_WARN("%s: Unknown planner type: %s", name_.c_str(), planner.c_str());
     if (p)
         p->setParams(config);
     return ompl::base::PlannerPtr(p);
@@ -97,7 +97,7 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
                                              const std::map<std::string, std::string> &config,
                                              const planning_scene::PlanningScenePtr &scene, ompl::StateSpaceCollection &ssc) :
     name_(name), jmg_(jmg), planning_scene_(scene), km_state_space_(ssc, jmg), ssetup_(km_state_space_.getOMPLSpace()),
-    pplan_(ssetup_.getProblemDefinition()), start_state_(scene->getKinematicModel()),
+    pplan_(ssetup_.getProblemDefinition()), start_state_(scene->getKinematicModel()), last_plan_time_(0.0),
     max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
 {
     ssetup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
@@ -106,15 +106,15 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
     {
         std::map<std::string, std::string>::const_iterator it = config.find("type");
         if (it == config.end())
-            ROS_WARN("Attribute 'type' not specified for planning group '%s'", name_.c_str());
+            ROS_WARN("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
         else
         {
             // remove the 'type' parameter; the rest are parameters for the planner itself
             std::map<std::string, std::string> rest = config; rest.erase("type");
             ssetup_.setPlannerAllocator(boost::bind(&PlanningGroup::plannerAllocator, this, _1, it->second, rest));
-	    ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
-		     name.c_str(), it->second.c_str());
-	}
+            ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
+                     name.c_str(), it->second.c_str());
+        }
     }
     path_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
     goal_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
@@ -127,7 +127,8 @@ ompl_interface::PlanningGroup::~PlanningGroup(void)
 ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
 {
     if (km_state_space_.getOMPLSpace().get() != ss)
-        ROS_FATAL("Attempted to allocate a state sampler for an unknown state space");
+        ROS_FATAL("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
+    ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
     const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_constraints_);
     if (cs)
         return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
@@ -143,7 +144,7 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
     // if we have position and/or orientation constraints on links that we can perform IK for,
     // we will use a sampleable goal region that employs IK to sample goals
     for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
-        if (jmg_->supportsIK(constr.position_constraints[p].link_name))
+        if (ik_allocator_)
             for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
                 if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
                 {
@@ -152,27 +153,36 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
                     boost::scoped_ptr<kinematic_constraints::OrientationConstraint> oc
                         (new kinematic_constraints::OrientationConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
                     if (pc->use(constr.position_constraints[p]) && oc->use(constr.orientation_constraints[o]))
+                    {
                         sampler.reset(new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, *pc, *oc));
+                        ROS_DEBUG("%s: Allocated an IK-based sampler satisfying position and orientation constraints", name_.c_str());
+                    }
                 }
 
     if (!sampler)
         for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
-            if (jmg_->supportsIK(constr.position_constraints[p].link_name))
+            if (ik_allocator_)
             {
                 boost::scoped_ptr<kinematic_constraints::PositionConstraint> pc
                     (new kinematic_constraints::PositionConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
                 if (pc->use(constr.position_constraints[p]))
+                {
                     sampler.reset(new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, *pc));
+                    ROS_DEBUG("%s: Allocated an IK-based sampler satisfying position constraints", name_.c_str());
+                }
             }
 
     if (!sampler)
         for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
-            if (jmg_->supportsIK(constr.orientation_constraints[o].link_name))
+            if (ik_allocator_)
             {
                 boost::scoped_ptr<kinematic_constraints::OrientationConstraint> oc
                     (new kinematic_constraints::OrientationConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
                 if (oc->use(constr.orientation_constraints[o]))
+                {
                     sampler.reset(new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, *oc));
+                    ROS_DEBUG("%s: Allocated an IK-based sampler satisfying orientation constraints", name_.c_str());
+                }
             }
 
     // if we cannot perform IK but there are joint constraints that we can use to construct goal samples,
@@ -187,13 +197,23 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
                 jc.push_back(j);
         }
         if (!jc.empty())
+        {
             sampler.reset(new kinematic_constraints::JointConstraintSampler(jmg_, jc));
+            ROS_DEBUG("%s: Allocated a sampler satisfying joint constraints", name_.c_str());
+        }
     }
+
+    if (!sampler)
+        ROS_DEBUG("%s: No constraints sampler allocated", name_.c_str());
+
     return sampler;
 }
 
 void ompl_interface::PlanningGroup::setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams)
 {
+    ROS_DEBUG("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]", name_.c_str(),
+              wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
+
     km_state_space_.setPlanningVolume(wparams.min_corner.x, wparams.max_corner.x,
                                       wparams.min_corner.y, wparams.max_corner.y,
                                       wparams.min_corner.z, wparams.max_corner.z);
@@ -210,7 +230,7 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
         goal_constraints.position_constraints.empty() &&
         goal_constraints.orientation_constraints.empty())
     {
-        ROS_WARN("No goal constraints specified");
+        ROS_WARN("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
         return false;
     }
 
@@ -239,12 +259,20 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
     goal_kset_->add(goal_constraints_);
     const kinematic_constraints::ConstraintSamplerPtr &gsampler = getConstraintsSampler(goal_constraints_);
     if (gsampler)
+    {
+        ROS_DEBUG("%s: Using an OMPL GoalSampleableRegion with constraints", name_.c_str());
         // we can sample from the constraint specification
         ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalSampler(this, goal_kset_, gsampler)));
+    }
     else
+    {
+        ROS_DEBUG("%s: Using an OMPL GoalRegion with constraints'", name_.c_str());
         // the constraints are such that we cannot easily sample the goal region,
         // so we use a simpler goal region specification
         ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalRegion(this, goal_kset_)));
+    }
+
+    ROS_DEBUG("%s: New planning context is set.", name_.c_str());
 
     return true;
 }
@@ -252,11 +280,25 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
 bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
 {
     ssetup_.getGoal()->clearSolutionPaths();
+    bool gls = ssetup_.getGoal()->hasType(ompl::base::GOAL_LAZY_SAMPLES);
+    // just in case sampling is not started
+    if (gls)
+        static_cast<ompl::base::GoalLazySamples*>(ssetup_.getGoal().get())->startSampling();
 
+    // try to fix invalid input states, if any
+    double d = ssetup_.getStateSpace()->getMaximumExtent() / 1000.0;
+    if (!ssetup_.getProblemDefinition()->fixInvalidInputStates(d, d, 1000))
+        ssetup_.getProblemDefinition()->fixInvalidInputStates(d * 10.0, d * 10.0, 1000);
+    bool result = false;
     if (count <= 1)
-        return ssetup_.solve(timeout);
+    {
+        ROS_DEBUG("%s: Solving the planning problem once...", name_.c_str());
+        result = ssetup_.solve(timeout);
+        last_plan_time_ = ssetup_.getLastPlanComputationTime();
+    }
     else
     {
+        ROS_DEBUG("%s: Solving the planning problem %u times...", name_.c_str(), count);
         pplan_.clearHybridizationPaths();
         if (count <= max_planning_threads_)
         {
@@ -267,12 +309,15 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
             else
                 for (unsigned int i = 0 ; i < count ; ++i)
                     pplan_.addPlanner(ompl::geometric::getDefaultPlanner(ssetup_.getGoal()));
-            return pplan_.solve(timeout, 1, count, true);
+            ompl::time::point start = ompl::time::now();
+            result = pplan_.solve(timeout, 1, count, true);
+            last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
         }
         else
         {
+            ompl::time::point start = ompl::time::now();
             int n = count / max_planning_threads_;
-            bool result = true;
+            result = true;
             for (int i = 0 ; i < n ; ++i)
             {
                 pplan_.clearPlanners();
@@ -298,9 +343,15 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
                 bool r = pplan_.solve(timeout, 1, n, true);
                 result = result && r;
             }
-            return result;
+            last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
         }
     }
+
+    if (gls)
+        // just in case we need to stop sampling
+        static_cast<ompl::base::GoalLazySamples*>(ssetup_.getGoal().get())->stopSampling();
+
+    return result;
 }
 
 bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory &traj) const
@@ -360,8 +411,9 @@ bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory
 
 void ompl_interface::PlanningGroup::fillResponse(moveit_msgs::GetMotionPlan::Response &res) const
 {
+    ROS_DEBUG("%s: Returning successful solution with %lu states", name_.c_str(), ssetup_.getSolutionPath().states.size());
     planning_models::kinematicStateToRobotState(start_state_, res.robot_state);
-    res.planning_time = ros::Duration(ssetup_.getLastPlanComputationTime());
+    res.planning_time = ros::Duration(last_plan_time_);
     getSolutionPath(res.trajectory);
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 }

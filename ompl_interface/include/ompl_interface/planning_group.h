@@ -194,6 +194,9 @@ namespace ompl_interface
         /// the set of kinematic constraints to be respected by the goal state
         kinematic_constraints::KinematicConstraintSetPtr        goal_kset_;
 
+        /// the time spend computing the last plan
+        double                                                  last_plan_time_;
+
         /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
         unsigned int                                            max_goal_samples_;
 
