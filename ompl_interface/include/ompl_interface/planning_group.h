@@ -156,6 +156,8 @@ namespace ompl_interface
 
     protected:
 
+        void useConfig(const std::map<std::string, std::string> &config);
+        void setProjectionEvaluator(const std::string &peval);
         kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
         ompl::base::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
         ompl::base::PlannerPtr plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,

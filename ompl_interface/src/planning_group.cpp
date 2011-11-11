@@ -40,6 +40,7 @@
 #include "ompl_interface/detail/constrained_sampler.h"
 #include "ompl_interface/detail/constrained_goal_sampler.h"
 #include "ompl_interface/detail/constrained_goal_region.h"
+#include "ompl_interface/detail/projection_evaluators.h"
 
 #include <geometric_shapes/shape_operations.h>
 #include <geometric_shapes/body_operations.h>
@@ -57,6 +58,10 @@
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/contrib/rrt_star/RRTstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
+
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <sstream>
 
 ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
                                                                        const std::map<std::string, std::string> &config) const
@@ -102,26 +107,100 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
 {
     ssetup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
     ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
-    if (!config.empty())
-    {
-        std::map<std::string, std::string>::const_iterator it = config.find("type");
-        if (it == config.end())
-            ROS_WARN("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
-        else
-        {
-            // remove the 'type' parameter; the rest are parameters for the planner itself
-            std::map<std::string, std::string> rest = config; rest.erase("type");
-            ssetup_.setPlannerAllocator(boost::bind(&PlanningGroup::plannerAllocator, this, _1, it->second, rest));
-            ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
-                     name.c_str(), it->second.c_str());
-        }
-    }
+    useConfig(config);
     path_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
     goal_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
 }
 
 ompl_interface::PlanningGroup::~PlanningGroup(void)
 {
+}
+
+void ompl_interface::PlanningGroup::useConfig(const std::map<std::string, std::string> &config)
+{
+    if (config.empty())
+        return;
+    std::map<std::string, std::string> cfg = config;
+
+    // set the longest valid segment fraction
+    std::map<std::string, std::string>::iterator it = cfg.find("longest_valid_segment_fraction");
+    if (it != cfg.end())
+    {
+        try
+        {
+            double lvsf = boost::lexical_cast<double>(it->second);
+            ssetup_.getStateSpace()->setLongestValidSegmentFraction(lvsf);
+            ROS_DEBUG("Set longest valid segment fraction to %lf", ssetup_.getStateSpace()->getLongestValidSegmentFraction());
+        }
+        catch(...)
+        {
+            ROS_ERROR("Could not set longest valid segment fraction to '%s'", it->second.c_str());
+        }
+        cfg.erase(it);
+    }
+    it = cfg.find("projection_evaluator");
+    if (it != cfg.end())
+    {
+        setProjectionEvaluator(boost::trim_copy(it->second));
+        cfg.erase(it);
+    }
+
+    if (cfg.empty())
+        return;
+
+    it = cfg.find("type");
+    if (it == cfg.end())
+        ROS_WARN("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
+    else
+    {
+        // remove the 'type' parameter; the rest are parameters for the planner itself
+        std::string type = it->second;
+        cfg.erase(it);
+        ssetup_.setPlannerAllocator(boost::bind(&PlanningGroup::plannerAllocator, this, _1, type, cfg));
+        ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
+                 name_.c_str(), type.c_str());
+    }
+}
+
+void ompl_interface::PlanningGroup::setProjectionEvaluator(const std::string &peval)
+{
+    if (peval.find_first_of("link(") == 0 && peval[peval.length() - 1] == ')')
+    {
+        std::string link_name = peval.substr(5, peval.length() - 6);
+        if (planning_scene_->getKinematicModel()->hasLinkModel(link_name))
+            ssetup_.getStateSpace()->registerDefaultProjection(ompl::base::ProjectionEvaluatorPtr(new ProjectionEvaluatorLinkPose(this, link_name)));
+        else
+            ROS_ERROR("Attempted to set projection evaluator with respect to position of link '%s', but that link is not known to the kinematic model.", link_name.c_str());
+    }
+    else
+        if (peval.find_first_of("joints(") == 0 && peval[peval.length() - 1] == ')')
+        {
+            std::string joints = peval.substr(7, peval.length() - 8);
+            boost::replace_all(joints, ",", " ");
+            std::vector<std::pair<std::string, unsigned int> > j;
+            std::stringstream ss(joints);
+            while (ss.good() && !ss.eof())
+            {
+                std::string v; ss >> v >> std::ws;
+                if (planning_scene_->getKinematicModel()->hasJointModel(v))
+                {
+                    unsigned int vc = planning_scene_->getKinematicModel()->getJointModel(v)->getVariableCount();
+                    if (vc > 0)
+                        j.push_back(std::make_pair(v, vc));
+                    else
+                        ROS_WARN("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
+                }
+                else
+                    ROS_ERROR("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the kinematic model.",
+                              name_.c_str(), v.c_str());
+            }
+            if (j.empty())
+                ROS_ERROR("%s: No valid joints specified for joint projection", name_.c_str());
+            else
+                ssetup_.getStateSpace()->registerDefaultProjection(ompl::base::ProjectionEvaluatorPtr(new ProjectionEvaluatorJointValue(this, j)));
+        }
+        else
+            ROS_ERROR("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());
 }
 
 ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
