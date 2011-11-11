@@ -56,7 +56,7 @@ bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
     for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
         if (planning_groups_.find(it->first) == planning_groups_.end())
         {
-            std::map<std::string, std::string> empty;
+            static const std::map<std::string, std::string> empty;
             planning_groups_[it->first].reset(new PlanningGroup(it->first, it->second, empty, scene_, ssc_));
         }
     configured_ = true;
