@@ -32,17 +32,19 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
+#include <collision_detection/allvalid/collision_robot.h>
+#include <collision_detection/allvalid/collision_world.h>
 #include <boost/scoped_ptr.hpp>
 #include <limits>
 
-kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) :
-    model_(&model), tf_(&tf), constraint_weight_(std::numeric_limits<double>::epsilon())
+kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+    model_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
 
@@ -381,59 +383,193 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
         out << "No constraint" << std::endl;
 }
 
-/*
+kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+    KinematicConstraint(model, tf), cr_(new collision_detection::CollisionRobotAllValid(model)), cw_(new collision_detection::CollisionWorldAllValid())
+{
+}
 
 void kinematic_constraints::VisibilityConstraint::clear(void)
 {
+    target_radius_ = -1.0;
 }
 
 bool kinematic_constraints::VisibilityConstraint::use(const moveit_msgs::VisibilityConstraint &vc)
 {
-    vc_ = vc;
-    tf::poseMsgToTF(m_vc.sensor_pose.pose,m_sensor_offset_pose);
-    return true;
-}
+    target_radius_ = fabs(vc.target_radius);
 
-bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::KinematicState* state, bool verbose) const
-{
-    const planning_models::KinematicState::LinkState* link_state = state->getLinkState(vc_.target_link);
+    if (vc.target_radius <= std::numeric_limits<double>::epsilon())
+        ROS_WARN("The radius of the target disc that must be visible should be positive");
 
-    if (!link_state)
+    if (vc.cone_sides < 3)
     {
-        ROS_WARN_STREAM("No link state for link '" << vc_.target_link << "'");
-        return false;
+        ROS_WARN("The number of sides for the visibility region must be 3 or more. Assuming 3 sides instead of the specified %d", vc.cone_sides);
+        cone_sides_ = 3;
+    }
+    else
+        cone_sides_ = vc.cone_sides;
+
+    // compute the points on the base circle of the cone that make up the cone sides
+    points_.clear();
+    double delta = SIMD_PI / (double)cone_sides_;
+    double a = 0.0;
+    for (unsigned int i = 0 ; i < cone_sides_ ; ++i, a += delta)
+    {
+        double x = sin(a) * target_radius_;
+        double y = cos(a) * target_radius_;
+        points_.push_back(btVector3(x, y, 0.0));
     }
 
-    btTransform sensor_pose = link_state->getGlobalLinkTransform() * sensor_offset_pose;
-    double dx = m_vc.target.point.x - sensor_pose.getOrigin().x();
-    double dy = m_vc.target.point.y - sensor_pose.getOrigin().y();
-    double dz = m_vc.target.point.z - sensor_pose.getOrigin().z();
+    const geometry_msgs::Pose &mt = vc.target_pose.pose;
+    btQuaternion qr;
+    if (!planning_models::quatFromMsg(mt.orientation, qr))
+        ROS_WARN("Incorrect specification of orientation in target pose for visibility constraint. Assuming identity quaternion.");
+    target_pose_ = btTransform(qr, btVector3(mt.position.x, mt.position.y, mt.position.z));
 
-    btVector3 x_axis(1,0,0);
-    btVector3 target_vector(dx,dy,dz);
-    btVector3 sensor_x_axis = sensor_pose.getBasis()*x_axis;
-
-    double angle = fabs(target_vector.angle(sensor_x_axis));
-    if(angle < m_vc.absolute_tolerance)
-        return true;
+    if (tf_->isFixedFrame(vc.target_pose.header.frame_id))
+    {
+        tf_->transformTransform(target_pose_, target_pose_, vc.target_pose.header.frame_id);
+        target_frame_id_ = tf_->getPlanningFrame();
+        mobile_target_frame_ = false;
+        // transform won't change, so apply it now
+        for (std::size_t i = 0 ; i < points_.size() ; ++i)
+            points_[i] = target_pose_(points_[i]);
+    }
     else
-        return false;
+    {
+        target_frame_id_ = vc.target_pose.header.frame_id;
+        mobile_target_frame_ = true;
+    }
+
+    const geometry_msgs::Pose &ms = vc.sensor_pose.pose;
+    if (!planning_models::quatFromMsg(ms.orientation, qr))
+        ROS_WARN("Incorrect specification of orientation in sensor pose for visibility constraint. Assuming identity quaternion.");
+    sensor_pose_ = btTransform(qr, btVector3(ms.position.x, ms.position.y, ms.position.z));
+
+    if (tf_->isFixedFrame(vc.sensor_pose.header.frame_id))
+    {
+        tf_->transformTransform(sensor_pose_, sensor_pose_, vc.sensor_pose.header.frame_id);
+        sensor_frame_id_ = tf_->getPlanningFrame();
+        mobile_sensor_frame_ = false;
+    }
+    else
+    {
+        sensor_frame_id_ = vc.sensor_pose.header.frame_id;
+        mobile_sensor_frame_ = true;
+    }
+
+    if (vc.weight <= std::numeric_limits<double>::epsilon())
+        ROS_WARN_STREAM("The weight of visibility constraints should be positive");
+    else
+        constraint_weight_ = vc.weight;
+
+    return target_radius_ > std::numeric_limits<double>::epsilon();
+}
+
+bool kinematic_constraints::VisibilityConstraint::enabled(void) const
+{
+    return target_radius_ > std::numeric_limits<double>::epsilon();
+}
+
+std::pair<bool, double> kinematic_constraints::VisibilityConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+{
+    if (target_radius_ <= std::numeric_limits<double>::epsilon())
+        return std::make_pair(true, 0.0);
+
+    // the current pose of the sensor
+    const btTransform &sp = mobile_sensor_frame_ ? tf_->getTransformToTargetFrame(state, sensor_frame_id_) : sensor_pose_;
+    const btTransform &tp = mobile_target_frame_ ? tf_->getTransformToTargetFrame(state, target_frame_id_) : target_pose_;
+
+    // transform the points on the disc to the desired target frame
+    const std::vector<btVector3> *points = &points_;
+    boost::scoped_ptr<std::vector<btVector3> > tempPoints;
+    if (mobile_target_frame_)
+    {
+        tempPoints.reset(new std::vector<btVector3>(points_.size()));
+        for (std::size_t i = 0 ; i < points_.size() ; ++i)
+            tempPoints->at(i) = tp(points_[i]);
+        points = tempPoints.get();
+    }
+
+    // allocate memory for a mesh to represent the visibility cone
+    shapes::Mesh *m = new shapes::Mesh();
+    m->vertexCount = cone_sides_ + 2;
+    m->vertices = new double[m->vertexCount * 3];
+    m->triangleCount = cone_sides_ * 2;
+    m->triangles = new unsigned int[m->triangleCount * 3];
+
+    // the sensor origin
+    m->vertices[0] = sp.getOrigin().x();
+    m->vertices[1] = sp.getOrigin().y();
+    m->vertices[2] = sp.getOrigin().z();
+
+    // the center of the base of the cone approximation
+    m->vertices[3] = tp.getOrigin().x();
+    m->vertices[4] = tp.getOrigin().y();
+    m->vertices[5] = tp.getOrigin().z();
+
+    // the points that approximate the base disc
+    for (std::size_t i = 0 ; i < points->size() ; ++i)
+    {
+        m->vertices[i*3 + 6] = points->at(i).x();
+        m->vertices[i*3 + 7] = points->at(i).y();
+        m->vertices[i*3 + 8] = points->at(i).z();
+    }
+
+    // add the triangles
+    std::size_t p3 = points->size() * 3;
+    for (std::size_t i = 3 ; i < points->size() ; ++i)
+    {
+        // triangle forming a side of the cone, using the sensor origin
+        std::size_t i3 = (i - 3) * 3;
+        m->triangles[i3] = i - 1;
+        m->triangles[i3 + 1] = 0;
+        m->triangles[i3 + 2] = i;
+        // triangle forming a part of the base of the cone, using the center of the base
+        std::size_t i6 = p3 + i3;
+        m->triangles[i6] = i - 1;
+        m->triangles[i6 + 1] = 1;
+        m->triangles[i6 + 2] = i;
+    }
+
+    // add the visibility cone as an object
+    cw_->clearObjects();
+    cw_->addObject("cone", m, btTransform::getIdentity());
+
+    // check for collisions between the robot and the cone
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+    req.contacts = true;
+    req.max_contacts = 1;
+    cw_->checkWorldCollision(req, res, *cr_, state);
+
+    if (verbose)
+    {
+        std::stringstream ss;
+        shapes::printShape(m, ss);
+        ROS_INFO("Visibility constraint %ssatisfied. Visibility cone approximation:\n %s", res.collision ? "not " : "", ss.str().c_str());
+    }
+
+    return res.collision ? std::make_pair(false, res.contacts[0].depth) : std::make_pair(true, 0.0);
 }
 
 void kinematic_constraints::VisibilityConstraint::print(std::ostream &out) const
 {
-    out << "Visibility constraint for sensor on link '" << vc_.sensor_pose.header.frame_id << "'" << std::endl;
+    if (enabled())
+    {
+        out << "Visibility constraint for sensor in frame '" << sensor_frame_id_ << "' using target in frame '" << target_frame_id_ << "'" << std::endl;
+        out << "Target radius: " << target_radius_ << ", using " << cone_sides_ << " sides." << std::endl;
+    }
+    else
+        out << "No constraint" << std::endl;
 }
 
-
-*/
 void kinematic_constraints::KinematicConstraintSet::clear(void)
 {
     kce_.clear();
     jc_.clear();
     pc_.clear();
     oc_.clear();
-    //    vc_.clear();
+    vc_.clear();
 }
 
 bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::JointConstraint> &jc)
@@ -441,7 +577,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     bool result = true;
     for (unsigned int i = 0 ; i < jc.size() ; ++i)
     {
-        JointConstraint *ev = new JointConstraint(*model_, *tf_);
+        JointConstraint *ev = new JointConstraint(model_, tf_);
         bool u = ev->use(jc[i]);
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));
@@ -455,7 +591,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     bool result = true;
     for (unsigned int i = 0 ; i < pc.size() ; ++i)
     {
-        PositionConstraint *ev = new PositionConstraint(*model_, *tf_);
+        PositionConstraint *ev = new PositionConstraint(model_, tf_);
         bool u = ev->use(pc[i]);
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));
@@ -469,11 +605,25 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     bool result = true;
     for (unsigned int i = 0 ; i < oc.size() ; ++i)
     {
-        OrientationConstraint *ev = new OrientationConstraint(*model_, *tf_);
+        OrientationConstraint *ev = new OrientationConstraint(model_, tf_);
         bool u = ev->use(oc[i]);
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));
         oc_.push_back(oc[i]);
+    }
+    return result;
+}
+
+bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::VisibilityConstraint> &vc)
+{
+    bool result = true;
+    for (unsigned int i = 0 ; i < vc.size() ; ++i)
+    {
+        VisibilityConstraint *ev = new VisibilityConstraint(model_, tf_);
+        bool u = ev->use(vc[i]);
+        result = result && u;
+        kce_.push_back(KinematicConstraintPtr(ev));
+        vc_.push_back(vc[i]);
     }
     return result;
 }
@@ -483,24 +633,10 @@ bool kinematic_constraints::KinematicConstraintSet::add(const moveit_msgs::Const
     bool j = add(c.joint_constraints);
     bool p = add(c.position_constraints);
     bool o = add(c.orientation_constraints);
-    return j && p && o;
+    bool v = add(c.visibility_constraints);
+    return j && p && o && v;
 }
 
-/*
-bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::VisibilityConstraint> &vc)
-{
-    bool result = true;
-    for (unsigned int i = 0 ; i < vc.size() ; ++i)
-    {
-        VisibilityConstraint *ev = new VisibilityConstraint(model_);
-        bool u = ev->use(vc[i]);
-        result = result && u;
-        kce_.push_back(ev);
-        vc_.push_back(vc[i]);
-    }
-    return result;
-}
-*/
 
 std::pair<bool, double> kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state, bool verbose) const
 {
@@ -553,4 +689,5 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
         r.visibility_constraints.push_back(second.visibility_constraints[i]);
 
     return r;
+
 }

@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #ifndef KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
 #define KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
@@ -40,6 +40,7 @@
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
 #include <planning_models/transforms.h>
+#include <collision_detection/collision_world.h>
 
 #include <geometric_shapes/bodies.h>
 #include <moveit_msgs/Constraints.h>
@@ -55,7 +56,7 @@ namespace kinematic_constraints
     {
     public:
 
-        KinematicConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf);
+        KinematicConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf);
         virtual ~KinematicConstraint(void);
 
         /** \brief Clear the stored constraint */
@@ -94,9 +95,9 @@ namespace kinematic_constraints
 
     protected:
 
-        const planning_models::KinematicModel *model_;
-        const planning_models::Transforms     *tf_;
-        double                                 constraint_weight_;
+        planning_models::KinematicModelPtr model_;
+        planning_models::TransformsPtr     tf_;
+        double                             constraint_weight_;
     };
 
     typedef boost::shared_ptr<KinematicConstraint> KinematicConstraintPtr;
@@ -105,7 +106,8 @@ namespace kinematic_constraints
     {
     public:
 
-        JointConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : KinematicConstraint(model, tf), joint_model_(NULL)
+        JointConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+            KinematicConstraint(model, tf), joint_model_(NULL)
         {
         }
 
@@ -148,7 +150,8 @@ namespace kinematic_constraints
     {
     public:
 
-        OrientationConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : KinematicConstraint(model, tf), link_model_(NULL)
+        OrientationConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+            KinematicConstraint(model, tf), link_model_(NULL)
         {
         }
 
@@ -207,7 +210,8 @@ namespace kinematic_constraints
     {
     public:
 
-        PositionConstraint(const planning_models::KinematicModel &model, const planning_models::Transforms &tf) : KinematicConstraint(model, tf), link_model_(NULL)
+        PositionConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+            KinematicConstraint(model, tf), link_model_(NULL)
         {
         }
 
@@ -258,34 +262,32 @@ namespace kinematic_constraints
         const planning_models::KinematicModel::LinkModel *link_model_;
     };
 
-    /*
     class VisibilityConstraint : public KinematicConstraint
     {
     public:
 
-        VisibilityConstraint(const planning_models::KinematicModel &model) : KinematicConstraint(model, tf)
-        {
-        }
+        VisibilityConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf);
 
-        /// \brief This function assumes the constraint has been transformed into the proper frame, if such a transform is needed
         bool use(const moveit_msgs::VisibilityConstraint &vc);
-
-        /// \brief Clear the stored constraint
         virtual void clear(void);
-
-        /// \brief Decide whether the constraint is satisfied in the indicated state
-        virtual std::pair<bool, double> decide(const planning_models::KinematicState* state, bool verbose = false) const;
-
-        /// \brief Print the constraint data
+        virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
+        virtual bool enabled(void) const;
         void print(std::ostream &out = std::cout) const;
 
-        /// \brief Get the constraint message
-        const moveit_msgs::VisibilityConstraint& getConstraintMessage(void) const;
-
     protected:
-        btTransform                                       sensor_offset_pose_;
+
+        collision_detection::CollisionRobotPtr cr_;
+        collision_detection::CollisionWorldPtr cw_;
+        bool                                   mobile_sensor_frame_;
+        bool                                   mobile_target_frame_;
+        std::string                            target_frame_id_;
+        std::string                            sensor_frame_id_;
+        btTransform                            sensor_pose_;
+        btTransform                            target_pose_;
+        unsigned int                           cone_sides_;
+        std::vector<btVector3>                 points_;
+        double                                 target_radius_;
     };
-    */
 
     class KinematicConstraintSet
     {
@@ -317,7 +319,7 @@ namespace kinematic_constraints
         bool add(const std::vector<moveit_msgs::OrientationConstraint> &pc);
 
         /** \brief Add a set of orientation constraints */
-        //        bool add(const std::vector<moveit_msgs::VisibilityConstraint> &pc);
+        bool add(const std::vector<moveit_msgs::VisibilityConstraint> &pc);
 
         /** \brief Decide whether the set of constraints is satisfied  */
         std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
@@ -343,13 +345,12 @@ namespace kinematic_constraints
             return jc_;
         }
 
-        /*
-        /// \brief Get the active visibility constraints
+        /** \brief Get the active visibility constraints */
         const std::vector<moveit_msgs::VisibilityConstraint>& getVisibilityConstraints(void) const
         {
             return vc_;
         }
-        */
+
     protected:
 
         planning_models::KinematicModelPtr              model_;
@@ -360,7 +361,7 @@ namespace kinematic_constraints
         std::vector<moveit_msgs::JointConstraint>       jc_;
         std::vector<moveit_msgs::PositionConstraint>    pc_;
         std::vector<moveit_msgs::OrientationConstraint> oc_;
-        //        std::vector<moveit_msgs::VisibilityConstraint>  vc_;
+        std::vector<moveit_msgs::VisibilityConstraint>  vc_;
     };
 
     typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr;
