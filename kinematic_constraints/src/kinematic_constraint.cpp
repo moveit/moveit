@@ -540,7 +540,7 @@ std::pair<bool, double> kinematic_constraints::VisibilityConstraint::decide(cons
     collision_detection::CollisionResult res;
     req.contacts = true;
     req.max_contacts = 1;
-    cw_->checkWorldCollision(req, res, *cr_, state);
+    cw_->checkRobotCollision(req, res, *cr_, state);
 
     if (verbose)
     {
