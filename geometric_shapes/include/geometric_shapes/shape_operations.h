@@ -39,6 +39,7 @@
 
 #include "geometric_shapes/shapes.h"
 #include <moveit_msgs/Shape.h>
+#include <visualization_msgs/Marker.h>
 #include <vector>
 #include <LinearMath/btVector3.h>
 #include <assimp/aiMesh.h>
@@ -82,6 +83,12 @@ namespace shapes
 
     /** \brief Construct the message that corresponds to the shape and optionally add padding. Return false on failure. */
     bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, double padding = 0.0);
+
+    /** \brief Construct the marker that corresponds to the shape and optionally add padding. Return false on failure. */
+    bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, double padding = 0.0);
+
+    /** \brief Construct the marker that corresponds to the shape shape message.  Return false on failure. */
+    bool constructMarkerFromShape(const moveit_msgs::Shape &shape, visualization_msgs::Marker &mk);
 
     /** \brief Print information about this shape */
     void printShape(const Shape *shape, std::ostream &out = std::cout);
