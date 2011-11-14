@@ -478,6 +478,96 @@ Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
     return shape;
 }
 
+bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, double padding)
+{
+    moveit_msgs::Shape shape_msg;
+    if (constructMsgFromShape(shape, shape_msg, padding))
+        return constructMarkerFromShape(shape_msg, mk);
+    else
+        return false;
+}
+
+bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization_msgs::Marker &mk)
+{
+    switch (shape_msg.type)
+    {
+    case moveit_msgs::Shape::SPHERE:
+        mk.type = visualization_msgs::Marker::SPHERE;
+        if (shape_msg.dimensions.size() != 1)
+        {
+            ROS_ERROR("Unexpected number of dimensions in sphere definition");
+            return false;
+        }
+        else
+            mk.scale.x = mk.scale.y = mk.scale.z = shape_msg.dimensions[0] * 2.0;
+        break;
+    case moveit_msgs::Shape::BOX:
+        mk.type = visualization_msgs::Marker::CUBE;
+        if (shape_msg.dimensions.size() != 3)
+        {
+            ROS_ERROR("Unexpected number of dimensions in box definition");
+            return false;
+        }
+        else
+        {
+            mk.scale.x = shape_msg.dimensions[0];
+            mk.scale.y = shape_msg.dimensions[1];
+            mk.scale.z = shape_msg.dimensions[2];
+        }
+        break;
+    case moveit_msgs::Shape::CYLINDER:
+        mk.type = visualization_msgs::Marker::CYLINDER;
+        if (shape_msg.dimensions.size() != 2)
+        {
+            ROS_ERROR("Unexpected number of dimensions in cylinder definition");
+            return false;
+        }
+        else
+        {
+            mk.scale.x = shape_msg.dimensions[0] * 2.0;
+            mk.scale.y = shape_msg.dimensions[0] * 2.0;
+            mk.scale.z = shape_msg.dimensions[1];
+        }
+        break;
+
+    case moveit_msgs::Shape::MESH:
+        mk.type = visualization_msgs::Marker::LINE_LIST;
+        mk.scale.x = mk.scale.y = mk.scale.z = 1.0;
+        if (shape_msg.dimensions.size() != 0)
+            ROS_ERROR("Unexpected number of dimensions in mesh definition");
+        else
+        {
+            if (shape_msg.triangles.size() % 3 != 0)
+                ROS_ERROR("Number of triangle indices is not divisible by 3");
+            else
+            {
+                if (shape_msg.triangles.empty() || shape_msg.vertices.empty())
+                    ROS_ERROR("Mesh definition is empty");
+                else
+                {
+                    std::size_t nt = shape_msg.triangles.size() / 3;
+                    for (std::size_t i = 0 ; i < nt ; ++i)
+                    {
+                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
+                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
+                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
+                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
+                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
+                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+
+    default:
+        ROS_ERROR("Unknown shape type: %d", (int)shape_msg.type);
+        return false;
+    }
+    return true;
+}
+
 bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, double padding)
 {
     shape_msg.dimensions.clear();
