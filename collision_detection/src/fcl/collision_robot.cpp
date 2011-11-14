@@ -184,3 +184,14 @@ fcl::CollisionObject* collision_detection::CollisionRobotFCL::createCollisionObj
 
     return g;
 }
+
+void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                                                 const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const
+{
+}
+
+void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                                                 const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
+                                                                 const AllowedCollisionMatrix &acm) const
+{
+}

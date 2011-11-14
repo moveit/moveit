@@ -53,11 +53,20 @@ namespace collision_detection
         {
         }
 
-        /** \brief Check for self collision. Any collision between any pair of links is considered. Contacts are not computed. */
+        /** \brief Check for self collision. Any collision between any pair of links is considered.  */
         virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const = 0;
 
-        /** \brief Check for self collision. Allowed collisions are ignored. Contacts are not computed. */
+        /** \brief Check for self collision. Allowed collisions are ignored. */
         virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
+
+        /** \brief Check for collision with a different robot (possibly a different kinematic model as well). Any collision between any pair of links is considered. */
+        virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                         const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const = 0;
+
+        /** \brief Check for collision with a different robot (possibly a different kinematic model as well). Allowed collisions are ignored. */
+        virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                         const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
+                                         const AllowedCollisionMatrix &acm) const = 0;
 
         void setLinkPadding(const std::string &link_name, double padding);
         double getLinkPadding(const std::string &link_name) const;

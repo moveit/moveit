@@ -60,19 +60,23 @@ namespace collision_detection
         /* Collision Checking Routines                                        */
         /**********************************************************************/
 
-        /** \brief Check whether the model is in collision with itself or the world. Any collisions are considered. */
+        /** \brief Check whether the robot model is in collision with itself or the world. Any collisions are considered. */
         void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
 
-        /** \brief Check whether the model is in collision with itself or the world. Allowed collisions are ignored. */
+        /** \brief Check whether the robot model is in collision with itself or the world. Allowed collisions are ignored. */
         void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
 
-        /** \brief Check whether the model is in collision with the world. Any collisions between a robot link and the world are considered. Self collisions are not checked. */
-        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const = 0;
+        /** \brief Check whether the robot model is in collision with the world. Any collisions between a robot link and the world are considered. Self collisions are not checked. */
+        virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const = 0;
 
-        /** \brief Check whether the model is in collision with the world. Allowed collisions are ignored. Self collisions are not checked. */
-        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
+        /** \brief Check whether the robot model is in collision with the world. Allowed collisions are ignored. Self collisions are not checked. */
+        virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
 
+        /** \brief Check whether a given set of objects is in collision with objects from another world. Any contacts are considered. */
+        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const = 0;
 
+        /** \brief Check whether a given set of objects is in collision with objects from another world. Allowed collisions are ignored. */
+        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const = 0;
 
         /**********************************************************************/
         /* Collision Bodies                                                   */
@@ -115,6 +119,12 @@ namespace collision_detection
         virtual void addObject(const std::string &ns, shapes::Shape* shape, const btTransform &pose)
         {
             objects_.addObject(ns, shape, pose);
+        }
+
+        /** \brief Update the pose of an object. Object equality is verified by comparing pointers. Returns true on success. */
+        virtual bool moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose)
+        {
+            return objects_.moveObject(ns, shape, pose);
         }
 
     protected:

@@ -76,6 +76,22 @@ void collision_detection::CollisionObjects::addObject(const std::string &ns, sha
     objects_[ns].shape_pose.push_back(pose);
 }
 
+bool collision_detection::CollisionObjects::moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose)
+{
+    std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
+    if (it != objects_.end())
+    {
+        unsigned int n = it->second.shape.size();
+        for (unsigned int i = 0 ; i < n ; ++i)
+            if (it->second.shape[i] == shape)
+            {
+                it->second.shape_pose[i] = pose;
+                return true;
+            }
+    }
+    return false;
+}
+
 bool collision_detection::CollisionObjects::removeObject(const std::string &ns, const shapes::Shape *shape)
 {
     std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
