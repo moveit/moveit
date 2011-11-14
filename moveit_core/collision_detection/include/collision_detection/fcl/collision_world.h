@@ -50,15 +50,13 @@ namespace collision_detection
         {
         }
 
-        /**********************************************************************/
-        /* Collision Checking Routines                                        */
-        /**********************************************************************/
+        virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
 
-        /** \brief Check whether the model is in collision with the world. Any collisions between a robot link and the world are considered. Self collisions are not checked. */
-        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
+        virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
 
-        /** \brief Check whether the model is in collision with the world. Allowed collisions are ignored. Self collisions are not checked. */
-        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
+        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
+
+        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
 
     protected:
 

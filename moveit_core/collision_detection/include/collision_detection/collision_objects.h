@@ -90,6 +90,9 @@ namespace collision_detection
         /** \brief Add an object to the namespace. The user releases ownership of the object. */
         void addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose);
 
+        /** \brief Update the pose of an object. Object equality is verified by comparing pointers. Returns true on success. */
+        bool moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose);
+
         /** \brief Remove object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon. Returns true on success. */
         bool removeObject(const std::string &ns, const shapes::Shape *shape);
 

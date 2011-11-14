@@ -49,3 +49,16 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
     res.collision = false;
 }
+
+void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                                                      const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const
+{
+    res.collision = false;
+}
+
+void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                                                      const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
+                                                                      const AllowedCollisionMatrix &acm) const
+{
+    res.collision = false;
+}

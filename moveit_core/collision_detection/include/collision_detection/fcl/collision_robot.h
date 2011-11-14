@@ -50,11 +50,16 @@ namespace collision_detection
 
         CollisionRobotFCL(const planning_models::KinematicModelPtr &kmodel, double padding = 0.0, double scale = 1.0);
 
-        /** \brief Check for self collision. Any collision between any pair of links is considered. Contacts are not computed. */
         virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const;
 
-        /** \brief Check for self collision. Allowed collisions are ignored. Contacts are not computed. */
         virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
+
+        virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                         const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const;
+
+        virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                         const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
+                                         const AllowedCollisionMatrix &acm) const;
 
     protected:
 

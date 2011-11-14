@@ -41,7 +41,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
 {
     robot.checkSelfCollision(req, res, state);
     if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-        checkWorldCollision(req, res, robot, state);
+        checkRobotCollision(req, res, robot, state);
 }
 
 /** \brief Check whether the model is in collision with itself or the world. Allowed collisions are ignored. */
@@ -49,7 +49,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
 {
     robot.checkSelfCollision(req, res, state, acm);
     if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-        checkWorldCollision(req, res, robot, state, acm);
+        checkRobotCollision(req, res, robot, state, acm);
 }
 
 void collision_detection::CollisionWorld::addObjects(const std::string &ns, const std::vector<shapes::Shape*> &shapes, const std::vector<btTransform> &poses)
