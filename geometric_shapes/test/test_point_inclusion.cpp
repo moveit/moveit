@@ -264,7 +264,7 @@ TEST(CylinderPointContainment, CylinderPadding)
 TEST(MeshPointContainment, Pr2Forearm)
 {
     shapes::Mesh *ms = shapes::createMeshFromFilename("file://" + (boost::filesystem::current_path() / "test/resources/forearm_roll.stl").string());
-    EXPECT_EQ(ms->vertexCount, 2338);
+    EXPECT_EQ(ms->vertex_count, 2338);
     bodies::Body *m = new bodies::ConvexMesh(ms);
     btTransform t;
     t.setIdentity();

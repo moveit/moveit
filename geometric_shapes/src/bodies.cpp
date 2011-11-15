@@ -643,7 +643,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     double maxX = -std::numeric_limits<double>::infinity(), maxY = -std::numeric_limits<double>::infinity(), maxZ = -std::numeric_limits<double>::infinity();
     double minX =  std::numeric_limits<double>::infinity(), minY =  std::numeric_limits<double>::infinity(), minZ  = std::numeric_limits<double>::infinity();
 
-    for(unsigned int i = 0; i < mesh->vertexCount ; ++i)
+    for(unsigned int i = 0; i < mesh->vertex_count ; ++i)
     {
         double vx = mesh->vertices[3 * i    ];
         double vy = mesh->vertices[3 * i + 1];
@@ -710,8 +710,8 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
         cyl_length = zdim;
     }
 
-    btVector3 *vertices = new btVector3[mesh->vertexCount];
-    for(unsigned int i = 0; i < mesh->vertexCount ; ++i)
+    btVector3 *vertices = new btVector3[mesh->vertex_count];
+    for(unsigned int i = 0; i < mesh->vertex_count ; ++i)
     {
         vertices[i].setX(mesh->vertices[3 * i    ]);
         vertices[i].setY(mesh->vertices[3 * i + 1]);
@@ -726,7 +726,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     mesh_data_->bounding_cylinder_.radius = maxdist;
     mesh_data_->bounding_cylinder_.length = cyl_length;
 
-    HullDesc hd(QF_TRIANGLES, mesh->vertexCount, vertices);
+    HullDesc hd(QF_TRIANGLES, mesh->vertex_count, vertices);
     HullResult hr;
     HullLibrary hl;
     if (hl.CreateConvexHull(hd, hr) == QE_OK)

@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #include "geometric_shapes/shape_operations.h"
 
@@ -50,78 +50,6 @@
 
 namespace shapes
 {
-
-Shape* cloneShape(const Shape *shape)
-{
-  Shape *result = NULL;
-  if (shape) {
-    switch (shape->type)
-    {
-    case SPHERE:
-      result = new Sphere(static_cast<const Sphere*>(shape)->radius);
-      break;
-    case CYLINDER:
-      result = new Cylinder(static_cast<const Cylinder*>(shape)->radius, static_cast<const Cylinder*>(shape)->length);
-      break;
-    case BOX:
-      result = new Box(static_cast<const Box*>(shape)->size[0], static_cast<const Box*>(shape)->size[1], static_cast<const Box*>(shape)->size[2]);
-      break;
-    case MESH:
-      {
-        const Mesh *src = static_cast<const Mesh*>(shape);
-        Mesh *dest = new Mesh(src->vertexCount, src->triangleCount);
-        unsigned int n = 3 * src->vertexCount;
-        for (unsigned int i = 0 ; i < n ; ++i)
-          dest->vertices[i] = src->vertices[i];
-        n = 3 * src->triangleCount;
-        for (unsigned int i = 0 ; i < n ; ++i)
-        {
-          dest->triangles[i] = src->triangles[i];
-          dest->normals[i] = src->normals[i];
-        }
-        result = dest;
-      }
-      break;
-    default:
-      break;
-    }
-  }
-  return result;
-}
-
-std::vector<Shape*> cloneShapeVector(const std::vector<Shape*> &shapes)
-{
-  std::vector<Shape*> ret(shapes.size(), NULL);
-  for(unsigned int i = 0; i < shapes.size(); i++)
-    ret[i] = cloneShape(shapes[i]);
-  return ret;
-}
-
-void deleteShapeVector(std::vector<Shape*> &shapes)
-{
-  for(unsigned int i = 0; i < shapes.size(); i++)
-    delete shapes[i];
-  shapes.clear();
-}
-
-StaticShape* cloneShape(const StaticShape *shape)
-{
-  StaticShape *result = NULL;
-  if (shape) {
-    switch (shape->type)
-    {
-    case PLANE:
-      result = new Plane(static_cast<const Plane*>(shape)->a, static_cast<const Plane*>(shape)->b,
-                         static_cast<const Plane*>(shape)->c, static_cast<const Plane*>(shape)->d);
-      break;
-    default:
-      break;
-    }
-  }
-
-  return result;
-}
-
 
 namespace detail
 {
@@ -478,10 +406,10 @@ Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
     return shape;
 }
 
-bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, double padding)
+bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk)
 {
     moveit_msgs::Shape shape_msg;
-    if (constructMsgFromShape(shape, shape_msg, padding))
+    if (constructMsgFromShape(shape, shape_msg))
         return constructMarkerFromShape(shape_msg, mk);
     else
         return false;
@@ -568,7 +496,7 @@ bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization
     return true;
 }
 
-bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, double padding)
+bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg)
 {
     shape_msg.dimensions.clear();
     shape_msg.vertices.clear();
@@ -576,23 +504,23 @@ bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, do
     if (shape->type == SPHERE)
     {
         shape_msg.type = moveit_msgs::Shape::SPHERE;
-        shape_msg.dimensions.push_back(static_cast<const Sphere*>(shape)->radius + padding);
+        shape_msg.dimensions.push_back(static_cast<const Sphere*>(shape)->radius);
     }
     else
         if (shape->type == BOX)
         {
             shape_msg.type = moveit_msgs::Shape::BOX;
             const double* sz = static_cast<const Box*>(shape)->size;
-            shape_msg.dimensions.push_back(sz[0] + padding*2.0);
-            shape_msg.dimensions.push_back(sz[1] + padding*2.0);
-            shape_msg.dimensions.push_back(sz[2] + padding*2.0);
+            shape_msg.dimensions.push_back(sz[0]);
+            shape_msg.dimensions.push_back(sz[1]);
+            shape_msg.dimensions.push_back(sz[2]);
         }
         else
             if (shape->type == CYLINDER)
             {
                 shape_msg.type = moveit_msgs::Shape::CYLINDER;
-                shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->radius + padding);
-                shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->length + padding*2.0);
+                shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->radius);
+                shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->length);
             }
             else
                 if (shape->type == MESH)
@@ -600,42 +528,17 @@ bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, do
                     shape_msg.type = moveit_msgs::Shape::MESH;
 
                     const Mesh *mesh = static_cast<const Mesh*>(shape);
-                    const unsigned int t3 = mesh->triangleCount * 3;
+                    const unsigned int t3 = mesh->triangle_count * 3;
 
-                    shape_msg.vertices.resize(mesh->vertexCount);
+                    shape_msg.vertices.resize(mesh->vertex_count);
                     shape_msg.triangles.resize(t3);
 
-                    double sx = 0.0, sy = 0.0, sz = 0.0;
-                    for (unsigned int i = 0 ; i < mesh->vertexCount ; ++i)
+                    for (unsigned int i = 0 ; i < mesh->vertex_count ; ++i)
                     {
                         unsigned int i3 = i * 3;
                         shape_msg.vertices[i].x = mesh->vertices[i3];
                         shape_msg.vertices[i].y = mesh->vertices[i3 + 1];
                         shape_msg.vertices[i].z = mesh->vertices[i3 + 2];
-                        sx += shape_msg.vertices[i].x;
-                        sy += shape_msg.vertices[i].y;
-                        sz += shape_msg.vertices[i].z;
-                    }
-                    // the center of the mesh
-                    sx /= (double)mesh->vertexCount;
-                    sy /= (double)mesh->vertexCount;
-                    sz /= (double)mesh->vertexCount;
-
-                    // scale the mesh
-                    for (unsigned int i = 0 ; i < mesh->vertexCount ; ++i)
-                    {
-                        // vector from center to the vertex
-                        double dx = shape_msg.vertices[i].x - sx;
-                        double dy = shape_msg.vertices[i].y - sy;
-                        double dz = shape_msg.vertices[i].z - sz;
-
-                        double ndx = ((dx > 0) ? dx+padding : dx-padding);
-                        double ndy = ((dy > 0) ? dy+padding : dy-padding);
-                        double ndz = ((dz > 0) ? dz+padding : dz-padding);
-
-                        shape_msg.vertices[i].x = sx + ndx;
-                        shape_msg.vertices[i].y = sy + ndy;
-                        shape_msg.vertices[i].z = sz + ndz;
                     }
 
                     for (unsigned int i = 0 ; i < t3  ; ++i)
@@ -650,32 +553,4 @@ bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, do
     return true;
 }
 
-void printShape(const Shape *shape, std::ostream &out)
-{
-    if (shape)
-    {
-        switch (shape->type)
-        {
-        case SPHERE:
-            out << "Sphere[radius=" << static_cast<const Sphere*>(shape)->radius << "]" << std::endl;
-            break;
-        case CYLINDER:
-            out << "Cylinder[radius=" << static_cast<const Cylinder*>(shape)->radius
-                << ", length=" << static_cast<const Cylinder*>(shape)->length << "]" << std::endl;
-            break;
-        case BOX:
-            out << "Box[x=length=" << static_cast<const Box*>(shape)->size[0] << ", y=width=" << static_cast<const Box*>(shape)->size[1]
-                << "z=height=" << static_cast<const Box*>(shape)->size[2] << "]" << std::endl;
-            break;
-        case MESH:
-            out << "Mesh[vertices=" << static_cast<const Mesh*>(shape)->vertexCount << ", triangles="
-                << static_cast<const Mesh*>(shape)->triangleCount << "]" << std::endl;
-            break;
-        default:
-            out << "Unknown shape" << std::endl;
-            break;
-        }
-    }
-
-}
 }
