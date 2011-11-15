@@ -37,6 +37,7 @@
 #include "planning_scene/planning_scene.h"
 #include <collision_detection/allvalid/collision_world.h>
 #include <collision_detection/allvalid/collision_robot.h>
+#include <geometric_shapes/shape_operations.h>
 
 bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model) 
 {
@@ -47,4 +48,35 @@ bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, con
     cworld_.reset(new collision_detection::CollisionWorldAllValid());
     configured_ = true;
     return true;
+}
+
+void planning_scene::PlanningScene::addCollisionObject(const moveit_msgs::CollisionObject &object)
+{
+    if (object.shapes.empty())
+    {
+	ROS_ERROR("There are no shapes specified in the collision object message");
+	return;
+    }
+    if (object.shapes.size() != object.poses.size())
+    {
+	ROS_ERROR("Number of shapes does not match number of poses in collision object message");
+	return;	
+    }
+    if (object.operation != moveit_msgs::CollisionObject::ADD)
+    {
+	ROS_ERROR("Asked to add a collision object to the collision world, but the operation on that object is not ADD.");
+	return;
+    }
+    
+    
+    for (std::size_t i = 0 ; i < object.shapes.size() ; ++i)
+    {
+	shapes::Shape *s = shapes::constructShapeFromMsg(object.shapes[i]);
+	if (s)
+	{
+	    object.poses[i].position.x;
+	    
+	}
+    }
+    
 }

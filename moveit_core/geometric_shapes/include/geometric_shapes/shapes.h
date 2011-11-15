@@ -39,6 +39,7 @@
 
 #include <cstdlib>
 #include <vector>
+#include <iostream>
 
 /** Definition of various shapes. No properties such as position are
     included. These are simply the descriptions and dimensions of
@@ -67,6 +68,21 @@ namespace shapes
         {
         }
 
+        /** \brief Create a copy of this shape */
+        virtual Shape* clone(void) const = 0;
+
+        /** \brief Print information about this shape */
+        virtual void print(std::ostream &out = std::cout) const;
+
+        /** \brief Scale this shape by a factor */
+        void scale(double scale);
+
+        /** \brief Add padding to this shape */
+        void padd(double padding);
+
+        /** \brief Scale and padd this shape */
+        virtual void scaleAndPadd(double scale, double padd) = 0;
+
         ShapeType type;
     };
 
@@ -82,6 +98,12 @@ namespace shapes
         virtual ~StaticShape(void)
         {
         }
+
+        /** \brief Create a copy of this shape */
+        virtual StaticShape* clone(void) const = 0;
+
+        /** \brief Print information about this shape */
+        virtual void print(std::ostream &out = std::cout) const;
 
         StaticShapeType type;
     };
@@ -102,6 +124,10 @@ namespace shapes
             radius = r;
         }
 
+        virtual void scaleAndPadd(double scale, double padd);
+        virtual Shape* clone(void) const;
+        virtual void print(std::ostream &out = std::cout) const;
+
         double radius;
     };
 
@@ -121,6 +147,10 @@ namespace shapes
             length = l;
             radius = r;
         }
+
+        virtual void scaleAndPadd(double scale, double padd);
+        virtual Shape* clone(void) const;
+        virtual void print(std::ostream &out = std::cout) const;
 
         double length, radius;
     };
@@ -143,6 +173,10 @@ namespace shapes
             size[2] = z;
         }
 
+        virtual void scaleAndPadd(double scale, double padd);
+        virtual Shape* clone(void) const;
+        virtual void print(std::ostream &out = std::cout) const;
+
         /** \brief x, y, z */
         double size[3];
     };
@@ -154,21 +188,21 @@ namespace shapes
         Mesh(void) : Shape()
         {
             type = MESH;
-            vertexCount = 0;
+            vertex_count = 0;
             vertices = NULL;
-            triangleCount = 0;
+            triangle_count = 0;
             triangles = NULL;
             normals = NULL;
         }
 
-        Mesh(unsigned int vCount, unsigned int tCount) : Shape()
+        Mesh(unsigned int v_count, unsigned int t_count) : Shape()
         {
             type = MESH;
-            vertexCount = vCount;
-            vertices = new double[vCount * 3];
-            triangleCount = tCount;
-            triangles = new unsigned int[tCount * 3];
-            normals = new double[tCount * 3];
+            vertex_count = v_count;
+            vertices = new double[v_count * 3];
+            triangle_count = t_count;
+            triangles = new unsigned int[t_count * 3];
+            normals = new double[t_count * 3];
         }
 
         virtual ~Mesh(void)
@@ -181,15 +215,19 @@ namespace shapes
                 delete[] normals;
         }
 
+        virtual void scaleAndPadd(double scale, double padd);
+        virtual Shape* clone(void) const;
+        virtual void print(std::ostream &out = std::cout) const;
+
         /** \brief The number of available vertices */
-        unsigned int  vertexCount;
+        unsigned int  vertex_count;
 
         /** \brief The position for each vertex vertex k has values at
          * index (3k, 3k+1, 3k+2) = (x,y,z) */
         double       *vertices;
 
         /** \brief The number of triangles formed with the vertices */
-        unsigned int  triangleCount;
+        unsigned int  triangle_count;
 
         /** \brief The vertex indices for each triangle
          * triangle k has vertices at index (3k, 3k+1, 3k+2) = (v1, v2, v3) */
@@ -216,6 +254,9 @@ namespace shapes
             type = PLANE;
             a = pa; b = pb; c = pc; d = pd;
         }
+
+        virtual StaticShape* clone(void) const;
+        virtual void print(std::ostream &out = std::cout) const;
 
         double a, b, c, d;
     };

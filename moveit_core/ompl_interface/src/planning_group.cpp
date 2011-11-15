@@ -228,9 +228,9 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
                 if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
                 {
                     boost::scoped_ptr<kinematic_constraints::PositionConstraint> pc
-                        (new kinematic_constraints::PositionConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
+                        (new kinematic_constraints::PositionConstraint(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
                     boost::scoped_ptr<kinematic_constraints::OrientationConstraint> oc
-                        (new kinematic_constraints::OrientationConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
+                        (new kinematic_constraints::OrientationConstraint(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
                     if (pc->use(constr.position_constraints[p]) && oc->use(constr.orientation_constraints[o]))
                     {
                         sampler.reset(new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, *pc, *oc));
@@ -243,7 +243,7 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
             if (ik_allocator_)
             {
                 boost::scoped_ptr<kinematic_constraints::PositionConstraint> pc
-                    (new kinematic_constraints::PositionConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
+                    (new kinematic_constraints::PositionConstraint(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
                 if (pc->use(constr.position_constraints[p]))
                 {
                     sampler.reset(new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, *pc));
@@ -256,7 +256,7 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
             if (ik_allocator_)
             {
                 boost::scoped_ptr<kinematic_constraints::OrientationConstraint> oc
-                    (new kinematic_constraints::OrientationConstraint(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms()));
+                    (new kinematic_constraints::OrientationConstraint(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
                 if (oc->use(constr.orientation_constraints[o]))
                 {
                     sampler.reset(new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, *oc));
@@ -271,7 +271,7 @@ kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getCo
         std::vector<kinematic_constraints::JointConstraint> jc;
         for (std::size_t i = 0 ; i < constr.joint_constraints.size() ; ++i)
         {
-            kinematic_constraints::JointConstraint j(*planning_scene_->getKinematicModel(), *planning_scene_->getTransforms());
+            kinematic_constraints::JointConstraint j(planning_scene_->getKinematicModel(), planning_scene_->getTransforms());
             if (j.use(constr.joint_constraints[i]))
                 jc.push_back(j);
         }

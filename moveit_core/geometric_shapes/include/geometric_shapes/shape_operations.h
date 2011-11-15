@@ -43,7 +43,6 @@
 #include <vector>
 #include <LinearMath/btVector3.h>
 #include <assimp/aiMesh.h>
-#include <iostream>
 
 namespace shapes
 {
@@ -66,32 +65,17 @@ namespace shapes
     /** \brief Load a mesh from an assimp datastructure */
     Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const btVector3& scale);
 
-    /** \brief Create a copy of a shape */
-    Shape* cloneShape(const Shape *shape);
-
-    /** \brief Create a copy of a static shape */
-    StaticShape* cloneShape(const StaticShape *shape);
-
-    /** \brief Create a copy of a vector of shapes */
-    std::vector<Shape*> cloneShapeVector(const std::vector<Shape*> &shapes);
-
-    /** \brief Free the memory for a vector of shapes */
-    void deleteShapeVector(std::vector<Shape*>& shapes);
-
     /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
     Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg);
 
-    /** \brief Construct the message that corresponds to the shape and optionally add padding. Return false on failure. */
-    bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg, double padding = 0.0);
+    /** \brief Construct the message that corresponds to the shape. Return false on failure. */
+    bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg);
 
-    /** \brief Construct the marker that corresponds to the shape and optionally add padding. Return false on failure. */
-    bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, double padding = 0.0);
+    /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
+    bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk);
 
     /** \brief Construct the marker that corresponds to the shape shape message.  Return false on failure. */
     bool constructMarkerFromShape(const moveit_msgs::Shape &shape, visualization_msgs::Marker &mk);
-
-    /** \brief Print information about this shape */
-    void printShape(const Shape *shape, std::ostream &out = std::cout);
 
 }
 

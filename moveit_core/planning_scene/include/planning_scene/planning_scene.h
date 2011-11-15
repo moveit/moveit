@@ -41,6 +41,7 @@
 #include <planning_models/kinematic_state.h>
 #include <planning_models/transforms.h>
 #include <collision_detection/collision_world.h>
+#include <moveit_msgs/PlanningScene.h>
 
 namespace planning_scene
 {
@@ -100,6 +101,8 @@ namespace planning_scene
 	}
 	
     protected:
+
+	virtual void addCollisionObject(const moveit_msgs::CollisionObject &object);
 
         planning_models::KinematicModelPtr            kmodel_;
         planning_models::TransformsPtr                tf_;

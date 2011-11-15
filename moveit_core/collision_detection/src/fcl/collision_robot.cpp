@@ -131,15 +131,15 @@ fcl::CollisionObject* collision_detection::CollisionRobotFCL::createCollisionObj
     case shapes::MESH:
         {
             const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(shape);
-            if (mesh->vertexCount > 0 && mesh->triangleCount > 0)
+            if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
             {
-                std::vector<fcl::Triangle> tri_indices(mesh->triangleCount);
-                for(unsigned int i = 0; i < mesh->triangleCount; ++i)
+                std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
+                for(unsigned int i = 0; i < mesh->triangle_count; ++i)
                     tri_indices[i] = fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
 
-                std::vector<fcl::Vec3f> points(mesh->vertexCount);
+                std::vector<fcl::Vec3f> points(mesh->vertex_count);
                 double sx = 0.0, sy = 0.0, sz = 0.0;
-                for (unsigned int i = 0; i < mesh->vertexCount; ++i)
+                for (unsigned int i = 0; i < mesh->vertex_count; ++i)
                 {
                     points[i] = fcl::Vec3f(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
                     sx += points[i][0];
@@ -147,29 +147,33 @@ fcl::CollisionObject* collision_detection::CollisionRobotFCL::createCollisionObj
                     sz += points[i][2];
                 }
                 // the center of the mesh
-                sx /= (double)mesh->vertexCount;
-                sy /= (double)mesh->vertexCount;
-                sz /= (double)mesh->vertexCount;
+                sx /= (double)mesh->vertex_count;
+                sy /= (double)mesh->vertex_count;
+                sz /= (double)mesh->vertex_count;
 
                 // scale the mesh
-                for(unsigned int i = 0; i < mesh->vertexCount; ++i)
+                for(unsigned int i = 0; i < mesh->vertex_count; ++i)
                 {
                     // vector from center to the vertex
                     double dx = points[i][0] - sx;
                     double dy = points[i][1] - sy;
                     double dz = points[i][2] - sz;
 
-                    // length of vector
-                    //double norm = sqrt(dx * dx + dy * dy + dz * dz);
-
-                    double ndx = ((dx > 0) ? dx+padding : dx-padding);
-                    double ndy = ((dy > 0) ? dy+padding : dy-padding);
-                    double ndz = ((dz > 0) ? dz+padding : dz-padding);
-
-                    // the new distance of the vertex from the center
-                    //double fact = scale + padding/norm;
-                    points[i] = fcl::Vec3f(sx + ndx, sy + ndy, sz + ndz);
-                }
+		    // length of vector
+		    double norm = sqrt(dx * dx + dy * dy + dz * dz);
+		    if (norm > 1e-6)
+		    {
+			double fact = scale + padding/norm;
+			points[i] = fcl::Vec3f(sx + dx * fact, sy + dy * fact, sz + dz * fact);
+		    }
+		    else
+		    {
+			double ndx = ((dx > 0) ? dx+padding : dx-padding);
+			double ndy = ((dy > 0) ? dy+padding : dy-padding);
+			double ndz = ((dz > 0) ? dz+padding : dz-padding);        
+			points[i] = fcl::Vec3f(sx + ndx, sy + ndy, sz + ndz);
+		    }
+		}
 
                 g->beginModel();
                 g->addSubModel(points, tri_indices);

@@ -491,10 +491,11 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
 
     // allocate memory for a mesh to represent the visibility cone
     shapes::Mesh *m = new shapes::Mesh();
-    m->vertexCount = cone_sides_ + 2;
-    m->vertices = new double[m->vertexCount * 3];
-    m->triangleCount = cone_sides_ * 2;
-    m->triangles = new unsigned int[m->triangleCount * 3];
+    m->vertex_count = cone_sides_ + 2;
+    m->vertices = new double[m->vertex_count * 3];
+    m->triangle_count = cone_sides_ * 2;
+    m->triangles = new unsigned int[m->triangle_count * 3];
+    // we do NOT allocate normals because we do not compute them
 
     // the sensor origin
     m->vertices[0] = sp.getOrigin().x();
@@ -580,7 +581,7 @@ std::pair<bool, double> kinematic_constraints::VisibilityConstraint::decide(cons
     if (verbose)
     {
         std::stringstream ss;
-        shapes::printShape(m, ss);
+        m->print(ss);
         ROS_INFO("Visibility constraint %ssatisfied. Visibility cone approximation:\n %s", res.collision ? "not " : "", ss.str().c_str());
     }
 
