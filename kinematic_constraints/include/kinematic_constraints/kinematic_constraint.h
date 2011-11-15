@@ -270,6 +270,7 @@ namespace kinematic_constraints
 
         bool use(const moveit_msgs::VisibilityConstraint &vc);
         virtual void clear(void);
+        shapes::Mesh* getVisibilityCone(const planning_models::KinematicState &state) const;
         virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
         virtual bool enabled(void) const;
         void print(std::ostream &out = std::cout) const;
@@ -287,6 +288,7 @@ namespace kinematic_constraints
         unsigned int                           cone_sides_;
         std::vector<btVector3>                 points_;
         double                                 target_radius_;
+        double                                 max_view_angle_;
     };
 
     class KinematicConstraintSet

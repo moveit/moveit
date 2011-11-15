@@ -532,7 +532,7 @@ bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization
 
     case moveit_msgs::Shape::MESH:
         mk.type = visualization_msgs::Marker::LINE_LIST;
-        mk.scale.x = mk.scale.y = mk.scale.z = 1.0;
+        mk.scale.x = mk.scale.y = mk.scale.z = 0.01;
         if (shape_msg.dimensions.size() != 0)
             ROS_ERROR("Unexpected number of dimensions in mesh definition");
         else

@@ -410,7 +410,7 @@ bool kinematic_constraints::VisibilityConstraint::use(const moveit_msgs::Visibil
 
     // compute the points on the base circle of the cone that make up the cone sides
     points_.clear();
-    double delta = SIMD_PI / (double)cone_sides_;
+    double delta = SIMD_2_PI / (double)cone_sides_;
     double a = 0.0;
     for (unsigned int i = 0 ; i < cone_sides_ ; ++i, a += delta)
     {
@@ -462,6 +462,8 @@ bool kinematic_constraints::VisibilityConstraint::use(const moveit_msgs::Visibil
     else
         constraint_weight_ = vc.weight;
 
+    max_view_angle_ = vc.max_view_angle;
+
     return target_radius_ > std::numeric_limits<double>::epsilon();
 }
 
@@ -470,11 +472,8 @@ bool kinematic_constraints::VisibilityConstraint::enabled(void) const
     return target_radius_ > std::numeric_limits<double>::epsilon();
 }
 
-std::pair<bool, double> kinematic_constraints::VisibilityConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(const planning_models::KinematicState &state) const
 {
-    if (target_radius_ <= std::numeric_limits<double>::epsilon())
-        return std::make_pair(true, 0.0);
-
     // the current pose of the sensor
     const btTransform &sp = mobile_sensor_frame_ ? tf_->getTransformToTargetFrame(state, sensor_frame_id_) : sensor_pose_;
     const btTransform &tp = mobile_target_frame_ ? tf_->getTransformToTargetFrame(state, target_frame_id_) : target_pose_;
@@ -517,19 +516,55 @@ std::pair<bool, double> kinematic_constraints::VisibilityConstraint::decide(cons
 
     // add the triangles
     std::size_t p3 = points->size() * 3;
-    for (std::size_t i = 3 ; i < points->size() ; ++i)
+    for (std::size_t i = 1 ; i < points->size() ; ++i)
     {
         // triangle forming a side of the cone, using the sensor origin
-        std::size_t i3 = (i - 3) * 3;
-        m->triangles[i3] = i - 1;
+        std::size_t i3 = (i - 1) * 3;
+        m->triangles[i3] = i + 1;
         m->triangles[i3 + 1] = 0;
-        m->triangles[i3 + 2] = i;
+        m->triangles[i3 + 2] = i + 2;
         // triangle forming a part of the base of the cone, using the center of the base
         std::size_t i6 = p3 + i3;
-        m->triangles[i6] = i - 1;
+        m->triangles[i6] = i + 1;
         m->triangles[i6 + 1] = 1;
-        m->triangles[i6 + 2] = i;
+        m->triangles[i6 + 2] = i + 2;
     }
+
+    // last triangles
+    m->triangles[p3 - 3] = points->size() + 1;
+    m->triangles[p3 - 2] = 0;
+    m->triangles[p3 - 1] = 2;
+    p3 *= 2;
+    m->triangles[p3 - 3] = points->size() + 1;
+    m->triangles[p3 - 2] = 1;
+    m->triangles[p3 - 1] = 2;
+
+    return m;
+}
+
+std::pair<bool, double> kinematic_constraints::VisibilityConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+{
+    if (target_radius_ <= std::numeric_limits<double>::epsilon())
+        return std::make_pair(true, 0.0);
+
+    if (max_view_angle_ > 0.0)
+    {
+        const btTransform &sp = mobile_sensor_frame_ ? tf_->getTransformToTargetFrame(state, sensor_frame_id_) : sensor_pose_;
+        const btTransform &tp = mobile_target_frame_ ? tf_->getTransformToTargetFrame(state, target_frame_id_) : target_pose_;
+        const btVector3 &dir = (tp.getOrigin() - sp.getOrigin()).normalized();
+        const btVector3 &normal = tp.getBasis().getColumn(2);
+        double ang = acos(dir.dot(normal));
+        if (max_view_angle_ < ang)
+        {
+            if (verbose)
+                ROS_INFO("Visibility constraint is violated because the view angle is %lf (above the maximum allowed of %lf)", ang, max_view_angle_);
+            return std::make_pair(false, 0.0);
+        }
+    }
+
+    shapes::Mesh *m = getVisibilityCone(state);
+    if (!m)
+        return std::make_pair(false, 0.0);
 
     // add the visibility cone as an object
     cw_->clearObjects();
