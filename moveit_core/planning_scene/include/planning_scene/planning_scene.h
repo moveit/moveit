@@ -104,6 +104,7 @@ namespace planning_scene
 
 	void processPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
 	void processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
+	void processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
 	void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
 	
         planning_models::KinematicModelPtr            kmodel_;
