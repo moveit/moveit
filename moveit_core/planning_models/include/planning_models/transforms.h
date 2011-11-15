@@ -39,6 +39,7 @@
 
 #include <LinearMath/btTransform.h>
 #include <planning_models/kinematic_state.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <string>
 #include <map>
 
@@ -67,6 +68,8 @@ namespace planning_models
         void transformTransform(const planning_models::KinematicState &kstate, btTransform &t_out, const btTransform &t_in, const std::string &from_frame) const;
 
         void recordTransformFromFrame(const btTransform &t, const std::string &from_frame);
+        void recordTransform(const geometry_msgs::TransformStamped &transform);
+        void recordTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms);
 
     private:
 

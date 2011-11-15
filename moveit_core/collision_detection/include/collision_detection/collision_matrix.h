@@ -38,6 +38,7 @@
 #define COLLISION_DETECTION_COLLISION_MATRIX_
 
 #include "collision_detection/collision_common.h"
+#include <moveit_msgs/AllowedCollisionMatrix.h>
 #include <boost/function.hpp>
 #include <iostream>
 #include <vector>
@@ -73,7 +74,8 @@ namespace collision_detection
     public:
 
         AllowedCollisionMatrix(void);
-        AllowedCollisionMatrix(const std::vector<std::string>& names, bool allowed = false);
+        AllowedCollisionMatrix(const std::vector<std::string>& names, bool allowed = false);  
+	AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix &msg);
         AllowedCollisionMatrix(const AllowedCollisionMatrix& acm);
 
         bool getAllowedCollision(const std::string& name1, const std::string& name2, AllowedCollision::Type& allowed_collision) const;
@@ -92,6 +94,7 @@ namespace collision_detection
         void setEntry(bool allowed);
 
         void getAllEntryNames(std::vector<std::string>& names) const;
+	void getMessage(moveit_msgs::AllowedCollisionMatrix &msg) const;
 
         void clear(void);
 

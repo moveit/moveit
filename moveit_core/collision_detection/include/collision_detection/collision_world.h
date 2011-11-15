@@ -40,6 +40,7 @@
 #include "collision_detection/collision_matrix.h"
 #include "collision_detection/collision_robot.h"
 #include "collision_detection/collision_objects.h"
+#include <moveit_msgs/CollisionObject.h>
 
 namespace collision_detection
 {

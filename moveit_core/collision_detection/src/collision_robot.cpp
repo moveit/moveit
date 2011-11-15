@@ -176,6 +176,29 @@ void collision_detection::CollisionRobot::setLinkScale(const std::map<std::strin
 const std::map<std::string, double> &collision_detection::CollisionRobot::getLinkScale(void) const
 {
     return link_scale_;
+}   
+
+void collision_detection::CollisionRobot::setPadding(const std::vector<moveit_msgs::LinkPadding> &padding)
+{ 
+    std::vector<std::string> u;
+    for (std::size_t i = 0 ; i < padding.size() ; ++i)
+    {
+	link_padding_[padding[i].link_name] = padding[i].padding;
+	u.push_back(padding[i].link_name);
+    }
+    updatedPaddingOrScaling(u);
+}
+
+void collision_detection::CollisionRobot::getPadding(std::vector<moveit_msgs::LinkPadding> &padding) const
+{
+    padding.clear();
+    for (std::map<std::string, double>::const_iterator it = link_padding_.begin() ; it != link_padding_.end() ; ++it)
+    {
+	moveit_msgs::LinkPadding lp;
+	lp.link_name = it->first;
+	lp.padding = it->second;
+	padding.push_back(lp);
+    }
 }
 
 void collision_detection::CollisionRobot::updatedPaddingOrScaling(const std::vector<std::string> &links)

@@ -11,6 +11,7 @@
 
   <depend package="rosconsole" />
   <depend package="geometric_shapes"/>
+  <depend package="moveit_msgs"/>
   <depend package="planning_models"/>
   <depend package="bullet"/>
   <depend package="fcl"/>

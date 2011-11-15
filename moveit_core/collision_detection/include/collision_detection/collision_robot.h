@@ -39,6 +39,7 @@
 
 #include "collision_detection/collision_matrix.h"
 #include <planning_models/kinematic_state.h>
+#include <moveit_msgs/LinkPadding.h>
 
 namespace collision_detection
 {
@@ -78,6 +79,8 @@ namespace collision_detection
         const std::map<std::string, double> &getLinkScale(void) const;
         void setPadding(double padding);
         void setScale(double scale);
+        void setPadding(const std::vector<moveit_msgs::LinkPadding> &padding);
+        void getPadding(std::vector<moveit_msgs::LinkPadding> &padding) const;
 
     protected:
 

@@ -35,6 +35,7 @@
 /** \author Ioan Sucan, E. Gil Jones */
 
 #include "collision_detection/collision_matrix.h"
+#include <ros/console.h>
 #include <iomanip>
 
 collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(void)
@@ -46,6 +47,19 @@ collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const std::v
     for (std::size_t i = 0 ; i < names.size() ; ++i)
         for (std::size_t j = i + 1 ; j < names.size() ; ++j)
             setEntry(names[i], names[j], allowed);
+}
+
+collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix &msg)
+{
+    if (msg.link_names.size() != msg.entries.size())
+	ROS_ERROR("The number of links does not match the number of entries in AllowedCollisionMatrix message");
+    else
+	for (std::size_t i = 0 ; i < msg.link_names.size() ; ++i)
+	    if (msg.entries[i].enabled.size() != msg.link_names.size())
+		ROS_ERROR("Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message", msg.link_names[i].c_str());
+	    else
+		for (std::size_t j = i + 1 ; j < msg.entries[i].enabled.size() ; ++j)
+		    setEntry(msg.link_names[i], msg.link_names[j], msg.entries[i].enabled[j]);
 }
 
 collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix& acm)
@@ -199,6 +213,31 @@ void collision_detection::AllowedCollisionMatrix::getAllEntryNames(std::vector<s
     names.clear();
     for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::const_iterator it = entries_.begin() ; it != entries_.end() ; ++it)
         names.push_back(it->first);
+}
+
+void collision_detection::AllowedCollisionMatrix::getMessage(moveit_msgs::AllowedCollisionMatrix &msg) const
+{
+    msg.link_names.clear();
+    msg.entries.clear();
+    getAllEntryNames(msg.link_names);
+    std::sort(msg.link_names.begin(), msg.link_names.end());
+
+    msg.entries.resize(msg.link_names.size());
+    for (std::size_t i = 0 ; i < msg.link_names.size() ; ++i)
+	msg.entries[i].enabled.resize(msg.link_names.size());
+
+    // there is an approximation here: if we use a boost function to decide
+    // whether a collision is allowed or not, we just assume the collision is not allowed.
+    for (std::size_t i = 0 ; i < msg.link_names.size() ; ++i)
+	for (std::size_t j = i ; j < msg.link_names.size() ; ++j)
+	{
+	    AllowedCollision::Type type;
+            bool found = getAllowedCollision(msg.link_names[i], msg.link_names[j], type);
+	    if (found)
+		msg.entries[i].enabled[j] = msg.entries[j].enabled[i] = type == AllowedCollision::ALWAYS;
+	    else
+		ROS_ERROR("Incorrect representation of collision matrix");	
+	}
 }
 
 void collision_detection::AllowedCollisionMatrix::print(std::ostream& out) const
