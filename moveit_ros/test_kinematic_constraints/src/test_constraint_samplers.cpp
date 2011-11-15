@@ -37,6 +37,7 @@
 #include <pluginlib/class_loader.h>
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <kinematic_constraints/constraint_samplers.h>
+#include <geometric_shapes/shape_operations.h>
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <gtest/gtest.h>
@@ -105,9 +106,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
 {
     planning_models::KinematicState ks(kmodel_);
     ks.setDefaultValues();
-    planning_models::Transforms tf(kmodel_->getModelFrame());
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
 
-    kinematic_constraints::JointConstraint jc1(*kmodel_, tf);
+    kinematic_constraints::JointConstraint jc1(kmodel_, tf);
     moveit_msgs::JointConstraint jcm1;
     jcm1.joint_name = "head_pan_joint";
     jcm1.position = 0.42;
@@ -116,7 +117,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
     jcm1.weight = 1.0;
     EXPECT_TRUE(jc1.use(jcm1));
 
-    kinematic_constraints::JointConstraint jc2(*kmodel_, tf);
+    kinematic_constraints::JointConstraint jc2(kmodel_, tf);
     moveit_msgs::JointConstraint jcm2;
     jcm2.joint_name = "l_shoulder_pan_joint";
     jcm2.position = 0.9;
@@ -125,7 +126,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
     jcm2.weight = 1.0;
     EXPECT_TRUE(jc2.use(jcm2));
 
-    kinematic_constraints::JointConstraint jc3(*kmodel_, tf);
+    kinematic_constraints::JointConstraint jc3(kmodel_, tf);
     moveit_msgs::JointConstraint jcm3;
     jcm3.joint_name = "r_wrist_roll_joint";
     jcm3.position = 0.7;
@@ -134,7 +135,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
     jcm3.weight = 1.0;
     EXPECT_TRUE(jc3.use(jcm3));
     
-    kinematic_constraints::JointConstraint jc4(*kmodel_, tf);
+    kinematic_constraints::JointConstraint jc4(kmodel_, tf);
     moveit_msgs::JointConstraint jcm4;
     jcm4.joint_name = "torso_lift_joint";
     jcm4.position = 0.2;
@@ -167,9 +168,9 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
 {
     planning_models::KinematicState ks(kmodel_);
     ks.setDefaultValues();
-    planning_models::Transforms tf(kmodel_->getModelFrame());
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
 
-    kinematic_constraints::PositionConstraint pc(*kmodel_, tf);
+    kinematic_constraints::PositionConstraint pc(kmodel_, tf);
     moveit_msgs::PositionConstraint pcm;
 
     pcm.link_name = "l_wrist_roll_link";
@@ -191,7 +192,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
 
     EXPECT_TRUE(pc.use(pcm));
     
-    kinematic_constraints::OrientationConstraint oc(*kmodel_, tf);
+    kinematic_constraints::OrientationConstraint oc(kmodel_, tf);
     moveit_msgs::OrientationConstraint ocm;
 
     ocm.link_name = "l_wrist_roll_link";
@@ -238,12 +239,12 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
 
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
-{
+{    
     planning_models::KinematicState ks(kmodel_);
     ks.setDefaultValues();
-    planning_models::Transforms tf(kmodel_->getModelFrame());
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
 
-    kinematic_constraints::OrientationConstraint oc(*kmodel_, tf);
+    kinematic_constraints::OrientationConstraint oc(kmodel_, tf);
     moveit_msgs::OrientationConstraint ocm;
 
     ocm.link_name = "r_wrist_roll_link";
@@ -267,8 +268,68 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
     const std::pair<bool, double> &p2 = oc.decide(ks);
     EXPECT_TRUE(p2.first);
 }
+/*
+TEST_F(LoadPlanningModelsPr2, VisibilityConstraint)
+{  
+    ros::NodeHandle nh;
+    planning_models::KinematicState ks(kmodel_);
+    ks.setDefaultValues();
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
 
+    kinematic_constraints::VisibilityConstraint vc(kmodel_, tf);
+    moveit_msgs::VisibilityConstraint vcm;
+    vcm.target_radius = 0.1;
+    vcm.cone_sides = 3;
 
+    vcm.target_pose.header.frame_id = "r_wrist_roll_link";
+    vcm.target_pose.pose.position.x = 0;
+    vcm.target_pose.pose.position.y = 0;
+    vcm.target_pose.pose.position.z = 0;
+    vcm.target_pose.pose.orientation.x = 0;
+    vcm.target_pose.pose.orientation.y = 0;
+    vcm.target_pose.pose.orientation.z = 0;
+    vcm.target_pose.pose.orientation.w = 1;
+    
+    vcm.sensor_pose.header.frame_id = "head_pan_link";
+    vcm.sensor_pose.pose.position.x = 0;
+    vcm.sensor_pose.pose.position.y = 0;
+    vcm.sensor_pose.pose.position.z = 0;
+    vcm.sensor_pose.pose.orientation.x = 0;
+    vcm.sensor_pose.pose.orientation.y = 0;
+    vcm.sensor_pose.pose.orientation.z = 0;
+    vcm.sensor_pose.pose.orientation.w = 1;
+    vcm.weight = 1.0;
+    
+    EXPECT_TRUE(vc.use(vcm));
+    
+    shapes::Mesh *m = vc.getVisibilityCone(ks);
+    visualization_msgs::Marker mk;
+    shapes::constructMarkerFromShape(m, mk);    
+    delete m;
+    mk.header.frame_id = kmodel_->getModelFrame();
+    mk.header.stamp = ros::Time::now();
+    mk.ns = "constraints";
+    mk.id = 1;
+    mk.action = visualization_msgs::Marker::ADD;
+    mk.pose.position.x = 0;
+    mk.pose.position.y = 0;
+    mk.pose.position.z = 0;
+    mk.pose.orientation.x = 0;
+    mk.pose.orientation.y = 0;
+    mk.pose.orientation.z = 0;
+    mk.pose.orientation.w = 1;
+    mk.lifetime = ros::Duration(60);
+    mk.color.a = 0.5;
+    mk.color.r = 1.0;
+    mk.color.g = 0.0;
+    mk.color.b = 0.0;
+
+    ros::Publisher pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+    sleep(1);
+    pub.publish(mk);
+    ros::spin();
+}
+*/
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
