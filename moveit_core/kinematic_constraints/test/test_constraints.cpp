@@ -62,9 +62,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 {
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
-    planning_models::Transforms tf(kmodel->getModelFrame());
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel->getModelFrame()));
 
-    kinematic_constraints::JointConstraint jc(*kmodel, tf);
+    kinematic_constraints::JointConstraint jc(kmodel, tf);
     moveit_msgs::JointConstraint jcm;
     jcm.joint_name = "head_pan_joint";
     jcm.position = 0.4;
@@ -107,10 +107,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 {
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel->getModelFrame()));
 
-    planning_models::Transforms tf(kmodel->getModelFrame());
-
-    kinematic_constraints::JointConstraint jc(*kmodel, tf);
+    kinematic_constraints::JointConstraint jc(kmodel, tf);
     moveit_msgs::JointConstraint jcm;
 
     jcm.joint_name = "l_wrist_roll_joint";
@@ -142,9 +141,9 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 {
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
-    planning_models::Transforms tf(kmodel->getModelFrame());
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel->getModelFrame()));
 
-    kinematic_constraints::PositionConstraint pc(*kmodel, tf);
+    kinematic_constraints::PositionConstraint pc(kmodel, tf);
     moveit_msgs::PositionConstraint pcm;
 
     pcm.link_name = "l_wrist_roll_link";
@@ -179,9 +178,9 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 {
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
-    planning_models::Transforms tf(kmodel->getModelFrame());
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel->getModelFrame()));
 
-    kinematic_constraints::PositionConstraint pc(*kmodel, tf);
+    kinematic_constraints::PositionConstraint pc(kmodel, tf);
     moveit_msgs::PositionConstraint pcm;
 
     pcm.link_name = "l_wrist_roll_link";
@@ -201,7 +200,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     pcm.constraint_region_pose.pose.orientation.w = 1.0;
     pcm.weight = 1.0;
 
-    EXPECT_FALSE(tf.isFixedFrame(pcm.link_name));
+    EXPECT_FALSE(tf->isFixedFrame(pcm.link_name));
     EXPECT_TRUE(pc.use(pcm));
 
     const std::pair<bool, double> &p1 = pc.decide(ks);
@@ -225,9 +224,9 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 {
     planning_models::KinematicState ks(kmodel);
     ks.setDefaultValues();
-    planning_models::Transforms tf(kmodel->getModelFrame());
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel->getModelFrame()));
 
-    kinematic_constraints::OrientationConstraint oc(*kmodel, tf);
+    kinematic_constraints::OrientationConstraint oc(kmodel, tf);
     moveit_msgs::OrientationConstraint ocm;
 
     ocm.link_name = "r_wrist_roll_link";
