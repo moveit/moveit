@@ -14,7 +14,7 @@ geometry_msgs/Pose[] poses
 #or updates the object if already added
 byte ADD=0
 
-# Removes the object from the environment entirely
+# Removes the object from the environment entirely (everything that mages the specified id)
 byte REMOVE=1
 
 # Operation to be performed
