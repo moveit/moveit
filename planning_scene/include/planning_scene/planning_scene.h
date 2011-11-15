@@ -102,8 +102,10 @@ namespace planning_scene
 	
     protected:
 
-	virtual void addCollisionObject(const moveit_msgs::CollisionObject &object);
-
+	void processPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
+	void processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
+	void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
+	
         planning_models::KinematicModelPtr            kmodel_;
         planning_models::TransformsPtr                tf_;
 	planning_models::KinematicStatePtr            kstate_;	

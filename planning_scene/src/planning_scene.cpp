@@ -38,6 +38,7 @@
 #include <collision_detection/allvalid/collision_world.h>
 #include <collision_detection/allvalid/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
+#include <planning_models/conversions.h>
 
 bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model) 
 {
@@ -50,33 +51,53 @@ bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, con
     return true;
 }
 
-void planning_scene::PlanningScene::addCollisionObject(const moveit_msgs::CollisionObject &object)
+void planning_scene::PlanningScene::processPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
 {
-    if (object.shapes.empty())
+    tf_->recordTransforms(scene.fixed_frame_transforms);
+    planning_models::robotStateToKinematicState(*tf_, scene.robot_state, *kstate_);
+    acm_ = collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix);
+    crobot_->setPadding(scene.link_padding);
+    for (std::size_t i = 0 ; i < scene.collision_objects.size() ; ++i)
+	processCollisionObjectMsg(scene.collision_objects[i]);  
+    for (std::size_t i = 0 ; i < scene.attached_collision_objects.size() ; ++i)
     {
-	ROS_ERROR("There are no shapes specified in the collision object message");
-	return;
     }
-    if (object.shapes.size() != object.poses.size())
+    processCollisionMapMsg(scene.collision_map);
+}
+
+void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
+{
+}
+
+void planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject &object)
+{   
+    if (object.operation == moveit_msgs::CollisionObject::ADD)
     {
-	ROS_ERROR("Number of shapes does not match number of poses in collision object message");
-	return;	
-    }
-    if (object.operation != moveit_msgs::CollisionObject::ADD)
-    {
-	ROS_ERROR("Asked to add a collision object to the collision world, but the operation on that object is not ADD.");
-	return;
-    }
-    
-    
-    for (std::size_t i = 0 ; i < object.shapes.size() ; ++i)
-    {
-	shapes::Shape *s = shapes::constructShapeFromMsg(object.shapes[i]);
-	if (s)
+	if (object.shapes.empty())
 	{
-	    object.poses[i].position.x;
-	    
+	    ROS_ERROR("There are no shapes specified in the collision object message");
+	    return;
+	}
+	if (object.shapes.size() != object.poses.size())
+	{
+	    ROS_ERROR("Number of shapes does not match number of poses in collision object message");
+	    return;	
+	}
+	
+	const btTransform &t = tf_->getTransformToTargetFrame(*kstate_, object.header.frame_id);
+	for (std::size_t i = 0 ; i < object.shapes.size() ; ++i)
+	{
+	    shapes::Shape *s = shapes::constructShapeFromMsg(object.shapes[i]);
+	    if (s)
+	    {
+		btVector3 o(object.poses[i].position.x, object.poses[i].position.y, object.poses[i].position.z);
+		btQuaternion q;	    
+		planning_models::quatFromMsg(object.poses[i].orientation, q);
+		cworld_->addObject(object.id, s, t * btTransform(q, o));
+	    }
 	}
     }
-    
+    else
+	if (object.operation == moveit_msgs::CollisionObject::REMOVE)
+	    cworld_->clearObjects(object.id);
 }

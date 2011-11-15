@@ -64,7 +64,9 @@ const btTransform& planning_models::Transforms::getTransformToTargetFrame(const 
     std::map<std::string, btTransform>::const_iterator it = transforms_.find(from_frame);
     if (it != transforms_.end())
         return it->second;
-    throw std::runtime_error("Unable to transform from frame '" + from_frame + "' to frame '" + target_frame_ + "'");
+    ROS_ERROR_STREAM("Unable to transform from frame '" + from_frame + "' to frame '" + target_frame_ + "'");
+    // return identity
+    return transforms_.find(target_frame_)->second;
 }
 
 const btTransform& planning_models::Transforms::getTransformToTargetFrame(const planning_models::KinematicState &kstate, const std::string &from_frame) const
@@ -77,7 +79,7 @@ const btTransform& planning_models::Transforms::getTransformToTargetFrame(const 
                   target_frame_.c_str(), kstate.getKinematicModel()->getModelFrame().c_str());
     if (const planning_models::KinematicState::LinkState *state = kstate.getLinkState(from_frame))
         return state->getGlobalLinkTransform();
-    ROS_FATAL_STREAM("Unable to transform from frame '" + from_frame + "' to frame '" + target_frame_ + "'");
+    ROS_ERROR_STREAM("Unable to transform from frame '" + from_frame + "' to frame '" + target_frame_ + "'");
     // return identity
     return transforms_.find(target_frame_)->second;
 }

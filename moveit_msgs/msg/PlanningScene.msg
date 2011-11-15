@@ -7,8 +7,6 @@ geometry_msgs/TransformStamped[] fixed_frame_transforms
 #full allowed collision matrix
 AllowedCollisionMatrix allowed_collision_matrix
 
-#allowed contacts
-
 #all link paddings
 LinkPadding[] link_padding
 
