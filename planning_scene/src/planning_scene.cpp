@@ -57,16 +57,29 @@ void planning_scene::PlanningScene::processPlanningSceneMsg(const moveit_msgs::P
     planning_models::robotStateToKinematicState(*tf_, scene.robot_state, *kstate_);
     acm_ = collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix);
     crobot_->setPadding(scene.link_padding);
+    cworld_->clearObjects();
     for (std::size_t i = 0 ; i < scene.collision_objects.size() ; ++i)
 	processCollisionObjectMsg(scene.collision_objects[i]);  
     for (std::size_t i = 0 ; i < scene.attached_collision_objects.size() ; ++i)
-    {
-    }
+	processAttachedCollisionObjectMsg(scene.attached_collision_objects[i]);
     processCollisionMapMsg(scene.collision_map);
 }
 
 void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
 {
+    const btTransform &t = tf_->getTransformToTargetFrame(*kstate_, map.header.frame_id);
+    for (std::size_t i = 0 ; i < map.boxes.size() ; ++i)
+    {
+	btVector3 o(map.boxes[i].pose.position.x, map.boxes[i].pose.position.y, map.boxes[i].pose.position.z);
+	btQuaternion q;	planning_models::quatFromMsg(map.boxes[i].pose.orientation, q);
+	shapes::Shape *s = new shapes::Box(map.boxes[i].extents.x, map.boxes[i].extents.y, map.boxes[i].extents.z);
+	cworld_->addObject("map", s, t * btTransform(q, o));
+    }
+}
+
+void planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object)
+{
+    
 }
 
 void planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject &object)
@@ -91,8 +104,7 @@ void planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
 	    if (s)
 	    {
 		btVector3 o(object.poses[i].position.x, object.poses[i].position.y, object.poses[i].position.z);
-		btQuaternion q;	    
-		planning_models::quatFromMsg(object.poses[i].orientation, q);
+		btQuaternion q; planning_models::quatFromMsg(object.poses[i].orientation, q);
 		cworld_->addObject(object.id, s, t * btTransform(q, o));
 	    }
 	}
