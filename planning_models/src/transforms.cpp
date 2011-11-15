@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <planning_models/transforms.h>
+#include <planning_models/conversions.h>
 #include <ros/console.h>
 
 planning_models::Transforms::Transforms(const std::string &target_frame) : target_frame_(target_frame)
@@ -129,4 +130,23 @@ void planning_models::Transforms::transformTransform(const planning_models::Kine
 void planning_models::Transforms::recordTransformFromFrame(const btTransform &t, const std::string &from_frame)
 {
     transforms_[from_frame] = t;
+}
+
+void planning_models::Transforms::recordTransform(const geometry_msgs::TransformStamped &transform)
+{
+    if (transform.child_frame_id.find_last_of(target_frame_) == transform.child_frame_id.length() - target_frame_.length())
+    {
+        btVector3 o(transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z);
+        btQuaternion q;
+        quatFromMsg(transform.transform.rotation, q);
+        recordTransformFromFrame(btTransform(q, o), transform.header.frame_id);
+    }
+    else
+        ROS_ERROR("Given transform is to frame '%s', but frame '%s' was expected.", transform.child_frame_id.c_str(), target_frame_.c_str());
+}
+
+void planning_models::Transforms::recordTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms)
+{
+    for (std::size_t i = 0 ; i < transforms.size() ; ++i)
+        recordTransform(transforms[i]);
 }
