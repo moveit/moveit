@@ -54,16 +54,30 @@ bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, con
     return true;
 }
 
-void planning_scene::PlanningScene::checkCollision(collision_detection::CollisionRequest req, collision_detection::CollisionResult &res,
+void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res,
 						   const planning_models::KinematicState &kstate) const
 {
-    // do self-collision checking with the unpadded version of the robot
-    crobot_unpadded_->checkSelfCollision(req, res, kstate, acm_);
-    
-    // check collision with the world using the padded version
-    if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-	cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm_);
+  // do self-collision checking with the unpadded version of the robot
+  crobot_unpadded_->checkSelfCollision(req, res, kstate, acm_);
+  
+  // check collision with the world using the padded version
+  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+    cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm_);
 }
+
+void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, 
+                                                   collision_detection::CollisionResult &res,
+                                                   const planning_models::KinematicState &kstate,
+                                                   const collision_detection::AllowedCollisionMatrix& acm) const
+{
+  // do self-collision checking with the unpadded version of the robot
+  crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
+  
+  // check collision with the world using the padded version
+  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+    cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm);
+}
+
 
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const
 {

@@ -463,7 +463,7 @@ namespace planning_models
             boost::scoped_ptr<random_numbers::RNG> rng_;
         };
 
-        KinematicState(const KinematicModelPtr &kinematic_model);
+        KinematicState(const KinematicModelConstPtr &kinematic_model);
 
         KinematicState(const KinematicState& state);
 
@@ -483,7 +483,7 @@ namespace planning_models
 
         bool updateStateWithLinkAt(const std::string& link_name, const btTransform& transform);
 
-        const KinematicModelPtr& getKinematicModel(void) const
+        const KinematicModelConstPtr& getKinematicModel(void) const
         {
             return kinematic_model_;
         }
@@ -566,7 +566,7 @@ namespace planning_models
         void buildState(void);
         void copyFrom(const KinematicState &ks);
 
-        KinematicModelPtr                       kinematic_model_;
+        KinematicModelConstPtr                       kinematic_model_;
 
         std::vector<JointState*>                joint_state_vector_;
         std::map<std::string, JointState*>      joint_state_map_;

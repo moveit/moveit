@@ -36,7 +36,7 @@
 
 #include <planning_models/kinematic_state.h>
 
-planning_models::KinematicState::KinematicState(const KinematicModelPtr &kinematic_model) : kinematic_model_(kinematic_model)
+planning_models::KinematicState::KinematicState(const KinematicModelConstPtr &kinematic_model) : kinematic_model_(kinematic_model)
 {
     root_transform_.setIdentity();
     buildState();

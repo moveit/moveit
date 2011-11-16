@@ -46,7 +46,7 @@ namespace collision_detection
     {
     public:
 
-        CollisionRobotAllValid(const planning_models::KinematicModelPtr &kmodel, double padding = 0.0, double scale = 1.0);
+        CollisionRobotAllValid(const planning_models::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
 
         virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const;
 

@@ -675,6 +675,7 @@ namespace planning_models
     };
 
     typedef boost::shared_ptr<KinematicModel> KinematicModelPtr;
+    typedef boost::shared_ptr<const KinematicModel> KinematicModelConstPtr;
 }
 
 #endif
