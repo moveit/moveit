@@ -49,26 +49,26 @@ namespace planning_scene
     class PlanningScene
     {
     public:
-	PlanningScene(void) : configured_(false)
-	{
-	}
-	
+        PlanningScene(void) : configured_(false)
+        {
+        }
+
         virtual ~PlanningScene(void)
-	{
-	}	
-	
-	bool configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model);
-	
+        {
+        }
+
+        bool configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model);
+
         const planning_models::KinematicModelPtr& getKinematicModel(void) const
         {
             return kmodel_;
         }
 
-	const planning_models::KinematicState& getCurrentState(void) const
-	{
-	    return *kstate_;
-	}
-	
+        const planning_models::KinematicState& getCurrentState(void) const
+        {
+            return *kstate_;
+        }
+
         const planning_models::TransformsPtr& getTransforms(void) const
         {
             return tf_;
@@ -94,27 +94,27 @@ namespace planning_scene
         {
             cworld_->checkCollision(req, res, *crobot_, kstate, acm_);
         }
-	
-	bool isConfigured(void) const
-	{
-	    return configured_;
-	}
-	
+
+        bool isConfigured(void) const
+        {
+            return configured_;
+        }
+
     protected:
 
-	void processPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
-	void processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
-	void processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
-	void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
-	
+        void processPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
+        bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
+        bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
+        void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
+
         planning_models::KinematicModelPtr            kmodel_;
         planning_models::TransformsPtr                tf_;
-	planning_models::KinematicStatePtr            kstate_;	
+        planning_models::KinematicStatePtr            kstate_;
         collision_detection::CollisionRobotPtr        crobot_;
         collision_detection::CollisionWorldPtr        cworld_;
         collision_detection::AllowedCollisionMatrix   acm_;
-	bool                                          configured_;
-	
+        bool                                          configured_;
+
     };
 
     typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;

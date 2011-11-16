@@ -32,14 +32,13 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #ifndef COLLISION_DETECTION_COLLISION_WORLD_
 #define COLLISION_DETECTION_COLLISION_WORLD_
 
 #include "collision_detection/collision_matrix.h"
 #include "collision_detection/collision_robot.h"
-#include "collision_detection/collision_objects.h"
 
 namespace collision_detection
 {
@@ -54,6 +53,7 @@ namespace collision_detection
 
         virtual ~CollisionWorld(void)
         {
+            freeMemory();
         }
 
         /**********************************************************************/
@@ -82,55 +82,66 @@ namespace collision_detection
         /* Collision Bodies                                                   */
         /**********************************************************************/
 
-        /** \brief Get the objects currently contained in the model */
-        const CollisionObjects& getObjects(void) const
+        /** \brief The objects in a particular namespace */
+        struct NamespaceObjects
         {
-            return objects_;
-        }
+            /** \brief An array of static shapes */
+            std::vector< shapes::StaticShape* > static_shape;
 
-        /** \brief Tells whether or not there is an object with the given name in the collision model */
-        bool haveNamespace(const std::string& ns) const
-        {
-            return objects_.haveNamespace(ns);
-        }
+            /** \brief An array of shapes */
+            std::vector< shapes::Shape* >       shape;
+
+            /** \brief An array of shape poses */
+            std::vector< btTransform >          shape_pose;
+        };
+
+        /** \brief Get the list of namespaces */
+        std::vector<std::string> getNamespaces(void) const;
+
+        /** \brief Get the list of objects */
+        const NamespaceObjects& getObjects(const std::string &ns) const;
+
+        /** \brief Get the list of objects */
+        NamespaceObjects& getObjects(const std::string &ns);
+
+        /** \brief Check if a particular namespace exists */
+        bool haveNamespace(const std::string &ns) const;
 
         /** \brief Add a set of collision objects to the map. The user releases ownership of the passed objects. Memory allocated for the shapes is freed by the collision environment.*/
         void addObjects(const std::string &ns, const std::vector<shapes::Shape*> &shapes, const std::vector<btTransform> &poses);
 
-        /** \brief Remove all objects from collision model */
-        virtual void clearObjects(void)
-        {
-            objects_.clearObjects();
-        }
+        /** \brief Add a static object to the namespace. The user releases ownership of the object. */
+        virtual void addObject(const std::string &ns, shapes::StaticShape *shape);
 
-        /** \brief Remove objects from a specific namespace in the collision model */
-        virtual void clearObjects(const std::string &ns)
-        {
-            objects_.clearObjects(ns);
-        }
-
-        /** \brief Add a static collision object to the map. The user releases ownership of the passed object. Memory allocated for the shape is freed by the collision environment. */
-        virtual void addObject(const std::string &ns, shapes::StaticShape *shape)
-        {
-            objects_.addObject(ns, shape);
-        }
-
-        /** \brief Add a collision object to the map. The user releases ownership of the passed object. Memory allocated for the shape is freed by the collision environment.*/
-        virtual void addObject(const std::string &ns, shapes::Shape* shape, const btTransform &pose)
-        {
-            objects_.addObject(ns, shape, pose);
-        }
+        /** \brief Add an object to the namespace. The user releases ownership of the object. */
+        virtual void addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose);
 
         /** \brief Update the pose of an object. Object equality is verified by comparing pointers. Returns true on success. */
-        virtual bool moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose)
-        {
-            return objects_.moveObject(ns, shape, pose);
-        }
-	
+        virtual bool moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose);
+
+        /** \brief Remove object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
+        virtual bool removeObject(const std::string &ns, const shapes::Shape *shape);
+
+        /** \brief Remove object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
+        virtual bool removeObject(const std::string &ns, const shapes::StaticShape *shape);
+
+	/** \brief Remove all objects from a particular namespace. Ownership of the objects is renounced upon (no memory freed). Return true on success. */
+        virtual bool removeObjects(const std::string &ns);
+
+        /** \brief Clear the objects in a specific namespace. Memory is freed. */
+        virtual void clearObjects(const std::string &ns);
+
+        /** \brief Clear all objects. Memory is freed. */
+        virtual void clearObjects(void);
+
     protected:
 
-        CollisionObjects objects_;
+        std::map<std::string, NamespaceObjects> objects_;
 
+    private:
+
+        void freeMemory(const std::string &ns);
+        void freeMemory(void);
     };
 
     typedef boost::shared_ptr<CollisionWorld> CollisionWorldPtr;

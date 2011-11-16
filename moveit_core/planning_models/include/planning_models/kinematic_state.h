@@ -156,17 +156,20 @@ namespace planning_models
 
         struct AttachedBodyProperties
         {
+	    AttachedBodyProperties(void);
+	    ~AttachedBodyProperties(void);
+	    
             /** \brief The geometries of the attached body */
-            boost::shared_ptr<shapes::ShapeVector> shapes_;
+	    std::vector<shapes::Shape*> shapes_;
 
             /** \brief The constant transforms applied to the link (need to be specified by user) */
-            std::vector<btTransform>               attach_trans_;
+            std::vector<btTransform>    attach_trans_;
 
             /** \brief The set of links this body is allowed to touch */
-            std::vector<std::string>               touch_links_;
+            std::vector<std::string>    touch_links_;
 
             /** string id for reference */
-            std::string                            id_;
+            std::string                 id_;
         };
 
         /** \brief Class defining bodies that can be attached to robot
@@ -180,7 +183,7 @@ namespace planning_models
             /** \brief Construct an attached body for a specified \e link. The name of this body is \e id and it consists of \e shapes that
                 attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
             AttachedBody(const LinkState *link, const std::string &id,
-                         const boost::shared_ptr<shapes::ShapeVector> &shapes,
+                         const std::vector<shapes::Shape*> &shapes,
                          const std::vector<btTransform> &attach_trans,
                          const std::vector<std::string> &touch_links);
 
@@ -202,12 +205,12 @@ namespace planning_models
                 return parent_link_state_->getName();
             }
 
-            const shapes::ShapeVector* getShapes(void) const
+            const std::vector<shapes::Shape*>& getShapes(void) const
             {
-                return properties_->shapes_.get();
+                return properties_->shapes_;
             }
 
-            const std::vector<btTransform>& getAttachedBodyFixedTransforms(void) const
+            const std::vector<btTransform>& getFixedTransforms(void) const
             {
                 return properties_->attach_trans_;
             }
@@ -216,7 +219,12 @@ namespace planning_models
             {
                 return properties_->touch_links_;
             }
-
+	    
+	    const boost::shared_ptr<AttachedBodyProperties>& getProperties(void) const
+	    {
+		return properties_;
+	    }
+	    
             const std::vector<btTransform>& getGlobalCollisionBodyTransforms(void) const
             {
                 return global_collision_body_transforms_;
@@ -299,11 +307,13 @@ namespace planning_models
                 return parent_link_state_;
             }
 
-            const std::vector<AttachedBody*>& getAttachedBodyVector(void) const
+            const std::vector<AttachedBody*>& getAttachedBodies(void) const
             {
                 return attached_body_vector_;
             }
 
+            const AttachedBody* getAttachedBody(const std::string &id) const;
+	    
             const btTransform& getGlobalLinkTransform(void) const
             {
                 return global_link_transform_;
@@ -315,13 +325,14 @@ namespace planning_models
             }
 
             void attachBody(const std::string &id,
-                            const boost::shared_ptr<shapes::ShapeVector> &shapes,
+                            const std::vector<shapes::Shape*> &shapes,
                             const std::vector<btTransform> &attach_trans,
                             const std::vector<std::string> &touch_links);
 
             void attachBody(const boost::shared_ptr<AttachedBodyProperties> &properties);
 
-            void clearAttachedBodies(void);
+	    bool clearAttachedBody(const std::string &id);
+	    void clearAttachedBodies(void);
 
         private:
 

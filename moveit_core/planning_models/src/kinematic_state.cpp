@@ -107,7 +107,7 @@ void planning_models::KinematicState::copyFrom(const KinematicState &ks)
     // copy attached bodies
     for (unsigned int i = 0 ; i < ks.link_state_vector_.size() ; ++i)
     {
-        const std::vector<AttachedBody*> &ab = ks.link_state_vector_[i]->getAttachedBodyVector();
+        const std::vector<AttachedBody*> &ab = ks.link_state_vector_[i]->getAttachedBodies();
         LinkState *ls = link_state_map_[ks.link_state_vector_[i]->getName()];
         for (std::size_t j = 0 ; j < ab.size() ; ++j)
         {
@@ -468,7 +468,7 @@ void planning_models::KinematicState::LinkState::updateAttachedBodies(void)
 }
 
 void planning_models::KinematicState::LinkState::attachBody(const std::string &id,
-                                                            const boost::shared_ptr<shapes::ShapeVector> &shapes,
+                                                            const std::vector<shapes::Shape*> &shapes,
                                                             const std::vector<btTransform> &attach_trans,
                                                             const std::vector<std::string> &touch_links)
 {
@@ -480,6 +480,26 @@ void planning_models::KinematicState::LinkState::attachBody(const boost::shared_
     attached_body_vector_.push_back(new AttachedBody(this, properties));
 }
 
+const planning_models::KinematicState::AttachedBody* planning_models::KinematicState::LinkState::getAttachedBody(const std::string &id) const
+{
+    for (std::size_t i = 0 ; i < attached_body_vector_.size() ; ++i)
+	if (attached_body_vector_[i]->getName() == id)
+	    return attached_body_vector_[i];
+    return NULL;
+}
+
+bool planning_models::KinematicState::LinkState::clearAttachedBody(const std::string &id)
+{
+    for (std::size_t i = 0; i < attached_body_vector_.size(); ++i)
+	if (attached_body_vector_[i]->getName() == id)
+	{
+	    delete attached_body_vector_[i];
+	    attached_body_vector_.erase(attached_body_vector_.begin() + i);
+	    return true;
+	}
+    return false;
+}
+
 void planning_models::KinematicState::LinkState::clearAttachedBodies(void)
 {
     for (std::size_t i = 0; i < attached_body_vector_.size(); ++i)
@@ -487,10 +507,21 @@ void planning_models::KinematicState::LinkState::clearAttachedBodies(void)
     attached_body_vector_.clear();
 }
 
+
 //-------------------- AttachedBody ---------------------
 
+planning_models::KinematicState::AttachedBodyProperties::AttachedBodyProperties(void) 
+{
+}
+
+planning_models::KinematicState::AttachedBodyProperties::~AttachedBodyProperties(void) 
+{
+    for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
+	delete shapes_[i];
+}
+
 planning_models::KinematicState::AttachedBody::AttachedBody(const planning_models::KinematicState::LinkState* parent_link_state,
-                                                            const std::string &id, const boost::shared_ptr<shapes::ShapeVector> &shapes,
+                                                            const std::string &id, const std::vector<shapes::Shape*> &shapes,
                                                             const std::vector<btTransform> &attach_trans,
                                                             const std::vector<std::string> &touch_links) :
     parent_link_state_(parent_link_state), padding_(0.0), scale_(1.0)
