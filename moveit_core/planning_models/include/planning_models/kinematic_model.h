@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #ifndef PLANNING_MODELS_KINEMATIC_MODEL_
 #define PLANNING_MODELS_KINEMATIC_MODEL_
@@ -196,6 +196,18 @@ namespace planning_models
 
             /** \brief The link after this joint */
             LinkModel                                        *child_link_model_;
+
+            /** \brief The joint this one mimics (NULL for joints that do not mimic) */
+            JointModel                                       *mimic_;
+
+            /** \brief The offset to the mimic joint */
+            double                                            mimic_factor_;
+
+            /** \brief The multiplier to the mimic joint */
+            double                                            mimic_offset_;
+
+            /** \brief The set of joints that should get a value copied to them when this joint changes */
+            std::vector<JointModel*>                          mimic_requests_;
 
             /** \brief The index assigned to this joint when traversing the kinematic tree in depth first fashion */
             int                                               tree_index_;
