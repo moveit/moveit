@@ -28,3 +28,6 @@ rosbuild_add_library(${PROJECT_NAME} src/planning_scene.cpp)
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
+
+rosbuild_add_gtest(test_planning_scene test/test_planning_scene.cpp)
+target_link_libraries(test_planning_scene ${PROJECT_NAME})
