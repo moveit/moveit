@@ -59,6 +59,11 @@ namespace planning_scene
 
         bool configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model);
 
+        const std::string& getPlanningFrame(void) const
+        {
+            return tf_->getPlanningFrame();
+        }
+
         const planning_models::KinematicModelPtr& getKinematicModel(void) const
         {
             return kmodel_;
@@ -100,9 +105,11 @@ namespace planning_scene
             return configured_;
         }
 
+        void getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const;
+        void setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
+
     protected:
 
-        void processPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
         bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
         bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
         void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);

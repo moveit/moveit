@@ -32,22 +32,11 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** Author: Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #include <planning_models/conversions.h>
 #include <ros/console.h>
 #include <set>
-
-bool planning_models::quatFromMsg(const geometry_msgs::Quaternion &qmsg, btQuaternion &q)
-{
-    q = btQuaternion(qmsg.x, qmsg.y, qmsg.z, qmsg.w);
-    if (fabs(q.length2() - 1.0) > 1e-3)
-    {
-        q = btQuaternion(0.0, 0.0, 0.0, 1.0);
-        return false;
-    }
-    return true;
-}
 
 namespace planning_models
 {
@@ -92,12 +81,10 @@ namespace planning_models
 
         for (unsigned int i = 0 ; i < mjs.joint_names.size(); ++i)
         {
-            const geometry_msgs::Pose &p = mjs.poses[i];
-            btQuaternion q;
-            if (!quatFromMsg(p.orientation, q))
+            if (!poseFromMsg(mjs.poses[i], transf[i]))
                 ROS_WARN("MultiDOFJointState message has incorrect quaternion specification for joint '%s'. Assuming identity.",
                          mjs.joint_names[i].c_str());
-            transf[i] = btTransform(q, btVector3(p.position.x, p.position.y, p.position.z));
+
 
             // if frames do not mach, attempt to transform
             if (mjs.frame_ids[i] != state.getKinematicModel()->getModelFrame())
@@ -205,11 +192,8 @@ void planning_models::kinematicStateToRobotState(const KinematicState& state, mo
     for (std::size_t i = 0 ; i < js.size() ; ++i)
           if (js[i]->getVariableCount() > 1)
         {
-            const btTransform &t = js[i]->getVariableTransform();
-            const btQuaternion &q = t.getRotation();
             geometry_msgs::Pose p;
-            p.position.x = t.getOrigin().getX(); p.position.y = t.getOrigin().getY(); p.position.z = t.getOrigin().getZ();
-            p.orientation.x = q.getX(); p.orientation.y = q.getY(); p.orientation.z = q.getZ(); p.orientation.w = q.getW();
+            msgFromPose(js[i]->getVariableTransform(), p);
             robot_state.multi_dof_joint_state.joint_names.push_back(js[i]->getName());
             robot_state.multi_dof_joint_state.frame_ids.push_back(state.getKinematicModel()->getModelFrame());
             robot_state.multi_dof_joint_state.child_frame_ids.push_back(js[i]->getJointModel()->getChildLinkModel()->getName());

@@ -40,6 +40,8 @@
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
 
+static const std::string COLLISION_MAP_NS = "__map";
+
 bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model)
 {
     kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
@@ -51,7 +53,87 @@ bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, con
     return true;
 }
 
-void planning_scene::PlanningScene::processPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
+void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const
+{
+    tf_->getTransforms(scene.fixed_frame_transforms);
+    planning_models::kinematicStateToRobotState(*kstate_, scene.robot_state);
+    acm_.getMessage(scene.allowed_collision_matrix);
+    crobot_->getPadding(scene.link_padding);
+
+    // add collision objects
+    scene.collision_objects.clear();
+    const std::vector<std::string> &ns = cworld_->getNamespaces();
+    for (std::size_t i = 0 ; i < ns.size() ; ++i)
+        if (ns[i] != COLLISION_MAP_NS)
+        {
+            moveit_msgs::CollisionObject co;
+            co.header.frame_id = tf_->getPlanningFrame();
+            co.id = ns[i];
+            co.operation = moveit_msgs::CollisionObject::ADD;
+            const collision_detection::CollisionWorld::NamespaceObjects &obj = cworld_->getObjects(ns[i]);
+            if (!obj.static_shape.empty())
+                ROS_WARN("Static shapes not encoded in PlanningScene message");
+            for (std::size_t j = 0 ; j < obj.shape.size() ; ++j)
+            {
+                moveit_msgs::Shape sm;
+                if (constructMsgFromShape(obj.shape[j], sm))
+                {
+                    co.shapes.push_back(sm);
+                    geometry_msgs::Pose p;
+                    planning_models::msgFromPose(obj.shape_pose[j], p);
+                    co.poses.push_back(p);
+                }
+            }
+            if (!co.shapes.empty())
+                scene.collision_objects.push_back(co);
+        }
+
+    // add the attached bodies
+    scene.attached_collision_objects.clear();
+    std::vector<const planning_models::KinematicState::AttachedBody*> ab;
+    kstate_->getAttachedBodies(ab);
+    for (std::size_t i = 0 ; i < ab.size() ; ++i)
+    {
+        moveit_msgs::AttachedCollisionObject aco;
+        aco.link_name = ab[i]->getAttachedLinkName();
+        aco.touch_links = ab[i]->getTouchLinks();
+        aco.object.header.frame_id = aco.link_name;
+        aco.object.id = ab[i]->getName();
+        aco.object.operation = moveit_msgs::CollisionObject::ADD;
+        const std::vector<shapes::Shape*>& ab_shapes = ab[i]->getShapes();
+        const std::vector<btTransform>& ab_tf = ab[i]->getFixedTransforms();
+        for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
+        {
+            moveit_msgs::Shape sm;
+            if (constructMsgFromShape(ab_shapes[j], sm))
+            {
+                aco.object.shapes.push_back(sm);
+                geometry_msgs::Pose p;
+                planning_models::msgFromPose(ab_tf[j], p);
+                aco.object.poses.push_back(p);
+            }
+        }
+        if (!aco.object.shapes.empty())
+            scene.attached_collision_objects.push_back(aco);
+    }
+
+    // get the collision map
+    scene.collision_map.header.frame_id = tf_->getPlanningFrame();
+    scene.collision_map.boxes.clear();
+    const collision_detection::CollisionWorld::NamespaceObjects& map = cworld_->getObjects(COLLISION_MAP_NS);
+    if (!map.static_shape.empty())
+        ROS_WARN("Static shapes not encoded in PlanningScene message");
+    for (std::size_t i = 0 ; i < map.shape.size() ; ++i)
+    {
+        shapes::Box *b = static_cast<shapes::Box*>(map.shape[i]);
+        moveit_msgs::OrientedBoundingBox obb;
+        obb.extents.x = b->size[0]; obb.extents.y = b->size[1]; obb.extents.z = b->size[2];
+        planning_models::msgFromPose(map.shape_pose[i], obb.pose);
+        scene.collision_map.boxes.push_back(obb);
+    }
+}
+
+void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
 {
     tf_->recordTransforms(scene.fixed_frame_transforms);
     planning_models::robotStateToKinematicState(*tf_, scene.robot_state, *kstate_);
@@ -70,10 +152,9 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
     const btTransform &t = tf_->getTransformToTargetFrame(*kstate_, map.header.frame_id);
     for (std::size_t i = 0 ; i < map.boxes.size() ; ++i)
     {
-        btVector3 o(map.boxes[i].pose.position.x, map.boxes[i].pose.position.y, map.boxes[i].pose.position.z);
-        btQuaternion q;        planning_models::quatFromMsg(map.boxes[i].pose.orientation, q);
+        btTransform p; planning_models::poseFromMsg(map.boxes[i].pose, p);
         shapes::Shape *s = new shapes::Box(map.boxes[i].extents.x, map.boxes[i].extents.y, map.boxes[i].extents.z);
-        cworld_->addObject("map", s, t * btTransform(q, o));
+        cworld_->addObject(COLLISION_MAP_NS, s, t * p);
     }
 }
 
@@ -85,6 +166,12 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         return false;
     }
 
+    if (object.object.id == COLLISION_MAP_NS)
+    {
+        ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", COLLISION_MAP_NS.c_str());
+        return false;
+    }
+
     if (object.object.operation == moveit_msgs::CollisionObject::ADD)
     {
         if (object.object.shapes.size() != object.object.poses.size())
@@ -92,6 +179,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             ROS_ERROR("Number of shapes does not match number of poses in attached collision object message");
             return false;
         }
+
         planning_models::KinematicState::LinkState *ls = kstate_->getLinkState(object.link_name);
         if (ls)
         {
@@ -130,10 +218,9 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                     shapes::Shape *s = shapes::constructShapeFromMsg(object.object.shapes[i]);
                     if (s)
                     {
-                        btVector3 o(object.object.poses[i].position.x, object.object.poses[i].position.y, object.object.poses[i].position.z);
-                        btQuaternion q; planning_models::quatFromMsg(object.object.poses[i].orientation, q);
+                        btTransform p; planning_models::poseFromMsg(object.object.poses[i], p);
                         shapes.push_back(s);
-                        poses.push_back(btTransform(q, o));
+                        poses.push_back(p);
                     }
                 }
                 // transform poses to link frame
@@ -204,6 +291,12 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
 
 bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject &object)
 {
+    if (object.id == COLLISION_MAP_NS)
+    {
+        ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", COLLISION_MAP_NS.c_str());
+        return false;
+    }
+
     if (object.operation == moveit_msgs::CollisionObject::ADD)
     {
         if (object.shapes.empty())
@@ -223,9 +316,8 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
             shapes::Shape *s = shapes::constructShapeFromMsg(object.shapes[i]);
             if (s)
             {
-                btVector3 o(object.poses[i].position.x, object.poses[i].position.y, object.poses[i].position.z);
-                btQuaternion q; planning_models::quatFromMsg(object.poses[i].orientation, q);
-                cworld_->addObject(object.id, s, t * btTransform(q, o));
+                btTransform p; planning_models::poseFromMsg(object.poses[i], p);
+                cworld_->addObject(object.id, s, t * p);
             }
         }
         return true;

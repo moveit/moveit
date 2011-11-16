@@ -40,11 +40,15 @@
 #include <LinearMath/btTransform.h>
 #include <planning_models/kinematic_state.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Pose.h>
 #include <string>
 #include <map>
 
 namespace planning_models
 {
+    bool quatFromMsg(const geometry_msgs::Quaternion &qmsg, btQuaternion &q);
+    bool poseFromMsg(const geometry_msgs::Pose &tmsg, btTransform &t);
+    void msgFromPose(const btTransform &t, geometry_msgs::Pose &tmsg);
 
     class Transforms
     {
@@ -54,6 +58,7 @@ namespace planning_models
 
         const std::string& getPlanningFrame(void) const;
         bool isFixedFrame(const std::string &frame) const;
+        const std::map<std::string, btTransform>& getAllTransforms(void) const;
 
         const btTransform& getTransformToTargetFrame(const std::string &from_frame) const;
         void transformVector3(btVector3 &v_out, const btVector3 &v_in, const std::string &from_frame) const;
@@ -70,6 +75,8 @@ namespace planning_models
         void recordTransformFromFrame(const btTransform &t, const std::string &from_frame);
         void recordTransform(const geometry_msgs::TransformStamped &transform);
         void recordTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms);
+
+        void getTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const;
 
     private:
 

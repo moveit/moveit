@@ -171,11 +171,8 @@ bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionC
 
     if (link_model_ && constraint_region_)
     {
-        const geometry_msgs::Pose &msg = pc.constraint_region_pose.pose;
-        btQuaternion qr;
-        if (!planning_models::quatFromMsg(msg.orientation, qr))
+        if (!planning_models::poseFromMsg(pc.constraint_region_pose.pose, constraint_region_pose_))
             ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());
-        constraint_region_pose_ = btTransform(qr, btVector3(msg.position.x, msg.position.y, msg.position.z));
 
         if (tf_->isFixedFrame(pc.constraint_region_pose.header.frame_id))
         {
@@ -419,11 +416,8 @@ bool kinematic_constraints::VisibilityConstraint::use(const moveit_msgs::Visibil
         points_.push_back(btVector3(x, y, 0.0));
     }
 
-    const geometry_msgs::Pose &mt = vc.target_pose.pose;
-    btQuaternion qr;
-    if (!planning_models::quatFromMsg(mt.orientation, qr))
+    if (!planning_models::poseFromMsg(vc.target_pose.pose, target_pose_))
         ROS_WARN("Incorrect specification of orientation in target pose for visibility constraint. Assuming identity quaternion.");
-    target_pose_ = btTransform(qr, btVector3(mt.position.x, mt.position.y, mt.position.z));
 
     if (tf_->isFixedFrame(vc.target_pose.header.frame_id))
     {
@@ -440,10 +434,8 @@ bool kinematic_constraints::VisibilityConstraint::use(const moveit_msgs::Visibil
         mobile_target_frame_ = true;
     }
 
-    const geometry_msgs::Pose &ms = vc.sensor_pose.pose;
-    if (!planning_models::quatFromMsg(ms.orientation, qr))
+    if (!planning_models::poseFromMsg(vc.sensor_pose.pose, sensor_pose_))
         ROS_WARN("Incorrect specification of orientation in sensor pose for visibility constraint. Assuming identity quaternion.");
-    sensor_pose_ = btTransform(qr, btVector3(ms.position.x, ms.position.y, ms.position.z));
 
     if (tf_->isFixedFrame(vc.sensor_pose.header.frame_id))
     {

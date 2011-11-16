@@ -156,11 +156,11 @@ namespace planning_models
 
         struct AttachedBodyProperties
         {
-	    AttachedBodyProperties(void);
-	    ~AttachedBodyProperties(void);
-	    
+            AttachedBodyProperties(void);
+            ~AttachedBodyProperties(void);
+
             /** \brief The geometries of the attached body */
-	    std::vector<shapes::Shape*> shapes_;
+            std::vector<shapes::Shape*> shapes_;
 
             /** \brief The constant transforms applied to the link (need to be specified by user) */
             std::vector<btTransform>    attach_trans_;
@@ -219,12 +219,12 @@ namespace planning_models
             {
                 return properties_->touch_links_;
             }
-	    
-	    const boost::shared_ptr<AttachedBodyProperties>& getProperties(void) const
-	    {
-		return properties_;
-	    }
-	    
+
+            const boost::shared_ptr<AttachedBodyProperties>& getProperties(void) const
+            {
+                return properties_;
+            }
+
             const std::vector<btTransform>& getGlobalCollisionBodyTransforms(void) const
             {
                 return global_collision_body_transforms_;
@@ -313,7 +313,7 @@ namespace planning_models
             }
 
             const AttachedBody* getAttachedBody(const std::string &id) const;
-	    
+
             const btTransform& getGlobalLinkTransform(void) const
             {
                 return global_link_transform_;
@@ -331,8 +331,8 @@ namespace planning_models
 
             void attachBody(const boost::shared_ptr<AttachedBodyProperties> &properties);
 
-	    bool clearAttachedBody(const std::string &id);
-	    void clearAttachedBodies(void);
+            bool clearAttachedBody(const std::string &id);
+            void clearAttachedBodies(void);
 
         private:
 
@@ -540,6 +540,7 @@ namespace planning_models
 
         void getJointStateGroupNames(std::vector<std::string>& names) const;
 
+        void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
 
         /** \brief Print information about the constructed model */
         void printStateInfo(std::ostream &out = std::cout) const;
