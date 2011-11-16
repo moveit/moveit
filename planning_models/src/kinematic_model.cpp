@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #include <planning_models/kinematic_model.h>
 #include <geometric_shapes/shape_operations.h>
@@ -62,6 +62,20 @@ planning_models::KinematicModel::KinematicModel(const urdf::Model &model, const 
                 joint_variables_index_map_[name_order[j]] = variable_count_ + j;
             joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
             variable_count_ += joint_model_vector_[i]->getVariableCount();
+            const urdf::Joint *jm = model.getJoint(joint_model_vector_[i]->getName()).get();
+            if (jm)
+                if (jm->mimic)
+                {
+                    joint_model_vector_[i]->mimic_offset_ = jm->mimic->offset;
+                    joint_model_vector_[i]->mimic_factor_ = jm->mimic->multiplier;
+                    std::map<std::string, JointModel*>::const_iterator jit = joint_model_map_.find(jm->mimic->joint_name);
+                    if (jit != joint_model_map_.end())
+                    {
+                        joint_model_vector_[i]->mimic_ = jit->second;
+                        if (joint_model_vector_[i]->mimic_)
+                            joint_model_vector_[i]->mimic_->mimic_requests_.push_back(joint_model_vector_[i]);
+                    }
+                }
         }
         default_states_ = smodel.getGroupStates();
         std::stringstream ss;
@@ -587,7 +601,7 @@ void planning_models::KinematicModel::getRandomValues(random_numbers::RNG &rng, 
 /* ------------------------ JointModel ------------------------ */
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :
-    name_(name), parent_link_model_(NULL), child_link_model_(NULL), tree_index_(-1)
+    name_(name), parent_link_model_(NULL), child_link_model_(NULL), mimic_(NULL), tree_index_(-1)
 {
 }
 
