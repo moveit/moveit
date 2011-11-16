@@ -48,9 +48,21 @@ bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, con
     tf_.reset(new planning_models::Transforms(kmodel_->getModelFrame()));
     kstate_.reset(new planning_models::KinematicState(kmodel_));
     crobot_.reset(new collision_detection::CollisionRobotAllValid(kmodel_));
+    crobot_unpadded_.reset(new collision_detection::CollisionRobotAllValid(kmodel_));
     cworld_.reset(new collision_detection::CollisionWorldAllValid());
     configured_ = true;
     return true;
+}
+
+void planning_scene::PlanningScene::checkCollision(collision_detection::CollisionRequest req, collision_detection::CollisionResult &res,
+						   const planning_models::KinematicState &kstate) const
+{
+    // do self-collision checking with the unpadded version of the robot
+    crobot_unpadded_->checkSelfCollision(req, res, kstate, acm_);
+    
+    // check collision with the world using the padded version
+    if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+	cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm_);
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const

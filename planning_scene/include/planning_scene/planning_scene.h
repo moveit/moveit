@@ -95,11 +95,8 @@ namespace planning_scene
         }
 
         void checkCollision(collision_detection::CollisionRequest req, collision_detection::CollisionResult &res,
-                            const planning_models::KinematicState &kstate) const
-        {
-            cworld_->checkCollision(req, res, *crobot_, kstate, acm_);
-        }
-
+                            const planning_models::KinematicState &kstate) const;
+	
         bool isConfigured(void) const
         {
             return configured_;
@@ -118,6 +115,7 @@ namespace planning_scene
         planning_models::TransformsPtr                tf_;
         planning_models::KinematicStatePtr            kstate_;
         collision_detection::CollisionRobotPtr        crobot_;
+        collision_detection::CollisionRobotPtr        crobot_unpadded_;
         collision_detection::CollisionWorldPtr        cworld_;
         collision_detection::AllowedCollisionMatrix   acm_;
         bool                                          configured_;
