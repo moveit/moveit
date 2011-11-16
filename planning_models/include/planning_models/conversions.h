@@ -42,8 +42,6 @@
 
 namespace planning_models
 {
-    bool quatFromMsg(const geometry_msgs::Quaternion &qmsg, btQuaternion &q);
-
     bool jointStateToKinematicState(const sensor_msgs::JointState &joint_state, KinematicState& state);
     bool robotStateToKinematicState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, KinematicState& state);
     bool robotStateToKinematicState(const moveit_msgs::RobotState &robot_state, KinematicState& state);

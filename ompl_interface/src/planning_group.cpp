@@ -476,12 +476,9 @@ bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory
             traj.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
             for (std::size_t j = 0 ; j < mdof.size() ; ++j)
             {
-                const btTransform &t = ks.getJointState(mdof[j]->getName())->getVariableTransform();
-                const btQuaternion &q = t.getRotation();
-                geometry_msgs::Pose &p = traj.multi_dof_joint_trajectory.points[i].poses[j];
-                p.position.x = t.getOrigin().getX(); p.position.y = t.getOrigin().getY(); p.position.z = t.getOrigin().getZ();
-                p.orientation.x = q.getX(); p.orientation.y = q.getY(); p.orientation.z = q.getZ(); p.orientation.w = q.getW();
-            }
+		planning_models::msgFromPose(ks.getJointState(mdof[j]->getName())->getVariableTransform(),
+					     traj.multi_dof_joint_trajectory.points[i].poses[j]);
+	    }
             traj.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
         }
     }

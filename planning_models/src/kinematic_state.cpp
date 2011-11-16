@@ -315,6 +315,16 @@ planning_models::KinematicState::LinkState* planning_models::KinematicState::get
         return it->second;
 }
 
+void planning_models::KinematicState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
+{
+    for (std::size_t i = 0 ; i < link_state_vector_.size() ; ++i)
+    {
+        const std::vector<AttachedBody*> &ab = link_state_vector_[i]->getAttachedBodies();
+        attached_bodies.insert(attached_bodies.end(), ab.begin(), ab.end());
+    }
+}
+
+
 //-------------------- JointState ---------------------
 
 planning_models::KinematicState::JointState::JointState(const planning_models::KinematicModel::JointModel *jm) : joint_model_(jm)
@@ -483,20 +493,20 @@ void planning_models::KinematicState::LinkState::attachBody(const boost::shared_
 const planning_models::KinematicState::AttachedBody* planning_models::KinematicState::LinkState::getAttachedBody(const std::string &id) const
 {
     for (std::size_t i = 0 ; i < attached_body_vector_.size() ; ++i)
-	if (attached_body_vector_[i]->getName() == id)
-	    return attached_body_vector_[i];
+        if (attached_body_vector_[i]->getName() == id)
+            return attached_body_vector_[i];
     return NULL;
 }
 
 bool planning_models::KinematicState::LinkState::clearAttachedBody(const std::string &id)
 {
     for (std::size_t i = 0; i < attached_body_vector_.size(); ++i)
-	if (attached_body_vector_[i]->getName() == id)
-	{
-	    delete attached_body_vector_[i];
-	    attached_body_vector_.erase(attached_body_vector_.begin() + i);
-	    return true;
-	}
+        if (attached_body_vector_[i]->getName() == id)
+        {
+            delete attached_body_vector_[i];
+            attached_body_vector_.erase(attached_body_vector_.begin() + i);
+            return true;
+        }
     return false;
 }
 
@@ -510,14 +520,14 @@ void planning_models::KinematicState::LinkState::clearAttachedBodies(void)
 
 //-------------------- AttachedBody ---------------------
 
-planning_models::KinematicState::AttachedBodyProperties::AttachedBodyProperties(void) 
+planning_models::KinematicState::AttachedBodyProperties::AttachedBodyProperties(void)
 {
 }
 
-planning_models::KinematicState::AttachedBodyProperties::~AttachedBodyProperties(void) 
+planning_models::KinematicState::AttachedBodyProperties::~AttachedBodyProperties(void)
 {
     for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
-	delete shapes_[i];
+        delete shapes_[i];
 }
 
 planning_models::KinematicState::AttachedBody::AttachedBody(const planning_models::KinematicState::LinkState* parent_link_state,

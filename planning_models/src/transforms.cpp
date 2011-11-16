@@ -35,8 +35,32 @@
 /* Author: Ioan Sucan */
 
 #include <planning_models/transforms.h>
-#include <planning_models/conversions.h>
 #include <ros/console.h>
+
+bool planning_models::quatFromMsg(const geometry_msgs::Quaternion &qmsg, btQuaternion &q)
+{
+    q = btQuaternion(qmsg.x, qmsg.y, qmsg.z, qmsg.w);
+    if (fabs(q.length2() - 1.0) > 1e-3)
+    {
+        q = btQuaternion(0.0, 0.0, 0.0, 1.0);
+        return false;
+    }
+    return true;
+}
+
+bool planning_models::poseFromMsg(const geometry_msgs::Pose &tmsg, btTransform &t)
+{
+    btQuaternion q; bool r = quatFromMsg(tmsg.orientation, q);
+    t = btTransform(q, btVector3(tmsg.position.x, tmsg.position.y, tmsg.position.z));
+    return r;
+}
+
+void planning_models::msgFromPose(const btTransform &t, geometry_msgs::Pose &tmsg)
+{
+    tmsg.position.x = t.getOrigin().x(); tmsg.position.y = t.getOrigin().y(); tmsg.position.z = t.getOrigin().z();
+    const btQuaternion &q = t.getRotation();
+    tmsg.orientation.x = q.x(); tmsg.orientation.y = q.y(); tmsg.orientation.z = q.z(); tmsg.orientation.w = q.w();
+}
 
 planning_models::Transforms::Transforms(const std::string &target_frame) : target_frame_(target_frame)
 {
@@ -52,6 +76,11 @@ planning_models::Transforms::~Transforms(void)
 const std::string& planning_models::Transforms::getPlanningFrame(void) const
 {
     return target_frame_;
+}
+
+const std::map<std::string, btTransform>& planning_models::Transforms::getAllTransforms(void) const
+{
+    return transforms_;
 }
 
 bool planning_models::Transforms::isFixedFrame(const std::string &frame) const
@@ -151,4 +180,23 @@ void planning_models::Transforms::recordTransforms(const std::vector<geometry_ms
 {
     for (std::size_t i = 0 ; i < transforms.size() ; ++i)
         recordTransform(transforms[i]);
+}
+
+void planning_models::Transforms::getTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const
+{
+    transforms.resize(transforms_.size());
+    std::size_t i = 0;
+    for (std::map<std::string, btTransform>::const_iterator it = transforms_.begin() ; it != transforms_.end() ; ++it, ++i)
+    {
+        transforms[i].child_frame_id = target_frame_;
+        transforms[i].header.frame_id = it->first;
+        transforms[i].transform.translation.x = it->second.getOrigin().x();
+        transforms[i].transform.translation.y = it->second.getOrigin().y();
+        transforms[i].transform.translation.z = it->second.getOrigin().z();
+        const btQuaternion &q = it->second.getRotation();
+        transforms[i].transform.rotation.x = q.x();
+        transforms[i].transform.rotation.y = q.y();
+        transforms[i].transform.rotation.z = q.z();
+        transforms[i].transform.rotation.w = q.w();
+    }
 }
