@@ -159,21 +159,21 @@ fcl::CollisionObject* collision_detection::CollisionRobotFCL::createCollisionObj
                     double dy = points[i][1] - sy;
                     double dz = points[i][2] - sz;
 
-		    // length of vector
-		    double norm = sqrt(dx * dx + dy * dy + dz * dz);
-		    if (norm > 1e-6)
-		    {
-			double fact = scale + padding/norm;
-			points[i] = fcl::Vec3f(sx + dx * fact, sy + dy * fact, sz + dz * fact);
-		    }
-		    else
-		    {
-			double ndx = ((dx > 0) ? dx+padding : dx-padding);
-			double ndy = ((dy > 0) ? dy+padding : dy-padding);
-			double ndz = ((dz > 0) ? dz+padding : dz-padding);        
-			points[i] = fcl::Vec3f(sx + ndx, sy + ndy, sz + ndz);
-		    }
-		}
+                    // length of vector
+                    double norm = sqrt(dx * dx + dy * dy + dz * dz);
+                    if (norm > 1e-6)
+                    {
+                        double fact = scale + padding/norm;
+                        points[i] = fcl::Vec3f(sx + dx * fact, sy + dy * fact, sz + dz * fact);
+                    }
+                    else
+                    {
+                        double ndx = ((dx > 0) ? dx+padding : dx-padding);
+                        double ndy = ((dy > 0) ? dy+padding : dy-padding);
+                        double ndz = ((dz > 0) ? dz+padding : dz-padding);
+                        points[i] = fcl::Vec3f(sx + ndx, sy + ndy, sz + ndz);
+                    }
+                }
 
                 g->beginModel();
                 g->addSubModel(points, tri_indices);

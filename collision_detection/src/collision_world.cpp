@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "collision_detection/collision_world.h"
+#include <geometric_shapes/shape_operations.h>
 #include <ros/console.h>
 
 void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const
@@ -59,4 +60,129 @@ void collision_detection::CollisionWorld::addObjects(const std::string &ns, cons
     else
         for (std::size_t i = 0 ; i < shapes.size() ; ++i)
             addObject(ns, shapes[i], poses[i]);
+}
+
+std::vector<std::string> collision_detection::CollisionWorld::getNamespaces(void) const
+{
+    std::vector<std::string> ns;
+    for (std::map<std::string, NamespaceObjects>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
+        ns.push_back(it->first);
+    return ns;
+}
+
+const collision_detection::CollisionWorld::NamespaceObjects& collision_detection::CollisionWorld::getObjects(const std::string &ns) const
+{
+    static const NamespaceObjects empty = NamespaceObjects();
+    std::map<std::string, NamespaceObjects>::const_iterator it = objects_.find(ns);
+    if (it == objects_.end())
+        return empty;
+    else
+        return it->second;
+}
+
+collision_detection::CollisionWorld::NamespaceObjects& collision_detection::CollisionWorld::getObjects(const std::string &ns)
+{
+    return objects_[ns];
+}
+
+bool collision_detection::CollisionWorld::haveNamespace(const std::string &ns) const
+{
+    return objects_.find(ns) != objects_.end();
+}
+
+void collision_detection::CollisionWorld::addObject(const std::string &ns, shapes::StaticShape *shape)
+{
+    objects_[ns].static_shape.push_back(shape);
+}
+
+void collision_detection::CollisionWorld::addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose)
+{
+    objects_[ns].shape.push_back(shape);
+    objects_[ns].shape_pose.push_back(pose);
+}
+
+bool collision_detection::CollisionWorld::moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose)
+{
+    std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
+    if (it != objects_.end())
+    {
+        unsigned int n = it->second.shape.size();
+        for (unsigned int i = 0 ; i < n ; ++i)
+            if (it->second.shape[i] == shape)
+            {
+                it->second.shape_pose[i] = pose;
+                return true;
+            }
+    }
+    return false;
+}
+
+bool collision_detection::CollisionWorld::removeObject(const std::string &ns, const shapes::Shape *shape)
+{
+    std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
+    if (it != objects_.end())
+    {
+        unsigned int n = it->second.shape.size();
+        for (unsigned int i = 0 ; i < n ; ++i)
+            if (it->second.shape[i] == shape)
+            {
+                it->second.shape.erase(it->second.shape.begin() + i);
+                it->second.shape_pose.erase(it->second.shape_pose.begin() + i);
+                return true;
+            }
+    }
+    return false;
+}
+
+bool collision_detection::CollisionWorld::removeObject(const std::string &ns, const shapes::StaticShape *shape)
+{
+    std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
+    if (it != objects_.end())
+    {
+        unsigned int n = it->second.static_shape.size();
+        for (unsigned int i = 0 ; i < n ; ++i)
+            if (it->second.static_shape[i] == shape)
+            {
+                it->second.static_shape.erase(it->second.static_shape.begin() + i);
+                return true;
+            }
+    }
+    return false;
+}
+
+bool collision_detection::CollisionWorld::removeObjects(const std::string &ns)
+{
+    return objects_.erase(ns) == 1;
+}
+
+void collision_detection::CollisionWorld::clearObjects(const std::string &ns)
+{
+    freeMemory(ns);
+}
+
+void collision_detection::CollisionWorld::clearObjects(void)
+{
+    freeMemory();
+}
+
+void collision_detection::CollisionWorld::freeMemory(const std::string &ns)
+{
+    std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
+    if (it != objects_.end())
+    {
+        unsigned int n = it->second.static_shape.size();
+        for (unsigned int i = 0 ; i < n ; ++i)
+            delete it->second.static_shape[i];
+        n = it->second.shape.size();
+        for (unsigned int i = 0 ; i < n ; ++i)
+            delete it->second.shape[i];
+        objects_.erase(it);
+    }
+}
+
+void collision_detection::CollisionWorld::freeMemory(void)
+{
+    std::vector<std::string> ns = getNamespaces();
+    for (unsigned int i = 0 ; i < ns.size() ; ++i)
+        freeMemory(ns[i]);
 }
