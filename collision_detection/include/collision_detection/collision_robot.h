@@ -48,7 +48,7 @@ namespace collision_detection
     {
     public:
 
-        CollisionRobot(const planning_models::KinematicModelPtr &kmodel, double padding = 0.0, double scale = 1.0);
+        CollisionRobot(const planning_models::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
 
         virtual ~CollisionRobot(void)
         {
@@ -86,7 +86,7 @@ namespace collision_detection
 
         virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
 
-        planning_models::KinematicModelPtr kmodel_;
+        planning_models::KinematicModelConstPtr kmodel_;
         std::map<std::string, double>      link_padding_;
         std::map<std::string, double>      link_scale_;
     };

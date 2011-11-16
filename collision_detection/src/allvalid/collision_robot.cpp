@@ -36,7 +36,7 @@
 
 #include "collision_detection/allvalid/collision_robot.h"
 
-collision_detection::CollisionRobotAllValid::CollisionRobotAllValid(const planning_models::KinematicModelPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
+collision_detection::CollisionRobotAllValid::CollisionRobotAllValid(const planning_models::KinematicModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
 {
 }
 

@@ -68,7 +68,7 @@ static inline bool validatePadding(double padding)
     return true;
 }
 
-collision_detection::CollisionRobot::CollisionRobot(const planning_models::KinematicModelPtr &kmodel, double padding, double scale) : kmodel_(kmodel)
+collision_detection::CollisionRobot::CollisionRobot(const planning_models::KinematicModelConstPtr &kmodel, double padding, double scale) : kmodel_(kmodel)
 {
     if (!validateScale(scale))
         scale = 1.0;

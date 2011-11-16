@@ -56,7 +56,7 @@ namespace kinematic_constraints
     {
     public:
 
-        KinematicConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf);
+        KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf);
         virtual ~KinematicConstraint(void);
 
         /** \brief Clear the stored constraint */
@@ -95,7 +95,7 @@ namespace kinematic_constraints
 
     protected:
 
-        planning_models::KinematicModelPtr model_;
+        planning_models::KinematicModelConstPtr model_;
         planning_models::TransformsPtr     tf_;
         double                             constraint_weight_;
     };
@@ -106,7 +106,7 @@ namespace kinematic_constraints
     {
     public:
 
-        JointConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+        JointConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
             KinematicConstraint(model, tf), joint_model_(NULL)
         {
         }
@@ -150,7 +150,7 @@ namespace kinematic_constraints
     {
     public:
 
-        OrientationConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+        OrientationConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
             KinematicConstraint(model, tf), link_model_(NULL)
         {
         }
@@ -210,7 +210,7 @@ namespace kinematic_constraints
     {
     public:
 
-        PositionConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+        PositionConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
             KinematicConstraint(model, tf), link_model_(NULL)
         {
         }
@@ -266,7 +266,7 @@ namespace kinematic_constraints
     {
     public:
 
-        VisibilityConstraint(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf);
+        VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf);
 
         bool use(const moveit_msgs::VisibilityConstraint &vc);
         virtual void clear(void);
@@ -295,7 +295,7 @@ namespace kinematic_constraints
     {
     public:
 
-        KinematicConstraintSet(const planning_models::KinematicModelPtr &model, const planning_models::TransformsPtr &tf) :
+        KinematicConstraintSet(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
             model_(model), tf_(tf)
         {
         }
@@ -355,7 +355,7 @@ namespace kinematic_constraints
 
     protected:
 
-        planning_models::KinematicModelPtr              model_;
+        planning_models::KinematicModelConstPtr              model_;
         planning_models::TransformsPtr                  tf_;
 
         std::vector<KinematicConstraintPtr>             kce_;
@@ -371,6 +371,11 @@ namespace kinematic_constraints
     /** \brief Merge two sets of constraints into one. This just does appending of all constraints except joint constraints. For joint constraints,
         the bounds specified in \e first take precedence over \e second */
     moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second);
+
+bool doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
+                                       const planning_models::TransformsPtr& tf,
+                                       const moveit_msgs::Constraints& constraints,
+                                       bool verbose);
 
 }
 

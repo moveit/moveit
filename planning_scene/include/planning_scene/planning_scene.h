@@ -94,9 +94,15 @@ namespace planning_scene
             return acm_;
         }
 
-        void checkCollision(collision_detection::CollisionRequest req, collision_detection::CollisionResult &res,
+        void checkCollision(const collision_detection::CollisionRequest& req, 
+                            collision_detection::CollisionResult &res,
                             const planning_models::KinematicState &kstate) const;
-	
+
+        void checkCollision(const collision_detection::CollisionRequest& req, 
+                            collision_detection::CollisionResult &res,
+                            const planning_models::KinematicState &kstate,
+                            const collision_detection::AllowedCollisionMatrix& acm) const;
+
         bool isConfigured(void) const
         {
             return configured_;
@@ -115,7 +121,7 @@ namespace planning_scene
         planning_models::TransformsPtr                tf_;
         planning_models::KinematicStatePtr            kstate_;
         collision_detection::CollisionRobotPtr        crobot_;
-        collision_detection::CollisionRobotPtr        crobot_unpadded_;
+      collision_detection::CollisionRobotPtr        crobot_unpadded_;
         collision_detection::CollisionWorldPtr        cworld_;
         collision_detection::AllowedCollisionMatrix   acm_;
         bool                                          configured_;
@@ -123,6 +129,7 @@ namespace planning_scene
     };
 
     typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
+    typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
 }
 
 #endif

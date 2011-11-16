@@ -192,16 +192,16 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
     bool wrong_link = false;
     if (pc_)
     {
-        if (kb_->getToolFrame() != pc_->getLinkModel()->getName())
+        if (kb_->getTipFrame() != pc_->getLinkModel()->getName())
             wrong_link = true;
     }
     else
-        if (kb_->getToolFrame() != oc_->getLinkModel()->getName())
+        if (kb_->getTipFrame() != oc_->getLinkModel()->getName())
             wrong_link = true;
     if (wrong_link)
     {
         ROS_ERROR("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.", 
-                  pc_ ? pc_->getLinkModel()->getName().c_str() : oc_->getLinkModel()->getName().c_str(), kb_->getToolFrame().c_str());
+                  pc_ ? pc_->getLinkModel()->getName().c_str() : oc_->getLinkModel()->getName().c_str(), kb_->getTipFrame().c_str());
         return false;
     }
     
@@ -320,7 +320,7 @@ bool kinematic_constraints::IKConstraintSampler::callIK(const geometry_msgs::Pos
         seed[ik_joint_bijection_[i]] = vals[i];
     
     std::vector<double> ik_sol;
-    int error;
+    moveit_msgs::MoveItErrorCodes error;
     
     if (kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
     {
@@ -331,6 +331,6 @@ bool kinematic_constraints::IKConstraintSampler::callIK(const geometry_msgs::Pos
         return true;
     }
     else
-        ROS_DEBUG("IK solver failed with error %d", error);
+        ROS_DEBUG("IK solver failed with error %d", error.val);
     return false;
 }
