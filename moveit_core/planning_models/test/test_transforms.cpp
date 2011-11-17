@@ -45,8 +45,8 @@ protected:
 
     virtual void SetUp()
     {
-        urdf_ok_ = urdf_model_.initFile("test/urdf/robot.xml");    
-	srdf_ok_ = srdf_model_.initFile(urdf_model_, "test/srdf/robot.xml");
+        urdf_ok_ = urdf_model_.initFile("test/urdf/robot.xml");
+        srdf_ok_ = srdf_model_.initFile(urdf_model_, "test/srdf/robot.xml");
     };
 
     virtual void TearDown()

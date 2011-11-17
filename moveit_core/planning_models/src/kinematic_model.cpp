@@ -575,21 +575,23 @@ void planning_models::KinematicModel::getChildLinkModels(const KinematicModel::L
     links.clear();
     links.push_back(parent);
     std::queue<const LinkModel*> q;
+    std::set<const LinkModel*> seen;
     q.push(parent);
     while (!q.empty())
     {
         const LinkModel* t = q.front();
         q.pop();
-        for (std::size_t i = 0 ; i < t->child_joint_models_.size() ; ++i)
-        {
-            links.push_back(t->child_joint_models_[i]->child_link_model_);
-            q.push(t->child_joint_models_[i]->child_link_model_);
-            for (std::size_t j = 0 ; j < t->child_joint_models_[i]->mimic_requests_.size() ; ++j)
+        if (seen.insert(t).second)
+            for (std::size_t i = 0 ; i < t->child_joint_models_.size() ; ++i)
             {
-                links.push_back(t->child_joint_models_[i]->mimic_requests_[j]->child_link_model_);
-                q.push(t->child_joint_models_[i]->mimic_requests_[j]->child_link_model_);
+                links.push_back(t->child_joint_models_[i]->child_link_model_);
+                q.push(t->child_joint_models_[i]->child_link_model_);
+                for (std::size_t j = 0 ; j < t->child_joint_models_[i]->mimic_requests_.size() ; ++j)
+                {
+                    links.push_back(t->child_joint_models_[i]->mimic_requests_[j]->child_link_model_);
+                    q.push(t->child_joint_models_[i]->mimic_requests_[j]->child_link_model_);
+                }
             }
-        }
     }
 }
 
@@ -602,22 +604,24 @@ void planning_models::KinematicModel::getChildJointModels(const KinematicModel::
 {
     joints.clear();
     std::queue<const LinkModel*> q;
+    std::set<const LinkModel*> seen;
     q.push(parent);
 
     while (!q.empty())
     {
         const LinkModel* t = q.front();
         q.pop();
-        for (unsigned int i = 0 ; i < t->child_joint_models_.size() ; ++i)
-        {
-            joints.push_back(t->child_joint_models_[i]);
-            q.push(t->child_joint_models_[i]->child_link_model_);
-            for (std::size_t j = 0 ; j < t->child_joint_models_[i]->mimic_requests_.size() ; ++j)
+        if (seen.insert(t).second)
+            for (unsigned int i = 0 ; i < t->child_joint_models_.size() ; ++i)
             {
-                joints.push_back(t->child_joint_models_[i]->mimic_requests_[j]);
-                q.push(t->child_joint_models_[i]->mimic_requests_[j]->child_link_model_);
+                joints.push_back(t->child_joint_models_[i]);
+                q.push(t->child_joint_models_[i]->child_link_model_);
+                for (std::size_t j = 0 ; j < t->child_joint_models_[i]->mimic_requests_.size() ; ++j)
+                {
+                    joints.push_back(t->child_joint_models_[i]->mimic_requests_[j]);
+                    q.push(t->child_joint_models_[i]->mimic_requests_[j]->child_link_model_);
+                }
             }
-        }
     }
 }
 
