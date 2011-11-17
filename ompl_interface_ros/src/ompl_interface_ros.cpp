@@ -67,7 +67,8 @@ namespace ompl_interface_ros
                             result.reset(kinematics_loader_->createClassInstance(it->second[i]));
                             if (result)
                             {
-                                if (!result->initialize(jmg->getName()))
+				/// \todo What is the search discretization? any reasonable way to determine this?
+                                if (!result->initialize(jmg->getName(), jmg->getJointModelNames().front(), jmg->getJointModelNames().back(), 0.1))
                                 {
                                     ROS_ERROR("IK solver of type '%s' could not initialize for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
                                     result.reset();
