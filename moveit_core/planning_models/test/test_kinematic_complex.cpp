@@ -156,6 +156,11 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     EXPECT_EQ(left_arm_base_tip_group->getJointModels().size(), 7);
     EXPECT_EQ(left_arm_joints_group->getJointModels().size(), 7);
 
+    EXPECT_EQ(left_arm_joints_group->getActiveDOFNames().size(), left_arm_joints_group->getVariableCount());
+    EXPECT_EQ(left_arm_joints_group->getVariableCount(), 7);
+
+    EXPECT_EQ(kin_model2->getActiveDOFNames().size(), kin_model2->getVariableCount());
+
     bool found_shoulder_pan_link = false;
     bool found_wrist_roll_link = false;
     for(unsigned int i = 0; i < left_arm_base_tip_group->getLinkModels().size(); i++)

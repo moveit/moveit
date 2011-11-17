@@ -111,6 +111,11 @@ namespace planning_models
                 return joint_model_->getName();
             }
 
+            KinematicModel::JointModel::JointType getType(void) const
+            {
+                return joint_model_->getType();
+            }
+
             unsigned int getVariableCount(void) const
             {
                 return joint_model_->getVariableCount();
