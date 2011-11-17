@@ -42,8 +42,6 @@
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <boost/function.hpp>
 
-#include <boost/function.hpp>
-
 namespace kinematics {
 
 /**
@@ -94,8 +92,8 @@ public:
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                 const std::vector<double> &ik_seed_state,
                                 double timeout,
-                                const unsigned int& redundancy,
-                                const double &consistency_limit,
+				unsigned int redundancy,
+				double consistency_limit,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code) = 0;      
 
@@ -127,9 +125,9 @@ public:
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                 const std::vector<double> &ik_seed_state,
-                                const double &timeout,
-                                const unsigned int& redundancy,
-                                const double &consistency_limit,
+                                double timeout,
+                                unsigned int redundancy,
+                                double consistency_limit,
                                 std::vector<double> &solution,
                                 const IKCallbackFn &desired_pose_callback,
                                 const IKCallbackFn &solution_callback,
@@ -150,7 +148,7 @@ public:
   virtual void setValues(const std::string& group_name,
                          const std::string& base_frame,
                          const std::string& tip_frame,
-                         const double& search_discretization) {
+                         double search_discretization) {
     group_name_ = group_name;
     base_frame_ = base_frame;
     tip_frame_ = tip_frame;
@@ -164,7 +162,7 @@ public:
   virtual bool initialize(const std::string& group_name,
                           const std::string& base_frame,
                           const std::string& tip_frame,
-                          const double& search_discretization) = 0;
+                          double search_discretization) = 0;
     
   /**
    * @brief  Return the frame in which the kinematics is operating
