@@ -82,6 +82,11 @@ namespace planning_models
             friend class KinematicModel;
         public:
 
+            enum JointType
+                {
+                    UNKNOWN, REVOLUTE, PRISMATIC, PLANAR, FLOATING, FIXED
+                };
+
             JointModel(const std::string& name);
             virtual ~JointModel(void);
 
@@ -89,6 +94,12 @@ namespace planning_models
             const std::string& getName(void) const
             {
                 return name_;
+            }
+
+            /** \brief Get the type of joint */
+            JointType getType(void) const
+            {
+                return type_;
             }
 
             /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
@@ -203,6 +214,9 @@ namespace planning_models
             /** \brief Name of the joint */
             std::string                                       name_;
 
+            /** \brief The type of joint */
+            JointType                                         type_;
+
             /** \brief The local names to use for the variables that make up this joint */
             std::vector<std::string>                          local_names_;
 
@@ -243,9 +257,7 @@ namespace planning_models
             friend class KinematicModel;
         public:
 
-            FixedJointModel(const std::string &name) : JointModel(name)
-            {
-            }
+            FixedJointModel(const std::string &name);
 
             virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;
             virtual void computeJointStateValues(const btTransform& trans, std::vector<double>& joint_values) const;
@@ -428,27 +440,40 @@ namespace planning_models
             /** \brief Check if a link is part of this group */
             bool hasLinkModel(const std::string &link) const;
 
-            /** \brief Get a joint by its name */
+            /** \brief Get a joint by its name. Return NULL if the joint is not part of this group. */
             const JointModel* getJointModel(const std::string &joint) const;
 
+            /** \brief Get the active joints in this group (that  have controllable DOF).
+                This may not be the complete set of joints (see getFixedJointModels() and getMimicJointModels() ) */
             const std::vector<const JointModel*>& getJointModels(void) const
             {
                 return joint_model_vector_;
             }
 
+            /** \brief Get the fixed joints that are part of this group */
             const std::vector<const JointModel*>& getFixedJointModels(void) const
             {
                 return fixed_joints_;
             }
 
+            /** \brief Get the mimic joints that are part of this group */
             const std::vector<const JointModel*>& getMimicJointModels(void) const
             {
                 return mimic_joints_;
             }
 
+            /** \brief Get the names of the active joints in this group. These are the names of the joints returned by getJointModels(). */
             const std::vector<std::string>& getJointModelNames(void) const
             {
                 return joint_model_name_vector_;
+            }
+
+            /** \brief Get the names of the variables that make up the joints included in this group. Only active joints (not
+                fixed, not mimic) are included. Effectively, these are the names of the DOF for this group. The number of
+            returned elements is always equal to getVariableCount() */
+            const std::vector<std::string>& getActiveDOFNames(void) const
+            {
+                return active_dof_names_;
             }
 
             const std::vector<const JointModel*>& getJointRoots(void) const
@@ -519,6 +544,9 @@ namespace planning_models
 
             /** \brief Joints that mimic other joints */
             std::vector<const JointModel*>           mimic_joints_;
+
+            /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not necessarily joint names!) */
+            std::vector<std::string>                 active_dof_names_;
 
             /** \brief The links that are on the direct lineage between joints
                 and joint_roots_, as well as the children of the joint leafs.
@@ -658,6 +686,14 @@ namespace planning_models
             return variable_count_;
         }
 
+        /** \brief Get the names of the variables that make up the joints that form this state. Only active joints (not
+            fixed, not mimic) are included. Effectively, these are the names of the DOF for this group. The number of
+            returned elements is always equal to getVariableCount() */
+        const std::vector<std::string>& getActiveDOFNames(void) const
+        {
+            return active_dof_names_;
+        }
+
         const std::map<std::string, unsigned int>& getJointVariablesIndexMap(void) const
         {
             return joint_variables_index_map_;
@@ -694,6 +730,9 @@ namespace planning_models
 
         /** \brief The vector of joint names that corresponds to joint_model_vector_ */
         std::vector<std::string>                  joint_model_names_vector_;
+
+        /** \brief The names of the DOF that make up this state (this is just a sequence of joint variable names; not necessarily joint names!) */
+        std::vector<std::string>                  active_dof_names_;
 
         /** \brief Get the number of variables necessary to describe this model */
         unsigned int                              variable_count_;

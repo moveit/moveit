@@ -98,12 +98,18 @@ void planning_models::KinematicModel::buildModel(const urdf::Model &model, const
             {
                 // compute index map
                 const std::vector<std::string>& name_order = joint_model_vector_[i]->getVariableNames();
-                for (std::size_t j = 0; j < name_order.size(); ++j)
-                    joint_variables_index_map_[name_order[j]] = variable_count_ + j;
-                joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
+                if (name_order.size() > 0)
+                {
+                    for (std::size_t j = 0; j < name_order.size(); ++j)
+                    {
+                        joint_variables_index_map_[name_order[j]] = variable_count_ + j;
+                        active_dof_names_.push_back(name_order[j]);
+                    }
+                    joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
 
-                // compute variable count
-                variable_count_ += joint_model_vector_[i]->getVariableCount();
+                    // compute variable count
+                    variable_count_ += joint_model_vector_[i]->getVariableCount();
+                }
             }
             else
                 later.push_back(joint_model_vector_[i]);
@@ -681,7 +687,8 @@ void planning_models::KinematicModel::getRandomValues(random_numbers::RNG &rng, 
 /* ------------------------ JointModel ------------------------ */
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :
-    name_(name), parent_link_model_(NULL), child_link_model_(NULL), mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), tree_index_(-1)
+    name_(name), type_(UNKNOWN), parent_link_model_(NULL), child_link_model_(NULL),
+    mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), tree_index_(-1)
 {
 }
 
@@ -747,6 +754,11 @@ bool planning_models::KinematicModel::JointModel::isVariableWithinBounds(const s
     return true;
 }
 
+planning_models::KinematicModel::FixedJointModel::FixedJointModel(const std::string& name) : JointModel(name)
+{
+    type_ = FIXED;
+}
+
 void planning_models::KinematicModel::FixedJointModel::computeTransform(const std::vector<double>& /* joint_values */, btTransform &transf) const
 {
     transf.setIdentity();
@@ -772,6 +784,7 @@ planning_models::KinematicModel::PlanarJointModel::PlanarJointModel(const std::s
     variable_bounds_[0] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
     variable_bounds_[1] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
     variable_bounds_[2] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
+    type_ = PLANAR;
 }
 
 void planning_models::KinematicModel::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const
@@ -813,6 +826,7 @@ planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const st
     variable_bounds_[4] = std::make_pair(-1.0, 1.0);
     variable_bounds_[5] = std::make_pair(-1.0, 1.0);
     variable_bounds_[6] = std::make_pair(-1.0, 1.0);
+    type_ = FLOATING;
 }
 
 void planning_models::KinematicModel::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const
@@ -866,6 +880,7 @@ planning_models::KinematicModel::PrismaticJointModel::PrismaticJointModel(const 
 {
     variable_bounds_.push_back(std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max()));
     variable_names_.push_back(name_);
+    type_ = PRISMATIC;
 }
 
 void planning_models::KinematicModel::PrismaticJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const
@@ -890,6 +905,7 @@ planning_models::KinematicModel::RevoluteJointModel::RevoluteJointModel(const st
 {
     variable_bounds_.push_back(std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>()));
     variable_names_.push_back(name_);
+    type_ = REVOLUTE;
 }
 
 void planning_models::KinematicModel::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const
@@ -974,7 +990,10 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     {
         const std::vector<std::string>& name_order = joint_model_vector_[i]->getVariableNames();
         for (std::size_t j = 0; j < name_order.size(); ++j)
+        {
             joint_variables_index_map_[name_order[j]] = vector_index_counter + j;
+            active_dof_names_.push_back(name_order[j]);
+        }
         joint_variables_index_map_[joint_model_vector_[i]->getName()] = vector_index_counter;
         vector_index_counter += name_order.size();
     }
