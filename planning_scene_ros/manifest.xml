@@ -12,9 +12,11 @@
   <depend package="roscpp"/>
   <depend package="planning_scene"/>
   <depend package="moveit_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="tf"/>
 
   <export>
-    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_scene_ros"/>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_scene_ros `rosboost-cfg --lflags thread`"/>
   </export>
 
 </package>
