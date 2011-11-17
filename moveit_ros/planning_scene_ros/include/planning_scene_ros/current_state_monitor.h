@@ -34,40 +34,51 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_SCENE_PLANNING_SCENE_ROS_
-#define PLANNING_SCENE_PLANNING_SCENE_ROS_
+#ifndef PLANNING_SCENE_CURRENT_STATE_MONITOR_
+#define PLANNING_SCENE_CURRENT_STATE_MONITOR_
 
 #include <ros/ros.h>
-#include <planning_scene/planning_scene.h>
+#include <tf/tf.h>
+#include <planning_models/kinematic_state.h>
+#include <sensor_msgs/JointState.h>
+#include <boost/function.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace planning_scene_ros
 {
 
-    class PlanningSceneROS : public planning_scene::PlanningScene
+    typedef boost::function<void(const sensor_msgs::JointStateConstPtr &joint_state)> JointStateUpdateCallback;
+
+    class CurrentStateMonitor
     {
     public:
-        PlanningSceneROS(const std::string &robot_description);
 
-        const std::string& getRobotDescription(void) const
-        {
-            return robot_description_;
-        }
+        CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf);
 
-    protected:
+        void startStateMonitor(void);
+        void stopStateMonitor(void);
+        bool haveCompleteState(void) const;
+        bool haveCompleteState(const ros::Duration &age) const;
 
-        bool loadRobotFromParamServer(void);
-        void configureDefaultCollisionMatrix(void);
-        void configureDefaultPadding(void);
+        planning_models::KinematicStatePtr getCurrentState(void) const;
+        std::map<std::string, double> getCurrentStateValues(void) const;
+        void setOnStateUpdateCallback(const JointStateUpdateCallback &callback);
 
-        ros::NodeHandle nh_;
-        std::string     robot_description_;
-        double          default_robot_padd_;
-        double          default_robot_scale_;
-        double          default_object_padd_;
-        double          default_attached_padd_;
+    private:
 
-        urdf::Model     urdf_;
-        srdf::Model     srdf_;
+        void jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state);
+
+        ros::NodeHandle                              nh_;
+        tf::Transformer                             *tf_;
+        planning_models::KinematicModelConstPtr      kmodel_;
+        planning_models::KinematicState              kstate_;
+        planning_models::KinematicState::JointState *root_;
+        std::map<std::string, ros::Time>             joint_time_;
+        bool                                         state_monitor_started_;
+        ros::Subscriber                              joint_state_subscriber_;
+
+        mutable boost::mutex                         state_update_lock_;
+        JointStateUpdateCallback                     on_state_update_callback_;
     };
 
 }
