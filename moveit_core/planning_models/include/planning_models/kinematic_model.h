@@ -163,6 +163,30 @@ namespace planning_models
                 return variable_index_;
             }
 
+            /** \brief Get the joint this one is mimicking */
+            const JointModel* getMimic(void) const
+            {
+                return mimic_;
+            }
+
+            /** \brief If mimicking a joint, this is the offset added to that joint's value */
+            double getMimicOffset(void) const
+            {
+                return mimic_offset_;
+            }
+
+            /** \brief If mimicking a joint, this is the multiplicative factor for that joint's value */
+            double getMimicFactor(void) const
+            {
+                return mimic_factor_;
+            }
+
+            /** \brief The joint models whose values would be modified if the value of this joint changed */
+            const std::vector<const JointModel*>& getMimicRequests(void) const
+            {
+                return mimic_requests_;
+            }
+
             /** \brief Given the joint values for a joint, compute the corresponding transform */
             virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const = 0;
 
@@ -207,7 +231,7 @@ namespace planning_models
             double                                            mimic_offset_;
 
             /** \brief The set of joints that should get a value copied to them when this joint changes */
-            std::vector<JointModel*>                          mimic_requests_;
+            std::vector<const JointModel*>                    mimic_requests_;
 
             /** \brief The index assigned to this joint when traversing the kinematic tree in depth first fashion */
             int                                               tree_index_;
@@ -417,6 +441,11 @@ namespace planning_models
                 return fixed_joints_;
             }
 
+            const std::vector<const JointModel*>& getMimicJointModels(void) const
+            {
+                return mimic_joints_;
+            }
+
             const std::vector<std::string>& getJointModelNames(void) const
             {
                 return joint_model_name_vector_;
@@ -478,7 +507,7 @@ namespace planning_models
             std::map<std::string, const JointModel*> joint_model_map_;
 
             /** \brief The list of joint models that are roots in this group */
-             std::vector<const JointModel*>           joint_roots_;
+            std::vector<const JointModel*>           joint_roots_;
 
             /** \brief The group includes all the joint variables that make up the joints the group consists of.
                 This map gives the position in the state vector of the group for each of these variables.
@@ -487,6 +516,9 @@ namespace planning_models
 
             /** \brief The joints that have no DOF (fixed) */
             std::vector<const JointModel*>           fixed_joints_;
+
+            /** \brief Joints that mimic other joints */
+            std::vector<const JointModel*>           mimic_joints_;
 
             /** \brief The links that are on the direct lineage between joints
                 and joint_roots_, as well as the children of the joint leafs.
@@ -634,52 +666,54 @@ namespace planning_models
     protected:
 
         /** \brief The name of the model */
-        std::string                             model_name_;
+        std::string                               model_name_;
 
-        std::string                             model_frame_;
+        /** \brief The reference frame for this model */
+        std::string                               model_frame_;
 
         /** \brief A map from link names to their instances */
-        std::map<std::string, LinkModel*>       link_model_map_;
+        std::map<std::string, LinkModel*>         link_model_map_;
 
         /** \brief The vector of links that are updated when computeTransforms() is called, in the order they are updated */
-        std::vector<LinkModel*>                 link_model_vector_;
+        std::vector<LinkModel*>                   link_model_vector_;
 
         /** \brief The vector of link names that corresponds to link_model_vector_ */
-        std::vector<std::string>                link_model_names_vector_;
+        std::vector<std::string>                  link_model_names_vector_;
 
         /** \brief Only links that have collision geometry specified */
-        std::vector<LinkModel*>                 link_models_with_collision_geometry_vector_;
+        std::vector<LinkModel*>                   link_models_with_collision_geometry_vector_;
 
         /** \brief The vector of link names that corresponds to link_models_with_collision_geometry_vector_ */
-        std::vector<std::string>                link_model_names_with_collision_geometry_vector_;
+        std::vector<std::string>                  link_model_names_with_collision_geometry_vector_;
 
         /** \brief A map from joint names to their instances */
-        std::map<std::string, JointModel*>      joint_model_map_;
+        std::map<std::string, JointModel*>        joint_model_map_;
 
         /** \brief The vector of joints in the model, in the order they appear in the state vector */
-        std::vector<JointModel*>                joint_model_vector_;
+        std::vector<JointModel*>                  joint_model_vector_;
 
         /** \brief The vector of joint names that corresponds to joint_model_vector_ */
-        std::vector<std::string>                joint_model_names_vector_;
+        std::vector<std::string>                  joint_model_names_vector_;
 
         /** \brief Get the number of variables necessary to describe this model */
-        unsigned int                            variable_count_;
+        unsigned int                              variable_count_;
 
         /** \brief The state includes all the joint variables that make up the joints the state consists of.
             This map gives the position in the state vector of the group for each of these variables.
             Additionaly, it includes the names of the joints and the index for the first variable of that joint. */
-        std::map<std::string, unsigned int>     joint_variables_index_map_;
+        std::map<std::string, unsigned int>       joint_variables_index_map_;
 
         /** \brief The root joint */
-        JointModel                             *root_;
+        JointModel                               *root_;
 
         std::map<std::string, JointModelGroup*>   joint_model_group_map_;
-        std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
         std::vector<std::string>                  joint_model_group_names_;
+        std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
         std::vector<srdf::Model::GroupState>      default_states_;
 
+        void buildModel(const urdf::Model &model, const srdf::Model &smodel);
         void buildGroups(const std::vector<srdf::Model::Group> &group_config);
-
+        void buildMimic(const urdf::Model &model);
         JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
         JointModel* constructJointModel(const urdf::Joint *urdfJointModel, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
         LinkModel* constructLinkModel(const urdf::Link *urdfLink);

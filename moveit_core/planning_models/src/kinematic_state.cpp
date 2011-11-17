@@ -71,12 +71,20 @@ void planning_models::KinematicState::buildState(void)
     }
 
     // now we need to figure out who are the link parents are
-    for(unsigned int i = 0; i < link_state_vector_.size(); i++)
+    for(unsigned int i = 0; i < link_state_vector_.size(); ++i)
     {
         const KinematicModel::JointModel* parent_joint_model = link_state_vector_[i]->getLinkModel()->getParentJointModel();
         link_state_vector_[i]->parent_joint_state_ = joint_state_map_[parent_joint_model->getName()];
         if (parent_joint_model->getParentLinkModel() != NULL)
             link_state_vector_[i]->parent_link_state_ = link_state_map_[parent_joint_model->getParentLinkModel()->getName()];
+    }
+
+    // compute mimic joint state pointers
+    for (std::size_t i = 0; i < joint_state_vector_.size(); ++i)
+    {
+        const std::vector<const KinematicModel::JointModel*> &mr = joint_state_vector_[i]->joint_model_->getMimicRequests();
+        for (std::size_t j = 0 ; j < mr.size() ; ++j)
+            joint_state_vector_[i]->mimic_requests_.push_back(joint_state_map_[mr[j]->getName()]);
     }
 
     // now make joint_state_groups
@@ -347,6 +355,7 @@ bool planning_models::KinematicState::JointState::setVariableValue(const std::st
     if (it != getVariableIndexMap().end())
     {
         joint_state_values_[it->second] = value;
+        updateMimicJoints();
         return true;
     }
     else
@@ -359,6 +368,7 @@ bool planning_models::KinematicState::JointState::setVariableValues(const std::v
         return false;
     joint_state_values_ = joint_state_values;
     joint_model_->updateTransform(joint_state_values, variable_transform_);
+    updateMimicJoints();
     return true;
 }
 
@@ -366,6 +376,7 @@ void planning_models::KinematicState::JointState::setVariableValues(const double
 {
     std::copy(joint_state_values, joint_state_values + joint_state_values_.size(), joint_state_values_.begin());
     joint_model_->updateTransform(joint_state_values_, variable_transform_);
+    updateMimicJoints();
 }
 
 void planning_models::KinematicState::JointState::setVariableValues(const std::map<std::string, double>& joint_value_map, std::vector<std::string>& missing)
@@ -385,7 +396,10 @@ void planning_models::KinematicState::JointState::setVariableValues(const std::m
     }
 
     if (has_any)
+    {
         joint_model_->updateTransform(joint_state_values_, variable_transform_);
+        updateMimicJoints();
+    }
 }
 
 void planning_models::KinematicState::JointState::setVariableValues(const std::map<std::string, double>& joint_value_map)
@@ -414,13 +428,28 @@ void planning_models::KinematicState::JointState::setVariableValues(const std::m
             }
         }
     if (update)
+    {
         joint_model_->updateTransform(joint_state_values_, variable_transform_);
+        updateMimicJoints();
+    }
 }
 
 void planning_models::KinematicState::JointState::setVariableValues(const btTransform& transform)
 {
     joint_model_->computeJointStateValues(transform, joint_state_values_);
     joint_model_->updateTransform(joint_state_values_, variable_transform_);
+    updateMimicJoints();
+}
+
+void planning_models::KinematicState::JointState::updateMimicJoints(void)
+{
+    for (std::size_t i = 0 ; i < mimic_requests_.size() ; ++i)
+    {
+        std::vector<double> mim_val(joint_state_values_.size());
+        for (std::size_t j = 0 ; j < mim_val.size() ; ++j)
+            mim_val[j] = joint_state_values_[j] * joint_model_->getMimicFactor() + joint_model_->getMimicOffset();
+        mimic_requests_[i]->setVariableValues(&mim_val[0]);
+    }
 }
 
 bool planning_models::KinematicState::JointState::allVariablesAreDefined(const std::map<std::string, double>& joint_value_map) const

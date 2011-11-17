@@ -96,6 +96,9 @@ namespace planning_models
             /** \brief Sets the internal values from the transform */
             void setVariableValues(const btTransform& transform);
 
+            /** \brief Update the joints that mimic this one. This function is called automatically by the setVariable* functions */
+            void updateMimicJoints(void);
+
             /** \brief Specifies whether or not all values associated with a joint are defined in the
                 supplied joint value map */
             bool allVariablesAreDefined(const std::map<std::string, double>& value_map) const;
@@ -152,6 +155,9 @@ namespace planning_models
 
             /** \brief The joint values given in the order indicated by joint_variables_index_map_ */
             std::vector<double>                 joint_state_values_;
+
+            /** \brief The set of joints that need to be updated when this one is */
+            std::vector<JointState*>            mimic_requests_;
         };
 
         struct AttachedBodyProperties
@@ -566,7 +572,7 @@ namespace planning_models
         void buildState(void);
         void copyFrom(const KinematicState &ks);
 
-        KinematicModelConstPtr                       kinematic_model_;
+        KinematicModelConstPtr                  kinematic_model_;
 
         std::vector<JointState*>                joint_state_vector_;
         std::map<std::string, JointState*>      joint_state_map_;
@@ -591,6 +597,8 @@ namespace planning_models
     };
 
     typedef boost::shared_ptr<KinematicState> KinematicStatePtr;
+    typedef boost::shared_ptr<const KinematicState> KinematicStateConstPtr;
+
 }
 
 #endif

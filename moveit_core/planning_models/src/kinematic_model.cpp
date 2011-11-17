@@ -45,48 +45,10 @@
 #include <set>
 
 /* ------------------------ KinematicModel ------------------------ */
+
 planning_models::KinematicModel::KinematicModel(const urdf::Model &model, const srdf::Model &smodel)
 {
-    model_name_ = model.getName();
-    if (model.getRoot())
-    {
-        const urdf::Link *root = model.getRoot().get();
-        model_frame_ = root->name;
-        root_ = buildRecursive(NULL, root, smodel.getVirtualJoints());
-        buildGroups(smodel.getGroups());
-        variable_count_ = 0;
-        for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
-        {
-            const std::vector<std::string>& name_order = joint_model_vector_[i]->getVariableNames();
-            for (unsigned int j = 0; j < name_order.size(); ++j)
-                joint_variables_index_map_[name_order[j]] = variable_count_ + j;
-            joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
-            variable_count_ += joint_model_vector_[i]->getVariableCount();
-            const urdf::Joint *jm = model.getJoint(joint_model_vector_[i]->getName()).get();
-            if (jm)
-                if (jm->mimic)
-                {
-                    joint_model_vector_[i]->mimic_offset_ = jm->mimic->offset;
-                    joint_model_vector_[i]->mimic_factor_ = jm->mimic->multiplier;
-                    std::map<std::string, JointModel*>::const_iterator jit = joint_model_map_.find(jm->mimic->joint_name);
-                    if (jit != joint_model_map_.end())
-                    {
-                        joint_model_vector_[i]->mimic_ = jit->second;
-                        if (joint_model_vector_[i]->mimic_)
-                            joint_model_vector_[i]->mimic_->mimic_requests_.push_back(joint_model_vector_[i]);
-                    }
-                }
-        }
-        default_states_ = smodel.getGroupStates();
-        std::stringstream ss;
-        printModelInfo(ss);
-        ROS_DEBUG_STREAM(ss.str());
-    }
-    else
-    {
-        root_ = NULL;
-        ROS_WARN("No root link found");
-    }
+    buildModel(model, smodel);
 }
 
 planning_models::KinematicModel::~KinematicModel(void)
@@ -115,6 +77,109 @@ namespace planning_models
 const std::string& planning_models::KinematicModel::getName(void) const
 {
     return model_name_;
+}
+
+void planning_models::KinematicModel::buildModel(const urdf::Model &model, const srdf::Model &smodel)
+{
+    model_name_ = model.getName();
+    if (model.getRoot())
+    {
+        // build all joints & links
+        const urdf::Link *root = model.getRoot().get();
+        model_frame_ = root->name;
+        root_ = buildRecursive(NULL, root, smodel.getVirtualJoints());
+        buildMimic(model);
+
+        // construct additional additional maps for easy access by name
+        variable_count_ = 0;
+        std::vector<JointModel*> later;
+        for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
+            if (joint_model_vector_[i]->mimic_ == NULL)
+            {
+                // compute index map
+                const std::vector<std::string>& name_order = joint_model_vector_[i]->getVariableNames();
+                for (std::size_t j = 0; j < name_order.size(); ++j)
+                    joint_variables_index_map_[name_order[j]] = variable_count_ + j;
+                joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
+
+                // compute variable count
+                variable_count_ += joint_model_vector_[i]->getVariableCount();
+            }
+            else
+                later.push_back(joint_model_vector_[i]);
+
+        for (std::size_t i = 0 ; i < later.size() ; ++i)
+        {
+            const std::vector<std::string>& name_order = later[i]->getVariableNames();
+            const std::vector<std::string>& mim_name_order = later[i]->mimic_->getVariableNames();
+            for (std::size_t j = 0; j < name_order.size(); ++j)
+                joint_variables_index_map_[name_order[j]] = joint_variables_index_map_[mim_name_order[j]];
+            joint_variables_index_map_[later[i]->getName()] = joint_variables_index_map_[later[i]->mimic_->getName()];
+        }
+
+        // build groups
+        buildGroups(smodel.getGroups());
+        default_states_ = smodel.getGroupStates();
+        std::stringstream ss;
+        printModelInfo(ss);
+        ROS_DEBUG_STREAM(ss.str());
+    }
+    else
+    {
+        root_ = NULL;
+        ROS_WARN("No root link found");
+    }
+}
+
+void planning_models::KinematicModel::buildMimic(const urdf::Model &model)
+{
+    // compute mimic joints
+    for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
+    {
+        const urdf::Joint *jm = model.getJoint(joint_model_vector_[i]->getName()).get();
+        if (jm)
+            if (jm->mimic)
+            {
+                joint_model_vector_[i]->mimic_offset_ = jm->mimic->offset;
+                joint_model_vector_[i]->mimic_factor_ = jm->mimic->multiplier;
+                std::map<std::string, JointModel*>::const_iterator jit = joint_model_map_.find(jm->mimic->joint_name);
+                if (jit != joint_model_map_.end())
+                {
+                    if (joint_model_vector_[i]->getVariableCount() == jit->second->getVariableCount())
+                        joint_model_vector_[i]->mimic_ = jit->second;
+                    else
+                        ROS_ERROR("Join '%s' cannot mimic joint '%s' because they have different number of DOF",
+                                  joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
+                }
+                else
+                    ROS_ERROR("Joint '%s' cannot mimic unknown joint '%s'", joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
+            }
+    }
+    // in case we have a joint that mimics a joint that already mimics another joint, we can simplify things:
+    bool change = true;
+    while (change)
+    {
+        change = false;
+        for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
+            if (joint_model_vector_[i]->mimic_)
+                if (joint_model_vector_[i]->mimic_->mimic_)
+                {
+                    joint_model_vector_[i]->mimic_ = joint_model_vector_[i]->mimic_->mimic_;
+                    joint_model_vector_[i]->mimic_offset_ += joint_model_vector_[i]->mimic_factor_ * joint_model_vector_[i]->mimic_->mimic_offset_;
+                    joint_model_vector_[i]->mimic_factor_ *= joint_model_vector_[i]->mimic_->mimic_factor_;
+                    change = true;
+                }
+    }
+    // build mimic requests
+    for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
+        if (joint_model_vector_[i]->mimic_ == joint_model_vector_[i])
+        {
+            joint_model_vector_[i]->mimic_ = NULL;
+            ROS_ERROR("Joint '%s' mimicks itself. This is not allowed.", joint_model_vector_[i]->getName().c_str());
+        }
+        else
+            if (joint_model_vector_[i]->mimic_)
+                joint_model_vector_[i]->mimic_->mimic_requests_.push_back(joint_model_vector_[i]);
 }
 
 bool planning_models::KinematicModel::hasJointModelGroup(const std::string &name) const
@@ -263,7 +328,8 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
     return true;
 }
 
-planning_models::KinematicModel::JointModel* planning_models::KinematicModel::buildRecursive(LinkModel *parent, const urdf::Link *link, const std::vector<srdf::Model::VirtualJoint> &vjoints)
+planning_models::KinematicModel::JointModel* planning_models::KinematicModel::buildRecursive(LinkModel *parent, const urdf::Link *link,
+                                                                                             const std::vector<srdf::Model::VirtualJoint> &vjoints)
 {
     JointModel *joint = constructJointModel(link->parent_joint.get(), link, vjoints);
     if (joint == NULL)
@@ -514,10 +580,15 @@ void planning_models::KinematicModel::getChildLinkModels(const KinematicModel::L
     {
         const LinkModel* t = q.front();
         q.pop();
-        for (unsigned int i = 0 ; i < t->child_joint_models_.size() ; ++i)
+        for (std::size_t i = 0 ; i < t->child_joint_models_.size() ; ++i)
         {
             links.push_back(t->child_joint_models_[i]->child_link_model_);
             q.push(t->child_joint_models_[i]->child_link_model_);
+            for (std::size_t j = 0 ; j < t->child_joint_models_[i]->mimic_requests_.size() ; ++j)
+            {
+                links.push_back(t->child_joint_models_[i]->mimic_requests_[j]->child_link_model_);
+                q.push(t->child_joint_models_[i]->mimic_requests_[j]->child_link_model_);
+            }
         }
     }
 }
@@ -541,6 +612,11 @@ void planning_models::KinematicModel::getChildJointModels(const KinematicModel::
         {
             joints.push_back(t->child_joint_models_[i]);
             q.push(t->child_joint_models_[i]->child_link_model_);
+            for (std::size_t j = 0 ; j < t->child_joint_models_[i]->mimic_requests_.size() ; ++j)
+            {
+                joints.push_back(t->child_joint_models_[i]->mimic_requests_[j]);
+                q.push(t->child_joint_models_[i]->mimic_requests_[j]->child_link_model_);
+            }
         }
     }
 }
@@ -601,7 +677,7 @@ void planning_models::KinematicModel::getRandomValues(random_numbers::RNG &rng, 
 /* ------------------------ JointModel ------------------------ */
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :
-    name_(name), parent_link_model_(NULL), child_link_model_(NULL), mimic_(NULL), tree_index_(-1)
+    name_(name), parent_link_model_(NULL), child_link_model_(NULL), mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), tree_index_(-1)
 {
 }
 
@@ -851,13 +927,18 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     variable_count_ = 0;
     for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
     {
+        joint_model_map_[group_joints[i]->getName()] = group_joints[i];
         unsigned int vc = group_joints[i]->getVariableCount();
         if (vc > 0)
         {
-            joint_model_vector_.push_back(group_joints[i]);
-            joint_model_name_vector_.push_back(group_joints[i]->getName());
-            variable_count_ += vc;
-            joint_model_map_[group_joints[i]->getName()] = group_joints[i];
+            if (group_joints[i]->getMimic() == NULL)
+            {
+                joint_model_vector_.push_back(group_joints[i]);
+                joint_model_name_vector_.push_back(group_joints[i]->getName());
+                variable_count_ += vc;
+            }
+            else
+                mimic_joints_.push_back(group_joints[i]);
         }
         else
             fixed_joints_.push_back(group_joints[i]);
@@ -873,7 +954,7 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
         while (joint->getParentLinkModel() != NULL)
         {
             joint = joint->getParentLinkModel()->getParentJointModel();
-            if (hasJointModel(joint->name_))
+            if (hasJointModel(joint->name_) && joint->getVariableCount() > 0 && joint->getMimic() == NULL)
             {
                 found = true;
                 break;
@@ -882,7 +963,6 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
         if (!found)
             joint_roots_.push_back(joint_model_vector_[i]);
     }
-
 
     // compute joint_variable_index_map_
     unsigned int vector_index_counter = 0;
@@ -895,26 +975,38 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
         vector_index_counter += name_order.size();
     }
 
+    for (std::size_t i = 0 ; i < mimic_joints_.size() ; ++i)
+    {
+        const std::vector<std::string>& name_order = mimic_joints_[i]->getVariableNames();
+        const std::vector<std::string>& mim_name_order = mimic_joints_[i]->mimic_->getVariableNames();
+        for (std::size_t j = 0; j < name_order.size(); ++j)
+            joint_variables_index_map_[name_order[j]] = joint_variables_index_map_[mim_name_order[j]];
+        joint_variables_index_map_[mimic_joints_[i]->getName()] = joint_variables_index_map_[mimic_joints_[i]->mimic_->getName()];
+    }
+
     // now we need to make another pass for group links (we include the fixed joints here)
     std::set<const LinkModel*> group_links_set;
     for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
         group_links_set.insert(group_joints[i]->getChildLinkModel());
     for (std::set<const LinkModel*>::iterator it = group_links_set.begin(); it != group_links_set.end(); ++it)
-            group_link_model_vector_.push_back(*it);
+        group_link_model_vector_.push_back(*it);
     std::sort(group_link_model_vector_.begin(), group_link_model_vector_.end(), &orderLinksByIndex);
     for (std::size_t i = 0 ; i < group_link_model_vector_.size() ; ++i)
         link_model_name_vector_.push_back(group_link_model_vector_[i]->getName());
 
-    // these subtrees are distinct, so we can stack their updated links on top of each other
+    // compute updated links
+    std::set<const LinkModel*> u_links;
     for (std::size_t i = 0 ; i < joint_roots_.size() ; ++i)
     {
         std::vector<const LinkModel*> links;
         parent_model->getChildLinkModels(joint_roots_[i], links);
-        updated_link_model_vector_.insert(updated_link_model_vector_.end(), links.begin(), links.end());
+        u_links.insert(links.begin(), links.end());
     }
+    for (std::set<const LinkModel*>::iterator it = u_links.begin(); it != u_links.end(); ++it)
+        updated_link_model_vector_.push_back(*it);
+    std::sort(updated_link_model_vector_.begin(), updated_link_model_vector_.end(), &orderLinksByIndex);
     for (std::size_t i = 0; i < updated_link_model_vector_.size(); i++)
         updated_link_model_name_vector_.push_back(updated_link_model_vector_[i]->getName());
-
 }
 
 planning_models::KinematicModel::JointModelGroup::~JointModelGroup(void)
@@ -975,7 +1067,10 @@ void planning_models::KinematicModel::printModelInfo(std::ostream &out) const
                 out << "DBL_MAX";
             else
                 out << b.second;
-            out << "]" << std::endl;
+            out << "]";
+            if (joint_model_vector_[i]->mimic_)
+                out << " *";
+            out << std::endl;
         }
     }
     out << std::endl;
