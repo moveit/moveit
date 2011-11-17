@@ -38,7 +38,9 @@
 #define PLANNING_SCENE_PLANNING_SCENE_ROS_
 
 #include <ros/ros.h>
+#include <tf/tf.h>
 #include <planning_scene/planning_scene.h>
+#include "planning_scene_ros/current_state_monitor.h"
 
 namespace planning_scene_ros
 {
@@ -46,12 +48,20 @@ namespace planning_scene_ros
     class PlanningSceneROS : public planning_scene::PlanningScene
     {
     public:
-        PlanningSceneROS(const std::string &robot_description);
+        PlanningSceneROS(const std::string &robot_description, tf::Transformer *tf= NULL);
 
         const std::string& getRobotDescription(void) const
         {
             return robot_description_;
         }
+
+        const CurrentStateMonitorPtr& getStateMonitor(void) const
+        {
+            return csm_;
+        }
+
+        void startStateMonitor(void);
+        void stopStateMonitor(void);
 
     protected:
 
@@ -59,15 +69,18 @@ namespace planning_scene_ros
         void configureDefaultCollisionMatrix(void);
         void configureDefaultPadding(void);
 
-        ros::NodeHandle nh_;
-        std::string     robot_description_;
-        double          default_robot_padd_;
-        double          default_robot_scale_;
-        double          default_object_padd_;
-        double          default_attached_padd_;
+        ros::NodeHandle        nh_;
+        tf::Transformer       *tf_;
+        std::string            robot_description_;
+        double                 default_robot_padd_;
+        double                 default_robot_scale_;
+        double                 default_object_padd_;
+        double                 default_attached_padd_;
 
-        urdf::Model     urdf_;
-        srdf::Model     srdf_;
+        urdf::Model            urdf_;
+        srdf::Model            srdf_;
+
+        CurrentStateMonitorPtr csm_;
     };
 
 }

@@ -36,8 +36,8 @@
 
 #include "planning_scene_ros/planning_scene_ros.h"
 
-planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_description) :
-    planning_scene::PlanningScene(), nh_("~")
+planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_description, tf::Transformer *tf) :
+    planning_scene::PlanningScene(), nh_("~"), tf_(tf)
 {
     if (nh_.searchParam(robot_description, robot_description_))
     {
@@ -50,6 +50,25 @@ planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_
     else
         ROS_ERROR("Unable to find ROS parameter for robot description. Did you forget to remap '%s'?", robot_description.c_str());
 }
+
+void planning_scene_ros::PlanningSceneROS::startStateMonitor(void)
+{
+    if (isConfigured())
+    {
+        if (!csm_)
+            csm_.reset(new CurrentStateMonitor(kmodel_, tf_));
+        csm_->startStateMonitor();
+    }
+    else
+        ROS_ERROR("Cannot monitor robot state because planning scene is not configured");
+}
+
+void planning_scene_ros::PlanningSceneROS::stopStateMonitor(void)
+{
+    if (csm_)
+        csm_->stopStateMonitor();
+}
+
 
 void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
 {
@@ -97,8 +116,6 @@ void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
         }
     }
 }
-
-
 
 void planning_scene_ros::PlanningSceneROS::configureDefaultPadding(void)
 {
