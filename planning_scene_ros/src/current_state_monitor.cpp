@@ -141,8 +141,8 @@ void planning_scene_ros::CurrentStateMonitor::jointStateCallback(const sensor_ms
     bool set_map_values = true;
 
     // read root transform, if needed
-    if (root_->getType() == planning_models::KinematicModel::JointModel::PLANAR ||
-        root_->getType() == planning_models::KinematicModel::JointModel::FLOATING)
+    if (tf_ && (root_->getType() == planning_models::KinematicModel::JointModel::PLANAR ||
+                root_->getType() == planning_models::KinematicModel::JointModel::FLOATING))
     {
         const std::string &child_frame = root_->getJointModel()->getChildLinkModel()->getName();
         const std::string &parent_frame = kmodel_->getModelFrame();

@@ -81,6 +81,8 @@ namespace planning_scene_ros
         JointStateUpdateCallback                     on_state_update_callback_;
     };
 
+    typedef boost::shared_ptr<CurrentStateMonitor> CurrentStateMonitorPtr;
+    typedef boost::shared_ptr<const CurrentStateMonitor> CurrentStateMonitorConstPtr;
 }
 
 #endif
