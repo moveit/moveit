@@ -1,7 +1,7 @@
 FILENAME = ompl-1267.tar.gz
 TARBALL = build/$(FILENAME)
 TARBALL_URL = https://code.ros.org/svn/release/download/thirdparty/ompl/$(FILENAME)
-TARBALL_PATCH = console.patch
+TARBALL_PATCH =
 
 SOURCE_DIR = build/ompl_arch
 UNPACK_CMD = tar xzf

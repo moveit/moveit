@@ -63,7 +63,7 @@ namespace ompl_inteface
         {
             static OutputHandlerROS oh_ros;
             useOutputHandler(&oh_ros);
-        }
+	}
     };
 
     static RegisterOH proxy;

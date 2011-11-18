@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, E. Gil Jones */
 
 #ifndef PLANNING_MODELS_KINEMATIC_MODEL_
 #define PLANNING_MODELS_KINEMATIC_MODEL_
