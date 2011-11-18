@@ -131,7 +131,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
         "<robot name=\"pr2_test\">"
         "<virtual_joint name=\"base_joint\" child_link=\"base_footprint\" parent_frame=\"base_footprint\" type=\"planar\"/>"
         "<group name=\"left_arm_base_tip\">"
-        "<chain base_link=\"l_shoulder_pan_link\" tip_link=\"l_wrist_roll_link\"/>"
+        "<chain base_link=\"torso_lift_link\" tip_link=\"l_wrist_roll_link\"/>"
         "</group>"
         "<group name=\"left_arm_joints\">"
         "<joint name=\"l_shoulder_pan_joint\"/>"

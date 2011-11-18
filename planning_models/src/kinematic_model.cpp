@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, E. Gil Jones */
 
 #include <planning_models/kinematic_model.h>
 #include <geometric_shapes/shape_operations.h>
@@ -273,16 +273,13 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
         if (base_link && tip_link)
         {
             const LinkModel* lm = tip_link;
-            std::vector<const JointModel*> chain;
             while (lm)
             {
-                chain.push_back(lm->getParentJointModel());
                 if (lm == base_link)
                     break;
-                lm = chain.back()->getParentLinkModel();
+                jset.insert(lm->getParentJointModel());
+                lm = lm->getParentJointModel()->getParentLinkModel();
             }
-            for (std::size_t j = 0 ; j < chain.size() ; ++j)
-                jset.insert(chain[j]);
         }
     }
 

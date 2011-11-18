@@ -388,6 +388,7 @@ TEST(FK, OneRobot)
         "</group>"
         "<group name=\"base_from_base_to_tip\">"
         "<chain base_link=\"base_link\" tip_link=\"link_b\"/>"
+        "<joint name=\"base_joint\"/>"
         "</group>"
         "<group name=\"base_with_bad_subgroups\">"
         "<group name=\"error\"/>"
