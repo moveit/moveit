@@ -359,6 +359,11 @@ namespace planning_models
             {
                 return name_;
             }
+          
+          const std::string& getFilename(void) const 
+          {
+            return filename_;
+          }
 
             /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
             int getTreeIndex(void) const
@@ -395,6 +400,9 @@ namespace planning_models
 
             /** \brief Name of the link */
             std::string                      name_;
+
+            /** \brief Filename associated with the mesh of this link. If empty, no mesh */
+            std::string                      filename_;
 
             /** \brief JointModel that connects this link to the parent link */
             JointModel                      *parent_joint_model_;
@@ -567,7 +575,8 @@ namespace planning_models
         };
 
         /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
-        KinematicModel(const urdf::Model &model, const srdf::Model &smodel);
+        KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                       const boost::shared_ptr<const srdf::Model> &srdf_model);
 
         /** \brief Destructor. Clear all memory. */
         virtual ~KinematicModel(void);
@@ -750,13 +759,15 @@ namespace planning_models
         std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
         std::vector<srdf::Model::GroupState>      default_states_;
 
-        void buildModel(const urdf::Model &model, const srdf::Model &smodel);
+        void buildModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                        const boost::shared_ptr<const srdf::Model> &srdf_model);
         void buildGroups(const std::vector<srdf::Model::Group> &group_config);
-        void buildMimic(const urdf::Model &model);
+      void buildMimic(const boost::shared_ptr<const urdf::Model> &urdf_model);
         JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
         JointModel* constructJointModel(const urdf::Joint *urdfJointModel, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
         LinkModel* constructLinkModel(const urdf::Link *urdfLink);
-        boost::shared_ptr<shapes::Shape> constructShape(const urdf::Geometry *geom);
+      boost::shared_ptr<shapes::Shape> constructShape(const urdf::Geometry *geom,
+                                                      std::string& filename);
     };
 
     typedef boost::shared_ptr<KinematicModel> KinematicModelPtr;

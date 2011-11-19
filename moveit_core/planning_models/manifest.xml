@@ -16,6 +16,7 @@
   <depend package="bullet"/>
   <depend package="moveit_msgs"/>
   <depend package="geometry_msgs"/>
+  <depend package="tf"/>
   
   <rosdep name="assimp" />
 

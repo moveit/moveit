@@ -5,11 +5,11 @@
   <virtual_joint name="world_joint" type="planar" parent_frame="odom" child_link="base_footprint"/> 
   
   <group name="right_arm">
-    <chain base_link="r_shoulder_pan_link" tip_link="r_wrist_roll_link"/>
+    <chain base_link="torso_lift_link" tip_link="r_wrist_roll_link"/>
   </group>
   
   <group name="left_arm">
-    <chain base_link="l_shoulder_pan_link" tip_link="l_wrist_roll_link"/>
+    <chain base_link="torso_lift_link" tip_link="l_wrist_roll_link"/>
   </group>
   
   <group name="arms">

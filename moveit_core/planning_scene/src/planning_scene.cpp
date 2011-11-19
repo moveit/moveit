@@ -42,11 +42,13 @@
 
 static const std::string COLLISION_MAP_NS = "__map";
 
-bool planning_scene::PlanningScene::configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model)
+bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                                              const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
     kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
     tf_.reset(new planning_models::Transforms(kmodel_->getModelFrame()));
     kstate_.reset(new planning_models::KinematicState(kmodel_));
+    kstate_->setDefaultValues();
     crobot_.reset(new collision_detection::CollisionRobotAllValid(kmodel_));
     crobot_unpadded_.reset(new collision_detection::CollisionRobotAllValid(kmodel_));
     cworld_.reset(new collision_detection::CollisionWorldAllValid());
