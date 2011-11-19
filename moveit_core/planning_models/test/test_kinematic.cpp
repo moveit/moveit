@@ -83,13 +83,13 @@ TEST(Loading, SimpleRobot)
         "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"floating\"/>"
         "</robot>";
 
-    urdf::Model urdfModel;
-    urdfModel.initString(MODEL0);
+    boost::shared_ptr<urdf::Model> urdfModel(new urdf::Model());
+    urdfModel->initString(MODEL0);
 
-    srdf::Model srdfModel;
-    srdfModel.initString(urdfModel, SMODEL0);
+    boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+    srdfModel->initString(*urdfModel, SMODEL0);
 
-    EXPECT_TRUE(srdfModel.getVirtualJoints().size() == 1);
+    EXPECT_TRUE(srdfModel->getVirtualJoints().size() == 1);
 
     planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
     planning_models::KinematicState state(model);
@@ -168,11 +168,11 @@ TEST(LoadingAndFK, SimpleRobot)
         "</group>"
         "</robot>";
 
-    urdf::Model urdfModel;
-    urdfModel.initString(MODEL1);
+    boost::shared_ptr<urdf::Model> urdfModel(new urdf::Model());
+    urdfModel->initString(MODEL1);
 
-    srdf::Model srdfModel;
-    srdfModel.initString(urdfModel, SMODEL1);
+    boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+    srdfModel->initString(*urdfModel, SMODEL1);
 
     planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
     planning_models::KinematicState state(model);
@@ -395,11 +395,11 @@ TEST(FK, OneRobot)
         "</group>"
         "</robot>";
 
-    urdf::Model urdfModel;
-    urdfModel.initString(MODEL2);
+    boost::shared_ptr<urdf::Model> urdfModel(new urdf::Model());
+    urdfModel->initString(MODEL2);
 
-    srdf::Model srdfModel;
-    srdfModel.initString(urdfModel, SMODEL2);
+    boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+    srdfModel->initString(*urdfModel, SMODEL2);
 
     planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
 

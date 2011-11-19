@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan, E. Gil Jones */
+/* Author: Ioan Sucan, E. Gil Jones */
 
 #ifndef PLANNING_MODELS_KINEMATIC_STATE_
 #define PLANNING_MODELS_KINEMATIC_STATE_
@@ -572,14 +572,21 @@ namespace planning_models
         /** \brief Return the instance of a random number generator */
         random_numbers::RNG& getRNG(void);
 
-      void getRobotMarkers(const std_msgs::ColorRGBA& color,
-                           const std::string& ns,
-                           const ros::Duration& dur,
-                           visualization_msgs::MarkerArray& arr,
-                           const std::vector<std::string>* link_names = NULL) const;
-
-      void getRobotMarkers(visualization_msgs::MarkerArray& arr,
-                           const std::vector<std::string>* link_names = NULL) const;
+	void getRobotMarkers(const std_msgs::ColorRGBA& color,
+			     const std::string& ns,
+			     const ros::Duration& dur,
+			     visualization_msgs::MarkerArray& arr,
+			     const std::vector<std::string> &link_names) const;
+	
+	void getRobotMarkers(visualization_msgs::MarkerArray& arr,
+			     const std::vector<std::string> &link_names) const;
+	
+	void getRobotMarkers(const std_msgs::ColorRGBA& color,
+			     const std::string& ns,
+			     const ros::Duration& dur,
+			     visualization_msgs::MarkerArray& arr) const;
+	
+	void getRobotMarkers(visualization_msgs::MarkerArray& arr) const;
 
       // void getPaddedRobotMarkers(const std::map<std::string, double>& link_padding_map, 
       //                            const std_msgs::ColorRGBA& color,

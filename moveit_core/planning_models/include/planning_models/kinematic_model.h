@@ -360,10 +360,11 @@ namespace planning_models
                 return name_;
             }
           
-          const std::string& getFilename(void) const 
-          {
-            return filename_;
-          }
+	    /** \brief Get the filename of the mesh resource for this link */
+	    const std::string& getFilename(void) const 
+	    {
+		return filename_;
+	    }
 
             /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
             int getTreeIndex(void) const
