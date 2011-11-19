@@ -43,7 +43,9 @@ protected:
 
     virtual void SetUp()
     {
-        urdf_model.initFile("../planning_models/test/urdf/robot.xml");
+	urdf_model.reset(new urdf::Model());
+	srdf_model.reset(new srdf::Model());
+	urdf_model->initFile("../planning_models/test/urdf/robot.xml");
         kmodel.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
     };
 
@@ -53,8 +55,8 @@ protected:
 
 protected:
 
-    urdf::Model                        urdf_model;
-    srdf::Model                        srdf_model;
+    boost::shared_ptr<urdf::Model>     urdf_model;
+    boost::shared_ptr<srdf::Model>     srdf_model;
     planning_models::KinematicModelPtr kmodel;
 };
 
