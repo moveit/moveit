@@ -39,6 +39,8 @@
 
 #include "planning_models/kinematic_model.h"
 #include <boost/scoped_ptr.hpp>
+#include <std_msgs/ColorRGBA.h>
+#include <visualization_msgs/MarkerArray.h>
 
 /** \brief Main namespace */
 namespace planning_models
@@ -569,6 +571,26 @@ namespace planning_models
 
         /** \brief Return the instance of a random number generator */
         random_numbers::RNG& getRNG(void);
+
+      void getRobotMarkers(const std_msgs::ColorRGBA& color,
+                           const std::string& ns,
+                           const ros::Duration& dur,
+                           visualization_msgs::MarkerArray& arr,
+                           const std::vector<std::string>* link_names = NULL) const;
+
+      void getRobotMarkers(visualization_msgs::MarkerArray& arr,
+                           const std::vector<std::string>* link_names = NULL) const;
+
+      // void getPaddedRobotMarkers(const std::map<std::string, double>& link_padding_map, 
+      //                            const std_msgs::ColorRGBA& color,
+      //                            const std::string& ns,
+      //                            const ros::Duration& dur
+      //                            visualization_msgs::MarkerArray& arr);
+
+      
+      // void getPaddedRobotMarkers(visualization_msgs::MarkerArray& arr,
+      //                            const std::vector<std::string>* link_names = NULL) const;
+      
 
         KinematicState& operator=(const KinematicState &other);
 

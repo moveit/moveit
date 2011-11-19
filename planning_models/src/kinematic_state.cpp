@@ -35,6 +35,8 @@
 /** \author Ioan Sucan, E. Gil Jones */
 
 #include <planning_models/kinematic_state.h>
+#include <tf/tf.h>
+#include <geometric_shapes/shape_operations.h>
 
 planning_models::KinematicState::KinematicState(const KinematicModelConstPtr &kinematic_model) : kinematic_model_(kinematic_model)
 {
@@ -738,6 +740,56 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::Jo
     }
     else
         return it->second;
+}
+
+// ------ marker functions ------
+
+void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
+                                                      const std::string& ns,
+                                                      const ros::Duration& dur,
+                                                      visualization_msgs::MarkerArray& arr,
+                                                      const std::vector<std::string>* link_names) const
+{
+  unsigned int cur_num = arr.markers.size();
+  getRobotMarkers(arr, link_names);
+  unsigned int id = 0;
+  for(unsigned int i = cur_num; i < arr.markers.size();i++, id++) {
+    arr.markers[i].ns = ns;
+    arr.markers[i].id = id;
+    arr.markers[i].lifetime = dur;
+  }
+}
+
+void planning_models::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr,
+                                                      const std::vector<std::string>* lmv) const 
+{
+  std::vector<std::string> link_names;
+  if(lmv == NULL)
+  {
+    link_names = kinematic_model_->getLinkModelNames();
+  }
+  else
+  {
+    link_names = *lmv;
+  }
+
+  for(unsigned int i = 0; i < link_names.size(); i++)
+  {
+    visualization_msgs::Marker mark;
+    const LinkState* ls = getLinkState(link_names[i]);
+    if(!ls) continue;
+    mark.header.frame_id = kinematic_model_->getModelFrame();
+    mark.header.stamp = ros::Time::now();
+    tf::poseTFToMsg(ls->getGlobalCollisionBodyTransform(), mark.pose);
+    if(ls->getLinkModel()->getFilename().empty()) { 
+      shapes::constructMarkerFromShape(ls->getLinkModel()->getShape().get(),
+                                       mark);
+    } else {
+      mark.type = mark.MESH_RESOURCE;
+      mark.mesh_resource = ls->getLinkModel()->getFilename();
+    }
+    arr.markers.push_back(mark);
+  }
 }
 
 // ------ printing transforms -----

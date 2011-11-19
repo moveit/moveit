@@ -190,12 +190,12 @@ public:
   /**
    * @brief  Return all the joint names in the order they are used internally
    */
-  virtual const std::vector<std::string>& getJointNames() = 0;
+  virtual const std::vector<std::string>& getJointNames() const = 0;
 
   /**
    * @brief  Return all the link names in the order they are represented internally
    */
-  virtual const std::vector<std::string>& getLinkNames() = 0;
+  virtual const std::vector<std::string>& getLinkNames() const = 0;
 
   void setSearchDiscretization(double sd) {
     search_discretization_ = sd;
@@ -217,6 +217,10 @@ protected:
   double search_discretization_;
   KinematicsBase(){}
 };
+
+typedef boost::shared_ptr<KinematicsBase> KinematicsBasePtr;
+typedef boost::shared_ptr<const KinematicsBase> KinematicsBaseConstPtr;
+
 };
 
 #endif

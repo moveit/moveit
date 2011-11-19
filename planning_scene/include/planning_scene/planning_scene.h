@@ -57,16 +57,17 @@ namespace planning_scene
         {
         }
 
-        bool configure(const urdf::Model &urdf_model, const srdf::Model &srdf_model);
+      bool configure(const boost::shared_ptr<const urdf::Model> &urdf_model, 
+                     const boost::shared_ptr<const srdf::Model> &srdf_model);
 
         const std::string& getPlanningFrame(void) const
         {
             return tf_->getPlanningFrame();
         }
 
-        const planning_models::KinematicModelPtr& getKinematicModel(void) const
+        const planning_models::KinematicModelConstPtr getKinematicModel(void) const
         {
-            return kmodel_;
+          return planning_models::KinematicModelConstPtr(kmodel_);
         }
 
         const planning_models::KinematicState& getCurrentState(void) const
@@ -111,11 +112,24 @@ namespace planning_scene
         void getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const;
         void setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
 
+      const boost::shared_ptr<const urdf::Model>& getUrdfModel() const {
+        return urdf_model_;
+      }
+
+      const boost::shared_ptr<const srdf::Model>& getSrdfModel() const {
+        return srdf_model_;
+      }
+
+      
+
     protected:
 
         bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
         bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
         void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
+
+      boost::shared_ptr<const urdf::Model> urdf_model_;
+      boost::shared_ptr<const srdf::Model> srdf_model_;
 
         planning_models::KinematicModelPtr            kmodel_;
         planning_models::TransformsPtr                tf_;

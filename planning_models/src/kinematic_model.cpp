@@ -46,9 +46,10 @@
 
 /* ------------------------ KinematicModel ------------------------ */
 
-planning_models::KinematicModel::KinematicModel(const urdf::Model &model, const srdf::Model &smodel)
+planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                                                const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
-    buildModel(model, smodel);
+    buildModel(urdf_model, srdf_model);
 }
 
 planning_models::KinematicModel::~KinematicModel(void)
@@ -79,16 +80,17 @@ const std::string& planning_models::KinematicModel::getName(void) const
     return model_name_;
 }
 
-void planning_models::KinematicModel::buildModel(const urdf::Model &model, const srdf::Model &smodel)
+void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                                                 const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
-    model_name_ = model.getName();
-    if (model.getRoot())
+    model_name_ = urdf_model->getName();
+    if (urdf_model->getRoot())
     {
         // build all joints & links
-        const urdf::Link *root = model.getRoot().get();
+        const urdf::Link *root = urdf_model->getRoot().get();
         model_frame_ = root->name;
-        root_ = buildRecursive(NULL, root, smodel.getVirtualJoints());
-        buildMimic(model);
+        root_ = buildRecursive(NULL, root, srdf_model->getVirtualJoints());
+        buildMimic(urdf_model);
 
         // construct additional additional maps for easy access by name
         variable_count_ = 0;
@@ -124,8 +126,8 @@ void planning_models::KinematicModel::buildModel(const urdf::Model &model, const
         }
 
         // build groups
-        buildGroups(smodel.getGroups());
-        default_states_ = smodel.getGroupStates();
+        buildGroups(srdf_model->getGroups());
+        default_states_ = srdf_model->getGroupStates();
         std::stringstream ss;
         printModelInfo(ss);
         ROS_DEBUG_STREAM(ss.str());
@@ -137,12 +139,12 @@ void planning_models::KinematicModel::buildModel(const urdf::Model &model, const
     }
 }
 
-void planning_models::KinematicModel::buildMimic(const urdf::Model &model)
+void planning_models::KinematicModel::buildMimic(const boost::shared_ptr<const urdf::Model> &urdf_model)
 {
     // compute mimic joints
     for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
     {
-        const urdf::Joint *jm = model.getJoint(joint_model_vector_[i]->getName()).get();
+        const urdf::Joint *jm = urdf_model->getJoint(joint_model_vector_[i]->getName()).get();
         if (jm)
             if (jm->mimic)
             {
@@ -471,12 +473,12 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
     if (urdf_link->collision && urdf_link->collision->geometry)
     {
         result->collision_origin_transform_ = urdfPose2btTransform(urdf_link->collision->origin);
-        result->shape_ = constructShape(urdf_link->collision->geometry.get());
+        result->shape_ = constructShape(urdf_link->collision->geometry.get(), result->filename_);
     }
     else if (urdf_link->visual && urdf_link->visual->geometry)
     {
         result->collision_origin_transform_ = urdfPose2btTransform(urdf_link->visual->origin);
-        result->shape_ = constructShape(urdf_link->visual->geometry.get());
+        result->shape_ = constructShape(urdf_link->visual->geometry.get(), result->filename_);
     }
     else
     {
@@ -491,7 +493,8 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
     return result;
 }
 
-boost::shared_ptr<shapes::Shape> planning_models::KinematicModel::constructShape(const urdf::Geometry *geom)
+boost::shared_ptr<shapes::Shape> planning_models::KinematicModel::constructShape(const urdf::Geometry *geom,
+                                                                                 std::string& filename)
 {
     ROS_ASSERT(geom);
 
@@ -518,6 +521,7 @@ boost::shared_ptr<shapes::Shape> planning_models::KinematicModel::constructShape
             {
                 btVector3 scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
                 result = shapes::createMeshFromFilename(mesh->filename, scale);
+                filename = mesh->filename;
             }
         }
         break;
