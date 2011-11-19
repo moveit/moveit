@@ -77,8 +77,8 @@ namespace planning_scene_ros
         double                 default_object_padd_;
         double                 default_attached_padd_;
 
-        urdf::Model            urdf_;
-        srdf::Model            srdf_;
+      boost::shared_ptr<urdf::Model>            urdf_;
+      boost::shared_ptr<srdf::Model>            srdf_;
 
         CurrentStateMonitorPtr csm_;
     };
