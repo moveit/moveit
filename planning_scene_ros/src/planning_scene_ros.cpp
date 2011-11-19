@@ -77,7 +77,7 @@ void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
                   kmodel_->getLinkModelNamesWithCollisionGeometry(), false);
 
     // allow collisions for pairs that have been disabled
-    const std::vector<std::pair<std::string, std::string> >&dc = srdf_.getDisabledCollisions();
+    const std::vector<std::pair<std::string, std::string> >&dc = srdf_->getDisabledCollisions();
     for (std::size_t i = 0 ; i < dc.size() ; ++i)
         acm_.setEntry(dc[i].first, dc[i].second, true);
 
@@ -130,12 +130,15 @@ bool planning_scene_ros::PlanningSceneROS::loadRobotFromParamServer(void)
     std::string content;
     if (nh_.getParam(robot_description_, content))
     {
-        if (urdf_.initString(content))
+      urdf_.reset(new urdf::Model);
+
+        if (urdf_->initString(content))
         {
             std::string scontent;
             if (nh_.getParam(robot_description_ + "_semantic", scontent))
             {
-                if (srdf_.initString(urdf_, scontent))
+              srdf_.reset(new srdf::Model);
+                if (srdf_->initString(*urdf_, scontent))
                     return configure(urdf_, srdf_);
                 else
                     ROS_ERROR("Unable to parse SRDF");
