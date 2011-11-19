@@ -32,11 +32,11 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan, E. Gil Jones */
+/* Author: Ioan Sucan, E. Gil Jones */
 
 #include <planning_models/kinematic_state.h>
-#include <tf/tf.h>
 #include <geometric_shapes/shape_operations.h>
+#include <planning_models/transforms.h>
 
 planning_models::KinematicState::KinematicState(const KinematicModelConstPtr &kinematic_model) : kinematic_model_(kinematic_model)
 {
@@ -747,41 +747,45 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::Jo
 void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
                                                       const std::string& ns,
                                                       const ros::Duration& dur,
-                                                      visualization_msgs::MarkerArray& arr,
-                                                      const std::vector<std::string>* link_names) const
+                                                      visualization_msgs::MarkerArray& arr) const
 {
-  unsigned int cur_num = arr.markers.size();
-  getRobotMarkers(arr, link_names);
-  unsigned int id = 0;
-  for(unsigned int i = cur_num; i < arr.markers.size();i++, id++) {
-    arr.markers[i].ns = ns;
-    arr.markers[i].id = id;
-    arr.markers[i].lifetime = dur;
-  }
+    getRobotMarkers(color, ns, dur, arr, kinematic_model_->getLinkModelNames());
+}
+
+void planning_models::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr) const
+{
+    getRobotMarkers(arr, kinematic_model_->getLinkModelNames());
+}
+
+void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
+                                                      const std::string& ns,
+                                                      const ros::Duration& dur,
+                                                      visualization_msgs::MarkerArray& arr,
+                                                      const std::vector<std::string> &link_names) const
+{
+    std::size_t cur_num = arr.markers.size();
+    getRobotMarkers(arr, link_names);
+    unsigned int id = 0;
+    for(std::size_t i = cur_num ; i < arr.markers.size() ; ++i, ++id)
+    {
+        arr.markers[i].ns = ns;
+        arr.markers[i].id = id;
+        arr.markers[i].lifetime = dur;
+    }
 }
 
 void planning_models::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr,
-                                                      const std::vector<std::string>* lmv) const 
+                                                      const std::vector<std::string> &link_names) const
 {
-  std::vector<std::string> link_names;
-  if(lmv == NULL)
-  {
-    link_names = kinematic_model_->getLinkModelNames();
-  }
-  else
-  {
-    link_names = *lmv;
-  }
-
-  for(unsigned int i = 0; i < link_names.size(); i++)
+  for(std::size_t i = 0; i < link_names.size(); ++i)
   {
     visualization_msgs::Marker mark;
     const LinkState* ls = getLinkState(link_names[i]);
     if(!ls) continue;
     mark.header.frame_id = kinematic_model_->getModelFrame();
     mark.header.stamp = ros::Time::now();
-    tf::poseTFToMsg(ls->getGlobalCollisionBodyTransform(), mark.pose);
-    if(ls->getLinkModel()->getFilename().empty()) { 
+    msgFromPose(ls->getGlobalCollisionBodyTransform(), mark.pose);
+    if(ls->getLinkModel()->getFilename().empty()) {
       shapes::constructMarkerFromShape(ls->getLinkModel()->getShape().get(),
                                        mark);
     } else {

@@ -45,8 +45,10 @@ protected:
 
     virtual void SetUp()
     {
-        urdf_ok_ = urdf_model_.initFile("test/urdf/robot.xml");
-        srdf_ok_ = srdf_model_.initFile(urdf_model_, "test/srdf/robot.xml");
+        urdf_model_.reset(new urdf::Model());
+        srdf_model_.reset(new srdf::Model());
+        urdf_ok_ = urdf_model_->initFile("test/urdf/robot.xml");
+        srdf_ok_ = srdf_model_->initFile(*urdf_model_, "test/srdf/robot.xml");
     };
 
     virtual void TearDown()
@@ -55,16 +57,17 @@ protected:
 
 protected:
 
-    urdf::Model urdf_model_;
-    srdf::Model srdf_model_;
-    bool        urdf_ok_;
-    bool        srdf_ok_;
+    boost::shared_ptr<urdf::Model> urdf_model_;
+    boost::shared_ptr<srdf::Model> srdf_model_;
+    bool                           urdf_ok_;
+    bool                           srdf_ok_;
+
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
 {
     ASSERT_TRUE(urdf_ok_);
-    ASSERT_EQ(urdf_model_.getName(), "pr2_test");
+    ASSERT_EQ(urdf_model_->getName(), "pr2_test");
 
     planning_models::KinematicModelPtr kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));
     planning_models::KinematicState ks(kmodel);

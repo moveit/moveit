@@ -45,8 +45,10 @@ protected:
 
     virtual void SetUp()
     {
-        urdf_ok_ = urdf_model_.initFile("test/urdf/robot.xml");
-        srdf_ok_ = srdf_model_.initFile(urdf_model_, "test/srdf/robot.xml");
+        urdf_model_.reset(new urdf::Model());
+        srdf_model_.reset(new srdf::Model());
+        urdf_ok_ = urdf_model_->initFile("test/urdf/robot.xml");
+        srdf_ok_ = srdf_model_->initFile(*urdf_model_, "test/srdf/robot.xml");
     };
 
     virtual void TearDown()
@@ -55,10 +57,10 @@ protected:
 
 protected:
 
-    urdf::Model urdf_model_;
-    srdf::Model srdf_model_;
-    bool        urdf_ok_;
-    bool        srdf_ok_;
+    boost::shared_ptr<urdf::Model> urdf_model_;
+    boost::shared_ptr<srdf::Model> srdf_model_;
+    bool                           urdf_ok_;
+    bool                           srdf_ok_;
 
 };
 
@@ -66,13 +68,13 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 {
     ASSERT_TRUE(urdf_ok_);
     ASSERT_TRUE(srdf_ok_);
-    ASSERT_EQ(urdf_model_.getName(), "pr2_test");
-    ASSERT_EQ(srdf_model_.getName(), "pr2_test");
+    ASSERT_EQ(urdf_model_->getName(), "pr2_test");
+    ASSERT_EQ(srdf_model_->getName(), "pr2_test");
 }
 
 TEST_F(LoadPlanningModelsPr2, MultidofInit)
 {
-    srdf::Model srdfModel;
+    boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
 
     // with no world multidof we should get a fixed joint
     planning_models::KinematicModel kin_model0(urdf_model_, srdfModel);
@@ -83,7 +85,7 @@ TEST_F(LoadPlanningModelsPr2, MultidofInit)
         "<robot name=\"pr2_test\">"
         "<virtual_joint name=\"base_joint\" child_link=\"base_footprint\" parent_frame=\"base_footprint\" type=\"planar\"/>"
         "</robot>";
-    srdfModel.initString(urdf_model_, SMODEL1);
+    srdfModel->initString(*urdf_model_, SMODEL1);
 
     planning_models::KinematicModel kin_model1(urdf_model_, srdfModel);
     ASSERT_TRUE(kin_model1.getRoot() != NULL);
@@ -94,7 +96,7 @@ TEST_F(LoadPlanningModelsPr2, MultidofInit)
         "<robot name=\"pr2_test\">"
         "<virtual_joint name=\"world_joint\" child_link=\"base_footprint\" parent_frame=\"odom_combined\" type=\"floating\"/>"
         "</robot>";
-    srdfModel.initString(urdf_model_, SMODEL2);
+    srdfModel->initString(*urdf_model_, SMODEL2);
 
     planning_models::KinematicModel kin_model2(urdf_model_, srdfModel);
     ASSERT_TRUE(kin_model2.getRoot() != NULL);
@@ -116,8 +118,8 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
         "</group>"
         "</robot>";
 
-    srdf::Model srdfModel;
-    srdfModel.initString(urdf_model_, SMODEL1);
+    boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+    srdfModel->initString(*urdf_model_, SMODEL1);
     planning_models::KinematicModel kin_model1(urdf_model_, srdfModel);
 
     const planning_models::KinematicModel::JointModelGroup* left_arm_base_tip_group = kin_model1.getJointModelGroup("left_arm_base_tip");
@@ -143,7 +145,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
         "<joint name=\"l_wrist_roll_joint\"/>"
         "</group>"
         "</robot>";
-    srdfModel.initString(urdf_model_, SMODEL2);
+    srdfModel->initString(*urdf_model_, SMODEL2);
 
     planning_models::KinematicModelPtr kin_model2(new planning_models::KinematicModel(urdf_model_, srdfModel));
 
