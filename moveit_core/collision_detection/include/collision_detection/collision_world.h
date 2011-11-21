@@ -85,6 +85,9 @@ namespace collision_detection
         /** \brief The objects in a particular namespace */
         struct NamespaceObjects
         {
+            /** \brief The namespace for these objects */
+            std::string                         ns;
+
             /** \brief An array of static shapes */
             std::vector< shapes::StaticShape* > static_shape;
 
@@ -125,7 +128,7 @@ namespace collision_detection
         /** \brief Remove object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
         virtual bool removeObject(const std::string &ns, const shapes::StaticShape *shape);
 
-	/** \brief Remove all objects from a particular namespace. Ownership of the objects is renounced upon (no memory freed). Return true on success. */
+        /** \brief Remove all objects from a particular namespace. Ownership of the objects is renounced upon (no memory freed). Return true on success. */
         virtual bool removeObjects(const std::string &ns);
 
         /** \brief Clear the objects in a specific namespace. Memory is freed. */
@@ -145,6 +148,7 @@ namespace collision_detection
     };
 
     typedef boost::shared_ptr<CollisionWorld> CollisionWorldPtr;
+    typedef boost::shared_ptr<const CollisionWorld> CollisionWorldConstPtr;
 }
 
 #endif

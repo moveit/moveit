@@ -87,11 +87,12 @@ namespace collision_detection
         virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
 
         planning_models::KinematicModelConstPtr kmodel_;
-        std::map<std::string, double>      link_padding_;
-        std::map<std::string, double>      link_scale_;
+        std::map<std::string, double>           link_padding_;
+        std::map<std::string, double>           link_scale_;
     };
 
     typedef boost::shared_ptr<CollisionRobot> CollisionRobotPtr;
+    typedef boost::shared_ptr<const CollisionRobot> CollisionRobotConstPtr;
 }
 
 #endif

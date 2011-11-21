@@ -82,6 +82,10 @@ const collision_detection::CollisionWorld::NamespaceObjects& collision_detection
 
 collision_detection::CollisionWorld::NamespaceObjects& collision_detection::CollisionWorld::getObjects(const std::string &ns)
 {
+    // make sure that if a new namespace is created, it knows its name
+    std::map<std::string, NamespaceObjects>::const_iterator it = objects_.find(ns);
+    if (it == objects_.end())
+        objects_[ns].ns = ns;
     return objects_[ns];
 }
 
@@ -92,11 +96,19 @@ bool collision_detection::CollisionWorld::haveNamespace(const std::string &ns) c
 
 void collision_detection::CollisionWorld::addObject(const std::string &ns, shapes::StaticShape *shape)
 {
+    // make sure that if a new namespace is created, it knows its name
+    std::map<std::string, NamespaceObjects>::const_iterator it = objects_.find(ns);
+    if (it == objects_.end())
+        objects_[ns].ns = ns;
     objects_[ns].static_shape.push_back(shape);
 }
 
 void collision_detection::CollisionWorld::addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose)
 {
+    // make sure that if a new namespace is created, it knows its name
+    std::map<std::string, NamespaceObjects>::const_iterator it = objects_.find(ns);
+    if (it == objects_.end())
+        objects_[ns].ns = ns;
     objects_[ns].shape.push_back(shape);
     objects_[ns].shape_pose.push_back(pose);
 }

@@ -32,12 +32,13 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author Ioan Sucan */
+/* Author: Ioan Sucan */
 
-#ifndef COLLISION_DETECTION_COLLISION_WORLD_FCL_
-#define COLLISION_DETECTION_COLLISION_WORLD_FCL_
+#ifndef COLLISION_DETECTION_FCL_COLLISION_WORLD_
+#define COLLISION_DETECTION_FCL_COLLISION_WORLD_
 
-#include "collision_detection/collision_world.h"
+#include "collision_detection/fcl/collision_common.h"
+#include <fcl/broad_phase_collision.h>
 
 namespace collision_detection
 {
@@ -46,19 +47,26 @@ namespace collision_detection
     {
     public:
 
-        CollisionWorldFCL(void) : CollisionWorld()
-        {
-        }
+        CollisionWorldFCL(void);
 
         virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
-
         virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-
         virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
-
         virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
 
+        virtual void addObject(const std::string &ns, shapes::StaticShape *shape);
+        virtual void addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose);
+        virtual bool moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose);
+        virtual bool removeObject(const std::string &ns, const shapes::Shape *shape);
+        virtual bool removeObject(const std::string &ns, const shapes::StaticShape *shape);
+        virtual bool removeObjects(const std::string &ns);
+        virtual void clearObjects(const std::string &ns);
+        virtual void clearObjects(void);
+
     protected:
+
+        boost::scoped_ptr<BroadPhaseCollisionManager>              manager_;
+        std::map<std::string, std::vector<fcl::CollisionObject*> > fcl_objs_;
 
     };
 

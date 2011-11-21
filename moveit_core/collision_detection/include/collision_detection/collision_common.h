@@ -40,18 +40,28 @@
 #include <LinearMath/btTransform.h>
 #include <vector>
 #include <string>
+#include <map>
 
 namespace collision_detection
 {
+    /** \brief The types of bodies that are considered for collision */
     namespace BodyTypes
     {
+        /** \brief The types of bodies that are considered for collision */
         enum Type
         {
+            /** \brief A link on the robot */
             ROBOT_LINK,
+
+            /** \brief A body attached to a robot link */
             ROBOT_ATTACHED,
+
+            /** \brief A body in the environment */
             WORLD_OBJECT
         };
     }
+
+    /** \brief The types of bodies that are considered for collision */
     typedef BodyTypes::Type BodyType;
 
     /** \brief Definition of a contact point */
@@ -81,14 +91,17 @@ namespace collision_detection
     {
         CollisionResult(void) : collision(false),
                                 distance(0.0),
-                                direction(0.0, 0.0, 0.0)
+                                direction(0.0, 0.0, 0.0),
+                                contact_count(0)
         {
         }
+        typedef std::map<std::pair<std::string, std::string>, Contact> ContactMap;
 
-        bool                 collision;
-        double               distance;
-        btVector3            direction;
-        std::vector<Contact> contacts;
+        bool        collision;
+        double      distance;
+        btVector3   direction;
+        std::size_t contact_count;
+        ContactMap  contacts;
     };
 
     /** \brief Representation of a collision checking request */
