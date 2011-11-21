@@ -32,14 +32,13 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #ifndef COLLISION_DETECTION_FCL_COLLISION_ROBOT_
 #define COLLISION_DETECTION_FCL_COLLISION_ROBOT_
 
-#include "collision_detection/collision_robot.h"
+#include "collision_detection/fcl/collision_common.h"
 #include <fcl/broad_phase_collision.h>
-#include <boost/shared_ptr.hpp>
 
 namespace collision_detection
 {
@@ -65,11 +64,19 @@ namespace collision_detection
 
         virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
 
-        fcl::CollisionObject* createCollisionObject(const shapes::StaticShape *shape, double scale, double padding) const;
+        fcl::CollisionObject* createCollisionObject(const shapes::Shape *shape) const;
+        fcl::CollisionObject* createCollisionObject(const shapes::StaticShape *shape) const;
         fcl::CollisionObject* createCollisionObject(const shapes::Shape *shape, double scale, double padding) const;
+        fcl::BroadPhaseCollisionManager* allocSelfCollisionBroadPhase(const planning_models::KinematicState &state) const;
 
-        boost::shared_ptr<fcl::BroadPhaseCollisionManager> geom_manager_;
-        std::map<std::string, fcl::CollisionObject*>       geom_map_;
+        std::vector<planning_models::KinematicModel::LinkModel*> links_;
+        std::vector<fcl::CollisionObject*>                       geoms_;
+        std::map<std::string, CollisionObjectData*>              co_data_;
+        std::map<std::string, std::size_t>                       index_map_;
+
+        typedef std::map<boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties>, std::vector<fcl::CollisionObject*> > AttachedBodyObject;
+        mutable AttachedBodyObject                               attached_bodies_;
+        mutable boost::mutex::scoped_lock                        attached_bodies_lock_;
     };
 
 }

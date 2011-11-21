@@ -170,6 +170,7 @@ namespace planning_models
         struct AttachedBodyProperties
         {
             AttachedBodyProperties(void);
+            AttachedBodyProperties(const AttachedBodyProperties &other);
             ~AttachedBodyProperties(void);
 
             /** \brief The geometries of the attached body */
@@ -243,25 +244,11 @@ namespace planning_models
                 return global_collision_body_transforms_;
             }
 
-            double getScale(void) const
-            {
-                return scale_;
-            }
+            /** \brief Set the padding for the shapes of this attached object */
+            void setPadding(double padding);
 
-            double getPadding(void) const
-            {
-                return padding_;
-            }
-
-            void setPadding(double padding)
-            {
-                padding_ = padding;
-            }
-
-            void setScale(double scale)
-            {
-                scale_ = scale;
-            }
+            /** \brief Set the scale for the shapes of this attached object */
+            void setScale(double scale);
 
             /** \brief Recompute global_collision_body_transform */
             void computeTransform(void);
@@ -271,9 +258,6 @@ namespace planning_models
             /** \brief The link that owns this attached body */
             const LinkState                          *parent_link_state_;
             boost::shared_ptr<AttachedBodyProperties> properties_;
-
-            double                                    padding_;
-            double                                    scale_;
 
             /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
             std::vector<btTransform>                  global_collision_body_transforms_;
@@ -541,6 +525,7 @@ namespace planning_models
             return joint_state_vector_;
         }
 
+        /** \brief Get all the maintained link states, in the same order as the link models maintained by the kinematic model */
         const std::vector<LinkState*>& getLinkStateVector(void) const
         {
             return link_state_vector_;
@@ -572,32 +557,32 @@ namespace planning_models
         /** \brief Return the instance of a random number generator */
         random_numbers::RNG& getRNG(void);
 
-	void getRobotMarkers(const std_msgs::ColorRGBA& color,
-			     const std::string& ns,
-			     const ros::Duration& dur,
-			     visualization_msgs::MarkerArray& arr,
-			     const std::vector<std::string> &link_names) const;
-	
-	void getRobotMarkers(visualization_msgs::MarkerArray& arr,
-			     const std::vector<std::string> &link_names) const;
-	
-	void getRobotMarkers(const std_msgs::ColorRGBA& color,
-			     const std::string& ns,
-			     const ros::Duration& dur,
-			     visualization_msgs::MarkerArray& arr) const;
-	
-	void getRobotMarkers(visualization_msgs::MarkerArray& arr) const;
+        void getRobotMarkers(const std_msgs::ColorRGBA& color,
+                             const std::string& ns,
+                             const ros::Duration& dur,
+                             visualization_msgs::MarkerArray& arr,
+                             const std::vector<std::string> &link_names) const;
 
-      // void getPaddedRobotMarkers(const std::map<std::string, double>& link_padding_map, 
+        void getRobotMarkers(visualization_msgs::MarkerArray& arr,
+                             const std::vector<std::string> &link_names) const;
+
+        void getRobotMarkers(const std_msgs::ColorRGBA& color,
+                             const std::string& ns,
+                             const ros::Duration& dur,
+                             visualization_msgs::MarkerArray& arr) const;
+
+        void getRobotMarkers(visualization_msgs::MarkerArray& arr) const;
+
+      // void getPaddedRobotMarkers(const std::map<std::string, double>& link_padding_map,
       //                            const std_msgs::ColorRGBA& color,
       //                            const std::string& ns,
       //                            const ros::Duration& dur
       //                            visualization_msgs::MarkerArray& arr);
 
-      
+
       // void getPaddedRobotMarkers(visualization_msgs::MarkerArray& arr,
       //                            const std::vector<std::string>* link_names = NULL) const;
-      
+
 
         KinematicState& operator=(const KinematicState &other);
 

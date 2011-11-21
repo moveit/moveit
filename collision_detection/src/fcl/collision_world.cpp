@@ -36,6 +36,12 @@
 
 #include "collision_detection/fcl/collision_world.h"
 
+collision_detection::CollisionWorldFCL::CollisionWorldFCL(void) : CollisionWorld()
+{
+    manager_.reset(new fcl::SSaPCollisionManager());
+}
+
+
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const
 {
 }
@@ -46,8 +52,83 @@ void collision_detection::CollisionWorldFCL::checkRobotCollision(const Collision
 
 void collision_detection::CollisionWorldFCL::checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const
 {
+    const CollisionWorldFCL *other_fcl_world = dynamic_cast<const CollisionWorldFCL*>(&other_world);
+    if (other_fcl_world)
+    {
+    }
+    else
+    {
+        static bool first_time = true;
+        if (first_time)
+        {
+            first_time = false;
+            ROS_WARN("Collision checking between worlds of different type. This will be slow.");
+        }
+
+        std::vector<std::string> other_ns = other_world.getNamespaces();
+        for (std::size_t i = 0 ; i < other_ns.size() ; ++i)
+        {
+            const NamespaceObjects& obj = other_world.getObjects(other_ns[i]);
+            // create collision objects for everything & call collide()
+        }
+    }
 }
 
 void collision_detection::CollisionWorldFCL::checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const
 {
+}
+
+void collision_detection::CollisionWorldFCL::addObject(const std::string &ns, shapes::StaticShape *shape)
+{
+    CollisionWorld::addObject(ns, shape);
+    fcl::CollisionObject *co = createCollisionObject(shape);
+    CollisionObjectData *cod = new CollisionObjectData(&objects_[ns]);
+    co->setUserData(cod);
+    fcl_objs_[ns].push_back(co);
+    manager_->registerObject(co);
+}
+
+void collision_detection::CollisionWorldFCL::addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose)
+{
+    CollisionWorld::addObject(ns, shape, pose);
+
+}
+
+bool collision_detection::CollisionWorldFCL::moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose)
+{
+    if (!CollisionWorld::moveObject(ns, shape, pose))
+        return false;
+
+}
+
+bool collision_detection::CollisionWorldFCL::removeObject(const std::string &ns, const shapes::Shape *shape)
+{
+    if (!CollisionWorld::removeObject(ns, shape))
+        return false;
+
+}
+
+bool collision_detection::CollisionWorldFCL::removeObject(const std::string &ns, const shapes::StaticShape *shape)
+{
+    if (!CollisionWorld::removeObject(ns, shape))
+        return false;
+
+}
+
+bool collision_detection::CollisionWorldFCL::removeObjects(const std::string &ns)
+{
+    if (!CollisionWorld::removeObjects(ns))
+        return false;
+
+}
+
+void collision_detection::CollisionWorldFCL::clearObjects(const std::string &ns)
+{
+    CollisionWorld::clearObjects(ns);
+
+}
+
+void collision_detection::CollisionWorldFCL::clearObjects(void)
+{
+    CollisionWorld::clearObjects();
 }
