@@ -53,7 +53,6 @@ namespace collision_detection
 
         virtual ~CollisionWorld(void)
         {
-            freeMemory();
         }
 
         /**********************************************************************/
@@ -85,6 +84,9 @@ namespace collision_detection
         /** \brief The objects in a particular namespace */
         struct NamespaceObjects
         {
+            NamespaceObjects(const std::string &n);
+            virtual ~NamespaceObjects(void);
+
             /** \brief The namespace for these objects */
             std::string                         ns;
 
@@ -98,14 +100,17 @@ namespace collision_detection
             std::vector< btTransform >          shape_pose;
         };
 
+        typedef boost::shared_ptr<NamespaceObjects> NamespaceObjectsPtr;
+        typedef boost::shared_ptr<NamespaceObjects> NamespaceObjectsConstPtr;
+
         /** \brief Get the list of namespaces */
         std::vector<std::string> getNamespaces(void) const;
 
         /** \brief Get the list of objects */
-        const NamespaceObjects& getObjects(const std::string &ns) const;
+        const NamespaceObjectsConstPtr& getObjects(const std::string &ns) const;
 
         /** \brief Get the list of objects */
-        NamespaceObjects& getObjects(const std::string &ns);
+        const NamespaceObjectsPtr& getObjects(const std::string &ns);
 
         /** \brief Check if a particular namespace exists */
         bool haveNamespace(const std::string &ns) const;
@@ -128,23 +133,15 @@ namespace collision_detection
         /** \brief Remove object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
         virtual bool removeObject(const std::string &ns, const shapes::StaticShape *shape);
 
-        /** \brief Remove all objects from a particular namespace. Ownership of the objects is renounced upon (no memory freed). Return true on success. */
-        virtual bool removeObjects(const std::string &ns);
-
-        /** \brief Clear the objects in a specific namespace. Memory is freed. */
+        /** \brief Clear the objects in a specific namespace. If there are no other pointers to the corresponding instance of NamespaceObjects, the memory is freed. */
         virtual void clearObjects(const std::string &ns);
 
-        /** \brief Clear all objects. Memory is freed. */
+        /** \brief Clear all objects. If there are no other pointers to corresponding instances of NamespaceObjects, the memory is freed. */
         virtual void clearObjects(void);
 
     protected:
 
-        std::map<std::string, NamespaceObjects> objects_;
-
-    private:
-
-        void freeMemory(const std::string &ns);
-        void freeMemory(void);
+        std::map<std::string, NamespaceObjectsPtr> objects_;
     };
 
     typedef boost::shared_ptr<CollisionWorld> CollisionWorldPtr;
