@@ -45,11 +45,19 @@
 
 namespace planning_scene
 {
-
+    
+    class PlanningScene;
+    typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
+    typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
+    
     class PlanningScene
     {
     public:
         PlanningScene(void) : configured_(false)
+        {
+        }
+	
+	PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
         {
         }
 
@@ -62,23 +70,26 @@ namespace planning_scene
 
         const std::string& getPlanningFrame(void) const
         {
-            return tf_->getPlanningFrame();
-        }
-
+	    // if we have an updated set of transforms, return it; otherwise, return the parent one
+	    return tf_ ? tf_->getPlanningFrame() : parent_->getPlanningFrame();
+	}
+	
         const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
         {
-            return kmodel_const_;
-        }
+	    // the kinematic model does not change
+            return parent_ ? parent_->getKinematicModel() : kmodel_const_;
+	}
 
         const planning_models::KinematicState& getCurrentState(void) const
         {
-            return *kstate_;
-        }
+	    // if we have an updated state, return it; otherwise, return the parent one
+	    return kstate_ ? *kstate_ : parent_->getCurrentState();
+	}
 
         const planning_models::TransformsPtr& getTransforms(void) const
         {
-            return tf_;
-        }
+            return (tf_ || !parent_) ? tf_ : parent_->getTransforms();
+	}
 
         const collision_detection::CollisionWorldPtr& getCollisionWorld(void) const
         {
@@ -106,7 +117,7 @@ namespace planning_scene
 
         bool isConfigured(void) const
         {
-            return configured_;
+            return parent_ ? parent_->isConfigured() : configured_;
         }
 
         void getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const;
@@ -117,12 +128,12 @@ namespace planning_scene
 
         const boost::shared_ptr<const urdf::Model>& getUrdfModel(void) const
         {
-            return urdf_model_;
+            return parent_ ? parent_->getUrdfModel() : urdf_model_;
         }
 
         const boost::shared_ptr<const srdf::Model>& getSrdfModel(void) const
         {
-            return srdf_model_;
+            return parent_ ? parent_->getSrdfModel() : srdf_model_;
         }
 
     protected:
@@ -130,7 +141,9 @@ namespace planning_scene
         bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
         bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
         void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
-
+	
+	PlanningSceneConstPtr                         parent_;
+	
         boost::shared_ptr<const urdf::Model>          urdf_model_;
         boost::shared_ptr<const srdf::Model>          srdf_model_;
 
@@ -147,8 +160,7 @@ namespace planning_scene
 
     };
 
-    typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
-    typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
 }
+
 
 #endif
