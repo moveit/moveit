@@ -46,6 +46,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
                                               const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
     kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
+    kmodel_const_ = kmodel_;
     tf_.reset(new planning_models::Transforms(kmodel_->getModelFrame()));
     kstate_.reset(new planning_models::KinematicState(kmodel_));
     kstate_->setDefaultValues();
@@ -57,24 +58,24 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
 }
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res,
-						   const planning_models::KinematicState &kstate) const
+                                                   const planning_models::KinematicState &kstate) const
 {
   // do self-collision checking with the unpadded version of the robot
   crobot_unpadded_->checkSelfCollision(req, res, kstate, acm_);
-  
+
   // check collision with the world using the padded version
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
     cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm_);
 }
 
-void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, 
+void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
                                                    collision_detection::CollisionResult &res,
                                                    const planning_models::KinematicState &kstate,
                                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // do self-collision checking with the unpadded version of the robot
   crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
-  
+
   // check collision with the world using the padded version
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
     cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm);
@@ -161,10 +162,20 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
     }
 }
 
+void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotState &state)
+{
+    planning_models::robotStateToKinematicState(*tf_, state, *kstate_);
+}
+
+void planning_scene::PlanningScene::setCurrentState(const planning_models::KinematicState &state)
+{
+    *kstate_ = state;
+}
+
 void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
 {
     tf_->recordTransforms(scene.fixed_frame_transforms);
-    planning_models::robotStateToKinematicState(*tf_, scene.robot_state, *kstate_);
+    setCurrentState(scene.robot_state);
     acm_ = collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix);
     crobot_->setPadding(scene.link_padding);
     cworld_->clearObjects();
