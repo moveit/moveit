@@ -53,7 +53,8 @@ namespace planning_models
     class Transforms
     {
     public:
-        Transforms(const std::string &target_frame);
+        Transforms(const std::string &target_frame);  
+	Transforms(const Transforms &other);
         ~Transforms(void);
 
         const std::string& getPlanningFrame(void) const;
@@ -85,6 +86,7 @@ namespace planning_models
     };
 
     typedef boost::shared_ptr<Transforms> TransformsPtr;
+    typedef boost::shared_ptr<const Transforms> TransformsConstPtr;
 }
 
 #endif

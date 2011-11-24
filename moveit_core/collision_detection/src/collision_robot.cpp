@@ -84,6 +84,12 @@ collision_detection::CollisionRobot::CollisionRobot(const planning_models::Kinem
         }
 }
 
+collision_detection::CollisionRobot::CollisionRobot(const CollisionRobot &other) : kmodel_(other.kmodel_)
+{
+    link_padding_ = other.link_padding_;
+    link_scale_ = other.link_scale_;
+}
+
 void collision_detection::CollisionRobot::setPadding(double padding)
 {
     if (!validatePadding(padding))

@@ -40,6 +40,10 @@ collision_detection::CollisionRobotAllValid::CollisionRobotAllValid(const planni
 {
 }
 
+collision_detection::CollisionRobotAllValid::CollisionRobotAllValid(const CollisionRobot &other) : CollisionRobot(other)
+{
+}
+
 void collision_detection::CollisionRobotAllValid::checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const
 {
     res.collision = false;
