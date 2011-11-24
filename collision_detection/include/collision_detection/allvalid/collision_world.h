@@ -46,9 +46,8 @@ namespace collision_detection
     {
     public:
 
-        CollisionWorldAllValid(void) : CollisionWorld()
-        {
-        }
+        CollisionWorldAllValid(void);
+        CollisionWorldAllValid(const CollisionWorld &other);
 
         virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
 

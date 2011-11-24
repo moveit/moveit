@@ -49,6 +49,7 @@ namespace collision_detection
     public:
 
         CollisionRobot(const planning_models::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
+        CollisionRobot(const CollisionRobot &other);
 
         virtual ~CollisionRobot(void)
         {

@@ -540,6 +540,8 @@ namespace planning_models
 
         void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
 
+	void clearAttachedBodies(void);
+
         /** \brief Print information about the constructed model */
         void printStateInfo(std::ostream &out = std::cout) const;
 

@@ -4,11 +4,14 @@ Header header
 # the id of the object
 string id
 
-#the shapes associated with the object
+# the shapes associated with the object
 Shape[] shapes
 
-#the poses associated with the shapes - will be transformed using the header
+# the poses associated with the shapes - will be transformed using the header
 geometry_msgs/Pose[] poses
+
+# the static shapes associated with the object
+StaticShape[] static_shapes
 
 # Puts the object into the environment
 #or updates the object if already added

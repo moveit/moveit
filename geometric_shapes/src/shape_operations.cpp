@@ -553,4 +553,40 @@ bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg)
     return true;
 }
 
+StaticShape* constructShapeFromMsg(const moveit_msgs::StaticShape &shape_msg)
+{
+    StaticShape *shape = NULL;
+    if (shape_msg.type == moveit_msgs::StaticShape::PLANE)
+    {
+        if (shape_msg.dimensions.size() == 4)
+            shape = new Plane(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2], shape_msg.dimensions[3]);
+        else
+            ROS_ERROR("Unexpected number of dimensions in plane definition (got %d, expected 4)", (int)shape_msg.dimensions.size());
+    }
+    else
+        ROS_ERROR("Unknown static shape type: %d", (int)shape_msg.type);
+    return shape;
+}
+
+bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &shape_msg)
+{
+    shape_msg.dimensions.clear();
+    if (shape->type == PLANE)
+    {
+        shape_msg.type = moveit_msgs::StaticShape::PLANE;
+        const Plane *p = static_cast<const Plane*>(shape);
+        shape_msg.dimensions.push_back(p->a);
+        shape_msg.dimensions.push_back(p->b);
+        shape_msg.dimensions.push_back(p->c);
+        shape_msg.dimensions.push_back(p->d);
+    }
+    else
+    {
+        ROS_ERROR("Unable to construct shape message for shape of type %d", (int)shape->type);
+        return false;
+    }
+    return true;
+}
+
+
 }
