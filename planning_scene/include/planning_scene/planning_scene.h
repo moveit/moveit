@@ -45,19 +45,19 @@
 
 namespace planning_scene
 {
-    
+
     class PlanningScene;
     typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
     typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
-    
+
     class PlanningScene
     {
     public:
         PlanningScene(void) : configured_(false)
         {
         }
-	
-	PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
+
+        PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
         {
         }
 
@@ -70,21 +70,21 @@ namespace planning_scene
 
         const std::string& getPlanningFrame(void) const
         {
-	    // if we have an updated set of transforms, return it; otherwise, return the parent one
-	    return tf_ ? tf_->getPlanningFrame() : parent_->getPlanningFrame();
-	}
-	
+            // if we have an updated set of transforms, return it; otherwise, return the parent one
+            return ftf_ ? ftf_->getPlanningFrame() : parent_->getPlanningFrame();
+        }
+
         const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
         {
-	    // the kinematic model does not change
+            // the kinematic model does not change
             return parent_ ? parent_->getKinematicModel() : kmodel_const_;
-	}
+        }
 
         const planning_models::KinematicState& getCurrentState(void) const
         {
-	    // if we have an updated state, return it; otherwise, return the parent one
-	    return kstate_ ? *kstate_ : parent_->getCurrentState();
-	}
+            // if we have an updated state, return it; otherwise, return the parent one
+            return kstate_ ? *kstate_ : parent_->getCurrentState();
+        }
 
         const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix(void) const
         {
@@ -93,22 +93,25 @@ namespace planning_scene
 
         const planning_models::TransformsConstPtr& getTransforms(void) const
         {
-	    // if we have updated transforms, return those
-            return (tf_const_ || !parent_) ? tf_const_ : parent_->getTransforms();
-	}
+            // if we have updated transforms, return those
+            return (ftf_const_ || !parent_) ? ftf_const_ : parent_->getTransforms();
+        }
 
         const collision_detection::CollisionWorldConstPtr& getCollisionWorld(void) const
         {
-	    // if we have an updated world, return that one
-            return (cworld_const_ || !parent_) ? cworld_const_ : parent_->getCollisionWorld();
-	}
+            // we always have a world representation
+            return cworld_const_;
+        }
 
         const collision_detection::CollisionRobotConstPtr& getCollisionRobot(void) const
         {
-	    // if we have an updated robot, return that one
+            // if we have an updated robot, return that one
             return (crobot_const_ || !parent_) ? crobot_const_ : parent_->getCollisionRobot();
         }
-	
+
+        void checkCollision(const collision_detection::CollisionRequest& req,
+                            collision_detection::CollisionResult &res) const;
+
         void checkCollision(const collision_detection::CollisionRequest& req,
                             collision_detection::CollisionResult &res,
                             const planning_models::KinematicState &kstate) const;
@@ -122,9 +125,10 @@ namespace planning_scene
         {
             return parent_ ? parent_->isConfigured() : configured_;
         }
-	
-	void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const;	
+
+        void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const;
         void getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const;
+        void setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene);
         void setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
 
         void setCurrentState(const moveit_msgs::RobotState &state);
@@ -140,23 +144,23 @@ namespace planning_scene
             return parent_ ? parent_->getSrdfModel() : srdf_model_;
         }
 
-	void decoupleParent(void);
-	
+        void decoupleParent(void);
+
     protected:
 
         bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
         bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
         void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
-	void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
-	void addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
-	void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
-	void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
-	
+        void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
+        void addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
+        void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
+        void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
 
 
 
-	PlanningSceneConstPtr                          parent_;
-	
+
+        PlanningSceneConstPtr                          parent_;
+
         boost::shared_ptr<const urdf::Model>           urdf_model_;
         boost::shared_ptr<const srdf::Model>           srdf_model_;
 
@@ -165,18 +169,18 @@ namespace planning_scene
 
         planning_models::KinematicStatePtr             kstate_;
 
-        planning_models::TransformsPtr                 tf_;
-        planning_models::TransformsConstPtr            tf_const_;
-	
-	collision_detection::CollisionRobotPtr         crobot_unpadded_;
+        planning_models::TransformsPtr                 ftf_;
+        planning_models::TransformsConstPtr            ftf_const_;
+
+        collision_detection::CollisionRobotPtr         crobot_unpadded_;
         collision_detection::CollisionRobotPtr         crobot_;
-	collision_detection::CollisionRobotConstPtr    crobot_const_;
-	
+        collision_detection::CollisionRobotConstPtr    crobot_const_;
+
         collision_detection::CollisionWorldPtr         cworld_;
         collision_detection::CollisionWorldConstPtr    cworld_const_;
-	
+
         collision_detection::AllowedCollisionMatrixPtr acm_;
-	
+
         bool                                           configured_;
 
     };
