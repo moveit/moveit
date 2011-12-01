@@ -48,7 +48,8 @@ namespace planning_scene_ros
     class PlanningSceneROS : public planning_scene::PlanningScene
     {
     public:
-        PlanningSceneROS(const std::string &robot_description, tf::Transformer *tf= NULL);
+        PlanningSceneROS(const std::string &robot_description, tf::Transformer *tf = NULL);
+	PlanningSceneROS(const planning_scene::PlanningSceneConstPtr &parent);
 
         const std::string& getRobotDescription(void) const
         {
@@ -76,10 +77,7 @@ namespace planning_scene_ros
         double                 default_robot_scale_;
         double                 default_object_padd_;
         double                 default_attached_padd_;
-
-      boost::shared_ptr<urdf::Model>            urdf_;
-      boost::shared_ptr<srdf::Model>            srdf_;
-
+	
         CurrentStateMonitorPtr csm_;
     };
 
