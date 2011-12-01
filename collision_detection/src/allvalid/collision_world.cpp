@@ -36,6 +36,14 @@
 
 #include "collision_detection/allvalid/collision_world.h"
 
+collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(void) : CollisionWorld()
+{
+}
+
+collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(const CollisionWorld &other) : CollisionWorld(other)
+{
+}
+
 void collision_detection::CollisionWorldAllValid::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const
 {
     res.collision = false;

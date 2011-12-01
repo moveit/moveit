@@ -32,14 +32,13 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan, E. Gil Jones */
+/* Author: Ioan Sucan, E. Gil Jones */
 
 #ifndef GEOMETRIC_SHAPES_BODIES_
 #define GEOMETRIC_SHAPES_BODIES_
 
 #include "geometric_shapes/shapes.h"
 #include <LinearMath/btTransform.h>
-#include <boost/shared_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <random_numbers/random_numbers.h>
 #include <vector>
@@ -68,6 +67,10 @@ namespace bodies
         double      radius;
         double      length;
     };
+
+    class Body;
+    typedef boost::shared_ptr<Body> BodyPtr;
+    typedef boost::shared_ptr<const Body> BodyConstPtr;
 
     /** \brief A body is a shape + its pose. Point inclusion, ray
         intersection can be tested, volumes and bounding spheres can
@@ -170,12 +173,12 @@ namespace bodies
             pose. Scaling and padding are accounted for. */
         virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const = 0;
 
-        boost::shared_ptr<Body> cloneAt(const btTransform &pose) const
+        BodyPtr cloneAt(const btTransform &pose) const
         {
             return cloneAt(pose, padding_, scale_);
         }
 
-        virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scaling) const = 0;
+        virtual BodyPtr cloneAt(const btTransform &pose, double padding, double scaling) const = 0;
 
     protected:
 
@@ -218,7 +221,7 @@ namespace bodies
         virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
         virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
 
-        virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scale) const;
+        virtual BodyPtr cloneAt(const btTransform &pose, double padding, double scale) const;
 
     protected:
 
@@ -263,7 +266,7 @@ namespace bodies
         virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
         virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
 
-        virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scale) const;
+        virtual BodyPtr cloneAt(const btTransform &pose, double padding, double scale) const;
 
     protected:
 
@@ -318,7 +321,7 @@ namespace bodies
         virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
         virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
 
-        virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scale) const;
+        virtual BodyPtr cloneAt(const btTransform &pose, double padding, double scale) const;
 
     protected:
 
@@ -382,7 +385,7 @@ namespace bodies
         const std::vector<btVector3>& getVertices(void) const;
         const std::vector<btVector3>& getScaledVertices(void) const;
 
-        virtual boost::shared_ptr<Body> cloneAt(const btTransform &pose, double padding, double scale) const;
+        virtual BodyPtr cloneAt(const btTransform &pose, double padding, double scale) const;
 
     protected:
 

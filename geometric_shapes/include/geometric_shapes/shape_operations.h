@@ -39,6 +39,7 @@
 
 #include "geometric_shapes/shapes.h"
 #include <moveit_msgs/Shape.h>
+#include <moveit_msgs/StaticShape.h>
 #include <visualization_msgs/Marker.h>
 #include <vector>
 #include <LinearMath/btVector3.h>
@@ -70,6 +71,12 @@ namespace shapes
 
     /** \brief Construct the message that corresponds to the shape. Return false on failure. */
     bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg);
+
+    /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
+    StaticShape* constructShapeFromMsg(const moveit_msgs::StaticShape &shape_msg);
+
+    /** \brief Construct the message that corresponds to the shape. Return false on failure. */
+    bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &shape_msg);
 
     /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
     bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk);
