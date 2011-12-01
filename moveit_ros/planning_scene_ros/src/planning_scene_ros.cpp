@@ -36,6 +36,19 @@
 
 #include "planning_scene_ros/planning_scene_ros.h"
 
+planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const planning_scene::PlanningSceneConstPtr &parent) : 
+    planning_scene::PlanningScene(parent), nh_("~")
+{
+    const PlanningSceneROS *psr = dynamic_cast<const PlanningSceneROS*>(parent.get());
+    if (!psr)
+	ROS_FATAL("The parent planning scene must be a PlanningSceneROS for this constructor");
+    else
+    {
+	tf_ = psr->tf_;
+	robot_description_ = psr->getRobotDescription();	
+    }
+}
+
 planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_description, tf::Transformer *tf) :
     planning_scene::PlanningScene(), nh_("~"), tf_(tf)
 {
@@ -73,13 +86,13 @@ void planning_scene_ros::PlanningSceneROS::stopStateMonitor(void)
 void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
 {
     // no collisions allowed by default
-    acm_.setEntry(kmodel_->getLinkModelNamesWithCollisionGeometry(),
-                  kmodel_->getLinkModelNamesWithCollisionGeometry(), false);
+    acm_->setEntry(kmodel_->getLinkModelNamesWithCollisionGeometry(),
+		   kmodel_->getLinkModelNamesWithCollisionGeometry(), false);
 
     // allow collisions for pairs that have been disabled
-    const std::vector<std::pair<std::string, std::string> >&dc = srdf_->getDisabledCollisions();
+    const std::vector<std::pair<std::string, std::string> >&dc = srdf_model_->getDisabledCollisions();
     for (std::size_t i = 0 ; i < dc.size() ; ++i)
-        acm_.setEntry(dc[i].first, dc[i].second, true);
+        acm_->setEntry(dc[i].first, dc[i].second, true);
 
     // read overriding values from the param server
 
@@ -112,7 +125,7 @@ void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
                 ROS_WARN("All collision operations must have two objects and an operation");
                 continue;
             }
-            acm_.setEntry(std::string(coll_ops[i]["object1"]), std::string(coll_ops[i]["object2"]), std::string(coll_ops[i]["operation"]) == "disable");
+            acm_->setEntry(std::string(coll_ops[i]["object1"]), std::string(coll_ops[i]["object2"]), std::string(coll_ops[i]["operation"]) == "disable");
         }
     }
 }
@@ -130,16 +143,15 @@ bool planning_scene_ros::PlanningSceneROS::loadRobotFromParamServer(void)
     std::string content;
     if (nh_.getParam(robot_description_, content))
     {
-      urdf_.reset(new urdf::Model);
-
-        if (urdf_->initString(content))
+	boost::shared_ptr<urdf::Model> urdf(new urdf::Model);
+        if (urdf->initString(content))
         {
             std::string scontent;
             if (nh_.getParam(robot_description_ + "_semantic", scontent))
             {
-              srdf_.reset(new srdf::Model);
-                if (srdf_->initString(*urdf_, scontent))
-                    return configure(urdf_, srdf_);
+		boost::shared_ptr<srdf::Model> srdf(new srdf::Model);
+                if (srdf->initString(*urdf, scontent))
+                    return configure(urdf, srdf);
                 else
                     ROS_ERROR("Unable to parse SRDF");
             }
