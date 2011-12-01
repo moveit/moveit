@@ -330,6 +330,11 @@ void planning_models::KinematicState::getAttachedBodies(std::vector<const Attach
     }
 }
 
+void planning_models::KinematicState::clearAttachedBodies(void)
+{
+    for (std::size_t i = 0 ; i < link_state_vector_.size() ; ++i)
+	link_state_vector_[i]->clearAttachedBodies();
+}
 
 //-------------------- JointState ---------------------
 

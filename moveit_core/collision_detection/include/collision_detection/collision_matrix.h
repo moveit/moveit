@@ -111,6 +111,8 @@ namespace collision_detection
         std::map<std::string, std::map<std::string, DecideContactFn> >        allowed_contacts_;
     };
 
+    typedef boost::shared_ptr<AllowedCollisionMatrix> AllowedCollisionMatrixPtr;
+    typedef boost::shared_ptr<const AllowedCollisionMatrix> AllowedCollisionMatrixConstPtr;
 }
 
 #endif

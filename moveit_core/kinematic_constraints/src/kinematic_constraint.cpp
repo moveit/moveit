@@ -577,7 +577,7 @@ std::pair<bool, double> kinematic_constraints::VisibilityConstraint::decide(cons
         ROS_INFO("Visibility constraint %ssatisfied. Visibility cone approximation:\n %s", res.collision ? "not " : "", ss.str().c_str());
     }
 
-    return res.collision ? std::make_pair(false, res.contacts[0].depth) : std::make_pair(true, 0.0);
+    return res.collision ? std::make_pair(false, res.contacts.begin()->second.depth) : std::make_pair(true, 0.0);
 }
 
 void kinematic_constraints::VisibilityConstraint::print(std::ostream &out) const

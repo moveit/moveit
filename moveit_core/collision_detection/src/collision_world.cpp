@@ -38,6 +38,15 @@
 #include <geometric_shapes/shape_operations.h>
 #include <ros/console.h>
 
+collision_detection::CollisionWorld::CollisionWorld(void) : record_changes_(false)
+{    
+}
+
+collision_detection::CollisionWorld::CollisionWorld(const CollisionWorld &other) : record_changes_(false)
+{
+    objects_ = other.objects_;
+}
+
 void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const
 {
     robot.checkSelfCollision(req, res, state);
@@ -65,27 +74,27 @@ void collision_detection::CollisionWorld::addObjects(const std::string &ns, cons
 std::vector<std::string> collision_detection::CollisionWorld::getNamespaces(void) const
 {
     std::vector<std::string> ns;
-    for (std::map<std::string, NamespaceObjects>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
+    for (std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
         ns.push_back(it->first);
     return ns;
 }
 
-const collision_detection::CollisionWorld::NamespaceObjects& collision_detection::CollisionWorld::getObjects(const std::string &ns) const
+const collision_detection::CollisionWorld::NamespaceObjectsConstPtr& collision_detection::CollisionWorld::getObjects(const std::string &ns) const
 {
-    static const NamespaceObjects empty = NamespaceObjects();
-    std::map<std::string, NamespaceObjects>::const_iterator it = objects_.find(ns);
+    static NamespaceObjectsConstPtr empty;
+    std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.find(ns);
     if (it == objects_.end())
         return empty;
     else
         return it->second;
 }
 
-collision_detection::CollisionWorld::NamespaceObjects& collision_detection::CollisionWorld::getObjects(const std::string &ns)
+const collision_detection::CollisionWorld::NamespaceObjectsPtr& collision_detection::CollisionWorld::getObjects(const std::string &ns)
 {
     // make sure that if a new namespace is created, it knows its name
-    std::map<std::string, NamespaceObjects>::const_iterator it = objects_.find(ns);
+    std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.find(ns);
     if (it == objects_.end())
-        objects_[ns].ns = ns;
+        objects_[ns].reset(new NamespaceObjects(ns));
     return objects_[ns];
 }
 
@@ -97,32 +106,47 @@ bool collision_detection::CollisionWorld::haveNamespace(const std::string &ns) c
 void collision_detection::CollisionWorld::addObject(const std::string &ns, shapes::StaticShape *shape)
 {
     // make sure that if a new namespace is created, it knows its name
-    std::map<std::string, NamespaceObjects>::const_iterator it = objects_.find(ns);
+    std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.find(ns);
     if (it == objects_.end())
-        objects_[ns].ns = ns;
-    objects_[ns].static_shape.push_back(shape);
+        objects_[ns].reset(new NamespaceObjects(ns)); 
+    else
+	if (record_changes_)
+	    changeRemoveObj(ns);
+    objects_[ns]->static_shapes_.push_back(shape);
+    if (record_changes_)
+	changeAddObj(objects_[ns].get());
 }
 
 void collision_detection::CollisionWorld::addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose)
 {
     // make sure that if a new namespace is created, it knows its name
-    std::map<std::string, NamespaceObjects>::const_iterator it = objects_.find(ns);
+    std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.find(ns);
     if (it == objects_.end())
-        objects_[ns].ns = ns;
-    objects_[ns].shape.push_back(shape);
-    objects_[ns].shape_pose.push_back(pose);
+        objects_[ns].reset(new NamespaceObjects(ns));
+    else
+	if (record_changes_)
+	    changeRemoveObj(ns);
+    objects_[ns]->shapes_.push_back(shape);
+    objects_[ns]->shape_poses_.push_back(pose);	
+    if (record_changes_)
+	changeAddObj(objects_[ns].get());
 }
 
 bool collision_detection::CollisionWorld::moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose)
 {
-    std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
+    std::map<std::string, NamespaceObjectsPtr>::iterator it = objects_.find(ns);
     if (it != objects_.end())
     {
-        unsigned int n = it->second.shape.size();
+        unsigned int n = it->second->shapes_.size();
         for (unsigned int i = 0 ; i < n ; ++i)
-            if (it->second.shape[i] == shape)
+            if (it->second->shapes_[i] == shape)
             {
-                it->second.shape_pose[i] = pose;
+                it->second->shape_poses_[i] = pose; 
+		if (record_changes_)
+		{
+		    changeRemoveObj(ns);
+		    changeAddObj(it->second.get());
+		}
                 return true;
             }
     }
@@ -131,15 +155,27 @@ bool collision_detection::CollisionWorld::moveObject(const std::string &ns, cons
 
 bool collision_detection::CollisionWorld::removeObject(const std::string &ns, const shapes::Shape *shape)
 {
-    std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
+    std::map<std::string, NamespaceObjectsPtr>::iterator it = objects_.find(ns);
     if (it != objects_.end())
     {
-        unsigned int n = it->second.shape.size();
+        unsigned int n = it->second->shapes_.size();
         for (unsigned int i = 0 ; i < n ; ++i)
-            if (it->second.shape[i] == shape)
+            if (it->second->shapes_[i] == shape)
             {
-                it->second.shape.erase(it->second.shape.begin() + i);
-                it->second.shape_pose.erase(it->second.shape_pose.begin() + i);
+                it->second->shapes_.erase(it->second->shapes_.begin() + i);
+                it->second->shape_poses_.erase(it->second->shape_poses_.begin() + i);
+		if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
+		{
+		    objects_.erase(it);
+		    if (record_changes_)
+			changeRemoveObj(ns);
+		}
+		else
+		    if (record_changes_)
+		    {
+			changeRemoveObj(ns);
+			changeAddObj(it->second.get());
+		    }
                 return true;
             }
     }
@@ -148,53 +184,98 @@ bool collision_detection::CollisionWorld::removeObject(const std::string &ns, co
 
 bool collision_detection::CollisionWorld::removeObject(const std::string &ns, const shapes::StaticShape *shape)
 {
-    std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
+    std::map<std::string, NamespaceObjectsPtr>::iterator it = objects_.find(ns);
     if (it != objects_.end())
     {
-        unsigned int n = it->second.static_shape.size();
+        unsigned int n = it->second->static_shapes_.size();
         for (unsigned int i = 0 ; i < n ; ++i)
-            if (it->second.static_shape[i] == shape)
+            if (it->second->static_shapes_[i] == shape)
             {
-                it->second.static_shape.erase(it->second.static_shape.begin() + i);
-                return true;
+                it->second->static_shapes_.erase(it->second->static_shapes_.begin() + i);
+		if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
+		{
+		    objects_.erase(it);
+		    if (record_changes_)
+			changeRemoveObj(ns);
+		}
+		else
+		    if (record_changes_)
+		    {
+			changeRemoveObj(ns);
+			changeAddObj(it->second.get());
+		    }
+		return true;
             }
     }
     return false;
 }
 
-bool collision_detection::CollisionWorld::removeObjects(const std::string &ns)
-{
-    return objects_.erase(ns) == 1;
-}
-
 void collision_detection::CollisionWorld::clearObjects(const std::string &ns)
 {
-    freeMemory(ns);
+    if (objects_.erase(ns) == 1)
+	if (record_changes_)
+	    changeRemoveObj(ns);
 }
 
 void collision_detection::CollisionWorld::clearObjects(void)
 {
-    freeMemory();
+    if (record_changes_)
+	for (std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
+	    changeRemoveObj(it->first);
+    objects_.clear();
 }
 
-void collision_detection::CollisionWorld::freeMemory(const std::string &ns)
+collision_detection::CollisionWorld::NamespaceObjects::NamespaceObjects(const std::string &ns) : ns_(ns)
 {
-    std::map<std::string, NamespaceObjects>::iterator it = objects_.find(ns);
-    if (it != objects_.end())
-    {
-        unsigned int n = it->second.static_shape.size();
-        for (unsigned int i = 0 ; i < n ; ++i)
-            delete it->second.static_shape[i];
-        n = it->second.shape.size();
-        for (unsigned int i = 0 ; i < n ; ++i)
-            delete it->second.shape[i];
-        objects_.erase(it);
-    }
 }
 
-void collision_detection::CollisionWorld::freeMemory(void)
+void collision_detection::CollisionWorld::changeRemoveObj(const std::string &ns)
 {
-    std::vector<std::string> ns = getNamespaces();
-    for (unsigned int i = 0 ; i < ns.size() ; ++i)
-        freeMemory(ns[i]);
+    for (std::vector<Change>::reverse_iterator it = changes_.rbegin() ; it != changes_.rend() ; ++it)
+	if (it->type_ == Change::ADD && it->ns_ == ns)
+	{
+	    changes_.erase(--it.base());
+	    return;
+	}
+    Change c;
+    c.type_ = Change::REMOVE;
+    c.ns_ = ns;
+    changes_.push_back(c);
+}
+
+void collision_detection::CollisionWorld::changeAddObj(const NamespaceObjects *obj)
+{
+    Change c;
+    c.type_ = Change::ADD;
+    c.ns_ = obj->ns_;
+    c.obj_ = obj;
+    changes_.push_back(c);
+}
+
+void collision_detection::CollisionWorld::recordChanges(bool flag)
+{
+    record_changes_ = flag;
+}
+
+bool collision_detection::CollisionWorld::isRecordingChanges(void) const
+{
+    return record_changes_;
+}
+
+const std::vector<collision_detection::CollisionWorld::Change>& collision_detection::CollisionWorld::getChanges(void) const
+{
+    return changes_;
+}
+
+void collision_detection::CollisionWorld::clearChanges(void)
+{
+    changes_.clear();
+}
+
+collision_detection::CollisionWorld::NamespaceObjects::~NamespaceObjects(void)
+{
+    for (std::size_t i = 0 ; i < static_shapes_.size() ; ++i)
+        delete static_shapes_[i];
+    for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
+        delete shapes_[i];
 }

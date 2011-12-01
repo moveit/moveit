@@ -47,13 +47,11 @@ namespace collision_detection
     {
     public:
 
-        CollisionWorld(void)
-        {
-        }
+        CollisionWorld(void);
+        CollisionWorld(const CollisionWorld &other);
 
         virtual ~CollisionWorld(void)
         {
-            freeMemory();
         }
 
         /**********************************************************************/
@@ -85,27 +83,43 @@ namespace collision_detection
         /** \brief The objects in a particular namespace */
         struct NamespaceObjects
         {
+            NamespaceObjects(const std::string &ns);
+            virtual ~NamespaceObjects(void);
+
             /** \brief The namespace for these objects */
-            std::string                         ns;
+            std::string                         ns_;
 
             /** \brief An array of static shapes */
-            std::vector< shapes::StaticShape* > static_shape;
+            std::vector< shapes::StaticShape* > static_shapes_;
 
             /** \brief An array of shapes */
-            std::vector< shapes::Shape* >       shape;
+            std::vector< shapes::Shape* >       shapes_;
 
             /** \brief An array of shape poses */
-            std::vector< btTransform >          shape_pose;
+            std::vector< btTransform >          shape_poses_;
         };
 
+        typedef boost::shared_ptr<NamespaceObjects> NamespaceObjectsPtr;
+        typedef boost::shared_ptr<NamespaceObjects> NamespaceObjectsConstPtr;
+
+	struct Change
+	{
+	    Change(void) : obj_(NULL)
+	    {
+	    }	    
+	    enum { ADD, REMOVE }    type_;
+	    const NamespaceObjects *obj_;
+	    std::string             ns_;
+	};
+	
         /** \brief Get the list of namespaces */
         std::vector<std::string> getNamespaces(void) const;
 
         /** \brief Get the list of objects */
-        const NamespaceObjects& getObjects(const std::string &ns) const;
+        const NamespaceObjectsConstPtr& getObjects(const std::string &ns) const;
 
         /** \brief Get the list of objects */
-        NamespaceObjects& getObjects(const std::string &ns);
+        const NamespaceObjectsPtr& getObjects(const std::string &ns);
 
         /** \brief Check if a particular namespace exists */
         bool haveNamespace(const std::string &ns) const;
@@ -128,23 +142,32 @@ namespace collision_detection
         /** \brief Remove object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
         virtual bool removeObject(const std::string &ns, const shapes::StaticShape *shape);
 
-        /** \brief Remove all objects from a particular namespace. Ownership of the objects is renounced upon (no memory freed). Return true on success. */
-        virtual bool removeObjects(const std::string &ns);
-
-        /** \brief Clear the objects in a specific namespace. Memory is freed. */
+        /** \brief Clear the objects in a specific namespace. If there are no other pointers to the corresponding instance of NamespaceObjects, the memory is freed. */
         virtual void clearObjects(const std::string &ns);
 
-        /** \brief Clear all objects. Memory is freed. */
+        /** \brief Clear all objects. If there are no other pointers to corresponding instances of NamespaceObjects, the memory is freed. */
         virtual void clearObjects(void);
 
+	/** \brief Set a flag that tells the world representation to record the changes made */
+	virtual void recordChanges(bool flag);
+	
+	bool isRecordingChanges(void) const;
+	
+	const std::vector<Change>& getChanges(void) const;
+	
+	void clearChanges(void);
+	
     protected:
-
-        std::map<std::string, NamespaceObjects> objects_;
-
+	
+        std::map<std::string, NamespaceObjectsPtr> objects_;
+	
     private:
+	
+	void changeRemoveObj(const std::string &ns);
+	void changeAddObj(const NamespaceObjects *obj);
 
-        void freeMemory(const std::string &ns);
-        void freeMemory(void);
+	bool                                       record_changes_;
+	std::vector<Change>                        changes_;	
     };
 
     typedef boost::shared_ptr<CollisionWorld> CollisionWorldPtr;
