@@ -39,11 +39,12 @@
 #include <ros/console.h>
 
 collision_detection::CollisionWorld::CollisionWorld(void) : record_changes_(false)
-{    
+{
 }
 
 collision_detection::CollisionWorld::CollisionWorld(const CollisionWorld &other) : record_changes_(false)
 {
+    boost::recursive_mutex::scoped_lock slock(other.objects_lock_);
     objects_ = other.objects_;
 }
 
@@ -79,7 +80,7 @@ std::vector<std::string> collision_detection::CollisionWorld::getNamespaces(void
     return ns;
 }
 
-const collision_detection::CollisionWorld::NamespaceObjectsConstPtr& collision_detection::CollisionWorld::getObjects(const std::string &ns) const
+collision_detection::CollisionWorld::NamespaceObjectsConstPtr collision_detection::CollisionWorld::getObjects(const std::string &ns) const
 {
     static NamespaceObjectsConstPtr empty;
     std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.find(ns);
@@ -89,47 +90,60 @@ const collision_detection::CollisionWorld::NamespaceObjectsConstPtr& collision_d
         return it->second;
 }
 
-const collision_detection::CollisionWorld::NamespaceObjectsPtr& collision_detection::CollisionWorld::getObjects(const std::string &ns)
-{
-    // make sure that if a new namespace is created, it knows its name
-    std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.find(ns);
-    if (it == objects_.end())
-        objects_[ns].reset(new NamespaceObjects(ns));
-    return objects_[ns];
-}
-
 bool collision_detection::CollisionWorld::haveNamespace(const std::string &ns) const
 {
     return objects_.find(ns) != objects_.end();
 }
 
+void collision_detection::CollisionWorld::ensureUnique(NamespaceObjectsPtr &ns)
+{
+    if (ns && !ns.unique())
+        ns.reset(ns->clone());
+}
+
 void collision_detection::CollisionWorld::addObject(const std::string &ns, shapes::StaticShape *shape)
 {
     // make sure that if a new namespace is created, it knows its name
-    std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.find(ns);
+    std::map<std::string, NamespaceObjectsPtr>::iterator it = objects_.find(ns);
     if (it == objects_.end())
-        objects_[ns].reset(new NamespaceObjects(ns)); 
+    {
+        objects_[ns].reset(new NamespaceObjects(ns));
+        it = objects_.find(ns);
+    }
     else
-	if (record_changes_)
-	    changeRemoveObj(ns);
-    objects_[ns]->static_shapes_.push_back(shape);
+        if (record_changes_)
+            changeRemoveObj(ns);
+    {
+        boost::recursive_mutex::scoped_lock slock(objects_lock_);
+        ensureUnique(it->second);
+        it->second->static_shapes_.push_back(shape);
+    }
+
     if (record_changes_)
-	changeAddObj(objects_[ns].get());
+        changeAddObj(it->second.get());
 }
 
 void collision_detection::CollisionWorld::addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose)
 {
     // make sure that if a new namespace is created, it knows its name
-    std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.find(ns);
+    std::map<std::string, NamespaceObjectsPtr>::iterator it = objects_.find(ns);
     if (it == objects_.end())
+    {
         objects_[ns].reset(new NamespaceObjects(ns));
+        it = objects_.find(ns);
+    }
     else
-	if (record_changes_)
-	    changeRemoveObj(ns);
-    objects_[ns]->shapes_.push_back(shape);
-    objects_[ns]->shape_poses_.push_back(pose);	
+        if (record_changes_)
+            changeRemoveObj(ns);
+    {
+        boost::recursive_mutex::scoped_lock slock(objects_lock_);
+        ensureUnique(it->second);
+        it->second->shapes_.push_back(shape);
+        it->second->shape_poses_.push_back(pose);
+    }
+
     if (record_changes_)
-	changeAddObj(objects_[ns].get());
+        changeAddObj(it->second.get());
 }
 
 bool collision_detection::CollisionWorld::moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose)
@@ -141,12 +155,16 @@ bool collision_detection::CollisionWorld::moveObject(const std::string &ns, cons
         for (unsigned int i = 0 ; i < n ; ++i)
             if (it->second->shapes_[i] == shape)
             {
-                it->second->shape_poses_[i] = pose; 
-		if (record_changes_)
-		{
-		    changeRemoveObj(ns);
-		    changeAddObj(it->second.get());
-		}
+                {
+                    boost::recursive_mutex::scoped_lock slock(objects_lock_);
+                    ensureUnique(it->second);
+                    it->second->shape_poses_[i] = pose;
+                }
+                if (record_changes_)
+                {
+                    changeRemoveObj(ns);
+                    changeAddObj(it->second.get());
+                }
                 return true;
             }
     }
@@ -162,20 +180,22 @@ bool collision_detection::CollisionWorld::removeObject(const std::string &ns, co
         for (unsigned int i = 0 ; i < n ; ++i)
             if (it->second->shapes_[i] == shape)
             {
+                boost::recursive_mutex::scoped_lock slock(objects_lock_);
+                ensureUnique(it->second);
                 it->second->shapes_.erase(it->second->shapes_.begin() + i);
                 it->second->shape_poses_.erase(it->second->shape_poses_.begin() + i);
-		if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
-		{
-		    objects_.erase(it);
-		    if (record_changes_)
-			changeRemoveObj(ns);
-		}
-		else
-		    if (record_changes_)
-		    {
-			changeRemoveObj(ns);
-			changeAddObj(it->second.get());
-		    }
+                if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
+                {
+                    objects_.erase(it);
+                    if (record_changes_)
+                        changeRemoveObj(ns);
+                }
+                else
+                    if (record_changes_)
+                    {
+                        changeRemoveObj(ns);
+                        changeAddObj(it->second.get());
+                    }
                 return true;
             }
     }
@@ -191,20 +211,22 @@ bool collision_detection::CollisionWorld::removeObject(const std::string &ns, co
         for (unsigned int i = 0 ; i < n ; ++i)
             if (it->second->static_shapes_[i] == shape)
             {
+                boost::recursive_mutex::scoped_lock slock(objects_lock_);
+                ensureUnique(it->second);
                 it->second->static_shapes_.erase(it->second->static_shapes_.begin() + i);
-		if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
-		{
-		    objects_.erase(it);
-		    if (record_changes_)
-			changeRemoveObj(ns);
-		}
-		else
-		    if (record_changes_)
-		    {
-			changeRemoveObj(ns);
-			changeAddObj(it->second.get());
-		    }
-		return true;
+                if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
+                {
+                    objects_.erase(it);
+                    if (record_changes_)
+                        changeRemoveObj(ns);
+                }
+                else
+                    if (record_changes_)
+                    {
+                        changeRemoveObj(ns);
+                        changeAddObj(it->second.get());
+                    }
+                return true;
             }
     }
     return false;
@@ -212,16 +234,18 @@ bool collision_detection::CollisionWorld::removeObject(const std::string &ns, co
 
 void collision_detection::CollisionWorld::clearObjects(const std::string &ns)
 {
+    boost::recursive_mutex::scoped_lock slock(objects_lock_);
     if (objects_.erase(ns) == 1)
-	if (record_changes_)
-	    changeRemoveObj(ns);
+        if (record_changes_)
+            changeRemoveObj(ns);
 }
 
 void collision_detection::CollisionWorld::clearObjects(void)
 {
     if (record_changes_)
-	for (std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
-	    changeRemoveObj(it->first);
+        for (std::map<std::string, NamespaceObjectsPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
+            changeRemoveObj(it->first);
+    boost::recursive_mutex::scoped_lock slock(objects_lock_);
     objects_.clear();
 }
 
@@ -229,14 +253,25 @@ collision_detection::CollisionWorld::NamespaceObjects::NamespaceObjects(const st
 {
 }
 
+collision_detection::CollisionWorld::NamespaceObjects* collision_detection::CollisionWorld::NamespaceObjects::clone(void) const
+{
+    NamespaceObjects *o = new NamespaceObjects(ns_);
+    for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
+        o->shapes_.push_back(shapes_[i]->clone());
+    for (std::size_t i = 0 ; i < static_shapes_.size() ; ++i)
+        o->static_shapes_.push_back(static_shapes_[i]->clone());
+    o->shape_poses_ = shape_poses_;
+    return o;
+}
+
 void collision_detection::CollisionWorld::changeRemoveObj(const std::string &ns)
 {
     for (std::vector<Change>::reverse_iterator it = changes_.rbegin() ; it != changes_.rend() ; ++it)
-	if (it->type_ == Change::ADD && it->ns_ == ns)
-	{
-	    changes_.erase(--it.base());
-	    return;
-	}
+        if (it->type_ == Change::ADD && it->ns_ == ns)
+        {
+            changes_.erase(--it.base());
+            return;
+        }
     Change c;
     c.type_ = Change::REMOVE;
     c.ns_ = ns;
@@ -248,7 +283,6 @@ void collision_detection::CollisionWorld::changeAddObj(const NamespaceObjects *o
     Change c;
     c.type_ = Change::ADD;
     c.ns_ = obj->ns_;
-    c.obj_ = obj;
     changes_.push_back(c);
 }
 
