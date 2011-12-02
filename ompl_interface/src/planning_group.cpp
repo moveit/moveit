@@ -94,7 +94,7 @@ ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const omp
     else
         ROS_WARN("%s: Unknown planner type: %s", name_.c_str(), planner.c_str());
     if (p)
-        p->setParams(config);
+        p->params().setParams(config);
     return ompl::base::PlannerPtr(p);
 }
 
