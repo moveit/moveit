@@ -45,7 +45,11 @@ planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const planning_scene::Pla
     else
     {
 	tf_ = psr->tf_;
-	robot_description_ = psr->getRobotDescription();	
+	robot_description_ = psr->getRobotDescription();
+	default_robot_padd_ = psr->default_robot_padd_;
+	default_robot_scale_ = psr->default_robot_scale_;
+	default_object_padd_ = psr->default_object_padd_;
+	default_attached_padd_ = psr->default_attached_padd_;
     }
 }
 
@@ -58,7 +62,12 @@ planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_
         {
             configureDefaultCollisionMatrix();
             configureDefaultPadding();
-        }
+	    if (isConfigured())
+	    {
+		crobot_->setPadding(default_robot_padd_);
+		crobot_->setScale(default_robot_scale_);
+	    }
+	}
     }
     else
         ROS_ERROR("Unable to find ROS parameter for robot description. Did you forget to remap '%s'?", robot_description.c_str());
@@ -82,6 +91,16 @@ void planning_scene_ros::PlanningSceneROS::stopStateMonitor(void)
         csm_->stopStateMonitor();
 }
 
+void planning_scene_ros::PlanningSceneROS::useMonitoredState(void)
+{
+    if (csm_)
+    {
+	const std::map<std::string, double> &v = csm_->getCurrentStateValues();
+	getCurrentState().setStateValues(v);
+    }
+    else
+	ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
+}
 
 void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
 {

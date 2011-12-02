@@ -60,7 +60,9 @@ namespace planning_scene_ros
         {
             return csm_;
         }
-
+	
+	void useMonitoredState(void);
+	
         void startStateMonitor(void);
         void stopStateMonitor(void);
 
