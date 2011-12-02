@@ -56,7 +56,7 @@ namespace kinematic_constraints
     {
     public:
 
-        KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf);
+        KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
         virtual ~KinematicConstraint(void);
 
         /** \brief Clear the stored constraint */
@@ -83,21 +83,21 @@ namespace kinematic_constraints
             return constraint_weight_;
         }
 
-        const planning_models::KinematicModel& getKinematicModel(void) const
+        const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
         {
-            return *model_;
+            return model_;
         }
 
-        const planning_models::Transforms& getTransforms(void) const
+        const planning_models::TransformsConstPtr& getTransforms(void) const
         {
-            return *tf_;
+            return tf_;
         }
 
     protected:
 
         planning_models::KinematicModelConstPtr model_;
-        planning_models::TransformsPtr     tf_;
-        double                             constraint_weight_;
+        planning_models::TransformsConstPtr     tf_;
+        double                                  constraint_weight_;
     };
 
     typedef boost::shared_ptr<KinematicConstraint> KinematicConstraintPtr;
@@ -106,7 +106,7 @@ namespace kinematic_constraints
     {
     public:
 
-        JointConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
+        JointConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
             KinematicConstraint(model, tf), joint_model_(NULL)
         {
         }
@@ -150,7 +150,7 @@ namespace kinematic_constraints
     {
     public:
 
-        OrientationConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
+        OrientationConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
             KinematicConstraint(model, tf), link_model_(NULL)
         {
         }
@@ -210,7 +210,7 @@ namespace kinematic_constraints
     {
     public:
 
-        PositionConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
+        PositionConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
             KinematicConstraint(model, tf), link_model_(NULL)
         {
         }
@@ -266,7 +266,7 @@ namespace kinematic_constraints
     {
     public:
 
-        VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf);
+        VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
 
         bool use(const moveit_msgs::VisibilityConstraint &vc);
         virtual void clear(void);
@@ -295,7 +295,7 @@ namespace kinematic_constraints
     {
     public:
 
-        KinematicConstraintSet(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
+        KinematicConstraintSet(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
             model_(model), tf_(tf)
         {
         }
@@ -355,8 +355,8 @@ namespace kinematic_constraints
 
     protected:
 
-        planning_models::KinematicModelConstPtr              model_;
-        planning_models::TransformsPtr                  tf_;
+        planning_models::KinematicModelConstPtr         model_;
+        planning_models::TransformsConstPtr             tf_;
 
         std::vector<KinematicConstraintPtr>             kce_;
 
@@ -373,7 +373,7 @@ namespace kinematic_constraints
     moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second);
 
 bool doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
-                                       const planning_models::TransformsPtr& tf,
+                                       const planning_models::TransformsConstPtr& tf,
                                        const moveit_msgs::Constraints& constraints,
                                        bool verbose);
 

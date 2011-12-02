@@ -1,4 +1,4 @@
-FILENAME = ompl-1267.tar.gz
+FILENAME = ompl-1306.tar.gz
 TARBALL = build/$(FILENAME)
 TARBALL_URL = https://code.ros.org/svn/release/download/thirdparty/ompl/$(FILENAME)
 TARBALL_PATCH =

@@ -43,7 +43,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <limits>
 
-kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
+kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
     model_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
@@ -380,7 +380,7 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
         out << "No constraint" << std::endl;
 }
 
-kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsPtr &tf) :
+kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), cr_(new collision_detection::CollisionRobotAllValid(model)), cw_(new collision_detection::CollisionWorldAllValid())
 {
 }
@@ -721,7 +721,7 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
 }
 
 bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
-                                                              const planning_models::TransformsPtr& tf,
+                                                              const planning_models::TransformsConstPtr& tf,
                                                               const moveit_msgs::Constraints& constraints,
                                                               bool verbose) 
 {
