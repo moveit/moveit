@@ -7,8 +7,11 @@ geometry_msgs/TransformStamped[] fixed_frame_transforms
 #full allowed collision matrix
 AllowedCollisionMatrix allowed_collision_matrix
 
-#all link paddings
+# all link paddings
 LinkPadding[] link_padding
+
+# all link scales
+LinkScale[] link_scale
 
 #collision objects
 CollisionObject[] collision_objects

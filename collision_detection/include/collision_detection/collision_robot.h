@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #ifndef COLLISION_DETECTION_COLLISION_ROBOT_
 #define COLLISION_DETECTION_COLLISION_ROBOT_
@@ -40,6 +40,7 @@
 #include "collision_detection/collision_matrix.h"
 #include <planning_models/kinematic_state.h>
 #include <moveit_msgs/LinkPadding.h>
+#include <moveit_msgs/LinkScale.h>
 
 namespace collision_detection
 {
@@ -82,6 +83,8 @@ namespace collision_detection
         void setScale(double scale);
         void setPadding(const std::vector<moveit_msgs::LinkPadding> &padding);
         void getPadding(std::vector<moveit_msgs::LinkPadding> &padding) const;
+        void setScale(const std::vector<moveit_msgs::LinkScale> &scale);
+        void getScale(std::vector<moveit_msgs::LinkScale> &scale) const;
 
     protected:
 

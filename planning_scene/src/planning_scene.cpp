@@ -54,13 +54,7 @@ planning_scene::PlanningScene::PlanningScene(void) : configured_(false)
 planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
 {
     if (parent_->isConfigured())
-    {
-        // even if we have a parent, we do maintain a separate world representation, one that records changes
-        // this is cheap however, because the worlds share the world representation
-        cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
-        cworld_->recordChanges(true);
-        cworld_const_ = cworld_;
-    }
+        configure(parent_->getUrdfModel(), parent_->getSrdfModel());
 }
 
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
@@ -101,6 +95,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
             cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
             cworld_->recordChanges(true);
             cworld_const_ = cworld_;
+            configured_ = true;
         }
         else
             ROS_ERROR("Parent is not configured yet");
@@ -212,9 +207,15 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
         scene.allowed_collision_matrix = moveit_msgs::AllowedCollisionMatrix();
 
     if (crobot_)
+    {
         crobot_->getPadding(scene.link_padding);
+        crobot_->getScale(scene.link_scale);
+    }
     else
+    {
         scene.link_padding.clear();
+        scene.link_scale.clear();
+    }
 
     if (cworld_->isRecordingChanges())
     {
@@ -353,6 +354,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
     planning_models::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
     getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
     getCollisionRobot()->getPadding(scene.link_padding);
+    getCollisionRobot()->getScale(scene.link_scale);
 
     // add collision objects
     getPlanningSceneMsgCollisionObjects(scene);
@@ -387,35 +389,46 @@ void planning_scene::PlanningScene::decoupleParent(void)
 {
     if (!parent_)
         return;
-    urdf_model_ = parent_->urdf_model_;
-    srdf_model_ = parent_->srdf_model_;
-    kmodel_ = parent_->kmodel_;
-    kmodel_const_ = kmodel_;
-
-    if (!ftf_)
+    if (parent_->isConfigured())
     {
-        ftf_.reset(new planning_models::Transforms(*parent_->getTransforms()));
-        ftf_const_ = ftf_;
+        urdf_model_ = parent_->urdf_model_;
+        srdf_model_ = parent_->srdf_model_;
+        kmodel_ = parent_->kmodel_;
+        kmodel_const_ = kmodel_;
+
+        if (!ftf_)
+        {
+            ftf_.reset(new planning_models::Transforms(*parent_->getTransforms()));
+            ftf_const_ = ftf_;
+        }
+
+        if (!kstate_)
+            kstate_.reset(new planning_models::KinematicState(parent_->getCurrentState()));
+
+        if (!acm_)
+            acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
+
+        crobot_unpadded_.reset(new DefaultCRobotType(kmodel_));
+
+        if (!crobot_)
+        {
+            crobot_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobot())));
+            crobot_const_ = crobot_;
+        }
+
+        if (!cworld_)
+        {
+            cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
+            cworld_const_ = cworld_;
+        }
+        else
+        {
+            cworld_->recordChanges(false);
+            cworld_->clearChanges();
+        }
+
+        configured_ = true;
     }
-
-    if (!kstate_)
-        kstate_.reset(new planning_models::KinematicState(parent_->getCurrentState()));
-
-    if (!acm_)
-        acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
-
-    crobot_unpadded_.reset(new DefaultCRobotType(kmodel_));
-
-    if (!crobot_)
-    {
-        crobot_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobot())));
-        crobot_const_ = crobot_;
-    }
-
-    cworld_->recordChanges(false);
-    cworld_->clearChanges();
-
-    configured_ = true;
 
     parent_.reset();
 }
@@ -451,7 +464,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
     if (!scene.allowed_collision_matrix.link_names.empty())
         acm_.reset(new collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix));
 
-    if (!scene.link_padding.empty())
+    if (!scene.link_padding.empty() || !scene.link_scale.empty())
     {
         if (!crobot_)
         { // this means we have a parent too
@@ -459,6 +472,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
             crobot_const_ = crobot_;
         }
         crobot_->setPadding(scene.link_padding);
+        crobot_->setScale(scene.link_scale);
     }
 
     if ((!scene.collision_map.header.frame_id.empty() && !scene.collision_map.boxes.empty()) || !scene.collision_objects.empty())
@@ -508,6 +522,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
     setCurrentState(scene.robot_state);
     acm_.reset(new collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix));
     crobot_->setPadding(scene.link_padding);
+    crobot_->setScale(scene.link_scale);
     cworld_->clearObjects();
     for (std::size_t i = 0 ; i < scene.collision_objects.size() ; ++i)
         processCollisionObjectMsg(scene.collision_objects[i]);
