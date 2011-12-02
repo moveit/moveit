@@ -42,6 +42,7 @@
 #include <planning_models/transforms.h>
 #include <collision_detection/collision_world.h>
 #include <moveit_msgs/PlanningScene.h>
+#include <boost/noncopyable.hpp>
 
 namespace planning_scene
 {
@@ -50,16 +51,14 @@ namespace planning_scene
     typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
     typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
 
-    class PlanningScene
+    class PlanningScene : private boost::noncopyable
     {
     public:
-        PlanningScene(void) : configured_(false)
-        {
-        }
 
-        PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
-        {
-        }
+        PlanningScene(void);
+
+        explicit
+        PlanningScene(const PlanningSceneConstPtr &parent);
 
         virtual ~PlanningScene(void)
         {
@@ -67,6 +66,11 @@ namespace planning_scene
 
         bool configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
                        const boost::shared_ptr<const srdf::Model> &srdf_model);
+
+        const PlanningSceneConstPtr& getParent(void) const
+        {
+            return parent_;
+        }
 
         const std::string& getPlanningFrame(void) const
         {
@@ -85,22 +89,30 @@ namespace planning_scene
             // if we have an updated state, return it; otherwise, return the parent one
             return kstate_ ? *kstate_ : parent_->getCurrentState();
         }
+        planning_models::KinematicState& getCurrentState(void);
 
         const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix(void) const
         {
             return acm_ ? *acm_ : parent_->getAllowedCollisionMatrix();
         }
+        collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix(void);
 
         const planning_models::TransformsConstPtr& getTransforms(void) const
         {
             // if we have updated transforms, return those
             return (ftf_const_ || !parent_) ? ftf_const_ : parent_->getTransforms();
         }
+        const planning_models::TransformsPtr& getTransforms(void);
 
         const collision_detection::CollisionWorldConstPtr& getCollisionWorld(void) const
         {
             // we always have a world representation
             return cworld_const_;
+        }
+        const collision_detection::CollisionWorldPtr& getCollisionWorld(void)
+        {
+            // we always have a world representation
+            return cworld_;
         }
 
         const collision_detection::CollisionRobotConstPtr& getCollisionRobot(void) const
@@ -108,6 +120,8 @@ namespace planning_scene
             // if we have an updated robot, return that one
             return (crobot_const_ || !parent_) ? crobot_const_ : parent_->getCollisionRobot();
         }
+        const collision_detection::CollisionRobotPtr& getCollisionRobot(void);
+
 
         void checkCollision(const collision_detection::CollisionRequest& req,
                             collision_detection::CollisionResult &res) const;
@@ -155,8 +169,6 @@ namespace planning_scene
         void addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
         void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
         void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
-
-
 
 
         PlanningSceneConstPtr                          parent_;

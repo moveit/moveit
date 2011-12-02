@@ -47,6 +47,22 @@ namespace planning_scene
     static const std::string COLLISION_MAP_NS = "__map";
 }
 
+planning_scene::PlanningScene::PlanningScene(void) : configured_(false)
+{
+}
+
+planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
+{
+    if (parent_->isConfigured())
+    {
+        // even if we have a parent, we do maintain a separate world representation, one that records changes
+        // this is cheap however, because the worlds share the world representation
+        cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
+        cworld_->recordChanges(true);
+        cworld_const_ = cworld_;
+    }
+}
+
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
                                               const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
@@ -75,14 +91,19 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
     }
     else
     {
-        if (srdf_model != parent_->getSrdfModel() || urdf_model != parent_->getUrdfModel())
-            ROS_ERROR("Parent of planning scene is not constructed from the same robot models");
+        if (parent_->isConfigured())
+        {
+            if (srdf_model != parent_->getSrdfModel() || urdf_model != parent_->getUrdfModel())
+                ROS_ERROR("Parent of planning scene is not constructed from the same robot models");
 
-        // even if we have a parent, we do maintain a separate world representation, one that records changes
-        // this is cheap however, because the worlds share the world representation
-        cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
-        cworld_->recordChanges(true);
-        cworld_const_ = cworld_;
+            // even if we have a parent, we do maintain a separate world representation, one that records changes
+            // this is cheap however, because the worlds share the world representation
+            cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
+            cworld_->recordChanges(true);
+            cworld_const_ = cworld_;
+        }
+        else
+            ROS_ERROR("Parent is not configured yet");
     }
 
     return true;
@@ -131,6 +152,40 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
         else
             cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm);
     }
+}
+
+const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::getCollisionRobot(void)
+{
+    if (!crobot_)
+    {
+        crobot_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobot())));
+        crobot_const_ = crobot_;
+    }
+    return crobot_;
+}
+
+planning_models::KinematicState& planning_scene::PlanningScene::getCurrentState(void)
+{
+    if (!kstate_)
+        kstate_.reset(new planning_models::KinematicState(parent_->getCurrentState()));
+    return *kstate_;
+}
+
+collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getAllowedCollisionMatrix(void)
+{
+    if (!acm_)
+        acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
+    return *acm_;
+}
+
+const planning_models::TransformsPtr& planning_scene::PlanningScene::getTransforms(void)
+{
+    if (!ftf_)
+    {
+        ftf_.reset(new planning_models::Transforms(*parent_->getTransforms()));
+        ftf_const_ = ftf_;
+    }
+    return ftf_;
 }
 
 void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const
@@ -276,16 +331,19 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
 {
     scene.collision_map.header.frame_id = getPlanningFrame();
     scene.collision_map.boxes.clear();
-    const collision_detection::CollisionWorld::NamespaceObjects& map = *getCollisionWorld()->getObjects(COLLISION_MAP_NS);
-    if (!map.static_shapes_.empty())
-        ROS_ERROR("Static shapes are not supported in the collision map.");
-    for (std::size_t i = 0 ; i < map.shapes_.size() ; ++i)
+    if (getCollisionWorld()->haveNamespace(COLLISION_MAP_NS))
     {
-        shapes::Box *b = static_cast<shapes::Box*>(map.shapes_[i]);
-        moveit_msgs::OrientedBoundingBox obb;
-        obb.extents.x = b->size[0]; obb.extents.y = b->size[1]; obb.extents.z = b->size[2];
-        planning_models::msgFromPose(map.shape_poses_[i], obb.pose);
-        scene.collision_map.boxes.push_back(obb);
+        const collision_detection::CollisionWorld::NamespaceObjects& map = *getCollisionWorld()->getObjects(COLLISION_MAP_NS);
+        if (!map.static_shapes_.empty())
+            ROS_ERROR("Static shapes are not supported in the collision map.");
+        for (std::size_t i = 0 ; i < map.shapes_.size() ; ++i)
+        {
+            shapes::Box *b = static_cast<shapes::Box*>(map.shapes_[i]);
+            moveit_msgs::OrientedBoundingBox obb;
+            obb.extents.x = b->size[0]; obb.extents.y = b->size[1]; obb.extents.z = b->size[2];
+            planning_models::msgFromPose(map.shape_poses_[i], obb.pose);
+            scene.collision_map.boxes.push_back(obb);
+        }
     }
 }
 

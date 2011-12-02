@@ -39,15 +39,50 @@
 
 TEST(PlanningScene, LoadRestore)
 {
-    urdf::Model urdf_model;
-    srdf::Model srdf_model;
-    urdf_model.initFile("../planning_models/test/urdf/robot.xml");
+    boost::shared_ptr<urdf::Model> urdf_model(new urdf::Model());
+    boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
+    urdf_model->initFile("../planning_models/test/urdf/robot.xml");
     planning_scene::PlanningScene ps;
     ps.configure(urdf_model, srdf_model);
     EXPECT_TRUE(ps.isConfigured());
     moveit_msgs::PlanningScene ps_msg;
     ps.getPlanningSceneMsg(ps_msg);
     ps.setPlanningSceneMsg(ps_msg);
+}
+
+TEST(PlanningScene, LoadRestoreDiff)
+{
+    boost::shared_ptr<urdf::Model> urdf_model(new urdf::Model());
+    boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
+    urdf_model->initFile("../planning_models/test/urdf/robot.xml");
+    planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
+    ps->configure(urdf_model, srdf_model);
+    EXPECT_TRUE(ps->isConfigured());
+
+    collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
+    btTransform id = btTransform::getIdentity();
+    cw.addObject("sphere", new shapes::Sphere(0.4), id);
+    
+    moveit_msgs::PlanningScene ps_msg;
+    ps->getPlanningSceneMsg(ps_msg);
+    ps->setPlanningSceneMsg(ps_msg);
+    EXPECT_TRUE(ps->getCollisionWorld()->haveNamespace("sphere"));
+    
+    planning_scene::PlanningScene next(ps);
+    EXPECT_TRUE(next.isConfigured());
+    EXPECT_TRUE(next.getCollisionWorld()->haveNamespace("sphere"));
+    next.getCollisionWorld()->addObject("sphere2", new shapes::Sphere(0.5), id);
+    EXPECT_EQ(next.getCollisionWorld()->getNamespaces().size(), 2);
+    EXPECT_EQ(ps->getCollisionWorld()->getNamespaces().size(), 1);
+    next.getPlanningSceneDiffMsg(ps_msg);
+    EXPECT_EQ(ps_msg.collision_objects.size(), 1);
+    next.decoupleParent();
+    next.getPlanningSceneDiffMsg(ps_msg);	
+    EXPECT_EQ(ps_msg.collision_objects.size(), 2);
+    next.getPlanningSceneMsg(ps_msg);	
+    EXPECT_EQ(ps_msg.collision_objects.size(), 2);
+    ps->setPlanningSceneMsg(ps_msg);
+    EXPECT_EQ(ps->getCollisionWorld()->getNamespaces().size(), 2);
 }
 
 int main(int argc, char **argv)
