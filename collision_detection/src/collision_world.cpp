@@ -97,6 +97,8 @@ bool collision_detection::CollisionWorld::haveNamespace(const std::string &ns) c
 
 void collision_detection::CollisionWorld::ensureUnique(NamespaceObjectsPtr &ns)
 {
+    std::cout << ns->ns_ << ": " << ns.use_count() << std::endl;
+
     if (ns && !ns.unique())
         ns.reset(ns->clone());
 }
