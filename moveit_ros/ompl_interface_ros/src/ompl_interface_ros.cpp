@@ -46,14 +46,21 @@ namespace ompl_interface_ros
     public:
         IKLoader(const std::map<std::string, std::vector<std::string> > &possible_ik_solvers) : possible_ik_solvers_(possible_ik_solvers)
         {
-            kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
-        }
+	    try
+	    {
+		kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
+	    }
+	    catch(pluginlib::PluginlibException& e)
+	    {
+		ROS_ERROR("Unable to construct IK loader. Error: %s", e.what());
+	    }
+	}
 
         boost::shared_ptr<kinematics::KinematicsBase> allocIKSolver(const planning_models::KinematicModel::JointModelGroup *jmg)
         {
             boost::shared_ptr<kinematics::KinematicsBase> result;
             ROS_DEBUG("Received request to allocate IK solver for group '%s'", jmg->getName().c_str());
-            if (jmg)
+            if (kinematics_loader_ && jmg)
             {
                 std::map<std::string, std::vector<std::string> >::const_iterator it = possible_ik_solvers_.find(jmg->getName());
                 if (it != possible_ik_solvers_.end())
