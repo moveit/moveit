@@ -412,6 +412,9 @@ namespace planning_models
                 middle of the bounds is used. */
             void setDefaultValues(void);
 
+            /** \brief Set the group to a named default state. Return false on failure */
+            bool setDefaultValues(const std::string &name);
+
             /** \brief Sample a random state in accordance with the type of joints employed */
             void setRandomValues(void);
 
@@ -540,7 +543,7 @@ namespace planning_models
 
         void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
 
-	void clearAttachedBodies(void);
+        void clearAttachedBodies(void);
 
         /** \brief Print information about the constructed model */
         void printStateInfo(std::ostream &out = std::cout) const;

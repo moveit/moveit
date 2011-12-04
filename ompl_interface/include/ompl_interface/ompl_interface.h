@@ -65,7 +65,7 @@ namespace ompl_interface
         {
         }
 
-        bool configure(const planning_scene::PlanningScenePtr &scene, const std::vector<PlannerConfigs> &pconfig);
+        bool configure(const planning_scene::PlanningSceneConstPtr &scene, const std::vector<PlannerConfigs> &pconfig);
 
         void setMaximumSamplingAttempts(unsigned int max_sampling_attempts);
         void setMaximumGoalSamples(unsigned int max_goal_samples);
@@ -85,7 +85,7 @@ namespace ompl_interface
 
     protected:
 
-        planning_scene::PlanningScenePtr        scene_;
+        planning_scene::PlanningSceneConstPtr   scene_;
         std::map<std::string, PlanningGroupPtr> planning_groups_;
         ompl::StateSpaceCollection              ssc_;
         bool                                    configured_;

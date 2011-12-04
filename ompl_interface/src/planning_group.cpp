@@ -100,7 +100,7 @@ ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const omp
 
 ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
                                              const std::map<std::string, std::string> &config,
-                                             const planning_scene::PlanningScenePtr &scene, ompl::StateSpaceCollection &ssc) :
+                                             const planning_scene::PlanningSceneConstPtr &scene, ompl::StateSpaceCollection &ssc) :
     name_(name), jmg_(jmg), planning_scene_(scene), km_state_space_(ssc, jmg), ssetup_(km_state_space_.getOMPLSpace()),
     pplan_(ssetup_.getProblemDefinition()), start_state_(scene->getKinematicModel()), last_plan_time_(0.0),
     max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)

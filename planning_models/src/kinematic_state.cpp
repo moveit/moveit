@@ -333,7 +333,7 @@ void planning_models::KinematicState::getAttachedBodies(std::vector<const Attach
 void planning_models::KinematicState::clearAttachedBodies(void)
 {
     for (std::size_t i = 0 ; i < link_state_vector_.size() ; ++i)
-	link_state_vector_[i]->clearAttachedBodies();
+        link_state_vector_[i]->clearAttachedBodies();
 }
 
 //-------------------- JointState ---------------------
@@ -725,6 +725,15 @@ void planning_models::KinematicState::JointStateGroup::setDefaultValues(void)
     for (std::size_t i = 0  ; i < joint_state_vector_.size() ; ++i)
         joint_state_vector_[i]->getJointModel()->getDefaultValues(default_joint_values);
     setStateValues(default_joint_values);
+}
+
+bool planning_models::KinematicState::JointStateGroup::setDefaultValues(const std::string &name)
+{
+    std::map<std::string, double> default_joint_values;
+    if (!joint_model_group_->getDefaultValues(name, default_joint_values))
+        return false;
+    setStateValues(default_joint_values);
+    return true;
 }
 
 void planning_models::KinematicState::JointStateGroup::setRandomValues(void)

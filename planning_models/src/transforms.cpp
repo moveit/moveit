@@ -70,7 +70,7 @@ planning_models::Transforms::Transforms(const std::string &target_frame) : targe
 }
 
 planning_models::Transforms::Transforms(const Transforms &other) : target_frame_(other.target_frame_), transforms_(other.transforms_)
-{    
+{
 }
 
 planning_models::Transforms::~Transforms(void)

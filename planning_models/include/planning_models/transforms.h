@@ -53,8 +53,8 @@ namespace planning_models
     class Transforms
     {
     public:
-        Transforms(const std::string &target_frame);  
-	Transforms(const Transforms &other);
+        Transforms(const std::string &target_frame);
+        Transforms(const Transforms &other);
         ~Transforms(void);
 
         const std::string& getPlanningFrame(void) const;
