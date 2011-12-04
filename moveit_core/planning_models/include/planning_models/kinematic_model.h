@@ -87,7 +87,9 @@ namespace planning_models
                     UNKNOWN, REVOLUTE, PRISMATIC, PLANAR, FLOATING, FIXED
                 };
 
+            /** \brief Construct a joint named \e name */
             JointModel(const std::string& name);
+
             virtual ~JointModel(void);
 
             /** \brief Get the name of the joint */
@@ -169,6 +171,8 @@ namespace planning_models
                 return variable_names_.size();
             }
 
+            /** \brief The set of variables that make up the state value of a joint are stored in some order. This map
+                gives the position of each variable in that order, for each variable name */
             const std::map<std::string, unsigned int>& getVariableIndexMap(void) const
             {
                 return variable_index_;
@@ -372,27 +376,37 @@ namespace planning_models
                 return tree_index_;
             }
 
+            /** \brief Get the joint model whose child this link is. There will always be a parent joint */
             const JointModel* getParentJointModel(void) const
             {
                 return parent_joint_model_;
             }
 
+            /** \brief A link may have 0 or more child joints. From those joints there will certainly be other descendant links */
             const std::vector<JointModel*>& getChildJointModels(void) const
             {
                 return child_joint_models_;
             }
 
+            /** \brief When transforms are computed for this link,
+                they are usually applied to the link's origin. The
+                joint origin transform acts as an offset -- it is
+                pre-applied before any other transform */
             const btTransform& getJointOriginTransform(void) const
             {
                 return joint_origin_transform_;
             }
 
+            /** \brief In addition to the link transform, the geometry
+                of a link that is used for collision checking may have
+                a different offset itself, with respect to the origin */
             const btTransform& getCollisionOriginTransform(void) const
             {
                 return collision_origin_transform_;
             }
 
-            const boost::shared_ptr<shapes::Shape>& getShape(void) const
+            /** \brief Get shape associated to the collision geometry for this link */
+            const shapes::ShapePtr& getShape(void) const
             {
                 return shape_;
             }
@@ -400,28 +414,28 @@ namespace planning_models
         private:
 
             /** \brief Name of the link */
-            std::string                      name_;
-
-            /** \brief Filename associated with the mesh of this link. If empty, no mesh */
-            std::string                      filename_;
+            std::string               name_;
 
             /** \brief JointModel that connects this link to the parent link */
-            JointModel                      *parent_joint_model_;
+            JointModel               *parent_joint_model_;
 
             /** \brief List of descending joints (each connects to a child link) */
-            std::vector<JointModel*>         child_joint_models_;
+            std::vector<JointModel*>  child_joint_models_;
 
             /** \brief The constant transform applied to the link (local) */
-            btTransform                      joint_origin_transform_;
+            btTransform               joint_origin_transform_;
 
             /** \brief The constant transform applied to the collision geometry of the link (local) */
-            btTransform                      collision_origin_transform_;
+            btTransform               collision_origin_transform_;
 
             /** \brief The collision geometry of the link */
-            boost::shared_ptr<shapes::Shape> shape_;
+            shapes::ShapePtr          shape_;
+
+            /** \brief Filename associated with the mesh of this link (loaded in shape_). If empty, no mesh was used. */
+            std::string               filename_;
 
             /** \brief The index assigned to this link when traversing the kinematic tree in depth first fashion */
-            int                              tree_index_;
+            int                       tree_index_;
         };
 
         class JointModelGroup
@@ -433,11 +447,13 @@ namespace planning_models
 
             virtual ~JointModelGroup(void);
 
+            /** \brief Get the kinematic model this group is part of */
             const KinematicModel* getParentModel(void) const
             {
                 return parent_model_;
             }
 
+            /** \brief Get the name of the joint group */
             const std::string& getName(void) const
             {
                 return name_;
@@ -485,36 +501,56 @@ namespace planning_models
                 return active_dof_names_;
             }
 
+            /** \brief Unlike a complete kinematic model, a group may
+                contain disconnected parts of the kinematic tree -- a
+                set of smaller trees. This function gives the roots of
+                those smaller trees. Furthermore, it is ensure that
+                the roots are on different branches in the kinematic
+                tree. This means that in following any root in the given
+                list, none of the other returned roots will be encountered. */
             const std::vector<const JointModel*>& getJointRoots(void) const
             {
                 return joint_roots_;
             }
 
+            /** \brief Get the links that are part of this joint group */
             const std::vector<const LinkModel*>& getLinkModels(void) const
             {
                 return group_link_model_vector_;
             }
 
+            /** \brief Get the names of the links that are part of this joint group */
             const std::vector<std::string>& getLinkModelNames(void) const
             {
                 return link_model_name_vector_;
             }
 
+            /** \brief Get the names of the links that are to be updated when the state of this group changes. This
+                includes links that are in the kinematic model but outside this group, if those links are descendants of
+                joints in this group that have their values updated. */
             const std::vector<const LinkModel*>& getUpdatedLinkModels(void) const
             {
                 return updated_link_model_vector_;
             }
 
+            /** \brief Get the names of the links returned by getUpdatedLinkModels() */
             const std::vector<std::string>& getUpdatedLinkModelNames(void) const
             {
                 return updated_link_model_name_vector_;
             }
 
+            /** \brief A joint group consists of an array of joints. Each joint has a specific ordering of its variables.
+                Given the ordering of joints the group maintains, an ordering of all the variables of the group can be then constructed.
+                The map from variable names to their position in the joint group state is given by this function */
             const std::map<std::string, unsigned int>& getJointVariablesIndexMap(void) const
             {
                 return joint_variables_index_map_;
             }
 
+            /** \brief Get the values that correspond to a named state as read from the URDF. Return false on failure. */
+            bool getDefaultValues(const std::string &name, std::map<std::string, double> &values) const;
+
+            /** \brief Compute random values for the state of the joint group */
             void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
 
             /** \brief Get the number of variables that describe this joint group */
@@ -526,53 +562,57 @@ namespace planning_models
         protected:
 
              /** \brief Owner model */
-            const KinematicModel                    *parent_model_;
+            const KinematicModel                       *parent_model_;
 
             /** \brief Name of group */
-            std::string                              name_;
+            std::string                                 name_;
 
             /** \brief Names of joints in the order they appear in the group state */
-            std::vector<std::string>                 joint_model_name_vector_;
+            std::vector<std::string>                    joint_model_name_vector_;
 
             /** \brief Joint instances in the order they appear in the group state */
-            std::vector<const JointModel*>           joint_model_vector_;
+            std::vector<const JointModel*>              joint_model_vector_;
 
             /** \brief A map from joint names to their instances */
-            std::map<std::string, const JointModel*> joint_model_map_;
+            std::map<std::string, const JointModel*>    joint_model_map_;
 
             /** \brief The list of joint models that are roots in this group */
-            std::vector<const JointModel*>           joint_roots_;
+            std::vector<const JointModel*>              joint_roots_;
 
             /** \brief The group includes all the joint variables that make up the joints the group consists of.
                 This map gives the position in the state vector of the group for each of these variables.
                 Additionaly, it includes the names of the joints and the index for the first variable of that joint. */
-            std::map<std::string, unsigned int>      joint_variables_index_map_;
+            std::map<std::string, unsigned int>         joint_variables_index_map_;
 
             /** \brief The joints that have no DOF (fixed) */
-            std::vector<const JointModel*>           fixed_joints_;
+            std::vector<const JointModel*>              fixed_joints_;
 
             /** \brief Joints that mimic other joints */
-            std::vector<const JointModel*>           mimic_joints_;
+            std::vector<const JointModel*>              mimic_joints_;
 
             /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not necessarily joint names!) */
-            std::vector<std::string>                 active_dof_names_;
+            std::vector<std::string>                    active_dof_names_;
 
             /** \brief The links that are on the direct lineage between joints
                 and joint_roots_, as well as the children of the joint leafs.
                 May not be in any particular order */
-            std::vector<const LinkModel*>            group_link_model_vector_;
+            std::vector<const LinkModel*>               group_link_model_vector_;
 
             /** \brief The names of the links in this group */
-            std::vector<std::string>                 link_model_name_vector_;
+            std::vector<std::string>                    link_model_name_vector_;
 
             /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
-            std::vector<const LinkModel*>            updated_link_model_vector_;
+            std::vector<const LinkModel*>               updated_link_model_vector_;
 
             /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
-            std::vector<std::string>                 updated_link_model_name_vector_;
+            std::vector<std::string>                    updated_link_model_name_vector_;
 
             /** \brief The number of variables necessary to describe this group of joints */
-            unsigned int                             variable_count_;
+            unsigned int                                variable_count_;
+
+            /** \brief The set of default states specified for this group in the SRDF */
+            std::map<std::string, std::map<std::string,
+                                           double> >    default_states_;
         };
 
         /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
@@ -660,20 +700,25 @@ namespace planning_models
         /** \brief Get the root joint */
         const JointModel* getRoot(void) const;
 
+        /** \brief Get the frame in which the transforms for this model are computed (when using a planning_models::KinematicState) */
         const std::string& getModelFrame(void) const
         {
             return model_frame_;
         }
 
+        /** \brief Compute the random values for a KinematicState */
         void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
 
         /** \brief Print information about the constructed model */
         void printModelInfo(std::ostream &out = std::cout) const;
 
+        /** \brief Check if the JointModelGroup \e group exists */
         bool hasJointModelGroup(const std::string& group) const;
 
+        /** \brief Construct a JointModelGroup given a SRDF description \e group */
         bool addJointModelGroup(const srdf::Model::Group& group);
 
+        /** \brief Remove a group from this model */
         void removeJointModelGroup(const std::string& group);
 
         const JointModelGroup* getJointModelGroup(const std::string& name) const;
@@ -758,17 +803,15 @@ namespace planning_models
         std::map<std::string, JointModelGroup*>   joint_model_group_map_;
         std::vector<std::string>                  joint_model_group_names_;
         std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
-        std::vector<srdf::Model::GroupState>      default_states_;
 
         void buildModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
                         const boost::shared_ptr<const srdf::Model> &srdf_model);
         void buildGroups(const std::vector<srdf::Model::Group> &group_config);
-      void buildMimic(const boost::shared_ptr<const urdf::Model> &urdf_model);
+        void buildMimic(const boost::shared_ptr<const urdf::Model> &urdf_model);
         JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
         JointModel* constructJointModel(const urdf::Joint *urdfJointModel, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
         LinkModel* constructLinkModel(const urdf::Link *urdfLink);
-      boost::shared_ptr<shapes::Shape> constructShape(const urdf::Geometry *geom,
-                                                      std::string& filename);
+        shapes::ShapePtr constructShape(const urdf::Geometry *geom, std::string& filename);
     };
 
     typedef boost::shared_ptr<KinematicModel> KinematicModelPtr;

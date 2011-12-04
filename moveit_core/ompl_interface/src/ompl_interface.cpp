@@ -37,7 +37,7 @@
 #include "ompl_interface/ompl_interface.h"
 #include <planning_models/conversions.h>
 
-bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScenePtr &scene, const std::vector<PlannerConfigs> &pconfig)
+bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningSceneConstPtr &scene, const std::vector<PlannerConfigs> &pconfig)
 {
     scene_ = scene;
     if (!scene_ || !scene_->isConfigured())

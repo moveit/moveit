@@ -190,7 +190,7 @@ void planning_models::kinematicStateToRobotState(const KinematicState& state, mo
     const std::vector<KinematicState::JointState*> &js = state.getJointStateVector();
     robot_state.multi_dof_joint_state = moveit_msgs::MultiDOFJointState();
     for (std::size_t i = 0 ; i < js.size() ; ++i)
-	if (js[i]->getVariableCount() > 1)
+        if (js[i]->getVariableCount() > 1)
         {
             geometry_msgs::Pose p;
             msgFromPose(js[i]->getVariableTransform(), p);
@@ -205,7 +205,7 @@ void planning_models::kinematicStateToJointState(const KinematicState& state, se
 {
     const std::vector<KinematicState::JointState*> &js = state.getJointStateVector();
     joint_state = sensor_msgs::JointState();
-    
+
     for (std::size_t i = 0 ; i < js.size() ; ++i)
         if (js[i]->getVariableCount() == 1)
         {

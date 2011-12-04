@@ -127,7 +127,34 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
 
         // build groups
         buildGroups(srdf_model->getGroups());
-        default_states_ = srdf_model->getGroupStates();
+
+        // copy the default states to the groups
+        const std::vector<srdf::Model::GroupState> &ds = srdf_model->getGroupStates();
+        for (std::size_t i = 0 ; i < ds.size() ; ++i)
+        {
+            std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(ds[i].group_);
+            if (it != joint_model_group_map_.end())
+                for (std::map<std::string, std::vector<double> >::const_iterator jt = ds[i].joint_values_.begin() ; jt != ds[i].joint_values_.end() ; ++jt)
+                {
+                    const JointModel* jm = it->second->getJointModel(jt->first);
+                    if (jm)
+                    {
+                        const std::vector<std::string> &vn = jm->getVariableNames();
+                        if (vn.size() == jt->second.size())
+                            for (std::size_t j = 0 ; j < vn.size() ; ++j)
+                                it->second->default_states_[ds[i].name_][vn[j]] = jt->second[j];
+                        else
+                            ROS_ERROR("The model for joint '%s' requires %d variable values, but only %d variable values were supplied in default state '%s' for group '%s'",
+                                      jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(), it->first.c_str());
+                    }
+                    else
+                        ROS_ERROR("Group state '%s' specifies value for joint '%s', but that joint is not part of group '%s'", ds[i].name_.c_str(),
+                                  jt->first.c_str(), it->first.c_str());
+                }
+            else
+                ROS_ERROR("Group state '%s' specified for group '%s', but that group does not exist", ds[i].name_.c_str(), ds[i].group_.c_str());
+        }
+
         std::stringstream ss;
         printModelInfo(ss);
         ROS_DEBUG_STREAM(ss.str());
@@ -493,8 +520,7 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
     return result;
 }
 
-boost::shared_ptr<shapes::Shape> planning_models::KinematicModel::constructShape(const urdf::Geometry *geom,
-                                                                                 std::string& filename)
+shapes::ShapePtr planning_models::KinematicModel::constructShape(const urdf::Geometry *geom, std::string& filename)
 {
     ROS_ASSERT(geom);
 
@@ -530,7 +556,7 @@ boost::shared_ptr<shapes::Shape> planning_models::KinematicModel::constructShape
         break;
     }
 
-    return boost::shared_ptr<shapes::Shape>(result);
+    return shapes::ShapePtr(result);
 }
 
 const planning_models::KinematicModel::JointModel* planning_models::KinematicModel::getRoot(void) const
@@ -1063,6 +1089,15 @@ void planning_models::KinematicModel::JointModelGroup::getRandomValues(random_nu
 {
     for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
         joint_model_vector_[i]->getRandomValues(rng, values);
+}
+
+bool planning_models::KinematicModel::JointModelGroup::getDefaultValues(const std::string &name, std::map<std::string, double> &values) const
+{
+    std::map<std::string, std::map<std::string, double> >::const_iterator it = default_states_.find(name);
+    if (it == default_states_.end())
+        return false;
+    values = it->second;
+    return true;
 }
 
 void planning_models::KinematicModel::printModelInfo(std::ostream &out) const

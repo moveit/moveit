@@ -55,7 +55,7 @@ namespace ompl_interface
     public:
 
         PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
-                      const std::map<std::string, std::string> &config, const planning_scene::PlanningScenePtr &scene, ompl::StateSpaceCollection &ssc);
+                      const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene, ompl::StateSpaceCollection &ssc);
         virtual ~PlanningGroup(void);
 
         /* \brief Return the name of this planning group. This is not always the same as the name of the joint group the planner is operating on */
@@ -69,7 +69,7 @@ namespace ompl_interface
             return jmg_;
         }
 
-        const planning_scene::PlanningScenePtr& getPlanningScene(void) const
+        const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
         {
             return planning_scene_;
         }
@@ -170,7 +170,7 @@ namespace ompl_interface
         const planning_models::KinematicModel::JointModelGroup *jmg_;
 
         /// pointer to the planning scene used for collision avoidance
-        planning_scene::PlanningScenePtr                        planning_scene_;
+        planning_scene::PlanningSceneConstPtr                   planning_scene_;
 
         /// wrapper around an OMPL space, which includes conversions to and from planning_models::KinematicState
         KMStateSpace                                            km_state_space_;
