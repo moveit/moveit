@@ -433,6 +433,11 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
     return result;
 }
 
+void ompl_interface::PlanningGroup::simplifySolution(double timeout)
+{
+    ssetup_.simplifySolution();
+}
+
 bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory &traj) const
 {
     if (!ssetup_.haveSolutionPath())

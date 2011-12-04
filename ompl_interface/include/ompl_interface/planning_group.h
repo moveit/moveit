@@ -151,6 +151,13 @@ namespace ompl_interface
 
         bool solve(double timeout, unsigned int count);
 
+        double getLastPlanTime(void) const
+        {
+            return last_plan_time_;
+        }
+
+        void simplifySolution(double timeout);
+
         bool getSolutionPath(moveit_msgs::RobotTrajectory &traj) const;
         void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
 
