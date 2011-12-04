@@ -119,8 +119,12 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
     pg->second->setPlanningVolume(req.motion_plan_request.workspace_parameters);
 
     // solve the planning problem
-    if (pg->second->solve(req.motion_plan_request.allowed_planning_time.toSec(), req.motion_plan_request.num_planning_attempts))
+    double timeout = req.motion_plan_request.allowed_planning_time.toSec();
+    if (pg->second->solve(timeout, req.motion_plan_request.num_planning_attempts))
     {
+        double ptime = pg->second->getLastPlanTime();
+        if (ptime < timeout)
+            pg->second->simplifySolution(timeout - ptime);
         pg->second->fillResponse(res);
         return true;
     }
@@ -151,7 +155,12 @@ bool ompl_interface::OMPLInterface::solve(const std::string &config, const plann
 
     // solve the planning problem
     if (pg->second->solve(timeout, 1))
+    {
+        double ptime = pg->second->getLastPlanTime();
+        if (ptime < timeout)
+            pg->second->simplifySolution(timeout - ptime);
         return true;
+    }
 
     return false;
 }
