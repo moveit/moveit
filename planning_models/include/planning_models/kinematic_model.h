@@ -749,6 +749,11 @@ namespace planning_models
             return active_dof_names_;
         }
 
+        const std::map<std::string, std::pair<double, double> >& getAllVariableBounds(void) const
+        {
+            return variable_bounds_;
+        }
+
         const std::map<std::string, unsigned int>& getJointVariablesIndexMap(void) const
         {
             return joint_variables_index_map_;
@@ -791,6 +796,10 @@ namespace planning_models
 
         /** \brief Get the number of variables necessary to describe this model */
         unsigned int                              variable_count_;
+
+        /** \brief The bounds for all the variables that make up the joints in this model */
+        std::map<std::string,
+                 std::pair<double, double> >      variable_bounds_;
 
         /** \brief The state includes all the joint variables that make up the joints the state consists of.
             This map gives the position in the state vector of the group for each of these variables.
