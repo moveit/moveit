@@ -438,7 +438,7 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
 
 void ompl_interface::PlanningGroup::simplifySolution(double timeout)
 {
-    ssetup_.simplifySolution();
+    ssetup_.simplifySolution(timeout);
 }
 
 bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory &traj) const
