@@ -96,10 +96,13 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
         variable_count_ = 0;
         std::vector<JointModel*> later;
         for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
+        {
+            const std::vector<std::string> &name_order = joint_model_vector_[i]->getVariableNames();
+            for (std::size_t j = 0 ; j < name_order.size() ; ++j)
+                joint_model_vector_[i]->getVariableBounds(name_order[j], variable_bounds_[name_order[j]]);
             if (joint_model_vector_[i]->mimic_ == NULL)
             {
                 // compute index map
-                const std::vector<std::string>& name_order = joint_model_vector_[i]->getVariableNames();
                 if (name_order.size() > 0)
                 {
                     for (std::size_t j = 0; j < name_order.size(); ++j)
@@ -115,6 +118,7 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
             }
             else
                 later.push_back(joint_model_vector_[i]);
+        }
 
         for (std::size_t i = 0 ; i < later.size() ; ++i)
         {
