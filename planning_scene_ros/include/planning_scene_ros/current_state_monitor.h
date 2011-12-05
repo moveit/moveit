@@ -64,6 +64,20 @@ namespace planning_scene_ros
         std::map<std::string, double> getCurrentStateValues(void) const;
         void setOnStateUpdateCallback(const JointStateUpdateCallback &callback);
 
+        /** \brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
+            if the difference is less than the specified error. */
+        double getBoundsError(void) const
+        {
+            return error_;
+        }
+
+        /** \brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
+            if the difference is less than the specified error. */
+        void setBoundsError(double error)
+        {
+            error_ = error;
+        }
+
     private:
 
         void jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state);
@@ -75,6 +89,7 @@ namespace planning_scene_ros
         planning_models::KinematicState::JointState *root_;
         std::map<std::string, ros::Time>             joint_time_;
         bool                                         state_monitor_started_;
+        double                                       error_;
         ros::Subscriber                              joint_state_subscriber_;
 
         mutable boost::mutex                         state_update_lock_;
