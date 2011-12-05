@@ -59,7 +59,9 @@ namespace ompl_interface
 
         /// Construct the OMPL state space that corresponds to a group of joints. Record all the constructed spaces in the collection \e ssc
         KMStateSpace(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModel::JointModelGroup* jmg);
-
+	
+	~KMStateSpace(void);
+	
         /// Get the constructed OMPL state space
         const ompl::base::StateSpacePtr& getOMPLSpace(void) const;
 
