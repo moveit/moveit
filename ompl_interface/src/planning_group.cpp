@@ -300,7 +300,8 @@ void ompl_interface::PlanningGroup::setPlanningVolume(const moveit_msgs::Workspa
 
 bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::KinematicState &start_state,
                                                          const moveit_msgs::Constraints &goal_constraints,
-                                                         const moveit_msgs::Constraints &path_constraints)
+                                                         const moveit_msgs::Constraints &path_constraints,
+							 moveit_msgs::MoveItErrorCodes *error)
 {
     // ******************* check if the input is correct
 
@@ -310,7 +311,9 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
         goal_constraints.orientation_constraints.empty())
     {
         ROS_WARN("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
-        return false;
+	if (error)
+	    error->val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
+	return false;
     }
 
     // ******************* set up the starting state for the plannig context
