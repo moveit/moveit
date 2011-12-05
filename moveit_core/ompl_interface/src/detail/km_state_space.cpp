@@ -38,15 +38,54 @@
 #include <ros/console.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
+#include <boost/thread/mutex.hpp>
+#include <set>
+
+namespace ompl_interface
+{
+    // in the construction of OMPL state spaces we make sure there is only one instance for each space;
+    // this is not a strict requirement -- things would work fine with multiple instances; however, some 
+    // operations that require copying of data between states from different state spaces require consistent 
+    // naming of state spaces. For efficiency reasons, similar structure of spaces named the same is desireable 
+    struct Allocated_KM_Spaces
+    {
+	typedef std::map<std::vector<const planning_models::KinematicModel::JointModel*>, std::set<KMStateSpace*> > SMap;
+	SMap         spaces;
+	boost::mutex lock;
+    };
+    
+    static Allocated_KM_Spaces& getAllocatedKMSpaces(void)
+    {
+	static Allocated_KM_Spaces a;
+	return a;
+    }
+}
 
 ompl_interface::KMStateSpace::KMStateSpace(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModel::JointModelGroup* jmg) : jmg_(jmg)
 {
     constructSpace(ssc, jmg_->getJointModels());
+    if (space_)
+	space_->setName(jmg_->getName());
 }
 
 ompl_interface::KMStateSpace::KMStateSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints) : jmg_(NULL)
 {
     constructSpace(ssc, joints);
+}
+
+ompl_interface::KMStateSpace::~KMStateSpace(void)
+{
+    Allocated_KM_Spaces &aks = getAllocatedKMSpaces();
+    boost::mutex::scoped_lock sLock(aks.lock);
+    Allocated_KM_Spaces::SMap::iterator sit = aks.spaces.find(joints_);
+    if (sit != aks.spaces.end())
+    {
+	sit->second.erase(this);
+	if (sit->second.empty())
+	    aks.spaces.erase(sit);
+    }
+    else
+	ROS_ERROR("Unexpected error in management of state spaces. This is a bug.");
 }
 
 const ompl::base::StateSpacePtr& ompl_interface::KMStateSpace::getOMPLSpace(void) const
@@ -78,7 +117,6 @@ void ompl_interface::KMStateSpace::copyToKinematicState(planning_models::Kinemat
 }
 
 void ompl_interface::KMStateSpace::copyToKinematicState(const std::vector<planning_models::KinematicState::JointState*> &js, const ompl::base::State *state) const
-
 {
     const ompl::base::CompoundState *cstate = state->as<ompl::base::CompoundState>();
     unsigned int j = 0;
@@ -229,6 +267,25 @@ void ompl_interface::KMStateSpace::setPlanningVolume(double minX, double maxX, d
 void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints)
 {
     joints_ = joints;
+    
+    // check to see if this space was previously constructed
+    Allocated_KM_Spaces &aks = getAllocatedKMSpaces();
+    boost::mutex::scoped_lock sLock(aks.lock);
+    Allocated_KM_Spaces::SMap::const_iterator sit = aks.spaces.find(joints_);
+    if (sit != aks.spaces.end())
+    {
+	const KMStateSpace &other = **(sit->second.begin());
+	space_ = other.space_;
+	joint_mapping_ = other.joint_mapping_;
+	variable_mapping_ = other.variable_mapping_;
+	all_components_ = other.all_components_;
+	state_address_.setStateSpace(space_);
+	aks.spaces[joints_].insert(this);
+	return;
+    }
+    else
+	aks.spaces[joints_].insert(this);
+    
     space_.reset();
     joint_mapping_.clear();
     variable_mapping_.clear();

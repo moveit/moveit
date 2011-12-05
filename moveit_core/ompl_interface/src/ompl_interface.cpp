@@ -36,6 +36,8 @@
 
 #include "ompl_interface/ompl_interface.h"
 #include <planning_models/conversions.h>
+#include <fstream>
+#include <set>
 
 bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningSceneConstPtr &scene, const std::vector<PlannerConfigs> &pconfig)
 {
@@ -46,19 +48,54 @@ bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
         return false;
     }
 
+    // this will be the set of joints not covered by any groups
+    std::set<const planning_models::KinematicModel::JointModel*> rest;
+    rest.insert(scene_->getKinematicModel()->getJointModels().begin(), scene_->getKinematicModel()->getJointModels().end());
+    fullSpace_.reset();
+    
+    // construct specified configurations
     for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
     {
         const planning_models::KinematicModel::JointModelGroup *jmg = scene_->getKinematicModel()->getJointModelGroup(pconfig[i].group);
         if (jmg)
             planning_groups_[pconfig[i].name].reset(new PlanningGroup(pconfig[i].name, jmg, pconfig[i].config, scene_, ssc_));
     }
+    // construct default configurations
     const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& groups = scene_->getKinematicModel()->getJointModelGroupMap();
     for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
-        if (planning_groups_.find(it->first) == planning_groups_.end())
+    {
+	if (planning_groups_.find(it->first) == planning_groups_.end())
         {
             static const std::map<std::string, std::string> empty;
             planning_groups_[it->first].reset(new PlanningGroup(it->first, it->second, empty, scene_, ssc_));
         }
+	
+	fullSpace_ = fullSpace_ + ssc_.getSpace(it->first);
+	const std::vector<const planning_models::KinematicModel::JointModel*> &js = it->second->getJointModels();
+	for (std::size_t k = 0 ; k < js.size() ; ++k)
+	    rest.erase(js[k]);
+    }
+    
+    // finish the construction of the full state space for the robot
+    
+    if (!rest.empty())
+    {
+	std::vector<const planning_models::KinematicModel::JointModel*> js;
+	js.insert(js.end(), rest.begin(), rest.end());
+	KMStateSpace dummy(ssc_, js);
+	dummy.getOMPLSpace()->setName(scene_->getKinematicModel()->getName() + "_ungrouped");
+	fullSpace_ = fullSpace_ + dummy.getOMPLSpace();
+    }
+    if (fullSpace_)
+    {
+	fullSpace_->setName(scene_->getKinematicModel()->getName());
+	ssc_.collect(fullSpace_);
+    }
+    /*
+    std::ofstream fout("ompl_spaces.dot");
+    ompl::base::StateSpace::Diagram(fout);
+    fout.close();
+    */
     configured_ = true;
     return true;
 }

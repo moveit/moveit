@@ -88,7 +88,8 @@ namespace ompl_interface
         planning_scene::PlanningSceneConstPtr   scene_;
         std::map<std::string, PlanningGroupPtr> planning_groups_;
         ompl::StateSpaceCollection              ssc_;
-        bool                                    configured_;
+	ompl::base::StateSpacePtr               fullSpace_;
+	bool                                    configured_;
     };
 }
 

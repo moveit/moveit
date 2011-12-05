@@ -10,7 +10,7 @@ copied: wiped $(SOURCE_DIR)/unpacked
 	   touch copied
 
 wipe:
-	rm -rf copied patched
+	rm -rf installed copied patched
 
 wiped: Makefile.ompl Makefile.params
 	make -f Makefile wipeNoClean
