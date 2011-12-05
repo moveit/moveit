@@ -36,20 +36,20 @@
 
 #include "planning_scene_ros/planning_scene_ros.h"
 
-planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const planning_scene::PlanningSceneConstPtr &parent) : 
+planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const planning_scene::PlanningSceneConstPtr &parent) :
     planning_scene::PlanningScene(parent), nh_("~")
 {
     const PlanningSceneROS *psr = dynamic_cast<const PlanningSceneROS*>(parent.get());
     if (!psr)
-	ROS_FATAL("The parent planning scene must be a PlanningSceneROS for this constructor");
+        ROS_FATAL("The parent planning scene must be a PlanningSceneROS for this constructor");
     else
     {
-	tf_ = psr->tf_;
-	robot_description_ = psr->getRobotDescription();
-	default_robot_padd_ = psr->default_robot_padd_;
-	default_robot_scale_ = psr->default_robot_scale_;
-	default_object_padd_ = psr->default_object_padd_;
-	default_attached_padd_ = psr->default_attached_padd_;
+        tf_ = psr->tf_;
+        robot_description_ = psr->getRobotDescription();
+        default_robot_padd_ = psr->default_robot_padd_;
+        default_robot_scale_ = psr->default_robot_scale_;
+        default_object_padd_ = psr->default_object_padd_;
+        default_attached_padd_ = psr->default_attached_padd_;
     }
 }
 
@@ -62,12 +62,12 @@ planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_
         {
             configureDefaultCollisionMatrix();
             configureDefaultPadding();
-	    if (isConfigured())
-	    {
-		crobot_->setPadding(default_robot_padd_);
-		crobot_->setScale(default_robot_scale_);
-	    }
-	}
+            if (isConfigured())
+            {
+                crobot_->setPadding(default_robot_padd_);
+                crobot_->setScale(default_robot_scale_);
+            }
+        }
     }
     else
         ROS_ERROR("Unable to find ROS parameter for robot description. Did you forget to remap '%s'?", robot_description.c_str());
@@ -95,18 +95,20 @@ void planning_scene_ros::PlanningSceneROS::useMonitoredState(void)
 {
     if (csm_)
     {
-	const std::map<std::string, double> &v = csm_->getCurrentStateValues();
-	getCurrentState().setStateValues(v);
+        if (!csm_->haveCompleteState())
+            ROS_ERROR("The complete state of the robot is not yet known");
+        const std::map<std::string, double> &v = csm_->getCurrentStateValues();
+        getCurrentState().setStateValues(v);
     }
     else
-	ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
+        ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
 }
 
 void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
 {
     // no collisions allowed by default
     acm_->setEntry(kmodel_->getLinkModelNamesWithCollisionGeometry(),
-		   kmodel_->getLinkModelNamesWithCollisionGeometry(), false);
+                   kmodel_->getLinkModelNamesWithCollisionGeometry(), false);
 
     // allow collisions for pairs that have been disabled
     const std::vector<std::pair<std::string, std::string> >&dc = srdf_model_->getDisabledCollisions();
@@ -162,13 +164,13 @@ bool planning_scene_ros::PlanningSceneROS::loadRobotFromParamServer(void)
     std::string content;
     if (nh_.getParam(robot_description_, content))
     {
-	boost::shared_ptr<urdf::Model> urdf(new urdf::Model);
+        boost::shared_ptr<urdf::Model> urdf(new urdf::Model);
         if (urdf->initString(content))
         {
             std::string scontent;
             if (nh_.getParam(robot_description_ + "_semantic", scontent))
             {
-		boost::shared_ptr<srdf::Model> srdf(new srdf::Model);
+                boost::shared_ptr<srdf::Model> srdf(new srdf::Model);
                 if (srdf->initString(*urdf, scontent))
                     return configure(urdf, srdf);
                 else

@@ -49,7 +49,7 @@ namespace planning_scene_ros
     {
     public:
         PlanningSceneROS(const std::string &robot_description, tf::Transformer *tf = NULL);
-	PlanningSceneROS(const planning_scene::PlanningSceneConstPtr &parent);
+        PlanningSceneROS(const planning_scene::PlanningSceneConstPtr &parent);
 
         const std::string& getRobotDescription(void) const
         {
@@ -60,9 +60,9 @@ namespace planning_scene_ros
         {
             return csm_;
         }
-	
-	void useMonitoredState(void);
-	
+
+        void useMonitoredState(void);
+
         void startStateMonitor(void);
         void stopStateMonitor(void);
 
@@ -79,7 +79,7 @@ namespace planning_scene_ros
         double                 default_robot_scale_;
         double                 default_object_padd_;
         double                 default_attached_padd_;
-	
+
         CurrentStateMonitorPtr csm_;
     };
 

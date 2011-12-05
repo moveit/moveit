@@ -37,7 +37,7 @@
 #include "planning_scene_ros/current_state_monitor.h"
 
 planning_scene_ros::CurrentStateMonitor::CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf) :
-    tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false)
+    tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(1e-3)
 {
 }
 
@@ -133,9 +133,23 @@ void planning_scene_ros::CurrentStateMonitor::jointStateCallback(const sensor_ms
     // read the received values, and update their time stamps
     std::size_t n = joint_state->name.size();
     std::map<std::string, double> joint_state_map;
+    const std::map<std::string, std::pair<double, double> > &bounds = kmodel_->getAllVariableBounds();
     for (std::size_t i = 0 ; i < n ; ++i)
     {
-        joint_state_map[joint_state->name[i]] = joint_state->position[i];
+        std::map<std::string, std::pair<double, double> >::const_iterator bi = bounds.find(joint_state->name[i]);
+        // if the read variable is 'almost' within bounds (up to error_ difference), then consider it to be within bounds
+        if (bi != bounds.end())
+        {
+            if (joint_state->position[i] < bi->second.first && joint_state->position[i] >= bi->second.first - error_)
+                joint_state_map[joint_state->name[i]] = bi->second.first;
+            else
+                if (joint_state->position[i] > bi->second.second && joint_state->position[i] <= bi->second.second + error_)
+                    joint_state_map[joint_state->name[i]] = bi->second.second;
+                else
+                    joint_state_map[joint_state->name[i]] = joint_state->position[i];
+        }
+        else
+            joint_state_map[joint_state->name[i]] = joint_state->position[i];
         joint_time_[joint_state->name[i]] = joint_state->header.stamp;
     }
     bool set_map_values = true;
