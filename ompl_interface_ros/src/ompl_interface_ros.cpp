@@ -46,15 +46,15 @@ namespace ompl_interface_ros
     public:
         IKLoader(const std::map<std::string, std::vector<std::string> > &possible_ik_solvers) : possible_ik_solvers_(possible_ik_solvers)
         {
-	    try
-	    {
-		kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
-	    }
-	    catch(pluginlib::PluginlibException& e)
-	    {
-		ROS_ERROR("Unable to construct IK loader. Error: %s", e.what());
-	    }
-	}
+            try
+            {
+                kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
+            }
+            catch(pluginlib::PluginlibException& e)
+            {
+                ROS_ERROR("Unable to construct IK loader. Error: %s", e.what());
+            }
+        }
 
         boost::shared_ptr<kinematics::KinematicsBase> allocIKSolver(const planning_models::KinematicModel::JointModelGroup *jmg)
         {
@@ -74,8 +74,12 @@ namespace ompl_interface_ros
                             result.reset(kinematics_loader_->createClassInstance(it->second[i]));
                             if (result)
                             {
-				/// \todo What is the search discretization? any reasonable way to determine this?
-                                if (!result->initialize(jmg->getName(), jmg->getJointModelNames().front(), jmg->getJointModelNames().back(), 0.1))
+                                /// \todo What is the search discretization? any reasonable way to determine this?
+                                const std::vector<const planning_models::KinematicModel::JointModel*> &jnts = jmg->getJointModels();
+                                const std::string &base = jnts.front()->getParentLinkModel() ? jnts.front()->getParentLinkModel()->getName() :
+                                    jmg->getParentModel()->getModelFrame();
+                                const std::string &tip = jnts.back()->getChildLinkModel()->getName();
+                                if (!result->initialize(jmg->getName(), base, tip, 0.1))
                                 {
                                     ROS_ERROR("IK solver of type '%s' could not initialize for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
                                     result.reset();
