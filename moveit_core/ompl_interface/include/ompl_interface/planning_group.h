@@ -141,7 +141,8 @@ namespace ompl_interface
 
         bool setupPlanningContext(const planning_models::KinematicState &start_state,
                                   const moveit_msgs::Constraints &goal_constraints,
-                                  const moveit_msgs::Constraints &path_constraints);
+                                  const moveit_msgs::Constraints &path_constraints,
+				  moveit_msgs::MoveItErrorCodes *error = NULL);
         void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
         void setIKAllocator(const kinematic_constraints::IKAllocator &ik_alloc)

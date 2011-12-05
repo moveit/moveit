@@ -85,7 +85,8 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
 {
     if (req.motion_plan_request.group_name.empty())
     {
-        ROS_ERROR("No group specified to plan for");
+	res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+	ROS_ERROR("No group specified to plan for");
         return false;
     }
 
@@ -96,15 +97,16 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
         pg = planning_groups_.find(req.motion_plan_request.group_name + "." + req.motion_plan_request.planner_id);
         if (pg == planning_groups_.end())
             ROS_WARN_STREAM("Cannot find planning configuration for group '" << req.motion_plan_request.group_name
-                            << "' using planner '" << req.motion_plan_request.planner_id << "'");
+                            << "' using planner '" << req.motion_plan_request.planner_id << "'. Will use defaults instead.");
     }
     if (pg == planning_groups_.end())
     {
         pg = planning_groups_.find(req.motion_plan_request.group_name);
         if (pg == planning_groups_.end())
         {
+	    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
             ROS_ERROR_STREAM("Cannot find planning configuration for group '" << req.motion_plan_request.group_name << "'");
-            return false;
+	    return false;
         }
     }
 
@@ -114,22 +116,36 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
     planning_models::KinematicState ks = scene_->getCurrentState();
     planning_models::robotStateToKinematicState(*scene_->getTransforms(), req.motion_plan_request.start_state, ks);
 
-    if (!pg->second->setupPlanningContext(ks, req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints))
+    if (!pg->second->setupPlanningContext(ks, req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints, &res.error_code))
         return false;
     pg->second->setPlanningVolume(req.motion_plan_request.workspace_parameters);
 
     // solve the planning problem
     double timeout = req.motion_plan_request.allowed_planning_time.toSec();
-    if (pg->second->solve(timeout, req.motion_plan_request.num_planning_attempts))
+    if (timeout <= 0.0)
     {
-        double ptime = pg->second->getLastPlanTime();
-        if (ptime < timeout)
-            pg->second->simplifySolution(timeout - ptime);
-        pg->second->fillResponse(res);
-        return true;
+	res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ALLOWED_PLANNING_TIME;
+	ROS_ERROR("The timeout for planning must be positive (%lf specified)", timeout);
     }
     else
-        ROS_INFO("Unable to solve the planning problem");
+    {
+	unsigned int att = 1;
+	if (req.motion_plan_request.num_planning_attempts > 0)
+	    att = req.motion_plan_request.num_planning_attempts;
+	else
+	    if (req.motion_plan_request.num_planning_attempts < 0)
+		ROS_ERROR("The number of desired planning attempts should be positive");
+	if (pg->second->solve(timeout, att))
+	{
+	    double ptime = pg->second->getLastPlanTime();
+	    if (ptime < timeout)
+		pg->second->simplifySolution(timeout - ptime);
+	    pg->second->fillResponse(res);
+	    return true;
+	}
+	else
+	    ROS_INFO("Unable to solve the planning problem");
+    }
     return false;
 }
 
