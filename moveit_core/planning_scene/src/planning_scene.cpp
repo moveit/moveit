@@ -109,6 +109,11 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
     checkCollision(req, res, getCurrentState());
 }
 
+void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res) const
+{
+    checkSelfCollision(req, res, getCurrentState());
+}
+
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res,
                                                    const planning_models::KinematicState &kstate) const
 {
@@ -126,6 +131,16 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
         else
             cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
     }
+}
+
+void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res,
+                                                       const planning_models::KinematicState &kstate) const
+{
+    // do self-collision checking with the unpadded version of the robot
+    if (parent_)
+        parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
+    else
+        crobot_unpadded_->checkSelfCollision(req, res, kstate, *acm_);
 }
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
@@ -147,6 +162,18 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
         else
             cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm);
     }
+}
+
+void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
+                                                       collision_detection::CollisionResult &res,
+                                                       const planning_models::KinematicState &kstate,
+                                                       const collision_detection::AllowedCollisionMatrix& acm) const
+{
+    // do self-collision checking with the unpadded version of the robot
+    if (parent_)
+        parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
+    else
+        crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
 }
 
 const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::getCollisionRobot(void)
@@ -576,8 +603,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             {
                 if (cworld_->haveNamespace(object.object.id))
                 {
-		    ROS_DEBUG("Attaching world object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
-		    
+                    ROS_DEBUG("Attaching world object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
+
                     // extract the shapes from the world
                     collision_detection::CollisionWorld::NamespaceObjectsPtr obj = cworld_->getObjects(object.object.id);
                     shapes = obj->shapes_;
@@ -586,19 +613,19 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                     cworld_->clearObjects(object.object.id);
 
                     if (obj.unique())
-		    {
-			// make sure the memory for the shapes is not deleted
+                    {
+                        // make sure the memory for the shapes is not deleted
                         obj->shapes_.clear();
-			ROS_DEBUG("The memory representing shapes was moved from the collision world to the planning model");
-		    }
-		    else
-		    {
-			// clone the shapes because we cannot assume their ownership; this will probably rarely happen (if ever)
+                        ROS_DEBUG("The memory representing shapes was moved from the collision world to the planning model");
+                    }
+                    else
+                    {
+                        // clone the shapes because we cannot assume their ownership; this will probably rarely happen (if ever)
                         for (std::size_t i = 0 ; i < shapes.size() ; ++i)
                             shapes[i] = shapes[i]->clone();
-			ROS_DEBUG("The memory representing shapes was copied from the collision world to the planning model");
-		    }
-		    
+                        ROS_DEBUG("The memory representing shapes was copied from the collision world to the planning model");
+                    }
+
                     if (!obj->static_shapes_.empty())
                         ROS_WARN("Static shapes from object '%s' are lost when the object is attached to the robot", object.object.id.c_str());
 
@@ -673,8 +700,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
 
                     if (prop.unique())
                     {
-			ROS_DEBUG("The memory representing shapes was moved from the planning model to the collision world");
-			cworld_->addObjects(object.object.id, prop->shapes_, poses);
+                        ROS_DEBUG("The memory representing shapes was moved from the planning model to the collision world");
+                        cworld_->addObjects(object.object.id, prop->shapes_, poses);
                         prop->shapes_.clear(); // memory is now owned by the collision world
                     }
                     else
@@ -683,7 +710,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                         std::vector<shapes::Shape*> shapes(prop->shapes_.size());
                         for (std::size_t i = 0 ; i < shapes.size() ; ++i)
                             shapes[i] = prop->shapes_[i]->clone();
-			ROS_DEBUG("The memory representing shapes was copied from the planning model to the collision world");
+                        ROS_DEBUG("The memory representing shapes was copied from the planning model to the collision world");
                         cworld_->addObjects(object.object.id, shapes, poses);
                     }
                     ROS_DEBUG("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
