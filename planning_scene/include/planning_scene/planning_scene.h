@@ -165,6 +165,22 @@ namespace planning_scene
                             const planning_models::KinematicState &kstate,
                             const collision_detection::AllowedCollisionMatrix& acm) const;
 
+        /** \brief Check whether the current state is in self collision */
+        void checkSelfCollision(const collision_detection::CollisionRequest& req,
+                                collision_detection::CollisionResult &res) const;
+
+        /** \brief Check whether a specified state (\e kstate) is in self collision */
+        void checkSelfCollision(const collision_detection::CollisionRequest& req,
+                                collision_detection::CollisionResult &res,
+                                const planning_models::KinematicState &kstate) const;
+
+        /** \brief Check whether a specified state (\e kstate) is in self collision, with respect to a given
+            allowd collision matrix (\e acm) */
+        void checkSelfCollision(const collision_detection::CollisionRequest& req,
+                                collision_detection::CollisionResult &res,
+                                const planning_models::KinematicState &kstate,
+                                const collision_detection::AllowedCollisionMatrix& acm) const;
+
         /** \brief Check if this planning scene has been configured or not */
         bool isConfigured(void) const
         {
