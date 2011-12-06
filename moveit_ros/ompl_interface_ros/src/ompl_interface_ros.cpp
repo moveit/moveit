@@ -41,7 +41,7 @@
 
 namespace ompl_interface_ros
 {
-    class IKLoader
+    class OMPLInterfaceROS::IKLoader
     {
     public:
         IKLoader(const std::map<std::string, std::vector<std::string> > &possible_ik_solvers) : possible_ik_solvers_(possible_ik_solvers)
@@ -109,18 +109,25 @@ namespace ompl_interface_ros
     };
 }
 
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const std::string &robot_description) : ompl_interface::OMPLInterface(), nh_("~")
+ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_scene::PlanningSceneConstPtr &scene) : ompl_interface::OMPLInterface(), nh_("~")
 {
-    planning_scene_ = new planning_scene_ros::PlanningSceneROS(robot_description);
-    planning_scene_ptr_.reset(planning_scene_);
-    if (planning_scene_->isConfigured())
+    if (scene->isConfigured())
     {
-        if (configurePlanners())
+        scene_ = scene;
+
+        std::vector<ompl_interface::PlannerConfigs> pconfig;
+        configurePlanners(pconfig);
+
+        // this call will configure planning for all groups known to the kinematic model
+        // and it will use additional configuration options, if available
+        if (configure(scene, pconfig))
         {
             configureIKSolvers();
             plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLInterfaceROS::computePlan, this);
         }
     }
+    else
+        ROS_ERROR("Planning scene is not configured. Cannot configure OMPL interface.");
 }
 
 std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConfigGroupNames(void)
@@ -139,7 +146,7 @@ std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConf
                 if (group_list[i].getType() == XmlRpc::XmlRpcValue::TypeString)
                 {
                     std::string gnm = static_cast<std::string>(group_list[i]);
-                    if (planning_scene_->getKinematicModel()->hasJointModelGroup(gnm))
+                    if (scene_->getKinematicModel()->hasJointModelGroup(gnm))
                         group_names.push_back(gnm);
                     else
                         ROS_ERROR("Additional configuration specified for group '%s', but that group is not known to the kinematic model.", gnm.c_str());
@@ -178,8 +185,8 @@ void ompl_interface_ros::OMPLInterfaceROS::configureIKSolvers(void)
         }
     }
 
-    ik_loader_.reset(new IKLoader(possible_ik_solvers));
-    kinematic_constraints::IKAllocator ik_allocator = boost::bind(&IKLoader::allocIKSolver, ik_loader_.get(), _1);
+    ik_loader_.reset(new OMPLInterfaceROS::IKLoader(possible_ik_solvers));
+    kinematic_constraints::IKAllocator ik_allocator = boost::bind(&OMPLInterfaceROS::IKLoader::allocIKSolver, ik_loader_.get(), _1);
     for (std::map<std::string, ompl_interface::PlanningGroupPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
         if (possible_ik_solvers.find(it->second->getJointModelGroup()->getName()) != possible_ik_solvers.end())
         {
@@ -188,12 +195,12 @@ void ompl_interface_ros::OMPLInterfaceROS::configureIKSolvers(void)
         }
 }
 
-bool ompl_interface_ros::OMPLInterfaceROS::configurePlanners(void)
+void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_interface::PlannerConfigs> &pconfig)
 {
     std::vector<std::string> group_names = getAdditionalConfigGroupNames();
 
     // read the planning configuration for each group
-    std::vector<ompl_interface::PlannerConfigs> pconfig;
+    pconfig.clear();
     for (std::size_t i = 0 ; i < group_names.size() ; ++i)
     {
         // get parameters specific for the group
@@ -259,10 +266,6 @@ bool ompl_interface_ros::OMPLInterfaceROS::configurePlanners(void)
         else
             ROS_INFO("Group '%s' mentioned for additional configuration but no planner_configs specified. Using default settings.", group_names[i].c_str());
     }
-
-    // this call will configure planning for all groups known to the kinematic model
-    // and it will use additional configuration options, if available
-    return configure(planning_scene_ptr_, pconfig);
 }
 
 bool ompl_interface_ros::OMPLInterfaceROS::computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
@@ -275,8 +278,8 @@ void ompl_interface_ros::OMPLInterfaceROS::status(void)
 {
     if (isConfigured())
     {
-        std::stringstream ss;
-        planning_scene_->getKinematicModel()->printModelInfo(ss);
+        //        std::stringstream ss;
+        //        scene_->getKinematicModel()->printModelInfo(ss);
         //        ROS_INFO("%s", ss.str().c_str());
         ROS_INFO("OMPL planning node started.");
     }
