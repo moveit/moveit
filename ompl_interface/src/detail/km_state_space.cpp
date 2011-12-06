@@ -35,57 +35,35 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/km_state_space.h"
-#include <ros/console.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
-#include <boost/thread/mutex.hpp>
-#include <set>
+#include <ros/console.h>
 
-namespace ompl_interface
+ompl_interface::KMStateSpace::KMStateSpace(const planning_models::KinematicModel::JointModelGroup* jmg) : jmg_(jmg)
 {
-    // in the construction of OMPL state spaces we make sure there is only one instance for each space;
-    // this is not a strict requirement -- things would work fine with multiple instances; however, some 
-    // operations that require copying of data between states from different state spaces require consistent 
-    // naming of state spaces. For efficiency reasons, similar structure of spaces named the same is desireable 
-    struct Allocated_KM_Spaces
-    {
-	typedef std::map<std::vector<const planning_models::KinematicModel::JointModel*>, std::set<KMStateSpace*> > SMap;
-	SMap         spaces;
-	boost::mutex lock;
-    };
-    
-    static Allocated_KM_Spaces& getAllocatedKMSpaces(void)
-    {
-	static Allocated_KM_Spaces a;
-	return a;
-    }
-}
-
-ompl_interface::KMStateSpace::KMStateSpace(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModel::JointModelGroup* jmg) : jmg_(jmg)
-{
-    constructSpace(ssc, jmg_->getJointModels());
+    constructSpace(jmg_->getJointModels());
     if (space_)
-	space_->setName(jmg_->getName());
+        space_->setName(jmg_->getName());
 }
 
-ompl_interface::KMStateSpace::KMStateSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints) : jmg_(NULL)
+ompl_interface::KMStateSpace::KMStateSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints) : jmg_(NULL)
 {
-    constructSpace(ssc, joints);
+    constructSpace(joints);
+    if (space_)
+    {
+        std::string nm;
+        for (std::size_t i = 0 ; i < all_components_.size() ; ++i)
+        {
+            if (!nm.empty())
+                nm += ",";
+            nm += all_components_[i]->getName();
+        }
+        space_->setName(nm);
+    }
 }
 
 ompl_interface::KMStateSpace::~KMStateSpace(void)
 {
-    Allocated_KM_Spaces &aks = getAllocatedKMSpaces();
-    boost::mutex::scoped_lock sLock(aks.lock);
-    Allocated_KM_Spaces::SMap::iterator sit = aks.spaces.find(joints_);
-    if (sit != aks.spaces.end())
-    {
-	sit->second.erase(this);
-	if (sit->second.empty())
-	    aks.spaces.erase(sit);
-    }
-    else
-	ROS_ERROR("Unexpected error in management of state spaces. This is a bug.");
 }
 
 const ompl::base::StateSpacePtr& ompl_interface::KMStateSpace::getOMPLSpace(void) const
@@ -264,28 +242,9 @@ void ompl_interface::KMStateSpace::setPlanningVolume(double minX, double maxX, d
             }
 }
 
-void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints)
+void ompl_interface::KMStateSpace::constructSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints)
 {
     joints_ = joints;
-    
-    // check to see if this space was previously constructed
-    Allocated_KM_Spaces &aks = getAllocatedKMSpaces();
-    boost::mutex::scoped_lock sLock(aks.lock);
-    Allocated_KM_Spaces::SMap::const_iterator sit = aks.spaces.find(joints_);
-    if (sit != aks.spaces.end())
-    {
-	const KMStateSpace &other = **(sit->second.begin());
-	space_ = other.space_;
-	joint_mapping_ = other.joint_mapping_;
-	variable_mapping_ = other.variable_mapping_;
-	all_components_ = other.all_components_;
-	state_address_.setStateSpace(space_);
-	aks.spaces[joints_].insert(this);
-	return;
-    }
-    else
-	aks.spaces[joints_].insert(this);
-    
     space_.reset();
     joint_mapping_.clear();
     variable_mapping_.clear();
@@ -297,16 +256,6 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
     std::size_t nvar = 0;
     for (std::size_t i = 0 ; i < joints.size() ; ++i)
     {
-        // if we have already created this space, reuse it
-        if (ssc.haveSpace(joints[i]->getName()))
-        {
-            space_ = space_ + ssc.getSpace(joints[i]->getName());
-            joint_mapping_.push_back(i);
-            variable_mapping_.push_back(nvar);
-            nvar += joints[i]->getVariableCount();
-            continue;
-        }
-
         ompl::base::StateSpacePtr to_add;
 
         const planning_models::KinematicModel::RevoluteJointModel* revolute_joint =
@@ -366,10 +315,7 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
         }
         // if any space was created, remember it
         if (to_add)
-        {
-            ssc.collect(to_add);
             space_ = space_ + to_add;
-        }
     }
 
     // add real vector components on last position
@@ -385,18 +331,8 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
             joint_mapping_.push_back(rv_joints[i]);
             variable_mapping_.push_back(rv_var[i]);
         }
-        // if so, reuse that instance and delete the current one
-        if (ssc.haveSpace(rv_name))
-        {
-            space_ = space_ + ssc.getSpace(rv_name);
-            delete rv;
-        }
-        // if not, use the one we just created
-        else
-        {
-            rv->setName(rv_name);
-            space_ = space_ + ompl::base::StateSpacePtr(rv);
-        }
+        rv->setName("J(" + rv_name + ")");
+        space_ = space_ + ompl::base::StateSpacePtr(rv);
     }
 
     if (!space_)
@@ -406,7 +342,7 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
     }
 
     // we make the assumption later on this is a compound space, so ensure this is always the case:
-    if (!space_->isCompound())
+    if (!space_->isCompound() || (space_->isCompound() && space_->as<ompl::base::CompoundStateSpace>()->isLocked()))
     {
         ompl::base::CompoundStateSpace *csm = new ompl::base::CompoundStateSpace();
         csm->addSubSpace(space_, 1.0);
@@ -425,9 +361,6 @@ void ompl_interface::KMStateSpace::constructSpace(ompl::StateSpaceCollection &ss
 
     // mark the fact this space is not to be modified any longer (its components)
     space_->as<ompl::base::CompoundStateSpace>()->lock();
-
-    // make the collection of spaces aware of everything in this space
-    ssc.collect(space_);
 
     state_address_.setStateSpace(space_);
 }

@@ -52,50 +52,47 @@ bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
     std::set<const planning_models::KinematicModel::JointModel*> rest;
     rest.insert(scene_->getKinematicModel()->getJointModels().begin(), scene_->getKinematicModel()->getJointModels().end());
     fullSpace_.reset();
-    
+
     // construct specified configurations
     for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
     {
         const planning_models::KinematicModel::JointModelGroup *jmg = scene_->getKinematicModel()->getJointModelGroup(pconfig[i].group);
         if (jmg)
-            planning_groups_[pconfig[i].name].reset(new PlanningGroup(pconfig[i].name, jmg, pconfig[i].config, scene_, ssc_));
+            planning_groups_[pconfig[i].name].reset(new PlanningGroup(pconfig[i].name, jmg, pconfig[i].config, scene_));
     }
     // construct default configurations
     const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& groups = scene_->getKinematicModel()->getJointModelGroupMap();
     for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
     {
-	if (planning_groups_.find(it->first) == planning_groups_.end())
+        if (planning_groups_.find(it->first) == planning_groups_.end())
         {
             static const std::map<std::string, std::string> empty;
-            planning_groups_[it->first].reset(new PlanningGroup(it->first, it->second, empty, scene_, ssc_));
+            planning_groups_[it->first].reset(new PlanningGroup(it->first, it->second, empty, scene_));
         }
-	
-	fullSpace_ = fullSpace_ + ssc_.getSpace(it->first);
-	const std::vector<const planning_models::KinematicModel::JointModel*> &js = it->second->getJointModels();
-	for (std::size_t k = 0 ; k < js.size() ; ++k)
-	    rest.erase(js[k]);
+
+        fullSpace_ = fullSpace_ + planning_groups_[it->first]->getKMStateSpace().getOMPLSpace();
+        const std::vector<const planning_models::KinematicModel::JointModel*> &js = it->second->getJointModels();
+        for (std::size_t k = 0 ; k < js.size() ; ++k)
+            rest.erase(js[k]);
     }
-    
+
     // finish the construction of the full state space for the robot
-    
+
     if (!rest.empty())
     {
-	std::vector<const planning_models::KinematicModel::JointModel*> js;
-	js.insert(js.end(), rest.begin(), rest.end());
-	KMStateSpace dummy(ssc_, js);
-	dummy.getOMPLSpace()->setName(scene_->getKinematicModel()->getName() + "_ungrouped");
-	fullSpace_ = fullSpace_ + dummy.getOMPLSpace();
+        std::vector<const planning_models::KinematicModel::JointModel*> js;
+        js.insert(js.end(), rest.begin(), rest.end());
+        KMStateSpace dummy(js);
+        dummy.getOMPLSpace()->setName(scene_->getKinematicModel()->getName() + "_ungrouped");
+        fullSpace_ = fullSpace_ + dummy.getOMPLSpace();
     }
     if (fullSpace_)
-    {
-	fullSpace_->setName(scene_->getKinematicModel()->getName());
-	ssc_.collect(fullSpace_);
-    }
-    /*
+            fullSpace_->setName(scene_->getKinematicModel()->getName());
+
     std::ofstream fout("ompl_spaces.dot");
     ompl::base::StateSpace::Diagram(fout);
     fout.close();
-    */
+
     configured_ = true;
     return true;
 }
@@ -122,8 +119,8 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
 {
     if (req.motion_plan_request.group_name.empty())
     {
-	res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
-	ROS_ERROR("No group specified to plan for");
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+        ROS_ERROR("No group specified to plan for");
         return false;
     }
 
@@ -141,9 +138,9 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
         pg = planning_groups_.find(req.motion_plan_request.group_name);
         if (pg == planning_groups_.end())
         {
-	    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+            res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
             ROS_ERROR_STREAM("Cannot find planning configuration for group '" << req.motion_plan_request.group_name << "'");
-	    return false;
+            return false;
         }
     }
 
@@ -161,27 +158,27 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
     double timeout = req.motion_plan_request.allowed_planning_time.toSec();
     if (timeout <= 0.0)
     {
-	res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ALLOWED_PLANNING_TIME;
-	ROS_ERROR("The timeout for planning must be positive (%lf specified)", timeout);
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ALLOWED_PLANNING_TIME;
+        ROS_ERROR("The timeout for planning must be positive (%lf specified)", timeout);
     }
     else
     {
-	unsigned int att = 1;
-	if (req.motion_plan_request.num_planning_attempts > 0)
-	    att = req.motion_plan_request.num_planning_attempts;
-	else
-	    if (req.motion_plan_request.num_planning_attempts < 0)
-		ROS_ERROR("The number of desired planning attempts should be positive");
-	if (pg->second->solve(timeout, att))
-	{
-	    double ptime = pg->second->getLastPlanTime();
-	    if (ptime < timeout)
-		pg->second->simplifySolution(timeout - ptime);
-	    pg->second->fillResponse(res);
-	    return true;
-	}
-	else
-	    ROS_INFO("Unable to solve the planning problem");
+        unsigned int att = 1;
+        if (req.motion_plan_request.num_planning_attempts > 0)
+            att = req.motion_plan_request.num_planning_attempts;
+        else
+            if (req.motion_plan_request.num_planning_attempts < 0)
+                ROS_ERROR("The number of desired planning attempts should be positive");
+        if (pg->second->solve(timeout, att))
+        {
+            double ptime = pg->second->getLastPlanTime();
+            if (ptime < timeout)
+                pg->second->simplifySolution(timeout - ptime);
+            pg->second->fillResponse(res);
+            return true;
+        }
+        else
+            ROS_INFO("Unable to solve the planning problem");
     }
     return false;
 }
