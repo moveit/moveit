@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #include "kinematic_constraints/constraint_samplers.h"
 #include <boost/math/constants/constants.hpp>
@@ -49,7 +49,6 @@ kinematic_constraints::ConstraintSampler::ConstraintSampler(const planning_model
 kinematic_constraints::ConstraintSampler::~ConstraintSampler(void)
 {
 }
-
 
 kinematic_constraints::JointConstraintSampler::JointConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
                                                                       const std::vector<JointConstraint> &jc) : ConstraintSampler(jmg)

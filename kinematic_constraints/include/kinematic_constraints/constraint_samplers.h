@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #ifndef KINEMATIC_CONSTRAINTS_CONSTRAINT_SAMPLERS_
 #define KINEMATIC_CONSTRAINTS_CONSTRAINT_SAMPLERS_
@@ -63,6 +63,7 @@ namespace kinematic_constraints
     };
 
     typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
+    typedef boost::shared_ptr<const ConstraintSampler> ConstraintSamplerConstPtr;
 
     /// function type that allocates an IK solver
     typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> IKAllocator;
@@ -137,7 +138,6 @@ namespace kinematic_constraints
         std::string                                   ik_frame_;
         bool                                          transform_ik_;
     };
-
 }
 
 

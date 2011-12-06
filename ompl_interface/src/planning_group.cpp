@@ -94,7 +94,7 @@ ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const omp
     else
         ROS_WARN("%s: Unknown planner type: %s", name_.c_str(), planner.c_str());
     if (p)
-        p->params().setParams(config);
+        p->params().setParams(config, true);
     return ompl::base::PlannerPtr(p);
 }
 
@@ -121,23 +121,8 @@ void ompl_interface::PlanningGroup::useConfig(const std::map<std::string, std::s
         return;
     std::map<std::string, std::string> cfg = config;
 
-    // set the longest valid segment fraction
-    std::map<std::string, std::string>::iterator it = cfg.find("longest_valid_segment_fraction");
-    if (it != cfg.end())
-    {
-        try
-        {
-            double lvsf = boost::lexical_cast<double>(it->second);
-            ssetup_.getStateSpace()->setLongestValidSegmentFraction(lvsf);
-            ROS_DEBUG("Set longest valid segment fraction to %lf", ssetup_.getStateSpace()->getLongestValidSegmentFraction());
-        }
-        catch(...)
-        {
-            ROS_ERROR("Could not set longest valid segment fraction to '%s'", it->second.c_str());
-        }
-        cfg.erase(it);
-    }
-    it = cfg.find("projection_evaluator");
+    // set the projection evaluator
+    std::map<std::string, std::string>::iterator it = cfg.find("projection_evaluator");
     if (it != cfg.end())
     {
         setProjectionEvaluator(boost::trim_copy(it->second));
@@ -159,6 +144,9 @@ void ompl_interface::PlanningGroup::useConfig(const std::map<std::string, std::s
         ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
                  name_.c_str(), type.c_str());
     }
+
+    ssetup_.getSpaceInformation()->setup();
+    ssetup_.getSpaceInformation()->params().setParams(cfg, true);
 }
 
 void ompl_interface::PlanningGroup::setProjectionEvaluator(const std::string &peval)
