@@ -36,10 +36,30 @@
 
 #include <gtest/gtest.h>
 #include <planning_scene_ros/planning_scene_ros.h>
+#include <ompl_interface_ros/ompl_interface_ros.h>
 #include <moveit_msgs/GetMotionPlan.h>
 
 static const std::string PLANNER_SERVICE_NAME="/ompl_planning/plan_kinematic_path";
 static const std::string ROBOT_DESCRIPTION="robot_description";
+
+TEST(OmplPlanning, StateConversion)
+{
+    planning_scene::PlanningScenePtr scene(new planning_scene_ros::PlanningSceneROS(ROBOT_DESCRIPTION));
+    EXPECT_TRUE(scene->isConfigured());
+    ompl_interface_ros::OMPLInterfaceROS oi(scene);
+    const ompl_interface::KMStateSpace &ks = oi.getPlanningConfiguration("right_arm")->getKMStateSpace();
+    planning_models::KinematicState kstate(scene->getKinematicModel());
+    ompl::base::ScopedState<> ostate1(ks.getOMPLSpace());
+    ompl::base::ScopedState<> ostate2(ks.getOMPLSpace());
+    for (int i = 0 ; i < 100 ; ++i)
+    {
+        ostate1.random();
+        kstate.setRandomValues();
+        ks.copyToKinematicState(kstate, ostate1.get());
+        ks.copyToOMPLState(ostate2.get(), kstate);
+        EXPECT_EQ(ostate1, ostate2);
+    }
+}
 
 TEST(OmplPlanning, JointGoal)
 {

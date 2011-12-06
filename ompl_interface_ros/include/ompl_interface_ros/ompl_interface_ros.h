@@ -35,18 +35,15 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include <ompl_interface/ompl_interface.h>
-#include <planning_scene_ros/planning_scene_ros.h>
+#include <ros/ros.h>
 
 namespace ompl_interface_ros
 {
-    class IKLoader;
-
     class OMPLInterfaceROS : public ompl_interface::OMPLInterface
     {
     public:
 
-        OMPLInterfaceROS(const std::string &robot_description);
-
+        OMPLInterfaceROS(const planning_scene::PlanningSceneConstPtr &scene);
         bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
 
         void status(void);
@@ -55,14 +52,14 @@ namespace ompl_interface_ros
 
         std::vector<std::string> getAdditionalConfigGroupNames(void);
         void configureIKSolvers(void);
-        bool configurePlanners(void);
+        void configurePlanners(std::vector<ompl_interface::PlannerConfigs> &pconfig);
 
         ros::NodeHandle                       nh_;
         ros::ServiceServer                    plan_service_;
-        planning_scene_ros::PlanningSceneROS *planning_scene_;
-        planning_scene::PlanningScenePtr      planning_scene_ptr_;
 
     private:
+
+        class IKLoader;
         boost::shared_ptr<IKLoader>           ik_loader_;
     };
 

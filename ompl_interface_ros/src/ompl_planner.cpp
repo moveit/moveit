@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include "ompl_interface_ros/ompl_interface_ros.h"
+#include "planning_scene_ros/planning_scene_ros.h"
 
 int main(int argc, char **argv)
 {
@@ -43,7 +44,8 @@ int main(int argc, char **argv)
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
-    ompl_interface_ros::OMPLInterfaceROS o("robot_description");
+    planning_scene::PlanningScenePtr ps(new planning_scene_ros::PlanningSceneROS("robot_description"));
+    ompl_interface_ros::OMPLInterfaceROS o(ps);
     o.status();
 
     ros::waitForShutdown();
