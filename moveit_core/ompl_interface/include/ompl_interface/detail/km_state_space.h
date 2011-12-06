@@ -38,7 +38,6 @@
 #define OMPL_INTERFACE_DETAIL_KM_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
-#include <ompl/tools/spaces/StateSpaceCollection.h>
 #include <ompl/tools/spaces/StateAddress.h>
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
@@ -54,14 +53,14 @@ namespace ompl_interface
     {
     public:
 
-        /// Construct the OMPL state space that corresponds to a set of joints. Record all the constructed spaces in the collection \e ssc
-        KMStateSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
+        /// Construct the OMPL state space that corresponds to a set of joints.
+        KMStateSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
 
-        /// Construct the OMPL state space that corresponds to a group of joints. Record all the constructed spaces in the collection \e ssc
-        KMStateSpace(ompl::StateSpaceCollection &ssc, const planning_models::KinematicModel::JointModelGroup* jmg);
-	
-	~KMStateSpace(void);
-	
+        /// Construct the OMPL state space that corresponds to a group of joints.
+        KMStateSpace(const planning_models::KinematicModel::JointModelGroup* jmg);
+
+        ~KMStateSpace(void);
+
         /// Get the constructed OMPL state space
         const ompl::base::StateSpacePtr& getOMPLSpace(void) const;
 
@@ -96,7 +95,7 @@ namespace ompl_interface
 
     private:
 
-        void constructSpace(ompl::StateSpaceCollection &ssc, const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
+        void constructSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
 
         /// If this class is constructed from a joint group, the address of that group is stored here (NULL otherwise)
         const planning_models::KinematicModel::JointModelGroup         *jmg_;

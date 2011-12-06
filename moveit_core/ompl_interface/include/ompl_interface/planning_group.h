@@ -37,7 +37,6 @@
 #ifndef OMPL_INTERFACE_PLANNING_GROUP_
 #define OMPL_INTERFACE_PLANNING_GROUP_
 
-#include <ompl/tools/spaces/StateSpaceCollection.h>
 #include <ompl/tools/multiplan/ParallelPlan.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/base/GoalLazySamples.h>
@@ -55,7 +54,7 @@ namespace ompl_interface
     public:
 
         PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
-                      const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene, ompl::StateSpaceCollection &ssc);
+                      const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene);
         virtual ~PlanningGroup(void);
 
         /* \brief Return the name of this planning group. This is not always the same as the name of the joint group the planner is operating on */
@@ -142,7 +141,7 @@ namespace ompl_interface
         bool setupPlanningContext(const planning_models::KinematicState &start_state,
                                   const moveit_msgs::Constraints &goal_constraints,
                                   const moveit_msgs::Constraints &path_constraints,
-				  moveit_msgs::MoveItErrorCodes *error = NULL);
+                                  moveit_msgs::MoveItErrorCodes *error = NULL);
         void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
         void setIKAllocator(const kinematic_constraints::IKAllocator &ik_alloc)
@@ -222,6 +221,8 @@ namespace ompl_interface
     };
 
     typedef boost::shared_ptr<PlanningGroup> PlanningGroupPtr;
+    typedef boost::shared_ptr<const PlanningGroup> PlanningGroupConstPtr;
+
 }
 
 #endif

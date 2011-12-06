@@ -39,7 +39,6 @@
 
 #include "ompl_interface/planning_group.h"
 #include <moveit_msgs/GetMotionPlan.h>
-#include <ompl/tools/spaces/StateSpaceCollection.h>
 #include <string>
 #include <map>
 
@@ -85,11 +84,22 @@ namespace ompl_interface
 
     protected:
 
+        /** \brief The planning scene to consider as context when computing motion plans */
         planning_scene::PlanningSceneConstPtr   scene_;
+
+        /** \brief All the existing planning configurations. The name
+            of the configuration is the key of the map. This name can
+            be of the form "group_name[config_name]" if there are
+            particular configurations specified for a group, or of the
+            form "group_name" if default settings are to be used. */
         std::map<std::string, PlanningGroupPtr> planning_groups_;
-        ompl::StateSpaceCollection              ssc_;
-	ompl::base::StateSpacePtr               fullSpace_;
-	bool                                    configured_;
+
+        /** \brief This is the full state space of the kinematic model
+            specified by the planning scene. */
+        ompl::base::StateSpacePtr               fullSpace_;
+
+        /** \brief Flag indicating whether the OMPL interface has been configured (the configure() function has been called) */
+        bool                                    configured_;
     };
 }
 

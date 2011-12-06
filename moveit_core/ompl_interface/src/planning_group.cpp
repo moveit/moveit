@@ -99,9 +99,8 @@ ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const omp
 }
 
 ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
-                                             const std::map<std::string, std::string> &config,
-                                             const planning_scene::PlanningSceneConstPtr &scene, ompl::StateSpaceCollection &ssc) :
-    name_(name), jmg_(jmg), planning_scene_(scene), km_state_space_(ssc, jmg), ssetup_(km_state_space_.getOMPLSpace()),
+                                             const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene) :
+    name_(name), jmg_(jmg), planning_scene_(scene), km_state_space_(jmg), ssetup_(km_state_space_.getOMPLSpace()),
     pplan_(ssetup_.getProblemDefinition()), start_state_(scene->getKinematicModel()), last_plan_time_(0.0),
     max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
 {
@@ -301,7 +300,7 @@ void ompl_interface::PlanningGroup::setPlanningVolume(const moveit_msgs::Workspa
 bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::KinematicState &start_state,
                                                          const moveit_msgs::Constraints &goal_constraints,
                                                          const moveit_msgs::Constraints &path_constraints,
-							 moveit_msgs::MoveItErrorCodes *error)
+                                                         moveit_msgs::MoveItErrorCodes *error)
 {
     // ******************* check if the input is correct
 
@@ -311,9 +310,9 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
         goal_constraints.orientation_constraints.empty())
     {
         ROS_WARN("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
-	if (error)
-	    error->val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
-	return false;
+        if (error)
+            error->val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
+        return false;
     }
 
     // ******************* set up the starting state for the plannig context
