@@ -56,11 +56,12 @@ planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const planning_scene::Pla
 planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_description, tf::Transformer *tf) :
     planning_scene::PlanningScene(), nh_("~"), tf_(tf)
 {
-    if (nh_.searchParam(robot_description, robot_description_))
-    {
-        if (loadRobotFromParamServer())
-        {
-            configureDefaultCollisionMatrix();
+    RobotModelLoader rml(robot_description);
+    robot_description_ = rml.getRobotDescription();
+    if (rml.getURDF() && rml.getSRDF())
+	if (configure(rml.getURDF(), rml.getSRDF()))
+	{
+	    configureDefaultCollisionMatrix();
             configureDefaultPadding();
             if (isConfigured())
             {
@@ -68,9 +69,6 @@ planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_
                 crobot_->setScale(default_robot_scale_);
             }
         }
-    }
-    else
-        ROS_ERROR("Unable to find ROS parameter for robot description. Did you forget to remap '%s'?", robot_description.c_str());
 }
 
 void planning_scene_ros::PlanningSceneROS::startStateMonitor(void)
@@ -157,32 +155,4 @@ void planning_scene_ros::PlanningSceneROS::configureDefaultPadding(void)
     nh_.param(robot_description_ + "_planning/default_robot_scale", default_robot_scale_, 1.0);
     nh_.param(robot_description_ + "_planning/default_object_padding", default_object_padd_, 0.0);
     nh_.param(robot_description_ + "_planning/default_attached_padding", default_attached_padd_, 0.0);
-}
-
-bool planning_scene_ros::PlanningSceneROS::loadRobotFromParamServer(void)
-{
-    std::string content;
-    if (nh_.getParam(robot_description_, content))
-    {
-        boost::shared_ptr<urdf::Model> urdf(new urdf::Model);
-        if (urdf->initString(content))
-        {
-            std::string scontent;
-            if (nh_.getParam(robot_description_ + "_semantic", scontent))
-            {
-                boost::shared_ptr<srdf::Model> srdf(new srdf::Model);
-                if (srdf->initString(*urdf, scontent))
-                    return configure(urdf, srdf);
-                else
-                    ROS_ERROR("Unable to parse SRDF");
-            }
-            else
-                ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
-        }
-        else
-            ROS_ERROR("Unable to parse URDF");
-    }
-    else
-        ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
-    return false;
 }

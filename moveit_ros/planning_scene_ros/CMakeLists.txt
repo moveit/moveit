@@ -26,4 +26,5 @@ rosbuild_add_boost_directories()
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME}
   src/planning_scene_ros.cpp
+  src/robot_model_loader.cpp
   src/current_state_monitor.cpp)
