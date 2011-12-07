@@ -215,3 +215,24 @@ void planning_models::kinematicStateToJointState(const KinematicState& state, se
 
     joint_state.header.frame_id = state.getKinematicModel()->getModelFrame();
 }
+
+void planning_models::robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, std::size_t index, moveit_msgs::RobotState &rs)
+{
+    if (rt.joint_trajectory.points.size() > index)
+    {
+        rs.joint_state.header = rt.joint_trajectory.header;
+        rs.joint_state.header.stamp = rs.joint_state.header.stamp + rt.joint_trajectory.points[index].time_from_start;
+        rs.joint_state.name = rt.joint_trajectory.joint_names;
+        rs.joint_state.position = rt.joint_trajectory.points[index].positions;
+        rs.joint_state.velocity = rt.joint_trajectory.points[index].velocities;
+    }
+
+    if (rt.multi_dof_joint_trajectory.points.size() > index)
+    {
+        rs.multi_dof_joint_state.joint_names = rt.multi_dof_joint_trajectory.joint_names;
+        rs.multi_dof_joint_state.frame_ids = rt.multi_dof_joint_trajectory.frame_ids;
+        rs.multi_dof_joint_state.child_frame_ids = rt.multi_dof_joint_trajectory.child_frame_ids;
+        rs.multi_dof_joint_state.stamp = rt.joint_trajectory.header.stamp + rt.multi_dof_joint_trajectory.points[index].time_from_start;
+        rs.multi_dof_joint_state.poses = rt.multi_dof_joint_trajectory.points[index].poses;
+    }
+}

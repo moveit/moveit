@@ -39,6 +39,7 @@
 
 #include <planning_models/transforms.h>
 #include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/RobotTrajectory.h>
 
 namespace planning_models
 {
@@ -48,6 +49,8 @@ namespace planning_models
 
     void kinematicStateToRobotState(const KinematicState& state, moveit_msgs::RobotState &robot_state);
     void kinematicStateToJointState(const KinematicState& state, sensor_msgs::JointState &joint_state);
+
+    void robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, std::size_t index, moveit_msgs::RobotState &rs);
 }
 
 #endif
