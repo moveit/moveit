@@ -108,6 +108,16 @@ namespace ompl_interface
             max_planning_threads_ = max_planning_threads;
         }
 
+	double getMaximumSolutionSegmentLength(void) const
+	{
+	    return max_solution_segment_length_;
+	}
+	
+	void setMaximumSolutionSegmentLength(double mssl)
+	{
+	    max_solution_segment_length_ = mssl;
+	}
+	
         const planning_models::KinematicState& getStartState(void) const
         {
             return start_state_;
@@ -157,7 +167,8 @@ namespace ompl_interface
         }
 
         void simplifySolution(double timeout);
-
+	void interpolateSolution();
+	
         bool getSolutionPath(moveit_msgs::RobotTrajectory &traj) const;
         void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
 
@@ -206,6 +217,9 @@ namespace ompl_interface
         /// the time spend computing the last plan
         double                                                  last_plan_time_;
 
+	/// the maximum length that is allowed for segments that make up the motion plan; by default this is 0.1% from the extent of the space
+	double                                                  max_solution_segment_length_;
+	
         /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
         unsigned int                                            max_goal_samples_;
 

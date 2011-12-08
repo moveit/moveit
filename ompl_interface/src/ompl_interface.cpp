@@ -174,6 +174,7 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
             double ptime = pg->second->getLastPlanTime();
             if (ptime < timeout)
                 pg->second->simplifySolution(timeout - ptime);
+	    pg->second->interpolateSolution();
             pg->second->fillResponse(res);
             return true;
         }
@@ -209,7 +210,8 @@ bool ompl_interface::OMPLInterface::solve(const std::string &config, const plann
         double ptime = pg->second->getLastPlanTime();
         if (ptime < timeout)
             pg->second->simplifySolution(timeout - ptime);
-        return true;
+	pg->second->interpolateSolution();
+	return true;
     }
 
     return false;

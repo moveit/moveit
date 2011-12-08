@@ -103,7 +103,8 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
     name_(name), jmg_(jmg), planning_scene_(scene), km_state_space_(jmg), ssetup_(km_state_space_.getOMPLSpace()),
     pplan_(ssetup_.getProblemDefinition()), start_state_(scene->getKinematicModel()), last_plan_time_(0.0),
     max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
-{
+{   
+    max_solution_segment_length_ = ssetup_.getStateSpace()->getMaximumExtent() / 1000.0;
     ssetup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
     ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
     useConfig(config);
@@ -426,6 +427,15 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
 void ompl_interface::PlanningGroup::simplifySolution(double timeout)
 {
     ssetup_.simplifySolution(timeout);
+}
+
+void ompl_interface::PlanningGroup::interpolateSolution(void)
+{
+    if (ssetup_.haveSolutionPath())
+    {
+	ompl::geometric::PathGeometric &pg = ssetup_.getSolutionPath();
+	pg.interpolate((std::size_t)floor(0.5 + pg.length() / max_solution_segment_length_));
+    }
 }
 
 bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory &traj) const
