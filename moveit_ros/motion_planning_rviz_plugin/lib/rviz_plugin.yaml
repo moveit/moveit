@@ -1,0 +1,8 @@
+name: Motion Planning
+library: motion_planning_rviz_plugin
+displays:
+  - 
+    class_name: motion_planning_rviz_plugin::PlanningDisplay
+    display_name: Planning Model
+    description: |
+      Represents a planning scene and animates a robot along a planned path given by a moveit_msgs::DisplayTrajectory message.
