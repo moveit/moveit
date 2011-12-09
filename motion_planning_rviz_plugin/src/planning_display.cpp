@@ -34,13 +34,13 @@
 #include "rviz/properties/property.h"
 #include "rviz/properties/property_manager.h"
 
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
 #include <ogre_tools/axes.h>
 
 #include <tf/transform_listener.h>
 #include <planning_scene_ros/robot_model_loader.h>
 #include <planning_models/conversions.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
 
 namespace motion_planning_rviz_plugin
 {
@@ -79,16 +79,37 @@ private:
   const planning_models::KinematicState* kinematic_state_;
 };
 
-PlanningDisplay::PlanningDisplay(const std::string& name, rviz::VisualizationManager* manager) :
-  Display(name, manager), new_kinematic_path_(false), animating_path_(false), state_display_time_(0.05f)
+struct PlanningDisplay::ReceivedTrajectoryMessage
 {
-  robot_ = new rviz::Robot(vis_manager_, "Planning Robot " + name_);
+  ReceivedTrajectoryMessage(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_models::KinematicState &start_state) : message_(message)
+  {
+    start_state_.reset(new planning_models::KinematicState(start_state));
+    planning_models::robotStateToKinematicState(message_->robot_state, *start_state_);
+    /// \todo should use TF to pass in transforms
 
-  setVisualVisible(false);
-  setCollisionVisible(true);
+    std::size_t state_count = std::max(message_->trajectory.joint_trajectory.points.size(),
+                                       message_->trajectory.multi_dof_joint_trajectory.points.size());
+    for (std::size_t i = 0 ; i < state_count ; ++i)
+    {
+      moveit_msgs::RobotState rs;
+      planning_models::robotTrajectoryPointToRobotState(message_->trajectory, i, rs);
+      /// \todo pass in TF
+      planning_models::KinematicStatePtr state(new planning_models::KinematicState(*start_state_));
+      planning_models::robotStateToKinematicState(rs, *state);
+      trajectory_.push_back(state);
+    }
+  }
 
-  setLoopDisplay(false);
-  setAlpha(0.6f);
+  moveit_msgs::DisplayTrajectory::ConstPtr message_;
+  planning_models::KinematicStatePtr start_state_;
+  std::vector<planning_models::KinematicStatePtr> trajectory_;
+};
+
+PlanningDisplay::PlanningDisplay() :
+    Display(), alpha_(0.6f), loop_display_(false),
+    display_scene_(true), state_display_time_(0.05f),
+    new_display_trajectory_(false), animating_path_(false)
+{
 }
 
 PlanningDisplay::~PlanningDisplay()
@@ -98,10 +119,15 @@ PlanningDisplay::~PlanningDisplay()
   delete robot_;
 }
 
-void PlanningDisplay::initialize(const std::string& description_param, const std::string& kinematic_path_topic)
+void PlanningDisplay::onInitialize()
 {
-  setRobotDescription(description_param);
-  setTrajectoryTopic(kinematic_path_topic);
+  robot_ = new rviz::Robot(vis_manager_, "Planning Robot " + name_);
+  scene_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
+}
+
+void PlanningDisplay::reset()
+{
+
 }
 
 void PlanningDisplay::setRobotDescription(const std::string& description_param)
@@ -119,8 +145,8 @@ void PlanningDisplay::setRobotDescription(const std::string& description_param)
 
 void  PlanningDisplay::setLoopDisplay(bool loop_display)
 {
-    loop_display_ = loop_display;
-    propertyChanged(loop_display_property_);
+  loop_display_ = loop_display;
+  propertyChanged(loop_display_property_);
 }
 
 void PlanningDisplay::setAlpha(float alpha)
@@ -136,7 +162,7 @@ void PlanningDisplay::setTrajectoryTopic(const std::string& topic)
 {
   unsubscribe();
   unadvertise();
-  kinematic_path_topic_ = topic;
+  display_trajectory_topic_ = topic;
   subscribe();
   advertise();
 
@@ -148,17 +174,16 @@ void PlanningDisplay::setStateDisplayTime(float time)
   state_display_time_ = time;
 
   propertyChanged(state_display_time_property_);
-
-  causeRender();
 }
 
 void PlanningDisplay::setSceneVisible(bool visible)
 {
-    display_scene_ = visible;
-    
-    propertyChanged(scene_enabled_property_);
-    
-    causeRender();
+  display_scene_ = visible;
+  scene_node_->setVisible(visible);
+
+  propertyChanged(scene_enabled_property_);
+
+  causeRender();
 }
 
 void PlanningDisplay::setVisualVisible(bool visible)
@@ -179,17 +204,17 @@ void PlanningDisplay::setCollisionVisible(bool visible)
   causeRender();
 }
 
-bool PlanningDisplay::isSceneVisible()
+bool PlanningDisplay::getSceneVisible()
 {
   return display_scene_;
 }
 
-bool PlanningDisplay::isVisualVisible()
+bool PlanningDisplay::getVisualVisible()
 {
   return robot_->isVisualVisible();
 }
 
-bool PlanningDisplay::isCollisionVisible()
+bool PlanningDisplay::getCollisionVisible()
 {
   return robot_->isCollisionVisible();
 }
@@ -231,6 +256,7 @@ void PlanningDisplay::onEnable()
   advertise();
   load();
   robot_->setVisible(true);
+  scene_node_->setVisible(true);
 }
 
 void PlanningDisplay::onDisable()
@@ -238,6 +264,7 @@ void PlanningDisplay::onDisable()
   unsubscribe();
   unadvertise();
   robot_->setVisible(false);
+  scene_node_->setVisible(false);
 }
 
 void PlanningDisplay::subscribe()
@@ -247,11 +274,10 @@ void PlanningDisplay::subscribe()
     return;
   }
 
-  if (!kinematic_path_topic_.empty())
+  if (!display_trajectory_topic_.empty())
   {
-    sub_ = update_nh_.subscribe(kinematic_path_topic_, 2, &PlanningDisplay::incomingJointPath, this);
+    sub_ = update_nh_.subscribe(display_trajectory_topic_, 2, &PlanningDisplay::incomingDisplayTrajectory, this);
   }
-
 }
 
 void PlanningDisplay::unsubscribe()
@@ -261,43 +287,32 @@ void PlanningDisplay::unsubscribe()
 
 void PlanningDisplay::advertise()
 {
-  if (!isEnabled())
-  {
-    return;
-  }
 }
 
 void PlanningDisplay::unadvertise()
 {
 }
 
-
 void PlanningDisplay::update(float wall_dt, float ros_dt)
 {
   if (!planning_scene_)
     return;
 
-  if (!animating_path_ && !new_kinematic_path_ && loop_display_ && displaying_kinematic_path_message_)
+  if (!animating_path_ && !new_display_trajectory_ && loop_display_ && displaying_trajectory_message_)
   {
-      new_kinematic_path_ = true;
-      incoming_kinematic_path_message_ = displaying_kinematic_path_message_;
-  }
-  
-  if (!animating_path_ && new_kinematic_path_)
-  {
-      displaying_kinematic_path_message_ = incoming_kinematic_path_message_;
-      displaying_path_states_ = std::max(displaying_kinematic_path_message_->trajectory.joint_trajectory.points.size(),
-					 displaying_kinematic_path_message_->trajectory.multi_dof_joint_trajectory.points.size());
       animating_path_ = true;
-      new_kinematic_path_ = false;
       current_state_ = -1;
       current_state_time_ = state_display_time_ + 1.0f;
-      
-      start_state_.reset(new planning_models::KinematicState(planning_scene_->getCurrentState()));
-      robotStateToKinematicState(displaying_kinematic_path_message_->robot_state, *start_state_);
-      /// \todo should use TF to pass in transforms
-      
-      robot_->update(PlanningLinkUpdater(start_state_.get()));
+  }
+
+  if (!animating_path_ && new_display_trajectory_)
+  {
+      displaying_trajectory_message_.reset(new ReceivedTrajectoryMessage(incoming_trajectory_message_, planning_scene_->getCurrentState()));
+      animating_path_ = true;
+      new_display_trajectory_ = false;
+      current_state_ = -1;
+      current_state_time_ = state_display_time_ + 1.0f;
+      robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->start_state_.get()));
   }
 
   if (animating_path_)
@@ -308,15 +323,9 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 
       calculateRobotPosition();
 
-      if ((std::size_t) current_state_ < displaying_path_states_)
+      if ((std::size_t) current_state_ < displaying_trajectory_message_->trajectory_.size())
       {
-	moveit_msgs::RobotState rs;
-	planning_models::robotTrajectoryPointToRobotState(displaying_kinematic_path_message_->trajectory, current_state_, rs);
-	/// \todo pass in TF
-
-	planning_models::KinematicState state(*start_state_);
-	robotStateToKinematicState(rs, state);
-	robot_->update(PlanningLinkUpdater(&state));
+        robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->trajectory_[current_state_].get()));
         causeRender();
       }
       else
@@ -332,16 +341,16 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 
 void PlanningDisplay::calculateRobotPosition()
 {
-  if (!displaying_kinematic_path_message_)
+  if (!displaying_trajectory_message_)
   {
     return;
   }
 
-  const ros::Time &stamp = 
-      displaying_kinematic_path_message_->trajectory.joint_trajectory.points.empty() ? 
-      displaying_kinematic_path_message_->robot_state.joint_state.header.stamp :
-      displaying_kinematic_path_message_->trajectory.joint_trajectory.header.stamp;
-  
+  const ros::Time &stamp =
+      displaying_trajectory_message_->message_->trajectory.joint_trajectory.points.empty() ?
+      displaying_trajectory_message_->message_->robot_state.joint_state.header.stamp :
+      displaying_trajectory_message_->message_->trajectory.joint_trajectory.header.stamp;
+
   tf::Stamped<tf::Pose> pose(btTransform::getIdentity(), stamp, planning_scene_->getPlanningFrame());
 
   if (vis_manager_->getTFClient()->canTransform(target_frame_, planning_scene_->getPlanningFrame(), stamp))
@@ -357,16 +366,20 @@ void PlanningDisplay::calculateRobotPosition()
   }
 
   Ogre::Vector3 position(pose.getOrigin().x(), pose.getOrigin().y(), pose.getOrigin().z());
-  const btQuaternion &q = pose.getRotation();  
+  const btQuaternion &q = pose.getRotation();
   Ogre::Quaternion orientation( q.getW(), q.getX(), q.getY(), q.getZ() );
   robot_->setPosition(position);
   robot_->setOrientation(orientation);
 }
 
-void PlanningDisplay::incomingJointPath(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
+void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
 {
-  incoming_kinematic_path_message_ = msg;
-  new_kinematic_path_ = true;
+  incoming_trajectory_message_ = msg;
+  if (planning_scene_)
+    if (msg->model_id != planning_scene_->getKinematicModel()->getName())
+      ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
+               msg->model_id.c_str(), planning_scene_->getKinematicModel()->getName().c_str());
+  new_display_trajectory_ = true;
 }
 
 void PlanningDisplay::targetFrameChanged()
@@ -377,46 +390,47 @@ void PlanningDisplay::targetFrameChanged()
 void PlanningDisplay::createProperties()
 {
   scene_enabled_property_ = property_manager_->createProperty<rviz::BoolProperty> ("Scene Enabled", property_prefix_,
-										   boost::bind(&PlanningDisplay::isSceneVisible, this),
-										   boost::bind(&PlanningDisplay::setSceneVisible, this, _1), parent_category_, this);
+                                                                                   boost::bind(&PlanningDisplay::getSceneVisible, this),
+                                                                                   boost::bind(&PlanningDisplay::setSceneVisible, this, _1), parent_category_, this);
   setPropertyHelpText(scene_enabled_property_, "Indicates whether planning scenes should be displayed");
-  
+
   visual_enabled_property_ = property_manager_->createProperty<rviz::BoolProperty> ("Visual Enabled", property_prefix_,
-										    boost::bind(&PlanningDisplay::isVisualVisible, this),
-										    boost::bind(&PlanningDisplay::setVisualVisible, this, _1), parent_category_, this);
+                                                                                    boost::bind(&PlanningDisplay::getVisualVisible, this),
+                                                                                    boost::bind(&PlanningDisplay::setVisualVisible, this, _1), parent_category_, this);
   setPropertyHelpText(visual_enabled_property_, "Indicates whether the geometry of the robot as defined for visualisation purposes should be displayed");
-  
+
   collision_enabled_property_ = property_manager_->createProperty<rviz::BoolProperty> ("Collision Enabled", property_prefix_,
-										       boost::bind(&PlanningDisplay::isCollisionVisible, this),
-										       boost::bind(&PlanningDisplay::setCollisionVisible, this, _1), parent_category_, this);
+                                                                                       boost::bind(&PlanningDisplay::getCollisionVisible, this),
+                                                                                       boost::bind(&PlanningDisplay::setCollisionVisible, this, _1), parent_category_, this);
   setPropertyHelpText(collision_enabled_property_, "Indicates whether the geometry of the robot as defined for collision detection purposes should be displayed");
-  
+
+  alpha_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Alpha", property_prefix_, boost::bind(&PlanningDisplay::getAlpha, this),
+                                                                            boost::bind(&PlanningDisplay::setAlpha, this, _1), parent_category_, this);
+  setPropertyHelpText(alpha_property_, "Specifies the alpha for the robot links");
+
   state_display_time_property_ = property_manager_->createProperty<rviz::FloatProperty> ("State Display Time", property_prefix_,
-											 boost::bind(&PlanningDisplay::getStateDisplayTime, this),
-											 boost::bind(&PlanningDisplay::setStateDisplayTime, this, _1),
-											 parent_category_, this);
+                                                                                         boost::bind(&PlanningDisplay::getStateDisplayTime, this),
+                                                                                         boost::bind(&PlanningDisplay::setStateDisplayTime, this, _1),
+                                                                                         parent_category_, this);
   setPropertyHelpText(state_display_time_property_, "The amount of wall-time to wait in between displaying states along a received trajectory path");
 
   rviz::FloatPropertyPtr float_prop = state_display_time_property_.lock();
   float_prop->setMin(0.0001);
 
-  loop_display_property_ = property_manager_->createProperty<rviz::BoolProperty>("Loop Display", property_prefix_, boost::bind(&PlanningDisplay::getLoopDisplay, this),
+  loop_display_property_ = property_manager_->createProperty<rviz::BoolProperty>("Loop Animation", property_prefix_, boost::bind(&PlanningDisplay::getLoopDisplay, this),
                                                                                  boost::bind(&PlanningDisplay::setLoopDisplay, this, _1), parent_category_, this);
-  setPropertyHelpText(loop_display_property_, "Indicates whether the last received path is to be animated in a loop");  
-
-  alpha_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Alpha", property_prefix_, boost::bind(&PlanningDisplay::getAlpha, this),
-									    boost::bind(&PlanningDisplay::setAlpha, this, _1), parent_category_, this);
-  setPropertyHelpText(alpha_property_, "Specifies the alpha for the robot links");  
+  setPropertyHelpText(loop_display_property_, "Indicates whether the last received path is to be animated in a loop");
 
   robot_description_property_ = property_manager_->createProperty<rviz::StringProperty> ("Robot Description", property_prefix_,
-											 boost::bind(&PlanningDisplay::getRobotDescription, this),
-											 boost::bind(&PlanningDisplay::setRobotDescription, this, _1), parent_category_,
-											 this);
-  setPropertyHelpText(robot_description_property_, "The name of the ROS parameter where the URDF for the robot is loaded");  
+                                                                                         boost::bind(&PlanningDisplay::getRobotDescription, this),
+                                                                                         boost::bind(&PlanningDisplay::setRobotDescription, this, _1), parent_category_,
+                                                                                         this);
+  setPropertyHelpText(robot_description_property_, "The name of the ROS parameter where the URDF for the robot is loaded");
 
   trajectory_topic_property_ = property_manager_->createProperty<rviz::ROSTopicStringProperty> ("Trajectory Topic", property_prefix_,
-												boost::bind(&PlanningDisplay::getTrajectoryTopic, this),
-												boost::bind(&PlanningDisplay::setTrajectoryTopic, this, _1), parent_category_, this);
+                                                                                                boost::bind(&PlanningDisplay::getTrajectoryTopic, this),
+                                                                                                boost::bind(&PlanningDisplay::setTrajectoryTopic, this, _1),
+                                                                                                parent_category_, this);
   setPropertyHelpText(trajectory_topic_property_, "The topic on which the moveit_msgs::DisplayTrajectory messages are received");
 
   rviz::ROSTopicStringPropertyPtr topic_prop = trajectory_topic_property_.lock();
@@ -426,5 +440,3 @@ void PlanningDisplay::createProperties()
 }
 
 } // namespace motion_planning_rviz_plugin
-
-
