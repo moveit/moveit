@@ -109,7 +109,6 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
     ssetup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
     useConfig(config);
     path_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
-    goal_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
 }
 
 ompl_interface::PlanningGroup::~PlanningGroup(void)
@@ -203,6 +202,13 @@ ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedS
         return ss->allocDefaultStateSampler();
 }
 
+ompl::base::GoalPtr ompl_interface::PlanningGroup::getGoalRepresentation(const moveit_msgs::Constraints &constr) const
+{
+    kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
+    kset->add(constr);
+    return ompl::base::GoalPtr(new ConstrainedGoalSampler(this, kset, getConstraintsSampler(constr)));
+}
+
 kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getConstraintsSampler(const moveit_msgs::Constraints &constr) const
 {
     // based on the goal constraints, decide on a goal representation
@@ -287,22 +293,31 @@ void ompl_interface::PlanningGroup::setPlanningVolume(const moveit_msgs::Workspa
 }
 
 bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::KinematicState &start_state,
-                                                         const moveit_msgs::Constraints &goal_constraints,
+                                                         const std::vector<moveit_msgs::Constraints> &goal_constraints,
                                                          const moveit_msgs::Constraints &path_constraints,
                                                          moveit_msgs::MoveItErrorCodes *error)
 {
     // ******************* check if the input is correct
-
-    // first we need to identify what kind of planning we will perform
-    if (goal_constraints.joint_constraints.empty() &&
-        goal_constraints.position_constraints.empty() &&
-        goal_constraints.orientation_constraints.empty())
+    bool goal_ok = false;    
+    for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
+	if (!(goal_constraints[i].joint_constraints.empty() &&
+	      goal_constraints[i].position_constraints.empty() &&
+	      goal_constraints[i].orientation_constraints.empty() &&
+	      goal_constraints[i].visibility_constraints.empty()))
+	{
+	    goal_ok = true;
+	    break;
+	}
+    
+    if (!goal_ok)
     {
         ROS_WARN("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
         if (error)
             error->val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
         return false;
     }
+
+    // first we need to identify what kind of planning we will perform     
 
     // ******************* set up the starting state for the plannig context
     // set the starting state
@@ -323,25 +338,17 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
 
     // ******************* set up the goal representation, based on goal constraints
 
-    // first, we add path constraints to the goal ones
-    goal_constraints_ = kinematic_constraints::mergeConstraints(goal_constraints, path_constraints);
-    goal_kset_->clear();
-    goal_kset_->add(goal_constraints_);
-    const kinematic_constraints::ConstraintSamplerPtr &gsampler = getConstraintsSampler(goal_constraints_);
-    if (gsampler)
+    std::vector<ompl::base::GoalPtr> goals;
+    for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
     {
-        ROS_DEBUG("%s: Using an OMPL GoalSampleableRegion with constraints", name_.c_str());
-        // we can sample from the constraint specification
-        ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalSampler(this, goal_kset_, gsampler)));
+	moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
+	ompl::base::GoalPtr goal = getGoalRepresentation(constr);
+	if (goal)
+	    goals.push_back(goal);
     }
-    else
-    {
-        ROS_DEBUG("%s: Using an OMPL GoalRegion with constraints'", name_.c_str());
-        // the constraints are such that we cannot easily sample the goal region,
-        // so we use a simpler goal region specification
-        ssetup_.setGoal(ompl::base::GoalPtr(new ConstrainedGoalRegion(this, goal_kset_)));
-    }
+    
 
+    
     ROS_DEBUG("%s: New planning context is set.", name_.c_str());
 
     return true;

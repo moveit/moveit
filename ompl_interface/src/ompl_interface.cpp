@@ -201,7 +201,8 @@ bool ompl_interface::OMPLInterface::solve(const std::string &config, const plann
     }
 
     // configure the planning group
-    if (!pg->second->setupPlanningContext(start_state, goal_constraints, path_constraints))
+    std::vector<moveit_msgs::Constraints> goal_constraints_v(1, goal_constraints);
+    if (!pg->second->setupPlanningContext(start_state, goal_constraints_v, path_constraints))
         return false;
 
     // solve the planning problem
