@@ -20,14 +20,14 @@ set(SOURCE_FILES src/planning_display.cpp src/init.cpp)
 
 include(CMakeDetermineSystem)
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  rosbuild_add_library(${PROJECT_NAME} MODULE ${SOURCE_FILES})
+  rosbuild_add_library_module(${PROJECT_NAME} ${SOURCE_FILES})
 else(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   rosbuild_add_library(${PROJECT_NAME} ${SOURCE_FILES})
 endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 
-find_package(wxWidgets REQUIRED)
-include(${wxWidgets_USE_FILE})
-include_directories( ${wxWidgets_INCLUDE_DIRS} )
-                                    
-target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES} ${OGRE_LIBRARIES})
+find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+include(${QT_USE_FILE})
+add_definitions(-DQT_NO_KEYWORDS)
+         
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
 rosbuild_link_boost(${PROJECT_NAME} thread)

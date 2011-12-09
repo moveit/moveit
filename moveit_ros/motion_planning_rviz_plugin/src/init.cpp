@@ -27,12 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "rviz/plugin/type_registry.h"
+#include <pluginlib/class_list_macros.h>
 #include "planning_display.h"
 
-using namespace motion_planning_rviz_plugin;
-
-extern "C" void rvizPluginInit(rviz::TypeRegistry* reg)
-{
-  reg->registerDisplay<PlanningDisplay>("motion_planning_rviz_plugin::PlanningDisplay");
-}
+PLUGINLIB_DECLARE_CLASS( motion_planning_rviz_plugin, PlanningScene, motion_planning_rviz_plugin::PlanningDisplay, rviz::Display )
