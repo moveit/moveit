@@ -9,9 +9,10 @@ WorkspaceParameters workspace_parameters
 # be set here
 RobotState start_state
 
-# The goal state for the model to plan for. The goal is achieved
-# if all constraints are satisfied
-Constraints goal_constraints
+# The possible goal states for the model to plan for. Each element of
+# the array defines a goal region. The goal is achieved
+# if the constraints for a particular region are satisfied
+Constraints[] goal_constraints
 
 # No state at any point along the path in the produced motion plan will violate these constraints
 Constraints path_constraints

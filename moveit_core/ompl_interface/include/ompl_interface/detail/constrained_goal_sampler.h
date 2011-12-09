@@ -38,7 +38,6 @@
 #define OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
 
 #include "ompl_interface/planning_group.h"
-#include "ompl_interface/detail/threadsafe_state_storage.h"
 #include <ompl/base/GoalLazySamples.h>
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <kinematic_constraints/constraint_samplers.h>
@@ -51,19 +50,19 @@ namespace ompl_interface
     public:
 
         ConstrainedGoalSampler(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks,
-                               const kinematic_constraints::ConstraintSamplerPtr &cs);
-
+                               const kinematic_constraints::ConstraintSamplerPtr &cs = kinematic_constraints::ConstraintSamplerPtr());
+	
     private:
 
-        bool sampleC(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
+        bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
+	bool sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
 
         const PlanningGroup                             *pg_;
         kinematic_constraints::KinematicConstraintSetPtr ks_;
         kinematic_constraints::ConstraintSamplerPtr      cs_;
-        TSStateStorage                                   tss_;
+	planning_models::KinematicState                  state_;
     };
-
-
+    
 }
 
 #endif

@@ -149,7 +149,7 @@ namespace ompl_interface
         }
 
         bool setupPlanningContext(const planning_models::KinematicState &start_state,
-                                  const moveit_msgs::Constraints &goal_constraints,
+                                  const std::vector<moveit_msgs::Constraints> &goal_constraints,
                                   const moveit_msgs::Constraints &path_constraints,
                                   moveit_msgs::MoveItErrorCodes *error = NULL);
         void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
@@ -177,6 +177,8 @@ namespace ompl_interface
         void useConfig(const std::map<std::string, std::string> &config);
         void setProjectionEvaluator(const std::string &peval);
         kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
+	ompl::base::GoalPtr getGoalRepresentation(const moveit_msgs::Constraints &constr) const;
+	
         ompl::base::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
         ompl::base::PlannerPtr plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
                                                 const std::map<std::string, std::string> &config) const;

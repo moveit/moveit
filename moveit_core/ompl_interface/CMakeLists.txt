@@ -24,6 +24,5 @@ rosbuild_add_library(${PROJECT_NAME}
   src/detail/threadsafe_state_storage.cpp
   src/detail/constrained_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
-  src/detail/constrained_goal_region.cpp
   src/detail/projection_evaluators.cpp
   src/detail/ompl_console.cpp)
