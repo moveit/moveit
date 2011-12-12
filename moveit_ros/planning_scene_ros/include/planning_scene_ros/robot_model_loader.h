@@ -45,33 +45,32 @@ namespace planning_scene_ros
     class RobotModelLoader
     {
     public:
-	RobotModelLoader(const std::string &robot_description);
-	
-	const std::string& getRobotDescription(void) const
-	{
-	    return robot_description_;
-	}
-	
-	const boost::shared_ptr<urdf::Model>& getURDF(void) const
-	{
-	    return urdf_;
-	}
+        RobotModelLoader(const std::string &robot_description);
 
-	const boost::shared_ptr<srdf::Model>& getSRDF(void) const
-	{
-	    return srdf_;
-	}
-	
+        const std::string& getRobotDescription(void) const
+        {
+            return robot_description_;
+        }
+
+        const boost::shared_ptr<urdf::Model>& getURDF(void) const
+        {
+            return urdf_;
+        }
+
+        const boost::shared_ptr<srdf::Model>& getSRDF(void) const
+        {
+            return srdf_;
+        }
+
     private:
 
-	ros::NodeHandle                nh_;
-	std::string                    robot_description_;	
-	boost::shared_ptr<srdf::Model> srdf_;
-	boost::shared_ptr<urdf::Model> urdf_;
-	
-	bool loadRobotFromParamServer(void);
-	
-    };
-    
-}
+        ros::NodeHandle                nh_;
+        std::string                    robot_description_;
+        boost::shared_ptr<srdf::Model> srdf_;
+        boost::shared_ptr<urdf::Model> urdf_;
 
+        bool loadRobotFromParamServer(void);
+
+    };
+
+}

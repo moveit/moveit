@@ -38,6 +38,7 @@
 #include <planning_scene_ros/planning_scene_ros.h>
 #include <ompl_interface_ros/ompl_interface_ros.h>
 #include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/DisplayTrajectory.h>
 
 static const std::string PLANNER_SERVICE_NAME="/ompl_planning/plan_kinematic_path";
 static const std::string ROBOT_DESCRIPTION="robot_description";
@@ -65,6 +66,8 @@ TEST(OmplPlanning, JointGoal)
 {
     ros::NodeHandle nh;
     ros::service::waitForService(PLANNER_SERVICE_NAME);
+    ros::Publisher pub = nh.advertise<moveit_msgs::DisplayTrajectory>("display_test_motion_plan", 1);
+    
     ros::ServiceClient planning_service_client = nh.serviceClient<moveit_msgs::GetMotionPlan>(PLANNER_SERVICE_NAME);
     EXPECT_TRUE(planning_service_client.exists());
     EXPECT_TRUE(planning_service_client.isValid());
@@ -81,24 +84,34 @@ TEST(OmplPlanning, JointGoal)
     mplan_req.motion_plan_request.num_planning_attempts = 16;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
     const std::vector<std::string>& joint_names = scene.getKinematicModel()->getJointModelGroup("right_arm")->getJointModelNames();
-    mplan_req.motion_plan_request.goal_constraints.joint_constraints.resize(joint_names.size());
+    mplan_req.motion_plan_request.goal_constraints.resize(1);
+    mplan_req.motion_plan_request.goal_constraints[0].joint_constraints.resize(joint_names.size());
     for(unsigned int i = 0; i < joint_names.size(); i++)
     {
-        mplan_req.motion_plan_request.goal_constraints.joint_constraints[i].joint_name = joint_names[i];
-        mplan_req.motion_plan_request.goal_constraints.joint_constraints[i].position = 0.0;
-        mplan_req.motion_plan_request.goal_constraints.joint_constraints[i].tolerance_above = 0.001;
-        mplan_req.motion_plan_request.goal_constraints.joint_constraints[i].tolerance_below = 0.001;
-        mplan_req.motion_plan_request.goal_constraints.joint_constraints[i].weight = 1.0;
+        mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name = joint_names[i];
+        mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[i].position = 0.0;
+        mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[i].tolerance_above = 0.001;
+        mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[i].tolerance_below = 0.001;
+        mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[i].weight = 1.0;
     }
-    mplan_req.motion_plan_request.goal_constraints.joint_constraints[0].position = -2.0;
-    mplan_req.motion_plan_request.goal_constraints.joint_constraints[3].position = -.2;
-    mplan_req.motion_plan_request.goal_constraints.joint_constraints[5].position = -.2;
+    mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[0].position = -2.0;
+    mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[3].position = -.2;
+    mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[5].position = -.2;
 
     ASSERT_TRUE(planning_service_client.call(mplan_req, mplan_res));
     ASSERT_EQ(mplan_res.error_code.val, mplan_res.error_code.SUCCESS);
     EXPECT_GT(mplan_res.trajectory.joint_trajectory.points.size(), 0);
+    moveit_msgs::DisplayTrajectory d;
+    d.model_id = scene.getKinematicModel()->getName();
+    d.robot_state = mplan_res.robot_state;
+    d.trajectory = mplan_res.trajectory;
+    pub.publish(d);
+    for (int i = 0 ; i < 100 ; ++i)
+    {
+	ros::spinOnce();
+	ros::Duration(0.01).sleep();
+    }    
 }
-
 
 TEST(OmplPlanning, PositionGoal)
 {
@@ -136,8 +149,9 @@ TEST(OmplPlanning, PositionGoal)
     pcm.constraint_region_pose.pose.orientation.z = 0.0;
     pcm.constraint_region_pose.pose.orientation.w = 1.0;
     pcm.weight = 1.0;
-
-    mplan_req.motion_plan_request.goal_constraints.position_constraints.push_back(pcm);
+    
+    mplan_req.motion_plan_request.goal_constraints.resize(1);
+    mplan_req.motion_plan_request.goal_constraints[0].position_constraints.push_back(pcm);
 
     ASSERT_TRUE(planning_service_client.call(mplan_req, mplan_res));
     ASSERT_EQ(mplan_res.error_code.val, mplan_res.error_code.SUCCESS);
@@ -175,7 +189,8 @@ TEST(OmplPlanning, OrientationGoal)
     ocm.absolute_yaw_tolerance = 0.4;
     ocm.weight = 1.0;
 
-    mplan_req.motion_plan_request.goal_constraints.orientation_constraints.push_back(ocm);
+    mplan_req.motion_plan_request.goal_constraints.resize(1);
+    mplan_req.motion_plan_request.goal_constraints[0].orientation_constraints.push_back(ocm);
 
     ASSERT_TRUE(planning_service_client.call(mplan_req, mplan_res));
     ASSERT_EQ(mplan_res.error_code.val, mplan_res.error_code.SUCCESS);
@@ -211,8 +226,10 @@ TEST(OmplPlanning, PoseGoal)
     ocm.absolute_roll_tolerance = 0.2;
     ocm.absolute_pitch_tolerance = 0.1;
     ocm.absolute_yaw_tolerance = 0.4;
-    ocm.weight = 1.0;
-    mplan_req.motion_plan_request.goal_constraints.orientation_constraints.push_back(ocm);
+    ocm.weight = 1.0;  
+
+    mplan_req.motion_plan_request.goal_constraints.resize(1);
+    mplan_req.motion_plan_request.goal_constraints[0].orientation_constraints.push_back(ocm);
 
     moveit_msgs::PositionConstraint pcm;
     pcm.link_name = "l_wrist_roll_link";
@@ -231,7 +248,7 @@ TEST(OmplPlanning, PoseGoal)
     pcm.constraint_region_pose.pose.orientation.z = 0.0;
     pcm.constraint_region_pose.pose.orientation.w = 1.0;
     pcm.weight = 1.0;
-    mplan_req.motion_plan_request.goal_constraints.position_constraints.push_back(pcm);
+    mplan_req.motion_plan_request.goal_constraints[0].position_constraints.push_back(pcm);
 
     ASSERT_TRUE(planning_service_client.call(mplan_req, mplan_res));
     ASSERT_EQ(mplan_res.error_code.val, mplan_res.error_code.SUCCESS);

@@ -111,6 +111,7 @@ namespace ompl_interface_ros
 
 ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_scene::PlanningSceneConstPtr &scene) : ompl_interface::OMPLInterface(), nh_("~")
 {
+    ROS_INFO("Initializing OMPL interface using ROS parameters");
     if (scene->isConfigured())
     {
         scene_ = scene;
@@ -138,7 +139,7 @@ std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConf
     // read the list of group names that have additional configurations
     if (nh_.getParam("groups", group_list))
     {
-        ROS_INFO("Found additional configurations for planning groups on param server");
+        ROS_INFO("Using additional configurations for planning groups on param server:");
         if (group_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
         {
             for (int32_t i = 0; i < group_list.size(); ++i)
@@ -147,7 +148,10 @@ std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConf
                 {
                     std::string gnm = static_cast<std::string>(group_list[i]);
                     if (scene_->getKinematicModel()->hasJointModelGroup(gnm))
+                    {
+                        ROS_INFO("  - group '%s'", gnm.c_str());
                         group_names.push_back(gnm);
+                    }
                     else
                         ROS_ERROR("Additional configuration specified for group '%s', but that group is not known to the kinematic model.", gnm.c_str());
                 }
@@ -166,6 +170,8 @@ std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConf
 
 void ompl_interface_ros::OMPLInterfaceROS::configureIKSolvers(void)
 {
+    ROS_INFO("Configuring IK solvers");
+
     std::vector<std::string> group_names = getAdditionalConfigGroupNames();
     std::map<std::string, std::vector<std::string> > possible_ik_solvers;
 
@@ -185,14 +191,12 @@ void ompl_interface_ros::OMPLInterfaceROS::configureIKSolvers(void)
         }
     }
 
+    std::map<std::string, kinematic_constraints::IKAllocator> imap;
     ik_loader_.reset(new OMPLInterfaceROS::IKLoader(possible_ik_solvers));
     kinematic_constraints::IKAllocator ik_allocator = boost::bind(&OMPLInterfaceROS::IKLoader::allocIKSolver, ik_loader_.get(), _1);
-    for (std::map<std::string, ompl_interface::PlanningGroupPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
-        if (possible_ik_solvers.find(it->second->getJointModelGroup()->getName()) != possible_ik_solvers.end())
-        {
-            ROS_DEBUG("Specifying IK solver for planning configuration '%s'", it->second->getName().c_str());
-            it->second->setIKAllocator(ik_allocator);
-        }
+    for (std::map<std::string, std::vector<std::string> >::iterator it = possible_ik_solvers.begin() ; it != possible_ik_solvers.end() ; ++it)
+        imap[it->first] = ik_allocator;
+    OMPLInterface::configureIKSolvers(imap);
 }
 
 void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_interface::PlannerConfigs> &pconfig)
@@ -246,7 +250,6 @@ void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_in
                                     pc.config["longest_valid_segment_fraction"] = lvsf;
 
                                 // read parameters specific for this configuration
-                                ROS_INFO("Configuring '%s'...", pc.name.c_str());
                                 for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin() ; it != xml_config.end() ; ++it)
                                     pc.config[it->first] = static_cast<std::string>(it->second);
                                 pconfig.push_back(pc);
@@ -265,6 +268,13 @@ void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_in
         }
         else
             ROS_INFO("Group '%s' mentioned for additional configuration but no planner_configs specified. Using default settings.", group_names[i].c_str());
+    }
+
+    for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
+    {
+        ROS_DEBUG_STREAM("Parameters for configuration '"<< pconfig[i].name << "'");
+        for (std::map<std::string, std::string>::const_iterator it = pconfig[i].config.begin() ; it != pconfig[i].config.end() ; ++it)
+            ROS_DEBUG_STREAM(it->first << " = " << it->second);
     }
 }
 
