@@ -51,7 +51,7 @@ namespace ompl_interface
 
     class PlanningGroup
     {
-	friend class OMPLInterface;
+        friend class OMPLInterface;
     public:
 
         PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
@@ -109,21 +109,27 @@ namespace ompl_interface
             max_planning_threads_ = max_planning_threads;
         }
 
-	double getMaximumSolutionSegmentLength(void) const
-	{
-	    return max_solution_segment_length_;
-	}
-	
-	void setMaximumSolutionSegmentLength(double mssl)
-	{
-	    max_solution_segment_length_ = mssl;
-	}
-	
+        double getMaximumSolutionSegmentLength(void) const
+        {
+            return max_solution_segment_length_;
+        }
+
+        void setMaximumSolutionSegmentLength(double mssl)
+        {
+            max_solution_segment_length_ = mssl;
+        }
+
         const planning_models::KinematicState& getStartState(void) const
         {
             return start_state_;
         }
-	/*
+
+        const kinematic_constraints::KinematicConstraintSetPtr& getPathConstraints(void) const
+        {
+            return path_kset_;
+        }
+
+        /*
         const moveit_msgs::Constraints& getPathConstraintsMsg(void) const
         {
             return path_constraints_;
@@ -134,16 +140,12 @@ namespace ompl_interface
             return goal_constraints_;
         }
 
-        const kinematic_constraints::KinematicConstraintSetPtr& getPathConstraints(void) const
-        {
-            return path_kset_;
-        }
 
         const kinematic_constraints::KinematicConstraintSetPtr& getGoalConstraints(void) const
         {
             return goal_kset_;
         }
-	*/
+        */
 
         const ompl::geometric::SimpleSetup& getOMPLContext(void) const
         {
@@ -164,8 +166,8 @@ namespace ompl_interface
         }
 
         void simplifySolution(double timeout);
-	void interpolateSolution();
-	
+        void interpolateSolution();
+
         bool getSolutionPath(moveit_msgs::RobotTrajectory &traj) const;
         void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
 
@@ -174,8 +176,8 @@ namespace ompl_interface
         void useConfig(const std::map<std::string, std::string> &config);
         void setProjectionEvaluator(const std::string &peval);
         kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
-	ompl::base::GoalPtr getGoalRepresentation(const moveit_msgs::Constraints &constr) const;
-	
+        ompl::base::GoalPtr getGoalRepresentation(const kinematic_constraints::KinematicConstraintSetPtr &kset) const;
+
         ompl::base::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
         ompl::base::PlannerPtr plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
                                                 const std::map<std::string, std::string> &config) const;
@@ -184,7 +186,7 @@ namespace ompl_interface
         /// there may be multiple (perhaps differently configured and differently named) configurations for the same group)
         std::string                                             name_;
 
-        /// the group planning is performed for. 
+        /// the group planning is performed for.
         const planning_models::KinematicModel::JointModelGroup *jmg_;
 
         /// pointer to the planning scene used for collision avoidance
@@ -202,24 +204,18 @@ namespace ompl_interface
         /// the starting state considered for planning
         planning_models::KinematicState                         start_state_;
 
-        /// the path constraints currently being considered
-        moveit_msgs::Constraints                                path_constraints_;
-
-        /// the goal constraints currently being considered (these include the path constraints as well)
-	std::vector<moveit_msgs::Constraints>                   goal_constraints_;
-
         /// the set of kinematic constraints to be respected by any state on the path
         kinematic_constraints::KinematicConstraintSetPtr        path_kset_;
 
         /// the set of kinematic constraints to be respected by the goal state
-        kinematic_constraints::KinematicConstraintSetPtr        goal_kset_;
+        std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
 
         /// the time spent computing the last plan
         double                                                  last_plan_time_;
 
-	/// the maximum length that is allowed for segments that make up the motion plan; by default this is 0.1% from the extent of the space
-	double                                                  max_solution_segment_length_;
-	
+        /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
+        double                                                  max_solution_segment_length_;
+
         /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
         unsigned int                                            max_goal_samples_;
 
@@ -231,16 +227,9 @@ namespace ompl_interface
 
         /// a function pointer that returns an IK solver for this group; this is useful for sampling states using IK
         kinematic_constraints::IKAllocator                      ik_allocator_;
-	
-	struct SubgroupAllocators
-	{
-	    /// If there is no IK solver for this group, there could be IK solvers for parts of this group. 
-	    std::vector<std::pair<const planning_models::KinematicModel::JointModelGroup*, kinematic_constraints::IKAllocator> > ik_allocators_;
-	    /// The left-over joints, not sampled using the subgroup IK sampler
-	    std::vector<const planning_models::KinematicModel::JointModel*>                                                      remainder_joints_;
-	};
-	SubgroupAllocators                                      ik_subgroup_allocators_;
-	
+
+        kinematic_constraints::IKSubgroupAllocator              ik_subgroup_allocators_;
+
     };
 
     typedef boost::shared_ptr<PlanningGroup> PlanningGroupPtr;

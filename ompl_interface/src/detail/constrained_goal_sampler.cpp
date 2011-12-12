@@ -39,16 +39,16 @@
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks,
                                                                const kinematic_constraints::ConstraintSamplerPtr &cs) :
-    ompl::base::GoalLazySamples(pg->getOMPLContext().getSpaceInformation(), 
-				cs ? boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2) :
-				boost::bind(&ConstrainedGoalSampler::sampleUsingGAIK, this, _1, _2), false),
+    ompl::base::GoalLazySamples(pg->getOMPLContext().getSpaceInformation(),
+                                cs ? boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2) :
+                                boost::bind(&ConstrainedGoalSampler::sampleUsingGAIK, this, _1, _2), false),
     pg_(pg), ks_(ks), cs_(cs), state_(pg->getStartState())
 {
     startSampling();
 }
 
 bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal)
-{  
+{
     unsigned int ma = pg_->getMaximumSamplingAttempts();
 
     // terminate after too many attempts
@@ -67,38 +67,38 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ompl::base::G
     {
     public:
         ConstrainedGoalRegion(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSet *ks,
-			      planning_models::KinematicState *state) :
-	    ompl::base::GoalRegion(pg->getOMPLContext().getSpaceInformation()), pg_(pg), ks_(ks), state_(state)
-	{
-	}
-	
-	virtual double distanceGoal(const ompl::base::State *st) const
-	{
-	    pg_->getKMStateSpace().copyToKinematicState(*state_, st);
-	    return ks_->decide(*state_).second;
-	}
-	
-	virtual bool isSatisfied(const ompl::base::State *st, double *distance) const
-	{
-	    pg_->getKMStateSpace().copyToKinematicState(*state_, st);
-	    const std::pair<bool, double> &r = ks_->decide(*state_);
-	    if (distance)
-		*distance = r.second;
-	    return r.first;
-	}
-	
+                              planning_models::KinematicState *state) :
+            ompl::base::GoalRegion(pg->getOMPLContext().getSpaceInformation()), pg_(pg), ks_(ks), state_(state)
+        {
+        }
+
+        virtual double distanceGoal(const ompl::base::State *st) const
+        {
+            pg_->getKMStateSpace().copyToKinematicState(*state_, st);
+            return ks_->decide(*state_).second;
+        }
+
+        virtual bool isSatisfied(const ompl::base::State *st, double *distance) const
+        {
+            pg_->getKMStateSpace().copyToKinematicState(*state_, st);
+            const std::pair<bool, double> &r = ks_->decide(*state_);
+            if (distance)
+                *distance = r.second;
+            return r.first;
+        }
+
     protected:
 
         const PlanningGroup                                 *pg_;
         const kinematic_constraints::KinematicConstraintSet *ks_;
-	planning_models::KinematicState                     *state_;
+        planning_models::KinematicState                     *state_;
     };
 
     ConstrainedGoalRegion reg(pg_, ks_.get(), &state_);
     ompl::geometric::GAIK g(si_);
     while (gls->isSampling())
-	if (g.solve(0.1, reg, newGoal))
-	    return true;
+        if (g.solve(0.1, reg, newGoal))
+            return true;
     return false;
 }
 
@@ -118,7 +118,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
 
     std::vector<double> values;
     for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
-        if (cs_->sample(values, ma, &pg_->getStartState()))
+        if (cs_->sample(values, &pg_->getStartState(), ma))
         {
             state_.getJointStateGroup(pg_->getJointModelGroup()->getName())->setStateValues(values);
             if (ks_->decide(state_).first)

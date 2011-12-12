@@ -34,39 +34,33 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/detail/constrained_sampler.h"
+#include <ompl/base/GoalSampleableRegion.h>
 
-ompl_interface::ConstrainedSampler::ConstrainedSampler(const PlanningGroup *pg, const kinematic_constraints::ConstraintSamplerPtr &cs) :
-    ompl::base::StateSampler(pg->getKMStateSpace().getOMPLSpace().get()),
-    pg_(pg), default_(space_->allocDefaultStateSampler()), cs_(cs)
+namespace ompl_interface
 {
-}
 
-bool ompl_interface::ConstrainedSampler::sampleC(ompl::base::State *state)
-{
-    std::vector<double> values;
-    if (cs_->sample(values, &pg_->getStartState(), pg_->getMaximumSamplingAttempts()))
+    class GoalSampleableRegionMux : public ompl::base::GoalSampleableRegion
     {
-        pg_->getKMStateSpace().copyToOMPLState(state, values);
-        return true;
-    }
-    return false;
-}
+    public:
 
-void ompl_interface::ConstrainedSampler::sampleUniform(ompl::base::State *state)
-{
-    if (!sampleC(state))
-        default_->sampleUniform(state);
-}
+        GoalSampleableRegionMux(const std::vector<ompl::base::GoalPtr> &goals);
 
-void ompl_interface::ConstrainedSampler::sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
-{
-    if (!sampleC(state))
-        default_->sampleUniformNear(state, near, distance);
-}
+        virtual ~GoalSampleableRegionMux(void)
+        {
+        }
 
-void ompl_interface::ConstrainedSampler::sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
-{
-    if (!sampleC(state))
-        default_->sampleGaussian(state, mean, stdDev);
+        virtual void sampleGoal(ompl::base::State *st) const;
+        virtual unsigned int maxSampleCount(void) const;
+        virtual bool canSample(void) const;
+        virtual bool isSatisfied(const ompl::base::State *st, double *distance) const;
+        virtual double distanceGoal(const ompl::base::State *st) const;
+
+        virtual void print(std::ostream &out = std::cout) const;
+
+    protected:
+
+        std::vector<ompl::base::GoalPtr> goals_;
+        mutable unsigned int             gindex_;
+    };
+
 }

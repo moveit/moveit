@@ -40,6 +40,7 @@
 #include "ompl_interface/detail/constrained_sampler.h"
 #include "ompl_interface/detail/constrained_goal_sampler.h"
 #include "ompl_interface/detail/projection_evaluators.h"
+#include "ompl_interface/detail/goal_union.h"
 
 #include <geometric_shapes/shape_operations.h>
 #include <geometric_shapes/body_operations.h>
@@ -102,8 +103,8 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
     name_(name), jmg_(jmg), planning_scene_(scene), kinematic_model_state_space_(jmg), ompl_simple_setup_(kinematic_model_state_space_.getOMPLSpace()),
     pplan_(ompl_simple_setup_.getProblemDefinition()), start_state_(scene->getKinematicModel()), last_plan_time_(0.0),
     max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
-{   
-    max_solution_segment_length_ = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / 1000.0;
+{
+    max_solution_segment_length_ = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / 100.0;
     ompl_simple_setup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
     ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
     useConfig(config);
@@ -194,186 +195,22 @@ ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedS
     if (kinematic_model_state_space_.getOMPLSpace().get() != ss)
         ROS_FATAL("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
     ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
-    const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_constraints_);
+    const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_kset_->getAllConstraints());
     if (cs)
         return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
     else
         return ss->allocDefaultStateSampler();
 }
 
-ompl::base::GoalPtr ompl_interface::PlanningGroup::getGoalRepresentation(const moveit_msgs::Constraints &constr) const
+ompl::base::GoalPtr ompl_interface::PlanningGroup::getGoalRepresentation(const kinematic_constraints::KinematicConstraintSetPtr &kset) const
 {
-    /*
-    kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
-    kset->add(constr);
-    return ompl::base::GoalPtr(new ConstrainedGoalSampler(this, kset, getConstraintsSampler(constr)));
-    */
+    return ompl::base::GoalPtr(new ConstrainedGoalSampler(this, kset, getConstraintsSampler(kset->getAllConstraints())));
 }
 
 kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getConstraintsSampler(const moveit_msgs::Constraints &constr) const
 {
-    kinematic_constraints::ConstraintSamplerPtr joint_sampler;
-    // if there are joint constraints, we could possibly get a sampler from those
-    if (!constr.joint_constraints.empty())
-    {
-	// construct the constraints
-        std::vector<kinematic_constraints::JointConstraint> jc;
-        for (std::size_t i = 0 ; i < constr.joint_constraints.size() ; ++i)
-        {
-            kinematic_constraints::JointConstraint j(planning_scene_->getKinematicModel(), planning_scene_->getTransforms());
-            if (j.use(constr.joint_constraints[i]))
-                jc.push_back(j);
-        }
-
-	// if we have constrained every joint, then we just use a sampler using these constraints
-	if (jc.size() == jmg_->getJointModels().size())
-	{
-	    ROS_DEBUG("%s: Allocated a sampler satisfying joint constraints", name_.c_str());
-	    return kinematic_constraints::ConstraintSamplerPtr(new kinematic_constraints::JointConstraintSampler(jmg_, jc));
-	}
-	// if a smaller set of joints has been specified, keep the constraint sampler around, but use it only if no IK sampler has been specified.
-	if (!jc.empty())
-	    joint_sampler.reset(new kinematic_constraints::JointConstraintSampler(jmg_, jc));
-    }
-    
-    // if we have a means of computing complete states for the group using IK, then we try to see if any IK constraints should be used
-    if (ik_allocator_)
-    {	
-	// keep track of which links we constrained
-	std::map<std::string, kinematic_constraints::IKConstraintSampler*> usedL;
-	
-	// if we have position and/or orientation constraints on links that we can perform IK for,
-	// we will use a sampleable goal region that employs IK to sample goals;
-	// if there are multiple constraints for the same link, we keep the one with the smallest 
-	// volume for sampling
-	for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
-	    for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
-		if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
-		{
-		    boost::shared_ptr<kinematic_constraints::PositionConstraint> pc
-			(new kinematic_constraints::PositionConstraint(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
-		    boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc
-			(new kinematic_constraints::OrientationConstraint(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
-		    if (pc->use(constr.position_constraints[p]) && oc->use(constr.orientation_constraints[o]))
-		    {
-			kinematic_constraints::IKConstraintSampler *iks = new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, kinematic_constraints::IKSamplingPose(pc, oc));
-			if (iks->initialize())
-			{
-			    bool use = true;
-			    if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
-				if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
-				    use = false;
-			    if (use)
-			    {
-				usedL[constr.position_constraints[p].link_name] = iks;
-				ROS_DEBUG("%s: Allocated an IK-based sampler satisfying position and orientation constraints on link '%s'",
-					  name_.c_str(), constr.position_constraints[p].link_name.c_str());
-			    }
-			    else
-				delete iks;
-			}
-			else
-			    delete iks;
-		    }
-		}
-	
-	for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
-	{
-	    boost::shared_ptr<kinematic_constraints::PositionConstraint> pc
-		(new kinematic_constraints::PositionConstraint(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
-	    if (pc->use(constr.position_constraints[p]))
-	    {
-		kinematic_constraints::IKConstraintSampler *iks = new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, kinematic_constraints::IKSamplingPose(pc));
-		if (iks->initialize())
-		{
-		    bool use = true;
-		    if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
-			if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
-			    use = false;
-		    if (use)
-		    {
-			usedL[constr.position_constraints[p].link_name] = iks;
-			ROS_DEBUG("%s: Allocated an IK-based sampler satisfying position constraints on link '%s'", name_.c_str(), constr.position_constraints[p].link_name.c_str());
-		    }
-		    else
-			delete iks;
-		}
-		else
-		    delete iks;
-	    }
-	}
-	
-	for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
-	{
-	    boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc
-		(new kinematic_constraints::OrientationConstraint(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
-	    if (oc->use(constr.orientation_constraints[o]))
-	    {
-		kinematic_constraints::IKConstraintSampler *iks = new kinematic_constraints::IKConstraintSampler(ik_allocator_, jmg_, kinematic_constraints::IKSamplingPose(oc));
-		if (iks->initialize())
-		{
-		    bool use = true;
-		    if (usedL.find(constr.orientation_constraints[o].link_name) != usedL.end())
-			if (usedL[constr.orientation_constraints[o].link_name]->getSamplingVolume() < iks->getSamplingVolume())
-			    use = false;
-		    if (use)
-		    {
-			usedL[constr.orientation_constraints[o].link_name] = iks;
-			ROS_DEBUG("%s: Allocated an IK-based sampler satisfying orientation constraints on link '%s'", name_.c_str(), constr.orientation_constraints[o].link_name.c_str());
-		    } 
-		    else
-			delete iks;
-		} 
-		else
-		    delete iks;
-	    }
-	}
-
-	if (usedL.size() == 1)
-	    return kinematic_constraints::ConstraintSamplerPtr(usedL.begin()->second);
-	
-	if (usedL.size() > 1)
-	{
-	    ROS_DEBUG("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg_->getName().c_str());
-	    // find the sampler with the smallest sampling volume; delete the rest
-	    kinematic_constraints::IKConstraintSampler *iks = usedL.begin()->second;
-	    double msv = iks->getSamplingVolume();
-	    for (std::map<std::string, kinematic_constraints::IKConstraintSampler*>::const_iterator it = ++usedL.begin() ; it != usedL.end() ; ++it)
-	    {
-		double v = it->second->getSamplingVolume();
-		if (v < msv)
-		{
-		    ROS_DEBUG("Discarding IK-based sampler for link '%s'", iks->getLinkName().c_str());
-		    delete iks;
-		    iks = it->second;
-		    msv = v;
-		} 
-		else
-		{
-		    ROS_DEBUG("Discarding IK-based sampler for link '%s'", it->first.c_str());
-		    delete it->second;
-		}
-	    }
-	    return kinematic_constraints::ConstraintSamplerPtr(iks);
-	}
-    }
-    
-    // if we got to this point, we have not decided on a sampler.
-    // we now check to see if we can use samplers from subgroups
-    
-    
-    
-    
-
-    /// \todo What it the joint constraints are not affected by IK?
-
-    // if we cannot perform IK but there are joint constraints that we can use to construct goal samples,
-    // we again use a sampleable goal region
-
-    if (!sampler)
-        ROS_DEBUG("%s: No constraints sampler allocated", name_.c_str());
-
-    return sampler;
+    return kinematic_constraints::constructConstraintsSampler(jmg_, constr, planning_scene_->getKinematicModel(), planning_scene_->getTransforms(),
+                                                              ik_allocator_, ik_subgroup_allocators_);
 }
 
 void ompl_interface::PlanningGroup::setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams)
@@ -382,8 +219,8 @@ void ompl_interface::PlanningGroup::setPlanningVolume(const moveit_msgs::Workspa
               wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
 
     kinematic_model_state_space_.setPlanningVolume(wparams.min_corner.x, wparams.max_corner.x,
-                                      wparams.min_corner.y, wparams.max_corner.y,
-                                      wparams.min_corner.z, wparams.max_corner.z);
+                                                   wparams.min_corner.y, wparams.max_corner.y,
+                                                   wparams.min_corner.z, wparams.max_corner.z);
 }
 
 bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::KinematicState &start_state,
@@ -392,18 +229,17 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
                                                          moveit_msgs::MoveItErrorCodes *error)
 {
     // ******************* check if the input is correct
-    bool goal_ok = false;    
+    goal_constraints_.clear();
     for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
-	if (!(goal_constraints[i].joint_constraints.empty() &&
-	      goal_constraints[i].position_constraints.empty() &&
-	      goal_constraints[i].orientation_constraints.empty() &&
-	      goal_constraints[i].visibility_constraints.empty()))
-	{
-	    goal_ok = true;
-	    break;
-	}
-    
-    if (!goal_ok)
+    {
+        moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
+        kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(),
+                                                                                                                planning_scene_->getTransforms()));
+        kset->add(constr);
+        if (!kset->empty())
+            goal_constraints_.push_back(kset);
+    }
+    if (goal_constraints_.empty())
     {
         ROS_WARN("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
         if (error)
@@ -411,7 +247,7 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
         return false;
     }
 
-    // first we need to identify what kind of planning we will perform     
+    // first we need to identify what kind of planning we will perform
 
     // ******************* set up the starting state for the plannig context
     // set the starting state
@@ -426,21 +262,28 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
     ompl_simple_setup_.setStartState(ompl_start_state);
 
     // ******************* set the path constraints to use
-    path_constraints_ = path_constraints;
     path_kset_->clear();
     path_kset_->add(path_constraints);
 
     // ******************* set up the goal representation, based on goal constraints
 
     std::vector<ompl::base::GoalPtr> goals;
-    for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
+    for (std::size_t i = 0 ; i < goal_constraints_.size() ; ++i)
     {
-	moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
-	ompl::base::GoalPtr goal = getGoalRepresentation(constr);
-	if (goal)
-	    goals.push_back(goal);
+        ompl::base::GoalPtr g = getGoalRepresentation(goal_constraints_[i]);
+        if (g)
+            goals.push_back(g);
     }
-        
+
+    if (!goals.empty())
+    {
+        ompl::base::GoalPtr goal = goals.size() == 1 ? goals[0] : ompl::base::GoalPtr(new GoalSampleableRegionMux(goals));
+        ompl_simple_setup_.setGoal(goal);
+        ompl_simple_setup_.setup();
+    }
+    else
+        ROS_ERROR("Unable to construct goal representation");
+
     ROS_DEBUG("%s: New planning context is set.", name_.c_str());
 
     return true;
@@ -453,11 +296,11 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
     // just in case sampling is not started
     if (gls)
         static_cast<ompl::base::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
-
     // try to fix invalid input states, if any
     double d = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / 1000.0;
     if (!ompl_simple_setup_.getProblemDefinition()->fixInvalidInputStates(d, d, 1000))
         ompl_simple_setup_.getProblemDefinition()->fixInvalidInputStates(d * 10.0, d * 10.0, 1000);
+
     bool result = false;
     if (count <= 1)
     {
@@ -532,8 +375,8 @@ void ompl_interface::PlanningGroup::interpolateSolution(void)
 {
     if (ompl_simple_setup_.haveSolutionPath())
     {
-	ompl::geometric::PathGeometric &pg = ompl_simple_setup_.getSolutionPath();
-	pg.interpolate((std::size_t)floor(0.5 + pg.length() / max_solution_segment_length_));
+        ompl::geometric::PathGeometric &pg = ompl_simple_setup_.getSolutionPath();
+        pg.interpolate((std::size_t)floor(0.5 + pg.length() / max_solution_segment_length_));
     }
 }
 
@@ -554,7 +397,7 @@ bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory
             traj.joint_trajectory.joint_names.push_back(jnt[i]->getName());
             onedof.push_back(jnt[i]);
         }
-            else
+        else
         {
             traj.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
             traj.multi_dof_joint_trajectory.frame_ids.push_back(planning_scene_->getKinematicModel()->getModelFrame());
