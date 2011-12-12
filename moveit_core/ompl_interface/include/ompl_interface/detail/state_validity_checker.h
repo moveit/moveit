@@ -49,7 +49,7 @@ namespace ompl_interface
 
         StateValidityChecker(const PlanningGroup *pg);
 
-        void updatePlanningContext(void);
+        void useNewStartingState(void);
         virtual bool isValid(const ompl::base::State *state) const;
         virtual bool isValid(const ompl::base::State *state, double &dist) const;
 

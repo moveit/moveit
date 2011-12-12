@@ -36,6 +36,7 @@
 
 #include "ompl_interface/ompl_interface.h"
 #include <planning_models/conversions.h>
+#include <algorithm>
 #include <fstream>
 #include <set>
 
@@ -87,14 +88,55 @@ bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
         fullSpace_ = fullSpace_ + dummy.getOMPLSpace();
     }
     if (fullSpace_)
-            fullSpace_->setName(scene_->getKinematicModel()->getName());
-
-    std::ofstream fout("ompl_spaces.dot");
-    ompl::base::StateSpace::Diagram(fout);
-    fout.close();
+	fullSpace_->setName(scene_->getKinematicModel()->getName());
 
     configured_ = true;
     return true;
+}
+
+void ompl_interface::OMPLInterface::configureIKSolvers(const std::map<std::string, kinematic_constraints::IKAllocator> &ik_allocators)
+{
+    for (std::map<std::string, PlanningGroupPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
+    {
+	std::map<std::string, kinematic_constraints::IKAllocator>::const_iterator jt = ik_allocators.find(it->second->getJointModelGroup()->getName());
+	if (jt == ik_allocators.end())
+	{
+	    // if an IK allocator is NOT available for this group, we try to see if we can use subgroups for IK
+	    const planning_models::KinematicModel::JointModelGroup *jmg = it->second->getJointModelGroup();
+	    const planning_models::KinematicModel *km = jmg->getKinematicModel();
+	    std::set<const planning_models::KinematicModel::JointModel*> joints;
+	    joints.insert(jmg->getJointModels().begin(), jmg->getJointModels().end());
+	    
+	    std::vector<const planning_models::KinematicModel::JointModelGroup*> subs;
+	    
+	    // go through the groups that we know have IK allocators and see if they are included in the group that does not; fi so, put that group in sub
+	    for (std::map<std::string, kinematic_constraints::IKAllocator>::const_iterator kt = ik_allocators.begin() ; kt != ik_allocators.end() ; ++kt)
+	    {
+		const planning_models::KinematicModel::JointModelGroup *sub = km->getJointModelGroup(kt->first);
+		const std::vector<const planning_models::KinematicModel::JointModel*> &sub_joints = sub->getJointModels();
+		if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
+		{
+		    subs.push_back(sub);
+		    for (std::size_t i = 0 ; i < sub_joints.size() ; ++i)
+			joints.erase(sub_joints[i]);
+		}
+	    }
+	    
+	    // if we found subgroups, pass that information to the planning group
+	    if (!subs.empty())
+	    {
+		PlanningGroup::SubgroupAllocators sa;
+		for (std::size_t i = 0 ; i < subs.size() ; ++i)
+		    sa.ik_allocators_[i].push_back(std::make_pair(sub[i], *ik_allocators.find(sub[i]->getName())));
+		for (std::set<const planning_models::KinematicModel::JointModel*>::iterator kt = joints.begin() ; kt != joints.end() ; ++kt)
+		    sa.remainder_joints_.push_back(*kt);
+		ik_subgroup_allocators_.push_back(sa);
+	    }
+	}
+	else
+	    // if the IK allocator is for this group, we use it
+	    it->second->ik_allocator_ = jt->second;
+    }
 }
 
 void ompl_interface::OMPLInterface::setMaximumSamplingAttempts(unsigned int max_sampling_attempts)

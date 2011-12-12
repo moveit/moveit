@@ -63,6 +63,30 @@ namespace ompl_interface
 	planning_models::KinematicState                  state_;
     };
     
+    class UnionGoalSampler : public ompl::base::GoalLazySamples
+    {
+    public:
+	UnionGoalSampler(std::vector<ompl::base::GoalPtr> &goals)
+	{
+	    for (std::size_t i = 0 ; i < goals.size() ; ++i)
+		if (goals[i]->hasType(ompl::base::GOAL_LAZY_SAMPLES))
+		    goals[i]->as<ompl::base::GoalLazySamples>()->setNewStateCallback(boost::bind(&UnionGoalSampler::sampleUnion, this, _1, _2));
+	}
+	
+    private:
+	
+	bool sampleUnion(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal)
+	{
+	}
+	
+	void newStateFound(const ompl::base::State *state)
+	{
+	}
+	
+
+    }
+	
+
 }
 
 #endif

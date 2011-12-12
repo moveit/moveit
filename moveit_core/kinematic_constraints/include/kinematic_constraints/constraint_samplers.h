@@ -53,8 +53,12 @@ namespace kinematic_constraints
 
         virtual ~ConstraintSampler(void);
 
-        virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100,
-                            const planning_models::KinematicState *ks = NULL) = 0;
+	const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void)
+	{
+	    return jmg_;
+	}
+	
+        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState *ks, unsigned int max_attempts = 100) = 0;
 
     protected:
 
@@ -65,16 +69,32 @@ namespace kinematic_constraints
     typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
     typedef boost::shared_ptr<const ConstraintSampler> ConstraintSamplerConstPtr;
 
-    /// function type that allocates an IK solver
+    /// function type that allocates an IK solver for a particular group
     typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> IKAllocator;
-
+    
+    /// some groups do not have IK solver associated to them, but may contain disjoint groups that do have IK solvers associated to them
+    struct IKSubgroupAllocator
+    {
+	IKSubgroupAllocator(void) : jmg_(NULL)
+	{
+	}
+	
+	IKSubgroupAllocator(const planning_models::KinematicModel::JointModelGroup* jmg) : jmg_(jmg)
+	{
+	}
+	
+	const planning_models::KinematicModel::JointModelGroup                        *jmg_;
+	
+	/// If there is no IK solver for this group, there could be IK solvers for parts of this group. 
+	std::map<const planning_models::KinematicModel::JointModelGroup*, IKAllocator> ik_allocators_;
+    };
+    
     class JointConstraintSampler : public ConstraintSampler
     {
     public:
 
         JointConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const std::vector<JointConstraint> &jc);
-        virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100,
-                            const planning_models::KinematicState *ks = NULL);
+        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState *ks,  unsigned int max_attempts = 100);
 
         std::size_t getConstrainedJointCount(void) const
         {
@@ -95,22 +115,28 @@ namespace kinematic_constraints
         std::vector<unsigned int>                                       uindex_;
     };
 
+    
+    struct IKSamplingPose
+    {
+	IKSamplingPose();
+	IKSamplingPose(const PositionConstraint &pc);
+	IKSamplingPose(const OrientationConstraint &oc);
+	IKSamplingPose(const PositionConstraint &pc, const OrientationConstraint &oc);
+
+	IKSamplingPose(const boost::shared_ptr<PositionConstraint> &pc);
+	IKSamplingPose(const boost::shared_ptr<OrientationConstraint> &oc);	
+	IKSamplingPose(const boost::shared_ptr<PositionConstraint> &pc, const boost::shared_ptr<OrientationConstraint> &oc);
+
+	boost::shared_ptr<PositionConstraint>    pc_;
+	boost::shared_ptr<OrientationConstraint> oc_;
+    };
+    
     class IKConstraintSampler : public ConstraintSampler
     {
     public:
 
-        IKConstraintSampler(const IKAllocator &ik_alloc,
-                            const planning_models::KinematicModel::JointModelGroup *jmg,
-                            const PositionConstraint &pc, const OrientationConstraint &oc);
-
-        IKConstraintSampler(const IKAllocator &ik_alloc,
-                            const planning_models::KinematicModel::JointModelGroup *jmg,
-                            const PositionConstraint &pc);
-
-        IKConstraintSampler(const IKAllocator &ik_alloc,
-                            const planning_models::KinematicModel::JointModelGroup *jmg,
-                            const OrientationConstraint &oc);
-
+        IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const IKAllocator &ik_alloc, const IKSamplingPose &sp);
+	
         double getIKTimeout(void) const
         {
             return ik_timeout_;
@@ -120,9 +146,23 @@ namespace kinematic_constraints
         {
             ik_timeout_ = timeout;
         }
-
-        virtual bool sample(std::vector<double> &values, unsigned int max_attempts = 100,
-                            const planning_models::KinematicState *ks = NULL);
+	
+	bool initialize(void);
+	
+	const boost::shared_ptr<PositionConstraint>& getPositionConstraint(void) const
+	{
+	    return sp_.pc_;
+	}
+	
+	const boost::shared_ptr<OrientationConstraint>& getOrientationConstraint(void) const
+	{
+	    return sp_.oc_;
+	}
+	
+	double getSamplingVolume(void) const;
+	const std::string& getLinkName(void) const;
+	
+        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState *ks, unsigned int max_attempts = 100);
 
     protected:
 
@@ -130,14 +170,39 @@ namespace kinematic_constraints
         bool loadIKSolver(void);
 
         IKAllocator                                   ik_alloc_;
-        boost::shared_ptr<PositionConstraint>         pc_;
-        boost::shared_ptr<OrientationConstraint>      oc_;
+	IKSamplingPose                                sp_;
         boost::shared_ptr<kinematics::KinematicsBase> kb_;
         double                                        ik_timeout_;
         std::vector<unsigned int>                     ik_joint_bijection_;
         std::string                                   ik_frame_;
         bool                                          transform_ik_;
     };
+
+    class UnionConstraintSampler : public ConstraintSampler
+    {
+    public:
+	
+	UnionConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, std::vector<ConstraintSamplerPtr> &samplers);
+	
+	const std::vector<ConstraintSamplerPtr>& getSamplers(void) const
+	{
+	    return samplers_;
+	}    
+
+	virtual bool sample(std::vector<double> &values, const planning_models::KinematicState *ks, unsigned int max_attempts = 100);
+	
+    protected:
+	
+	std::vector<ConstraintSamplerPtr>       samplers_;	
+	std::vector<std::vector<unsigned int> > bijection_;	
+    };
+    
+    
+
+    ConstraintSamplerPtr constructConstraintsSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const moveit_msgs::Constraints &constr,
+						     const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf,
+						     const IKAllocator &ik_alloc = IKAllocator(), const IKSubgroupAllocator &ik_subgroup_alloc = IKSubgroupAllocator());
+    
 }
 
 
