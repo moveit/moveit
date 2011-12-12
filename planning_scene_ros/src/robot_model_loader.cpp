@@ -39,7 +39,7 @@
 planning_scene_ros::RobotModelLoader::RobotModelLoader(const std::string &robot_description) : nh_("~")
 {
     if (nh_.searchParam(robot_description, robot_description_))
-	loadRobotFromParamServer();
+        loadRobotFromParamServer();
 }
 
 bool planning_scene_ros::RobotModelLoader::loadRobotFromParamServer(void)
@@ -47,30 +47,29 @@ bool planning_scene_ros::RobotModelLoader::loadRobotFromParamServer(void)
     std::string content;
     if (nh_.getParam(robot_description_, content))
     {
-	urdf_.reset(new urdf::Model);
-	if (urdf_->initString(content))
-	{
-	    std::string scontent;
-	    if (nh_.getParam(robot_description_ + "_semantic", scontent))
-	    {
-		srdf_.reset(new srdf::Model);
-		if (!srdf_->initString(*urdf_, scontent))
-		{
-		    ROS_ERROR("Unable to parse SRDF");
-		    srdf_.reset();
-		}
-	    }
-	    else
-		ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
-	}
-	else
-	{
-	    ROS_ERROR("Unable to parse URDF");
-	    urdf_.reset();
-	}		
+        urdf_.reset(new urdf::Model);
+        if (urdf_->initString(content))
+        {
+            std::string scontent;
+            if (nh_.getParam(robot_description_ + "_semantic", scontent))
+            {
+                srdf_.reset(new srdf::Model);
+                if (!srdf_->initString(*urdf_, scontent))
+                {
+                    ROS_ERROR("Unable to parse SRDF");
+                    srdf_.reset();
+                }
+            }
+            else
+                ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
+        }
+        else
+        {
+            ROS_ERROR("Unable to parse URDF");
+            urdf_.reset();
+        }
     }
     else
-	ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
+        ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
     return false;
 }
-

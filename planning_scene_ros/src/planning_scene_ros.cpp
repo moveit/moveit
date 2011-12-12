@@ -59,9 +59,9 @@ planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_
     RobotModelLoader rml(robot_description);
     robot_description_ = rml.getRobotDescription();
     if (rml.getURDF() && rml.getSRDF())
-	if (configure(rml.getURDF(), rml.getSRDF()))
-	{
-	    configureDefaultCollisionMatrix();
+        if (configure(rml.getURDF(), rml.getSRDF()))
+        {
+            configureDefaultCollisionMatrix();
             configureDefaultPadding();
             if (isConfigured())
             {
