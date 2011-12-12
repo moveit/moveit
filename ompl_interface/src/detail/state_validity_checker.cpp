@@ -42,7 +42,7 @@ ompl_interface::StateValidityChecker::StateValidityChecker(const PlanningGroup *
     cr_with_distance_.distance = true;
 }
 
-void ompl_interface::StateValidityChecker::updatePlanningContext(void)
+void ompl_interface::StateValidityChecker::useNewStartingState(void)
 {
     tss_.reset(new TSStateStorage(pg_->getStartState()));
 }

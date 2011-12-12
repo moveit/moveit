@@ -65,7 +65,8 @@ namespace ompl_interface
         }
 
         bool configure(const planning_scene::PlanningSceneConstPtr &scene, const std::vector<PlannerConfigs> &pconfig);
-
+	void configureIKSolvers(const std::map<std::string, kinematic_constraints::IKAllocator> &ik_allocators);
+	
         void setMaximumSamplingAttempts(unsigned int max_sampling_attempts);
         void setMaximumGoalSamples(unsigned int max_goal_samples);
         void setMaximumPlanningThreads(unsigned int max_planning_threads);

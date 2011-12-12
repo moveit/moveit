@@ -44,13 +44,14 @@
 #include <kinematic_constraints/constraint_samplers.h>
 #include <planning_scene/planning_scene.h>
 
-#include "ompl_interface/detail/km_state_space.h"
+#include "ompl_interface/detail/kinematic_model_state_space.h"
 
 namespace ompl_interface
 {
 
     class PlanningGroup
     {
+	friend class OMPLInterface;
     public:
 
         PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
@@ -75,7 +76,7 @@ namespace ompl_interface
 
         const KMStateSpace& getKMStateSpace(void) const
         {
-            return km_state_space_;
+            return kinematic_model_state_space_;
         }
 
         unsigned int getMaximumSamplingAttempts(void) const
@@ -122,7 +123,7 @@ namespace ompl_interface
         {
             return start_state_;
         }
-
+	/*
         const moveit_msgs::Constraints& getPathConstraintsMsg(void) const
         {
             return path_constraints_;
@@ -142,10 +143,11 @@ namespace ompl_interface
         {
             return goal_kset_;
         }
+	*/
 
         const ompl::geometric::SimpleSetup& getOMPLContext(void) const
         {
-            return ssetup_;
+            return ompl_simple_setup_;
         }
 
         bool setupPlanningContext(const planning_models::KinematicState &start_state,
@@ -153,11 +155,6 @@ namespace ompl_interface
                                   const moveit_msgs::Constraints &path_constraints,
                                   moveit_msgs::MoveItErrorCodes *error = NULL);
         void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
-
-        void setIKAllocator(const kinematic_constraints::IKAllocator &ik_alloc)
-        {
-            ik_allocator_ = ik_alloc;
-        }
 
         bool solve(double timeout, unsigned int count);
 
@@ -183,22 +180,23 @@ namespace ompl_interface
         ompl::base::PlannerPtr plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
                                                 const std::map<std::string, std::string> &config) const;
 
-        /// name of this planning group (or configuration)
+        /// name of this planning group (or externally specified configuration name, if such a configuration is provided;
+        /// there may be multiple (perhaps differently configured and differently named) configurations for the same group)
         std::string                                             name_;
 
-        /// the group planning is performed for. there may be multiple (perhaps differently configured and differently named) configurations for the same group
+        /// the group planning is performed for. 
         const planning_models::KinematicModel::JointModelGroup *jmg_;
 
         /// pointer to the planning scene used for collision avoidance
         planning_scene::PlanningSceneConstPtr                   planning_scene_;
 
         /// wrapper around an OMPL space, which includes conversions to and from planning_models::KinematicState
-        KMStateSpace                                            km_state_space_;
+        KMStateSpace                                            kinematic_model_state_space_;
 
         /// the OMPL planning context; this contains the problem definition and the planner used
-        ompl::geometric::SimpleSetup                            ssetup_;
+        ompl::geometric::SimpleSetup                            ompl_simple_setup_;
 
-        /// utility to compute multiple plans in parallel; this uses the problem definition maintained by ssetup_
+        /// tool used to compute multiple plans in parallel; this uses the problem definition maintained by ompl_simple_setup_
         ompl::ParallelPlan                                      pplan_;
 
         /// the starting state considered for planning
@@ -208,7 +206,7 @@ namespace ompl_interface
         moveit_msgs::Constraints                                path_constraints_;
 
         /// the goal constraints currently being considered (these include the path constraints as well)
-        moveit_msgs::Constraints                                goal_constraints_;
+	std::vector<moveit_msgs::Constraints>                   goal_constraints_;
 
         /// the set of kinematic constraints to be respected by any state on the path
         kinematic_constraints::KinematicConstraintSetPtr        path_kset_;
@@ -216,7 +214,7 @@ namespace ompl_interface
         /// the set of kinematic constraints to be respected by the goal state
         kinematic_constraints::KinematicConstraintSetPtr        goal_kset_;
 
-        /// the time spend computing the last plan
+        /// the time spent computing the last plan
         double                                                  last_plan_time_;
 
 	/// the maximum length that is allowed for segments that make up the motion plan; by default this is 0.1% from the extent of the space
@@ -231,9 +229,18 @@ namespace ompl_interface
         /// when planning in parallel, this is the maximum number of threads to use at one time
         unsigned int                                            max_planning_threads_;
 
-        /// a function pointer that returns an IK solver; this is useful for sampling states using IK
+        /// a function pointer that returns an IK solver for this group; this is useful for sampling states using IK
         kinematic_constraints::IKAllocator                      ik_allocator_;
-
+	
+	struct SubgroupAllocators
+	{
+	    /// If there is no IK solver for this group, there could be IK solvers for parts of this group. 
+	    std::vector<std::pair<const planning_models::KinematicModel::JointModelGroup*, kinematic_constraints::IKAllocator> > ik_allocators_;
+	    /// The left-over joints, not sampled using the subgroup IK sampler
+	    std::vector<const planning_models::KinematicModel::JointModel*>                                                      remainder_joints_;
+	};
+	SubgroupAllocators                                      ik_subgroup_allocators_;
+	
     };
 
     typedef boost::shared_ptr<PlanningGroup> PlanningGroupPtr;

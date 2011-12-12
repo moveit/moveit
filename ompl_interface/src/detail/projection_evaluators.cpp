@@ -60,9 +60,10 @@ void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::Stat
     planning_models::KinematicState *s = tss_.getStateStorage();
     pg_->getKMStateSpace().copyToKinematicState(*s, state);
     const planning_models::KinematicState::LinkState *ls = s->getLinkState(link_name_);
-    projection(0) = ls->getGlobalLinkTransform().getOrigin().x();
-    projection(1) = ls->getGlobalLinkTransform().getOrigin().y();
-    projection(2) = ls->getGlobalLinkTransform().getOrigin().z();
+    const btVector3 &o = ls->getGlobalLinkTransform().getOrigin();
+    projection(0) = o.x();
+    projection(1) = o.y();
+    projection(2) = o.z();
 }
 
 ompl_interface::ProjectionEvaluatorJointValue::ProjectionEvaluatorJointValue(const PlanningGroup *pg, const std::vector<std::pair<std::string, unsigned int> > &joints) :
