@@ -51,42 +51,17 @@ namespace ompl_interface
 
         ConstrainedGoalSampler(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSetPtr &ks,
                                const kinematic_constraints::ConstraintSamplerPtr &cs = kinematic_constraints::ConstraintSamplerPtr());
-	
+
     private:
 
         bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
-	bool sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
+        bool sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
 
         const PlanningGroup                             *pg_;
         kinematic_constraints::KinematicConstraintSetPtr ks_;
         kinematic_constraints::ConstraintSamplerPtr      cs_;
-	planning_models::KinematicState                  state_;
+        planning_models::KinematicState                  state_;
     };
-    
-    class UnionGoalSampler : public ompl::base::GoalLazySamples
-    {
-    public:
-	UnionGoalSampler(std::vector<ompl::base::GoalPtr> &goals)
-	{
-	    for (std::size_t i = 0 ; i < goals.size() ; ++i)
-		if (goals[i]->hasType(ompl::base::GOAL_LAZY_SAMPLES))
-		    goals[i]->as<ompl::base::GoalLazySamples>()->setNewStateCallback(boost::bind(&UnionGoalSampler::sampleUnion, this, _1, _2));
-	}
-	
-    private:
-	
-	bool sampleUnion(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal)
-	{
-	}
-	
-	void newStateFound(const ompl::base::State *state)
-	{
-	}
-	
-
-    }
-	
-
 }
 
 #endif

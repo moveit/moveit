@@ -65,8 +65,8 @@ namespace ompl_interface
         }
 
         bool configure(const planning_scene::PlanningSceneConstPtr &scene, const std::vector<PlannerConfigs> &pconfig);
-	void configureIKSolvers(const std::map<std::string, kinematic_constraints::IKAllocator> &ik_allocators);
-	
+        void configureIKSolvers(const std::map<std::string, kinematic_constraints::IKAllocator> &ik_allocators);
+
         void setMaximumSamplingAttempts(unsigned int max_sampling_attempts);
         void setMaximumGoalSamples(unsigned int max_goal_samples);
         void setMaximumPlanningThreads(unsigned int max_planning_threads);
@@ -94,10 +94,6 @@ namespace ompl_interface
             particular configurations specified for a group, or of the
             form "group_name" if default settings are to be used. */
         std::map<std::string, PlanningGroupPtr> planning_groups_;
-
-        /** \brief This is the full state space of the kinematic model
-            specified by the planning scene. */
-        ompl::base::StateSpacePtr               fullSpace_;
 
         /** \brief Flag indicating whether the OMPL interface has been configured (the configure() function has been called) */
         bool                                    configured_;

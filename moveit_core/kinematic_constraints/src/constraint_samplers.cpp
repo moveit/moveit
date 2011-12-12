@@ -89,7 +89,7 @@ kinematic_constraints::JointConstraintSampler::JointConstraintSampler(const plan
 }
 
 bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &values, const planning_models::KinematicState * /* ks */,
-							   unsigned int /* max_attempts */)
+                                                           unsigned int /* max_attempts */)
 {
     values.resize(jmg_->getVariableCount());    
     // enforce the constraints for the constrained components (could be all of them)
@@ -139,18 +139,18 @@ kinematic_constraints::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<Po
 }
 
 kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, 
-								const IKAllocator &ik_alloc, const IKSamplingPose &sp) :
+                                                                const IKAllocator &ik_alloc, const IKSamplingPose &sp) :
     ConstraintSampler(jmg), ik_alloc_(ik_alloc), sp_(sp), ik_timeout_(0.5)
 {
     if (sp_.pc_ && sp_.oc_)
-	if (sp_.pc_->getLinkModel()->getName() != sp_.oc_->getLinkModel()->getName())
-	    ROS_FATAL("Position and orientation constraints need to be specified for the same link in order to use IK-based sampling");
+        if (sp_.pc_->getLinkModel()->getName() != sp_.oc_->getLinkModel()->getName())
+            ROS_FATAL("Position and orientation constraints need to be specified for the same link in order to use IK-based sampling");
 }
 
 bool kinematic_constraints::IKConstraintSampler::initialize(void)
 {
     if (kb_)
-	return true;
+        return true;
     return loadIKSolver();
 }
 
@@ -158,17 +158,17 @@ double kinematic_constraints::IKConstraintSampler::getSamplingVolume(void) const
 {
     double v = 1.0;
     if (sp_.pc_)
-	if (sp_.pc_->getConstraintRegion())
-	    v *= sp_.pc_->getConstraintRegion()->computeVolume();
+        if (sp_.pc_->getConstraintRegion())
+            v *= sp_.pc_->getConstraintRegion()->computeVolume();
     if (sp_.oc_)
-	v *= sp_.oc_->getRollTolerance() * sp_.oc_->getPitchTolerance() * sp_.oc_->getYawTolerance();
+        v *= sp_.oc_->getRollTolerance() * sp_.oc_->getPitchTolerance() * sp_.oc_->getYawTolerance();
     return v;
 }
 
 const std::string& kinematic_constraints::IKConstraintSampler::getLinkName(void) const
 {
     if (sp_.oc_)
-	return sp_.oc_->getLinkModel()->getName();
+        return sp_.oc_->getLinkModel()->getName();
     return sp_.pc_->getLinkModel()->getName();    
 }
 
@@ -246,7 +246,7 @@ bool kinematic_constraints::IKConstraintSampler::loadIKSolver(void)
 }
 
 bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &values, const planning_models::KinematicState *ks,
-							unsigned int max_attempts)
+                                                        unsigned int max_attempts)
 {
     // make sure we at least have a chance of sampling using IK; we need at least some kind of constraint
     if (!sp_.pc_ && !sp_.oc_)
@@ -378,43 +378,44 @@ kinematic_constraints::UnionConstraintSampler::UnionConstraintSampler(const plan
     const std::map<std::string, unsigned int> &gi = jmg->getJointVariablesIndexMap();
     for (std::size_t i = 0 ; i < samplers.size() ; ++i)
     {
-	bijection_[i].resize(gi.size(), -1);
-	const std::map<std::string, unsigned int> &sgi = samplers[i]->getJointModelGroup()->getJointVariablesIndexMap();
-	for (std::map<std::string, unsigned int>::const_iterator it = sgi.begin() ; it != sgi.end() ; ++it)
-	{
-	    std::map<std::string, unsigned int>::const_iterator jt = gi.find(it->first);
-	    if (jt == gi.end())
-		ROS_FATAL("Subgroups do not match group");
-	    bijection_[i][it->second] = jt->second;
-	}
+        bijection_[i].resize(gi.size(), -1);
+        const std::map<std::string, unsigned int> &sgi = samplers[i]->getJointModelGroup()->getJointVariablesIndexMap();
+        for (std::map<std::string, unsigned int>::const_iterator it = sgi.begin() ; it != sgi.end() ; ++it)
+        {
+            std::map<std::string, unsigned int>::const_iterator jt = gi.find(it->first);
+            if (jt == gi.end())
+                ROS_FATAL("Subgroups do not match group");
+            bijection_[i][it->second] = jt->second;
+        }
     }    
 }
 
 bool kinematic_constraints::UnionConstraintSampler::sample(std::vector<double> &values, const planning_models::KinematicState *ks, unsigned int max_attempts)
 {
+    jmg_->getRandomValues(rng_, values);
     for (std::size_t i = 0 ; i < samplers_.size() ; ++i)
     {
-	std::vector<double> v;
-	if (!samplers_[i]->sample(v, ks, max_attempts))
-	    return false;
-	for (std::size_t j = 0 ; j < v.size() ; ++j)
-	    values[bijection_[i][j]] = v[j];
+        std::vector<double> v;
+        if (!samplers_[i]->sample(v, ks, max_attempts))
+            return false;
+        for (std::size_t j = 0 ; j < v.size() ; ++j)
+            values[bijection_[i][j]] = v[j];
     }
     return true;
 }
 
 kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructConstraintsSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
-											       const moveit_msgs::Constraints &constr,
-											       const planning_models::KinematicModelConstPtr &kmodel,
-											       const planning_models::TransformsConstPtr &ftf,
-											       const IKAllocator &ik_alloc,
-											       const IKSubgroupAllocator &ik_subgroup_alloc)
+                                                                                               const moveit_msgs::Constraints &constr,
+                                                                                               const planning_models::KinematicModelConstPtr &kmodel,
+                                                                                               const planning_models::TransformsConstPtr &ftf,
+                                                                                               const IKAllocator &ik_alloc,
+                                                                                               const IKSubgroupAllocator &ik_subgroup_alloc)
 {
     ConstraintSamplerPtr joint_sampler;
     // if there are joint constraints, we could possibly get a sampler from those
     if (!constr.joint_constraints.empty())
-    {
-	// construct the constraints
+    {    
+        // construct the constraints
         std::vector<JointConstraint> jc;
         for (std::size_t i = 0 ; i < constr.joint_constraints.size() ; ++i)
         {
@@ -423,165 +424,165 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
                 jc.push_back(j);
         }
 
-	// if we have constrained every joint, then we just use a sampler using these constraints
-	if (jc.size() == jmg->getJointModels().size())
-	{
-	    ROS_DEBUG("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
-	    return ConstraintSamplerPtr(new JointConstraintSampler(jmg, jc));
-	}
-	// if a smaller set of joints has been specified, keep the constraint sampler around, but use it only if no IK sampler has been specified.
-	if (!jc.empty())
-	    joint_sampler.reset(new JointConstraintSampler(jmg, jc));
+        // if we have constrained every joint, then we just use a sampler using these constraints
+        if (jc.size() == jmg->getJointModels().size())
+        {
+            ROS_DEBUG("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
+            return ConstraintSamplerPtr(new JointConstraintSampler(jmg, jc));
+        }
+        // if a smaller set of joints has been specified, keep the constraint sampler around, but use it only if no IK sampler has been specified.
+        if (!jc.empty())
+            joint_sampler.reset(new JointConstraintSampler(jmg, jc));
     }
     
     // if we have a means of computing complete states for the group using IK, then we try to see if any IK constraints should be used
     if (ik_alloc)
-    {	
-	// keep track of which links we constrained
-	std::map<std::string, IKConstraintSampler*> usedL;
-	
-	// if we have position and/or orientation constraints on links that we can perform IK for,
-	// we will use a sampleable goal region that employs IK to sample goals;
-	// if there are multiple constraints for the same link, we keep the one with the smallest 
-	// volume for sampling
-	for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
-	    for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
-		if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
-		{
-		    boost::shared_ptr<PositionConstraint> pc(new PositionConstraint(kmodel, ftf));
-		    boost::shared_ptr<OrientationConstraint> oc(new OrientationConstraint(kmodel, ftf));
-		    if (pc->use(constr.position_constraints[p]) && oc->use(constr.orientation_constraints[o]))
-		    {
-			IKConstraintSampler *iks = new IKConstraintSampler(jmg, ik_alloc, IKSamplingPose(pc, oc));
-			if (iks->initialize())
-			{
-			    bool use = true;
-			    if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
-				if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
-				    use = false;
-			    if (use)
-			    {
-				usedL[constr.position_constraints[p].link_name] = iks;
-				ROS_DEBUG("Allocated an IK-based sampler for group '%s' satisfying position and orientation constraints on link '%s'",
-					  jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
-			    }
-			    else
-				delete iks;
-			}
-			else
-			    delete iks;
-		    }
-		}
-	
-	for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
-	{
-	    boost::shared_ptr<PositionConstraint> pc(new PositionConstraint(kmodel, ftf));
-	    if (pc->use(constr.position_constraints[p]))
-	    {
-		IKConstraintSampler *iks = new IKConstraintSampler(jmg, ik_alloc, IKSamplingPose(pc));
-		if (iks->initialize())
-		{
-		    bool use = true;
-		    if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
-			if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
-			    use = false;
-		    if (use)
-		    {
-			usedL[constr.position_constraints[p].link_name] = iks;
-			ROS_DEBUG("Allocated an IK-based sampler for group '%s' satisfying position constraints on link '%s'", 
-				  jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
-		    }
-		    else
-			delete iks;
-		}
-		else
-		    delete iks;
-	    }
-	}
-	
-	for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
-	{
-	    boost::shared_ptr<OrientationConstraint> oc(new OrientationConstraint(kmodel, ftf));
-	    if (oc->use(constr.orientation_constraints[o]))
-	    {
-		IKConstraintSampler *iks = new IKConstraintSampler(jmg, ik_alloc, IKSamplingPose(oc));
-		if (iks->initialize())
-		{
-		    bool use = true;
-		    if (usedL.find(constr.orientation_constraints[o].link_name) != usedL.end())
-			if (usedL[constr.orientation_constraints[o].link_name]->getSamplingVolume() < iks->getSamplingVolume())
-			    use = false;
-		    if (use)
-		    {
-			usedL[constr.orientation_constraints[o].link_name] = iks;
-			ROS_DEBUG("Allocated an IK-based sampler for group '%s' satisfying orientation constraints on link '%s'", 
-				  jmg->getName().c_str(), constr.orientation_constraints[o].link_name.c_str());
-		    } 
-		    else
-			delete iks;
-		} 
-		else
-		    delete iks;
-	    }
-	}
+    {        
+        // keep track of which links we constrained
+        std::map<std::string, IKConstraintSampler*> usedL;
+        
+        // if we have position and/or orientation constraints on links that we can perform IK for,
+        // we will use a sampleable goal region that employs IK to sample goals;
+        // if there are multiple constraints for the same link, we keep the one with the smallest 
+        // volume for sampling
+        for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
+            for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
+                if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
+                {
+                    boost::shared_ptr<PositionConstraint> pc(new PositionConstraint(kmodel, ftf));
+                    boost::shared_ptr<OrientationConstraint> oc(new OrientationConstraint(kmodel, ftf));
+                    if (pc->use(constr.position_constraints[p]) && oc->use(constr.orientation_constraints[o]))
+                    {
+                        IKConstraintSampler *iks = new IKConstraintSampler(jmg, ik_alloc, IKSamplingPose(pc, oc));
+                        if (iks->initialize())
+                        {
+                            bool use = true;
+                            if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
+                                if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
+                                    use = false;
+                            if (use)
+                            {
+                                usedL[constr.position_constraints[p].link_name] = iks;
+                                ROS_DEBUG("Allocated an IK-based sampler for group '%s' satisfying position and orientation constraints on link '%s'",
+                                          jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
+                            }
+                            else
+                                delete iks;
+                        }
+                        else
+                            delete iks;
+                    }
+                }
+        
+        for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
+        {
+            boost::shared_ptr<PositionConstraint> pc(new PositionConstraint(kmodel, ftf));
+            if (pc->use(constr.position_constraints[p]))
+            {
+                IKConstraintSampler *iks = new IKConstraintSampler(jmg, ik_alloc, IKSamplingPose(pc));
+                if (iks->initialize())
+                {
+                    bool use = true;
+                    if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
+                        if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
+                            use = false;
+                    if (use)
+                    {
+                        usedL[constr.position_constraints[p].link_name] = iks;
+                        ROS_DEBUG("Allocated an IK-based sampler for group '%s' satisfying position constraints on link '%s'", 
+                                  jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
+                    }
+                    else
+                        delete iks;
+                }
+                else
+                    delete iks;
+            }
+        }
+        
+        for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
+        {
+            boost::shared_ptr<OrientationConstraint> oc(new OrientationConstraint(kmodel, ftf));
+            if (oc->use(constr.orientation_constraints[o]))
+            {
+                IKConstraintSampler *iks = new IKConstraintSampler(jmg, ik_alloc, IKSamplingPose(oc));
+                if (iks->initialize())
+                {
+                    bool use = true;
+                    if (usedL.find(constr.orientation_constraints[o].link_name) != usedL.end())
+                        if (usedL[constr.orientation_constraints[o].link_name]->getSamplingVolume() < iks->getSamplingVolume())
+                            use = false;
+                    if (use)
+                    {
+                        usedL[constr.orientation_constraints[o].link_name] = iks;
+                        ROS_DEBUG("Allocated an IK-based sampler for group '%s' satisfying orientation constraints on link '%s'", 
+                                  jmg->getName().c_str(), constr.orientation_constraints[o].link_name.c_str());
+                    } 
+                    else
+                        delete iks;
+                } 
+                else
+                    delete iks;
+            }
+        }
 
-	if (usedL.size() == 1)
-	    return ConstraintSamplerPtr(usedL.begin()->second);
-	
-	if (usedL.size() > 1)
-	{
-	    ROS_DEBUG("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg->getName().c_str());
-	    // find the sampler with the smallest sampling volume; delete the rest
-	    IKConstraintSampler *iks = usedL.begin()->second;
-	    double msv = iks->getSamplingVolume();
-	    for (std::map<std::string, IKConstraintSampler*>::const_iterator it = ++usedL.begin() ; it != usedL.end() ; ++it)
-	    {
-		double v = it->second->getSamplingVolume();
-		if (v < msv)
-		{
-		    ROS_DEBUG("Discarding IK-based sampler for link '%s'", iks->getLinkName().c_str());
-		    delete iks;
-		    iks = it->second;
-		    msv = v;
-		} 
-		else
-		{
-		    ROS_DEBUG("Discarding IK-based sampler for link '%s'", it->first.c_str());
-		    delete it->second;
-		}
-	    }
-	    return ConstraintSamplerPtr(iks);
-	}
+        if (usedL.size() == 1)
+            return ConstraintSamplerPtr(usedL.begin()->second);
+        
+        if (usedL.size() > 1)
+        {
+            ROS_DEBUG("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg->getName().c_str());
+            // find the sampler with the smallest sampling volume; delete the rest
+            IKConstraintSampler *iks = usedL.begin()->second;
+            double msv = iks->getSamplingVolume();
+            for (std::map<std::string, IKConstraintSampler*>::const_iterator it = ++usedL.begin() ; it != usedL.end() ; ++it)
+            {
+                double v = it->second->getSamplingVolume();
+                if (v < msv)
+                {
+                    ROS_DEBUG("Discarding IK-based sampler for link '%s'", iks->getLinkName().c_str());
+                    delete iks;
+                    iks = it->second;
+                    msv = v;
+                } 
+                else
+                {
+                    ROS_DEBUG("Discarding IK-based sampler for link '%s'", it->first.c_str());
+                    delete it->second;
+                }
+            }
+            return ConstraintSamplerPtr(iks);
+        }
     }
     
     // if we got to this point, we have not decided on a sampler.
     // we now check to see if we can use samplers from subgroups
     if (!ik_subgroup_alloc.ik_allocators_.empty())
-    {	
-	std::vector<ConstraintSamplerPtr> samplers;
-	for (std::map<const planning_models::KinematicModel::JointModelGroup*, IKAllocator>::const_iterator it = ik_subgroup_alloc.ik_allocators_.begin() ;
-	     it != ik_subgroup_alloc.ik_allocators_.end() ; ++it)
-	{
-	    moveit_msgs::Constraints sub_constr;
-	    for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
-		if (it->first->hasLinkModel(constr.position_constraints[p].link_name))
-		    sub_constr.position_constraints.push_back(constr.position_constraints[p]);
-	    for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
-		if (it->first->hasLinkModel(constr.orientation_constraints[o].link_name))
-		    sub_constr.orientation_constraints.push_back(constr.orientation_constraints[o]);
-	    if (!sub_constr.orientation_constraints.empty() || !sub_constr.position_constraints.empty())
-	    {
-		ConstraintSamplerPtr cs = constructConstraintsSampler(it->first, sub_constr, kmodel, ftf, it->second);
-		if (cs)
-		    samplers.push_back(cs);
-	    }
-	}
-	if (!samplers.empty())
-	    return ConstraintSamplerPtr(new UnionConstraintSampler(jmg, samplers));
+    {        
+        std::vector<ConstraintSamplerPtr> samplers;
+        for (std::map<const planning_models::KinematicModel::JointModelGroup*, IKAllocator>::const_iterator it = ik_subgroup_alloc.ik_allocators_.begin() ;
+             it != ik_subgroup_alloc.ik_allocators_.end() ; ++it)
+        {
+            moveit_msgs::Constraints sub_constr;
+            for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
+                if (it->first->hasLinkModel(constr.position_constraints[p].link_name))
+                    sub_constr.position_constraints.push_back(constr.position_constraints[p]);
+            for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
+                if (it->first->hasLinkModel(constr.orientation_constraints[o].link_name))
+                    sub_constr.orientation_constraints.push_back(constr.orientation_constraints[o]);
+            if (!sub_constr.orientation_constraints.empty() || !sub_constr.position_constraints.empty())
+            {
+                ConstraintSamplerPtr cs = constructConstraintsSampler(it->first, sub_constr, kmodel, ftf, it->second);
+                if (cs)
+                    samplers.push_back(cs);
+            }
+        }
+        if (!samplers.empty())
+            return ConstraintSamplerPtr(new UnionConstraintSampler(jmg, samplers));
     }
     
     if (joint_sampler)
-	return joint_sampler;
+        return joint_sampler;
     
     ROS_DEBUG("No constraints sampler allocated for group '%s'", jmg->getName().c_str());
 

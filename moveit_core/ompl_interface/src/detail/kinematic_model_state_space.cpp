@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface/detail/km_state_space.h"
+#include "ompl_interface/detail/kinematic_model_state_space.h"
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ros/console.h>

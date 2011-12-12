@@ -354,6 +354,17 @@ namespace kinematic_constraints
             return vc_;
         }
 
+        /** \brief Get the all the contained constraints */
+        const moveit_msgs::Constraints& getAllConstraints(void) const
+        {
+            return all_constraints_;
+        }
+
+        bool empty(void) const
+        {
+            return kce_.empty();
+        }
+
     protected:
 
         planning_models::KinematicModelConstPtr         model_;
@@ -365,6 +376,8 @@ namespace kinematic_constraints
         std::vector<moveit_msgs::PositionConstraint>    pc_;
         std::vector<moveit_msgs::OrientationConstraint> oc_;
         std::vector<moveit_msgs::VisibilityConstraint>  vc_;
+        moveit_msgs::Constraints                        all_constraints_;
+
     };
 
     typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr;

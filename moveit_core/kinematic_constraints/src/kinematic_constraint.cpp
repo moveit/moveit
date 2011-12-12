@@ -593,6 +593,7 @@ void kinematic_constraints::VisibilityConstraint::print(std::ostream &out) const
 
 void kinematic_constraints::KinematicConstraintSet::clear(void)
 {
+    all_constraints_ = moveit_msgs::Constraints();
     kce_.clear();
     jc_.clear();
     pc_.clear();
@@ -610,6 +611,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));
         jc_.push_back(jc[i]);
+        all_constraints_.joint_constraints.push_back(jc[i]);
     }
     return result;
 }
@@ -624,6 +626,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));
         pc_.push_back(pc[i]);
+        all_constraints_.position_constraints.push_back(pc[i]);
     }
     return result;
 }
@@ -638,6 +641,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));
         oc_.push_back(oc[i]);
+        all_constraints_.orientation_constraints.push_back(oc[i]);
     }
     return result;
 }
@@ -652,6 +656,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
         result = result && u;
         kce_.push_back(KinematicConstraintPtr(ev));
         vc_.push_back(vc[i]);
+        all_constraints_.visibility_constraints.push_back(vc[i]);
     }
     return result;
 }
@@ -664,7 +669,6 @@ bool kinematic_constraints::KinematicConstraintSet::add(const moveit_msgs::Const
     bool v = add(c.visibility_constraints);
     return j && p && o && v;
 }
-
 
 std::pair<bool, double> kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state, bool verbose) const
 {
@@ -717,21 +721,19 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
         r.visibility_constraints.push_back(second.visibility_constraints[i]);
 
     return r;
-
 }
 
 bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
                                                               const planning_models::TransformsConstPtr& tf,
                                                               const moveit_msgs::Constraints& constraints,
-                                                              bool verbose) 
+                                                              bool verbose)
 {
-  KinematicConstraintSet kcs(state.getKinematicModel(),tf);
-  
-  kcs.add(constraints.joint_constraints);
-  kcs.add(constraints.position_constraints);
-  kcs.add(constraints.orientation_constraints);
-  kcs.add(constraints.visibility_constraints);
-  std::pair<bool, double> res;
-  res = kcs.decide(state, verbose);
-  return res.first;
+    KinematicConstraintSet kcs(state.getKinematicModel(), tf);
+
+    kcs.add(constraints.joint_constraints);
+    kcs.add(constraints.position_constraints);
+    kcs.add(constraints.orientation_constraints);
+    kcs.add(constraints.visibility_constraints);
+    const std::pair<bool, double> &res = kcs.decide(state, verbose);
+    return res.first;
 }
