@@ -100,6 +100,13 @@ public:
   bool getSceneVisible();
 
   /**
+   * \brief Set whether the scene representation should be displayed
+   * @param visible
+   */
+  void setSceneRobotVisible( bool visible );
+  bool getSceneRobotVisible();
+
+  /**
    * \brief Set whether the visual mesh representation should be displayed
    * @param visible
    */
@@ -114,8 +121,11 @@ public:
   bool getCollisionVisible();
 
 
-  void setAlpha( float alpha );
-  float getAlpha() { return alpha_; }
+  void setRobotAlpha( float alpha );
+  float getRobotAlpha() { return robot_path_alpha_; }
+
+  void setSceneRobotAlpha( float alpha );
+  float getSceneRobotAlpha() { return robot_scene_alpha_; }
 
 
   bool getLoopDisplay() { return loop_display_; }
@@ -171,7 +181,9 @@ protected:
 
   struct ReceivedTrajectoryMessage;
 
-  rviz::Robot* robot_;                              ///< Handles actually drawing the robot
+  rviz::Robot* robot_;                              ///< Handles actually drawing the robot along motion plans
+  rviz::Robot* scene_robot_;                        ///< Handles actually drawing the robot from the planning scene
+
   Ogre::SceneNode* scene_node_;            ///< displays planning scene
 
   ros::Subscriber sub_;
@@ -179,9 +191,11 @@ protected:
   // values filled in by properties on side panel
   std::string display_trajectory_topic_;
   std::string description_param_;             ///< ROS parameter that contains the robot xml description
-  float alpha_;
+  float robot_path_alpha_;
+  float robot_scene_alpha_;
   bool loop_display_;
   bool display_scene_;
+  bool display_scene_robot_;
   float state_display_time_;
 
 
@@ -195,13 +209,17 @@ protected:
   float current_state_time_;
 
   // properties to show on side panel
+  rviz::CategoryPropertyWPtr scene_category_;
+  rviz::CategoryPropertyWPtr path_category_;
   rviz::BoolPropertyWPtr visual_enabled_property_;
   rviz::BoolPropertyWPtr collision_enabled_property_;
   rviz::BoolPropertyWPtr scene_enabled_property_;
+  rviz::BoolPropertyWPtr scene_robot_enabled_property_;
   rviz::FloatPropertyWPtr state_display_time_property_;
   rviz::StringPropertyWPtr robot_description_property_;
   rviz::ROSTopicStringPropertyWPtr trajectory_topic_property_;
-  rviz::FloatPropertyWPtr alpha_property_;
+  rviz::FloatPropertyWPtr robot_path_alpha_property_;
+  rviz::FloatPropertyWPtr robot_scene_alpha_property_;
   rviz::BoolPropertyWPtr loop_display_property_;
 
 };
