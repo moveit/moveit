@@ -102,6 +102,59 @@ void planning_scene_ros::PlanningSceneROS::useMonitoredState(void)
         ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
 }
 
+void planning_scene_ros::PlanningSceneROS::updateFixedTransforms(void)
+{
+    if (!tf_)
+	return;
+    std::vector<geometry_msgs::TransformStamped> transforms;
+    const std::string &target = getPlanningFrame();
+    
+    std::vector<std::string> all_frame_names;
+    tf_->getFrameStrings(all_frame_names);
+    for (std::size_t i = 0 ; i < all_frame_names.size() ; ++i)
+    { 
+	if (!all_frame_names[i].empty() && all_frame_names[i][0] == '/') 
+	    all_frame_names[i].erase(all_frame_names[i].begin());
+    
+	if (all_frame_names[i] == target || getKinematicModel()->hasLinkModel(all_frame_names[i]))
+	    continue;
+	
+	ros::Time stamp;
+	std::string err_string;
+	if (tf_->getLatestCommonTime(target, all_frame_names[i], stamp, &err_string) != tf::NO_ERROR)
+	{
+	    ROS_WARN_STREAM("No transform available between frame '" << all_frame_names[i] << "' and planning frame '" << 
+			    target << "' (" << err_string << ")");
+	    continue;
+	}
+
+	tf::StampedTransform t;
+	try
+	{
+	    tf_->lookupTransform(target, all_frame_names[i], stamp, t);
+	}
+	catch (tf::TransformException& ex)
+	{
+	    ROS_WARN_STREAM("Unable to transform object from frame '" << all_frame_names[i] << "' to planning frame '" <<
+			    target << "' (" << ex.what() << ")");
+	    continue;
+	}
+	geometry_msgs::TransformStamped f;
+	f.header.frame_id = all_frame_names[i];
+	f.child_frame_id = target;
+	f.transform.translation.x = t.getOrigin().x();
+	f.transform.translation.y = t.getOrigin().y();
+	f.transform.translation.z = t.getOrigin().z();
+	const tf::Quaternion &q = t.getRotation();
+	f.transform.rotation.x = q.x();
+	f.transform.rotation.y = q.y();
+	f.transform.rotation.z = q.z();
+	f.transform.rotation.w = q.w();
+	transforms.push_back(f);
+    }
+    getTransforms()->recordTransforms(transforms);
+}
+
 void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
 {
     // no collisions allowed by default

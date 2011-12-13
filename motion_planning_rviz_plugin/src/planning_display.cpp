@@ -39,7 +39,7 @@
 #include <ogre_tools/axes.h>
 
 #include <tf/transform_listener.h>
-#include <planning_scene_ros/robot_model_loader.h>
+#include <planning_scene_ros/planning_scene_ros.h>
 #include <planning_models/conversions.h>
 
 namespace motion_planning_rviz_plugin
@@ -81,11 +81,10 @@ private:
 
 struct PlanningDisplay::ReceivedTrajectoryMessage
 {
-  ReceivedTrajectoryMessage(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_models::KinematicState &start_state) : message_(message)
+  ReceivedTrajectoryMessage(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene) : message_(message)
   {
-    start_state_.reset(new planning_models::KinematicState(start_state));
-    planning_models::robotStateToKinematicState(message_->robot_state, *start_state_);
-    /// \todo should use TF to pass in transforms
+    start_state_.reset(new planning_models::KinematicState(scene->getCurrentState()));
+    planning_models::robotStateToKinematicState(*scene->getTransforms(), message_->robot_state, *start_state_);
 
     std::size_t state_count = std::max(message_->trajectory.joint_trajectory.points.size(),
                                        message_->trajectory.multi_dof_joint_trajectory.points.size());
@@ -93,9 +92,8 @@ struct PlanningDisplay::ReceivedTrajectoryMessage
     {
       moveit_msgs::RobotState rs;
       planning_models::robotTrajectoryPointToRobotState(message_->trajectory, i, rs);
-      /// \todo pass in TF
       planning_models::KinematicStatePtr state(new planning_models::KinematicState(*start_state_));
-      planning_models::robotStateToKinematicState(rs, *state);
+      planning_models::robotStateToKinematicState(*scene->getTransforms(), rs, *state);
       trajectory_.push_back(state);
     }
   }
@@ -242,12 +240,7 @@ void PlanningDisplay::load()
   descr.initXml(doc.RootElement());
   robot_->load(doc.RootElement(), descr);
 
-  planning_scene_ros::RobotModelLoader rml(description_param_);
-  if (rml.getURDF() && rml.getSRDF())
-  {
-      planning_scene_.reset(new planning_scene::PlanningScene());
-      planning_scene_->configure(rml.getURDF(), rml.getSRDF());
-  }
+  planning_scene_.reset(new planning_scene_ros::PlanningSceneROS(description_param_, vis_manager_->getTFClient()));
 }
 
 void PlanningDisplay::onEnable()
@@ -306,8 +299,9 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
   }
 
   if (!animating_path_ && new_display_trajectory_)
-  {
-      displaying_trajectory_message_.reset(new ReceivedTrajectoryMessage(incoming_trajectory_message_, planning_scene_->getCurrentState()));
+  {  
+      static_cast<planning_scene_ros::PlanningSceneROS*>(planning_scene_.get())->updateFixedTransforms();
+      displaying_trajectory_message_.reset(new ReceivedTrajectoryMessage(incoming_trajectory_message_, planning_scene_));
       animating_path_ = true;
       new_display_trajectory_ = false;
       current_state_ = -1;
