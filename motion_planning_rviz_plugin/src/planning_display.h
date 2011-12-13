@@ -33,6 +33,7 @@
 #include "rviz/display.h"
 #include "rviz/selection/forwards.h"
 #include "rviz/properties/forwards.h"
+#include "rviz/helpers/color.h"
 
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_scene/planning_scene.h>
@@ -50,6 +51,11 @@ class SceneNode;
 namespace rviz
 {
 class Robot;
+}
+
+namespace ogre_tools
+{
+class Shape;
 }
 
 namespace motion_planning_rviz_plugin
@@ -174,7 +180,9 @@ protected:
    * \brief Uses libTF to set the robot's position, given the target frame and the planning frame
    */
   void calculateRobotPosition();
-
+  
+  void renderPlanningScene();
+  
   // overrides from Display
   virtual void onEnable();
   virtual void onDisable();
@@ -202,7 +210,8 @@ protected:
   planning_scene::PlanningScenePtr planning_scene_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
   boost::scoped_ptr<ReceivedTrajectoryMessage> displaying_trajectory_message_;
-
+  std::vector<boost::shared_ptr<ogre_tools::Shape> > scene_shapes_;
+  
   bool new_display_trajectory_;
   bool animating_path_;
   int current_state_;
