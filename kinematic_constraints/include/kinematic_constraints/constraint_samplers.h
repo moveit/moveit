@@ -58,7 +58,7 @@ namespace kinematic_constraints
             return jmg_;
         }
 
-        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState *ks, unsigned int max_attempts = 100) = 0;
+        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts = 100) = 0;
 
     protected:
 
@@ -94,7 +94,7 @@ namespace kinematic_constraints
     public:
 
         JointConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const std::vector<JointConstraint> &jc);
-        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState *ks,  unsigned int max_attempts = 100);
+        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks,  unsigned int max_attempts = 100);
 
         std::size_t getConstrainedJointCount(void) const
         {
@@ -162,7 +162,7 @@ namespace kinematic_constraints
         double getSamplingVolume(void) const;
         const std::string& getLinkName(void) const;
 
-        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState *ks, unsigned int max_attempts = 100);
+        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts = 100);
 
     protected:
 
@@ -189,7 +189,7 @@ namespace kinematic_constraints
             return samplers_;
         }
 
-        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState *ks, unsigned int max_attempts = 100);
+        virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts = 100);
 
     protected:
 
@@ -197,12 +197,9 @@ namespace kinematic_constraints
         std::vector<std::vector<unsigned int> > bijection_;
     };
 
-
-
     ConstraintSamplerPtr constructConstraintsSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const moveit_msgs::Constraints &constr,
                                                      const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf,
                                                      const IKAllocator &ik_alloc = IKAllocator(), const IKSubgroupAllocator &ik_subgroup_alloc = IKSubgroupAllocator());
-
 }
 
 

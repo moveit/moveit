@@ -118,7 +118,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
 
     std::vector<double> values;
     for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
-        if (cs_->sample(values, &pg_->getStartState(), ma))
+        if (cs_->sample(values, pg_->getStartState(), ma))
         {
             state_.getJointStateGroup(pg_->getJointModelGroup()->getName())->setStateValues(values);
             if (ks_->decide(state_).first)
