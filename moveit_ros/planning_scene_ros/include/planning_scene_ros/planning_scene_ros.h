@@ -63,7 +63,8 @@ namespace planning_scene_ros
         }
 
         void useMonitoredState(void);
-
+	void updateFixedTransforms(void);
+	
         void startStateMonitor(void);
         void stopStateMonitor(void);
 
