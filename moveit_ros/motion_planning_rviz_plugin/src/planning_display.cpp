@@ -37,6 +37,7 @@
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 #include <ogre_tools/axes.h>
+#include <ogre_tools/shape.h>
 
 #include <tf/transform_listener.h>
 #include <planning_scene_ros/planning_scene_ros.h>
@@ -130,7 +131,14 @@ void PlanningDisplay::onInitialize()
 }
 
 void PlanningDisplay::reset()
-{/// \todo implement this
+{
+    if (planning_scene_)
+	planning_scene_->getCollisionWorld()->clearObjects();
+    scene_shapes_.clear();
+    incoming_trajectory_message_.reset();
+    displaying_trajectory_message_.reset();
+    animating_path_ = false;
+    new_display_trajectory_ = false;
 }
 
 void PlanningDisplay::setRobotDescription(const std::string& description_param)
@@ -306,6 +314,75 @@ void PlanningDisplay::advertise()
 
 void PlanningDisplay::unadvertise()
 {
+}
+
+void PlanningDisplay::renderPlanningScene()
+{
+    static rviz::Color colors[] = {
+	rviz::Color(0.2f, 0.9f, 0.2f),
+	rviz::Color(0.0f, 0.1f, 0.9f),
+	rviz::Color(0.0f, 0.9f, 0.9f),
+	rviz::Color(0.9f, 0.9f, 0.0f),
+	rviz::Color(0.9f, 0.0f, 0.2f)
+    };
+    
+    scene_robot_->update(PlanningLinkUpdater(&planning_scene_->getCurrentState()));
+    collision_detection::CollisionWorldConstPtr cworld = planning_scene_->getCollisionWorld();
+    const std::vector<std::string> &ns = cworld->getNamespaces();
+    for (std::size_t i = 0 ; i < ns.size() ; ++i)
+    {
+	collision_detection::CollisionWorld::NamespaceObjectsConstPtr o = cworld->getObjects(ns[i]);
+	const rviz::Color &color = colors[i % (sizeof(colors)/sizeof(rviz::Color))];
+	for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
+	{
+	    const shapes::Shape *s = o->shapes_[j];
+	    const btTransform &p = o->shape_poses_[j]; 
+	    ogre_tools::Shape* ogre_shape = NULL;
+	    switch (s->type)
+	    {
+	    case shapes::SPHERE:
+		{
+		    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Sphere,
+						       vis_manager_->getSceneManager(), scene_node_);
+		    double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
+		    ogre_shape->setScale(Ogre::Vector3(d, d, d));
+		}
+		break;
+	    case shapes::BOX:
+		{
+		    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cube,
+						       vis_manager_->getSceneManager(), scene_node_);
+		    const double* sz = static_cast<const shapes::Box*>(s)->size;
+		    ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
+		}
+		break;
+	    case shapes::CYLINDER:
+		{
+		    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cylinder,
+						       vis_manager_->getSceneManager(), scene_node_);
+		    double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
+		    double z = static_cast<const shapes::Cylinder*>(s)->length;
+		    ogre_shape->setScale(Ogre::Vector3(d, d, z));
+		}
+		break;
+	    case shapes::MESH:
+		ROS_WARN("Mesh rendering not yet implemented");
+		break;
+	    default:
+		break;
+	    }
+	    if (ogre_shape)
+	    {
+		ogre_shape->setColor(color.r_, color.g_, color.b_, 1.0f);
+		Ogre::Vector3 position(p.getOrigin().x(), p.getOrigin().y(), p.getOrigin().z());
+		const btQuaternion &q = p.getRotation();
+		Ogre::Quaternion orientation(q.getW(), q.getX(), q.getY(), q.getZ());
+		ogre_shape->setPosition(position);
+		ogre_shape->setOrientation(orientation);
+		scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
+	    }
+	}
+    }
 }
 
 void PlanningDisplay::update(float wall_dt, float ros_dt)
