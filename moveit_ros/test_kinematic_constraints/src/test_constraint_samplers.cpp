@@ -45,35 +45,48 @@
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-    
+
     virtual void SetUp()
-    {   
-	urdf_model_.initFile(ros::package::getPath("planning_models") + "/test/urdf/robot.xml");
-	
-	static const std::string SRDF_XML =
-	    "<robot name=\"pr2_test\">"
-	    "<group name=\"weird_group\">"
-	    "<joint name=\"head_pan_joint\"/>"
-	    "<joint name=\"torso_lift_joint\"/>"
-	    "<joint name=\"r_shoulder_pan_joint\"/>"
-	    "<joint name=\"r_wrist_roll_joint\"/>"
-	    "<joint name=\"l_shoulder_pan_joint\"/>"
-	    "<joint name=\"l_wrist_roll_joint\"/>"
-	    "</group>"
-	    "<group name=\"left_arm\">"
-	    "<chain base_link=\"l_shoulder_pan_link\" tip_link=\"l_wrist_roll_link\"/>"
-	    "</group>"
-	    "</robot>";
-	srdf_model_.initString(urdf_model_, SRDF_XML);
-	
+    {
+        urdf_model_.reset(new urdf::Model());
+        urdf_model_->initFile(ros::package::getPath("planning_models") + "/test/urdf/robot.xml");
+
+        static const std::string SRDF_XML =
+            "<robot name=\"pr2_test\">"
+            "<group name=\"weird_group\">"
+            "<joint name=\"head_pan_joint\"/>"
+            "<joint name=\"torso_lift_joint\"/>"
+            "<joint name=\"r_shoulder_pan_joint\"/>"
+            "<joint name=\"r_wrist_roll_joint\"/>"
+            "<joint name=\"l_shoulder_pan_joint\"/>"
+            "<joint name=\"l_wrist_roll_joint\"/>"
+            "</group>"
+            "<group name=\"left_arm\">"
+            "<chain base_link=\"torso_lift_link\" tip_link=\"l_wrist_roll_link\"/>"
+            "</group>"
+            "<group name=\"right_arm\">"
+            "<chain base_link=\"torso_lift_link\" tip_link=\"r_wrist_roll_link\"/>"
+            "</group>"
+            "<group name=\"arms\">"
+            "<group name=\"left_arm\"/>"
+            "<group name=\"right_arm\"/>"
+            "</group>"
+            "<group name=\"whole_body\">"
+            "<group name=\"arms\"/>"
+            "<joint name=\"torso_lift_joint\"/>"
+            "</group>"
+            "</robot>";
+        srdf_model_.reset(new srdf::Model());
+        srdf_model_->initString(*urdf_model_, SRDF_XML);
+
         kmodel_.reset(new planning_models::KinematicModel(urdf_model_, srdf_model_));
-	kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
-	
-	ik_solver_name_ = "pr2_arm_kinematics/PR2ArmKinematicsPlugin";
-	if (kinematics_loader_->isClassAvailable(ik_solver_name_))
-	    ik_allocator_ = boost::bind(&LoadPlanningModelsPr2::allocIKSolver, this, _1);
-	else
-	    ROS_ERROR("PR2 IK solver plugin not found");
+        kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
+
+        ik_solver_name_ = "pr2_arm_kinematics/PR2ArmKinematicsPlugin";
+        if (kinematics_loader_->isClassAvailable(ik_solver_name_))
+            ik_allocator_ = boost::bind(&LoadPlanningModelsPr2::allocIKSolver, this, _1);
+        else
+            ROS_ERROR("PR2 IK solver plugin not found");
     };
 
     virtual void TearDown()
@@ -82,20 +95,26 @@ protected:
 
     boost::shared_ptr<kinematics::KinematicsBase> allocIKSolver(const planning_models::KinematicModel::JointModelGroup *jmg)
     {
-	boost::shared_ptr<kinematics::KinematicsBase> result;
-	if (kinematics_loader_)
-	{
-	    result.reset(kinematics_loader_->createClassInstance(ik_solver_name_));
-	    if (result)
-		result->initialize(jmg->getName());
-	}
-	return result;
+        boost::shared_ptr<kinematics::KinematicsBase> result;
+        if (kinematics_loader_)
+        {
+            result.reset(kinematics_loader_->createClassInstance(ik_solver_name_));
+            if (result)
+            {
+                const std::vector<const planning_models::KinematicModel::JointModel*> &jnts = jmg->getJointModels();
+                const std::string &base = jnts.front()->getParentLinkModel() ? jnts.front()->getParentLinkModel()->getName() :
+                    jmg->getParentModel()->getModelFrame();
+                const std::string &tip = jnts.back()->getChildLinkModel()->getName();
+                result->initialize(jmg->getName(), base, tip, 0.1);
+            }
+        }
+        return result;
     }
-    
+
 protected:
 
-    urdf::Model                                                            urdf_model_;
-    srdf::Model                                                            srdf_model_;
+    boost::shared_ptr<urdf::Model>                                         urdf_model_;
+    boost::shared_ptr<srdf::Model>                                         srdf_model_;
     planning_models::KinematicModelPtr                                     kmodel_;
     std::string                                                            ik_solver_name_;
     boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
@@ -134,7 +153,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
     jcm3.tolerance_below = 0.005;
     jcm3.weight = 1.0;
     EXPECT_TRUE(jc3.use(jcm3));
-    
+
     kinematic_constraints::JointConstraint jc4(kmodel_, tf);
     moveit_msgs::JointConstraint jcm4;
     jcm4.joint_name = "torso_lift_joint";
@@ -143,25 +162,84 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
     jcm4.tolerance_below = 0.01;
     jcm4.weight = 1.0;
     EXPECT_TRUE(jc4.use(jcm4));
-    
+
     std::vector<kinematic_constraints::JointConstraint> js;
     js.push_back(jc1);
     js.push_back(jc2);
     js.push_back(jc3);
     js.push_back(jc4);
-    
+
     kinematic_constraints::JointConstraintSampler jcs(kmodel_->getJointModelGroup("weird_group"), js);
     EXPECT_EQ(jcs.getConstrainedJointCount(), 4);
     EXPECT_EQ(jcs.getUnconstrainedJointCount(), 2);
 
     for (int t = 0 ; t < 1000 ; ++t)
     {
-	std::vector<double> values;
-	EXPECT_TRUE(jcs.sample(values));
-	ks.getJointStateGroup("weird_group")->setStateValues(values);
-	for (unsigned int i = 0 ; i < js.size() ; ++i)
-	    EXPECT_TRUE(js[i].decide(ks).first);
+        std::vector<double> values;
+        EXPECT_TRUE(jcs.sample(values, ks));
+        ks.getJointStateGroup("weird_group")->setStateValues(values);
+        for (unsigned int i = 0 ; i < js.size() ; ++i)
+            EXPECT_TRUE(js[i].decide(ks).first);
     }
+
+    // test the automatic construction of constraint sampler
+    moveit_msgs::Constraints c;
+
+    // no constraints should give no sampler
+    kinematic_constraints::ConstraintSamplerPtr s0 = kinematic_constraints::constructConstraintsSampler
+        (kmodel_->getJointModelGroup("weird_group"), c, kmodel_, tf, ik_allocator_);
+    EXPECT_TRUE(s0.get() == NULL);
+
+    // add the constraints
+    c.joint_constraints.push_back(jcm1);
+    c.joint_constraints.push_back(jcm2);
+    c.joint_constraints.push_back(jcm3);
+    c.joint_constraints.push_back(jcm4);
+
+    kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::constructConstraintsSampler
+        (kmodel_->getJointModelGroup("weird_group"), c, kmodel_, tf, ik_allocator_);
+    EXPECT_TRUE(s.get() != NULL);
+
+    // test the generated sampler
+    for (int t = 0 ; t < 1000 ; ++t)
+    {
+        std::vector<double> values;
+        EXPECT_TRUE(s->sample(values, ks));
+        ks.getJointStateGroup("weird_group")->setStateValues(values);
+        for (unsigned int i = 0 ; i < js.size() ; ++i)
+            EXPECT_TRUE(js[i].decide(ks).first);
+    }
+}
+
+TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
+{
+    planning_models::KinematicState ks(kmodel_);
+    ks.setDefaultValues();
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
+
+    kinematic_constraints::OrientationConstraint oc(kmodel_, tf);
+    moveit_msgs::OrientationConstraint ocm;
+
+    ocm.link_name = "r_wrist_roll_link";
+    ocm.orientation.header.frame_id = kmodel_->getModelFrame();
+    ocm.orientation.quaternion.x = 0.0;
+    ocm.orientation.quaternion.y = 0.0;
+    ocm.orientation.quaternion.z = 0.0;
+    ocm.orientation.quaternion.w = 1.0;
+    ocm.absolute_roll_tolerance = 0.01;
+    ocm.absolute_pitch_tolerance = 0.01;
+    ocm.absolute_yaw_tolerance = 0.01;
+    ocm.weight = 1.0;
+
+    EXPECT_TRUE(oc.use(ocm));
+
+    const std::pair<bool, double> &p1 = oc.decide(ks);
+    EXPECT_FALSE(p1.first);
+
+    ocm.orientation.header.frame_id = ocm.link_name;
+    EXPECT_TRUE(oc.use(ocm));
+    const std::pair<bool, double> &p2 = oc.decide(ks);
+    EXPECT_TRUE(p2.first);
 }
 
 TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
@@ -191,7 +269,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
     pcm.weight = 1.0;
 
     EXPECT_TRUE(pc.use(pcm));
-    
+
     kinematic_constraints::OrientationConstraint oc(kmodel_, tf);
     moveit_msgs::OrientationConstraint ocm;
 
@@ -208,44 +286,91 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
 
     EXPECT_TRUE(oc.use(ocm));
 
-    kinematic_constraints::IKConstraintSampler iks1(ik_allocator_, kmodel_->getJointModelGroup("left_arm"), pc, oc);
+    kinematic_constraints::IKConstraintSampler iks1(kmodel_->getJointModelGroup("left_arm"), ik_allocator_,
+                                                    kinematic_constraints::IKSamplingPose(pc, oc));
     for (int t = 0 ; t < 100 ; ++t)
     {
-	std::vector<double> values;
-	EXPECT_TRUE(iks1.sample(values, 100, &ks));
-	ks.getJointStateGroup("left_arm")->setStateValues(values);    
-	EXPECT_TRUE(pc.decide(ks).first);
-	EXPECT_TRUE(oc.decide(ks).first);
+        std::vector<double> values;
+        EXPECT_TRUE(iks1.sample(values, ks, 100));
+        ks.getJointStateGroup("left_arm")->setStateValues(values);
+        EXPECT_TRUE(pc.decide(ks).first);
+        EXPECT_TRUE(oc.decide(ks).first);
     }
 
-    kinematic_constraints::IKConstraintSampler iks2(ik_allocator_, kmodel_->getJointModelGroup("left_arm"), pc);
+    kinematic_constraints::IKConstraintSampler iks2(kmodel_->getJointModelGroup("left_arm"), ik_allocator_,
+                                                    kinematic_constraints::IKSamplingPose(pc));
     for (int t = 0 ; t < 100 ; ++t)
     {
-	std::vector<double> values;
-	EXPECT_TRUE(iks2.sample(values, 100, &ks));
-	ks.getJointStateGroup("left_arm")->setStateValues(values);    
-	EXPECT_TRUE(pc.decide(ks).first);
+        std::vector<double> values;
+        EXPECT_TRUE(iks2.sample(values, ks, 100));
+        ks.getJointStateGroup("left_arm")->setStateValues(values);
+        EXPECT_TRUE(pc.decide(ks).first);
     }
-    
-    kinematic_constraints::IKConstraintSampler iks3(ik_allocator_, kmodel_->getJointModelGroup("left_arm"), oc);
+
+    kinematic_constraints::IKConstraintSampler iks3(kmodel_->getJointModelGroup("left_arm"), ik_allocator_,
+                                                    kinematic_constraints::IKSamplingPose(oc));
     for (int t = 0 ; t < 100 ; ++t)
     {
-	std::vector<double> values;
-	EXPECT_TRUE(iks3.sample(values, 100, &ks));
-	ks.getJointStateGroup("left_arm")->setStateValues(values);    
-	EXPECT_TRUE(oc.decide(ks).first);
-    }    
+        std::vector<double> values;
+        EXPECT_TRUE(iks3.sample(values, ks, 100));
+        ks.getJointStateGroup("left_arm")->setStateValues(values);
+        EXPECT_TRUE(oc.decide(ks).first);
+    }
+
+
+    // test the automatic construction of constraint sampler
+    moveit_msgs::Constraints c;
+    c.position_constraints.push_back(pcm);
+    c.orientation_constraints.push_back(ocm);
+
+    kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::constructConstraintsSampler
+        (kmodel_->getJointModelGroup("left_arm"), c, kmodel_, tf, ik_allocator_);
+    EXPECT_TRUE(s.get() != NULL);
+    for (int t = 0 ; t < 100 ; ++t)
+    {
+        std::vector<double> values;
+        EXPECT_TRUE(s->sample(values, ks, 100));
+        ks.getJointStateGroup("left_arm")->setStateValues(values);
+        EXPECT_TRUE(pc.decide(ks).first);
+        EXPECT_TRUE(oc.decide(ks).first);
+    }
 }
 
+TEST_F(LoadPlanningModelsPr2, GenericConstraintsSampler)
+{
+    moveit_msgs::Constraints c;
 
-TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
-{    
-    planning_models::KinematicState ks(kmodel_);
-    ks.setDefaultValues();
-    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
+    moveit_msgs::PositionConstraint pcm;
+    pcm.link_name = "l_wrist_roll_link";
+    pcm.target_point_offset.x = 0;
+    pcm.target_point_offset.y = 0;
+    pcm.target_point_offset.z = 0;
+    pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
+    pcm.constraint_region_shape.dimensions.push_back(0.001);
 
-    kinematic_constraints::OrientationConstraint oc(kmodel_, tf);
+    pcm.constraint_region_pose.header.frame_id = kmodel_->getModelFrame();
+    pcm.constraint_region_pose.pose.position.x = 0.55;
+    pcm.constraint_region_pose.pose.position.y = 0.2;
+    pcm.constraint_region_pose.pose.position.z = 1.25;
+    pcm.constraint_region_pose.pose.orientation.x = 0.0;
+    pcm.constraint_region_pose.pose.orientation.y = 0.0;
+    pcm.constraint_region_pose.pose.orientation.z = 0.0;
+    pcm.constraint_region_pose.pose.orientation.w = 1.0;
+    pcm.weight = 1.0;
+    c.position_constraints.push_back(pcm);
+
     moveit_msgs::OrientationConstraint ocm;
+    ocm.link_name = "l_wrist_roll_link";
+    ocm.orientation.header.frame_id = kmodel_->getModelFrame();
+    ocm.orientation.quaternion.x = 0.0;
+    ocm.orientation.quaternion.y = 0.0;
+    ocm.orientation.quaternion.z = 0.0;
+    ocm.orientation.quaternion.w = 1.0;
+    ocm.absolute_roll_tolerance = 0.2;
+    ocm.absolute_pitch_tolerance = 0.1;
+    ocm.absolute_yaw_tolerance = 0.4;
+    ocm.weight = 1.0;
+    c.orientation_constraints.push_back(ocm);
 
     ocm.link_name = "r_wrist_roll_link";
     ocm.orientation.header.frame_id = kmodel_->getModelFrame();
@@ -257,20 +382,35 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
     ocm.absolute_pitch_tolerance = 0.01;
     ocm.absolute_yaw_tolerance = 0.01;
     ocm.weight = 1.0;
+    c.orientation_constraints.push_back(ocm);
 
-    EXPECT_TRUE(oc.use(ocm));
+    kinematic_constraints::IKSubgroupAllocator sa(kmodel_->getJointModelGroup("arms"));
+    sa.ik_allocators_[kmodel_->getJointModelGroup("left_arm")] = ik_allocator_;
+    sa.ik_allocators_[kmodel_->getJointModelGroup("right_arm")] = ik_allocator_;
 
-    const std::pair<bool, double> &p1 = oc.decide(ks);
-    EXPECT_FALSE(p1.first);
+    planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
+    kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::constructConstraintsSampler
+        (kmodel_->getJointModelGroup("arms"), c, kmodel_, tf, ik_allocator_, sa);
 
-    ocm.orientation.header.frame_id = ocm.link_name;
-    EXPECT_TRUE(oc.use(ocm));
-    const std::pair<bool, double> &p2 = oc.decide(ks);
-    EXPECT_TRUE(p2.first);
+    EXPECT_TRUE(s.get() != NULL);
+
+    kinematic_constraints::KinematicConstraintSet kset(kmodel_, tf);
+    kset.add(c);
+
+    planning_models::KinematicState ks(kmodel_);
+    ks.setDefaultValues();
+    for (int t = 0 ; t < 100 ; ++t)
+    {
+        std::vector<double> values;
+        EXPECT_TRUE(s->sample(values, ks, 100));
+        ks.getJointStateGroup("arms")->setStateValues(values);
+        EXPECT_TRUE(kset.decide(ks).first);
+    }
 }
+
 /*
 TEST_F(LoadPlanningModelsPr2, VisibilityConstraint)
-{  
+{
     ros::NodeHandle nh;
     planning_models::KinematicState ks(kmodel_);
     ks.setDefaultValues();
@@ -289,7 +429,7 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraint)
     vcm.target_pose.pose.orientation.y = 0;
     vcm.target_pose.pose.orientation.z = 0;
     vcm.target_pose.pose.orientation.w = 1;
-    
+
     vcm.sensor_pose.header.frame_id = "head_pan_link";
     vcm.sensor_pose.pose.position.x = 0;
     vcm.sensor_pose.pose.position.y = 0;
@@ -299,12 +439,12 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraint)
     vcm.sensor_pose.pose.orientation.z = 0;
     vcm.sensor_pose.pose.orientation.w = 1;
     vcm.weight = 1.0;
-    
+
     EXPECT_TRUE(vc.use(vcm));
-    
+
     shapes::Mesh *m = vc.getVisibilityCone(ks);
     visualization_msgs::Marker mk;
-    shapes::constructMarkerFromShape(m, mk);    
+    shapes::constructMarkerFromShape(m, mk);
     delete m;
     mk.header.frame_id = kmodel_->getModelFrame();
     mk.header.stamp = ros::Time::now();
@@ -334,6 +474,6 @@ int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
     ros::init(argc, argv, "test_constraint_samplers");
-    
+
     return RUN_ALL_TESTS();
 }
