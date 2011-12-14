@@ -34,56 +34,47 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_SCENE_PLANNING_SCENE_ROS_
-#define PLANNING_SCENE_PLANNING_SCENE_ROS_
+#ifndef PLANNING_SCENE_MONITOR_ROBOT_MODEL_LOADER_
+#define PLANNING_SCENE_MONITOR_ROBOT_MODEL_LOADER_
 
 #include <ros/ros.h>
-#include <tf/tf.h>
-#include <planning_scene/planning_scene.h>
-#include "planning_scene_ros/robot_model_loader.h"
-#include "planning_scene_ros/current_state_monitor.h"
+#include <urdf/model.h>
+#include <srdf/model.h>
+#include <boost/shared_ptr.hpp>
 
-namespace planning_scene_ros
+namespace planning_scene_monitor
 {
 
-    class PlanningSceneROS : public planning_scene::PlanningScene
+    class RobotModelLoader
     {
     public:
-        PlanningSceneROS(const std::string &robot_description, tf::Transformer *tf = NULL);
-        PlanningSceneROS(const planning_scene::PlanningSceneConstPtr &parent);
+        RobotModelLoader(const std::string &robot_description);
 
         const std::string& getRobotDescription(void) const
         {
             return robot_description_;
         }
 
-        const CurrentStateMonitorPtr& getStateMonitor(void) const
+        const boost::shared_ptr<urdf::Model>& getURDF(void) const
         {
-            return csm_;
+            return urdf_;
         }
 
-        void useMonitoredState(void);
-	void updateFixedTransforms(void);
-	
-        void startStateMonitor(void);
-        void stopStateMonitor(void);
+        const boost::shared_ptr<srdf::Model>& getSRDF(void) const
+        {
+            return srdf_;
+        }
 
-    protected:
+    private:
 
-        void configureDefaultCollisionMatrix(void);
-        void configureDefaultPadding(void);
+        ros::NodeHandle                nh_;
+        std::string                    robot_description_;
+        boost::shared_ptr<srdf::Model> srdf_;
+        boost::shared_ptr<urdf::Model> urdf_;
 
-        ros::NodeHandle        nh_;
-        tf::Transformer       *tf_;
-        std::string            robot_description_;
-        double                 default_robot_padd_;
-        double                 default_robot_scale_;
-        double                 default_object_padd_;
-        double                 default_attached_padd_;
+        bool loadRobotFromParamServer(void);
 
-        CurrentStateMonitorPtr csm_;
     };
 
 }
-
 #endif

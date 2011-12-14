@@ -34,80 +34,81 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include "planning_scene_ros/planning_scene_ros.h"
+#include "planning_scene_monitor/planning_scene_monitor.h"
 
-planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const planning_scene::PlanningSceneConstPtr &parent) :
-    planning_scene::PlanningScene(parent), nh_("~")
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, tf::Transformer *tf) :
+    nh_("~"), tf_(tf)
 {
-    const PlanningSceneROS *psr = dynamic_cast<const PlanningSceneROS*>(parent.get());
-    if (!psr)
-        ROS_FATAL("The parent planning scene must be a PlanningSceneROS for this constructor");
-    else
-    {
-        tf_ = psr->tf_;
-        robot_description_ = psr->getRobotDescription();
-        default_robot_padd_ = psr->default_robot_padd_;
-        default_robot_scale_ = psr->default_robot_scale_;
-        default_object_padd_ = psr->default_object_padd_;
-        default_attached_padd_ = psr->default_attached_padd_;
-    }
+    initialize(planning_scene::PlanningSceneConstPtr(), robot_description);
 }
 
-planning_scene_ros::PlanningSceneROS::PlanningSceneROS(const std::string &robot_description, tf::Transformer *tf) :
-    planning_scene::PlanningScene(), nh_("~"), tf_(tf)
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, tf::Transformer *tf) :
+    nh_("~"), tf_(tf)
+{
+    initialize(parent, robot_description);
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description)
 {
     RobotModelLoader rml(robot_description);
     robot_description_ = rml.getRobotDescription();
     if (rml.getURDF() && rml.getSRDF())
-        if (configure(rml.getURDF(), rml.getSRDF()))
+    {
+	if (parent)
+	    scene_.reset(new planning_scene::PlanningScene(parent));
+	else
+	    scene_.reset(new planning_scene::PlanningScene());
+	scene_const_ = scene_;
+	if (scene_->configure(rml.getURDF(), rml.getSRDF()))
         {
             configureDefaultCollisionMatrix();
             configureDefaultPadding();
-            if (isConfigured())
+            if (scene_->isConfigured())
             {
-                crobot_->setPadding(default_robot_padd_);
-                crobot_->setScale(default_robot_scale_);
+                scene_->getCollisionRobot()->setPadding(default_robot_padd_);
+                scene_->getCollisionRobot()->setScale(default_robot_scale_);
             }
         }
-}
+    }
+}  
 
-void planning_scene_ros::PlanningSceneROS::startStateMonitor(void)
+void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(void)
 {
-    if (isConfigured())
+    if (scene_->isConfigured())
     {
         if (!csm_)
-            csm_.reset(new CurrentStateMonitor(kmodel_, tf_));
+            csm_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
         csm_->startStateMonitor();
     }
     else
         ROS_ERROR("Cannot monitor robot state because planning scene is not configured");
 }
 
-void planning_scene_ros::PlanningSceneROS::stopStateMonitor(void)
+void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor(void)
 {
     if (csm_)
         csm_->stopStateMonitor();
 }
 
-void planning_scene_ros::PlanningSceneROS::useMonitoredState(void)
+void planning_scene_monitor::PlanningSceneMonitor::useMonitoredState(void)
 {
     if (csm_)
     {
         if (!csm_->haveCompleteState())
             ROS_ERROR("The complete state of the robot is not yet known");
         const std::map<std::string, double> &v = csm_->getCurrentStateValues();
-        getCurrentState().setStateValues(v);
+        scene_->getCurrentState().setStateValues(v);
     }
     else
         ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
 }
 
-void planning_scene_ros::PlanningSceneROS::updateFixedTransforms(void)
+void planning_scene_monitor::PlanningSceneMonitor::updateFixedTransforms(void)
 {
     if (!tf_)
 	return;
     std::vector<geometry_msgs::TransformStamped> transforms;
-    const std::string &target = getPlanningFrame();
+    const std::string &target = scene_->getPlanningFrame();
     
     std::vector<std::string> all_frame_names;
     tf_->getFrameStrings(all_frame_names);
@@ -116,7 +117,7 @@ void planning_scene_ros::PlanningSceneROS::updateFixedTransforms(void)
 	if (!all_frame_names[i].empty() && all_frame_names[i][0] == '/') 
 	    all_frame_names[i].erase(all_frame_names[i].begin());
     
-	if (all_frame_names[i] == target || getKinematicModel()->hasLinkModel(all_frame_names[i]))
+	if (all_frame_names[i] == target || scene_->getKinematicModel()->hasLinkModel(all_frame_names[i]))
 	    continue;
 	
 	ros::Time stamp;
@@ -152,19 +153,21 @@ void planning_scene_ros::PlanningSceneROS::updateFixedTransforms(void)
 	f.transform.rotation.w = q.w();
 	transforms.push_back(f);
     }
-    getTransforms()->recordTransforms(transforms);
+    scene_->getTransforms()->recordTransforms(transforms);
 }
 
-void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
-{
+void planning_scene_monitor::PlanningSceneMonitor::configureDefaultCollisionMatrix(void)
+{ 
+    collision_detection::AllowedCollisionMatrix &acm = scene_->getAllowedCollisionMatrix();
+    
     // no collisions allowed by default
-    acm_->setEntry(kmodel_->getLinkModelNamesWithCollisionGeometry(),
-                   kmodel_->getLinkModelNamesWithCollisionGeometry(), false);
+    acm.setEntry(scene_->getKinematicModel()->getLinkModelNamesWithCollisionGeometry(),
+		 scene_->getKinematicModel()->getLinkModelNamesWithCollisionGeometry(), false);
 
     // allow collisions for pairs that have been disabled
-    const std::vector<std::pair<std::string, std::string> >&dc = srdf_model_->getDisabledCollisions();
+    const std::vector<std::pair<std::string, std::string> >&dc = scene_->getSrdfModel()->getDisabledCollisions();
     for (std::size_t i = 0 ; i < dc.size() ; ++i)
-        acm_->setEntry(dc[i].first, dc[i].second, true);
+        acm.setEntry(dc[i].first, dc[i].second, true);
 
     // read overriding values from the param server
 
@@ -197,12 +200,12 @@ void planning_scene_ros::PlanningSceneROS::configureDefaultCollisionMatrix(void)
                 ROS_WARN("All collision operations must have two objects and an operation");
                 continue;
             }
-            acm_->setEntry(std::string(coll_ops[i]["object1"]), std::string(coll_ops[i]["object2"]), std::string(coll_ops[i]["operation"]) == "disable");
+            acm.setEntry(std::string(coll_ops[i]["object1"]), std::string(coll_ops[i]["object2"]), std::string(coll_ops[i]["operation"]) == "disable");
         }
     }
 }
 
-void planning_scene_ros::PlanningSceneROS::configureDefaultPadding(void)
+void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding(void)
 {
     nh_.param(robot_description_ + "_planning/default_robot_padding", default_robot_padd_, 0.0);
     nh_.param(robot_description_ + "_planning/default_robot_scale", default_robot_scale_, 1.0);

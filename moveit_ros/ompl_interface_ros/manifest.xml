@@ -10,7 +10,8 @@
   <url>http://ros.org/wiki/ompl_interface_ros</url>
 
   <depend package="roscpp"/>
-  <depend package="planning_scene_ros"/>
+  <depend package="planning_scene"/>
+  <depend package="planning_scene_monitor"/>
   <depend package="ompl_interface"/>
   <depend package="moveit_msgs"/>
   <depend package="kinematics_msgs"/>

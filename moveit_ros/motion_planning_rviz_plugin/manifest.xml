@@ -13,7 +13,7 @@
   <depend package="tf"/>
   <depend package="planning_models"/>
   <depend package="planning_scene"/>
-  <depend package="planning_scene_ros"/>
+  <depend package="planning_scene_monitor"/>
   <depend package="moveit_msgs"/>
 
   <export>
