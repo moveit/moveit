@@ -203,6 +203,10 @@ namespace planning_scene
         /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene message. */
         void setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
 
+        bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
+        bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
+        void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
+
         /** \brief Set the current robot state to be \e state. If not
             all joint values are specified, the previously maintained
             joint values are kept. */
@@ -230,9 +234,6 @@ namespace planning_scene
 
     protected:
 
-        bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
-        bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
-        void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
         void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
         void addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
         void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
