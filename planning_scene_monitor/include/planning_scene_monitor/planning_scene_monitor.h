@@ -80,11 +80,21 @@ namespace planning_scene_monitor
             return csm_;
         }
 
-        void useMonitoredState(void);
         void updateFixedTransforms(void);
 
-        void startStateMonitor(void);
+        void startStateMonitor(const std::string &joint_states_topic = "joint_states");
         void stopStateMonitor(void);
+	void useMonitoredState(void);
+	
+	void startSceneMonitor(const std::string &scene_topic = "planning_scene",
+			       const std::string &scene_diff_topic = "planning_scene_diff");
+	void stopSceneMonitor(void);
+	
+	void startWorldGeometryMonitor(const std::string &collision_objects_topic = "collision_object",
+				       const std::string &attached_objects_topic = "attached_collision_object",
+				       const std::string &collision_map_topic = "collision_map");
+	void stopWorldGeometryMonitor(void);
+	
 
         void lockScene(void);
         void unlockScene(void);

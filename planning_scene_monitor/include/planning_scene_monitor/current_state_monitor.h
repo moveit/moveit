@@ -55,7 +55,7 @@ namespace planning_scene_monitor
 
         CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf);
 
-        void startStateMonitor(void);
+        void startStateMonitor(const std::string &joint_states_topic = "joint_states");
         void stopStateMonitor(void);
         bool haveCompleteState(void) const;
         bool haveCompleteState(const ros::Duration &age) const;
