@@ -34,21 +34,21 @@
 
 /* Author: Ioan Sucan */
 
-#include "planning_scene_ros/current_state_monitor.h"
+#include "planning_scene_monitor/current_state_monitor.h"
 
-planning_scene_ros::CurrentStateMonitor::CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf) :
+planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf) :
     tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(1e-3)
 {
 }
 
-planning_models::KinematicStatePtr planning_scene_ros::CurrentStateMonitor::getCurrentState(void) const
+planning_models::KinematicStatePtr planning_scene_monitor::CurrentStateMonitor::getCurrentState(void) const
 {
     boost::mutex::scoped_lock slock(state_update_lock_);
     planning_models::KinematicState *result = new planning_models::KinematicState(kstate_);
     return planning_models::KinematicStatePtr(result);
 }
 
-std::map<std::string, double> planning_scene_ros::CurrentStateMonitor::getCurrentStateValues(void) const
+std::map<std::string, double> planning_scene_monitor::CurrentStateMonitor::getCurrentStateValues(void) const
 {
     std::map<std::string, double> m;
     boost::mutex::scoped_lock slock(state_update_lock_);
@@ -56,12 +56,12 @@ std::map<std::string, double> planning_scene_ros::CurrentStateMonitor::getCurren
     return m;
 }
 
-void planning_scene_ros::CurrentStateMonitor::setOnStateUpdateCallback(const JointStateUpdateCallback &callback)
+void planning_scene_monitor::CurrentStateMonitor::setOnStateUpdateCallback(const JointStateUpdateCallback &callback)
 {
     on_state_update_callback_ = callback;
 }
 
-void planning_scene_ros::CurrentStateMonitor::startStateMonitor(void)
+void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(void)
 {
     if (!state_monitor_started_ && kmodel_)
     {
@@ -72,7 +72,7 @@ void planning_scene_ros::CurrentStateMonitor::startStateMonitor(void)
     }
 }
 
-void planning_scene_ros::CurrentStateMonitor::stopStateMonitor(void)
+void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor(void)
 {
     if (state_monitor_started_)
     {
@@ -82,7 +82,7 @@ void planning_scene_ros::CurrentStateMonitor::stopStateMonitor(void)
     }
 }
 
-bool planning_scene_ros::CurrentStateMonitor::haveCompleteState(void) const
+bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(void) const
 {
     bool result = true;
     const std::vector<std::string> &dof = kmodel_->getActiveDOFNames();
@@ -96,7 +96,7 @@ bool planning_scene_ros::CurrentStateMonitor::haveCompleteState(void) const
     return result;
 }
 
-bool planning_scene_ros::CurrentStateMonitor::haveCompleteState(const ros::Duration &age) const
+bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::Duration &age) const
 {
     bool result = true;
     const std::vector<std::string> &dof = kmodel_->getActiveDOFNames();
@@ -122,7 +122,7 @@ bool planning_scene_ros::CurrentStateMonitor::haveCompleteState(const ros::Durat
     return result;
 }
 
-void planning_scene_ros::CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state)
+void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state)
 {
     if (joint_state->name.size() != joint_state->position.size())
     {

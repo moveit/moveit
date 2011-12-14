@@ -35,7 +35,8 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include "ompl_interface_ros/ompl_interface_ros.h"
-#include "planning_scene_ros/planning_scene_ros.h"
+#include "planning_scene_monitor/planning_scene_monitor.h"
+#include <tf/transform_listener.h>
 
 int main(int argc, char **argv)
 {
@@ -43,11 +44,11 @@ int main(int argc, char **argv)
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
-
-    planning_scene::PlanningScenePtr ps(new planning_scene_ros::PlanningSceneROS("robot_description"));
-    ompl_interface_ros::OMPLInterfaceROS o(ps);
+    tf::TransformListener tf;
+    planning_scene_monitor::PlanningSceneMonitor psm("robot_description", &tf);
+    ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
     o.status();
-
+    
     ros::waitForShutdown();
 
     return 0;

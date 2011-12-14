@@ -40,7 +40,6 @@
 #include <ogre_tools/shape.h>
 
 #include <tf/transform_listener.h>
-#include <planning_scene_ros/planning_scene_ros.h>
 #include <planning_models/conversions.h>
 
 namespace motion_planning_rviz_plugin
@@ -132,8 +131,8 @@ void PlanningDisplay::onInitialize()
 
 void PlanningDisplay::reset()
 {
-    if (planning_scene_)
-	planning_scene_->getCollisionWorld()->clearObjects();
+    if (scene_monitor_)
+	scene_monitor_->getPlanningScene()->getCollisionWorld()->clearObjects();
     scene_shapes_.clear();
     incoming_trajectory_message_.reset();
     displaying_trajectory_message_.reset();
@@ -267,8 +266,8 @@ void PlanningDisplay::load()
   robot_->load(doc.RootElement(), descr);
   scene_robot_->load(doc.RootElement(), descr);
 
-  planning_scene_.reset(new planning_scene_ros::PlanningSceneROS(description_param_, vis_manager_->getTFClient()));
-  scene_robot_->update(PlanningLinkUpdater(&planning_scene_->getCurrentState()));
+  scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(description_param_, vis_manager_->getTFClient()));
+  scene_robot_->update(PlanningLinkUpdater(&scene_monitor_->getPlanningScene()->getCurrentState()));
 }
 
 void PlanningDisplay::onEnable()
@@ -326,8 +325,8 @@ void PlanningDisplay::renderPlanningScene()
 	rviz::Color(0.9f, 0.0f, 0.2f)
     };
     
-    scene_robot_->update(PlanningLinkUpdater(&planning_scene_->getCurrentState()));
-    collision_detection::CollisionWorldConstPtr cworld = planning_scene_->getCollisionWorld();
+    scene_robot_->update(PlanningLinkUpdater(&scene_monitor_->getPlanningScene()->getCurrentState()));
+    collision_detection::CollisionWorldConstPtr cworld = scene_monitor_->getPlanningScene()->getCollisionWorld();
     const std::vector<std::string> &ns = cworld->getNamespaces();
     for (std::size_t i = 0 ; i < ns.size() ; ++i)
     {
@@ -387,7 +386,7 @@ void PlanningDisplay::renderPlanningScene()
 
 void PlanningDisplay::update(float wall_dt, float ros_dt)
 {
-  if (!planning_scene_)
+  if (!scene_monitor_)
     return;
 
   if (!animating_path_ && !new_display_trajectory_ && loop_display_ && displaying_trajectory_message_)
@@ -399,8 +398,8 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 
   if (!animating_path_ && new_display_trajectory_)
   {
-      static_cast<planning_scene_ros::PlanningSceneROS*>(planning_scene_.get())->updateFixedTransforms();
-      displaying_trajectory_message_.reset(new ReceivedTrajectoryMessage(incoming_trajectory_message_, planning_scene_));
+      scene_monitor_->updateFixedTransforms();
+      displaying_trajectory_message_.reset(new ReceivedTrajectoryMessage(incoming_trajectory_message_, scene_monitor_->getPlanningScene()));
       animating_path_ = true;
       new_display_trajectory_ = false;
       current_state_ = -1;
@@ -441,16 +440,16 @@ void PlanningDisplay::calculateRobotPosition()
 
   ros::Time stamp;
   std::string err_string;
-  if (vis_manager_->getTFClient()->getLatestCommonTime(target_frame_, planning_scene_->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
+  if (vis_manager_->getTFClient()->getLatestCommonTime(target_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
   {
       ROS_WARN_STREAM("No transform available between frame '" << target_frame_ << "' and planning frame '" <<
-                      planning_scene_->getPlanningFrame() << "' (" << err_string << ")");
+                      scene_monitor_->getPlanningScene()->getPlanningFrame() << "' (" << err_string << ")");
       return;
   }
 
-  tf::Stamped<tf::Pose> pose(btTransform::getIdentity(), stamp, planning_scene_->getPlanningFrame());
+  tf::Stamped<tf::Pose> pose(btTransform::getIdentity(), stamp, scene_monitor_->getPlanningScene()->getPlanningFrame());
 
-  if (vis_manager_->getTFClient()->canTransform(target_frame_, planning_scene_->getPlanningFrame(), stamp))
+  if (vis_manager_->getTFClient()->canTransform(target_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp))
   {
     try
     {
@@ -474,10 +473,10 @@ void PlanningDisplay::calculateRobotPosition()
 void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
 {
   incoming_trajectory_message_ = msg;
-  if (planning_scene_)
-    if (msg->model_id != planning_scene_->getKinematicModel()->getName())
+  if (scene_monitor_)
+    if (msg->model_id != scene_monitor_->getPlanningScene()->getKinematicModel()->getName())
       ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
-               msg->model_id.c_str(), planning_scene_->getKinematicModel()->getName().c_str());
+               msg->model_id.c_str(), scene_monitor_->getPlanningScene()->getKinematicModel()->getName().c_str());
   new_display_trajectory_ = true;
 }
 

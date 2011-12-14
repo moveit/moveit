@@ -36,7 +36,7 @@
 #include "rviz/helpers/color.h"
 
 #include <moveit_msgs/DisplayTrajectory.h>
-#include <planning_scene/planning_scene.h>
+#include <planning_scene_monitor/planning_scene_monitor.h>
 
 #include <ros/ros.h>
 
@@ -206,8 +206,7 @@ protected:
   bool display_scene_robot_;
   float state_display_time_;
 
-
-  planning_scene::PlanningScenePtr planning_scene_;
+  planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
   boost::scoped_ptr<ReceivedTrajectoryMessage> displaying_trajectory_message_;
   std::vector<boost::shared_ptr<ogre_tools::Shape> > scene_shapes_;

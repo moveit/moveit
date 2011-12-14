@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_SCENE_CURRENT_STATE_MONITOR_
-#define PLANNING_SCENE_CURRENT_STATE_MONITOR_
+#ifndef PLANNING_SCENE_MONITOR_CURRENT_STATE_MONITOR_
+#define PLANNING_SCENE_MONITOR_CURRENT_STATE_MONITOR_
 
 #include <ros/ros.h>
 #include <tf/tf.h>
@@ -44,7 +44,7 @@
 #include <boost/function.hpp>
 #include <boost/thread/mutex.hpp>
 
-namespace planning_scene_ros
+namespace planning_scene_monitor
 {
 
     typedef boost::function<void(const sensor_msgs::JointStateConstPtr &joint_state)> JointStateUpdateCallback;

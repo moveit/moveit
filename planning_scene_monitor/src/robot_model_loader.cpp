@@ -34,43 +34,42 @@
 
 /* Author: Ioan Sucan */
 
-#include <ros/ros.h>
-#include <urdf/model.h>
-#include <srdf/model.h>
-#include <boost/shared_ptr.hpp>
+#include "planning_scene_monitor/robot_model_loader.h"
 
-namespace planning_scene_ros
+planning_scene_monitor::RobotModelLoader::RobotModelLoader(const std::string &robot_description) : nh_("~")
 {
+    if (nh_.searchParam(robot_description, robot_description_))
+        loadRobotFromParamServer();
+}
 
-    class RobotModelLoader
+bool planning_scene_monitor::RobotModelLoader::loadRobotFromParamServer(void)
+{
+    std::string content;
+    if (nh_.getParam(robot_description_, content))
     {
-    public:
-        RobotModelLoader(const std::string &robot_description);
-
-        const std::string& getRobotDescription(void) const
+        urdf_.reset(new urdf::Model);
+        if (urdf_->initString(content))
         {
-            return robot_description_;
+            std::string scontent;
+            if (nh_.getParam(robot_description_ + "_semantic", scontent))
+            {
+                srdf_.reset(new srdf::Model);
+                if (!srdf_->initString(*urdf_, scontent))
+                {
+                    ROS_ERROR("Unable to parse SRDF");
+                    srdf_.reset();
+                }
+            }
+            else
+                ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
         }
-
-        const boost::shared_ptr<urdf::Model>& getURDF(void) const
+        else
         {
-            return urdf_;
+            ROS_ERROR("Unable to parse URDF");
+            urdf_.reset();
         }
-
-        const boost::shared_ptr<srdf::Model>& getSRDF(void) const
-        {
-            return srdf_;
-        }
-
-    private:
-
-        ros::NodeHandle                nh_;
-        std::string                    robot_description_;
-        boost::shared_ptr<srdf::Model> srdf_;
-        boost::shared_ptr<urdf::Model> urdf_;
-
-        bool loadRobotFromParamServer(void);
-
-    };
-
+    }
+    else
+        ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
+    return false;
 }
