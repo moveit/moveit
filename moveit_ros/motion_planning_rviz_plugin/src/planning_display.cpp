@@ -105,15 +105,14 @@ struct PlanningDisplay::ReceivedTrajectoryMessage
 
 PlanningDisplay::PlanningDisplay() :
     Display(), robot_path_alpha_(0.75f), robot_scene_alpha_(0.5f), loop_display_(false),
-    display_scene_(true), display_scene_robot_(true), state_display_time_(0.05f),
-    new_display_trajectory_(false), animating_path_(false)
+    display_scene_(true), display_scene_robot_(true), state_display_time_(0.05f), scene_display_time_(0.5f),
+    new_display_trajectory_(false), animating_path_(false), current_scene_time_(0.0f)
 {
 }
 
 PlanningDisplay::~PlanningDisplay()
 {
   unsubscribe();
-
   delete robot_;
   delete scene_robot_;
 }
@@ -143,9 +142,7 @@ void PlanningDisplay::reset()
 void PlanningDisplay::setRobotDescription(const std::string& description_param)
 {
   description_param_ = description_param;
-
   propertyChanged(robot_description_property_);
-
   if (isEnabled())
   {
     load();
@@ -176,18 +173,36 @@ void PlanningDisplay::setSceneRobotAlpha(float alpha)
 void PlanningDisplay::setTrajectoryTopic(const std::string& topic)
 {
   unsubscribe();
-  unadvertise();
   display_trajectory_topic_ = topic;
   subscribe();
-  advertise();
-
   propertyChanged(trajectory_topic_property_);
+}
+
+void PlanningDisplay::setPlanningSceneTopic(const std::string &topic)
+{  
+  planning_scene_topic_ = topic;
+  if (scene_monitor_)
+      scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
+  propertyChanged(planning_scene_topic_property_);
+}
+
+void PlanningDisplay::setPlanningSceneDiffTopic(const std::string &topic)
+{  
+  planning_scene_diff_topic_ = topic;
+  if (scene_monitor_)
+      scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
+  propertyChanged(planning_scene_diff_topic_property_);
+}
+
+void PlanningDisplay::setSceneDisplayTime(float time)
+{
+  scene_display_time_ = time;
+  propertyChanged(scene_display_time_property_);
 }
 
 void PlanningDisplay::setStateDisplayTime(float time)
 {
   state_display_time_ = time;
-
   propertyChanged(state_display_time_property_);
 }
 
@@ -267,13 +282,13 @@ void PlanningDisplay::load()
   scene_robot_->load(doc.RootElement(), descr);
 
   scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(description_param_, vis_manager_->getTFClient()));
+  scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
   scene_robot_->update(PlanningLinkUpdater(&scene_monitor_->getPlanningScene()->getCurrentState()));
 }
 
 void PlanningDisplay::onEnable()
 {
   subscribe();
-  advertise();
   load();
   robot_->setVisible(true);
   scene_node_->setVisible(display_scene_);
@@ -283,7 +298,8 @@ void PlanningDisplay::onEnable()
 void PlanningDisplay::onDisable()
 {
   unsubscribe();
-  unadvertise();
+  if (scene_monitor_)
+      scene_monitor_->stopSceneMonitor();  
   robot_->setVisible(false);
   scene_node_->setVisible(false);
   scene_robot_->setVisible(false);
@@ -307,14 +323,6 @@ void PlanningDisplay::unsubscribe()
   sub_.shutdown();
 }
 
-void PlanningDisplay::advertise()
-{
-}
-
-void PlanningDisplay::unadvertise()
-{
-}
-
 void PlanningDisplay::renderPlanningScene()
 {
     static rviz::Color colors[] = {
@@ -324,6 +332,9 @@ void PlanningDisplay::renderPlanningScene()
         rviz::Color(0.9f, 0.9f, 0.0f),
         rviz::Color(0.9f, 0.0f, 0.2f)
     };
+    if (!scene_monitor_)
+	return;
+    
     scene_monitor_->lockScene();
     try
     {
@@ -398,6 +409,9 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
   if (!scene_monitor_)
     return;
 
+  bool render = false;
+  bool offset = false;
+  
   if (!animating_path_ && !new_display_trajectory_ && loop_display_ && displaying_trajectory_message_)
   {
       animating_path_ = true;
@@ -413,7 +427,9 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
       new_display_trajectory_ = false;
       current_state_ = -1;
       current_state_time_ = state_display_time_ + 1.0f;
-      robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->start_state_.get()));
+      robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->start_state_.get())); 
+      offset = true;
+      render = true;
   }
 
   if (animating_path_)
@@ -421,40 +437,43 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     if (current_state_time_ > state_display_time_)
     {
       ++current_state_;
-
-      calculateRobotPosition();
-
       if ((std::size_t) current_state_ < displaying_trajectory_message_->trajectory_.size())
       {
         robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->trajectory_[current_state_].get()));
-        causeRender();
+	render = true;
       }
       else
       {
         animating_path_ = false;
       }
-
       current_state_time_ = 0.0f;
     }
     current_state_time_ += wall_dt;
   }
+
+  current_scene_time_ += wall_dt;
+  if (current_scene_time_ > scene_display_time_)
+  {
+    render = true;
+    offset = true;
+    renderPlanningScene();
+  }  
+
+  if (offset)
+    calculateOffsetPosition();
+  if (render)
+    causeRender();
 }
 
-void PlanningDisplay::calculateRobotPosition()
+void PlanningDisplay::calculateOffsetPosition()
 {
-  if (!displaying_trajectory_message_)
-  {
-    return;
-  }
-
+  if (!scene_monitor_)
+      return;
   ros::Time stamp;
   std::string err_string;
   if (vis_manager_->getTFClient()->getLatestCommonTime(target_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
-  {
-      ROS_WARN_STREAM("No transform available between frame '" << target_frame_ << "' and planning frame '" <<
-                      scene_monitor_->getPlanningScene()->getPlanningFrame() << "' (" << err_string << ")");
       return;
-  }
+  
 
   tf::Stamped<tf::Pose> pose(btTransform::getIdentity(), stamp, scene_monitor_->getPlanningScene()->getPlanningFrame());
 
@@ -477,6 +496,8 @@ void PlanningDisplay::calculateRobotPosition()
   robot_->setOrientation(orientation);
   scene_robot_->setPosition(position);
   scene_robot_->setOrientation(orientation);
+  scene_node_->setPosition(position);
+  scene_node_->setOrientation(orientation);
 }
 
 void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
@@ -491,11 +512,20 @@ void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajec
 
 void PlanningDisplay::targetFrameChanged()
 {
-  calculateRobotPosition();
+  calculateOffsetPosition();
 }
 
 void PlanningDisplay::createProperties()
-{
+{ 
+
+  /// generic properties
+  robot_description_property_ = property_manager_->createProperty<rviz::StringProperty> ("Robot Description", property_prefix_,
+                                                                                         boost::bind(&PlanningDisplay::getRobotDescription, this),
+                                                                                         boost::bind(&PlanningDisplay::setRobotDescription, this, _1), parent_category_,
+                                                                                         this);
+  setPropertyHelpText(robot_description_property_, "The name of the ROS parameter where the URDF for the robot is loaded");
+
+
   scene_category_ = property_manager_->createCategory("Planning Scene", property_prefix_, parent_category_);
   path_category_ = property_manager_->createCategory("Planned Path", property_prefix_, parent_category_);
   const std::string scene_prefix = property_prefix_ + "_scene";
@@ -519,6 +549,29 @@ void PlanningDisplay::createProperties()
   float_prop->setMin( 0.0 );
   float_prop->setMax( 1.0 );
 
+  planning_scene_topic_property_ = property_manager_->createProperty<rviz::ROSTopicStringProperty> ("Planning Scene Topic", path_prefix,
+												    boost::bind(&PlanningDisplay::getPlanningSceneTopic, this),
+												    boost::bind(&PlanningDisplay::setPlanningSceneTopic, this, _1),
+												    scene_category_, this);
+  setPropertyHelpText(planning_scene_topic_property_, "The topic on which the moveit_msgs::PlanningScene messages are received");
+  rviz::ROSTopicStringPropertyPtr topic_prop = planning_scene_topic_property_.lock();
+  topic_prop->setMessageType(ros::message_traits::datatype<moveit_msgs::PlanningScene>());
+
+  planning_scene_diff_topic_property_ = property_manager_->createProperty<rviz::ROSTopicStringProperty> ("Planning Scene Diffs Topic", path_prefix,
+													 boost::bind(&PlanningDisplay::getPlanningSceneDiffTopic, this),
+													 boost::bind(&PlanningDisplay::setPlanningSceneDiffTopic, this, _1),
+													 scene_category_, this);
+  setPropertyHelpText(planning_scene_diff_topic_property_, "The topic on which the moveit_msgs::PlanningScene diff messages are received");
+  topic_prop = planning_scene_diff_topic_property_.lock();
+  topic_prop->setMessageType(ros::message_traits::datatype<moveit_msgs::PlanningScene>());
+
+  scene_display_time_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Scene Display Time", path_prefix,
+                                                                                         boost::bind(&PlanningDisplay::getSceneDisplayTime, this),
+                                                                                         boost::bind(&PlanningDisplay::setSceneDisplayTime, this, _1),
+                                                                                         scene_category_, this);
+  setPropertyHelpText(scene_display_time_property_, "The amount of wall-time to wait in between rendering updates to the planning scene (if any)");
+  float_prop = scene_display_time_property_.lock();
+  float_prop->setMin(0.0001);
 
   ///// robot path
 
@@ -556,16 +609,8 @@ void PlanningDisplay::createProperties()
                                                                                                 boost::bind(&PlanningDisplay::setTrajectoryTopic, this, _1),
                                                                                                 path_category_, this);
   setPropertyHelpText(trajectory_topic_property_, "The topic on which the moveit_msgs::DisplayTrajectory messages are received");
-  rviz::ROSTopicStringPropertyPtr topic_prop = trajectory_topic_property_.lock();
+  topic_prop = trajectory_topic_property_.lock();
   topic_prop->setMessageType(ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>());
-
-  /// generic properties
-  robot_description_property_ = property_manager_->createProperty<rviz::StringProperty> ("Robot Description", property_prefix_,
-                                                                                         boost::bind(&PlanningDisplay::getRobotDescription, this),
-                                                                                         boost::bind(&PlanningDisplay::setRobotDescription, this, _1), parent_category_,
-                                                                                         this);
-  setPropertyHelpText(robot_description_property_, "The name of the ROS parameter where the URDF for the robot is loaded");
-
 
   robot_->setPropertyManager(property_manager_, path_category_);
   scene_robot_->setPropertyManager(property_manager_, scene_category_);

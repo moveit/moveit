@@ -46,6 +46,10 @@ int main(int argc, char **argv)
     spinner.start();
     tf::TransformListener tf;
     planning_scene_monitor::PlanningSceneMonitor psm("robot_description", &tf);
+    psm.startWorldGeometryMonitor();
+    psm.startSceneMonitor();
+    psm.startStateMonitor();
+    
     ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
     o.status();
     

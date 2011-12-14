@@ -97,6 +97,9 @@ public:
   void setStateDisplayTime( float time );
   float getStateDisplayTime() { return state_display_time_; }
 
+  void setSceneDisplayTime( float time );
+  float getSceneDisplayTime() { return scene_display_time_; }
+
 
   /**
    * \brief Set whether the scene representation should be displayed
@@ -126,6 +129,11 @@ public:
   void setCollisionVisible( bool visible );
   bool getCollisionVisible();
 
+  const std::string& getPlanningSceneTopic(void) { return planning_scene_topic_; }
+  void setPlanningSceneTopic(const std::string &topic);
+
+  const std::string& getPlanningSceneDiffTopic(void) { return planning_scene_diff_topic_; }
+  void setPlanningSceneDiffTopic(const std::string &topic); 
 
   void setRobotAlpha( float alpha );
   float getRobotAlpha() { return robot_path_alpha_; }
@@ -179,7 +187,7 @@ protected:
   /**
    * \brief Uses libTF to set the robot's position, given the target frame and the planning frame
    */
-  void calculateRobotPosition();
+  void calculateOffsetPosition();
 
   void renderPlanningScene();
 
@@ -205,6 +213,10 @@ protected:
   bool display_scene_;
   bool display_scene_robot_;
   float state_display_time_;
+  float scene_display_time_;
+  std::string planning_scene_topic_;
+  std::string planning_scene_diff_topic_;
+  
 
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
@@ -215,6 +227,7 @@ protected:
   bool animating_path_;
   int current_state_;
   float current_state_time_;
+  float current_scene_time_;
 
   // properties to show on side panel
   rviz::CategoryPropertyWPtr scene_category_;
@@ -224,8 +237,11 @@ protected:
   rviz::BoolPropertyWPtr scene_enabled_property_;
   rviz::BoolPropertyWPtr scene_robot_enabled_property_;
   rviz::FloatPropertyWPtr state_display_time_property_;
+  rviz::FloatPropertyWPtr scene_display_time_property_;
   rviz::StringPropertyWPtr robot_description_property_;
   rviz::ROSTopicStringPropertyWPtr trajectory_topic_property_;
+  rviz::ROSTopicStringPropertyWPtr planning_scene_topic_property_;
+  rviz::ROSTopicStringPropertyWPtr planning_scene_diff_topic_property_;
   rviz::FloatPropertyWPtr robot_path_alpha_property_;
   rviz::FloatPropertyWPtr robot_scene_alpha_property_;
   rviz::BoolPropertyWPtr loop_display_property_;

@@ -61,14 +61,17 @@ void planning_scene_monitor::CurrentStateMonitor::setOnStateUpdateCallback(const
     on_state_update_callback_ = callback;
 }
 
-void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(void)
+void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(const std::string &joint_states_topic)
 {
     if (!state_monitor_started_ && kmodel_)
     {
         joint_time_.clear();
-        joint_state_subscriber_ = nh_.subscribe("joint_states", 25, &CurrentStateMonitor::jointStateCallback, this);
+	if (joint_states_topic.empty())
+	    ROS_ERROR("The joint states topic cannot be an empty string");
+	else
+	    joint_state_subscriber_ = nh_.subscribe(joint_states_topic, 25, &CurrentStateMonitor::jointStateCallback, this);
         state_monitor_started_ = true;
-        ROS_DEBUG("Listening to joint states");
+        ROS_DEBUG("Listening to joint states on topic '%s'", joint_states_topic.c_str());
     }
 }
 
