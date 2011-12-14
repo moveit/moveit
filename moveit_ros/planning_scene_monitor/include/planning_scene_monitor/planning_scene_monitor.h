@@ -39,29 +39,37 @@
 
 #include <ros/ros.h>
 #include <tf/tf.h>
+#include <tf/message_filter.h>
+#include <message_filters/subscriber.h>
 #include <planning_scene/planning_scene.h>
 #include "planning_scene_monitor/robot_model_loader.h"
 #include "planning_scene_monitor/current_state_monitor.h"
 
 namespace planning_scene_monitor
 {
+    /**
+       Subscribes to:
 
+       planning_scene
+       planning_scene_diff
+     */
     class PlanningSceneMonitor
     {
     public:
         PlanningSceneMonitor(const std::string &robot_description, tf::Transformer *tf);
-	PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, tf::Transformer *tf);
-	
-	const planning_scene::PlanningScenePtr& getPlanningScene(void)
-	{
-	    return scene_;
-	}
-	
-	const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
-	{
-	    return scene_const_;
-	}
-	
+        PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, tf::Transformer *tf);
+        ~PlanningSceneMonitor(void);
+
+        const planning_scene::PlanningScenePtr& getPlanningScene(void)
+        {
+            return scene_;
+        }
+
+        const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
+        {
+            return scene_const_;
+        }
+
         const std::string& getRobotDescription(void) const
         {
             return robot_description_;
@@ -73,21 +81,32 @@ namespace planning_scene_monitor
         }
 
         void useMonitoredState(void);
-	void updateFixedTransforms(void);
-	
+        void updateFixedTransforms(void);
+
         void startStateMonitor(void);
         void stopStateMonitor(void);
 
+        void lockScene(void);
+        void unlockScene(void);
+
     protected:
-	
-	void initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description);
-	void configureDefaultCollisionMatrix(void);
+
+        void initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description);
+        void configureDefaultCollisionMatrix(void);
         void configureDefaultPadding(void);
-	
-	planning_scene::PlanningScenePtr      scene_;
-	planning_scene::PlanningSceneConstPtr scene_const_;
-	
+
+        void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
+        void newPlanningSceneDiffCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
+        void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj);
+        void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
+        void collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map);
+
+        planning_scene::PlanningScenePtr      scene_;
+        planning_scene::PlanningSceneConstPtr scene_const_;
+        boost::mutex                          scene_update_mutex_;
+
         ros::NodeHandle                       nh_;
+        ros::NodeHandle                       root_nh_;
         tf::Transformer                      *tf_;
         std::string                           robot_description_;
         double                                default_robot_padd_;
@@ -95,12 +114,26 @@ namespace planning_scene_monitor
         double                                default_object_padd_;
         double                                default_attached_padd_;
 
+        ros::Subscriber                       planning_scene_subscriber_;
+        ros::Subscriber                       planning_scene_diff_subscriber_;
+
+        message_filters::Subscriber<moveit_msgs::CollisionObject>
+                                             *collision_object_subscriber_;
+        tf::MessageFilter<moveit_msgs::CollisionObject>
+                                             *collision_object_filter_;
+        message_filters::Subscriber<moveit_msgs::AttachedCollisionObject>
+                                             *attached_collision_object_subscriber_;
+        message_filters::Subscriber<moveit_msgs::CollisionMap>
+                                             *collision_map_subscriber_;
+        tf::MessageFilter<moveit_msgs::CollisionMap>
+                                             *collision_map_filter_;
+
         CurrentStateMonitorPtr                csm_;
     };
 
     typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
     typedef boost::shared_ptr<const PlanningSceneMonitor> PlanningSceneMonitorConstPtr;
-    
+
 }
 
 #endif

@@ -13,6 +13,7 @@
   <depend package="planning_scene"/>
   <depend package="moveit_msgs"/>
   <depend package="sensor_msgs"/>
+  <depend package="message_filters"/>
   <depend package="tf"/>
 
   <export>

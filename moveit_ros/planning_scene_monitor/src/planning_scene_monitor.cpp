@@ -48,18 +48,27 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const plannin
     initialize(parent, robot_description);
 }
 
+planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
+{
+    delete collision_object_subscriber_;
+    delete collision_object_filter_;
+    delete attached_collision_object_subscriber_;
+    delete collision_map_subscriber_;
+    delete collision_map_filter_;
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description)
 {
     RobotModelLoader rml(robot_description);
     robot_description_ = rml.getRobotDescription();
     if (rml.getURDF() && rml.getSRDF())
     {
-	if (parent)
-	    scene_.reset(new planning_scene::PlanningScene(parent));
-	else
-	    scene_.reset(new planning_scene::PlanningScene());
-	scene_const_ = scene_;
-	if (scene_->configure(rml.getURDF(), rml.getSRDF()))
+        if (parent)
+            scene_.reset(new planning_scene::PlanningScene(parent));
+        else
+            scene_.reset(new planning_scene::PlanningScene());
+        scene_const_ = scene_;
+        if (scene_->configure(rml.getURDF(), rml.getSRDF()))
         {
             configureDefaultCollisionMatrix();
             configureDefaultPadding();
@@ -70,7 +79,84 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
             }
         }
     }
-}  
+
+    // listen for planning scene updates; these messages include transforms, so no need for filters
+    planning_scene_subscriber_ = root_nh_.subscribe("planning_scene", 2, &PlanningSceneMonitor::newPlanningSceneCallback, this);
+    planning_scene_diff_subscriber_ = root_nh_.subscribe("planning_scene_diff", 100, &PlanningSceneMonitor::newPlanningSceneDiffCallback, this);
+    ROS_DEBUG_STREAM("Listening to 'planning_scene' and 'planning_scene_diff'");
+
+    // listen for world geometry updates using message filters
+    collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, "collision_object", 1024);
+    collision_object_filter_ = new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024);
+    collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
+    ROS_DEBUG("Listening to 'collision_object' using message notifier with target frame '%s'", collision_object_filter_->getTargetFramesString().c_str());
+
+    // using regular message filter as there's no header
+    attached_collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::AttachedCollisionObject>(root_nh_, "attached_collision_object", 1024);
+    attached_collision_object_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::attachObjectCallback, this, _1));
+
+    // listen to collision map using filters
+
+    collision_map_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionMap>(root_nh_, "collision_map", 2);
+    collision_map_filter_ = new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2);
+    collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
+    ROS_INFO("Listening to 'collision_map' using message notifier with target frame '%s'", collision_map_filter_->getTargetFramesString().c_str());
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
+{
+    if (scene_)
+    {
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->setPlanningSceneMsg(*scene);
+    }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneDiffCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
+{
+    if (scene_)
+    {
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->setPlanningSceneDiffMsg(*scene);
+    }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj)
+{
+    if (scene_)
+    {
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->processCollisionObjectMsg(*obj);
+    }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj)
+{
+    if (scene_)
+    {
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->processAttachedCollisionObjectMsg(*obj);
+    }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map)
+{
+    if (scene_)
+    {
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->processCollisionMapMsg(*map);
+    }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::lockScene(void)
+{
+    scene_update_mutex_.lock();
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
+{
+    scene_update_mutex_.unlock();
+}
 
 void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(void)
 {
@@ -96,6 +182,7 @@ void planning_scene_monitor::PlanningSceneMonitor::useMonitoredState(void)
     {
         if (!csm_->haveCompleteState())
             ROS_ERROR("The complete state of the robot is not yet known");
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
         const std::map<std::string, double> &v = csm_->getCurrentStateValues();
         scene_->getCurrentState().setStateValues(v);
     }
@@ -105,64 +192,65 @@ void planning_scene_monitor::PlanningSceneMonitor::useMonitoredState(void)
 
 void planning_scene_monitor::PlanningSceneMonitor::updateFixedTransforms(void)
 {
-    if (!tf_)
-	return;
+    if (!tf_ || !scene_)
+        return;
     std::vector<geometry_msgs::TransformStamped> transforms;
     const std::string &target = scene_->getPlanningFrame();
-    
+
     std::vector<std::string> all_frame_names;
     tf_->getFrameStrings(all_frame_names);
     for (std::size_t i = 0 ; i < all_frame_names.size() ; ++i)
-    { 
-	if (!all_frame_names[i].empty() && all_frame_names[i][0] == '/') 
-	    all_frame_names[i].erase(all_frame_names[i].begin());
-    
-	if (all_frame_names[i] == target || scene_->getKinematicModel()->hasLinkModel(all_frame_names[i]))
-	    continue;
-	
-	ros::Time stamp;
-	std::string err_string;
-	if (tf_->getLatestCommonTime(target, all_frame_names[i], stamp, &err_string) != tf::NO_ERROR)
-	{
-	    ROS_WARN_STREAM("No transform available between frame '" << all_frame_names[i] << "' and planning frame '" << 
-			    target << "' (" << err_string << ")");
-	    continue;
-	}
+    {
+        if (!all_frame_names[i].empty() && all_frame_names[i][0] == '/')
+            all_frame_names[i].erase(all_frame_names[i].begin());
 
-	tf::StampedTransform t;
-	try
-	{
-	    tf_->lookupTransform(target, all_frame_names[i], stamp, t);
-	}
-	catch (tf::TransformException& ex)
-	{
-	    ROS_WARN_STREAM("Unable to transform object from frame '" << all_frame_names[i] << "' to planning frame '" <<
-			    target << "' (" << ex.what() << ")");
-	    continue;
-	}
-	geometry_msgs::TransformStamped f;
-	f.header.frame_id = all_frame_names[i];
-	f.child_frame_id = target;
-	f.transform.translation.x = t.getOrigin().x();
-	f.transform.translation.y = t.getOrigin().y();
-	f.transform.translation.z = t.getOrigin().z();
-	const tf::Quaternion &q = t.getRotation();
-	f.transform.rotation.x = q.x();
-	f.transform.rotation.y = q.y();
-	f.transform.rotation.z = q.z();
-	f.transform.rotation.w = q.w();
-	transforms.push_back(f);
+        if (all_frame_names[i] == target || scene_->getKinematicModel()->hasLinkModel(all_frame_names[i]))
+            continue;
+
+        ros::Time stamp;
+        std::string err_string;
+        if (tf_->getLatestCommonTime(target, all_frame_names[i], stamp, &err_string) != tf::NO_ERROR)
+        {
+            ROS_WARN_STREAM("No transform available between frame '" << all_frame_names[i] << "' and planning frame '" <<
+                            target << "' (" << err_string << ")");
+            continue;
+        }
+
+        tf::StampedTransform t;
+        try
+        {
+            tf_->lookupTransform(target, all_frame_names[i], stamp, t);
+        }
+        catch (tf::TransformException& ex)
+        {
+            ROS_WARN_STREAM("Unable to transform object from frame '" << all_frame_names[i] << "' to planning frame '" <<
+                            target << "' (" << ex.what() << ")");
+            continue;
+        }
+        geometry_msgs::TransformStamped f;
+        f.header.frame_id = all_frame_names[i];
+        f.child_frame_id = target;
+        f.transform.translation.x = t.getOrigin().x();
+        f.transform.translation.y = t.getOrigin().y();
+        f.transform.translation.z = t.getOrigin().z();
+        const tf::Quaternion &q = t.getRotation();
+        f.transform.rotation.x = q.x();
+        f.transform.rotation.y = q.y();
+        f.transform.rotation.z = q.z();
+        f.transform.rotation.w = q.w();
+        transforms.push_back(f);
     }
+    boost::mutex::scoped_lock slock(scene_update_mutex_);
     scene_->getTransforms()->recordTransforms(transforms);
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::configureDefaultCollisionMatrix(void)
-{ 
+{
     collision_detection::AllowedCollisionMatrix &acm = scene_->getAllowedCollisionMatrix();
-    
+
     // no collisions allowed by default
     acm.setEntry(scene_->getKinematicModel()->getLinkModelNamesWithCollisionGeometry(),
-		 scene_->getKinematicModel()->getLinkModelNamesWithCollisionGeometry(), false);
+                 scene_->getKinematicModel()->getLinkModelNamesWithCollisionGeometry(), false);
 
     // allow collisions for pairs that have been disabled
     const std::vector<std::pair<std::string, std::string> >&dc = scene_->getSrdfModel()->getDisabledCollisions();
