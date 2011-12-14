@@ -53,8 +53,13 @@ planning_scene::PlanningScene::PlanningScene(void) : configured_(false)
 
 planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
 {
-    if (parent_->isConfigured())
-        configure(parent_->getUrdfModel(), parent_->getSrdfModel());
+    if (parent_)
+    {
+        if (parent_->isConfigured())
+            configure(parent_->getUrdfModel(), parent_->getSrdfModel());
+    }
+    else
+        ROS_ERROR("NULL parent scene specified. Ignoring.");
 }
 
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
@@ -480,12 +485,8 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
         setCurrentState(scene.robot_state);
 
     if (!scene.attached_collision_objects.empty())
-    {
-        if (!kstate_) // there must be a parent in this case
-            kstate_.reset(new planning_models::KinematicState(parent_->getCurrentState()));
         for (std::size_t i = 0 ; i < scene.attached_collision_objects.size() ; ++i)
             processAttachedCollisionObjectMsg(scene.attached_collision_objects[i]);
-    }
 
     // if at least some links are mentioned in the allowed collision matrix, then we have an update
     if (!scene.allowed_collision_matrix.link_names.empty())
@@ -561,7 +562,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
 
 void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
 {
-    const btTransform &t = ftf_->getTransformToTargetFrame(*kstate_, map.header.frame_id);
+    const btTransform &t = getTransforms()->getTransformToTargetFrame(getCurrentState(), map.header.frame_id);
     for (std::size_t i = 0 ; i < map.boxes.size() ; ++i)
     {
         btTransform p; planning_models::poseFromMsg(map.boxes[i].pose, p);
@@ -572,7 +573,7 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
 
 bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object)
 {
-    if (!kmodel_->hasLinkModel(object.link_name))
+    if (!getKinematicModel()->hasLinkModel(object.link_name))
     {
         ROS_ERROR("Unable to attach a body to link '%s' (link not found)", object.link_name.c_str());
         return false;
@@ -583,6 +584,9 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", COLLISION_MAP_NS.c_str());
         return false;
     }
+
+    if (!kstate_) // there must be a parent in this case
+        kstate_.reset(new planning_models::KinematicState(parent_->getCurrentState()));
 
     if (object.object.operation == moveit_msgs::CollisionObject::ADD)
     {
@@ -662,7 +666,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                 // transform poses to link frame
                 if (object.object.header.frame_id != object.link_name)
                 {
-                    const btTransform &t = ls->getGlobalLinkTransform().inverse() * ftf_->getTransformToTargetFrame(*kstate_, object.object.header.frame_id);
+                    const btTransform &t = ls->getGlobalLinkTransform().inverse() * getTransforms()->getTransformToTargetFrame(*kstate_, object.object.header.frame_id);
                     for (std::size_t i = 0 ; i < poses.size() ; ++i)
                         poses[i] = t * poses[i];
                 }
@@ -755,7 +759,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
                 cworld_->addObject(object.id, s);
         }
 
-        const btTransform &t = ftf_->getTransformToTargetFrame(*kstate_, object.header.frame_id);
+        const btTransform &t = getTransforms()->getTransformToTargetFrame(getCurrentState(), object.header.frame_id);
         for (std::size_t i = 0 ; i < object.shapes.size() ; ++i)
         {
             shapes::Shape *s = shapes::constructShapeFromMsg(object.shapes[i]);
