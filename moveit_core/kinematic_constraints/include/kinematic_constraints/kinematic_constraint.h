@@ -383,10 +383,6 @@ namespace kinematic_constraints
     typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr;
     typedef boost::shared_ptr<const KinematicConstraintSet> KinematicConstraintSetConstPtr;
 
-    /** \brief Merge two sets of constraints into one. This just does appending of all constraints except joint constraints. For joint constraints,
-        the bounds specified in \e first take precedence over \e second */
-    moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second);
-
     bool doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
                                            const planning_models::TransformsConstPtr& tf,
                                            const moveit_msgs::Constraints& constraints,

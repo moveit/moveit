@@ -42,6 +42,7 @@
 #include "ompl_interface/detail/projection_evaluators.h"
 #include "ompl_interface/detail/goal_union.h"
 
+#include <kinematic_constraints/utils.h>
 #include <geometric_shapes/shape_operations.h>
 #include <geometric_shapes/body_operations.h>
 #include <planning_models/conversions.h>
