@@ -235,8 +235,6 @@ void collision_detection::AllowedCollisionMatrix::getMessage(moveit_msgs::Allowe
             bool found = getAllowedCollision(msg.link_names[i], msg.link_names[j], type);
             if (found)
                 msg.entries[i].enabled[j] = msg.entries[j].enabled[i] = type == AllowedCollision::ALWAYS;
-            else
-                ROS_ERROR("Incorrect representation of collision matrix");
         }
 }
 
