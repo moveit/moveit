@@ -141,6 +141,9 @@ public:
   void setSceneRobotAlpha( float alpha );
   float getSceneRobotAlpha() { return robot_scene_alpha_; }
 
+  void setSceneAlpha( float alpha );
+  float getSceneAlpha() { return scene_alpha_; }
+
 
   bool getLoopDisplay() { return loop_display_; }
   void setLoopDisplay(bool loop_display);
@@ -209,6 +212,7 @@ protected:
   std::string description_param_;             ///< ROS parameter that contains the robot xml description
   float robot_path_alpha_;
   float robot_scene_alpha_;
+  float scene_alpha_;
   bool loop_display_;
   bool display_scene_;
   bool display_scene_robot_;
@@ -228,7 +232,8 @@ protected:
   int current_state_;
   float current_state_time_;
   float current_scene_time_;
-
+  ros::Time last_scene_render_;
+  
   // properties to show on side panel
   rviz::CategoryPropertyWPtr scene_category_;
   rviz::CategoryPropertyWPtr path_category_;
@@ -244,6 +249,7 @@ protected:
   rviz::ROSTopicStringPropertyWPtr planning_scene_diff_topic_property_;
   rviz::FloatPropertyWPtr robot_path_alpha_property_;
   rviz::FloatPropertyWPtr robot_scene_alpha_property_;
+  rviz::FloatPropertyWPtr scene_alpha_property_;
   rviz::BoolPropertyWPtr loop_display_property_;
 
 };

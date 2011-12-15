@@ -28,3 +28,6 @@ rosbuild_add_library(${PROJECT_NAME}
   src/planning_scene_monitor.cpp
   src/robot_model_loader.cpp
   src/current_state_monitor.cpp)
+
+rosbuild_add_gtest(publish_scene test/publish_scene.cpp)
+target_link_libraries(publish_scene ${PROJECT_NAME})

@@ -95,7 +95,12 @@ namespace planning_scene_monitor
 				       const std::string &collision_map_topic = "collision_map");
 	void stopWorldGeometryMonitor(void);
 	
-
+	/** \brief Return the time when the last update was made to the planning scene (by the monitor) */
+	const ros::Time& getLastUpdate(void) const
+	{
+	    return last_update_;
+	}
+	
         void lockScene(void);
         void unlockScene(void);
 
@@ -139,6 +144,8 @@ namespace planning_scene_monitor
                                              *collision_map_filter_;
 
         CurrentStateMonitorPtr                csm_;
+
+	ros::Time                             last_update_;
     };
 
     typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
