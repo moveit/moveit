@@ -104,10 +104,11 @@ struct PlanningDisplay::ReceivedTrajectoryMessage
 };
 
 PlanningDisplay::PlanningDisplay() :
-    Display(), robot_path_alpha_(0.75f), robot_scene_alpha_(0.5f), loop_display_(false),
-    display_scene_(true), display_scene_robot_(true), state_display_time_(0.05f), scene_display_time_(0.5f),
+    Display(), robot_path_alpha_(0.75f), robot_scene_alpha_(0.5f), scene_alpha_(0.9f), loop_display_(false),
+    display_scene_(true), display_scene_robot_(true), state_display_time_(0.05f), scene_display_time_(0.2f),
     new_display_trajectory_(false), animating_path_(false), current_scene_time_(0.0f)
 {
+    last_scene_render_ = ros::Time::now();
 }
 
 PlanningDisplay::~PlanningDisplay()
@@ -163,6 +164,14 @@ void PlanningDisplay::setRobotAlpha(float alpha)
   propertyChanged(robot_path_alpha_property_);
 }
 
+void PlanningDisplay::setSceneAlpha(float alpha)
+{
+  scene_alpha_ = alpha;
+  renderPlanningScene();
+  propertyChanged(scene_alpha_property_);
+  causeRender();
+}
+    
 void PlanningDisplay::setSceneRobotAlpha(float alpha)
 {
   robot_scene_alpha_ = alpha;
@@ -336,13 +345,21 @@ void PlanningDisplay::renderPlanningScene()
 	return;
     
     scene_monitor_->lockScene();
+    ros::Time last_update = scene_monitor_->getLastUpdate();
+    scene_monitor_->unlockScene();
+    if (last_update <= last_scene_render_)
+	return;
+    
+    scene_shapes_.clear();
+    scene_monitor_->lockScene();
+    last_scene_render_ = scene_monitor_->getLastUpdate();
     try
     {
         scene_robot_->update(PlanningLinkUpdater(&scene_monitor_->getPlanningScene()->getCurrentState()));
         collision_detection::CollisionWorldConstPtr cworld = scene_monitor_->getPlanningScene()->getCollisionWorld();
         const std::vector<std::string> &ns = cworld->getNamespaces();
         for (std::size_t i = 0 ; i < ns.size() ; ++i)
-        {
+        {      
             collision_detection::CollisionWorld::NamespaceObjectsConstPtr o = cworld->getObjects(ns[i]);
             const rviz::Color &color = colors[i % (sizeof(colors)/sizeof(rviz::Color))];
             for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
@@ -385,13 +402,13 @@ void PlanningDisplay::renderPlanningScene()
                 }
                 if (ogre_shape)
                 {
-                    ogre_shape->setColor(color.r_, color.g_, color.b_, 1.0f);
+                    ogre_shape->setColor(color.r_, color.g_, color.b_, scene_alpha_);
                     Ogre::Vector3 position(p.getOrigin().x(), p.getOrigin().y(), p.getOrigin().z());
                     const btQuaternion &q = p.getRotation();
                     Ogre::Quaternion orientation(q.getW(), q.getX(), q.getY(), q.getZ());
                     ogre_shape->setPosition(position);
                     ogre_shape->setOrientation(orientation);
-                    scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
+		    scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
                 }
             }
         }
@@ -402,6 +419,7 @@ void PlanningDisplay::renderPlanningScene()
         throw;
     }
     scene_monitor_->unlockScene();
+    scene_node_->setVisible(display_scene_);
 }
 
 void PlanningDisplay::update(float wall_dt, float ros_dt)
@@ -457,6 +475,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     render = true;
     offset = true;
     renderPlanningScene();
+    current_scene_time_ = 0.0f;
   }  
 
   if (offset)
@@ -474,7 +493,6 @@ void PlanningDisplay::calculateOffsetPosition()
   if (vis_manager_->getTFClient()->getLatestCommonTime(target_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
       return;
   
-
   tf::Stamped<tf::Pose> pose(btTransform::getIdentity(), stamp, scene_monitor_->getPlanningScene()->getPlanningFrame());
 
   if (vis_manager_->getTFClient()->canTransform(target_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp))
@@ -542,12 +560,28 @@ void PlanningDisplay::createProperties()
                                                                                          boost::bind(&PlanningDisplay::setSceneRobotVisible, this, _1), scene_category_, this);
   setPropertyHelpText(scene_robot_enabled_property_, "Indicates whether the robot state specified by the planning scene should be displayed");
 
-  robot_path_alpha_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Robot Alpha", scene_prefix, boost::bind(&PlanningDisplay::getSceneRobotAlpha, this),
-                                                                                       boost::bind(&PlanningDisplay::setSceneRobotAlpha, this, _1), scene_category_, this);
-  setPropertyHelpText(robot_path_alpha_property_, "Specifies the alpha for the robot links");
-  rviz::FloatPropertyPtr float_prop = robot_path_alpha_property_.lock();
+  robot_scene_alpha_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Robot Alpha", scene_prefix, boost::bind(&PlanningDisplay::getSceneRobotAlpha, this),
+											boost::bind(&PlanningDisplay::setSceneRobotAlpha, this, _1), scene_category_, this);
+  setPropertyHelpText(robot_scene_alpha_property_, "Specifies the alpha for the robot links");
+  rviz::FloatPropertyPtr float_prop = robot_scene_alpha_property_.lock();
   float_prop->setMin( 0.0 );
   float_prop->setMax( 1.0 );
+
+  scene_alpha_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Scene Alpha", scene_prefix, boost::bind(&PlanningDisplay::getSceneAlpha, this),
+										  boost::bind(&PlanningDisplay::setSceneAlpha, this, _1), scene_category_, this);
+  setPropertyHelpText(scene_alpha_property_, "Specifies the alpha for the robot links");
+  float_prop = scene_alpha_property_.lock();
+  float_prop->setMin( 0.0 );
+  float_prop->setMax( 1.0 );
+
+  scene_display_time_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Scene Display Time", path_prefix,
+                                                                                         boost::bind(&PlanningDisplay::getSceneDisplayTime, this),
+                                                                                         boost::bind(&PlanningDisplay::setSceneDisplayTime, this, _1),
+                                                                                         scene_category_, this);
+  setPropertyHelpText(scene_display_time_property_, "The amount of wall-time to wait in between rendering updates to the planning scene (if any)");
+  float_prop = scene_display_time_property_.lock();
+  float_prop->setMin(0.0001);
+
 
   planning_scene_topic_property_ = property_manager_->createProperty<rviz::ROSTopicStringProperty> ("Planning Scene Topic", path_prefix,
 												    boost::bind(&PlanningDisplay::getPlanningSceneTopic, this),
@@ -565,13 +599,6 @@ void PlanningDisplay::createProperties()
   topic_prop = planning_scene_diff_topic_property_.lock();
   topic_prop->setMessageType(ros::message_traits::datatype<moveit_msgs::PlanningScene>());
 
-  scene_display_time_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Scene Display Time", path_prefix,
-                                                                                         boost::bind(&PlanningDisplay::getSceneDisplayTime, this),
-                                                                                         boost::bind(&PlanningDisplay::setSceneDisplayTime, this, _1),
-                                                                                         scene_category_, this);
-  setPropertyHelpText(scene_display_time_property_, "The amount of wall-time to wait in between rendering updates to the planning scene (if any)");
-  float_prop = scene_display_time_property_.lock();
-  float_prop->setMin(0.0001);
 
   ///// robot path
 

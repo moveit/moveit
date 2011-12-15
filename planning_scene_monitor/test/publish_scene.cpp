@@ -32,30 +32,61 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#include "ompl_interface_ros/ompl_interface_ros.h"
-#include "planning_scene_monitor/planning_scene_monitor.h"
+#include <gtest/gtest.h>
+#include <ros/ros.h>
+#include <ros/package.h>
+#include <planning_scene_monitor/planning_scene_monitor.h>
 #include <tf/transform_listener.h>
 
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "ompl_planning");
-
+TEST(PlanningScene, LoadRestore)
+{ 
     ros::NodeHandle nh;
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
+    ros::Publisher scene_pub = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
 
     tf::TransformListener tf;
     planning_scene_monitor::PlanningSceneMonitor psm("robot_description", &tf);
-    psm.startWorldGeometryMonitor();
-    psm.startSceneMonitor();
-    psm.startStateMonitor();
-    
-    ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
-    o.status();
-    
-    ros::waitForShutdown();
+    planning_scene::PlanningScenePtr ps = psm.getPlanningScene();
 
-    return 0;
+    EXPECT_TRUE(ps->isConfigured());
+
+    collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
+    btTransform id = btTransform::getIdentity();
+    cw.addObject("sphere", new shapes::Sphere(0.4), id);
+    
+    moveit_msgs::PlanningScene ps_msg;
+    ps->getPlanningSceneMsg(ps_msg);
+    ps->setPlanningSceneMsg(ps_msg);
+    EXPECT_TRUE(ps->getCollisionWorld()->haveNamespace("sphere"));
+    
+    planning_scene::PlanningScene next(ps);
+    EXPECT_TRUE(next.isConfigured());
+    EXPECT_TRUE(next.getCollisionWorld()->haveNamespace("sphere"));
+    next.getCollisionWorld()->addObject("sphere2", new shapes::Sphere(0.5), id);
+    EXPECT_EQ(next.getCollisionWorld()->getNamespaces().size(), 2);
+    EXPECT_EQ(ps->getCollisionWorld()->getNamespaces().size(), 1);
+    next.getPlanningSceneDiffMsg(ps_msg);
+    EXPECT_EQ(ps_msg.collision_objects.size(), 1);
+    next.decoupleParent();
+    next.getPlanningSceneDiffMsg(ps_msg);	
+    EXPECT_EQ(ps_msg.collision_objects.size(), 2);
+    next.getPlanningSceneMsg(ps_msg);	
+    EXPECT_EQ(ps_msg.collision_objects.size(), 2);
+    ps->setPlanningSceneMsg(ps_msg);
+    EXPECT_EQ(ps->getCollisionWorld()->getNamespaces().size(), 2);
+    
+    sleep(1);
+    scene_pub.publish(ps_msg); 
+    sleep(1);
+}
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv); 
+    ros::init(argc, argv, "test_publish_scene");
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+    
+    return RUN_ALL_TESTS();
 }

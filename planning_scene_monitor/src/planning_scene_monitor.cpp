@@ -83,6 +83,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
             }
         }
     }
+    last_update_ = ros::Time::now();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
@@ -90,7 +91,8 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
     if (scene_)
     {
         boost::mutex::scoped_lock slock(scene_update_mutex_);
-        scene_->setPlanningSceneMsg(*scene);
+	scene_->setPlanningSceneMsg(*scene);
+	last_update_ = ros::Time::now();
     }
 }
 
@@ -100,6 +102,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneDiffCallback(
     {
         boost::mutex::scoped_lock slock(scene_update_mutex_);
         scene_->setPlanningSceneDiffMsg(*scene);
+	last_update_ = ros::Time::now();
     }
 }
 
@@ -109,6 +112,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const
     {
         boost::mutex::scoped_lock slock(scene_update_mutex_);
         scene_->processCollisionObjectMsg(*obj);
+	last_update_ = ros::Time::now();
     }
 }
 
@@ -118,6 +122,7 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
     {
         boost::mutex::scoped_lock slock(scene_update_mutex_);
         scene_->processAttachedCollisionObjectMsg(*obj);
+	last_update_ = ros::Time::now();
     }
 }
 
@@ -127,6 +132,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
     {
         boost::mutex::scoped_lock slock(scene_update_mutex_);
         scene_->processCollisionMapMsg(*map);
+	last_update_ = ros::Time::now();
     }
 }
 
@@ -149,8 +155,8 @@ void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::
     if (!scene_topic.empty())
 	planning_scene_subscriber_ = root_nh_.subscribe(scene_topic, 2, &PlanningSceneMonitor::newPlanningSceneCallback, this);
     if (!scene_diff_topic.empty())
-	planning_scene_diff_subscriber_ = root_nh_.subscribe("planning_scene_diff", 100, &PlanningSceneMonitor::newPlanningSceneDiffCallback, this);
-    ROS_DEBUG_STREAM("Listening to 'planning_scene' and 'planning_scene_diff'");
+	planning_scene_diff_subscriber_ = root_nh_.subscribe(scene_diff_topic, 100, &PlanningSceneMonitor::newPlanningSceneDiffCallback, this);
+    ROS_INFO("Listening to '%s' and '%s'", scene_topic.c_str(), scene_diff_topic.c_str());
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
@@ -173,7 +179,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
 	collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, collision_objects_topic, 1024);
 	collision_object_filter_ = new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024);
 	collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
-	ROS_DEBUG("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
+	ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
     }
     
     if (!attached_objects_topic.empty())
@@ -181,7 +187,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
 	// using regular message filter as there's no header
 	attached_collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::AttachedCollisionObject>(root_nh_, attached_objects_topic, 1024);
 	attached_collision_object_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::attachObjectCallback, this, _1));
-	ROS_DEBUG("Listening to '%s' for attached collision objects", attached_objects_topic.c_str());
+	ROS_INFO("Listening to '%s' for attached collision objects", attached_objects_topic.c_str());
     }
     
     if (!collision_map_topic.empty())
@@ -237,6 +243,7 @@ void planning_scene_monitor::PlanningSceneMonitor::useMonitoredState(void)
         boost::mutex::scoped_lock slock(scene_update_mutex_);
         const std::map<std::string, double> &v = csm_->getCurrentStateValues();
         scene_->getCurrentState().setStateValues(v);
+	last_update_ = ros::Time::now();
     }
     else
         ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
@@ -294,6 +301,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFixedTransforms(void)
     }
     boost::mutex::scoped_lock slock(scene_update_mutex_);
     scene_->getTransforms()->recordTransforms(transforms);
+    last_update_ = ros::Time::now();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::configureDefaultCollisionMatrix(void)
