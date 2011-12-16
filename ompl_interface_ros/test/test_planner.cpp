@@ -35,17 +35,19 @@
 /* Author: Ioan Sucan */
 
 #include <gtest/gtest.h>
-#include <planning_scene_ros/planning_scene_ros.h>
+#include <planning_scene_monitor/planning_scene_monitor.h>
 #include <ompl_interface_ros/ompl_interface_ros.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <kinematic_constraints/utils.h>
 
 static const std::string PLANNER_SERVICE_NAME="/ompl_planning/plan_kinematic_path";
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
-TEST(OmplPlanning, StateConversion)
+TEST(OmplInterface, StateConversion)
 {
-    planning_scene::PlanningScenePtr scene(new planning_scene_ros::PlanningSceneROS(ROBOT_DESCRIPTION));
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
+    planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
     EXPECT_TRUE(scene->isConfigured());
     ompl_interface_ros::OMPLInterfaceROS oi(scene);
     const ompl_interface::KMStateSpace &ks = oi.getPlanningConfiguration("right_arm")->getKMStateSpace();
@@ -75,7 +77,8 @@ TEST(OmplPlanning, JointGoal)
     moveit_msgs::GetMotionPlan::Request mplan_req;
     moveit_msgs::GetMotionPlan::Response mplan_res;
 
-    planning_scene_ros::PlanningSceneROS scene(ROBOT_DESCRIPTION);
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
+    planning_scene::PlanningScene &scene = *psm.getPlanningScene();
     EXPECT_TRUE(scene.isConfigured());
 
 
@@ -124,7 +127,8 @@ TEST(OmplPlanning, PositionGoal)
     moveit_msgs::GetMotionPlan::Request mplan_req;
     moveit_msgs::GetMotionPlan::Response mplan_res;
 
-    planning_scene_ros::PlanningSceneROS scene(ROBOT_DESCRIPTION);
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
+    planning_scene::PlanningScene &scene = *psm.getPlanningScene();
     EXPECT_TRUE(scene.isConfigured());
 
     // try a position goal
@@ -169,7 +173,8 @@ TEST(OmplPlanning, OrientationGoal)
     moveit_msgs::GetMotionPlan::Request mplan_req;
     moveit_msgs::GetMotionPlan::Response mplan_res;
 
-    planning_scene_ros::PlanningSceneROS scene(ROBOT_DESCRIPTION);
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
+    planning_scene::PlanningScene &scene = *psm.getPlanningScene();
     EXPECT_TRUE(scene.isConfigured());
 
     // try a position goal
@@ -208,7 +213,8 @@ TEST(OmplPlanning, PoseGoal)
     moveit_msgs::GetMotionPlan::Request mplan_req;
     moveit_msgs::GetMotionPlan::Response mplan_res;
 
-    planning_scene_ros::PlanningSceneROS scene(ROBOT_DESCRIPTION);
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
+    planning_scene::PlanningScene &scene = *psm.getPlanningScene();
     EXPECT_TRUE(scene.isConfigured());
 
     // try a position goal
@@ -249,6 +255,44 @@ TEST(OmplPlanning, PoseGoal)
     pcm.constraint_region_pose.pose.orientation.w = 1.0;
     pcm.weight = 1.0;
     mplan_req.motion_plan_request.goal_constraints[0].position_constraints.push_back(pcm);
+
+    ASSERT_TRUE(planning_service_client.call(mplan_req, mplan_res));
+    ASSERT_EQ(mplan_res.error_code.val, mplan_res.error_code.SUCCESS);
+    EXPECT_GT(mplan_res.trajectory.joint_trajectory.points.size(), 0);
+}
+
+
+TEST(OmplPlanning, SimplePoseGoal)
+{ 
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
+    planning_scene::PlanningScene &scene = *psm.getPlanningScene();
+    EXPECT_TRUE(scene.isConfigured());
+
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = scene.getKinematicModel()->getModelFrame();
+    pose.pose.position.x = 0.55;
+    pose.pose.position.y = 0.2;
+    pose.pose.position.z = 1.25;
+    pose.pose.orientation.x = 0.0;
+    pose.pose.orientation.y = 0.0;
+    pose.pose.orientation.z = 0.0;
+    pose.pose.orientation.w = 1.0;
+    moveit_msgs::Constraints goal = kinematic_constraints::constructGoalConstraints("l_wrist_roll_link", pose);
+    
+    moveit_msgs::GetMotionPlan::Request mplan_req;
+    moveit_msgs::GetMotionPlan::Response mplan_res;
+    
+    mplan_req.motion_plan_request.group_name = "left_arm";
+    mplan_req.motion_plan_request.num_planning_attempts = 1;
+    mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
+    mplan_req.motion_plan_request.goal_constraints.push_back(goal);
+    
+
+    ros::NodeHandle nh;
+    ros::service::waitForService(PLANNER_SERVICE_NAME);
+    ros::ServiceClient planning_service_client = nh.serviceClient<moveit_msgs::GetMotionPlan>(PLANNER_SERVICE_NAME);
+    EXPECT_TRUE(planning_service_client.exists());
+    EXPECT_TRUE(planning_service_client.isValid());
 
     ASSERT_TRUE(planning_service_client.call(mplan_req, mplan_res));
     ASSERT_EQ(mplan_res.error_code.val, mplan_res.error_code.SUCCESS);
