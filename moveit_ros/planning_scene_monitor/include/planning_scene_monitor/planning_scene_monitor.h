@@ -44,7 +44,6 @@
 #include <planning_scene/planning_scene.h>
 #include "planning_scene_monitor/robot_model_loader.h"
 #include "planning_scene_monitor/current_state_monitor.h"
-#include <boost/thread/recursive_mutex.hpp>
 
 namespace planning_scene_monitor
 {
@@ -124,7 +123,7 @@ namespace planning_scene_monitor
 	
         planning_scene::PlanningScenePtr      scene_;
         planning_scene::PlanningSceneConstPtr scene_const_;
-        boost::recursive_mutex                scene_update_mutex_;
+        boost::mutex                          scene_update_mutex_;
 
         ros::NodeHandle                       nh_;
         ros::NodeHandle                       root_nh_;

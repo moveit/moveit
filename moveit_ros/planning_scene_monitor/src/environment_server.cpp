@@ -63,7 +63,6 @@ private:
 	try
 	{
 	    psm_.getPlanningScene()->getPlanningSceneDiffMsg(diff);
-	    psm_.monitorDiffs(true); // \todo this should work, but is SLOW
 	}
 	catch(...)
 	{
@@ -71,6 +70,7 @@ private:
 	    throw;
 	}
 	psm_.unlockScene();
+	psm_.monitorDiffs(true); // \todo this should work, but is SLOW
     } 
 };
 
