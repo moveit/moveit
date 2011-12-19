@@ -90,7 +90,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
 
 void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
 {
-    boost::recursive_mutex::scoped_lock slock(scene_update_mutex_);
+    boost::mutex::scoped_lock slock(scene_update_mutex_);
     scene_->decoupleParent();
     if (flag)
 	scene_.reset(new planning_scene::PlanningScene(scene_));
@@ -101,7 +101,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
     if (scene_)
     {
 	{
-	    boost::recursive_mutex::scoped_lock slock(scene_update_mutex_);
+	    boost::mutex::scoped_lock slock(scene_update_mutex_);
 	    scene_->setPlanningSceneMsg(*scene);
 	    last_update_ = ros::Time::now();
 	}
@@ -115,7 +115,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneDiffCallback(
     if (scene_)
     {
 	{
-	    boost::recursive_mutex::scoped_lock slock(scene_update_mutex_);
+	    boost::mutex::scoped_lock slock(scene_update_mutex_);
 	    scene_->setPlanningSceneDiffMsg(*scene);
 	    last_update_ = ros::Time::now();
 	}
@@ -129,7 +129,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const
     if (scene_)
     {
 	{
-	    boost::recursive_mutex::scoped_lock slock(scene_update_mutex_);
+	    boost::mutex::scoped_lock slock(scene_update_mutex_);
 	    scene_->processCollisionObjectMsg(*obj);
 	    last_update_ = ros::Time::now();
 	}
@@ -143,7 +143,7 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
     if (scene_)
     {
 	{
-	    boost::recursive_mutex::scoped_lock slock(scene_update_mutex_);
+	    boost::mutex::scoped_lock slock(scene_update_mutex_);
 	    scene_->processAttachedCollisionObjectMsg(*obj);
 	    last_update_ = ros::Time::now();
 	}
@@ -157,7 +157,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
     if (scene_)
     {
 	{
-	    boost::recursive_mutex::scoped_lock slock(scene_update_mutex_);
+	    boost::mutex::scoped_lock slock(scene_update_mutex_);
 	    scene_->processCollisionMapMsg(*map);
 	    last_update_ = ros::Time::now();
 	}
@@ -292,7 +292,7 @@ void planning_scene_monitor::PlanningSceneMonitor::useMonitoredState(void)
         if (!csm_->haveCompleteState())
             ROS_ERROR("The complete state of the robot is not yet known");
 	{
-	    boost::recursive_mutex::scoped_lock slock(scene_update_mutex_);
+	    boost::mutex::scoped_lock slock(scene_update_mutex_);
 	    const std::map<std::string, double> &v = csm_->getCurrentStateValues();
 	    scene_->getCurrentState().setStateValues(v);
 	    last_update_ = ros::Time::now();
@@ -360,7 +360,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFixedTransforms(void)
         transforms.push_back(f);
     }
     {
-	boost::recursive_mutex::scoped_lock slock(scene_update_mutex_);
+	boost::mutex::scoped_lock slock(scene_update_mutex_);
 	scene_->getTransforms()->recordTransforms(transforms);
 	last_update_ = ros::Time::now();
     }
