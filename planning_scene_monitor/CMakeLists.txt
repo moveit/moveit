@@ -31,3 +31,6 @@ rosbuild_add_library(${PROJECT_NAME}
 
 rosbuild_add_gtest(publish_scene test/publish_scene.cpp)
 target_link_libraries(publish_scene ${PROJECT_NAME})
+
+rosbuild_add_executable(environment_server src/environment_server.cpp)
+target_link_libraries(environment_server ${PROJECT_NAME})
