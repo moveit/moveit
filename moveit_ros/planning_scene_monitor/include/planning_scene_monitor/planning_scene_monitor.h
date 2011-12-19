@@ -44,6 +44,7 @@
 #include <planning_scene/planning_scene.h>
 #include "planning_scene_monitor/robot_model_loader.h"
 #include "planning_scene_monitor/current_state_monitor.h"
+#include <boost/thread/recursive_mutex.hpp>
 
 namespace planning_scene_monitor
 {
@@ -69,6 +70,8 @@ namespace planning_scene_monitor
         {
             return scene_const_;
         }
+	
+	void monitorDiffs(bool flag);	
 
         const std::string& getRobotDescription(void) const
         {
@@ -85,7 +88,8 @@ namespace planning_scene_monitor
         void startStateMonitor(const std::string &joint_states_topic = "joint_states");
         void stopStateMonitor(void);
 	void useMonitoredState(void);
-	
+	void setStateUpdateFrequency(double hz);	
+
 	void startSceneMonitor(const std::string &scene_topic = "planning_scene",
 			       const std::string &scene_diff_topic = "planning_scene_diff");
 	void stopSceneMonitor(void);
@@ -94,7 +98,8 @@ namespace planning_scene_monitor
 				       const std::string &attached_objects_topic = "attached_collision_object",
 				       const std::string &collision_map_topic = "collision_map");
 	void stopWorldGeometryMonitor(void);
-	
+	void setUpdateCallback(const boost::function<void()> &fn);
+
 	/** \brief Return the time when the last update was made to the planning scene (by the monitor) */
 	const ros::Time& getLastUpdate(void) const
 	{
@@ -115,10 +120,11 @@ namespace planning_scene_monitor
         void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj);
         void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
         void collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map);
-
+	void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
+	
         planning_scene::PlanningScenePtr      scene_;
         planning_scene::PlanningSceneConstPtr scene_const_;
-        boost::mutex                          scene_update_mutex_;
+        boost::recursive_mutex                scene_update_mutex_;
 
         ros::NodeHandle                       nh_;
         ros::NodeHandle                       root_nh_;
@@ -146,6 +152,15 @@ namespace planning_scene_monitor
         CurrentStateMonitorPtr                csm_;
 
 	ros::Time                             last_update_;
+	boost::function<void()>               update_callback_;
+	
+	/// the planning scene state is updated at a maximum specified frequency, 
+	/// and this timestamp is used to implement that functionality
+	ros::WallTime                         last_state_update_;
+
+	/// the amount of time to wait in between updates to the robot state (in seconds)
+	double                                dt_state_update_;
+
     };
 
     typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
