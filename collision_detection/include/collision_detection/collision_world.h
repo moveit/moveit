@@ -123,6 +123,9 @@ namespace collision_detection
         /** \brief Add a set of collision objects to the map. The user releases ownership of the passed objects. Memory allocated for the shapes is freed by the collision environment.*/
         void addObjects(const std::string &ns, const std::vector<shapes::Shape*> &shapes, const std::vector<btTransform> &poses);
 
+	/** \brief Add a set of collision objects to the map. The user releases ownership of the passed objects. Memory allocated for the shapes is freed by the collision environment.*/
+        void addObjects(const std::string &ns, const std::vector<shapes::StaticShape*> &shapes);
+
         /** \brief Add a static object to the namespace. The user releases ownership of the object. */
         virtual void addObject(const std::string &ns, shapes::StaticShape *shape);
 
