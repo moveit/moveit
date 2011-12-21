@@ -43,6 +43,8 @@ public:
     EnvironmentServer(void) : psm_("robot_description", &tf_)
     {
 	pub_diff_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene_diff", 2);
+	parent_scene_ = psm_.getPlanningScene();
+	// this will create a new planning scene whose parent is the current planning scene
 	psm_.monitorDiffs(true);
 	psm_.setUpdateCallback(boost::bind(&EnvironmentServer::onSceneUpdate, this));
 	psm_.startWorldGeometryMonitor();
@@ -53,6 +55,7 @@ private:
     ros::NodeHandle nh_;
     tf::TransformListener tf_;
     planning_scene_monitor::PlanningSceneMonitor psm_;
+    planning_scene::PlanningScenePtr parent_scene_;
     ros::Publisher pub_diff_;
     
     void onSceneUpdate(void)
@@ -63,6 +66,8 @@ private:
 	try
 	{
 	    psm_.getPlanningScene()->getPlanningSceneDiffMsg(diff);
+	    psm_.getPlanningScene()->pushDiffs(parent_scene_);
+	    psm_.getPlanningScene()->clearDiffs();
 	}
 	catch(...)
 	{
@@ -70,7 +75,6 @@ private:
 	    throw;
 	}
 	psm_.unlockScene();
-	psm_.monitorDiffs(true); // \todo this should work, but is SLOW
     } 
 };
 
