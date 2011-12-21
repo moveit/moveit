@@ -227,6 +227,13 @@ namespace planning_scene
             return parent_ ? parent_->getSrdfModel() : srdf_model_;
         }
 
+        /** \brief Clear the diffs accumulated for this planning scene, with respect to the parent. This function is a no-op if there is no parent specified. */
+        void clearDiffs(void);
+
+        /** \brief If there is a parent specified for this scene, then the diffs with respect to that parent are applied to a specified planning scene, whatever
+            that scene may be. If there is no parent specified, this function is a no-op. */
+        void pushDiffs(const PlanningScenePtr &scene);
+
         /** \brief Make sure that all the data maintained in this
             scene is local. All unmodified data is copied from the
             parent and the pointer to the parent is discarded. */

@@ -72,6 +72,12 @@ void collision_detection::CollisionWorld::addObjects(const std::string &ns, cons
             addObject(ns, shapes[i], poses[i]);
 }
 
+void collision_detection::CollisionWorld::addObjects(const std::string &ns, const std::vector<shapes::StaticShape*> &shapes)
+{
+    for (std::size_t i = 0 ; i < shapes.size() ; ++i)
+	addObject(ns, shapes[i]);    
+}
+
 std::vector<std::string> collision_detection::CollisionWorld::getNamespaces(void) const
 {
     std::vector<std::string> ns;
