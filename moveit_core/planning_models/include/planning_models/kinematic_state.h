@@ -46,8 +46,11 @@
 namespace planning_models
 {
 
-    /** \brief Definition of a kinematic state - the parts of the robot
-        state which can change. Const members are thread safe */
+    /** 
+     *   @class KinematicState
+     *   @brief Definition of a kinematic state - the parts of the robot
+     *   state which can change. Const members are thread safe 
+     */
     class KinematicState
     {
 
@@ -65,6 +68,10 @@ namespace planning_models
         /** \brief Forward definition of a joint group state */
         class JointStateGroup;
 
+      /** 
+       *   @class JointState
+       *   @brief Definition of a joint state - representation of state for a single joint
+       */
         class JointState
         {
             friend class KinematicState;
@@ -108,16 +115,19 @@ namespace planning_models
             /** \brief Checks if the current joint state values are all within the bounds set in the model */
             bool satisfiesBounds(void) const;
 
+            /** \brief get the name of the model associated with this state */
             const std::string& getName(void) const
             {
                 return joint_model_->getName();
             }
 
+            /** \brief get the type of joint associated with this state */
             KinematicModel::JointModel::JointType getType(void) const
             {
                 return joint_model_->getType();
             }
 
+            /** \brief get the number of variable DOFs for this joint*/
             unsigned int getVariableCount(void) const
             {
                 return joint_model_->getVariableCount();
@@ -141,7 +151,7 @@ namespace planning_models
                 return variable_transform_;
             }
 
-            /** \brief Gets the joint model */
+            /** \brief Gets the joint model corresponding to this state*/
             const KinematicModel::JointModel* getJointModel(void) const
             {
                 return joint_model_;
@@ -167,10 +177,17 @@ namespace planning_models
             std::vector<JointState*>            mimic_requests_;
         };
 
+            /** 
+             * @class A class storing properties for attached bodies
+             */
         struct AttachedBodyProperties
         {
+            /** \brief Default constructor */
             AttachedBodyProperties(void);
+
+            /** \brief Copy constructor */
             AttachedBodyProperties(const AttachedBodyProperties &other);
+
             ~AttachedBodyProperties(void);
 
             /** \brief The geometries of the attached body */
@@ -186,9 +203,10 @@ namespace planning_models
             std::string                 id_;
         };
 
-        /** \brief Class defining bodies that can be attached to robot
-            links. This is useful when handling objects picked up by
-            the robot. */
+        /** @class AttachedBody
+         *  @brief Object defining bodies that can be attached to robot
+         *  links. This is useful when handling objects picked up by
+         *  the robot. */
         class AttachedBody
         {
             friend class KinematicState;
@@ -209,36 +227,43 @@ namespace planning_models
 
             ~AttachedBody(void);
 
+            /** \brief Get the name of the attached body */
             const std::string& getName(void) const
             {
                 return properties_->id_;
             }
 
+            /** \brief Get the name of the link this body is attached to */
             const std::string& getAttachedLinkName(void) const
             {
                 return parent_link_state_->getName();
             }
 
+            /** \brief Get the shapes that make up this attached body */
             const std::vector<shapes::Shape*>& getShapes(void) const
             {
                 return properties_->shapes_;
             }
 
+            /** \brief Get the fixed transform (the transforms to the shapes associated with this body) */
             const std::vector<btTransform>& getFixedTransforms(void) const
             {
                 return properties_->attach_trans_;
             }
 
+            /** \brief Get the links that the attached body is allowed to touch */
             const std::vector<std::string>& getTouchLinks(void) const
             {
                 return properties_->touch_links_;
             }
 
+            /** \brief Get the properties of the attached body */
             const boost::shared_ptr<AttachedBodyProperties>& getProperties(void) const
             {
                 return properties_;
             }
 
+            /** \brief Get the global transforms for the collision bodies */
             const std::vector<btTransform>& getGlobalCollisionBodyTransforms(void) const
             {
                 return global_collision_body_transforms_;
@@ -263,24 +288,30 @@ namespace planning_models
             std::vector<btTransform>                  global_collision_body_transforms_;
         };
 
+        /** @class LinkState
+            @brief The state corresponding to a link */
         class LinkState
         {
             friend class KinematicState;
         public:
 
+            /** @brief Default constructor */
             LinkState(const KinematicState *state, const KinematicModel::LinkModel* lm);
             ~LinkState(void);
 
+            /** @brief Get the name of link corresponding to this state */
             const std::string& getName(void) const
             {
                 return link_model_->getName();
             }
 
+            /** @brief Get the kinematic state that this link state is part of*/
             const KinematicState* getKinematicState(void) const
             {
                 return kinematic_state_;
             }
 
+            /** @brief Set the link state to the input transform */
             void updateGivenGlobalLinkTransform(const btTransform& transform);
 
             /** \brief Recompute global_collision_body_transform and global_link_transform */
@@ -289,46 +320,70 @@ namespace planning_models
             /** \brief Update all attached bodies given set link transforms */
             void updateAttachedBodies(void);
 
+            /** @brief Get the link model corresponding to this state */
             const KinematicModel::LinkModel* getLinkModel(void) const
             {
                 return link_model_;
             }
 
+            /** @brief Get the joint state corresponding to the parent joint of this link */
             const JointState* getParentJointState(void) const
             {
                 return parent_joint_state_;
             }
 
+            /** @brief Get the link state corresponding to the parent link of this link */
             const LinkState* getParentLinkState(void) const
             {
                 return parent_link_state_;
             }
 
+            /** @brief Get all the bodies attached to this link */
             const std::vector<AttachedBody*>& getAttachedBodies(void) const
             {
                 return attached_body_vector_;
             }
 
+            /** @brief Get the attached body with name \e id */
             const AttachedBody* getAttachedBody(const std::string &id) const;
 
+            /** @brief Get the global transform for this link */
             const btTransform& getGlobalLinkTransform(void) const
             {
                 return global_link_transform_;
             }
 
+            /** @brief Get the global transform for the collision body associated with this link */
             const btTransform& getGlobalCollisionBodyTransform(void) const
             {
                 return global_collision_body_transform_;
             }
 
+            /** 
+                @brief Attach a body to this link
+                @param id The string id associated with the attached body
+                @param shapes The shapes that make up the attached body
+                @param attach_trans The desired transform between this link and the attached body
+                @param touch_links The set of links that the attached body is allowed to touch
+            */
             void attachBody(const std::string &id,
                             const std::vector<shapes::Shape*> &shapes,
                             const std::vector<btTransform> &attach_trans,
                             const std::vector<std::string> &touch_links);
 
+            /** 
+                @brief Attach a body to this link
+                @param properties The properties associated with this body
+            */
             void attachBody(const boost::shared_ptr<AttachedBodyProperties> &properties);
 
+            /** 
+                @brief Clear the attached body
+                @param id The name of the attached body to clear
+            */
             bool clearAttachedBody(const std::string &id);
+
+            /** @brief Clear all attached bodies */
             void clearAttachedBodies(void);
 
         private:
@@ -352,28 +407,41 @@ namespace planning_models
         };
 
 
+
+        /** @class JointStateGroup
+         *  @brief The joint state corresponding to a group
+         */
         class JointStateGroup
         {
         public:
 
+            /** 
+             *  @brief Default constructor
+             *  @param state A pointer to the kinematic state 
+             *  @param jmg The joint model group corresponding to this joint state
+             */
             JointStateGroup(KinematicState *state, const KinematicModel::JointModelGroup *jmg);
             ~JointStateGroup(void);
 
+            /** \brief Get the kinematic state this link is part of */
             const KinematicState* getKinematicState(void) const
             {
                 return kinematic_state_;
             }
 
+            /** \brief Get the joint model corresponding to this joint state group */
             const KinematicModel::JointModelGroup* getJointModelGroup(void)
             {
                 return joint_model_group_;
             }
 
+            /** \brief Get the name of the joint model group corresponding to this joint state*/
             const std::string& getName(void) const
             {
                 return joint_model_group_->getName();
             }
 
+            /** \brief Get the number of (active) DOFs for the joint model group corresponding to this state*/
             unsigned int getVariableCount(void) const
             {
                 return joint_model_group_->getVariableCount();
@@ -403,38 +471,43 @@ namespace planning_models
             /** \brief Get a joint state by its name */
             JointState* getJointState(const std::string &joint) const;
 
+            /** \brief Get current joint values */
             void getGroupStateValues(std::vector<double>& joint_state_values) const;
 
+            /** \brief Get a map between variable names and joint state values */
             void getGroupStateValues(std::map<std::string, double>& joint_state_values) const;
 
             /** \brief Bring the group to a default state. All joints are
                 at 0. If 0 is not within the bounds of the joint, the
                 middle of the bounds is used. */
-            void setDefaultValues(void);
+            void setToDefaultValues(void);
 
             /** \brief Set the group to a named default state. Return false on failure */
-            bool setDefaultValues(const std::string &name);
+            bool setToDefaultState(const std::string &name);
 
             /** \brief Sample a random state in accordance with the type of joints employed */
-            void setRandomValues(void);
+            void setToRandomValues(void);
 
+            /** \brief Get the state corresponding to root joints in this group*/
             const std::vector<JointState*>& getJointRoots(void) const
             {
                 return joint_roots_;
             }
 
+            /** \brief Get the joint names corresponding to this joint state*/
             const std::vector<std::string>& getJointNames(void) const
             {
                 return joint_model_group_->getJointModelNames();
             }
 
+            /** \brief Get the vector of joint state for this group*/
             const std::vector<JointState*>& getJointStateVector(void) const
             {
                 return joint_state_vector_;
             }
 
             /** \brief Return the instance of a random number generator */
-            random_numbers::RNG& getRNG(void);
+            random_numbers::RandomNumberGenerator& getRandomNumberGenerator(void);
 
         private:
 
@@ -458,48 +531,66 @@ namespace planning_models
 
             /** \brief For certain operations a group needs a random number generator. However, it may be slightly expensive
                 to allocate the random number generator if many state instances are generated. For this reason, the generator
-                is allocated on a need basis, by the getRNG() function. Never use the rng_ member directly, but call
-                getRNG() instead. */
-            boost::scoped_ptr<random_numbers::RNG> rng_;
+                is allocated on a need basis, by the getRandomNumberGenerator() function. Never use the rng_ member directly, but call
+                getRandomNumberGenerator() instead. */
+            boost::scoped_ptr<random_numbers::RandomNumberGenerator> rng_;
         };
 
+        /** \brief Create a state corresponding to a given kinematic model */
         KinematicState(const KinematicModelConstPtr &kinematic_model);
 
+        /** \brief Copy constructor */
         KinematicState(const KinematicState& state);
 
         ~KinematicState(void);
 
+        /** @brief Set the joint state values from a vector of values. 
+         *  Assumes that the order of the values matches the order of the joints in the state. 
+         *  Should only be used for fast setting of joint values. */
         bool setStateValues(const std::vector<double>& joint_state_values);
 
+        /** @brief Set the joint state values from a  map of values (matching string ids to actual joint values) */
         void setStateValues(const std::map<std::string, double>& joint_state_map);
 
+        /** @brief Set the joint state values from a  map of values (matching string ids to actual joint values). 
+         *  Also returns the set of joint names for which joint states have not been provided.*/
         void setStateValues(const std::map<std::string, double>& joint_state_map, std::vector<std::string>& missing);
 
+        /** @brief Get the joint state values. The order in which the values are specified matches the order
+         *  of the joints in the KinematicModel corresponding to this state.*/
         void getStateValues(std::vector<double>& joint_state_values) const;
 
+        /** @brief Get the joint state values as a map between joint state names and values*/
         void getStateValues(std::map<std::string, double>& joint_state_values) const;
 
+        /** \brief Perform forward kinematics with the current values and update the link transforms.*/
         void updateLinkTransforms(void);
 
+        /** \brief Update the state after setting a particular link to the input global transform pose.*/
         bool updateStateWithLinkAt(const std::string& link_name, const btTransform& transform);
 
+        /** \brief Get the kinematic model corresponding to this state.*/
         const KinematicModelConstPtr& getKinematicModel(void) const
         {
             return kinematic_model_;
         }
 
+        /** \brief Get the number of (active) DOFs in the model corresponding to this state.*/
         unsigned int getVariableCount(void) const
         {
             return kinematic_model_->getVariableCount();
         }
 
-        void setDefaultValues(void);
+        /** \brief Set all joints to their default values*/
+        void setToDefaultValues(void);
 
         /** \brief Sample a random state in accordance with the type of joints employed */
-        void setRandomValues(void);
+        void setToRandomValues(void);
 
+        /** \brief Check if a particular set of joints satisifes its bounds.*/
         bool satisfiesBounds(const std::vector<std::string>& joints) const;
 
+        /** \brief Check if a joint satisifes its bounds.*/
         bool satisfiesBounds(const std::string& joint) const;
 
         /** \brief Get a group by its name */
@@ -523,6 +614,7 @@ namespace planning_models
         /** \brief Get a link state by its name */
         LinkState* getLinkState(const std::string &link) const;
 
+        /** \brief Get a vector of joint state corresponding to this kinematic state */
         const std::vector<JointState*>& getJointStateVector(void) const
         {
             return joint_state_vector_;
@@ -534,15 +626,19 @@ namespace planning_models
             return link_state_vector_;
         }
 
+        /** \brief Get a map that returns JointStateGroups corresponding to names*/
         const std::map<std::string, JointStateGroup*>& getJointStateGroupMap(void) const
         {
             return joint_state_group_map_;
         }
 
+        /** \brief Get the names of all joint groups in the model corresponding to this state*/
         void getJointStateGroupNames(std::vector<std::string>& names) const;
 
+        /** \brief Get all bodies attached to the model corresponding to this state */
         void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
 
+        /** \brief Clear all attached bodies */
         void clearAttachedBodies(void);
 
         /** \brief Print information about the constructed model */
@@ -560,22 +656,42 @@ namespace planning_models
         void setRootTransform(const btTransform &transform);
 
         /** \brief Return the instance of a random number generator */
-        random_numbers::RNG& getRNG(void);
+        random_numbers::RandomNumberGenerator& getRandomNumberGenerator(void);
 
+        /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
+         *  @param color The color for the marker
+         *  @param ns The namespace for the markers
+         *  @param dur The ros::Duration for which the markers should stay visible
+         *  @param arr The returned marker array
+         *  @param link_names The list of link names for which the markers should be created.
+         */
         void getRobotMarkers(const std_msgs::ColorRGBA& color,
                              const std::string& ns,
                              const ros::Duration& dur,
                              visualization_msgs::MarkerArray& arr,
                              const std::vector<std::string> &link_names) const;
 
+        /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
+         *  @param arr The returned marker array
+         *  @param link_names The list of link names for which the markers should be created.
+         */
         void getRobotMarkers(visualization_msgs::MarkerArray& arr,
                              const std::vector<std::string> &link_names) const;
 
+        /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
+         *  @param color The color for the marker
+         *  @param ns The namespace for the markers
+         *  @param dur The ros::Duration for which the markers should stay visible
+         *  @param arr The returned marker array
+         */
         void getRobotMarkers(const std_msgs::ColorRGBA& color,
                              const std::string& ns,
                              const ros::Duration& dur,
                              visualization_msgs::MarkerArray& arr) const;
 
+        /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
+         *  @param arr The returned marker array
+         */
         void getRobotMarkers(visualization_msgs::MarkerArray& arr) const;
 
       // void getPaddedRobotMarkers(const std::map<std::string, double>& link_padding_map,
@@ -615,9 +731,9 @@ namespace planning_models
 
         /** \brief For certain operations a state needs a random number generator. However, it may be slightly expensive
             to allocate the random number generator if many state instances are generated. For this reason, the generator
-            is allocated on a need basis, by the getRNG() function. Never use the rng_ member directly, but call
-            getRNG() instead. */
-        boost::scoped_ptr<random_numbers::RNG>  rng_;
+            is allocated on a need basis, by the getRandomNumberGenerator() function. Never use the rng_ member directly, but call
+            getRandomNumberGenerator() instead. */
+        boost::scoped_ptr<random_numbers::RandomNumberGenerator>  rng_;
     };
 
     typedef boost::shared_ptr<KinematicState> KinematicStatePtr;

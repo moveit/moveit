@@ -133,15 +133,15 @@ namespace planning_models
             void getDefaultValues(std::map<std::string, double> &values) const;
 
             /** \brief Provides a random values for the joint given the joint bounds. The map is NOT cleared; elements are only added (or overwritten). */
-            void getRandomValues(random_numbers::RNG &rng, std::map<std::string, double> &values) const;
+            void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const;
 
             /** \brief Provides a default value for the joint given the joint bounds.
                 Most joints will use the default, but the quaternion for floating
                 point values needs something else. The vector is NOT cleared; elements are only added with push_back */
             virtual void getDefaultValues(std::vector<double> &values) const;
 
-            /** \brief Provides a random values for the joint given the joint bounds. The vector is NOT cleared; elements are only added with push_back */
-            virtual void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
+            /** \brief Provides a random value for the joint given the joint bounds. The vector is NOT cleared; elements are only added with push_back */
+            virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
 
             /** \brief Check if a particular variable satisfies the specified bounds */
             virtual bool isVariableWithinBounds(const std::string& variable, double value) const;
@@ -292,7 +292,7 @@ namespace planning_models
             virtual void computeTransform(const std::vector<double>& joint_values, btTransform &transf) const;
             virtual void computeJointStateValues(const btTransform& transf, std::vector<double>& joint_values) const;
             virtual void updateTransform(const std::vector<double>& joint_values, btTransform &transf) const;
-            virtual void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
+            virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
             virtual void getDefaultValues(std::vector<double>& values) const;
         };
 
@@ -551,7 +551,7 @@ namespace planning_models
             bool getDefaultValues(const std::string &name, std::map<std::string, double> &values) const;
 
             /** \brief Compute random values for the state of the joint group */
-            void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
+            void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
 
             /** \brief Get the number of variables that describe this joint group */
             unsigned int getVariableCount(void) const
@@ -707,7 +707,7 @@ namespace planning_models
         }
 
         /** \brief Compute the random values for a KinematicState */
-        void getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const;
+        void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
 
         /** \brief Print information about the constructed model */
         void printModelInfo(std::ostream &out = std::cout) const;
@@ -721,18 +721,22 @@ namespace planning_models
         /** \brief Remove a group from this model */
         void removeJointModelGroup(const std::string& group);
 
+        /** \brief Get a joint group from this model (by name) */
         const JointModelGroup* getJointModelGroup(const std::string& name) const;
 
+        /** \brief Get the map between joint group names and the groups */
         const std::map<std::string, JointModelGroup*>& getJointModelGroupMap(void) const
         {
             return joint_model_group_map_;
         }
 
+        /** \brief Get the map between joint group names and the SRDF group object */
         const std::map<std::string, srdf::Model::Group>& getJointModelGroupConfigMap(void) const
         {
             return joint_model_group_config_map_;
         }
 
+        /** \brief Get the names of all groups that are defined for this model */
         const std::vector<std::string>& getJointModelGroupNames(void) const;
 
         /** \brief Get the number of variables that describe this model */
@@ -749,11 +753,16 @@ namespace planning_models
             return active_dof_names_;
         }
 
+        /** \brief Get bounds for all the variables in this model. Bounds are returned as a std::pair<lower,upper> */
         const std::map<std::string, std::pair<double, double> >& getAllVariableBounds(void) const
         {
             return variable_bounds_;
         }
 
+        /** \brief Get the joint variables index map. 
+            The state includes all the joint variables that make up the joints the state consists of.
+            This map gives the position in the state vector of the group for each of these variables.
+            Additionaly, it includes the names of the joints and the index for the first variable of that joint.*/
         const std::map<std::string, unsigned int>& getJointVariablesIndexMap(void) const
         {
             return joint_variables_index_map_;
@@ -809,17 +818,36 @@ namespace planning_models
         /** \brief The root joint */
         JointModel                               *root_;
 
+        /** \brief A map from group names to joint groups */
         std::map<std::string, JointModelGroup*>   joint_model_group_map_;
+
+        /** \brief A vector of all group names */
         std::vector<std::string>                  joint_model_group_names_;
+
+        /** \brief A vector of all group names */
         std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
 
+        /** \brief Given an URDF model and a SRDF model, build a full kinematic model */
         void buildModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
                         const boost::shared_ptr<const srdf::Model> &srdf_model);
+
+        /** \brief Given a SRDF model describing the groups, build up the groups in this kinematic model */
         void buildGroups(const std::vector<srdf::Model::Group> &group_config);
+
+        /** \brief Given the URDF model, build up the mimic joints (mutually constrained joints) */
         void buildMimic(const boost::shared_ptr<const urdf::Model> &urdf_model);
+
+        /** \brief (This function is mostly intended for internal use). Given a parent link, build up (recursively), the kinematic model by walking  down the tree*/
         JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
-        JointModel* constructJointModel(const urdf::Joint *urdfJointModel, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
-        LinkModel* constructLinkModel(const urdf::Link *urdfLink);
+
+        /** \brief Given a urdf joint model, a child link and a set of virtual joints, 
+            build up the corresponding JointModel object*/
+        JointModel* constructJointModel(const urdf::Joint *urdf_joint_model, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
+
+        /** \brief Given a urdf link, build the corresponding LinkModel object*/
+        LinkModel* constructLinkModel(const urdf::Link *urdf_link);
+
+        /** \brief Given a geometry spec from the URDF and a filename (for a mesh), construct the corresponding shape object*/
         shapes::ShapePtr constructShape(const urdf::Geometry *geom, std::string& filename);
     };
 

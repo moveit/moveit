@@ -97,10 +97,19 @@ namespace collision_detection
         }
         typedef std::map<std::pair<std::string, std::string>, Contact> ContactMap;
 
+        /** \brief True if collision, false otherwise */
         bool        collision;
+
+        /** \brief Closest distance between two bodies */
         double      distance;
+
+        /** \brief Gradient vector associated with collision */
         btVector3   direction;
+
+        /** \brief Number of contacts returned */
         std::size_t contact_count;
+
+        /** \brief A map returning the ids of the two bodies in contact, plus information about the onect itself */
         ContactMap  contacts;
     };
 
@@ -114,12 +123,18 @@ namespace collision_detection
         {
         }
 
+        /** \brief If true, compute proximity distance */
         bool        distance;
+
+        /** \brief If true, compute contacts */
         bool        contacts;
+
+        /** \brief Overall maximum number of contacts to compute*/
         std::size_t max_contacts;
+
+        /** \brief Maximum number of contacts to compute per pair of bodies (multiple bodies may be in contact at different configurations) */
         std::size_t max_contacts_per_pair;
     };
-
 
 }
 

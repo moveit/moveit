@@ -709,7 +709,7 @@ std::vector<std::string> planning_models::KinematicModel::getChildJointModelName
 }
 
 
-void planning_models::KinematicModel::getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const
+void planning_models::KinematicModel::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
 {
     for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
         joint_model_vector_[i]->getRandomValues(rng, values);
@@ -760,7 +760,7 @@ void planning_models::KinematicModel::JointModel::getDefaultValues(std::vector<d
     }
 }
 
-void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers::RNG &rng, std::map<std::string, double> &values) const
+void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
 {
     std::vector<double> rv;
     rv.reserve(variable_names_.size());
@@ -769,7 +769,7 @@ void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers
         values[variable_names_[i]] = rv[i];
 }
 
-void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const
+void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
 {
     for (std::vector<std::pair<double, double> >::const_iterator it = variable_bounds_.begin() ; it != variable_bounds_.end() ; ++it)
         values.push_back(rng.uniformReal(it->first, it->second));
@@ -893,7 +893,7 @@ void planning_models::KinematicModel::FloatingJointModel::getDefaultValues(std::
     values[s - 1] = 1.0;
 }
 
-void planning_models::KinematicModel::FloatingJointModel::getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const
+void planning_models::KinematicModel::FloatingJointModel::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
 {
     std::size_t s = values.size();
     values.resize(s + 7);
@@ -1089,7 +1089,7 @@ const planning_models::KinematicModel::JointModel* planning_models::KinematicMod
         return it->second;
 }
 
-void planning_models::KinematicModel::JointModelGroup::getRandomValues(random_numbers::RNG &rng, std::vector<double> &values) const
+void planning_models::KinematicModel::JointModelGroup::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
 {
     for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
         joint_model_vector_[i]->getRandomValues(rng, values);

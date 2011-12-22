@@ -44,10 +44,10 @@ planning_models::KinematicState::KinematicState(const KinematicModelConstPtr &ki
     buildState();
 }
 
-random_numbers::RNG& planning_models::KinematicState::getRNG(void)
+random_numbers::RandomNumberGenerator& planning_models::KinematicState::getRandomNumberGenerator(void)
 {
     if (!rng_)
-        rng_.reset(new random_numbers::RNG());
+        rng_.reset(new random_numbers::RandomNumberGenerator());
     return *rng_;
 }
 
@@ -223,7 +223,7 @@ void planning_models::KinematicState::setRootTransform(const btTransform &transf
     root_transform_ = transform;
 }
 
-void planning_models::KinematicState::setDefaultValues(void)
+void planning_models::KinematicState::setToDefaultValues(void)
 {
     std::map<std::string, double> default_joint_states;
     for (unsigned int i = 0  ; i < joint_state_vector_.size() ; ++i)
@@ -231,9 +231,9 @@ void planning_models::KinematicState::setDefaultValues(void)
     setStateValues(default_joint_states);
 }
 
-void planning_models::KinematicState::setRandomValues(void)
+void planning_models::KinematicState::setToRandomValues(void)
 {
-    random_numbers::RNG &rng = getRNG();
+    random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
     std::vector<double> random_joint_states;
     kinematic_model_->getRandomValues(rng, random_joint_states);
     setStateValues(random_joint_states);
@@ -667,10 +667,10 @@ planning_models::KinematicState::JointStateGroup::~JointStateGroup(void)
 {
 }
 
-random_numbers::RNG& planning_models::KinematicState::JointStateGroup::getRNG(void)
+random_numbers::RandomNumberGenerator& planning_models::KinematicState::JointStateGroup::getRandomNumberGenerator(void)
 {
     if (!rng_)
-        rng_.reset(new random_numbers::RNG());
+        rng_.reset(new random_numbers::RandomNumberGenerator());
     return *rng_;
 }
 
@@ -719,7 +719,7 @@ void planning_models::KinematicState::JointStateGroup::updateLinkTransforms(void
         updated_links_[i]->computeTransform();
 }
 
-void planning_models::KinematicState::JointStateGroup::setDefaultValues(void)
+void planning_models::KinematicState::JointStateGroup::setToDefaultValues(void)
 {
     std::map<std::string, double> default_joint_values;
     for (std::size_t i = 0  ; i < joint_state_vector_.size() ; ++i)
@@ -727,7 +727,7 @@ void planning_models::KinematicState::JointStateGroup::setDefaultValues(void)
     setStateValues(default_joint_values);
 }
 
-bool planning_models::KinematicState::JointStateGroup::setDefaultValues(const std::string &name)
+bool planning_models::KinematicState::JointStateGroup::setToDefaultState(const std::string &name)
 {
     std::map<std::string, double> default_joint_values;
     if (!joint_model_group_->getDefaultValues(name, default_joint_values))
@@ -736,9 +736,9 @@ bool planning_models::KinematicState::JointStateGroup::setDefaultValues(const st
     return true;
 }
 
-void planning_models::KinematicState::JointStateGroup::setRandomValues(void)
+void planning_models::KinematicState::JointStateGroup::setToRandomValues(void)
 {
-    random_numbers::RNG &rng = getRNG();
+    random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
     std::vector<double> random_joint_states;
     joint_model_group_->getRandomValues(rng, random_joint_states);
     setStateValues(random_joint_states);
