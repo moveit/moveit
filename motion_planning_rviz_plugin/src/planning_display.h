@@ -38,6 +38,8 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 
+#include <OGRE/OgreMaterial.h>
+
 #include <ros/ros.h>
 
 #include <map>
@@ -46,6 +48,7 @@ namespace Ogre
 {
 class Entity;
 class SceneNode;
+class ManualObject;
 }
 
 namespace rviz
@@ -133,7 +136,7 @@ public:
   void setPlanningSceneTopic(const std::string &topic);
 
   const std::string& getPlanningSceneDiffTopic(void) { return planning_scene_diff_topic_; }
-  void setPlanningSceneDiffTopic(const std::string &topic); 
+  void setPlanningSceneDiffTopic(const std::string &topic);
 
   void setRobotAlpha( float alpha );
   float getRobotAlpha() { return robot_path_alpha_; }
@@ -193,6 +196,7 @@ protected:
   void calculateOffsetPosition();
 
   void renderPlanningScene();
+  void clearRenderedGeometry();
 
   // overrides from Display
   virtual void onEnable();
@@ -220,12 +224,15 @@ protected:
   float scene_display_time_;
   std::string planning_scene_topic_;
   std::string planning_scene_diff_topic_;
-  
+
 
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
   boost::scoped_ptr<ReceivedTrajectoryMessage> displaying_trajectory_message_;
   std::vector<boost::shared_ptr<ogre_tools::Shape> > scene_shapes_;
+  std::vector<Ogre::ManualObject*> manual_objects_;
+  Ogre::MaterialPtr material_;
+  std::string material_name_;
 
   bool new_display_trajectory_;
   bool animating_path_;
@@ -233,7 +240,7 @@ protected:
   float current_state_time_;
   float current_scene_time_;
   ros::Time last_scene_render_;
-  
+
   // properties to show on side panel
   rviz::CategoryPropertyWPtr scene_category_;
   rviz::CategoryPropertyWPtr path_category_;

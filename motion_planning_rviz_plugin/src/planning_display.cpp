@@ -36,6 +36,9 @@
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreManualObject.h>
+#include <OGRE/OgreMaterialManager.h>
+
 #include <ogre_tools/axes.h>
 #include <ogre_tools/shape.h>
 
@@ -133,11 +136,25 @@ void PlanningDisplay::reset()
 {
     if (scene_monitor_)
         scene_monitor_->getPlanningScene()->getCollisionWorld()->clearObjects();
-    scene_shapes_.clear();
+    clearRenderedGeometry();
     incoming_trajectory_message_.reset();
     displaying_trajectory_message_.reset();
     animating_path_ = false;
     new_display_trajectory_ = false;
+}
+
+void PlanningDisplay::clearRenderedGeometry()
+{
+  scene_shapes_.clear();
+  for (std::size_t i = 0 ; i < manual_objects_.size() ; ++i)
+    vis_manager_->getSceneManager()->destroyManualObject(manual_objects_[i]);
+  manual_objects_.clear();
+  if (!material_name_.empty())
+  {
+    material_->unload();
+    Ogre::MaterialManager::getSingleton().remove(material_->getName());
+    material_name_ = "";
+  }
 }
 
 void PlanningDisplay::setRobotDescription(const std::string& description_param)
@@ -171,7 +188,7 @@ void PlanningDisplay::setSceneAlpha(float alpha)
   propertyChanged(scene_alpha_property_);
   causeRender();
 }
-    
+
 void PlanningDisplay::setSceneRobotAlpha(float alpha)
 {
   robot_scene_alpha_ = alpha;
@@ -188,7 +205,7 @@ void PlanningDisplay::setTrajectoryTopic(const std::string& topic)
 }
 
 void PlanningDisplay::setPlanningSceneTopic(const std::string &topic)
-{  
+{
   planning_scene_topic_ = topic;
   if (scene_monitor_)
       scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
@@ -196,7 +213,7 @@ void PlanningDisplay::setPlanningSceneTopic(const std::string &topic)
 }
 
 void PlanningDisplay::setPlanningSceneDiffTopic(const std::string &topic)
-{  
+{
   planning_scene_diff_topic_ = topic;
   if (scene_monitor_)
       scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
@@ -308,7 +325,7 @@ void PlanningDisplay::onDisable()
 {
   unsubscribe();
   if (scene_monitor_)
-      scene_monitor_->stopSceneMonitor();  
+      scene_monitor_->stopSceneMonitor();
   robot_->setVisible(false);
   scene_node_->setVisible(false);
   scene_robot_->setVisible(false);
@@ -342,15 +359,17 @@ void PlanningDisplay::renderPlanningScene()
         rviz::Color(0.9f, 0.0f, 0.2f)
     };
     if (!scene_monitor_)
-	return;
-    
+        return;
+
     scene_monitor_->lockScene();
     ros::Time last_update = scene_monitor_->getLastUpdate();
     scene_monitor_->unlockScene();
     if (last_update <= last_scene_render_)
-	return;
-    
-    scene_shapes_.clear();
+        return;
+
+    clearRenderedGeometry();
+    uint32_t man_object_id = 0;
+
     scene_monitor_->lockScene();
     last_scene_render_ = scene_monitor_->getLastUpdate();
     try
@@ -359,7 +378,7 @@ void PlanningDisplay::renderPlanningScene()
         collision_detection::CollisionWorldConstPtr cworld = scene_monitor_->getPlanningScene()->getCollisionWorld();
         const std::vector<std::string> &ns = cworld->getNamespaces();
         for (std::size_t i = 0 ; i < ns.size() ; ++i)
-        {      
+        {
             collision_detection::CollisionWorld::NamespaceObjectsConstPtr o = cworld->getObjects(ns[i]);
             const rviz::Color &color = colors[i % (sizeof(colors)/sizeof(rviz::Color))];
             for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
@@ -395,7 +414,51 @@ void PlanningDisplay::renderPlanningScene()
                     }
                     break;
                 case shapes::MESH:
-                    ROS_WARN("Mesh rendering not yet implemented");
+                    {
+                        const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(s);
+                        if (mesh->triangle_count > 0)
+                        {
+                            // check if we need to construct the material
+                            if (material_name_.empty())
+                            {
+                                material_name_ = "Planning Display Mesh Material";
+                                material_ = Ogre::MaterialManager::getSingleton().create( material_name_, ROS_PACKAGE_NAME );
+                                material_->setReceiveShadows(false);
+                                material_->getTechnique(0)->setLightingEnabled(true);
+                                material_->setCullingMode(Ogre::CULL_NONE);
+                                material_->getTechnique(0)->setAmbient(color.r_, color.g_, color.b_);
+                                material_->getTechnique(0)->setDiffuse(0, 0, 0, scene_alpha_);
+                                if (scene_alpha_ < 0.9998)
+                                {
+                                    material_->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+                                    material_->getTechnique(0)->setDepthWriteEnabled( false );
+                                }
+                                else
+                                {
+                                    material_->getTechnique(0)->setSceneBlending( Ogre::SBT_REPLACE );
+                                    material_->getTechnique(0)->setDepthWriteEnabled( true );
+                                }
+                            }
+
+                            std::string name = "Planning Display Mesh " + boost::lexical_cast<std::string>(man_object_id++);
+                            Ogre::ManualObject *manual_object = vis_manager_->getSceneManager()->createManualObject(name);
+                            manual_object->estimateVertexCount(mesh->triangle_count * 3);
+                            manual_object->begin(material_name_, Ogre::RenderOperation::OT_TRIANGLE_LIST);
+                            for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
+                            {
+                                unsigned int i3 = i * 3;
+                                for (int k = 0 ; k < 3 ; ++k)
+                                {
+                                    unsigned int vi = 3 * mesh->triangles[i3 + k];
+                                    const btVector3 &v = p * btVector3(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
+                                    manual_object->position(v.x(), v.y(), v.z());
+                                }
+                            }
+                            manual_object->end();
+                            scene_node_->attachObject(manual_object);
+                            manual_objects_.push_back(manual_object);
+                        }
+                    }
                     break;
                 default:
                     break;
@@ -408,7 +471,7 @@ void PlanningDisplay::renderPlanningScene()
                     Ogre::Quaternion orientation(q.getW(), q.getX(), q.getY(), q.getZ());
                     ogre_shape->setPosition(position);
                     ogre_shape->setOrientation(orientation);
-		    scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
+                    scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
                 }
             }
         }
@@ -429,7 +492,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 
   bool render = false;
   bool offset = false;
-  
+
   if (!animating_path_ && !new_display_trajectory_ && loop_display_ && displaying_trajectory_message_)
   {
       animating_path_ = true;
@@ -445,7 +508,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
       new_display_trajectory_ = false;
       current_state_ = -1;
       current_state_time_ = state_display_time_ + 1.0f;
-      robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->start_state_.get())); 
+      robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->start_state_.get()));
       offset = true;
       render = true;
   }
@@ -458,7 +521,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
       if ((std::size_t) current_state_ < displaying_trajectory_message_->trajectory_.size())
       {
         robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->trajectory_[current_state_].get()));
-	render = true;
+        render = true;
       }
       else
       {
@@ -476,7 +539,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     offset = true;
     renderPlanningScene();
     current_scene_time_ = 0.0f;
-  }  
+  }
 
   if (offset)
     calculateOffsetPosition();
@@ -492,7 +555,7 @@ void PlanningDisplay::calculateOffsetPosition()
   std::string err_string;
   if (vis_manager_->getTFClient()->getLatestCommonTime(target_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
       return;
-  
+
   tf::Stamped<tf::Pose> pose(btTransform::getIdentity(), stamp, scene_monitor_->getPlanningScene()->getPlanningFrame());
 
   if (vis_manager_->getTFClient()->canTransform(target_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp))
@@ -534,7 +597,7 @@ void PlanningDisplay::targetFrameChanged()
 }
 
 void PlanningDisplay::createProperties()
-{ 
+{
 
   /// generic properties
   robot_description_property_ = property_manager_->createProperty<rviz::StringProperty> ("Robot Description", property_prefix_,
@@ -561,14 +624,14 @@ void PlanningDisplay::createProperties()
   setPropertyHelpText(scene_robot_enabled_property_, "Indicates whether the robot state specified by the planning scene should be displayed");
 
   robot_scene_alpha_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Robot Alpha", scene_prefix, boost::bind(&PlanningDisplay::getSceneRobotAlpha, this),
-											boost::bind(&PlanningDisplay::setSceneRobotAlpha, this, _1), scene_category_, this);
+                                                                                        boost::bind(&PlanningDisplay::setSceneRobotAlpha, this, _1), scene_category_, this);
   setPropertyHelpText(robot_scene_alpha_property_, "Specifies the alpha for the robot links");
   rviz::FloatPropertyPtr float_prop = robot_scene_alpha_property_.lock();
   float_prop->setMin( 0.0 );
   float_prop->setMax( 1.0 );
 
   scene_alpha_property_ = property_manager_->createProperty<rviz::FloatProperty> ("Scene Alpha", scene_prefix, boost::bind(&PlanningDisplay::getSceneAlpha, this),
-										  boost::bind(&PlanningDisplay::setSceneAlpha, this, _1), scene_category_, this);
+                                                                                  boost::bind(&PlanningDisplay::setSceneAlpha, this, _1), scene_category_, this);
   setPropertyHelpText(scene_alpha_property_, "Specifies the alpha for the robot links");
   float_prop = scene_alpha_property_.lock();
   float_prop->setMin( 0.0 );
@@ -584,17 +647,17 @@ void PlanningDisplay::createProperties()
 
 
   planning_scene_topic_property_ = property_manager_->createProperty<rviz::ROSTopicStringProperty> ("Planning Scene Topic", path_prefix,
-												    boost::bind(&PlanningDisplay::getPlanningSceneTopic, this),
-												    boost::bind(&PlanningDisplay::setPlanningSceneTopic, this, _1),
-												    scene_category_, this);
+                                                                                                    boost::bind(&PlanningDisplay::getPlanningSceneTopic, this),
+                                                                                                    boost::bind(&PlanningDisplay::setPlanningSceneTopic, this, _1),
+                                                                                                    scene_category_, this);
   setPropertyHelpText(planning_scene_topic_property_, "The topic on which the moveit_msgs::PlanningScene messages are received");
   rviz::ROSTopicStringPropertyPtr topic_prop = planning_scene_topic_property_.lock();
   topic_prop->setMessageType(ros::message_traits::datatype<moveit_msgs::PlanningScene>());
 
   planning_scene_diff_topic_property_ = property_manager_->createProperty<rviz::ROSTopicStringProperty> ("Planning Scene Diffs Topic", path_prefix,
-													 boost::bind(&PlanningDisplay::getPlanningSceneDiffTopic, this),
-													 boost::bind(&PlanningDisplay::setPlanningSceneDiffTopic, this, _1),
-													 scene_category_, this);
+                                                                                                         boost::bind(&PlanningDisplay::getPlanningSceneDiffTopic, this),
+                                                                                                         boost::bind(&PlanningDisplay::setPlanningSceneDiffTopic, this, _1),
+                                                                                                         scene_category_, this);
   setPropertyHelpText(planning_scene_diff_topic_property_, "The topic on which the moveit_msgs::PlanningScene diff messages are received");
   topic_prop = planning_scene_diff_topic_property_.lock();
   topic_prop->setMessageType(ros::message_traits::datatype<moveit_msgs::PlanningScene>());
