@@ -422,7 +422,7 @@ void PlanningDisplay::renderPlanningScene()
                             if (material_name_.empty())
                             {
                                 material_name_ = "Planning Display Mesh Material";
-                                material_ = Ogre::MaterialManager::getSingleton().create( material_name_, ROS_PACKAGE_NAME );
+                                material_ = Ogre::MaterialManager::getSingleton().create( material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
                                 material_->setReceiveShadows(false);
                                 material_->getTechnique(0)->setLightingEnabled(true);
                                 material_->setCullingMode(Ogre::CULL_NONE);
@@ -482,6 +482,7 @@ void PlanningDisplay::renderPlanningScene()
         throw;
     }
     scene_monitor_->unlockScene();
+    
     scene_node_->setVisible(display_scene_);
 }
 
