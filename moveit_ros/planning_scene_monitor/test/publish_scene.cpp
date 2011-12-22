@@ -39,6 +39,7 @@
 #include <ros/package.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <tf/transform_listener.h>
+#include <geometric_shapes/shape_operations.h>
 
 TEST(PlanningScene, LoadRestore)
 { 
@@ -76,6 +77,10 @@ TEST(PlanningScene, LoadRestore)
     ps->setPlanningSceneMsg(ps_msg);
     EXPECT_EQ(ps->getCollisionWorld()->getNamespaces().size(), 2);
     
+    shapes::Mesh *ms = shapes::createMeshFromFilename("file://" + ros::package::getPath("geometric_shapes") + "/test/resources/forearm_roll.stl");
+    ps->getCollisionWorld()->addObject("test_mesh", ms, btTransform::getIdentity());
+    ps->getPlanningSceneMsg(ps_msg);	
+
     sleep(1);
     scene_pub.publish(ps_msg); 
     sleep(1);
