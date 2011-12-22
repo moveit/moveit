@@ -159,7 +159,7 @@ namespace planning_scene
                             const planning_models::KinematicState &kstate) const;
 
         /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
-            allowd collision matrix (\e acm) */
+            allowed collision matrix (\e acm) */
         void checkCollision(const collision_detection::CollisionRequest& req,
                             collision_detection::CollisionResult &res,
                             const planning_models::KinematicState &kstate,

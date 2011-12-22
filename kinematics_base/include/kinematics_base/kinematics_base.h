@@ -38,7 +38,6 @@
 #define KINEMATICS_BASE_
 
 #include <geometry_msgs/PoseStamped.h>
-#include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <boost/function.hpp>
 

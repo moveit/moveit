@@ -66,7 +66,7 @@ static boost::uint32_t nextSeed(void)
     return v;
 }
 
-random_numbers::RNG::RNG(void) : generator_(nextSeed()),
+random_numbers::RandomNumberGenerator::RandomNumberGenerator(void) : generator_(nextSeed()),
                                  uniDist_(0, 1),
                                  uni_(generator_, uniDist_)
 {
@@ -74,7 +74,7 @@ random_numbers::RNG::RNG(void) : generator_(nextSeed()),
 
 // From: "Uniform Random Rotations", Ken Shoemake, Graphics Gems III,
 //       pg. 124-132
-void random_numbers::RNG::quaternion(double value[4])
+void random_numbers::RandomNumberGenerator::quaternion(double value[4])
 {
     double x0 = uni_();
     double r1 = sqrt(1.0 - x0), r2 = sqrt(x0);
@@ -88,7 +88,7 @@ void random_numbers::RNG::quaternion(double value[4])
 }
 
 // From "Effective Sampling and Distance Metrics for 3D Rigid Body Path Planning", by James Kuffner, ICRA 2004
-void random_numbers::RNG::eulerRPY(double value[3])
+void random_numbers::RandomNumberGenerator::eulerRPY(double value[3])
 {
     value[0] = boost::math::constants::pi<double>() * (2.0 * uni_() - 1.0);
     value[1] = acos(1.0 - 2.0 * uni_()) - boost::math::constants::pi<double>() / 2.0;

@@ -141,16 +141,16 @@ namespace bodies
         /** \brief Set the dimensions of the body (from corresponding shape) */
         void setDimensions(const shapes::Shape *shape);
 
-        /** \brief Check is a point is inside the body */
+        /** \brief Check if a point is inside the body */
         bool containsPoint(double x, double y, double z, bool verbose = false) const
         {
             return containsPoint(btVector3(btScalar(x), btScalar(y), btScalar(z)), verbose);
         }
 
-        /** \brief Check is a point is inside the body */
+        /** \brief Check if a point is inside the body */
         virtual bool containsPoint(const btVector3 &p, bool verbose = false) const = 0;
 
-        /** \brief Check is a ray intersects the body, and find the
+        /** \brief Check if a ray intersects the body, and find the
             set of intersections, in order, along the ray. A maximum
             number of intersections can be specified as well. If that
             number is 0, all intersections are returned */
@@ -163,7 +163,7 @@ namespace bodies
         /** \brief Sample a point that is included in the body using a given random number generator. Sometimes multiple attempts need to be generated;
             the function terminates with failure (returns false) after \e max_attempts attempts. If the call is successful (returns true) the point is
             written to \e result */
-        virtual bool samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result);
+        virtual bool samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, btVector3 &result);
 
         /** \brief Compute the bounding radius for the body, in its current
             pose. Scaling and padding are accounted for. */
@@ -216,7 +216,7 @@ namespace bodies
 
         virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
         virtual double computeVolume(void) const;
-        virtual bool samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result);
+        virtual bool samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, btVector3 &result);
         virtual void computeBoundingSphere(BoundingSphere &sphere) const;
         virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
         virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
@@ -261,7 +261,7 @@ namespace bodies
 
         virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
         virtual double computeVolume(void) const;
-        virtual bool samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result);
+        virtual bool samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, btVector3 &result);
         virtual void computeBoundingSphere(BoundingSphere &sphere) const;
         virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
         virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
@@ -316,7 +316,7 @@ namespace bodies
 
         virtual bool containsPoint(const btVector3 &p, bool verbose = false) const;
         virtual double computeVolume(void) const;
-        virtual bool samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result);
+        virtual bool samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, btVector3 &result);
         virtual void computeBoundingSphere(BoundingSphere &sphere) const;
         virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
         virtual bool intersectsRay(const btVector3& origin, const btVector3 &dir, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
@@ -392,7 +392,10 @@ namespace bodies
         virtual void useDimensions(const shapes::Shape *shape);
         virtual void updateInternalData(void);
 
+      /** \brief (Used mainly for debugging) Count the number of vertices behind a plane*/
         unsigned int countVerticesBehindPlane(const btVector4& planeNormal) const;
+
+      /** \brief Check if a point is inside a set of planes that make up a convex mesh*/
         bool isPointInsidePlanes(const btVector3& point) const;
 
         struct MeshData
@@ -426,29 +429,45 @@ namespace bodies
         boost::scoped_ptr<std::vector<btVector3> > scaled_vertices_storage_;
     };
 
+    /** @class BodyVector
+     *  @brief A vector of Body objects
+     */
     class BodyVector
     {
     public:
 
         BodyVector(void);
 
+        /** \brief Construct a body vector from a vector of shapes, a vector of poses and a padding */
         BodyVector(const std::vector<shapes::Shape*>& shapes, const std::vector<btTransform>& poses, double padding = 0.0);
 
         ~BodyVector();
 
+        /** \brief Add a body*/
         void addBody(Body* body);
+
+        /** \brief Add a body from a shape, a pose for the body and a padding*/
         void addBody(const shapes::Shape* shape, const btTransform& pose, double padding = 0.0);
 
+        /** \brief Clear all bodies from the vector*/
         void clear(void);
 
+        /** \brief Set the pose of a particular body in the vector of bodies*/
         void setPose(unsigned int i, const btTransform& pose);
 
+        /** \brief Get the number of bodies in this vector*/
         std::size_t getCount(void) const;
 
+        /** \brief Check if any of the bodies in the vector contains the input point*/
         bool containsPoint(const btVector3 &p, bool verbose = false) const;
 
+        /** \brief Check if any of the bodies intersects the ray*/
+        bool intersectsRay(const btVector3& origin, const btVector3 &dir, unsigned int &index, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
+
+        /** \brief Get the \e i th body in the vector*/
         const Body* getBody(unsigned int i) const;
 
+        /** \brief Get the bounding sphere for the whole body*/
         double getBoundingSphereRadiusSquared(unsigned int i) const;
 
     private:

@@ -79,16 +79,16 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
     btTransform t1;
     t1.setIdentity();
     t1.setOrigin(btVector3(10.0, 1.0, 0.0));
-    tf.recordTransformFromFrame(t1, "some_frame_1");
+    tf.setTransform(t1, "some_frame_1");
 
     btTransform t2;
     t2 = btTransform(btQuaternion(btVector3(0.0, 1.0, 0.0), 0.5), btVector3(10.0, 1.0, 0.0));
-    tf.recordTransformFromFrame(t2, "some_frame_2");
+    tf.setTransform(t2, "some_frame_2");
 
     btTransform t3;
     t3.setIdentity();
     t3.setOrigin(btVector3(0.0, 1.0, -1.0));
-    tf.recordTransformFromFrame(t3, "some_frame_3");
+    tf.setTransform(t3, "some_frame_3");
 
 
     EXPECT_TRUE(tf.isFixedFrame("some_frame_1"));
@@ -97,14 +97,14 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
     btTransform x;
     x.setIdentity();
-    tf.transformTransform(ks, x, x, "some_frame_2");
+    tf.transformPose(ks, x, x, "some_frame_2");
     EXPECT_TRUE(x == t2);
 
-    tf.transformTransform(ks, x, x, kmodel->getModelFrame());
+    tf.transformPose(ks, x, x, kmodel->getModelFrame());
     EXPECT_TRUE(x == t2);
 
     x.setIdentity();
-    tf.transformTransform(ks, x, x, "r_wrist_roll_link");
+    tf.transformPose(ks, x, x, "r_wrist_roll_link");
 
     EXPECT_NEAR(x.getOrigin().x(), 0.585315, 1e-4);
     EXPECT_NEAR(x.getOrigin().y(), -0.188, 1e-4);

@@ -95,7 +95,7 @@ namespace planning_models
                     try
                     {
                         // find the transform that takes the given frame_id to the desired fixed frame
-                        const btTransform &t2fixed_frame = tf->getTransformToTargetFrame(mjs.frame_ids[i]);
+                        const btTransform &t2fixed_frame = tf->getTransform(mjs.frame_ids[i]);
                         // we update the value of the transform so that it transforms from the known fixed frame to the desired child link
                         transf[i] *= t2fixed_frame.inverse();
                     }

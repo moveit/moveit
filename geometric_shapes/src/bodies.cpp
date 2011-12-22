@@ -84,7 +84,7 @@ void bodies::Body::setDimensions(const shapes::Shape *shape)
     updateInternalData();
 }
 
-bool bodies::Body::samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result)
+bool bodies::Body::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, btVector3 &result)
 {
     BoundingSphere bs;
     computeBoundingSphere(bs);
@@ -152,7 +152,7 @@ void bodies::Sphere::computeBoundingCylinder(BoundingCylinder &cylinder) const
 
 }
 
-bool bodies::Sphere::samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result)
+bool bodies::Sphere::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, btVector3 &result)
 {
     for (unsigned int i = 0 ; i < max_attempts ; ++i)
     {
@@ -274,7 +274,7 @@ void bodies::Cylinder::updateInternalData(void)
     d2_ = tmp - length2_;
 }
 
-bool bodies::Cylinder::samplePointInside(random_numbers::RNG &rng, unsigned int max_attempts, btVector3 &result)
+bool bodies::Cylinder::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, btVector3 &result)
 {
     // sample a point on the base disc of the cylinder
     double a = rng.uniformReal(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
@@ -423,7 +423,7 @@ bool bodies::Cylinder::intersectsRay(const btVector3& origin, const btVector3& d
     return true;
 }
 
-bool bodies::Box::samplePointInside(random_numbers::RNG &rng, unsigned int /* max_attempts */, btVector3 &result)
+bool bodies::Box::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int /* max_attempts */, btVector3 &result)
 {
     result.setValue(rng.uniformReal(-length2_, length2_),
                     rng.uniformReal(-width2_, width2_),
@@ -1094,5 +1094,17 @@ bool bodies::BodyVector::containsPoint(const btVector3 &p, bool verbose) const
     for (unsigned int i = 0 ; i < bodies_.size() ; ++i)
         if (bodies_[i]->containsPoint(p, verbose))
             return true;
+    return false;
+}
+
+bool bodies::BodyVector::intersectsRay(const btVector3& origin, const btVector3 &dir, unsigned int &index, std::vector<btVector3> *intersections, unsigned int count) const 
+{
+  index = -1;
+    for (unsigned int i = 0 ; i < bodies_.size() ; ++i)
+      if (bodies_[i]->intersectsRay(origin, dir, intersections, count))
+      {
+        index = i;
+        return true;
+      }
     return false;
 }

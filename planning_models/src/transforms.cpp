@@ -77,7 +77,7 @@ planning_models::Transforms::~Transforms(void)
 {
 }
 
-const std::string& planning_models::Transforms::getPlanningFrame(void) const
+const std::string& planning_models::Transforms::getTargetFrame(void) const
 {
     return target_frame_;
 }
@@ -92,7 +92,7 @@ bool planning_models::Transforms::isFixedFrame(const std::string &frame) const
     return transforms_.find(frame) != transforms_.end();
 }
 
-const btTransform& planning_models::Transforms::getTransformToTargetFrame(const std::string &from_frame) const
+const btTransform& planning_models::Transforms::getTransform(const std::string &from_frame) const
 {
     std::map<std::string, btTransform>::const_iterator it = transforms_.find(from_frame);
     if (it != transforms_.end())
@@ -102,7 +102,7 @@ const btTransform& planning_models::Transforms::getTransformToTargetFrame(const 
     return transforms_.find(target_frame_)->second;
 }
 
-const btTransform& planning_models::Transforms::getTransformToTargetFrame(const planning_models::KinematicState &kstate, const std::string &from_frame) const
+const btTransform& planning_models::Transforms::getTransform(const planning_models::KinematicState &kstate, const std::string &from_frame) const
 {
     std::map<std::string, btTransform>::const_iterator it = transforms_.find(from_frame);
     if (it != transforms_.end())
@@ -117,73 +117,73 @@ const btTransform& planning_models::Transforms::getTransformToTargetFrame(const 
     return transforms_.find(target_frame_)->second;
 }
 
-void planning_models::Transforms::transformVector3(btVector3 &v_out, const btVector3 &v_in, const std::string &from_frame) const
+void planning_models::Transforms::transformVector3(const std::string &from_frame, const btVector3 &v_in, btVector3 &v_out) const
 {
-    v_out = getTransformToTargetFrame(from_frame) * v_in;
+    v_out = getTransform(from_frame) * v_in;
 }
 
-void planning_models::Transforms::transformQuaternion(btQuaternion &q_out, const btQuaternion &q_in, const std::string &from_frame) const
+void planning_models::Transforms::transformQuaternion(const std::string &from_frame, const btQuaternion &q_in, btQuaternion &q_out) const
 {
-    q_out = getTransformToTargetFrame(from_frame) * q_in;
+    q_out = getTransform(from_frame) * q_in;
 }
 
-void planning_models::Transforms::transformMatrix(btMatrix3x3 &m_out, const btMatrix3x3 &m_in, const std::string &from_frame) const
+void planning_models::Transforms::transformRotationMatrix(const std::string &from_frame, const btMatrix3x3 &m_in, btMatrix3x3 &m_out) const
 {
-    m_out = getTransformToTargetFrame(from_frame).getBasis() * m_in;
+    m_out = getTransform(from_frame).getBasis() * m_in;
 }
 
-void planning_models::Transforms::transformTransform(btTransform &t_out, const btTransform &t_in, const std::string &from_frame) const
+void planning_models::Transforms::transformPose(const std::string &from_frame, const btTransform &t_in, btTransform &t_out) const
 {
-    t_out = getTransformToTargetFrame(from_frame) * t_in;
+    t_out = getTransform(from_frame) * t_in;
 }
 
 // specify the kinematic state
 void planning_models::Transforms::transformVector3(const planning_models::KinematicState &kstate,
-                                                   btVector3 &v_out, const btVector3 &v_in, const std::string &from_frame) const
+                                                   const std::string &from_frame, const btVector3 &v_in, btVector3 &v_out) const
 {
-    v_out = getTransformToTargetFrame(kstate, from_frame) * v_in;
+    v_out = getTransform(kstate, from_frame) * v_in;
 }
 
 void planning_models::Transforms::transformQuaternion(const planning_models::KinematicState &kstate,
-                                                      btQuaternion &q_out, const btQuaternion &q_in, const std::string &from_frame) const
+                                                      const std::string &from_frame, const btQuaternion &q_in, btQuaternion &q_out) const
 {
-    q_out = getTransformToTargetFrame(kstate, from_frame) * q_in;
+    q_out = getTransform(kstate, from_frame) * q_in;
 }
 
-void planning_models::Transforms::transformMatrix(const planning_models::KinematicState &kstate,
-                                                  btMatrix3x3 &m_out, const btMatrix3x3 &m_in, const std::string &from_frame) const
+void planning_models::Transforms::transformRotationMatrix(const planning_models::KinematicState &kstate,
+                                                          const std::string &from_frame, const btMatrix3x3 &m_in, btMatrix3x3 &m_out) const
 {
-    m_out = getTransformToTargetFrame(kstate, from_frame).getBasis() * m_in;
+    m_out = getTransform(kstate, from_frame).getBasis() * m_in;
 }
 
-void planning_models::Transforms::transformTransform(const planning_models::KinematicState &kstate,
-                                                     btTransform &t_out, const btTransform &t_in, const std::string &from_frame) const
+void planning_models::Transforms::transformPose(const planning_models::KinematicState &kstate,
+                                                const std::string &from_frame, const btTransform &t_in, btTransform &t_out) const
 {
-    t_out = getTransformToTargetFrame(kstate, from_frame) * t_in;
+    t_out = getTransform(kstate, from_frame) * t_in;
 }
 
-void planning_models::Transforms::recordTransformFromFrame(const btTransform &t, const std::string &from_frame)
+void planning_models::Transforms::setTransform(const btTransform &t, const std::string &from_frame)
 {
     transforms_[from_frame] = t;
 }
 
-void planning_models::Transforms::recordTransform(const geometry_msgs::TransformStamped &transform)
+void planning_models::Transforms::setTransform(const geometry_msgs::TransformStamped &transform)
 {
     if (transform.child_frame_id.rfind(target_frame_) == transform.child_frame_id.length() - target_frame_.length())
     {
         btVector3 o(transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z);
         btQuaternion q;
         quatFromMsg(transform.transform.rotation, q);
-        recordTransformFromFrame(btTransform(q, o), transform.header.frame_id);
+        setTransform(btTransform(q, o), transform.header.frame_id);
     }
     else
         ROS_ERROR("Given transform is to frame '%s', but frame '%s' was expected.", transform.child_frame_id.c_str(), target_frame_.c_str());
 }
 
-void planning_models::Transforms::recordTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms)
+void planning_models::Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms)
 {
     for (std::size_t i = 0 ; i < transforms.size() ; ++i)
-        recordTransform(transforms[i]);
+        setTransform(transforms[i]);
 }
 
 void planning_models::Transforms::getTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const

@@ -43,13 +43,50 @@
 
 namespace planning_models
 {
-    bool jointStateToKinematicState(const sensor_msgs::JointState &joint_state, KinematicState& state);
+    /**
+     * @brief Convert a joint state to a kinematic state
+     * @param joint_state The input joint state to be converted
+     * @param state The resultant kinematic state
+     * @return True if successful, false if failed for any reason
+     */
+bool jointStateToKinematicState(const sensor_msgs::JointState &joint_state, planning_models::KinematicState& state);
+
+    /**
+     * @brief Convert a robot state (with accompanying extra transforms) to a kinematic state
+     * @param tf An instance of a transforms object
+     * @param robot_state The input robot state
+     * @param state The resultant kinematic state
+     * @return True if successful, false if failed for any reason
+     */
     bool robotStateToKinematicState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, KinematicState& state);
+    /**
+     * @brief Convert a robot state (with accompanying extra transforms) to a kinematic state
+     * @param robot_state The input robot state
+     * @param state The resultant kinematic state
+     * @return True if successful, false if failed for any reason
+     */
     bool robotStateToKinematicState(const moveit_msgs::RobotState &robot_state, KinematicState& state);
 
+    /**
+     * @brief Convert a kinematic state to a robot state message
+     * @param state The input kinematic state object
+     * @param robot_state The resultant RobotState message
+     */
     void kinematicStateToRobotState(const KinematicState& state, moveit_msgs::RobotState &robot_state);
+
+    /**
+     * @brief Convert a kinematic state to a joint state message
+     * @param state The input kinematic state object
+     * @param robot_state The resultant JointState message
+     */
     void kinematicStateToJointState(const KinematicState& state, sensor_msgs::JointState &joint_state);
 
+    /**
+     * @brief Convert a RobotTrajectoryPoint (in a RobotTrajectory) to a RobotState message
+     * @param rt The input RobotTrajectory
+     * @param index The index of the point that we want to convert
+     * @param rs The resultant robot state
+     */
     void robotTrajectoryPointToRobotState(const moveit_msgs::RobotTrajectory &rt, std::size_t index, moveit_msgs::RobotState &rs);
 }
 
