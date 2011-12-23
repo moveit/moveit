@@ -168,7 +168,7 @@ namespace collision_detection
         struct Change
         {
             enum { ADD, REMOVE } type_;
-            std::string          ns_;
+            std::string          id_;
         };
 
         /** \brief Get the list of Object ids */
@@ -185,11 +185,11 @@ namespace collision_detection
                        const std::vector<shapes::Shape*> &shapes, 
                        const std::vector<btTransform> &poses);
 
-        /** \brief Add a static shape to an object. The user releases ownership of the shape. */
-        virtual void addStaticShapeToObject(const std::string &id, shapes::StaticShape *shape);
+        /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
+        virtual void addObject(const std::string &id, shapes::Shape *shape, const btTransform &pose);
 
-        /** \brief Add a shape to an object. The user releases ownership of the shape. */
-        virtual void addShapeToObject(const std::string &id, shapes::Shape *shape, const btTransform &pose);
+        /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
+        virtual void addObject(const std::string &id, shapes::StaticShape *shape);
 
         /** \brief Update the pose of a shape in an object. Shape equality is verified by comparing pointers. Returns true on success. */
         virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const btTransform &pose);
@@ -198,7 +198,7 @@ namespace collision_detection
         virtual bool removeShapeFromObject(const std::string &id, const shapes::Shape *shape);
 
         /** \brief Remove shape from object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
-        virtual bool removeShapeFromObject(const std::string &id, const shapes::StaticShape *shape);
+        virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShape *shape);
 
         /** \brief Clear a particular object. If there are no other pointers to the corresponding instance of Object, the memory is freed. */
         virtual void clearObject(const std::string &id);
@@ -220,15 +220,15 @@ namespace collision_detection
 
     protected:
 
-        std::map<std::string, ObjectsPtr> objects_;
+        std::map<std::string, ObjectPtr> objects_;
         mutable boost::recursive_mutex             objects_lock_;
 
-        void ensureUnique(ObjectsPtr &id);
+        void ensureUnique(ObjectPtr &id);
 
     private:
 
         void changeRemoveObj(const std::string &id);
-        void changeAddObj(const Objects *obj);
+        void changeAddObj(const Object *obj);
 
         bool                                       record_changes_;
         std::vector<Change>                        changes_;

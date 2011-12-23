@@ -91,7 +91,7 @@ namespace planning_scene
         const std::string& getPlanningFrame(void) const
         {
             // if we have an updated set of transforms, return it; otherwise, return the parent one
-            return ftf_ ? ftf_->getPlanningFrame() : parent_->getPlanningFrame();
+            return ftf_ ? ftf_->getTargetFrame() : parent_->getPlanningFrame();
         }
 
         /** \brief Get the kinematic model for which the planning scene is maintained */

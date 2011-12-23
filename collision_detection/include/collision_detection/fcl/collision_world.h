@@ -54,13 +54,13 @@ namespace collision_detection
         virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
         virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
 
-        virtual void addObject(const std::string &ns, shapes::StaticShape *shape);
-        virtual void addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose);
-        virtual bool moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose);
-        virtual bool removeObject(const std::string &ns, const shapes::Shape *shape);
-        virtual bool removeObject(const std::string &ns, const shapes::StaticShape *shape);
-        virtual bool removeObjects(const std::string &ns);
-        virtual void clearObjects(const std::string &ns);
+        virtual void addObject(const std::string &id, shapes::StaticShape *shape);
+        virtual void addObject(const std::string &id, shapes::Shape *shape, const btTransform &pose);
+        virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const btTransform &pose);
+        virtual bool removeShapeInObject(const std::string &id, const shapes::Shape *shape);
+        virtual bool removeStaticShapeInObject(const std::string &id, const shapes::StaticShape *shape);
+        virtual bool removeShapeInObjects(const std::string &id);
+        virtual void clearObject(const std::string &id);
         virtual void clearObjects(void);
 
     protected:

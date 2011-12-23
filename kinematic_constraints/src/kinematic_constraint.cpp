@@ -52,7 +52,7 @@ kinematic_constraints::KinematicConstraint::~KinematicConstraint(void)
 {
 }
 
-bool kinematic_constraints::JointConstraint::use(const moveit_msgs::JointConstraint &jc)
+bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointConstraint &jc)
 {
     joint_model_ = model_->getJointModel(jc.joint_name);
     joint_is_continuous_ = false;
@@ -91,17 +91,21 @@ bool kinematic_constraints::JointConstraint::use(const moveit_msgs::JointConstra
     return joint_model_ != NULL;
 }
 
-std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+bool kinematic_constraints::JointConstraint::decide(const planning_models::KinematicState &state, double &distance, bool verbose) const
 {
     if (!joint_model_)
-        return std::make_pair(true, 0.0);
+    {
+      distance = 0.0;
+      return true;
+    }
 
     const planning_models::KinematicState::JointState *joint = state.getJointState(joint_model_->getName());
 
     if (!joint)
     {
         ROS_WARN_STREAM("No joint in state with name '" << joint_model_->getName() << "'");
-        return std::make_pair(false, 0.0);
+        distance = 0.0;
+        return true;
     }
 
     double current_joint_position = joint->getVariableValues()[0];
@@ -130,7 +134,8 @@ std::pair<bool, double> kinematic_constraints::JointConstraint::decide(const pla
         ROS_INFO("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: %f, tolerance_below: %f",
                  result ? "satisfied" : "violated", joint->getName().c_str(), current_joint_position, joint_position_, joint_tolerance_above_, joint_tolerance_below_);
 
-    return std::make_pair(result, constraint_weight_ * fabs(dif));
+    distance = constraint_weight_ * fabs(dif);
+    return result;
 }
 
 bool kinematic_constraints::JointConstraint::enabled(void) const
@@ -160,7 +165,7 @@ void kinematic_constraints::JointConstraint::print(std::ostream &out) const
         out << "No constraint" << std::endl;
 }
 
-bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionConstraint &pc)
+bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::PositionConstraint &pc)
 {
     link_model_ = model_->getLinkModel(pc.link_name);
     offset_ = btVector3(pc.target_point_offset.x, pc.target_point_offset.y, pc.target_point_offset.z);
@@ -176,8 +181,8 @@ bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionC
 
         if (tf_->isFixedFrame(pc.constraint_region_pose.header.frame_id))
         {
-            tf_->transformTransform(constraint_region_pose_, constraint_region_pose_, pc.constraint_region_pose.header.frame_id);
-            constraint_frame_id_ = tf_->getPlanningFrame();
+          tf_->transformPose(pc.constraint_region_pose.header.frame_id, constraint_region_pose_, constraint_region_pose_);
+            constraint_frame_id_ = tf_->getTargetFrame();
             constraint_region_->setPose(constraint_region_pose_);
             mobile_frame_ = false;
         }
@@ -202,8 +207,8 @@ bool kinematic_constraints::PositionConstraint::use(const moveit_msgs::PositionC
 namespace kinematic_constraints
 {
     // helper function to avoid code duplication
-    static inline std::pair<bool, double> finishPositionConstraintDecision(const btVector3 &pt, const btVector3 &desired, const std::string &name,
-                                                                           double weight, bool result, bool verbose)
+    static inline bool finishPositionConstraintDecision(const btVector3 &pt, const btVector3 &desired, const std::string &name,
+                                                        double weight, bool result, double &distance, bool verbose)
     {
         if (verbose)
             ROS_INFO("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
@@ -211,36 +216,40 @@ namespace kinematic_constraints
         double dx = desired.x() - pt.x();
         double dy = desired.y() - pt.y();
         double dz = desired.z() - pt.z();
-        return std::make_pair(result, weight * sqrt(dx * dx + dy * dy + dz * dz));
+        distance = weight * sqrt(dx * dx + dy * dy + dz * dz);
+        return result;
     }
 }
 
-std::pair<bool, double> kinematic_constraints::PositionConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+bool kinematic_constraints::PositionConstraint::decide(const planning_models::KinematicState &state, double &distance, bool verbose) const
 {
     if (!link_model_ || !constraint_region_)
-        return std::make_pair(true, 0.0);
+    {
+      distance = 0.0;
+      return true;
+    }
 
     const planning_models::KinematicState::LinkState *link_state = state.getLinkState(link_model_->getName());
 
     if (!link_state)
     {
         ROS_WARN_STREAM("No link in state with name '" << link_model_->getName() << "'");
-        return std::make_pair(false, 0.0);
+        distance = 0.0;
+        return false;
     }
 
     const btVector3 &pt = link_state->getGlobalLinkTransform()(offset_);
-
     if (mobile_frame_)
     {
         btTransform tmp;
-        tf_->transformTransform(state, tmp, constraint_region_pose_, constraint_frame_id_);
+        tf_->transformPose(state, constraint_frame_id_, constraint_region_pose_, tmp);
         bool result = constraint_region_->cloneAt(tmp)->containsPoint(pt);
-        return finishPositionConstraintDecision(pt, tmp.getOrigin(), link_model_->getName(), constraint_weight_, result, verbose);
+        return finishPositionConstraintDecision(pt, tmp.getOrigin(), link_model_->getName(), constraint_weight_, result, distance, verbose);
     }
     else
     {
         bool result = constraint_region_->containsPoint(pt);
-        return finishPositionConstraintDecision(pt, constraint_region_->getPose().getOrigin(), link_model_->getName(), constraint_weight_, result, verbose);
+        return finishPositionConstraintDecision(pt, constraint_region_->getPose().getOrigin(), link_model_->getName(), constraint_weight_, result, distance, verbose);
     }
 }
 
@@ -279,7 +288,7 @@ bool kinematic_constraints::PositionConstraint::enabled(void) const
     return link_model_ && constraint_region_;
 }
 
-bool kinematic_constraints::OrientationConstraint::use(const moveit_msgs::OrientationConstraint &oc)
+bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::OrientationConstraint &oc)
 {
     link_model_ = model_->getLinkModel(oc.link_name);
     btQuaternion q;
@@ -289,8 +298,8 @@ bool kinematic_constraints::OrientationConstraint::use(const moveit_msgs::Orient
 
     if (tf_->isFixedFrame(oc.orientation.header.frame_id))
     {
-        tf_->transformQuaternion(q, q, oc.orientation.header.frame_id);
-        desired_rotation_frame_id_ = tf_->getPlanningFrame();
+      tf_->transformQuaternion(oc.orientation.header.frame_id, q, q);
+        desired_rotation_frame_id_ = tf_->getTargetFrame();
         desired_rotation_matrix_ = btMatrix3x3(q);
         desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse();
         mobile_frame_ = false;
@@ -323,24 +332,28 @@ bool kinematic_constraints::OrientationConstraint::enabled(void) const
     return link_model_;
 }
 
-std::pair<bool, double> kinematic_constraints::OrientationConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+bool kinematic_constraints::OrientationConstraint::decide(const planning_models::KinematicState &state, double &distance, bool verbose) const
 {
     if (!link_model_)
-        return std::make_pair(true, 0.0);
+    {
+      distance = 0.0;
+      return true;
+    }
 
     const planning_models::KinematicState::LinkState *link_state = state.getLinkState(link_model_->getName());
 
     if (!link_state)
     {
         ROS_WARN_STREAM("No link in state with name '" << link_model_->getName() << "'");
-        return std::make_pair(false, 0.0);
+        distance = 0.0;
+        return false;
     }
 
     btScalar yaw, pitch, roll;
     if (mobile_frame_)
     {
         btMatrix3x3 tmp;
-        tf_->transformMatrix(state, tmp, desired_rotation_matrix_, desired_rotation_frame_id_);
+        tf_->transformRotationMatrix(state, desired_rotation_frame_id_, desired_rotation_matrix_, tmp);
         btMatrix3x3 diff = tmp.inverse() * link_state->getGlobalLinkTransform().getBasis();
         diff.getEulerYPR(yaw, pitch, roll);
     }
@@ -364,7 +377,8 @@ std::pair<bool, double> kinematic_constraints::OrientationConstraint::decide(con
                  absolute_roll_tolerance_, absolute_pitch_tolerance_, absolute_yaw_tolerance_);
     }
 
-    return std::make_pair(result, constraint_weight_ * (fabs(roll) + fabs(pitch) + fabs(yaw)));
+    distance = constraint_weight_ * (fabs(roll) + fabs(pitch) + fabs(yaw));
+    return result;
 }
 
 void kinematic_constraints::OrientationConstraint::print(std::ostream &out) const
@@ -381,7 +395,7 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
 }
 
 kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
-    KinematicConstraint(model, tf), cr_(new collision_detection::CollisionRobotAllValid(model)), cw_(new collision_detection::CollisionWorldAllValid())
+    KinematicConstraint(model, tf), collision_robot_(new collision_detection::CollisionRobotAllValid(model)), collision_world_(new collision_detection::CollisionWorldAllValid())
 {
 }
 
@@ -390,7 +404,7 @@ void kinematic_constraints::VisibilityConstraint::clear(void)
     target_radius_ = -1.0;
 }
 
-bool kinematic_constraints::VisibilityConstraint::use(const moveit_msgs::VisibilityConstraint &vc)
+bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint &vc)
 {
     target_radius_ = fabs(vc.target_radius);
 
@@ -421,8 +435,8 @@ bool kinematic_constraints::VisibilityConstraint::use(const moveit_msgs::Visibil
 
     if (tf_->isFixedFrame(vc.target_pose.header.frame_id))
     {
-        tf_->transformTransform(target_pose_, target_pose_, vc.target_pose.header.frame_id);
-        target_frame_id_ = tf_->getPlanningFrame();
+      tf_->transformPose(vc.target_pose.header.frame_id, target_pose_, target_pose_);
+        target_frame_id_ = tf_->getTargetFrame();
         mobile_target_frame_ = false;
         // transform won't change, so apply it now
         for (std::size_t i = 0 ; i < points_.size() ; ++i)
@@ -439,8 +453,8 @@ bool kinematic_constraints::VisibilityConstraint::use(const moveit_msgs::Visibil
 
     if (tf_->isFixedFrame(vc.sensor_pose.header.frame_id))
     {
-        tf_->transformTransform(sensor_pose_, sensor_pose_, vc.sensor_pose.header.frame_id);
-        sensor_frame_id_ = tf_->getPlanningFrame();
+      tf_->transformPose(vc.sensor_pose.header.frame_id, sensor_pose_, sensor_pose_);
+        sensor_frame_id_ = tf_->getTargetFrame();
         mobile_sensor_frame_ = false;
     }
     else
@@ -467,8 +481,8 @@ bool kinematic_constraints::VisibilityConstraint::enabled(void) const
 shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(const planning_models::KinematicState &state) const
 {
     // the current pose of the sensor
-    const btTransform &sp = mobile_sensor_frame_ ? tf_->getTransformToTargetFrame(state, sensor_frame_id_) : sensor_pose_;
-    const btTransform &tp = mobile_target_frame_ ? tf_->getTransformToTargetFrame(state, target_frame_id_) : target_pose_;
+    const btTransform &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) : sensor_pose_;
+    const btTransform &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) : target_pose_;
 
     // transform the points on the disc to the desired target frame
     const std::vector<btVector3> *points = &points_;
@@ -487,7 +501,7 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
     m->vertices = new double[m->vertex_count * 3];
     m->triangle_count = cone_sides_ * 2;
     m->triangles = new unsigned int[m->triangle_count * 3];
-    // we do NOT allocate normals because we do not compute them
+    // we do NOT allocate normals becaconfigure we do not compute them
 
     // the sensor origin
     m->vertices[0] = sp.getOrigin().x();
@@ -535,40 +549,47 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
     return m;
 }
 
-std::pair<bool, double> kinematic_constraints::VisibilityConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
+bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::KinematicState &state, double &distance, bool verbose) const
 {
     if (target_radius_ <= std::numeric_limits<double>::epsilon())
-        return std::make_pair(true, 0.0);
+    {
+      distance = 0.0;
+      return true;
+    }
 
     if (max_view_angle_ > 0.0)
     {
-        const btTransform &sp = mobile_sensor_frame_ ? tf_->getTransformToTargetFrame(state, sensor_frame_id_) : sensor_pose_;
-        const btTransform &tp = mobile_target_frame_ ? tf_->getTransformToTargetFrame(state, target_frame_id_) : target_pose_;
+        const btTransform &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) : sensor_pose_;
+        const btTransform &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) : target_pose_;
         const btVector3 &dir = (tp.getOrigin() - sp.getOrigin()).normalized();
         const btVector3 &normal = tp.getBasis().getColumn(2);
         double ang = acos(dir.dot(normal));
         if (max_view_angle_ < ang)
         {
             if (verbose)
-                ROS_INFO("Visibility constraint is violated because the view angle is %lf (above the maximum allowed of %lf)", ang, max_view_angle_);
-            return std::make_pair(false, 0.0);
+                ROS_INFO("Visibility constraint is violated becaconfigure the view angle is %lf (above the maximum allowed of %lf)", ang, max_view_angle_);
+            distance = 0.0;
+            return false;
         }
     }
 
     shapes::Mesh *m = getVisibilityCone(state);
     if (!m)
-        return std::make_pair(false, 0.0);
+    {
+      distance = 0.0;
+      return false;
+    }
 
     // add the visibility cone as an object
-    cw_->clearObjects();
-    cw_->addObject("cone", m, btTransform::getIdentity());
+    collision_world_->clearObjects();
+    collision_world_->addObject("cone", m, btTransform::getIdentity());
 
     // check for collisions between the robot and the cone
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
     req.contacts = true;
     req.max_contacts = 1;
-    cw_->checkRobotCollision(req, res, *cr_, state);
+    collision_world_->checkRobotCollision(req, res, *collision_robot_, state);
 
     if (verbose)
     {
@@ -577,7 +598,8 @@ std::pair<bool, double> kinematic_constraints::VisibilityConstraint::decide(cons
         ROS_INFO("Visibility constraint %ssatisfied. Visibility cone approximation:\n %s", res.collision ? "not " : "", ss.str().c_str());
     }
 
-    return res.collision ? std::make_pair(false, res.contacts.begin()->second.depth) : std::make_pair(true, 0.0);
+    distance = res.collision ? res.contacts.begin()->second.depth : 0.0;
+    return (!res.collision);
 }
 
 void kinematic_constraints::VisibilityConstraint::print(std::ostream &out) const
@@ -594,11 +616,11 @@ void kinematic_constraints::VisibilityConstraint::print(std::ostream &out) const
 void kinematic_constraints::KinematicConstraintSet::clear(void)
 {
     all_constraints_ = moveit_msgs::Constraints();
-    kce_.clear();
-    jc_.clear();
-    pc_.clear();
-    oc_.clear();
-    vc_.clear();
+    kinematic_constraints_.clear();
+    joint_constraints_.clear();
+    position_constraints_.clear();
+    orientation_constraints_.clear();
+    visibility_constraints_.clear();
 }
 
 bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::JointConstraint> &jc)
@@ -607,10 +629,10 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     for (unsigned int i = 0 ; i < jc.size() ; ++i)
     {
         JointConstraint *ev = new JointConstraint(model_, tf_);
-        bool u = ev->use(jc[i]);
+        bool u = ev->configure(jc[i]);
         result = result && u;
-        kce_.push_back(KinematicConstraintPtr(ev));
-        jc_.push_back(jc[i]);
+        kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
+        joint_constraints_.push_back(jc[i]);
         all_constraints_.joint_constraints.push_back(jc[i]);
     }
     return result;
@@ -622,10 +644,10 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     for (unsigned int i = 0 ; i < pc.size() ; ++i)
     {
         PositionConstraint *ev = new PositionConstraint(model_, tf_);
-        bool u = ev->use(pc[i]);
+        bool u = ev->configure(pc[i]);
         result = result && u;
-        kce_.push_back(KinematicConstraintPtr(ev));
-        pc_.push_back(pc[i]);
+        kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
+        position_constraints_.push_back(pc[i]);
         all_constraints_.position_constraints.push_back(pc[i]);
     }
     return result;
@@ -637,10 +659,10 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     for (unsigned int i = 0 ; i < oc.size() ; ++i)
     {
         OrientationConstraint *ev = new OrientationConstraint(model_, tf_);
-        bool u = ev->use(oc[i]);
+        bool u = ev->configure(oc[i]);
         result = result && u;
-        kce_.push_back(KinematicConstraintPtr(ev));
-        oc_.push_back(oc[i]);
+        kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
+        orientation_constraints_.push_back(oc[i]);
         all_constraints_.orientation_constraints.push_back(oc[i]);
     }
     return result;
@@ -652,10 +674,10 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
     for (unsigned int i = 0 ; i < vc.size() ; ++i)
     {
         VisibilityConstraint *ev = new VisibilityConstraint(model_, tf_);
-        bool u = ev->use(vc[i]);
+        bool u = ev->configure(vc[i]);
         result = result && u;
-        kce_.push_back(KinematicConstraintPtr(ev));
-        vc_.push_back(vc[i]);
+        kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
+        visibility_constraints_.push_back(vc[i]);
         all_constraints_.visibility_constraints.push_back(vc[i]);
     }
     return result;
@@ -670,26 +692,68 @@ bool kinematic_constraints::KinematicConstraintSet::add(const moveit_msgs::Const
     return j && p && o && v;
 }
 
-std::pair<bool, double> kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state, bool verbose) const
+bool kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state, double &distance, bool verbose) const
 {
     bool result = true;
-    double d = 0.0;
-    for (unsigned int i = 0 ; i < kce_.size() ; ++i)
+    distance = 0.0;
+    for (unsigned int i = 0 ; i < kinematic_constraints_.size() ; ++i)
     {
-        const std::pair<bool, double> &r = kce_[i]->decide(state, verbose);
-        if (!r.first)
-            result = false;
-        d += r.second;
+      double d;
+      const bool &r = kinematic_constraints_[i]->decide(state, d, verbose);
+        if (!r)
+        {
+          result = false;
+        }
+        distance += d;
     }
+    return result;
+}
 
-    return std::make_pair(result, d);
+bool kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state, 
+                                                           moveit_msgs::ConstraintEvalResults& results,
+                                                           bool verbose) const
+{
+  bool result = true;
+  unsigned int start_index= 0;
+  results.joint_constraints.resize(joint_constraints_.size());
+  for(unsigned int i=0; i < joint_constraints_.size(); i++)
+  {
+    results.joint_constraints[i].result = kinematic_constraints_[i]->decide(state,results.joint_constraints[i].distance,verbose);
+    result = result && results.joint_constraints[i].result;
+  }
+
+  start_index += joint_constraints_.size();
+  results.position_constraints.resize(position_constraints_.size());
+  for(unsigned int i= start_index; i < start_index + position_constraints_.size(); i++)
+  {
+    results.position_constraints[i].result = kinematic_constraints_[i]->decide(state,results.position_constraints[i].distance,verbose);
+    result = result && results.position_constraints[i].result;
+  }
+
+  start_index += position_constraints_.size();
+  results.orientation_constraints.resize(orientation_constraints_.size());
+  for(unsigned int i=start_index; i < start_index + orientation_constraints_.size(); i++)
+  {
+    results.orientation_constraints[i].result = kinematic_constraints_[i]->decide(state,results.orientation_constraints[i].distance,verbose);
+    result = result && results.orientation_constraints[i].result;
+  }
+
+  start_index += orientation_constraints_.size();
+  results.visibility_constraints.resize(visibility_constraints_.size());
+  for(unsigned int i=start_index; i < start_index + visibility_constraints_.size(); i++)
+  {
+    results.visibility_constraints[i].result = kinematic_constraints_[i]->decide(state,results.visibility_constraints[i].distance,verbose);
+    result = result && results.visibility_constraints[i].result;
+  }
+  
+  return result;
 }
 
 void kinematic_constraints::KinematicConstraintSet::print(std::ostream &out) const
 {
-    out << kce_.size() << " kinematic constraints" << std::endl;
-    for (unsigned int i = 0 ; i < kce_.size() ; ++i)
-        kce_[i]->print(out);
+    out << kinematic_constraints_.size() << " kinematic constraints" << std::endl;
+    for (unsigned int i = 0 ; i < kinematic_constraints_.size() ; ++i)
+        kinematic_constraints_[i]->print(out);
 }
 
 bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
@@ -703,6 +767,23 @@ bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_mod
     kcs.add(constraints.position_constraints);
     kcs.add(constraints.orientation_constraints);
     kcs.add(constraints.visibility_constraints);
-    const std::pair<bool, double> &res = kcs.decide(state, verbose);
-    return res.first;
+    double distance;
+    const bool &res = kcs.decide(state, distance, verbose);
+    return res;
+}
+
+bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
+                                                              const planning_models::TransformsConstPtr& tf,
+                                                              const moveit_msgs::Constraints& constraints,
+                                                              moveit_msgs::ConstraintEvalResults& results,
+                                                              bool verbose)
+{
+    KinematicConstraintSet kcs(state.getKinematicModel(), tf);
+
+    kcs.add(constraints.joint_constraints);
+    kcs.add(constraints.position_constraints);
+    kcs.add(constraints.orientation_constraints);
+    kcs.add(constraints.visibility_constraints);
+    const bool &res = kcs.decide(state, results, verbose);
+    return res;
 }

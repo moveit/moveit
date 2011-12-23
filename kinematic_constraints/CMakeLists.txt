@@ -21,7 +21,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME}
   src/kinematic_constraint.cpp
-  src/constraint_samplers.cpp
+#  src/constraint_samplers.cpp
   src/utils.cpp)
 
 # Unit tests
