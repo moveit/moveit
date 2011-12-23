@@ -76,7 +76,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
         ftf_const_ = ftf_;
 
         kstate_.reset(new planning_models::KinematicState(kmodel_));
-        kstate_->setDefaultValues();
+        kstate_->setToDefaultValues();
         acm_.reset(new collision_detection::AllowedCollisionMatrix());
 
         crobot_.reset(new DefaultCRobotType(kmodel_));
@@ -257,7 +257,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
         bool skip_cmap = false;
         const std::vector<collision_detection::CollisionWorld::Change> &changes = cworld_->getChanges();
         for (std::size_t i = 0 ; i < changes.size() ; ++i)
-            if (changes[i].ns_ == COLLISION_MAP_NS)
+            if (changes[i].id_ == COLLISION_MAP_NS)
             {
                 if (!skip_cmap)
                 {
@@ -269,14 +269,14 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
             {
                 if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
                 {
-                    addPlanningSceneMsgCollisionObject(scene, changes[i].ns_);
+                    addPlanningSceneMsgCollisionObject(scene, changes[i].id_);
                 }
                 else
                     if (changes[i].type_ == collision_detection::CollisionWorld::Change::REMOVE)
                     {
                         moveit_msgs::CollisionObject co;
                         co.header.frame_id = getPlanningFrame();
-                        co.id = changes[i].ns_;
+                        co.id = changes[i].id_;
                         co.operation = moveit_msgs::CollisionObject::REMOVE;
                         scene.collision_objects.push_back(co);
                     }
@@ -329,7 +329,7 @@ void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_ms
     co.header.frame_id = getPlanningFrame();
     co.id = ns;
     co.operation = moveit_msgs::CollisionObject::ADD;
-    const collision_detection::CollisionWorld::NamespaceObjects &obj = *getCollisionWorld()->getObjects(ns);
+    const collision_detection::CollisionWorld::Object &obj = *getCollisionWorld()->getObject(ns);
     for (std::size_t j = 0 ; j < obj.static_shapes_.size() ; ++j)
     {
         moveit_msgs::StaticShape sm;
@@ -354,7 +354,7 @@ void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_ms
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const
 {
     scene.collision_objects.clear();
-    const std::vector<std::string> &ns = getCollisionWorld()->getNamespaces();
+    const std::vector<std::string> &ns = getCollisionWorld()->getObjectIds();
     for (std::size_t i = 0 ; i < ns.size() ; ++i)
         if (ns[i] != COLLISION_MAP_NS)
             addPlanningSceneMsgCollisionObject(scene, ns[i]);
@@ -364,9 +364,9 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
 {
     scene.collision_map.header.frame_id = getPlanningFrame();
     scene.collision_map.boxes.clear();
-    if (getCollisionWorld()->haveNamespace(COLLISION_MAP_NS))
+    if (getCollisionWorld()->hasObject(COLLISION_MAP_NS))
     {
-        const collision_detection::CollisionWorld::NamespaceObjects& map = *getCollisionWorld()->getObjects(COLLISION_MAP_NS);
+        const collision_detection::CollisionWorld::Object& map = *getCollisionWorld()->getObject(COLLISION_MAP_NS);
         if (!map.static_shapes_.empty())
             ROS_ERROR("Static shapes are not supported in the collision map.");
         for (std::size_t i = 0 ; i < map.shapes_.size() ; ++i)
@@ -476,7 +476,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
             ftf_.reset(new planning_models::Transforms(getKinematicModel()->getModelFrame()));
             ftf_const_ = ftf_;
         }
-        ftf_->recordTransforms(scene.fixed_frame_transforms);
+        ftf_->setTransforms(scene.fixed_frame_transforms);
     }
 
     // if at least some joints have been specified, we set them
@@ -546,7 +546,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
         configured_ = true;
         parent_.reset();
     }
-    ftf_->recordTransforms(scene.fixed_frame_transforms);
+    ftf_->setTransforms(scene.fixed_frame_transforms);
     setCurrentState(scene.robot_state);
     acm_.reset(new collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix));
     crobot_->setPadding(scene.link_padding);
@@ -562,7 +562,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
 
 void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
 {
-    const btTransform &t = getTransforms()->getTransformToTargetFrame(getCurrentState(), map.header.frame_id);
+    const btTransform &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
     for (std::size_t i = 0 ; i < map.boxes.size() ; ++i)
     {
         btTransform p; planning_models::poseFromMsg(map.boxes[i].pose, p);
@@ -605,16 +605,16 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             // we need to add some shapes; if the message is empty, maybe the object is already in the world
             if (object.object.shapes.empty())
             {
-                if (cworld_->haveNamespace(object.object.id))
+                if (cworld_->hasObject(object.object.id))
                 {
                     ROS_DEBUG("Attaching world object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
 
                     // extract the shapes from the world
-                    collision_detection::CollisionWorld::NamespaceObjectsPtr obj = cworld_->getObjects(object.object.id);
+                    collision_detection::CollisionWorld::ObjectPtr obj = cworld_->getObject(object.object.id);
                     shapes = obj->shapes_;
                     poses = obj->shape_poses_;
                     // remove the pointer to the objects from the collision world
-                    cworld_->clearObjects(object.object.id);
+                    cworld_->clearObject(object.object.id);
 
                     if (obj.unique())
                     {
@@ -648,8 +648,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             else
             {
                 // we clear the world objects with the same name, since we got an update on their geometry
-                if (cworld_->haveNamespace(object.object.id))
-                    cworld_->clearObjects(object.object.id);
+                if (cworld_->hasObject(object.object.id))
+                    cworld_->clearObject(object.object.id);
                 if (!object.object.static_shapes.empty())
                     ROS_ERROR("Static shapes are ignored for attached object '%s'", object.object.id.c_str());
 
@@ -666,7 +666,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                 // transform poses to link frame
                 if (object.object.header.frame_id != object.link_name)
                 {
-                    const btTransform &t = ls->getGlobalLinkTransform().inverse() * getTransforms()->getTransformToTargetFrame(*kstate_, object.object.header.frame_id);
+                    const btTransform &t = ls->getGlobalLinkTransform().inverse() * getTransforms()->getTransform(*kstate_, object.object.header.frame_id);
                     for (std::size_t i = 0 ; i < poses.size() ; ++i)
                         poses[i] = t * poses[i];
                 }
@@ -705,7 +705,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                     if (prop.unique())
                     {
                         ROS_DEBUG("The memory representing shapes was moved from the planning model to the collision world");
-                        cworld_->addObjects(object.object.id, prop->shapes_, poses);
+                        cworld_->addObject(object.object.id, prop->shapes_, poses);
                         prop->shapes_.clear(); // memory is now owned by the collision world
                     }
                     else
@@ -715,7 +715,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                         for (std::size_t i = 0 ; i < shapes.size() ; ++i)
                             shapes[i] = prop->shapes_[i]->clone();
                         ROS_DEBUG("The memory representing shapes was copied from the planning model to the collision world");
-                        cworld_->addObjects(object.object.id, shapes, poses);
+                        cworld_->addObject(object.object.id, shapes, poses);
                     }
                     ROS_DEBUG("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
                     return true;
@@ -759,7 +759,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
                 cworld_->addObject(object.id, s);
         }
 
-        const btTransform &t = getTransforms()->getTransformToTargetFrame(getCurrentState(), object.header.frame_id);
+        const btTransform &t = getTransforms()->getTransform(getCurrentState(), object.header.frame_id);
         for (std::size_t i = 0 ; i < object.shapes.size() ; ++i)
         {
             shapes::Shape *s = shapes::constructShapeFromMsg(object.shapes[i]);
@@ -774,7 +774,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     else
         if (object.operation == moveit_msgs::CollisionObject::REMOVE)
         {
-            cworld_->clearObjects(object.id);
+            cworld_->clearObject(object.id);
             return true;
         }
         else

@@ -44,6 +44,7 @@
 
 #include <geometric_shapes/bodies.h>
 #include <moveit_msgs/Constraints.h>
+#include <moveit_msgs/ConstraintEvalResults.h>
 
 #include <iostream>
 #include <vector>
@@ -52,7 +53,7 @@
 namespace kinematic_constraints
 {
 
-    class KinematicConstraint
+   class KinematicConstraint
     {
     public:
 
@@ -63,7 +64,7 @@ namespace kinematic_constraints
         virtual void clear(void) = 0;
 
         /** \brief Decide whether the constraint is satisfied in the indicated state */
-        virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const = 0;
+      virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const = 0;
 
         /** \brief This function returns true if this constraint is
             configured and able to decide whether states do meet the
@@ -112,8 +113,8 @@ namespace kinematic_constraints
         {
         }
 
-        bool use(const moveit_msgs::JointConstraint &jc);
-        virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
+        bool configure(const moveit_msgs::JointConstraint &jc);
+        virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
         virtual bool enabled(void) const;
         virtual void clear(void);
         virtual void print(std::ostream &out = std::cout) const;
@@ -156,9 +157,9 @@ namespace kinematic_constraints
         {
         }
 
-        bool use(const moveit_msgs::OrientationConstraint &pc);
+        bool configure(const moveit_msgs::OrientationConstraint &pc);
         virtual void clear(void);
-        virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
+        virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
         virtual bool enabled(void) const;
         void print(std::ostream &out = std::cout) const;
 
@@ -216,9 +217,9 @@ namespace kinematic_constraints
         {
         }
 
-        bool use(const moveit_msgs::PositionConstraint &pc);
+        bool configure(const moveit_msgs::PositionConstraint &pc);
         virtual void clear(void);
-        virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
+        virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
         virtual bool enabled(void) const;
         void print(std::ostream &out = std::cout) const;
 
@@ -269,17 +270,17 @@ namespace kinematic_constraints
 
         VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
 
-        bool use(const moveit_msgs::VisibilityConstraint &vc);
+        bool configure(const moveit_msgs::VisibilityConstraint &vc);
         virtual void clear(void);
         shapes::Mesh* getVisibilityCone(const planning_models::KinematicState &state) const;
-        virtual std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
+        virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
         virtual bool enabled(void) const;
         void print(std::ostream &out = std::cout) const;
 
     protected:
 
-        collision_detection::CollisionRobotPtr cr_;
-        collision_detection::CollisionWorldPtr cw_;
+        collision_detection::CollisionRobotPtr collision_robot_;
+        collision_detection::CollisionWorldPtr collision_world_;
         bool                                   mobile_sensor_frame_;
         bool                                   mobile_target_frame_;
         std::string                            target_frame_id_;
@@ -325,7 +326,11 @@ namespace kinematic_constraints
         bool add(const std::vector<moveit_msgs::VisibilityConstraint> &pc);
 
         /** \brief Decide whether the set of constraints is satisfied  */
-        std::pair<bool, double> decide(const planning_models::KinematicState &state, bool verbose = false) const;
+        bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
+
+        bool decide(const planning_models::KinematicState &state, 
+                    moveit_msgs::ConstraintEvalResults& results,
+                    bool verbose) const;
 
         /** \brief Print the constraint data */
         void print(std::ostream &out = std::cout) const;
@@ -333,28 +338,28 @@ namespace kinematic_constraints
         /** \brief Get the active position constraints */
         const std::vector<moveit_msgs::PositionConstraint>& getPositionConstraints(void) const
         {
-            return pc_;
+            return position_constraints_;
         }
 
         /** \brief Get the active orientation constraints */
         const std::vector<moveit_msgs::OrientationConstraint>& getOrientationConstraints(void) const
         {
-            return oc_;
+            return orientation_constraints_;
         }
 
         /** \brief Get the active pose constraints */
         const std::vector<moveit_msgs::JointConstraint>& getJointConstraints(void) const
         {
-            return jc_;
+            return joint_constraints_;
         }
 
         /** \brief Get the active visibility constraints */
         const std::vector<moveit_msgs::VisibilityConstraint>& getVisibilityConstraints(void) const
         {
-            return vc_;
+          return visibility_constraints_;
         }
 
-        /** \brief Get the all the contained constraints */
+        /** \brief Get all the contained constraints */
         const moveit_msgs::Constraints& getAllConstraints(void) const
         {
             return all_constraints_;
@@ -362,7 +367,7 @@ namespace kinematic_constraints
 
         bool empty(void) const
         {
-            return kce_.empty();
+            return kinematic_constraints_.empty();
         }
 
     protected:
@@ -370,12 +375,12 @@ namespace kinematic_constraints
         planning_models::KinematicModelConstPtr         model_;
         planning_models::TransformsConstPtr             tf_;
 
-        std::vector<KinematicConstraintPtr>             kce_;
+        std::vector<KinematicConstraintPtr>             kinematic_constraints_;
 
-        std::vector<moveit_msgs::JointConstraint>       jc_;
-        std::vector<moveit_msgs::PositionConstraint>    pc_;
-        std::vector<moveit_msgs::OrientationConstraint> oc_;
-        std::vector<moveit_msgs::VisibilityConstraint>  vc_;
+        std::vector<moveit_msgs::JointConstraint>       joint_constraints_;
+        std::vector<moveit_msgs::PositionConstraint>    position_constraints_;
+        std::vector<moveit_msgs::OrientationConstraint> orientation_constraints_;
+        std::vector<moveit_msgs::VisibilityConstraint>  visibility_constraints_;
         moveit_msgs::Constraints                        all_constraints_;
 
     };
@@ -386,6 +391,12 @@ namespace kinematic_constraints
     bool doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
                                            const planning_models::TransformsConstPtr& tf,
                                            const moveit_msgs::Constraints& constraints,
+                                           bool verbose);
+
+    bool doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
+                                           const planning_models::TransformsConstPtr& tf,
+                                           const moveit_msgs::Constraints& constraints,
+                                           moveit_msgs::ConstraintEvalResults& status,
                                            bool verbose);
 
 }

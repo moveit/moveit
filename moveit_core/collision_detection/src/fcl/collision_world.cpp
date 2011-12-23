@@ -78,7 +78,7 @@ void collision_detection::CollisionWorldFCL::checkWorldCollision(const Collision
 {
 }
 
-void collision_detection::CollisionWorldFCL::addObject(const std::string &ns, shapes::StaticShape *shape)
+void collision_detection::CollisionWorldFCL::addShapeToObject(const std::string &id, shapes::StaticShape *shape)
 {
     CollisionWorld::addObject(ns, shape);
     fcl::CollisionObject *co = createCollisionObject(shape);
@@ -88,43 +88,43 @@ void collision_detection::CollisionWorldFCL::addObject(const std::string &ns, sh
     manager_->registerObject(co);
 }
 
-void collision_detection::CollisionWorldFCL::addObject(const std::string &ns, shapes::Shape *shape, const btTransform &pose)
+void collision_detection::CollisionWorldFCL::addShapeToObject(const std::string &id, shapes::Shape *shape, const btTransform &pose)
 {
-    CollisionWorld::addObject(ns, shape, pose);
+    CollisionWorld::addShapeToObject(ns, shape, pose);
 
 }
 
-bool collision_detection::CollisionWorldFCL::moveObject(const std::string &ns, const shapes::Shape *shape, const btTransform &pose)
+bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string &id, const shapes::Shape *shape, const btTransform &pose)
 {
-    if (!CollisionWorld::moveObject(ns, shape, pose))
+    if (!CollisionWorld::moveShapeInObject(ns, shape, pose))
         return false;
 
 }
 
-bool collision_detection::CollisionWorldFCL::removeObject(const std::string &ns, const shapes::Shape *shape)
+bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::string &id, const shapes::Shape *shape)
 {
-    if (!CollisionWorld::removeObject(ns, shape))
+    if (!CollisionWorld::removeShapeFromObject(ns, shape))
         return false;
 
 }
 
-bool collision_detection::CollisionWorldFCL::removeObject(const std::string &ns, const shapes::StaticShape *shape)
+bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::string &id, const shapes::StaticShape *shape)
 {
-    if (!CollisionWorld::removeObject(ns, shape))
+    if (!CollisionWorld::removeShapeFromObject(ns, shape))
         return false;
 
 }
 
-bool collision_detection::CollisionWorldFCL::removeObjects(const std::string &ns)
+/*bool collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
 {
-    if (!CollisionWorld::removeObjects(ns))
+    if (!CollisionWorld::removeObjects(id))
         return false;
 
-}
+        }*/
 
-void collision_detection::CollisionWorldFCL::clearObjects(const std::string &ns)
+void collision_detection::CollisionWorldFCL::clearObject(const std::string &id)
 {
-    CollisionWorld::clearObjects(ns);
+    CollisionWorld::clearObjects(id);
 
 }
 
