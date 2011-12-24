@@ -37,41 +37,43 @@
 #include "ompl_interface/detail/state_validity_checker.h"
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const PlanningGroup *pg) :
-    ompl::base::StateValidityChecker(pg->getOMPLContext().getSpaceInformation()), pg_(pg)
+    ompl::base::StateValidityChecker(pg->getOMPLSimpleSetup().getSpaceInformation()), planning_group_(pg)
 {
-    cr_with_distance_.distance = true;
+    collision_request_with_distance_.distance = true;
 }
 
 void ompl_interface::StateValidityChecker::useNewStartingState(void)
 {
-    tss_.reset(new TSStateStorage(pg_->getStartState()));
+    tss_.reset(new TSStateStorage(planning_group_->getStartState()));
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state) const
 {
     planning_models::KinematicState *kstate = tss_->getStateStorage();
-    pg_->getKMStateSpace().copyToKinematicState(*kstate, state);
+    planning_group_->getKMStateSpace().copyToKinematicState(*kstate, state);
 
-    if (!pg_->getPathConstraints()->decide(*kstate).first)
+    double distance = 0.0;
+    if (!planning_group_->getPathConstraints()->decide(*kstate,distance))
         return false;
 
     collision_detection::CollisionResult res;
-    pg_->getPlanningScene()->checkCollision(cr_simple_, res, *kstate);
+    planning_group_->getPlanningScene()->checkCollision(collision_request_simple_, res, *kstate);
     return res.collision == false;
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist) const
 {
     planning_models::KinematicState *kstate = tss_->getStateStorage();
-    pg_->getKMStateSpace().copyToKinematicState(*kstate, state);
-    const std::pair<bool, double> &r = pg_->getPathConstraints()->decide(*kstate);
-    if (!r.first)
+    planning_group_->getKMStateSpace().copyToKinematicState(*kstate, state);
+    double distance = 0.0;
+    const bool &r = planning_group_->getPathConstraints()->decide(*kstate,distance);
+    if (!r)
     {
-        dist = r.second;
+        dist = distance;
         return false;
     }
     collision_detection::CollisionResult res;
-    pg_->getPlanningScene()->checkCollision(cr_with_distance_, res, *kstate);
+    planning_group_->getPlanningScene()->checkCollision(collision_request_with_distance_, res, *kstate);
     dist = res.distance;
     return res.collision == false;
 }

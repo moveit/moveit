@@ -63,7 +63,7 @@ namespace kinematic_constraints
     protected:
 
         const planning_models::KinematicModel::JointModelGroup *jmg_;
-        random_numbers::RNG                                     rng_;
+        random_numbers::RandomNumberGenerator                   random_number_generator_;
     };
 
     typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;

@@ -101,7 +101,7 @@ ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const omp
 
 ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
                                              const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene) :
-    name_(name), jmg_(jmg), planning_scene_(scene), kinematic_model_state_space_(jmg), ompl_simple_setup_(kinematic_model_state_space_.getOMPLSpace()),
+    name_(name), joint_model_group_(jmg), planning_scene_(scene), kinematic_model_state_space_(jmg), ompl_simple_setup_(kinematic_model_state_space_.getOMPLSpace()),
     pplan_(ompl_simple_setup_.getProblemDefinition()), start_state_(scene->getKinematicModel()), last_plan_time_(0.0),
     max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
 {
@@ -109,7 +109,7 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
     ompl_simple_setup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
     ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
     useConfig(config);
-    path_kset_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
+    path_kinematic_constraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
 }
 
 ompl_interface::PlanningGroup::~PlanningGroup(void)
@@ -196,7 +196,7 @@ ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedS
     if (kinematic_model_state_space_.getOMPLSpace().get() != ss)
         ROS_FATAL("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
     ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
-    const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_kset_->getAllConstraints());
+    const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_kinematic_constraints_set_->getAllConstraints());
     if (cs)
         return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
     else
@@ -210,7 +210,7 @@ ompl::base::GoalPtr ompl_interface::PlanningGroup::getGoalRepresentation(const k
 
 kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getConstraintsSampler(const moveit_msgs::Constraints &constr) const
 {
-    return kinematic_constraints::constructConstraintsSampler(jmg_, constr, planning_scene_->getKinematicModel(), planning_scene_->getTransforms(),
+    return kinematic_constraints::constructConstraintsSampler(joint_model_group_, constr, planning_scene_->getKinematicModel(), planning_scene_->getTransforms(),
                                                               ik_allocator_, ik_subgroup_allocators_);
 }
 
@@ -263,8 +263,8 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
     ompl_simple_setup_.setStartState(ompl_start_state);
 
     // ******************* set the path constraints to use
-    path_kset_->clear();
-    path_kset_->add(path_constraints);
+    path_kinematic_constraints_set_->clear();
+    path_kinematic_constraints_set_->add(path_constraints);
 
     // ******************* set up the goal representation, based on goal constraints
 

@@ -45,18 +45,19 @@
 namespace ompl_interface
 {
 
-    /// Construction of OMPL state space from kinematic joints. This
-    /// class is a wrapper around OMPL's representation of state
-    /// spaces and allows efficient conversions between OMPL states and
-    /// KinematicState
+    /** @class KMStateSpace
+     *  @brief Construction of OMPL state space from kinematic joints. This
+     *  class is a wrapper around OMPL's representation of state
+     *  spaces and allows efficient conversions between OMPL states and
+     *  KinematicState */
     class KMStateSpace
     {
     public:
 
-        /// Construct the OMPL state space that corresponds to a set of joints.
+        /** @brief Construct the OMPL state space that corresponds to a set of joints. */
         KMStateSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
 
-        /// Construct the OMPL state space that corresponds to a group of joints.
+        /** @brief Construct the OMPL state space that corresponds to a group of joints */
         KMStateSpace(const planning_models::KinematicModel::JointModelGroup* jmg);
 
         ~KMStateSpace(void);

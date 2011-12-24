@@ -43,6 +43,8 @@
 namespace ompl_interface
 {
 
+    /** @class StateValidityChecker
+        @brief An interface for a OMPL state validity checker*/
     class StateValidityChecker : public ompl::base::StateValidityChecker
     {
     public:
@@ -55,10 +57,10 @@ namespace ompl_interface
 
     protected:
 
-        const PlanningGroup                  *pg_;
+        const PlanningGroup                  *planning_group_;
         boost::scoped_ptr<TSStateStorage>     tss_;
-        collision_detection::CollisionRequest cr_simple_;
-        collision_detection::CollisionRequest cr_with_distance_;
+        collision_detection::CollisionRequest collision_request_simple_;
+        collision_detection::CollisionRequest collision_request_with_distance_;
     };
 
 }
