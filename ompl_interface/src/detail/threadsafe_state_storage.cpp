@@ -38,7 +38,7 @@
 
 ompl_interface::TSStateStorage::TSStateStorage(const planning_models::KinematicModelPtr &kmodel) : start_state_(kmodel)
 {
-    start_state_.setDefaultValues();
+    start_state_.setToDefaultValues();
 }
 
 ompl_interface::TSStateStorage::TSStateStorage(const planning_models::KinematicState &start_state) : start_state_(start_state)

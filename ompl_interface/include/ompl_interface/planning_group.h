@@ -48,12 +48,20 @@
 
 namespace ompl_interface
 {
-
+    /** @class PlanningGroup
+     *  This class defines a planning group, i.e. a set of joints configured with a set of planners and a planning scene*/
     class PlanningGroup
     {
         friend class OMPLInterface;
     public:
 
+      /**
+         @brief Constructor
+         @param name The name of the planning group
+         @param jmg The joint model group to plan with
+         @param config A map of configuration parameters for the planners
+         @param scene A pointer to a planning scene
+       */
         PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
                       const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene);
         virtual ~PlanningGroup(void);
@@ -64,69 +72,82 @@ namespace ompl_interface
             return name_;
         }
 
+        /* \brief Return the joint model group this planning group is working with. */
         const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void) const
         {
-            return jmg_;
+            return joint_model_group_;
         }
 
+        /* \brief Return the planning scene this planning group is working with. */
         const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
         {
             return planning_scene_;
         }
 
+        /* \brief Return the kinematic model state space this planning group is working with. */
         const KMStateSpace& getKMStateSpace(void) const
         {
             return kinematic_model_state_space_;
         }
 
+        /* \brief Get the maximum number of sampling attempts allowed */
         unsigned int getMaximumSamplingAttempts(void) const
         {
             return max_sampling_attempts_;
         }
 
+        /* \brief Get the maximum number of goal samples */
         unsigned int getMaximumGoalSamples(void) const
         {
             return max_goal_samples_;
         }
 
+        /* \brief Get the maximum number of planning threads allowed */
         unsigned int getMaximumPlanningThreads(void) const
         {
             return max_planning_threads_;
         }
 
+        /* \brief Set the maximum number of sampling attempts allowed */
         void setMaximumSamplingAttempts(unsigned int max_sampling_attempts)
         {
             max_sampling_attempts_ = max_sampling_attempts;
         }
 
+        /* \brief Set the maximum number of goal samples */
         void setMaximumGoalSamples(unsigned int max_goal_samples)
         {
             max_goal_samples_ = max_goal_samples;
         }
 
+        /* \brief Set the maximum number of planning threads */
         void setMaximumPlanningThreads(unsigned int max_planning_threads)
         {
             max_planning_threads_ = max_planning_threads;
         }
 
+        /* \brief Get the maximum solution segment length */
         double getMaximumSolutionSegmentLength(void) const
         {
             return max_solution_segment_length_;
         }
 
+        /* \brief Set the maximum solution segment length */
         void setMaximumSolutionSegmentLength(double mssl)
         {
             max_solution_segment_length_ = mssl;
         }
 
+        /* \brief Get the start state */
         const planning_models::KinematicState& getStartState(void) const
         {
             return start_state_;
         }
 
+        /* \brief Get the path constraints */
         const kinematic_constraints::KinematicConstraintSetPtr& getPathConstraints(void) const
         {
-            return path_kset_;
+            return path_kinematic_constraints_set_;
         }
 
         /*
@@ -147,28 +168,50 @@ namespace ompl_interface
         }
         */
 
-        const ompl::geometric::SimpleSetup& getOMPLContext(void) const
+        /* \brief Get the OMPL SimpleSetup object being used */
+        const ompl::geometric::SimpleSetup& getOMPLSimpleSetup(void) const
         {
             return ompl_simple_setup_;
         }
 
+        /* @brief Set all the information needed for a planner 
+           @param start_state The start state that the planner will use
+           @param goal_constraints The goal constraints 
+           @param path_constraints Path constraints
+           @param status The return status code
+           @return False if something goes wrong (status code provides more information on what went wrong)
+        */     
         bool setupPlanningContext(const planning_models::KinematicState &start_state,
                                   const std::vector<moveit_msgs::Constraints> &goal_constraints,
                                   const moveit_msgs::Constraints &path_constraints,
-                                  moveit_msgs::MoveItErrorCodes *error = NULL);
+                                  moveit_msgs::MoveItErrorCodes *status = NULL);
+
+        /* @brief Set the volume of space that the planner works in*/     
         void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
+        /* @brief solve the planning problem
+           @param timeout The time to spend on solving
+           @param count 
+        */     
         bool solve(double timeout, unsigned int count);
 
+        /* @brief Get the amount of time spent on the last plan*/     
         double getLastPlanTime(void) const
         {
             return last_plan_time_;
         }
 
+        /* @brief Apply smoothing and try to simplify the plan
+           @param timeout The amount of time allowed to be spent on simplifying the plan*/     
         void simplifySolution(double timeout);
+
+        /* @brief Interpolate the solution*/     
         void interpolateSolution();
 
+        /* @brief Get the solution as a RobotTrajectory object*/     
         bool getSolutionPath(moveit_msgs::RobotTrajectory &traj) const;
+
+        /* @brief Fill in the response to the motion plan request. This includes the status code of the motion plan*/     
         void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
 
     protected:
@@ -187,7 +230,7 @@ namespace ompl_interface
         std::string                                             name_;
 
         /// the group planning is performed for.
-        const planning_models::KinematicModel::JointModelGroup *jmg_;
+        const planning_models::KinematicModel::JointModelGroup *joint_model_group_;
 
         /// pointer to the planning scene used for collision avoidance
         planning_scene::PlanningSceneConstPtr                   planning_scene_;
@@ -205,7 +248,7 @@ namespace ompl_interface
         planning_models::KinematicState                         start_state_;
 
         /// the set of kinematic constraints to be respected by any state on the path
-        kinematic_constraints::KinematicConstraintSetPtr        path_kset_;
+        kinematic_constraints::KinematicConstraintSetPtr        path_kinematic_constraints_set_;
 
         /// the set of kinematic constraints to be respected by the goal state
         std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;

@@ -43,24 +43,34 @@
 
 namespace ompl_interface
 {
+
+    /** @class ConstrainedSampler
+     *  This class defines a sampler that tries to find a sample that satisfies the constraints*/
     class ConstrainedSampler : public ompl::base::StateSampler
     {
     public:
+    /** @brief Default constructor
+     *  @param pg The planning group
+     *  @param cs A pointer to a kinematic constraint sampler
+     */
         ConstrainedSampler(const PlanningGroup *pg, const kinematic_constraints::ConstraintSamplerPtr &cs);
 
+    /** @brief Sample a state (uniformly)*/
         virtual void sampleUniform(ompl::base::State *state);
 
+    /** @brief Sample a state (uniformly) within a certain distance of another state*/
         virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance);
 
+    /** @brief Sample a state using the specified Gaussian*/
         virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev);
 
     private:
 
         bool sampleC(ompl::base::State *state);
 
-        const PlanningGroup                        *pg_;
+        const PlanningGroup                        *planning_group_;
         ompl::base::StateSamplerPtr                 default_;
-        kinematic_constraints::ConstraintSamplerPtr cs_;
+        kinematic_constraints::ConstraintSamplerPtr constraint_sampler_;
     };
 
 }

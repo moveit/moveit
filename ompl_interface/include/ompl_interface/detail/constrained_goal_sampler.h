@@ -45,6 +45,8 @@
 namespace ompl_interface
 {
 
+    /** @class ConstrainedGoalSampler
+     *  An interface to the OMPL goal lazy sampler*/
     class ConstrainedGoalSampler : public ompl::base::GoalLazySamples
     {
     public:
@@ -57,9 +59,9 @@ namespace ompl_interface
         bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
         bool sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
 
-        const PlanningGroup                             *pg_;
-        kinematic_constraints::KinematicConstraintSetPtr ks_;
-        kinematic_constraints::ConstraintSamplerPtr      cs_;
+        const PlanningGroup                             *planning_group_;
+        kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
+        kinematic_constraints::ConstraintSamplerPtr      constraint_sampler_;
         planning_models::KinematicState                  state_;
     };
 }

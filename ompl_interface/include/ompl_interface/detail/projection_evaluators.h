@@ -43,6 +43,8 @@
 namespace ompl_interface
 {
 
+    /** @class ProjectionEvaluatorLinkPose
+        @brief */
     class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
     {
     public:
@@ -55,12 +57,14 @@ namespace ompl_interface
 
     private:
 
-        const PlanningGroup *pg_;
+        const PlanningGroup *planning_group_;
         std::string          link_name_;
         TSStateStorage       tss_;
 
     };
 
+    /** @class ProjectionEvaluatorJointValue
+        @brief */
     class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
     {
     public:
@@ -72,8 +76,8 @@ namespace ompl_interface
 
     private:
 
-        const PlanningGroup                               *pg_;
-        unsigned int                                       dim_;
+        const PlanningGroup                               *planning_group_;
+        unsigned int                                       dimension_;
         std::vector<std::pair<std::string, unsigned int> > joints_;
     };
 }

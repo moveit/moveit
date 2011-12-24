@@ -94,13 +94,13 @@ bool kinematic_constraints::JointConstraintSampler::sample(std::vector<double> &
     values.resize(jmg_->getVariableCount());    
     // enforce the constraints for the constrained components (could be all of them)
     for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
-        values[index_[i]] = rng_.uniformReal(bounds_[i].first, bounds_[i].second);
+        values[index_[i]] = random_number_generator_.uniformReal(bounds_[i].first, bounds_[i].second);
     
     // sample the rest of the components
     for (std::size_t i = 0 ; i < unbounded_.size() ; ++i)
     {
         std::vector<double> v;
-        unbounded_[i]->getRandomValues(rng_, v);
+        unbounded_[i]->getRandomValues(random_number_generator_, v);
         for (std::size_t j = 0 ; j < v.size() ; ++j)
             values[uindex_[i] + j] = v[j];
     }
@@ -266,7 +266,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
         btVector3 point;
         if (sp_.pc_)
         {
-            if (!sp_.pc_->getConstraintRegion()->samplePointInside(rng_, max_attempts, point))
+            if (!sp_.pc_->getConstraintRegion()->samplePointInside(random_number_generator_, max_attempts, point))
                 return false;
         }
         else
@@ -276,7 +276,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             planning_models::KinematicState::JointStateGroup *tmp = tempState.getJointStateGroup(jmg_->getName());
             if (tmp)
             {
-                tmp->setRandomValues();
+                tmp->setToRandomValues();
                 point = tempState.getLinkState(sp_.oc_->getLinkModel()->getName())->getGlobalLinkTransform().getOrigin();
             }
             else
@@ -291,7 +291,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
         {
             // sample a rotation matrix within the allowed bounds
             double rpy[3];
-            rng_.eulerRPY(rpy);
+            random_number_generator_.eulerRPY(rpy);
             btMatrix3x3 diff;
             diff.setEulerYPR(rpy[2] * sp_.oc_->getYawTolerance() / boost::math::constants::pi<double>(),
                              rpy[1] * sp_.oc_->getPitchTolerance() / boost::math::constants::pi<double>(),
@@ -302,7 +302,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
         {
             // sample a random orientation
             double q[4];
-            rng_.quaternion(q);
+            random_number_generator_.quaternion(q);
             quat = btQuaternion(q[0], q[1], q[2], q[3]);
         }
         
@@ -345,7 +345,7 @@ bool kinematic_constraints::IKConstraintSampler::callIK(const geometry_msgs::Pos
 {
     // sample a seed value
     std::vector<double> vals;
-    jmg_->getRandomValues(rng_, vals);
+    jmg_->getRandomValues(random_number_generator_, vals);
     ROS_ASSERT(vals.size() == ik_joint_bijection_.size());
     std::vector<double> seed(ik_joint_bijection_.size(), 0.0);
     for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
@@ -388,7 +388,7 @@ kinematic_constraints::UnionConstraintSampler::UnionConstraintSampler(const plan
 
 bool kinematic_constraints::UnionConstraintSampler::sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts)
 {
-    jmg_->getRandomValues(rng_, values);
+    jmg_->getRandomValues(random_number_generator_, values);
     for (std::size_t i = 0 ; i < samplers_.size() ; ++i)
     {
         std::vector<double> v;
@@ -416,7 +416,7 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
         for (std::size_t i = 0 ; i < constr.joint_constraints.size() ; ++i)
         {
             JointConstraint j(kmodel, ftf);
-            if (j.use(constr.joint_constraints[i]))
+            if (j.configure(constr.joint_constraints[i]))
                 jc.push_back(j);
         }
 
@@ -447,7 +447,7 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
                 {
                     boost::shared_ptr<PositionConstraint> pc(new PositionConstraint(kmodel, ftf));
                     boost::shared_ptr<OrientationConstraint> oc(new OrientationConstraint(kmodel, ftf));
-                    if (pc->use(constr.position_constraints[p]) && oc->use(constr.orientation_constraints[o]))
+                    if (pc->configure(constr.position_constraints[p]) && oc->configure(constr.orientation_constraints[o]))
                     {        
                         boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(jmg, ik_alloc, IKSamplingPose(pc, oc)));
                         if (iks->initialize())
@@ -469,7 +469,7 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
         for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
         {
             boost::shared_ptr<PositionConstraint> pc(new PositionConstraint(kmodel, ftf));
-            if (pc->use(constr.position_constraints[p]))
+            if (pc->configure(constr.position_constraints[p]))
             {
                 boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(jmg, ik_alloc, IKSamplingPose(pc)));
                 if (iks->initialize())
@@ -491,7 +491,7 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
         for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
         {
             boost::shared_ptr<OrientationConstraint> oc(new OrientationConstraint(kmodel, ftf));
-            if (oc->use(constr.orientation_constraints[o]))
+            if (oc->configure(constr.orientation_constraints[o]))
             {
                 boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(jmg, ik_alloc, IKSamplingPose(oc)));
                 if (iks->initialize())
