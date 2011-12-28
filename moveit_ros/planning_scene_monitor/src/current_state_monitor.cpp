@@ -99,6 +99,21 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(void) const
     return result;
 }
 
+bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<std::string> &missing_states) const
+{
+    bool result = true;
+    const std::vector<std::string> &dof = kmodel_->getActiveDOFNames();
+    boost::mutex::scoped_lock slock(state_update_lock_);
+    for (std::size_t i = 0 ; i < dof.size() ; ++i)
+        if (joint_time_.find(dof[i]) == joint_time_.end())
+        {
+            ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
+            missing_states.push_back(dof[i]);
+            result = false;
+        }
+    return result;
+}
+
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::Duration &age) const
 {
     bool result = true;
@@ -119,6 +134,35 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
             {
                 ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
                           dof[i].c_str(), (now - it->second).toSec(), age.toSec());
+                result = false;
+            }
+    }
+    return result;
+}
+
+bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::Duration &age, 
+                                                                    std::vector<std::string> &missing_states) const
+{
+    bool result = true;
+    const std::vector<std::string> &dof = kmodel_->getActiveDOFNames();
+    ros::Time now = ros::Time::now();
+    ros::Time old = now - age;
+    boost::mutex::scoped_lock slock(state_update_lock_);
+    for (std::size_t i = 0 ; i < dof.size() ; ++i)
+    {
+        std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(dof[i]);
+        if (it == joint_time_.end())
+        {
+            ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
+            missing_states.push_back(dof[i]);
+            result = false;
+        }
+        else
+            if (it->second < old)
+            {
+                ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
+                          dof[i].c_str(), (now - it->second).toSec(), age.toSec());
+                missing_states.push_back(dof[i]);
                 result = false;
             }
     }

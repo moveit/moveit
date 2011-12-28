@@ -84,29 +84,15 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
         }
     }
     last_update_ = ros::Time::now();
-    last_state_update_ = ros::WallTime::now();
-    dt_state_update_ = 0.2;
-}
-
-void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
-{
-    boost::mutex::scoped_lock slock(scene_update_mutex_);
-    scene_->decoupleParent();
-    if (flag)
-	scene_.reset(new planning_scene::PlanningScene(scene_));
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
 {
     if (scene_)
     {
-	{
-	    boost::mutex::scoped_lock slock(scene_update_mutex_);
-	    scene_->setPlanningSceneMsg(*scene);
-	    last_update_ = ros::Time::now();
-	}
-	if (update_callback_)
-	    update_callback_();
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->setPlanningSceneMsg(*scene);
+        last_update_ = ros::Time::now();
     }
 }
 
@@ -114,13 +100,9 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneDiffCallback(
 {
     if (scene_)
     {
-	{
-	    boost::mutex::scoped_lock slock(scene_update_mutex_);
-	    scene_->setPlanningSceneDiffMsg(*scene);
-	    last_update_ = ros::Time::now();
-	}
-	if (update_callback_)
-	    update_callback_();
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->setPlanningSceneDiffMsg(*scene);
+        last_update_ = ros::Time::now();
     }
 }
 
@@ -128,13 +110,9 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const
 {
     if (scene_)
     {
-	{
-	    boost::mutex::scoped_lock slock(scene_update_mutex_);
-	    scene_->processCollisionObjectMsg(*obj);
-	    last_update_ = ros::Time::now();
-	}
-	if (update_callback_)
-	    update_callback_();
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->processCollisionObjectMsg(*obj);
+        last_update_ = ros::Time::now();
     }
 }
 
@@ -142,13 +120,9 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
 {
     if (scene_)
     {
-	{
-	    boost::mutex::scoped_lock slock(scene_update_mutex_);
-	    scene_->processAttachedCollisionObjectMsg(*obj);
-	    last_update_ = ros::Time::now();
-	}
-	if (update_callback_)
-	    update_callback_();
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->processAttachedCollisionObjectMsg(*obj);
+        last_update_ = ros::Time::now();
     }
 }
 
@@ -156,13 +130,9 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
 {
     if (scene_)
     {
-	{
-	    boost::mutex::scoped_lock slock(scene_update_mutex_);
-	    scene_->processCollisionMapMsg(*map);
-	    last_update_ = ros::Time::now();
-	}
-	if (update_callback_)
-	    update_callback_();
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->processCollisionMapMsg(*map);
+        last_update_ = ros::Time::now();
     }
 }
 
@@ -252,8 +222,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
 	if (!csm_)
             csm_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));  
 	csm_->stopStateMonitor();
-	csm_->setOnStateUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
-	csm_->startStateMonitor(joint_states_topic);
+        csm_->startStateMonitor(joint_states_topic);
     }
     else
         ROS_ERROR("Cannot monitor robot state because planning scene is not configured");
@@ -265,48 +234,19 @@ void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor(void)
         csm_->stopStateMonitor();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr & /* joint_state */ )
-{
-    const ros::WallTime &n = ros::WallTime::now();
-    const double t = (n - last_state_update_).toSec();
-    if (t >= dt_state_update_)
-    {
-	last_state_update_ = n;
-	useMonitoredState();
-    }
-}
-
-void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateFrequency(double hz)
-{
-    if (hz > std::numeric_limits<double>::epsilon())
-	dt_state_update_ = 1.0 / hz;
-    else
-	dt_state_update_ = 0.0;
-    ROS_INFO("Updating internal planning scene state at most every %lf seconds", dt_state_update_);
-}
-
 void planning_scene_monitor::PlanningSceneMonitor::useMonitoredState(void)
 {
     if (csm_)
     {
         if (!csm_->haveCompleteState())
             ROS_ERROR("The complete state of the robot is not yet known");
-	{
-	    boost::mutex::scoped_lock slock(scene_update_mutex_);
-	    const std::map<std::string, double> &v = csm_->getCurrentStateValues();
-	    scene_->getCurrentState().setStateValues(v);
-	    last_update_ = ros::Time::now();
-	}
-	if (update_callback_)
-	    update_callback_();
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        const std::map<std::string, double> &v = csm_->getCurrentStateValues();
+        scene_->getCurrentState().setStateValues(v);
+	last_update_ = ros::Time::now();
     }
     else
         ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
-}
-
-void planning_scene_monitor::PlanningSceneMonitor::setUpdateCallback(const boost::function<void()> &fn)
-{
-    update_callback_ = fn;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::updateFixedTransforms(void)
@@ -359,13 +299,9 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFixedTransforms(void)
         f.transform.rotation.w = q.w();
         transforms.push_back(f);
     }
-    {
-	boost::mutex::scoped_lock slock(scene_update_mutex_);
-	scene_->getTransforms()->recordTransforms(transforms);
-	last_update_ = ros::Time::now();
-    }
-    if (update_callback_)
-	update_callback_();
+    boost::mutex::scoped_lock slock(scene_update_mutex_);
+    scene_->getTransforms()->setTransforms(transforms);
+    last_update_ = ros::Time::now();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::configureDefaultCollisionMatrix(void)

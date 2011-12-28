@@ -44,22 +44,29 @@
 
 namespace planning_scene_monitor
 {
-
+    /** @class RobotModelLoader
+     *  @brief Default constructor
+     *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded*/
     class RobotModelLoader
     {
     public:
+        /** @brief Default constructor
+         *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded*/
         RobotModelLoader(const std::string &robot_description);
 
+        /** @brief Get the robot description (URDF in string format)*/
         const std::string& getRobotDescription(void) const
         {
             return robot_description_;
         }
 
+        /** @brief Get the parsed URDF model*/
         const boost::shared_ptr<urdf::Model>& getURDF(void) const
         {
             return urdf_;
         }
 
+        /** @brief Get the parsed SRDF model*/
         const boost::shared_ptr<srdf::Model>& getSRDF(void) const
         {
             return srdf_;
