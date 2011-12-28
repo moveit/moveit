@@ -49,33 +49,78 @@ namespace planning_scene_monitor
 
     typedef boost::function<void(const sensor_msgs::JointStateConstPtr &joint_state)> JointStateUpdateCallback;
 
+    /** @class CurrentStateMonitor
+        @brief Monitors the joint_states topic and tf to maintain the current state of the robot. */
     class CurrentStateMonitor
     {
     public:
 
+        /** @brief Constructor
+         *  @param kmodel The current kinematic model to build on
+         *  @param tf A pointer to the tf transformer to use
+         */
         CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf);
 
+        /** @brief Start monitoring joint states on a particular topic
+         *  @param joint_states_topic The topic name for joint states (defaults to "joint_states")
+         */
         void startStateMonitor(const std::string &joint_states_topic = "joint_states");
+
+        /** @brief Stop monitoring the "joint_states" topic
+         */
         void stopStateMonitor(void);
+
+        /** @brief Query whether we have joint state information for all DOFs in the kinematic model
+         *  @return False if we have no joint state information for one or more of the joints
+         */
         bool haveCompleteState(void) const;
+
+        /** @brief Query whether we have joint state information for all DOFs in the kinematic model
+         *  @return False if we have no joint state information for one of the joints or if our state 
+         *  information is more than \e age old
+         */
         bool haveCompleteState(const ros::Duration &age) const;
 
+        /** @brief Query whether we have joint state information for all DOFs in the kinematic model
+         *  @param missing_states Returns the list of joints that are missing
+         *  @return False if we have no joint state information for one or more of the joints 
+         */
+        bool haveCompleteState(std::vector<std::string> &missing_states) const;
+
+        /** @brief Query whether we have joint state information for all DOFs in the kinematic model
+         *  @param age The max allowed age of the joint state information
+         *  @param missing_states Returns the list of joints that are missing
+         *  @return False if we have no joint state information for one of the joints or if our state 
+         *  information is more than \e age old*/
+        bool haveCompleteState(const ros::Duration &age, std::vector<std::string> &missing_states) const;
+      
+        /** @brief Get the current state
+         *  @return Returns the current state*/
         planning_models::KinematicStatePtr getCurrentState(void) const;
+
+        /** @brief Get the current state values as a map from joint names to joint state values
+         *  @return Returns the map from joint names to joint state values*/
         std::map<std::string, double> getCurrentStateValues(void) const;
+
+        /** @brief Set a callback that will be called whenever the joint state is updated*/
         void setOnStateUpdateCallback(const JointStateUpdateCallback &callback);
 
-        /** \brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
-            if the difference is less than the specified error. */
+        /** @brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
+         *  if the difference is less than a specified value (labeled the "allowed bounds error"). 
+         *  This value can be set using this function.
+         *  @param error The specified value for the "allowed bounds error"*/
+        void setBoundsError(double error)
+        {
+          error_ = (error > 0) ? error : -error;
+        }
+
+        /** @brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
+         *  if the difference is less than a specified value (labeled the "allowed bounds error").
+         *  @return The stored value for the "allowed bounds error"
+         */
         double getBoundsError(void) const
         {
             return error_;
-        }
-
-        /** \brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
-            if the difference is less than the specified error. */
-        void setBoundsError(double error)
-        {
-            error_ = error;
         }
 
     private:
