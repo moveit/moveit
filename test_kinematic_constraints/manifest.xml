@@ -11,7 +11,6 @@
   <depend package="roscpp"/>
   <depend package="kinematic_constraints"/>
   <depend package="pluginlib"/>
-  <depend package="planning_scene_ros"/>
 
 </package>
 

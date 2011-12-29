@@ -124,7 +124,7 @@ protected:
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
 {
     planning_models::KinematicState ks(kmodel_);
-    ks.setDefaultValues();
+    ks.setToDefaultValues();
     planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
 
     kinematic_constraints::JointConstraint jc1(kmodel_, tf);
@@ -134,7 +134,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
     jcm1.tolerance_above = 0.01;
     jcm1.tolerance_below = 0.05;
     jcm1.weight = 1.0;
-    EXPECT_TRUE(jc1.use(jcm1));
+    EXPECT_TRUE(jc1.configure(jcm1));
 
     kinematic_constraints::JointConstraint jc2(kmodel_, tf);
     moveit_msgs::JointConstraint jcm2;
@@ -143,7 +143,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
     jcm2.tolerance_above = 0.1;
     jcm2.tolerance_below = 0.05;
     jcm2.weight = 1.0;
-    EXPECT_TRUE(jc2.use(jcm2));
+    EXPECT_TRUE(jc2.configure(jcm2));
 
     kinematic_constraints::JointConstraint jc3(kmodel_, tf);
     moveit_msgs::JointConstraint jcm3;
@@ -152,7 +152,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
     jcm3.tolerance_above = 0.14;
     jcm3.tolerance_below = 0.005;
     jcm3.weight = 1.0;
-    EXPECT_TRUE(jc3.use(jcm3));
+    EXPECT_TRUE(jc3.configure(jcm3));
 
     kinematic_constraints::JointConstraint jc4(kmodel_, tf);
     moveit_msgs::JointConstraint jcm4;
@@ -161,7 +161,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
     jcm4.tolerance_above = 0.09;
     jcm4.tolerance_below = 0.01;
     jcm4.weight = 1.0;
-    EXPECT_TRUE(jc4.use(jcm4));
+    EXPECT_TRUE(jc4.configure(jcm4));
 
     std::vector<kinematic_constraints::JointConstraint> js;
     js.push_back(jc1);
@@ -179,7 +179,10 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
         EXPECT_TRUE(jcs.sample(values, ks));
         ks.getJointStateGroup("weird_group")->setStateValues(values);
         for (unsigned int i = 0 ; i < js.size() ; ++i)
-            EXPECT_TRUE(js[i].decide(ks).first);
+        {
+          double distance(0.0);
+          EXPECT_TRUE(js[i].decide(ks,distance));
+        }
     }
 
     // test the automatic construction of constraint sampler
@@ -207,14 +210,17 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSampler)
         EXPECT_TRUE(s->sample(values, ks));
         ks.getJointStateGroup("weird_group")->setStateValues(values);
         for (unsigned int i = 0 ; i < js.size() ; ++i)
-            EXPECT_TRUE(js[i].decide(ks).first);
+        {
+          double distance(0.0);
+          EXPECT_TRUE(js[i].decide(ks,distance));
+        }
     }
 }
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
     planning_models::KinematicState ks(kmodel_);
-    ks.setDefaultValues();
+    ks.setToDefaultValues();
     planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
 
     kinematic_constraints::OrientationConstraint oc(kmodel_, tf);
@@ -231,21 +237,22 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
     ocm.absolute_yaw_tolerance = 0.01;
     ocm.weight = 1.0;
 
-    EXPECT_TRUE(oc.use(ocm));
+    EXPECT_TRUE(oc.configure(ocm));
 
-    const std::pair<bool, double> &p1 = oc.decide(ks);
-    EXPECT_FALSE(p1.first);
+    double distance(0.0);
+    const bool &p1 = oc.decide(ks,distance);
+    EXPECT_FALSE(p1);
 
     ocm.orientation.header.frame_id = ocm.link_name;
-    EXPECT_TRUE(oc.use(ocm));
-    const std::pair<bool, double> &p2 = oc.decide(ks);
-    EXPECT_TRUE(p2.first);
+    EXPECT_TRUE(oc.configure(ocm));
+    const bool &p2 = oc.decide(ks,distance);
+    EXPECT_TRUE(p2);
 }
 
 TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
 {
     planning_models::KinematicState ks(kmodel_);
-    ks.setDefaultValues();
+    ks.setToDefaultValues();
     planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel_->getModelFrame()));
 
     kinematic_constraints::PositionConstraint pc(kmodel_, tf);
@@ -268,7 +275,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
     pcm.constraint_region_pose.pose.orientation.w = 1.0;
     pcm.weight = 1.0;
 
-    EXPECT_TRUE(pc.use(pcm));
+    EXPECT_TRUE(pc.configure(pcm));
 
     kinematic_constraints::OrientationConstraint oc(kmodel_, tf);
     moveit_msgs::OrientationConstraint ocm;
@@ -284,7 +291,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
     ocm.absolute_yaw_tolerance = 0.4;
     ocm.weight = 1.0;
 
-    EXPECT_TRUE(oc.use(ocm));
+    EXPECT_TRUE(oc.configure(ocm));
 
     kinematic_constraints::IKConstraintSampler iks1(kmodel_->getJointModelGroup("left_arm"), ik_allocator_,
                                                     kinematic_constraints::IKSamplingPose(pc, oc));
@@ -293,8 +300,9 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
         std::vector<double> values;
         EXPECT_TRUE(iks1.sample(values, ks, 100));
         ks.getJointStateGroup("left_arm")->setStateValues(values);
-        EXPECT_TRUE(pc.decide(ks).first);
-        EXPECT_TRUE(oc.decide(ks).first);
+        double distance(0.0);
+        EXPECT_TRUE(pc.decide(ks,distance));
+        EXPECT_TRUE(oc.decide(ks,distance));
     }
 
     kinematic_constraints::IKConstraintSampler iks2(kmodel_->getJointModelGroup("left_arm"), ik_allocator_,
@@ -302,9 +310,10 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
     for (int t = 0 ; t < 100 ; ++t)
     {
         std::vector<double> values;
+        double distance(0.0);
         EXPECT_TRUE(iks2.sample(values, ks, 100));
         ks.getJointStateGroup("left_arm")->setStateValues(values);
-        EXPECT_TRUE(pc.decide(ks).first);
+        EXPECT_TRUE(pc.decide(ks,distance));
     }
 
     kinematic_constraints::IKConstraintSampler iks3(kmodel_->getJointModelGroup("left_arm"), ik_allocator_,
@@ -312,9 +321,10 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
     for (int t = 0 ; t < 100 ; ++t)
     {
         std::vector<double> values;
+        double distance(0.0);
         EXPECT_TRUE(iks3.sample(values, ks, 100));
         ks.getJointStateGroup("left_arm")->setStateValues(values);
-        EXPECT_TRUE(oc.decide(ks).first);
+        EXPECT_TRUE(oc.decide(ks,distance));
     }
 
 
@@ -329,10 +339,11 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintsSampler)
     for (int t = 0 ; t < 100 ; ++t)
     {
         std::vector<double> values;
+        double distance(0.0);
         EXPECT_TRUE(s->sample(values, ks, 100));
         ks.getJointStateGroup("left_arm")->setStateValues(values);
-        EXPECT_TRUE(pc.decide(ks).first);
-        EXPECT_TRUE(oc.decide(ks).first);
+        EXPECT_TRUE(pc.decide(ks,distance));
+        EXPECT_TRUE(oc.decide(ks,distance));
     }
 }
 
@@ -398,13 +409,14 @@ TEST_F(LoadPlanningModelsPr2, GenericConstraintsSampler)
     kset.add(c);
 
     planning_models::KinematicState ks(kmodel_);
-    ks.setDefaultValues();
+    ks.setToDefaultValues();
     for (int t = 0 ; t < 100 ; ++t)
     {
+      double distance;
         std::vector<double> values;
         EXPECT_TRUE(s->sample(values, ks, 100));
         ks.getJointStateGroup("arms")->setStateValues(values);
-        EXPECT_TRUE(kset.decide(ks).first);
+        EXPECT_TRUE(kset.decide(ks,distance));
     }
 }
 
@@ -440,7 +452,7 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraint)
     vcm.sensor_pose.pose.orientation.w = 1;
     vcm.weight = 1.0;
 
-    EXPECT_TRUE(vc.use(vcm));
+    EXPECT_TRUE(vc.configure(vcm));
 
     shapes::Mesh *m = vc.getVisibilityCone(ks);
     visualization_msgs::Marker mk;
