@@ -284,7 +284,7 @@ bool ompl_interface_ros::OMPLInterfaceROS::computePlan(moveit_msgs::GetMotionPla
     return solve(req, res);
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::status(void)
+void ompl_interface_ros::OMPLInterfaceROS::printStatus(void)
 {
     if (isConfigured())
     {

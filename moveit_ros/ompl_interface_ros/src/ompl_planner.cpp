@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     psm.startStateMonitor();
     
     ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
-    o.status();
+    o.printStatus();
     
     ros::waitForShutdown();
 
