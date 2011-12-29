@@ -39,26 +39,36 @@
 
 namespace ompl_interface_ros
 {
+   /** @class OMPLInterfaceROS */
     class OMPLInterfaceROS : public ompl_interface::OMPLInterface
     {
     public:
+      /** @brief Constructor
+       *  @param scene A pointer to the planning scene*/
+      OMPLInterfaceROS(const planning_scene::PlanningSceneConstPtr &scene);
+      
+      /** @brief Compute and return the plan*/
+      bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
 
-        OMPLInterfaceROS(const planning_scene::PlanningSceneConstPtr &scene);
-        bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
-
-        void status(void);
+      /** @brief Print the status of this node*/
+      void printStatus(void);
 
     protected:
 
-        std::vector<std::string> getAdditionalConfigGroupNames(void);
-        void configureIKSolvers(void);
-        void configurePlanners(std::vector<ompl_interface::PlannerConfigs> &pconfig);
+      /** @brief Get additional configuration information for groups*/
+      std::vector<std::string> getAdditionalConfigGroupNames(void);
 
-        ros::NodeHandle                       nh_;
-        ros::ServiceServer                    plan_service_;
+      /** @brief Configure the IK solvers from the ROS param server*/
+      void configureIKSolvers(void);
 
+      /** @brief Configure the planners*/
+      void configurePlanners(std::vector<ompl_interface::PlannerConfigs> &pconfig);
+      
+      ros::NodeHandle                       nh_; /// The ROS node handle 
+
+      ros::ServiceServer                    plan_service_; /// The planning service
+      
     private:
-
         class IKLoader;
         boost::shared_ptr<IKLoader>           ik_loader_;
     };
