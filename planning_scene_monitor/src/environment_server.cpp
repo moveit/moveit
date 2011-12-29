@@ -40,41 +40,41 @@
 class EnvironmentServer
 {
 public:
-    EnvironmentServer(void) : psm_("robot_description", &tf_)
+    EnvironmentServer(void) : planning_scene_monitor_("robot_description", &tf_)
     {
-	pub_diff_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene_diff", 2);
-	parent_scene_ = psm_.getPlanningScene();
-	// this will create a new planning scene whose parent is the current planning scene
-	psm_.monitorDiffs(true);
-	psm_.setUpdateCallback(boost::bind(&EnvironmentServer::onSceneUpdate, this));
-	psm_.startWorldGeometryMonitor();
-	psm_.startStateMonitor();
+      pub_diff_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene_diff", 2);
+      parent_scene_ = planning_scene_monitor_.getPlanningScene();
+      // this will create a new planning scene whose parent is the current planning scene
+      planning_scene_monitor_.monitorDiffs(true);
+      planning_scene_monitor_.setUpdateCallback(boost::bind(&EnvironmentServer::onSceneUpdate, this));
+      planning_scene_monitor_.startWorldGeometryMonitor();
+      planning_scene_monitor_.startStateMonitor();
     }
 
 private:
     ros::NodeHandle nh_;
     tf::TransformListener tf_;
-    planning_scene_monitor::PlanningSceneMonitor psm_;
+    planning_scene_monitor::PlanningSceneMonitor planning_scene_monitor_;
     planning_scene::PlanningScenePtr parent_scene_;
     ros::Publisher pub_diff_;
     
     void onSceneUpdate(void)
     {
-	moveit_msgs::PlanningScene diff;
-	
-	psm_.lockScene();
-	try
-	{
-	    psm_.getPlanningScene()->getPlanningSceneDiffMsg(diff);
-	    psm_.getPlanningScene()->pushDiffs(parent_scene_);
-	    psm_.getPlanningScene()->clearDiffs();
-	}
-	catch(...)
-	{
-	    psm_.unlockScene();
-	    throw;
-	}
-	psm_.unlockScene();
+      moveit_msgs::PlanningScene diff;
+      
+      planning_scene_monitor_.lockScene();
+      try
+      {
+        planning_scene_monitor_.getPlanningScene()->getPlanningSceneDiffMsg(diff);
+        planning_scene_monitor_.getPlanningScene()->pushDiffs(parent_scene_);
+        planning_scene_monitor_.getPlanningScene()->clearDiffs();
+      }
+      catch(...)
+      {
+        planning_scene_monitor_.unlockScene();
+        throw;
+      }
+      planning_scene_monitor_.unlockScene();
     } 
 };
 
