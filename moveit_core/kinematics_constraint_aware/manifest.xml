@@ -1,0 +1,25 @@
+<package>
+  <description brief="kinematics_constraint_aware">
+
+     kinematics_constraint_aware
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/kinematics_constraint_aware</url>
+  <depend package="kinematics_base"/>
+  <depend package="moveit_msgs"/>
+  <depend package="planning_models"/>
+  <depend package="collision_detection"/>
+  <depend package="kinematic_constraints"/>
+  <depend package="planning_scene"/>
+  <depend package="tf"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lkinematics_constraint_aware"/>
+  </export>
+
+</package>
+
+

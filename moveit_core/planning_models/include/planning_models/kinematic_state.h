@@ -40,6 +40,7 @@
 #include "planning_models/kinematic_model.h"
 #include <boost/scoped_ptr.hpp>
 #include <std_msgs/ColorRGBA.h>
+#include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
 
 /** \brief Main namespace */
@@ -459,6 +460,12 @@ namespace planning_models
                 group are not recomputed.  */
             void setStateValues(const std::map<std::string, double>& joint_state_map);
 
+            /** \brief Perform forward kinematics starting at the roots
+                within a group. Links that are not in the group are also
+                updated, but transforms for joints that are not in the
+                group are not recomputed.  */
+          void setStateValues(const sensor_msgs::JointState& js);
+
             /** Compute transforms using current joint values */
             void updateLinkTransforms(void);
 
@@ -556,12 +563,18 @@ namespace planning_models
          *  Also returns the set of joint names for which joint states have not been provided.*/
         void setStateValues(const std::map<std::string, double>& joint_state_map, std::vector<std::string>& missing);
 
+      /** @brief Set the joint state values from a joint state message */
+      void setStateValues(const sensor_msgs::JointState& msg);
+
         /** @brief Get the joint state values. The order in which the values are specified matches the order
          *  of the joints in the KinematicModel corresponding to this state.*/
         void getStateValues(std::vector<double>& joint_state_values) const;
 
         /** @brief Get the joint state values as a map between joint state names and values*/
         void getStateValues(std::map<std::string, double>& joint_state_values) const;
+
+      /** @brief Get the joint state values in a sensor_msgs::JointState msg */
+      void getStateValues(sensor_msgs::JointState& msg) const;
 
         /** \brief Perform forward kinematics with the current values and update the link transforms.*/
         void updateLinkTransforms(void);
