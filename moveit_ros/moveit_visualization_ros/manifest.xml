@@ -10,7 +10,7 @@
   <url>http://ros.org/wiki/moveit_visualization_ros</url>
   <depend package="pluginlib"/>
   <depend package="visualization_msgs"/>
-  <depend package="planning_scene_ros"/>
+  <depend package="planning_scene_monitor"/>
   <depend package="kinematics_base"/>
   <depend package="kinematics_constraint_aware"/>
 
