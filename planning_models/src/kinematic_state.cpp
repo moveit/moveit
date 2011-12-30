@@ -172,6 +172,17 @@ void planning_models::KinematicState::setStateValues(const std::map<std::string,
     updateLinkTransforms();
 }
 
+void planning_models::KinematicState::setStateValues(const sensor_msgs::JointState& js) {
+  std::map<std::string, double> vals;
+  unsigned int position_size = js.position.size();
+  for(unsigned int i=0; i < js.name.size(); i++) {
+    if(i < position_size) {
+      vals[js.name[i]] = js.position[i];
+    }
+  }
+  setStateValues(vals);
+}
+
 void planning_models::KinematicState::getStateValues(std::vector<double>& joint_state_values) const
 {
     joint_state_values.clear();
@@ -192,6 +203,21 @@ void planning_models::KinematicState::getStateValues(std::map<std::string,double
         for (std::size_t j = 0 ; j < jsv.size(); ++j)
             joint_state_values[jsn[j]] = jsv[j];
     }
+}
+
+void planning_models::KinematicState::getStateValues(sensor_msgs::JointState& js) const {
+  std::map<std::string, double> joint_state_values;
+  getStateValues(joint_state_values);
+  js.name.resize(joint_state_values.size());
+  js.position.resize(joint_state_values.size());
+  
+  unsigned int i = 0;
+  for(std::map<std::string, double>::iterator it = joint_state_values.begin();
+      it != joint_state_values.end();
+      it++, i++) {
+    js.name[i] = it->first;
+    js.position[i] = it->second;
+  }
 }
 
 void planning_models::KinematicState::updateLinkTransforms(void)
@@ -807,6 +833,7 @@ void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA&
         arr.markers[i].ns = ns;
         arr.markers[i].id = id;
         arr.markers[i].lifetime = dur;
+        arr.markers[i].color = color;
     }
 }
 
@@ -817,7 +844,7 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
   {
     visualization_msgs::Marker mark;
     const LinkState* ls = getLinkState(link_names[i]);
-    if(!ls) continue;
+    if(!ls || !ls->getLinkModel() || !ls->getLinkModel()->getShape()) continue;
     mark.header.frame_id = kinematic_model_->getModelFrame();
     mark.header.stamp = ros::Time::now();
     msgFromPose(ls->getGlobalCollisionBodyTransform(), mark.pose);
@@ -827,6 +854,7 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
     } else {
       mark.type = mark.MESH_RESOURCE;
       mark.mesh_resource = ls->getLinkModel()->getFilename();
+      mark.scale.x = mark.scale.y = mark.scale.z = 1.0;
     }
     arr.markers.push_back(mark);
   }
