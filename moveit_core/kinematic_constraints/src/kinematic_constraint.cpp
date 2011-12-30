@@ -582,7 +582,7 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
 
     // add the visibility cone as an object
     collision_world_->clearObjects();
-    collision_world_->addObject("cone", m, btTransform::getIdentity());
+    collision_world_->addToObject("cone", m, btTransform::getIdentity());
 
     // check for collisions between the robot and the cone
     collision_detection::CollisionRequest req;
