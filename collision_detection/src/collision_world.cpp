@@ -63,13 +63,19 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
         checkRobotCollision(req, res, robot, state, acm);
 }
 
-void collision_detection::CollisionWorld::addObject(const std::string &id, const std::vector<shapes::Shape*> &shapes, const std::vector<btTransform> &poses)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::Shape*> &shapes, const std::vector<btTransform> &poses)
 {
     if (shapes.size() != poses.size())
         ROS_ERROR("Number of shapes and number of poses do not match. Not adding this object to collision world.");
     else
         for (std::size_t i = 0 ; i < shapes.size() ; ++i)
-            addObject(id, shapes[i], poses[i]);
+            addToObject(id, shapes[i], poses[i]);
+}
+
+void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::StaticShape*> &shapes)
+{    
+    for (std::size_t i = 0 ; i < shapes.size() ; ++i)
+	addToObject(id, shapes[i]);
 }
 
 std::vector<std::string> collision_detection::CollisionWorld::getObjectIds(void) const
@@ -103,7 +109,7 @@ void collision_detection::CollisionWorld::ensureUnique(ObjectPtr &id)
         id.reset(id->clone());
 }
 
-void collision_detection::CollisionWorld::addObject(const std::string &id, shapes::StaticShape *shape)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, shapes::StaticShape *shape)
 {
     // make sure that if a new object is created, it knows its name
     std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
@@ -125,7 +131,7 @@ void collision_detection::CollisionWorld::addObject(const std::string &id, shape
         changeAddObj(it->second.get());
 }
 
-void collision_detection::CollisionWorld::addObject(const std::string &id, shapes::Shape *shape, const btTransform &pose)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, shapes::Shape *shape, const btTransform &pose)
 {
     // make sure that if a new object is created, it knows its name
     std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
@@ -234,7 +240,7 @@ bool collision_detection::CollisionWorld::removeStaticShapeFromObject(const std:
     return false;
 }
 
-void collision_detection::CollisionWorld::clearObject(const std::string &id)
+void collision_detection::CollisionWorld::removeObject(const std::string &id)
 {
     boost::recursive_mutex::scoped_lock slock(objects_lock_);
     if (objects_.erase(id) == 1)

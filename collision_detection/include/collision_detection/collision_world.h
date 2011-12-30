@@ -180,16 +180,20 @@ namespace collision_detection
         /** \brief Check if a particular object exists in the collision world*/
         bool hasObject(const std::string &id) const;
 
-        /** \brief Add an object to the map. The user releases ownership of the passed objects. Memory allocated for the shapes is freed by the collision environment.*/
-        void addObject(const std::string &id, 
-                       const std::vector<shapes::Shape*> &shapes, 
-                       const std::vector<btTransform> &poses);
+        /** \brief Add shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
+        void addToObject(const std::string &id, 
+			 const std::vector<shapes::Shape*> &shapes, 
+			 const std::vector<btTransform> &poses);
+
+        /** \brief Add static shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
+        void addToObject(const std::string &id, 
+			 const std::vector<shapes::StaticShape*> &shapes);
 
         /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
-        virtual void addObject(const std::string &id, shapes::Shape *shape, const btTransform &pose);
+        virtual void addToObject(const std::string &id, shapes::Shape *shape, const btTransform &pose);
 
         /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
-        virtual void addObject(const std::string &id, shapes::StaticShape *shape);
+        virtual void addToObject(const std::string &id, shapes::StaticShape *shape);
 
         /** \brief Update the pose of a shape in an object. Shape equality is verified by comparing pointers. Returns true on success. */
         virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const btTransform &pose);
@@ -200,8 +204,8 @@ namespace collision_detection
         /** \brief Remove shape from object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
         virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShape *shape);
 
-        /** \brief Clear a particular object. If there are no other pointers to the corresponding instance of Object, the memory is freed. */
-        virtual void clearObject(const std::string &id);
+        /** \brief Remove a particular object. If there are no other pointers to the corresponding instance of Object, the memory is freed. */
+        virtual void removeObject(const std::string &id);
 
         /** \brief Clear all objects. If there are no other pointers to corresponding instances of Objects, the memory is freed. */
         virtual void clearObjects(void);
