@@ -362,7 +362,7 @@ void PlanningDisplay::renderPlanningScene()
         return;
 
     scene_monitor_->lockScene();
-    ros::Time last_update = scene_monitor_->getLastUpdate();
+    ros::Time last_update = scene_monitor_->getLastUpdateTime();
     scene_monitor_->unlockScene();
     if (last_update <= last_scene_render_)
         return;
@@ -371,15 +371,15 @@ void PlanningDisplay::renderPlanningScene()
     uint32_t man_object_id = 0;
 
     scene_monitor_->lockScene();
-    last_scene_render_ = scene_monitor_->getLastUpdate();
+    last_scene_render_ = scene_monitor_->getLastUpdateTime();
     try
     {
         scene_robot_->update(PlanningLinkUpdater(&scene_monitor_->getPlanningScene()->getCurrentState()));
         collision_detection::CollisionWorldConstPtr cworld = scene_monitor_->getPlanningScene()->getCollisionWorld();
-        const std::vector<std::string> &ns = cworld->getNamespaces();
-        for (std::size_t i = 0 ; i < ns.size() ; ++i)
+        const std::vector<std::string> &ids = cworld->getObjectIds();
+        for (std::size_t i = 0 ; i < ids.size() ; ++i)
         {
-            collision_detection::CollisionWorld::NamespaceObjectsConstPtr o = cworld->getObjects(ns[i]);
+            collision_detection::CollisionWorld::ObjectConstPtr o = cworld->getObject(ids[i]);
             const rviz::Color &color = colors[i % (sizeof(colors)/sizeof(rviz::Color))];
             for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
             {
@@ -503,7 +503,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 
   if (!animating_path_ && new_display_trajectory_)
   {
-      scene_monitor_->updateFixedTransforms();
+      scene_monitor_->updateFrameTransforms();
       displaying_trajectory_message_.reset(new ReceivedTrajectoryMessage(incoming_trajectory_message_, scene_monitor_->getPlanningScene()));
       animating_path_ = true;
       new_display_trajectory_ = false;
