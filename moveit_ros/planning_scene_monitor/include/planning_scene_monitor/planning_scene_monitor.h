@@ -53,13 +53,13 @@ namespace planning_scene_monitor
     class PlanningSceneMonitor
     {
     public:
-      /** @brief Constructor 
+      /** @brief Constructor
        *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
        *  @param tf A pointer to a tf::Transformer
        */
         PlanningSceneMonitor(const std::string &robot_description, tf::Transformer *tf);
 
-      /** @brief Constructor 
+      /** @brief Constructor
        *  @param parent The parent planning scene with respect to which the diffs are to be maintained
        *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
        *  @param tf A pointer to a tf::Transformer
@@ -88,6 +88,8 @@ namespace planning_scene_monitor
             return robot_description_;
         }
 
+        void monitorDiffs(bool flag);
+
       /** @brief Get the stored instance of the stored current state monitor
        *  @return An instance of the stored current state monitor*/
         const CurrentStateMonitorPtr& getStateMonitor(void) const
@@ -105,59 +107,65 @@ namespace planning_scene_monitor
 
       /** @brief Stop the state monitor*/
       void stopStateMonitor(void);
-      
+
       /** @brief Update the scene using the monitored state*/
       void updateSceneWithCurrentState(void);
 
+      /** @brief Update the scene using the monitored state at a specified frequency, in Hz
+          @param hz the update frequency */
+      void setStateUpdateFrequency(double hz);
+
       /** @brief Start the scene monitor
-       *  @param scene_topic The name of the planning scene topic 
+       *  @param scene_topic The name of the planning scene topic
        *  @param planning_scene_diff The name of the planning scene diff topic
-       */          
+       */
       void startSceneMonitor(const std::string &scene_topic = "planning_scene",
                              const std::string &scene_diff_topic = "planning_scene_diff");
 
-      /** @brief Stop the scene monitor*/          
+      /** @brief Stop the scene monitor*/
       void stopSceneMonitor(void);
 
       /** @brief Start listening for objects in the world, the collision map and attached collision objects
        *  @param collision_objects_topic The topic on which to listen for collision objects
        *  @param attached_objects_topic The topic on which to listen for attached collision objects
-       *  @param collision_map The topic on which to listen for the collision map*/	
+       *  @param collision_map The topic on which to listen for the collision map*/
       void startWorldGeometryMonitor(const std::string &collision_objects_topic = "collision_object",
                                      const std::string &attached_objects_topic = "attached_collision_object",
                                      const std::string &collision_map_topic = "collision_map");
 
       /** @brief Stop the world geometry monitor*/
       void stopWorldGeometryMonitor(void);
-	
+
+      void setUpdateCallback(const boost::function<void()> &fn);
+
       /** \brief Return the time when the last update was made to the planning scene (by the monitor) */
       const ros::Time& getLastUpdateTime(void) const
       {
         return last_update_time_;
       }
-      
+
       /** \brief Lock the scene */
       void lockScene(void);
 
       /** \brief Unlock the scene */
       void unlockScene(void);
-      
+
     protected:
 
       /** @brief Initialize the planning scene monitor
        *  @param parent The parent planning scene with respect to which the diffs are to be maintained
        *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)*/
       void initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description);
-      
+
       /** @brief Configure the default collision matrix*/
       void configureDefaultCollisionMatrix(void);
-      
+
       /** @brief Configure the default padding*/
       void configureDefaultPadding(void);
-      
+
       /** @brief Callback for a new planning scene msg*/
       void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
-      
+
       /** @brief Callback for a new planning scene diff msg*/
       void newPlanningSceneDiffCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
 
@@ -169,13 +177,15 @@ namespace planning_scene_monitor
 
       /** @brief Callback for a new collision map*/
       void collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map);
-      
+
+      void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
+
       planning_scene::PlanningScenePtr      scene_; /// internally stored planning scene
 
-      planning_scene::PlanningSceneConstPtr scene_const_; /// internally stored 
+      planning_scene::PlanningSceneConstPtr scene_const_; /// internally stored
       boost::mutex                          scene_update_mutex_; /// mutex for stored scene
-      
-      ros::NodeHandle                       nh_; 
+
+      ros::NodeHandle                       nh_;
       ros::NodeHandle                       root_nh_;
       tf::Transformer                      *tf_;
       std::string                           robot_description_;
@@ -183,18 +193,27 @@ namespace planning_scene_monitor
       double                                default_robot_scale_; /// default robot scaling
       double                                default_object_padd_; /// default object padding
       double                                default_attached_padd_; /// default attached padding
-      
+
       ros::Subscriber                       planning_scene_subscriber_;
       ros::Subscriber                       planning_scene_diff_subscriber_;
-      
+
       message_filters::Subscriber<moveit_msgs::CollisionObject> *collision_object_subscriber_;
       tf::MessageFilter<moveit_msgs::CollisionObject> *collision_object_filter_;
       message_filters::Subscriber<moveit_msgs::AttachedCollisionObject> *attached_collision_object_subscriber_;
       message_filters::Subscriber<moveit_msgs::CollisionMap> *collision_map_subscriber_;
       tf::MessageFilter<moveit_msgs::CollisionMap> *collision_map_filter_;
-      
-      CurrentStateMonitorPtr                current_state_monitor_;      
+
+      CurrentStateMonitorPtr                current_state_monitor_;
       ros::Time                             last_update_time_; /// Last time the state was updated
+
+      boost::function<void()>               update_callback_;
+
+      /// the planning scene state is updated at a maximum specified frequency,
+      /// and this timestamp is used to implement that functionality
+      ros::WallTime                         last_state_update_;
+
+      /// the amount of time to wait in between updates to the robot state (in seconds)
+      double                                dt_state_update_;
     };
 
     typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;

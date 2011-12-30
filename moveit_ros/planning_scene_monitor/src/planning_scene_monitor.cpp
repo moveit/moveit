@@ -62,7 +62,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
     attached_collision_object_subscriber_ = NULL;
     collision_map_subscriber_ = NULL;
     collision_map_filter_ = NULL;
-    
+
     RobotModelLoader rml(robot_description);
     robot_description_ = rml.getRobotDescription();
     if (rml.getURDF() && rml.getSRDF())
@@ -84,15 +84,29 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
         }
     }
     last_update_time_ = ros::Time::now();
+    last_state_update_ = ros::WallTime::now();
+    dt_state_update_ = 0.2;
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
+{
+    boost::mutex::scoped_lock slock(scene_update_mutex_);
+    scene_->decoupleParent();
+    if (flag)
+        scene_.reset(new planning_scene::PlanningScene(scene_));
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
 {
     if (scene_)
     {
-        boost::mutex::scoped_lock slock(scene_update_mutex_);
-        scene_->setPlanningSceneMsg(*scene);
-        last_update_time_ = ros::Time::now();
+        {
+            boost::mutex::scoped_lock slock(scene_update_mutex_);
+            scene_->setPlanningSceneMsg(*scene);
+            last_update_time_ = ros::Time::now();
+        }
+        if (update_callback_)
+            update_callback_();
     }
 }
 
@@ -100,9 +114,13 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneDiffCallback(
 {
     if (scene_)
     {
-        boost::mutex::scoped_lock slock(scene_update_mutex_);
-        scene_->setPlanningSceneDiffMsg(*scene);
-        last_update_time_ = ros::Time::now();
+        {
+            boost::mutex::scoped_lock slock(scene_update_mutex_);
+            scene_->setPlanningSceneDiffMsg(*scene);
+            last_update_time_ = ros::Time::now();
+        }
+        if (update_callback_)
+            update_callback_();
     }
 }
 
@@ -110,9 +128,13 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const
 {
     if (scene_)
     {
-        boost::mutex::scoped_lock slock(scene_update_mutex_);
-        scene_->processCollisionObjectMsg(*obj);
-        last_update_time_ = ros::Time::now();
+        {
+            boost::mutex::scoped_lock slock(scene_update_mutex_);
+            scene_->processCollisionObjectMsg(*obj);
+            last_update_time_ = ros::Time::now();
+        }
+        if (update_callback_)
+            update_callback_();
     }
 }
 
@@ -120,9 +142,13 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
 {
     if (scene_)
     {
-        boost::mutex::scoped_lock slock(scene_update_mutex_);
-        scene_->processAttachedCollisionObjectMsg(*obj);
-        last_update_time_ = ros::Time::now();
+        {
+            boost::mutex::scoped_lock slock(scene_update_mutex_);
+            scene_->processAttachedCollisionObjectMsg(*obj);
+            last_update_time_ = ros::Time::now();
+        }
+        if (update_callback_)
+            update_callback_();
     }
 }
 
@@ -130,9 +156,13 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
 {
     if (scene_)
     {
-        boost::mutex::scoped_lock slock(scene_update_mutex_);
-        scene_->processCollisionMapMsg(*map);
-        last_update_time_ = ros::Time::now();
+        {
+            boost::mutex::scoped_lock slock(scene_update_mutex_);
+            scene_->processCollisionMapMsg(*map);
+            last_update_time_ = ros::Time::now();
+        }
+            if (update_callback_)
+            update_callback_();
     }
 }
 
@@ -147,28 +177,28 @@ void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string &scene_topic, const std::string &scene_diff_topic)
-{ 
-    stopSceneMonitor();  
-    
+{
+    stopSceneMonitor();
+
     ROS_INFO("Starting scene monitor");
     // listen for planning scene updates; these messages include transforms, so no need for filters
     if (!scene_topic.empty())
-	planning_scene_subscriber_ = root_nh_.subscribe(scene_topic, 2, &PlanningSceneMonitor::newPlanningSceneCallback, this);
+        planning_scene_subscriber_ = root_nh_.subscribe(scene_topic, 2, &PlanningSceneMonitor::newPlanningSceneCallback, this);
     if (!scene_diff_topic.empty())
-	planning_scene_diff_subscriber_ = root_nh_.subscribe(scene_diff_topic, 100, &PlanningSceneMonitor::newPlanningSceneDiffCallback, this);
+        planning_scene_diff_subscriber_ = root_nh_.subscribe(scene_diff_topic, 100, &PlanningSceneMonitor::newPlanningSceneDiffCallback, this);
     ROS_INFO("Listening to '%s' and '%s'", scene_topic.c_str(), scene_diff_topic.c_str());
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
-{    
+{
     ROS_INFO("Stopping scene monitor");
     planning_scene_diff_subscriber_.shutdown();
     planning_scene_subscriber_.shutdown();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
-									     const std::string &attached_objects_topic,
-									     const std::string &collision_map_topic)
+                                                                             const std::string &attached_objects_topic,
+                                                                             const std::string &collision_map_topic)
 {
     stopWorldGeometryMonitor();
     ROS_INFO("Starting world geometry monitor");
@@ -176,27 +206,27 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     // listen for world geometry updates using message filters
     if (!collision_objects_topic.empty())
     {
-	collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, collision_objects_topic, 1024);
-	collision_object_filter_ = new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024);
-	collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
-	ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
+        collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, collision_objects_topic, 1024);
+        collision_object_filter_ = new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024);
+        collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
+        ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
     }
-    
+
     if (!attached_objects_topic.empty())
     {
-	// using regular message filter as there's no header
-	attached_collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::AttachedCollisionObject>(root_nh_, attached_objects_topic, 1024);
-	attached_collision_object_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::attachObjectCallback, this, _1));
-	ROS_INFO("Listening to '%s' for attached collision objects", attached_objects_topic.c_str());
+        // using regular message filter as there's no header
+        attached_collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::AttachedCollisionObject>(root_nh_, attached_objects_topic, 1024);
+        attached_collision_object_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::attachObjectCallback, this, _1));
+        ROS_INFO("Listening to '%s' for attached collision objects", attached_objects_topic.c_str());
     }
-    
+
     if (!collision_map_topic.empty())
     {
-	// listen to collision map using filters
-	collision_map_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionMap>(root_nh_, collision_map_topic, 2);
-	collision_map_filter_ = new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2);
-	collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
-	ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_map_topic.c_str(), collision_map_filter_->getTargetFramesString().c_str());
+        // listen to collision map using filters
+        collision_map_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionMap>(root_nh_, collision_map_topic, 2);
+        collision_map_filter_ = new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2);
+        collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
+        ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_map_topic.c_str(), collision_map_filter_->getTargetFramesString().c_str());
     }
 }
 
@@ -207,7 +237,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
     delete collision_object_filter_;
     delete attached_collision_object_subscriber_;
     delete collision_map_subscriber_;
-    delete collision_map_filter_;  
+    delete collision_map_filter_;
     collision_object_subscriber_ = NULL;
     collision_object_filter_ = NULL;
     attached_collision_object_subscriber_ = NULL;
@@ -220,8 +250,9 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
     if (scene_->isConfigured())
     {
       if (!current_state_monitor_)
-        current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));  
+        current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
       current_state_monitor_->stopStateMonitor();
+      current_state_monitor_->setOnStateUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
       current_state_monitor_->startStateMonitor(joint_states_topic);
     }
     else
@@ -234,19 +265,48 @@ void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor(void)
         current_state_monitor_->stopStateMonitor();
 }
 
+void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr & /* joint_state */ )
+{
+    const ros::WallTime &n = ros::WallTime::now();
+    const double t = (n - last_state_update_).toSec();
+    if (t >= dt_state_update_)
+    {
+        last_state_update_ = n;
+        updateSceneWithCurrentState();
+    }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateFrequency(double hz)
+{
+    if (hz > std::numeric_limits<double>::epsilon())
+        dt_state_update_ = 1.0 / hz;
+    else
+        dt_state_update_ = 0.0;
+    ROS_INFO("Updating internal planning scene state at most every %lf seconds", dt_state_update_);
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(void)
 {
     if (current_state_monitor_)
     {
         if (!current_state_monitor_->haveCompleteState())
             ROS_ERROR("The complete state of the robot is not yet known");
-        boost::mutex::scoped_lock slock(scene_update_mutex_);
-        const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
-        scene_->getCurrentState().setStateValues(v);
-        last_update_time_ = ros::Time::now();
+        {
+            boost::mutex::scoped_lock slock(scene_update_mutex_);
+            const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
+            scene_->getCurrentState().setStateValues(v);
+            last_update_time_ = ros::Time::now();
+        }
+        if (update_callback_)
+            update_callback_();
     }
     else
         ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::setUpdateCallback(const boost::function<void()> &fn)
+{
+    update_callback_ = fn;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
@@ -299,9 +359,13 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
         f.transform.rotation.w = q.w();
         transforms.push_back(f);
     }
-    boost::mutex::scoped_lock slock(scene_update_mutex_);
-    scene_->getTransforms()->setTransforms(transforms);
-    last_update_time_ = ros::Time::now();
+    {
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->getTransforms()->setTransforms(transforms);
+        last_update_time_ = ros::Time::now();
+    }
+    if (update_callback_)
+        update_callback_();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::configureDefaultCollisionMatrix(void)
