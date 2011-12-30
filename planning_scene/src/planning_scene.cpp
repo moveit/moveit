@@ -109,6 +109,72 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
     return true;
 }
 
+void planning_scene::PlanningScene::clearDiffs(void)
+{
+    if (!parent_)
+        return;
+
+    // clear everything, reset the world
+    cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
+    cworld_->recordChanges(true);
+    cworld_const_ = cworld_;
+
+    kmodel_.reset();
+    kmodel_const_.reset();
+    ftf_.reset();
+    ftf_const_.reset();
+    kstate_.reset();
+    acm_.reset();
+    crobot_.reset();
+    crobot_const_.reset();
+    crobot_unpadded_.reset();
+}
+
+void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
+{
+    if (!parent_)
+        return;
+
+    if (ftf_)
+        *scene->getTransforms() = *ftf_;
+
+    if (kstate_)
+        scene->getCurrentState() = *kstate_;
+
+    if (acm_)
+        scene->getAllowedCollisionMatrix() = *acm_;
+
+    if (crobot_)
+    {
+        scene->getCollisionRobot()->setLinkPadding(crobot_->getLinkPadding());
+        scene->getCollisionRobot()->setLinkScale(crobot_->getLinkScale());
+    }
+
+    if (cworld_->isRecordingChanges())
+    {
+        const std::vector<collision_detection::CollisionWorld::Change> &changes = cworld_->getChanges();
+        if (!changes.empty())
+        {
+            collision_detection::CollisionWorldPtr w = scene->getCollisionWorld();
+            for (std::size_t i = 0 ; i < changes.size() ; ++i)
+                if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
+                {
+                    collision_detection::CollisionWorld::NamespaceObjects *obj = cworld_->getObjects(changes[i].ns_)->clone();
+                    w->addObjects(obj->ns_, obj->shapes_, obj->shape_poses_);
+                    w->addObjects(obj->ns_, obj->static_shapes_);
+                    // memory now belongs to the other collision world, so we do not delete it
+                    obj->shapes_.clear(); obj->shape_poses_.clear(); obj->static_shapes_.clear();
+                    delete obj;
+                }
+                else
+                    if (changes[i].type_ == collision_detection::CollisionWorld::Change::REMOVE)
+                        w->clearObjects(changes[i].ns_);
+                    else
+                        ROS_ERROR("Unknown change on collision world");
+        }
+    }
+}
+
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res) const
 {
     checkCollision(req, res, getCurrentState());
