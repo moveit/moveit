@@ -76,24 +76,24 @@ namespace planning_scene_monitor
         bool haveCompleteState(void) const;
 
         /** @brief Query whether we have joint state information for all DOFs in the kinematic model
-         *  @return False if we have no joint state information for one of the joints or if our state 
+         *  @return False if we have no joint state information for one of the joints or if our state
          *  information is more than \e age old
          */
         bool haveCompleteState(const ros::Duration &age) const;
 
         /** @brief Query whether we have joint state information for all DOFs in the kinematic model
          *  @param missing_states Returns the list of joints that are missing
-         *  @return False if we have no joint state information for one or more of the joints 
+         *  @return False if we have no joint state information for one or more of the joints
          */
         bool haveCompleteState(std::vector<std::string> &missing_states) const;
 
         /** @brief Query whether we have joint state information for all DOFs in the kinematic model
          *  @param age The max allowed age of the joint state information
          *  @param missing_states Returns the list of joints that are missing
-         *  @return False if we have no joint state information for one of the joints or if our state 
+         *  @return False if we have no joint state information for one of the joints or if our state
          *  information is more than \e age old*/
         bool haveCompleteState(const ros::Duration &age, std::vector<std::string> &missing_states) const;
-      
+
         /** @brief Get the current state
          *  @return Returns the current state*/
         planning_models::KinematicStatePtr getCurrentState(void) const;
@@ -106,7 +106,7 @@ namespace planning_scene_monitor
         void setOnStateUpdateCallback(const JointStateUpdateCallback &callback);
 
         /** @brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
-         *  if the difference is less than a specified value (labeled the "allowed bounds error"). 
+         *  if the difference is less than a specified value (labeled the "allowed bounds error").
          *  This value can be set using this function.
          *  @param error The specified value for the "allowed bounds error"*/
         void setBoundsError(double error)

@@ -57,11 +57,11 @@ private:
     planning_scene_monitor::PlanningSceneMonitor planning_scene_monitor_;
     planning_scene::PlanningScenePtr parent_scene_;
     ros::Publisher pub_diff_;
-    
+
     void onSceneUpdate(void)
     {
       moveit_msgs::PlanningScene diff;
-      
+
       planning_scene_monitor_.lockScene();
       try
       {
@@ -75,18 +75,18 @@ private:
         throw;
       }
       planning_scene_monitor_.unlockScene();
-    } 
+    }
 };
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "environment_server");
-    
+
     ros::AsyncSpinner spinner(1);
     spinner.start();
-    
+
     EnvironmentServer es;
-    
+
     ros::waitForShutdown();
 
     return 0;
