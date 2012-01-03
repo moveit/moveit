@@ -174,44 +174,44 @@ namespace ompl_interface
             return ompl_simple_setup_;
         }
 
-        /* @brief Set all the information needed for a planner 
+        /* @brief Set all the information needed for a planner
            @param start_state The start state that the planner will use
-           @param goal_constraints The goal constraints 
+           @param goal_constraints The goal constraints
            @param path_constraints Path constraints
            @param status The return status code
            @return False if something goes wrong (status code provides more information on what went wrong)
-        */     
+        */
         bool setupPlanningContext(const planning_models::KinematicState &start_state,
                                   const std::vector<moveit_msgs::Constraints> &goal_constraints,
                                   const moveit_msgs::Constraints &path_constraints,
                                   moveit_msgs::MoveItErrorCodes *status = NULL);
 
-        /* @brief Set the volume of space that the planner works in*/     
+        /* @brief Set the volume of space that the planner works in*/
         void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
         /* @brief solve the planning problem
            @param timeout The time to spend on solving
-           @param count 
-        */     
+           @param count
+        */
         bool solve(double timeout, unsigned int count);
 
-        /* @brief Get the amount of time spent on the last plan*/     
+        /* @brief Get the amount of time spent on the last plan*/
         double getLastPlanTime(void) const
         {
             return last_plan_time_;
         }
 
         /* @brief Apply smoothing and try to simplify the plan
-           @param timeout The amount of time allowed to be spent on simplifying the plan*/     
+           @param timeout The amount of time allowed to be spent on simplifying the plan*/
         void simplifySolution(double timeout);
 
-        /* @brief Interpolate the solution*/     
+        /* @brief Interpolate the solution*/
         void interpolateSolution();
 
-        /* @brief Get the solution as a RobotTrajectory object*/     
+        /* @brief Get the solution as a RobotTrajectory object*/
         bool getSolutionPath(moveit_msgs::RobotTrajectory &traj) const;
 
-        /* @brief Fill in the response to the motion plan request. This includes the status code of the motion plan*/     
+        /* @brief Fill in the response to the motion plan request. This includes the status code of the motion plan*/
         void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
 
     protected:

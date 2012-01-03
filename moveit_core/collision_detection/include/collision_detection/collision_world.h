@@ -32,25 +32,26 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
 #ifndef COLLISION_DETECTION_COLLISION_WORLD_
 #define COLLISION_DETECTION_COLLISION_WORLD_
 
 #include "collision_detection/collision_matrix.h"
 #include "collision_detection/collision_robot.h"
-#include <boost/thread/recursive_mutex.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace collision_detection
 {
+
+    /** @brief Perform collision checking with the environment. The
+     *  collision world maintains a representation of the environment
+     *  that the robot is operating in. */
     class CollisionWorld
     {
     public:
 
-       /** @class CollisionWorld
-        *  @brief Environmental collision checks are based on the CollisionWorld class. The collision 
-        *  world maintains a representation of the environment that the robot is operating in.
-        */
+       /** @brief Constructor */
         CollisionWorld(void);
 
        /** @brief A copy constructor*/
@@ -64,73 +65,72 @@ namespace collision_detection
         /* Collision Checking Routines                                        */
         /**********************************************************************/
 
-        /** @brief Check whether the robot model is in collision with itself or the world. 
-         *  Any collision between any pair of links is checked for, NO collisions are ignored.  
+        /** @brief Check whether the robot model is in collision with itself or the world.
+         *  Any collision between any pair of links is checked for, NO collisions are ignored.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
          *  @param state The kinematic state for which checks are being made         */
-        void checkCollision(const CollisionRequest &req, 
-                            CollisionResult &res, 
-                            const CollisionRobot &robot, 
+        void checkCollision(const CollisionRequest &req,
+                            CollisionResult &res,
+                            const CollisionRobot &robot,
                             const planning_models::KinematicState &state) const;
 
-        /** @brief Check whether the robot model is in collision with itself or the world. 
-         *  Allowed collisions specified by the allowed collision matrix are taken into account.          
+        /** @brief Check whether the robot model is in collision with itself or the world.
+         *  Allowed collisions specified by the allowed collision matrix are taken into account.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
-         *  @param state The kinematic state for which checks are being made         
+         *  @param state The kinematic state for which checks are being made
          *  @param acm The allowed collision matrix. */
-        void checkCollision(const CollisionRequest &req, 
-                            CollisionResult &res, 
-                            const CollisionRobot &robot, 
-                            const planning_models::KinematicState &state, 
+        void checkCollision(const CollisionRequest &req,
+                            CollisionResult &res,
+                            const CollisionRobot &robot,
+                            const planning_models::KinematicState &state,
                             const AllowedCollisionMatrix &acm) const;
 
-        /** \brief Check whether the robot model is in collision with the world. Any collisions between a robot link 
+        /** \brief Check whether the robot model is in collision with the world. Any collisions between a robot link
          *  and the world are considered. Self collisions are not checked.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
          *  @robot robot The collision model for the robot
-         *  @param state The kinematic state for which checks are being made         
+         *  @param state The kinematic state for which checks are being made
          */
-        virtual void checkRobotCollision(const CollisionRequest &req, 
-                                         CollisionResult &res, 
-                                         const CollisionRobot &robot, 
+        virtual void checkRobotCollision(const CollisionRequest &req,
+                                         CollisionResult &res,
+                                         const CollisionRobot &robot,
                                          const planning_models::KinematicState &state) const = 0;
 
-        /** \brief Check whether the robot model is in collision with the world. Allowed collisions are ignored. 
+        /** \brief Check whether the robot model is in collision with the world. Allowed collisions are ignored.
          *  Self collisions are not checked.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
          *  @robot robot The collision model for the robot
-         *  @param state The kinematic state for which checks are being made         
+         *  @param state The kinematic state for which checks are being made
          *  @param acm The allowed collision matrix.*/
-        virtual void checkRobotCollision(const CollisionRequest &req, 
-                                         CollisionResult &res, 
-                                         const CollisionRobot &robot, 
-                                         const planning_models::KinematicState &state, 
+        virtual void checkRobotCollision(const CollisionRequest &req,
+                                         CollisionResult &res,
+                                         const CollisionRobot &robot,
+                                         const planning_models::KinematicState &state,
                                          const AllowedCollisionMatrix &acm) const = 0;
 
-        /** \brief Check whether a given set of objects is in collision with objects from another world. 
-         *  Any contacts are considered. 
+        /** \brief Check whether a given set of objects is in collision with objects from another world.
+         *  Any contacts are considered.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
          *  @param other_world The other collision world
          */
-        virtual void checkWorldCollision(const CollisionRequest &req, 
-                                         CollisionResult &res, 
+        virtual void checkWorldCollision(const CollisionRequest &req,
+                                         CollisionResult &res,
                                          const CollisionWorld &other_world) const = 0;
 
-        /** \brief Check whether a given set of objects is in collision with objects from another world. 
-         *  Allowed collisions are ignored. 
-         *  Any contacts are considered. 
+        /** \brief Check whether a given set of objects is in collision with objects from another world.
+         *  Allowed collisions are ignored. Any contacts are considered.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
          *  @param other_world The other collision world
          *  @param acm The allowed collision matrix.*/
-        virtual void checkWorldCollision(const CollisionRequest &req, 
-                                         CollisionResult &res, 
-                                         const CollisionWorld &other_world, 
+        virtual void checkWorldCollision(const CollisionRequest &req,
+                                         CollisionResult &res,
+                                         const CollisionWorld &other_world,
                                          const AllowedCollisionMatrix &acm) const = 0;
 
         /**********************************************************************/
@@ -181,13 +181,13 @@ namespace collision_detection
         bool hasObject(const std::string &id) const;
 
         /** \brief Add shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
-        void addToObject(const std::string &id, 
-			 const std::vector<shapes::Shape*> &shapes, 
-			 const std::vector<btTransform> &poses);
+        void addToObject(const std::string &id,
+                         const std::vector<shapes::Shape*> &shapes,
+                         const std::vector<btTransform> &poses);
 
         /** \brief Add static shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
-        void addToObject(const std::string &id, 
-			 const std::vector<shapes::StaticShape*> &shapes);
+        void addToObject(const std::string &id,
+                         const std::vector<shapes::StaticShape*> &shapes);
 
         /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
         virtual void addToObject(const std::string &id, shapes::Shape *shape, const btTransform &pose);
@@ -224,8 +224,11 @@ namespace collision_detection
 
     protected:
 
+        /** \brief The objects maintained in the collision world */
         std::map<std::string, ObjectPtr> objects_;
-        mutable boost::recursive_mutex             objects_lock_;
+
+        /** \brief A lock to prevent multiple access to the set of objects */
+        mutable boost::mutex             objects_lock_;
 
         void ensureUnique(ObjectPtr &id);
 
@@ -234,8 +237,8 @@ namespace collision_detection
         void changeRemoveObj(const std::string &id);
         void changeAddObj(const Object *obj);
 
-        bool                                       record_changes_;
-        std::vector<Change>                        changes_;
+        bool                             record_changes_;
+        std::vector<Change>              changes_;
     };
 
     typedef boost::shared_ptr<CollisionWorld> CollisionWorldPtr;

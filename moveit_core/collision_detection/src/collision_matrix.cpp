@@ -212,7 +212,10 @@ void collision_detection::AllowedCollisionMatrix::getAllEntryNames(std::vector<s
 {
     names.clear();
     for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::const_iterator it = entries_.begin() ; it != entries_.end() ; ++it)
-        names.push_back(it->first);
+        if (!names.empty() && names.back() == it->first)
+            continue;
+        else
+            names.push_back(it->first);
 }
 
 void collision_detection::AllowedCollisionMatrix::getMessage(moveit_msgs::AllowedCollisionMatrix &msg) const

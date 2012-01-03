@@ -461,8 +461,11 @@ namespace bodies
         /** \brief Check if any of the bodies in the vector contains the input point*/
         bool containsPoint(const btVector3 &p, bool verbose = false) const;
 
-        /** \brief Check if any of the bodies intersects the ray*/
-        bool intersectsRay(const btVector3& origin, const btVector3 &dir, unsigned int &index, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
+        /** \brief Check if any of the bodies intersects the ray defined by \e origin and \e dir.
+            When the first intersection is found, this function terminates. The index of the body that
+            does intersect the ray is set to \e index (set to -1 if no intersections were found). Optionally,
+            the intersection points are computed and set to \e intersections */
+        bool intersectsRay(const btVector3& origin, const btVector3 &dir, int &index, std::vector<btVector3> *intersections = NULL, unsigned int count = 0) const;
 
         /** \brief Get the \e i th body in the vector*/
         const Body* getBody(unsigned int i) const;

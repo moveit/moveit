@@ -1043,10 +1043,10 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
         group_links_set.insert(group_joints[i]->getChildLinkModel());
     for (std::set<const LinkModel*>::iterator it = group_links_set.begin(); it != group_links_set.end(); ++it)
-        group_link_model_vector_.push_back(*it);
-    std::sort(group_link_model_vector_.begin(), group_link_model_vector_.end(), &orderLinksByIndex);
-    for (std::size_t i = 0 ; i < group_link_model_vector_.size() ; ++i)
-        link_model_name_vector_.push_back(group_link_model_vector_[i]->getName());
+        link_model_vector_.push_back(*it);
+    std::sort(link_model_vector_.begin(), link_model_vector_.end(), &orderLinksByIndex);
+    for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
+        link_model_name_vector_.push_back(link_model_vector_[i]->getName());
 
     // compute updated links
     std::set<const LinkModel*> u_links;

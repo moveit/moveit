@@ -709,7 +709,7 @@ bool kinematic_constraints::KinematicConstraintSet::decide(const planning_models
     return result;
 }
 
-bool kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state, 
+bool kinematic_constraints::KinematicConstraintSet::decide(const planning_models::KinematicState &state,
                                                            moveit_msgs::ConstraintEvalResults& results,
                                                            bool verbose) const
 {
@@ -745,7 +745,7 @@ bool kinematic_constraints::KinematicConstraintSet::decide(const planning_models
     results.visibility_constraints[i].result = kinematic_constraints_[i]->decide(state,results.visibility_constraints[i].distance,verbose);
     result = result && results.visibility_constraints[i].result;
   }
-  
+
   return result;
 }
 

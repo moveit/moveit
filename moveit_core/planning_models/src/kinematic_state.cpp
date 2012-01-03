@@ -210,7 +210,7 @@ void planning_models::KinematicState::getStateValues(sensor_msgs::JointState& js
   getStateValues(joint_state_values);
   js.name.resize(joint_state_values.size());
   js.position.resize(joint_state_values.size());
-  
+
   unsigned int i = 0;
   for(std::map<std::string, double>::iterator it = joint_state_values.begin();
       it != joint_state_values.end();

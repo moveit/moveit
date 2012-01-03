@@ -44,7 +44,7 @@ collision_detection::CollisionWorld::CollisionWorld(void) : record_changes_(fals
 
 collision_detection::CollisionWorld::CollisionWorld(const CollisionWorld &other) : record_changes_(false)
 {
-    boost::recursive_mutex::scoped_lock slock(other.objects_lock_);
+    boost::mutex::scoped_lock slock(other.objects_lock_);
     objects_ = other.objects_;
 }
 
@@ -73,9 +73,9 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
 }
 
 void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::StaticShape*> &shapes)
-{    
+{
     for (std::size_t i = 0 ; i < shapes.size() ; ++i)
-	addToObject(id, shapes[i]);
+        addToObject(id, shapes[i]);
 }
 
 std::vector<std::string> collision_detection::CollisionWorld::getObjectIds(void) const
@@ -122,7 +122,7 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, sha
         if (record_changes_)
             changeRemoveObj(id);
     {
-        boost::recursive_mutex::scoped_lock slock(objects_lock_);
+        boost::mutex::scoped_lock slock(objects_lock_);
         ensureUnique(it->second);
         it->second->static_shapes_.push_back(shape);
     }
@@ -144,7 +144,7 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, sha
         if (record_changes_)
             changeRemoveObj(id);
     {
-        boost::recursive_mutex::scoped_lock slock(objects_lock_);
+        boost::mutex::scoped_lock slock(objects_lock_);
         ensureUnique(it->second);
         it->second->shapes_.push_back(shape);
         it->second->shape_poses_.push_back(pose);
@@ -164,7 +164,7 @@ bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &i
             if (it->second->shapes_[i] == shape)
             {
                 {
-                    boost::recursive_mutex::scoped_lock slock(objects_lock_);
+                    boost::mutex::scoped_lock slock(objects_lock_);
                     ensureUnique(it->second);
                     it->second->shape_poses_[i] = pose;
                 }
@@ -188,7 +188,7 @@ bool collision_detection::CollisionWorld::removeShapeFromObject(const std::strin
         for (unsigned int i = 0 ; i < n ; ++i)
             if (it->second->shapes_[i] == shape)
             {
-                boost::recursive_mutex::scoped_lock slock(objects_lock_);
+                boost::mutex::scoped_lock slock(objects_lock_);
                 ensureUnique(it->second);
                 it->second->shapes_.erase(it->second->shapes_.begin() + i);
                 it->second->shape_poses_.erase(it->second->shape_poses_.begin() + i);
@@ -219,7 +219,7 @@ bool collision_detection::CollisionWorld::removeStaticShapeFromObject(const std:
         for (unsigned int i = 0 ; i < n ; ++i)
             if (it->second->static_shapes_[i] == shape)
             {
-                boost::recursive_mutex::scoped_lock slock(objects_lock_);
+                boost::mutex::scoped_lock slock(objects_lock_);
                 ensureUnique(it->second);
                 it->second->static_shapes_.erase(it->second->static_shapes_.begin() + i);
                 if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
@@ -242,7 +242,7 @@ bool collision_detection::CollisionWorld::removeStaticShapeFromObject(const std:
 
 void collision_detection::CollisionWorld::removeObject(const std::string &id)
 {
-    boost::recursive_mutex::scoped_lock slock(objects_lock_);
+    boost::mutex::scoped_lock slock(objects_lock_);
     if (objects_.erase(id) == 1)
         if (record_changes_)
             changeRemoveObj(id);
@@ -253,7 +253,7 @@ void collision_detection::CollisionWorld::clearObjects(void)
     if (record_changes_)
         for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
             changeRemoveObj(it->first);
-    boost::recursive_mutex::scoped_lock slock(objects_lock_);
+    boost::mutex::scoped_lock slock(objects_lock_);
     objects_.clear();
 }
 

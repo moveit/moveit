@@ -53,18 +53,18 @@ namespace collision_detection
     {
         enum Type
             {
-                /** \brief Collisions between the pair of bodies is never ok, i.e. if these two bodies are colliding in 
-                 a particular configuration of the robot, that configuration is considered to be in collision*/
+                /** \brief Collisions between the pair of bodies is never ok, i.e., if two bodies are in contact in
+                    a particular configuration of the robot, that configuration is considered to be in collision*/
                 NEVER,
 
-                /** \brief Collisions between this pair of bodies does not imply that the robot configuration is in
-                 collision. There is no need to explicitly do a computation on this pair of bodies 
-                 unless contact information is desired.*/
+                /** \brief Collisions between a particular pair of bodies does not imply that the robot configuration is in
+                    collision. There is no need to explicitly do a computation (to check for contacts) on this pair of bodies
+                    unless contact information is desired.*/
                 ALWAYS,
 
-                /** \brief The collision is allowed depending on a predicate evaluated on the produced contact. If the 
-                 predicate returns true, this particular contact is deemed ok (or allowed), i.e. the contact does not 
-                imply that the two bodies are in collision*/
+                /** \brief The collision is allowed depending on a predicate evaluated on the produced contact. If the
+                    predicate returns true, this particular contact is deemed ok (or allowed), i.e., the contact does not
+                    imply that the two bodies are in collision*/
                 CONDITIONAL
             };
     }
@@ -73,7 +73,7 @@ namespace collision_detection
     typedef boost::function<bool(collision_detection::Contact&)> DecideContactFn;
 
     /** @class AllowedCollisionMatrix
-     *  @brief Definition of a structure for the allowed collision matrix. All elements in the collision world are names.
+     *  @brief Definition of a structure for the allowed collision matrix. All elements in the collision world are referred to by their names.
      *   This class represents which collisions are allowed to happen and which are not. */
     class AllowedCollisionMatrix
     {
@@ -82,92 +82,93 @@ namespace collision_detection
         AllowedCollisionMatrix(void);
 
       /** @brief Instantiate using a vector of names (corresponding to all the elements in the collision world).
-       *  @param names a vector of names (corresponding to all the elements in the collision world). Elements could 
-       *  represent bodies or namespaces (containing a set of bodies).
-       *  @param allowed If false, indicates that collisions between all elements must be checked for and no collisions 
+       *  @param names a vector of names (corresponding to object IDs in the collision world).
+       *  @param allowed If false, indicates that collisions between all elements must be checked for and no collisions
        *  will be ignored. */
         AllowedCollisionMatrix(const std::vector<std::string>& names, bool allowed = false);
 
-      /** @brief Construct from a message*/
+      /** @brief Construct the structure from a message representation */
         AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix &msg);
 
-      /** @brief Copy constructor*/
+      /** @brief Copy constructor */
         AllowedCollisionMatrix(const AllowedCollisionMatrix& acm);
 
-      /** @brief Get the type of the allowed collision between two elements.
+      /** @brief Get the type of the allowed collision between two elements. Return true if the entry is included in the collision matrix.
+          Return false if the entry is not found.
        *  @param name1 name of first element
        *  @param name2 name of second element
-       *  @param allowed_collision_type The allowed collision type*/
+       *  @param allowed_collision_type The allowed collision type will be filled here */
         bool getAllowedCollision(const std::string& name1, const std::string& name2, AllowedCollision::Type& allowed_collision_type) const;
 
-      /** @brief Get the allowed collision flag between two elements.
+      /** @brief Get the allowed collision predicate between two elements. Return true if a predicate for entry is included in the collision matrix
+          (if the type is AllowedCollision::CONDITIONAL). Return false if the entry is not found.
        *  @param name1 name of first element
        *  @param name2 name of second element
-       *  @param fn A callback function that is used to decide if collisions are allowed between the two elements
-       *  if the allowed collision flag is CONDITIONAL*/
+       *  @param fn A callback function that is used to decide if collisions are allowed between the two elements is filled here */
         bool getAllowedCollision(const std::string& name1, const std::string& name2, DecideContactFn& fn) const;
 
-      /** @brief Check if the allowed collision matrix has an entry for a pair of elements
+      /** @brief Check if the allowed collision matrix has an entry for a pair of elements. Returns true if the pair is included.
        *  @param name1 name of first element
        *  @param name2 name of second element*/
         bool hasEntry(const std::string& name1, const std::string &name2) const;
 
-      /** @brief Remove an entry corresponding to a pair of elements
+      /** @brief Remove an entry corresponding to a pair of elements. Nothing happens if the pair does not exist in the collision matrix.
        *  @param name1 name of first element
        *  @param name2 name of second element*/
         void removeEntry(const std::string& name1, const std::string &name2);
 
-      /** @brief Remove all entries corresponding to a namespace
+      /** @brief Remove all entries corresponding to a name (all pairs that include this name)
        *  @param name namespace*/
         void removeEntry(const std::string& name);
 
       /** @brief Set an entry corresponding to a pair of elements
        *  @param name1 name of first element
        *  @param name2 name of second element
-       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions 
-       *  will be ignored. If true, indicates that collisions between two elements are ok and an explicit collision 
-       *  computation is not necessary (unless contacts are required).*/
+       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions
+       *  will be ignored (AllowedCollision::NEVER). If true, indicates that collisions between two elements are ok and an explicit collision
+       *  computation is not necessary (unless contacts are required) (AllowedCollision::ALWAYS).*/
         void setEntry(const std::string& name1, const std::string& name2, bool allowed);
 
       /** @brief Set an entry corresponding to a pair of elements
        *  @param name1 name of first element
        *  @param name2 name of second element
-       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions 
-       *  will be ignored. If true, indicates that collisions between two elements are ok and an explicit collision 
+       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions
+       *  will be ignored. If true, indicates that collisions between two elements are ok and an explicit collision
        *  computation is not necessary (unless contacts are required).*/
         void setEntry(const std::string& name1, const std::string& name2, const DecideContactFn &fn);
 
-      /** @brief Set an entry corresponding to a namespace
-       *  @param name namespace
-       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions 
-       *  will be ignored. If true, indicates that collisions between two elements are ok and an explicit collision 
-       *  computation is not necessary (unless contacts are required).*/
+      /** @brief Set the entries corresponding to a name. With each of the the known names in the collision matrix, form a pair using the name
+          specified as argument to this function and set the entry as indicated by \e allowed.
+       *  @param name the object name
+       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions
+       *  will be ignored (AllowedCollision::NEVER). If true, indicates that collisions between two elements are ok and an explicit collision
+       *  computation is not necessary (unless contacts are required) (AllowedCollision::ALWAYS).*/
         void setEntry(const std::string& name, bool allowed);
 
-      /** @brief Set an entry corresponding to a element and a set of other elements
+      /** @brief Set multiple entries. Pairs of names are formed using \e name and \e other_names
        *  @param name name of first element
-       *  @param other_names names of all other elements (or namespaces) to pair with first element. The collision 
+       *  @param other_names names of all other elements to pair with first element. The collision
        *  matrix entries will be set for all such pairs.
-       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions 
-       *  will be ignored. If true, indicates that collisions between two elements are ok and an explicit collision 
-       *  computation is not necessary (unless contacts are required).*/
+       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions
+       *  will be ignored (AllowedCollision::NEVER). If true, indicates that collisions between two elements are ok and an explicit collision
+       *  computation is not necessary (unless contacts are required) (AllowedCollision::ALWAYS).*/
         void setEntry(const std::string& name, const std::vector<std::string>& other_names, bool allowed);
 
-      /** @brief Set an entry corresponding to all pairs in two sets of elements
+      /** @brief Set an entry corresponding to all possible pairs between two sets of elements
        *  @param names1 First set of names
        *  @param names2 Second set of names
-       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions 
-       *  will be ignored. If true, indicates that collisions between two elements are ok and an explicit collision 
-       *  computation is not necessary (unless contacts are required).*/
+       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions
+       *  will be ignored (AllowedCollision::NEVER). If true, indicates that collisions between two elements are ok and an explicit collision
+       *  computation is not necessary (unless contacts are required) (AllowedCollision::ALWAYS).*/
         void setEntry(const std::vector<std::string> &names1, const std::vector<std::string> &names2, bool allowed);
 
-      /** @brief Set an entry corresponding to all pairs 
-       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions 
-       *  will be ignored. If true, indicates that collisions between two elements are ok and an explicit collision 
-       *  computation is not necessary (unless contacts are required).*/
+      /** @brief Set an entry corresponding to all known pairs
+       *  @param allowed If false, indicates that collisions between two elements must be checked for and no collisions
+       *  will be ignored (AllowedCollision::NEVER). If true, indicates that collisions between two elements are ok and an explicit collision
+       *  computation is not necessary (unless contacts are required) (AllowedCollision::ALWAYS).*/
         void setEntry(bool allowed);
 
-      /** @brief Get the names of all entries in the collision matrix */
+      /** @brief Get all the names known to the collision matrix */
         void getAllEntryNames(std::vector<std::string>& names) const;
 
       /** @brief Get the allowed collision matrix as a message */
@@ -176,13 +177,13 @@ namespace collision_detection
       /** @brief Clear the allowed collision matrix */
         void clear(void);
 
-      /** @brief Get the size of the allowed collision matrix*/
+      /** @brief Get the size of the allowed collision matrix (number of specified entries) */
         std::size_t getSize(void) const
         {
             return entries_.size();
         }
 
-      /** @brief Print the allowed collision matrix */
+        /** @brief Print the allowed collision matrix */
         void print(std::ostream& out) const;
 
     private:

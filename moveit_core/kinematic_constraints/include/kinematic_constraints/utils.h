@@ -46,17 +46,17 @@
 
 namespace kinematic_constraints
 {
-    
+
     /** \brief Merge two sets of constraints into one. This just does appending of all constraints except joint constraints. For joint constraints,
         the bounds specified in \e first take precedence over \e second */
     moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second);
 
     moveit_msgs::Constraints constructGoalConstraints(const planning_models::KinematicState::JointStateGroup *jsg,
-						      double tolerance_below, double tolerance_above);
-    
+                                                      double tolerance_below, double tolerance_above);
+
     moveit_msgs::Constraints constructGoalConstraints(const planning_models::KinematicState::JointStateGroup *jsg,
-						      double tolerance = std::numeric_limits<double>::epsilon());
-    
+                                                      double tolerance = std::numeric_limits<double>::epsilon());
+
     moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose, double tolerance_pos = 1e-3, double tolerance_angle = 1e-2);
     moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::QuaternionStamped &quat, double tolerance = 1e-2);
     moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PointStamped &point, double tolerance = 1e-3);

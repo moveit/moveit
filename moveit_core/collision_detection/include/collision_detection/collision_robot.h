@@ -45,14 +45,14 @@
 namespace collision_detection
 {
 
+    /** @brief This class represents a collision model of the robot and can be used for self collision checks
+        (to check if the robot is in collision with itself) or in collision checks with a different robot. Collision checks with
+        the environment are performed using the CollisionWorld class. */
     class CollisionRobot
     {
     public:
 
-       /** @class CollisionRobot
-        *  @brief This class represents a collision model of the robot and can be used for self collision checks 
-        *  (is the robot in collision with itself) or in collision checks with a different robot. 
-        *  Environmental collision checks are based on the CollisionWorld class.
+       /** @brief Constructor
         *  @param kmodel A kinematic model to construct the collision robot from
         *  @param padding The padding to use for all objects/links on the robot
         *  @scale scale A common scaling to use for all objects/links on the robot
@@ -67,44 +67,44 @@ namespace collision_detection
         }
 
         /** @brief Check for self collision. Any collision between any pair of links is checked for, NO collisions are
-         *   ignored.  
+         *   ignored.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
-         *  @param state The kinematic state for which checks are being made         */
+         *  @param state The kinematic state for which checks are being made */
         virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const = 0;
 
-        /** \brief Check for self collision. Allowed collisions specified by the allowed collision matrix are 
-         *   taken into account. 
+        /** \brief Check for self collision. Allowed collisions specified by the allowed collision matrix are
+         *   taken into account.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
-         *  @param state The kinematic state for which checks are being made       
+         *  @param state The kinematic state for which checks are being made
          *  @param acm The allowed collision matrix. */
         virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
 
-        /** \brief Check for collision with a different robot (possibly a different kinematic model as well). 
-         * Any collision between any pair of links is checked for, NO collisions are ignored. 
+        /** \brief Check for collision with a different robot (possibly a different kinematic model as well).
+         *  Any collision between any pair of links is checked for, NO collisions are ignored.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
-         *  @param state The kinematic state for which checks are being made.      
+         *  @param state The kinematic state for which checks are being made.
          *  @param other_robot The collision representation for the other robot
          *  @param other_state The kinematic state corresponding to the other robot
-         */ 
-        virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, 
+         */
+        virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res,
                                          const planning_models::KinematicState &state,
-                                         const CollisionRobot &other_robot, 
+                                         const CollisionRobot &other_robot,
                                          const planning_models::KinematicState &other_state) const = 0;
 
-        /** \brief Check for collision with a different robot (possibly a different kinematic model as well). 
-         * Any collision between any pair of links is checked for, NO collisions are ignored. 
+        /** \brief Check for collision with a different robot (possibly a different kinematic model as well).
+         *  Allowed collisions specified by the allowed collision matrix are taken into account.
          *  @param req A CollisionRequest object that encapsulates the collision request
          *  @param res A CollisionResult object that encapsulates the collision result
-         *  @param state The kinematic state for which checks are being made.      
+         *  @param state The kinematic state for which checks are being made.
          *  @param other_robot The collision representation for the other robot
          *  @param other_state The kinematic state corresponding to the other robot
          *  @param acm The allowed collision matrix. */
-        virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, 
+        virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res,
                                          const planning_models::KinematicState &state,
-                                         const CollisionRobot &other_robot, 
+                                         const CollisionRobot &other_robot,
                                          const planning_models::KinematicState &other_state,
                                          const AllowedCollisionMatrix &acm) const = 0;
 
@@ -117,10 +117,10 @@ namespace collision_detection
         /** @brief Get the link padding for a particular link*/
         double getLinkPadding(const std::string &link_name) const;
 
-        /** @brief Set the link paddings using a map (from link names to padding)*/
+        /** @brief Set the link paddings using a map (from link names to padding value) */
         void setLinkPadding(const std::map<std::string, double> &padding);
 
-        /** @brief Get the link paddings as a map (from link names to padding)*/
+        /** @brief Get the link paddings as a map (from link names to padding value) */
         const std::map<std::string, double> &getLinkPadding(void) const;
 
         /** @brief Set the scaling for a particular link*/
@@ -129,10 +129,10 @@ namespace collision_detection
         /** @brief Set the scaling for a particular link*/
         double getLinkScale(const std::string &link_name) const;
 
-        /** @brief Set the link scaling using a map (from link names to padding)*/
+        /** @brief Set the link scaling using a map (from link names to scale value) */
         void setLinkScale(const std::map<std::string, double> &scale);
 
-        /** @brief Get the link scaling as a map (from link names to padding)*/
+        /** @brief Get the link scaling as a map (from link names to scale value)*/
         const std::map<std::string, double> &getLinkScale(void) const;
 
         /** @brief Set the link padding (for every link)*/
@@ -155,7 +155,10 @@ namespace collision_detection
 
     protected:
 
-        /** @brief Ioan: what does this do?*/
+        /** @brief When the scale or padding is changed for a set of links by any of the functions in this class, updatedPaddingOrScaling() function is called.
+            This function has an empty default implementation. The intention is to override this function in a derived class to allow for updating
+            additional structures that may need such updating when link scale or padding changes.
+         @param links the names of the links whose padding or scaling were updated */
         virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
 
         /** @brief The kinematic model corresponding to this collision model*/

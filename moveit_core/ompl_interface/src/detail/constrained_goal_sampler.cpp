@@ -37,7 +37,7 @@
 #include "ompl_interface/detail/constrained_goal_sampler.h"
 #include <ompl/geometric/ik/GAIK.h>
 
-ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const PlanningGroup *pg, 
+ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const PlanningGroup *pg,
                                                                const kinematic_constraints::KinematicConstraintSetPtr &ks,
                                                                const kinematic_constraints::ConstraintSamplerPtr &cs) :
   ompl::base::GoalLazySamples(pg->getOMPLSimpleSetup().getSpaceInformation(),
@@ -77,7 +77,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ompl::base::G
         {
           double distance;
           planning_group_->getKMStateSpace().copyToKinematicState(*state_, st);
-          kinematic_constraint_set_->decide(*state_,distance);          
+          kinematic_constraint_set_->decide(*state_,distance);
           return distance;
         }
 
