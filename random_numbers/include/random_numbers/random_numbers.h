@@ -72,12 +72,12 @@ namespace random_numbers
             return (upper_bound - lower_bound) * uni_() + lower_bound;
         }
 
-        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w) 
+        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w)
          * @param value[4] A four dimensional array in which the computed quaternion will be returned
          */
         void   quaternion(double value[4]);
 
-        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range [-pi, pi). The computed value has the order (roll, pitch, yaw) 
+        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range [-pi, pi). The computed value has the order (roll, pitch, yaw)
          * @param value[3] A three dimensional array in which the computed euler angles will be released
          */
         void   eulerRPY(double value[3]);

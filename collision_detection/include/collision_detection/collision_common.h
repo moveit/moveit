@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Ioan Sucan */
+/** Author Ioan Sucan */
 
 #ifndef COLLISION_DETECTION_COLLISION_COMMON_
 #define COLLISION_DETECTION_COLLISION_COMMON_
@@ -74,12 +74,16 @@ namespace collision_detection
         /** \brief depth (penetration between bodies) */
         double      depth;
 
-        /** \brief The first body involved in the contact */
+        /** \brief The id of the first body involved in the contact */
         std::string body_name_1;
+
+        /** \brief The type of the first body involved in the contact */
         BodyType    body_type_1;
 
-        /** \brief The first body involved in the contact */
+        /** \brief The id of the second body involved in the contact */
         std::string body_name_2;
+
+        /** \brief The type of the second body involved in the contact */
         BodyType    body_type_2;
 
         /** \brief If this contact is considered allowed (based on AllowedCollisionMatrix) */
@@ -97,7 +101,7 @@ namespace collision_detection
         }
         typedef std::map<std::pair<std::string, std::string>, Contact> ContactMap;
 
-        /** \brief True if collision, false otherwise */
+        /** \brief True if collision was found, false otherwise */
         bool        collision;
 
         /** \brief Closest distance between two bodies */
@@ -109,7 +113,7 @@ namespace collision_detection
         /** \brief Number of contacts returned */
         std::size_t contact_count;
 
-        /** \brief A map returning the ids of the two bodies in contact, plus information about the onect itself */
+        /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contact itself */
         ContactMap  contacts;
     };
 

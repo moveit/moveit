@@ -328,7 +328,7 @@ namespace kinematic_constraints
         /** \brief Decide whether the set of constraints is satisfied  */
         bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
 
-        bool decide(const planning_models::KinematicState &state, 
+        bool decide(const planning_models::KinematicState &state,
                     moveit_msgs::ConstraintEvalResults& results,
                     bool verbose) const;
 

@@ -1097,14 +1097,14 @@ bool bodies::BodyVector::containsPoint(const btVector3 &p, bool verbose) const
     return false;
 }
 
-bool bodies::BodyVector::intersectsRay(const btVector3& origin, const btVector3 &dir, unsigned int &index, std::vector<btVector3> *intersections, unsigned int count) const 
+bool bodies::BodyVector::intersectsRay(const btVector3& origin, const btVector3 &dir, int &index, std::vector<btVector3> *intersections, unsigned int count) const
 {
-  index = -1;
+    index = -1;
     for (unsigned int i = 0 ; i < bodies_.size() ; ++i)
-      if (bodies_[i]->intersectsRay(origin, dir, intersections, count))
-      {
-        index = i;
-        return true;
-      }
+        if (bodies_[i]->intersectsRay(origin, dir, intersections, count))
+        {
+            index = i;
+            return true;
+        }
     return false;
 }

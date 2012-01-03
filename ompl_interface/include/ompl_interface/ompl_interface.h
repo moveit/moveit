@@ -90,7 +90,7 @@ namespace ompl_interface
         bool solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
 
     /** @brief Solve the planning problem
-     *  @param config 
+     *  @param config
      *  @param start_state The start state specified for the planning problem
      *  @param goal_constraints The goal constraints
      *  @param timeout The amount of time to spend on planning
@@ -98,16 +98,16 @@ namespace ompl_interface
         bool solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints, double timeout);
 
     /** @brief Solve the planning problem
-     *  @param config 
+     *  @param config
      *  @param start_state The start state specified for the planning problem
      *  @param goal_constraints The goal constraints
      *  @param path_constraints The path constraints
      *  @param timeout The amount of time to spend on planning
      */
-        bool solve(const std::string &config, 
-                   const planning_models::KinematicState &start_state, 
+        bool solve(const std::string &config,
+                   const planning_models::KinematicState &start_state,
                    const moveit_msgs::Constraints &goal_constraints,
-                   const moveit_msgs::Constraints &path_constraints, 
+                   const moveit_msgs::Constraints &path_constraints,
                    double timeout);
 
     /** @brief Return if this class has been configured*/

@@ -68,13 +68,13 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const planning_models::KinematicState::JointStateGroup *jsg,
-									 double tolerance)
+                                                                         double tolerance)
 {
     return constructGoalConstraints(jsg, tolerance, tolerance);
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const planning_models::KinematicState::JointStateGroup *jsg,
-									 double tolerance_below, double tolerance_above)
+                                                                         double tolerance_below, double tolerance_above)
 {
     moveit_msgs::Constraints goal;
 
@@ -86,20 +86,20 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const p
     for (std::map<std::string, double>::iterator it = vals.begin() ; it != vals.end(); ++it, ++i)
     {
         goal.joint_constraints[i].joint_name = it->first;
-	goal.joint_constraints[i].position = it->second;
-	goal.joint_constraints[i].tolerance_above = tolerance_below;
+        goal.joint_constraints[i].position = it->second;
+        goal.joint_constraints[i].tolerance_above = tolerance_below;
         goal.joint_constraints[i].tolerance_below = tolerance_above;
         goal.joint_constraints[i].weight = 1.0;
     }
-    
+
     return goal;
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose,
-									 double tolerance_pos, double tolerance_angle)
-{   
+                                                                         double tolerance_pos, double tolerance_angle)
+{
     moveit_msgs::Constraints goal;
-    
+
     goal.position_constraints.resize(1);
     moveit_msgs::PositionConstraint &pcm = goal.position_constraints[0];
     pcm.link_name = link_name;
@@ -108,17 +108,17 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     pcm.target_point_offset.z = 0;
     pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
     pcm.constraint_region_shape.dimensions.push_back(tolerance_pos);
-    
+
     pcm.constraint_region_pose.header = pose.header;
     pcm.constraint_region_pose.pose.position = pose.pose.position;
-    
+
     // orientation of constraint region does not affect anything, since it is a sphere
     pcm.constraint_region_pose.pose.orientation.x = 0.0;
     pcm.constraint_region_pose.pose.orientation.y = 0.0;
     pcm.constraint_region_pose.pose.orientation.z = 0.0;
     pcm.constraint_region_pose.pose.orientation.w = 1.0;
-    pcm.weight = 1.0;  
-    
+    pcm.weight = 1.0;
+
     goal.orientation_constraints.resize(1);
     moveit_msgs::OrientationConstraint &ocm = goal.orientation_constraints[0];
     ocm.link_name = link_name;
@@ -128,12 +128,12 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     ocm.absolute_pitch_tolerance = tolerance_angle;
     ocm.absolute_yaw_tolerance = tolerance_angle;
     ocm.weight = 1.0;
-    
+
     return goal;
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::QuaternionStamped &quat, double tolerance)
-{ 
+{
     moveit_msgs::Constraints goal;
     goal.orientation_constraints.resize(1);
     moveit_msgs::OrientationConstraint &ocm = goal.orientation_constraints[0];
@@ -147,7 +147,7 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::PointStamped &point, double tolerance)
-{ 
+{
     moveit_msgs::Constraints goal;
     goal.position_constraints.resize(1);
     moveit_msgs::PositionConstraint &pcm = goal.position_constraints[0];
@@ -157,17 +157,16 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     pcm.target_point_offset.z = 0;
     pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
     pcm.constraint_region_shape.dimensions.push_back(tolerance);
-    
+
     pcm.constraint_region_pose.header = point.header;
     pcm.constraint_region_pose.pose.position = point.point;
-    
+
     // orientation of constraint region does not affect anything, since it is a sphere
     pcm.constraint_region_pose.pose.orientation.x = 0.0;
     pcm.constraint_region_pose.pose.orientation.y = 0.0;
     pcm.constraint_region_pose.pose.orientation.z = 0.0;
     pcm.constraint_region_pose.pose.orientation.w = 1.0;
-    pcm.weight = 1.0;  
-    
+    pcm.weight = 1.0;
+
     return goal;
 }
-

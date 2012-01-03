@@ -50,152 +50,151 @@ namespace planning_models
     bool poseFromMsg(const geometry_msgs::Pose &tmsg, btTransform &t);
     void msgFromPose(const btTransform &t, geometry_msgs::Pose &tmsg);
 
-/**
- * @class Transforms
- * @brief Provides an implementation of a snapshot of a transform tree that can be easily queried for 
- *        transforming different quantities
- */
+    /** @brief Provides an implementation of a snapshot of a transform tree that can be easily queried for
+        transforming different quantities. Transforms are maintained as a list of transforms to a particular frame.
+        All stored transforms are considered fixed. Some operations also take a KinematicState as argument to allow inclusion
+        of non-fixed transforms (using poses from KinematicState::LinkState) */
     class Transforms
     {
     public:
-      /**
-       * @brief Construct a transform tree 
-       */
+        /**
+         * @brief Construct a transform list
+         */
         Transforms(const std::string &target_frame);
 
-      /**
-       * @brief Copy constructor
-       */
+        /**
+         * @brief Copy constructor
+         */
         Transforms(const Transforms &other);
 
-      /**
-       * @brief Destructor
-       */
+        /**
+         * @brief Destructor
+         */
         ~Transforms(void);
 
-      /**
-       * @brief Get the planning frame corresponding to this set of transforms
-       * @return The planning frame
-       */
+        /**
+         * @brief Get the planning frame corresponding to this set of transforms
+         * @return The planning frame
+         */
         const std::string& getTargetFrame(void) const;
 
-      /**
-       * @brief Check whether a particular frame is a fixed frame
-       * @return True if the frame is fixed, false otherwise
-       */
+        /**
+         * @brief Check whether a particular frame is a fixed frame
+         * @return True if the frame is fixed, false otherwise
+         */
         bool isFixedFrame(const std::string &frame) const;
 
-      /**
-       * @brief Return all the transforms
-       * @return A map from string names of frames to corresponding btTransforms (w.r.t the planning frame)
-       */
+        /**
+         * @brief Return all the transforms
+         * @return A map from string names of frames to corresponding btTransforms (w.r.t the planning frame)
+         */
         const std::map<std::string, btTransform>& getAllTransforms(void) const;
 
-      /**
-       * @brief Get transform for from_frame (w.r.t target frame)
-       * @param from_frame The string id of the frame for which the transform is being computed
-       * @return The required transform
-       */
+        /**
+         * @brief Get transform for from_frame (w.r.t target frame)
+         * @param from_frame The string id of the frame for which the transform is being computed
+         * @return The required transform
+         */
         const btTransform& getTransform(const std::string &from_frame) const;
 
-      /**
-       * @brief Transform a vector in from_frame to the target_frame
-       * @param from_frame The frame from which the transform is computed
-       * @param v_in The input vector (in from_frame)
-       * @param v_out The resultant (transformed) vector
-       */
+        /**
+         * @brief Transform a vector in from_frame to the target_frame
+         * @param from_frame The frame from which the transform is computed
+         * @param v_in The input vector (in from_frame)
+         * @param v_out The resultant (transformed) vector
+         */
         void transformVector3(const std::string &from_frame, const btVector3 &v_in, btVector3 &v_out) const;
 
-      /**
-       * @brief Transform a quaternion in from_frame to the target_frame
-       * @param from_frame The frame in which the input quaternion is specified
-       * @param v_in The input quaternion (in from_frame)
-       * @param v_out The resultant (transformed) quaternion
-       */
+        /**
+         * @brief Transform a quaternion in from_frame to the target_frame
+         * @param from_frame The frame in which the input quaternion is specified
+         * @param v_in The input quaternion (in from_frame)
+         * @param v_out The resultant (transformed) quaternion
+         */
         void transformQuaternion(const std::string &from_frame, const btQuaternion &q_in, btQuaternion &q_out) const;
 
-      /**
-       * @brief Transform a rotation matrix in from_frame to the target_frame
-       * @param from_frame The frame in which the input rotation matrix is specified
-       * @param m_in The input rotation matrix (in from_frame)
-       * @param m_out The resultant (transformed) rotation matrix
-       */
-      void transformRotationMatrix(const std::string &from_frame, const btMatrix3x3 &m_in, btMatrix3x3 &m_out) const;
+        /**
+         * @brief Transform a rotation matrix in from_frame to the target_frame
+         * @param from_frame The frame in which the input rotation matrix is specified
+         * @param m_in The input rotation matrix (in from_frame)
+         * @param m_out The resultant (transformed) rotation matrix
+         */
+        void transformRotationMatrix(const std::string &from_frame, const btMatrix3x3 &m_in, btMatrix3x3 &m_out) const;
 
-      /**
-       * @brief Transform a pose in from_frame to the target_frame
-       * @param from_frame The frame in which the input rotation matrix is specified
-       * @param t_in The input pose (in from_frame)
-       * @param t_out The resultant (transformed) pose
-       */
-      void transformPose(const std::string &from_frame, const btTransform &t_in, btTransform &t_out) const;
+        /**
+         * @brief Transform a pose in from_frame to the target_frame
+         * @param from_frame The frame in which the input rotation matrix is specified
+         * @param t_in The input pose (in from_frame)
+         * @param t_out The resultant (transformed) pose
+         */
+        void transformPose(const std::string &from_frame, const btTransform &t_in, btTransform &t_out) const;
 
-      /**
-       * @brief Get transform for from_frame (w.r.t target frame) given a kinematic state
-       * @param kinematic_state The input kinematic state
-       * @param from_frame The string id of the frame for which the transform is being computed
-       */
+        /**
+         * @brief Get transform for from_frame (w.r.t target frame) given a kinematic state
+         * @param kinematic_state The input kinematic state
+         * @param from_frame The string id of the frame for which the transform is being computed
+         */
         const btTransform& getTransform(const planning_models::KinematicState &kinematic_state, const std::string &from_frame) const;
 
-      /**
-       * @brief Transform a vector in from_frame to the target_frame
-       * @param kinematic_state The input kinematic state
-       * @param from_frame The frame from which the transform is computed
-       * @param v_in The input vector (in from_frame)
-       * @param v_out The resultant (transformed) vector
-       */
-      void transformVector3(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const btVector3 &v_in, btVector3 &v_out) const;
+        /**
+         * @brief Transform a vector in from_frame to the target_frame
+         * @param kinematic_state The input kinematic state
+         * @param from_frame The frame from which the transform is computed
+         * @param v_in The input vector (in from_frame)
+         * @param v_out The resultant (transformed) vector
+         */
+        void transformVector3(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const btVector3 &v_in, btVector3 &v_out) const;
 
-      /**
-       * @brief Transform a quaternion in from_frame to the target_frame
-       * @param kinematic_state The input kinematic state
-       * @param from_frame The frame in which the input quaternion is specified
-       * @param v_in The input quaternion (in from_frame)
-       * @param v_out The resultant (transformed) quaternion
-       */
+        /**
+         * @brief Transform a quaternion in from_frame to the target_frame
+         * @param kinematic_state The input kinematic state
+         * @param from_frame The frame in which the input quaternion is specified
+         * @param v_in The input quaternion (in from_frame)
+         * @param v_out The resultant (transformed) quaternion
+         */
         void transformQuaternion(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const btQuaternion &q_in, btQuaternion &q_out) const;
 
-      /**
-       * @brief Transform a rotation matrix in from_frame to the target_frame
-       * @param kinematic_state The input kinematic state
-       * @param from_frame The frame in which the input rotation matrix is specified
-       * @param m_in The input rotation matrix (in from_frame)
-       * @param m_out The resultant (transformed) rotation matrix
-       */
+        /**
+         * @brief Transform a rotation matrix in from_frame to the target_frame
+         * @param kinematic_state The input kinematic state
+         * @param from_frame The frame in which the input rotation matrix is specified
+         * @param m_in The input rotation matrix (in from_frame)
+         * @param m_out The resultant (transformed) rotation matrix
+         */
         void transformRotationMatrix(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const btMatrix3x3 &m_in, btMatrix3x3 &m_out) const;
 
-      /**
-       * @brief Transform a pose in from_frame to the target_frame
-       * @param kinematic_state The input kinematic state
-       * @param from_frame The frame in which the input rotation matrix is specified
-       * @param t_in The input pose (in from_frame)
-       * @param t_out The resultant (transformed) pose
-       */
-      void transformPose(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const btTransform &t_in, btTransform &t_out) const;
+        /**
+         * @brief Transform a pose in from_frame to the target_frame
+         * @param kinematic_state The input kinematic state
+         * @param from_frame The frame in which the input rotation matrix is specified
+         * @param t_in The input pose (in from_frame)
+         * @param t_out The resultant (transformed) pose
+         */
+        void transformPose(const planning_models::KinematicState &kinematic_state, const std::string &from_frame, const btTransform &t_in, btTransform &t_out) const;
 
-      /**
-       * @brief Set a transform in the transform tree (adding it if necessary)
-       * @param t The input transform (w.r.t the target frame)
-       * @param from_frame The frame for which the input transform is specified
-       */
+        /**
+         * @brief Set a transform in the transform tree (adding it if necessary)
+         * @param t The input transform (w.r.t the target frame)
+         * @param from_frame The frame for which the input transform is specified
+         */
         void setTransform(const btTransform &t, const std::string &from_frame);
 
-      /**
-       * @brief Set a transform in the transform tree (adding it if necessary)
-       * @param transform The input transform (the frame_id must match the target frame)
-       */
+        /**
+         * @brief Set a transform in the transform tree (adding it if necessary)
+         * @param transform The input transform (the frame_id must match the target frame)
+         */
         void setTransform(const geometry_msgs::TransformStamped &transform);
 
-      /**
-       * @brief Set a transform in the transform tree (adding it if necessary)
-       * @param transform The input transforms (the frame_id must match the target frame)
-       */
+        /**
+         * @brief Set a transform in the transform tree (adding it if necessary)
+         * @param transform The input transforms (the frame_id must match the target frame)
+         */
         void setTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms);
 
-      /**
-       * @brief Get a vector of all the transforms as ROS messages
-       * @param transforms The output transforms
-       */
+        /**
+         * @brief Get a vector of all the transforms as ROS messages
+         * @param transforms The output transforms
+         */
         void getTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const;
 
     private:

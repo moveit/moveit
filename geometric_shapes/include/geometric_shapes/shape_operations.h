@@ -59,7 +59,7 @@ namespace shapes
         and the set of triangle indices is constructed. The normal at
         each triangle is also computed */
     shapes::Mesh* createMeshFromVertices(const std::vector<btVector3> &source);
- 
+
     /** \brief Load a mesh from a file that contains a mesh that can be loaded by assimp */
     shapes::Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale = btVector3(1.0, 1.0, 1.0));
 

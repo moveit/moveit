@@ -97,7 +97,7 @@ void bodies::mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, Bo
 }
 
 bodies::Body* bodies::constructBodyFromMsg(const moveit_msgs::Shape &shape_msg, const geometry_msgs::Pose &pose)
-{ 
+{
     shapes::Shape *shape = shapes::constructShapeFromMsg(shape_msg);
     if (shape)
     {

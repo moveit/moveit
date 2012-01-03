@@ -50,7 +50,7 @@
 #include <map>
 
 
-/** \brief Main namespace */
+/** \brief Main namespace for representing robot planning models */
 namespace planning_models
 {
 
@@ -124,23 +124,23 @@ namespace planning_models
                 return child_link_model_;
             }
 
-            /** \brief Gets the lower and upper bounds for a variable. Return false if variable was not found */
+            /** \brief Get the lower and upper bounds for a variable. Return false if the variable was not found */
             bool getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const;
 
-            /** \brief Provides a default value for the joint given the joint bounds.
-                Most joints will use the default, but the quaternion for floating
-                point values needs something else. The map is NOT cleared; elements are only added  (or overwritten). */
+            /** \brief Provide a default value for the joint given the joint bounds.
+                Most joints will use the default implementation provided in this base class, but the quaternion
+                for example needs a different implementation. The map is NOT cleared; elements are only added (or overwritten). */
             void getDefaultValues(std::map<std::string, double> &values) const;
 
-            /** \brief Provides a random values for the joint given the joint bounds. The map is NOT cleared; elements are only added (or overwritten). */
+            /** \brief Provide random values for the joint variables (within bounds). The map is NOT cleared; elements are only added (or overwritten). */
             void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const;
 
-            /** \brief Provides a default value for the joint given the joint bounds.
-                Most joints will use the default, but the quaternion for floating
-                point values needs something else. The vector is NOT cleared; elements are only added with push_back */
+            /** \brief Provide a default value for the joint given the joint variable bounds.
+                Most joints will use the default implementation provided in this base class, but the quaternion
+                for example needs a different implementation. The vector is NOT cleared; elements are only added with push_back */
             virtual void getDefaultValues(std::vector<double> &values) const;
 
-            /** \brief Provides a random value for the joint given the joint bounds. The vector is NOT cleared; elements are only added with push_back */
+            /** \brief Provide random values for the joint variables (within bounds). The vector is NOT cleared; elements are only added with push_back */
             virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
 
             /** \brief Check if a particular variable satisfies the specified bounds */
@@ -308,6 +308,7 @@ namespace planning_models
             virtual void computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const;
             virtual void updateTransform(const std::vector<double>& joint_values, btTransform &transf) const;
 
+            /** \brief Get the axis of translation */
             const btVector3& getAxis(void) const
             {
                 return axis_;
@@ -336,6 +337,7 @@ namespace planning_models
                 return continuous_;
             }
 
+            /** \brief Get the axis of rotation */
             const btVector3& getAxis(void) const
             {
                 return axis_;
@@ -504,7 +506,7 @@ namespace planning_models
             /** \brief Unlike a complete kinematic model, a group may
                 contain disconnected parts of the kinematic tree -- a
                 set of smaller trees. This function gives the roots of
-                those smaller trees. Furthermore, it is ensure that
+                those smaller trees. Furthermore, it is ensured that
                 the roots are on different branches in the kinematic
                 tree. This means that in following any root in the given
                 list, none of the other returned roots will be encountered. */
@@ -516,7 +518,7 @@ namespace planning_models
             /** \brief Get the links that are part of this joint group */
             const std::vector<const LinkModel*>& getLinkModels(void) const
             {
-                return group_link_model_vector_;
+                return link_model_vector_;
             }
 
             /** \brief Get the names of the links that are part of this joint group */
@@ -596,7 +598,7 @@ namespace planning_models
             /** \brief The links that are on the direct lineage between joints
                 and joint_roots_, as well as the children of the joint leafs.
                 May not be in any particular order */
-            std::vector<const LinkModel*>               group_link_model_vector_;
+            std::vector<const LinkModel*>               link_model_vector_;
 
             /** \brief The names of the links in this group */
             std::vector<std::string>                    link_model_name_vector_;
@@ -681,26 +683,33 @@ namespace planning_models
             return link_model_vector_;
         }
 
+        /** \brief Get the link models that have some collision geometry associated to themselves */
         const std::vector<LinkModel*>& getLinkModelsWithCollisionGeometry(void) const
         {
             return link_models_with_collision_geometry_vector_;
         }
 
+        /** \brief Get the names of the link models that have some collision geometry associated to themselves */
         const std::vector<std::string>& getLinkModelNamesWithCollisionGeometry(void) const
         {
             return link_model_names_with_collision_geometry_vector_;
         }
 
-        /** \brief Get the link names */
+        /** \brief Get the link names (of all links) */
         const std::vector<std::string>& getLinkModelNames(void) const
         {
             return link_model_names_vector_;
         }
 
-        /** \brief Get the root joint */
+        /** \brief Get the root joint. There will always be one root
+            joint. This is either extracted from the SRDF, or a fixed
+            joint is assumed, if no specification is given.  */
         const JointModel* getRoot(void) const;
 
-        /** \brief Get the frame in which the transforms for this model are computed (when using a planning_models::KinematicState) */
+        /** \brief Get the frame in which the transforms for this
+            model are computed (when using a planning_models::KinematicState). This frame depends on
+            the root joint. As such, the frame is either extracted from SRDF, or it is assumed to be the name of the root
+            link (immediate descendant of the root joint) */
         const std::string& getModelFrame(void) const
         {
             return model_frame_;
@@ -759,7 +768,7 @@ namespace planning_models
             return variable_bounds_;
         }
 
-        /** \brief Get the joint variables index map. 
+        /** \brief Get the joint variables index map.
             The state includes all the joint variables that make up the joints the state consists of.
             This map gives the position in the state vector of the group for each of these variables.
             Additionaly, it includes the names of the joints and the index for the first variable of that joint.*/
@@ -840,7 +849,7 @@ namespace planning_models
         /** \brief (This function is mostly intended for internal use). Given a parent link, build up (recursively), the kinematic model by walking  down the tree*/
         JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
 
-        /** \brief Given a urdf joint model, a child link and a set of virtual joints, 
+        /** \brief Given a urdf joint model, a child link and a set of virtual joints,
             build up the corresponding JointModel object*/
         JointModel* constructJointModel(const urdf::Joint *urdf_joint_model, const urdf::Link *child_link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
 
