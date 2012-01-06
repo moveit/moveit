@@ -43,11 +43,11 @@ namespace collision_detection
 
     bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void *data)
     {
-        cdata = (CollisionData*)data;
+        CollisionData *cdata = (CollisionData*)data;
         if (cdata->done_)
             return true;
-        const CollisionObjectData *cd1 = static_cast<const CollisionObjectData*>(o1->getUserData());
-        const CollisionObjectData *cd2 = static_cast<const CollisionObjectData*>(o2->getUserData());
+        const CollisionGeometryData *cd1 = static_cast<const CollisionGeometryData*>(o1->getCollisionGeometry()->getUserData());
+        const CollisionGeometryData *cd2 = static_cast<const CollisionGeometryData*>(o2->getCollisionGeometry()->getUserData());
 
         // use the collision matrix (if any) to avoid certain collision checks
         DecideContactFn dcf;
@@ -76,7 +76,7 @@ namespace collision_detection
                 else
                     have = cdata->res_->contacts[std::make_pair(cd2->getID(), cd1->getID())].size();
                 if (have < cdata->req_->max_contacts_per_pair)
-                    want_contact_count = cdata->req->max_contacts_per_pair - have;
+                    want_contact_count = cdata->req_->max_contacts_per_pair - have;
             }
 
         // if collisions are always allowed and we do not need the contact, we are done
@@ -108,7 +108,7 @@ namespace collision_detection
                     // if the contact is  not allowed, we have a collision
                     if (dcf(c) == false)
                     {
-                        cdata->res->collision = true;
+                        cdata->res_->collision = true;
                         if (want_contact_count == 0)
                             break;
                     }
@@ -139,7 +139,7 @@ namespace collision_detection
                         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
 
                     if (!always_allow_collision)
-                        cdata->res->collision = true;
+                        cdata->res_->collision = true;
                     for (int i = 0 ; i < num_contacts ; ++i)
                     {
                         Contact c;
@@ -156,47 +156,49 @@ namespace collision_detection
                 std::vector<fcl::Contact> contacts;
                 int num_contacts = fcl::collide(o1, o2, 1, exhaustive, enable_contact, contacts);
                 if (num_contacts > 0)
-                    cdata->res->collision = true;
+                    cdata->res_->collision = true;
             }
         }
 
-        if (cdata->res.collision)
-            if (!cdata->req.contacts || cdata->res->contact_count >= cdata->req->max_contacts)
-                cdata->done = true;
+        if (cdata->res_->collision)
+            if (!cdata->req_->contacts || cdata->res_->contact_count >= cdata->req_->max_contacts)
+                cdata->done_ = true;
 
-        return cdata->done;
+        return cdata->done_;
     }
 
-    fcl::CollisionObject* createCollisionObject(const shapes::StaticShape *shape)
+    boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShape *shape)
     {
-        fcl::CollisionObject* g = NULL;
+        fcl::CollisionGeometry* g = NULL;
         switch (shape->type)
         {
         case shapes::PLANE:
             {
-                // TODO: plane implementation
-                ROS_FATAL_STREAM("Plane is not supported using FCL yet");
+		const shapes::Plane *p = static_cast<const shapes::Plane*>(shape);
+		g = new fcl::Plane(p->a, p->b, p->c, p->d);
             }
             break;
         default:
             ROS_FATAL("This shape type (%d) is not supported using FCL yet", (int)shape->type);
         }
-        return g;
+	if (g)
+	    g->computeLocalAABB();
+        return boost::shared_ptr<fcl::CollisionGeometry>(g);
     }
 
-    fcl::CollisionObject* createCollisionObject(const shapes::Shape *shape, double scale, double padding)
+    boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape, double scale, double padding)
     {
         if (fabs(scale - 1.0) <= std::numeric_limits<double>::epsilon() && fabs(padding) <= std::numeric_limits<double>::epsilon())
-            return createCollisionObject(shape);
+            return createCollisionGeometry(shape);
         else
         {
             boost::scoped_ptr<shapes::Shape> scaled_shape(shape->clone());
             scaled_shape->scaleAndPadd(scale, padding);
-            return createCollisionObject(scaled_shape.get());
+            return createCollisionGeometry(scaled_shape.get());
         }
     }
 
-    fcl::CollisionObject* createCollisionObject(const shapes::Shape *shape)
+    boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape)
     {
         fcl::BVHModel<fcl::OBB>* g = new fcl::BVHModel<fcl::OBB>();
 
@@ -235,16 +237,14 @@ namespace collision_detection
                     g->beginModel();
                     g->addSubModel(points, tri_indices);
                     g->endModel();
-                    g->computeLocalAABB();
                 }
             }
             break;
         default:
             ROS_FATAL("This shape type (%d) is not supported using FCL yet", (int)shape->type);
         }
-        if (g)
-            g->setIdentityTransform();
-
-        return g;
+	if (g)
+	    g->computeLocalAABB();
+        return boost::shared_ptr<fcl::CollisionGeometry>(g);
     }
 }

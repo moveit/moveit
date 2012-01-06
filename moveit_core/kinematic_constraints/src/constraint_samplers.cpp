@@ -334,9 +334,9 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
         ik_query.orientation.y = quat.y();
         ik_query.orientation.z = quat.z();
         ik_query.orientation.w = quat.w();        
-        
+	
         if (callIK(ik_query, ik_timeout_, values))
-            return true;
+	    return true;
     }
     return false;
 }
