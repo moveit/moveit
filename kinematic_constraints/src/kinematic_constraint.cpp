@@ -367,9 +367,8 @@ bool kinematic_constraints::OrientationConstraint::decide(const planning_models:
 
     if (verbose)
     {
-        btQuaternion q_act, q_des;
-        link_state->getGlobalLinkTransform().getBasis().getRotation(q_act);
-        desired_rotation_matrix_.getRotation(q_des);
+        const btQuaternion &q_act = link_state->getGlobalLinkTransform().getRotation();
+	btQuaternion q_des; desired_rotation_matrix_.getRotation(q_des);
         ROS_INFO("Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion actual: %f %f %f %f, error: roll=%f, pitch=%f, yaw=%f, tolerance: roll=%f, pitch=%f, yaw=%f",
                  result ? "satisfied" : "violated", link_model_->getName().c_str(),
                  q_des.getX(), q_des.getY(), q_des.getZ(), q_des.getW(),
@@ -598,7 +597,7 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
         ROS_INFO("Visibility constraint %ssatisfied. Visibility cone approximation:\n %s", res.collision ? "not " : "", ss.str().c_str());
     }
 
-    distance = res.collision ? res.contacts.begin()->second.depth : 0.0;
+    distance = res.collision ? res.contacts.begin()->second.front().depth : 0.0;
     return (!res.collision);
 }
 

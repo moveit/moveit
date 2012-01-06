@@ -99,7 +99,7 @@ namespace collision_detection
                                 contact_count(0)
         {
         }
-        typedef std::map<std::pair<std::string, std::string>, Contact> ContactMap;
+        typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
 
         /** \brief True if collision was found, false otherwise */
         bool        collision;
@@ -113,7 +113,7 @@ namespace collision_detection
         /** \brief Number of contacts returned */
         std::size_t contact_count;
 
-        /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contact itself */
+        /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contacts themselves */
         ContactMap  contacts;
     };
 

@@ -42,19 +42,19 @@
 
 namespace collision_detection
 {
-    struct CollisionObjectData
+    struct CollisionGeometryData
     {
-        CollisionObjectData(const planning_models::KinematicModel::LinkModel *link) : type(BodyTypes::ROBOT_LINK)
+        CollisionGeometryData(const planning_models::KinematicModel::LinkModel *link) : type(BodyTypes::ROBOT_LINK)
         {
             ptr.link = link;
         }
 
-        CollisionObjectData(const planning_models::KinematicModel::AttachedBodyProperties *ab) : type(BodyTypes::ROBOT_ATTACHED)
+        CollisionGeometryData(const planning_models::KinematicState::AttachedBodyProperties *ab) : type(BodyTypes::ROBOT_ATTACHED)
         {
             ptr.ab = ab;
         }
 
-        CollisionObjectData(const CollisionWorld::NamespaceObjects *obj) : type(BodyTypes::WORLD_OBJECT)
+        CollisionGeometryData(const CollisionWorld::Object *obj) : type(BodyTypes::WORLD_OBJECT)
         {
             ptr.obj = obj;
         }
@@ -66,9 +66,11 @@ namespace collision_detection
             case BodyTypes::ROBOT_LINK:
                 return ptr.link->getName();
             case BodyTypes::ROBOT_ATTACHED:
-                return ptr.ab->id;
-            }
-            return ptr.obj->ns;
+                return ptr.ab->id_;
+	    default:
+		break;
+	    }
+            return ptr.obj->id_;
         }
 
         BodyType type;
@@ -76,7 +78,7 @@ namespace collision_detection
         {
             const planning_models::KinematicModel::LinkModel              *link;
             const planning_models::KinematicState::AttachedBodyProperties *ab;
-            const CollisionWorld::NamespaceObjects                        *obj;
+            const CollisionWorld::Object                                  *obj;
         } ptr;
     };
 
@@ -99,29 +101,35 @@ namespace collision_detection
 
     bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data);
 
-    fcl::CollisionObject* createCollisionObject(const shapes::StaticShape *shape);
-    fcl::CollisionObject* createCollisionObject(const shapes::Shape *shape, double scale, double padding);
-    fcl::CollisionObject* createCollisionObject(const shapes::Shape *shape);
-
-    inline void bt2fcl(const btTransform &b, fcl::SimpleTransform &f)
+    boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShape *shape);
+    boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape, double scale, double padding);
+    boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape);
+    
+    inline void transform2fcl(const btTransform &b, fcl::SimpleTransform &f)
     {
         const btVector3 &o = b.getOrigin();
         const btQuaternion &q = b.getRotation();
         f.setTranslation(fcl::Vec3f(o.x(), o.y(), o.z()));
         f.setQuatRotation(fcl::SimpleQuaternion(q.w(), q.x(), q.y(), q.z()));
     }
-
+    inline fcl::SimpleTransform transform2fcl(const btTransform &b)
+    {
+	fcl::SimpleTransform t;
+	transform2fcl(b, t);
+	return t;
+    }
+    
     inline void fcl2contact(const fcl::Contact &fc, Contact &c)
     {
         c.pos.setValue(fc.pos[0], fc.pos[1], fc.pos[2]);
         c.normal.setValue(fc.normal[0], fc.normal[1], fc.normal[2]);
         c.depth = fc.penetration_depth;
-        const CollisionObjectData *cod1 = static_cast<const CollisionData*>(fc.o1->getUserData());
-        c.body_name_1 = cod1->getID();
-        c.body_type_1 = cod1->type;
-        const CollisionObjectData *cod2 = static_cast<const CollisionData*>(fc.o2->getUserData());
-        c.body_name_2 = cod2->getID();
-        c.body_type_2 = cod2->type;
+        const CollisionGeometryData *cgd1 = static_cast<const CollisionGeometryData*>(fc.o1->getUserData());
+        c.body_name_1 = cgd1->getID();
+        c.body_type_1 = cgd1->type;
+        const CollisionGeometryData *cgd2 = static_cast<const CollisionGeometryData*>(fc.o2->getUserData());
+        c.body_name_2 = cgd2->getID();
+        c.body_type_2 = cgd2->type;
     }
 
 }

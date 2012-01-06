@@ -49,6 +49,8 @@ namespace collision_detection
 
         CollisionRobotFCL(const planning_models::KinematicModelPtr &kmodel, double padding = 0.0, double scale = 1.0);
 
+        CollisionRobotFCL(const CollisionRobotFCL &other);
+
         virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const;
 
         virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
@@ -63,20 +65,17 @@ namespace collision_detection
     protected:
 
         virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
+	fcl::BroadPhaseCollisionManager* allocSelfCollisionBroadPhase(const planning_models::KinematicState &state) const;
+	const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >& getAttachedBodyObjects(const planning_models::KinematicState::AttachedBody *ab) const;
+	
+        std::vector<planning_models::KinematicModel::LinkModel*>         links_;
+        std::vector<boost::shared_ptr<fcl::CollisionGeometry> >          geoms_;
+        std::map<std::string, boost::shared_ptr<CollisionGeometryData> > collision_geometry_data_;
+        std::map<std::string, std::size_t>                               index_map_;
 
-        fcl::CollisionObject* createCollisionObject(const shapes::Shape *shape) const;
-        fcl::CollisionObject* createCollisionObject(const shapes::StaticShape *shape) const;
-        fcl::CollisionObject* createCollisionObject(const shapes::Shape *shape, double scale, double padding) const;
-        fcl::BroadPhaseCollisionManager* allocSelfCollisionBroadPhase(const planning_models::KinematicState &state) const;
-
-        std::vector<planning_models::KinematicModel::LinkModel*> links_;
-        std::vector<fcl::CollisionObject*>                       geoms_;
-        std::map<std::string, CollisionObjectData*>              co_data_;
-        std::map<std::string, std::size_t>                       index_map_;
-
-        typedef std::map<boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties>, std::vector<fcl::CollisionObject*> > AttachedBodyObject;
-        mutable AttachedBodyObject                               attached_bodies_;
-        mutable boost::mutex::scoped_lock                        attached_bodies_lock_;
+        typedef std::map<boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties>, std::vector<boost::shared_ptr<fcl::CollisionGeometry> > > AttachedBodyObject;
+        mutable AttachedBodyObject                                       attached_bodies_;
+        mutable boost::mutex                                             attached_bodies_lock_;
     };
 
 }
