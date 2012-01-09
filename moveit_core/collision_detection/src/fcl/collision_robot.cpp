@@ -37,7 +37,7 @@
 #include "collision_detection/fcl/collision_robot.h"
 #include <ros/console.h>
 
-collision_detection::CollisionRobotFCL::CollisionRobotFCL(const planning_models::KinematicModelPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
+collision_detection::CollisionRobotFCL::CollisionRobotFCL(const planning_models::KinematicModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
 {
     links_ = kmodel_->getLinkModels();
 

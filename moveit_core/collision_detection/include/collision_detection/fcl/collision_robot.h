@@ -48,7 +48,7 @@ namespace collision_detection
 	
     public:
 
-        CollisionRobotFCL(const planning_models::KinematicModelPtr &kmodel, double padding = 0.0, double scale = 1.0);
+        CollisionRobotFCL(const planning_models::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
 
         CollisionRobotFCL(const CollisionRobotFCL &other);
 

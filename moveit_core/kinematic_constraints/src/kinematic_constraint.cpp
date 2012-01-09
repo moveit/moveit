@@ -38,8 +38,8 @@
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
-#include <collision_detection/allvalid/collision_robot.h>
-#include <collision_detection/allvalid/collision_world.h>
+#include <collision_detection/fcl/collision_robot.h>
+#include <collision_detection/fcl/collision_world.h>
 #include <boost/scoped_ptr.hpp>
 #include <limits>
 
@@ -394,7 +394,7 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
 }
 
 kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
-    KinematicConstraint(model, tf), collision_robot_(new collision_detection::CollisionRobotAllValid(model)), collision_world_(new collision_detection::CollisionWorldAllValid())
+    KinematicConstraint(model, tf), collision_robot_(new collision_detection::CollisionRobotFCL(model)), collision_world_(new collision_detection::CollisionWorldFCL())
 {
 }
 
