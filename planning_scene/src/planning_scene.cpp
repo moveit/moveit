@@ -35,15 +35,15 @@
 /* Author: Ioan Sucan */
 
 #include "planning_scene/planning_scene.h"
-#include <collision_detection/allvalid/collision_world.h>
-#include <collision_detection/allvalid/collision_robot.h>
+#include <collision_detection/fcl/collision_world.h>
+#include <collision_detection/fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
 
 namespace planning_scene
 {
-    typedef collision_detection::CollisionWorldAllValid DefaultCWorldType;
-    typedef collision_detection::CollisionRobotAllValid DefaultCRobotType;
+    typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
+    typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
     static const std::string COLLISION_MAP_NS = "__map";
 }
 
