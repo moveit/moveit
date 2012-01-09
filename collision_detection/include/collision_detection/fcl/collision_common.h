@@ -38,6 +38,7 @@
 #define COLLISION_DETECTION_FCL_COLLISION_COMMON_
 
 #include "collision_detection/collision_world.h"
+#include <fcl/broad_phase_collision.h>
 #include <fcl/collision.h>
 
 namespace collision_detection
@@ -98,7 +99,23 @@ namespace collision_detection
         const AllowedCollisionMatrix *acm_;
         bool                          done_;
     };
+    
+    struct FCLObject
+    {
+	void registerTo(fcl::BroadPhaseCollisionManager *manager);
+	void unregisterFrom(fcl::BroadPhaseCollisionManager *manager);
+	void clear(void);
+	
+	std::vector<boost::shared_ptr<fcl::CollisionObject> >  collision_objects_;
+	std::vector<boost::shared_ptr<CollisionGeometryData> > collision_geometry_data_;
+    };
 
+    struct FCLManager
+    {
+	FCLObject                                          object_;
+	boost::shared_ptr<fcl::BroadPhaseCollisionManager> manager_;
+    };
+    
     bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data);
 
     boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShape *shape);

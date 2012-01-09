@@ -100,17 +100,15 @@ collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const planning_mo
     return attached_bodies_.insert(std::make_pair(props, obj)).first->second;
 }
 
-fcl::BroadPhaseCollisionManager* collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const planning_models::KinematicState &state) const
-{
-    fcl::BroadPhaseCollisionManager* geom_manager = new fcl::SSaPCollisionManager();
+void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_models::KinematicState &state, FCLObject &fcl_obj) const
+{  
     const std::vector<planning_models::KinematicState::LinkState*> &link_states = state.getLinkStateVector();
     for (std::size_t i = 0 ; i < geoms_.size() ; ++i)
         if (geoms_[i])
         {
 	    fcl::CollisionObject *collObj = new fcl::CollisionObject(geoms_[i], transform2fcl(link_states[i]->getGlobalCollisionBodyTransform()));
-	    geom_manager->registerObject(collObj);
-            // \todo keep track of collObj and delete it 
-            const std::vector<planning_models::KinematicState::AttachedBody*> ab = link_states[i]->getAttachedBodies();
+	    fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
+	    const std::vector<planning_models::KinematicState::AttachedBody*> ab = link_states[i]->getAttachedBodies();
             for (std::size_t j = 0 ; j < ab.size() ; ++j)
             {
                 const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &objs = getAttachedBodyObjects(ab[j]);
@@ -119,47 +117,66 @@ fcl::BroadPhaseCollisionManager* collision_detection::CollisionRobotFCL::allocSe
                     if (objs[k])
                     {
 			fcl::CollisionObject *collObj = new fcl::CollisionObject(objs[k], transform2fcl(ab_t[k]));
-			geom_manager->registerObject(collObj);
+			fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
                     }
             }
         }
-    return geom_manager;
+}
+
+void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const planning_models::KinematicState &state, FCLManager &manager) const
+{
+    manager.manager_.reset(new fcl::SSaPCollisionManager());
+    constructFCLObject(state, manager.object_);
+    manager.object_.registerTo(manager.manager_.get());
 }
 
 void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const
 {
-    boost::scoped_ptr<fcl::BroadPhaseCollisionManager> geom_manager(allocSelfCollisionBroadPhase(state));
-    CollisionData cd(&req, &res, NULL);
-    geom_manager->collide(&cd, &collisionCallback);
+    checkSelfCollisionHelper(req, res, state, NULL);
 }
 
 void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
                                                                 const AllowedCollisionMatrix &acm) const
 {
-    boost::scoped_ptr<fcl::BroadPhaseCollisionManager> geom_manager(allocSelfCollisionBroadPhase(state));
-    CollisionData cd(&req, &res, &acm);
-    geom_manager->collide(&cd, &collisionCallback);
+    checkSelfCollisionHelper(req, res, state, &acm);
+}
+
+void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+								      const AllowedCollisionMatrix *acm) const
+{    
+    FCLManager manager;
+    allocSelfCollisionBroadPhase(state, manager);
+    CollisionData cd(&req, &res, acm);
+    manager.manager_->collide(&cd, &collisionCallback);
 }
 
 void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
                                                                  const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const
 {
-    boost::scoped_ptr<fcl::BroadPhaseCollisionManager> geom_manager(allocSelfCollisionBroadPhase(state));
-    const CollisionRobotFCL &fcl_rob = static_cast<const CollisionRobotFCL&>(other_robot);
-    boost::scoped_ptr<fcl::BroadPhaseCollisionManager> other_geom_manager(fcl_rob.allocSelfCollisionBroadPhase(other_state));
-    CollisionData cd(&req, &res, NULL);
-    geom_manager->collide(other_geom_manager.get(), &cd, &collisionCallback);
+    checkOtherCollisionHelper(req, res, state, other_robot, other_state, NULL);
 }
 
 void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
                                                                  const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
                                                                  const AllowedCollisionMatrix &acm) const
-{
-    boost::scoped_ptr<fcl::BroadPhaseCollisionManager> geom_manager(allocSelfCollisionBroadPhase(state));
-    const CollisionRobotFCL &fcl_rob = static_cast<const CollisionRobotFCL&>(other_robot);
-    boost::scoped_ptr<fcl::BroadPhaseCollisionManager> other_geom_manager(fcl_rob.allocSelfCollisionBroadPhase(other_state));
-    CollisionData cd(&req, &res, &acm);
-    geom_manager->collide(other_geom_manager.get(), &cd, &collisionCallback);
+{ 
+    checkOtherCollisionHelper(req, res, state, other_robot, other_state, &acm);
+}
+
+void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+								       const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
+								       const AllowedCollisionMatrix *acm) const
+{   
+    FCLManager manager;
+    allocSelfCollisionBroadPhase(state, manager);
+    
+    const CollisionRobotFCL &fcl_rob = dynamic_cast<const CollisionRobotFCL&>(other_robot);
+    FCLObject other_fcl_obj;
+    fcl_rob.constructFCLObject(other_state, other_fcl_obj);
+
+    CollisionData cd(&req, &res, acm);
+    for (std::size_t i = 0 ; !cd.done_ && i < other_fcl_obj.collision_objects_.size() ; ++i)
+	manager.manager_->collide(other_fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
 }
 
 void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::vector<std::string> &links)

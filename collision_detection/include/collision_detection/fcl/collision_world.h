@@ -37,7 +37,7 @@
 #ifndef COLLISION_DETECTION_FCL_COLLISION_WORLD_
 #define COLLISION_DETECTION_FCL_COLLISION_WORLD_
 
-#include "collision_detection/fcl/collision_common.h"
+#include "collision_detection/fcl/collision_robot.h"
 #include <fcl/broad_phase_collision.h>
 
 namespace collision_detection
@@ -67,17 +67,8 @@ namespace collision_detection
     protected:
 	
 	void checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const;
-		
-	struct FCLObject
-	{
-	    void registerTo(fcl::BroadPhaseCollisionManager *manager);
-	    void unregisterFrom(fcl::BroadPhaseCollisionManager *manager);
-	    void clear(void);
-
-	    std::vector<boost::shared_ptr<fcl::CollisionObject> >  collision_objects_;
-	    std::vector<boost::shared_ptr<CollisionGeometryData> > collision_geometry_data_;
-	};
-
+	void checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
+	
 	void constructFCLObject(const Object *obj, FCLObject &fcl_obj) const;
 	void updateFCLObject(const std::string &id);
 	
