@@ -72,12 +72,13 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
     CollisionData cd(&req, &res, acm);
     for (std::size_t i = 0 ; !cd.done_ && i < fcl_obj.collision_objects_.size() ; ++i)
         manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
+
     if (req.verbose)
     {
-	if (res.collision)
-	    ROS_INFO("Collision was found");
-	else
-	    ROS_INFO("No collision was found");
+        if (res.collision)
+            ROS_INFO("Collision was found");
+        else
+            ROS_INFO("No collision was found");
     }
 }
 
@@ -103,13 +104,13 @@ void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const Col
         for (std::map<std::string, FCLObject>::const_iterator it = fcl_objs_.begin() ; !cd.done_ && it != fcl_objs_.end() ; ++it)
             for (std::size_t i = 0 ; !cd.done_ && i < it->second.collision_objects_.size() ; ++i)
                 manager_->collide(it->second.collision_objects_[i].get(), &cd, &collisionCallback);
-    }  
+    }
     if (req.verbose)
     {
-	if (res.collision)
-	    ROS_INFO("Collision was found");
-	else
-	    ROS_INFO("No collision was found");
+        if (res.collision)
+            ROS_INFO("Collision was found");
+        else
+            ROS_INFO("No collision was found");
     }
 }
 
@@ -147,29 +148,29 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
     std::map<std::string, FCLObject>::iterator jt = fcl_objs_.find(id);
     if (jt != fcl_objs_.end())
     {
-	jt->second.unregisterFrom(manager_.get());
-	jt->second.clear();
+        jt->second.unregisterFrom(manager_.get());
+        jt->second.clear();
     }
-    
+
     // check to see if we have this object
     std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
     if (it != objects_.end())
     {
-	// construct FCL objects that correspond to this object
-	if (jt != fcl_objs_.end())
-	{
-	    constructFCLObject(it->second.get(), jt->second);
-	    jt->second.registerTo(manager_.get());
-	}
-	else
-	{
-	    constructFCLObject(it->second.get(), fcl_objs_[id]);
-	    fcl_objs_[id].registerTo(manager_.get());
-	}
+        // construct FCL objects that correspond to this object
+        if (jt != fcl_objs_.end())
+        {
+            constructFCLObject(it->second.get(), jt->second);
+            jt->second.registerTo(manager_.get());
+        }
+        else
+        {
+            constructFCLObject(it->second.get(), fcl_objs_[id]);
+            fcl_objs_[id].registerTo(manager_.get());
+        }
     }
     else
-	if (jt != fcl_objs_.end())
-	    fcl_objs_.erase(jt);
+        if (jt != fcl_objs_.end())
+            fcl_objs_.erase(jt);
 }
 
 void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, shapes::StaticShape *shape)
