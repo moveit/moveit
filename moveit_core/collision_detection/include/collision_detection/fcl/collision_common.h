@@ -68,9 +68,9 @@ namespace collision_detection
                 return ptr.link->getName();
             case BodyTypes::ROBOT_ATTACHED:
                 return ptr.ab->id_;
-	    default:
-		break;
-	    }
+            default:
+                break;
+            }
             return ptr.obj->id_;
         }
 
@@ -99,29 +99,29 @@ namespace collision_detection
         const AllowedCollisionMatrix *acm_;
         bool                          done_;
     };
-    
+
     struct FCLObject
     {
-	void registerTo(fcl::BroadPhaseCollisionManager *manager);
-	void unregisterFrom(fcl::BroadPhaseCollisionManager *manager);
-	void clear(void);
-	
-	std::vector<boost::shared_ptr<fcl::CollisionObject> >  collision_objects_;
-	std::vector<boost::shared_ptr<CollisionGeometryData> > collision_geometry_data_;
+        void registerTo(fcl::BroadPhaseCollisionManager *manager);
+        void unregisterFrom(fcl::BroadPhaseCollisionManager *manager);
+        void clear(void);
+
+        std::vector<boost::shared_ptr<fcl::CollisionObject> >  collision_objects_;
+        std::vector<boost::shared_ptr<CollisionGeometryData> > collision_geometry_data_;
     };
 
     struct FCLManager
     {
-	FCLObject                                          object_;
-	boost::shared_ptr<fcl::BroadPhaseCollisionManager> manager_;
+        FCLObject                                          object_;
+        boost::shared_ptr<fcl::BroadPhaseCollisionManager> manager_;
     };
-    
+
     bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data);
 
     boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShape *shape);
     boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape, double scale, double padding);
     boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape);
-    
+
     inline void transform2fcl(const btTransform &b, fcl::SimpleTransform &f)
     {
         const btVector3 &o = b.getOrigin();
@@ -131,11 +131,11 @@ namespace collision_detection
     }
     inline fcl::SimpleTransform transform2fcl(const btTransform &b)
     {
-	fcl::SimpleTransform t;
-	transform2fcl(b, t);
-	return t;
+        fcl::SimpleTransform t;
+        transform2fcl(b, t);
+        return t;
     }
-    
+
     inline void fcl2contact(const fcl::Contact &fc, Contact &c)
     {
         c.pos.setValue(fc.pos[0], fc.pos[1], fc.pos[2]);

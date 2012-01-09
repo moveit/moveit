@@ -123,7 +123,8 @@ namespace collision_detection
         CollisionRequest(void) : distance(false),
                                  contacts(false),
                                  max_contacts(1),
-                                 max_contacts_per_pair(1)
+                                 max_contacts_per_pair(1),
+                                 verbose(false)
         {
         }
 
@@ -138,6 +139,9 @@ namespace collision_detection
 
         /** \brief Maximum number of contacts to compute per pair of bodies (multiple bodies may be in contact at different configurations) */
         std::size_t max_contacts_per_pair;
+
+        /** \brief Flag indicating whether information about detected collisions should be reported */
+        bool        verbose;
     };
 
 }

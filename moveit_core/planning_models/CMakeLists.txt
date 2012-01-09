@@ -18,13 +18,13 @@ rosbuild_add_library(${PROJECT_NAME}
   src/conversions.cpp)
 
 # Unit tests
-#rosbuild_add_gtest(test_kinematic test/test_kinematic.cpp)
-#target_link_libraries(test_kinematic ${PROJECT_NAME})
-#target_link_libraries(test_kinematic assimp)
+rosbuild_add_gtest(test_kinematic test/test_kinematic.cpp)
+target_link_libraries(test_kinematic ${PROJECT_NAME})
+target_link_libraries(test_kinematic assimp)
 
-#rosbuild_add_gtest(test_kinematic_complex test/test_kinematic_complex.cpp)
-#target_link_libraries(test_kinematic_complex ${PROJECT_NAME})
-#target_link_libraries(test_kinematic_complex assimp)
+rosbuild_add_gtest(test_kinematic_complex test/test_kinematic_complex.cpp)
+target_link_libraries(test_kinematic_complex ${PROJECT_NAME})
+target_link_libraries(test_kinematic_complex assimp)
 
 rosbuild_add_gtest(test_transforms test/test_transforms.cpp)
 target_link_libraries(test_transforms ${PROJECT_NAME})

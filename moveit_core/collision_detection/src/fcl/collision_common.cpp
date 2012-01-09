@@ -59,9 +59,18 @@ namespace collision_detection
             if (found)
             {
                 if (type == AllowedCollision::ALWAYS)
+                {
                     always_allow_collision = true;
-                if (type == AllowedCollision::CONDITIONAL)
-                    cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), dcf);
+                    if (cdata->req_->verbose)
+                        ROS_INFO("Collision between '%s' and '%s' is always allowed", cd1->getID().c_str(), cd2->getID().c_str());
+                }
+                else
+                    if (type == AllowedCollision::CONDITIONAL)
+                    {
+                        cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), dcf);
+                        if (cdata->req_->verbose)
+                            ROS_INFO("Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(), cd2->getID().c_str());
+                    }
             }
         }
 
@@ -92,6 +101,9 @@ namespace collision_detection
             int num_contacts = fcl::collide(o1, o2, std::numeric_limits<int>::max(), exhaustive, enable_contact, contacts);
             if (num_contacts > 0)
             {
+                if (cdata->req_->verbose)
+                    ROS_INFO("Found %d contacts between '%s' and '%s'. These contacts will be evaluated to check if they are accepted or not",
+                             num_contacts, cd1->getID().c_str(), cd2->getID().c_str());
                 Contact c;
                 const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
                     std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
@@ -108,6 +120,7 @@ namespace collision_detection
                     // if the contact is  not allowed, we have a collision
                     if (dcf(c) == false)
                     {
+                        ROS_INFO("Found unacceptable contact between '%s' and '%s'.", cd1->getID().c_str(), cd2->getID().c_str());
                         cdata->res_->collision = true;
                         if (want_contact_count == 0)
                             break;
@@ -135,6 +148,16 @@ namespace collision_detection
                         want_contact_count = 0;
                     }
 
+                    if (cdata->req_->verbose)
+                    {
+                        if (always_allow_collision)
+                            ROS_INFO("Found %d contacts between '%s' and '%s', but the contacts are allowed. %d contacts will be stored",
+                                     num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)want_contact_count);
+                        else
+                            ROS_INFO("Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
+                                     num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)want_contact_count);
+                    }
+
                     const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
                         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
 
@@ -156,13 +179,22 @@ namespace collision_detection
                 std::vector<fcl::Contact> contacts;
                 int num_contacts = fcl::collide(o1, o2, 1, exhaustive, enable_contact, contacts);
                 if (num_contacts > 0)
+                {
                     cdata->res_->collision = true;
+                    if (cdata->req_->verbose)
+                        ROS_INFO("Found a contact between '%s' and '%s', which constitutes a collision. Contact information is not stored.",
+                                 cd1->getID().c_str(), cd2->getID().c_str());
+                }
             }
         }
 
         if (cdata->res_->collision)
             if (!cdata->req_->contacts || cdata->res_->contact_count >= cdata->req_->max_contacts)
+            {
                 cdata->done_ = true;
+                if (cdata->req_->verbose)
+                    ROS_INFO("Collision checking is considered complete.");
+            }
 
         return cdata->done_;
     }
@@ -174,15 +206,15 @@ namespace collision_detection
         {
         case shapes::PLANE:
             {
-		const shapes::Plane *p = static_cast<const shapes::Plane*>(shape);
-		g = new fcl::Plane(p->a, p->b, p->c, p->d);
+                const shapes::Plane *p = static_cast<const shapes::Plane*>(shape);
+                g = new fcl::Plane(p->a, p->b, p->c, p->d);
             }
             break;
         default:
             ROS_FATAL("This shape type (%d) is not supported using FCL yet", (int)shape->type);
         }
-	if (g)
-	    g->computeLocalAABB();
+        if (g)
+            g->computeLocalAABB();
         return boost::shared_ptr<fcl::CollisionGeometry>(g);
     }
 
@@ -243,8 +275,8 @@ namespace collision_detection
         default:
             ROS_FATAL("This shape type (%d) is not supported using FCL yet", (int)shape->type);
         }
-	if (g)
-	    g->computeLocalAABB();
+        if (g)
+            g->computeLocalAABB();
         return boost::shared_ptr<fcl::CollisionGeometry>(g);
     }
 }
@@ -252,13 +284,13 @@ namespace collision_detection
 void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager *manager)
 {
     for (std::size_t i = 0 ; i < collision_objects_.size() ; ++i)
-	manager->registerObject(collision_objects_[i].get());
+        manager->registerObject(collision_objects_[i].get());
 }
 
 void collision_detection::FCLObject::unregisterFrom(fcl::BroadPhaseCollisionManager *manager)
 {
     for (std::size_t i = 0 ; i < collision_objects_.size() ; ++i)
-	manager->unregisterObject(collision_objects_[i].get());
+        manager->unregisterObject(collision_objects_[i].get());
 }
 
 void collision_detection::FCLObject::clear(void)

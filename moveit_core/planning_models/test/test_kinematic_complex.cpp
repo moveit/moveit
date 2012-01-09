@@ -184,7 +184,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
 
 
     planning_models::KinematicState ks(kin_model2);
-    ks.setDefaultValues();
+    ks.setToDefaultValues();
     std::map<std::string, double> jv;
     jv["base_joint.x"] = 0.433;
     ks.setStateValues(jv);

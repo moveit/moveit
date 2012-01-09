@@ -71,7 +71,8 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
     planning_models::KinematicModelPtr kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));
     planning_models::KinematicState ks(kmodel);
-    ks.setDefaultValues();
+    ks.setToRandomValues();
+    ks.setToDefaultValues();
 
 
     planning_models::Transforms tf(kmodel->getModelFrame());
@@ -97,14 +98,14 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
     btTransform x;
     x.setIdentity();
-    tf.transformPose(ks, x, x, "some_frame_2");
+    tf.transformPose(ks, "some_frame_2", x, x);
     EXPECT_TRUE(x == t2);
 
-    tf.transformPose(ks, x, x, kmodel->getModelFrame());
+    tf.transformPose(ks, kmodel->getModelFrame(), x, x);
     EXPECT_TRUE(x == t2);
 
     x.setIdentity();
-    tf.transformPose(ks, x, x, "r_wrist_roll_link");
+    tf.transformPose(ks, "r_wrist_roll_link", x, x);
 
     EXPECT_NEAR(x.getOrigin().x(), 0.585315, 1e-4);
     EXPECT_NEAR(x.getOrigin().y(), -0.188, 1e-4);

@@ -712,7 +712,8 @@ std::vector<std::string> planning_models::KinematicModel::getChildJointModelName
 void planning_models::KinematicModel::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
 {
     for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
-        joint_model_vector_[i]->getRandomValues(rng, values);
+        if (joint_model_vector_[i]->mimic_ == NULL)
+            joint_model_vector_[i]->getRandomValues(rng, values);
 }
 
 /* ------------------------ JointModel ------------------------ */
@@ -772,7 +773,10 @@ void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers
 void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
 {
     for (std::vector<std::pair<double, double> >::const_iterator it = variable_bounds_.begin() ; it != variable_bounds_.end() ; ++it)
-        values.push_back(rng.uniformReal(it->first, it->second));
+        if (it->first > -std::numeric_limits<double>::max() && it->second < std::numeric_limits<double>::max())
+            values.push_back(rng.uniformReal(it->first, it->second));
+        else
+            values.push_back(0.0);
 }
 
 bool planning_models::KinematicModel::JointModel::isVariableWithinBounds(const std::string& variable, double value) const
