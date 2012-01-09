@@ -83,29 +83,44 @@ void testSimple()
     }
 
     planning_scene::PlanningScenePtr colliding = clone(scene);
-
-
-
+    // construct a planning scene with 100 objects and no collisions
     btTransform t;
     t.setIdentity();
     random_numbers::RandomNumberGenerator rng;
     req.verbose = false;
-    for (int i = 0 ; i < 5000 ; ++i)
+    for (int i = 0 ; i < 10000 ; ++i)
     {
-	t.setOrigin(btVector3(rng.uniformReal(-1, 1), rng.uniformReal(-1, 1), rng.uniformReal(-1, 1)));
+	t.setOrigin(btVector3(rng.uniformReal(-1, 1), rng.uniformReal(-1, 1), rng.uniformReal(0, 2)));
 	scene->getCollisionWorld()->clearObjects();
 	scene->getCollisionWorld()->addToObject("spere1", new shapes::Sphere(0.05), t);
 	collision_detection::CollisionResult res;
 	scene->checkCollision(req, res);
-	if (res.collision)
-	    colliding->getCollisionWorld()->addToObject("speres", new shapes::Sphere(0.05), t);
+	if (!res.collision)
+	{
+	    int x = colliding->getCollisionWorld()->getObjectIds().size();
+	    colliding->getCollisionWorld()->addToObject("speres" + boost::lexical_cast<std::string>(x), new shapes::Sphere(0.05), t);
+	    std::cout << x << "\n";
+	    if (x == 1000)
+		break;
+	}
     }
     
     moveit_msgs::PlanningScene psmsg;
     colliding->getPlanningSceneMsg(psmsg);
     pub_scene.publish(psmsg);
     
-    
+    ros::WallTime start = ros::WallTime::now();
+    unsigned int M = 1000;
+    for (unsigned int i = 0 ; i < M ; ++i)
+    {
+	collision_detection::CollisionResult res;
+	scene->checkCollision(req, res);
+	if (res.collision)
+	    ROS_ERROR("PROBLEM");
+    }
+    ROS_INFO("%lf full-collision checks per second", (double)M / (ros::WallTime::now() - start).toSec());
+
+
     /*
     req.verbose = false;
     ros::WallTime start = ros::WallTime::now();
