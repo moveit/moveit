@@ -160,7 +160,6 @@ namespace collision_detection
 
                     const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
                         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
-
                     if (!always_allow_collision)
                         cdata->res_->collision = true;
                     for (int i = 0 ; i < num_contacts ; ++i)
