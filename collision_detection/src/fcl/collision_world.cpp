@@ -46,11 +46,11 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFC
     manager_.reset(new fcl::SSaPCollisionManager());
     fcl_objs_ = other.fcl_objs_;
     for (std::map<std::string, FCLObject>::iterator it = fcl_objs_.begin() ; it != fcl_objs_.end() ; ++it)
-	it->second.registerTo(manager_.get());
+        it->second.registerTo(manager_.get());
 }
 
 collision_detection::CollisionWorldFCL::~CollisionWorldFCL(void)
-{    
+{
 }
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const
@@ -66,12 +66,12 @@ void collision_detection::CollisionWorldFCL::checkRobotCollision(const Collision
 void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const
 {
     const CollisionRobotFCL &robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
-    FCLObject fcl_obj;    
+    FCLObject fcl_obj;
     robot_fcl.constructFCLObject(state, fcl_obj);
-    
+
     CollisionData cd(&req, &res, acm);
     for (std::size_t i = 0 ; !cd.done_ && i < fcl_obj.collision_objects_.size() ; ++i)
-	manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
+        manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
 }
 
 void collision_detection::CollisionWorldFCL::checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const
@@ -85,17 +85,17 @@ void collision_detection::CollisionWorldFCL::checkWorldCollision(const Collision
 }
 
 void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const
-{   
+{
     const CollisionWorldFCL &other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
-    
+
     if (fcl_objs_.size() > other_fcl_world.fcl_objs_.size())
-	other_fcl_world.checkWorldCollisionHelper(req, res, *this, acm);
+        other_fcl_world.checkWorldCollisionHelper(req, res, *this, acm);
     else
     {
-	CollisionData cd(&req, &res, acm);    
-	for (std::map<std::string, FCLObject>::const_iterator it = fcl_objs_.begin() ; !cd.done_ && it != fcl_objs_.end() ; ++it)
-	    for (std::size_t i = 0 ; !cd.done_ && i < it->second.collision_objects_.size() ; ++i)
-		manager_->collide(it->second.collision_objects_[i].get(), &cd, &collisionCallback);
+        CollisionData cd(&req, &res, acm);
+        for (std::map<std::string, FCLObject>::const_iterator it = fcl_objs_.begin() ; !cd.done_ && it != fcl_objs_.end() ; ++it)
+            for (std::size_t i = 0 ; !cd.done_ && i < it->second.collision_objects_.size() ; ++i)
+                manager_->collide(it->second.collision_objects_[i].get(), &cd, &collisionCallback);
     }
 }
 
@@ -103,27 +103,27 @@ void collision_detection::CollisionWorldFCL::constructFCLObject(const Object *ob
 {
     for (std::size_t i = 0 ; i < obj->static_shapes_.size() ; ++i)
     {
-	boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(obj->static_shapes_[i]);
-	if (cg)
-	{    
-	    CollisionGeometryData *cgd = new CollisionGeometryData(obj);
-	    cg->setUserData(cgd);
-	    fcl::CollisionObject *co = new fcl::CollisionObject(cg);
-	    fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(co));
-	    fcl_obj.collision_geometry_data_.push_back(boost::shared_ptr<CollisionGeometryData>(cgd));
-	}
+        boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(obj->static_shapes_[i]);
+        if (cg)
+        {
+            CollisionGeometryData *cgd = new CollisionGeometryData(obj);
+            cg->setUserData(cgd);
+            fcl::CollisionObject *co = new fcl::CollisionObject(cg);
+            fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(co));
+            fcl_obj.collision_geometry_data_.push_back(boost::shared_ptr<CollisionGeometryData>(cgd));
+        }
     }
     for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
     {
-	boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(obj->shapes_[i]);
-	if (cg)
-	{    
-	    CollisionGeometryData *cgd = new CollisionGeometryData(obj);
-	    cg->setUserData(cgd);
-	    fcl::CollisionObject *co = new fcl::CollisionObject(cg,  transform2fcl(obj->shape_poses_[i]));
-	    fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(co));
-	    fcl_obj.collision_geometry_data_.push_back(boost::shared_ptr<CollisionGeometryData>(cgd));
-	}
+        boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(obj->shapes_[i]);
+        if (cg)
+        {
+            CollisionGeometryData *cgd = new CollisionGeometryData(obj);
+            cg->setUserData(cgd);
+            fcl::CollisionObject *co = new fcl::CollisionObject(cg,  transform2fcl(obj->shape_poses_[i]));
+            fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(co));
+            fcl_obj.collision_geometry_data_.push_back(boost::shared_ptr<CollisionGeometryData>(cgd));
+        }
     }
 }
 
@@ -132,13 +132,13 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
     // check to see if we have this object
     std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
     if (it == objects_.end())
-	return;
-    
+        return;
+
     // remove FCL objects that correspond to this object
     std::map<std::string, FCLObject>::iterator jt = fcl_objs_.find(id);
     jt->second.unregisterFrom(manager_.get());
     jt->second.clear();
-    
+
     // construct FCL objects that correspond to this object
     constructFCLObject(it->second.get(), jt->second);
     jt->second.registerTo(manager_.get());
@@ -160,18 +160,18 @@ bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string
 {
     if (CollisionWorld::moveShapeInObject(id, shape, pose))
     {
-	updateFCLObject(id);
-	return true;
+        updateFCLObject(id);
+        return true;
     }
     else
-	return false;
+        return false;
 }
 
 bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::string &id, const shapes::Shape *shape)
 {
     if (CollisionWorld::removeShapeFromObject(id, shape))
     {
-	updateFCLObject(id);
+        updateFCLObject(id);
         return true;
     }
     else
@@ -182,10 +182,10 @@ bool collision_detection::CollisionWorldFCL::removeStaticShapeFromObject(const s
 {
     if (CollisionWorld::removeStaticShapeFromObject(id, shape))
     {
-	updateFCLObject(id);
-	return true;
+        updateFCLObject(id);
+        return true;
     }
-    else	    
+    else
         return false;
 }
 
@@ -195,9 +195,9 @@ void collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
     std::map<std::string, FCLObject>::iterator it = fcl_objs_.find(id);
     if (it != fcl_objs_.end())
     {
-	it->second.unregisterFrom(manager_.get());
-	it->second.clear();
-	fcl_objs_.erase(it);
+        it->second.unregisterFrom(manager_.get());
+        it->second.clear();
+        fcl_objs_.erase(it);
     }
 }
 

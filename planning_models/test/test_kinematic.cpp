@@ -94,7 +94,7 @@ TEST(Loading, SimpleRobot)
     planning_models::KinematicModelPtr model(new planning_models::KinematicModel(urdfModel, srdfModel));
     planning_models::KinematicState state(model);
 
-    state.setDefaultValues();
+    state.setToDefaultValues();
 
     //make sure that this copy constructor works
     planning_models::KinematicState new_state(state);
@@ -179,7 +179,7 @@ TEST(LoadingAndFK, SimpleRobot)
 
     EXPECT_EQ((unsigned int)3, state.getVariableCount());
 
-    state.setDefaultValues();
+    state.setToDefaultValues();
 
     const std::vector<planning_models::KinematicState::JointState*>& joint_states = state.getJointStateVector();
     EXPECT_EQ((unsigned int)1, joint_states.size());
@@ -466,7 +466,7 @@ TEST(FK, OneRobot)
 
     EXPECT_EQ((unsigned int)5, state.getVariableCount());
 
-    state.setDefaultValues();
+    state.setToDefaultValues();
 
     std::map<std::string, double> joint_values;
     joint_values["base_joint.x"]=1.0;

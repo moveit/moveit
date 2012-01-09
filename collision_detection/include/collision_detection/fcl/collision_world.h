@@ -48,9 +48,9 @@ namespace collision_detection
     public:
 
         CollisionWorldFCL(void);
-	CollisionWorldFCL(const CollisionWorldFCL &other);
-	virtual ~CollisionWorldFCL(void);
-	
+        CollisionWorldFCL(const CollisionWorldFCL &other);
+        virtual ~CollisionWorldFCL(void);
+
         virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
         virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
         virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
@@ -65,16 +65,16 @@ namespace collision_detection
         virtual void clearObjects(void);
 
     protected:
-	
-	void checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const;
-	void checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
-	
-	void constructFCLObject(const Object *obj, FCLObject &fcl_obj) const;
-	void updateFCLObject(const std::string &id);
-	
-	boost::scoped_ptr<fcl::BroadPhaseCollisionManager> manager_;
+
+        void checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const;
+        void checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
+
+        void constructFCLObject(const Object *obj, FCLObject &fcl_obj) const;
+        void updateFCLObject(const std::string &id);
+
+        boost::scoped_ptr<fcl::BroadPhaseCollisionManager> manager_;
         std::map<std::string, FCLObject >                  fcl_objs_;
-	
+
     };
 
 }

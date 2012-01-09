@@ -44,8 +44,8 @@ namespace collision_detection
 
     class CollisionRobotFCL : public CollisionRobot
     {
-	friend class CollisionWorldFCL;
-	
+        friend class CollisionWorldFCL;
+
     public:
 
         CollisionRobotFCL(const planning_models::KinematicModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
@@ -66,23 +66,23 @@ namespace collision_detection
     protected:
 
         virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
-	void constructFCLObject(const planning_models::KinematicState &state, FCLObject &fcl_obj) const;
-	void allocSelfCollisionBroadPhase(const planning_models::KinematicState &state, FCLManager &manager) const;
-	const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >& getAttachedBodyObjects(const planning_models::KinematicState::AttachedBody *ab) const;
+        void constructFCLObject(const planning_models::KinematicState &state, FCLObject &fcl_obj) const;
+        void allocSelfCollisionBroadPhase(const planning_models::KinematicState &state, FCLManager &manager) const;
+        const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >& getAttachedBodyObjects(const planning_models::KinematicState::AttachedBody *ab) const;
 
-	void checkSelfCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
-				      const AllowedCollisionMatrix *acm) const;
-	void checkOtherCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
-				       const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
-				       const AllowedCollisionMatrix *acm) const;
-	
+        void checkSelfCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                      const AllowedCollisionMatrix *acm) const;
+        void checkOtherCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
+                                       const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
+                                       const AllowedCollisionMatrix *acm) const;
+
         std::vector<planning_models::KinematicModel::LinkModel*>         links_;
         std::vector<boost::shared_ptr<fcl::CollisionGeometry> >          geoms_;
         std::map<std::string, boost::shared_ptr<CollisionGeometryData> > collision_geometry_data_;
         std::map<std::string, std::size_t>                               index_map_;
 
         typedef std::map<boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties>,
-			 std::vector<boost::shared_ptr<fcl::CollisionGeometry> > > AttachedBodyObject;
+                         std::vector<boost::shared_ptr<fcl::CollisionGeometry> > > AttachedBodyObject;
         mutable AttachedBodyObject                                       attached_bodies_;
         mutable boost::mutex                                             attached_bodies_lock_;
     };

@@ -141,13 +141,17 @@ planning_models::KinematicState::~KinematicState(void)
 bool planning_models::KinematicState::setStateValues(const std::vector<double>& joint_state_values)
 {
     if (joint_state_values.size() != getVariableCount())
+    {
+        ROS_ERROR("Incorrect variable count specified for array of joint values. Expected %u but got %u values",
+                  getVariableCount(), (int)joint_state_values.size());
         return false;
+    }
 
     unsigned int value_counter = 0;
     for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
     {
         unsigned int dim = joint_state_vector_[i]->getVariableCount();
-        if (dim != 0)
+        if (dim != 0 && joint_state_vector_[i]->getJointModel()->getMimic() == NULL)
         {
             joint_state_vector_[i]->setVariableValues(&joint_state_values[value_counter]);
             value_counter += dim;
@@ -172,15 +176,16 @@ void planning_models::KinematicState::setStateValues(const std::map<std::string,
     updateLinkTransforms();
 }
 
-void planning_models::KinematicState::setStateValues(const sensor_msgs::JointState& js) {
-  std::map<std::string, double> vals;
-  unsigned int position_size = js.position.size();
-  for(unsigned int i=0; i < js.name.size(); i++) {
-    if(i < position_size) {
-      vals[js.name[i]] = js.position[i];
+void planning_models::KinematicState::setStateValues(const sensor_msgs::JointState& js)
+{
+    std::map<std::string, double> vals;
+    unsigned int position_size = js.position.size();
+    for(unsigned int i=0; i < js.name.size(); i++) {
+        if(i < position_size) {
+            vals[js.name[i]] = js.position[i];
+        }
     }
-  }
-  setStateValues(vals);
+    setStateValues(vals);
 }
 
 void planning_models::KinematicState::getStateValues(std::vector<double>& joint_state_values) const
@@ -716,7 +721,11 @@ bool planning_models::KinematicState::JointStateGroup::updatesLinkState(const st
 bool planning_models::KinematicState::JointStateGroup::setStateValues(const std::vector<double> &joint_state_values)
 {
     if (joint_state_values.size() != getVariableCount())
+    {
+        ROS_ERROR("Incorrect variable count specified for array of joint values. Expected %u but got %u values",
+                  getVariableCount(), (int)joint_state_values.size());
         return false;
+    }
 
     unsigned int value_counter = 0;
     for(unsigned int i = 0; i < joint_state_vector_.size(); i++)

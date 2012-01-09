@@ -8,9 +8,11 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 #set(ROS_BUILD_TYPE RelWithDebInfo)
-set(ROS_BUILD_TYPE Debug)
+set(ROS_BUILD_TYPE Release)
 
 rosbuild_init()
+
+rosbuild_check_for_sse()
 rosbuild_add_boost_directories()
 
 #set the default path for built executables to the "bin" directory
@@ -34,3 +36,6 @@ rosbuild_add_library(${PROJECT_NAME}
   src/fcl/collision_robot.cpp
   src/fcl/collision_world.cpp
 )
+
+rosbuild_add_compile_flags(${PROJECT_NAME} ${SSE_FLAGS})
+rosbuild_add_openmp_flags(${PROJECT_NAME})

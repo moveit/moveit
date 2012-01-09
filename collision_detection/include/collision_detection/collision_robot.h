@@ -108,12 +108,12 @@ namespace collision_detection
                                          const planning_models::KinematicState &other_state,
                                          const AllowedCollisionMatrix &acm) const = 0;
 
-	/** @brief The kinematic model corresponding to this collision model*/
-	const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
-	{
-	    return kmodel_;
-	}
-	
+        /** @brief The kinematic model corresponding to this collision model*/
+        const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
+        {
+            return kmodel_;
+        }
+
         /** @brief Set the link padding for a particular link.
          *  @param link_name The link name to set padding for
          *  @param padding The padding to set (in meters)
