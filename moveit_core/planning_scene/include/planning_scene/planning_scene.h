@@ -50,7 +50,10 @@ namespace planning_scene
     class PlanningScene;
     typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
     typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
-
+    
+    /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
+    PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
+    
     /** \brief This class maintains the representation of the
         environment as seen by a planning instance. The environment
         geometry, the robot geometry and state are maintained. */

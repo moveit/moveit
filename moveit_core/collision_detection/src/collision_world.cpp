@@ -103,8 +103,6 @@ bool collision_detection::CollisionWorld::hasObject(const std::string &id) const
 
 void collision_detection::CollisionWorld::ensureUnique(ObjectPtr &id)
 {
-    std::cout << id->id_ << ": " << id.use_count() << std::endl;
-
     if (id && !id.unique())
         id.reset(id->clone());
 }

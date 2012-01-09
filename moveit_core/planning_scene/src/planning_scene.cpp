@@ -47,6 +47,13 @@ namespace planning_scene
     static const std::string COLLISION_MAP_NS = "__map";
 }
 
+planning_scene::PlanningScenePtr planning_scene::clone(const PlanningSceneConstPtr &scene)
+{
+    PlanningScenePtr result(new PlanningScene(scene));
+    result->decoupleParent();
+    return result;
+}
+
 planning_scene::PlanningScene::PlanningScene(void) : configured_(false)
 {
 }
