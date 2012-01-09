@@ -1,0 +1,17 @@
+<package>
+  <description brief="test_collision_detection">
+
+     test_collision_detection
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/test_collision_detection</url>
+
+  <depend package="collision_detection"/>
+  <depend package="planning_scene_monitor"/>
+
+</package>
+
+
