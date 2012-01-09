@@ -248,3 +248,21 @@ namespace collision_detection
         return boost::shared_ptr<fcl::CollisionGeometry>(g);
     }
 }
+
+void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager *manager)
+{
+    for (std::size_t i = 0 ; i < collision_objects_.size() ; ++i)
+	manager->registerObject(collision_objects_[i].get());
+}
+
+void collision_detection::FCLObject::unregisterFrom(fcl::BroadPhaseCollisionManager *manager)
+{
+    for (std::size_t i = 0 ; i < collision_objects_.size() ; ++i)
+	manager->unregisterObject(collision_objects_[i].get());
+}
+
+void collision_detection::FCLObject::clear(void)
+{
+    collision_objects_.clear();
+    collision_geometry_data_.clear();
+}

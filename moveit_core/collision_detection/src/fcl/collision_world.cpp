@@ -41,17 +41,37 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(void) : CollisionWorld
     manager_.reset(new fcl::SSaPCollisionManager());
 }
 
-collision_detection::CollisionWorldFCL::~CollisionWorldFCL(void)
+collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other) : CollisionWorld()
 {
+    manager_.reset(new fcl::SSaPCollisionManager());
+    fcl_objs_ = other.fcl_objs_;
+    for (std::map<std::string, FCLObject>::iterator it = fcl_objs_.begin() ; it != fcl_objs_.end() ; ++it)
+	it->second.registerTo(manager_.get());
 }
 
+collision_detection::CollisionWorldFCL::~CollisionWorldFCL(void)
+{    
+}
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const
 {
+    checkRobotCollisionHelper(req, res, robot, state, NULL);
 }
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const
 {
+    checkRobotCollisionHelper(req, res, robot, state, &acm);
+}
+
+void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const
+{
+    const CollisionRobotFCL &robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
+    FCLObject fcl_obj;    
+    robot_fcl.constructFCLObject(state, fcl_obj);
+    
+    CollisionData cd(&req, &res, acm);
+    for (std::size_t i = 0 ; !cd.done_ && i < fcl_obj.collision_objects_.size() ; ++i)
+	manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
 }
 
 void collision_detection::CollisionWorldFCL::checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const
@@ -65,26 +85,17 @@ void collision_detection::CollisionWorldFCL::checkWorldCollision(const Collision
 }
 
 void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const
-{
-    const CollisionWorldFCL *other_fcl_world = dynamic_cast<const CollisionWorldFCL*>(&other_world);
-    if (other_fcl_world)
-    {
-	CollisionData cd(&req, &res, acm);
-	manager_->collide(other_fcl_world->manager_.get(), &cd, &collisionCallback);
-    }
+{   
+    const CollisionWorldFCL &other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
+    
+    if (fcl_objs_.size() > other_fcl_world.fcl_objs_.size())
+	other_fcl_world.checkWorldCollisionHelper(req, res, *this, acm);
     else
     {
-	const std::vector<std::string> &other_ids = other_world.getObjectIds();
-        for (std::size_t i = 0 ; i < other_ids.size() ; ++i)
-        {
-            ObjectConstPtr obj = other_world.getObject(other_ids[i]);
-            // create collision objects for everything & call collide()
-	    FCLObject fcl_obj;
-	    constructFCLObject(obj.get(), fcl_obj);
-	    CollisionData cd(&req, &res, acm);
-	    for (std::size_t j = 0 ; j < fcl_obj.collision_objects_.size() && !cd.done_ ; ++j)
-		manager_->collide(fcl_obj.collision_objects_[j].get(),  &cd, &collisionCallback);
-	}
+	CollisionData cd(&req, &res, acm);    
+	for (std::map<std::string, FCLObject>::const_iterator it = fcl_objs_.begin() ; !cd.done_ && it != fcl_objs_.end() ; ++it)
+	    for (std::size_t i = 0 ; !cd.done_ && i < it->second.collision_objects_.size() ; ++i)
+		manager_->collide(it->second.collision_objects_[i].get(), &cd, &collisionCallback);
     }
 }
 
@@ -195,22 +206,4 @@ void collision_detection::CollisionWorldFCL::clearObjects(void)
     CollisionWorld::clearObjects();
     manager_->clear();
     fcl_objs_.clear();
-}
-
-void collision_detection::CollisionWorldFCL::FCLObject::registerTo(fcl::BroadPhaseCollisionManager *manager)
-{
-    for (std::size_t i = 0 ; i < collision_objects_.size() ; ++i)
-	manager->registerObject(collision_objects_[i].get());
-}
-
-void collision_detection::CollisionWorldFCL::FCLObject::unregisterFrom(fcl::BroadPhaseCollisionManager *manager)
-{
-    for (std::size_t i = 0 ; i < collision_objects_.size() ; ++i)
-	manager->unregisterObject(collision_objects_[i].get());
-}
-
-void collision_detection::CollisionWorldFCL::FCLObject::clear(void)
-{
-    collision_objects_.clear();
-    collision_geometry_data_.clear();
 }
