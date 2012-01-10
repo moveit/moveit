@@ -45,6 +45,10 @@ TEST(SpherePointContainment, SimpleInside)
     bodies::Body* sphere = new bodies::Sphere(&shape);
     sphere->setScale(1.05);
     bool contains = sphere->containsPoint(0,0,1.0);
+    random_numbers::RandomNumberGenerator r;
+    Eigen::Vector3f p;
+    EXPECT_TRUE(sphere->samplePointInside(r, 100, p));
+    EXPECT_TRUE(sphere->containsPoint(p));
     EXPECT_TRUE(contains);
     delete sphere;
 }
@@ -246,12 +250,13 @@ TEST(MeshPointContainment, Pr2Forearm)
     random_numbers::RandomNumberGenerator r;
     Eigen::Vector3f p;
     bool found = true;
-    // for (int i = 0 ; i < 10 ; ++i)
-    //   if (m->samplePointInside(r, 10000, p))
-    //   {
-    //     found = true;
-    //     EXPECT_TRUE(m->containsPoint(p));
-    //   }
+    for (int i = 0 ; i < 10 ; ++i) {
+      if (m->samplePointInside(r, 10000, p))
+      {
+        found = true;
+        EXPECT_TRUE(m->containsPoint(p));
+      }
+    }
     EXPECT_TRUE(found);
     
     delete m;
