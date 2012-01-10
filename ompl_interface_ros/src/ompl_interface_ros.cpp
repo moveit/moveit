@@ -122,10 +122,7 @@ ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_scene::Pla
         // this call will configure planning for all groups known to the kinematic model
         // and it will use additional configuration options, if available
         if (configure(scene, pconfig))
-        {
             configureIKSolvers();
-            plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLInterfaceROS::computePlan, this);
-        }
     }
     else
         ROS_ERROR("Planning scene is not configured. Cannot configure OMPL interface.");
@@ -278,23 +275,14 @@ void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_in
     }
 }
 
-bool ompl_interface_ros::OMPLInterfaceROS::computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
-{
-    ROS_INFO("Received new planning request...");
-    return solve(req, res);
-}
-
 void ompl_interface_ros::OMPLInterfaceROS::printStatus(void)
 {
     if (isConfigured())
     {
-        //        std::stringstream ss;
-        //        scene_->getKinematicModel()->printModelInfo(ss);
-        //        ROS_INFO("%s", ss.str().c_str());
-        ROS_INFO("OMPL planning node started.");
+        ROS_INFO("OMPL ROS interface is configured.");
     }
     else
     {
-        ROS_ERROR("Cannot start OMPL planning node.");
+        ROS_ERROR("OMPL ROS interface is not configured.");
     }
 }
