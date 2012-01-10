@@ -838,7 +838,12 @@ void planning_models::KinematicModel::PlanarJointModel::computeJointStateValues(
   joint_values.resize(3);
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
-  joint_values[2] = transf.rotation()(0,0) + transf.rotation()(1,1) + transf.rotation()(2,2);
+
+  Eigen::Quaternionf q(transf.rotation());
+  //taken from Bullet
+  double s_squared = 1.0-(q.w()*q.w());
+  double s = sqrt(s_squared);
+  joint_values[2] = (acos(q.w())*2.0f)*(q.z()/s);  
 }
 
 planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name)

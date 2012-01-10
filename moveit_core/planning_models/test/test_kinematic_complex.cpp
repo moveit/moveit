@@ -187,6 +187,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     ks.setToDefaultValues();
     std::map<std::string, double> jv;
     jv["base_joint.x"] = 0.433;
+    jv["base_joint.theta"] = -0.5;
     ks.setStateValues(jv);
     moveit_msgs::RobotState robot_state;
     planning_models::kinematicStateToRobotState(ks, robot_state);
@@ -199,9 +200,9 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     ks2.getStateValues(v2);
     EXPECT_TRUE(v1.size() == v2.size());
     for(unsigned int i = 0; i < v1.size(); i++) {
+      EXPECT_NEAR(v1[i],v2[i],1e-5);
       ROS_INFO_STREAM(v1[i] << " " << v2[i]);
     }
-    EXPECT_TRUE(v1 == v2);
 
     geometry_msgs::Quaternion q;
     q.x = q.y = q.z = q.w = 0.0;
