@@ -197,13 +197,17 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     ks.getStateValues(v1);
     std::vector<double> v2;
     ks2.getStateValues(v2);
+    EXPECT_TRUE(v1.size() == v2.size());
+    for(unsigned int i = 0; i < v1.size(); i++) {
+      ROS_INFO_STREAM(v1[i] << " " << v2[i]);
+    }
     EXPECT_TRUE(v1 == v2);
 
     geometry_msgs::Quaternion q;
     q.x = q.y = q.z = q.w = 0.0;
-    btQuaternion tq;
+    Eigen::Quaternionf tq;
     EXPECT_FALSE(planning_models::quatFromMsg(q, tq));
-    EXPECT_TRUE(tq.getW() == 1.0);
+    EXPECT_TRUE(tq.w() == 1.0);
 }
 
 
