@@ -29,8 +29,8 @@ rosbuild_add_library(${PROJECT_NAME}
   src/robot_model_loader.cpp
   src/current_state_monitor.cpp)
 
-rosbuild_add_gtest(publish_scene test/publish_scene.cpp)
-target_link_libraries(publish_scene ${PROJECT_NAME})
+rosbuild_add_executable(demo_scene demos/demo_scene.cpp)
+target_link_libraries(demo_scene ${PROJECT_NAME})
 
 rosbuild_add_executable(environment_server src/environment_server.cpp)
 target_link_libraries(environment_server ${PROJECT_NAME})
