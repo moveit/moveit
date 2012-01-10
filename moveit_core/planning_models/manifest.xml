@@ -13,7 +13,6 @@
   <depend package="geometric_shapes"/>
   <depend package="resource_retriever"/>
   <depend package="random_numbers"/>
-  <depend package="bullet"/>
   <depend package="moveit_msgs"/>
   <depend package="geometry_msgs"/>
   

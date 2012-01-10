@@ -487,10 +487,15 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
 
 namespace planning_models
 {
-    static inline btTransform urdfPose2btTransform(const urdf::Pose &pose)
+    static inline Eigen::Affine3f urdfPose2Affine3f(const urdf::Pose &pose)
     {
-        return btTransform(btQuaternion(pose.rotation.x, pose.rotation.y, pose.rotation.z, pose.rotation.w),
-                           btVector3(pose.position.x, pose.position.y, pose.position.z));
+      Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+      Eigen::Matrix3f m3f = q.toRotationMatrix();
+      Eigen::Affine3f af(m3f);
+      af.matrix()(0,3) = pose.position.x;
+      af.matrix()(1,3) = pose.position.y;
+      af.matrix()(2,3) = pose.position.z;
+      return af;
     }
 }
 
@@ -503,12 +508,12 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
 
     if (urdf_link->collision && urdf_link->collision->geometry)
     {
-        result->collision_origin_transform_ = urdfPose2btTransform(urdf_link->collision->origin);
+        result->collision_origin_transform_ = urdfPose2Affine3f(urdf_link->collision->origin);
         result->shape_ = constructShape(urdf_link->collision->geometry.get(), result->filename_);
     }
     else if (urdf_link->visual && urdf_link->visual->geometry)
     {
-        result->collision_origin_transform_ = urdfPose2btTransform(urdf_link->visual->origin);
+        result->collision_origin_transform_ = urdfPose2Affine3f(urdf_link->visual->origin);
         result->shape_ = constructShape(urdf_link->visual->geometry.get(), result->filename_);
     }
     else
@@ -518,7 +523,7 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
     }
 
     if (urdf_link->parent_joint.get())
-        result->joint_origin_transform_ = urdfPose2btTransform(urdf_link->parent_joint->parent_to_joint_origin_transform);
+        result->joint_origin_transform_ = urdfPose2Affine3f(urdf_link->parent_joint->parent_to_joint_origin_transform);
     else
         result->joint_origin_transform_.setIdentity();
     return result;
@@ -549,7 +554,7 @@ shapes::ShapePtr planning_models::KinematicModel::constructShape(const urdf::Geo
             const urdf::Mesh *mesh = dynamic_cast<const urdf::Mesh*>(geom);
             if (!mesh->filename.empty())
             {
-                btVector3 scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
+                Eigen::Vector3f scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
                 result = shapes::createMeshFromFilename(mesh->filename, scale);
                 filename = mesh->filename;
             }
@@ -794,16 +799,16 @@ planning_models::KinematicModel::FixedJointModel::FixedJointModel(const std::str
     type_ = FIXED;
 }
 
-void planning_models::KinematicModel::FixedJointModel::computeTransform(const std::vector<double>& /* joint_values */, btTransform &transf) const
+void planning_models::KinematicModel::FixedJointModel::computeTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3f &transf) const
 {
     transf.setIdentity();
 }
 
-void planning_models::KinematicModel::FixedJointModel::updateTransform(const std::vector<double>& /* joint_values */, btTransform &transf) const
+void planning_models::KinematicModel::FixedJointModel::updateTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3f &transf) const
 {
 }
 
-void planning_models::KinematicModel::FixedJointModel::computeJointStateValues(const btTransform& /* transform */, std::vector<double>& joint_values) const
+void planning_models::KinematicModel::FixedJointModel::computeJointStateValues(const Eigen::Affine3f& /* transform */, std::vector<double>& joint_values) const
 {
     joint_values.clear();
 }
@@ -822,24 +827,25 @@ planning_models::KinematicModel::PlanarJointModel::PlanarJointModel(const std::s
     type_ = PLANAR;
 }
 
-void planning_models::KinematicModel::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const
+void planning_models::KinematicModel::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
 {
     updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::PlanarJointModel::updateTransform(const std::vector<double>& joint_values, btTransform &transf) const
+void planning_models::KinematicModel::PlanarJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
 {
-    transf.setOrigin(btVector3(joint_values[0], joint_values[1], 0.0));
-    transf.setRotation(btQuaternion(btVector3(0.0, 0.0, 1.0), joint_values[2]));
+  transf.translation() = Eigen::Vector3f(joint_values[0], joint_values[1], 0.0);
+  transf.rotation() = Eigen::AxisAnglef(joint_values[2], Eigen::Vector3f::UnitZ());
 }
 
-void planning_models::KinematicModel::PlanarJointModel::computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const
+void planning_models::KinematicModel::PlanarJointModel::computeJointStateValues(const Eigen::Affine3f& transf, std::vector<double> &joint_values) const
 {
     joint_values.resize(3);
-    joint_values[0] = transf.getOrigin().x();
-    joint_values[1] = transf.getOrigin().y();
-    const btQuaternion &q = transf.getRotation();
-    joint_values[2] = q.getAngle() * q.getAxis().z();
+    joint_values[0] = transf.translation().x();
+    joint_values[1] = transf.translation().y();
+
+    joint_values[2] = transf.rotation();
+q.getAngle() * q.getAxis().z();
 }
 
 planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name)
@@ -864,18 +870,18 @@ planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const st
     type_ = FLOATING;
 }
 
-void planning_models::KinematicModel::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const
+void planning_models::KinematicModel::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
 {
     updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, btTransform &transf) const
+void planning_models::KinematicModel::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
 {
-    transf.setOrigin(btVector3(joint_values[0], joint_values[1], joint_values[2]));
+    transf.setOrigin(Eigen::Vector3f(joint_values[0], joint_values[1], joint_values[2]));
     transf.setRotation(btQuaternion(joint_values[3], joint_values[4], joint_values[5], joint_values[6]));
 }
 
-void planning_models::KinematicModel::FloatingJointModel::computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const
+void planning_models::KinematicModel::FloatingJointModel::computeJointStateValues(const Eigen::Affine3f& transf, std::vector<double> &joint_values) const
 {
     joint_values.resize(7);
     joint_values[0] = transf.getOrigin().x();
@@ -918,18 +924,18 @@ planning_models::KinematicModel::PrismaticJointModel::PrismaticJointModel(const 
     type_ = PRISMATIC;
 }
 
-void planning_models::KinematicModel::PrismaticJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const
+void planning_models::KinematicModel::PrismaticJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
 {
     transf.getBasis().setIdentity();
     updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::PrismaticJointModel::updateTransform(const std::vector<double>& joint_values, btTransform &transf) const
+void planning_models::KinematicModel::PrismaticJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
 {
     transf.setOrigin(axis_ * joint_values[0]);
 }
 
-void planning_models::KinematicModel::PrismaticJointModel::computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const
+void planning_models::KinematicModel::PrismaticJointModel::computeJointStateValues(const Eigen::Affine3f& transf, std::vector<double> &joint_values) const
 {
     joint_values.resize(1);
     joint_values[0] = transf.getOrigin().dot(axis_);
@@ -943,18 +949,18 @@ planning_models::KinematicModel::RevoluteJointModel::RevoluteJointModel(const st
     type_ = REVOLUTE;
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, btTransform &transf) const
+void planning_models::KinematicModel::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
 {
-    transf.setOrigin(btVector3(0.0, 0.0, 0.0));
+    transf.setOrigin(Eigen::Vector3f(0.0, 0.0, 0.0));
     updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::updateTransform(const std::vector<double>& joint_values, btTransform &transf) const
+void planning_models::KinematicModel::RevoluteJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
 {
     transf.setRotation(btQuaternion(axis_, joint_values[0]));
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::computeJointStateValues(const btTransform& transf, std::vector<double> &joint_values) const
+void planning_models::KinematicModel::RevoluteJointModel::computeJointStateValues(const Eigen::Affine3f& transf, std::vector<double> &joint_values) const
 {
     joint_values.resize(1);
     const btQuaternion &q = transf.getRotation();
