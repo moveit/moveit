@@ -178,7 +178,8 @@ void PlanningDisplay::setRobotAlpha(float alpha)
 {
   robot_path_alpha_ = alpha;
   robot_->setAlpha(robot_path_alpha_);
-  propertyChanged(robot_path_alpha_property_);
+  propertyChanged(robot_path_alpha_property_); 
+  causeRender();
 }
 
 void PlanningDisplay::setSceneAlpha(float alpha)
@@ -194,6 +195,7 @@ void PlanningDisplay::setSceneRobotAlpha(float alpha)
   robot_scene_alpha_ = alpha;
   scene_robot_->setAlpha(robot_path_alpha_);
   propertyChanged(robot_scene_alpha_property_);
+  causeRender();
 }
 
 void PlanningDisplay::setTrajectoryTopic(const std::string& topic)
@@ -308,8 +310,14 @@ void PlanningDisplay::load()
   scene_robot_->load(doc.RootElement(), descr);
 
   scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(description_param_, vis_manager_->getTFClient()));
-  scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
-  scene_robot_->update(PlanningLinkUpdater(&scene_monitor_->getPlanningScene()->getCurrentState()));
+
+  if (scene_monitor_->getPlanningScene())
+  {
+    scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
+    scene_robot_->update(PlanningLinkUpdater(&scene_monitor_->getPlanningScene()->getCurrentState()));
+  }
+  else
+    scene_monitor_.reset();  
 }
 
 void PlanningDisplay::onEnable()
@@ -349,7 +357,99 @@ void PlanningDisplay::unsubscribe()
   sub_.shutdown();
 }
 
-void PlanningDisplay::renderPlanningScene()
+void PlanningDisplay::renderShape(const shapes::Shape *s, const btTransform &p, const rviz::Color &color)
+{
+    ogre_tools::Shape* ogre_shape = NULL;
+    switch (s->type)
+    {
+    case shapes::SPHERE:
+	{
+	    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Sphere,
+					       vis_manager_->getSceneManager(), scene_node_);
+	    double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
+	    ogre_shape->setScale(Ogre::Vector3(d, d, d));
+	}
+	break;
+    case shapes::BOX:
+	{
+	    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cube,
+					       vis_manager_->getSceneManager(), scene_node_);
+	    const double* sz = static_cast<const shapes::Box*>(s)->size;
+	    ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
+	}
+	break;
+    case shapes::CYLINDER:
+	{
+	    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cylinder,
+					       vis_manager_->getSceneManager(), scene_node_);
+	    double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
+	    double z = static_cast<const shapes::Cylinder*>(s)->length;
+	    ogre_shape->setScale(Ogre::Vector3(d, d, z));
+	}
+	break;
+    case shapes::MESH:
+	{
+	    const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(s);
+	    if (mesh->triangle_count > 0)
+	    {
+		// check if we need to construct the material
+		if (material_name_.empty())
+		{
+		    material_name_ = "Planning Display Mesh Material";
+		    material_ = Ogre::MaterialManager::getSingleton().create( material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+		    material_->setReceiveShadows(false);
+		    material_->getTechnique(0)->setLightingEnabled(true);
+		    material_->setCullingMode(Ogre::CULL_NONE);
+		    material_->getTechnique(0)->setAmbient(color.r_, color.g_, color.b_);
+		    material_->getTechnique(0)->setDiffuse(0, 0, 0, scene_alpha_);
+		    if (scene_alpha_ < 0.9998)
+		    {
+			material_->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+			material_->getTechnique(0)->setDepthWriteEnabled( false );
+		    }
+		    else
+		    {
+			material_->getTechnique(0)->setSceneBlending( Ogre::SBT_REPLACE );
+			material_->getTechnique(0)->setDepthWriteEnabled( true );
+		    }
+		}
+		
+		std::string name = "Planning Display Mesh " + boost::lexical_cast<std::string>(manual_objects_.size());
+		Ogre::ManualObject *manual_object = vis_manager_->getSceneManager()->createManualObject(name);
+		manual_object->estimateVertexCount(mesh->triangle_count * 3);
+		manual_object->begin(material_name_, Ogre::RenderOperation::OT_TRIANGLE_LIST);
+		for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
+		{
+		    unsigned int i3 = i * 3;
+		    for (int k = 0 ; k < 3 ; ++k)
+		    {
+			unsigned int vi = 3 * mesh->triangles[i3 + k];
+			const btVector3 &v = p * btVector3(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
+			manual_object->position(v.x(), v.y(), v.z());
+		    }
+		}
+		manual_object->end();
+		scene_node_->attachObject(manual_object);
+		manual_objects_.push_back(manual_object);
+	    }
+	}
+	break;
+    default:
+	break;
+    }
+    if (ogre_shape)
+    {
+	ogre_shape->setColor(color.r_, color.g_, color.b_, scene_alpha_);
+	Ogre::Vector3 position(p.getOrigin().x(), p.getOrigin().y(), p.getOrigin().z());
+	const btQuaternion &q = p.getRotation();
+	Ogre::Quaternion orientation(q.getW(), q.getX(), q.getY(), q.getZ());
+	ogre_shape->setPosition(position);
+	ogre_shape->setOrientation(orientation);
+	scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
+    }
+}
+
+void PlanningDisplay::renderPlanningScene()    
 {
     static rviz::Color colors[] = {
         rviz::Color(0.2f, 0.9f, 0.2f),
@@ -358,6 +458,8 @@ void PlanningDisplay::renderPlanningScene()
         rviz::Color(0.9f, 0.9f, 0.0f),
         rviz::Color(0.9f, 0.0f, 0.2f)
     };
+    static rviz::Color attached_color(0.6f, 0.6f, 0.6f);
+    
     if (!scene_monitor_)
         return;
 
@@ -368,7 +470,6 @@ void PlanningDisplay::renderPlanningScene()
         return;
 
     clearRenderedGeometry();
-    uint32_t man_object_id = 0;
 
     scene_monitor_->lockScene();
     last_scene_render_ = scene_monitor_->getLastUpdateTime();
@@ -382,99 +483,18 @@ void PlanningDisplay::renderPlanningScene()
             collision_detection::CollisionWorld::ObjectConstPtr o = cworld->getObject(ids[i]);
             const rviz::Color &color = colors[i % (sizeof(colors)/sizeof(rviz::Color))];
             for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
-            {
-                const shapes::Shape *s = o->shapes_[j];
-                const btTransform &p = o->shape_poses_[j];
-                ogre_tools::Shape* ogre_shape = NULL;
-                switch (s->type)
-                {
-                case shapes::SPHERE:
-                    {
-                        ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Sphere,
-                                                           vis_manager_->getSceneManager(), scene_node_);
-                        double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
-                        ogre_shape->setScale(Ogre::Vector3(d, d, d));
-                    }
-                    break;
-                case shapes::BOX:
-                    {
-                        ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cube,
-                                                           vis_manager_->getSceneManager(), scene_node_);
-                        const double* sz = static_cast<const shapes::Box*>(s)->size;
-                        ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
-                    }
-                    break;
-                case shapes::CYLINDER:
-                    {
-                        ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cylinder,
-                                                           vis_manager_->getSceneManager(), scene_node_);
-                        double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
-                        double z = static_cast<const shapes::Cylinder*>(s)->length;
-                        ogre_shape->setScale(Ogre::Vector3(d, d, z));
-                    }
-                    break;
-                case shapes::MESH:
-                    {
-                        const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(s);
-                        if (mesh->triangle_count > 0)
-                        {
-                            // check if we need to construct the material
-                            if (material_name_.empty())
-                            {
-                                material_name_ = "Planning Display Mesh Material";
-                                material_ = Ogre::MaterialManager::getSingleton().create( material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
-                                material_->setReceiveShadows(false);
-                                material_->getTechnique(0)->setLightingEnabled(true);
-                                material_->setCullingMode(Ogre::CULL_NONE);
-                                material_->getTechnique(0)->setAmbient(color.r_, color.g_, color.b_);
-                                material_->getTechnique(0)->setDiffuse(0, 0, 0, scene_alpha_);
-                                if (scene_alpha_ < 0.9998)
-                                {
-                                    material_->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
-                                    material_->getTechnique(0)->setDepthWriteEnabled( false );
-                                }
-                                else
-                                {
-                                    material_->getTechnique(0)->setSceneBlending( Ogre::SBT_REPLACE );
-                                    material_->getTechnique(0)->setDepthWriteEnabled( true );
-                                }
-                            }
-
-                            std::string name = "Planning Display Mesh " + boost::lexical_cast<std::string>(man_object_id++);
-                            Ogre::ManualObject *manual_object = vis_manager_->getSceneManager()->createManualObject(name);
-                            manual_object->estimateVertexCount(mesh->triangle_count * 3);
-                            manual_object->begin(material_name_, Ogre::RenderOperation::OT_TRIANGLE_LIST);
-                            for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
-                            {
-                                unsigned int i3 = i * 3;
-                                for (int k = 0 ; k < 3 ; ++k)
-                                {
-                                    unsigned int vi = 3 * mesh->triangles[i3 + k];
-                                    const btVector3 &v = p * btVector3(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
-                                    manual_object->position(v.x(), v.y(), v.z());
-                                }
-                            }
-                            manual_object->end();
-                            scene_node_->attachObject(manual_object);
-                            manual_objects_.push_back(manual_object);
-                        }
-                    }
-                    break;
-                default:
-                    break;
-                }
-                if (ogre_shape)
-                {
-                    ogre_shape->setColor(color.r_, color.g_, color.b_, scene_alpha_);
-                    Ogre::Vector3 position(p.getOrigin().x(), p.getOrigin().y(), p.getOrigin().z());
-                    const btQuaternion &q = p.getRotation();
-                    Ogre::Quaternion orientation(q.getW(), q.getX(), q.getY(), q.getZ());
-                    ogre_shape->setPosition(position);
-                    ogre_shape->setOrientation(orientation);
-                    scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
-                }
-            }
-        }
+		renderShape(o->shapes_[j], o->shape_poses_[j], color);
+	}
+	
+	std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
+	scene_monitor_->getPlanningScene()->getCurrentState().getAttachedBodies(attached_bodies);
+	for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
+	{
+	    const std::vector<btTransform> &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
+	    const std::vector<shapes::Shape*> &ab_shapes = attached_bodies[i]->getShapes();
+	    for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
+		renderShape(ab_shapes[j], ab_t[j], attached_color);
+	}
     }
     catch(...)
     {

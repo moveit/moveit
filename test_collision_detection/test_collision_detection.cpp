@@ -49,10 +49,22 @@ void testSimple()
     ros::Publisher pub_state = nh.advertise<moveit_msgs::DisplayTrajectory>("display_valid_states", 10);
     ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("demo_planning_scene", 1);
     sleep(1);
+
+    std::vector<shapes::Shape*> attached_shapes(1, new shapes::Box(0.2, 0.1, 0.1));
+    std::vector<btTransform> attached_poses(1, btTransform::getIdentity());
+    std::vector<std::string> touch;
+    touch.push_back("r_wrist_roll_link");
+    touch.push_back("r_forearm_link");
+    touch.push_back("r_gripper_palm_link");
+    touch.push_back("r_gripper_l_finger_link");
+    touch.push_back("r_gripper_r_finger_link");
+
+    scene->getCurrentState().getLinkState("r_wrist_roll_link")->attachBody("attached", attached_shapes,
+									   attached_poses, touch);
     
     collision_detection::CollisionRequest req;
     req.verbose = true;
-    unsigned int N = 10;
+    unsigned int N = 20;
     
     for (unsigned int i = 0 ; i < N ; ++i)
     {
@@ -70,25 +82,34 @@ void testSimple()
 	while (res.collision);
 
 	ROS_INFO("Displaying valid state...");
+	moveit_msgs::PlanningScene psmsg;
+	scene->getPlanningSceneMsg(psmsg);
+	pub_scene.publish(psmsg);
+	ros::Duration(0.5).sleep();
 
+	/*
 	moveit_msgs::DisplayTrajectory d;
 	d.model_id = scene->getKinematicModel()->getName();
 	planning_models::kinematicStateToRobotState(scene->getCurrentState(), d.robot_state);
 	pub_state.publish(d);
 	for (int j = 0 ; j < 10 ; ++j)
 	{
-	    ros::spinOnce();
+	    //	    ros::spinOnce();
 	    ros::Duration(0.01).sleep();
-	}    
+	} 
+	*/   
     }
 
+    sleep(1);
+    /*    
+    
     planning_scene::PlanningScenePtr colliding = clone(scene);
     // construct a planning scene with 100 objects and no collisions
     btTransform t;
     t.setIdentity();
     random_numbers::RandomNumberGenerator rng;
     req.verbose = false;
-    for (int i = 0 ; i < 10000 ; ++i)
+    for (int i = 0 ; i < 100000 ; ++i)
     {
 	t.setOrigin(btVector3(rng.uniformReal(-1, 1), rng.uniformReal(-1, 1), rng.uniformReal(0, 2)));
 	scene->getCollisionWorld()->clearObjects();
@@ -100,7 +121,7 @@ void testSimple()
 	    int x = colliding->getCollisionWorld()->getObjectIds().size();
 	    colliding->getCollisionWorld()->addToObject("speres" + boost::lexical_cast<std::string>(x), new shapes::Sphere(0.05), t);
 	    std::cout << x << "\n";
-	    if (x == 1000)
+	    if (x == 100)
 		break;
 	}
     }
@@ -110,7 +131,7 @@ void testSimple()
     pub_scene.publish(psmsg);
     
     ros::WallTime start = ros::WallTime::now();
-    unsigned int M = 1000;
+    unsigned int M = 10000;
     for (unsigned int i = 0 ; i < M ; ++i)
     {
 	collision_detection::CollisionResult res;
@@ -119,7 +140,8 @@ void testSimple()
 	    ROS_ERROR("PROBLEM");
     }
     ROS_INFO("%lf full-collision checks per second", (double)M / (ros::WallTime::now() - start).toSec());
-
+    
+    */
 
     /*
     req.verbose = false;
