@@ -39,7 +39,6 @@
 
 #include "geometric_shapes/shapes.h"
 #include "geometric_shapes/bodies.h"
-#include <LinearMath/btTransform.h>
 #include <moveit_msgs/Shape.h>
 #include <geometry_msgs/Pose.h>
 #include <vector>

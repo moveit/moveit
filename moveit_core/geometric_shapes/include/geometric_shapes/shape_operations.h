@@ -42,47 +42,47 @@
 #include <moveit_msgs/StaticShape.h>
 #include <visualization_msgs/Marker.h>
 #include <vector>
-#include <LinearMath/btVector3.h>
+#include <Eigen/Core>
 #include <assimp/aiMesh.h>
 
 namespace shapes
 {
 
-    /** \brief Load a mesh from a set of vertices. Triangles are
-        constructed using index values from the triangles
-        vector. Triangle k has vertices at index values triangles[3k],
-        triangles[3k+1], triangles[3k+2]  */
-   shapes::Mesh* createMeshFromVertices(const std::vector<btVector3> &vertices, const std::vector<unsigned int> &triangles);
+/** \brief Load a mesh from a set of vertices. Triangles are
+    constructed using index values from the triangles
+    vector. Triangle k has vertices at index values triangles[3k],
+    triangles[3k+1], triangles[3k+2]  */
+shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &vertices, const std::vector<unsigned int> &triangles);
 
-    /** \brief Load a mesh from a set of vertices. Every 3 vertices
-        are considered a triangle. Repeating vertices are identified
-        and the set of triangle indices is constructed. The normal at
-        each triangle is also computed */
-    shapes::Mesh* createMeshFromVertices(const std::vector<btVector3> &source);
+/** \brief Load a mesh from a set of vertices. Every 3 vertices
+    are considered a triangle. Repeating vertices are identified
+    and the set of triangle indices is constructed. The normal at
+    each triangle is also computed */
+shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &source);
 
-    /** \brief Load a mesh from a file that contains a mesh that can be loaded by assimp */
-    shapes::Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale = btVector3(1.0, 1.0, 1.0));
+/** \brief Load a mesh from a file that contains a mesh that can be loaded by assimp */
+shapes::Mesh* createMeshFromFilename(const std::string& filename, const Eigen::Vector3f &scale = Eigen::Vector3f(1.0, 1.0, 1.0));
 
-    /** \brief Load a mesh from an assimp datastructure */
-    shapes::Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const btVector3& scale);
+/** \brief Load a mesh from an assimp datastructure */
+shapes::Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const Eigen::Vector3f& scale);
 
-    /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
-    Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg);
+/** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
+Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg);
 
-    /** \brief Construct the message that corresponds to the shape. Return false on failure. */
-    bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg);
+/** \brief Construct the message that corresponds to the shape. Return false on failure. */
+bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg);
 
-    /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
-    StaticShape* constructShapeFromMsg(const moveit_msgs::StaticShape &shape_msg);
+/** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
+StaticShape* constructShapeFromMsg(const moveit_msgs::StaticShape &shape_msg);
 
-    /** \brief Construct the message that corresponds to the shape. Return false on failure. */
-    bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &shape_msg);
+/** \brief Construct the message that corresponds to the shape. Return false on failure. */
+bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &shape_msg);
 
-    /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
-    bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk);
+/** \brief Construct the marker that corresponds to the shape. Return false on failure. */
+bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk);
 
-    /** \brief Construct the marker that corresponds to the shape shape message.  Return false on failure. */
-    bool constructMarkerFromShape(const moveit_msgs::Shape &shape, visualization_msgs::Marker &mk);
+/** \brief Construct the marker that corresponds to the shape shape message.  Return false on failure. */
+bool constructMarkerFromShape(const moveit_msgs::Shape &shape, visualization_msgs::Marker &mk);
 
 }
 
