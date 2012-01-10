@@ -9,6 +9,10 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+find_package(Eigen REQUIRED)
+include_directories(${EIGEN_INCLUDE_DIRS})
+
 set(ROS_BUILD_TYPE Debug)
 
 rosbuild_init()
@@ -23,7 +27,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/shape_operations.cpp
   src/bodies.cpp
   src/body_operations.cpp)
-target_link_libraries(${PROJECT_NAME} assimp)
+target_link_libraries(${PROJECT_NAME} assimp qhull)
 
 
 # Unit tests

@@ -37,6 +37,7 @@
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <ros/console.h>
+#include <Eigen/Geometry>
 
 bodies::Body* bodies::createBodyFromShape(const shapes::Shape *shape)
 {
@@ -67,53 +68,58 @@ bodies::Body* bodies::createBodyFromShape(const shapes::Shape *shape)
 
 void bodies::mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, BoundingSphere &mergedSphere)
 {
-    if (spheres.empty())
+  if (spheres.empty())
+  {
+    mergedSphere.center = Eigen::Vector3f();
+    mergedSphere.radius = 0.0;
+  }
+  else
+  {
+    mergedSphere = spheres[0];
+    for (unsigned int i = 1 ; i < spheres.size() ; ++i)
     {
-        mergedSphere.center.setValue(btScalar(0), btScalar(0), btScalar(0));
-        mergedSphere.radius = 0.0;
-    }
-    else
-    {
-        mergedSphere = spheres[0];
-        for (unsigned int i = 1 ; i < spheres.size() ; ++i)
+      if (spheres[i].radius <= 0.0)
+        continue;
+      double d = spheres[i].center.dot(mergedSphere.center);
+      if (d + mergedSphere.radius <= spheres[i].radius)
+      {
+        mergedSphere.center = spheres[i].center;
+        mergedSphere.radius = spheres[i].radius;
+      }
+      else
+        if (d + spheres[i].radius > mergedSphere.radius)
         {
-            if (spheres[i].radius <= 0.0)
-                continue;
-            double d = spheres[i].center.distance(mergedSphere.center);
-            if (d + mergedSphere.radius <= spheres[i].radius)
-            {
-                mergedSphere.center = spheres[i].center;
-                mergedSphere.radius = spheres[i].radius;
-            }
-            else
-                if (d + spheres[i].radius > mergedSphere.radius)
-                {
-                    btVector3 delta = mergedSphere.center - spheres[i].center;
-                    mergedSphere.radius = (delta.length() + spheres[i].radius + mergedSphere.radius)/2.0;
-                    mergedSphere.center = delta.normalized() * (mergedSphere.radius - spheres[i].radius) + spheres[i].center;
-                }
+          Eigen::Vector3f delta = mergedSphere.center - spheres[i].center;
+          mergedSphere.radius = (delta.norm() + spheres[i].radius + mergedSphere.radius)/2.0;
+          mergedSphere.center = delta.normalized() * (mergedSphere.radius - spheres[i].radius) + spheres[i].center;
         }
     }
+  }
 }
 
 bodies::Body* bodies::constructBodyFromMsg(const moveit_msgs::Shape &shape_msg, const geometry_msgs::Pose &pose)
 {
-    shapes::Shape *shape = shapes::constructShapeFromMsg(shape_msg);
-    if (shape)
+  shapes::Shape *shape = shapes::constructShapeFromMsg(shape_msg);
+  if (shape)
+  {
+    Body *body = createBodyFromShape(shape);
+    if (body)
     {
-        Body *body = createBodyFromShape(shape);
-        if (body)
-        {
-            btQuaternion q(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
-            if (fabs(q.length2() - 1.0) > 1e-3)
-            {
-                ROS_ERROR("Quaternion is not normalized. Assuming identity.");
-                q = btQuaternion(0.0, 0.0, 0.0, 1.0);
-            }
-            body->setPose(btTransform(q,btVector3(pose.position.x, pose.position.y, pose.position.z)));
-            return body;
-        }
+      Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+      if (fabs(q.squaredNorm() - 1.0) > 1e-3)
+      {
+        ROS_ERROR("Quaternion is not normalized. Assuming identity.");
+        q = Eigen::Quaternionf(1.0, 0.0, 0.0, 0.0);
+      }
+      Eigen::Matrix3f m3f = q.toRotationMatrix();
+      Eigen::Affine3f af(m3f);
+      af.matrix()(0,3) = pose.position.x;
+      af.matrix()(1,3) = pose.position.y;
+      af.matrix()(2,3) = pose.position.z;
+      body->setPose(af);
+      return body;
     }
+  }
 
-    return NULL;
+  return NULL;
 }

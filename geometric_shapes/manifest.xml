@@ -7,14 +7,16 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/geometric_shapes</url>
 
-  <depend package="bullet" />
   <depend package="rosconsole" />
   <depend package="resource_retriever"/>
   <depend package="moveit_msgs"/>
   <depend package="visualization_msgs"/>
   <depend package="random_numbers"/>
+  <depend package="common_rosdeps"/>
 
+  <rosdep name="libqhull" />
   <rosdep name="assimp" />
+  <rosdep name="eigen" />
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lgeometric_shapes"/>

@@ -48,6 +48,8 @@
 #include <assimp/aiScene.h>
 #include <assimp/aiPostProcess.h>
 
+#include <Eigen/Geometry>
+
 namespace shapes
 {
 
@@ -55,7 +57,7 @@ namespace detail
 {
 struct myVertex
 {
-  btVector3    point;
+  Eigen::Vector3f    point;
   unsigned int index;
 };
 
@@ -63,17 +65,17 @@ struct ltVertexValue
 {
   bool operator()(const myVertex &p1, const myVertex &p2) const
   {
-    const btVector3 &v1 = p1.point;
-    const btVector3 &v2 = p2.point;
-    if (v1.getX() < v2.getX())
+    const Eigen::Vector3f &v1 = p1.point;
+    const Eigen::Vector3f &v2 = p2.point;
+    if (v1.x() < v2.x())
       return true;
-    if (v1.getX() > v2.getX())
+    if (v1.x() > v2.x())
       return false;
-    if (v1.getY() < v2.getY())
+    if (v1.y() < v2.y())
       return true;
-    if (v1.getY() > v2.getY())
+    if (v1.y() > v2.y())
       return false;
-    if (v1.getZ() < v2.getZ())
+    if (v1.z() < v2.z())
       return true;
     return false;
   }
@@ -89,15 +91,15 @@ struct ltVertexIndex
 
 }
 
-Mesh* createMeshFromVertices(const std::vector<btVector3> &vertices, const std::vector<unsigned int> &triangles)
+Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &vertices, const std::vector<unsigned int> &triangles)
 {
   unsigned int nt = triangles.size() / 3;
   Mesh *mesh = new Mesh(vertices.size(), nt);
   for (unsigned int i = 0 ; i < vertices.size() ; ++i)
   {
-    mesh->vertices[3 * i    ] = vertices[i].getX();
-    mesh->vertices[3 * i + 1] = vertices[i].getY();
-    mesh->vertices[3 * i + 2] = vertices[i].getZ();
+    mesh->vertices[3 * i    ] = vertices[i].x();
+    mesh->vertices[3 * i + 1] = vertices[i].y();
+    mesh->vertices[3 * i + 2] = vertices[i].z();
   }
 
   std::copy(triangles.begin(), triangles.end(), mesh->triangles);
@@ -105,18 +107,18 @@ Mesh* createMeshFromVertices(const std::vector<btVector3> &vertices, const std::
   // compute normals
   for (unsigned int i = 0 ; i < nt ; ++i)
   {
-    btVector3 s1 = vertices[triangles[i * 3    ]] - vertices[triangles[i * 3 + 1]];
-    btVector3 s2 = vertices[triangles[i * 3 + 1]] - vertices[triangles[i * 3 + 2]];
-    btVector3 normal = s1.cross(s2);
+    Eigen::Vector3f s1 = vertices[triangles[i * 3    ]] - vertices[triangles[i * 3 + 1]];
+    Eigen::Vector3f s2 = vertices[triangles[i * 3 + 1]] - vertices[triangles[i * 3 + 2]];
+    Eigen::Vector3f normal = s1.cross(s2);
     normal.normalize();
-    mesh->normals[3 * i    ] = normal.getX();
-    mesh->normals[3 * i + 1] = normal.getY();
-    mesh->normals[3 * i + 2] = normal.getZ();
+    mesh->normals[3 * i    ] = normal.x();
+    mesh->normals[3 * i + 1] = normal.y();
+    mesh->normals[3 * i + 2] = normal.z();
   }
   return mesh;
 }
 
-Mesh* createMeshFromVertices(const std::vector<btVector3> &source)
+Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &source)
 {
   if (source.size() < 3)
     return NULL;
@@ -175,9 +177,9 @@ Mesh* createMeshFromVertices(const std::vector<btVector3> &source)
   Mesh *mesh = new Mesh(vt.size(), nt);
   for (unsigned int i = 0 ; i < vt.size() ; ++i)
   {
-    mesh->vertices[3 * i    ] = vt[i].point.getX();
-    mesh->vertices[3 * i + 1] = vt[i].point.getY();
-    mesh->vertices[3 * i + 2] = vt[i].point.getZ();
+    mesh->vertices[3 * i    ] = vt[i].point.x();
+    mesh->vertices[3 * i + 1] = vt[i].point.y();
+    mesh->vertices[3 * i + 2] = vt[i].point.z();
   }
 
   std::copy(triangles.begin(), triangles.end(), mesh->triangles);
@@ -185,19 +187,19 @@ Mesh* createMeshFromVertices(const std::vector<btVector3> &source)
   // compute normals
   for (unsigned int i = 0 ; i < nt ; ++i)
   {
-    btVector3 s1 = vt[triangles[i * 3    ]].point - vt[triangles[i * 3 + 1]].point;
-    btVector3 s2 = vt[triangles[i * 3 + 1]].point - vt[triangles[i * 3 + 2]].point;
-    btVector3 normal = s1.cross(s2);
+    Eigen::Vector3f s1 = vt[triangles[i * 3    ]].point - vt[triangles[i * 3 + 1]].point;
+    Eigen::Vector3f s2 = vt[triangles[i * 3 + 1]].point - vt[triangles[i * 3 + 2]].point;
+    Eigen::Vector3f normal = s1.cross(s2);
     normal.normalize();
-    mesh->normals[3 * i    ] = normal.getX();
-    mesh->normals[3 * i + 1] = normal.getY();
-    mesh->normals[3 * i + 2] = normal.getZ();
+    mesh->normals[3 * i    ] = normal.x();
+    mesh->normals[3 * i + 1] = normal.y();
+    mesh->normals[3 * i + 2] = normal.z();
   }
 
   return mesh;
 }
 
-Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale)
+Mesh* createMeshFromFilename(const std::string& filename, const Eigen::Vector3f &scale)
 {
   resource_retriever::Retriever retriever;
   resource_retriever::MemoryResource res;
@@ -274,7 +276,7 @@ Mesh* createMeshFromFilename(const std::string& filename, const btVector3 &scale
   return createMeshFromAsset(scene->mMeshes[node->mMeshes[0]], node->mTransformation, scale);
 }
 
-Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const btVector3& scale)
+Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const Eigen::Vector3f& scale)
 {
   if (!a->HasFaces())
   {
@@ -335,13 +337,13 @@ Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const b
     f3.z *= scale.z();
     aiVector3D as1 = f1-f2;
     aiVector3D as2 = f2-f3;
-    btVector3   s1(as1.x, as1.y, as1.z);
-    btVector3   s2(as2.x, as2.y, as2.z);
-    btVector3 normal = s1.cross(s2);
+    Eigen::Vector3f s1(as1.x, as1.y, as1.z);
+    Eigen::Vector3f s2(as2.x, as2.y, as2.z);
+    Eigen::Vector3f normal = s1.cross(s2);
     normal.normalize();
-    mesh->normals[3 * i    ] = normal.getX();
-    mesh->normals[3 * i + 1] = normal.getY();
-    mesh->normals[3 * i + 2] = normal.getZ();
+    mesh->normals[3 * i    ] = normal.x();
+    mesh->normals[3 * i + 1] = normal.y();
+    mesh->normals[3 * i + 2] = normal.z();
   }
 
   return mesh;
@@ -349,243 +351,243 @@ Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const b
 
 Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
 {
-    Shape *shape = NULL;
-    if (shape_msg.type == moveit_msgs::Shape::SPHERE)
+  Shape *shape = NULL;
+  if (shape_msg.type == moveit_msgs::Shape::SPHERE)
+  {
+    if (shape_msg.dimensions.size() != 1)
+      ROS_ERROR("Unexpected number of dimensions in sphere definition");
+    else
+      shape = new Sphere(shape_msg.dimensions[0]);
+  }
+  else
+    if (shape_msg.type == moveit_msgs::Shape::BOX)
     {
-        if (shape_msg.dimensions.size() != 1)
-            ROS_ERROR("Unexpected number of dimensions in sphere definition");
-        else
-            shape = new Sphere(shape_msg.dimensions[0]);
+      if (shape_msg.dimensions.size() != 3)
+        ROS_ERROR("Unexpected number of dimensions in box definition");
+      else
+        shape = new Box(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2]);
     }
     else
-        if (shape_msg.type == moveit_msgs::Shape::BOX)
-        {
-            if (shape_msg.dimensions.size() != 3)
-                ROS_ERROR("Unexpected number of dimensions in box definition");
-            else
-                shape = new Box(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2]);
-        }
+      if (shape_msg.type == moveit_msgs::Shape::CYLINDER)
+      {
+        if (shape_msg.dimensions.size() != 2)
+          ROS_ERROR("Unexpected number of dimensions in cylinder definition");
         else
-            if (shape_msg.type == moveit_msgs::Shape::CYLINDER)
-            {
-                if (shape_msg.dimensions.size() != 2)
-                    ROS_ERROR("Unexpected number of dimensions in cylinder definition");
-                else
-                    shape = new Cylinder(shape_msg.dimensions[0], shape_msg.dimensions[1]);
-            }
+          shape = new Cylinder(shape_msg.dimensions[0], shape_msg.dimensions[1]);
+      }
+      else
+        if (shape_msg.type == moveit_msgs::Shape::MESH)
+        {
+          if (shape_msg.dimensions.size() != 0)
+            ROS_ERROR("Unexpected number of dimensions in mesh definition");
+          else
+          {
+            if (shape_msg.triangles.size() % 3 != 0)
+              ROS_ERROR("Number of triangle indices is not divisible by 3");
             else
-                if (shape_msg.type == moveit_msgs::Shape::MESH)
-                {
-                    if (shape_msg.dimensions.size() != 0)
-                        ROS_ERROR("Unexpected number of dimensions in mesh definition");
-                    else
-                    {
-                        if (shape_msg.triangles.size() % 3 != 0)
-                            ROS_ERROR("Number of triangle indices is not divisible by 3");
-                        else
-                        {
-                            if (shape_msg.triangles.empty() || shape_msg.vertices.empty())
-                                ROS_ERROR("Mesh definition is empty");
-                            else
-                            {
-                                std::vector<btVector3>    vertices(shape_msg.vertices.size());
-                                std::vector<unsigned int> triangles(shape_msg.triangles.size());
-                                for (unsigned int i = 0 ; i < shape_msg.vertices.size() ; ++i)
-                                    vertices[i].setValue(shape_msg.vertices[i].x, shape_msg.vertices[i].y, shape_msg.vertices[i].z);
-                                for (unsigned int i = 0 ; i < shape_msg.triangles.size() ; ++i)
-                                    triangles[i] = shape_msg.triangles[i];
-                                shape = createMeshFromVertices(vertices, triangles);
-                            }
-                        }
-                    }
-                }
+            {
+              if (shape_msg.triangles.empty() || shape_msg.vertices.empty())
+                ROS_ERROR("Mesh definition is empty");
+              else
+              {
+                std::vector<Eigen::Vector3f>    vertices(shape_msg.vertices.size());
+                std::vector<unsigned int> triangles(shape_msg.triangles.size());
+                for (unsigned int i = 0 ; i < shape_msg.vertices.size() ; ++i)
+                  vertices[i] = Eigen::Vector3f(shape_msg.vertices[i].x, shape_msg.vertices[i].y, shape_msg.vertices[i].z);
+                for (unsigned int i = 0 ; i < shape_msg.triangles.size() ; ++i)
+                  triangles[i] = shape_msg.triangles[i];
+                shape = createMeshFromVertices(vertices, triangles);
+              }
+            }
+          }
+        }
 
-    if (shape == NULL)
-        ROS_ERROR("Unable to construct shape corresponding to shape_msgect of type %d", (int)shape_msg.type);
+  if (shape == NULL)
+    ROS_ERROR("Unable to construct shape corresponding to shape_msgect of type %d", (int)shape_msg.type);
 
-    return shape;
+  return shape;
 }
 
 bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk)
 {
-    moveit_msgs::Shape shape_msg;
-    if (constructMsgFromShape(shape, shape_msg))
-        return constructMarkerFromShape(shape_msg, mk);
-    else
-        return false;
+  moveit_msgs::Shape shape_msg;
+  if (constructMsgFromShape(shape, shape_msg))
+    return constructMarkerFromShape(shape_msg, mk);
+  else
+    return false;
 }
 
 bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization_msgs::Marker &mk)
 {
-    switch (shape_msg.type)
+  switch (shape_msg.type)
+  {
+  case moveit_msgs::Shape::SPHERE:
+    mk.type = visualization_msgs::Marker::SPHERE;
+    if (shape_msg.dimensions.size() != 1)
     {
-    case moveit_msgs::Shape::SPHERE:
-        mk.type = visualization_msgs::Marker::SPHERE;
-        if (shape_msg.dimensions.size() != 1)
-        {
-            ROS_ERROR("Unexpected number of dimensions in sphere definition");
-            return false;
-        }
-        else
-            mk.scale.x = mk.scale.y = mk.scale.z = shape_msg.dimensions[0] * 2.0;
-        break;
-    case moveit_msgs::Shape::BOX:
-        mk.type = visualization_msgs::Marker::CUBE;
-        if (shape_msg.dimensions.size() != 3)
-        {
-            ROS_ERROR("Unexpected number of dimensions in box definition");
-            return false;
-        }
-        else
-        {
-            mk.scale.x = shape_msg.dimensions[0];
-            mk.scale.y = shape_msg.dimensions[1];
-            mk.scale.z = shape_msg.dimensions[2];
-        }
-        break;
-    case moveit_msgs::Shape::CYLINDER:
-        mk.type = visualization_msgs::Marker::CYLINDER;
-        if (shape_msg.dimensions.size() != 2)
-        {
-            ROS_ERROR("Unexpected number of dimensions in cylinder definition");
-            return false;
-        }
-        else
-        {
-            mk.scale.x = shape_msg.dimensions[0] * 2.0;
-            mk.scale.y = shape_msg.dimensions[0] * 2.0;
-            mk.scale.z = shape_msg.dimensions[1];
-        }
-        break;
-
-    case moveit_msgs::Shape::MESH:
-        mk.type = visualization_msgs::Marker::LINE_LIST;
-        mk.scale.x = mk.scale.y = mk.scale.z = 0.01;
-        if (shape_msg.dimensions.size() != 0)
-            ROS_ERROR("Unexpected number of dimensions in mesh definition");
-        else
-        {
-            if (shape_msg.triangles.size() % 3 != 0)
-                ROS_ERROR("Number of triangle indices is not divisible by 3");
-            else
-            {
-                if (shape_msg.triangles.empty() || shape_msg.vertices.empty())
-                    ROS_ERROR("Mesh definition is empty");
-                else
-                {
-                    std::size_t nt = shape_msg.triangles.size() / 3;
-                    for (std::size_t i = 0 ; i < nt ; ++i)
-                    {
-                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
-                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
-                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
-                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
-                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
-                        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
-                    }
-                    return true;
-                }
-            }
-        }
-        return false;
-
-    default:
-        ROS_ERROR("Unknown shape type: %d", (int)shape_msg.type);
-        return false;
+      ROS_ERROR("Unexpected number of dimensions in sphere definition");
+      return false;
     }
-    return true;
+    else
+      mk.scale.x = mk.scale.y = mk.scale.z = shape_msg.dimensions[0] * 2.0;
+    break;
+  case moveit_msgs::Shape::BOX:
+    mk.type = visualization_msgs::Marker::CUBE;
+    if (shape_msg.dimensions.size() != 3)
+    {
+      ROS_ERROR("Unexpected number of dimensions in box definition");
+      return false;
+    }
+    else
+    {
+      mk.scale.x = shape_msg.dimensions[0];
+      mk.scale.y = shape_msg.dimensions[1];
+      mk.scale.z = shape_msg.dimensions[2];
+    }
+    break;
+  case moveit_msgs::Shape::CYLINDER:
+    mk.type = visualization_msgs::Marker::CYLINDER;
+    if (shape_msg.dimensions.size() != 2)
+    {
+      ROS_ERROR("Unexpected number of dimensions in cylinder definition");
+      return false;
+    }
+    else
+    {
+      mk.scale.x = shape_msg.dimensions[0] * 2.0;
+      mk.scale.y = shape_msg.dimensions[0] * 2.0;
+      mk.scale.z = shape_msg.dimensions[1];
+    }
+    break;
+
+  case moveit_msgs::Shape::MESH:
+    mk.type = visualization_msgs::Marker::LINE_LIST;
+    mk.scale.x = mk.scale.y = mk.scale.z = 0.01;
+    if (shape_msg.dimensions.size() != 0)
+      ROS_ERROR("Unexpected number of dimensions in mesh definition");
+    else
+    {
+      if (shape_msg.triangles.size() % 3 != 0)
+        ROS_ERROR("Number of triangle indices is not divisible by 3");
+      else
+      {
+        if (shape_msg.triangles.empty() || shape_msg.vertices.empty())
+          ROS_ERROR("Mesh definition is empty");
+        else
+        {
+          std::size_t nt = shape_msg.triangles.size() / 3;
+          for (std::size_t i = 0 ; i < nt ; ++i)
+          {
+            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
+            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
+            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
+            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
+            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
+            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+
+  default:
+    ROS_ERROR("Unknown shape type: %d", (int)shape_msg.type);
+    return false;
+  }
+  return true;
 }
 
 bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg)
 {
-    shape_msg.dimensions.clear();
-    shape_msg.vertices.clear();
-    shape_msg.triangles.clear();
-    if (shape->type == SPHERE)
+  shape_msg.dimensions.clear();
+  shape_msg.vertices.clear();
+  shape_msg.triangles.clear();
+  if (shape->type == SPHERE)
+  {
+    shape_msg.type = moveit_msgs::Shape::SPHERE;
+    shape_msg.dimensions.push_back(static_cast<const Sphere*>(shape)->radius);
+  }
+  else
+    if (shape->type == BOX)
     {
-        shape_msg.type = moveit_msgs::Shape::SPHERE;
-        shape_msg.dimensions.push_back(static_cast<const Sphere*>(shape)->radius);
+      shape_msg.type = moveit_msgs::Shape::BOX;
+      const double* sz = static_cast<const Box*>(shape)->size;
+      shape_msg.dimensions.push_back(sz[0]);
+      shape_msg.dimensions.push_back(sz[1]);
+      shape_msg.dimensions.push_back(sz[2]);
     }
     else
-        if (shape->type == BOX)
+      if (shape->type == CYLINDER)
+      {
+        shape_msg.type = moveit_msgs::Shape::CYLINDER;
+        shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->radius);
+        shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->length);
+      }
+      else
+        if (shape->type == MESH)
         {
-            shape_msg.type = moveit_msgs::Shape::BOX;
-            const double* sz = static_cast<const Box*>(shape)->size;
-            shape_msg.dimensions.push_back(sz[0]);
-            shape_msg.dimensions.push_back(sz[1]);
-            shape_msg.dimensions.push_back(sz[2]);
+          shape_msg.type = moveit_msgs::Shape::MESH;
+
+          const Mesh *mesh = static_cast<const Mesh*>(shape);
+          const unsigned int t3 = mesh->triangle_count * 3;
+
+          shape_msg.vertices.resize(mesh->vertex_count);
+          shape_msg.triangles.resize(t3);
+
+          for (unsigned int i = 0 ; i < mesh->vertex_count ; ++i)
+          {
+            unsigned int i3 = i * 3;
+            shape_msg.vertices[i].x = mesh->vertices[i3];
+            shape_msg.vertices[i].y = mesh->vertices[i3 + 1];
+            shape_msg.vertices[i].z = mesh->vertices[i3 + 2];
+          }
+
+          for (unsigned int i = 0 ; i < t3  ; ++i)
+            shape_msg.triangles[i] = mesh->triangles[i];
         }
         else
-            if (shape->type == CYLINDER)
-            {
-                shape_msg.type = moveit_msgs::Shape::CYLINDER;
-                shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->radius);
-                shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->length);
-            }
-            else
-                if (shape->type == MESH)
-                {
-                    shape_msg.type = moveit_msgs::Shape::MESH;
+        {
+          ROS_ERROR("Unable to construct shape message for shape of type %d", (int)shape->type);
+          return false;
+        }
 
-                    const Mesh *mesh = static_cast<const Mesh*>(shape);
-                    const unsigned int t3 = mesh->triangle_count * 3;
-
-                    shape_msg.vertices.resize(mesh->vertex_count);
-                    shape_msg.triangles.resize(t3);
-
-                    for (unsigned int i = 0 ; i < mesh->vertex_count ; ++i)
-                    {
-                        unsigned int i3 = i * 3;
-                        shape_msg.vertices[i].x = mesh->vertices[i3];
-                        shape_msg.vertices[i].y = mesh->vertices[i3 + 1];
-                        shape_msg.vertices[i].z = mesh->vertices[i3 + 2];
-                    }
-
-                    for (unsigned int i = 0 ; i < t3  ; ++i)
-                        shape_msg.triangles[i] = mesh->triangles[i];
-                }
-                else
-                {
-                    ROS_ERROR("Unable to construct shape message for shape of type %d", (int)shape->type);
-                    return false;
-                }
-
-    return true;
+  return true;
 }
 
 StaticShape* constructShapeFromMsg(const moveit_msgs::StaticShape &shape_msg)
 {
-    StaticShape *shape = NULL;
-    if (shape_msg.type == moveit_msgs::StaticShape::PLANE)
-    {
-        if (shape_msg.dimensions.size() == 4)
-            shape = new Plane(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2], shape_msg.dimensions[3]);
-        else
-            ROS_ERROR("Unexpected number of dimensions in plane definition (got %d, expected 4)", (int)shape_msg.dimensions.size());
-    }
+  StaticShape *shape = NULL;
+  if (shape_msg.type == moveit_msgs::StaticShape::PLANE)
+  {
+    if (shape_msg.dimensions.size() == 4)
+      shape = new Plane(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2], shape_msg.dimensions[3]);
     else
-        ROS_ERROR("Unknown static shape type: %d", (int)shape_msg.type);
-    return shape;
+      ROS_ERROR("Unexpected number of dimensions in plane definition (got %d, expected 4)", (int)shape_msg.dimensions.size());
+  }
+  else
+    ROS_ERROR("Unknown static shape type: %d", (int)shape_msg.type);
+  return shape;
 }
 
 bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &shape_msg)
 {
-    shape_msg.dimensions.clear();
-    if (shape->type == PLANE)
-    {
-        shape_msg.type = moveit_msgs::StaticShape::PLANE;
-        const Plane *p = static_cast<const Plane*>(shape);
-        shape_msg.dimensions.push_back(p->a);
-        shape_msg.dimensions.push_back(p->b);
-        shape_msg.dimensions.push_back(p->c);
-        shape_msg.dimensions.push_back(p->d);
-    }
-    else
-    {
-        ROS_ERROR("Unable to construct shape message for shape of type %d", (int)shape->type);
-        return false;
-    }
-    return true;
+  shape_msg.dimensions.clear();
+  if (shape->type == PLANE)
+  {
+    shape_msg.type = moveit_msgs::StaticShape::PLANE;
+    const Plane *p = static_cast<const Plane*>(shape);
+    shape_msg.dimensions.push_back(p->a);
+    shape_msg.dimensions.push_back(p->b);
+    shape_msg.dimensions.push_back(p->c);
+    shape_msg.dimensions.push_back(p->d);
+  }
+  else
+  {
+    ROS_ERROR("Unable to construct shape message for shape of type %d", (int)shape->type);
+    return false;
+  }
+  return true;
 }
 
 
