@@ -243,9 +243,9 @@ namespace planning_scene
             parent and the pointer to the parent is discarded. */
         void decoupleParent(void);
 
-	/** \brief Check if a given path is valid */
-	bool checkPath(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory);
-	
+        /** \brief Check if a given path is valid */
+        bool checkPath(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory);
+
     protected:
 
         void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
