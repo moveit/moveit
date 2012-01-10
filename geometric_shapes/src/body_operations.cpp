@@ -111,11 +111,7 @@ bodies::Body* bodies::constructBodyFromMsg(const moveit_msgs::Shape &shape_msg, 
         ROS_ERROR("Quaternion is not normalized. Assuming identity.");
         q = Eigen::Quaternionf(1.0, 0.0, 0.0, 0.0);
       }
-      Eigen::Matrix3f m3f = q.toRotationMatrix();
-      Eigen::Affine3f af(m3f);
-      af.matrix()(0,3) = pose.position.x;
-      af.matrix()(1,3) = pose.position.y;
-      af.matrix()(2,3) = pose.position.z;
+      Eigen::Affine3f af(Eigen::Translation3f(pose.position.x, pose.position.y, pose.position.z) * q.toRotationMatrix());
       body->setPose(af);
       return body;
     }
