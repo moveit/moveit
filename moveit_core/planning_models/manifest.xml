@@ -15,8 +15,10 @@
   <depend package="random_numbers"/>
   <depend package="moveit_msgs"/>
   <depend package="geometry_msgs"/>
+  <depend package="common_rosdeps"/>
   
   <rosdep name="assimp" />
+  <rosdep name="eigen" />
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_models"/>

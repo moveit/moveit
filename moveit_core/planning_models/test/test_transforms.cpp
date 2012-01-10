@@ -43,78 +43,80 @@ class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
 
-    virtual void SetUp()
-    {
-        urdf_model_.reset(new urdf::Model());
-        srdf_model_.reset(new srdf::Model());
-        urdf_ok_ = urdf_model_->initFile("test/urdf/robot.xml");
-        srdf_ok_ = srdf_model_->initFile(*urdf_model_, "test/srdf/robot.xml");
-    };
+  virtual void SetUp()
+  {
+    urdf_model_.reset(new urdf::Model());
+    srdf_model_.reset(new srdf::Model());
+    urdf_ok_ = urdf_model_->initFile("test/urdf/robot.xml");
+    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "test/srdf/robot.xml");
+  };
 
-    virtual void TearDown()
-    {
-    }
+  virtual void TearDown()
+  {
+  }
 
 protected:
 
-    boost::shared_ptr<urdf::Model> urdf_model_;
-    boost::shared_ptr<srdf::Model> srdf_model_;
-    bool                           urdf_ok_;
-    bool                           srdf_ok_;
+  boost::shared_ptr<urdf::Model> urdf_model_;
+  boost::shared_ptr<srdf::Model> srdf_model_;
+  bool                           urdf_ok_;
+  bool                           srdf_ok_;
 
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
 {
-    ASSERT_TRUE(urdf_ok_);
-    ASSERT_EQ(urdf_model_->getName(), "pr2_test");
+  ASSERT_TRUE(urdf_ok_);
+  ASSERT_EQ(urdf_model_->getName(), "pr2_test");
 
-    planning_models::KinematicModelPtr kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));
-    planning_models::KinematicState ks(kmodel);
-    ks.setToRandomValues();
-    ks.setToDefaultValues();
-
-
-    planning_models::Transforms tf(kmodel->getModelFrame());
-
-    btTransform t1;
-    t1.setIdentity();
-    t1.setOrigin(btVector3(10.0, 1.0, 0.0));
-    tf.setTransform(t1, "some_frame_1");
-
-    btTransform t2;
-    t2 = btTransform(btQuaternion(btVector3(0.0, 1.0, 0.0), 0.5), btVector3(10.0, 1.0, 0.0));
-    tf.setTransform(t2, "some_frame_2");
-
-    btTransform t3;
-    t3.setIdentity();
-    t3.setOrigin(btVector3(0.0, 1.0, -1.0));
-    tf.setTransform(t3, "some_frame_3");
+  planning_models::KinematicModelPtr kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));
+  planning_models::KinematicState ks(kmodel);
+  ks.setToRandomValues();
+  ks.setToDefaultValues();
 
 
-    EXPECT_TRUE(tf.isFixedFrame("some_frame_1"));
-    EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
-    EXPECT_TRUE(tf.isFixedFrame(kmodel->getModelFrame()));
+  planning_models::Transforms tf(kmodel->getModelFrame());
 
-    btTransform x;
-    x.setIdentity();
-    tf.transformPose(ks, "some_frame_2", x, x);
-    EXPECT_TRUE(x == t2);
+  Eigen::Affine3f t1;
+  t1.setIdentity();
+  t1.translation() = Eigen::Vector3f(10.0, 1.0, 0.0);
+  tf.setTransform(t1, "some_frame_1");
 
-    tf.transformPose(ks, kmodel->getModelFrame(), x, x);
-    EXPECT_TRUE(x == t2);
+  Eigen::Affine3f t2(Eigen::Translation3f(10.0, 1.0, 0.0)*Eigen::AngleAxisf(0.5, Eigen::Vector3f::UnitY()));
+  tf.setTransform(t2, "some_frame_2");
 
-    x.setIdentity();
-    tf.transformPose(ks, "r_wrist_roll_link", x, x);
+  Eigen::Affine3f t3;
+  t3.setIdentity();
+  t3.translation() = Eigen::Vector3f(0.0, 1.0, -1.0);
+  tf.setTransform(t3, "some_frame_3");
 
-    EXPECT_NEAR(x.getOrigin().x(), 0.585315, 1e-4);
-    EXPECT_NEAR(x.getOrigin().y(), -0.188, 1e-4);
-    EXPECT_NEAR(x.getOrigin().z(), 1.24001, 1e-4);
+
+  EXPECT_TRUE(tf.isFixedFrame("some_frame_1"));
+  EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
+  EXPECT_TRUE(tf.isFixedFrame(kmodel->getModelFrame()));
+
+  Eigen::Affine3f x;
+  x.setIdentity();
+  tf.transformPose(ks, "some_frame_2", x, x);
+  
+  EXPECT_TRUE(t2.translation() == x.translation());
+  EXPECT_TRUE(t2.rotation() == x.rotation());
+
+  tf.transformPose(ks, kmodel->getModelFrame(), x, x);
+  EXPECT_TRUE(t2.translation() == x.translation());
+  EXPECT_TRUE(t2.rotation() == x.rotation());
+
+  x.setIdentity();
+  tf.transformPose(ks, "r_wrist_roll_link", x, x);
+
+  EXPECT_NEAR(x.translation().x(), 0.585315, 1e-4);
+  EXPECT_NEAR(x.translation().y(), -0.188, 1e-4);
+  EXPECT_NEAR(x.translation().z(), 1.24001, 1e-4);
 }
 
 
 int main(int argc, char **argv)
 {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
