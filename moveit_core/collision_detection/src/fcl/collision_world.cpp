@@ -179,13 +179,13 @@ void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, 
     updateFCLObject(id);
 }
 
-void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, shapes::Shape *shape, const btTransform &pose)
+void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3f &pose)
 {
     CollisionWorld::addToObject(id, shape, pose);
     updateFCLObject(id);
 }
 
-bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string &id, const shapes::Shape *shape, const btTransform &pose)
+bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3f &pose)
 {
     if (CollisionWorld::moveShapeInObject(id, shape, pose))
     {

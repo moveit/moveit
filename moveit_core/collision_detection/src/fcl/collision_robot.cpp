@@ -112,7 +112,7 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_m
             for (std::size_t j = 0 ; j < ab.size() ; ++j)
             {
                 const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &objs = getAttachedBodyObjects(ab[j]);
-                const std::vector<btTransform> &ab_t = ab[i]->getGlobalCollisionBodyTransforms();
+                const std::vector<Eigen::Affine3f> &ab_t = ab[i]->getGlobalCollisionBodyTransforms();
                 for (std::size_t k = 0 ; k < objs.size() ; ++k)
                     if (objs[k])
                     {
