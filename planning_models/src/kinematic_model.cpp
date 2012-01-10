@@ -716,6 +716,13 @@ void planning_models::KinematicModel::getRandomValues(random_numbers::RandomNumb
             joint_model_vector_[i]->getRandomValues(rng, values);
 }
 
+void planning_models::KinematicModel::getDefaultValues(std::vector<double> &values) const
+{
+    for (std::size_t i = 0  ; i < joint_model_vector_.size() ; ++i)
+        if (joint_model_vector_[i]->mimic_ == NULL)
+            joint_model_vector_[i]->getDefaultValues(values);
+}
+
 /* ------------------------ JointModel ------------------------ */
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :

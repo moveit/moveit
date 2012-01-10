@@ -718,6 +718,9 @@ namespace planning_models
         /** \brief Compute the random values for a KinematicState */
         void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
 
+        /** \brief Compute the default values for a KinematicState */
+        void getDefaultValues(std::vector<double> &values) const;
+
         /** \brief Print information about the constructed model */
         void printModelInfo(std::ostream &out = std::cout) const;
 

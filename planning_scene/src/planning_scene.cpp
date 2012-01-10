@@ -113,7 +113,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
             ROS_ERROR("Parent is not configured yet");
     }
 
-    return true;
+    return configured_;
 }
 
 void planning_scene::PlanningScene::clearDiffs(void)
@@ -374,7 +374,9 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
     {
         moveit_msgs::AttachedCollisionObject aco;
         aco.link_name = ab[i]->getAttachedLinkName();
-        aco.touch_links = ab[i]->getTouchLinks();
+        const std::set<std::string> &touch_links = ab[i]->getTouchLinks();
+        for (std::set<std::string>::const_iterator it = touch_links.begin() ; it != touch_links.end() ; ++it)
+            aco.touch_links.push_back(*it);
         aco.object.header.frame_id = aco.link_name;
         aco.object.id = ab[i]->getName();
         aco.object.operation = moveit_msgs::CollisionObject::ADD;

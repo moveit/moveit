@@ -180,11 +180,9 @@ void planning_models::KinematicState::setStateValues(const sensor_msgs::JointSta
 {
     std::map<std::string, double> vals;
     unsigned int position_size = js.position.size();
-    for(unsigned int i=0; i < js.name.size(); i++) {
-        if(i < position_size) {
+    for(unsigned int i = 0 ; i < js.name.size() ; ++i)
+        if (i < position_size)
             vals[js.name[i]] = js.position[i];
-        }
-    }
     setStateValues(vals);
 }
 
@@ -210,19 +208,19 @@ void planning_models::KinematicState::getStateValues(std::map<std::string,double
     }
 }
 
-void planning_models::KinematicState::getStateValues(sensor_msgs::JointState& js) const {
-  std::map<std::string, double> joint_state_values;
-  getStateValues(joint_state_values);
-  js.name.resize(joint_state_values.size());
-  js.position.resize(joint_state_values.size());
+void planning_models::KinematicState::getStateValues(sensor_msgs::JointState& js) const
+{
+    std::map<std::string, double> joint_state_values;
+    getStateValues(joint_state_values);
+    js.name.resize(joint_state_values.size());
+    js.position.resize(joint_state_values.size());
 
-  unsigned int i = 0;
-  for(std::map<std::string, double>::iterator it = joint_state_values.begin();
-      it != joint_state_values.end();
-      it++, i++) {
-    js.name[i] = it->first;
-    js.position[i] = it->second;
-  }
+    unsigned int i = 0;
+    for(std::map<std::string, double>::iterator it = joint_state_values.begin() ; it != joint_state_values.end() ; ++it, ++i)
+    {
+        js.name[i] = it->first;
+        js.position[i] = it->second;
+    }
 }
 
 void planning_models::KinematicState::updateLinkTransforms(void)
@@ -256,9 +254,8 @@ void planning_models::KinematicState::setRootTransform(const btTransform &transf
 
 void planning_models::KinematicState::setToDefaultValues(void)
 {
-    std::map<std::string, double> default_joint_states;
-    for (unsigned int i = 0  ; i < joint_state_vector_.size() ; ++i)
-        joint_state_vector_[i]->getJointModel()->getDefaultValues(default_joint_states);
+    std::vector<double> default_joint_states;
+    kinematic_model_->getDefaultValues(default_joint_states);
     setStateValues(default_joint_states);
 }
 
@@ -546,11 +543,13 @@ void planning_models::KinematicState::LinkState::attachBody(const std::string &i
                                                             const std::vector<std::string> &touch_links)
 {
     attached_body_vector_.push_back(new AttachedBody(this, id, shapes, attach_trans, touch_links));
+    attached_body_vector_.back()->computeTransform();
 }
 
 void planning_models::KinematicState::LinkState::attachBody(const boost::shared_ptr<AttachedBodyProperties> &properties)
 {
     attached_body_vector_.push_back(new AttachedBody(this, properties));
+    attached_body_vector_.back()->computeTransform();
 }
 
 const planning_models::KinematicState::AttachedBody* planning_models::KinematicState::LinkState::getAttachedBody(const std::string &id) const
@@ -612,7 +611,7 @@ planning_models::KinematicState::AttachedBody::AttachedBody(const planning_model
     properties_.reset(new AttachedBodyProperties());
     properties_->id_ = id;
     properties_->attach_trans_ = attach_trans;
-    properties_->touch_links_ = touch_links;
+    properties_->touch_links_.insert(touch_links.begin(), touch_links.end());
     properties_->shapes_ = shapes;
 
     global_collision_body_transforms_.resize(attach_trans.size());

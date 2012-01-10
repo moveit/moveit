@@ -42,6 +42,7 @@
 #include <std_msgs/ColorRGBA.h>
 #include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <set>
 
 namespace planning_models
 {
@@ -191,7 +192,7 @@ namespace planning_models
             std::vector<btTransform>    attach_trans_;
 
             /** \brief The set of links this body is allowed to touch */
-            std::vector<std::string>    touch_links_;
+            std::set<std::string>       touch_links_;
 
             /** \brief string id for reference */
             std::string                 id_;
@@ -245,7 +246,7 @@ namespace planning_models
             }
 
             /** \brief Get the links that the attached body is allowed to touch */
-            const std::vector<std::string>& getTouchLinks(void) const
+            const std::set<std::string>& getTouchLinks(void) const
             {
                 return properties_->touch_links_;
             }
