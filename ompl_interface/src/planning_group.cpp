@@ -285,8 +285,7 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
     }
     else
         ROS_ERROR("Unable to construct goal representation");
-    ompl_simple_setup_.print();
-    
+
     ROS_DEBUG("%s: New planning context is set.", name_.c_str());
     return true;
 }

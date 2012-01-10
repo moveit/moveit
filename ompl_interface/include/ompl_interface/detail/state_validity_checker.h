@@ -58,8 +58,8 @@ namespace ompl_interface
     protected:
 
         const PlanningGroup                  *planning_group_;
-	std::string                           group_name_;
-	boost::scoped_ptr<TSStateStorage>     tss_;
+        std::string                           group_name_;
+        boost::scoped_ptr<TSStateStorage>     tss_;
         collision_detection::CollisionRequest collision_request_simple_;
         collision_detection::CollisionRequest collision_request_with_distance_;
     };
