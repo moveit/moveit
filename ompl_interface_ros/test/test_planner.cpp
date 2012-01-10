@@ -57,7 +57,7 @@ TEST(OmplInterface, StateConversion)
     for (int i = 0 ; i < 100 ; ++i)
     {
         ostate1.random();
-        kstate.setRandomValues();
+        kstate.setToRandomValues();
         ks.copyToKinematicState(kstate, ostate1.get());
         ks.copyToOMPLState(ostate2.get(), kstate);
         EXPECT_EQ(ostate1, ostate2);
@@ -109,11 +109,7 @@ TEST(OmplPlanning, JointGoal)
     d.robot_state = mplan_res.robot_state;
     d.trajectory = mplan_res.trajectory;
     pub.publish(d);
-    for (int i = 0 ; i < 100 ; ++i)
-    {
-	ros::spinOnce();
-	ros::Duration(0.01).sleep();
-    }    
+    ros::Duration(0.5).sleep();    
 }
 
 TEST(OmplPlanning, PositionGoal)
@@ -302,7 +298,9 @@ TEST(OmplPlanning, SimplePoseGoal)
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "test_ompl_planning");
+  ros::init(argc, argv, "test_ompl_planning", ros::init_options::AnonymousName);
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
 
   return RUN_ALL_TESTS();
 }

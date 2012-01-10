@@ -185,8 +185,8 @@ void PlanningDisplay::setRobotAlpha(float alpha)
 void PlanningDisplay::setSceneAlpha(float alpha)
 {
   scene_alpha_ = alpha;
-  renderPlanningScene();
   propertyChanged(scene_alpha_property_);
+  renderPlanningScene();
   causeRender();
 }
 
@@ -384,7 +384,7 @@ void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s,
 					       vis_manager_->getSceneManager(), node);
 	    double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
 	    double z = static_cast<const shapes::Cylinder*>(s)->length;
-	    ogre_shape->setScale(Ogre::Vector3(d, d, z));
+	    ogre_shape->setScale(Ogre::Vector3(d, z, d)); // the shape has z as major axis, but the rendered cylinder has y as major axis (assuming z is upright);
 	}
 	break;
     case shapes::MESH:
@@ -443,6 +443,15 @@ void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s,
 	Ogre::Vector3 position(p.getOrigin().x(), p.getOrigin().y(), p.getOrigin().z());
 	const btQuaternion &q = p.getRotation();
 	Ogre::Quaternion orientation(q.getW(), q.getX(), q.getY(), q.getZ());
+
+	if (s->type == shapes::CYLINDER)
+	{
+	    // in geometric shapes, the z axis of the cylinder is it height;
+	    // for the ogre_tools shape, the y axis is the height; we add a transform to fix this
+	    static Ogre::Quaternion fix(Ogre::Radian(M_PI/2.0), Ogre::Vector3(1.0, 0.0, 0.0));
+	    orientation = fix * orientation;
+	}
+	
 	ogre_shape->setPosition(position);
 	ogre_shape->setOrientation(orientation);
 	scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));

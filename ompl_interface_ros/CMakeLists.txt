@@ -31,3 +31,6 @@ target_link_libraries(ompl_planner ${PROJECT_NAME})
 # Unit tests
 rosbuild_add_gtest(test_planner test/test_planner.cpp)
 target_link_libraries(test_planner ${PROJECT_NAME})
+
+rosbuild_add_gtest(test_simple_plan test/test_simple_plan.cpp)
+target_link_libraries(test_simple_plan ${PROJECT_NAME})
