@@ -65,23 +65,25 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
 
     RobotModelLoader rml(robot_description);
     robot_description_ = rml.getRobotDescription();
-    if (rml.getURDF() && rml.getSRDF())
+    if (rml.getURDF())
     {
         if (parent)
             scene_.reset(new planning_scene::PlanningScene(parent));
         else
             scene_.reset(new planning_scene::PlanningScene());
-        scene_const_ = scene_;
-        if (scene_->configure(rml.getURDF(), rml.getSRDF()))
+        if (scene_->configure(rml.getURDF(), rml.getSRDF() ? rml.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model())))
         {
+	    scene_const_ = scene_;
             configureDefaultCollisionMatrix();
             configureDefaultPadding();
-            if (scene_->isConfigured())
-            {
-                scene_->getCollisionRobot()->setPadding(default_robot_padd_);
-                scene_->getCollisionRobot()->setScale(default_robot_scale_);
-            }
-        }
+	    scene_->getCollisionRobot()->setPadding(default_robot_padd_);
+	    scene_->getCollisionRobot()->setScale(default_robot_scale_);
+	}
+	else
+	{
+	    ROS_ERROR("Configuration of planning scene failed");
+	    scene_.reset();
+	}
     }
     last_update_time_ = ros::Time::now();
     last_state_update_ = ros::WallTime::now();
@@ -90,10 +92,13 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
 
 void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
 {
-    boost::mutex::scoped_lock slock(scene_update_mutex_);
-    scene_->decoupleParent();
-    if (flag)
-        scene_.reset(new planning_scene::PlanningScene(scene_));
+    if (scene_)
+    {
+	boost::mutex::scoped_lock slock(scene_update_mutex_);
+	scene_->decoupleParent();
+	if (flag)
+	    scene_.reset(new planning_scene::PlanningScene(scene_));
+    }
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
@@ -199,7 +204,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
                                                                              const std::string &attached_objects_topic,
                                                                              const std::string &collision_map_topic)
-{
+{    
     stopWorldGeometryMonitor();
     ROS_INFO("Starting world geometry monitor");
 
@@ -247,13 +252,13 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
 
 void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::string &joint_states_topic)
 {
-    if (scene_->isConfigured())
+    if (scene_)
     {
-      if (!current_state_monitor_)
-        current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
-      current_state_monitor_->stopStateMonitor();
-      current_state_monitor_->setOnStateUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
-      current_state_monitor_->startStateMonitor(joint_states_topic);
+	if (!current_state_monitor_)
+	    current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
+	current_state_monitor_->stopStateMonitor();
+	current_state_monitor_->setOnStateUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
+	current_state_monitor_->startStateMonitor(joint_states_topic);
     }
     else
         ROS_ERROR("Cannot monitor robot state because planning scene is not configured");
@@ -370,6 +375,9 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
 
 void planning_scene_monitor::PlanningSceneMonitor::configureDefaultCollisionMatrix(void)
 {
+    if (!scene_)
+	return;
+    
     collision_detection::AllowedCollisionMatrix &acm = scene_->getAllowedCollisionMatrix();
 
     // no collisions allowed by default

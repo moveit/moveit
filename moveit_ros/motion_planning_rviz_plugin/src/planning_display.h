@@ -196,6 +196,7 @@ protected:
   void calculateOffsetPosition();
 
   void renderPlanningScene();
+  void renderShape(const shapes::Shape *s, const btTransform &p, const rviz::Color &color);
   void clearRenderedGeometry();
 
   // overrides from Display
@@ -233,7 +234,7 @@ protected:
   std::vector<Ogre::ManualObject*> manual_objects_;
   Ogre::MaterialPtr material_;
   std::string material_name_;
-
+  
   bool new_display_trajectory_;
   bool animating_path_;
   int current_state_;
