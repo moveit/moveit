@@ -46,7 +46,7 @@ TEST(SpherePointContainment, SimpleInside)
     sphere->setScale(1.05);
     bool contains = sphere->containsPoint(0,0,1.0);
     EXPECT_TRUE(contains);
-    random_numbers::RNG r;
+    random_numbers::RandomNumberGenerator r;
     btVector3 p;
     EXPECT_TRUE(sphere->samplePointInside(r, 100, p));
     EXPECT_TRUE(sphere->containsPoint(p));
@@ -133,7 +133,7 @@ TEST(BoxPointContainment, SimpleInside)
     bool contains = box->containsPoint(0,0,1.0);
     EXPECT_TRUE(contains);
 
-    random_numbers::RNG r;
+    random_numbers::RandomNumberGenerator r;
     btVector3 p;
     EXPECT_TRUE(box->samplePointInside(r, 100, p));
     EXPECT_TRUE(box->containsPoint(p));
@@ -168,7 +168,7 @@ TEST(BoxPointContainment, ComplexInside)
     bool contains = box->containsPoint(1.5,1.0,1.5);
     EXPECT_TRUE(contains);
 
-    random_numbers::RNG r;
+    random_numbers::RandomNumberGenerator r;
     btVector3 p;
     for (int i = 0 ; i < 1000 ; ++i)
     {
@@ -251,7 +251,7 @@ TEST(CylinderPointContainment, CylinderPadding)
     cylinder->computeBoundingSphere(bsphere);
     EXPECT_TRUE(bsphere.radius > 2.0);
 
-    random_numbers::RNG r;
+    random_numbers::RandomNumberGenerator r;
     btVector3 p;
     for (int i = 0 ; i < 1000 ; ++i)
     {
@@ -271,7 +271,7 @@ TEST(MeshPointContainment, Pr2Forearm)
     t.getOrigin().setX(1.0);
     EXPECT_FALSE(m->cloneAt(t)->containsPoint(-1.0, 0.0, 0.0));
 
-    random_numbers::RNG r;
+    random_numbers::RandomNumberGenerator r;
     btVector3 p;
     bool found = false;
     for (int i = 0 ; i < 10 ; ++i)
