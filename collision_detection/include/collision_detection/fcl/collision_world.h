@@ -57,8 +57,8 @@ namespace collision_detection
         virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
 
         virtual void addToObject(const std::string &id, shapes::StaticShape *shape);
-        virtual void addToObject(const std::string &id, shapes::Shape *shape, const btTransform &pose);
-        virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const btTransform &pose);
+        virtual void addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3f &pose);
+        virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3f &pose);
         virtual bool removeShapeFromObject(const std::string &id, const shapes::Shape *shape);
         virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShape *shape);
         virtual void removeObject(const std::string &id);

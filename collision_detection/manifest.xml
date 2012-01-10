@@ -13,9 +13,10 @@
   <depend package="geometric_shapes"/>
   <depend package="moveit_msgs"/>
   <depend package="planning_models"/>
-  <depend package="bullet"/>
   <depend package="fcl"/>
-
+  <depend package="common_rosdeps"/>
+  
+  <rosdep name="eigen" />
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lcollision_detection `rosboost-cfg --lflags thread`"/>
   </export>

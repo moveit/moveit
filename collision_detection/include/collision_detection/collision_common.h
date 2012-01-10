@@ -37,10 +37,10 @@
 #ifndef COLLISION_DETECTION_COLLISION_COMMON_
 #define COLLISION_DETECTION_COLLISION_COMMON_
 
-#include <LinearMath/btTransform.h>
 #include <vector>
 #include <string>
 #include <map>
+#include <Eigen/Core>
 
 namespace collision_detection
 {
@@ -68,9 +68,9 @@ namespace collision_detection
     struct Contact
     {
         /** \brief contact position */
-        btVector3   pos;
+        Eigen::Vector3f   pos;
         /** \brief normal unit vector at contact */
-        btVector3   normal;
+        Eigen::Vector3f   normal;
         /** \brief depth (penetration between bodies) */
         double      depth;
 
@@ -108,7 +108,7 @@ namespace collision_detection
         double      distance;
 
         /** \brief Gradient vector associated with collision */
-        btVector3   direction;
+        Eigen::Vector3f   direction;
 
         /** \brief Number of contacts returned */
         std::size_t contact_count;

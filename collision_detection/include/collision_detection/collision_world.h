@@ -157,7 +157,7 @@ namespace collision_detection
             std::vector< shapes::Shape* >       shapes_;
 
             /** \brief An array of shape poses */
-            std::vector< btTransform >          shape_poses_;
+            std::vector< Eigen::Affine3f >          shape_poses_;
         };
 
         typedef boost::shared_ptr<Object> ObjectPtr;
@@ -189,20 +189,20 @@ namespace collision_detection
         /** \brief Add shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
         void addToObject(const std::string &id,
                          const std::vector<shapes::Shape*> &shapes,
-                         const std::vector<btTransform> &poses);
+                         const std::vector<Eigen::Affine3f> &poses);
 
         /** \brief Add static shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
         void addToObject(const std::string &id,
                          const std::vector<shapes::StaticShape*> &shapes);
 
         /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
-        virtual void addToObject(const std::string &id, shapes::Shape *shape, const btTransform &pose);
+        virtual void addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3f &pose);
 
         /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
         virtual void addToObject(const std::string &id, shapes::StaticShape *shape);
 
         /** \brief Update the pose of a shape in an object. Shape equality is verified by comparing pointers. Returns true on success. */
-        virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const btTransform &pose);
+        virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3f &pose);
 
         /** \brief Remove shape from object. Shape equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
         virtual bool removeShapeFromObject(const std::string &id, const shapes::Shape *shape);
