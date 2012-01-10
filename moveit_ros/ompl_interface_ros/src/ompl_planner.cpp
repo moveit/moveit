@@ -38,23 +38,54 @@
 #include "planning_scene_monitor/planning_scene_monitor.h"
 #include <tf/transform_listener.h>
 
+static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
+static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
+static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
+
+class OMPLPlannerService
+{
+public:
+
+    OMPLPlannerService(ompl_interface_ros::OMPLInterfaceROS *ompl_interface) : nh_("~"), ompl_interface_(ompl_interface)
+    {
+        plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLPlannerService::computePlan, this);
+    }
+
+    bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+    {
+        ROS_INFO("Received new planning request...");
+        return ompl_interface_->solve(req, res);
+    }
+
+    void status(void)
+    {
+        ompl_interface_->printStatus();
+    }
+
+private:
+
+    ros::NodeHandle                       nh_;
+    ompl_interface_ros::OMPLInterfaceROS *ompl_interface_;
+    ros::ServiceServer                    plan_service_;
+};
+
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "ompl_planning");
+    ros::init(argc, argv, PLANNER_NODE_NAME);
 
-    ros::NodeHandle nh;
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
     tf::TransformListener tf;
-    planning_scene_monitor::PlanningSceneMonitor psm("robot_description", &tf);
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
     psm.startWorldGeometryMonitor();
     psm.startSceneMonitor();
     psm.startStateMonitor();
-    
+
     ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
-    o.printStatus();
-    
+    OMPLPlannerService pservice(&o);
+    pservice.status();
+
     ros::waitForShutdown();
 
     return 0;

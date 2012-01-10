@@ -46,9 +46,6 @@ namespace ompl_interface_ros
       /** @brief Constructor
        *  @param scene A pointer to the planning scene*/
       OMPLInterfaceROS(const planning_scene::PlanningSceneConstPtr &scene);
-      
-      /** @brief Compute and return the plan*/
-      bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
 
       /** @brief Print the status of this node*/
       void printStatus(void);
@@ -63,11 +60,9 @@ namespace ompl_interface_ros
 
       /** @brief Configure the planners*/
       void configurePlanners(std::vector<ompl_interface::PlannerConfigs> &pconfig);
-      
-      ros::NodeHandle                       nh_; /// The ROS node handle 
 
-      ros::ServiceServer                    plan_service_; /// The planning service
-      
+      ros::NodeHandle                         nh_; /// The ROS node handle
+
     private:
         class IKLoader;
         boost::shared_ptr<IKLoader>           ik_loader_;

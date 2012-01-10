@@ -51,11 +51,11 @@ int main(int argc, char **argv)
     psm.startWorldGeometryMonitor();
     psm.startSceneMonitor();
     psm.startStateMonitor();
-    
+
     ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
     o.printStatus();
     ompl_interface::PlanningGroupPtr pg = o.getPlanningConfiguration("right_arm");
-    moveit_msgs::Constraints constr;    
+    moveit_msgs::Constraints constr;
 
     constr.orientation_constraints.resize(1);
     moveit_msgs::OrientationConstraint &ocm = constr.orientation_constraints[0];
@@ -69,10 +69,10 @@ int main(int argc, char **argv)
     ocm.absolute_pitch_tolerance = 0.01;
     ocm.absolute_yaw_tolerance = M_PI;
     ocm.weight = 1.0;
-    
+
     pg->constructValidStateDatabase(psm.getPlanningScene()->getCurrentState(), constr,
-				    1000000, "/home/isucan/right_arm");
-    
+                                    1000000, "/home/isucan/right_arm");
+
     ros::waitForShutdown();
 
     return 0;
