@@ -193,7 +193,7 @@ void PlanningDisplay::setSceneAlpha(float alpha)
 void PlanningDisplay::setSceneRobotAlpha(float alpha)
 {
   robot_scene_alpha_ = alpha;
-  scene_robot_->setAlpha(robot_path_alpha_);
+  scene_robot_->setAlpha(robot_scene_alpha_);
   propertyChanged(robot_scene_alpha_property_);
   causeRender();
 }
@@ -357,7 +357,7 @@ void PlanningDisplay::unsubscribe()
   sub_.shutdown();
 }
 
-void PlanningDisplay::renderShape(const shapes::Shape *s, const btTransform &p, const rviz::Color &color)
+void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const btTransform &p, const rviz::Color &color, float alpha)
 {
     ogre_tools::Shape* ogre_shape = NULL;
     switch (s->type)
@@ -365,7 +365,7 @@ void PlanningDisplay::renderShape(const shapes::Shape *s, const btTransform &p, 
     case shapes::SPHERE:
 	{
 	    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Sphere,
-					       vis_manager_->getSceneManager(), scene_node_);
+					       vis_manager_->getSceneManager(), node);
 	    double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
 	    ogre_shape->setScale(Ogre::Vector3(d, d, d));
 	}
@@ -373,7 +373,7 @@ void PlanningDisplay::renderShape(const shapes::Shape *s, const btTransform &p, 
     case shapes::BOX:
 	{
 	    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cube,
-					       vis_manager_->getSceneManager(), scene_node_);
+					       vis_manager_->getSceneManager(), node);
 	    const double* sz = static_cast<const shapes::Box*>(s)->size;
 	    ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
 	}
@@ -381,7 +381,7 @@ void PlanningDisplay::renderShape(const shapes::Shape *s, const btTransform &p, 
     case shapes::CYLINDER:
 	{
 	    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cylinder,
-					       vis_manager_->getSceneManager(), scene_node_);
+					       vis_manager_->getSceneManager(), node);
 	    double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
 	    double z = static_cast<const shapes::Cylinder*>(s)->length;
 	    ogre_shape->setScale(Ogre::Vector3(d, d, z));
@@ -401,8 +401,8 @@ void PlanningDisplay::renderShape(const shapes::Shape *s, const btTransform &p, 
 		    material_->getTechnique(0)->setLightingEnabled(true);
 		    material_->setCullingMode(Ogre::CULL_NONE);
 		    material_->getTechnique(0)->setAmbient(color.r_, color.g_, color.b_);
-		    material_->getTechnique(0)->setDiffuse(0, 0, 0, scene_alpha_);
-		    if (scene_alpha_ < 0.9998)
+		    material_->getTechnique(0)->setDiffuse(0, 0, 0, alpha);
+		    if (alpha < 0.9998)
 		    {
 			material_->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
 			material_->getTechnique(0)->setDepthWriteEnabled( false );
@@ -429,7 +429,7 @@ void PlanningDisplay::renderShape(const shapes::Shape *s, const btTransform &p, 
 		    }
 		}
 		manual_object->end();
-		scene_node_->attachObject(manual_object);
+		node->attachObject(manual_object);
 		manual_objects_.push_back(manual_object);
 	    }
 	}
@@ -439,7 +439,7 @@ void PlanningDisplay::renderShape(const shapes::Shape *s, const btTransform &p, 
     }
     if (ogre_shape)
     {
-	ogre_shape->setColor(color.r_, color.g_, color.b_, scene_alpha_);
+	ogre_shape->setColor(color.r_, color.g_, color.b_, alpha);
 	Ogre::Vector3 position(p.getOrigin().x(), p.getOrigin().y(), p.getOrigin().z());
 	const btQuaternion &q = p.getRotation();
 	Ogre::Quaternion orientation(q.getW(), q.getX(), q.getY(), q.getZ());
@@ -483,7 +483,7 @@ void PlanningDisplay::renderPlanningScene()
             collision_detection::CollisionWorld::ObjectConstPtr o = cworld->getObject(ids[i]);
             const rviz::Color &color = colors[i % (sizeof(colors)/sizeof(rviz::Color))];
             for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
-		renderShape(o->shapes_[j], o->shape_poses_[j], color);
+		renderShape(scene_node_, o->shapes_[j], o->shape_poses_[j], color, scene_alpha_);
 	}
 	
 	std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
@@ -493,7 +493,10 @@ void PlanningDisplay::renderPlanningScene()
 	    const std::vector<btTransform> &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
 	    const std::vector<shapes::Shape*> &ab_shapes = attached_bodies[i]->getShapes();
 	    for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
-		renderShape(ab_shapes[j], ab_t[j], attached_color);
+	    {
+		renderShape(scene_robot_->getVisualNode(), ab_shapes[j], ab_t[j], attached_color, robot_scene_alpha_);
+		renderShape(scene_robot_->getCollisionNode(), ab_shapes[j], ab_t[j], attached_color, robot_scene_alpha_);
+	    }
 	}
     }
     catch(...)
