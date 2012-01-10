@@ -541,7 +541,8 @@ void planning_scene::PlanningScene::decoupleParent(void)
 }
 
 void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene)
-{
+{    
+    ROS_DEBUG("Adding planning scene diff");
     // there is at least one transform in the list of fixed transform: from model frame to itself;
     // if the list is empty, then nothing has been set
     if (!scene.fixed_frame_transforms.empty())
@@ -590,6 +591,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
 void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
 {
+    ROS_DEBUG("Setting new planning scene");
     if (parent_)
     {
         // if we have a parent, but we set a new planning scene, then we do not care about the parent any more
@@ -856,3 +858,25 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
             ROS_ERROR("Unknown collision object operation: %d", object.operation);
     return false;
 }
+
+bool planning_scene::PlanningScene::checkPath(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory)
+{ 
+    planning_models::KinematicState start(getCurrentState());
+    planning_models::robotStateToKinematicState(*getTransforms(), start_state, start);
+    std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
+                                       trajectory.multi_dof_joint_trajectory.points.size());
+    for (std::size_t i = 0 ; i < state_count ; ++i)
+    {
+	moveit_msgs::RobotState rs;
+	planning_models::robotTrajectoryPointToRobotState(trajectory, i, rs);
+	planning_models::KinematicStatePtr st(new planning_models::KinematicState(start));
+	planning_models::robotStateToKinematicState(*getTransforms(), rs, *st);
+	collision_detection::CollisionRequest req;
+	collision_detection::CollisionResult  res;
+	checkCollision(req, res, *st);
+	if (res.collision)
+	    return false;
+    }
+    return true;
+}
+

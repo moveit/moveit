@@ -458,7 +458,7 @@ namespace planning_models
                 within a group. Links that are not in the group are also
                 updated, but transforms for joints that are not in the
                 group are not recomputed.  */
-          void setStateValues(const sensor_msgs::JointState& js);
+	    void setStateValues(const sensor_msgs::JointState& js);
 
             /** Compute transforms using current joint values */
             void updateLinkTransforms(void);
