@@ -196,7 +196,7 @@ protected:
   void calculateOffsetPosition();
 
   void renderPlanningScene();
-  void renderShape(const shapes::Shape *s, const btTransform &p, const rviz::Color &color);
+  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const btTransform &p, const rviz::Color &color, float alpha);
   void clearRenderedGeometry();
 
   // overrides from Display
