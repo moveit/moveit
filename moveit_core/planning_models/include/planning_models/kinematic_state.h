@@ -160,6 +160,8 @@ public:
 
   private:
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     /** \brief The joint model this state corresponds to */
     const KinematicModel::JointModel   *joint_model_;
 
@@ -273,6 +275,8 @@ public:
 
   private:
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     /** \brief The link that owns this attached body */
     const LinkState                          *parent_link_state_;
 
@@ -381,6 +385,8 @@ public:
     void clearAttachedBodies(void);
 
   private:
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     /** \brief The kinematic state this link is part of */
     const KinematicState            *kinematic_state_;

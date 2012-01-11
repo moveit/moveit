@@ -50,10 +50,12 @@ bool quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::Quaternionf &q);
 bool poseFromMsg(const geometry_msgs::Pose &tmsg, Eigen::Affine3f &t);
 void msgFromPose(const Eigen::Affine3f &t, geometry_msgs::Pose &tmsg);
 
+typedef std::map<std::string, Eigen::Affine3f, std::less<std::string>, 
+                 Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3f> > > EigenAffine3fMapType;
+
 double normalizeAngle(double angle);
 
-double getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y);
-double getEulerAngles(const Eigen::Matrix3f& t, float& r, float& p, float& y);
+void getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y);
 
 /** @brief Provides an implementation of a snapshot of a transform tree that can be easily queried for
     transforming different quantities. Transforms are maintained as a list of transforms to a particular frame.
@@ -93,7 +95,7 @@ public:
    * @brief Return all the transforms
    * @return A map from string names of frames to corresponding Eigen::Affine3fs (w.r.t the planning frame)
    */
-  const std::map<std::string, Eigen::Affine3f>& getAllTransforms(void) const;
+  const EigenAffine3fMapType& getAllTransforms(void) const;
 
   /**
    * @brief Get transform for from_frame (w.r.t target frame)
@@ -204,8 +206,12 @@ public:
 
 private:
 
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+
   std::string                        target_frame_;
-  std::map<std::string, Eigen::Affine3f> transforms_;
+  
+  EigenAffine3fMapType transforms_;
 };
 
 typedef boost::shared_ptr<Transforms> TransformsPtr;
