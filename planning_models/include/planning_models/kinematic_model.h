@@ -439,6 +439,8 @@ public:
 
     /** \brief The index assigned to this link when traversing the kinematic tree in depth first fashion */
     int                       tree_index_;
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   };
 
   class JointModelGroup

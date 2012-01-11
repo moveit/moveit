@@ -58,14 +58,10 @@ double planning_models::normalizeAngle(double angle) {
   while(ret > 2*M_PI) {
     ret -= 2*M_PI;
   }
+  return ret;
 }
 
-double getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y) 
-{
-  getEulerAngles(t.rotation());
-}
-
-double getEulerAngles(const Eigen::Matrix3f& t, float& r, float& p, float& y) 
+void getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y) 
 {
   //taken from pcl - x,y,z convention
   r  = atan2f(t(2,1), t(2,2));
@@ -108,7 +104,7 @@ const std::string& planning_models::Transforms::getTargetFrame(void) const
   return target_frame_;
 }
 
-const std::map<std::string, Eigen::Affine3f>& planning_models::Transforms::getAllTransforms(void) const
+const planning_models::EigenAffine3fMapType& planning_models::Transforms::getAllTransforms(void) const
 {
   return transforms_;
 }
@@ -120,7 +116,7 @@ bool planning_models::Transforms::isFixedFrame(const std::string &frame) const
 
 const Eigen::Affine3f& planning_models::Transforms::getTransform(const std::string &from_frame) const
 {
-  std::map<std::string, Eigen::Affine3f>::const_iterator it = transforms_.find(from_frame);
+  EigenAffine3fMapType::const_iterator it = transforms_.find(from_frame);
   if (it != transforms_.end())
     return it->second;
   ROS_ERROR_STREAM("Unable to transform from frame '" + from_frame + "' to frame '" + target_frame_ + "'");
@@ -217,7 +213,7 @@ void planning_models::Transforms::getTransforms(std::vector<geometry_msgs::Trans
 {
   transforms.resize(transforms_.size());
   std::size_t i = 0;
-  for (std::map<std::string, Eigen::Affine3f>::const_iterator it = transforms_.begin() ; it != transforms_.end() ; ++it, ++i)
+  for (EigenAffine3fMapType::const_iterator it = transforms_.begin() ; it != transforms_.end() ; ++it, ++i)
   {
     transforms[i].child_frame_id = target_frame_;
     transforms[i].header.frame_id = it->first;
