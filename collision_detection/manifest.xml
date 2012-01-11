@@ -17,6 +17,7 @@
   <depend package="common_rosdeps"/>
   
   <rosdep name="eigen" />
+  <rosdep name="assimp" />
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lcollision_detection `rosboost-cfg --lflags thread`"/>
   </export>
