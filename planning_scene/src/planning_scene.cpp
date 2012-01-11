@@ -64,6 +64,8 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
     {
         if (parent_->isConfigured())
             configure(parent_->getUrdfModel(), parent_->getSrdfModel());
+	if (!parent_->getName().empty())
+	    name_ = parent_->getName() + "+";
     }
     else
         ROS_ERROR("NULL parent scene specified. Ignoring.");
@@ -290,6 +292,7 @@ const planning_models::TransformsPtr& planning_scene::PlanningScene::getTransfor
 
 void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const
 {
+    scene.name = name_;
     if (ftf_)
         ftf_->getTransforms(scene.fixed_frame_transforms);
     else
@@ -457,6 +460,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
 
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const
 {
+    scene.name = name_;
     getTransforms()->getTransforms(scene.fixed_frame_transforms);
     planning_models::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
     getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
@@ -543,6 +547,8 @@ void planning_scene::PlanningScene::decoupleParent(void)
 void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene)
 {
     ROS_DEBUG("Adding planning scene diff");
+    name_ = scene.name;
+    
     // there is at least one transform in the list of fixed transform: from model frame to itself;
     // if the list is empty, then nothing has been set
     if (!scene.fixed_frame_transforms.empty())
@@ -592,6 +598,8 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
 {
     ROS_DEBUG("Setting new planning scene");
+    name_ = scene.name;
+
     if (parent_)
     {
         // if we have a parent, but we set a new planning scene, then we do not care about the parent any more

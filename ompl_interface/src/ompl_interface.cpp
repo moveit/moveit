@@ -148,7 +148,7 @@ bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::GetMotion
     std::map<std::string, PlanningGroupPtr>::const_iterator pg = planning_groups_.end();
     if (!req.motion_plan_request.planner_id.empty())
     {
-        pg = planning_groups_.find(req.motion_plan_request.group_name + "." + req.motion_plan_request.planner_id);
+        pg = planning_groups_.find(req.motion_plan_request.group_name + "[" + req.motion_plan_request.planner_id + "]");
         if (pg == planning_groups_.end())
             ROS_WARN_STREAM("Cannot find planning configuration for group '" << req.motion_plan_request.group_name
                             << "' using planner '" << req.motion_plan_request.planner_id << "'. Will use defaults instead.");
@@ -225,10 +225,9 @@ bool ompl_interface::OMPLInterface::benchmark(const moveit_msgs::GetMotionPlan::
     unsigned int attempts = 0;  
     double timeout = 0.0;
     if (!prepareForSolve(req, res, pg, attempts, timeout))
-	return false;
-    
-    pg->getOMPLBenchmark().benchmark(timeout, 4096.0, attempts, true);
-    return pg->getOMPLBenchmark().saveResultsToFile();
+	return false;    
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    return pg->benchmark(timeout, attempts);
 }
 
 bool ompl_interface::OMPLInterface::solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints, double timeout)

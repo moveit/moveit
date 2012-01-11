@@ -79,6 +79,18 @@ namespace planning_scene
         {
         }
 
+	/** \brief Get the name of the planning scene. This is empty by default */
+	const std::string& getName(void) const
+	{
+	    return name_;
+	}
+	
+	/** \brief Set the name of the planning scene */
+	void setName(const std::string &name)
+	{
+	    name_ = name;
+	}
+	
         /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
             The information passed in for this function allows the construction of a kinematic model and of all the classed that
             depend on the kinematic model (e.g., collision world/robot classes) */
@@ -253,6 +265,8 @@ namespace planning_scene
         void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
         void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
 
+	std::string                                    name_;
+	
         PlanningSceneConstPtr                          parent_;
 
         boost::shared_ptr<const urdf::Model>           urdf_model_;

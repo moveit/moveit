@@ -1,3 +1,6 @@
+# name of planning scene
+string name
+
 #full robot state
 RobotState robot_state
 

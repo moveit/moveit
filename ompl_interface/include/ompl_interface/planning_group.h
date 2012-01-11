@@ -190,12 +190,18 @@ namespace ompl_interface
         /* @brief Set the volume of space that the planner works in*/
         void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
-        /* @brief solve the planning problem
+        /* @brief solve the planning problem. Return true if the problem is solved
            @param timeout The time to spend on solving
-           @param count
+           @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
         */
         bool solve(double timeout, unsigned int count);
 
+        /* @brief Benchmark the planning problem. Return true on succesful saving of benchmark results
+           @param timeout The time to spend on solving
+           @param count The number of runs to average in the computation of the benchmark
+        */
+	bool benchmark(double timeout, unsigned int count);
+	
         /* @brief Get the amount of time spent on the last plan*/
         double getLastPlanTime(void) const
         {
