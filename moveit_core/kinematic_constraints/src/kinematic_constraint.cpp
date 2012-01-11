@@ -354,12 +354,12 @@ bool kinematic_constraints::OrientationConstraint::decide(const planning_models:
   {
     Eigen::Matrix3f tmp;
     tf_->transformRotationMatrix(state, desired_rotation_frame_id_, desired_rotation_matrix_, tmp);
-    Eigen::Matrix3f diff = tmp.inverse() * link_state->getGlobalLinkTransform().rotation();
+    Eigen::Affine3f diff(tmp.inverse() * link_state->getGlobalLinkTransform().rotation());
     planning_models::getEulerAngles(diff, roll, pitch, yaw);
   }
   else
   {
-    Eigen::Matrix3f diff = desired_rotation_matrix_inv_ * link_state->getGlobalLinkTransform().rotation();
+    Eigen::Affine3f diff(desired_rotation_matrix_inv_ * link_state->getGlobalLinkTransform().rotation());
     planning_models::getEulerAngles(diff, roll, pitch, yaw);
   }
 

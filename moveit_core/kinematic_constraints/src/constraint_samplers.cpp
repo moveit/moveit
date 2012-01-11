@@ -295,11 +295,11 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             float angle_y = rpy[2] * sp_.oc_->getYawTolerance() / boost::math::constants::pi<double>();
             float angle_p = rpy[1] * sp_.oc_->getPitchTolerance() / boost::math::constants::pi<double>();
             float angle_r = rpy[0] * sp_.oc_->getRollTolerance() / boost::math::constants::pi<double>();
-            Eigen::Matrix3f diff = Eigen::AngleAxisf(angle_y, Eigen::Vector3f::UnitZ())
-              * Eigen::AngleAxisf(angle_p, Eigen::Vector3f::UnitY())
-              * Eigen::AngleAxisf(angle_r, Eigen::Vector3f::UnitZ());
+            Eigen::Affine3f diff(Eigen::AngleAxisf(angle_y, Eigen::Vector3f::UnitZ())
+                                 * Eigen::AngleAxisf(angle_p, Eigen::Vector3f::UnitY())
+                                 * Eigen::AngleAxisf(angle_r, Eigen::Vector3f::UnitZ()));
             
-            quat = Eigen::Quaternionf(sp_.oc_->getDesiredRotationMatrix() * diff);
+            quat = Eigen::Quaternionf(sp_.oc_->getDesiredRotationMatrix() * diff.rotation());
         }
         else
         {
