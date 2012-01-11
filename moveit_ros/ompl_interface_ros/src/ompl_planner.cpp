@@ -46,15 +46,24 @@ class OMPLPlannerService
 {
 public:
 
-    OMPLPlannerService(ompl_interface_ros::OMPLInterfaceROS *ompl_interface) : nh_("~"), ompl_interface_(ompl_interface)
+    OMPLPlannerService(ompl_interface_ros::OMPLInterfaceROS *ompl_interface, bool benchmark) : nh_("~"), ompl_interface_(ompl_interface), benchmark_(benchmark)
     {
-        plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLPlannerService::computePlan, this);
+	if (benchmark_)
+	    plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLPlannerService::computeBenchmark, this);
+	else
+	    plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLPlannerService::computePlan, this);
     }
 
     bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
     {
         ROS_INFO("Received new planning request...");
         return ompl_interface_->solve(req, res);
+    }
+
+    bool computeBenchmark(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+    {
+        ROS_INFO("Received new benchmark request...");
+        return ompl_interface_->benchmark(req, res);
     }
 
     void status(void)
@@ -66,6 +75,7 @@ private:
 
     ros::NodeHandle                       nh_;
     ompl_interface_ros::OMPLInterfaceROS *ompl_interface_;
+    bool                                  benchmark_;
     ros::ServiceServer                    plan_service_;
 };
 
@@ -73,6 +83,14 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, PLANNER_NODE_NAME);
 
+    bool benchmark = false;
+    for (int i = 0 ; i < argc ; ++i)
+	if (strcmp(argv[i], "--benchmark") == 0)
+	{
+	    benchmark = true;
+	    break;
+	}
+    
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
@@ -83,7 +101,7 @@ int main(int argc, char **argv)
     psm.startStateMonitor();
 
     ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
-    OMPLPlannerService pservice(&o);
+    OMPLPlannerService pservice(&o, benchmark);
     pservice.status();
 
     ros::waitForShutdown();
