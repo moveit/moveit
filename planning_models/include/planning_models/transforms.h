@@ -204,10 +204,9 @@ public:
    */
   void getTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const;
 
-private:
-
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+private:
 
   std::string                        target_frame_;
   
