@@ -63,7 +63,7 @@ protected:
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 {
     planning_models::KinematicState ks(kmodel);
-    ks.setDefaultValues();
+    ks.setToDefaultValues();
     planning_models::TransformsPtr tf(new planning_models::Transforms(kmodel->getModelFrame()));
 
     kinematic_constraints::JointConstraint jc(kmodel, tf);

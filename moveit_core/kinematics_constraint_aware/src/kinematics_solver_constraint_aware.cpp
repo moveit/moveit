@@ -31,7 +31,6 @@
 //POSSIBILITY OF SUCH DAMAGE.
 
 #include <kinematics_constraint_aware/kinematics_solver_constraint_aware.h>
-#include <tf/tf.h>
 #include <boost/bind.hpp>
 #include <kinematic_constraints/kinematic_constraint.h>
 
@@ -87,7 +86,7 @@ bool KinematicsSolverConstraintAware::getPositionFK(const planning_models::Kinem
   for(unsigned int i = 0; i < link_names.size(); i++) {
     const planning_models::KinematicState::LinkState* ls = robot_state->getLinkState(link_names[i]);
     if(ls == NULL) return false;
-    tf::poseTFToMsg(ls->getGlobalLinkTransform(), poses[i]);
+    planning_models::msgFromPose(ls->getGlobalLinkTransform(), poses[i]);
   }
   return true;
 }
@@ -236,9 +235,9 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
   std::string kinematic_frame_id = kinematics_solver_->getBaseFrame();
   std::string planning_frame_id = planning_scene_->getPlanningFrame();
   //TODO - should be a check that we can actually transform, better transform library
-  btTransform cur;
-  tf::poseMsgToTF(ik_pose, cur);
-  btTransform nt;
+  Eigen::Affine3f cur;
+  planning_models::poseFromMsg(ik_pose, cur);
+  Eigen::Affine3f nt;
   planning_scene_->getTransforms()->transformPose(*state_, kinematic_frame_id, cur, nt);
   state_->updateStateWithLinkAt(kinematics_solver_->getTipFrame(), nt);
 
@@ -260,7 +259,7 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
 }
 
 bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_msgs::Pose& start_pose,
-                                                               const btVector3& direction,
+                                                               const Eigen::Vector3f& direction,
                                                                const double& distance,
                                                                const moveit_msgs::Constraints& constraints,
                                                                const planning_scene::PlanningSceneConstPtr& scene,
@@ -278,8 +277,8 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
   ret_traj.joint_names = kinematics_solver_->getJointNames();
   ret_traj.points.resize(num_points);
 
-  btTransform first_pose;
-  tf::poseMsgToTF(start_pose, first_pose);
+  Eigen::Affine3f first_pose;
+  planning_models::poseFromMsg(start_pose, first_pose);
 
   for(unsigned int i = 1; i <= num_points; i++) {
     int val;
@@ -290,15 +289,15 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
     }
 
     //assumes that the axis is aligned
-    btTransform trans(btQuaternion(0,0,0,1.0), direction*val*fabs(distance/(num_points*1.0)));
-    btTransform mult_trans;
+    Eigen::Affine3f trans(Eigen::Translation3f(direction*val*fabs(distance/(num_points*1.0)))*Eigen::Quaternionf(1.0,0.0,0.0,0.0));
+    Eigen::Affine3f mult_trans;
     if(premultiply) {
       mult_trans = trans*first_pose;
     } else {
       mult_trans = first_pose*trans;
     }
     geometry_msgs::Pose trans_pose;
-    tf::poseTFToMsg(mult_trans, trans_pose);
+    planning_models::msgFromPose(mult_trans, trans_pose);
 
     sensor_msgs::JointState solution;
     moveit_msgs::MoveItErrorCodes temp_error_code;

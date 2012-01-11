@@ -379,7 +379,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
         aco.object.id = ab[i]->getName();
         aco.object.operation = moveit_msgs::CollisionObject::ADD;
         const std::vector<shapes::Shape*>& ab_shapes = ab[i]->getShapes();
-        const std::vector<btTransform>& ab_tf = ab[i]->getFixedTransforms();
+        const std::vector<Eigen::Affine3f>& ab_tf = ab[i]->getFixedTransforms();
         for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
         {
             moveit_msgs::Shape sm;
@@ -635,10 +635,10 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
 
 void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
 {
-    const btTransform &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
+    const Eigen::Affine3f &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
     for (std::size_t i = 0 ; i < map.boxes.size() ; ++i)
     {
-        btTransform p; planning_models::poseFromMsg(map.boxes[i].pose, p);
+        Eigen::Affine3f p; planning_models::poseFromMsg(map.boxes[i].pose, p);
         shapes::Shape *s = new shapes::Box(map.boxes[i].extents.x, map.boxes[i].extents.y, map.boxes[i].extents.z);
         cworld_->addToObject(COLLISION_MAP_NS, s, t * p);
     }
@@ -673,7 +673,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         if (ls)
         {
             std::vector<shapes::Shape*> shapes;
-            std::vector<btTransform>    poses;
+            std::vector<Eigen::Affine3f>    poses;
 
             // we need to add some shapes; if the message is empty, maybe the object is already in the world
             if (object.object.shapes.empty())
@@ -707,7 +707,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                         ROS_WARN("Static shapes from object '%s' are lost when the object is attached to the robot", object.object.id.c_str());
 
                     // need to transform poses to the link frame
-                    const btTransform &i_t = ls->getGlobalLinkTransform().inverse();
+                    const Eigen::Affine3f &i_t = ls->getGlobalLinkTransform().inverse();
                     for (std::size_t i = 0 ; i < poses.size() ; ++i)
                         poses[i] = i_t * poses[i];
                 }
@@ -731,7 +731,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                     shapes::Shape *s = shapes::constructShapeFromMsg(object.object.shapes[i]);
                     if (s)
                     {
-                        btTransform p; planning_models::poseFromMsg(object.object.poses[i], p);
+                        Eigen::Affine3f p; planning_models::poseFromMsg(object.object.poses[i], p);
                         shapes.push_back(s);
                         poses.push_back(p);
                     }
@@ -739,7 +739,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                 // transform poses to link frame
                 if (object.object.header.frame_id != object.link_name)
                 {
-                    const btTransform &t = ls->getGlobalLinkTransform().inverse() * getTransforms()->getTransform(*kstate_, object.object.header.frame_id);
+                    const Eigen::Affine3f &t = ls->getGlobalLinkTransform().inverse() * getTransforms()->getTransform(*kstate_, object.object.header.frame_id);
                     for (std::size_t i = 0 ; i < poses.size() ; ++i)
                         poses[i] = t * poses[i];
                 }
@@ -772,7 +772,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
                 if (ab)
                 {
                     boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties> prop = ab->getProperties();
-                    std::vector<btTransform> poses = ab->getGlobalCollisionBodyTransforms();
+                    std::vector<Eigen::Affine3f> poses = ab->getGlobalCollisionBodyTransforms();
                     ls->clearAttachedBody(object.object.id);
 
                     if (prop.unique())
@@ -832,13 +832,13 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
                 cworld_->addToObject(object.id, s);
         }
 
-        const btTransform &t = getTransforms()->getTransform(getCurrentState(), object.header.frame_id);
+        const Eigen::Affine3f &t = getTransforms()->getTransform(getCurrentState(), object.header.frame_id);
         for (std::size_t i = 0 ; i < object.shapes.size() ; ++i)
         {
             shapes::Shape *s = shapes::constructShapeFromMsg(object.shapes[i]);
             if (s)
             {
-                btTransform p; planning_models::poseFromMsg(object.poses[i], p);
+                Eigen::Affine3f p; planning_models::poseFromMsg(object.poses[i], p);
                 cworld_->addToObject(object.id, s, t * p);
             }
         }
