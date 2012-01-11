@@ -14,7 +14,6 @@
   <depend package="collision_detection"/>
   <depend package="kinematic_constraints"/>
   <depend package="planning_scene"/>
-  <depend package="tf"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lkinematics_constraint_aware"/>
