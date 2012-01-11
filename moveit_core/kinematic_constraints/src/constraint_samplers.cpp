@@ -263,7 +263,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
     for (unsigned int a = 0 ; a < max_attempts ; ++a)
     {
         // sample a point in the constraint region
-        btVector3 point;
+        Eigen::Vector3f point;
         if (sp_.pc_)
         {
             if (!sp_.pc_->getConstraintRegion()->samplePointInside(random_number_generator_, max_attempts, point))
@@ -277,7 +277,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             if (tmp)
             {
                 tmp->setToRandomValues();
-                point = tempState.getLinkState(sp_.oc_->getLinkModel()->getName())->getGlobalLinkTransform().getOrigin();
+                point = tempState.getLinkState(sp_.oc_->getLinkModel()->getName())->getGlobalLinkTransform().translation();
             }
             else
             {
@@ -286,30 +286,33 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             }
         }
         
-        btQuaternion quat;
+        Eigen::Quaternionf quat;
         if (sp_.oc_)
         {
             // sample a rotation matrix within the allowed bounds
             double rpy[3];
             random_number_generator_.eulerRPY(rpy);
-            btMatrix3x3 diff;
-            diff.setEulerYPR(rpy[2] * sp_.oc_->getYawTolerance() / boost::math::constants::pi<double>(),
-                             rpy[1] * sp_.oc_->getPitchTolerance() / boost::math::constants::pi<double>(),
-                             rpy[0] * sp_.oc_->getRollTolerance() / boost::math::constants::pi<double>());
-            (sp_.oc_->getDesiredRotationMatrix() * diff).getRotation(quat);
+            float angle_y = rpy[2] * sp_.oc_->getYawTolerance() / boost::math::constants::pi<double>();
+            float angle_p = rpy[1] * sp_.oc_->getPitchTolerance() / boost::math::constants::pi<double>();
+            float angle_r = rpy[0] * sp_.oc_->getRollTolerance() / boost::math::constants::pi<double>();
+            Eigen::Matrix3f diff = Eigen::AngleAxisf(angle_y, Eigen::Vector3f::UnitZ())
+              * Eigen::AngleAxisf(angle_p, Eigen::Vector3f::UnitY())
+              * Eigen::AngleAxisf(angle_r, Eigen::Vector3f::UnitZ());
+            
+            quat = Eigen::Quaternionf(sp_.oc_->getDesiredRotationMatrix() * diff);
         }
         else
         {
             // sample a random orientation
             double q[4];
             random_number_generator_.quaternion(q);
-            quat = btQuaternion(q[0], q[1], q[2], q[3]);
+            quat = Eigen::Quaternionf(q[3],q[0], q[1], q[2]);
         }
         
         // if there is an offset, we need to undo the induced rotation in the sampled transform origin (point)
         if (sp_.pc_ && sp_.pc_->hasLinkOffset())
-            // the rotation matrix that corresponds to the desired orientation
-            point = point - btMatrix3x3(quat) * sp_.pc_->getLinkOffset();
+          // the rotation matrix that corresponds to the desired orientation
+          point = point - quat.toRotationMatrix() * sp_.pc_->getLinkOffset();
 
         // we now have the transform we wish to perform IK for, in the planning frame
         
@@ -317,13 +320,13 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
         {
             // we need to convert this transform to the frame expected by the IK solver
             // both the planning frame and the frame for the IK are assumed to be robot links
-            btTransform ikq(quat, point);
+          Eigen::Affine3f ikq(Eigen::Translation3f(point)*quat.toRotationMatrix());
             
             const planning_models::KinematicState::LinkState *ls = ks.getLinkState(ik_frame_);
             ikq = ls->getGlobalLinkTransform().inverse() * ikq;
             
-            point = ikq.getOrigin();
-            quat = ikq.getRotation();
+            point = ikq.translation();
+            quat = Eigen::Quaternionf(ikq.rotation());
         }
 
         geometry_msgs::Pose ik_query;
