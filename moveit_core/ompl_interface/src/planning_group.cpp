@@ -110,8 +110,9 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
     ompl_simple_setup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
     static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->useNewStartingState();
     ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
+    ompl_benchmark_.setExperimentName(planning_scene_->getKinematicModel()->getName() + "_" + joint_model_group_->getName() + "_" + 
+				      planning_scene_->getName() + "_" + name_);
     useConfig(config);
-    ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
     path_kinematic_constraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
 }
 
@@ -148,9 +149,11 @@ void ompl_interface::PlanningGroup::useConfig(const std::map<std::string, std::s
         ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
                  name_.c_str(), type.c_str());
     }
-
-    ompl_simple_setup_.getSpaceInformation()->setup();
+    
+    // call the setParams() functions for both the StateSpace and the SpaceInformation
+    // since we have not yet called setup()
     ompl_simple_setup_.getSpaceInformation()->params().setParams(cfg, true);
+    ompl_simple_setup_.getStateSpace()->params().setParams(cfg, true);
 }
 
 void ompl_interface::PlanningGroup::setProjectionEvaluator(const std::string &peval)
@@ -290,6 +293,14 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
 
     ROS_DEBUG("%s: New planning context is set.", name_.c_str());
     return true;
+}
+
+bool ompl_interface::PlanningGroup::benchmark(double timeout, unsigned int count)
+{
+    ompl_benchmark_.clearPlanners();
+    ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
+    ompl_benchmark_.benchmark(timeout, 4096.0, count, true);
+    return ompl_benchmark_.saveResultsToFile();    
 }
 
 bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
