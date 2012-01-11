@@ -101,7 +101,8 @@ ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const omp
 
 ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
                                              const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene) :
-    name_(name), joint_model_group_(jmg), planning_scene_(scene), kinematic_model_state_space_(jmg), ompl_simple_setup_(kinematic_model_state_space_.getOMPLSpace()),
+    name_(name), joint_model_group_(jmg), planning_scene_(scene), kinematic_model_state_space_(jmg),
+    ompl_simple_setup_(kinematic_model_state_space_.getOMPLSpace()), ompl_benchmark_(ompl_simple_setup_),
     pplan_(ompl_simple_setup_.getProblemDefinition()), start_state_(scene->getCurrentState()), last_plan_time_(0.0),
     max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
 {
@@ -110,6 +111,7 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
     static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->useNewStartingState();
     ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
     useConfig(config);
+    ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
     path_kinematic_constraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
 }
 
