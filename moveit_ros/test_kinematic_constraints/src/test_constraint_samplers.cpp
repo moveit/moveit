@@ -412,11 +412,11 @@ TEST_F(LoadPlanningModelsPr2, GenericConstraintsSampler)
     ks.setToDefaultValues();
     for (int t = 0 ; t < 100 ; ++t)
     {
-      double distance;
+	double distance;
         std::vector<double> values;
         EXPECT_TRUE(s->sample(values, ks, 100));
         ks.getJointStateGroup("arms")->setStateValues(values);
-        EXPECT_TRUE(kset.decide(ks,distance));
+        EXPECT_TRUE(kset.decide(ks, distance));
     }
 }
 
