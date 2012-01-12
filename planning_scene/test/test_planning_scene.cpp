@@ -75,12 +75,12 @@ TEST(PlanningScene, LoadRestoreDiff)
     EXPECT_EQ(next.getCollisionWorld()->getObjectIds().size(), 2);
     EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 1);
     next.getPlanningSceneDiffMsg(ps_msg);
-    EXPECT_EQ(ps_msg.collision_objects.size(), 1);
+    EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
     next.decoupleParent();
     next.getPlanningSceneDiffMsg(ps_msg);	
-    EXPECT_EQ(ps_msg.collision_objects.size(), 2);
+    EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
     next.getPlanningSceneMsg(ps_msg);	
-    EXPECT_EQ(ps_msg.collision_objects.size(), 2);
+    EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
     ps->setPlanningSceneMsg(ps_msg);
     EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 2);
 }
