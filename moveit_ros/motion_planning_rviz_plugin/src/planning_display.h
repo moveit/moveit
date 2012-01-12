@@ -196,7 +196,7 @@ protected:
   void calculateOffsetPosition();
 
   void renderPlanningScene();
-  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3f &p, const rviz::Color &color, float alpha);
+  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
   void clearRenderedGeometry();
 
   // overrides from Display

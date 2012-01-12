@@ -40,8 +40,8 @@ static const std::string ROBOT_DESCRIPTION="robot_description";
 
 void constructScene(const planning_scene::PlanningScenePtr &scene)
 {
-    Eigen::Affine3f t;
-    t = Eigen::Translation3f(0.45, -0.45, 0.7);
+    Eigen::Affine3d t;
+    t = Eigen::Translation3d(0.45, -0.45, 0.7);
     
     //    scene->getCollisionWorld()->addToObject("sphere1", new shapes::Sphere(0.1), t);
     //    scene->getCollisionWorld()->addToObject("cyl1", new shapes::Cylinder(0.1, 1.4), t);
