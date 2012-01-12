@@ -101,13 +101,17 @@ ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const omp
 
 ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
                                              const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene) :
-    name_(name), joint_model_group_(jmg), planning_scene_(scene), kinematic_model_state_space_(jmg), ompl_simple_setup_(kinematic_model_state_space_.getOMPLSpace()),
-    pplan_(ompl_simple_setup_.getProblemDefinition()), start_state_(scene->getKinematicModel()), last_plan_time_(0.0),
+    name_(name), joint_model_group_(jmg), planning_scene_(scene), kinematic_model_state_space_(jmg),
+    ompl_simple_setup_(kinematic_model_state_space_.getOMPLSpace()), ompl_benchmark_(ompl_simple_setup_),
+    pplan_(ompl_simple_setup_.getProblemDefinition()), start_state_(scene->getCurrentState()), last_plan_time_(0.0),
     max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
 {
     max_solution_segment_length_ = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / 100.0;
     ompl_simple_setup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
+    static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->useNewStartingState();
     ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
+    ompl_benchmark_.setExperimentName(planning_scene_->getKinematicModel()->getName() + "_" + joint_model_group_->getName() + "_" + 
+				      planning_scene_->getName() + "_" + name_);
     useConfig(config);
     path_kinematic_constraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
 }
@@ -145,9 +149,11 @@ void ompl_interface::PlanningGroup::useConfig(const std::map<std::string, std::s
         ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
                  name_.c_str(), type.c_str());
     }
-
-    ompl_simple_setup_.getSpaceInformation()->setup();
+    
+    // call the setParams() functions for both the StateSpace and the SpaceInformation
+    // since we have not yet called setup()
     ompl_simple_setup_.getSpaceInformation()->params().setParams(cfg, true);
+    ompl_simple_setup_.getStateSpace()->params().setParams(cfg, true);
 }
 
 void ompl_interface::PlanningGroup::setProjectionEvaluator(const std::string &peval)
@@ -286,8 +292,15 @@ bool ompl_interface::PlanningGroup::setupPlanningContext(const planning_models::
         ROS_ERROR("Unable to construct goal representation");
 
     ROS_DEBUG("%s: New planning context is set.", name_.c_str());
-
     return true;
+}
+
+bool ompl_interface::PlanningGroup::benchmark(double timeout, unsigned int count)
+{
+    ompl_benchmark_.clearPlanners();
+    ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
+    ompl_benchmark_.benchmark(timeout, 4096.0, count, true);
+    return ompl_benchmark_.saveResultsToFile();    
 }
 
 bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)

@@ -61,19 +61,19 @@ TEST(PlanningScene, LoadRestoreDiff)
 
     collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
     Eigen::Affine3f id = Eigen::Affine3f::Identity();
-    cw.addObject("sphere", new shapes::Sphere(0.4), id);
+    cw.addToObject("sphere", new shapes::Sphere(0.4), id);
     
     moveit_msgs::PlanningScene ps_msg;
     ps->getPlanningSceneMsg(ps_msg);
     ps->setPlanningSceneMsg(ps_msg);
-    EXPECT_TRUE(ps->getCollisionWorld()->haveNamespace("sphere"));
+    EXPECT_TRUE(ps->getCollisionWorld()->hasObject("sphere"));
     
     planning_scene::PlanningScene next(ps);
     EXPECT_TRUE(next.isConfigured());
-    EXPECT_TRUE(next.getCollisionWorld()->haveNamespace("sphere"));
-    next.getCollisionWorld()->addObject("sphere2", new shapes::Sphere(0.5), id);
-    EXPECT_EQ(next.getCollisionWorld()->getNamespaces().size(), 2);
-    EXPECT_EQ(ps->getCollisionWorld()->getNamespaces().size(), 1);
+    EXPECT_TRUE(next.getCollisionWorld()->hasObject("sphere"));
+    next.getCollisionWorld()->addToObject("sphere2", new shapes::Sphere(0.5), id);
+    EXPECT_EQ(next.getCollisionWorld()->getObjectIds().size(), 2);
+    EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 1);
     next.getPlanningSceneDiffMsg(ps_msg);
     EXPECT_EQ(ps_msg.collision_objects.size(), 1);
     next.decoupleParent();
@@ -82,7 +82,7 @@ TEST(PlanningScene, LoadRestoreDiff)
     next.getPlanningSceneMsg(ps_msg);	
     EXPECT_EQ(ps_msg.collision_objects.size(), 2);
     ps->setPlanningSceneMsg(ps_msg);
-    EXPECT_EQ(ps->getCollisionWorld()->getNamespaces().size(), 2);
+    EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 2);
 }
 
 int main(int argc, char **argv)

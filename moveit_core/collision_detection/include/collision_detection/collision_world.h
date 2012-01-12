@@ -174,12 +174,12 @@ namespace collision_detection
         /** \brief Get the list of Object ids */
         std::vector<std::string> getObjectIds(void) const;
 
-	/** \brief Get the number of objects in this collision world */
-	std::size_t getObjectsCount(void) const
-	{
-	    return objects_.size();
-	}
-	
+        /** \brief Get the number of objects in this collision world */
+        std::size_t getObjectsCount(void) const
+        {
+            return objects_.size();
+        }
+
         /** \brief Get a particular object */
         ObjectConstPtr getObject(const std::string &id) const;
 

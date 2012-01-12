@@ -134,8 +134,9 @@ void ompl_interface::OMPLInterface::setMaximumPlanningThreads(unsigned int max_p
         it->second->setMaximumPlanningThreads(max_planning_threads);
 }
 
-bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
-{
+bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res,
+						    PlanningGroup* &pg_to_use, unsigned int &attempts, double &timeout) const
+{    
     if (req.motion_plan_request.group_name.empty())
     {
         res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
@@ -147,7 +148,7 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
     std::map<std::string, PlanningGroupPtr>::const_iterator pg = planning_groups_.end();
     if (!req.motion_plan_request.planner_id.empty())
     {
-        pg = planning_groups_.find(req.motion_plan_request.group_name + "." + req.motion_plan_request.planner_id);
+        pg = planning_groups_.find(req.motion_plan_request.group_name + "[" + req.motion_plan_request.planner_id + "]");
         if (pg == planning_groups_.end())
             ROS_WARN_STREAM("Cannot find planning configuration for group '" << req.motion_plan_request.group_name
                             << "' using planner '" << req.motion_plan_request.planner_id << "'. Will use defaults instead.");
@@ -174,33 +175,59 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
     pg->second->setPlanningVolume(req.motion_plan_request.workspace_parameters);
 
     // solve the planning problem
-    double timeout = req.motion_plan_request.allowed_planning_time.toSec();
+    timeout = req.motion_plan_request.allowed_planning_time.toSec();
     if (timeout <= 0.0)
     {
         res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ALLOWED_PLANNING_TIME;
-        ROS_ERROR("The timeout for planning must be positive (%lf specified)", timeout);
+        ROS_ERROR("The timeout for planning must be positive (%lf specified). Assuming one second instead.", timeout);
+	timeout = 1.0;
+    }
+    
+    pg_to_use = pg->second.get();
+    
+    attempts = 1;
+    if (req.motion_plan_request.num_planning_attempts > 0)
+	attempts = req.motion_plan_request.num_planning_attempts;
+    else
+	if (req.motion_plan_request.num_planning_attempts < 0)
+	    ROS_ERROR("The number of desired planning attempts should be positive. Assuming one attempt.");
+
+    return true;
+}
+
+bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
+{
+    PlanningGroup *pg = NULL;
+    unsigned int attempts = 0;
+    double timeout = 0.0;
+    if (!prepareForSolve(req, res, pg, attempts, timeout))
+	return false;
+    
+    if (pg->solve(timeout, attempts))
+    {
+	double ptime = pg->getLastPlanTime();
+	if (ptime < timeout)
+	    pg->simplifySolution(timeout - ptime);
+	pg->interpolateSolution();
+	pg->fillResponse(res);
+	return true;
     }
     else
     {
-        unsigned int att = 1;
-        if (req.motion_plan_request.num_planning_attempts > 0)
-            att = req.motion_plan_request.num_planning_attempts;
-        else
-            if (req.motion_plan_request.num_planning_attempts < 0)
-                ROS_ERROR("The number of desired planning attempts should be positive");
-        if (pg->second->solve(timeout, att))
-        {
-            double ptime = pg->second->getLastPlanTime();
-            if (ptime < timeout)
-                pg->second->simplifySolution(timeout - ptime);
-            pg->second->interpolateSolution();
-            pg->second->fillResponse(res);
-            return true;
-        }
-        else
-            ROS_INFO("Unable to solve the planning problem");
+	ROS_INFO("Unable to solve the planning problem");
+	return false;
     }
-    return false;
+}
+
+bool ompl_interface::OMPLInterface::benchmark(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
+{    
+    PlanningGroup *pg = NULL;
+    unsigned int attempts = 0;  
+    double timeout = 0.0;
+    if (!prepareForSolve(req, res, pg, attempts, timeout))
+	return false;    
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    return pg->benchmark(timeout, attempts);
 }
 
 bool ompl_interface::OMPLInterface::solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints, double timeout)

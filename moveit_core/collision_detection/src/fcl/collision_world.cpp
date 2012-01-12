@@ -41,7 +41,7 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(void) : CollisionWorld
     manager_.reset(new fcl::SSaPCollisionManager());
 }
 
-collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other) : CollisionWorld()
+collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other) : CollisionWorld(other)
 {
     manager_.reset(new fcl::SSaPCollisionManager());
     fcl_objs_ = other.fcl_objs_;
