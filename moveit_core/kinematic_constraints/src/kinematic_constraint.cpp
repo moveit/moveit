@@ -41,6 +41,7 @@
 #include <collision_detection/fcl/collision_robot.h>
 #include <collision_detection/fcl/collision_world.h>
 #include <boost/scoped_ptr.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <limits>
 
 kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
@@ -116,11 +117,11 @@ bool kinematic_constraints::JointConstraint::decide(const planning_models::Kinem
   {
     dif = planning_models::normalizeAngle(current_joint_position) - joint_position_;
 
-    if (dif > M_PI)
-      dif = 2.0*M_PI - dif;
+    if (dif > boost::math::constants::pi<double>())
+      dif = 2.0*boost::math::constants::pi<double>() - dif;
     else
-      if (dif < -M_PI)
-        dif += 2.0*M_PI; // we include a sign change to have dif > 0
+      if (dif < -boost::math::constants::pi<double>())
+        dif += 2.0*boost::math::constants::pi<double>(); // we include a sign change to have dif > 0
     // however, we want to include proper sign for diff, as the tol below is may be different from tol above
     if (current_joint_position < joint_position_)
       dif = -dif;
@@ -362,8 +363,10 @@ bool kinematic_constraints::OrientationConstraint::decide(const planning_models:
     Eigen::Affine3d diff(desired_rotation_matrix_inv_ * link_state->getGlobalLinkTransform().rotation());
     ypr = diff.rotation().eulerAngles(2, 0, 2); // 2,0,2 corresponds to ZXZ, the convention used in sampling constraints
   }
-
-  bool result = fabs(ypr(2)) < absolute_roll_tolerance_ && fabs(ypr(1)) < absolute_pitch_tolerance_ && fabs(ypr(0)) < absolute_yaw_tolerance_;
+  ypr(0) = std::min(fabs(ypr(0)), boost::math::constants::pi<double>() - fabs(ypr(0)));
+  ypr(1) = std::min(fabs(ypr(1)), boost::math::constants::pi<double>() - fabs(ypr(1)));
+  ypr(2) = std::min(fabs(ypr(2)), boost::math::constants::pi<double>() - fabs(ypr(2)));
+  bool result = ypr(2) < absolute_roll_tolerance_ && ypr(1) < absolute_pitch_tolerance_ && ypr(0) < absolute_yaw_tolerance_;
 
   if (verbose)
   {
@@ -376,7 +379,7 @@ bool kinematic_constraints::OrientationConstraint::decide(const planning_models:
              absolute_roll_tolerance_, absolute_pitch_tolerance_, absolute_yaw_tolerance_);
   }
 
-  distance = constraint_weight_ * (fabs(ypr(0)) + fabs(ypr(1)) + fabs(ypr(2)));
+  distance = constraint_weight_ * (ypr(0) + ypr(1) + ypr(2));
   return result;
 }
 
@@ -419,7 +422,7 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
 
   // compute the points on the base circle of the cone that make up the cone sides
   points_.clear();
-  double delta = M_PI / (double)cone_sides_;
+  double delta = boost::math::constants::pi<double>() / (double)cone_sides_;
   double a = 0.0;
   for (unsigned int i = 0 ; i < cone_sides_ ; ++i, a += delta)
   {

@@ -292,15 +292,13 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             // sample a rotation matrix within the allowed bounds
             double rpy[3];
             random_number_generator_.eulerRPY(rpy);
-            double angle_y = rpy[2] * sp_.oc_->getYawTolerance() / boost::math::constants::pi<double>();
-            double angle_p = rpy[1] * sp_.oc_->getPitchTolerance() / boost::math::constants::pi<double>();
-            double angle_r = rpy[0] * sp_.oc_->getRollTolerance() / boost::math::constants::pi<double>();
+            float angle_y = rpy[2] * sp_.oc_->getYawTolerance() / boost::math::constants::pi<double>();
+            float angle_p = rpy[1] * sp_.oc_->getPitchTolerance() / boost::math::constants::pi<double>();
+            float angle_r = rpy[0] * sp_.oc_->getRollTolerance() / boost::math::constants::pi<double>();
             Eigen::Affine3d diff(Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitZ())
                                  * Eigen::AngleAxisd(angle_p, Eigen::Vector3d::UnitX())
                                  * Eigen::AngleAxisd(angle_r, Eigen::Vector3d::UnitZ()));
 	    quat = Eigen::Quaterniond(diff.rotation() * sp_.oc_->getDesiredRotationMatrix());
-	    //	    Eigen::Vector3d ypr = Eigen::Affine3d(quat).rotation().eulerAngles(2, 0, 2);
-	    //	    std::cout << angle_y  << " " << ypr(0) << " " << angle_p  << " " << ypr(1) << " " << angle_r  << " " << ypr(2) << std::endl;
 	}
         else
         {
@@ -329,8 +327,6 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             point = ikq.translation();
             quat = Eigen::Quaterniond(ikq.rotation());
         }
-
-	//	std::cout << "************************ Q: " << quat.x() << " " << quat.y() << " " << quat.z() << " " << quat.w() <<std::endl;
 	
         geometry_msgs::Pose ik_query;
         ik_query.position.x = point.x();
