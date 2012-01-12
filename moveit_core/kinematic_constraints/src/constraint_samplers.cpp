@@ -296,11 +296,12 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             float angle_p = rpy[1] * sp_.oc_->getPitchTolerance() / boost::math::constants::pi<double>();
             float angle_r = rpy[0] * sp_.oc_->getRollTolerance() / boost::math::constants::pi<double>();
             Eigen::Affine3f diff(Eigen::AngleAxisf(angle_y, Eigen::Vector3f::UnitZ())
-                                 * Eigen::AngleAxisf(angle_p, Eigen::Vector3f::UnitY())
+                                 * Eigen::AngleAxisf(angle_p, Eigen::Vector3f::UnitX())
                                  * Eigen::AngleAxisf(angle_r, Eigen::Vector3f::UnitZ()));
-            
-            quat = Eigen::Quaternionf(sp_.oc_->getDesiredRotationMatrix() * diff.rotation());
-        }
+	    quat = Eigen::Quaternionf(diff.rotation() * sp_.oc_->getDesiredRotationMatrix());
+	    //	    Eigen::Vector3f ypr = Eigen::Affine3f(quat).rotation().eulerAngles(2, 0, 2);
+	    //	    std::cout << angle_y  << " " << ypr(0) << " " << angle_p  << " " << ypr(1) << " " << angle_r  << " " << ypr(2) << std::endl;
+	}
         else
         {
             // sample a random orientation
@@ -320,7 +321,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
         {
             // we need to convert this transform to the frame expected by the IK solver
             // both the planning frame and the frame for the IK are assumed to be robot links
-          Eigen::Affine3f ikq(Eigen::Translation3f(point)*quat.toRotationMatrix());
+	    Eigen::Affine3f ikq(Eigen::Translation3f(point)*quat.toRotationMatrix());
             
             const planning_models::KinematicState::LinkState *ls = ks.getLinkState(ik_frame_);
             ikq = ls->getGlobalLinkTransform().inverse() * ikq;
@@ -329,6 +330,8 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             quat = Eigen::Quaternionf(ikq.rotation());
         }
 
+	//	std::cout << "************************ Q: " << quat.x() << " " << quat.y() << " " << quat.z() << " " << quat.w() <<std::endl;
+	
         geometry_msgs::Pose ik_query;
         ik_query.position.x = point.x();
         ik_query.position.y = point.y();

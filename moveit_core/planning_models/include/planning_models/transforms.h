@@ -55,7 +55,7 @@ typedef std::map<std::string, Eigen::Affine3f, std::less<std::string>,
 
 double normalizeAngle(double angle);
 
-void getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y);
+//void getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y);
 
 /** @brief Provides an implementation of a snapshot of a transform tree that can be easily queried for
     transforming different quantities. Transforms are maintained as a list of transforms to a particular frame.

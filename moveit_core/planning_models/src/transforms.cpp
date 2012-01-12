@@ -60,7 +60,7 @@ double planning_models::normalizeAngle(double angle) {
   }
   return ret;
 }
-
+/*
 void planning_models::getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y) 
 {
   //taken from pcl - x,y,z convention
@@ -68,7 +68,7 @@ void planning_models::getEulerAngles(const Eigen::Affine3f& t, float& r, float& 
   p = asinf(-t(2,0));
   y   = atan2f(t(1,0), t(0,0));
 }
-
+*/
 
 bool planning_models::poseFromMsg(const geometry_msgs::Pose &tmsg, Eigen::Affine3f &t)
 {

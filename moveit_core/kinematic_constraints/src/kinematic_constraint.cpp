@@ -349,21 +349,21 @@ bool kinematic_constraints::OrientationConstraint::decide(const planning_models:
     return false;
   }
 
-  float yaw, pitch, roll;
+  Eigen::Vector3f ypr;  
   if (mobile_frame_)
   {
     Eigen::Matrix3f tmp;
     tf_->transformRotationMatrix(state, desired_rotation_frame_id_, desired_rotation_matrix_, tmp);
     Eigen::Affine3f diff(tmp.inverse() * link_state->getGlobalLinkTransform().rotation());
-    planning_models::getEulerAngles(diff, roll, pitch, yaw);
+    ypr = diff.rotation().eulerAngles(2, 0, 2); // 2,0,2 corresponds to ZXZ, the convention used in sampling constraints
   }
   else
   {
     Eigen::Affine3f diff(desired_rotation_matrix_inv_ * link_state->getGlobalLinkTransform().rotation());
-    planning_models::getEulerAngles(diff, roll, pitch, yaw);
+    ypr = diff.rotation().eulerAngles(2, 0, 2); // 2,0,2 corresponds to ZXZ, the convention used in sampling constraints
   }
 
-  bool result = fabs(roll) < absolute_roll_tolerance_ && fabs(pitch) < absolute_pitch_tolerance_ && fabs(yaw) < absolute_yaw_tolerance_;
+  bool result = fabs(ypr(2)) < absolute_roll_tolerance_ && fabs(ypr(1)) < absolute_pitch_tolerance_ && fabs(ypr(0)) < absolute_yaw_tolerance_;
 
   if (verbose)
   {
@@ -372,11 +372,11 @@ bool kinematic_constraints::OrientationConstraint::decide(const planning_models:
     ROS_INFO("Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion actual: %f %f %f %f, error: roll=%f, pitch=%f, yaw=%f, tolerance: roll=%f, pitch=%f, yaw=%f",
              result ? "satisfied" : "violated", link_model_->getName().c_str(),
              q_des.x(), q_des.y(), q_des.z(), q_des.w(),
-             q_act.x(), q_act.y(), q_act.z(), q_act.w(), roll, pitch, yaw,
+             q_act.x(), q_act.y(), q_act.z(), q_act.w(), ypr(2), ypr(1), ypr(0),
              absolute_roll_tolerance_, absolute_pitch_tolerance_, absolute_yaw_tolerance_);
   }
 
-  distance = constraint_weight_ * (fabs(roll) + fabs(pitch) + fabs(yaw));
+  distance = constraint_weight_ * (fabs(ypr(0)) + fabs(ypr(1)) + fabs(ypr(2)));
   return result;
 }
 
