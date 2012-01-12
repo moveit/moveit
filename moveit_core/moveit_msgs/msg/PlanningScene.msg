@@ -16,9 +16,8 @@ LinkPadding[] link_padding
 # all link scales
 LinkScale[] link_scale
 
-#collision objects
-CollisionObject[] collision_objects
+# attached collision objects
 AttachedCollisionObject[] attached_collision_objects
 
 #the collision map
-CollisionMap collision_map
+PlanningSceneWorld world

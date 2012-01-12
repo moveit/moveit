@@ -327,8 +327,8 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
 
     if (cworld_->isRecordingChanges())
     {
-        scene.collision_objects.clear();
-        scene.collision_map = moveit_msgs::CollisionMap();
+        scene.world.collision_objects.clear();
+        scene.world.collision_map = moveit_msgs::CollisionMap();
 
         bool skip_cmap = false;
         const std::vector<collision_detection::CollisionWorld::Change> &changes = cworld_->getChanges();
@@ -354,7 +354,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
                         co.header.frame_id = getPlanningFrame();
                         co.id = changes[i].id_;
                         co.operation = moveit_msgs::CollisionObject::REMOVE;
-                        scene.collision_objects.push_back(co);
+                        scene.world.collision_objects.push_back(co);
                     }
                     else
                         ROS_ERROR("Unknown change on collision world");
@@ -426,12 +426,12 @@ void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_ms
         }
     }
     if (!co.shapes.empty() || !co.static_shapes.empty())
-        scene.collision_objects.push_back(co);
+        scene.world.collision_objects.push_back(co);
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const
 {
-    scene.collision_objects.clear();
+    scene.world.collision_objects.clear();
     const std::vector<std::string> &ns = getCollisionWorld()->getObjectIds();
     for (std::size_t i = 0 ; i < ns.size() ; ++i)
         if (ns[i] != COLLISION_MAP_NS)
@@ -440,8 +440,8 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObjects(moveit_m
 
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const
 {
-    scene.collision_map.header.frame_id = getPlanningFrame();
-    scene.collision_map.boxes.clear();
+    scene.world.collision_map.header.frame_id = getPlanningFrame();
+    scene.world.collision_map.boxes.clear();
     if (getCollisionWorld()->hasObject(COLLISION_MAP_NS))
     {
         const collision_detection::CollisionWorld::Object& map = *getCollisionWorld()->getObject(COLLISION_MAP_NS);
@@ -453,7 +453,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
             moveit_msgs::OrientedBoundingBox obb;
             obb.extents.x = b->size[0]; obb.extents.y = b->size[1]; obb.extents.z = b->size[2];
             planning_models::msgFromPose(map.shape_poses_[i], obb.pose);
-            scene.collision_map.boxes.push_back(obb);
+            scene.world.collision_map.boxes.push_back(obb);
         }
     }
 }
@@ -585,13 +585,14 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
         crobot_->setScale(scene.link_scale);
     }
 
-    if ((!scene.collision_map.header.frame_id.empty() && !scene.collision_map.boxes.empty()) || !scene.collision_objects.empty())
+    if ((!scene.world.collision_map.header.frame_id.empty() && 
+	 !scene.world.collision_map.boxes.empty()) || !scene.world.collision_objects.empty())
     {
-        for (std::size_t i = 0 ; i < scene.collision_objects.size() ; ++i)
-            processCollisionObjectMsg(scene.collision_objects[i]);
+        for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
+            processCollisionObjectMsg(scene.world.collision_objects[i]);
 
-        if (!scene.collision_map.header.frame_id.empty() && !scene.collision_map.boxes.empty())
-            processCollisionMapMsg(scene.collision_map);
+        if (!scene.world.collision_map.header.frame_id.empty() && !scene.world.collision_map.boxes.empty())
+            processCollisionMapMsg(scene.world.collision_map);
     }
 }
 
@@ -637,12 +638,12 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
     crobot_->setPadding(scene.link_padding);
     crobot_->setScale(scene.link_scale);
     cworld_->clearObjects();
-    for (std::size_t i = 0 ; i < scene.collision_objects.size() ; ++i)
-        processCollisionObjectMsg(scene.collision_objects[i]);
+    for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
+        processCollisionObjectMsg(scene.world.collision_objects[i]);
     kstate_->clearAttachedBodies();
     for (std::size_t i = 0 ; i < scene.attached_collision_objects.size() ; ++i)
         processAttachedCollisionObjectMsg(scene.attached_collision_objects[i]);
-    processCollisionMapMsg(scene.collision_map);
+    processCollisionMapMsg(scene.world.collision_map);
 }
 
 void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
