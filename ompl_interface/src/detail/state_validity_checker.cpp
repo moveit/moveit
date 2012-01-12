@@ -37,7 +37,8 @@
 #include "ompl_interface/detail/state_validity_checker.h"
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const PlanningGroup *pg) :
-    ompl::base::StateValidityChecker(pg->getOMPLSimpleSetup().getSpaceInformation()), planning_group_(pg)
+    ompl::base::StateValidityChecker(pg->getOMPLSimpleSetup().getSpaceInformation()), planning_group_(pg),
+    group_name_(planning_group_->getJointModelGroup()->getName())
 {
     collision_request_with_distance_.distance = true;
 }
@@ -51,9 +52,10 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 {
     planning_models::KinematicState *kstate = tss_->getStateStorage();
     planning_group_->getKMStateSpace().copyToKinematicState(*kstate, state);
+    kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
 
     double distance = 0.0;
-    if (!planning_group_->getPathConstraints()->decide(*kstate,distance))
+    if (!planning_group_->getPathConstraints()->decide(*kstate, distance))
         return false;
 
     collision_detection::CollisionResult res;
@@ -65,6 +67,8 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 {
     planning_models::KinematicState *kstate = tss_->getStateStorage();
     planning_group_->getKMStateSpace().copyToKinematicState(*kstate, state);
+    kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
+
     double distance = 0.0;
     const bool &r = planning_group_->getPathConstraints()->decide(*kstate,distance);
     if (!r)

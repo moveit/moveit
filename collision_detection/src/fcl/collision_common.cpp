@@ -74,9 +74,34 @@ namespace collision_detection
             }
         }
 
+        bool may_need_contacts = true;
+
+        // check if a link is touching an attached object
+        if (cd1->type == BodyTypes::ROBOT_LINK && cd2->type == BodyTypes::ROBOT_ATTACHED)
+        {
+            if (cd2->ptr.ab->touch_links_.find(cd1->getID()) != cd2->ptr.ab->touch_links_.end())
+            {
+                always_allow_collision = true;
+                may_need_contacts = false;
+                if (cdata->req_->verbose)
+                    ROS_INFO("Robot link '%s' is allowed to touch attached object '%s'", cd1->getID().c_str(), cd2->getID().c_str());
+            }
+        }
+        else
+            if (cd2->type == BodyTypes::ROBOT_LINK && cd1->type == BodyTypes::ROBOT_ATTACHED)
+            {
+                if (cd1->ptr.ab->touch_links_.find(cd2->getID()) != cd1->ptr.ab->touch_links_.end())
+                {
+                    always_allow_collision = true;
+                    may_need_contacts = false;
+                    if (cdata->req_->verbose)
+                        ROS_INFO("Robot link '%s' is allowed to touch attached object '%s'", cd2->getID().c_str(), cd1->getID().c_str());
+                }
+            }
+
         // see if we need to compute a contact
         std::size_t want_contact_count = 0;
-        if (cdata->req_->contacts)
+        if (cdata->req_->contacts && may_need_contacts)
             if (cdata->res_->contact_count < cdata->req_->max_contacts)
             {
                 std::size_t have;

@@ -37,8 +37,9 @@
 #ifndef OMPL_INTERFACE_PLANNING_GROUP_
 #define OMPL_INTERFACE_PLANNING_GROUP_
 
-#include <ompl/tools/multiplan/ParallelPlan.h>
 #include <ompl/geometric/SimpleSetup.h>
+#include <ompl/tools/multiplan/ParallelPlan.h>
+#include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/base/GoalLazySamples.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <kinematic_constraints/constraint_samplers.h>
@@ -150,28 +151,28 @@ namespace ompl_interface
             return path_kinematic_constraints_set_;
         }
 
-        /*
-        const moveit_msgs::Constraints& getPathConstraintsMsg(void) const
-        {
-            return path_constraints_;
-        }
-
-        const moveit_msgs::Constraints& getGoalConstraintsMsg(void) const
-        {
-            return goal_constraints_;
-        }
-
-
-        const kinematic_constraints::KinematicConstraintSetPtr& getGoalConstraints(void) const
-        {
-            return goal_kset_;
-        }
-        */
-
-        /* \brief Get the OMPL SimpleSetup object being used */
+	/* \brief Get the OMPL SimpleSetup object being used */
         const ompl::geometric::SimpleSetup& getOMPLSimpleSetup(void) const
         {
             return ompl_simple_setup_;
+        }
+
+	/* \brief Get the OMPL SimpleSetup object being used */
+	ompl::geometric::SimpleSetup& getOMPLSimpleSetup(void)
+        {
+            return ompl_simple_setup_;
+        }
+
+	/* \brief Get the OMPL Benchmark object being used */
+        const ompl::Benchmark& getOMPLBenchmark(void) const
+        {
+            return ompl_benchmark_;
+        }
+
+	/* \brief Get the OMPL Benchmark object being used */
+	ompl::Benchmark& getOMPLBenchmark(void)
+        {
+            return ompl_benchmark_;
         }
 
         /* @brief Set all the information needed for a planner
@@ -189,12 +190,18 @@ namespace ompl_interface
         /* @brief Set the volume of space that the planner works in*/
         void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
-        /* @brief solve the planning problem
+        /* @brief solve the planning problem. Return true if the problem is solved
            @param timeout The time to spend on solving
-           @param count
+           @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
         */
         bool solve(double timeout, unsigned int count);
 
+        /* @brief Benchmark the planning problem. Return true on succesful saving of benchmark results
+           @param timeout The time to spend on solving
+           @param count The number of runs to average in the computation of the benchmark
+        */
+	bool benchmark(double timeout, unsigned int count);
+	
         /* @brief Get the amount of time spent on the last plan*/
         double getLastPlanTime(void) const
         {
@@ -241,6 +248,9 @@ namespace ompl_interface
         /// the OMPL planning context; this contains the problem definition and the planner used
         ompl::geometric::SimpleSetup                            ompl_simple_setup_;
 
+	/// the OMPL tool for benchmarking planners
+	ompl::Benchmark                                         ompl_benchmark_;
+	
         /// tool used to compute multiple plans in parallel; this uses the problem definition maintained by ompl_simple_setup_
         ompl::ParallelPlan                                      pplan_;
 

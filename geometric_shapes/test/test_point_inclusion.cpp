@@ -39,6 +39,7 @@
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 
+
 TEST(SpherePointContainment, SimpleInside)
 {
     shapes::Sphere shape(1.0);
@@ -163,8 +164,17 @@ TEST(BoxPointContainment, ComplexInside)
     box->setPose(pose);
 
     bool contains = box->containsPoint(1.5,1.0,1.5);
-    delete box;
     EXPECT_TRUE(contains);
+
+    random_numbers::RandomNumberGenerator r;
+    Eigen::Vector3f p;
+    for (int i = 0 ; i < 2 ; ++i)
+    {
+        EXPECT_TRUE(box->samplePointInside(r, 100, p));
+	EXPECT_TRUE(box->containsPoint(p));
+    }
+
+    delete box;
 }
 
 TEST(BoxPointContainment, ComplexOutside)
@@ -234,8 +244,16 @@ TEST(CylinderPointContainment, CylinderPadding)
     cylinder->setPadding(0.0);
     bodies::BoundingSphere bsphere;
     cylinder->computeBoundingSphere(bsphere);
-    delete cylinder;
     EXPECT_TRUE(bsphere.radius > 2.0);
+
+    random_numbers::RandomNumberGenerator r;
+    Eigen::Vector3f p;
+    for (int i = 0 ; i < 1000 ; ++i)
+    {
+        EXPECT_TRUE(cylinder->samplePointInside(r, 100, p));
+        EXPECT_TRUE(cylinder->containsPoint(p));
+    }
+    delete cylinder;
 }
 
 TEST(MeshPointContainment, Pr2Forearm)
@@ -258,7 +276,7 @@ TEST(MeshPointContainment, Pr2Forearm)
       }
     }
     EXPECT_TRUE(found);
-    
+
     delete m;
     delete ms;
 }

@@ -64,6 +64,8 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
     {
         if (parent_->isConfigured())
             configure(parent_->getUrdfModel(), parent_->getSrdfModel());
+	if (!parent_->getName().empty())
+	    name_ = parent_->getName() + "+";
     }
     else
         ROS_ERROR("NULL parent scene specified. Ignoring.");
@@ -113,7 +115,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
             ROS_ERROR("Parent is not configured yet");
     }
 
-    return true;
+    return configured_;
 }
 
 void planning_scene::PlanningScene::clearDiffs(void)
@@ -290,6 +292,7 @@ const planning_models::TransformsPtr& planning_scene::PlanningScene::getTransfor
 
 void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const
 {
+    scene.name = name_;
     if (ftf_)
         ftf_->getTransforms(scene.fixed_frame_transforms);
     else
@@ -374,7 +377,9 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
     {
         moveit_msgs::AttachedCollisionObject aco;
         aco.link_name = ab[i]->getAttachedLinkName();
-        aco.touch_links = ab[i]->getTouchLinks();
+        const std::set<std::string> &touch_links = ab[i]->getTouchLinks();
+        for (std::set<std::string>::const_iterator it = touch_links.begin() ; it != touch_links.end() ; ++it)
+            aco.touch_links.push_back(*it);
         aco.object.header.frame_id = aco.link_name;
         aco.object.id = ab[i]->getName();
         aco.object.operation = moveit_msgs::CollisionObject::ADD;
@@ -455,6 +460,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
 
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const
 {
+    scene.name = name_;
     getTransforms()->getTransforms(scene.fixed_frame_transforms);
     planning_models::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
     getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
@@ -540,6 +546,9 @@ void planning_scene::PlanningScene::decoupleParent(void)
 
 void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene)
 {
+    ROS_DEBUG("Adding planning scene diff");
+    name_ = scene.name;
+    
     // there is at least one transform in the list of fixed transform: from model frame to itself;
     // if the list is empty, then nothing has been set
     if (!scene.fixed_frame_transforms.empty())
@@ -588,6 +597,9 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
 void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
 {
+    ROS_DEBUG("Setting new planning scene");
+    name_ = scene.name;
+
     if (parent_)
     {
         // if we have a parent, but we set a new planning scene, then we do not care about the parent any more
@@ -853,4 +865,25 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         else
             ROS_ERROR("Unknown collision object operation: %d", object.operation);
     return false;
+}
+
+bool planning_scene::PlanningScene::checkPath(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory)
+{
+    planning_models::KinematicState start(getCurrentState());
+    planning_models::robotStateToKinematicState(*getTransforms(), start_state, start);
+    std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
+                                       trajectory.multi_dof_joint_trajectory.points.size());
+    for (std::size_t i = 0 ; i < state_count ; ++i)
+    {
+        moveit_msgs::RobotState rs;
+        planning_models::robotTrajectoryPointToRobotState(trajectory, i, rs);
+        planning_models::KinematicStatePtr st(new planning_models::KinematicState(start));
+        planning_models::robotStateToKinematicState(*getTransforms(), rs, *st);
+        collision_detection::CollisionRequest req;
+        collision_detection::CollisionResult  res;
+        checkCollision(req, res, *st);
+        if (res.collision)
+            return false;
+    }
+    return true;
 }

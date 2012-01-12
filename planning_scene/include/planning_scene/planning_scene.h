@@ -42,6 +42,7 @@
 #include <planning_models/transforms.h>
 #include <collision_detection/collision_world.h>
 #include <moveit_msgs/PlanningScene.h>
+#include <moveit_msgs/RobotTrajectory.h>
 #include <boost/noncopyable.hpp>
 
 namespace planning_scene
@@ -50,10 +51,10 @@ namespace planning_scene
     class PlanningScene;
     typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
     typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
-    
+
     /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
     PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
-    
+
     /** \brief This class maintains the representation of the
         environment as seen by a planning instance. The environment
         geometry, the robot geometry and state are maintained. */
@@ -78,6 +79,18 @@ namespace planning_scene
         {
         }
 
+	/** \brief Get the name of the planning scene. This is empty by default */
+	const std::string& getName(void) const
+	{
+	    return name_;
+	}
+	
+	/** \brief Set the name of the planning scene */
+	void setName(const std::string &name)
+	{
+	    name_ = name;
+	}
+	
         /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
             The information passed in for this function allows the construction of a kinematic model and of all the classed that
             depend on the kinematic model (e.g., collision world/robot classes) */
@@ -242,6 +255,9 @@ namespace planning_scene
             parent and the pointer to the parent is discarded. */
         void decoupleParent(void);
 
+        /** \brief Check if a given path is valid */
+        bool checkPath(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory);
+
     protected:
 
         void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
@@ -249,6 +265,8 @@ namespace planning_scene
         void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
         void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
 
+	std::string                                    name_;
+	
         PlanningSceneConstPtr                          parent_;
 
         boost::shared_ptr<const urdf::Model>           urdf_model_;
