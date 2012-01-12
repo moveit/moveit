@@ -191,12 +191,12 @@ protected:
   void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
 
   /**
-   * \brief Uses libTF to set the robot's position, given the target frame and the planning frame
+   * \brief Set the robot's position, given the target frame and the planning frame
    */
   void calculateOffsetPosition();
 
   void renderPlanningScene();
-  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const btTransform &p, const rviz::Color &color, float alpha);
+  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3f &p, const rviz::Color &color, float alpha);
   void clearRenderedGeometry();
 
   // overrides from Display

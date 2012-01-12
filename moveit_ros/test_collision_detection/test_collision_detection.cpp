@@ -51,7 +51,9 @@ void testSimple()
     sleep(1);
 
     std::vector<shapes::Shape*> attached_shapes(1, new shapes::Box(0.2, 0.1, 0.1));
-    std::vector<btTransform> attached_poses(1, btTransform::getIdentity());
+    Eigen::Affine3f t;
+    t.setIdentity();
+    std::vector<Eigen::Affine3f> attached_poses(1, t);
     std::vector<std::string> touch;
     touch.push_back("r_wrist_roll_link");
     touch.push_back("r_forearm_link");
@@ -105,13 +107,11 @@ void testSimple()
     
     planning_scene::PlanningScenePtr colliding = clone(scene);
     // construct a planning scene with 100 objects and no collisions
-    btTransform t;
-    t.setIdentity();
     random_numbers::RandomNumberGenerator rng;
     req.verbose = false;
     for (int i = 0 ; i < 100000 ; ++i)
     {
-	t.setOrigin(btVector3(rng.uniformReal(-1, 1), rng.uniformReal(-1, 1), rng.uniformReal(0, 2)));
+	t.translation(Eigen::Vector3f(rng.uniformReal(-1, 1), rng.uniformReal(-1, 1), rng.uniformReal(0, 2)));
 	scene->getCollisionWorld()->clearObjects();
 	scene->getCollisionWorld()->addToObject("spere1", new shapes::Sphere(0.05), t);
 	collision_detection::CollisionResult res;
