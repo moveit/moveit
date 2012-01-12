@@ -63,7 +63,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
         checkRobotCollision(req, res, robot, state, acm);
 }
 
-void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::Shape*> &shapes, const std::vector<Eigen::Affine3f> &poses)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::Shape*> &shapes, const std::vector<Eigen::Affine3d> &poses)
 {
     if (shapes.size() != poses.size())
         ROS_ERROR("Number of shapes and number of poses do not match. Not adding this object to collision world.");
@@ -129,7 +129,7 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, sha
         changeAddObj(it->second.get());
 }
 
-void collision_detection::CollisionWorld::addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3f &pose)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3d &pose)
 {
     // make sure that if a new object is created, it knows its name
     std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
@@ -152,7 +152,7 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, sha
         changeAddObj(it->second.get());
 }
 
-bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3f &pose)
+bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3d &pose)
 {
     std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
     if (it != objects_.end())

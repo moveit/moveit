@@ -206,7 +206,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
 
     geometry_msgs::Quaternion q;
     q.x = q.y = q.z = q.w = 0.0;
-    Eigen::Quaternionf tq;
+    Eigen::Quaterniond tq;
     EXPECT_FALSE(planning_models::quatFromMsg(q, tq));
     EXPECT_TRUE(tq.w() == 1.0);
 }

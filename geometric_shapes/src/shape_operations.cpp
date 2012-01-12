@@ -57,7 +57,7 @@ namespace detail
 {
 struct myVertex
 {
-  Eigen::Vector3f    point;
+  Eigen::Vector3d    point;
   unsigned int index;
 };
 
@@ -65,8 +65,8 @@ struct ltVertexValue
 {
   bool operator()(const myVertex &p1, const myVertex &p2) const
   {
-    const Eigen::Vector3f &v1 = p1.point;
-    const Eigen::Vector3f &v2 = p2.point;
+    const Eigen::Vector3d &v1 = p1.point;
+    const Eigen::Vector3d &v2 = p2.point;
     if (v1.x() < v2.x())
       return true;
     if (v1.x() > v2.x())
@@ -91,7 +91,7 @@ struct ltVertexIndex
 
 }
 
-Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &vertices, const std::vector<unsigned int> &triangles)
+Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &vertices, const std::vector<unsigned int> &triangles)
 {
   unsigned int nt = triangles.size() / 3;
   Mesh *mesh = new Mesh(vertices.size(), nt);
@@ -107,9 +107,9 @@ Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &vertices, const
   // compute normals
   for (unsigned int i = 0 ; i < nt ; ++i)
   {
-    Eigen::Vector3f s1 = vertices[triangles[i * 3    ]] - vertices[triangles[i * 3 + 1]];
-    Eigen::Vector3f s2 = vertices[triangles[i * 3 + 1]] - vertices[triangles[i * 3 + 2]];
-    Eigen::Vector3f normal = s1.cross(s2);
+    Eigen::Vector3d s1 = vertices[triangles[i * 3    ]] - vertices[triangles[i * 3 + 1]];
+    Eigen::Vector3d s2 = vertices[triangles[i * 3 + 1]] - vertices[triangles[i * 3 + 2]];
+    Eigen::Vector3d normal = s1.cross(s2);
     normal.normalize();
     mesh->normals[3 * i    ] = normal.x();
     mesh->normals[3 * i + 1] = normal.y();
@@ -118,7 +118,7 @@ Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &vertices, const
   return mesh;
 }
 
-Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &source)
+Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &source)
 {
   if (source.size() < 3)
     return NULL;
@@ -187,9 +187,9 @@ Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &source)
   // compute normals
   for (unsigned int i = 0 ; i < nt ; ++i)
   {
-    Eigen::Vector3f s1 = vt[triangles[i * 3    ]].point - vt[triangles[i * 3 + 1]].point;
-    Eigen::Vector3f s2 = vt[triangles[i * 3 + 1]].point - vt[triangles[i * 3 + 2]].point;
-    Eigen::Vector3f normal = s1.cross(s2);
+    Eigen::Vector3d s1 = vt[triangles[i * 3    ]].point - vt[triangles[i * 3 + 1]].point;
+    Eigen::Vector3d s2 = vt[triangles[i * 3 + 1]].point - vt[triangles[i * 3 + 2]].point;
+    Eigen::Vector3d normal = s1.cross(s2);
     normal.normalize();
     mesh->normals[3 * i    ] = normal.x();
     mesh->normals[3 * i + 1] = normal.y();
@@ -199,7 +199,7 @@ Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &source)
   return mesh;
 }
 
-Mesh* createMeshFromFilename(const std::string& filename, const Eigen::Vector3f &scale)
+Mesh* createMeshFromFilename(const std::string& filename, const Eigen::Vector3d &scale)
 {
   resource_retriever::Retriever retriever;
   resource_retriever::MemoryResource res;
@@ -276,7 +276,7 @@ Mesh* createMeshFromFilename(const std::string& filename, const Eigen::Vector3f 
   return createMeshFromAsset(scene->mMeshes[node->mMeshes[0]], node->mTransformation, scale);
 }
 
-Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const Eigen::Vector3f& scale)
+Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const Eigen::Vector3d& scale)
 {
   if (!a->HasFaces())
   {
@@ -337,9 +337,9 @@ Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const E
     f3.z *= scale.z();
     aiVector3D as1 = f1-f2;
     aiVector3D as2 = f2-f3;
-    Eigen::Vector3f s1(as1.x, as1.y, as1.z);
-    Eigen::Vector3f s2(as2.x, as2.y, as2.z);
-    Eigen::Vector3f normal = s1.cross(s2);
+    Eigen::Vector3d s1(as1.x, as1.y, as1.z);
+    Eigen::Vector3d s2(as2.x, as2.y, as2.z);
+    Eigen::Vector3d normal = s1.cross(s2);
     normal.normalize();
     mesh->normals[3 * i    ] = normal.x();
     mesh->normals[3 * i + 1] = normal.y();
@@ -390,10 +390,10 @@ Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
                 ROS_ERROR("Mesh definition is empty");
               else
               {
-                std::vector<Eigen::Vector3f>    vertices(shape_msg.vertices.size());
+                std::vector<Eigen::Vector3d>    vertices(shape_msg.vertices.size());
                 std::vector<unsigned int> triangles(shape_msg.triangles.size());
                 for (unsigned int i = 0 ; i < shape_msg.vertices.size() ; ++i)
-                  vertices[i] = Eigen::Vector3f(shape_msg.vertices[i].x, shape_msg.vertices[i].y, shape_msg.vertices[i].z);
+                  vertices[i] = Eigen::Vector3d(shape_msg.vertices[i].x, shape_msg.vertices[i].y, shape_msg.vertices[i].z);
                 for (unsigned int i = 0 ; i < shape_msg.triangles.size() ; ++i)
                   triangles[i] = shape_msg.triangles[i];
                 shape = createMeshFromVertices(vertices, triangles);

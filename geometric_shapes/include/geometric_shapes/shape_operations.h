@@ -52,19 +52,19 @@ namespace shapes
     constructed using index values from the triangles
     vector. Triangle k has vertices at index values triangles[3k],
     triangles[3k+1], triangles[3k+2]  */
-shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &vertices, const std::vector<unsigned int> &triangles);
+shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &vertices, const std::vector<unsigned int> &triangles);
 
 /** \brief Load a mesh from a set of vertices. Every 3 vertices
     are considered a triangle. Repeating vertices are identified
     and the set of triangle indices is constructed. The normal at
     each triangle is also computed */
-shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3f> &source);
+shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &source);
 
 /** \brief Load a mesh from a file that contains a mesh that can be loaded by assimp */
-shapes::Mesh* createMeshFromFilename(const std::string& filename, const Eigen::Vector3f &scale = Eigen::Vector3f(1.0, 1.0, 1.0));
+shapes::Mesh* createMeshFromFilename(const std::string& filename, const Eigen::Vector3d &scale = Eigen::Vector3d(1.0, 1.0, 1.0));
 
 /** \brief Load a mesh from an assimp datastructure */
-shapes::Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const Eigen::Vector3f& scale);
+shapes::Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const Eigen::Vector3d& scale);
 
 /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
 Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg);

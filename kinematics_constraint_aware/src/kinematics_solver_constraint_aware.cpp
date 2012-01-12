@@ -235,9 +235,9 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
   std::string kinematic_frame_id = kinematics_solver_->getBaseFrame();
   std::string planning_frame_id = planning_scene_->getPlanningFrame();
   //TODO - should be a check that we can actually transform, better transform library
-  Eigen::Affine3f cur;
+  Eigen::Affine3d cur;
   planning_models::poseFromMsg(ik_pose, cur);
-  Eigen::Affine3f nt;
+  Eigen::Affine3d nt;
   planning_scene_->getTransforms()->transformPose(*state_, kinematic_frame_id, cur, nt);
   state_->updateStateWithLinkAt(kinematics_solver_->getTipFrame(), nt);
 
@@ -259,7 +259,7 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
 }
 
 bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_msgs::Pose& start_pose,
-                                                               const Eigen::Vector3f& direction,
+                                                               const Eigen::Vector3d& direction,
                                                                const double& distance,
                                                                const moveit_msgs::Constraints& constraints,
                                                                const planning_scene::PlanningSceneConstPtr& scene,
@@ -277,7 +277,7 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
   ret_traj.joint_names = kinematics_solver_->getJointNames();
   ret_traj.points.resize(num_points);
 
-  Eigen::Affine3f first_pose;
+  Eigen::Affine3d first_pose;
   planning_models::poseFromMsg(start_pose, first_pose);
 
   for(unsigned int i = 1; i <= num_points; i++) {
@@ -289,8 +289,8 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
     }
 
     //assumes that the axis is aligned
-    Eigen::Affine3f trans(Eigen::Translation3f(direction*val*fabs(distance/(num_points*1.0)))*Eigen::Quaternionf(1.0,0.0,0.0,0.0));
-    Eigen::Affine3f mult_trans;
+    Eigen::Affine3d trans(Eigen::Translation3d(direction*val*fabs(distance/(num_points*1.0)))*Eigen::Quaterniond(1.0,0.0,0.0,0.0));
+    Eigen::Affine3d mult_trans;
     if(premultiply) {
       mult_trans = trans*first_pose;
     } else {

@@ -75,7 +75,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
     return false;
   }
 
-  std::vector<Eigen::Affine3f> transf(mjs.joint_names.size());
+  std::vector<Eigen::Affine3d> transf(mjs.joint_names.size());
   bool tf_problem = false;
   bool error = false;
 
@@ -95,7 +95,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
         try
         {
           // find the transform that takes the given frame_id to the desired fixed frame
-          const Eigen::Affine3f &t2fixed_frame = tf->getTransform(mjs.frame_ids[i]);
+          const Eigen::Affine3d &t2fixed_frame = tf->getTransform(mjs.frame_ids[i]);
           // we update the value of the transform so that it transforms from the known fixed frame to the desired child link
           transf[i] = transf[i]*t2fixed_frame.inverse();
         }

@@ -416,7 +416,7 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
         else
           j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);
         j->continuous_ = false;
-        j->axis_ = Eigen::Vector3f(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
+        j->axis_ = Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
         result = j;
       }
       break;
@@ -425,7 +425,7 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
         RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
         j->continuous_ = true;
         j->variable_bounds_[0] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
-        j->axis_ = Eigen::Vector3f(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
+        j->axis_ = Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
         result = j;
       }
       break;
@@ -436,7 +436,7 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
           j->variable_bounds_[0] = std::make_pair(urdf_joint->safety->soft_lower_limit, urdf_joint->safety->soft_upper_limit);
         else
           j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);
-        j->axis_ = Eigen::Vector3f(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
+        j->axis_ = Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
         result = j;
       }
       break;
@@ -487,10 +487,10 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
 
 namespace planning_models
 {
-static inline Eigen::Affine3f urdfPose2Affine3f(const urdf::Pose &pose)
+static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
 {
-  Eigen::Quaternionf q(pose.rotation.w, pose.rotation.x, pose.rotation.y, pose.rotation.z);
-  Eigen::Affine3f af(Eigen::Translation3f(pose.position.x, pose.position.y, pose.position.z)*q.toRotationMatrix());
+  Eigen::Quaterniond q(pose.rotation.w, pose.rotation.x, pose.rotation.y, pose.rotation.z);
+  Eigen::Affine3d af(Eigen::Translation3d(pose.position.x, pose.position.y, pose.position.z)*q.toRotationMatrix());
   return af;
 }
 }
@@ -504,12 +504,12 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
 
   if (urdf_link->collision && urdf_link->collision->geometry)
   {
-    result->collision_origin_transform_ = urdfPose2Affine3f(urdf_link->collision->origin);
+    result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->collision->origin);
     result->shape_ = constructShape(urdf_link->collision->geometry.get(), result->filename_);
   }
   else if (urdf_link->visual && urdf_link->visual->geometry)
   {
-    result->collision_origin_transform_ = urdfPose2Affine3f(urdf_link->visual->origin);
+    result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->visual->origin);
     result->shape_ = constructShape(urdf_link->visual->geometry.get(), result->filename_);
   }
   else
@@ -519,7 +519,7 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
   }
 
   if (urdf_link->parent_joint.get())
-    result->joint_origin_transform_ = urdfPose2Affine3f(urdf_link->parent_joint->parent_to_joint_origin_transform);
+    result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
   else
     result->joint_origin_transform_.setIdentity();
   return result;
@@ -550,7 +550,7 @@ shapes::ShapePtr planning_models::KinematicModel::constructShape(const urdf::Geo
       const urdf::Mesh *mesh = dynamic_cast<const urdf::Mesh*>(geom);
       if (!mesh->filename.empty())
       {
-        Eigen::Vector3f scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
+        Eigen::Vector3d scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
         result = shapes::createMeshFromFilename(mesh->filename, scale);
         filename = mesh->filename;
       }
@@ -802,16 +802,16 @@ planning_models::KinematicModel::FixedJointModel::FixedJointModel(const std::str
   type_ = FIXED;
 }
 
-void planning_models::KinematicModel::FixedJointModel::computeTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::FixedJointModel::computeTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3d &transf) const
 {
   transf.setIdentity();
 }
 
-void planning_models::KinematicModel::FixedJointModel::updateTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::FixedJointModel::updateTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3d &transf) const
 {
 }
 
-void planning_models::KinematicModel::FixedJointModel::computeJointStateValues(const Eigen::Affine3f& /* transform */, std::vector<double>& joint_values) const
+void planning_models::KinematicModel::FixedJointModel::computeJointStateValues(const Eigen::Affine3d& /* transform */, std::vector<double>& joint_values) const
 {
   joint_values.clear();
 }
@@ -830,23 +830,23 @@ planning_models::KinematicModel::PlanarJointModel::PlanarJointModel(const std::s
   type_ = PLANAR;
 }
 
-void planning_models::KinematicModel::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::PlanarJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::PlanarJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::PlanarJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
-  transf = Eigen::Affine3f(Eigen::Translation3f(joint_values[0], joint_values[1], 0.0)*Eigen::AngleAxisf(joint_values[2], Eigen::Vector3f::UnitZ()));
+  transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], 0.0)*Eigen::AngleAxisd(joint_values[2], Eigen::Vector3d::UnitZ()));
 }
 
-void planning_models::KinematicModel::PlanarJointModel::computeJointStateValues(const Eigen::Affine3f& transf, std::vector<double> &joint_values) const
+void planning_models::KinematicModel::PlanarJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
 {
   joint_values.resize(3);
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
 
-  Eigen::Quaternionf q(transf.rotation());
+  Eigen::Quaterniond q(transf.rotation());
   //taken from Bullet
   double s_squared = 1.0-(q.w()*q.w());
   double s = sqrt(s_squared);
@@ -875,24 +875,24 @@ planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const st
   type_ = FLOATING;
 }
 
-void planning_models::KinematicModel::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::FloatingJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::FloatingJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
-  transf = Eigen::Affine3f(Eigen::Translation3f(joint_values[0], joint_values[1], joint_values[2])
-                           *Eigen::Quaternionf(joint_values[6],joint_values[3], joint_values[4], joint_values[5]).toRotationMatrix());
+  transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], joint_values[2])
+                           *Eigen::Quaterniond(joint_values[6],joint_values[3], joint_values[4], joint_values[5]).toRotationMatrix());
 }
 
-void planning_models::KinematicModel::FloatingJointModel::computeJointStateValues(const Eigen::Affine3f& transf, std::vector<double> &joint_values) const
+void planning_models::KinematicModel::FloatingJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
 {
   joint_values.resize(7);
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
   joint_values[2] = transf.translation().z();
-  Eigen::Quaternionf q(transf.rotation());
+  Eigen::Quaterniond q(transf.rotation());
   joint_values[3] = q.x();
   joint_values[4] = q.y();
   joint_values[5] = q.z();
@@ -930,18 +930,18 @@ planning_models::KinematicModel::PrismaticJointModel::PrismaticJointModel(const 
   type_ = PRISMATIC;
 }
 
-void planning_models::KinematicModel::PrismaticJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::PrismaticJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   transf.setIdentity();
   updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::PrismaticJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::PrismaticJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
-  transf.translation() = Eigen::Vector3f(axis_ * joint_values[0]);
+  transf.translation() = Eigen::Vector3d(axis_ * joint_values[0]);
 }
 
-void planning_models::KinematicModel::PrismaticJointModel::computeJointStateValues(const Eigen::Affine3f& transf, std::vector<double> &joint_values) const
+void planning_models::KinematicModel::PrismaticJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
 {
   joint_values.resize(1);
   joint_values[0] = transf.translation().dot(axis_);
@@ -955,21 +955,21 @@ planning_models::KinematicModel::RevoluteJointModel::RevoluteJointModel(const st
   type_ = REVOLUTE;
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
-  transf.translation() = Eigen::Vector3f(0.0, 0.0, 0.0);
+  transf.translation() = Eigen::Vector3d(0.0, 0.0, 0.0);
   updateTransform(joint_values, transf);
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3f &transf) const
+void planning_models::KinematicModel::RevoluteJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
-  transf = Eigen::Affine3f(Eigen::AngleAxisf(joint_values[0], axis_)); 
+  transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_)); 
 }
 
-void planning_models::KinematicModel::RevoluteJointModel::computeJointStateValues(const Eigen::Affine3f& transf, std::vector<double> &joint_values) const
+void planning_models::KinematicModel::RevoluteJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
 {
   joint_values.resize(1);
-  Eigen::Quaternionf q(transf.rotation());
+  Eigen::Quaterniond q(transf.rotation());
   q.normalize();
   joint_values[0] = acos(q.w())*2.0f;
 }

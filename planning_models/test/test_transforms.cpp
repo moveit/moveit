@@ -77,17 +77,17 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
   planning_models::Transforms tf(kmodel->getModelFrame());
 
-  Eigen::Affine3f t1;
+  Eigen::Affine3d t1;
   t1.setIdentity();
-  t1.translation() = Eigen::Vector3f(10.0, 1.0, 0.0);
+  t1.translation() = Eigen::Vector3d(10.0, 1.0, 0.0);
   tf.setTransform(t1, "some_frame_1");
 
-  Eigen::Affine3f t2(Eigen::Translation3f(10.0, 1.0, 0.0)*Eigen::AngleAxisf(0.5, Eigen::Vector3f::UnitY()));
+  Eigen::Affine3d t2(Eigen::Translation3d(10.0, 1.0, 0.0)*Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitY()));
   tf.setTransform(t2, "some_frame_2");
 
-  Eigen::Affine3f t3;
+  Eigen::Affine3d t3;
   t3.setIdentity();
-  t3.translation() = Eigen::Vector3f(0.0, 1.0, -1.0);
+  t3.translation() = Eigen::Vector3d(0.0, 1.0, -1.0);
   tf.setTransform(t3, "some_frame_3");
 
 
@@ -95,7 +95,7 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
   EXPECT_TRUE(tf.isFixedFrame(kmodel->getModelFrame()));
 
-  Eigen::Affine3f x;
+  Eigen::Affine3d x;
   x.setIdentity();
   tf.transformPose(ks, "some_frame_2", x, x);
   

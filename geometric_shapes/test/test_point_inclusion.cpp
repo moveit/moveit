@@ -47,7 +47,7 @@ TEST(SpherePointContainment, SimpleInside)
     sphere->setScale(1.05);
     bool contains = sphere->containsPoint(0,0,1.0);
     random_numbers::RandomNumberGenerator r;
-    Eigen::Vector3f p;
+    Eigen::Vector3d p;
     EXPECT_TRUE(sphere->samplePointInside(r, 100, p));
     EXPECT_TRUE(sphere->containsPoint(p));
     EXPECT_TRUE(contains);
@@ -69,9 +69,9 @@ TEST(SpherePointContainment, ComplexInside)
     shapes::Sphere shape(1.0);
     bodies::Body* sphere = new bodies::Sphere(&shape);
     sphere->setScale(0.95);
-    Eigen::Affine3f pose;
+    Eigen::Affine3d pose;
     pose.setIdentity();
-    pose.translation() = Eigen::Vector3f(1.0,1.0,1.0);
+    pose.translation() = Eigen::Vector3d(1.0,1.0,1.0);
     sphere->setPose(pose);
     bool contains = sphere->containsPoint(0.5,1,1.0);
     delete sphere;
@@ -83,9 +83,9 @@ TEST(SpherePointContainment, ComplexOutside)
     shapes::Sphere shape(1.0);
     bodies::Body* sphere = new bodies::Sphere(&shape);
     sphere->setScale(0.95);
-    Eigen::Affine3f pose;
+    Eigen::Affine3d pose;
     pose.setIdentity();
-    pose.translation() = Eigen::Vector3f(1.0,1.0,1.0);
+    pose.translation() = Eigen::Vector3d(1.0,1.0,1.0);
     sphere->setPose(pose);
     bool contains = sphere->containsPoint(0.5,0.0,0.0);
     delete sphere;
@@ -98,9 +98,9 @@ TEST(SphereRayIntersection, SimpleRay1)
     bodies::Body* sphere = new bodies::Sphere(&shape);
     sphere->setScale(1.05);
 
-    Eigen::Vector3f ray_o(5, 0, 0);
-    Eigen::Vector3f ray_d(-1, 0, 0);
-    std::vector<Eigen::Vector3f> p;
+    Eigen::Vector3d ray_o(5, 0, 0);
+    Eigen::Vector3d ray_d(-1, 0, 0);
+    std::vector<Eigen::Vector3d> p;
     bool intersect = sphere->intersectsRay(ray_o, ray_d, &p);
 
     delete sphere;
@@ -116,9 +116,9 @@ TEST(SphereRayIntersection, SimpleRay2)
     bodies::Body* sphere = new bodies::Sphere(&shape);
     sphere->setScale(1.05);
 
-    Eigen::Vector3f ray_o(5, 0, 0);
-    Eigen::Vector3f ray_d(1, 0, 0);
-    std::vector<Eigen::Vector3f> p;
+    Eigen::Vector3d ray_o(5, 0, 0);
+    Eigen::Vector3d ray_d(1, 0, 0);
+    std::vector<Eigen::Vector3d> p;
     bool intersect = sphere->intersectsRay(ray_o, ray_d, &p);
 
     delete sphere;
@@ -135,7 +135,7 @@ TEST(BoxPointContainment, SimpleInside)
     EXPECT_TRUE(contains);
 
     random_numbers::RandomNumberGenerator r;
-    Eigen::Vector3f p;
+    Eigen::Vector3d p;
     EXPECT_TRUE(box->samplePointInside(r, 100, p));
     EXPECT_TRUE(box->containsPoint(p));
 
@@ -159,15 +159,15 @@ TEST(BoxPointContainment, ComplexInside)
     shapes::Box shape(1.0, 1.0, 1.0);
     bodies::Body* box = new bodies::Box(&shape);
     box->setScale(1.01);
-    Eigen::Affine3f pose(Eigen::AngleAxisf(M_PI/3.0, Eigen::Vector3f::UnitX()));
-    pose.translation() = Eigen::Vector3f(1.0,1.0,1.0); 
+    Eigen::Affine3d pose(Eigen::AngleAxisd(M_PI/3.0, Eigen::Vector3d::UnitX()));
+    pose.translation() = Eigen::Vector3d(1.0,1.0,1.0); 
     box->setPose(pose);
 
     bool contains = box->containsPoint(1.5,1.0,1.5);
     EXPECT_TRUE(contains);
 
     random_numbers::RandomNumberGenerator r;
-    Eigen::Vector3f p;
+    Eigen::Vector3d p;
     for (int i = 0 ; i < 2 ; ++i)
     {
         EXPECT_TRUE(box->samplePointInside(r, 100, p));
@@ -182,8 +182,8 @@ TEST(BoxPointContainment, ComplexOutside)
     shapes::Box shape(1.0, 1.0, 1.0);
     bodies::Body* box = new bodies::Box(&shape);
     box->setScale(1.01);
-    Eigen::Affine3f pose(Eigen::AngleAxisf(M_PI/3.0, Eigen::Vector3f::UnitX()));
-    pose.translation() = Eigen::Vector3f(1.0,1.0,1.0); 
+    Eigen::Affine3d pose(Eigen::AngleAxisd(M_PI/3.0, Eigen::Vector3d::UnitX()));
+    pose.translation() = Eigen::Vector3d(1.0,1.0,1.0); 
     box->setPose(pose);
 
     bool contains = box->containsPoint(1.5,1.5,1.5);
@@ -197,9 +197,9 @@ TEST(BoxRayIntersection, SimpleRay1)
     bodies::Body* box = new bodies::Box(&shape);
     box->setScale(0.95);
 
-    Eigen::Vector3f ray_o(10, 0.449, 0);
-    Eigen::Vector3f ray_d(-1, 0, 0);
-    std::vector<Eigen::Vector3f> p;
+    Eigen::Vector3d ray_o(10, 0.449, 0);
+    Eigen::Vector3d ray_d(-1, 0, 0);
+    std::vector<Eigen::Vector3d> p;
 
     bool intersect = box->intersectsRay(ray_o, ray_d, &p);
 
@@ -247,7 +247,7 @@ TEST(CylinderPointContainment, CylinderPadding)
     EXPECT_TRUE(bsphere.radius > 2.0);
 
     random_numbers::RandomNumberGenerator r;
-    Eigen::Vector3f p;
+    Eigen::Vector3d p;
     for (int i = 0 ; i < 1000 ; ++i)
     {
         EXPECT_TRUE(cylinder->samplePointInside(r, 100, p));
@@ -261,12 +261,12 @@ TEST(MeshPointContainment, Pr2Forearm)
     shapes::Mesh *ms = shapes::createMeshFromFilename("file://" + (boost::filesystem::current_path() / "test/resources/forearm_roll.stl").string());
     EXPECT_EQ(ms->vertex_count, 2338);
     bodies::Body *m = new bodies::ConvexMesh(ms);
-    Eigen::Affine3f t(Eigen::Affine3f::Identity());
+    Eigen::Affine3d t(Eigen::Affine3d::Identity());
     t.translation().x() = 1.0;
     EXPECT_FALSE(m->cloneAt(t)->containsPoint(-1.0, 0.0, 0.0));
 
     random_numbers::RandomNumberGenerator r;
-    Eigen::Vector3f p;
+    Eigen::Vector3d p;
     bool found = true;
     for (int i = 0 ; i < 10 ; ++i) {
       if (m->samplePointInside(r, 10000, p))
