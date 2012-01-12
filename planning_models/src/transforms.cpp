@@ -61,7 +61,7 @@ double planning_models::normalizeAngle(double angle) {
   return ret;
 }
 
-void getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y) 
+void planning_models::getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y) 
 {
   //taken from pcl - x,y,z convention
   r  = atan2f(t(2,1), t(2,2));
