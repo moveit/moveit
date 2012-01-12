@@ -229,7 +229,7 @@ void planning_models::KinematicState::updateLinkTransforms(void)
         link_state_vector_[i]->computeTransform();
 }
 
-bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3f& transform)
+bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform)
 {
     if (!hasLinkState(link_name))
         return false;
@@ -242,12 +242,12 @@ bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& l
     return true;
 }
 
-const Eigen::Affine3f& planning_models::KinematicState::getRootTransform(void) const
+const Eigen::Affine3d& planning_models::KinematicState::getRootTransform(void) const
 {
     return root_transform_;
 }
 
-void planning_models::KinematicState::setRootTransform(const Eigen::Affine3f &transform)
+void planning_models::KinematicState::setRootTransform(const Eigen::Affine3d &transform)
 {
     root_transform_ = transform;
 }
@@ -465,7 +465,7 @@ void planning_models::KinematicState::JointState::setVariableValues(const std::m
     }
 }
 
-void planning_models::KinematicState::JointState::setVariableValues(const Eigen::Affine3f& transform)
+void planning_models::KinematicState::JointState::setVariableValues(const Eigen::Affine3d& transform)
 {
     joint_model_->computeJointStateValues(transform, joint_state_values_);
     joint_model_->updateTransform(joint_state_values_, variable_transform_);
@@ -515,7 +515,7 @@ planning_models::KinematicState::LinkState::~LinkState(void)
     clearAttachedBodies();
 }
 
-void planning_models::KinematicState::LinkState::updateGivenGlobalLinkTransform(const Eigen::Affine3f& transform)
+void planning_models::KinematicState::LinkState::updateGivenGlobalLinkTransform(const Eigen::Affine3d& transform)
 {
     global_link_transform_ = transform;
     global_collision_body_transform_ = global_link_transform_* link_model_->getCollisionOriginTransform();
@@ -539,7 +539,7 @@ void planning_models::KinematicState::LinkState::updateAttachedBodies(void)
 
 void planning_models::KinematicState::LinkState::attachBody(const std::string &id,
                                                             const std::vector<shapes::Shape*> &shapes,
-                                                            const std::vector<Eigen::Affine3f> &attach_trans,
+                                                            const std::vector<Eigen::Affine3d> &attach_trans,
                                                             const std::vector<std::string> &touch_links)
 {
     attached_body_vector_.push_back(new AttachedBody(this, id, shapes, attach_trans, touch_links));
@@ -604,7 +604,7 @@ planning_models::KinematicState::AttachedBodyProperties::~AttachedBodyProperties
 
 planning_models::KinematicState::AttachedBody::AttachedBody(const planning_models::KinematicState::LinkState* parent_link_state,
                                                             const std::string &id, const std::vector<shapes::Shape*> &shapes,
-                                                            const std::vector<Eigen::Affine3f> &attach_trans,
+                                                            const std::vector<Eigen::Affine3d> &attach_trans,
                                                             const std::vector<std::string> &touch_links) :
     parent_link_state_(parent_link_state)
 {
@@ -878,12 +878,12 @@ void planning_models::KinematicState::printStateInfo(std::ostream &out) const
         std::cout << it->first << " = " << it->second << std::endl;
 }
 
-void planning_models::KinematicState::printTransform(const std::string &st, const Eigen::Affine3f &t, std::ostream &out) const
+void planning_models::KinematicState::printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out) const
 {
     out << st << std::endl;
-    const Eigen::Vector3f &v = t.translation();
+    const Eigen::Vector3d &v = t.translation();
     out << "  origin: " << v.x() << ", " << v.y() << ", " << v.z() << std::endl;
-    Eigen::Quaternionf q(t.rotation());
+    Eigen::Quaterniond q(t.rotation());
     out << "  quaternion: " << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w() << std::endl;
 }
 

@@ -168,7 +168,7 @@ void kinematic_constraints::JointConstraint::print(std::ostream &out) const
 bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::PositionConstraint &pc)
 {
   link_model_ = model_->getLinkModel(pc.link_name);
-  offset_ = Eigen::Vector3f(pc.target_point_offset.x, pc.target_point_offset.y, pc.target_point_offset.z);
+  offset_ = Eigen::Vector3d(pc.target_point_offset.x, pc.target_point_offset.y, pc.target_point_offset.z);
   has_offset_ = offset_.squaredNorm() > std::numeric_limits<double>::epsilon();
   boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region_shape));
   if (shape)
@@ -207,7 +207,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
 namespace kinematic_constraints
 {
 // helper function to avoid code duplication
-static inline bool finishPositionConstraintDecision(const Eigen::Vector3f &pt, const Eigen::Vector3f &desired, const std::string &name,
+static inline bool finishPositionConstraintDecision(const Eigen::Vector3d &pt, const Eigen::Vector3d &desired, const std::string &name,
                                                     double weight, bool result, double &distance, bool verbose)
 {
   if (verbose)
@@ -238,10 +238,10 @@ bool kinematic_constraints::PositionConstraint::decide(const planning_models::Ki
     return false;
   }
 
-  Eigen::Vector3f pt = link_state->getGlobalLinkTransform()*offset_;
+  Eigen::Vector3d pt = link_state->getGlobalLinkTransform()*offset_;
   if (mobile_frame_)
   {
-    Eigen::Affine3f tmp;
+    Eigen::Affine3d tmp;
     tf_->transformPose(state, constraint_frame_id_, constraint_region_pose_, tmp);
     bool result = constraint_region_->cloneAt(tmp)->containsPoint(pt);
     return finishPositionConstraintDecision(pt, tmp.translation(), link_model_->getName(), constraint_weight_, result, distance, verbose);
@@ -291,7 +291,7 @@ bool kinematic_constraints::PositionConstraint::enabled(void) const
 bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::OrientationConstraint &oc)
 {
   link_model_ = model_->getLinkModel(oc.link_name);
-  Eigen::Quaternionf q;
+  Eigen::Quaterniond q;
   if (!planning_models::quatFromMsg(oc.orientation.quaternion, q))
     ROS_WARN("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc.link_name.c_str(),
              oc.orientation.quaternion.x, oc.orientation.quaternion.y, oc.orientation.quaternion.z, oc.orientation.quaternion.w);
@@ -300,14 +300,14 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
   {
     tf_->transformQuaternion(oc.orientation.header.frame_id, q, q);
     desired_rotation_frame_id_ = tf_->getTargetFrame();
-    desired_rotation_matrix_ = Eigen::Matrix3f(q);
+    desired_rotation_matrix_ = Eigen::Matrix3d(q);
     desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse();
     mobile_frame_ = false;
   }
   else
   {
     desired_rotation_frame_id_ = oc.orientation.header.frame_id;
-    desired_rotation_matrix_ = Eigen::Matrix3f(q);
+    desired_rotation_matrix_ = Eigen::Matrix3d(q);
     mobile_frame_ = true;
   }
 
@@ -349,17 +349,17 @@ bool kinematic_constraints::OrientationConstraint::decide(const planning_models:
     return false;
   }
 
-  Eigen::Vector3f ypr;  
+  Eigen::Vector3d ypr;  
   if (mobile_frame_)
   {
-    Eigen::Matrix3f tmp;
+    Eigen::Matrix3d tmp;
     tf_->transformRotationMatrix(state, desired_rotation_frame_id_, desired_rotation_matrix_, tmp);
-    Eigen::Affine3f diff(tmp.inverse() * link_state->getGlobalLinkTransform().rotation());
+    Eigen::Affine3d diff(tmp.inverse() * link_state->getGlobalLinkTransform().rotation());
     ypr = diff.rotation().eulerAngles(2, 0, 2); // 2,0,2 corresponds to ZXZ, the convention used in sampling constraints
   }
   else
   {
-    Eigen::Affine3f diff(desired_rotation_matrix_inv_ * link_state->getGlobalLinkTransform().rotation());
+    Eigen::Affine3d diff(desired_rotation_matrix_inv_ * link_state->getGlobalLinkTransform().rotation());
     ypr = diff.rotation().eulerAngles(2, 0, 2); // 2,0,2 corresponds to ZXZ, the convention used in sampling constraints
   }
 
@@ -367,8 +367,8 @@ bool kinematic_constraints::OrientationConstraint::decide(const planning_models:
 
   if (verbose)
   {
-    Eigen::Quaternionf q_act(link_state->getGlobalLinkTransform().rotation());
-    Eigen::Quaternionf q_des(desired_rotation_matrix_);
+    Eigen::Quaterniond q_act(link_state->getGlobalLinkTransform().rotation());
+    Eigen::Quaterniond q_des(desired_rotation_matrix_);
     ROS_INFO("Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion actual: %f %f %f %f, error: roll=%f, pitch=%f, yaw=%f, tolerance: roll=%f, pitch=%f, yaw=%f",
              result ? "satisfied" : "violated", link_model_->getName().c_str(),
              q_des.x(), q_des.y(), q_des.z(), q_des.w(),
@@ -385,7 +385,7 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
   if (link_model_)
   {
     out << "Orientation constraint on link '" << link_model_->getName() << "'" << std::endl;
-    Eigen::Quaternionf q_des(desired_rotation_matrix_);
+    Eigen::Quaterniond q_des(desired_rotation_matrix_);
     out << "Desired orientation:" << q_des.x() << "," <<  q_des.y() << ","  <<  q_des.z() << "," << q_des.w() << std::endl;
   }
   else
@@ -425,7 +425,7 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
   {
     double x = sin(a) * target_radius_;
     double y = cos(a) * target_radius_;
-    points_.push_back(Eigen::Vector3f(x, y, 0.0));
+    points_.push_back(Eigen::Vector3d(x, y, 0.0));
   }
 
   if (!planning_models::poseFromMsg(vc.target_pose.pose, target_pose_))
@@ -479,15 +479,15 @@ bool kinematic_constraints::VisibilityConstraint::enabled(void) const
 shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(const planning_models::KinematicState &state) const
 {
   // the current pose of the sensor
-  const Eigen::Affine3f &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) : sensor_pose_;
-  const Eigen::Affine3f &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) : target_pose_;
+  const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) : sensor_pose_;
+  const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) : target_pose_;
 
   // transform the points on the disc to the desired target frame
-  const std::vector<Eigen::Vector3f> *points = &points_;
-  boost::scoped_ptr<std::vector<Eigen::Vector3f> > tempPoints;
+  const std::vector<Eigen::Vector3d> *points = &points_;
+  boost::scoped_ptr<std::vector<Eigen::Vector3d> > tempPoints;
   if (mobile_target_frame_)
   {
-    tempPoints.reset(new std::vector<Eigen::Vector3f>(points_.size()));
+    tempPoints.reset(new std::vector<Eigen::Vector3d>(points_.size()));
     for (std::size_t i = 0 ; i < points_.size() ; ++i)
       tempPoints->at(i) = tp*points_[i];
     points = tempPoints.get();
@@ -557,10 +557,10 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
 
   if (max_view_angle_ > 0.0)
   {
-    const Eigen::Affine3f &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) : sensor_pose_;
-    const Eigen::Affine3f &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) : target_pose_;
-    const Eigen::Vector3f &dir = (tp.translation() - sp.translation()).normalized();
-    const Eigen::Vector3f &normal = tp.rotation().col(2);
+    const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) : sensor_pose_;
+    const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) : target_pose_;
+    const Eigen::Vector3d &dir = (tp.translation() - sp.translation()).normalized();
+    const Eigen::Vector3d &normal = tp.rotation().col(2);
     double ang = acos(dir.dot(normal));
     if (max_view_angle_ < ang)
     {
@@ -580,7 +580,7 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
 
   // add the visibility cone as an object
   collision_world_->clearObjects();
-  collision_world_->addToObject("cone", m, Eigen::Affine3f::Identity());
+  collision_world_->addToObject("cone", m, Eigen::Affine3d::Identity());
 
   // check for collisions between the robot and the cone
   collision_detection::CollisionRequest req;

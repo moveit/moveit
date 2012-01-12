@@ -60,7 +60,7 @@ void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::Stat
     planning_models::KinematicState *s = tss_.getStateStorage();
     planning_group_->getKMStateSpace().copyToKinematicState(*s, state);
     const planning_models::KinematicState::LinkState *ls = s->getLinkState(link_name_);
-    const Eigen::Vector3f &o = ls->getGlobalLinkTransform().translation();
+    const Eigen::Vector3d &o = ls->getGlobalLinkTransform().translation();
     projection(0) = o.x();
     projection(1) = o.y();
     projection(2) = o.z();

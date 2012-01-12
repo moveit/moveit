@@ -37,12 +37,12 @@
 #include <planning_models/transforms.h>
 #include <ros/console.h>
 
-bool planning_models::quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::Quaternionf &q)
+bool planning_models::quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::Quaterniond &q)
 {
-  q = Eigen::Quaternionf(qmsg.w, qmsg.x, qmsg.y, qmsg.z);
+  q = Eigen::Quaterniond(qmsg.w, qmsg.x, qmsg.y, qmsg.z);
   if (fabs(q.squaredNorm() - 1.0) > 1e-3)
   {
-    q = Eigen::Quaternionf(1.0, 0.0, 0.0, 0.0);
+    q = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
     return false;
   }
   return true;
@@ -61,7 +61,7 @@ double planning_models::normalizeAngle(double angle) {
   return ret;
 }
 /*
-void planning_models::getEulerAngles(const Eigen::Affine3f& t, float& r, float& p, float& y) 
+void planning_models::getEulerAngles(const Eigen::Affine3d& t, double& r, double& p, double& y) 
 {
   //taken from pcl - x,y,z convention
   r  = atan2f(t(2,1), t(2,2));
@@ -70,23 +70,23 @@ void planning_models::getEulerAngles(const Eigen::Affine3f& t, float& r, float& 
 }
 */
 
-bool planning_models::poseFromMsg(const geometry_msgs::Pose &tmsg, Eigen::Affine3f &t)
+bool planning_models::poseFromMsg(const geometry_msgs::Pose &tmsg, Eigen::Affine3d &t)
 {
-  Eigen::Quaternionf q; bool r = quatFromMsg(tmsg.orientation, q);
-  t = Eigen::Affine3f(Eigen::Translation3f(tmsg.position.x, tmsg.position.y, tmsg.position.z)*q.toRotationMatrix());
+  Eigen::Quaterniond q; bool r = quatFromMsg(tmsg.orientation, q);
+  t = Eigen::Affine3d(Eigen::Translation3d(tmsg.position.x, tmsg.position.y, tmsg.position.z)*q.toRotationMatrix());
   return r;
 }
 
-void planning_models::msgFromPose(const Eigen::Affine3f &t, geometry_msgs::Pose &tmsg)
+void planning_models::msgFromPose(const Eigen::Affine3d &t, geometry_msgs::Pose &tmsg)
 {
   tmsg.position.x = t.translation().x(); tmsg.position.y = t.translation().y(); tmsg.position.z = t.translation().z();
-  Eigen::Quaternionf q(t.rotation());
+  Eigen::Quaterniond q(t.rotation());
   tmsg.orientation.x = q.x(); tmsg.orientation.y = q.y(); tmsg.orientation.z = q.z(); tmsg.orientation.w = q.w();
 }
 
 planning_models::Transforms::Transforms(const std::string &target_frame) : target_frame_(target_frame)
 {
-  Eigen::Affine3f t;
+  Eigen::Affine3d t;
   t.setIdentity();
   transforms_[target_frame_] = t;
 }
@@ -104,7 +104,7 @@ const std::string& planning_models::Transforms::getTargetFrame(void) const
   return target_frame_;
 }
 
-const planning_models::EigenAffine3fMapType& planning_models::Transforms::getAllTransforms(void) const
+const planning_models::EigenAffine3dMapType& planning_models::Transforms::getAllTransforms(void) const
 {
   return transforms_;
 }
@@ -114,9 +114,9 @@ bool planning_models::Transforms::isFixedFrame(const std::string &frame) const
   return transforms_.find(frame) != transforms_.end();
 }
 
-const Eigen::Affine3f& planning_models::Transforms::getTransform(const std::string &from_frame) const
+const Eigen::Affine3d& planning_models::Transforms::getTransform(const std::string &from_frame) const
 {
-  EigenAffine3fMapType::const_iterator it = transforms_.find(from_frame);
+  EigenAffine3dMapType::const_iterator it = transforms_.find(from_frame);
   if (it != transforms_.end())
     return it->second;
   ROS_ERROR_STREAM("Unable to transform from frame '" + from_frame + "' to frame '" + target_frame_ + "'");
@@ -124,9 +124,9 @@ const Eigen::Affine3f& planning_models::Transforms::getTransform(const std::stri
   return transforms_.find(target_frame_)->second;
 }
 
-const Eigen::Affine3f& planning_models::Transforms::getTransform(const planning_models::KinematicState &kstate, const std::string &from_frame) const
+const Eigen::Affine3d& planning_models::Transforms::getTransform(const planning_models::KinematicState &kstate, const std::string &from_frame) const
 {
-  std::map<std::string, Eigen::Affine3f>::const_iterator it = transforms_.find(from_frame);
+  std::map<std::string, Eigen::Affine3d>::const_iterator it = transforms_.find(from_frame);
   if (it != transforms_.end())
     return it->second;
   if (kstate.getKinematicModel()->getModelFrame() != target_frame_)
@@ -139,22 +139,22 @@ const Eigen::Affine3f& planning_models::Transforms::getTransform(const planning_
   return transforms_.find(target_frame_)->second;
 }
 
-void planning_models::Transforms::transformVector3(const std::string &from_frame, const Eigen::Vector3f &v_in, Eigen::Vector3f &v_out) const
+void planning_models::Transforms::transformVector3(const std::string &from_frame, const Eigen::Vector3d &v_in, Eigen::Vector3d &v_out) const
 {
   v_out = getTransform(from_frame) * v_in;
 }
 
-void planning_models::Transforms::transformQuaternion(const std::string &from_frame, const Eigen::Quaternionf &q_in, Eigen::Quaternionf &q_out) const
+void planning_models::Transforms::transformQuaternion(const std::string &from_frame, const Eigen::Quaterniond &q_in, Eigen::Quaterniond &q_out) const
 {
   q_out = getTransform(from_frame).rotation() * q_in;
 }
 
-void planning_models::Transforms::transformRotationMatrix(const std::string &from_frame, const Eigen::Matrix3f &m_in, Eigen::Matrix3f &m_out) const
+void planning_models::Transforms::transformRotationMatrix(const std::string &from_frame, const Eigen::Matrix3d &m_in, Eigen::Matrix3d &m_out) const
 {
   m_out = getTransform(from_frame).rotation() * m_in;
 }
 
-void planning_models::Transforms::transformPose(const std::string &from_frame, const Eigen::Affine3f &t_in, Eigen::Affine3f &t_out) const
+void planning_models::Transforms::transformPose(const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const
 {
   ROS_INFO_STREAM("Get transform x " << getTransform(from_frame).translation().x());
   t_out = getTransform(from_frame) * t_in;
@@ -162,30 +162,30 @@ void planning_models::Transforms::transformPose(const std::string &from_frame, c
 
 // specify the kinematic state
 void planning_models::Transforms::transformVector3(const planning_models::KinematicState &kstate,
-                                                   const std::string &from_frame, const Eigen::Vector3f &v_in, Eigen::Vector3f &v_out) const
+                                                   const std::string &from_frame, const Eigen::Vector3d &v_in, Eigen::Vector3d &v_out) const
 {
   v_out = getTransform(kstate, from_frame).rotation() * v_in;
 }
 
 void planning_models::Transforms::transformQuaternion(const planning_models::KinematicState &kstate,
-                                                      const std::string &from_frame, const Eigen::Quaternionf &q_in, Eigen::Quaternionf &q_out) const
+                                                      const std::string &from_frame, const Eigen::Quaterniond &q_in, Eigen::Quaterniond &q_out) const
 {
   q_out = getTransform(kstate, from_frame).rotation() * q_in;
 }
 
 void planning_models::Transforms::transformRotationMatrix(const planning_models::KinematicState &kstate,
-                                                          const std::string &from_frame, const Eigen::Matrix3f &m_in, Eigen::Matrix3f &m_out) const
+                                                          const std::string &from_frame, const Eigen::Matrix3d &m_in, Eigen::Matrix3d &m_out) const
 {
   m_out = getTransform(kstate, from_frame).rotation() * m_in;
 }
 
 void planning_models::Transforms::transformPose(const planning_models::KinematicState &kstate,
-                                                const std::string &from_frame, const Eigen::Affine3f &t_in, Eigen::Affine3f &t_out) const
+                                                const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const
 {
   t_out = getTransform(kstate, from_frame) * t_in;
 }
 
-void planning_models::Transforms::setTransform(const Eigen::Affine3f &t, const std::string &from_frame)
+void planning_models::Transforms::setTransform(const Eigen::Affine3d &t, const std::string &from_frame)
 {
   transforms_[from_frame] = t;
 }
@@ -194,10 +194,10 @@ void planning_models::Transforms::setTransform(const geometry_msgs::TransformSta
 {
   if (transform.child_frame_id.rfind(target_frame_) == transform.child_frame_id.length() - target_frame_.length())
   {
-    Eigen::Translation3f o(transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z);
-    Eigen::Quaternionf q;
+    Eigen::Translation3d o(transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z);
+    Eigen::Quaterniond q;
     quatFromMsg(transform.transform.rotation, q);
-    setTransform(Eigen::Affine3f(o*q.toRotationMatrix()), transform.header.frame_id);
+    setTransform(Eigen::Affine3d(o*q.toRotationMatrix()), transform.header.frame_id);
   } else {
     ROS_ERROR("Given transform is to frame '%s', but frame '%s' was expected.", transform.child_frame_id.c_str(), target_frame_.c_str());
   }
@@ -213,14 +213,14 @@ void planning_models::Transforms::getTransforms(std::vector<geometry_msgs::Trans
 {
   transforms.resize(transforms_.size());
   std::size_t i = 0;
-  for (EigenAffine3fMapType::const_iterator it = transforms_.begin() ; it != transforms_.end() ; ++it, ++i)
+  for (EigenAffine3dMapType::const_iterator it = transforms_.begin() ; it != transforms_.end() ; ++it, ++i)
   {
     transforms[i].child_frame_id = target_frame_;
     transforms[i].header.frame_id = it->first;
     transforms[i].transform.translation.x = it->second.translation().x();
     transforms[i].transform.translation.y = it->second.translation().y();
     transforms[i].transform.translation.z = it->second.translation().z();
-    Eigen::Quaternionf q(it->second.rotation());
+    Eigen::Quaterniond q(it->second.rotation());
     transforms[i].transform.rotation.x = q.x();
     transforms[i].transform.rotation.y = q.y();
     transforms[i].transform.rotation.z = q.z();

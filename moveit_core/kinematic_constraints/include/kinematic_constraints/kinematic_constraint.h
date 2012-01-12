@@ -178,7 +178,7 @@ public:
     return mobile_frame_;
   }
 
-  const Eigen::Matrix3f& getDesiredRotationMatrix(void) const
+  const Eigen::Matrix3d& getDesiredRotationMatrix(void) const
   {
     return desired_rotation_matrix_;
   }
@@ -201,8 +201,8 @@ public:
 protected:
 
   const planning_models::KinematicModel::LinkModel *link_model_;
-  Eigen::Matrix3f                                       desired_rotation_matrix_;
-  Eigen::Matrix3f                                       desired_rotation_matrix_inv_;
+  Eigen::Matrix3d                                       desired_rotation_matrix_;
+  Eigen::Matrix3d                                       desired_rotation_matrix_inv_;
   std::string                                       desired_rotation_frame_id_;
   bool                                              mobile_frame_;
   double                                            absolute_roll_tolerance_, absolute_pitch_tolerance_, absolute_yaw_tolerance_;
@@ -228,7 +228,7 @@ public:
     return link_model_;
   }
 
-  const Eigen::Vector3f& getLinkOffset(void) const
+  const Eigen::Vector3d& getLinkOffset(void) const
   {
     return offset_;
   }
@@ -255,10 +255,10 @@ public:
 
 protected:
 
-  Eigen::Vector3f                                         offset_;
+  Eigen::Vector3d                                         offset_;
   bool                                              has_offset_;
   boost::shared_ptr<bodies::Body>                   constraint_region_;
-  Eigen::Affine3f                                       constraint_region_pose_;
+  Eigen::Affine3d                                       constraint_region_pose_;
   bool                                              mobile_frame_;
   std::string                                       constraint_frame_id_;
   const planning_models::KinematicModel::LinkModel *link_model_;
@@ -285,10 +285,10 @@ protected:
   bool                                   mobile_target_frame_;
   std::string                            target_frame_id_;
   std::string                            sensor_frame_id_;
-  Eigen::Affine3f                            sensor_pose_;
-  Eigen::Affine3f                            target_pose_;
+  Eigen::Affine3d                            sensor_pose_;
+  Eigen::Affine3d                            target_pose_;
   unsigned int                           cone_sides_;
-  std::vector<Eigen::Vector3f>                 points_;
+  std::vector<Eigen::Vector3d>                 points_;
   double                                 target_radius_;
   double                                 max_view_angle_;
 };

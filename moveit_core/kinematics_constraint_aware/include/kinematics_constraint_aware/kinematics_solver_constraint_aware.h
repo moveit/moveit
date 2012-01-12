@@ -88,7 +88,7 @@ public:
                                              const bool& do_initial_pose_check = true);
 
   bool interpolateIKDirectional(const geometry_msgs::Pose& start_pose,
-                                const Eigen::Vector3f& direction,
+                                const Eigen::Vector3d& direction,
                                 const double& distance,
                                 const moveit_msgs::Constraints& constraints,
                                 const planning_scene::PlanningSceneConstPtr& scene,

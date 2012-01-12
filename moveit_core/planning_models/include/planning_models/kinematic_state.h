@@ -98,7 +98,7 @@ namespace planning_models
             void setVariableValues(const double *value_vector);
 
             /** \brief Sets the internal values from the transform */
-            void setVariableValues(const Eigen::Affine3f& transform);
+            void setVariableValues(const Eigen::Affine3d& transform);
 
             /** \brief Update the joints that mimic this one. This function is called automatically by the setVariable* functions */
             void updateMimicJoints(void);
@@ -141,7 +141,7 @@ namespace planning_models
             }
 
             /** \brief Get the current variable transform */
-            const Eigen::Affine3f& getVariableTransform(void) const
+            const Eigen::Affine3d& getVariableTransform(void) const
             {
                 return variable_transform_;
             }
@@ -166,7 +166,7 @@ namespace planning_models
             const KinematicModel::JointModel   *joint_model_;
 
             /** \brief Tthe local transform (computed by forward kinematics) */
-            Eigen::Affine3f                     variable_transform_;
+            Eigen::Affine3d                     variable_transform_;
 
             /** \brief The joint values given in the order indicated by joint_variables_index_map_ */
             std::vector<double>                 joint_state_values_;
@@ -190,7 +190,7 @@ namespace planning_models
             std::vector<shapes::Shape*> shapes_;
 
             /** \brief The constant transforms applied to the link (needs to be specified by user) */
-            std::vector<Eigen::Affine3f>    attach_trans_;
+            std::vector<Eigen::Affine3d>    attach_trans_;
 
             /** \brief The set of links this body is allowed to touch */
             std::set<std::string>       touch_links_;
@@ -211,7 +211,7 @@ namespace planning_models
                 attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
             AttachedBody(const LinkState *link, const std::string &id,
                          const std::vector<shapes::Shape*> &shapes,
-                         const std::vector<Eigen::Affine3f> &attach_trans,
+                         const std::vector<Eigen::Affine3d> &attach_trans,
                          const std::vector<std::string> &touch_links);
 
             /** \brief Construct an attached body for a specified \e
@@ -241,7 +241,7 @@ namespace planning_models
             }
 
             /** \brief Get the fixed transform (the transforms to the shapes associated with this body) */
-            const std::vector<Eigen::Affine3f>& getFixedTransforms(void) const
+            const std::vector<Eigen::Affine3d>& getFixedTransforms(void) const
             {
                 return properties_->attach_trans_;
             }
@@ -259,7 +259,7 @@ namespace planning_models
             }
 
             /** \brief Get the global transforms for the collision bodies */
-            const std::vector<Eigen::Affine3f>& getGlobalCollisionBodyTransforms(void) const
+            const std::vector<Eigen::Affine3d>& getGlobalCollisionBodyTransforms(void) const
             {
                 return global_collision_body_transforms_;
             }
@@ -283,7 +283,7 @@ namespace planning_models
             boost::shared_ptr<AttachedBodyProperties> properties_;
 
             /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
-    std::vector<Eigen::Affine3f>                  global_collision_body_transforms_;
+    std::vector<Eigen::Affine3d>                  global_collision_body_transforms_;
         };
 
         /** @brief The state corresponding to a link */
@@ -309,7 +309,7 @@ namespace planning_models
             }
 
             /** @brief Set the link state to the input transform */
-            void updateGivenGlobalLinkTransform(const Eigen::Affine3f& transform);
+            void updateGivenGlobalLinkTransform(const Eigen::Affine3d& transform);
 
             /** \brief Recompute global_collision_body_transform and global_link_transform */
             void computeTransform(void);
@@ -345,13 +345,13 @@ namespace planning_models
             const AttachedBody* getAttachedBody(const std::string &id) const;
 
             /** @brief Get the global transform for this link */
-            const Eigen::Affine3f& getGlobalLinkTransform(void) const
+            const Eigen::Affine3d& getGlobalLinkTransform(void) const
             {
                 return global_link_transform_;
             }
 
             /** @brief Get the global transform for the collision body associated with this link */
-            const Eigen::Affine3f& getGlobalCollisionBodyTransform(void) const
+            const Eigen::Affine3d& getGlobalCollisionBodyTransform(void) const
             {
                 return global_collision_body_transform_;
             }
@@ -365,7 +365,7 @@ namespace planning_models
             */
             void attachBody(const std::string &id,
                             const std::vector<shapes::Shape*> &shapes,
-                            const std::vector<Eigen::Affine3f> &attach_trans,
+                            const std::vector<Eigen::Affine3d> &attach_trans,
                             const std::vector<std::string> &touch_links);
 
             /**
@@ -398,10 +398,10 @@ namespace planning_models
             std::vector<AttachedBody*>       attached_body_vector_;
 
             /** \brief The global transform this link forwards (computed by forward kinematics) */
-            Eigen::Affine3f                      global_link_transform_;
+            Eigen::Affine3d                      global_link_transform_;
 
             /** \brief The global transform for this link (computed by forward kinematics) */
-            Eigen::Affine3f                      global_collision_body_transform_;
+            Eigen::Affine3d                      global_collision_body_transform_;
         };
 
 
@@ -577,7 +577,7 @@ namespace planning_models
         void updateLinkTransforms(void);
 
         /** \brief Update the state after setting a particular link to the input global transform pose.*/
-        bool updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3f& transform);
+        bool updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform);
 
         /** \brief Get the kinematic model corresponding to this state.*/
         const KinematicModelConstPtr& getKinematicModel(void) const
@@ -657,13 +657,13 @@ namespace planning_models
         /** \brief Print the pose of every link */
         void printTransforms(std::ostream &out = std::cout) const;
 
-        void printTransform(const std::string &st, const Eigen::Affine3f &t, std::ostream &out = std::cout) const;
+        void printTransform(const std::string &st, const Eigen::Affine3d &t, std::ostream &out = std::cout) const;
 
         /** \brief Get the global transform applied to the entire tree of links */
-        const Eigen::Affine3f& getRootTransform(void) const;
+        const Eigen::Affine3d& getRootTransform(void) const;
 
         /** \brief Set the global transform applied to the entire tree of links */
-        void setRootTransform(const Eigen::Affine3f &transform);
+        void setRootTransform(const Eigen::Affine3d &transform);
 
         /** \brief Return the instance of a random number generator */
         random_numbers::RandomNumberGenerator& getRandomNumberGenerator(void);
@@ -734,7 +734,7 @@ namespace planning_models
         std::map<std::string, LinkState*>       link_state_map_;
 
         /** \brief Additional transform to be applied to the tree of links */
-        Eigen::Affine3f                             root_transform_;
+        Eigen::Affine3d                             root_transform_;
 
         /** \brief A map from group names to instances of the group state */
         std::map<std::string, JointStateGroup*> joint_state_group_map_;

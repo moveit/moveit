@@ -68,9 +68,9 @@ namespace collision_detection
     struct Contact
     {
         /** \brief contact position */
-        Eigen::Vector3f   pos;
+        Eigen::Vector3d   pos;
         /** \brief normal unit vector at contact */
-        Eigen::Vector3f   normal;
+        Eigen::Vector3d   normal;
         /** \brief depth (penetration between bodies) */
         double      depth;
 
@@ -108,7 +108,7 @@ namespace collision_detection
         double      distance;
 
         /** \brief Gradient vector associated with collision */
-        Eigen::Vector3f   direction;
+        Eigen::Vector3d   direction;
 
         /** \brief Number of contacts returned */
         std::size_t contact_count;

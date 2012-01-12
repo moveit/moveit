@@ -70,7 +70,7 @@ void bodies::mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, Bo
 {
   if (spheres.empty())
   {
-    mergedSphere.center = Eigen::Vector3f();
+    mergedSphere.center = Eigen::Vector3d();
     mergedSphere.radius = 0.0;
   }
   else
@@ -89,7 +89,7 @@ void bodies::mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, Bo
       else
         if (d + spheres[i].radius > mergedSphere.radius)
         {
-          Eigen::Vector3f delta = mergedSphere.center - spheres[i].center;
+          Eigen::Vector3d delta = mergedSphere.center - spheres[i].center;
           mergedSphere.radius = (delta.norm() + spheres[i].radius + mergedSphere.radius)/2.0;
           mergedSphere.center = delta.normalized() * (mergedSphere.radius - spheres[i].radius) + spheres[i].center;
         }
@@ -105,13 +105,13 @@ bodies::Body* bodies::constructBodyFromMsg(const moveit_msgs::Shape &shape_msg, 
     Body *body = createBodyFromShape(shape);
     if (body)
     {
-      Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+      Eigen::Quaterniond q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
       if (fabs(q.squaredNorm() - 1.0) > 1e-3)
       {
         ROS_ERROR("Quaternion is not normalized. Assuming identity.");
-        q = Eigen::Quaternionf(1.0, 0.0, 0.0, 0.0);
+        q = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
       }
-      Eigen::Affine3f af(Eigen::Translation3f(pose.position.x, pose.position.y, pose.position.z) * q.toRotationMatrix());
+      Eigen::Affine3d af(Eigen::Translation3d(pose.position.x, pose.position.y, pose.position.z) * q.toRotationMatrix());
       body->setPose(af);
       return body;
     }

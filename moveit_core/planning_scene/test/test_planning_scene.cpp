@@ -60,7 +60,7 @@ TEST(PlanningScene, LoadRestoreDiff)
     EXPECT_TRUE(ps->isConfigured());
 
     collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
-    Eigen::Affine3f id = Eigen::Affine3f::Identity();
+    Eigen::Affine3d id = Eigen::Affine3d::Identity();
     cw.addToObject("sphere", new shapes::Sphere(0.4), id);
     
     moveit_msgs::PlanningScene ps_msg;

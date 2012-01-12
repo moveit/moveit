@@ -63,9 +63,9 @@ static const double ZERO = 1e-9;
 
 /** \brief Compute the square of the distance between a ray and a point
     Note: this requires 'dir' to be normalized */
-static inline double distanceSQR(const Eigen::Vector3f& p, const Eigen::Vector3f& origin, const Eigen::Vector3f& dir)
+static inline double distanceSQR(const Eigen::Vector3d& p, const Eigen::Vector3d& origin, const Eigen::Vector3d& dir)
 {
-  Eigen::Vector3f a = p - origin;
+  Eigen::Vector3d a = p - origin;
   double d = dir.dot(a);
   return a.squaredNorm() - d * d;
 }
@@ -73,9 +73,9 @@ static inline double distanceSQR(const Eigen::Vector3f& p, const Eigen::Vector3f
 // temp structure for intersection points (used for ordering them)
 struct intersc
 {
-  intersc(const Eigen::Vector3f &_pt, const double _tm) : pt(_pt), time(_tm) {}
+  intersc(const Eigen::Vector3d &_pt, const double _tm) : pt(_pt), time(_tm) {}
 
-  Eigen::Vector3f pt;
+  Eigen::Vector3d pt;
   double    time;
 };
 
@@ -96,13 +96,13 @@ void bodies::Body::setDimensions(const shapes::Shape *shape)
   updateInternalData();
 }
 
-bool bodies::Body::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, Eigen::Vector3f &result)
+bool bodies::Body::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, Eigen::Vector3d &result)
 {
   BoundingSphere bs;
   computeBoundingSphere(bs);
   for (unsigned int i = 0 ; i < max_attempts ; ++i)
   {
-    result = Eigen::Vector3f(rng.uniformReal(bs.center.x() - bs.radius, bs.center.x() + bs.radius),
+    result = Eigen::Vector3d(rng.uniformReal(bs.center.x() - bs.radius, bs.center.x() + bs.radius),
                              rng.uniformReal(bs.center.y() - bs.radius, bs.center.y() + bs.radius),
                              rng.uniformReal(bs.center.z() - bs.radius, bs.center.z() + bs.radius));
     if (containsPoint(result))
@@ -111,7 +111,7 @@ bool bodies::Body::samplePointInside(random_numbers::RandomNumberGenerator &rng,
   return false;
 }
 
-bool bodies::Sphere::containsPoint(const Eigen::Vector3f &p, bool verbose) const
+bool bodies::Sphere::containsPoint(const Eigen::Vector3d &p, bool verbose) const
 {
   return (center_ - p).squaredNorm() < radius2_;
 }
@@ -134,7 +134,7 @@ void bodies::Sphere::updateInternalData(void)
   center_ = pose_.translation();
 }
 
-boost::shared_ptr<bodies::Body> bodies::Sphere::cloneAt(const Eigen::Affine3f &pose, double padding, double scale) const
+boost::shared_ptr<bodies::Body> bodies::Sphere::cloneAt(const Eigen::Affine3d &pose, double padding, double scale) const
 {
   Sphere *s = new Sphere();
   s->radius_ = radius_;
@@ -164,11 +164,11 @@ void bodies::Sphere::computeBoundingCylinder(BoundingCylinder &cylinder) const
 
 }
 
-bool bodies::Sphere::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, Eigen::Vector3f &result)
+bool bodies::Sphere::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, Eigen::Vector3d &result)
 {
   for (unsigned int i = 0 ; i < max_attempts ; ++i)
   {
-    result = Eigen::Vector3f(rng.uniformReal(center_.x() - radiusU_, center_.x() + radiusU_),
+    result = Eigen::Vector3d(rng.uniformReal(center_.x() - radiusU_, center_.x() + radiusU_),
                              rng.uniformReal(center_.y() - radiusU_, center_.y() + radiusU_),
                              rng.uniformReal(center_.z() - radiusU_, center_.z() + radiusU_));
     if (containsPoint(result))
@@ -177,17 +177,17 @@ bool bodies::Sphere::samplePointInside(random_numbers::RandomNumberGenerator &rn
   return false;
 }
 
-bool bodies::Sphere::intersectsRay(const Eigen::Vector3f& origin, const Eigen::Vector3f& dir, std::vector<Eigen::Vector3f> *intersections, unsigned int count) const
+bool bodies::Sphere::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
 {
   if (detail::distanceSQR(center_, origin, dir) > radius2_) return false;
 
   bool result = false;
 
-  Eigen::Vector3f cp = origin - center_;
+  Eigen::Vector3d cp = origin - center_;
   double dpcpv = cp.dot(dir);
 
-  Eigen::Vector3f w = cp - dpcpv * dir;
-  Eigen::Vector3f Q = center_ + w;
+  Eigen::Vector3d w = cp - dpcpv * dir;
+  Eigen::Vector3d Q = center_ + w;
   double x = radius2_ - w.squaredNorm();
 
   if (fabs(x) < detail::ZERO)
@@ -205,8 +205,8 @@ bool bodies::Sphere::intersectsRay(const Eigen::Vector3f& origin, const Eigen::V
     {
       x = sqrt(x);
       w = dir * x;
-      Eigen::Vector3f A = Q - w;
-      Eigen::Vector3f B = Q + w;
+      Eigen::Vector3d A = Q - w;
+      Eigen::Vector3d B = Q + w;
       w = A - origin;
       double dpAv = w.dot(dir);
       w = B - origin;
@@ -233,9 +233,9 @@ bool bodies::Sphere::intersectsRay(const Eigen::Vector3f& origin, const Eigen::V
   return result;
 }
 
-bool bodies::Cylinder::containsPoint(const Eigen::Vector3f &p, bool verbose) const
+bool bodies::Cylinder::containsPoint(const Eigen::Vector3d &p, bool verbose) const
 {
-  Eigen::Vector3f v = p - center_;
+  Eigen::Vector3d v = p - center_;
   double pH = v.dot(normalH_);
 
   if (fabs(pH) > length2_)
@@ -276,7 +276,7 @@ void bodies::Cylinder::updateInternalData(void)
   radiusBSqr_ = length2_ * length2_ + radius2_;
   radiusB_ = sqrt(radiusBSqr_);
 
-  const Eigen::Matrix3f& basis = pose_.rotation();
+  const Eigen::Matrix3d& basis = pose_.rotation();
   normalB1_ = basis.col(0);
   normalB2_ = basis.col(1);
   normalH_  = basis.col(2);
@@ -286,7 +286,7 @@ void bodies::Cylinder::updateInternalData(void)
   d2_ = tmp - length2_;
 }
 
-bool bodies::Cylinder::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, Eigen::Vector3f &result)
+bool bodies::Cylinder::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, Eigen::Vector3d &result)
 {
   // sample a point on the base disc of the cylinder
   double a = rng.uniformReal(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
@@ -297,11 +297,11 @@ bool bodies::Cylinder::samplePointInside(random_numbers::RandomNumberGenerator &
   // sample e height
   double z = rng.uniformReal(-length2_, length2_);
 
-  result = Eigen::Vector3f(x, y, z);
+  result = Eigen::Vector3d(x, y, z);
   return true;
 }
 
-boost::shared_ptr<bodies::Body> bodies::Cylinder::cloneAt(const Eigen::Affine3f &pose, double padding, double scale) const
+boost::shared_ptr<bodies::Body> bodies::Cylinder::cloneAt(const Eigen::Affine3d &pose, double padding, double scale) const
 {
   Cylinder *c = new Cylinder();
   c->length_ = length_;
@@ -331,7 +331,7 @@ void bodies::Cylinder::computeBoundingCylinder(BoundingCylinder &cylinder) const
   cylinder.length = scale_*length_+padding_;
 }
 
-bool bodies::Cylinder::intersectsRay(const Eigen::Vector3f& origin, const Eigen::Vector3f& dir, std::vector<Eigen::Vector3f> *intersections, unsigned int count) const
+bool bodies::Cylinder::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
 {
   if (detail::distanceSQR(center_, origin, dir) > radiusBSqr_) return false;
 
@@ -346,8 +346,8 @@ bool bodies::Cylinder::intersectsRay(const Eigen::Vector3f& origin, const Eigen:
 
     if (t1 > 0.0)
     {
-      Eigen::Vector3f p1(origin + dir * t1);
-      Eigen::Vector3f v1(p1 - center_);
+      Eigen::Vector3d p1(origin + dir * t1);
+      Eigen::Vector3d v1(p1 - center_);
       v1 = v1 - normalH_.dot(v1) * normalH_;
       if (v1.squaredNorm() < radius2_ + detail::ZERO)
       {
@@ -362,8 +362,8 @@ bool bodies::Cylinder::intersectsRay(const Eigen::Vector3f& origin, const Eigen:
     double t2 = (tmp2 - d2_) / tmp;
     if (t2 > 0.0)
     {
-      Eigen::Vector3f p2(origin + dir * t2);
-      Eigen::Vector3f v2(p2 - center_);
+      Eigen::Vector3d p2(origin + dir * t2);
+      Eigen::Vector3d v2(p2 - center_);
       v2 = v2 - normalH_.dot(v2) * normalH_;
       if (v2.squaredNorm() < radius2_ + detail::ZERO)
       {
@@ -379,8 +379,8 @@ bool bodies::Cylinder::intersectsRay(const Eigen::Vector3f& origin, const Eigen:
   if (ipts.size() < 2)
   {
     // intersect with infinite cylinder
-    Eigen::Vector3f VD(normalH_.cross(dir));
-    Eigen::Vector3f ROD(normalH_.cross(origin - center_));
+    Eigen::Vector3d VD(normalH_.cross(dir));
+    Eigen::Vector3d ROD(normalH_.cross(origin - center_));
     double a = VD.squaredNorm();
     double b = 2.0 * ROD.dot(VD);
     double c = ROD.squaredNorm() - radius2_;
@@ -394,8 +394,8 @@ bool bodies::Cylinder::intersectsRay(const Eigen::Vector3f& origin, const Eigen:
 
       if (t1 > 0.0)
       {
-        Eigen::Vector3f p1(origin + dir * t1);
-        Eigen::Vector3f v1(center_ - p1);
+        Eigen::Vector3d p1(origin + dir * t1);
+        Eigen::Vector3d v1(center_ - p1);
 
         if (fabs(normalH_.dot(v1)) < length2_ + detail::ZERO)
         {
@@ -409,8 +409,8 @@ bool bodies::Cylinder::intersectsRay(const Eigen::Vector3f& origin, const Eigen:
 
       if (t2 > 0.0)
       {
-        Eigen::Vector3f p2(origin + dir * t2);
-        Eigen::Vector3f v2(center_ - p2);
+        Eigen::Vector3d p2(origin + dir * t2);
+        Eigen::Vector3d v2(center_ - p2);
 
         if (fabs(normalH_.dot(v2)) < length2_ + detail::ZERO)
         {
@@ -434,17 +434,17 @@ bool bodies::Cylinder::intersectsRay(const Eigen::Vector3f& origin, const Eigen:
   return true;
 }
 
-bool bodies::Box::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int /* max_attempts */, Eigen::Vector3f &result)
+bool bodies::Box::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int /* max_attempts */, Eigen::Vector3d &result)
 {
-  result = center_ + Eigen::Vector3f(rng.uniformReal(-length2_, length2_),
+  result = center_ + Eigen::Vector3d(rng.uniformReal(-length2_, length2_),
 				     rng.uniformReal(-width2_, width2_),
 				     rng.uniformReal(-height2_, height2_));
   return true;
 }
 
-bool bodies::Box::containsPoint(const Eigen::Vector3f &p, bool verbose) const
+bool bodies::Box::containsPoint(const Eigen::Vector3d &p, bool verbose) const
 {
-  Eigen::Vector3f v = p - center_;
+  Eigen::Vector3d v = p - center_;
   double pL = v.dot(normalL_);
   if (fabs(pL) > length2_)
     return false;
@@ -489,17 +489,17 @@ void bodies::Box::updateInternalData(void)
   radius2_ = length2_ * length2_ + width2_ * width2_ + height2_ * height2_;
   radiusB_ = sqrt(radius2_);
 
-  const Eigen::Matrix3f& basis = pose_.rotation();
+  const Eigen::Matrix3d& basis = pose_.rotation();
   normalL_ = basis.col(0);
   normalW_ = basis.col(1);
   normalH_ = basis.col(2);
 
-  const Eigen::Vector3f tmp(normalL_ * length2_ + normalW_ * width2_ + normalH_ * height2_);
+  const Eigen::Vector3d tmp(normalL_ * length2_ + normalW_ * width2_ + normalH_ * height2_);
   corner1_ = center_ - tmp;
   corner2_ = center_ + tmp;
 }
 
-boost::shared_ptr<bodies::Body> bodies::Box::cloneAt(const Eigen::Affine3f &pose, double padding, double scale) const
+boost::shared_ptr<bodies::Body> bodies::Box::cloneAt(const Eigen::Affine3d &pose, double padding, double scale) const
 {
   Box *b = new Box();
   b->length_ = length_;
@@ -532,7 +532,7 @@ void bodies::Box::computeBoundingCylinder(BoundingCylinder &cylinder) const
     cylinder.length = length2_*2.0;
     a = width2_;
     b = height2_;
-    Eigen::Affine3f rot(Eigen::AngleAxisf(90.0f * (M_PI/180.0f), Eigen::Vector3f::UnitY()));
+    Eigen::Affine3d rot(Eigen::AngleAxisd(90.0f * (M_PI/180.0f), Eigen::Vector3d::UnitY()));
     cylinder.pose = pose_*rot;
   }
   else
@@ -542,7 +542,7 @@ void bodies::Box::computeBoundingCylinder(BoundingCylinder &cylinder) const
       a = height2_;
       b = length2_;
       cylinder.radius = sqrt(height2_*height2_+length2_*length2_);
-      Eigen::Affine3f rot(Eigen::AngleAxisf(90.0f * (M_PI/180.0f), Eigen::Vector3f::UnitX()));
+      Eigen::Affine3d rot(Eigen::AngleAxisd(90.0f * (M_PI/180.0f), Eigen::Vector3d::UnitX()));
       cylinder.pose = pose_*rot;
     }
     else
@@ -555,7 +555,7 @@ void bodies::Box::computeBoundingCylinder(BoundingCylinder &cylinder) const
   cylinder.radius = sqrt(a * a + b * b);
 }
 
-bool bodies::Box::intersectsRay(const Eigen::Vector3f& origin, const Eigen::Vector3f& dir, std::vector<Eigen::Vector3f> *intersections, unsigned int count) const
+bool bodies::Box::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
 {
   if (detail::distanceSQR(center_, origin, dir) > radius2_) return false;
 
@@ -564,7 +564,7 @@ bool bodies::Box::intersectsRay(const Eigen::Vector3f& origin, const Eigen::Vect
 
   for (int i = 0; i < 3; i++)
   {
-    const Eigen::Vector3f &vN = i == 0 ? normalL_ : (i == 1 ? normalW_ : normalH_);
+    const Eigen::Vector3d &vN = i == 0 ? normalL_ : (i == 1 ? normalW_ : normalH_);
     double dp = vN.dot(dir);
 
     if (fabs(dp) > detail::ZERO)
@@ -632,12 +632,12 @@ bool bodies::Box::intersectsRay(const Eigen::Vector3f& origin, const Eigen::Vect
   return true;
 }
 
-bool bodies::ConvexMesh::containsPoint(const Eigen::Vector3f &p, bool verbose) const
+bool bodies::ConvexMesh::containsPoint(const Eigen::Vector3d &p, bool verbose) const
 {
   if (!mesh_data_) return false;
   if (bounding_box_.containsPoint(p))
   {
-    Eigen::Vector3f ip(i_pose_.rotation() * p);
+    Eigen::Vector3d ip(i_pose_.rotation() * p);
     ip = mesh_data_->mesh_center_ + (ip - mesh_data_->mesh_center_) * scale_;
     return isPointInsidePlanes(ip);
   }
@@ -672,15 +672,15 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   if (maxY < minY) maxY = minY = 0.0;
   if (maxZ < minZ) maxZ = minZ = 0.0;
 
-  mesh_data_->box_size_ = Eigen::Vector3f(maxX - minX, maxY - minY, maxZ - minZ);
+  mesh_data_->box_size_ = Eigen::Vector3d(maxX - minX, maxY - minY, maxZ - minZ);
 
-  mesh_data_->box_offset_ = Eigen::Vector3f((minX + maxX) / 2.0, (minY + maxY) / 2.0, (minZ + maxZ) / 2.0);
+  mesh_data_->box_offset_ = Eigen::Vector3d((minX + maxX) / 2.0, (minY + maxY) / 2.0, (minZ + maxZ) / 2.0);
 
   mesh_data_->planes_.clear();
   mesh_data_->triangles_.clear();
   mesh_data_->vertices_.clear();
   mesh_data_->mesh_radiusB_ = 0.0;
-  mesh_data_->mesh_center_ = Eigen::Vector3f();
+  mesh_data_->mesh_center_ = Eigen::Vector3d();
 
   double xdim = maxX - minX;
   double ydim = maxY - minY;
@@ -720,7 +720,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     cyl_length = zdim;
   }
 
-  // Eigen::Vector3f *vertices = new Eigen::Vector3f[mesh->vertex_count];
+  // Eigen::Vector3d *vertices = new Eigen::Vector3d[mesh->vertex_count];
   // for(unsigned int i = 0; i < mesh->vertex_count ; ++i)
   // {
   //   vertices[i].setX(mesh->vertices[3 * i    ]);
@@ -764,13 +764,13 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   
   int num_vertices = qh num_vertices;
   mesh_data_->vertices_.reserve(num_vertices);
-  Eigen::Vector3f sum(0, 0, 0);
+  Eigen::Vector3d sum(0, 0, 0);
 
   //necessary for FORALLvertices
   vertexT * vertex;
   FORALLvertices
   {
-    Eigen::Vector3f vert(vertex->point[0],
+    Eigen::Vector3d vert(vertex->point[0],
                          vertex->point[1],
                          vertex->point[2]);
     sum += vert;
@@ -792,7 +792,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   facetT * facet;
   FORALLfacets
   {
-    std::vector<Eigen::Vector3f> facet_vec;
+    std::vector<Eigen::Vector3d> facet_vec;
     std::vector<unsigned int> facet_vertex_indices;
     
     // Needed by FOREACHvertex_i_
@@ -802,13 +802,13 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
       facet_vertex_indices.push_back(vertex_i);
       facet_vec.push_back(mesh_data_->vertices_[vertex_i]);
     }
-    Eigen::Vector3f edge1 = facet_vec[1]-facet_vec[0];
-    Eigen::Vector3f edge2 = facet_vec[2]-facet_vec[0];
+    Eigen::Vector3d edge1 = facet_vec[1]-facet_vec[0];
+    Eigen::Vector3d edge2 = facet_vec[2]-facet_vec[0];
     
     edge1.normalize();
     edge2.normalize();
 
-    Eigen::Vector3f planeNormal = edge1.cross(edge2);
+    Eigen::Vector3d planeNormal = edge1.cross(edge2);
     
     if (planeNormal.squaredNorm() > 1e-6)
     {
@@ -842,17 +842,17 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   qh_memfreeshort (&curlong, &totlong);
   //   for (unsigned int j = 0 ; j < hr.mNumFaces ; ++j)
   //   {
-  //     const Eigen::Vector3f &p1 = hr.m_OutputVertices[hr.m_Indices[j * 3    ]];
-  //     const Eigen::Vector3f &p2 = hr.m_OutputVertices[hr.m_Indices[j * 3 + 1]];
-  //     const Eigen::Vector3f &p3 = hr.m_OutputVertices[hr.m_Indices[j * 3 + 2]];
+  //     const Eigen::Vector3d &p1 = hr.m_OutputVertices[hr.m_Indices[j * 3    ]];
+  //     const Eigen::Vector3d &p2 = hr.m_OutputVertices[hr.m_Indices[j * 3 + 1]];
+  //     const Eigen::Vector3d &p3 = hr.m_OutputVertices[hr.m_Indices[j * 3 + 2]];
 
-  //     Eigen::Vector3f edge1 = (p2 - p1);
-  //     Eigen::Vector3f edge2 = (p3 - p1);
+  //     Eigen::Vector3d edge1 = (p2 - p1);
+  //     Eigen::Vector3d edge2 = (p3 - p1);
 
   //     edge1.normalize();
   //     edge2.normalize();
 
-  //     Eigen::Vector3f planeNormal = edge1.cross(edge2);
+  //     Eigen::Vector3d planeNormal = edge1.cross(edge2);
 
   //     if (planeNormal.squaredNorm() > btScalar(1e-6))
   //     {
@@ -895,8 +895,8 @@ void bodies::ConvexMesh::updateInternalData(void)
 {
   if (!mesh_data_)
     return;
-  Eigen::Affine3f pose = pose_;
-  pose.translation() = Eigen::Vector3f(pose_ * mesh_data_->box_offset_);
+  Eigen::Affine3d pose = pose_;
+  pose.translation() = Eigen::Vector3d(pose_ * mesh_data_->box_offset_);
 
   boost::scoped_ptr<shapes::Box> box_shape(new shapes::Box(mesh_data_->box_size_.x(), mesh_data_->box_size_.y(), mesh_data_->box_size_.z()));
   bounding_box_.setDimensions(box_shape.get());
@@ -915,12 +915,12 @@ void bodies::ConvexMesh::updateInternalData(void)
   else
   {
     if (!scaled_vertices_storage_)
-      scaled_vertices_storage_.reset(new std::vector<Eigen::Vector3f>());
+      scaled_vertices_storage_.reset(new std::vector<Eigen::Vector3d>());
     scaled_vertices_ = scaled_vertices_storage_.get();
     scaled_vertices_storage_->resize(mesh_data_->vertices_.size());
     for (unsigned int i = 0 ; i < mesh_data_->vertices_.size() ; ++i)
     {
-      Eigen::Vector3f v(mesh_data_->vertices_[i] - mesh_data_->mesh_center_);
+      Eigen::Vector3d v(mesh_data_->vertices_[i] - mesh_data_->mesh_center_);
       double l = v.norm();
       scaled_vertices_storage_->at(i) = mesh_data_->mesh_center_ + v * (scale_ + (l > detail::ZERO ? padding_ / l : 0.0));
     }
@@ -932,18 +932,18 @@ const std::vector<unsigned int>& bodies::ConvexMesh::getTriangles(void) const
   return mesh_data_ ? mesh_data_->triangles_ : empty;
 }
 
-const std::vector<Eigen::Vector3f>& bodies::ConvexMesh::getVertices(void) const
+const std::vector<Eigen::Vector3d>& bodies::ConvexMesh::getVertices(void) const
 {
-  static std::vector<Eigen::Vector3f> empty;
+  static std::vector<Eigen::Vector3d> empty;
   return mesh_data_ ? mesh_data_->vertices_ : empty;
 }
 
-const std::vector<Eigen::Vector3f>& bodies::ConvexMesh::getScaledVertices(void) const
+const std::vector<Eigen::Vector3d>& bodies::ConvexMesh::getScaledVertices(void) const
 {
   return scaled_vertices_ ? *scaled_vertices_ : getVertices();
 }
 
-boost::shared_ptr<bodies::Body> bodies::ConvexMesh::cloneAt(const Eigen::Affine3f &pose, double padding, double scale) const
+boost::shared_ptr<bodies::Body> bodies::ConvexMesh::cloneAt(const Eigen::Affine3d &pose, double padding, double scale) const
 {
   ConvexMesh *m = new ConvexMesh();
   m->mesh_data_ = mesh_data_;
@@ -970,13 +970,13 @@ void bodies::ConvexMesh::computeBoundingCylinder(BoundingCylinder &cylinder) con
   cylinder.pose = cyl.pose;
 }
 
-bool bodies::ConvexMesh::isPointInsidePlanes(const Eigen::Vector3f& point) const
+bool bodies::ConvexMesh::isPointInsidePlanes(const Eigen::Vector3d& point) const
 {
   unsigned int numplanes = mesh_data_->planes_.size();
   for (unsigned int i = 0 ; i < numplanes ; ++i)
   {
     const Eigen::Vector4f& plane = mesh_data_->planes_[i];
-    Eigen::Vector3f plane_vec(plane.x(), plane.y(), plane.z());
+    Eigen::Vector3d plane_vec(plane.x(), plane.y(), plane.z());
     double dist = plane_vec.dot(point) + plane.w() - padding_ - 1e-6;
     if (dist > 0.0)
       return false;
@@ -990,7 +990,7 @@ unsigned int bodies::ConvexMesh::countVerticesBehindPlane(const Eigen::Vector4f&
   unsigned int result = 0;
   for (unsigned int i = 0 ; i < numvertices ; ++i)
   {
-    Eigen::Vector3f plane_vec(planeNormal.x(), planeNormal.y(), planeNormal.z());
+    Eigen::Vector3d plane_vec(planeNormal.x(), planeNormal.y(), planeNormal.z());
     double dist = plane_vec.dot(mesh_data_->vertices_[i]) + planeNormal.w() - 1e-6;
     if (dist > 0.0)
       result++;
@@ -1004,23 +1004,23 @@ double bodies::ConvexMesh::computeVolume(void) const
   if (mesh_data_)
     for (unsigned int i = 0 ; i < mesh_data_->triangles_.size() / 3 ; ++i)
     {
-      const Eigen::Vector3f &v1 = mesh_data_->vertices_[mesh_data_->triangles_[3*i + 0]];
-      const Eigen::Vector3f &v2 = mesh_data_->vertices_[mesh_data_->triangles_[3*i + 1]];
-      const Eigen::Vector3f &v3 = mesh_data_->vertices_[mesh_data_->triangles_[3*i + 2]];
+      const Eigen::Vector3d &v1 = mesh_data_->vertices_[mesh_data_->triangles_[3*i + 0]];
+      const Eigen::Vector3d &v2 = mesh_data_->vertices_[mesh_data_->triangles_[3*i + 1]];
+      const Eigen::Vector3d &v3 = mesh_data_->vertices_[mesh_data_->triangles_[3*i + 2]];
       volume += v1.x()*v2.y()*v3.z() + v2.x()*v3.y()*v1.z() + v3.x()*v1.y()*v2.z() - v1.x()*v3.y()*v2.z() - v2.x()*v1.y()*v3.z() - v3.x()*v2.y()*v1.z();
     }
   return fabs(volume)/6.0;
 }
 
-bool bodies::ConvexMesh::intersectsRay(const Eigen::Vector3f& origin, const Eigen::Vector3f& dir, std::vector<Eigen::Vector3f> *intersections, unsigned int count) const
+bool bodies::ConvexMesh::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
 {
   if (!mesh_data_) return false;
   if (detail::distanceSQR(center_, origin, dir) > radiusBSqr_) return false;
   if (!bounding_box_.intersectsRay(origin, dir)) return false;
 
   // transform the ray into the coordinate frame of the mesh
-  Eigen::Vector3f orig(i_pose_ * origin);
-  Eigen::Vector3f dr(i_pose_ * dir);
+  Eigen::Vector3d orig(i_pose_ * origin);
+  Eigen::Vector3d dr(i_pose_ * dir);
 
   std::vector<detail::intersc> ipts;
 
@@ -1030,7 +1030,7 @@ bool bodies::ConvexMesh::intersectsRay(const Eigen::Vector3f& origin, const Eige
   const unsigned int nt = mesh_data_->triangles_.size() / 3;
   for (unsigned int i = 0 ; i < nt ; ++i)
   {
-    Eigen::Vector3f vec(mesh_data_->planes_[i].x(),
+    Eigen::Vector3d vec(mesh_data_->planes_[i].x(),
                         mesh_data_->planes_[i].y(),
                         mesh_data_->planes_[i].z());
     
@@ -1046,26 +1046,26 @@ bool bodies::ConvexMesh::intersectsRay(const Eigen::Vector3f& origin, const Eige
         const int v2 = mesh_data_->triangles_[i3 + 1];
         const int v3 = mesh_data_->triangles_[i3 + 2];
 
-        const Eigen::Vector3f &a = scaled_vertices_->at(v1);
-        const Eigen::Vector3f &b = scaled_vertices_->at(v2);
-        const Eigen::Vector3f &c = scaled_vertices_->at(v3);
+        const Eigen::Vector3d &a = scaled_vertices_->at(v1);
+        const Eigen::Vector3d &b = scaled_vertices_->at(v2);
+        const Eigen::Vector3d &c = scaled_vertices_->at(v3);
 
-        Eigen::Vector3f cb(c - b);
-        Eigen::Vector3f ab(a - b);
+        Eigen::Vector3d cb(c - b);
+        Eigen::Vector3d ab(a - b);
 
         // intersection of the plane defined by the triangle and the ray
-        Eigen::Vector3f P(orig + dr * t);
+        Eigen::Vector3d P(orig + dr * t);
 
         // check if it is inside the triangle
-        Eigen::Vector3f pb(P - b);
-        Eigen::Vector3f c1(cb.cross(pb));
-        Eigen::Vector3f c2(cb.cross(ab));
+        Eigen::Vector3d pb(P - b);
+        Eigen::Vector3d c1(cb.cross(pb));
+        Eigen::Vector3d c2(cb.cross(ab));
         if (c1.dot(c2) < 0.0)
           continue;
 
-        Eigen::Vector3f ca(c - a);
-        Eigen::Vector3f pa(P - a);
-        Eigen::Vector3f ba(-ab);
+        Eigen::Vector3d ca(c - a);
+        Eigen::Vector3d pa(P - a);
+        Eigen::Vector3d ba(-ab);
 
         c1 = ca.cross(pa);
         c2 = ca.cross(ba);
@@ -1106,7 +1106,7 @@ bodies::BodyVector::BodyVector(void)
 }
 
 bodies::BodyVector::BodyVector(const std::vector<shapes::Shape*>& shapes,
-                               const std::vector<Eigen::Affine3f>& poses,
+                               const std::vector<Eigen::Affine3d>& poses,
                                double padding)
 {
   for(unsigned int i = 0; i < shapes.size(); i++)
@@ -1135,7 +1135,7 @@ void bodies::BodyVector::addBody(Body *body)
   rsqrs_.push_back(sphere.radius * sphere.radius);
 }
 
-void bodies::BodyVector::addBody(const shapes::Shape *shape, const Eigen::Affine3f& pose, double padding)
+void bodies::BodyVector::addBody(const shapes::Shape *shape, const Eigen::Affine3d& pose, double padding)
 {
   bodies::Body* body = bodies::createBodyFromShape(shape);
   body->setPose(pose);
@@ -1148,7 +1148,7 @@ std::size_t bodies::BodyVector::getCount(void) const
   return bodies_.size();
 }
 
-void bodies::BodyVector::setPose(unsigned int i, const Eigen::Affine3f& pose)
+void bodies::BodyVector::setPose(unsigned int i, const Eigen::Affine3d& pose)
 {
   if (i >= bodies_.size())
   {
@@ -1181,7 +1181,7 @@ double bodies::BodyVector::getBoundingSphereRadiusSquared(unsigned int i) const
     return rsqrs_[i];
 }
 
-bool bodies::BodyVector::containsPoint(const Eigen::Vector3f &p, bool verbose) const
+bool bodies::BodyVector::containsPoint(const Eigen::Vector3d &p, bool verbose) const
 {
   for (unsigned int i = 0 ; i < bodies_.size() ; ++i)
     if (bodies_[i]->containsPoint(p, verbose))
@@ -1189,7 +1189,7 @@ bool bodies::BodyVector::containsPoint(const Eigen::Vector3f &p, bool verbose) c
   return false;
 }
 
-bool bodies::BodyVector::intersectsRay(const Eigen::Vector3f& origin, const Eigen::Vector3f &dir, int &index, std::vector<Eigen::Vector3f> *intersections, unsigned int count) const
+bool bodies::BodyVector::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, int &index, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
 {
   index = -1;
   for (unsigned int i = 0 ; i < bodies_.size() ; ++i)

@@ -122,13 +122,13 @@ namespace collision_detection
     boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape, double scale, double padding);
     boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape);
 
-inline void transform2fcl(const Eigen::Affine3f &b, fcl::SimpleTransform &f)
+inline void transform2fcl(const Eigen::Affine3d &b, fcl::SimpleTransform &f)
     {
-      Eigen::Quaternionf q(b.rotation());
+      Eigen::Quaterniond q(b.rotation());
       f.setTranslation(fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
       f.setQuatRotation(fcl::SimpleQuaternion(q.w(), q.x(), q.y(), q.z()));
     }
-    inline fcl::SimpleTransform transform2fcl(const Eigen::Affine3f &b)
+    inline fcl::SimpleTransform transform2fcl(const Eigen::Affine3d &b)
     {
         fcl::SimpleTransform t;
         transform2fcl(b, t);
@@ -137,8 +137,8 @@ inline void transform2fcl(const Eigen::Affine3f &b, fcl::SimpleTransform &f)
 
     inline void fcl2contact(const fcl::Contact &fc, Contact &c)
     {
-      c.pos = Eigen::Vector3f(fc.pos[0], fc.pos[1], fc.pos[2]);
-      c.normal = Eigen::Vector3f(fc.normal[0], fc.normal[1], fc.normal[2]);
+      c.pos = Eigen::Vector3d(fc.pos[0], fc.pos[1], fc.pos[2]);
+      c.normal = Eigen::Vector3d(fc.normal[0], fc.normal[1], fc.normal[2]);
         c.depth = fc.penetration_depth;
         const CollisionGeometryData *cgd1 = static_cast<const CollisionGeometryData*>(fc.o1->getUserData());
         c.body_name_1 = cgd1->getID();

@@ -496,34 +496,34 @@ TEST(FK, OneRobot)
     EXPECT_NEAR(1.0, state.getLinkState("base_link")->getGlobalLinkTransform().translation().x(), 1e-5);
     EXPECT_NEAR(1.0, state.getLinkState("base_link")->getGlobalLinkTransform().translation().y(), 1e-5);
     EXPECT_NEAR(0.0, state.getLinkState("base_link")->getGlobalLinkTransform().translation().z(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("base_link")->getGlobalLinkTransform().rotation()).x(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("base_link")->getGlobalLinkTransform().rotation()).y(), 1e-5);
-    EXPECT_NEAR(0.247404, Eigen::Quaternionf(state.getLinkState("base_link")->getGlobalLinkTransform().rotation()).z(), 1e-5);
-    EXPECT_NEAR(0.968912, Eigen::Quaternionf(state.getLinkState("base_link")->getGlobalLinkTransform().rotation()).w(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("base_link")->getGlobalLinkTransform().rotation()).x(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("base_link")->getGlobalLinkTransform().rotation()).y(), 1e-5);
+    EXPECT_NEAR(0.247404, Eigen::Quaterniond(state.getLinkState("base_link")->getGlobalLinkTransform().rotation()).z(), 1e-5);
+    EXPECT_NEAR(0.968912, Eigen::Quaterniond(state.getLinkState("base_link")->getGlobalLinkTransform().rotation()).w(), 1e-5);
 
     EXPECT_NEAR(1.0, state.getLinkState("link_a")->getGlobalLinkTransform().translation().x(), 1e-5);
     EXPECT_NEAR(1.0, state.getLinkState("link_a")->getGlobalLinkTransform().translation().y(), 1e-5);
     EXPECT_NEAR(0.0, state.getLinkState("link_a")->getGlobalLinkTransform().translation().z(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("link_a")->getGlobalLinkTransform().rotation()).x(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("link_a")->getGlobalLinkTransform().rotation()).y(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("link_a")->getGlobalLinkTransform().rotation()).z(), 1e-5);
-    EXPECT_NEAR(1.0, Eigen::Quaternionf(state.getLinkState("link_a")->getGlobalLinkTransform().rotation()).w(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_a")->getGlobalLinkTransform().rotation()).x(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_a")->getGlobalLinkTransform().rotation()).y(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_a")->getGlobalLinkTransform().rotation()).z(), 1e-5);
+    EXPECT_NEAR(1.0, Eigen::Quaterniond(state.getLinkState("link_a")->getGlobalLinkTransform().rotation()).w(), 1e-5);
 
     EXPECT_NEAR(1.0, state.getLinkState("link_b")->getGlobalLinkTransform().translation().x(), 1e-5);
     EXPECT_NEAR(1.5, state.getLinkState("link_b")->getGlobalLinkTransform().translation().y(), 1e-5);
     EXPECT_NEAR(0.0, state.getLinkState("link_b")->getGlobalLinkTransform().translation().z(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).x(), 1e-5);
-    EXPECT_NEAR(-0.20846, Eigen::Quaternionf(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).y(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).z(), 1e-5);
-    EXPECT_NEAR(0.978031, Eigen::Quaternionf(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).w(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).x(), 1e-5);
+    EXPECT_NEAR(-0.20846, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).y(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).z(), 1e-5);
+    EXPECT_NEAR(0.978031, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).w(), 1e-5);
 
     EXPECT_NEAR(1.1, state.getLinkState("link_c")->getGlobalLinkTransform().translation().x(), 1e-5);
     EXPECT_NEAR(1.4, state.getLinkState("link_c")->getGlobalLinkTransform().translation().y(), 1e-5);
     EXPECT_NEAR(0.0, state.getLinkState("link_c")->getGlobalLinkTransform().translation().z(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("link_c")->getGlobalLinkTransform().rotation()).x(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("link_c")->getGlobalLinkTransform().rotation()).y(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaternionf(state.getLinkState("link_c")->getGlobalLinkTransform().rotation()).z(), 1e-5);
-    EXPECT_NEAR(1.0, Eigen::Quaternionf(state.getLinkState("link_c")->getGlobalLinkTransform().rotation()).w(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_c")->getGlobalLinkTransform().rotation()).x(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_c")->getGlobalLinkTransform().rotation()).y(), 1e-5);
+    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_c")->getGlobalLinkTransform().rotation()).z(), 1e-5);
+    EXPECT_NEAR(1.0, Eigen::Quaterniond(state.getLinkState("link_c")->getGlobalLinkTransform().rotation()).w(), 1e-5);
 
     //bonus bounds lookup test
     std::vector<std::string> jn;
