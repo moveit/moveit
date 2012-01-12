@@ -700,7 +700,7 @@ bool kinematic_constraints::KinematicConstraintSet::decide(const planning_models
   for (unsigned int i = 0 ; i < kinematic_constraints_.size() ; ++i)
   {
     double d;
-    const bool &r = kinematic_constraints_[i]->decide(state, d, verbose);
+    bool r = kinematic_constraints_[i]->decide(state, d, verbose);
     if (!r)
     {
       result = false;

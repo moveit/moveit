@@ -156,7 +156,6 @@ void planning_models::Transforms::transformRotationMatrix(const std::string &fro
 
 void planning_models::Transforms::transformPose(const std::string &from_frame, const Eigen::Affine3d &t_in, Eigen::Affine3d &t_out) const
 {
-  ROS_INFO_STREAM("Get transform x " << getTransform(from_frame).translation().x());
   t_out = getTransform(from_frame) * t_in;
 }
 
