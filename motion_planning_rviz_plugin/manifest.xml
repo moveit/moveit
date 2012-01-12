@@ -8,7 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/motion_planning_rviz_plugin</url>
-  <depend package="rviz_qt"/>
+  <depend package="rviz"/>
   <depend package="roscpp"/>
   <depend package="tf"/>
   <depend package="planning_models"/>
@@ -17,7 +17,7 @@
   <depend package="moveit_msgs"/>
 
   <export>
-    <rviz_qt plugin="${prefix}/lib/plugin_description.xml"/>
+    <rviz plugin="${prefix}/lib/plugin_description.xml"/>
   </export>
 
   <platform os="ubuntu" version="10.04"/>
