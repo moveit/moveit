@@ -65,13 +65,13 @@ public:
       return false;
     }
 
-    const Eigen::Vector3f &robot_visual_position = link_state->getGlobalLinkTransform().translation();
-    Eigen::Quaternionf robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
+    const Eigen::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
+    Eigen::Quaterniond robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
     visual_position = Ogre::Vector3( robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z() );
     visual_orientation = Ogre::Quaternion( robot_visual_orientation.w(), robot_visual_orientation.x(), robot_visual_orientation.y(), robot_visual_orientation.z() );
 
-    const Eigen::Vector3f &robot_collision_position = link_state->getGlobalCollisionBodyTransform().translation();
-    Eigen::Quaternionf robot_collision_orientation(link_state->getGlobalCollisionBodyTransform().rotation());
+    const Eigen::Vector3d &robot_collision_position = link_state->getGlobalCollisionBodyTransform().translation();
+    Eigen::Quaterniond robot_collision_orientation(link_state->getGlobalCollisionBodyTransform().rotation());
     collision_position = Ogre::Vector3( robot_collision_position.x(), robot_collision_position.y(), robot_collision_position.z() );
     collision_orientation = Ogre::Quaternion( robot_collision_orientation.w(), robot_collision_orientation.x(), robot_collision_orientation.y(), robot_collision_orientation.z() );
 
@@ -357,7 +357,7 @@ void PlanningDisplay::unsubscribe()
   sub_.shutdown();
 }
 
-void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3f &p, const rviz::Color &color, float alpha)
+void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha)
 {
     ogre_tools::Shape* ogre_shape = NULL;
     switch (s->type)
@@ -424,7 +424,7 @@ void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s,
 		    for (int k = 0 ; k < 3 ; ++k)
 		    {
 			unsigned int vi = 3 * mesh->triangles[i3 + k];
-			const Eigen::Vector3f &v = p * Eigen::Vector3f(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
+			const Eigen::Vector3d &v = p * Eigen::Vector3d(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
 			manual_object->position(v.x(), v.y(), v.z());
 		    }
 		}
@@ -441,7 +441,7 @@ void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s,
     {
 	ogre_shape->setColor(color.r_, color.g_, color.b_, alpha);
 	Ogre::Vector3 position(p.translation().x(), p.translation().y(), p.translation().z());
-	Eigen::Quaternionf q(p.rotation());
+	Eigen::Quaterniond q(p.rotation());
 	Ogre::Quaternion orientation(q.w(), q.x(), q.y(), q.z());
 
 	if (s->type == shapes::CYLINDER)
@@ -499,7 +499,7 @@ void PlanningDisplay::renderPlanningScene()
 	scene_monitor_->getPlanningScene()->getCurrentState().getAttachedBodies(attached_bodies);
 	for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
 	{
-	    const std::vector<Eigen::Affine3f> &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
+	    const std::vector<Eigen::Affine3d> &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
 	    const std::vector<shapes::Shape*> &ab_shapes = attached_bodies[i]->getShapes();
 	    for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
 	    {

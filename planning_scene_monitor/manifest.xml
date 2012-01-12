@@ -15,6 +15,7 @@
   <depend package="sensor_msgs"/>
   <depend package="message_filters"/>
   <depend package="tf"/>
+  <depend package="tf_conversions"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_scene_monitor `rosboost-cfg --lflags thread`"/>
