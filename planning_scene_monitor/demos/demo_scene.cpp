@@ -40,12 +40,11 @@ static const std::string ROBOT_DESCRIPTION="robot_description";
 
 void constructScene(const planning_scene::PlanningScenePtr &scene)
 {
+    scene->setName("pole_blocking_right_arm_pan");
+    
     Eigen::Affine3d t;
     t = Eigen::Translation3d(0.45, -0.45, 0.7);
-    
-    //    scene->getCollisionWorld()->addToObject("sphere1", new shapes::Sphere(0.1), t);
-    //    scene->getCollisionWorld()->addToObject("cyl1", new shapes::Cylinder(0.1, 1.4), t);
-    scene->getCollisionWorld()->addToObject("box1", new shapes::Box(0.1, 0.1, 1.4), t);
+    scene->getCollisionWorld()->addToObject("pole", new shapes::Box(0.1, 0.1, 1.4), t);
 }
 
 int main(int argc, char **argv)
