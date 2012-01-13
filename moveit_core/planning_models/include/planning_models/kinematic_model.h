@@ -708,6 +708,20 @@ namespace planning_models
             joint is assumed, if no specification is given.  */
         const JointModel* getRoot(void) const;
 
+      const std::string& getRootJointName() const {
+        return getRoot()->getName();
+      }
+
+        /** \brief Get the physical root link of the robot. */
+
+      const LinkModel* getRootLink(void) const {
+        return root_link_;
+      }
+
+      const std::string& getRootLinkName() const {
+        return getRootLink()->getName();
+      }
+
         /** \brief Get the frame in which the transforms for this
             model are computed (when using a planning_models::KinematicState). This frame depends on
             the root joint. As such, the frame is either extracted from SRDF, or it is assumed to be the name of the root
@@ -830,7 +844,10 @@ namespace planning_models
         std::map<std::string, unsigned int>       joint_variables_index_map_;
 
         /** \brief The root joint */
-        JointModel                               *root_;
+        JointModel                               *root_joint_;
+
+        /** \brief The first physical link for the robot */
+        LinkModel                               *root_link_;
 
         /** \brief A map from group names to joint groups */
         std::map<std::string, JointModelGroup*>   joint_model_group_map_;

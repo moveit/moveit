@@ -89,7 +89,8 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
     // build all joints & links
     const urdf::Link *root = urdf_model->getRoot().get();
     model_frame_ = root->name;
-    root_ = buildRecursive(NULL, root, srdf_model->getVirtualJoints());
+    root_joint_ = buildRecursive(NULL, root, srdf_model->getVirtualJoints());
+    root_link_ = link_model_map_[root->name];
     buildMimic(urdf_model);
 
     // construct additional additional maps for easy access by name
@@ -165,7 +166,7 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
   }
   else
   {
-    root_ = NULL;
+    root_joint_ = NULL;
     ROS_WARN("No root link found");
   }
 }
@@ -566,7 +567,7 @@ shapes::ShapePtr planning_models::KinematicModel::constructShape(const urdf::Geo
 
 const planning_models::KinematicModel::JointModel* planning_models::KinematicModel::getRoot(void) const
 {
-  return root_;
+  return root_joint_;
 }
 
 bool planning_models::KinematicModel::hasJointModel(const std::string &name) const
