@@ -1,0 +1,5 @@
+libqhull:
+  ubuntu: libqhull-dev
+  debian: libqhull-dev
+  fedora: qhull-devel
+  macports: qhull
