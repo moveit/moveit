@@ -62,7 +62,8 @@ namespace collision_detection
                 {
                     always_allow_collision = true;
                     if (cdata->req_->verbose)
-                        ROS_INFO("Collision between '%s' and '%s' is always allowed", cd1->getID().c_str(), cd2->getID().c_str());
+                        ROS_INFO("Collision between '%s' and '%s' is always allowed. No contacts are computed.",
+                                 cd1->getID().c_str(), cd2->getID().c_str());
                 }
                 else
                     if (type == AllowedCollision::CONDITIONAL)
@@ -74,17 +75,15 @@ namespace collision_detection
             }
         }
 
-        bool may_need_contacts = true;
-
         // check if a link is touching an attached object
         if (cd1->type == BodyTypes::ROBOT_LINK && cd2->type == BodyTypes::ROBOT_ATTACHED)
         {
             if (cd2->ptr.ab->touch_links_.find(cd1->getID()) != cd2->ptr.ab->touch_links_.end())
             {
                 always_allow_collision = true;
-                may_need_contacts = false;
                 if (cdata->req_->verbose)
-                    ROS_INFO("Robot link '%s' is allowed to touch attached object '%s'", cd1->getID().c_str(), cd2->getID().c_str());
+                    ROS_INFO("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                             cd1->getID().c_str(), cd2->getID().c_str());
             }
         }
         else
@@ -93,15 +92,19 @@ namespace collision_detection
                 if (cd1->ptr.ab->touch_links_.find(cd2->getID()) != cd1->ptr.ab->touch_links_.end())
                 {
                     always_allow_collision = true;
-                    may_need_contacts = false;
                     if (cdata->req_->verbose)
-                        ROS_INFO("Robot link '%s' is allowed to touch attached object '%s'", cd2->getID().c_str(), cd1->getID().c_str());
+                        ROS_INFO("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                                 cd2->getID().c_str(), cd1->getID().c_str());
                 }
             }
 
+        // if collisions are always allowed, we are done
+        if (always_allow_collision)
+            return false;
+
         // see if we need to compute a contact
         std::size_t want_contact_count = 0;
-        if (cdata->req_->contacts && may_need_contacts)
+        if (cdata->req_->contacts)
             if (cdata->res_->contact_count < cdata->req_->max_contacts)
             {
                 std::size_t have;
@@ -112,10 +115,6 @@ namespace collision_detection
                 if (have < cdata->req_->max_contacts_per_pair)
                     want_contact_count = cdata->req_->max_contacts_per_pair - have;
             }
-
-        // if collisions are always allowed and we do not need the contact, we are done
-        if (always_allow_collision && want_contact_count == 0)
-            return false;
 
         if (dcf)
         {
@@ -174,19 +173,11 @@ namespace collision_detection
                     }
 
                     if (cdata->req_->verbose)
-                    {
-                        if (always_allow_collision)
-                            ROS_INFO("Found %d contacts between '%s' and '%s', but the contacts are allowed. %d contacts will be stored",
-                                     num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)want_contact_count);
-                        else
-                            ROS_INFO("Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
-                                     num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)want_contact_count);
-                    }
-
+                        ROS_INFO("Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
+                                 num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)want_contact_count);
                     const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
                         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
-                    if (!always_allow_collision)
-                        cdata->res_->collision = true;
+                    cdata->res_->collision = true;
                     for (int i = 0 ; i < num_contacts ; ++i)
                     {
                         Contact c;
