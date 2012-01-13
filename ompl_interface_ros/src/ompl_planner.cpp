@@ -69,6 +69,10 @@ public:
     void status(void)
     {
         ompl_interface_->printStatus();
+	if (benchmark_)
+	    ROS_INFO("Responding to bechmark requests");
+	else
+	    ROS_INFO("Responding to planning requests");
     }
 
 private:
@@ -96,15 +100,19 @@ int main(int argc, char **argv)
 
     tf::TransformListener tf;
     planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
-    psm.startWorldGeometryMonitor();
-    psm.startSceneMonitor();
-    psm.startStateMonitor();
-
-    ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
-    OMPLPlannerService pservice(&o, benchmark);
-    pservice.status();
-
-    ros::waitForShutdown();
-
+    if (psm.getPlanningScene()->isConfigured())
+    {
+	psm.startWorldGeometryMonitor();
+	psm.startSceneMonitor();
+	psm.startStateMonitor();
+	
+	ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
+	OMPLPlannerService pservice(&o, benchmark);
+	pservice.status();
+	ros::waitForShutdown();
+    }
+    else
+	ROS_ERROR("Planning scene not configured");
+    
     return 0;
 }
