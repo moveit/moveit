@@ -199,10 +199,8 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     std::vector<double> v2;
     ks2.getStateValues(v2);
     EXPECT_TRUE(v1.size() == v2.size());
-    for(unsigned int i = 0; i < v1.size(); i++) {
-      EXPECT_NEAR(v1[i],v2[i],1e-5);
-      ROS_INFO_STREAM(v1[i] << " " << v2[i]);
-    }
+    for (unsigned int i = 0; i < v1.size(); ++i)
+	EXPECT_NEAR(v1[i], v2[i], 1e-5);
 
     geometry_msgs::Quaternion q;
     q.x = q.y = q.z = q.w = 0.0;

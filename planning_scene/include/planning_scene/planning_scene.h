@@ -256,7 +256,7 @@ namespace planning_scene
         void decoupleParent(void);
 
         /** \brief Check if a given path is valid */
-        bool checkPath(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory);
+        bool isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory) const;
 
     protected:
 
