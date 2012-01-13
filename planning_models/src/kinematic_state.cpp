@@ -862,6 +862,7 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
     } else {
       mark.type = mark.MESH_RESOURCE;
       mark.mesh_resource = ls->getLinkModel()->getFilename();
+      //TODO - deal with scale, potentially get visual markers
       mark.scale.x = mark.scale.y = mark.scale.z = 1.0;
     }
     arr.markers.push_back(mark);
