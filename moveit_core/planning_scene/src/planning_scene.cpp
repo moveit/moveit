@@ -868,7 +868,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     return false;
 }
 
-bool planning_scene::PlanningScene::checkPath(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory)
+bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory) const
 {
     planning_models::KinematicState start(getCurrentState());
     planning_models::robotStateToKinematicState(*getTransforms(), start_state, start);

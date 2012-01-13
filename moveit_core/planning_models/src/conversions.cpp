@@ -85,7 +85,6 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
       ROS_WARN("MultiDOFJointState message has incorrect quaternion specification for joint '%s'. Assuming identity.",
                mjs.joint_names[i].c_str());
 
-
     // if frames do not mach, attempt to transform
     if (mjs.frame_ids[i] != state.getKinematicModel()->getModelFrame())
     {
@@ -144,7 +143,7 @@ static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_
   bool result1 = jointStateToKinematicState(robot_state.joint_state, state, &missing);
   bool result2 = multiDOFJointsToKinematicState(robot_state.multi_dof_joint_state, state, tf);
   state.updateLinkTransforms();
-
+  
   if (result1 && result2)
   {
     if (!missing.empty())
