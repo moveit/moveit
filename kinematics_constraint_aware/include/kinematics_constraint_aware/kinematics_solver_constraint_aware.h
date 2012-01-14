@@ -135,6 +135,11 @@ public:
   const std::vector<std::string>& getEndEffectorLinks() const {
     return end_effector_collision_links_;
   }
+  
+  const collision_detection::CollisionResult& getLastInitialPoseCheckCollisionResult() const
+  {
+    return last_initial_pose_check_collision_result_;
+  }
 
 protected:
 
@@ -150,6 +155,10 @@ protected:
   bool do_initial_pose_check_;
   planning_models::KinematicState* state_;
   moveit_msgs::Constraints constraints_;
+
+  collision_detection::CollisionResult last_initial_pose_check_collision_result_;
+
+  std::string getCollisionDetectedString(const collision_detection::CollisionResult& res);
 
   void collisionCheck(const geometry_msgs::Pose &ik_pose,
                       const std::vector<double> &ik_solution,
