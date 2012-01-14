@@ -126,8 +126,9 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
 {
   do_initial_pose_check_ = do_initial_pose_check;
   constraints_ = constraints;
-
   planning_scene_ = scene;
+
+  last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
   
   //TODO - need better way to do this
   std::map<std::string, double> seed_state_map;
@@ -169,6 +170,8 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
   do_initial_pose_check_ = do_initial_pose_check;
   planning_scene_ = scene;
   constraints_ = constraints;
+
+  last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
   
   std::map<std::string, double> seed_state_map;
   planning_scene_->getCurrentState().getStateValues(seed_state_map);
@@ -199,6 +202,19 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
   return ik_valid;
 }
 
+std::string KinematicsSolverConstraintAware::getCollisionDetectedString(const collision_detection::CollisionResult& res)
+{
+  std::stringstream ret;
+  if(res.contacts.empty()) {
+    ret << "No contacts.";
+  }
+  for(collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin();
+      it != res.contacts.end();
+      it++) {
+    ret << "Collision between " << it->first.first << " and " << it->first.second << "\n";
+  }
+  return ret.str();
+}
 
 void KinematicsSolverConstraintAware::collisionCheck(const geometry_msgs::Pose &ik_pose,
                                                      const std::vector<double> &ik_solution,
@@ -213,9 +229,15 @@ void KinematicsSolverConstraintAware::collisionCheck(const geometry_msgs::Pose &
   error_code.val = error_code.SUCCESS;
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
+  req.contacts = true;
+  req.max_contacts = 1;
   planning_scene_->checkCollision(req, res, *state_);
+  collision_detection::AllowedCollision::Type act;
+  planning_scene_->getAllowedCollisionMatrix().getAllowedCollision("r_forearm_link", "l_forearm_link", act);
   if(res.collision) {
+    ROS_INFO_STREAM_NAMED("kinematics_collision", getCollisionDetectedString(res));
     error_code.val = error_code.COLLISION_CONSTRAINTS_VIOLATED;
+    ROS_INFO_STREAM("Collision constraints violated");
   } else if(!kinematic_constraints::doesKinematicStateObeyConstraints(*state_, 
                                                                       planning_scene_->getTransforms(),
                                                                       constraints_, 
@@ -248,9 +270,11 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
   }
  
   collision_detection::CollisionRequest req;
-  collision_detection::CollisionResult res;
-  planning_scene_->checkCollision(req, res, *state_, acm);
-  if(res.collision) {
+  req.contacts = true;
+  req.max_contacts = 10;
+  planning_scene_->checkCollision(req, last_initial_pose_check_collision_result_, *state_, acm);
+  if(last_initial_pose_check_collision_result_.collision) {
+    ROS_INFO_STREAM_NAMED("kinematics_collisions", getCollisionDetectedString(last_initial_pose_check_collision_result_));
     error_code.val = error_code.IK_LINK_IN_COLLISION;
     ROS_DEBUG_STREAM("Initial pose check failing");
   } else {

@@ -249,6 +249,12 @@ namespace collision_detection
 
     typedef boost::shared_ptr<CollisionWorld> CollisionWorldPtr;
     typedef boost::shared_ptr<const CollisionWorld> CollisionWorldConstPtr;
+
+void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
+                                     const std::string& frame_id,
+                                     const CollisionResult::ContactMap& con,
+                                     const std_msgs::ColorRGBA& color,
+                                     const ros::Duration& lifetime);
 }
 
 #endif

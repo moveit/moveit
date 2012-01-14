@@ -319,3 +319,47 @@ collision_detection::CollisionWorld::Object::~Object(void)
     for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
         delete shapes_[i];
 }
+
+void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
+                                                          const std::string& frame_id,
+                                                          const CollisionResult::ContactMap& con,
+                                                          const std_msgs::ColorRGBA& color,
+                                                          const ros::Duration& lifetime)
+ 
+{
+  std::map<std::string, unsigned> ns_counts;
+  for(CollisionResult::ContactMap::const_iterator it = con.begin();
+      it != con.end();
+      it++) {
+    for(unsigned int i = 0; i < it->second.size(); i++) {
+      std::string ns_name = it->second[i].body_name_1+"="+it->second[i].body_name_2;
+      if(ns_counts.find(ns_name) == ns_counts.end()) {
+        ns_counts[ns_name] = 0;
+      } else {
+        ns_counts[ns_name]++;
+      }
+      visualization_msgs::Marker mk;
+      mk.header.stamp = ros::Time::now();
+      mk.header.frame_id = frame_id;
+      mk.ns = ns_name;
+      mk.id = ns_counts[ns_name];
+      mk.type = visualization_msgs::Marker::SPHERE;
+      mk.action = visualization_msgs::Marker::ADD;
+      mk.pose.position.x = it->second[i].pos.x();
+      mk.pose.position.y = it->second[i].pos.y();
+      mk.pose.position.z = it->second[i].pos.z();
+      ROS_INFO_STREAM("Contact at " 
+                      << mk.pose.position.x << " " 
+                      << mk.pose.position.y << " " 
+                      << mk.pose.position.z);
+      mk.pose.orientation.w = 1.0;
+      mk.scale.x = mk.scale.y = mk.scale.z = 0.035;
+      mk.color = color;
+      if(mk.color.a == 0.0) {
+        mk.color.a = 1.0;
+      }
+      mk.lifetime = lifetime;
+      arr.markers.push_back(mk);
+    }
+  }
+}
