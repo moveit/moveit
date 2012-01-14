@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "planning_scene_monitor/current_state_monitor.h"
+#include <tf_conversions/tf_eigen.h>
 
 planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf) :
     tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(1e-3)
@@ -233,9 +234,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
                 joint_time_[vars[j]] = tm;
             set_map_values = false;
 	    Eigen::Affine3d eigen_transf;
-	    
-	    /// \todo convert from transf to transf
-	    
+	    tf::TransformTFToEigen(transf, eigen_transf);
 	    boost::mutex::scoped_lock slock(state_update_lock_);
             root_->setVariableValues(eigen_transf);
             kstate_.setStateValues(joint_state_map);
