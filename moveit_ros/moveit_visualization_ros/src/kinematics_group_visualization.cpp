@@ -127,6 +127,12 @@ void KinematicsGroupVisualization::sendCurrentMarkers()
     marker_publisher_.publish(last_marker_array_);
   } else {
     removeLastMarkers();
+    collision_detection::getCollisionMarkersFromContacts(last_marker_array_,
+                                                         planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getModelFrame(),
+                                                         ik_solver_->getLastInitialPoseCheckCollisionResult().contacts,
+                                                         bad_color_,
+                                                         ros::Duration(0.0));
+    marker_publisher_.publish(last_marker_array_);
   }
 }
 
