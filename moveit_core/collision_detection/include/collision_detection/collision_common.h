@@ -102,19 +102,19 @@ namespace collision_detection
         typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
 
         /** \brief True if collision was found, false otherwise */
-        bool        collision;
+        bool            collision;
 
         /** \brief Closest distance between two bodies */
-        double      distance;
+        double          distance;
 
         /** \brief Gradient vector associated with collision */
-        Eigen::Vector3d   direction;
+        Eigen::Vector3d direction;
 
         /** \brief Number of contacts returned */
-        std::size_t contact_count;
+        std::size_t     contact_count;
 
         /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contacts themselves */
-        ContactMap  contacts;
+        ContactMap      contacts;
     };
 
     /** \brief Representation of a collision checking request */

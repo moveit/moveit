@@ -128,6 +128,7 @@ void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const 
     manager.manager_.reset(new fcl::SSaPCollisionManager());
     constructFCLObject(state, manager.object_);
     manager.object_.registerTo(manager.manager_.get());
+    manager.manager_->update();
 }
 
 void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const
