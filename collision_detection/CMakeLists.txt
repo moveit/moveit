@@ -34,6 +34,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/collision_world.cpp 
   src/collision_robot.cpp
   src/collision_matrix.cpp
+  src/collision_tools.cpp
   src/allvalid/collision_robot.cpp
   src/allvalid/collision_world.cpp
   src/fcl/collision_common.cpp

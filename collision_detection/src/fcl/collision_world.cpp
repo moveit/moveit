@@ -47,6 +47,7 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFC
     fcl_objs_ = other.fcl_objs_;
     for (std::map<std::string, FCLObject>::iterator it = fcl_objs_.begin() ; it != fcl_objs_.end() ; ++it)
         it->second.registerTo(manager_.get());
+    manager_->update();
 }
 
 collision_detection::CollisionWorldFCL::~CollisionWorldFCL(void)
@@ -171,6 +172,7 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
     else
         if (jt != fcl_objs_.end())
             fcl_objs_.erase(jt);
+    manager_->update();
 }
 
 void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, shapes::StaticShape *shape)
@@ -227,6 +229,7 @@ void collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
         it->second.unregisterFrom(manager_.get());
         it->second.clear();
         fcl_objs_.erase(it);
+	manager_->update();
     }
 }
 
