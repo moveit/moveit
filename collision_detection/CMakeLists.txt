@@ -42,3 +42,8 @@ rosbuild_add_library(${PROJECT_NAME}
 )
 
 rosbuild_add_compile_flags(${PROJECT_NAME} ${SSE_FLAGS})
+
+rosbuild_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
+target_link_libraries(test_fcl_collision_detection ${PROJECT_NAME})
+
+
