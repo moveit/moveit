@@ -37,10 +37,9 @@
 #include "planning_scene_monitor/planning_scene_monitor.h"
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description) :
-    nh_("~")
+    nh_("~"), tf_(NULL)
 {
-  initialize(planning_scene::PlanningSceneConstPtr(), robot_description);
-  scene_->getCurrentState().setToDefaultValues();
+    initialize(planning_scene::PlanningSceneConstPtr(), robot_description);
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, tf::Transformer *tf) :
