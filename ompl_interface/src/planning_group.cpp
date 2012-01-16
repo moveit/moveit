@@ -351,6 +351,9 @@ bool ompl_interface::PlanningGroup::benchmark(double timeout, unsigned int count
 bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
 {
     ompl_simple_setup_.getGoal()->clearSolutionPaths();
+    const ompl::base::PlannerPtr planner = ompl_simple_setup_.getPlanner();
+    if (planner)
+	planner->clear();
     bool gls = ompl_simple_setup_.getGoal()->hasType(ompl::base::GOAL_LAZY_SAMPLES);
     // just in case sampling is not started
     if (gls)
