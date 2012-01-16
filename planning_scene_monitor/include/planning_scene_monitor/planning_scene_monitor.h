@@ -107,8 +107,8 @@ public:
    */
   void updateFrameTransforms(void);
 
-  /** @brief Start the current state monitor 
-      @param joint_states_topic the topic to listen to for joint states 
+  /** @brief Start the current state monitor
+      @param joint_states_topic the topic to listen to for joint states
       @param attached_objects_topic the topic to listen to for attached collision objects */
   void startStateMonitor(const std::string &joint_states_topic = "joint_states", const std::string &attached_objects_topic = "attached_collision_object");
 
@@ -138,7 +138,7 @@ public:
    *  @param planning_scene_world_topic The topic to listen to for world scene geometry */
   void startWorldGeometryMonitor(const std::string &collision_objects_topic = "collision_object",
                                  const std::string &collision_map_topic = "collision_map",
-				 const std::string &planning_scene_world_topic = "planning_scene_world");
+                                 const std::string &planning_scene_world_topic = "planning_scene_world");
 
   /** @brief Stop the world geometry monitor*/
   void stopWorldGeometryMonitor(void);
@@ -181,7 +181,7 @@ protected:
 
   /** @brief Callback for a new planning scene world*/
   void newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr &world);
-  
+
   /** @brief Callback for a new collision map*/
   void collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map);
 
@@ -206,14 +206,14 @@ protected:
 
   ros::Subscriber                       planning_scene_subscriber_;
   ros::Subscriber                       planning_scene_diff_subscriber_;
-  
+
   ros::Subscriber                       planning_scene_world_subscriber_;
-  
+
   message_filters::Subscriber<moveit_msgs::CollisionObject> *collision_object_subscriber_;
   tf::MessageFilter<moveit_msgs::CollisionObject> *collision_object_filter_;
   message_filters::Subscriber<moveit_msgs::CollisionMap> *collision_map_subscriber_;
   tf::MessageFilter<moveit_msgs::CollisionMap> *collision_map_filter_;
-  
+
   message_filters::Subscriber<moveit_msgs::AttachedCollisionObject> *attached_collision_object_subscriber_;
 
   CurrentStateMonitorPtr                current_state_monitor_;
