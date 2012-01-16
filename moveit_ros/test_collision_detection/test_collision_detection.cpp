@@ -35,10 +35,52 @@
 /* Author: Ioan Sucan */
 
 #include <planning_scene_monitor/planning_scene_monitor.h>
+#include <collision_detection/collision_tools.h>
 #include <planning_models/conversions.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
+
+void findSelfCollisionAndDisplayContacts()
+{
+    ros::NodeHandle nh;
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
+    planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
+    
+    ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+    ros::Publisher pub_markers = nh.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 5);
+	
+    sleep(1);
+
+    collision_detection::CollisionRequest req;
+    do
+    {
+	collision_detection::CollisionResult res;
+	scene->getCurrentState().setToRandomValues();
+	scene->checkSelfCollision(req, res);
+	if (res.collision)
+	    break;
+    } while (true);
+
+    moveit_msgs::PlanningScene psmsg;
+    scene->getPlanningSceneMsg(psmsg);
+    pub_scene.publish(psmsg);
+
+    req.contacts = true;
+    req.max_contacts = 1000;
+    req.max_contacts_per_pair = 500;
+    collision_detection::CollisionResult res;
+    scene->checkSelfCollision(req, res);
+    std_msgs::ColorRGBA color;
+    color.r = 1.0f;
+    color.g = 0.0f;
+    color.b = 0.0f;
+    color.a = 1.0f;
+    visualization_msgs::MarkerArray arr;
+    collision_detection::getCollisionMarkersFromContacts(arr, "/base_link", res.contacts, color, ros::Duration(30.0));
+    pub_markers.publish(arr);
+    ros::Duration(10).sleep();
+}
 
 void testSimple()
 {
@@ -46,8 +88,8 @@ void testSimple()
     planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
     planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
     
-    ros::Publisher pub_state = nh.advertise<moveit_msgs::DisplayTrajectory>("display_valid_states", 10);
-    ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("demo_planning_scene", 1);
+    ros::Publisher pub_state = nh.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 20);
+    ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
     sleep(1);
 
     std::vector<shapes::Shape*> attached_shapes(1, new shapes::Box(0.2, 0.1, 0.1));
@@ -66,7 +108,7 @@ void testSimple()
     
     collision_detection::CollisionRequest req;
     req.verbose = true;
-    unsigned int N = 20;
+    unsigned int N = 2;
     
     for (unsigned int i = 0 ; i < N ; ++i)
     {
@@ -103,7 +145,6 @@ void testSimple()
     }
 
     sleep(1);
-    /*    
     
     planning_scene::PlanningScenePtr colliding = clone(scene);
     // construct a planning scene with 100 objects and no collisions
@@ -111,7 +152,7 @@ void testSimple()
     req.verbose = false;
     for (int i = 0 ; i < 100000 ; ++i)
     {
-	t.translation(Eigen::Vector3d(rng.uniformReal(-1, 1), rng.uniformReal(-1, 1), rng.uniformReal(0, 2)));
+	t.translation() = Eigen::Vector3d(rng.uniformReal(-1, 1), rng.uniformReal(-1, 1), rng.uniformReal(0, 2));
 	scene->getCollisionWorld()->clearObjects();
 	scene->getCollisionWorld()->addToObject("spere1", new shapes::Sphere(0.05), t);
 	collision_detection::CollisionResult res;
@@ -131,22 +172,22 @@ void testSimple()
     pub_scene.publish(psmsg);
     
     ros::WallTime start = ros::WallTime::now();
-    unsigned int M = 10000;
+    unsigned int M = 1000;
     for (unsigned int i = 0 ; i < M ; ++i)
     {
 	collision_detection::CollisionResult res;
-	scene->checkCollision(req, res);
+	colliding->checkCollision(req, res);
 	if (res.collision)
 	    ROS_ERROR("PROBLEM");
     }
     ROS_INFO("%lf full-collision checks per second", (double)M / (ros::WallTime::now() - start).toSec());
     
-    */
 
     /*
     req.verbose = false;
     ros::WallTime start = ros::WallTime::now();
-    unsigned int N = 500000;
+    //    unsigned int N = 50000;
+N = 50000;
     for (unsigned int i = 0 ; i < N ; ++i)
     {
 	collision_detection::CollisionResult res;
@@ -165,8 +206,9 @@ int main(int argc, char **argv)
     ros::AsyncSpinner spinner(1);
     spinner.start();
     
-    testSimple();
-
+    //    testSimple();
+    findSelfCollisionAndDisplayContacts();
+    
     ros::waitForShutdown();
     
     return 0;
