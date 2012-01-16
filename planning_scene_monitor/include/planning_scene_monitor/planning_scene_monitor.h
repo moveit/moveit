@@ -107,8 +107,10 @@ public:
    */
   void updateFrameTransforms(void);
 
-  /** @brief Start the current state monitor listening on topic \e joint_states_topic*/
-  void startStateMonitor(const std::string &joint_states_topic = "joint_states");
+  /** @brief Start the current state monitor 
+      @param joint_states_topic the topic to listen to for joint states 
+      @param attached_objects_topic the topic to listen to for attached collision objects */
+  void startStateMonitor(const std::string &joint_states_topic = "joint_states", const std::string &attached_objects_topic = "attached_collision_object");
 
   /** @brief Stop the state monitor*/
   void stopStateMonitor(void);
@@ -132,11 +134,11 @@ public:
 
   /** @brief Start listening for objects in the world, the collision map and attached collision objects
    *  @param collision_objects_topic The topic on which to listen for collision objects
-   *  @param attached_objects_topic The topic on which to listen for attached collision objects
-   *  @param collision_map The topic on which to listen for the collision map*/
+   *  @param collision_map_topic The topic on which to listen for the collision map
+   *  @param planning_scene_world_topic The topic to listen to for world scene geometry */
   void startWorldGeometryMonitor(const std::string &collision_objects_topic = "collision_object",
-                                 const std::string &attached_objects_topic = "attached_collision_object",
-                                 const std::string &collision_map_topic = "collision_map");
+                                 const std::string &collision_map_topic = "collision_map",
+				 const std::string &planning_scene_world_topic = "planning_scene_world");
 
   /** @brief Stop the world geometry monitor*/
   void stopWorldGeometryMonitor(void);
@@ -177,11 +179,14 @@ protected:
   /** @brief Callback for a new collision object msg*/
   void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj);
 
-  /** @brief Callback for a new attached object msg*/
-  void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
-
+  /** @brief Callback for a new planning scene world*/
+  void newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr &world);
+  
   /** @brief Callback for a new collision map*/
   void collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map);
+
+  /** @brief Callback for a new attached object msg*/
+  void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
 
   void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
 
@@ -201,12 +206,15 @@ protected:
 
   ros::Subscriber                       planning_scene_subscriber_;
   ros::Subscriber                       planning_scene_diff_subscriber_;
-
+  
+  ros::Subscriber                       planning_scene_world_subscriber_;
+  
   message_filters::Subscriber<moveit_msgs::CollisionObject> *collision_object_subscriber_;
   tf::MessageFilter<moveit_msgs::CollisionObject> *collision_object_filter_;
-  message_filters::Subscriber<moveit_msgs::AttachedCollisionObject> *attached_collision_object_subscriber_;
   message_filters::Subscriber<moveit_msgs::CollisionMap> *collision_map_subscriber_;
   tf::MessageFilter<moveit_msgs::CollisionMap> *collision_map_filter_;
+  
+  message_filters::Subscriber<moveit_msgs::AttachedCollisionObject> *attached_collision_object_subscriber_;
 
   CurrentStateMonitorPtr                current_state_monitor_;
   ros::Time                             last_update_time_; /// Last time the state was updated

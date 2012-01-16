@@ -42,7 +42,7 @@ class EnvironmentServer
 public:
     EnvironmentServer(void) : planning_scene_monitor_("robot_description", &tf_)
     {
-      pub_diff_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene_diff", 2);
+      pub_diff_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene_diff", 128);
       parent_scene_ = planning_scene_monitor_.getPlanningScene();
       // this will create a new planning scene whose parent is the current planning scene
       planning_scene_monitor_.monitorDiffs(true);
@@ -75,6 +75,8 @@ private:
         throw;
       }
       planning_scene_monitor_.unlockScene();
+      pub_diff_.publish(diff);
+      ROS_DEBUG("Published scene update");
     }
 };
 
