@@ -92,12 +92,16 @@ void ompl_interface::OMPLInterface::configureIKSolvers(const std::map<std::strin
             for (std::map<std::string, kinematic_constraints::IKAllocator>::const_iterator kt = ik_allocators.begin() ; kt != ik_allocators.end() ; ++kt)
             {
                 const planning_models::KinematicModel::JointModelGroup *sub = km->getJointModelGroup(kt->first);
-                const std::vector<const planning_models::KinematicModel::JointModel*> &sub_joints = sub->getJointModels();
+                std::set<const planning_models::KinematicModel::JointModel*> sub_joints;
+                sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
+
                 if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
                 {
+                    std::set<const planning_models::KinematicModel::JointModel*> result;
+                    std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
+                                        std::inserter(result, result.end()));
                     subs.push_back(sub);
-                    for (std::size_t i = 0 ; i < sub_joints.size() ; ++i)
-                        joints.erase(sub_joints[i]);
+                    joints = result;
                 }
             }
 
@@ -105,9 +109,13 @@ void ompl_interface::OMPLInterface::configureIKSolvers(const std::map<std::strin
             if (!subs.empty())
             {
                 kinematic_constraints::IKSubgroupAllocator &sa = it->second->ik_subgroup_allocators_;
+                std::stringstream ss;
                 for (std::size_t i = 0 ; i < subs.size() ; ++i)
+                {
+                    ss << subs[i]->getName() << " ";
                     sa.ik_allocators_[subs[i]] = ik_allocators.find(subs[i]->getName())->second;
-                sa.jmg_ = jmg;
+                }
+                ROS_INFO("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
             }
         }
         else

@@ -298,8 +298,8 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             Eigen::Affine3d diff(Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitZ())
                                  * Eigen::AngleAxisd(angle_p, Eigen::Vector3d::UnitX())
                                  * Eigen::AngleAxisd(angle_r, Eigen::Vector3d::UnitZ()));
-	    quat = Eigen::Quaterniond(diff.rotation() * sp_.oc_->getDesiredRotationMatrix());
-	}
+            quat = Eigen::Quaterniond(diff.rotation() * sp_.oc_->getDesiredRotationMatrix());
+        }
         else
         {
             // sample a random orientation
@@ -319,7 +319,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
         {
             // we need to convert this transform to the frame expected by the IK solver
             // both the planning frame and the frame for the IK are assumed to be robot links
-	    Eigen::Affine3d ikq(Eigen::Translation3d(point)*quat.toRotationMatrix());
+            Eigen::Affine3d ikq(Eigen::Translation3d(point)*quat.toRotationMatrix());
             
             const planning_models::KinematicState::LinkState *ls = ks.getLinkState(ik_frame_);
             ikq = ls->getGlobalLinkTransform().inverse() * ikq;
@@ -327,7 +327,7 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
             point = ikq.translation();
             quat = Eigen::Quaterniond(ikq.rotation());
         }
-	
+        
         geometry_msgs::Pose ik_query;
         ik_query.position.x = point.x();
         ik_query.position.y = point.y();
@@ -336,9 +336,9 @@ bool kinematic_constraints::IKConstraintSampler::sample(std::vector<double> &val
         ik_query.orientation.y = quat.y();
         ik_query.orientation.z = quat.z();
         ik_query.orientation.w = quat.w();        
-	
+        
         if (callIK(ik_query, ik_timeout_, values))
-	    return true;
+            return true;
     }
     return false;
 }
@@ -409,10 +409,14 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
                                                                                                const IKAllocator &ik_alloc,
                                                                                                const IKSubgroupAllocator &ik_subgroup_alloc)
 {
+    ROS_DEBUG("Attempting to construct constrained state sampler for group '%s'", jmg->getName().c_str());
+    
     ConstraintSamplerPtr joint_sampler;
     // if there are joint constraints, we could possibly get a sampler from those
     if (!constr.joint_constraints.empty())
     {    
+        ROS_DEBUG("There are joint constraints specified. Attempting to construct a JointConstraintSampler for group '%s'", jmg->getName().c_str());
+
         // construct the constraints
         std::vector<JointConstraint> jc;
         for (std::size_t i = 0 ; i < constr.joint_constraints.size() ; ++i)
@@ -436,6 +440,8 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
     // if we have a means of computing complete states for the group using IK, then we try to see if any IK constraints should be used
     if (ik_alloc)
     {        
+        ROS_DEBUG("There is an IK allocator for '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
+        
         // keep track of which links we constrained
         std::map<std::string, boost::shared_ptr<IKConstraintSampler> > usedL;
             
@@ -538,7 +544,7 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
     // we now check to see if we can use samplers from subgroups
     if (!ik_subgroup_alloc.ik_allocators_.empty())
     {        
-        ROS_DEBUG("BUBU");
+        ROS_DEBUG("There are IK allocators for subgroups of group '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
         
         std::vector<ConstraintSamplerPtr> samplers;
         for (std::map<const planning_models::KinematicModel::JointModelGroup*, IKAllocator>::const_iterator it = ik_subgroup_alloc.ik_allocators_.begin() ;
@@ -556,8 +562,6 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
                 ConstraintSamplerPtr cs = constructConstraintsSampler(it->first, sub_constr, kmodel, ftf, it->second);
                 if (cs)
                 {
-                    ROS_ERROR("dasdasd");
-                    
                     ROS_DEBUG("Constructed a sampler for the joints corresponding to group '%s', but part of group '%s'", 
                               it->first->getName().c_str(), jmg->getName().c_str());
                     samplers.push_back(cs);
