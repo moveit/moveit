@@ -444,7 +444,7 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
         
         // keep track of which links we constrained
         std::map<std::string, boost::shared_ptr<IKConstraintSampler> > usedL;
-            
+        
         // if we have position and/or orientation constraints on links that we can perform IK for,
         // we will use a sampleable goal region that employs IK to sample goals;
         // if there are multiple constraints for the same link, we keep the one with the smallest 
@@ -474,8 +474,15 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
                     }
                 }
         
+        // keep track of links constrained with a full pose
+        std::map<std::string, boost::shared_ptr<IKConstraintSampler> > usedL_fullPose = usedL;
+
         for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
-        {
+        {   
+            // if we are constraining this link with a full pose, we do not attempt to constrain it with a position constraint only
+            if (usedL_fullPose.find(constr.position_constraints[p].link_name) != usedL_fullPose.end())
+                continue;
+            
             boost::shared_ptr<PositionConstraint> pc(new PositionConstraint(kmodel, ftf));
             if (pc->configure(constr.position_constraints[p]))
             {
@@ -497,7 +504,11 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
         }
         
         for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
-        {
+        {            
+            // if we are constraining this link with a full pose, we do not attempt to constrain it with an orientation constraint only
+            if (usedL_fullPose.find(constr.orientation_constraints[o].link_name) != usedL_fullPose.end())
+                continue;
+
             boost::shared_ptr<OrientationConstraint> oc(new OrientationConstraint(kmodel, ftf));
             if (oc->configure(constr.orientation_constraints[o]))
             {
@@ -547,18 +558,32 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
         ROS_DEBUG("There are IK allocators for subgroups of group '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
         
         std::vector<ConstraintSamplerPtr> samplers;
+        std::set<std::size_t> usedP, usedO;
         for (std::map<const planning_models::KinematicModel::JointModelGroup*, IKAllocator>::const_iterator it = ik_subgroup_alloc.ik_allocators_.begin() ;
              it != ik_subgroup_alloc.ik_allocators_.end() ; ++it)
         {
+            // construct a sub-set of constraints that uperate on the sub-group for which we have an IK allocator
             moveit_msgs::Constraints sub_constr;
             for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
                 if (it->first->hasLinkModel(constr.position_constraints[p].link_name))
-                    sub_constr.position_constraints.push_back(constr.position_constraints[p]);
-            for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
+                    if (usedP.find(p) == usedP.end())
+                    {
+                        sub_constr.position_constraints.push_back(constr.position_constraints[p]);
+                        usedP.insert(p);
+                    }
+            
+            for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)        
                 if (it->first->hasLinkModel(constr.orientation_constraints[o].link_name))
-                    sub_constr.orientation_constraints.push_back(constr.orientation_constraints[o]);
+                    if (usedO.find(o) == usedO.end())
+                    {
+                        sub_constr.orientation_constraints.push_back(constr.orientation_constraints[o]);
+                        usedO.insert(o);
+                    }
+            
+            // if some matching constraints were found, construct the allocator
             if (!sub_constr.orientation_constraints.empty() || !sub_constr.position_constraints.empty())
             {
+                ROS_DEBUG("Attempting to construct a sampler for the '%s' subgroup of '%s'", it->first->getName().c_str(), jmg->getName().c_str());
                 ConstraintSamplerPtr cs = constructConstraintsSampler(it->first, sub_constr, kmodel, ftf, it->second);
                 if (cs)
                 {
@@ -570,7 +595,7 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
         }
         if (!samplers.empty())
         {
-            ROS_DEBUG("Constructing sampler for group '%s' as a union of samplers", jmg->getName().c_str());
+            ROS_DEBUG("Constructing sampler for group '%s' as a union of %u samplers", jmg->getName().c_str(), (unsigned int)samplers.size());
             return ConstraintSamplerPtr(new UnionConstraintSampler(jmg, samplers));
         }
     }

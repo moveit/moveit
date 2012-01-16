@@ -763,14 +763,9 @@ bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_mod
                                                               bool verbose)
 {
   KinematicConstraintSet kcs(state.getKinematicModel(), tf);
-
-  kcs.add(constraints.joint_constraints);
-  kcs.add(constraints.position_constraints);
-  kcs.add(constraints.orientation_constraints);
-  kcs.add(constraints.visibility_constraints);
+  kcs.add(constraints);
   double distance;
-  const bool &res = kcs.decide(state, distance, verbose);
-  return res;
+  return kcs.decide(state, distance, verbose);
 }
 
 bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
@@ -780,11 +775,6 @@ bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_mod
                                                               bool verbose)
 {
   KinematicConstraintSet kcs(state.getKinematicModel(), tf);
-
-  kcs.add(constraints.joint_constraints);
-  kcs.add(constraints.position_constraints);
-  kcs.add(constraints.orientation_constraints);
-  kcs.add(constraints.visibility_constraints);
-  const bool &res = kcs.decide(state, results, verbose);
-  return res;
+  kcs.add(constraints);
+  return kcs.decide(state, results, verbose);
 }
