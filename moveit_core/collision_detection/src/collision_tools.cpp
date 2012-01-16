@@ -64,10 +64,6 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
       mk.pose.position.x = it->second[i].pos.x();
       mk.pose.position.y = it->second[i].pos.y();
       mk.pose.position.z = it->second[i].pos.z();
-      ROS_INFO_STREAM("Contact at " 
-                      << mk.pose.position.x << " " 
-                      << mk.pose.position.y << " " 
-                      << mk.pose.position.z);
       mk.pose.orientation.w = 1.0;
       mk.scale.x = mk.scale.y = mk.scale.z = 0.035;
       mk.color = color;
