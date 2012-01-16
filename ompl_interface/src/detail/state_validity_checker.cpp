@@ -70,8 +70,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
     kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
 
     double distance = 0.0;
-    const bool &r = planning_group_->getPathConstraints()->decide(*kstate,distance);
-    if (!r)
+    if (!planning_group_->getPathConstraints()->decide(*kstate, distance))
     {
         dist = distance;
         return false;
