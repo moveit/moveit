@@ -47,13 +47,8 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
     scene->getCollisionWorld()->addToObject("pole", new shapes::Box(0.1, 0.1, 1.4), t);
 }
 
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "demo", ros::init_options::AnonymousName);
-
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-    
+void sendScene(void)
+{  
     ros::NodeHandle nh;
     tf::TransformListener tf;
     planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
@@ -66,6 +61,42 @@ int main(int argc, char **argv)
     psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
     pub_scene.publish(psmsg);
     ROS_INFO("Scene published.");
+}
+
+void sendCollisionObject(void)
+{
+    ros::NodeHandle nh;
+    tf::TransformListener tf;
+    ros::Publisher pub_co = nh.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
+    sleep(1);
+    random_numbers::RandomNumberGenerator rng;
+
+    moveit_msgs::CollisionObject co;
+    co.id = "test" + boost::lexical_cast<std::string>(rng.uniformReal(0,100000));
+    co.header.stamp = ros::Time::now();
+    co.header.frame_id = "odom";
+    co.operation = moveit_msgs::CollisionObject::ADD;
+    co.shapes.resize(1);
+    co.shapes[0].type = moveit_msgs::Shape::SPHERE;
+    co.shapes[0].dimensions.push_back(0.1);
+    co.poses.resize(1);
+    co.poses[0].position.x = rng.uniformReal(-1.5, 1.5);
+    co.poses[0].position.y = rng.uniformReal(-1.5, 1.5);
+    co.poses[0].position.z = rng.uniformReal(0.1, 2.0);
+    co.poses[0].orientation.w = 1.0;
+    pub_co.publish(co);
+    ROS_INFO("Object published.");
+    
+}
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "demo", ros::init_options::AnonymousName);
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+    //    sendScene();
+    sendCollisionObject();    
     
     ros::waitForShutdown();
     
