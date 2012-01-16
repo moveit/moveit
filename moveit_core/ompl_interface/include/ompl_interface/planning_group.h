@@ -151,26 +151,26 @@ namespace ompl_interface
             return path_kinematic_constraints_set_;
         }
 
-	/* \brief Get the OMPL SimpleSetup object being used */
+        /* \brief Get the OMPL SimpleSetup object being used */
         const ompl::geometric::SimpleSetup& getOMPLSimpleSetup(void) const
         {
             return ompl_simple_setup_;
         }
 
-	/* \brief Get the OMPL SimpleSetup object being used */
-	ompl::geometric::SimpleSetup& getOMPLSimpleSetup(void)
+        /* \brief Get the OMPL SimpleSetup object being used */
+        ompl::geometric::SimpleSetup& getOMPLSimpleSetup(void)
         {
             return ompl_simple_setup_;
         }
 
-	/* \brief Get the OMPL Benchmark object being used */
+        /* \brief Get the OMPL Benchmark object being used */
         const ompl::Benchmark& getOMPLBenchmark(void) const
         {
             return ompl_benchmark_;
         }
 
-	/* \brief Get the OMPL Benchmark object being used */
-	ompl::Benchmark& getOMPLBenchmark(void)
+        /* \brief Get the OMPL Benchmark object being used */
+        ompl::Benchmark& getOMPLBenchmark(void)
         {
             return ompl_benchmark_;
         }
@@ -200,8 +200,8 @@ namespace ompl_interface
            @param timeout The time to spend on solving
            @param count The number of runs to average in the computation of the benchmark
         */
-	bool benchmark(double timeout, unsigned int count);
-	
+        bool benchmark(double timeout, unsigned int count);
+
         /* @brief Get the amount of time spent on the last plan*/
         double getLastPlanTime(void) const
         {
@@ -221,6 +221,14 @@ namespace ompl_interface
         /* @brief Fill in the response to the motion plan request. This includes the status code of the motion plan*/
         void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
 
+        /* @brief Construct a database of states for the state space defined in this planning group
+           @param start_state assume that the robot is at an specified start state (full state)
+           @param constr the constraints to be satisfied
+           @param samples The number of attempts at generating samples
+           @param filename The file to which the states should be saved */
+        void constructValidStateDatabase(const planning_models::KinematicState &start_state,
+                                         const moveit_msgs::Constraints &constr,
+                                         unsigned int samples, const char *filename);
     protected:
 
         void useConfig(const std::map<std::string, std::string> &config);
@@ -248,9 +256,9 @@ namespace ompl_interface
         /// the OMPL planning context; this contains the problem definition and the planner used
         ompl::geometric::SimpleSetup                            ompl_simple_setup_;
 
-	/// the OMPL tool for benchmarking planners
-	ompl::Benchmark                                         ompl_benchmark_;
-	
+        /// the OMPL tool for benchmarking planners
+        ompl::Benchmark                                         ompl_benchmark_;
+
         /// tool used to compute multiple plans in parallel; this uses the problem definition maintained by ompl_simple_setup_
         ompl::ParallelPlan                                      pplan_;
 

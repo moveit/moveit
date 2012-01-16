@@ -60,6 +60,8 @@
 #include <ompl/contrib/rrt_star/RRTstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 
+#include <ompl/base/StateStorage.h>
+
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <sstream>
@@ -110,8 +112,8 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
     ompl_simple_setup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
     static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->useNewStartingState();
     ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
-    ompl_benchmark_.setExperimentName(planning_scene_->getKinematicModel()->getName() + "_" + joint_model_group_->getName() + "_" + 
-				      planning_scene_->getName() + "_" + name_);
+    ompl_benchmark_.setExperimentName(planning_scene_->getKinematicModel()->getName() + "_" + joint_model_group_->getName() + "_" +
+                                      planning_scene_->getName() + "_" + name_);
     useConfig(config);
     path_kinematic_constraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
 }
@@ -149,7 +151,7 @@ void ompl_interface::PlanningGroup::useConfig(const std::map<std::string, std::s
         ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
                  name_.c_str(), type.c_str());
     }
-    
+
     // call the setParams() functions for both the StateSpace and the SpaceInformation
     // since we have not yet called setup()
     ompl_simple_setup_.getSpaceInformation()->params().setParams(cfg, true);
@@ -204,14 +206,57 @@ ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedS
     ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
     const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_kinematic_constraints_set_->getAllConstraints());
     if (cs)
+    {
+        ROS_DEBUG("%s: Allocating specialized state sampler for state space", name_.c_str());
         return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
+    }
     else
+    {
+        ROS_DEBUG("%s: Allocating default state sampler for state space", name_.c_str());
         return ss->allocDefaultStateSampler();
+    }
 }
 
 ompl::base::GoalPtr ompl_interface::PlanningGroup::getGoalRepresentation(const kinematic_constraints::KinematicConstraintSetPtr &kset) const
 {
     return ompl::base::GoalPtr(new ConstrainedGoalSampler(this, kset, getConstraintsSampler(kset->getAllConstraints())));
+}
+
+void ompl_interface::PlanningGroup::constructValidStateDatabase(const planning_models::KinematicState &start_state,
+                                                                const moveit_msgs::Constraints &constr,
+                                                                unsigned int samples,
+                                                                const char *filename)
+{
+    ompl::base::StateStorage sstor(ompl_simple_setup_.getStateSpace());
+    const ompl::base::SpaceInformationPtr &si = ompl_simple_setup_.getSpaceInformation();
+
+    // construct a sampler for the constraints
+    kinematic_constraints::KinematicConstraintSet kset(planning_scene_->getKinematicModel(), planning_scene_->getTransforms());
+    kset.add(constr);
+    kinematic_constraints::ConstraintSamplerPtr cs = getConstraintsSampler(constr);
+    ompl::base::StateSamplerPtr ss(cs ? ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs)) :
+                                   ompl_simple_setup_.getStateSpace()->allocDefaultStateSampler());
+    planning_models::KinematicState kstate = start_state;
+
+    ompl::base::ScopedState<> temp(si);
+    int done = -1;
+    for (unsigned int i = 0 ; i < samples ; ++i)
+    {
+        int done_now = 100 * i / samples;
+        if (done != done_now)
+        {
+            done = done_now;
+            ROS_INFO("%d%% complete (generated %u samples so far)", done, (unsigned int)sstor.size());
+        }
+        ss->sampleUniform(temp.get());
+        getKMStateSpace().copyToKinematicState(kstate, temp.get());
+        kstate.getJointStateGroup(joint_model_group_->getName())->updateLinkTransforms();
+        double distance = 0.0;
+        if (kset.decide(kstate, distance))
+            sstor.addState(si->cloneState(temp.get()));
+    }
+    sstor.store(filename);
+    ROS_INFO("Stored %u states", (unsigned int)sstor.size());
 }
 
 kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getConstraintsSampler(const moveit_msgs::Constraints &constr) const
@@ -300,7 +345,7 @@ bool ompl_interface::PlanningGroup::benchmark(double timeout, unsigned int count
     ompl_benchmark_.clearPlanners();
     ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
     ompl_benchmark_.benchmark(timeout, 4096.0, count, true);
-    return ompl_benchmark_.saveResultsToFile();    
+    return ompl_benchmark_.saveResultsToFile();
 }
 
 bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)

@@ -64,8 +64,8 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
     {
         if (parent_->isConfigured())
             configure(parent_->getUrdfModel(), parent_->getSrdfModel());
-	if (!parent_->getName().empty())
-	    name_ = parent_->getName() + "+";
+        if (!parent_->getName().empty())
+            name_ = parent_->getName() + "+";
     }
     else
         ROS_ERROR("NULL parent scene specified. Ignoring.");
@@ -548,7 +548,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 {
     ROS_DEBUG("Adding planning scene diff");
     name_ = scene.name;
-    
+
     // there is at least one transform in the list of fixed transform: from model frame to itself;
     // if the list is empty, then nothing has been set
     if (!scene.fixed_frame_transforms.empty())
@@ -585,8 +585,8 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
         crobot_->setScale(scene.link_scale);
     }
 
-    if ((!scene.world.collision_map.header.frame_id.empty() && 
-	 !scene.world.collision_map.boxes.empty()) || !scene.world.collision_objects.empty())
+    if ((!scene.world.collision_map.header.frame_id.empty() &&
+         !scene.world.collision_map.boxes.empty()) || !scene.world.collision_objects.empty())
     {
         for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
             processCollisionObjectMsg(scene.world.collision_objects[i]);
@@ -686,7 +686,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         if (ls)
         {
             std::vector<shapes::Shape*> shapes;
-            std::vector<Eigen::Affine3d>    poses;
+            std::vector<Eigen::Affine3d> poses;
 
             // we need to add some shapes; if the message is empty, maybe the object is already in the world
             if (object.object.shapes.empty())
