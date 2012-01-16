@@ -173,22 +173,26 @@ TEST_F(FclCollisionDetectionTester, ContactReporting)
   EXPECT_EQ(res.contacts.size(),1);
   EXPECT_EQ(res.contacts.begin()->second.size(),1);
 
-  res.contacts.clear();
+  res.clear();
   req.max_contacts = 2;
   req.max_contacts_per_pair = 1;
-  req.verbose = true;
+  //  req.verbose = true;
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_TRUE(res.collision);
   EXPECT_EQ(res.contacts.size(), 2);
   EXPECT_EQ(res.contacts.begin()->second.size(),1);
 
-  res.contacts.clear();
+  res.contacts.clear(); 
+  res.contact_count = 0;
+
   req.max_contacts = 10;
   req.max_contacts_per_pair = 2;
   acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), false)); 
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_TRUE(res.collision);
-  EXPECT_LE(res.contacts.size(), 10);
+  EXPECT_LE(res.contacts.size(), 10);  
+  EXPECT_LE(res.contact_count, 10);
+
 }
 
 TEST_F(FclCollisionDetectionTester, ContactPositions)
@@ -258,7 +262,6 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
     EXPECT_NEAR(it->second[0].pos.x(), 3.0, 0.33);
   }
 }
-
 
 int main(int argc, char **argv)
 {

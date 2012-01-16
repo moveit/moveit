@@ -109,10 +109,16 @@ namespace collision_detection
             {
                 std::size_t have;
                 if (cd1->getID() < cd2->getID())
-                    have = cdata->res_->contacts[std::make_pair(cd1->getID(), cd2->getID())].size();
-                else
-                    have = cdata->res_->contacts[std::make_pair(cd2->getID(), cd1->getID())].size();
-                if (have < cdata->req_->max_contacts_per_pair)
+		{
+		    std::pair<std::string, std::string> cp(cd1->getID(), cd2->getID());
+		    have = cdata->res_->contacts.find(cp) != cdata->res_->contacts.end() ? cdata->res_->contacts[cp].size() : 0;
+		}
+		else
+		{
+		    std::pair<std::string, std::string> cp(cd2->getID(), cd1->getID());
+		    have = cdata->res_->contacts.find(cp) != cdata->res_->contacts.end() ? cdata->res_->contacts[cp].size() : 0;
+		}
+		if (have < cdata->req_->max_contacts_per_pair)
                     want_contact_count = cdata->req_->max_contacts_per_pair - have;
             }
 
@@ -176,7 +182,7 @@ namespace collision_detection
 
                     if (cdata->req_->verbose)
                         ROS_INFO("Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
-                                 num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)want_contact_count);
+                                 num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)num_contacts);
                     const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
                         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
                     cdata->res_->collision = true;
@@ -210,7 +216,8 @@ namespace collision_detection
             {
                 cdata->done_ = true;
                 if (cdata->req_->verbose)
-                    ROS_INFO("Collision checking is considered complete.");
+                    ROS_INFO("Collision checking is considered complete (collision was found and %d contacts are stored)",
+			     (unsigned int)cdata->res_->contact_count);
             }
 
         return cdata->done_;
