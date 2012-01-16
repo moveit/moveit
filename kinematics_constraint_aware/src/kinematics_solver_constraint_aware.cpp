@@ -229,11 +229,9 @@ void KinematicsSolverConstraintAware::collisionCheck(const geometry_msgs::Pose &
   error_code.val = error_code.SUCCESS;
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-  req.contacts = true;
-  req.max_contacts = 1;
+  //req.contacts = true;
+  //req.max_contacts = 1;
   planning_scene_->checkCollision(req, res, *state_);
-  collision_detection::AllowedCollision::Type act;
-  planning_scene_->getAllowedCollisionMatrix().getAllowedCollision("r_forearm_link", "l_forearm_link", act);
   if(res.collision) {
     ROS_INFO_STREAM_NAMED("kinematics_collision", getCollisionDetectedString(res));
     error_code.val = error_code.COLLISION_CONSTRAINTS_VIOLATED;
@@ -270,10 +268,14 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
   }
  
   collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+  //last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
   req.contacts = true;
-  req.max_contacts = 10;
-  planning_scene_->checkCollision(req, last_initial_pose_check_collision_result_, *state_, acm);
-  if(last_initial_pose_check_collision_result_.collision) {
+  req.max_contacts = 1;
+  //planning_scene_->checkCollision(req, last_initial_pose_check_collision_result_, *state_, acm);
+  planning_scene_->checkCollision(req, res, *state_, acm);
+  if(res.collision) {
+    ROS_INFO_STREAM("Contacts size is " << res.contacts.size());
     ROS_INFO_STREAM_NAMED("kinematics_collisions", getCollisionDetectedString(last_initial_pose_check_collision_result_));
     error_code.val = error_code.IK_LINK_IN_COLLISION;
     ROS_DEBUG_STREAM("Initial pose check failing");
