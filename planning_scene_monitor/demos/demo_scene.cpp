@@ -52,7 +52,7 @@ void sendScene(void)
     ros::NodeHandle nh;
     tf::TransformListener tf;
     planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
-    ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("demo_planning_scene", 1);
+    ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
     
     constructScene(psm.getPlanningScene());
     ros::Duration(0.5).sleep();
@@ -95,8 +95,8 @@ int main(int argc, char **argv)
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
-    //    sendScene();
-    sendCollisionObject();    
+    sendScene();
+    //    sendCollisionObject();    
     
     ros::waitForShutdown();
     
