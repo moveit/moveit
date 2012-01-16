@@ -68,26 +68,23 @@ namespace collision_detection
     struct Contact
     {
         /** \brief contact position */
-        Eigen::Vector3d   pos;
+        Eigen::Vector3d pos;
         /** \brief normal unit vector at contact */
-        Eigen::Vector3d   normal;
+        Eigen::Vector3d normal;
         /** \brief depth (penetration between bodies) */
-        double      depth;
+        double          depth;
 
         /** \brief The id of the first body involved in the contact */
-        std::string body_name_1;
+        std::string     body_name_1;
 
         /** \brief The type of the first body involved in the contact */
-        BodyType    body_type_1;
+        BodyType        body_type_1;
 
         /** \brief The id of the second body involved in the contact */
-        std::string body_name_2;
+        std::string     body_name_2;
 
         /** \brief The type of the second body involved in the contact */
-        BodyType    body_type_2;
-
-        /** \brief If this contact is considered allowed (based on AllowedCollisionMatrix) */
-        bool        allowed;
+        BodyType        body_type_2;
     };
 
     /** \brief Representation of a collision checking result */
@@ -101,6 +98,9 @@ namespace collision_detection
         }
         typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
 
+	/** \brief Clear a previously stored result */
+	void clear(void) { *this = CollisionResult(); }
+	
         /** \brief True if collision was found, false otherwise */
         bool            collision;
 
