@@ -224,7 +224,7 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
   }
 
   pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond::Identity());
-  pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(M_PI/8.0, 0.0, M_PI/8.0, 0.0));
+  pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(0.965, 0.0, 0.258, 0.0));
   kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
   kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
 
