@@ -75,16 +75,6 @@ namespace kinematic_constraints
     /// some groups do not have IK solver associated to them, but may contain disjoint groups that do have IK solvers associated to them
     struct IKSubgroupAllocator
     {
-        IKSubgroupAllocator(void) : jmg_(NULL)
-        {
-        }
-
-        IKSubgroupAllocator(const planning_models::KinematicModel::JointModelGroup* jmg) : jmg_(jmg)
-        {
-        }
-
-        const planning_models::KinematicModel::JointModelGroup                        *jmg_;
-
         /// If there is no IK solver for this group, there could be IK solvers for parts of this group.
         std::map<const planning_models::KinematicModel::JointModelGroup*, IKAllocator> ik_allocators_;
     };

@@ -58,9 +58,9 @@ namespace ompl_interface
     private:
 
         const PlanningGroup *planning_group_;
+        std::string          group_name_;
         std::string          link_name_;
         TSStateStorage       tss_;
-
     };
 
     /** @class ProjectionEvaluatorJointValue

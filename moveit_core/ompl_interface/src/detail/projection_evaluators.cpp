@@ -38,7 +38,7 @@
 
 ompl_interface::ProjectionEvaluatorLinkPose::ProjectionEvaluatorLinkPose(const PlanningGroup *pg, const std::string &link) :
     ompl::base::ProjectionEvaluator(pg->getKMStateSpace().getOMPLSpace()), planning_group_(pg),
-    link_name_(link), tss_(pg->getStartState())
+    group_name_(planning_group_->getJointModelGroup()->getName()), link_name_(link), tss_(pg->getStartState())
 {
 }
 
@@ -59,6 +59,8 @@ void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::Stat
 {
     planning_models::KinematicState *s = tss_.getStateStorage();
     planning_group_->getKMStateSpace().copyToKinematicState(*s, state);
+    s->getJointStateGroup(group_name_)->updateLinkTransforms();
+
     const planning_models::KinematicState::LinkState *ls = s->getLinkState(link_name_);
     const Eigen::Vector3d &o = ls->getGlobalLinkTransform().translation();
     projection(0) = o.x();

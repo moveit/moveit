@@ -69,23 +69,26 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ompl::base::G
     public:
         ConstrainedGoalRegion(const PlanningGroup *pg, const kinematic_constraints::KinematicConstraintSet *ks,
                               planning_models::KinematicState *state) :
-            ompl::base::GoalRegion(pg->getOMPLSimpleSetup().getSpaceInformation()), planning_group_(pg), kinematic_constraint_set_(ks), state_(state)
+            ompl::base::GoalRegion(pg->getOMPLSimpleSetup().getSpaceInformation()), planning_group_(pg), kinematic_constraint_set_(ks),
+            state_(state), joint_state_group_(state_->getJointStateGroup(pg->getJointModelGroup()->getName()))
         {
         }
 
         virtual double distanceGoal(const ompl::base::State *st) const
         {
-          double distance;
-          planning_group_->getKMStateSpace().copyToKinematicState(*state_, st);
-          kinematic_constraint_set_->decide(*state_,distance);
-          return distance;
+            planning_group_->getKMStateSpace().copyToKinematicState(*state_, st);
+            joint_state_group_->updateLinkTransforms();
+            double dist;
+            kinematic_constraint_set_->decide(*state_, dist);
+            return dist;
         }
 
         virtual bool isSatisfied(const ompl::base::State *st, double *distance) const
         {
             planning_group_->getKMStateSpace().copyToKinematicState(*state_, st);
+            joint_state_group_->updateLinkTransforms();
             double dist;
-            const bool &r = kinematic_constraint_set_->decide(*state_,dist);
+            bool r = kinematic_constraint_set_->decide(*state_, dist);
             if (distance)
                 *distance = dist;
             return r;
@@ -96,6 +99,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ompl::base::G
         const PlanningGroup                                 *planning_group_;
         const kinematic_constraints::KinematicConstraintSet *kinematic_constraint_set_;
         planning_models::KinematicState                     *state_;
+        planning_models::KinematicState::JointStateGroup    *joint_state_group_;
     };
 
     ConstrainedGoalRegion reg(planning_group_, kinematic_constraint_set_.get(), &state_);

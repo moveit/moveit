@@ -350,7 +350,7 @@ bool kinematic_constraints::OrientationConstraint::decide(const planning_models:
     return false;
   }
 
-  Eigen::Vector3d ypr;  
+  Eigen::Vector3d ypr;
   if (mobile_frame_)
   {
     Eigen::Matrix3d tmp;
