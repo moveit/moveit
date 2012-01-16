@@ -79,17 +79,17 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
             scene_.reset(new planning_scene::PlanningScene());
         if (scene_->configure(rml.getURDF(), rml.getSRDF() ? rml.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model())))
         {
-	    scene_const_ = scene_;
+            scene_const_ = scene_;
             configureDefaultCollisionMatrix();
             configureDefaultPadding();
-	    scene_->getCollisionRobot()->setPadding(default_robot_padd_);
-	    scene_->getCollisionRobot()->setScale(default_robot_scale_);
-	}
-	else
-	{
-	    ROS_ERROR("Configuration of planning scene failed");
-	    scene_.reset();
-	}
+            scene_->getCollisionRobot()->setPadding(default_robot_padd_);
+            scene_->getCollisionRobot()->setScale(default_robot_scale_);
+        }
+        else
+        {
+            ROS_ERROR("Configuration of planning scene failed");
+            scene_.reset();
+        }
     }
     last_update_time_ = ros::Time::now();
     last_state_update_ = ros::WallTime::now();
@@ -100,10 +100,10 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
 {
     if (scene_)
     {
-	boost::mutex::scoped_lock slock(scene_update_mutex_);
-	scene_->decoupleParent();
-	if (flag)
-	    scene_.reset(new planning_scene::PlanningScene(scene_));
+        boost::mutex::scoped_lock slock(scene_update_mutex_);
+        scene_->decoupleParent();
+        if (flag)
+            scene_.reset(new planning_scene::PlanningScene(scene_));
     }
 }
 
@@ -142,8 +142,8 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
         {
             boost::mutex::scoped_lock slock(scene_update_mutex_);
             scene_->processCollisionMapMsg(world->collision_map);
-	    for (std::size_t i = 0 ; i < world->collision_objects.size() ; ++i)
-		scene_->processCollisionObjectMsg(world->collision_objects[i]);
+            for (std::size_t i = 0 ; i < world->collision_objects.size() ; ++i)
+                scene_->processCollisionObjectMsg(world->collision_objects[i]);
             last_update_time_ = ros::Time::now();
         }
         if (update_callback_)
@@ -188,7 +188,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
             scene_->processCollisionMapMsg(*map);
             last_update_time_ = ros::Time::now();
         }
-	if (update_callback_)
+        if (update_callback_)
             update_callback_();
     }
 }
@@ -225,8 +225,8 @@ void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
 
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
                                                                              const std::string &collision_map_topic,
-									     const std::string &planning_scene_world_topic)
-{    
+                                                                             const std::string &planning_scene_world_topic)
+{
     stopWorldGeometryMonitor();
     ROS_INFO("Starting world geometry monitor");
 
@@ -247,10 +247,10 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
         collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
         ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_map_topic.c_str(), collision_map_filter_->getTargetFramesString().c_str());
     }
-    
+
     if (!planning_scene_world_topic.empty())
     {
-	planning_scene_world_subscriber_ = root_nh_.subscribe(planning_scene_world_topic, 1, &PlanningSceneMonitor::newPlanningSceneWorldCallback, this);
+        planning_scene_world_subscriber_ = root_nh_.subscribe(planning_scene_world_topic, 1, &PlanningSceneMonitor::newPlanningSceneWorldCallback, this);
         ROS_INFO("Listening to '%s' for planning scene world geometry", planning_scene_world_topic.c_str());
     }
 }
@@ -259,17 +259,17 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
 {
     ROS_INFO("Stopping world geometry monitor");
     if (collision_object_subscriber_ || collision_object_filter_ ||
-	collision_map_subscriber_ || collision_map_filter_)
+        collision_map_subscriber_ || collision_map_filter_)
     {
-	delete collision_object_subscriber_;
-	delete collision_object_filter_;
-	delete collision_map_subscriber_;
-	delete collision_map_filter_;
-	collision_object_subscriber_ = NULL;
-	collision_object_filter_ = NULL;
-	collision_map_subscriber_ = NULL;
-	collision_map_filter_ = NULL;
-    }  
+        delete collision_object_subscriber_;
+        delete collision_object_filter_;
+        delete collision_map_subscriber_;
+        delete collision_map_filter_;
+        collision_object_subscriber_ = NULL;
+        collision_object_filter_ = NULL;
+        collision_map_subscriber_ = NULL;
+        collision_map_filter_ = NULL;
+    }
     planning_scene_world_subscriber_.shutdown();
 }
 
@@ -278,18 +278,18 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
     stopStateMonitor();
     if (scene_)
     {
-	if (!current_state_monitor_)
-	    current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
-	current_state_monitor_->setOnStateUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
-	current_state_monitor_->startStateMonitor(joint_states_topic);
-	
-	if (!attached_objects_topic.empty())
-	{
-	    // using regular message filter as there's no header
-	    attached_collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::AttachedCollisionObject>(root_nh_, attached_objects_topic, 1024);
-	    attached_collision_object_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::attachObjectCallback, this, _1));
-	    ROS_INFO("Listening to '%s' for attached collision objects", attached_objects_topic.c_str());
-	}
+        if (!current_state_monitor_)
+            current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
+        current_state_monitor_->setOnStateUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
+        current_state_monitor_->startStateMonitor(joint_states_topic);
+
+        if (!attached_objects_topic.empty())
+        {
+            // using regular message filter as there's no header
+            attached_collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::AttachedCollisionObject>(root_nh_, attached_objects_topic, 1024);
+            attached_collision_object_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::attachObjectCallback, this, _1));
+            ROS_INFO("Listening to '%s' for attached collision objects", attached_objects_topic.c_str());
+        }
     }
     else
         ROS_ERROR("Cannot monitor robot state because planning scene is not configured");
@@ -301,8 +301,8 @@ void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor(void)
         current_state_monitor_->stopStateMonitor();
     if (attached_collision_object_subscriber_)
     {
-	delete attached_collision_object_subscriber_;
-	attached_collision_object_subscriber_ = NULL;
+        delete attached_collision_object_subscriber_;
+        attached_collision_object_subscriber_ = NULL;
     }
 }
 
@@ -333,13 +333,13 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(v
         if (!current_state_monitor_->haveCompleteState())
             ROS_ERROR("The complete state of the robot is not yet known");
         {
-	    boost::mutex::scoped_lock slock(scene_update_mutex_);
-	    const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
-	    scene_->getCurrentState().setStateValues(v);
-	    last_update_time_ = ros::Time::now();
-	}
-	if (update_callback_)
-	    update_callback_();
+            boost::mutex::scoped_lock slock(scene_update_mutex_);
+            const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
+            scene_->getCurrentState().setStateValues(v);
+            last_update_time_ = ros::Time::now();
+        }
+        if (update_callback_)
+            update_callback_();
     }
     else
         ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
@@ -412,8 +412,8 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
 void planning_scene_monitor::PlanningSceneMonitor::configureDefaultCollisionMatrix(void)
 {
     if (!scene_)
-	return;
-    
+        return;
+
     collision_detection::AllowedCollisionMatrix &acm = scene_->getAllowedCollisionMatrix();
 
     // no collisions allowed by default

@@ -233,9 +233,9 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
             for (std::size_t j = 0; j < vars.size() ; ++j)
                 joint_time_[vars[j]] = tm;
             set_map_values = false;
-	    Eigen::Affine3d eigen_transf;
-	    tf::TransformTFToEigen(transf, eigen_transf);
-	    boost::mutex::scoped_lock slock(state_update_lock_);
+            Eigen::Affine3d eigen_transf;
+            tf::TransformTFToEigen(transf, eigen_transf);
+            boost::mutex::scoped_lock slock(state_update_lock_);
             root_->setVariableValues(eigen_transf);
             kstate_.setStateValues(joint_state_map);
         }
