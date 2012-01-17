@@ -42,6 +42,7 @@
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/base/GoalLazySamples.h>
 #include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/ComputePlanningBenchmark.h>
 #include <kinematic_constraints/constraint_samplers.h>
 #include <planning_scene/planning_scene.h>
 

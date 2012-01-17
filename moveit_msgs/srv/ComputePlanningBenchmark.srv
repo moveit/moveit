@@ -1,0 +1,12 @@
+# This service contains the definition for a request for benchmark
+# to the motion planner 
+
+# The problem to benchmark
+MotionPlanRequest motion_plan_request
+
+# The file where to store the results
+string filename
+
+---
+# Error code - encodes the overall reason for failure
+MoveItErrorCodes error_code
