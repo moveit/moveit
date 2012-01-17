@@ -39,6 +39,7 @@
 
 #include "ompl_interface/planning_group.h"
 #include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/ComputePlanningBenchmark.h>
 #include <string>
 #include <map>
 
@@ -90,7 +91,7 @@ namespace ompl_interface
         bool solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
 
         /** @brief Benchmark the planning problem*/
-        bool benchmark(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
+        bool benchmark(const moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res) const;
 
         /** @brief Solve the planning problem
          *  @param config
@@ -122,7 +123,7 @@ namespace ompl_interface
     protected:
 
         /** \brief Configure the OMPL planning context for a new planning request */
-        bool prepareForSolve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res,
+        bool prepareForSolve(const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
                              PlanningGroup* &pg_to_use, unsigned int &attempts, double &timeout) const;
 
         /** \brief The planning scene to consider as context when computing motion plans */
