@@ -40,18 +40,17 @@
 
 static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
 static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
+static const std::string BENCHMARK_SERVICE_NAME="benchmark_planning_problem"; // name of the advertised service (within the ~ namespace)
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
 
 class OMPLPlannerService
 {
 public:
 
-    OMPLPlannerService(ompl_interface_ros::OMPLInterfaceROS *ompl_interface, bool benchmark) : nh_("~"), ompl_interface_(ompl_interface), benchmark_(benchmark)
+    OMPLPlannerService(ompl_interface_ros::OMPLInterfaceROS *ompl_interface) : nh_("~"), ompl_interface_(ompl_interface)
     {
-	if (benchmark_)
-	    plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLPlannerService::computeBenchmark, this);
-	else
-	    plan_service_ = nh_.advertiseService("plan_kinematic_path", &OMPLPlannerService::computePlan, this);
+	plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
+	benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);
     }
 
     bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
@@ -60,7 +59,7 @@ public:
         return ompl_interface_->solve(req, res);
     }
 
-    bool computeBenchmark(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+    bool computeBenchmark(moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res)
     {
         ROS_INFO("Received new benchmark request...");
         return ompl_interface_->benchmark(req, res);
@@ -69,32 +68,21 @@ public:
     void status(void)
     {
         ompl_interface_->printStatus();
-	if (benchmark_)
-	    ROS_INFO("Responding to bechmark requests");
-	else
-	    ROS_INFO("Responding to planning requests");
+	ROS_INFO("Responding to planning and bechmark requests");
     }
 
 private:
 
     ros::NodeHandle                       nh_;
     ompl_interface_ros::OMPLInterfaceROS *ompl_interface_;
-    bool                                  benchmark_;
     ros::ServiceServer                    plan_service_;
+    ros::ServiceServer                    benchmark_service_;
 };
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, PLANNER_NODE_NAME);
 
-    bool benchmark = false;
-    for (int i = 0 ; i < argc ; ++i)
-	if (strcmp(argv[i], "--benchmark") == 0)
-	{
-	    benchmark = true;
-	    break;
-	}
-    
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
@@ -107,7 +95,7 @@ int main(int argc, char **argv)
 	psm.startStateMonitor();
 	
 	ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
-	OMPLPlannerService pservice(&o, benchmark);
+	OMPLPlannerService pservice(&o);
 	pservice.status();
 	ros::waitForShutdown();
     }

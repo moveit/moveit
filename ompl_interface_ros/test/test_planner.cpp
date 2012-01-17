@@ -84,7 +84,7 @@ TEST(OmplPlanning, JointGoal)
 
     // try a Joint goal
     mplan_req.motion_plan_request.group_name = "right_arm";
-    mplan_req.motion_plan_request.num_planning_attempts = 16;
+    mplan_req.motion_plan_request.num_planning_attempts = 2;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
     const std::vector<std::string>& joint_names = scene.getKinematicModel()->getJointModelGroup("right_arm")->getJointModelNames();
     mplan_req.motion_plan_request.goal_constraints.resize(1);
@@ -129,7 +129,7 @@ TEST(OmplPlanning, PositionGoal)
 
     // try a position goal
     mplan_req.motion_plan_request.group_name = "right_arm";
-    mplan_req.motion_plan_request.num_planning_attempts = 5;
+    mplan_req.motion_plan_request.num_planning_attempts = 1;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(25.0);
 
     moveit_msgs::PositionConstraint pcm;
@@ -142,7 +142,7 @@ TEST(OmplPlanning, PositionGoal)
 
     pcm.constraint_region_pose.header.frame_id = scene.getKinematicModel()->getModelFrame();
     pcm.constraint_region_pose.pose.position.x = 0.55;
-    pcm.constraint_region_pose.pose.position.y = 0.2;
+    pcm.constraint_region_pose.pose.position.y = -0.2;
     pcm.constraint_region_pose.pose.position.z = 1.25;
     pcm.constraint_region_pose.pose.orientation.x = 0.0;
     pcm.constraint_region_pose.pose.orientation.y = 0.0;
