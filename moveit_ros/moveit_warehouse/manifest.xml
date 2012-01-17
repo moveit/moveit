@@ -1,0 +1,18 @@
+<package>
+  <description brief="moveit_warehouse">
+
+     moveit_warehouse
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_warehouse</url>
+
+  <depend package="mongo_ros"/>
+  <depend package="moveit_msgs"/>
+
+</package>  
+
+
+
