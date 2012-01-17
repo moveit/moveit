@@ -157,6 +157,12 @@ void PlanningDisplay::clearRenderedGeometry()
   }
 }
 
+void PlanningDisplay::setSceneName(const std::string &name)
+{
+  scene_name_ = name;
+  propertyChanged(scene_name_property_);
+}
+
 void PlanningDisplay::setRobotDescription(const std::string& description_param)
 {
   description_param_ = description_param;
@@ -178,7 +184,7 @@ void PlanningDisplay::setRobotAlpha(float alpha)
 {
   robot_path_alpha_ = alpha;
   robot_->setAlpha(robot_path_alpha_);
-  propertyChanged(robot_path_alpha_property_); 
+  propertyChanged(robot_path_alpha_property_);
   causeRender();
 }
 
@@ -317,7 +323,7 @@ void PlanningDisplay::load()
     scene_robot_->update(PlanningLinkUpdater(&scene_monitor_->getPlanningScene()->getCurrentState()));
   }
   else
-    scene_monitor_.reset();  
+    scene_monitor_.reset();
 }
 
 void PlanningDisplay::onEnable()
@@ -363,102 +369,102 @@ void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s,
     switch (s->type)
     {
     case shapes::SPHERE:
-	{
-	    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Sphere,
-					       vis_manager_->getSceneManager(), node);
-	    double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
-	    ogre_shape->setScale(Ogre::Vector3(d, d, d));
-	}
-	break;
+        {
+            ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Sphere,
+                                               vis_manager_->getSceneManager(), node);
+            double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
+            ogre_shape->setScale(Ogre::Vector3(d, d, d));
+        }
+        break;
     case shapes::BOX:
-	{
-	    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cube,
-					       vis_manager_->getSceneManager(), node);
-	    const double* sz = static_cast<const shapes::Box*>(s)->size;
-	    ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
-	}
-	break;
+        {
+            ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cube,
+                                               vis_manager_->getSceneManager(), node);
+            const double* sz = static_cast<const shapes::Box*>(s)->size;
+            ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
+        }
+        break;
     case shapes::CYLINDER:
-	{
-	    ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cylinder,
-					       vis_manager_->getSceneManager(), node);
-	    double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
-	    double z = static_cast<const shapes::Cylinder*>(s)->length;
-	    ogre_shape->setScale(Ogre::Vector3(d, z, d)); // the shape has z as major axis, but the rendered cylinder has y as major axis (assuming z is upright);
-	}
-	break;
+        {
+            ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cylinder,
+                                               vis_manager_->getSceneManager(), node);
+            double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
+            double z = static_cast<const shapes::Cylinder*>(s)->length;
+            ogre_shape->setScale(Ogre::Vector3(d, z, d)); // the shape has z as major axis, but the rendered cylinder has y as major axis (assuming z is upright);
+        }
+        break;
     case shapes::MESH:
-	{
-	    const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(s);
-	    if (mesh->triangle_count > 0)
-	    {
-		// check if we need to construct the material
-		if (material_name_.empty())
-		{
-		    material_name_ = "Planning Display Mesh Material";
-		    material_ = Ogre::MaterialManager::getSingleton().create( material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
-		    material_->setReceiveShadows(false);
-		    material_->getTechnique(0)->setLightingEnabled(true);
-		    material_->setCullingMode(Ogre::CULL_NONE);
-		    material_->getTechnique(0)->setAmbient(color.r_, color.g_, color.b_);
-		    material_->getTechnique(0)->setDiffuse(0, 0, 0, alpha);
-		    if (alpha < 0.9998)
-		    {
-			material_->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
-			material_->getTechnique(0)->setDepthWriteEnabled( false );
-		    }
-		    else
-		    {
-			material_->getTechnique(0)->setSceneBlending( Ogre::SBT_REPLACE );
-			material_->getTechnique(0)->setDepthWriteEnabled( true );
-		    }
-		}
-		
-		std::string name = "Planning Display Mesh " + boost::lexical_cast<std::string>(manual_objects_.size());
-		Ogre::ManualObject *manual_object = vis_manager_->getSceneManager()->createManualObject(name);
-		manual_object->estimateVertexCount(mesh->triangle_count * 3);
-		manual_object->begin(material_name_, Ogre::RenderOperation::OT_TRIANGLE_LIST);
-		for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
-		{
-		    unsigned int i3 = i * 3;
-		    for (int k = 0 ; k < 3 ; ++k)
-		    {
-			unsigned int vi = 3 * mesh->triangles[i3 + k];
-			const Eigen::Vector3d &v = p * Eigen::Vector3d(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
-			manual_object->position(v.x(), v.y(), v.z());
-		    }
-		}
-		manual_object->end();
-		node->attachObject(manual_object);
-		manual_objects_.push_back(manual_object);
-	    }
-	}
-	break;
+        {
+            const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(s);
+            if (mesh->triangle_count > 0)
+            {
+                // check if we need to construct the material
+                if (material_name_.empty())
+                {
+                    material_name_ = "Planning Display Mesh Material";
+                    material_ = Ogre::MaterialManager::getSingleton().create( material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+                    material_->setReceiveShadows(false);
+                    material_->getTechnique(0)->setLightingEnabled(true);
+                    material_->setCullingMode(Ogre::CULL_NONE);
+                    material_->getTechnique(0)->setAmbient(color.r_, color.g_, color.b_);
+                    material_->getTechnique(0)->setDiffuse(0, 0, 0, alpha);
+                    if (alpha < 0.9998)
+                    {
+                        material_->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
+                        material_->getTechnique(0)->setDepthWriteEnabled( false );
+                    }
+                    else
+                    {
+                        material_->getTechnique(0)->setSceneBlending( Ogre::SBT_REPLACE );
+                        material_->getTechnique(0)->setDepthWriteEnabled( true );
+                    }
+                }
+
+                std::string name = "Planning Display Mesh " + boost::lexical_cast<std::string>(manual_objects_.size());
+                Ogre::ManualObject *manual_object = vis_manager_->getSceneManager()->createManualObject(name);
+                manual_object->estimateVertexCount(mesh->triangle_count * 3);
+                manual_object->begin(material_name_, Ogre::RenderOperation::OT_TRIANGLE_LIST);
+                for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
+                {
+                    unsigned int i3 = i * 3;
+                    for (int k = 0 ; k < 3 ; ++k)
+                    {
+                        unsigned int vi = 3 * mesh->triangles[i3 + k];
+                        const Eigen::Vector3d &v = p * Eigen::Vector3d(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
+                        manual_object->position(v.x(), v.y(), v.z());
+                    }
+                }
+                manual_object->end();
+                node->attachObject(manual_object);
+                manual_objects_.push_back(manual_object);
+            }
+        }
+        break;
     default:
-	break;
+        break;
     }
     if (ogre_shape)
     {
-	ogre_shape->setColor(color.r_, color.g_, color.b_, alpha);
-	Ogre::Vector3 position(p.translation().x(), p.translation().y(), p.translation().z());
-	Eigen::Quaterniond q(p.rotation());
-	Ogre::Quaternion orientation(q.w(), q.x(), q.y(), q.z());
+        ogre_shape->setColor(color.r_, color.g_, color.b_, alpha);
+        Ogre::Vector3 position(p.translation().x(), p.translation().y(), p.translation().z());
+        Eigen::Quaterniond q(p.rotation());
+        Ogre::Quaternion orientation(q.w(), q.x(), q.y(), q.z());
 
-	if (s->type == shapes::CYLINDER)
-	{
-	    // in geometric shapes, the z axis of the cylinder is it height;
-	    // for the ogre_tools shape, the y axis is the height; we add a transform to fix this
-	    static Ogre::Quaternion fix(Ogre::Radian(M_PI/2.0), Ogre::Vector3(1.0, 0.0, 0.0));
-	    orientation = fix * orientation;
-	}
-	
-	ogre_shape->setPosition(position);
-	ogre_shape->setOrientation(orientation);
-	scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
+        if (s->type == shapes::CYLINDER)
+        {
+            // in geometric shapes, the z axis of the cylinder is it height;
+            // for the ogre_tools shape, the y axis is the height; we add a transform to fix this
+            static Ogre::Quaternion fix(Ogre::Radian(M_PI/2.0), Ogre::Vector3(1.0, 0.0, 0.0));
+            orientation = fix * orientation;
+        }
+
+        ogre_shape->setPosition(position);
+        ogre_shape->setOrientation(orientation);
+        scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
     }
 }
 
-void PlanningDisplay::renderPlanningScene()    
+void PlanningDisplay::renderPlanningScene()
 {
     static rviz::Color colors[] = {
         rviz::Color(0.2f, 0.9f, 0.2f),
@@ -468,7 +474,7 @@ void PlanningDisplay::renderPlanningScene()
         rviz::Color(0.9f, 0.0f, 0.2f)
     };
     static rviz::Color attached_color(0.6f, 0.6f, 0.6f);
-    
+
     if (!scene_monitor_)
         return;
 
@@ -492,21 +498,21 @@ void PlanningDisplay::renderPlanningScene()
             collision_detection::CollisionWorld::ObjectConstPtr o = cworld->getObject(ids[i]);
             const rviz::Color &color = colors[i % (sizeof(colors)/sizeof(rviz::Color))];
             for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
-		renderShape(scene_node_, o->shapes_[j], o->shape_poses_[j], color, scene_alpha_);
-	}
-	
-	std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
-	scene_monitor_->getPlanningScene()->getCurrentState().getAttachedBodies(attached_bodies);
-	for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
-	{
-	    const std::vector<Eigen::Affine3d> &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
-	    const std::vector<shapes::Shape*> &ab_shapes = attached_bodies[i]->getShapes();
-	    for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
-	    {
-		renderShape(scene_robot_->getVisualNode(), ab_shapes[j], ab_t[j], attached_color, robot_scene_alpha_);
-		renderShape(scene_robot_->getCollisionNode(), ab_shapes[j], ab_t[j], attached_color, robot_scene_alpha_);
-	    }
-	}
+                renderShape(scene_node_, o->shapes_[j], o->shape_poses_[j], color, scene_alpha_);
+        }
+
+        std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
+        scene_monitor_->getPlanningScene()->getCurrentState().getAttachedBodies(attached_bodies);
+        for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
+        {
+            const std::vector<Eigen::Affine3d> &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
+            const std::vector<shapes::Shape*> &ab_shapes = attached_bodies[i]->getShapes();
+            for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
+            {
+                renderShape(scene_robot_->getVisualNode(), ab_shapes[j], ab_t[j], attached_color, robot_scene_alpha_);
+                renderShape(scene_robot_->getCollisionNode(), ab_shapes[j], ab_t[j], attached_color, robot_scene_alpha_);
+            }
+        }
     }
     catch(...)
     {
@@ -514,7 +520,7 @@ void PlanningDisplay::renderPlanningScene()
         throw;
     }
     scene_monitor_->unlockScene();
-    
+
     scene_node_->setVisible(display_scene_);
 }
 
@@ -570,6 +576,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
   {
     render = true;
     offset = true;
+    setSceneName(scene_monitor_->getPlanningScene()->getName());
     renderPlanningScene();
     current_scene_time_ = 0.0f;
   }
@@ -646,6 +653,11 @@ void PlanningDisplay::createProperties()
   const std::string path_prefix = property_prefix_ + "_path";
 
   ///// planning scene
+
+  scene_name_property_ = property_manager_->createProperty<rviz::StringProperty> ("Scene Name", scene_prefix,
+                                                                                  boost::bind(&PlanningDisplay::getSceneName, this),
+                                                                                  boost::bind(&PlanningDisplay::setSceneName, this, _1), scene_category_, this);
+  setPropertyHelpText(scene_name_property_, "Shows the name of the planning scene");
 
   scene_enabled_property_ = property_manager_->createProperty<rviz::BoolProperty> ("Show Scene Geometry", scene_prefix,
                                                                                    boost::bind(&PlanningDisplay::getSceneVisible, this),

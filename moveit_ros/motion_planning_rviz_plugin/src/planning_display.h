@@ -151,6 +151,8 @@ public:
   bool getLoopDisplay() { return loop_display_; }
   void setLoopDisplay(bool loop_display);
 
+  const std::string& getSceneName(void) { return scene_name_; }
+  void setSceneName(const std::string &name);
 
   virtual void update(float wall_dt, float ros_dt);
 
@@ -225,7 +227,7 @@ protected:
   float scene_display_time_;
   std::string planning_scene_topic_;
   std::string planning_scene_diff_topic_;
-
+  std::string scene_name_;
 
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
@@ -234,7 +236,7 @@ protected:
   std::vector<Ogre::ManualObject*> manual_objects_;
   Ogre::MaterialPtr material_;
   std::string material_name_;
-  
+
   bool new_display_trajectory_;
   bool animating_path_;
   int current_state_;
@@ -245,6 +247,7 @@ protected:
   // properties to show on side panel
   rviz::CategoryPropertyWPtr scene_category_;
   rviz::CategoryPropertyWPtr path_category_;
+  rviz::StringPropertyWPtr scene_name_property_;
   rviz::BoolPropertyWPtr visual_enabled_property_;
   rviz::BoolPropertyWPtr collision_enabled_property_;
   rviz::BoolPropertyWPtr scene_enabled_property_;
