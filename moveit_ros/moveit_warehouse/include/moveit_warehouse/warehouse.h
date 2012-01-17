@@ -53,7 +53,8 @@ namespace moveit_warehouse
     class PlanningSceneStorage
     {
     public:
-
+	PlanningSceneStorage();
+	
 	void addPlanningScene(const moveit_msgs::PlanningScene &scene);
 	void addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
 	void addPlanningResult(const moveit_msgs::MotionPlanRequest &planning_query, const moveit_msgs::RobotTrajectory &result, const std::string &scene_name);
