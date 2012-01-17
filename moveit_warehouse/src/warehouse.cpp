@@ -37,14 +37,17 @@
 #include "moveit_warehouse/warehouse.h"
 
 static const std::string DATABASE_NAME = "moveit_planning_scenes";
+
 static const std::string PLANNING_SCENE_ID_NAME = "planning_scene_id";
 static const std::string PLANNING_SCENE_TIME_NAME = "planning_scene_time";
 static const std::string MOTION_PLAN_REQUEST_ID_NAME = "motion_request_id";
 
-static const std::string TRAJECTORY_ID_NAME = "trajectory_id";
-static const std::string TRAJECTORY_MOTION_REQUEST_ID_NAME = "trajectory_motion_request_id";
-static const std::string PAUSED_COLLISION_MAP_TIME_NAME = "paused_collision_map_time";
-
+moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage()
+{
+    planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene"));
+    motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request"));
+    robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory"));
+}
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)
 {
