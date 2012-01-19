@@ -49,8 +49,8 @@ public:
 
     OMPLPlannerService(ompl_interface_ros::OMPLInterfaceROS *ompl_interface) : nh_("~"), ompl_interface_(ompl_interface)
     {
-	plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
-	benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);
+        plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
+        benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);
     }
 
     bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
@@ -68,7 +68,7 @@ public:
     void status(void)
     {
         ompl_interface_->printStatus();
-	ROS_INFO("Responding to planning and bechmark requests");
+        ROS_INFO("Responding to planning and bechmark requests");
     }
 
 private:
@@ -90,17 +90,17 @@ int main(int argc, char **argv)
     planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
     if (psm.getPlanningScene()->isConfigured())
     {
-	psm.startWorldGeometryMonitor();
-	psm.startSceneMonitor();
-	psm.startStateMonitor();
-	
-	ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
-	OMPLPlannerService pservice(&o);
-	pservice.status();
-	ros::waitForShutdown();
+        psm.startWorldGeometryMonitor();
+        psm.startSceneMonitor();
+        psm.startStateMonitor();
+
+        ompl_interface_ros::OMPLInterfaceROS o(psm.getPlanningScene());
+        OMPLPlannerService pservice(&o);
+        pservice.status();
+        ros::waitForShutdown();
     }
     else
-	ROS_ERROR("Planning scene not configured");
-    
+        ROS_ERROR("Planning scene not configured");
+
     return 0;
 }

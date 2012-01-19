@@ -204,21 +204,29 @@ void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_in
     pconfig.clear();
     for (std::size_t i = 0 ; i < group_names.size() ; ++i)
     {
+        // the set of planning parameters that can be specific for the group (inherited by configurations of that group)
+        static const std::string KNOWN_GROUP_PARAMS[] = {
+            "projection_evaluator", "longest_valid_segment_fraction"
+        };
+
         // get parameters specific for the group
-        std::string projection_evaluator, lvsf;
-        nh_.getParam(group_names[i] + "/projection_evaluator", projection_evaluator);
-        nh_.getParam(group_names[i] + "/longest_valid_segment_fraction", lvsf);
+        std::map<std::string, std::string> specific_group_params;
+        for (std::size_t k = 0 ; k < sizeof(KNOWN_GROUP_PARAMS) / sizeof(std::string) ; ++k)
+            if (nh_.hasParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k]))
+            {
+                std::string value;
+                nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value);
+                if (!value.empty())
+                    specific_group_params[KNOWN_GROUP_PARAMS[k]] = value;
+            }
 
         // set the parameters (if any) for the default group configuration;
-        if (!projection_evaluator.empty() || !lvsf.empty())
+        if (!specific_group_params.empty())
         {
             ompl_interface::PlannerConfigs pc;
             pc.name = group_names[i];
             pc.group = group_names[i];
-            if (!projection_evaluator.empty())
-                pc.config["projection_evaluator"] = projection_evaluator;
-            if (!lvsf.empty())
-                pc.config["longest_valid_segment_fraction"] = lvsf;
+            pc.config = specific_group_params;
             pconfig.push_back(pc);
         }
 
@@ -239,16 +247,22 @@ void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_in
                                 ompl_interface::PlannerConfigs pc;
                                 pc.name = group_names[i] + "[" + planner_config + "]";
                                 pc.group = group_names[i];
-
                                 // inherit parameters from the group (which can be overriden)
-                                if (!projection_evaluator.empty())
-                                    pc.config["projection_evaluator"] = projection_evaluator;
-                                if (!lvsf.empty())
-                                    pc.config["longest_valid_segment_fraction"] = lvsf;
+                                pc.config = specific_group_params;
 
                                 // read parameters specific for this configuration
                                 for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin() ; it != xml_config.end() ; ++it)
-                                    pc.config[it->first] = static_cast<std::string>(it->second);
+                                    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
+                                        pc.config[it->first] = static_cast<std::string>(it->second);
+                                    else
+                                    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+                                        pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<double>(it->second));
+                                    else
+                                    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
+                                        pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
+                                    else
+                                    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+                                        pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
                                 pconfig.push_back(pc);
                             }
                             else
