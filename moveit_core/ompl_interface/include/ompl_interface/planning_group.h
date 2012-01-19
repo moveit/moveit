@@ -200,8 +200,9 @@ namespace ompl_interface
         /* @brief Benchmark the planning problem. Return true on succesful saving of benchmark results
            @param timeout The time to spend on solving
            @param count The number of runs to average in the computation of the benchmark
+	   @param filename The name of the file to which the benchmark results are to be saved (automatic names can be provided if a name is not specified)
         */
-        bool benchmark(double timeout, unsigned int count);
+        bool benchmark(double timeout, unsigned int count, const std::string &filename = "");
 
         /* @brief Get the amount of time spent on the last plan*/
         double getLastPlanTime(void) const

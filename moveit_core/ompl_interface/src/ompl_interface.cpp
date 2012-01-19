@@ -235,7 +235,7 @@ bool ompl_interface::OMPLInterface::benchmark(const moveit_msgs::ComputePlanning
     if (!prepareForSolve(req.motion_plan_request, res.error_code, pg, attempts, timeout))
         return false;
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-    return pg->benchmark(timeout, attempts);
+    return pg->benchmark(timeout, attempts, req.filename);
 }
 
 bool ompl_interface::OMPLInterface::solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints, double timeout)
