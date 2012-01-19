@@ -57,6 +57,11 @@ class KinematicConstraint
 {
 public:
 
+  enum ConstraintType
+      {
+          UNKNOWN_CONSTRAINT, JOINT_CONSTRAINT, POSITION_CONSTRAINT, ORIENTATION_CONSTRAINT, VISIBILITY_CONSTRAINT
+      };
+
   KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
   virtual ~KinematicConstraint(void);
 
@@ -72,6 +77,15 @@ public:
       that decide() will always return true -- there is no
       constraint to be checked. */
   virtual bool enabled(void) const = 0;
+
+  /** \brief Check if two constraints are the same */
+  virtual bool equal(const KinematicConstraint &other, double margin) const = 0;
+
+  /** \brief Get the type of constraint */
+  ConstraintType getType(void) const
+  {
+    return type_;
+  }
 
   /** \brief Print the constraint data */
   virtual void print(std::ostream &out = std::cout) const
@@ -96,6 +110,7 @@ public:
 
 protected:
 
+  ConstraintType                          type_;
   planning_models::KinematicModelConstPtr model_;
   planning_models::TransformsConstPtr     tf_;
   double                                  constraint_weight_;
@@ -111,9 +126,11 @@ public:
   JointConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), joint_model_(NULL)
   {
+    type_ = JOINT_CONSTRAINT;
   }
 
   bool configure(const moveit_msgs::JointConstraint &jc);
+  virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
   virtual bool enabled(void) const;
   virtual void clear(void);
@@ -155,9 +172,11 @@ public:
   OrientationConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
+    type_ = ORIENTATION_CONSTRAINT;
   }
 
   bool configure(const moveit_msgs::OrientationConstraint &pc);
+  virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
   virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
   virtual bool enabled(void) const;
@@ -201,8 +220,8 @@ public:
 protected:
 
   const planning_models::KinematicModel::LinkModel *link_model_;
-  Eigen::Matrix3d                                       desired_rotation_matrix_;
-  Eigen::Matrix3d                                       desired_rotation_matrix_inv_;
+  Eigen::Matrix3d                                   desired_rotation_matrix_;
+  Eigen::Matrix3d                                   desired_rotation_matrix_inv_;
   std::string                                       desired_rotation_frame_id_;
   bool                                              mobile_frame_;
   double                                            absolute_roll_tolerance_, absolute_pitch_tolerance_, absolute_yaw_tolerance_;
@@ -215,9 +234,11 @@ public:
   PositionConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
     KinematicConstraint(model, tf), link_model_(NULL)
   {
+    type_ = POSITION_CONSTRAINT;
   }
 
   bool configure(const moveit_msgs::PositionConstraint &pc);
+  virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
   virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
   virtual bool enabled(void) const;
@@ -255,10 +276,10 @@ public:
 
 protected:
 
-  Eigen::Vector3d                                         offset_;
+  Eigen::Vector3d                                   offset_;
   bool                                              has_offset_;
   boost::shared_ptr<bodies::Body>                   constraint_region_;
-  Eigen::Affine3d                                       constraint_region_pose_;
+  Eigen::Affine3d                                   constraint_region_pose_;
   bool                                              mobile_frame_;
   std::string                                       constraint_frame_id_;
   const planning_models::KinematicModel::LinkModel *link_model_;
@@ -271,6 +292,7 @@ public:
   VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf);
 
   bool configure(const moveit_msgs::VisibilityConstraint &vc);
+  virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
   shapes::Mesh* getVisibilityCone(const planning_models::KinematicState &state) const;
   virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
@@ -285,10 +307,10 @@ protected:
   bool                                   mobile_target_frame_;
   std::string                            target_frame_id_;
   std::string                            sensor_frame_id_;
-  Eigen::Affine3d                            sensor_pose_;
-  Eigen::Affine3d                            target_pose_;
+  Eigen::Affine3d                        sensor_pose_;
+  Eigen::Affine3d                        target_pose_;
   unsigned int                           cone_sides_;
-  std::vector<Eigen::Vector3d>                 points_;
+  std::vector<Eigen::Vector3d>           points_;
   double                                 target_radius_;
   double                                 max_view_angle_;
 };
@@ -332,6 +354,8 @@ public:
   bool decide(const planning_models::KinematicState &state,
               moveit_msgs::ConstraintEvalResults& results,
               bool verbose) const;
+
+  bool equal(const KinematicConstraintSet &other, double margin) const;
 
   /** \brief Print the constraint data */
   void print(std::ostream &out = std::cout) const;

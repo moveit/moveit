@@ -45,7 +45,7 @@
 #include <limits>
 
 kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
-  model_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
+  type_(UNKNOWN_CONSTRAINT), model_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
 
@@ -90,6 +90,18 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
       constraint_weight_ = jc.weight;
   }
   return joint_model_ != NULL;
+}
+
+bool kinematic_constraints::JointConstraint::equal(const KinematicConstraint &other, double margin) const
+{
+    if (other.getType() != type_)
+        return false;
+    const JointConstraint &o = static_cast<const JointConstraint&>(other);
+    if (o.joint_model_ == joint_model_)
+        return fabs(joint_position_ - o.joint_position_) <= margin &&
+            fabs(joint_tolerance_above_ - o.joint_tolerance_above_) <= margin &&
+            fabs(joint_tolerance_below_ - o.joint_tolerance_below_) <= margin;
+    return false;
 }
 
 bool kinematic_constraints::JointConstraint::decide(const planning_models::KinematicState &state, double &distance, bool verbose) const
@@ -202,6 +214,28 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     return true;
   }
   else
+    return false;
+}
+
+bool kinematic_constraints::PositionConstraint::equal(const KinematicConstraint &other, double margin) const
+{
+    if (other.getType() != type_)
+        return false;
+    const PositionConstraint &o = static_cast<const PositionConstraint&>(other);
+
+    if (link_model_ == o.link_model_ && constraint_frame_id_ == o.constraint_frame_id_)
+    {
+        if ((offset_ - o.offset_).norm() > margin)
+            return false;
+        Eigen::Affine3d diff = constraint_region_pose_.inverse() * o.constraint_region_pose_;
+        if (diff.translation().norm() > margin)
+            return false;
+        if (!diff.rotation().isIdentity(margin))
+            return false;
+        if (fabs(constraint_region_->computeVolume() - o.constraint_region_->computeVolume()) >= margin)
+            return false;
+        return true;
+    }
     return false;
 }
 
@@ -323,6 +357,24 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
   return link_model_ != NULL;
 }
 
+bool kinematic_constraints::OrientationConstraint::equal(const KinematicConstraint &other, double margin) const
+{
+    if (other.getType() != type_)
+        return false;
+    const OrientationConstraint &o = static_cast<const OrientationConstraint&>(other);
+
+    if (o.link_model_ == link_model_ && desired_rotation_frame_id_ == o.desired_rotation_frame_id_)
+    {
+        Eigen::Matrix3d diff = desired_rotation_matrix_.inverse() * o.desired_rotation_matrix_;
+        if (!diff.isIdentity(margin))
+            return false;
+        return fabs(absolute_roll_tolerance_ - o.absolute_roll_tolerance_) <= margin &&
+            fabs(absolute_pitch_tolerance_ - o.absolute_pitch_tolerance_) <= margin &&
+            fabs(absolute_yaw_tolerance_ - o.absolute_yaw_tolerance_) <= margin;
+    }
+    return false;
+}
+
 void kinematic_constraints::OrientationConstraint::clear(void)
 {
   link_model_ = NULL;
@@ -398,6 +450,7 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
 kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
   KinematicConstraint(model, tf), collision_robot_(new collision_detection::CollisionRobotFCL(model)), collision_world_(new collision_detection::CollisionWorldFCL())
 {
+  type_ = VISIBILITY_CONSTRAINT;
 }
 
 void kinematic_constraints::VisibilityConstraint::clear(void)
@@ -472,6 +525,34 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
   max_view_angle_ = vc.max_view_angle;
 
   return target_radius_ > std::numeric_limits<double>::epsilon();
+}
+
+bool kinematic_constraints::VisibilityConstraint::equal(const KinematicConstraint &other, double margin) const
+{
+    if (other.getType() != type_)
+        return false;
+    const VisibilityConstraint &o = static_cast<const VisibilityConstraint&>(other);
+
+    if (target_frame_id_ == o.target_frame_id_ &&
+        sensor_frame_id_ == o.sensor_frame_id_ &&
+        cone_sides_ == o.cone_sides_)
+    {
+        if (fabs(max_view_angle_ - o.max_view_angle_) > margin ||
+            fabs(target_radius_ - o.target_radius_) > margin)
+            return false;
+        Eigen::Affine3d diff = sensor_pose_.inverse() * o.sensor_pose_;
+        if (diff.translation().norm() > margin)
+            return false;
+        if (!diff.rotation().isIdentity(margin))
+            return false;
+        diff = target_pose_.inverse() * o.target_pose_;
+        if (diff.translation().norm() > margin)
+            return false;
+        if (!diff.rotation().isIdentity(margin))
+            return false;
+        return true;
+    }
+    return false;
 }
 
 bool kinematic_constraints::VisibilityConstraint::enabled(void) const
@@ -755,6 +836,19 @@ void kinematic_constraints::KinematicConstraintSet::print(std::ostream &out) con
   out << kinematic_constraints_.size() << " kinematic constraints" << std::endl;
   for (unsigned int i = 0 ; i < kinematic_constraints_.size() ; ++i)
     kinematic_constraints_[i]->print(out);
+}
+
+bool kinematic_constraints::KinematicConstraintSet::equal(const KinematicConstraintSet &other, double margin) const
+{
+    for (unsigned int i = 0 ; i < kinematic_constraints_.size() ; ++i)
+    {
+        bool found = false;
+        for (unsigned int j = 0 ; !found && j < other.kinematic_constraints_.size() ; ++j)
+            found = kinematic_constraints_[i]->equal(*other.kinematic_constraints_[j], margin);
+        if (!found)
+            return false;
+    }
+    return true;
 }
 
 bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
