@@ -103,7 +103,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     jvals[jcm.joint_name] = 0.34;
     ks.setStateValues(jvals);
     EXPECT_FALSE(jc.decide(ks, dummy));
-
+    EXPECT_TRUE(jc.equal(jc, 1e-12));
 }
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
@@ -173,7 +173,8 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     std::map<std::string, double> jvals;
     jvals["torso_lift_joint"] = 0.4;
     ks.setStateValues(jvals);
-    EXPECT_FALSE(pc.decide(ks, dummy));
+    EXPECT_FALSE(pc.decide(ks, dummy)); 
+    EXPECT_TRUE(pc.equal(pc, 1e-12));
 }
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
@@ -219,7 +220,9 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     jvals["l_shoulder_pan_joint"] = 0.4;
     ks.setStateValues(jvals);
     EXPECT_TRUE(pc.decide(ks, dummy));
+    EXPECT_TRUE(pc.equal(pc, 1e-12));
 }
+
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 {
@@ -248,7 +251,8 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 
     ocm.orientation.header.frame_id = ocm.link_name;
     EXPECT_TRUE(oc.configure(ocm));
-    EXPECT_TRUE(oc.decide(ks, dummy));
+    EXPECT_TRUE(oc.decide(ks, dummy));  
+    EXPECT_TRUE(oc.equal(oc, 1e-12));
 }
 
 
