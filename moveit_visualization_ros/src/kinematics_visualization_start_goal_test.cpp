@@ -30,7 +30,7 @@
 // Author: E. Gil Jones
 
 #include <ros/ros.h>
-#include <moveit_visualization_ros/kinematics_group_visualization.h>
+#include <moveit_visualization_ros/kinematics_start_goal_visualization.h>
 #include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
 
 using namespace moveit_visualization_ros;
@@ -52,7 +52,7 @@ void publisher_function() {
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "kinematics_visualization_test", ros::init_options::NoSigintHandler);
+  ros::init(argc, argv, "kinematics_start_goal_visualization_test", ros::init_options::NoSigintHandler);
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
@@ -72,59 +72,13 @@ int main(int argc, char** argv)
   vis_marker_publisher = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
-  std_msgs::ColorRGBA good_color;
-  good_color.a = 1.0;    
-  good_color.g = 1.0;    
-  
-  std_msgs::ColorRGBA bad_color;
-  bad_color.a = 1.0;    
-  bad_color.r = 1.0;    
 
-  // planning_models::KinematicState kstate(planning_scene_monitor_->getPlanningScene()->getKinematicModel());
-  // kstate.setToDefaultValues();
-
-  // Eigen::Affine3d pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond::Identity());
-  // Eigen::Affine3d pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(0.965, 0.0, 0.258, 0.0));
-  // //Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(M_PI/4.0, 0.0, M_PI/4.0, 0.0));
-  // kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
-  // kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
-
-  // std::vector<std::string> links;
-  // links.push_back("r_gripper_palm_link");
-  // links.push_back("l_gripper_palm_link");
-
-  // visualization_msgs::MarkerArray arr;
-  // kstate.getRobotMarkers(good_color,
-  //                        "temp",
-  //                        ros::Duration(0.0),
-  //                        arr,
-  //                        links);
-  // while(ros::ok()) {
-  //   vis_marker_array_publisher.publish(arr);
-  //   ros::WallDuration(0.2).sleep();
-  // }
-
-  KinematicsGroupVisualization::KinematicsGroupVisualization kv(planning_scene_monitor_,
-                                                                interactive_marker_server,
-                                                                "right_arm",
-                                                                "state",
-                                                                "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
-                                                                good_color,
-                                                                bad_color,
-                                                                vis_marker_array_publisher);
+  KinematicsStartGoalVisualization::KinematicsStartGoalVisualization kv(planning_scene_monitor_,
+                                                                        interactive_marker_server,
+                                                                        "right_arm",
+                                                                        "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
+                                                                        vis_marker_array_publisher);
  
-  // geometry_msgs::PoseStamped pose;
-  // pose.pose.position.x = .58;
-  // pose.pose.position.y = -.18;
-  // pose.pose.position.z = .75;
-  // pose.pose.orientation.x = 0.0;
-  // pose.pose.orientation.y = 0.88793;
-  // pose.pose.orientation.z = 0.0;
-  // pose.pose.orientation.w = -.459979;
-
-  // kv.updateEndEffectorState("right_arm",
-  //                           pose);
-
   ros::waitForShutdown();
 }
 
