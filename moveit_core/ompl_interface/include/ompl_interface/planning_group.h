@@ -224,12 +224,10 @@ namespace ompl_interface
         void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
 
         /* @brief Construct a database of states for the state space defined in this planning group
-           @param start_state assume that the robot is at an specified start state (full state)
            @param constr the constraints to be satisfied
            @param samples The number of attempts at generating samples
            @param filename The file to which the states should be saved */
-        void constructValidStateDatabase(const planning_models::KinematicState &start_state,
-                                         const moveit_msgs::Constraints &constr,
+        void constructValidStateDatabase(const moveit_msgs::Constraints &constr,
                                          unsigned int samples, const char *filename);
     protected:
 

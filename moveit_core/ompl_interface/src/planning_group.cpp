@@ -221,8 +221,7 @@ ompl::base::GoalPtr ompl_interface::PlanningGroup::getGoalRepresentation(const k
     return ompl::base::GoalPtr(new ConstrainedGoalSampler(this, kset, getConstraintsSampler(kset->getAllConstraints())));
 }
 
-void ompl_interface::PlanningGroup::constructValidStateDatabase(const planning_models::KinematicState &start_state,
-                                                                const moveit_msgs::Constraints &constr,
+void ompl_interface::PlanningGroup::constructValidStateDatabase(const moveit_msgs::Constraints &constr,
                                                                 unsigned int samples,
                                                                 const char *filename)
 {
@@ -235,8 +234,9 @@ void ompl_interface::PlanningGroup::constructValidStateDatabase(const planning_m
     kinematic_constraints::ConstraintSamplerPtr cs = getConstraintsSampler(constr);
     ompl::base::StateSamplerPtr ss(cs ? ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs)) :
                                    ompl_simple_setup_.getStateSpace()->allocDefaultStateSampler());
-    planning_models::KinematicState kstate = start_state;
-
+    planning_models::KinematicState kstate(planning_scene_->getKinematicModel());
+    kstate.setToDefaultValues();
+    
     ompl::base::ScopedState<> temp(si);
     int done = -1;
     for (unsigned int i = 0 ; i < samples ; ++i)
