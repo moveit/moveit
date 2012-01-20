@@ -48,6 +48,7 @@ public:
   KinematicsGroupVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                const std::string& group_name, 
+                               const std::string& suffix_name, 
                                const std::string& kinematics_solver_name,
                                const std_msgs::ColorRGBA& good_color,
                                const std_msgs::ColorRGBA& bad_color,
@@ -57,11 +58,17 @@ public:
   }
 
   void updateEndEffectorState(const geometry_msgs::Pose& pose);
-  void removeLastMarkers();
+
+  void hideAllMarkers();
+
+  void showAllMarkers();
+
+  void setMarkerAlpha(double a);
 
 protected:
 
   void sendCurrentMarkers();
+  void removeLastMarkers();
 
   void processInteractiveFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
   void makeInteractiveControlMarker(const std::string& name,

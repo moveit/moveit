@@ -31,6 +31,7 @@
 
 #include <moveit_visualization_ros/kinematics_group_visualization.h>
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
+#include <collision_detection/collision_tools.h>
 
 namespace moveit_visualization_ros
 {
@@ -38,14 +39,14 @@ namespace moveit_visualization_ros
 KinematicsGroupVisualization::KinematicsGroupVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
                                                            boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                                            const std::string& group_name, 
-                                                           //                                                          const std::string& name_suffix,
+                                                           const std::string& name_suffix,
                                                            const std::string& kinematics_solver_name,
                                                            const std_msgs::ColorRGBA& good_color,
                                                            const std_msgs::ColorRGBA& bad_color,
                                                            ros::Publisher& marker_publisher) :
   group_name_(group_name),
-  interactive_marker_name_(group_name+"_interactive_kinematics"),
-  regular_marker_name_(group_name+"_kinematics"),
+  interactive_marker_name_(group_name+"_interactive_kinematics_"+name_suffix),
+  regular_marker_name_(group_name+"_kinematics_"+name_suffix),
   last_solution_good_(true),
   last_solution_changed_(false),
   good_color_(good_color),
@@ -95,22 +96,35 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(boost::shared_ptr<pla
   
 };
 
-// void KinematicsGroupVisualization::hideAllMarkers() {
-//   interactive_marker_name_.erase(interactive_marker_name_);
+void KinematicsGroupVisualization::hideAllMarkers() {
+  removeLastMarkers();
+}
 
+void KinematicsGroupVisualization::showAllMarkers() {
+  for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
+    last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
+    last_marker_array_.markers[i].color.a = 1.0;
+  }
+}
 
-// }
+void KinematicsGroupVisualization::setMarkerAlpha(double a) {
+  for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
+    last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
+    last_marker_array_.markers[i].header.stamp = ros::Time::now();
+    last_marker_array_.markers[i].color.a = a;
+  }
+  marker_publisher_.publish(last_marker_array_);
+}
+
 
 void KinematicsGroupVisualization::removeLastMarkers() 
 {
-  
   if(last_marker_array_.markers.empty()) return;
 
   for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
     last_marker_array_.markers[i].action = visualization_msgs::Marker::DELETE;
   }
   marker_publisher_.publish(last_marker_array_);
-  last_marker_array_.markers.clear();
 }
 
 void KinematicsGroupVisualization::sendCurrentMarkers()
@@ -127,6 +141,7 @@ void KinematicsGroupVisualization::sendCurrentMarkers()
     marker_publisher_.publish(last_marker_array_);
   } else {
     removeLastMarkers();
+    last_marker_array_.markers.clear();
     collision_detection::getCollisionMarkersFromContacts(last_marker_array_,
                                                          planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getModelFrame(),
                                                          ik_solver_->getLastInitialPoseCheckCollisionResult().contacts,
