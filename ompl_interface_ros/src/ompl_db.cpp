@@ -73,6 +73,6 @@ int main(int argc, char **argv)
     pg->constructValidStateDatabase(psm.getPlanningScene()->getCurrentState(), constr,
                                     100000, "/home/isucan/right_arm.ompldb");
     sleep(1);
-    
+
     return 0;
 }
