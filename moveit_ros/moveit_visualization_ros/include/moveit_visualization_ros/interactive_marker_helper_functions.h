@@ -32,6 +32,8 @@
 #ifndef _INTERACTIVE_MARKER_HELPER_FUNCTIONS_H_
 #define _INTERACTIVE_MARKER_HELPER_FUNCTIONS_H_
 
+#include <cmath>
+
 #include <interactive_markers/tools.h>
 #include <visualization_msgs/InteractiveMarker.h>
 #include <visualization_msgs/InteractiveMarkerControl.h>
@@ -40,10 +42,76 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <planning_models/kinematic_state.h>
 
+static bool done_seed = false;
+
 namespace moveit_visualization_ros
 {
 
-visualization_msgs::Marker makeBox( float scale )
+// class MenuEntryHelper {
+
+//   MenuEntryMap(const std::string& name) :
+//     name_(name),
+//     has_children_(false),
+//     is_leaf_(false)
+//   {
+//   };
+
+//   MenuEntryMap(const std::string<std::vector>& lineage,
+//                const std::string& name,
+//                const boost::function<void(const std::vector<std::string>&) callback) :
+//     name_(name),
+//     full_lineage_(parent->getLineage()),
+//     is_leaf_(true)
+//   {
+//     full_lineage_.push_back(name);
+//   };
+
+//   void addChild(const std::string& child_name) {
+//     has_children_ = true;
+//     children_[child_name] = MenuEntryHelper(child_name);
+//   }
+
+//   void addChild(const std::string& child_name,
+//                 const boost::function<void(const std::vector<std::string>&) callback) {
+//     has_children_ = true;
+//     children_[child_name] = MenuEntryHelper(full_lineage_
+//   }
+  
+// protected:
+
+//   std::vector<std::string> name_;
+//   std::vector<std::string> full_lineage_;
+
+//   bool has_children_;
+//   std::map<std::string, MenuEntryHelper> children_;
+  
+//   boost::function<void(const std::vector<std::string>&)> callback_function_; 
+
+// };
+
+inline std_msgs::ColorRGBA makeRandomColor(float brightness, float alpha)
+{
+  if(!done_seed) {
+    done_seed = true;
+    srand(time(0));
+  }
+
+  std_msgs::ColorRGBA toReturn;
+  toReturn.a = alpha;
+
+  toReturn.r = ((float)(random()) / (float)RAND_MAX) * (1.0f - brightness) + brightness;
+  toReturn.g = ((float)(random()) / (float)RAND_MAX) * (1.0f - brightness) + brightness;
+  toReturn.b = ((float)(random()) / (float)RAND_MAX) * (1.0f - brightness) + brightness;
+
+  toReturn.r = fmin(toReturn.r, 1.0f);
+  toReturn.g = fmin(toReturn.g, 1.0f);
+  toReturn.b = fmin(toReturn.b, 1.0f);
+
+  return toReturn;
+}
+
+
+inline visualization_msgs::Marker makeBox( float scale )
 {
   visualization_msgs::Marker marker;
 
@@ -59,7 +127,7 @@ visualization_msgs::Marker makeBox( float scale )
   return marker;
 }
 
-visualization_msgs::Marker makeSphere( float scale )
+inline visualization_msgs::Marker makeSphere( float scale )
 {
   visualization_msgs::Marker marker;
 
@@ -75,7 +143,7 @@ visualization_msgs::Marker makeSphere( float scale )
   return marker;
 }
 
-void add6DofControl( visualization_msgs::InteractiveMarker &msg, bool fixed )
+inline void add6DofControl( visualization_msgs::InteractiveMarker &msg, bool fixed )
 {
   visualization_msgs::InteractiveMarkerControl control;
 
@@ -111,7 +179,7 @@ void add6DofControl( visualization_msgs::InteractiveMarker &msg, bool fixed )
 }
 
 
-visualization_msgs::InteractiveMarkerControl& makeBoxControl( visualization_msgs::InteractiveMarker &msg )
+inline visualization_msgs::InteractiveMarkerControl& makeBoxControl( visualization_msgs::InteractiveMarker &msg )
 {
   visualization_msgs::InteractiveMarkerControl control;
   control.always_visible = true;
@@ -121,7 +189,7 @@ visualization_msgs::InteractiveMarkerControl& makeBoxControl( visualization_msgs
   return msg.controls.back();
 }
 
-visualization_msgs::InteractiveMarkerControl& makeSphereControl( visualization_msgs::InteractiveMarker &msg )
+inline visualization_msgs::InteractiveMarkerControl& makeSphereControl( visualization_msgs::InteractiveMarker &msg )
 {
   visualization_msgs::InteractiveMarkerControl control;
   control.always_visible = true;
@@ -131,7 +199,7 @@ visualization_msgs::InteractiveMarkerControl& makeSphereControl( visualization_m
   return msg.controls.back();
 }
 
-visualization_msgs::MenuEntry makeMenuEntry(const char *title)
+inline visualization_msgs::MenuEntry makeMenuEntry(const char *title)
 {
   visualization_msgs::MenuEntry m;
   m.title = title;
@@ -139,7 +207,7 @@ visualization_msgs::MenuEntry makeMenuEntry(const char *title)
   return m;
 }
 
-visualization_msgs::MenuEntry makeMenuEntry(const char *title, const char *command, int type  )
+inline visualization_msgs::MenuEntry makeMenuEntry(const char *title, const char *command, int type  )
 {
   visualization_msgs::MenuEntry m;
   m.title = title;
@@ -148,7 +216,7 @@ visualization_msgs::MenuEntry makeMenuEntry(const char *title, const char *comma
   return m;
 }
 
-visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &name, 
+inline visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &name, 
                                                      const std::string &mesh_resource,
                                                      const geometry_msgs::PoseStamped &stamped, 
                                                      float scale, 
@@ -178,7 +246,7 @@ visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &name,
   return int_marker;
 }
 
-visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &name, 
+inline visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &name, 
                                                      const std::string &mesh_resource,
                                                      const geometry_msgs::PoseStamped &stamped, 
                                                      float scale)
@@ -187,7 +255,7 @@ visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &name,
   return makeMeshMarker(name, mesh_resource, stamped, scale, color, false);
 }
 
-visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &name, 
+inline visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &name, 
                                                      const std::string &mesh_resource,
                                                      const geometry_msgs::PoseStamped &stamped, 
                                                      float scale, 
@@ -196,7 +264,7 @@ visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &name,
   return makeMeshMarker(name, mesh_resource, stamped, scale, color, true);
 }
 
-visualization_msgs::InteractiveMarker makeButtonBox(const std::string& name, 
+inline visualization_msgs::InteractiveMarker makeButtonBox(const std::string& name, 
                                                     const geometry_msgs::PoseStamped &stamped, 
                                                     float scale, 
                                                     bool fixed, 
@@ -217,7 +285,7 @@ visualization_msgs::InteractiveMarker makeButtonBox(const std::string& name,
   return int_marker;
 }
 
-visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name, 
+inline visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name, 
                                                        const geometry_msgs::PoseStamped &stamped,
                                                        float scale, 
                                                        bool fixed, 
@@ -240,7 +308,7 @@ visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name,
   return int_marker;
 }
 
-visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name, 
+inline visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name, 
                                                        const geometry_msgs::PoseStamped &stamped,
                                                        float scale, 
                                                        bool fixed, 
@@ -250,7 +318,7 @@ visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name,
   return makeButtonSphere(name, stamped, scale, fixed, view_facing, color);
 }
 
-visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name, 
+inline visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name, 
                                                      const geometry_msgs::PoseStamped &stamped, 
                                                      float scale, 
                                                      bool fixed, 
@@ -282,7 +350,7 @@ visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
   return int_marker;
 }
 
-visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::string& marker_name,
+inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::string& marker_name,
                                                               const planning_models::KinematicState& state,
                                                               const std::vector<std::string>& links,
                                                               const std_msgs::ColorRGBA& color, 

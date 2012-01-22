@@ -29,35 +29,27 @@
 
 // Author: E. Gil Jones
 
-#ifndef _KINEMATICS_START_GOAL_VISUALIZATION_H_
-#define _KINEMATICS_START_GOAL_VISUALIZATION_H_
+#ifndef _PLANNING_VISUALIZATION_H_
+#define _PLANNING_VISUALIZATION_H_
 
-#include <moveit_visualization_ros/kinematics_group_visualization.h>
+#include <ros/ros.h>
+#include <kinematics_start_goal_visualization.h>
+#include <ompl_interface_ros/ompl_interface_ros.h>
 
 namespace moveit_visualization_ros
 {
 
-class KinematicsStartGoalVisualization {
-public:
-  
-  KinematicsStartGoalVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
-                                   boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
-                                   const std::string& group_name, 
-                                   const std::string& kinematics_solver_name,
-                                   ros::Publisher& marker_publisher); 
-
-  ~KinematicsStartGoalVisualization() {
-  }
+class PlanningVisualization 
+{
+  PlanningVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
+                        boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server);
 
 protected:
+  
+  ompl_interface::OMPLInterfaceROS ompl_interface_;
 
-  void startOn();
-  void goalOn();
 
-  boost::shared_ptr<KinematicsGroupVisualization> start_;
-  boost::shared_ptr<KinematicsGroupVisualization> goal_;
+
 };
 
-}
-
-#endif
+};

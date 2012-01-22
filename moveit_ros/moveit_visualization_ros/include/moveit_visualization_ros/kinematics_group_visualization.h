@@ -37,6 +37,7 @@
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <kinematics_constraint_aware/kinematics_solver_constraint_aware.h>
 #include <interactive_markers/interactive_marker_server.h>
+#include <interactive_markers/menu_handler.h>
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 
 namespace moveit_visualization_ros
@@ -65,18 +66,30 @@ public:
 
   void setMarkerAlpha(double a);
 
+  void disable6DOFControls();
+  void enable6DOFControls();
+
+  void addButtonClickCallback(const boost::function<void(void)>& button_click_callback);
+
+  void addMenuEntry(const std::string& name, 
+                   const boost::function<void(void)>& callback);
+
 protected:
 
   void sendCurrentMarkers();
   void removeLastMarkers();
 
-  void processInteractiveFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
+  void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
+  void processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
   void makeInteractiveControlMarker(const std::string& name,
-                                    const std_msgs::ColorRGBA& color); 
+                                    const std_msgs::ColorRGBA& color,
+                                    bool add6dof); 
 
 protected:
 
   std::string group_name_;
+  std::string suffix_name_;
   std::string interactive_marker_name_;
   std::string regular_marker_name_;
   std::vector<std::string> end_effector_link_names_;
@@ -96,6 +109,15 @@ protected:
   
   boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
   boost::shared_ptr<kinematics_constraint_aware::KinematicsSolverConstraintAware> ik_solver_;
+  
+  boost::function<void(void)> button_click_callback_;
+  bool dof_marker_enabled_;
+
+  std::map<std::string, boost::function<void(void)> > default_callback_map_;
+
+  interactive_markers::MenuHandler default_menu_handler_;
+  std::map<interactive_markers::MenuHandler::EntryHandle, std::string> menu_handle_to_string_map_;
+
 };
 
 }
