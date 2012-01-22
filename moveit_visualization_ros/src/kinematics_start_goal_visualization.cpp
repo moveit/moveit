@@ -30,6 +30,7 @@
 // Author: E. Gil Jones
 
 #include <moveit_visualization_ros/kinematics_start_goal_visualization.h>
+#include <moveit_visualization_ros/interactive_marker_helper_functions.h>
 
 namespace moveit_visualization_ros
 {
@@ -51,18 +52,38 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(boost::shared
                                                 group_name,
                                                 "start_position",
                                                 kinematics_solver_name,
-                                                good_color,
+                                                makeRandomColor(.2,1.0),
                                                 bad_color,
                                                 marker_publisher));
 
   goal_.reset(new KinematicsGroupVisualization(planning_scene_monitor,
-                                              interactive_marker_server,
-                                              group_name,
-                                              "end_position",
-                                              kinematics_solver_name,
-                                              good_color,
-                                              bad_color,
-                                              marker_publisher));
+                                               interactive_marker_server,
+                                               group_name,
+                                               "end_position",
+                                               kinematics_solver_name,
+                                               makeRandomColor(.2,1.0),
+                                               bad_color,
+                                               marker_publisher));
+
+  start_->addButtonClickCallback(boost::bind(&KinematicsStartGoalVisualization::startOn, this));
+  goal_->addButtonClickCallback(boost::bind(&KinematicsStartGoalVisualization::goalOn, this));
+
+  goalOn();
+
+}
+
+void KinematicsStartGoalVisualization::startOn() {
+  goal_->disable6DOFControls();
+  goal_->setMarkerAlpha(0.25);
+  start_->enable6DOFControls();
+  start_->setMarkerAlpha(1.0);
+}
+
+void KinematicsStartGoalVisualization::goalOn() {
+  start_->disable6DOFControls();
+  start_->setMarkerAlpha(0.25);
+  goal_->enable6DOFControls();
+  goal_->setMarkerAlpha(1.0);
 }
 
 }

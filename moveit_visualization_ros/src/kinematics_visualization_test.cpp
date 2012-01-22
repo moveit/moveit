@@ -50,6 +50,18 @@ void publisher_function() {
   }
 }
 
+void simplePrintClick() {
+  ROS_INFO_STREAM("Getting called click");
+}
+
+void simplePrintMenu1() {
+  ROS_INFO_STREAM("Getting called menu 1");
+}
+
+void simplePrintMenu2() {
+  ROS_INFO_STREAM("Getting called menu 2");
+}
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "kinematics_visualization_test", ros::init_options::NoSigintHandler);
@@ -112,6 +124,16 @@ int main(int argc, char** argv)
                                                                 good_color,
                                                                 bad_color,
                                                                 vis_marker_array_publisher);
+
+  
+
+  boost::function<void(void)> sp1 = simplePrintClick;
+  boost::function<void(void)> sp2 = simplePrintMenu1;
+  boost::function<void(void)> sp3 = simplePrintMenu2;
+
+  kv.addButtonClickCallback(sp1);
+  kv.addMenuEntry("monkey1", sp2);
+  kv.addMenuEntry("monkey2", sp3);
  
   // geometry_msgs::PoseStamped pose;
   // pose.pose.position.x = .58;
