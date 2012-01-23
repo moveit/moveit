@@ -29,6 +29,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 rosbuild_add_library(${PROJECT_NAME} 
   src/kinematics_group_visualization.cpp
   src/kinematics_start_goal_visualization.cpp 
+  src/joint_trajectory_visualization.cpp 
   )
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
@@ -38,3 +39,7 @@ target_link_libraries(kinematics_visualization_test ${PROJECT_NAME})
 
 rosbuild_add_executable(kinematics_visualization_start_goal_test src/kinematics_visualization_start_goal_test.cpp)
 target_link_libraries(kinematics_visualization_start_goal_test ${PROJECT_NAME})
+
+rosbuild_add_executable(joint_trajectory_visualization_test src/joint_trajectory_visualization_test.cpp)
+target_link_libraries(joint_trajectory_visualization_test ${PROJECT_NAME})
+

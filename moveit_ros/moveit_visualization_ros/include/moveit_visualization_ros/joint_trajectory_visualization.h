@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Willow Garage, Inc.
+ * Copyright (c) 2012, Willow Garage, Inc.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,47 @@
 
 // Author: E. Gil Jones
 
-#ifndef _PLANNING_VISUALIZATION_H_
-#define _PLANNING_VISUALIZATION_H_
+#ifndef _JOINT_TRAJECTORY_VISUALIZATION_H_
+#define _JOINT_TRAJECTORY_VISUALIZATION_H_
 
 #include <ros/ros.h>
-#include <moveit_visualization_ros/kinematics_start_goal_visualization.h>
-#include <ompl_interface_ros/ompl_interface_ros.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <planning_scene_monitor/planning_scene_monitor.h>
+
 
 namespace moveit_visualization_ros
 {
 
-class PlanningVisualization 
+class JointTrajectoryVisualization 
 {
-  PlanningVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
-                        boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                        ros::Publisher& marker_publisher);                         
+
+public:
+  JointTrajectoryVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
+                               ros::Publisher& marker_publisher);                         
+  void setTrajectory(const planning_models::KinematicState& start_state,
+                     const trajectory_msgs::JointTrajectory& traj,
+                     const std_msgs::ColorRGBA& color);
+
+  void playCurrentTrajectory();
+
 protected:
 
-  void generatePlan(void);
+  void advanceTrajectory();
 
-  ompl_interface::OMPLInterfaceROS ompl_interface_;
-  KinematicsStartGoalVisualization group_visualization_;
+  boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
+  ros::Publisher marker_publisher_;
+
+  planning_models::KinematicState current_state_;
+  trajectory_msgs::JointTrajectory current_joint_trajectory_;
+  std_msgs::ColorRGBA marker_color_;
   
+  std::vector<std::string> link_model_names_;
+
+  unsigned int current_point_;
+  ros::WallTime playback_start_time_;
+  boost::thread* playback_thread_;
 };
 
 }
+
+#endif

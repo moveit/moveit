@@ -49,6 +49,14 @@ public:
   ~KinematicsStartGoalVisualization() {
   }
 
+  const planning_models::KinematicState& getStartState() const {
+    return start_->getState();
+  }
+
+  const planning_models::KinematicState& getGoalState() const {
+    return goal_->getState();
+  }
+
 protected:
 
   void startOn();
