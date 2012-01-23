@@ -67,7 +67,7 @@ protected:
 
   unsigned int current_point_;
   ros::WallTime playback_start_time_;
-  boost::thread* playback_thread_;
+  boost::shared_ptr<boost::thread> playback_thread_;
 };
 
 }

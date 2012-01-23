@@ -36,7 +36,7 @@
 namespace moveit_visualization_ros
 {
 
-KinematicsGroupVisualization::KinematicsGroupVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
+KinematicsGroupVisualization::KinematicsGroupVisualization(planning_scene::PlanningSceneConstPtr planning_scene, 
                                                            boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                                            const std::string& group_name, 
                                                            const std::string& suffix_name,
@@ -52,14 +52,14 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(boost::shared_ptr<pla
   last_solution_changed_(false),
   good_color_(good_color),
   bad_color_(bad_color),
-  planning_scene_monitor_(planning_scene_monitor),
+  planning_scene_(planning_scene),
   interactive_marker_server_(interactive_marker_server),
-  state_(planning_scene_monitor_->getPlanningScene()->getCurrentState()),
+  state_(planning_scene_->getCurrentState()),
   marker_publisher_(marker_publisher),
   dof_marker_enabled_(false)
 {
   const std::map<std::string, srdf::Model::Group>& group_map 
-    = planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroupConfigMap();
+    = planning_scene_->getKinematicModel()->getJointModelGroupConfigMap();
   
   kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));    
   
@@ -81,7 +81,7 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(boost::shared_ptr<pla
   result.reset(kinematics_loader_->createClassInstance(kinematics_solver_name));
   
   ik_solver_.reset(new kinematics_constraint_aware::KinematicsSolverConstraintAware(result,
-                                                                                    planning_scene_monitor_->getPlanningScene()->getKinematicModel(),
+                                                                                    planning_scene_->getKinematicModel(),
                                                                                     group_name));
 
   const planning_models::KinematicModel::LinkModel* lm = state_.getKinematicModel()->getLinkModel(ik_solver_->getTipFrame());
@@ -152,6 +152,11 @@ void KinematicsGroupVisualization::addMenuEntry(const std::string& name,
   default_menu_handler_.reApply(*interactive_marker_server_);
 }
 
+void KinematicsGroupVisualization::updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene) {
+  planning_scene_ = planning_scene;
+  updateEndEffectorState(last_pose_);
+}
+
 void KinematicsGroupVisualization::processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
   if(feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::MENU_SELECT) {
@@ -197,7 +202,7 @@ void KinematicsGroupVisualization::sendCurrentMarkers()
     removeLastMarkers();
     last_marker_array_.markers.clear();
     collision_detection::getCollisionMarkersFromContacts(last_marker_array_,
-                                                         planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getModelFrame(),
+                                                         planning_scene_->getKinematicModel()->getModelFrame(),
                                                          ik_solver_->getLastInitialPoseCheckCollisionResult().contacts,
                                                          bad_color_,
                                                          ros::Duration(0.0));
@@ -207,6 +212,8 @@ void KinematicsGroupVisualization::sendCurrentMarkers()
 
 void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::Pose& pose) {
   ros::WallTime start = ros::WallTime::now();
+
+  last_pose_ = pose;
     
   //assuming pose is in world frame for now
   Eigen::Affine3d cur;
@@ -251,7 +258,7 @@ void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::P
   moveit_msgs::Constraints emp_constraints;
   if(ik_solver_->findConstraintAwareSolution(np,
                                              emp_constraints,
-                                             planning_scene_monitor_->getPlanningScene(),
+                                             planning_scene_,
                                              sol,
                                              err, 
                                              true)) {

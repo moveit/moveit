@@ -94,7 +94,11 @@ int main(int argc, char** argv)
                    trajectory,
                    col);
   jv.playCurrentTrajectory();
+
+  ros::WallDuration(1.5).sleep();
   
+  jv.playCurrentTrajectory();
+
   ros::waitForShutdown();
 }
 

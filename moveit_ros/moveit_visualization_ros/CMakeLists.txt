@@ -43,3 +43,5 @@ target_link_libraries(kinematics_visualization_start_goal_test ${PROJECT_NAME})
 rosbuild_add_executable(joint_trajectory_visualization_test src/joint_trajectory_visualization_test.cpp)
 target_link_libraries(joint_trajectory_visualization_test ${PROJECT_NAME})
 
+rosbuild_add_executable(interactive_object_visualization_test src/interactive_object_visualization_test.cpp)
+target_link_libraries(interactive_object_visualization_test ${PROJECT_NAME})

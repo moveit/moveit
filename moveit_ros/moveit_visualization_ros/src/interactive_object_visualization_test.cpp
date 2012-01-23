@@ -30,6 +30,7 @@
 // Author: E. Gil Jones
 
 #include <ros/ros.h>
+#include <moveit_visualization_ros/interactive_object_visualization.h>
 #include <moveit_visualization_ros/kinematics_group_visualization.h>
 #include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
 
@@ -39,6 +40,7 @@ static const std::string VIS_TOPIC_NAME = "kinematics_visualization";
 
 boost::shared_ptr<KinematicStateJointStatePublisher> joint_state_publisher_;
 boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
+boost::shared_ptr<KinematicsGroupVisualization> kv_;
 
 void publisher_function() {
   ros::WallRate r(10.0);
@@ -50,27 +52,19 @@ void publisher_function() {
   }
 }
 
-void simplePrintClick() {
-  ROS_INFO_STREAM("Getting called click");
-}
-
-void simplePrintMenu1() {
-  ROS_INFO_STREAM("Getting called menu 1");
-}
-
-void simplePrintMenu2() {
-  ROS_INFO_STREAM("Getting called menu 2");
+void updateCallback(planning_scene::PlanningSceneConstPtr planning_scene) {
+  kv_->updatePlanningScene(planning_scene);
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "kinematics_visualization_test", ros::init_options::NoSigintHandler);
+  ros::init(argc, argv, "interactive_object_visualization", ros::init_options::NoSigintHandler);
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server;
-  interactive_marker_server.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
+  boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
+  interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
   joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
 
@@ -84,6 +78,10 @@ int main(int argc, char** argv)
   vis_marker_publisher = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
+  std_msgs::ColorRGBA col;
+  col.r = col.g = col.b = .5;
+  col.a = 1.0;
+
   std_msgs::ColorRGBA good_color;
   good_color.a = 1.0;    
   good_color.g = 1.0;    
@@ -92,60 +90,23 @@ int main(int argc, char** argv)
   bad_color.a = 1.0;    
   bad_color.r = 1.0;    
 
-  // planning_models::KinematicState kstate(planning_scene_monitor_->getPlanningScene()->getKinematicModel());
-  // kstate.setToDefaultValues();
-
-  // Eigen::Affine3d pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond::Identity());
-  // Eigen::Affine3d pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(0.965, 0.0, 0.258, 0.0));
-  // //Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(M_PI/4.0, 0.0, M_PI/4.0, 0.0));
-  // kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
-  // kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
-
-  // std::vector<std::string> links;
-  // links.push_back("r_gripper_palm_link");
-  // links.push_back("l_gripper_palm_link");
-
-  // visualization_msgs::MarkerArray arr;
-  // kstate.getRobotMarkers(good_color,
-  //                        "temp",
-  //                        ros::Duration(0.0),
-  //                        arr,
-  //                        links);
-  // while(ros::ok()) {
-  //   vis_marker_array_publisher.publish(arr);
-  //   ros::WallDuration(0.2).sleep();
-  // }
-
-  KinematicsGroupVisualization::KinematicsGroupVisualization kv(planning_scene_monitor_->getPlanningScene(),
-                                                                interactive_marker_server,
-                                                                "right_arm",
-                                                                "state",
-                                                                "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
-                                                                good_color,
-                                                                bad_color,
-                                                                vis_marker_array_publisher);
-
+  kv_.reset(new KinematicsGroupVisualization(planning_scene_monitor_->getPlanningScene(),
+                                             interactive_marker_server_,
+                                             "right_arm",
+                                             "state",
+                                             "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
+                                             good_color,
+                                             bad_color,
+                                             vis_marker_array_publisher));
   
+  InteractiveObjectVisualization iov(planning_scene_monitor_->getPlanningScene(),
+                                     interactive_marker_server_,
+                                     col);
 
-  boost::function<void(void)> sp1 = simplePrintClick;
-  boost::function<void(void)> sp2 = simplePrintMenu1;
-  boost::function<void(void)> sp3 = simplePrintMenu2;
-
-  kv.addButtonClickCallback(sp1);
-  kv.addMenuEntry("monkey1", sp2);
-  kv.addMenuEntry("monkey2", sp3);
- 
-  // geometry_msgs::PoseStamped pose;
-  // pose.pose.position.x = .58;
-  // pose.pose.position.y = -.18;
-  // pose.pose.position.z = .75;
-  // pose.pose.orientation.x = 0.0;
-  // pose.pose.orientation.y = 0.88793;
-  // pose.pose.orientation.z = 0.0;
-  // pose.pose.orientation.w = -.459979;
-
-  // kv.updateEndEffectorState("right_arm",
-  //                           pose);
+  iov.setUpdateCallback(boost::bind(&updateCallback, _1));
+   
+  planning_scene::PlanningSceneConstPtr planning_scene_diff = iov.addCube();
+  kv_->updatePlanningScene(planning_scene_diff);
 
   ros::waitForShutdown();
 }
