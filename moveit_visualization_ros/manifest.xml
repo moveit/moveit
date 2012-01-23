@@ -15,6 +15,7 @@
   <depend package="kinematics_constraint_aware"/>
   <depend package="interactive_markers"/>
   <depend package="robot_state_publisher"/>
+  <!--<depend package="ompl_interface_ros"/-->
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_visualization_ros"/>

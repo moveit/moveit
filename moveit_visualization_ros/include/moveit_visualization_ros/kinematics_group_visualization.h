@@ -58,6 +58,10 @@ public:
   ~KinematicsGroupVisualization() {
   }
 
+  const planning_models::KinematicState& getState() const {
+    return state_;
+  }
+
   void updateEndEffectorState(const geometry_msgs::Pose& pose);
 
   void hideAllMarkers();
