@@ -46,7 +46,7 @@ namespace moveit_visualization_ros
 class KinematicsGroupVisualization {
 public:
   
-  KinematicsGroupVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
+  KinematicsGroupVisualization(planning_scene::PlanningSceneConstPtr planning_scene_monitor,
                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                const std::string& group_name, 
                                const std::string& suffix_name, 
@@ -78,6 +78,8 @@ public:
   void addMenuEntry(const std::string& name, 
                    const boost::function<void(void)>& callback);
 
+  void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene);
+
 protected:
 
   void sendCurrentMarkers();
@@ -104,9 +106,10 @@ protected:
   std_msgs::ColorRGBA good_color_;
   std_msgs::ColorRGBA bad_color_;
 
+  geometry_msgs::Pose last_pose_;
   visualization_msgs::MarkerArray last_marker_array_;
 
-  boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
+  planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
   planning_models::KinematicState state_;
   ros::Publisher marker_publisher_;

@@ -73,7 +73,7 @@ int main(int argc, char** argv)
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
 
-  KinematicsStartGoalVisualization::KinematicsStartGoalVisualization kv(planning_scene_monitor_,
+  KinematicsStartGoalVisualization::KinematicsStartGoalVisualization kv(planning_scene_monitor_->getPlanningScene(),
                                                                         interactive_marker_server,
                                                                         "right_arm",
                                                                         "pr2_arm_kinematics/PR2ArmKinematicsPlugin",

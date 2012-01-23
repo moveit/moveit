@@ -35,7 +35,7 @@
 namespace moveit_visualization_ros
 {
 
-KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
+KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scene::PlanningSceneConstPtr planning_scene,
                                                                    boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                                                    const std::string& group_name, 
                                                                    const std::string& kinematics_solver_name,
@@ -47,7 +47,7 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(boost::shared
   std_msgs::ColorRGBA bad_color;
   bad_color.r = bad_color.a = 1.0;
   
-  start_.reset(new KinematicsGroupVisualization(planning_scene_monitor,
+  start_.reset(new KinematicsGroupVisualization(planning_scene,
                                                 interactive_marker_server,
                                                 group_name,
                                                 "start_position",
@@ -56,7 +56,7 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(boost::shared
                                                 bad_color,
                                                 marker_publisher));
 
-  goal_.reset(new KinematicsGroupVisualization(planning_scene_monitor,
+  goal_.reset(new KinematicsGroupVisualization(planning_scene,
                                                interactive_marker_server,
                                                group_name,
                                                "end_position",

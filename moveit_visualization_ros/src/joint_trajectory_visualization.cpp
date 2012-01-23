@@ -54,6 +54,13 @@ void JointTrajectoryVisualization::setTrajectory(const planning_models::Kinemati
 
 void JointTrajectoryVisualization::playCurrentTrajectory()
 {
+  if(playback_thread_) {
+    ROS_DEBUG_STREAM("Cancelling current playback");
+    playback_thread_->interrupt();
+    playback_thread_->join();
+    ROS_DEBUG_STREAM("Cancelling completed");
+  }
+
   playback_start_time_ = ros::WallTime::now();
   current_point_ = 0;
 
@@ -61,26 +68,31 @@ void JointTrajectoryVisualization::playCurrentTrajectory()
   
   link_model_names_ = planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getChildLinkModelNames(lm);
 
-  playback_thread_ = new boost::thread(boost::bind(&JointTrajectoryVisualization::advanceTrajectory, this));
+  playback_thread_.reset(new boost::thread(boost::bind(&JointTrajectoryVisualization::advanceTrajectory, this)));
 }
 
 void JointTrajectoryVisualization::advanceTrajectory() {
-  while(ros::ok() && current_point_ < current_joint_trajectory_.points.size()) {
-    std::map<std::string, double> joint_state;
-    for(unsigned int i = 0; i < current_joint_trajectory_.joint_names.size(); i++) {
-      joint_state[current_joint_trajectory_.joint_names[i]] =
-        current_joint_trajectory_.points[current_point_].positions[i];
+  try {
+    while(ros::ok() && current_point_ < current_joint_trajectory_.points.size()) {
+      std::map<std::string, double> joint_state;
+      for(unsigned int i = 0; i < current_joint_trajectory_.joint_names.size(); i++) {
+        joint_state[current_joint_trajectory_.joint_names[i]] =
+          current_joint_trajectory_.points[current_point_].positions[i];
+      }
+      current_state_.setStateValues(joint_state);
+      visualization_msgs::MarkerArray arr;
+      current_state_.getRobotMarkers(marker_color_,
+                                     "joint_trajectory",
+                                     ros::Duration(0.0),
+                                     arr,
+                                     link_model_names_);
+      marker_publisher_.publish(arr);
+      current_point_++;
+      boost::this_thread::sleep((ros::WallTime::now()+ros::WallDuration(.05)).toBoost());
     }
-    current_state_.setStateValues(joint_state);
-    visualization_msgs::MarkerArray arr;
-    current_state_.getRobotMarkers(marker_color_,
-                                   "joint_trajectory",
-                                   ros::Duration(0.0),
-                                   arr,
-                                   link_model_names_);
-    marker_publisher_.publish(arr);
-    current_point_++;
-    ros::WallDuration(.05).sleep();
+  } catch(...) {
+    ROS_DEBUG_STREAM("Playback interrupted");
+    return;
   }
 }
 

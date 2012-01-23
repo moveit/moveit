@@ -40,7 +40,7 @@ namespace moveit_visualization_ros
 class KinematicsStartGoalVisualization {
 public:
   
-  KinematicsStartGoalVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
+  KinematicsStartGoalVisualization(planning_scene::PlanningSceneConstPtr planning_scene,
                                    boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                    const std::string& group_name, 
                                    const std::string& kinematics_solver_name,
