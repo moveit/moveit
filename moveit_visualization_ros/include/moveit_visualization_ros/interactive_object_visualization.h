@@ -51,86 +51,46 @@ public:
   
   InteractiveObjectVisualization(planning_scene::PlanningSceneConstPtr planning_scene,
                                  boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
-                                 const std_msgs::ColorRGBA& color) 
-    : planning_scene_(planning_scene),
-      interactive_marker_server_(interactive_marker_server)
-  {
-    planning_scene_diff_.reset(new planning_scene::PlanningScene(planning_scene_));
-  }
+                                 const std_msgs::ColorRGBA& color); 
 
   ~InteractiveObjectVisualization() {
   }
 
-  planning_scene::PlanningSceneConstPtr addCube(void) {
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = planning_scene_->getPlanningFrame();
-    pose.pose.position.x = DEFAULT_X;
-    pose.pose.position.y = DEFAULT_Y;
-    pose.pose.position.z = DEFAULT_Z;
-    pose.pose.orientation.w = 1.0;
+  planning_scene::PlanningSceneConstPtr addCube(const std::string& name="");
+  planning_scene::PlanningSceneConstPtr addCylinder(const std::string& name="");
+  planning_scene::PlanningSceneConstPtr addSphere(const std::string& name="");
 
-    Eigen::Affine3d aff;
-    planning_models::poseFromMsg(pose.pose, aff);
-    planning_scene_diff_->getCollisionWorld()->addToObject("cube1", new shapes::Box(DEFAULT_SCALE,
-                                                                                    DEFAULT_SCALE,
-                                                                                    DEFAULT_SCALE),
-                                                          aff);
-
-    visualization_msgs::InteractiveMarker marker = makeButtonBox("cube1",
-                                                                 pose,
-                                                                 DEFAULT_SCALE,
-                                                                 false, 
-                                                                 false);
-    add6DofControl(marker, false);
-    interactive_marker_server_->insert(marker);
-    interactive_marker_server_->setCallback(marker.name, 
-                                            boost::bind(&InteractiveObjectVisualization::processInteractiveMarkerFeedback, this, _1));
-
-    interactive_marker_server_->applyChanges();
-    return planning_scene_diff_;
-  }
-
-  void setUpdateCallback(const boost::function<void(planning_scene::PlanningSceneConstPtr)>& callback) {
-    update_callback_ = callback;
-  }
+  void setUpdateCallback(const boost::function<void(planning_scene::PlanningSceneConstPtr)>& callback);
 
   void updateObjectPose(const std::string& name,
-                        const geometry_msgs::Pose& pose) 
-  {
-    collision_detection::CollisionWorld::ObjectConstPtr obj = planning_scene_diff_->getCollisionWorld()->getObject(name);
-    if(!obj) {
-      ROS_WARN_STREAM("No object with name " << name);
-      return;
-    }
-    Eigen::Affine3d aff;
-    planning_models::poseFromMsg(pose, aff);
-    planning_scene_diff_->getCollisionWorld()->moveShapeInObject(name, obj->shapes_[0], aff);
-
-    callUpdateCallback();
-  }
+                        const geometry_msgs::Pose& pose);
 
 protected:
 
-  void callUpdateCallback() {
-    if(update_callback_) {
-      update_callback_(planning_scene_diff_);
-    }
+  std::string generateNewCubeName() {
+    std::stringstream iss;
+    iss << "Cube_"<<cube_counter_++;
+    return iss.str();
   }
 
-  void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 
-  {    
-    ROS_INFO_STREAM("Processing feedback for " << feedback->marker_name);
-    switch (feedback->event_type) {
-    case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
-      updateObjectPose(feedback->marker_name, feedback->pose);
-      break;
-    case visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK:
-      break;
-    default:
-      ROS_DEBUG_STREAM("Getting event type " << feedback->event_type);
-    }
-    interactive_marker_server_->applyChanges();
-  }; 
+  std::string generateNewSphereName() {
+    std::stringstream iss;
+    iss << "Sphere_"<<sphere_counter_++;
+    return iss.str();
+  }
+
+  std::string generateNewCylinderName() {
+    std::stringstream iss;
+    iss << "Cylinder_"<<cylinder_counter_++;
+    return iss.str();
+  }
+
+  planning_scene::PlanningSceneConstPtr addObject(const std::string& name,
+                                                  shapes::Shape* shape);
+
+  void callUpdateCallback();
+
+  void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback); 
   
   planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
@@ -138,6 +98,10 @@ protected:
   planning_scene::PlanningScenePtr planning_scene_diff_;
 
   boost::function<void(planning_scene::PlanningSceneConstPtr)> update_callback_;
+
+  unsigned int cube_counter_;
+  unsigned int sphere_counter_;
+  unsigned int cylinder_counter_;
 
 };
 
