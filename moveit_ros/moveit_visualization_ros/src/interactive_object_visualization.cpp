@@ -43,6 +43,12 @@ InteractiveObjectVisualization::InteractiveObjectVisualization(planning_scene::P
     cylinder_counter_(0)
 {
   planning_scene_diff_.reset(new planning_scene::PlanningScene(planning_scene_));
+
+  interactive_markers::MenuHandler::EntryHandle del_entry
+    = default_menu_handler_.insert("Delete object", 
+                                   boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+
+  menu_handle_to_function_map_[del_entry] = boost::bind(&InteractiveObjectVisualization::deleteObject, this, _1);
 }
 
 
@@ -52,9 +58,7 @@ planning_scene::PlanningSceneConstPtr InteractiveObjectVisualization::addCube(co
     name_to_pass = generateNewCubeName();
   } 
   return addObject(name_to_pass, 
-                   new shapes::Box(DEFAULT_SCALE,
-                                   DEFAULT_SCALE,
-                                   DEFAULT_SCALE));
+                   moveit_msgs::Shape::BOX);
 }
 
 planning_scene::PlanningSceneConstPtr InteractiveObjectVisualization::addSphere(const std::string& name) {
@@ -63,7 +67,7 @@ planning_scene::PlanningSceneConstPtr InteractiveObjectVisualization::addSphere(
     name_to_pass = generateNewSphereName();
   } 
   return addObject(name_to_pass, 
-                   new shapes::Sphere(DEFAULT_SCALE));
+                   moveit_msgs::Shape::SPHERE);
 }
 
 planning_scene::PlanningSceneConstPtr InteractiveObjectVisualization::addCylinder(const std::string& name) {
@@ -72,28 +76,43 @@ planning_scene::PlanningSceneConstPtr InteractiveObjectVisualization::addCylinde
     name_to_pass = generateNewCylinderName();
   } 
   return addObject(name_to_pass, 
-                   new shapes::Cylinder(DEFAULT_SCALE,
-                                        DEFAULT_SCALE));
+                   moveit_msgs::Shape::CYLINDER);
 }
 
 planning_scene::PlanningSceneConstPtr InteractiveObjectVisualization::addObject(const std::string& name,
-                                                                                shapes::Shape* shape) {
-  geometry_msgs::PoseStamped pose;
-  pose.header.frame_id = planning_scene_->getPlanningFrame();
-  pose.pose.position.x = DEFAULT_X;
-  pose.pose.position.y = DEFAULT_Y;
-  pose.pose.position.z = DEFAULT_Z;
-  pose.pose.orientation.w = 1.0;
+                                                                                const moveit_msgs::Shape::_type_type& type) {
+  moveit_msgs::CollisionObject coll;
   
-  Eigen::Affine3d aff;
-  planning_models::poseFromMsg(pose.pose, aff);
-  planning_scene_diff_->getCollisionWorld()->addToObject(name, 
-                                                         shape,
-                                                         aff);
+  coll.id = name;
+  coll.operation = moveit_msgs::CollisionObject::ADD;
+  coll.header.frame_id = planning_scene_->getPlanningFrame();
+  coll.poses.resize(1);
+  coll.poses[0].position.x = DEFAULT_X;
+  coll.poses[0].position.y = DEFAULT_Y;
+  coll.poses[0].position.z = DEFAULT_Z;
+  coll.poses[0].orientation.w = 1.0;
+
+  coll.shapes.resize(1);
+  coll.shapes[0].type = type;
+  if(type == moveit_msgs::Shape::SPHERE) {
+    coll.shapes[0].dimensions.push_back(DEFAULT_SCALE);
+  } else if(type == moveit_msgs::Shape::CYLINDER) {
+    coll.shapes[0].dimensions.push_back(DEFAULT_SCALE);
+    coll.shapes[0].dimensions.push_back(DEFAULT_SCALE);
+  } else {
+    coll.shapes[0].dimensions.push_back(DEFAULT_SCALE);
+    coll.shapes[0].dimensions.push_back(DEFAULT_SCALE);
+    coll.shapes[0].dimensions.push_back(DEFAULT_SCALE);
+  }
+
+  planning_scene_diff_->processCollisionObjectMsg(coll);
   
+  geometry_msgs::PoseStamped pose_stamped;
+  pose_stamped.header.frame_id = planning_scene_->getPlanningFrame();
+  pose_stamped.pose = coll.poses[0];
   visualization_msgs::InteractiveMarker marker = makeButtonBox(name,
-                                                               pose,
-                                                               DEFAULT_SCALE,
+                                                               pose_stamped,
+                                                               DEFAULT_SCALE*1.1,
                                                                false, 
                                                                false);
   add6DofControl(marker, false);
@@ -101,7 +120,9 @@ planning_scene::PlanningSceneConstPtr InteractiveObjectVisualization::addObject(
   interactive_marker_server_->setCallback(marker.name, 
                                           boost::bind(&InteractiveObjectVisualization::processInteractiveMarkerFeedback, this, _1));
   
+  default_menu_handler_.apply(*interactive_marker_server_, marker.name);
   interactive_marker_server_->applyChanges();
+
   return planning_scene_diff_;
 }
 
@@ -124,6 +145,20 @@ void InteractiveObjectVisualization::updateObjectPose(const std::string& name,
   callUpdateCallback();
 }
 
+void InteractiveObjectVisualization::deleteObject(const std::string& name) {
+  moveit_msgs::CollisionObject coll;
+  
+  coll.id = name;
+  coll.operation = moveit_msgs::CollisionObject::REMOVE;
+  
+  planning_scene_diff_->processCollisionObjectMsg(coll);
+
+  interactive_marker_server_->erase(name);
+  interactive_marker_server_->applyChanges();
+
+  callUpdateCallback();
+}
+
 void InteractiveObjectVisualization::callUpdateCallback() {
   if(update_callback_) {
     update_callback_(planning_scene_diff_);
@@ -132,7 +167,7 @@ void InteractiveObjectVisualization::callUpdateCallback() {
 
 void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 
 {    
-  ROS_INFO_STREAM("Processing feedback for " << feedback->marker_name);
+  ROS_DEBUG_STREAM("Processing feedback for " << feedback->marker_name);
   switch (feedback->event_type) {
   case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
     updateObjectPose(feedback->marker_name, feedback->pose);
@@ -145,6 +180,18 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
   interactive_marker_server_->applyChanges();
 }; 
 
+void InteractiveObjectVisualization::processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 
+{
+  if(feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::MENU_SELECT) {
+    ROS_WARN_STREAM("Got something other than menu select on menu feedback function");
+    return;
+  }
+  if(menu_handle_to_function_map_.find(feedback->menu_entry_id) == menu_handle_to_function_map_.end()) {
+    ROS_WARN_STREAM("No callback associated with entry");
+    return;
+  }
+  menu_handle_to_function_map_[feedback->menu_entry_id](feedback->marker_name);
+}
 
 }
 

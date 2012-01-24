@@ -290,11 +290,12 @@ void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::P
   //                                state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform(),
   //                                col);
   // }
-  ROS_INFO_STREAM("Total time is " << (ros::WallTime::now()-start));
+  ROS_DEBUG_STREAM("Total time is " << (ros::WallTime::now()-start));
 }
 
 void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 
 {    
+  if(feedback->marker_name != interactive_marker_name_) return;
   switch (feedback->event_type) {
   case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
     updateEndEffectorState(feedback->pose);
