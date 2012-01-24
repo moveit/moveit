@@ -108,9 +108,8 @@ namespace collision_detection
         bool getAllowedCollision(const std::string& name1, const std::string& name2, DecideContactFn& fn) const;
 
       /** @brief Check if the allowed collision matrix has an entry at all for an element. Returns true if the element is included.
-       *  @param name1 name of the element */
-        bool hasEntry(const std::string& name1) const;
-
+       *  @param name name of the element */
+        bool hasEntry(const std::string& name) const;
 
       /** @brief Check if the allowed collision matrix has an entry for a pair of elements. Returns true if the pair is included.
        *  @param name1 name of first element
