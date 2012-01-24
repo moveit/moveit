@@ -92,12 +92,9 @@ bool collision_detection::AllowedCollisionMatrix::getAllowedCollision(const std:
     return true;
 }
 
-bool collision_detection::AllowedCollisionMatrix::hasEntry(const std::string& name1) const
+bool collision_detection::AllowedCollisionMatrix::hasEntry(const std::string& name) const
 {
-  std::map<std::string, std::map<std::string, AllowedCollision::Type> >::const_iterator it1 = entries_.find(name1);
-  if (it1 == entries_.end())
-    return false;
-  return true;
+    return entries_.find(name) != entries_.end();
 }
 
 bool collision_detection::AllowedCollisionMatrix::hasEntry(const std::string& name1, const std::string& name2) const
