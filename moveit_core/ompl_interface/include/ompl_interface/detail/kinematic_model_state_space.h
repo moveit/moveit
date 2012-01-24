@@ -38,7 +38,6 @@
 #define OMPL_INTERFACE_DETAIL_KM_STATE_SPACE_
 
 #include <ompl/base/StateSpace.h>
-#include <ompl/tools/spaces/StateAddress.h>
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
 
@@ -116,8 +115,6 @@ namespace ompl_interface
         /// Keep the subspace components of the state space around for convenience
         std::vector<ompl::base::StateSpacePtr>                          all_components_;
 
-        /// A simple tool that allows fast addressing of state values by name
-        ompl::StateAddress                                              state_address_;
     };
 
 
