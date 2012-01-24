@@ -41,6 +41,7 @@ static const std::string VIS_TOPIC_NAME = "kinematics_visualization";
 boost::shared_ptr<KinematicStateJointStatePublisher> joint_state_publisher_;
 boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
 boost::shared_ptr<KinematicsGroupVisualization> kv_;
+boost::shared_ptr<InteractiveObjectVisualization> iov_;
 
 void publisher_function() {
   ros::WallRate r(10.0);
@@ -54,6 +55,11 @@ void publisher_function() {
 
 void updateCallback(planning_scene::PlanningSceneConstPtr planning_scene) {
   kv_->updatePlanningScene(planning_scene);
+}
+
+void addCubeCallback() {
+  planning_scene::PlanningSceneConstPtr planning_scene_diff = iov_->addCube();
+  kv_->updatePlanningScene(planning_scene_diff);
 }
 
 int main(int argc, char** argv)
@@ -99,14 +105,14 @@ int main(int argc, char** argv)
                                              bad_color,
                                              vis_marker_array_publisher));
   
-  InteractiveObjectVisualization iov(planning_scene_monitor_->getPlanningScene(),
-                                     interactive_marker_server_,
-                                     col);
+  iov_.reset(new InteractiveObjectVisualization(planning_scene_monitor_->getPlanningScene(),
+                                                interactive_marker_server_,
+                                                col));
+  
+  kv_->addMenuEntry("Add Cube", boost::bind(&addCubeCallback));
 
-  iov.setUpdateCallback(boost::bind(&updateCallback, _1));
+  iov_->setUpdateCallback(boost::bind(&updateCallback, _1));
    
-  planning_scene::PlanningSceneConstPtr planning_scene_diff = iov.addCube();
-  kv_->updatePlanningScene(planning_scene_diff);
 
   ros::waitForShutdown();
 }

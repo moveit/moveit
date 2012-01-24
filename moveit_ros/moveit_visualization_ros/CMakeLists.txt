@@ -30,6 +30,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/kinematics_group_visualization.cpp
   src/kinematics_start_goal_visualization.cpp 
   src/joint_trajectory_visualization.cpp 
+  src/interactive_object_visualization.cpp 
   )
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
