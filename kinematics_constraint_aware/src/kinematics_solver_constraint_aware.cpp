@@ -233,9 +233,9 @@ void KinematicsSolverConstraintAware::collisionCheck(const geometry_msgs::Pose &
   //req.max_contacts = 1;
   planning_scene_->checkCollision(req, res, *state_);
   if(res.collision) {
-    ROS_INFO_STREAM_NAMED("kinematics_collision", getCollisionDetectedString(res));
+    ROS_DEBUG_STREAM_NAMED("kinematics_collision", getCollisionDetectedString(res));
     error_code.val = error_code.COLLISION_CONSTRAINTS_VIOLATED;
-    ROS_INFO_STREAM("Collision constraints violated");
+    ROS_DEBUG_STREAM("Collision constraints violated");
   } else if(!kinematic_constraints::doesKinematicStateObeyConstraints(*state_, 
                                                                       planning_scene_->getTransforms(),
                                                                       constraints_, 
@@ -270,13 +270,15 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   //last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
-  req.contacts = true;
-  req.max_contacts = 1;
+  //req.contacts = true;
+  //req.max_contacts = 1;
   //planning_scene_->checkCollision(req, last_initial_pose_check_collision_result_, *state_, acm);
   planning_scene_->checkCollision(req, res, *state_, acm);
   if(res.collision) {
-    ROS_INFO_STREAM("Contacts size is " << res.contacts.size());
-    ROS_INFO_STREAM_NAMED("kinematics_collisions", getCollisionDetectedString(last_initial_pose_check_collision_result_));
+    //req.verbose = true;
+    //planning_scene_->checkCollision(req, res, *state_, acm);
+    //ROS_INFO_STREAM("Contacts size is " << res.contacts.size());
+    //ROS_INFO_STREAM_NAMED("kinematics_collisions", getCollisionDetectedString(last_initial_pose_check_collision_result_));
     error_code.val = error_code.IK_LINK_IN_COLLISION;
     ROS_DEBUG_STREAM("Initial pose check failing");
   } else {
