@@ -96,6 +96,10 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(planning_scene::Plann
   enable6DOFControls();
   default_menu_handler_.apply(*interactive_marker_server_, interactive_marker_name_);
   interactive_marker_server_->applyChanges();
+
+  geometry_msgs::Pose cur_pose;
+  planning_models::msgFromPose(state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform(), cur_pose);
+  updateEndEffectorState(cur_pose);
 };
 
 void KinematicsGroupVisualization::hideAllMarkers() {
@@ -153,6 +157,7 @@ void KinematicsGroupVisualization::addMenuEntry(const std::string& name,
 }
 
 void KinematicsGroupVisualization::updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene) {
+  ROS_INFO_STREAM("update planning scene called");
   planning_scene_ = planning_scene;
   updateEndEffectorState(last_pose_);
 }
@@ -276,7 +281,7 @@ void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::P
       last_solution_changed_ = false;
     }
     last_solution_good_ = false; 
-    ROS_INFO_STREAM("IK not ok " << err.val);
+    ROS_DEBUG_STREAM("IK not ok " << err.val);
   }
   sendCurrentMarkers();
   // if(last_solution_changed_) {
@@ -295,7 +300,9 @@ void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::P
 
 void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 
 {    
-  if(feedback->marker_name != interactive_marker_name_) return;
+  if(feedback->marker_name != interactive_marker_name_) {
+    ROS_INFO_STREAM("Getting values for " << feedback->marker_name);
+  }
   switch (feedback->event_type) {
   case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
     updateEndEffectorState(feedback->pose);
@@ -306,9 +313,8 @@ void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visual
     }
     break;
   default:
-    ROS_DEBUG_STREAM("Getting event type " << feedback->event_type);
+    ROS_DEBUG_STREAM("Getting event type " << (unsigned int)feedback->event_type);
   }
-  interactive_marker_server_->applyChanges();
 }; 
 
 void KinematicsGroupVisualization::makeInteractiveControlMarker(const std::string& name,
