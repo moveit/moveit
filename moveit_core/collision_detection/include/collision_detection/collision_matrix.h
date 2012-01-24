@@ -107,6 +107,11 @@ namespace collision_detection
        *  @param fn A callback function that is used to decide if collisions are allowed between the two elements is filled here */
         bool getAllowedCollision(const std::string& name1, const std::string& name2, DecideContactFn& fn) const;
 
+      /** @brief Check if the allowed collision matrix has an entry at all for an element. Returns true if the element is included.
+       *  @param name1 name of the element */
+        bool hasEntry(const std::string& name1) const;
+
+
       /** @brief Check if the allowed collision matrix has an entry for a pair of elements. Returns true if the pair is included.
        *  @param name1 name of first element
        *  @param name2 name of second element*/
