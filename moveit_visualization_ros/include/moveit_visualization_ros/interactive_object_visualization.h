@@ -37,6 +37,7 @@
 #include <interactive_markers/interactive_marker_server.h>
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
+#include <interactive_markers/menu_handler.h>
 
 static const double DEFAULT_SCALE = .1;
 static const double DEFAULT_X = .5;
@@ -86,11 +87,16 @@ protected:
   }
 
   planning_scene::PlanningSceneConstPtr addObject(const std::string& name,
-                                                  shapes::Shape* shape);
+                                                  const moveit_msgs::Shape::_type_type& type);
 
+  void deleteObject(const std::string& name);
+  
   void callUpdateCallback();
 
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback); 
+  void processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback); 
+
+protected:
   
   planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
@@ -102,6 +108,9 @@ protected:
   unsigned int cube_counter_;
   unsigned int sphere_counter_;
   unsigned int cylinder_counter_;
+
+  interactive_markers::MenuHandler default_menu_handler_;
+  std::map<interactive_markers::MenuHandler::EntryHandle, boost::function<void(std::string)> > menu_handle_to_function_map_;
 
 };
 
