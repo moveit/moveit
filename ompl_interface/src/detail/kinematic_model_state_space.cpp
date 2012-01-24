@@ -73,12 +73,22 @@ const ompl::base::StateSpacePtr& ompl_interface::KMStateSpace::getOMPLSpace(void
 
 double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::string &joint_name, ompl::base::State *state) const
 {
-    return state_address_.getValueAddressAtName(joint_name, state);
+    const std::map<std::string, ompl::base::StateSpace::ValueLocation> &vm = space_->getValueLocationsByName();
+    std::map<std::string, ompl::base::StateSpace::ValueLocation>::const_iterator it = vm.find(joint_name);
+    if (it != vm.end())
+	return space_->getValueAddressAtLocation(state, it->second);
+    else
+	return NULL;
 }
 
 const double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::string &joint_name, const ompl::base::State *state) const
 {
-    return state_address_.getValueAddressAtName(joint_name, state);
+    const std::map<std::string, ompl::base::StateSpace::ValueLocation> &vm = space_->getValueLocationsByName();
+    std::map<std::string, ompl::base::StateSpace::ValueLocation>::const_iterator it = vm.find(joint_name);
+    if (it != vm.end())
+	return space_->getValueAddressAtLocation(state, it->second);
+    else
+	return NULL;
 }
 
 void ompl_interface::KMStateSpace::copyToKinematicState(planning_models::KinematicState &kstate, const ompl::base::State *state) const
@@ -361,6 +371,6 @@ void ompl_interface::KMStateSpace::constructSpace(const std::vector<const planni
 
     // mark the fact this space is not to be modified any longer (its components)
     space_->as<ompl::base::CompoundStateSpace>()->lock();
-
-    state_address_.setStateSpace(space_);
+    
+    space_->setup();
 }
