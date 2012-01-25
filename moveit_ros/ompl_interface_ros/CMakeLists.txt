@@ -41,6 +41,9 @@ target_link_libraries(call_benchmark ${PROJECT_NAME})
 rosbuild_add_executable(ompl_db src/ompl_db.cpp)
 target_link_libraries(ompl_db ${PROJECT_NAME})
 
+rosbuild_add_executable(call_statedbconstruct src/call_statedbconstruct.cpp)
+target_link_libraries(call_statedbconstruct ${PROJECT_NAME})
+
 # Unit tests
 rosbuild_add_gtest(test_planner test/test_planner.cpp)
 target_link_libraries(test_planner ${PROJECT_NAME})
