@@ -34,51 +34,32 @@
 
 /* Author: Ioan Sucan */
 
-#include "ompl_interface_ros/ompl_interface_ros.h"
-#include "planning_scene_monitor/planning_scene_monitor.h"
-#include <tf/transform_listener.h>
+#include <planning_scene_monitor/planning_scene_monitor.h>
+#include <ompl_interface_ros/ompl_interface_ros.h>
+#include <kinematic_constraints/utils.h>
 #include <moveit_msgs/ComputeConstraintSpaceApproximation.h>
 
-static const std::string DBCONSTR_SERVICE_NAME="/compute_space_approximation";
+static const std::string DBCONSTR_SERVICE_NAME="/ompl_db/compute_space_approximation";
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
-class ComputeConstraintSpaceApproximation
+void benchmarkSimplePlan(const std::string &config)
 {
-public:
-    ComputeConstraintSpaceApproximation(void) :
-	nh_("~"), psm_(ROBOT_DESCRIPTION), ompl_interface_(psm_.getPlanningScene())
-    {
-	ompl_interface_.printStatus();
-	service_ = nh_.advertiseService(DBCONSTR_SERVICE_NAME, &ComputeConstraintSpaceApproximation::computeDB, this);
-    }
+    ros::NodeHandle nh;
+    ros::service::waitForService(PLANNER_SERVICE_NAME);
+    ros::ServiceClient service_client = nh.serviceClient<moveit_msgs::ComputeConstraintSpaceApproximation>(DBCONSTR_SERVICE_NAME);
 
-    bool computeDB(moveit_msgs::ComputeConstraintSpaceApproximation::Request &req, moveit_msgs::ComputeConstraintSpaceApproximation::Response &res)
-    {   
-	ompl_interface::PlanningGroupPtr pg = ompl_interface_.getPlanningConfiguration(req.group);
-	if (!pg)
-	    return false;
-	if (pg->constructValidStateDatabase(req.constraints, req.size, req.filename.c_str()))
-	    res.success = true;
-    }
+    moveit_msgs::ComputeConstraintSpaceApproximation::Request mplan_req;
+    moveit_msgs::ComputeConstraintSpaceApproximation::Response mplan_res;
     
-private:
-    
-    ros::NodeHandle nh_;
-    planning_scene_monitor::PlanningSceneMonitor psm_;  
-    ompl_interface_ros::OMPLInterfaceROS ompl_interface_;
-    ros::ServiceServer service_;
-    
-};
+    service_client.call(mplan_req, mplan_res);
+}
 
-    
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "ompl_db");
-    
+    ros::init(argc, argv, "call_ompl_db", ros::init_options::AnonymousName);
+
     ros::AsyncSpinner spinner(1);
     spinner.start();
-    
-    ComputeConstraintSpaceApproximation ccsa;    
-    
-    return 0;
+
+    benchmarkSimplePlan("SBLkConfig4");
 }

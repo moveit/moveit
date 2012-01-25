@@ -78,7 +78,7 @@ void benchmarkSimplePlan(const std::string &config)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "test_ompl_planning", ros::init_options::AnonymousName);
+    ros::init(argc, argv, "call_ompl_planning", ros::init_options::AnonymousName);
     ros::AsyncSpinner spinner(1);
     spinner.start();
     /*    benchmarkSimplePlan("LBKPIECEkConfigDefault");
