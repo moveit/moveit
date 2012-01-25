@@ -95,4 +95,6 @@ int main(int argc, char **argv)
     benchmarkSimplePlan("SBLkConfig2");
     benchmarkSimplePlan("SBLkConfig3");
     benchmarkSimplePlan("SBLkConfig4");
+
+    return 0;
 }

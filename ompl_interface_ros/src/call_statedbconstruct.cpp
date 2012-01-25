@@ -42,16 +42,33 @@
 static const std::string DBCONSTR_SERVICE_NAME="/ompl_db/compute_space_approximation";
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
-void benchmarkSimplePlan(const std::string &config)
+void constructSimpleConstraint(void)
 {
     ros::NodeHandle nh;
-    ros::service::waitForService(PLANNER_SERVICE_NAME);
+    ros::service::waitForService(DBCONSTR_SERVICE_NAME);
     ros::ServiceClient service_client = nh.serviceClient<moveit_msgs::ComputeConstraintSpaceApproximation>(DBCONSTR_SERVICE_NAME);
 
-    moveit_msgs::ComputeConstraintSpaceApproximation::Request mplan_req;
-    moveit_msgs::ComputeConstraintSpaceApproximation::Response mplan_res;
+    moveit_msgs::ComputeConstraintSpaceApproximation::Request db_req;
+    moveit_msgs::ComputeConstraintSpaceApproximation::Response db_res;
+    db_req.group = "right_arm";
+    db_req.filename = "constraint_demo.ompldb";
+    db_req.size = 1000;
     
-    service_client.call(mplan_req, mplan_res);
+    moveit_msgs::Constraints &constr = db_req.constraints;    
+    constr.orientation_constraints.resize(1);
+    moveit_msgs::OrientationConstraint &ocm = constr.orientation_constraints[0];
+    ocm.link_name = "r_wrist_roll_link";
+    ocm.orientation.header.frame_id = "base_footprint";
+    ocm.orientation.quaternion.x = 0.0;
+    ocm.orientation.quaternion.y = 0.0;
+    ocm.orientation.quaternion.z = 0.0;
+    ocm.orientation.quaternion.w = 1.0;
+    ocm.absolute_roll_tolerance = 0.01;
+    ocm.absolute_pitch_tolerance = 0.01;
+    ocm.absolute_yaw_tolerance = M_PI;
+    ocm.weight = 1.0;
+
+    service_client.call(db_req, db_res);
 }
 
 int main(int argc, char **argv)
@@ -61,5 +78,7 @@ int main(int argc, char **argv)
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
-    benchmarkSimplePlan("SBLkConfig4");
+    constructSimpleConstraint();
+    
+    return 0;
 }
