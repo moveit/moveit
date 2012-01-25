@@ -227,7 +227,7 @@ namespace ompl_interface
            @param constr the constraints to be satisfied
            @param samples The number of attempts at generating samples
            @param filename The file to which the states should be saved */
-        void constructValidStateDatabase(const moveit_msgs::Constraints &constr,
+	bool constructValidStateDatabase(const moveit_msgs::Constraints &constr,
                                          unsigned int samples, const char *filename);
     protected:
 
