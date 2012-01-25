@@ -35,8 +35,8 @@ rosbuild_add_library(${PROJECT_NAME} src/ompl_interface_ros.cpp)
 rosbuild_add_executable(ompl_planner src/ompl_planner.cpp)
 target_link_libraries(ompl_planner ${PROJECT_NAME})
 
-#rosbuild_add_executable(call_benchmark src/call_benchmark.cpp)
-#target_link_libraries(call_benchmark ${PROJECT_NAME})
+rosbuild_add_executable(call_benchmark src/call_benchmark.cpp)
+target_link_libraries(call_benchmark ${PROJECT_NAME})
 
 rosbuild_add_executable(ompl_db src/ompl_db.cpp)
 target_link_libraries(ompl_db ${PROJECT_NAME})
@@ -48,5 +48,5 @@ target_link_libraries(test_planner ${PROJECT_NAME})
 rosbuild_add_gtest(test_simple_plan test/test_simple_plan.cpp)
 target_link_libraries(test_simple_plan ${PROJECT_NAME})
 
-#rosbuild_add_gtest(test_dual_arm test/test_dual_arm_plan.cpp)
-#target_link_libraries(test_dual_arm ${PROJECT_NAME})
+rosbuild_add_gtest(test_dual_arm test/test_dual_arm_plan.cpp)
+target_link_libraries(test_dual_arm ${PROJECT_NAME})
