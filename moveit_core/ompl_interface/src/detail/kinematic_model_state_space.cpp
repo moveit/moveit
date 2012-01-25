@@ -234,6 +234,9 @@ void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, con
 
 void ompl_interface::KMStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
+    if (!space_)
+	return;
+    
     for (std::size_t i = 0 ; i < all_components_.size() ; ++i)
         if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SE3)
         {
@@ -250,6 +253,7 @@ void ompl_interface::KMStateSpace::setPlanningVolume(double minX, double maxX, d
                 b.setHigh(0, maxX); b.setHigh(1, maxY);
                 all_components_[i]->as<ompl::base::SE2StateSpace>()->setBounds(b);
             }
+    space_->setup();
 }
 
 void ompl_interface::KMStateSpace::constructSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints)
@@ -371,6 +375,9 @@ void ompl_interface::KMStateSpace::constructSpace(const std::vector<const planni
 
     // mark the fact this space is not to be modified any longer (its components)
     space_->as<ompl::base::CompoundStateSpace>()->lock();
+    
+    // set some default planning volume
+    setPlanningVolume(0.0, 1.0, 0.0, 1.0, 0.0, 1.0);
     
     space_->setup();
 }
