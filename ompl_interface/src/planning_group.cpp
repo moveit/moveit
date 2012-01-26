@@ -221,7 +221,7 @@ ompl::base::GoalPtr ompl_interface::PlanningGroup::getGoalRepresentation(const k
     return ompl::base::GoalPtr(new ConstrainedGoalSampler(this, kset, getConstraintsSampler(kset->getAllConstraints())));
 }
 
-void ompl_interface::PlanningGroup::constructValidStateDatabase(const moveit_msgs::Constraints &constr,
+bool ompl_interface::PlanningGroup::constructValidStateDatabase(const moveit_msgs::Constraints &constr,
                                                                 unsigned int samples,
                                                                 const char *filename)
 {
@@ -238,14 +238,24 @@ void ompl_interface::PlanningGroup::constructValidStateDatabase(const moveit_msg
     kstate.setToDefaultValues();
     
     ompl::base::ScopedState<> temp(si);
+    unsigned int attempts = 0;
     int done = -1;
-    for (unsigned int i = 0 ; i < samples ; ++i)
+    while (sstor.size() < samples)
     {
-        int done_now = 100 * i / samples;
+	++attempts;
+	if (attempts > 10 && attempts > sstor.size() * 100)
+	    ROS_WARN("Computation of valid state database is very slow...");
+	
+	if (attempts > samples && sstor.size() == 0)
+	{
+	    ROS_ERROR("Unable to generate any samples");
+	    break;
+	}
+	int done_now = 100 * sstor.size() / samples;
         if (done != done_now)
         {
             done = done_now;
-            ROS_INFO("%d%% complete (generated %u samples so far)", done, (unsigned int)sstor.size());
+            ROS_INFO("%d%% complete", done);
         }
         ss->sampleUniform(temp.get());
         getKMStateSpace().copyToKinematicState(kstate, temp.get());
@@ -256,6 +266,7 @@ void ompl_interface::PlanningGroup::constructValidStateDatabase(const moveit_msg
     }
     sstor.store(filename);
     ROS_INFO("Stored %u states", (unsigned int)sstor.size());
+    return sstor.size() == samples;
 }
 
 kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getConstraintsSampler(const moveit_msgs::Constraints &constr) const
