@@ -229,7 +229,7 @@ void collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
         it->second.unregisterFrom(manager_.get());
         it->second.clear();
         fcl_objs_.erase(it);
-	manager_->update();
+        manager_->update();
     }
 }
 

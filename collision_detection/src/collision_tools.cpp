@@ -41,7 +41,7 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
                                                           const CollisionResult::ContactMap& con,
                                                           const std_msgs::ColorRGBA& color,
                                                           const ros::Duration& lifetime)
- 
+
 {
   std::map<std::string, unsigned> ns_counts;
   for(CollisionResult::ContactMap::const_iterator it = con.begin();
