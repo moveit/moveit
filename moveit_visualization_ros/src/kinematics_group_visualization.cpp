@@ -36,7 +36,7 @@
 namespace moveit_visualization_ros
 {
 
-KinematicsGroupVisualization::KinematicsGroupVisualization(planning_scene::PlanningSceneConstPtr planning_scene, 
+KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene, 
                                                            boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                                            const std::string& group_name, 
                                                            const std::string& suffix_name,
@@ -154,10 +154,10 @@ void KinematicsGroupVisualization::addMenuEntry(const std::string& name,
   menu_handle_to_string_map_[eh] = name;
   default_callback_map_[name] = callback;
   default_menu_handler_.reApply(*interactive_marker_server_);
+  interactive_marker_server_->applyChanges();
 }
 
-void KinematicsGroupVisualization::updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene) {
-  ROS_INFO_STREAM("update planning scene called");
+void KinematicsGroupVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
   planning_scene_ = planning_scene;
   updateEndEffectorState(last_pose_);
 }
@@ -325,6 +325,7 @@ void KinematicsGroupVisualization::makeInteractiveControlMarker(const std::strin
                                                                          state_,
                                                                          end_effector_link_names_,
                                                                          color,
+                                                                         .35,
                                                                          true);
   if(add_6dof) {
     add6DofControl(marker, false);

@@ -72,6 +72,19 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
 
 }
 
+void KinematicsStartGoalVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) 
+{
+  start_->updatePlanningScene(planning_scene);
+  goal_->updatePlanningScene(planning_scene);
+}
+
+void KinematicsStartGoalVisualization::addMenuEntry(const std::string& name, 
+                                                    const boost::function<void(void)>& callback)
+{
+  start_->addMenuEntry(name, callback);
+  goal_->addMenuEntry(name, callback);
+}
+
 void KinematicsStartGoalVisualization::startOn() {
   goal_->disable6DOFControls();
   goal_->setMarkerAlpha(0.25);

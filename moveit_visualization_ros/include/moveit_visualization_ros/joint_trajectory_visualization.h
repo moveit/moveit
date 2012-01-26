@@ -44,8 +44,11 @@ class JointTrajectoryVisualization
 {
 
 public:
-  JointTrajectoryVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
-                               ros::Publisher& marker_publisher);                         
+  JointTrajectoryVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                               ros::Publisher& marker_publisher);
+
+  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
+     
   void setTrajectory(const planning_models::KinematicState& start_state,
                      const trajectory_msgs::JointTrajectory& traj,
                      const std_msgs::ColorRGBA& color);
@@ -56,7 +59,7 @@ protected:
 
   void advanceTrajectory();
 
-  boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
+  planning_scene::PlanningSceneConstPtr planning_scene_;
   ros::Publisher marker_publisher_;
 
   planning_models::KinematicState current_state_;

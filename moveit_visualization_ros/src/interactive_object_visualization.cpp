@@ -43,12 +43,6 @@ InteractiveObjectVisualization::InteractiveObjectVisualization(planning_scene::P
     cylinder_counter_(0)
 {
   planning_scene_diff_.reset(new planning_scene::PlanningScene(planning_scene_));
-
-  interactive_markers::MenuHandler::EntryHandle del_entry
-    = default_menu_handler_.insert("Delete object", 
-                                   boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-
-  menu_handle_to_function_map_[del_entry] = boost::bind(&InteractiveObjectVisualization::deleteObject, this, _1);
 }
 
 
@@ -108,7 +102,7 @@ planning_scene::PlanningSceneConstPtr InteractiveObjectVisualization::addObject(
   planning_scene_diff_->processCollisionObjectMsg(coll);
   
   geometry_msgs::PoseStamped pose_stamped;
-  pose_stamped.header.frame_id = planning_scene_->getPlanningFrame();
+  pose_stamped.header.frame_id = "/"+planning_scene_->getPlanningFrame();
   pose_stamped.pose = coll.poses[0];
   visualization_msgs::InteractiveMarker marker = makeButtonBox(name,
                                                                pose_stamped,
@@ -119,8 +113,38 @@ planning_scene::PlanningSceneConstPtr InteractiveObjectVisualization::addObject(
   interactive_marker_server_->insert(marker);
   interactive_marker_server_->setCallback(marker.name, 
                                           boost::bind(&InteractiveObjectVisualization::processInteractiveMarkerFeedback, this, _1));
+
+  interactive_markers::MenuHandler::EntryHandle del_entry
+    = object_menu_handlers_[name].insert("Delete object", 
+                                         boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+  menu_handle_to_function_maps_[name][del_entry] = boost::bind(&InteractiveObjectVisualization::deleteObject, this, _1);
+
+  interactive_markers::MenuHandler::EntryHandle resize_entry
+    = object_menu_handlers_[name].insert("Resize Mode", 
+                                         boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+
+  interactive_markers::MenuHandler::EntryHandle off_entry = 
+    object_menu_handlers_[name].insert(resize_entry, "Off", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+  object_menu_handlers_[name].setCheckState(off_entry, interactive_markers::MenuHandler::CHECKED);
+
+  menu_name_to_handle_maps_[name]["Off"] = off_entry;
+  menu_handle_to_function_maps_[name][off_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeOff, this, _1);
   
-  default_menu_handler_.apply(*interactive_marker_server_, marker.name);
+  interactive_markers::MenuHandler::EntryHandle grow_entry = 
+    object_menu_handlers_[name].insert(resize_entry, "Grow", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+  object_menu_handlers_[name].setCheckState(grow_entry, interactive_markers::MenuHandler::UNCHECKED);
+
+  menu_name_to_handle_maps_[name]["Grow"] = grow_entry;
+  menu_handle_to_function_maps_[name][grow_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeGrow, this, _1);
+
+  interactive_markers::MenuHandler::EntryHandle shrink_entry = 
+    object_menu_handlers_[name].insert(resize_entry, "Shrink", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+  object_menu_handlers_[name].setCheckState(shrink_entry, interactive_markers::MenuHandler::UNCHECKED);
+
+  menu_name_to_handle_maps_[name]["Shrink"] = shrink_entry;
+  menu_handle_to_function_maps_[name][shrink_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeShrink, this, _1);
+
+  object_menu_handlers_[name].apply(*interactive_marker_server_, marker.name);
   interactive_marker_server_->applyChanges();
 
   return planning_scene_diff_;
@@ -156,8 +180,40 @@ void InteractiveObjectVisualization::deleteObject(const std::string& name) {
   interactive_marker_server_->erase(name);
   interactive_marker_server_->applyChanges();
 
+  object_menu_handlers_.erase(name);
+  menu_name_to_handle_maps_.erase(name);
+  menu_handle_to_function_maps_.erase(name);
+
   callUpdateCallback();
 }
+
+void InteractiveObjectVisualization::setResizeModeOff(const std::string& name)
+{
+  object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Off"], interactive_markers::MenuHandler::CHECKED);
+  object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Grow"], interactive_markers::MenuHandler::UNCHECKED);
+  object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Shrink"], interactive_markers::MenuHandler::UNCHECKED);
+  object_menu_handlers_[name].reApply(*interactive_marker_server_);
+  interactive_marker_server_->applyChanges();
+}
+
+void InteractiveObjectVisualization::setResizeModeGrow(const std::string& name)
+{
+  object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Off"], interactive_markers::MenuHandler::UNCHECKED);
+  object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Grow"], interactive_markers::MenuHandler::CHECKED);
+  object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Shrink"], interactive_markers::MenuHandler::UNCHECKED);
+  object_menu_handlers_[name].reApply(*interactive_marker_server_);
+  interactive_marker_server_->applyChanges();
+}
+
+void InteractiveObjectVisualization::setResizeModeShrink(const std::string& name)
+{
+  object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Off"], interactive_markers::MenuHandler::UNCHECKED);
+  object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Grow"], interactive_markers::MenuHandler::UNCHECKED);
+  object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Shrink"], interactive_markers::MenuHandler::CHECKED);
+  object_menu_handlers_[name].reApply(*interactive_marker_server_);
+  interactive_marker_server_->applyChanges();
+}
+
 
 void InteractiveObjectVisualization::callUpdateCallback() {
   if(update_callback_) {
@@ -177,7 +233,6 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
   default:
     ROS_DEBUG_STREAM("Getting event type " << feedback->event_type);
   }
-  interactive_marker_server_->applyChanges();
 }; 
 
 void InteractiveObjectVisualization::processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 
@@ -186,11 +241,18 @@ void InteractiveObjectVisualization::processInteractiveMenuFeedback(const visual
     ROS_WARN_STREAM("Got something other than menu select on menu feedback function");
     return;
   }
-  if(menu_handle_to_function_map_.find(feedback->menu_entry_id) == menu_handle_to_function_map_.end()) {
-    ROS_WARN_STREAM("No callback associated with entry");
+  if(menu_handle_to_function_maps_.find(feedback->marker_name) == menu_handle_to_function_maps_.end()) {
+    ROS_WARN_STREAM("No menu entry associated with " << feedback->marker_name);
     return;
   }
-  menu_handle_to_function_map_[feedback->menu_entry_id](feedback->marker_name);
+
+  if(menu_handle_to_function_maps_[feedback->marker_name].find(feedback->menu_entry_id) == 
+     menu_handle_to_function_maps_[feedback->marker_name].end()) {
+    ROS_WARN_STREAM("Got menu entry with no handle callback");
+    return;
+  }
+
+  menu_handle_to_function_maps_[feedback->marker_name][feedback->menu_entry_id](feedback->marker_name);
 }
 
 }
