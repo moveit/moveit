@@ -453,7 +453,7 @@ bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory
 
     const ompl::geometric::PathGeometric &pg = ompl_simple_setup_.getSolutionPath();
     planning_models::KinematicState ks = start_state_;
-    const std::vector<planning_models::KinematicModel::JointModel*> &jnt = planning_scene_->getKinematicModel()->getJointModels();
+    const std::vector<const planning_models::KinematicModel::JointModel*> &jnt = joint_model_group_->getJointModels();
     std::vector<const planning_models::KinematicModel::JointModel*> onedof;
     std::vector<const planning_models::KinematicModel::JointModel*> mdof;
     traj.joint_trajectory.header.frame_id = planning_scene_->getKinematicModel()->getModelFrame();
