@@ -34,11 +34,11 @@
 namespace moveit_visualization_ros
 {
 
-JointTrajectoryVisualization::JointTrajectoryVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
+JointTrajectoryVisualization::JointTrajectoryVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                            ros::Publisher& marker_publisher)
-  : planning_scene_monitor_(planning_scene_monitor),
+  : planning_scene_(planning_scene),
     marker_publisher_(marker_publisher),
-    current_state_(planning_scene_monitor_->getPlanningScene()->getCurrentState())
+    current_state_(planning_scene_->getCurrentState())
 {
   
 }; 
@@ -50,6 +50,11 @@ void JointTrajectoryVisualization::setTrajectory(const planning_models::Kinemati
   current_state_ = start_state;
   current_joint_trajectory_ = traj;
   marker_color_ = color;
+}
+
+void JointTrajectoryVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
+{  
+  planning_scene_ = planning_scene;
 }
 
 void JointTrajectoryVisualization::playCurrentTrajectory()
@@ -64,9 +69,10 @@ void JointTrajectoryVisualization::playCurrentTrajectory()
   playback_start_time_ = ros::WallTime::now();
   current_point_ = 0;
 
-  const planning_models::KinematicModel::LinkModel* lm = planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModel(current_joint_trajectory_.joint_names[0])->getChildLinkModel();
+  const planning_models::KinematicModel::LinkModel* lm = planning_scene_->getKinematicModel()->getJointModel(current_joint_trajectory_.joint_names[0])->getChildLinkModel();
   
-  link_model_names_ = planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getChildLinkModelNames(lm);
+  link_model_names_ = planning_scene_->getKinematicModel()->getChildLinkModelNames(lm);
+  ROS_INFO_STREAM("Request to play");
 
   playback_thread_.reset(new boost::thread(boost::bind(&JointTrajectoryVisualization::advanceTrajectory, this)));
 }
@@ -81,6 +87,7 @@ void JointTrajectoryVisualization::advanceTrajectory() {
       }
       current_state_.setStateValues(joint_state);
       visualization_msgs::MarkerArray arr;
+      ROS_INFO_STREAM("Should be publishing");
       current_state_.getRobotMarkers(marker_color_,
                                      "joint_trajectory",
                                      ros::Duration(0.0),

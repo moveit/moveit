@@ -72,7 +72,7 @@ int main(int argc, char** argv)
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
 
-  JointTrajectoryVisualization jv(planning_scene_monitor_,
+  JointTrajectoryVisualization jv(planning_scene_monitor_->getPlanningScene(),
                                   vis_marker_array_publisher);
 
   trajectory_msgs::JointTrajectory trajectory;

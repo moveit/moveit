@@ -46,7 +46,7 @@ namespace moveit_visualization_ros
 class KinematicsGroupVisualization {
 public:
   
-  KinematicsGroupVisualization(planning_scene::PlanningSceneConstPtr planning_scene_monitor,
+  KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene_monitor,
                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                const std::string& group_name, 
                                const std::string& suffix_name, 
@@ -76,9 +76,9 @@ public:
   void addButtonClickCallback(const boost::function<void(void)>& button_click_callback);
 
   void addMenuEntry(const std::string& name, 
-                   const boost::function<void(void)>& callback);
+                    const boost::function<void(void)>& callback);
 
-  void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene);
+  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
 protected:
 

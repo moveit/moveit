@@ -31,6 +31,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/kinematics_start_goal_visualization.cpp 
   src/joint_trajectory_visualization.cpp 
   src/interactive_object_visualization.cpp 
+  src/planning_visualization.cpp
   )
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
@@ -46,3 +47,6 @@ target_link_libraries(joint_trajectory_visualization_test ${PROJECT_NAME})
 
 rosbuild_add_executable(interactive_object_visualization_test src/interactive_object_visualization_test.cpp)
 target_link_libraries(interactive_object_visualization_test ${PROJECT_NAME})
+
+rosbuild_add_executable(planning_components_visualizer src/planning_components_visualizer.cpp)
+target_link_libraries(planning_components_visualizer ${PROJECT_NAME})
