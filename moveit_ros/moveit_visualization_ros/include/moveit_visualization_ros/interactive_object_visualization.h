@@ -90,6 +90,10 @@ protected:
                                                   const moveit_msgs::Shape::_type_type& type);
 
   void deleteObject(const std::string& name);
+
+  void setResizeModeOff(const std::string& name);
+  void setResizeModeGrow(const std::string& name);
+  void setResizeModeShrink(const std::string& name);
   
   void callUpdateCallback();
 
@@ -109,8 +113,9 @@ protected:
   unsigned int sphere_counter_;
   unsigned int cylinder_counter_;
 
-  interactive_markers::MenuHandler default_menu_handler_;
-  std::map<interactive_markers::MenuHandler::EntryHandle, boost::function<void(std::string)> > menu_handle_to_function_map_;
+  std::map<std::string, interactive_markers::MenuHandler> object_menu_handlers_;
+  std::map<std::string, std::map<std::string, interactive_markers::MenuHandler::EntryHandle> > menu_name_to_handle_maps_;
+  std::map<std::string, std::map<interactive_markers::MenuHandler::EntryHandle, boost::function<void(std::string)> > > menu_handle_to_function_maps_;
 
 };
 

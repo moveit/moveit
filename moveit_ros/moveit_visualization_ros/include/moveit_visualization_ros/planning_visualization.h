@@ -34,6 +34,7 @@
 
 #include <ros/ros.h>
 #include <moveit_visualization_ros/kinematics_start_goal_visualization.h>
+#include <moveit_visualization_ros/joint_trajectory_visualization.h>
 #include <ompl_interface_ros/ompl_interface_ros.h>
 
 namespace moveit_visualization_ros
@@ -41,16 +42,24 @@ namespace moveit_visualization_ros
 
 class PlanningVisualization 
 {
-  PlanningVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
+public:
+
+  PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                         boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                        ros::Publisher& marker_publisher);                         
+                        ros::Publisher& marker_publisher);
+  
+  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
+  
 protected:
 
   void generatePlan(void);
 
-  ompl_interface::OMPLInterfaceROS ompl_interface_;
-  KinematicsStartGoalVisualization group_visualization_;
+  ompl_interface_ros::OMPLInterfaceROS ompl_interface_;
+  boost::shared_ptr<KinematicsStartGoalVisualization> group_visualization_;
+  boost::shared_ptr<JointTrajectoryVisualization> joint_trajectory_visualization_;
   
 };
 
 }
+
+#endif

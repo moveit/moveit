@@ -31,35 +31,62 @@
 
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
 #include <moveit_visualization_ros/planning_visualization.h>
-#include <moveit_visualization_ros/kinematic_constraints/util.h>
+#include <kinematic_constraints/utils.h>
+#include <planning_models/conversions.h>
 
-PlanningVisualization::PlanningVisualization(boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor>& planning_scene_monitor,
+namespace moveit_visualization_ros {
+
+PlanningVisualization::PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                              boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                              ros::Publisher& marker_publisher)
-  : ompl_interface_(planning_scene_monitor->getPlanningScene()),
-    group_visualization_(planning_scene_monitor,
-                         interactive_marker_server,
-                         "right_arm",                                                                        "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
-                         marker_publisher)
-
+  : ompl_interface_(planning_scene)
 {
-  group_visualization_.addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this));
-}                        
+  group_visualization_.reset(new KinematicsStartGoalVisualization(planning_scene,
+                                                                  interactive_marker_server,
+                                                                  "right_arm",
+                                                                  "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
+                                                                  marker_publisher));
+
+
+  group_visualization_->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this));
+  joint_trajectory_visualization_.reset(new JointTrajectoryVisualization(planning_scene,
+                                                                         marker_publisher));
+} 
+
+void PlanningVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
+  group_visualization_->updatePlanningScene(planning_scene);
+  joint_trajectory_visualization_->updatePlanningScene(planning_scene);
+}
 
 void PlanningVisualization::generatePlan(void) {
 
-  const planing_models::KinematicState& start_state = group_visualization_->getStartState();
+  ROS_INFO_STREAM("Getting request to plan");
 
-  const planing_models::KinematicState& goal_state = group_visualization_->getGoalState();
+  const planning_models::KinematicState& start_state = group_visualization_->getStartState();
+
+  const planning_models::KinematicState& goal_state = group_visualization_->getGoalState();
   
   moveit_msgs::GetMotionPlan::Request req;
   moveit_msgs::GetMotionPlan::Response res;
 
-  req.group_name = "right_arm";
-  planning_models::kinematicStateToRobotState(start_state,req.start_state);
-  req.goal_constraints = kinematic_constraints::constructGoalConstraints(goal_state->getJointStateGroup("right_arm"));
-  req.num_planning_attempts = 1;
-  req.allowed_planning_time = ros::Duration(3.0);
+  req.motion_plan_request.group_name = "right_arm";
+  planning_models::kinematicStateToRobotState(start_state,req.motion_plan_request.start_state);
+  req.motion_plan_request.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(goal_state.getJointStateGroup("right_arm"),
+                                                                                                     .001, .001));
+  req.motion_plan_request.num_planning_attempts = 1;
+  req.motion_plan_request.allowed_planning_time = ros::Duration(3.0);
+
+  std_msgs::ColorRGBA col;
+  col.a = .8;
+  col.b = 1.0;
 
   ompl_interface_.solve(req, res);
+  ROS_INFO_STREAM("Trajectory has " << res.trajectory.joint_trajectory.points.size() << " joint names " << res.trajectory.joint_trajectory.joint_names.size());
+  joint_trajectory_visualization_->setTrajectory(start_state,
+                                                 res.trajectory.joint_trajectory,
+                                                 col);
+
+  joint_trajectory_visualization_->playCurrentTrajectory();
+}
+
 }
