@@ -61,9 +61,9 @@ TEST(OmplPlanning, SimplePlan)
     planning_scene::PlanningScene &scene = *psm.getPlanningScene();
     EXPECT_TRUE(scene.isConfigured());
 
-    mplan_req.motion_plan_request.planner_id = "LBKPIECEkConfigDefault";
+    mplan_req.motion_plan_request.planner_id = "SBLkConfigDefault";
     mplan_req.motion_plan_request.group_name = "right_arm";
-    mplan_req.motion_plan_request.num_planning_attempts = 1;
+    mplan_req.motion_plan_request.num_planning_attempts = 2;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
     const std::vector<std::string>& joint_names = scene.getKinematicModel()->getJointModelGroup("right_arm")->getJointModelNames();
     mplan_req.motion_plan_request.goal_constraints.resize(1);
