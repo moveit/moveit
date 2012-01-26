@@ -81,20 +81,16 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "call_ompl_planning", ros::init_options::AnonymousName);
     ros::AsyncSpinner spinner(1);
     spinner.start();
-    /*    benchmarkSimplePlan("LBKPIECEkConfigDefault");
-    benchmarkSimplePlan("RRTkConfigDefault");
-    benchmarkSimplePlan("RRTConnectkConfigDefault");
-    benchmarkSimplePlan("ESTkConfigDefault");
-    benchmarkSimplePlan("KPIECEkConfigDefault");
-    benchmarkSimplePlan("BKPIECEkConfigDefault");
-    benchmarkSimplePlan("SBLkConfigDefault");
-    benchmarkSimplePlan("RRTkConfigDefault"); */
 
+    benchmarkSimplePlan("LBKPIECEkConfigDefault");
+    //    benchmarkSimplePlan("RRTkConfigDefault");
+    benchmarkSimplePlan("RRTConnectkConfigDefault");
+    //    benchmarkSimplePlan("ESTkConfigDefault");
+    //    benchmarkSimplePlan("KPIECEkConfigDefault");
+    //    benchmarkSimplePlan("BKPIECEkConfigDefault");
     benchmarkSimplePlan("SBLkConfigDefault");
-    benchmarkSimplePlan("SBLkConfig1");
-    benchmarkSimplePlan("SBLkConfig2");
-    benchmarkSimplePlan("SBLkConfig3");
-    benchmarkSimplePlan("SBLkConfig4");
+    //    benchmarkSimplePlan("RRTkConfigDefault"); 
+
 
     return 0;
 }
