@@ -40,7 +40,6 @@
 
 namespace collision_detection
 {
-
     bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void *data)
     {
         CollisionData *cdata = (CollisionData*)data;
@@ -58,6 +57,7 @@ namespace collision_detection
             bool found = cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), type);
             if (found)
             {
+                // if we have an entry in the collision matrix, we read it
                 if (type == AllowedCollision::ALWAYS)
                 {
                     always_allow_collision = true;
@@ -109,16 +109,16 @@ namespace collision_detection
             {
                 std::size_t have;
                 if (cd1->getID() < cd2->getID())
-		{
-		    std::pair<std::string, std::string> cp(cd1->getID(), cd2->getID());
-		    have = cdata->res_->contacts.find(cp) != cdata->res_->contacts.end() ? cdata->res_->contacts[cp].size() : 0;
-		}
-		else
-		{
-		    std::pair<std::string, std::string> cp(cd2->getID(), cd1->getID());
-		    have = cdata->res_->contacts.find(cp) != cdata->res_->contacts.end() ? cdata->res_->contacts[cp].size() : 0;
-		}
-		if (have < cdata->req_->max_contacts_per_pair)
+                {
+                    std::pair<std::string, std::string> cp(cd1->getID(), cd2->getID());
+                    have = cdata->res_->contacts.find(cp) != cdata->res_->contacts.end() ? cdata->res_->contacts[cp].size() : 0;
+                }
+                else
+                {
+                    std::pair<std::string, std::string> cp(cd2->getID(), cd1->getID());
+                    have = cdata->res_->contacts.find(cp) != cdata->res_->contacts.end() ? cdata->res_->contacts[cp].size() : 0;
+                }
+                if (have < cdata->req_->max_contacts_per_pair)
                     want_contact_count = cdata->req_->max_contacts_per_pair - have;
             }
 
@@ -143,16 +143,16 @@ namespace collision_detection
                     // if the contact is  not allowed, we have a collision
                     if (dcf(c) == false)
                     {
-			// store the contact, if it is needed
-			if (want_contact_count > 0)
-			{
-			    --want_contact_count;
-			    cdata->res_->contacts[pc].push_back(c);
-			    cdata->res_->contact_count++;
-			    ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was stored.", cd1->getID().c_str(), cd2->getID().c_str());
-			}
-			else
-			    ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was not stored.", cd1->getID().c_str(), cd2->getID().c_str());
+                        // store the contact, if it is needed
+                        if (want_contact_count > 0)
+                        {
+                            --want_contact_count;
+                            cdata->res_->contacts[pc].push_back(c);
+                            cdata->res_->contact_count++;
+                            ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was stored.", cd1->getID().c_str(), cd2->getID().c_str());
+                        }
+                        else
+                            ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was not stored.", cd1->getID().c_str(), cd2->getID().c_str());
                         cdata->res_->collision = true;
                         if (want_contact_count == 0)
                             break;
@@ -217,7 +217,7 @@ namespace collision_detection
                 cdata->done_ = true;
                 if (cdata->req_->verbose)
                     ROS_INFO("Collision checking is considered complete (collision was found and %d contacts are stored)",
-			     (unsigned int)cdata->res_->contact_count);
+                             (unsigned int)cdata->res_->contact_count);
             }
 
         return cdata->done_;

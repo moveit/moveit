@@ -98,9 +98,9 @@ namespace collision_detection
         }
         typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
 
-	/** \brief Clear a previously stored result */
-	void clear(void) { *this = CollisionResult(); }
-	
+        /** \brief Clear a previously stored result */
+        void clear(void) { *this = CollisionResult(); }
+
         /** \brief True if collision was found, false otherwise */
         bool            collision;
 

@@ -571,7 +571,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
       processAttachedCollisionObjectMsg(scene.attached_collision_objects[i]);
 
   // if at least some links are mentioned in the allowed collision matrix, then we have an update
-  if (!scene.allowed_collision_matrix.link_names.empty())
+  if (!scene.allowed_collision_matrix.entry_names.empty())
     acm_.reset(new collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix));
 
   if (!scene.link_padding.empty() || !scene.link_scale.empty())
@@ -824,7 +824,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", COLLISION_MAP_NS.c_str());
     return false;
   }
-  collision_detection::AllowedCollisionMatrix& acm = getAllowedCollisionMatrix();
+  //  collision_detection::AllowedCollisionMatrix& acm = getAllowedCollisionMatrix();
 
   if (object.operation == moveit_msgs::CollisionObject::ADD)
   {
@@ -856,20 +856,25 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         cworld_->addToObject(object.id, s, t * p);
       }
     }
-    if(!acm.hasEntry(object.id)) {
+    /*
+    if(!acm.hasEntry(object.id))
+    {
       ROS_INFO_STREAM("Adding entry for " << object.id);
       acm.setEntry(object.id, false);
     }
+    */
     return true;
   }
   else
     if (object.operation == moveit_msgs::CollisionObject::REMOVE)
     {
       cworld_->removeObject(object.id);
-      if(acm.hasEntry(object.id)) {
+      /*
+      if(acm.hasEntry(object.id))
+      {
         ROS_INFO_STREAM("Removing entry for " << object.id);
         acm.removeEntry(object.id);
-      }
+	}*/
       return true;
     }
     else

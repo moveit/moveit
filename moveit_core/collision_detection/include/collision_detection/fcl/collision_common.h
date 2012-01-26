@@ -137,8 +137,8 @@ inline void transform2fcl(const Eigen::Affine3d &b, fcl::SimpleTransform &f)
 
     inline void fcl2contact(const fcl::Contact &fc, Contact &c)
     {
-	c.pos = Eigen::Vector3d(fc.pos[0], fc.pos[1], fc.pos[2]);
-	c.normal = Eigen::Vector3d(fc.normal[0], fc.normal[1], fc.normal[2]);
+        c.pos = Eigen::Vector3d(fc.pos[0], fc.pos[1], fc.pos[2]);
+        c.normal = Eigen::Vector3d(fc.normal[0], fc.normal[1], fc.normal[2]);
         c.depth = fc.penetration_depth;
         const CollisionGeometryData *cgd1 = static_cast<const CollisionGeometryData*>(fc.o1->getUserData());
         c.body_name_1 = cgd1->getID();
