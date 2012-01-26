@@ -112,8 +112,6 @@ ompl_interface::PlanningGroup::PlanningGroup(const std::string &name, const plan
     ompl_simple_setup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
     static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->useNewStartingState();
     ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningGroup::allocPathConstrainedSampler, this, _1));
-    ompl_benchmark_.setExperimentName(planning_scene_->getKinematicModel()->getName() + "_" + joint_model_group_->getName() + "_" +
-                                      planning_scene_->getName() + "_" + name_);
     path_kinematic_constraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
     useConfig(config);
 }
@@ -354,10 +352,13 @@ bool ompl_interface::PlanningGroup::benchmark(double timeout, unsigned int count
 {
     ompl_benchmark_.clearPlanners();
     ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
+    ompl_benchmark_.setExperimentName(planning_scene_->getKinematicModel()->getName() + "_" + joint_model_group_->getName() + "_" +
+                                      planning_scene_->getName() + "_" + name_);
+    
     ompl::Benchmark::Request req;
     req.maxTime = timeout;
     req.runCount = count;
-    req.displayProgress = false;
+    req.displayProgress = true;
     req.saveConsoleOutput = false;
     ompl_benchmark_.benchmark(req);
     return filename.empty() ? ompl_benchmark_.saveResultsToFile() : ompl_benchmark_.saveResultsToFile(filename.c_str());
