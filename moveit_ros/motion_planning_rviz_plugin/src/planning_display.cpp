@@ -593,20 +593,20 @@ void PlanningDisplay::calculateOffsetPosition()
       return;
   ros::Time stamp;
   std::string err_string;
-  if (vis_manager_->getTFClient()->getLatestCommonTime(target_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
+  if (vis_manager_->getTFClient()->getLatestCommonTime(fixed_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
       return;
 
   tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), stamp, scene_monitor_->getPlanningScene()->getPlanningFrame());
 
-  if (vis_manager_->getTFClient()->canTransform(target_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp))
+  if (vis_manager_->getTFClient()->canTransform(fixed_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp))
   {
     try
     {
-      vis_manager_->getTFClient()->transformPose(target_frame_, pose, pose);
+      vis_manager_->getTFClient()->transformPose(fixed_frame_, pose, pose);
     }
     catch (tf::TransformException& e)
     {
-      ROS_ERROR( "Error transforming from frame '%s' to frame '%s'", pose.frame_id_.c_str(), target_frame_.c_str() );
+      ROS_ERROR( "Error transforming from frame '%s' to frame '%s'", pose.frame_id_.c_str(), fixed_frame_.c_str() );
     }
   }
 
@@ -631,7 +631,7 @@ void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajec
   new_display_trajectory_ = true;
 }
 
-void PlanningDisplay::targetFrameChanged()
+void PlanningDisplay::fixedFrameChanged()
 {
   calculateOffsetPosition();
 }
