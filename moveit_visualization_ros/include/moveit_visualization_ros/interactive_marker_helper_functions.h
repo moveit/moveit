@@ -41,6 +41,7 @@
 #include <visualization_msgs/MenuEntry.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <planning_models/kinematic_state.h>
+#include <planning_models/transforms.h>
 
 static bool done_seed = false;
 
@@ -351,10 +352,11 @@ inline visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& n
 }
 
 inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::string& marker_name,
-                                                              const planning_models::KinematicState& state,
-                                                              const std::vector<std::string>& links,
-                                                              const std_msgs::ColorRGBA& color, 
-                                                              bool use_color) {
+                                                                     const planning_models::KinematicState& state,
+                                                                     const std::vector<std::string>& links,
+                                                                     const std_msgs::ColorRGBA& color, 
+                                                                     const double scale, 
+                                                                     bool use_color) {
   
   visualization_msgs::InteractiveMarker int_marker;
   if(links.size() == 0) return int_marker;
@@ -364,7 +366,7 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
   Eigen::Affine3d first_pose = first_link->getGlobalCollisionBodyTransform();
   planning_models::msgFromPose(first_pose, int_marker.pose);
   
-  int_marker.header.frame_id = state.getKinematicModel()->getModelFrame();
+  int_marker.header.frame_id = "/"+state.getKinematicModel()->getModelFrame();
   int_marker.name = marker_name;
   int_marker.scale = .5; //scale;
   
