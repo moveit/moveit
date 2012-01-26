@@ -28,19 +28,18 @@
  */
 
 #include "planning_display.h"
-#include "rviz/visualization_manager.h"
-#include "rviz/robot/robot.h"
-#include "rviz/robot/link_updater.h"
-#include "rviz/properties/property.h"
-#include "rviz/properties/property_manager.h"
+#include <rviz/visualization_manager.h>
+#include <rviz/robot/robot.h>
+#include <rviz/robot/link_updater.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/property_manager.h>
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreManualObject.h>
 #include <OGRE/OgreMaterialManager.h>
 
-#include <ogre_tools/axes.h>
-#include <ogre_tools/shape.h>
+#include <rviz/ogre_helpers/shape.h>
 
 #include <tf/transform_listener.h>
 #include <planning_models/conversions.h>
@@ -365,29 +364,29 @@ void PlanningDisplay::unsubscribe()
 
 void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha)
 {
-    ogre_tools::Shape* ogre_shape = NULL;
+    rviz::Shape* ogre_shape = NULL;
     switch (s->type)
     {
     case shapes::SPHERE:
         {
-            ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Sphere,
-                                               vis_manager_->getSceneManager(), node);
+            ogre_shape = new rviz::Shape(rviz::Shape::Sphere,
+					 vis_manager_->getSceneManager(), node);
             double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
             ogre_shape->setScale(Ogre::Vector3(d, d, d));
         }
         break;
     case shapes::BOX:
         {
-            ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cube,
-                                               vis_manager_->getSceneManager(), node);
+            ogre_shape = new rviz::Shape(rviz::Shape::Cube,
+					 vis_manager_->getSceneManager(), node);
             const double* sz = static_cast<const shapes::Box*>(s)->size;
             ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
         }
         break;
     case shapes::CYLINDER:
         {
-            ogre_shape = new ogre_tools::Shape(ogre_tools::Shape::Cylinder,
-                                               vis_manager_->getSceneManager(), node);
+            ogre_shape = new rviz::Shape(rviz::Shape::Cylinder,
+					 vis_manager_->getSceneManager(), node);
             double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
             double z = static_cast<const shapes::Cylinder*>(s)->length;
             ogre_shape->setScale(Ogre::Vector3(d, z, d)); // the shape has z as major axis, but the rendered cylinder has y as major axis (assuming z is upright);
@@ -453,14 +452,14 @@ void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s,
         if (s->type == shapes::CYLINDER)
         {
             // in geometric shapes, the z axis of the cylinder is it height;
-            // for the ogre_tools shape, the y axis is the height; we add a transform to fix this
+            // for the rviz shape, the y axis is the height; we add a transform to fix this
             static Ogre::Quaternion fix(Ogre::Radian(M_PI/2.0), Ogre::Vector3(1.0, 0.0, 0.0));
             orientation = fix * orientation;
         }
 
         ogre_shape->setPosition(position);
         ogre_shape->setOrientation(orientation);
-        scene_shapes_.push_back(boost::shared_ptr<ogre_tools::Shape>(ogre_shape));
+        scene_shapes_.push_back(boost::shared_ptr<rviz::Shape>(ogre_shape));
     }
 }
 

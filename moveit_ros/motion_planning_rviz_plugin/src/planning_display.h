@@ -54,10 +54,6 @@ class ManualObject;
 namespace rviz
 {
 class Robot;
-}
-
-namespace ogre_tools
-{
 class Shape;
 }
 
@@ -232,7 +228,7 @@ protected:
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
   boost::scoped_ptr<ReceivedTrajectoryMessage> displaying_trajectory_message_;
-  std::vector<boost::shared_ptr<ogre_tools::Shape> > scene_shapes_;
+  std::vector<boost::shared_ptr<rviz::Shape> > scene_shapes_;
   std::vector<Ogre::ManualObject*> manual_objects_;
   Ogre::MaterialPtr material_;
   std::string material_name_;
