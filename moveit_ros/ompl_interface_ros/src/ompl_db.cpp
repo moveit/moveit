@@ -59,6 +59,7 @@ public:
 	    return false;
 	if (pg->constructValidStateDatabase(req.constraints, req.size, req.filename.c_str()))
 	    res.success = true;
+	return true;
     }
     
 private:

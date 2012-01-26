@@ -82,15 +82,14 @@ int main(int argc, char **argv)
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
-    benchmarkSimplePlan("LBKPIECEkConfigDefault");
-    //    benchmarkSimplePlan("RRTkConfigDefault");
-    benchmarkSimplePlan("RRTConnectkConfigDefault");
-    //    benchmarkSimplePlan("ESTkConfigDefault");
-    //    benchmarkSimplePlan("KPIECEkConfigDefault");
-    //    benchmarkSimplePlan("BKPIECEkConfigDefault");
     benchmarkSimplePlan("SBLkConfigDefault");
-    //    benchmarkSimplePlan("RRTkConfigDefault"); 
-
+    benchmarkSimplePlan("LBKPIECEkConfigDefault");
+    benchmarkSimplePlan("RRTConnectkConfigDefault");
+    benchmarkSimplePlan("BKPIECEkConfigDefault");
+    benchmarkSimplePlan("KPIECEkConfigDefault");
+    benchmarkSimplePlan("RRTkConfigDefault");
+    benchmarkSimplePlan("ESTkConfigDefault");
+    
 
     return 0;
 }
