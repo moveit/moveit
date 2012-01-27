@@ -49,6 +49,9 @@ public:
                         ros::Publisher& marker_publisher);
   
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
+
+  void addMenuEntry(const std::string& name, 
+                    const boost::function<void(void)>& callback);
   
 protected:
 

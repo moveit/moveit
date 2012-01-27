@@ -52,6 +52,7 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
   last_solution_changed_(false),
   good_color_(good_color),
   bad_color_(bad_color),
+  stored_alpha_(good_color.a),
   planning_scene_(planning_scene),
   interactive_marker_server_(interactive_marker_server),
   state_(planning_scene_->getCurrentState()),
@@ -109,7 +110,7 @@ void KinematicsGroupVisualization::hideAllMarkers() {
 void KinematicsGroupVisualization::showAllMarkers() {
   for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
     last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
-    last_marker_array_.markers[i].color.a = 1.0;
+    last_marker_array_.markers[i].color.a = stored_alpha_;
   }
 }
 
@@ -120,8 +121,9 @@ void KinematicsGroupVisualization::setMarkerAlpha(double a) {
     last_marker_array_.markers[i].color.a = a;
   }
   marker_publisher_.publish(last_marker_array_);
+  stored_alpha_ = a;
   std_msgs::ColorRGBA good_color = good_color_;
-  good_color.a = a;
+  good_color.a = stored_alpha_;
   makeInteractiveControlMarker(interactive_marker_name_,
                                good_color,
                                dof_marker_enabled_);
@@ -129,15 +131,19 @@ void KinematicsGroupVisualization::setMarkerAlpha(double a) {
 
 void KinematicsGroupVisualization::disable6DOFControls() {
   dof_marker_enabled_ = false;
+  std_msgs::ColorRGBA good_color = good_color_;
+  good_color.a = stored_alpha_;
   makeInteractiveControlMarker(interactive_marker_name_,
-                               good_color_,
+                               good_color,
                                false);
 }
 
 void KinematicsGroupVisualization::enable6DOFControls() {
   dof_marker_enabled_ = true;
+  std_msgs::ColorRGBA good_color = good_color_;
+  good_color.a = stored_alpha_;
   makeInteractiveControlMarker(interactive_marker_name_,
-                               good_color_,
+                               good_color,
                                true);
 }
 
@@ -194,24 +200,24 @@ void KinematicsGroupVisualization::removeLastMarkers()
 void KinematicsGroupVisualization::sendCurrentMarkers()
 {
   if(last_solution_good_) {
-    std_msgs::ColorRGBA col;
-    col = good_color_;
+    last_marker_array_.markers.clear();
+    std_msgs::ColorRGBA col = good_color_;
+    col.a = stored_alpha_;
     state_.getRobotMarkers(col,
                            regular_marker_name_,
                            ros::Duration(0.0),
                            last_marker_array_,
                            ik_solver_->getLinkNames());
-
     marker_publisher_.publish(last_marker_array_);
   } else {
     removeLastMarkers();
-    last_marker_array_.markers.clear();
-    collision_detection::getCollisionMarkersFromContacts(last_marker_array_,
-                                                         planning_scene_->getKinematicModel()->getModelFrame(),
-                                                         ik_solver_->getLastInitialPoseCheckCollisionResult().contacts,
-                                                         bad_color_,
-                                                         ros::Duration(0.0));
-    marker_publisher_.publish(last_marker_array_);
+    //last_marker_array_.markers.clear();
+    // collision_detection::getCollisionMarkersFromContacts(last_marker_array_,
+    //                                                      planning_scene_->getKinematicModel()->getModelFrame(),
+    //                                                      ik_solver_->getLastInitialPoseCheckCollisionResult().contacts,
+    //                                                      bad_color_,
+    //                                                      ros::Duration(0.0));
+    //marker_publisher_.publish(last_marker_array_);
   }
 }
 
@@ -305,7 +311,14 @@ void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visual
   }
   switch (feedback->event_type) {
   case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
-    updateEndEffectorState(feedback->pose);
+    {
+      Eigen::Affine3d new_pose;
+      planning_models::poseFromMsg(feedback->pose, new_pose);
+      new_pose = new_pose*relative_transform_[feedback->marker_name];
+      geometry_msgs::Pose trans_pose;
+      planning_models::msgFromPose(new_pose, trans_pose);
+      updateEndEffectorState(trans_pose);
+    }
     break;
   case visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK:
     if(button_click_callback_) {
@@ -321,12 +334,20 @@ void KinematicsGroupVisualization::makeInteractiveControlMarker(const std::strin
                                                                 const std_msgs::ColorRGBA& color,
                                                                 bool add_6dof)
 {
-  visualization_msgs::InteractiveMarker marker = makeMeshButtonFromLinks(name,
-                                                                         state_,
-                                                                         end_effector_link_names_,
-                                                                         color,
-                                                                         .35,
-                                                                         true);
+  visualization_msgs::InteractiveMarker marker;
+  if(interactive_marker_server_->get(name, marker)) {
+    removeAxisControls(marker);
+    recolorInteractiveMarker(marker, color);
+  } else {
+    marker = makeMeshButtonFromLinks(name,
+                                     state_,
+                                     end_effector_link_names_,
+                                     color,
+                                     .35,
+                                     true,
+                                     relative_transform_[name]);
+  }
+
   if(add_6dof) {
     add6DofControl(marker, false);
   }
@@ -340,6 +361,7 @@ void KinematicsGroupVisualization::makeInteractiveControlMarker(const std::strin
   interactive_marker_server_->insert(marker);
   interactive_marker_server_->setCallback(marker.name, 
                                           boost::bind(&KinematicsGroupVisualization::processInteractiveMarkerFeedback, this, _1));
+  default_menu_handler_.reApply(*interactive_marker_server_);
   interactive_marker_server_->applyChanges();
 };
 

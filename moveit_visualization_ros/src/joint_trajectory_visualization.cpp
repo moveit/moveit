@@ -78,16 +78,16 @@ void JointTrajectoryVisualization::playCurrentTrajectory()
 }
 
 void JointTrajectoryVisualization::advanceTrajectory() {
+  visualization_msgs::MarkerArray arr;
   try {
     while(ros::ok() && current_point_ < current_joint_trajectory_.points.size()) {
+      arr.markers.clear();
       std::map<std::string, double> joint_state;
       for(unsigned int i = 0; i < current_joint_trajectory_.joint_names.size(); i++) {
         joint_state[current_joint_trajectory_.joint_names[i]] =
           current_joint_trajectory_.points[current_point_].positions[i];
       }
       current_state_.setStateValues(joint_state);
-      visualization_msgs::MarkerArray arr;
-      ROS_INFO_STREAM("Should be publishing");
       current_state_.getRobotMarkers(marker_color_,
                                      "joint_trajectory",
                                      ros::Duration(0.0),
@@ -100,6 +100,13 @@ void JointTrajectoryVisualization::advanceTrajectory() {
   } catch(...) {
     ROS_DEBUG_STREAM("Playback interrupted");
     return;
+  }
+  
+  if(!arr.markers.empty()) {
+    for(unsigned int i = 0; i < arr.markers.size(); i++) {
+      arr.markers[i].action = visualization_msgs::Marker::DELETE;
+    }
+    marker_publisher_.publish(arr);
   }
 }
 

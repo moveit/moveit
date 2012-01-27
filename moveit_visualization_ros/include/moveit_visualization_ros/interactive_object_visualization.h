@@ -57,9 +57,9 @@ public:
   ~InteractiveObjectVisualization() {
   }
 
-  planning_scene::PlanningSceneConstPtr addCube(const std::string& name="");
-  planning_scene::PlanningSceneConstPtr addCylinder(const std::string& name="");
-  planning_scene::PlanningSceneConstPtr addSphere(const std::string& name="");
+  void addCube(const std::string& name="");
+  void addCylinder(const std::string& name="");
+  void addSphere(const std::string& name="");
 
   void setUpdateCallback(const boost::function<void(planning_scene::PlanningSceneConstPtr)>& callback);
 
@@ -86,9 +86,15 @@ protected:
     return iss.str();
   }
 
-  planning_scene::PlanningSceneConstPtr addObject(const std::string& name,
-                                                  const moveit_msgs::Shape::_type_type& type);
+  void growObject(const std::string& name,
+                  const geometry_msgs::Pose& new_pose_msg); 
 
+  void shrinkObject(const std::string& name,
+                   const geometry_msgs::Pose& new_pose_msg); 
+  
+  void addObject(const std::string& name,
+                 const geometry_msgs::Pose& pose_msg,
+                 const moveit_msgs::Shape& shape_msg);
   void deleteObject(const std::string& name);
 
   void setResizeModeOff(const std::string& name);
@@ -113,6 +119,7 @@ protected:
   unsigned int sphere_counter_;
   unsigned int cylinder_counter_;
 
+  std::map<std::string, bool> dof_marker_enabled_;
   std::map<std::string, interactive_markers::MenuHandler> object_menu_handlers_;
   std::map<std::string, std::map<std::string, interactive_markers::MenuHandler::EntryHandle> > menu_name_to_handle_maps_;
   std::map<std::string, std::map<interactive_markers::MenuHandler::EntryHandle, boost::function<void(std::string)> > > menu_handle_to_function_maps_;
