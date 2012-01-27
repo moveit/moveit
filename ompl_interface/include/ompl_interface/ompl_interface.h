@@ -126,7 +126,9 @@ namespace ompl_interface
 	{
 	    return constraints_;
 	}
-	
+
+    void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
+
     protected:
 
 

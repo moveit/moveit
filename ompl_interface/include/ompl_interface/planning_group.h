@@ -228,9 +228,10 @@ namespace ompl_interface
            @param samples The number of attempts at generating samples */
         ompl::base::StateStoragePtr constructConstraintApproximation(const moveit_msgs::Constraints &constr, unsigned int samples);
 
+        void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
     protected:
 
-	void useConfig(const std::map<std::string, std::string> &config);
+	    void useConfig(const std::map<std::string, std::string> &config);
         void setProjectionEvaluator(const std::string &peval);
         kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
         ompl::base::GoalPtr getGoalRepresentation(const kinematic_constraints::KinematicConstraintSetPtr &kset) const;

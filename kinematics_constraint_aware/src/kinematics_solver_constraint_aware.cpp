@@ -264,6 +264,7 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
   //disabling all collision for arm links
   collision_detection::AllowedCollisionMatrix acm = planning_scene_->getAllowedCollisionMatrix();
   for(unsigned int i = 0; i < kinematics_solver_->getLinkNames().size(); i++) {
+    acm.setDefaultEntry(kinematics_solver_->getLinkNames()[i], true);
     acm.setEntry(kinematics_solver_->getLinkNames()[i], true);
   }
  
