@@ -32,4 +32,5 @@ rosbuild_add_library(${PROJECT_NAME}
   src/detail/constrained_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
   src/detail/projection_evaluators.cpp
+  src/detail/constraint_approximations.cpp
   src/detail/ompl_console.cpp)

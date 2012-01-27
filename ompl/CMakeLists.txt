@@ -17,6 +17,7 @@ set(PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR}/${OMPL_SOURCE})
 option(OMPL_IN_ROS "Build OMPL against ROS" ON)
 option(OMPL_BUILD_DEMOS "Build OMPL demos" OFF)
 option(OMPL_BUILD_PYBINDINGS "Build OMPL Python bindings" OFF)
+option(OMPL_BUILD_PYTESTS "Build OMPL Python tests" OFF)
 option(OMPL_BUILD_DOC "Build OMPL documentation" OFF)
 
 add_subdirectory(${OMPL_SOURCE})

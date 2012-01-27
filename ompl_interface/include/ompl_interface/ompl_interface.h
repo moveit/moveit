@@ -57,14 +57,10 @@ namespace ompl_interface
      *  This class defines the interface to the motion planners in OMPL*/
     class OMPLInterface
     {
-    public:
-        OMPLInterface(void) : configured_(false)
-        {
-        }
-
-        virtual ~OMPLInterface(void)
-        {
-        }
+    public: 
+	
+        OMPLInterface(void);
+        virtual ~OMPLInterface(void);
 
         /** @brief Configure with a planning scene and configuration for the planners.
             @param scene The planning scene
@@ -120,7 +116,19 @@ namespace ompl_interface
             return configured_;
         }
 
+        void addConstraintApproximation(const moveit_msgs::Constraints &msg, const std::string &group, unsigned int samples);
+        void loadConstraintApproximations(const std::string &path);
+        void saveConstraintApproximations(const std::string &path);
+	void printConstraintApproximations(std::ostream &out = std::cout) const;
+	void clearConstraintApproximations();
+	
+	const ConstraintApproximationsPtr& getConstraintApproximations(void) const
+	{
+	    return constraints_;
+	}
+	
     protected:
+
 
         /** \brief Configure the OMPL planning context for a new planning request */
         bool prepareForSolve(const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
@@ -135,6 +143,8 @@ namespace ompl_interface
             particular configurations specified for a group, or of the
             form "group_name" if default settings are to be used. */
         std::map<std::string, PlanningGroupPtr> planning_groups_;
+
+	ConstraintApproximationsPtr             constraints_;
 
         /** \brief Flag indicating whether the OMPL interface has been configured (the configure() function has been called) */
         bool                                    configured_;
