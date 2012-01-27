@@ -518,3 +518,8 @@ void ompl_interface::PlanningGroup::fillResponse(moveit_msgs::GetMotionPlan::Res
     getSolutionPath(res.trajectory);
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
+
+void ompl_interface::PlanningGroup::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) 
+{
+  planning_scene_ = planning_scene;
+}
