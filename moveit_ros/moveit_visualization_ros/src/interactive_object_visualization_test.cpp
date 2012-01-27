@@ -58,8 +58,7 @@ void updateCallback(planning_scene::PlanningSceneConstPtr planning_scene) {
 }
 
 void addCubeCallback() {
-  planning_scene::PlanningSceneConstPtr planning_scene_diff = iov_->addCube();
-  kv_->updatePlanningScene(planning_scene_diff);
+  iov_->addCube();
 }
 
 int main(int argc, char** argv)

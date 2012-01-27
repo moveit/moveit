@@ -54,9 +54,17 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
 } 
 
 void PlanningVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
+  ompl_interface_.updatePlanningScene(planning_scene);
   group_visualization_->updatePlanningScene(planning_scene);
   joint_trajectory_visualization_->updatePlanningScene(planning_scene);
 }
+
+void PlanningVisualization::addMenuEntry(const std::string& name, 
+                                         const boost::function<void(void)>& callback)
+{
+  group_visualization_->addMenuEntry(name, callback);
+}
+
 
 void PlanningVisualization::generatePlan(void) {
 
