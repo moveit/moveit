@@ -56,6 +56,7 @@ public:
                                ros::Publisher& marker_publisher); 
 
   ~KinematicsGroupVisualization() {
+    removeLastMarkers();
   }
 
   const planning_models::KinematicState& getState() const {
@@ -106,6 +107,8 @@ protected:
   std_msgs::ColorRGBA good_color_;
   std_msgs::ColorRGBA bad_color_;
 
+  double stored_alpha_;
+
   geometry_msgs::Pose last_pose_;
   visualization_msgs::MarkerArray last_marker_array_;
 
@@ -119,6 +122,8 @@ protected:
   
   boost::function<void(void)> button_click_callback_;
   bool dof_marker_enabled_;
+
+  std::map<std::string, Eigen::Affine3d> relative_transform_;
 
   std::map<std::string, boost::function<void(void)> > default_callback_map_;
 
