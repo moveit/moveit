@@ -40,6 +40,7 @@
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/tools/multiplan/ParallelPlan.h>
 #include <ompl/tools/benchmark/Benchmark.h>
+#include <ompl/base/StateStorage.h>
 #include <ompl/base/GoalLazySamples.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <moveit_msgs/ComputePlanningBenchmark.h>
@@ -200,7 +201,7 @@ namespace ompl_interface
         /* @brief Benchmark the planning problem. Return true on succesful saving of benchmark results
            @param timeout The time to spend on solving
            @param count The number of runs to average in the computation of the benchmark
-	   @param filename The name of the file to which the benchmark results are to be saved (automatic names can be provided if a name is not specified)
+           @param filename The name of the file to which the benchmark results are to be saved (automatic names can be provided if a name is not specified)
         */
         bool benchmark(double timeout, unsigned int count, const std::string &filename = "");
 
@@ -220,16 +221,33 @@ namespace ompl_interface
         /* @brief Get the solution as a RobotTrajectory object*/
         bool getSolutionPath(moveit_msgs::RobotTrajectory &traj) const;
 
-        /* @brief Fill in the response to the motion plan request. This includes the status code of the motion plan*/
-        void fillResponse(moveit_msgs::GetMotionPlan::Response &res) const;
-
-        /* @brief Construct a database of states for the state space defined in this planning group
+        /* @brief Construct a database of states for the state space defined in this planning group.
+           Returns the OMPL storage datastructure holding the generated states.
            @param constr the constraints to be satisfied
-           @param samples The number of attempts at generating samples
-           @param filename The file to which the states should be saved */
-	bool constructValidStateDatabase(const moveit_msgs::Constraints &constr,
-                                         unsigned int samples, const char *filename);
+           @param samples The number of attempts at generating samples */
+        ompl::base::StateStoragePtr constructConstraintApproximation(const moveit_msgs::Constraints &constr, unsigned int samples);
+
+        void addConstraintApproximation(const moveit_msgs::Constraints &msg, unsigned int samples);
+        void loadConstraintApproximations(const std::string &path);
+        void saveConstraintApproximations(const std::string &path);
+        void clearConstraintApproximations(void);
+        void printConstraintApproximations(std::ostream &out = std::cout);
+
     protected:
+
+        struct ConstraintApproximation
+        {
+            ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene, const std::string &serialization, const std::string &filename);
+            ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::Constraints &msg, const std::string &filename,
+                                    const ompl::base::StateStoragePtr &storage);
+
+            std::string                 serialization_;
+            std::string                 ompldb_filename_;
+            moveit_msgs::Constraints    constraint_msg_;
+            ompl::base::StateStoragePtr state_storage_;
+
+            kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;
+        };
 
         void useConfig(const std::map<std::string, std::string> &config);
         void setProjectionEvaluator(const std::string &peval);
@@ -270,6 +288,8 @@ namespace ompl_interface
 
         /// the set of kinematic constraints to be respected by the goal state
         std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
+
+        std::vector<ConstraintApproximation>                    constraints_;
 
         /// the time spent computing the last plan
         double                                                  last_plan_time_;

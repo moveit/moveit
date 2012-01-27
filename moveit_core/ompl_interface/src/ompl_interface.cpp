@@ -40,6 +40,8 @@
 #include <fstream>
 #include <set>
 
+#include <ompl/util/Profiler.h>
+
 bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningSceneConstPtr &scene, const std::vector<PlannerConfigs> &pconfig)
 {
     scene_ = scene;
@@ -205,6 +207,8 @@ bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPla
 
 bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
 {
+    //    ompl::Profiler::ScopedStart pslv;
+
     PlanningGroup *pg = NULL;
     unsigned int attempts = 0;
     double timeout = 0.0;
@@ -213,11 +217,20 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
 
     if (pg->solve(timeout, attempts))
     {
+        //        ompl::Profiler::Status();
+
         double ptime = pg->getLastPlanTime();
         if (ptime < timeout)
             pg->simplifySolution(timeout - ptime);
         pg->interpolateSolution();
-        pg->fillResponse(res);
+
+        // fill the response
+        ROS_DEBUG("%s: Returning successful solution with %lu states", pg->getName().c_str(),
+                  pg->getOMPLSimpleSetup().getSolutionPath().states.size());
+        planning_models::kinematicStateToRobotState(pg->getStartState(), res.robot_state);
+        res.planning_time = ros::Duration(pg->getLastPlanTime());
+        pg->getSolutionPath(res.trajectory);
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
         return true;
     }
     else
