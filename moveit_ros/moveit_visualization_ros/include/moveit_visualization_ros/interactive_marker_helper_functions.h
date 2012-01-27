@@ -412,11 +412,11 @@ inline visualization_msgs::InteractiveMarker makeButtonCylinder(const std::strin
 }
 
 inline visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name, 
-                                                       const geometry_msgs::PoseStamped &stamped,
-                                                       float scale, 
-                                                       bool fixed, 
-                                                       bool view_facing,
-                                                       std_msgs::ColorRGBA color)
+                                                              const geometry_msgs::PoseStamped &stamped,
+                                                              float scale, 
+                                                              bool fixed, 
+                                                              bool view_facing)
+
 {
   visualization_msgs::InteractiveMarker int_marker;
   int_marker.header =  stamped.header;
@@ -429,19 +429,8 @@ inline visualization_msgs::InteractiveMarker makeButtonSphere(const std::string&
   //control.description = "This is the control";
   control.always_visible = false;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
-  control.markers.back().color = color;
 
   return int_marker;
-}
-
-inline visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name, 
-                                                              const geometry_msgs::PoseStamped &stamped,
-                                                              float scale, 
-                                                              bool fixed, 
-                                                              bool view_facing)
-{
-  std_msgs::ColorRGBA color;
-  return makeButtonSphere(name, stamped, scale, fixed, view_facing, color);
 }
 
 inline visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name, 
