@@ -48,6 +48,7 @@
 #include <planning_scene/planning_scene.h>
 
 #include "ompl_interface/detail/kinematic_model_state_space.h"
+#include "ompl_interface/detail/constraint_approximations.h"
 
 namespace ompl_interface
 {
@@ -65,7 +66,7 @@ namespace ompl_interface
          @param config A map of configuration parameters for the planners
          @param scene A pointer to a planning scene
        */
-        PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg,
+        PlanningGroup(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg, const ConstraintApproximationsPtr &constraint_approx,
                       const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene);
         virtual ~PlanningGroup(void);
 
@@ -227,29 +228,9 @@ namespace ompl_interface
            @param samples The number of attempts at generating samples */
         ompl::base::StateStoragePtr constructConstraintApproximation(const moveit_msgs::Constraints &constr, unsigned int samples);
 
-        void addConstraintApproximation(const moveit_msgs::Constraints &msg, unsigned int samples);
-        void loadConstraintApproximations(const std::string &path);
-        void saveConstraintApproximations(const std::string &path);
-        void clearConstraintApproximations(void);
-        void printConstraintApproximations(std::ostream &out = std::cout);
-
     protected:
 
-        struct ConstraintApproximation
-        {
-            ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene, const std::string &serialization, const std::string &filename);
-            ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::Constraints &msg, const std::string &filename,
-                                    const ompl::base::StateStoragePtr &storage);
-
-            std::string                 serialization_;
-            std::string                 ompldb_filename_;
-            moveit_msgs::Constraints    constraint_msg_;
-            ompl::base::StateStoragePtr state_storage_;
-
-            kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;
-        };
-
-        void useConfig(const std::map<std::string, std::string> &config);
+	void useConfig(const std::map<std::string, std::string> &config);
         void setProjectionEvaluator(const std::string &peval);
         kinematic_constraints::ConstraintSamplerPtr getConstraintsSampler(const moveit_msgs::Constraints &constr) const;
         ompl::base::GoalPtr getGoalRepresentation(const kinematic_constraints::KinematicConstraintSetPtr &kset) const;
@@ -288,10 +269,11 @@ namespace ompl_interface
 
         /// the set of kinematic constraints to be respected by the goal state
         std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
-
-        std::vector<ConstraintApproximation>                    constraints_;
-
-        /// the time spent computing the last plan
+	
+	/// The list of known constraint approximations
+	ConstraintApproximationsPtr                             constraint_approx_;
+	
+	/// the time spent computing the last plan
         double                                                  last_plan_time_;
 
         /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
