@@ -529,3 +529,8 @@ bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory
     }
     return true;
 }
+
+void ompl_interface::PlanningGroup::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) 
+{
+  planning_scene_ = planning_scene;
+}
