@@ -76,9 +76,9 @@ double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::string
     const std::map<std::string, ompl::base::StateSpace::ValueLocation> &vm = space_->getValueLocationsByName();
     std::map<std::string, ompl::base::StateSpace::ValueLocation>::const_iterator it = vm.find(joint_name);
     if (it != vm.end())
-	return space_->getValueAddressAtLocation(state, it->second);
+        return space_->getValueAddressAtLocation(state, it->second);
     else
-	return NULL;
+        return NULL;
 }
 
 const double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::string &joint_name, const ompl::base::State *state) const
@@ -86,9 +86,9 @@ const double* ompl_interface::KMStateSpace::getOMPLStateValueAddress(const std::
     const std::map<std::string, ompl::base::StateSpace::ValueLocation> &vm = space_->getValueLocationsByName();
     std::map<std::string, ompl::base::StateSpace::ValueLocation>::const_iterator it = vm.find(joint_name);
     if (it != vm.end())
-	return space_->getValueAddressAtLocation(state, it->second);
+        return space_->getValueAddressAtLocation(state, it->second);
     else
-	return NULL;
+        return NULL;
 }
 
 void ompl_interface::KMStateSpace::copyToKinematicState(planning_models::KinematicState &kstate, const ompl::base::State *state) const
@@ -235,8 +235,8 @@ void ompl_interface::KMStateSpace::copyToOMPLState(ompl::base::State *state, con
 void ompl_interface::KMStateSpace::setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
     if (!space_)
-	return;
-    
+        return;
+
     for (std::size_t i = 0 ; i < all_components_.size() ; ++i)
         if (all_components_[i]->getType() == ompl::base::STATE_SPACE_SE3)
         {
@@ -375,9 +375,9 @@ void ompl_interface::KMStateSpace::constructSpace(const std::vector<const planni
 
     // mark the fact this space is not to be modified any longer (its components)
     space_->as<ompl::base::CompoundStateSpace>()->lock();
-    
+
     // set some default planning volume
     setPlanningVolume(0.0, 1.0, 0.0, 1.0, 0.0, 1.0);
-    
+
     space_->setup();
 }

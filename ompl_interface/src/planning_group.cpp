@@ -60,11 +60,14 @@
 #include <ompl/contrib/rrt_star/RRTstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 
-#include <ompl/base/StateStorage.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <sstream>
+#include <fstream>
+
+#include <ompl/util/Profiler.h>
 
 ompl::base::PlannerPtr ompl_interface::PlanningGroup::plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
                                                                        const std::map<std::string, std::string> &config) const
@@ -201,6 +204,14 @@ ompl::base::StateSamplerPtr ompl_interface::PlanningGroup::allocPathConstrainedS
     if (kinematic_model_state_space_.getOMPLSpace().get() != ss)
         ROS_FATAL("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
     ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
+
+    for (std::size_t i = 0 ; i < constraints_.size() ; ++i)
+        if (path_kinematic_constraints_set_->equal(*constraints_[i].kconstraints_set_, 1e-3))
+            if (constraints_[i].state_storage_)
+            {
+                ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
+                return constraints_[i].state_storage_->getStateSamplerAllocator()(ss);
+            }
     const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_kinematic_constraints_set_->getAllConstraints());
     if (cs)
     {
@@ -219,11 +230,9 @@ ompl::base::GoalPtr ompl_interface::PlanningGroup::getGoalRepresentation(const k
     return ompl::base::GoalPtr(new ConstrainedGoalSampler(this, kset, getConstraintsSampler(kset->getAllConstraints())));
 }
 
-bool ompl_interface::PlanningGroup::constructValidStateDatabase(const moveit_msgs::Constraints &constr,
-                                                                unsigned int samples,
-                                                                const char *filename)
+ompl::base::StateStoragePtr ompl_interface::PlanningGroup::constructConstraintApproximation(const moveit_msgs::Constraints &constr, unsigned int samples)
 {
-    ompl::base::StateStorage sstor(ompl_simple_setup_.getStateSpace());
+    ompl::base::StateStoragePtr sstor(new ompl::base::StateStorage(ompl_simple_setup_.getStateSpace()));
     const ompl::base::SpaceInformationPtr &si = ompl_simple_setup_.getSpaceInformation();
 
     // construct a sampler for the constraints
@@ -234,22 +243,26 @@ bool ompl_interface::PlanningGroup::constructValidStateDatabase(const moveit_msg
                                    ompl_simple_setup_.getStateSpace()->allocDefaultStateSampler());
     planning_models::KinematicState kstate(planning_scene_->getKinematicModel());
     kstate.setToDefaultValues();
-    
+
     ompl::base::ScopedState<> temp(si);
     unsigned int attempts = 0;
     int done = -1;
-    while (sstor.size() < samples)
+    bool slow_warn = false;
+    while (sstor->size() < samples)
     {
-	++attempts;
-	if (attempts > 10 && attempts > sstor.size() * 100)
-	    ROS_WARN("Computation of valid state database is very slow...");
-	
-	if (attempts > samples && sstor.size() == 0)
-	{
-	    ROS_ERROR("Unable to generate any samples");
-	    break;
-	}
-	int done_now = 100 * sstor.size() / samples;
+        ++attempts;
+        if (!slow_warn && attempts > 10 && attempts > sstor->size() * 100)
+        {
+            slow_warn = true;
+            ROS_WARN("Computation of valid state database is very slow...");
+        }
+
+        if (attempts > samples && sstor->size() == 0)
+        {
+            ROS_ERROR("Unable to generate any samples");
+            break;
+        }
+        int done_now = 100 * sstor->size() / samples;
         if (done != done_now)
         {
             done = done_now;
@@ -260,11 +273,137 @@ bool ompl_interface::PlanningGroup::constructValidStateDatabase(const moveit_msg
         kstate.getJointStateGroup(joint_model_group_->getName())->updateLinkTransforms();
         double distance = 0.0;
         if (kset.decide(kstate, distance))
-            sstor.addState(si->cloneState(temp.get()));
+            sstor->addState(si->cloneState(temp.get()));
     }
-    sstor.store(filename);
-    ROS_INFO("Stored %u states", (unsigned int)sstor.size());
-    return sstor.size() == samples;
+    ROS_INFO("Generated %u states", (unsigned int)sstor->size());
+    return sstor;
+}
+
+namespace ompl_interface
+{
+    template<typename T>
+    void msgToHex(const T& msg, std::string &hex)
+    {
+        static const char symbol[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+        const size_t serial_size_arg = ros::serialization::serializationLength(msg);
+        std::cout << serial_size_arg << std::endl;
+
+        boost::shared_array<uint8_t> buffer_arg(new uint8_t[serial_size_arg]);
+        ros::serialization::OStream stream_arg(buffer_arg.get(), serial_size_arg);
+        ros::serialization::serialize(stream_arg, msg);
+        hex.resize(serial_size_arg * 2);
+        for (std::size_t i = 0 ; i < serial_size_arg ; ++i)
+        {
+            hex[i * 2] = symbol[buffer_arg[i]/16];
+            hex[i * 2 + 1] = symbol[buffer_arg[i]%16];
+        }
+    }
+
+    template<typename T>
+    void hexToMsg(const std::string &hex, T& msg)
+    {
+        const size_t serial_size_arg = hex.length() / 2;
+        boost::shared_array<uint8_t> buffer_arg(new uint8_t[serial_size_arg]);
+        for (std::size_t i = 0 ; i < serial_size_arg ; ++i)
+        {
+            buffer_arg[i] =
+                (hex[i * 2] <= '9' ? (hex[i * 2] - '0') : (hex[i * 2] - 'A' + 10)) * 16 +
+                (hex[i * 2 + 1] <= '9' ? (hex[i * 2 + 1] - '0') : (hex[i * 2 + 1] - 'A' + 10));
+        }
+        ros::serialization::IStream stream_arg(buffer_arg.get(), serial_size_arg);
+        ros::serialization::deserialize(stream_arg, msg);
+    }
+}
+
+ompl_interface::PlanningGroup::ConstraintApproximation::ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene,
+                                                                                const std::string &serialization, const std::string &filename) :
+    serialization_(serialization), ompldb_filename_(filename)
+{
+    hexToMsg(serialization, constraint_msg_);
+    kconstraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene->getKinematicModel(), planning_scene->getTransforms()));
+    kconstraints_set_->add(constraint_msg_);
+}
+
+ompl_interface::PlanningGroup::ConstraintApproximation::ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene,
+                                                                                const moveit_msgs::Constraints &msg, const std::string &filename,
+                                                                                const ompl::base::StateStoragePtr &storage) :
+    ompldb_filename_(filename), constraint_msg_(msg), state_storage_(storage)
+{
+    msgToHex(msg, serialization_);
+    kconstraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene->getKinematicModel(), planning_scene->getTransforms()));
+    kconstraints_set_->add(msg);
+}
+
+void ompl_interface::PlanningGroup::addConstraintApproximation(const moveit_msgs::Constraints &constr, unsigned int samples)
+{
+    ompl::base::StateStoragePtr ss = constructConstraintApproximation(constr, samples);
+    if (ss)
+        constraints_.push_back(ConstraintApproximation(planning_scene_, constr, joint_model_group_->getName() + "_" +
+                                                       boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss));
+    else
+        ROS_ERROR("%s: Unable to construct constraint approximation", name_.c_str());
+}
+
+void ompl_interface::PlanningGroup::loadConstraintApproximations(const std::string &path)
+{
+    ROS_INFO("Loading constrained space approximations from '%s'", path.c_str());
+    static std::map<std::string, ompl::base::StateStoragePtr> loaded_files;
+    static boost::mutex lock;
+
+    std::ifstream fin((path + "/list").c_str());
+    if (!fin.good())
+        ROS_ERROR("Unable to find 'list' in folder '%s'", path.c_str());
+
+    while (fin.good() && !fin.eof())
+    {
+        std::string serialization, filename;
+        fin >> serialization;
+        if (fin.eof())
+            break;
+        fin >> filename;
+        constraints_.push_back(ConstraintApproximation(planning_scene_, serialization, filename));
+        {
+            boost::mutex::scoped_lock slock(lock);
+            std::map<std::string, ompl::base::StateStoragePtr>::const_iterator it = loaded_files.find(filename);
+            if (it != loaded_files.end())
+                constraints_.back().state_storage_ = it->second;
+            else
+            {
+                constraints_.back().state_storage_.reset(new ompl::base::StateStorage(ompl_simple_setup_.getStateSpace()));
+                loaded_files[filename] = constraints_.back().state_storage_;
+                constraints_.back().state_storage_->load((path + "/" + filename).c_str());
+            }
+        }
+    }
+}
+
+void ompl_interface::PlanningGroup::saveConstraintApproximations(const std::string &path)
+{
+    ROS_INFO("Saving %u constrained space approximations to '%s'", (unsigned int)constraints_.size(), path.c_str());
+
+    std::ofstream fout((path + "/list").c_str());
+    for (std::size_t i = 0 ; i < constraints_.size() ; ++i)
+    {
+        fout << constraints_[i].serialization_ << std::endl;
+        fout << constraints_[i].ompldb_filename_ << std::endl;
+        if (constraints_[i].state_storage_)
+            constraints_[i].state_storage_->store((path + "/" + constraints_[i].ompldb_filename_).c_str());
+    }
+    fout.close();
+}
+
+void ompl_interface::PlanningGroup::clearConstraintApproximations(void)
+{
+    constraints_.clear();
+}
+
+void ompl_interface::PlanningGroup::printConstraintApproximations(std::ostream &out)
+{
+    for (std::size_t i = 0 ; i < constraints_.size() ; ++i)
+    {
+        out << constraints_[i].ompldb_filename_ << std::endl;
+        out << constraints_[i].constraint_msg_ << std::endl;
+    }
 }
 
 kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningGroup::getConstraintsSampler(const moveit_msgs::Constraints &constr) const
@@ -354,7 +493,7 @@ bool ompl_interface::PlanningGroup::benchmark(double timeout, unsigned int count
     ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
     ompl_benchmark_.setExperimentName(planning_scene_->getKinematicModel()->getName() + "_" + joint_model_group_->getName() + "_" +
                                       planning_scene_->getName() + "_" + name_);
-    
+
     ompl::Benchmark::Request req;
     req.maxTime = timeout;
     req.runCount = count;
@@ -366,10 +505,12 @@ bool ompl_interface::PlanningGroup::benchmark(double timeout, unsigned int count
 
 bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
 {
+    //    ompl::Profiler::ScopedBlock sblock("PlanningGroup::solve");
+
     ompl_simple_setup_.getGoal()->clearSolutionPaths();
     const ompl::base::PlannerPtr planner = ompl_simple_setup_.getPlanner();
     if (planner)
-	planner->clear();
+        planner->clear();
     bool gls = ompl_simple_setup_.getGoal()->hasType(ompl::base::GOAL_LAZY_SAMPLES);
     // just in case sampling is not started
     if (gls)
@@ -441,6 +582,9 @@ bool ompl_interface::PlanningGroup::solve(double timeout, unsigned int count)
         // just in case we need to stop sampling
         static_cast<ompl::base::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->stopSampling();
 
+    if (ompl_simple_setup_.getGoal()->isApproximate())
+        ROS_WARN("Computed solution is approximate");
+
     return result;
 }
 
@@ -508,13 +652,4 @@ bool ompl_interface::PlanningGroup::getSolutionPath(moveit_msgs::RobotTrajectory
         }
     }
     return true;
-}
-
-void ompl_interface::PlanningGroup::fillResponse(moveit_msgs::GetMotionPlan::Response &res) const
-{
-    ROS_DEBUG("%s: Returning successful solution with %lu states", name_.c_str(), ompl_simple_setup_.getSolutionPath().states.size());
-    planning_models::kinematicStateToRobotState(start_state_, res.robot_state);
-    res.planning_time = ros::Duration(last_plan_time_);
-    getSolutionPath(res.trajectory);
-    res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 }

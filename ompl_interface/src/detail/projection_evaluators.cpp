@@ -92,7 +92,7 @@ void ompl_interface::ProjectionEvaluatorJointValue::project(const ompl::base::St
     unsigned int k = 0;
     for (std::size_t i = 0 ; i < joints_.size() ; ++i)
     {
-	const double *v = planning_group_->getKMStateSpace().getOMPLStateValueAddress(joints_[i].first, state);
+        const double *v = planning_group_->getKMStateSpace().getOMPLStateValueAddress(joints_[i].first, state);
         for (unsigned int j = 0 ; j < joints_[i].second ; ++j)
             projection(k++) = v[j];
     }
