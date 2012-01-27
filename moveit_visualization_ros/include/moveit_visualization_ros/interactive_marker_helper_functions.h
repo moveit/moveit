@@ -42,6 +42,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <planning_models/kinematic_state.h>
 #include <planning_models/transforms.h>
+#include <geometric_shapes/body_operations.h>
 
 static bool done_seed = false;
 
@@ -111,15 +112,30 @@ inline std_msgs::ColorRGBA makeRandomColor(float brightness, float alpha)
   return toReturn;
 }
 
-
-inline visualization_msgs::Marker makeBox( float scale )
+inline visualization_msgs::Marker makeBox( float x, float y, float z)
 {
   visualization_msgs::Marker marker;
 
   marker.type = visualization_msgs::Marker::CUBE;
-  marker.scale.x = scale;
-  marker.scale.y = scale;
-  marker.scale.z = scale;
+  marker.scale.x = x;
+  marker.scale.y = y;
+  marker.scale.z = z;
+  marker.color.r = 1.0;
+  marker.color.g = 1.0;
+  marker.color.b = 1.0;
+  marker.color.a = 1.0;
+
+  return marker;
+}
+
+inline visualization_msgs::Marker makeCylinder( float x, float z)
+{
+  visualization_msgs::Marker marker;
+
+  marker.type = visualization_msgs::Marker::CYLINDER;
+  marker.scale.x = x;
+  marker.scale.y = x;
+  marker.scale.z = z;
   marker.color.r = 1.0;
   marker.color.g = 1.0;
   marker.color.b = 1.0;
@@ -179,12 +195,57 @@ inline void add6DofControl( visualization_msgs::InteractiveMarker &msg, bool fix
   msg.controls.push_back(control);
 }
 
+inline void removeAxisControls(visualization_msgs::InteractiveMarker &msg)
+{
+  std::vector<visualization_msgs::InteractiveMarkerControl>::iterator it = msg.controls.begin();
+  while(it != msg.controls.end()) {
+    if(it->interaction_mode == visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS ||
+       it->interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_AXIS) {
+      it = msg.controls.erase(it);
+    } else {
+      it++;    
+    }  
+  }
+}
 
-inline visualization_msgs::InteractiveMarkerControl& makeBoxControl( visualization_msgs::InteractiveMarker &msg )
+inline visualization_msgs::InteractiveMarkerControl& makeBoxControl( visualization_msgs::InteractiveMarker &msg)
 {
   visualization_msgs::InteractiveMarkerControl control;
   control.always_visible = true;
-  control.markers.push_back( makeBox(msg.scale) );
+  control.markers.push_back( makeBox(msg.scale, msg.scale, msg.scale) );
+  msg.controls.push_back( control );
+
+  return msg.controls.back();
+}
+
+inline visualization_msgs::InteractiveMarkerControl& makeBoxControl( visualization_msgs::InteractiveMarker &msg,
+                                                                     float x, float y, float z)
+{
+  visualization_msgs::InteractiveMarkerControl control;
+  control.always_visible = true;
+  control.markers.push_back( makeBox(x, y, z) );
+  msg.controls.push_back( control );
+
+  return msg.controls.back();
+}
+
+inline visualization_msgs::InteractiveMarkerControl& makeCylinderControl( visualization_msgs::InteractiveMarker &msg)
+{
+  visualization_msgs::InteractiveMarkerControl control;
+  control.always_visible = true;
+  control.markers.push_back( makeCylinder(msg.scale, msg.scale) );
+  msg.controls.push_back( control );
+
+  return msg.controls.back();
+}
+
+
+inline visualization_msgs::InteractiveMarkerControl& makeCylinderControl( visualization_msgs::InteractiveMarker &msg,
+                                                                          float x, float z)
+{
+  visualization_msgs::InteractiveMarkerControl control;
+  control.always_visible = true;
+  control.markers.push_back( makeCylinder(x, z) );
   msg.controls.push_back( control );
 
   return msg.controls.back();
@@ -266,10 +327,10 @@ inline visualization_msgs::InteractiveMarker makeMeshMarker(const std::string &n
 }
 
 inline visualization_msgs::InteractiveMarker makeButtonBox(const std::string& name, 
-                                                    const geometry_msgs::PoseStamped &stamped, 
-                                                    float scale, 
-                                                    bool fixed, 
-                                                    bool view_facing)
+                                                           const geometry_msgs::PoseStamped &stamped, 
+                                                           float scale, 
+                                                           bool fixed, 
+                                                           bool view_facing)
 {
   visualization_msgs::InteractiveMarker int_marker;
   int_marker.header =  stamped.header;
@@ -286,12 +347,76 @@ inline visualization_msgs::InteractiveMarker makeButtonBox(const std::string& na
   return int_marker;
 }
 
+inline visualization_msgs::InteractiveMarker makeButtonBox(const std::string& name, 
+                                                           const geometry_msgs::PoseStamped &stamped, 
+                                                           float x, float y, float z, 
+                                                           bool fixed, 
+                                                           bool view_facing)
+{
+  visualization_msgs::InteractiveMarker int_marker;
+  int_marker.header =  stamped.header;
+  int_marker.name = name;
+  int_marker.scale = fmax(x, fmax(y, z));
+  int_marker.pose = stamped.pose;
+  //int_marker.description = "This is the marker.";
+
+  visualization_msgs::InteractiveMarkerControl &control = makeBoxControl(int_marker,
+                                                                         x, y, z);
+  //control.description = "This is the control";
+  control.always_visible = false;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+
+  return int_marker;
+}
+
+inline visualization_msgs::InteractiveMarker makeButtonCylinder(const std::string& name, 
+                                                                const geometry_msgs::PoseStamped &stamped, 
+                                                                float scale, 
+                                                                bool fixed, 
+                                                                bool view_facing)
+{
+  visualization_msgs::InteractiveMarker int_marker;
+  int_marker.header =  stamped.header;
+  int_marker.name = name;
+  int_marker.scale = scale;
+  int_marker.pose = stamped.pose;
+  //int_marker.description = "This is the marker.";
+
+  visualization_msgs::InteractiveMarkerControl &control = makeCylinderControl(int_marker);
+  //control.description = "This is the control";
+  control.always_visible = false;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+
+  return int_marker;
+}
+
+inline visualization_msgs::InteractiveMarker makeButtonCylinder(const std::string& name, 
+                                                                const geometry_msgs::PoseStamped &stamped, 
+                                                                float x, float z,  
+                                                                bool fixed, 
+                                                                bool view_facing)
+{
+  visualization_msgs::InteractiveMarker int_marker;
+  int_marker.header =  stamped.header;
+  int_marker.name = name;
+  int_marker.scale = fmax(x, z);
+  int_marker.pose = stamped.pose;
+  //int_marker.description = "This is the marker.";
+
+  visualization_msgs::InteractiveMarkerControl &control = makeCylinderControl(int_marker, x, z);
+  //control.description = "This is the control";
+  control.always_visible = false;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+
+  return int_marker;
+}
+
 inline visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name, 
-                                                       const geometry_msgs::PoseStamped &stamped,
-                                                       float scale, 
-                                                       bool fixed, 
-                                                       bool view_facing,
-                                                       std_msgs::ColorRGBA color)
+                                                              const geometry_msgs::PoseStamped &stamped,
+                                                              float scale, 
+                                                              bool fixed, 
+                                                              bool view_facing)
+
 {
   visualization_msgs::InteractiveMarker int_marker;
   int_marker.header =  stamped.header;
@@ -304,19 +429,8 @@ inline visualization_msgs::InteractiveMarker makeButtonSphere(const std::string&
   //control.description = "This is the control";
   control.always_visible = false;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
-  control.markers.back().color = color;
 
   return int_marker;
-}
-
-inline visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name, 
-                                                       const geometry_msgs::PoseStamped &stamped,
-                                                       float scale, 
-                                                       bool fixed, 
-                                                       bool view_facing)
-{
-  std_msgs::ColorRGBA color;
-  return makeButtonSphere(name, stamped, scale, fixed, view_facing, color);
 }
 
 inline visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name, 
@@ -356,19 +470,17 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
                                                                      const std::vector<std::string>& links,
                                                                      const std_msgs::ColorRGBA& color, 
                                                                      const double scale, 
-                                                                     bool use_color) {
+                                                                     bool use_color, 
+                                                                     Eigen::Affine3d& relative_transform) {
   
   visualization_msgs::InteractiveMarker int_marker;
   if(links.size() == 0) return int_marker;
 
-  //assumes that center is first marker
   const planning_models::KinematicState::LinkState* first_link = state.getLinkState(links[0]);
   Eigen::Affine3d first_pose = first_link->getGlobalCollisionBodyTransform();
-  planning_models::msgFromPose(first_pose, int_marker.pose);
-  
+
   int_marker.header.frame_id = "/"+state.getKinematicModel()->getModelFrame();
   int_marker.name = marker_name;
-  int_marker.scale = .5; //scale;
   
   //  add6DofControl(int_marker, false);
 
@@ -384,13 +496,42 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
   mesh.scale.z = 1.0;
   mesh.color = color;
 
+  std::vector<const bodies::Body*> bodies;
   for(unsigned int i = 0; i < links.size(); i++) {
-
+    
     const planning_models::KinematicState::LinkState* ls = state.getLinkState(links[i]);
     if(ls == NULL) {
       ROS_WARN_STREAM("No link state for requested link " << links[i]);
       continue;
     }
+
+    if(ls->getLinkModel()->getShape() == NULL) {
+      ROS_DEBUG_STREAM("No shape for " << links[i]);
+      continue;
+    }
+
+    bodies::Body* body = bodies::createBodyFromShape(&(*(ls->getLinkModel()->getShape())));
+    body->setPose(ls->getGlobalCollisionBodyTransform());
+    bodies.push_back(body);
+  }
+
+  bodies::BoundingSphere merged_sphere;
+  bodies::computeBoundingSphere(bodies, merged_sphere);
+  int_marker.scale = merged_sphere.radius*2.0;
+
+  Eigen::Affine3d bound_pose = Eigen::Translation3d(merged_sphere.center)*Eigen::Quaterniond(first_pose.rotation());
+  planning_models::msgFromPose(bound_pose, int_marker.pose);
+
+  relative_transform = bound_pose.inverse()*first_pose;
+  
+  for(unsigned int i = 0; i < links.size(); i++) {
+    
+    const planning_models::KinematicState::LinkState* ls = state.getLinkState(links[i]);
+    if(ls == NULL) {
+      ROS_WARN_STREAM("No link state for requested link " << links[i]);
+      continue;
+    }
+
     if(ls->getLinkModel()->getFilename().empty()) {
       ROS_DEBUG_STREAM("No filename for " << links[i]);
       continue;
@@ -398,10 +539,11 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
 
     mesh.mesh_resource = ls->getLinkModel()->getFilename();
     //getting pose relative to first pose
-    Eigen::Affine3d ret_pose = first_pose.inverse()*ls->getGlobalCollisionBodyTransform();
+    Eigen::Affine3d ret_pose = bound_pose.inverse()*ls->getGlobalCollisionBodyTransform();
 
     planning_models::msgFromPose(ret_pose, mesh.pose);
     control.markers.push_back(mesh);
+
   }
 
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
@@ -410,6 +552,15 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
 
   return int_marker;
 
+}
+
+inline void recolorInteractiveMarker(visualization_msgs::InteractiveMarker& marker,
+                                     const std_msgs::ColorRGBA& color) {
+  for(unsigned int i = 0; i < marker.controls.size(); i++) {
+    for(unsigned int j = 0; j < marker.controls[i].markers.size(); j++) {
+      marker.controls[i].markers[j].color = color;
+    }
+  }
 }
 
 }
