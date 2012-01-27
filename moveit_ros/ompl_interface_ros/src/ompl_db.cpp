@@ -37,49 +37,42 @@
 #include "ompl_interface_ros/ompl_interface_ros.h"
 #include "planning_scene_monitor/planning_scene_monitor.h"
 #include <tf/transform_listener.h>
-#include <moveit_msgs/ComputeConstraintSpaceApproximation.h>
+#include <boost/filesystem/path.hpp>
+#include <ompl/base/StateStorage.h>
+#include <fstream>
 
 static const std::string DBCONSTR_SERVICE_NAME="/compute_space_approximation";
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
-class ComputeConstraintSpaceApproximation
-{
-public:
-    ComputeConstraintSpaceApproximation(void) :
-	nh_("~"), psm_(ROBOT_DESCRIPTION), ompl_interface_(psm_.getPlanningScene())
-    {
-	ompl_interface_.printStatus();
-	service_ = nh_.advertiseService(DBCONSTR_SERVICE_NAME, &ComputeConstraintSpaceApproximation::computeDB, this);
-    }
-
-    bool computeDB(moveit_msgs::ComputeConstraintSpaceApproximation::Request &req, moveit_msgs::ComputeConstraintSpaceApproximation::Response &res)
-    {   
-	ompl_interface::PlanningGroupPtr pg = ompl_interface_.getPlanningConfiguration(req.group);
-	if (!pg)
-	    return false;
-	if (pg->constructValidStateDatabase(req.constraints, req.size, req.filename.c_str()))
-	    res.success = true;
-	return true;
-    }
-    
-private:
-    
-    ros::NodeHandle nh_;
-    planning_scene_monitor::PlanningSceneMonitor psm_;  
-    ompl_interface_ros::OMPLInterfaceROS ompl_interface_;
-    ros::ServiceServer service_;
-    
-};
-
-    
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "ompl_db");
-    
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-    
-    ComputeConstraintSpaceApproximation ccsa;    
-    
-    return 0;
+  ros::init(argc, argv, "ompl_planning");
+  
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+
+  ros::NodeHandle nh("~");
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+  ompl_interface_ros::OMPLInterfaceROS ompl_interface(psm.getPlanningScene());
+
+  
+  moveit_msgs::Constraints constr;
+  constr.orientation_constraints.resize(1);
+  moveit_msgs::OrientationConstraint &ocm = constr.orientation_constraints[0];
+  ocm.link_name = "r_wrist_roll_link";
+  ocm.orientation.header.frame_id = psm.getPlanningScene()->getPlanningFrame();
+  ocm.orientation.quaternion.x = 0.0;
+  ocm.orientation.quaternion.y = 0.0;
+  ocm.orientation.quaternion.z = 0.0;
+  ocm.orientation.quaternion.w = 1.0;
+  ocm.absolute_roll_tolerance = 0.01;
+  ocm.absolute_pitch_tolerance = 0.01;
+  ocm.absolute_yaw_tolerance = M_PI;
+  ocm.weight = 1.0;
+
+  ompl_interface.addConstraintApproximation(constr, "right_arm", 100000);
+  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
+  
+  return 0;
 }
+
