@@ -749,8 +749,10 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   mesh_data_->bounding_cylinder_.radius = maxdist;
   mesh_data_->bounding_cylinder_.length = cyl_length;
 
+  FILE* null = fopen ("/dev/null","w");
+
   char flags[] = "qhull Tc FA";
-  int exitcode = qh_new_qhull(3, mesh->vertex_count, points, true, flags, stderr, stderr);
+  int exitcode = qh_new_qhull(3, mesh->vertex_count, points, true, flags, null, null);
   
   if(exitcode != 0) {
     ROS_WARN_STREAM("Convex hull creation failed");

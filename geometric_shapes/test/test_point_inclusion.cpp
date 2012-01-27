@@ -36,6 +36,7 @@
 
 #include <geometric_shapes/bodies.h>
 #include <geometric_shapes/shape_operations.h>
+#include <geometric_shapes/body_operations.h>
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 
@@ -279,6 +280,28 @@ TEST(MeshPointContainment, Pr2Forearm)
 
     delete m;
     delete ms;
+}
+
+TEST(MergeBoundingSpheres, MergeTwoSpheres)
+{
+  std::vector<bodies::BoundingSphere> spheres;
+
+  bodies::BoundingSphere s1;
+  s1.center = Eigen::Vector3d(5.0, 0.0, 0.0);
+  s1.radius = 1.0;
+
+  bodies::BoundingSphere s2;
+  s2.center = Eigen::Vector3d(-5.1, 0.0, 0.0);
+  s2.radius = 1.0;
+
+  spheres.push_back(s1);
+  spheres.push_back(s2);
+
+  bodies::BoundingSphere merged_sphere;
+  bodies::mergeBoundingSpheres(spheres, merged_sphere);
+
+  EXPECT_NEAR(merged_sphere.center[0], -.05, .00001);
+  EXPECT_EQ(merged_sphere.radius, 6.05);
 }
 
 int main(int argc, char **argv)
