@@ -284,3 +284,13 @@ const ompl_interface::PlanningGroupPtr& ompl_interface::OMPLInterface::getPlanni
     else
         return pg->second;
 }
+
+void ompl_interface::OMPLInterface::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) 
+{
+  scene_ = planning_scene;
+  for(std::map<std::string, PlanningGroupPtr>::iterator it = planning_groups_.begin();
+      it != planning_groups_.end();
+      it++) {
+    it->second->updatePlanningScene(scene_);
+  }
+}

@@ -120,6 +120,8 @@ namespace ompl_interface
             return configured_;
         }
 
+      void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
+
     protected:
 
         /** \brief Configure the OMPL planning context for a new planning request */
