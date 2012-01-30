@@ -42,41 +42,41 @@
 
 namespace collision_detection
 {
-
-    class CollisionWorldFCL : public CollisionWorld
-    {
-    public:
-
-        CollisionWorldFCL(void);
-        CollisionWorldFCL(const CollisionWorldFCL &other);
-        virtual ~CollisionWorldFCL(void);
-
-        virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
-        virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
-        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
-
-        virtual void addToObject(const std::string &id, shapes::StaticShape *shape);
-        virtual void addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3d &pose);
-        virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3d &pose);
-        virtual bool removeShapeFromObject(const std::string &id, const shapes::Shape *shape);
-        virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShape *shape);
-        virtual void removeObject(const std::string &id);
-        virtual void clearObjects(void);
-
-    protected:
-
-        void checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const;
-        void checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
-
-        void constructFCLObject(const Object *obj, FCLObject &fcl_obj) const;
-        void updateFCLObject(const std::string &id);
-
-        boost::scoped_ptr<fcl::BroadPhaseCollisionManager> manager_;
-        std::map<std::string, FCLObject >                  fcl_objs_;
-
-    };
-
+  
+  class CollisionWorldFCL : public CollisionWorld
+  {
+  public:
+    
+    CollisionWorldFCL(void);
+    CollisionWorldFCL(const CollisionWorldFCL &other);
+    virtual ~CollisionWorldFCL(void);
+    
+    virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
+    virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
+    virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
+    virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
+    
+    virtual void addToObject(const std::string &id, shapes::StaticShape *shape);
+    virtual void addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3d &pose);
+    virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3d &pose);
+    virtual bool removeShapeFromObject(const std::string &id, const shapes::Shape *shape);
+    virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShape *shape);
+    virtual void removeObject(const std::string &id);
+    virtual void clearObjects(void);
+    
+  protected:
+    
+    void checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const;
+    void checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
+    
+    void constructFCLObject(const Object *obj, FCLObject &fcl_obj) const;
+    void updateFCLObject(const std::string &id);
+    
+    boost::scoped_ptr<fcl::BroadPhaseCollisionManager> manager_;
+    std::map<std::string, FCLObject >                  fcl_objs_;
+    
+  };
+  
 }
 
 #endif
