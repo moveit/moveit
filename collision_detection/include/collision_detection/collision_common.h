@@ -44,106 +44,106 @@
 
 namespace collision_detection
 {
+  /** \brief The types of bodies that are considered for collision */
+  namespace BodyTypes
+  {
     /** \brief The types of bodies that are considered for collision */
-    namespace BodyTypes
+    enum Type
+      {
+	/** \brief A link on the robot */
+	ROBOT_LINK,
+	
+	/** \brief A body attached to a robot link */
+	ROBOT_ATTACHED,
+	
+	/** \brief A body in the environment */
+	WORLD_OBJECT
+      };
+  }
+  
+  /** \brief The types of bodies that are considered for collision */
+  typedef BodyTypes::Type BodyType;
+  
+  /** \brief Definition of a contact point */
+  struct Contact
+  {
+    /** \brief contact position */
+    Eigen::Vector3d pos;
+    /** \brief normal unit vector at contact */
+    Eigen::Vector3d normal;
+    /** \brief depth (penetration between bodies) */
+    double          depth;
+    
+    /** \brief The id of the first body involved in the contact */
+    std::string     body_name_1;
+    
+    /** \brief The type of the first body involved in the contact */
+    BodyType        body_type_1;
+    
+    /** \brief The id of the second body involved in the contact */
+    std::string     body_name_2;
+    
+    /** \brief The type of the second body involved in the contact */
+    BodyType        body_type_2;
+  };
+  
+  /** \brief Representation of a collision checking result */
+  struct CollisionResult
+  {
+    CollisionResult(void) : collision(false),
+			    distance(0.0),
+			    direction(0.0, 0.0, 0.0),
+			    contact_count(0)
     {
-        /** \brief The types of bodies that are considered for collision */
-        enum Type
-        {
-            /** \brief A link on the robot */
-            ROBOT_LINK,
-
-            /** \brief A body attached to a robot link */
-            ROBOT_ATTACHED,
-
-            /** \brief A body in the environment */
-            WORLD_OBJECT
-        };
     }
-
-    /** \brief The types of bodies that are considered for collision */
-    typedef BodyTypes::Type BodyType;
-
-    /** \brief Definition of a contact point */
-    struct Contact
+    typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
+    
+    /** \brief Clear a previously stored result */
+    void clear(void) { *this = CollisionResult(); }
+    
+    /** \brief True if collision was found, false otherwise */
+    bool            collision;
+    
+    /** \brief Closest distance between two bodies */
+    double          distance;
+    
+    /** \brief Gradient vector associated with collision */
+    Eigen::Vector3d direction;
+    
+    /** \brief Number of contacts returned */
+    std::size_t     contact_count;
+    
+    /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contacts themselves */
+    ContactMap      contacts;
+  };
+  
+  /** \brief Representation of a collision checking request */
+  struct CollisionRequest
+  {
+    CollisionRequest(void) : distance(false),
+			     contacts(false),
+			     max_contacts(1),
+			     max_contacts_per_pair(1),
+			     verbose(false)
     {
-        /** \brief contact position */
-        Eigen::Vector3d pos;
-        /** \brief normal unit vector at contact */
-        Eigen::Vector3d normal;
-        /** \brief depth (penetration between bodies) */
-        double          depth;
-
-        /** \brief The id of the first body involved in the contact */
-        std::string     body_name_1;
-
-        /** \brief The type of the first body involved in the contact */
-        BodyType        body_type_1;
-
-        /** \brief The id of the second body involved in the contact */
-        std::string     body_name_2;
-
-        /** \brief The type of the second body involved in the contact */
-        BodyType        body_type_2;
-    };
-
-    /** \brief Representation of a collision checking result */
-    struct CollisionResult
-    {
-        CollisionResult(void) : collision(false),
-                                distance(0.0),
-                                direction(0.0, 0.0, 0.0),
-                                contact_count(0)
-        {
-        }
-        typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
-
-        /** \brief Clear a previously stored result */
-        void clear(void) { *this = CollisionResult(); }
-
-        /** \brief True if collision was found, false otherwise */
-        bool            collision;
-
-        /** \brief Closest distance between two bodies */
-        double          distance;
-
-        /** \brief Gradient vector associated with collision */
-        Eigen::Vector3d direction;
-
-        /** \brief Number of contacts returned */
-        std::size_t     contact_count;
-
-        /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contacts themselves */
-        ContactMap      contacts;
-    };
-
-    /** \brief Representation of a collision checking request */
-    struct CollisionRequest
-    {
-        CollisionRequest(void) : distance(false),
-                                 contacts(false),
-                                 max_contacts(1),
-                                 max_contacts_per_pair(1),
-                                 verbose(false)
-        {
-        }
-
-        /** \brief If true, compute proximity distance */
-        bool        distance;
-
-        /** \brief If true, compute contacts */
-        bool        contacts;
-
-        /** \brief Overall maximum number of contacts to compute*/
-        std::size_t max_contacts;
-
-        /** \brief Maximum number of contacts to compute per pair of bodies (multiple bodies may be in contact at different configurations) */
-        std::size_t max_contacts_per_pair;
-
-        /** \brief Flag indicating whether information about detected collisions should be reported */
-        bool        verbose;
-    };
-
+    }
+    
+    /** \brief If true, compute proximity distance */
+    bool        distance;
+    
+    /** \brief If true, compute contacts */
+    bool        contacts;
+    
+    /** \brief Overall maximum number of contacts to compute*/
+    std::size_t max_contacts;
+    
+    /** \brief Maximum number of contacts to compute per pair of bodies (multiple bodies may be in contact at different configurations) */
+    std::size_t max_contacts_per_pair;
+    
+    /** \brief Flag indicating whether information about detected collisions should be reported */
+    bool        verbose;
+  };
+  
 }
 
 #endif
