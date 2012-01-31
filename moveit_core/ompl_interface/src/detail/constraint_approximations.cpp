@@ -35,6 +35,8 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/constraint_approximations.h"
+#include "ompl_interface/planning_group.h"
+#include <random_numbers/random_numbers.h>
 
 namespace ompl_interface
 {
@@ -89,4 +91,16 @@ ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_
     msgToHex(msg, serialization_);
     kconstraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene->getKinematicModel(), planning_scene->getTransforms()));
     kconstraints_set_->add(msg);
+}
+
+planning_models::KinematicState ompl_interface::ConstraintApproximation::getState(const PlanningGroupConstPtr &planning_group, unsigned int index) const
+{
+  planning_models::KinematicState ks(planning_group->getPlanningScene()->getCurrentState());
+  if (state_storage_)
+    if (state_storage_->getStates().size() > index)
+    {
+      planning_group->getKMStateSpace().copyToKinematicState(ks, state_storage_->getStates()[index]);
+      ks.getJointStateGroup(planning_group->getJointModelGroup()->getName())->updateLinkTransforms();
+    }
+  return ks;
 }

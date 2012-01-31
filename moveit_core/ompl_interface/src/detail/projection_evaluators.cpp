@@ -37,63 +37,63 @@
 #include "ompl_interface/detail/projection_evaluators.h"
 
 ompl_interface::ProjectionEvaluatorLinkPose::ProjectionEvaluatorLinkPose(const PlanningGroup *pg, const std::string &link) :
-    ompl::base::ProjectionEvaluator(pg->getKMStateSpace().getOMPLSpace()), planning_group_(pg),
-    group_name_(planning_group_->getJointModelGroup()->getName()), link_name_(link), tss_(pg->getStartState())
+  ompl::base::ProjectionEvaluator(&pg->getKMStateSpace()), planning_group_(pg),
+  group_name_(planning_group_->getJointModelGroup()->getName()), link_name_(link), tss_(pg->getStartState())
 {
 }
 
 unsigned int ompl_interface::ProjectionEvaluatorLinkPose::getDimension(void) const
 {
-    return 3;
+  return 3;
 }
 
 void ompl_interface::ProjectionEvaluatorLinkPose::defaultCellSizes(void)
 {
-    cellSizes_.resize(3);
-    cellSizes_[0] = 0.01;
-    cellSizes_[1] = 0.01;
-    cellSizes_[2] = 0.01;
+  cellSizes_.resize(3);
+  cellSizes_[0] = 0.01;
+  cellSizes_[1] = 0.01;
+  cellSizes_[2] = 0.01;
 }
 
 void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
 {
-    planning_models::KinematicState *s = tss_.getStateStorage();
-    planning_group_->getKMStateSpace().copyToKinematicState(*s, state);
-    s->getJointStateGroup(group_name_)->updateLinkTransforms();
-
-    const planning_models::KinematicState::LinkState *ls = s->getLinkState(link_name_);
-    const Eigen::Vector3d &o = ls->getGlobalLinkTransform().translation();
-    projection(0) = o.x();
-    projection(1) = o.y();
-    projection(2) = o.z();
+  planning_models::KinematicState *s = tss_.getStateStorage();
+  planning_group_->getKMStateSpace().copyToKinematicState(*s, state);
+  s->getJointStateGroup(group_name_)->updateLinkTransforms();
+  
+  const planning_models::KinematicState::LinkState *ls = s->getLinkState(link_name_);
+  const Eigen::Vector3d &o = ls->getGlobalLinkTransform().translation();
+  projection(0) = o.x();
+  projection(1) = o.y();
+  projection(2) = o.z();
 }
 
 ompl_interface::ProjectionEvaluatorJointValue::ProjectionEvaluatorJointValue(const PlanningGroup *pg, const std::vector<std::pair<std::string, unsigned int> > &joints) :
-    ompl::base::ProjectionEvaluator(pg->getKMStateSpace().getOMPLSpace()), planning_group_(pg), joints_(joints)
+  ompl::base::ProjectionEvaluator(&pg->getKMStateSpace()), planning_group_(pg), joints_(joints)
 {
-    dimension_ = 0;
-    for (std::size_t i = 0 ; i < joints_.size() ; ++i)
-        dimension_ += joints_[i].second;
+  dimension_ = 0;
+  for (std::size_t i = 0 ; i < joints_.size() ; ++i)
+    dimension_ += joints_[i].second;
 }
 
 unsigned int ompl_interface::ProjectionEvaluatorJointValue::getDimension(void) const
 {
-    return dimension_;
+  return dimension_;
 }
 
 void ompl_interface::ProjectionEvaluatorJointValue::defaultCellSizes(void)
 {
-    cellSizes_.clear();
-    cellSizes_.resize(dimension_, 0.1);
+  cellSizes_.clear();
+  cellSizes_.resize(dimension_, 0.1);
 }
 
 void ompl_interface::ProjectionEvaluatorJointValue::project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
 {
-    unsigned int k = 0;
-    for (std::size_t i = 0 ; i < joints_.size() ; ++i)
-    {
-        const double *v = planning_group_->getKMStateSpace().getOMPLStateValueAddress(joints_[i].first, state);
-        for (unsigned int j = 0 ; j < joints_[i].second ; ++j)
-            projection(k++) = v[j];
-    }
+  unsigned int k = 0;
+  for (std::size_t i = 0 ; i < joints_.size() ; ++i)
+  {
+    const double *v = planning_group_->getKMStateSpace().getValueAddressAtName(state, joints_[i].first);
+    for (unsigned int j = 0 ; j < joints_[i].second ; ++j)
+      projection(k++) = v[j];
+  }
 }

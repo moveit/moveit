@@ -43,25 +43,29 @@
 
 namespace ompl_interface
 {
+  class PlanningGroup;
+  typedef boost::shared_ptr<const PlanningGroup> PlanningGroupConstPtr;
+  
+  struct ConstraintApproximation
+  {
+    ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene, const std::string &group,
+			    const std::string &serialization, const std::string &filename, const ompl::base::StateStoragePtr &storage);
+    ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene, const std::string &group,
+			    const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage);
     
-    struct ConstraintApproximation
-    {
-	ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene, const std::string &group,
-				const std::string &serialization, const std::string &filename, const ompl::base::StateStoragePtr &storage);
-	ConstraintApproximation(const planning_scene::PlanningSceneConstPtr &planning_scene, const std::string &group,
-				const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage);
-
-	std::string                                      group_;
-	
-	std::string                                      serialization_;
-	moveit_msgs::Constraints                         constraint_msg_;
-	kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;
-	
-	std::string                                      ompldb_filename_;
-	ompl::base::StateStoragePtr                      state_storage_;
-    };
-
-    typedef boost::shared_ptr<std::vector<ConstraintApproximation> > ConstraintApproximationsPtr;
+    planning_models::KinematicState getState(const PlanningGroupConstPtr &planning_group, unsigned int index) const;
+    
+    std::string                                      group_;
+    
+    std::string                                      serialization_;
+    moveit_msgs::Constraints                         constraint_msg_;
+    kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;
+    
+    std::string                                      ompldb_filename_;
+    ompl::base::StateStoragePtr                      state_storage_;
+  };
+  
+  typedef boost::shared_ptr<std::vector<ConstraintApproximation> > ConstraintApproximationsPtr;
 }
 
 #endif

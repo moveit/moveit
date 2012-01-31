@@ -37,36 +37,51 @@
 #include "ompl_interface/detail/constrained_sampler.h"
 
 ompl_interface::ConstrainedSampler::ConstrainedSampler(const PlanningGroup *pg, const kinematic_constraints::ConstraintSamplerPtr &cs) :
-    ompl::base::StateSampler(pg->getKMStateSpace().getOMPLSpace().get()),
-    planning_group_(pg), default_(space_->allocDefaultStateSampler()), constraint_sampler_(cs)
+  ompl::base::StateSampler(&pg->getKMStateSpace()), planning_group_(pg), default_(space_->allocDefaultStateSampler()), constraint_sampler_(cs)
 {
 }
 
 bool ompl_interface::ConstrainedSampler::sampleC(ompl::base::State *state)
 {
-    std::vector<double> values;
-    if (constraint_sampler_->sample(values, planning_group_->getStartState(), planning_group_->getMaximumSamplingAttempts()))
-    {
-        planning_group_->getKMStateSpace().copyToOMPLState(state, values);
-        return true;
-    }
-    return false;
+  std::vector<double> values;
+  if (constraint_sampler_->sample(values, planning_group_->getStartState(), planning_group_->getMaximumSamplingAttempts()))
+  {
+    planning_group_->getKMStateSpace().copyToOMPLState(state, values);
+    return space_->satisfiesBounds(state);
+  }
+  return false;
 }
 
 void ompl_interface::ConstrainedSampler::sampleUniform(ompl::base::State *state)
 {
-    if (!sampleC(state))
-        default_->sampleUniform(state);
+  if (!sampleC(state))
+    default_->sampleUniform(state);
 }
 
 void ompl_interface::ConstrainedSampler::sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
 {
-    if (!sampleC(state))
-        default_->sampleUniformNear(state, near, distance);
+  if (sampleC(state))
+  {    
+    double total_d = space_->distance(state, near);
+    if (total_d > distance)
+    {
+      double dist = rng_.uniformReal(0.0, distance);
+      space_->interpolate(near, state, dist / total_d, state);
+    }
+  }
+  else
+    default_->sampleUniformNear(state, near, distance);
 }
 
 void ompl_interface::ConstrainedSampler::sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
 {
-    if (!sampleC(state))
-        default_->sampleGaussian(state, mean, stdDev);
+  if (sampleC(state))
+  {
+    double dist = rng_.gaussian(0.0, stdDev);
+    double total_d = space_->distance(state, mean);
+    if (total_d > dist)
+      space_->interpolate(mean, state, dist / total_d, state);
+  }
+  else
+    default_->sampleGaussian(state, mean, stdDev);
 }
