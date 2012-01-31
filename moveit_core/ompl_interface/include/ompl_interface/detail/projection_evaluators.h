@@ -37,49 +37,49 @@
 #ifndef OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
 #define OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
 
-#include "ompl_interface/planning_group.h"
+#include "ompl_interface/planning_configuration.h"
 #include "ompl_interface/detail/threadsafe_state_storage.h"
 
 namespace ompl_interface
 {
 
-    /** @class ProjectionEvaluatorLinkPose
-        @brief */
-    class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
-    {
-    public:
+/** @class ProjectionEvaluatorLinkPose
+    @brief */
+class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
+{
+public:
+  
+  ProjectionEvaluatorLinkPose(const PlanningConfiguration *pc, const std::string &link);
+  
+  virtual unsigned int getDimension(void) const;
+  virtual void defaultCellSizes(void);
+  virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
+  
+private:
+  
+  const PlanningConfiguration *planning_config_;
+  std::string                  group_name_;
+  std::string                  link_name_;
+  TSStateStorage               tss_;
+};
 
-        ProjectionEvaluatorLinkPose(const PlanningGroup *pg, const std::string &link);
-
-        virtual unsigned int getDimension(void) const;
-        virtual void defaultCellSizes(void);
-        virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
-
-    private:
-
-        const PlanningGroup *planning_group_;
-        std::string          group_name_;
-        std::string          link_name_;
-        TSStateStorage       tss_;
-    };
-
-    /** @class ProjectionEvaluatorJointValue
-        @brief */
-    class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
-    {
-    public:
-        ProjectionEvaluatorJointValue(const PlanningGroup *pg, const std::vector<std::pair<std::string, unsigned int> > &joints);
-
-        virtual unsigned int getDimension(void) const;
-        virtual void defaultCellSizes(void);
-        virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
-
-    private:
-
-        const PlanningGroup                               *planning_group_;
-        unsigned int                                       dimension_;
-        std::vector<std::pair<std::string, unsigned int> > joints_;
-    };
+/** @class ProjectionEvaluatorJointValue
+    @brief */
+class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
+{
+public:
+  ProjectionEvaluatorJointValue(const PlanningConfiguration *pc, const std::vector<std::pair<std::string, unsigned int> > &joints);
+  
+  virtual unsigned int getDimension(void) const;
+  virtual void defaultCellSizes(void);
+  virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
+  
+private:
+  
+  const PlanningConfiguration                       *planning_config_;
+  unsigned int                                       dimension_;
+  std::vector<std::pair<std::string, unsigned int> > joints_;
+};
 }
 
 #endif

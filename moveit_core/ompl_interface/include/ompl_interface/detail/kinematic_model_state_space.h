@@ -44,81 +44,81 @@
 namespace ompl_interface
 {
 
-    /** @class KMStateSpace
-     *  @brief Construction of OMPL state space from kinematic joints. This
-     *  class is a wrapper around OMPL's representation of state
-     *  spaces and allows efficient conversions between OMPL states and
-     *  KinematicState */
-  class KMStateSpace : public ompl::base::CompoundStateSpace
+/** @class KMStateSpace
+ *  @brief Construction of OMPL state space from kinematic joints. This
+ *  class is a wrapper around OMPL's representation of state
+ *  spaces and allows efficient conversions between OMPL states and
+ *  KinematicState */
+class KMStateSpace : public ompl::base::CompoundStateSpace
+{
+public:
+  
+  /// Add a tag to the state representation
+  class StateType : public ompl::base::CompoundStateSpace::StateType
   {
   public:
-    
-    /// Add a tag to the state representation
-    class StateType : public ompl::base::CompoundStateSpace::StateType
+    StateType(void) : ompl::base::CompoundStateSpace::StateType(), tag(-1)
     {
-    public:
-      StateType(void) : ompl::base::CompoundStateSpace::StateType(), tag(-1)
-      {
-      }
-      
-      int tag;
-    };    
-    
-    /** @brief Construct the OMPL state space that corresponds to a set of joints. */
-    KMStateSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
-    
-    /** @brief Construct the OMPL state space that corresponds to a group of joints */
-    KMStateSpace(const planning_models::KinematicModel::JointModelGroup* jmg);
-    
-    virtual ~KMStateSpace(void);
-    
-    virtual ompl::base::State* allocState(void) const;
-    virtual void freeState(ompl::base::State *state) const;
-    virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
-    
-    /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
-    void copyToKinematicState(const std::vector<planning_models::KinematicState::JointState*> &js, const ompl::base::State *state) const;
-    
-    /// Copy the data from an OMPL state to a kinematic state. The join states \b must be specified in the same order as the joint models in the constructor
-    void copyToKinematicState(planning_models::KinematicState &kstate, const ompl::base::State *state) const;
-    
-    /// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
-    void copyToOMPLState(ompl::base::State *state, const std::vector<planning_models::KinematicState::JointState*> &js) const;
-    
-    /// Copy the data from a value vector that corresponds to the state of the considered joint model group (or array of joints)
-    void copyToOMPLState(ompl::base::State *state, const std::vector<double> &values) const;
-    
-    /// Copy the data from a kinematic state to an OMPL state. Only needed joint states are copied
-    void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState &kstate) const;
-    
-    /// Get the joint models that this state space was constructed from
-    const std::vector<const planning_models::KinematicModel::JointModel*> getJointModels(void) const
-    {
-      return joints_;
-    }
-    
-    /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
-    void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
-    
-  private:
-    
-    void constructSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
-    
-    /// If this class is constructed from a joint group, the address of that group is stored here (NULL otherwise)
-    const planning_models::KinematicModel::JointModelGroup         *jmg_;
-    
-    /// The sequence of joint models that make up the state space
-    std::vector<const planning_models::KinematicModel::JointModel*> joints_;
-    
-    /// The order in which the joints were used to construct the OMPL state space
-    std::vector<std::size_t>                                        joint_mapping_;
-    
-    /// The order in which the joint variables were used to construct the OMPL state space
-    std::vector<std::size_t>                                        variable_mapping_;
-    
-  };
+    }    
+    int tag;
+  };    
   
+  /** @brief Construct the OMPL state space that corresponds to a set of joints. */
+  KMStateSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
   
+  /** @brief Construct the OMPL state space that corresponds to a group of joints */
+  KMStateSpace(const planning_models::KinematicModel::JointModelGroup* jmg);
+  
+  virtual ~KMStateSpace(void);
+  
+  virtual ompl::base::State* allocState(void) const;
+  virtual void freeState(ompl::base::State *state) const;
+  virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
+  virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
+  
+  /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
+  void copyToKinematicState(const std::vector<planning_models::KinematicState::JointState*> &js, const ompl::base::State *state) const;
+  
+  /// Copy the data from an OMPL state to a kinematic state. The join states \b must be specified in the same order as the joint models in the constructor
+  void copyToKinematicState(planning_models::KinematicState &kstate, const ompl::base::State *state) const;
+  
+  /// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
+  void copyToOMPLState(ompl::base::State *state, const std::vector<planning_models::KinematicState::JointState*> &js) const;
+  
+  /// Copy the data from a value vector that corresponds to the state of the considered joint model group (or array of joints)
+  void copyToOMPLState(ompl::base::State *state, const std::vector<double> &values) const;
+  
+  /// Copy the data from a kinematic state to an OMPL state. Only needed joint states are copied
+  void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState &kstate) const;
+  
+  /// Get the joint models that this state space was constructed from
+  const std::vector<const planning_models::KinematicModel::JointModel*> getJointModels(void) const
+  {
+    return joints_;
+  }
+  
+  /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
+  void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
+  
+private:
+  
+  void constructSpace(const std::vector<const planning_models::KinematicModel::JointModel*> &joints);
+  
+  /// If this class is constructed from a joint group, the address of that group is stored here (NULL otherwise)
+  const planning_models::KinematicModel::JointModelGroup         *jmg_;
+  
+  /// The sequence of joint models that make up the state space
+  std::vector<const planning_models::KinematicModel::JointModel*> joints_;
+  
+  /// The order in which the joints were used to construct the OMPL state space
+  std::vector<std::size_t>                                        joint_mapping_;
+  
+  /// The order in which the joint variables were used to construct the OMPL state space
+  std::vector<std::size_t>                                        variable_mapping_;
+  
+};
+
+
 }
 
 #endif

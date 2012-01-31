@@ -36,17 +36,17 @@
 
 #include "ompl_interface/detail/constrained_sampler.h"
 
-ompl_interface::ConstrainedSampler::ConstrainedSampler(const PlanningGroup *pg, const kinematic_constraints::ConstraintSamplerPtr &cs) :
-  ompl::base::StateSampler(&pg->getKMStateSpace()), planning_group_(pg), default_(space_->allocDefaultStateSampler()), constraint_sampler_(cs)
+ompl_interface::ConstrainedSampler::ConstrainedSampler(const PlanningConfiguration *pc, const kinematic_constraints::ConstraintSamplerPtr &cs) :
+  ompl::base::StateSampler(&pc->getKMStateSpace()), planning_config_(pc), default_(space_->allocDefaultStateSampler()), constraint_sampler_(cs)
 {
 }
 
 bool ompl_interface::ConstrainedSampler::sampleC(ompl::base::State *state)
 {
   std::vector<double> values;
-  if (constraint_sampler_->sample(values, planning_group_->getStartState(), planning_group_->getMaximumSamplingAttempts()))
+  if (constraint_sampler_->sample(values, planning_config_->getStartState(), planning_config_->getMaximumSamplingAttempts()))
   {
-    planning_group_->getKMStateSpace().copyToOMPLState(state, values);
+    planning_config_->getKMStateSpace().copyToOMPLState(state, values);
     return space_->satisfiesBounds(state);
   }
   return false;

@@ -43,22 +43,22 @@
 namespace ompl_interface
 {
 
-    class TSStateStorage
-    {
-    public:
-
-        TSStateStorage(const planning_models::KinematicModelPtr &kmodel);
-        TSStateStorage(const planning_models::KinematicState &start_state);
-        ~TSStateStorage(void);
-
-        planning_models::KinematicState* getStateStorage(void) const;
-
-    private:
-
-        planning_models::KinematicState                                       start_state_;
-        mutable std::map<boost::thread::id, planning_models::KinematicState*> thread_states_;
-        mutable boost::mutex                                                  lock_;
-    };
+class TSStateStorage
+{
+public:
+  
+  TSStateStorage(const planning_models::KinematicModelPtr &kmodel);
+  TSStateStorage(const planning_models::KinematicState &start_state);
+  ~TSStateStorage(void);
+  
+  planning_models::KinematicState* getStateStorage(void) const;
+  
+private:
+  
+  planning_models::KinematicState                                       start_state_;
+  mutable std::map<boost::thread::id, planning_models::KinematicState*> thread_states_;
+  mutable boost::mutex                                                  lock_;
+};
 
 }
 #endif

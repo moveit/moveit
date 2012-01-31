@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/constraint_approximations.h"
-#include "ompl_interface/planning_group.h"
+#include "ompl_interface/planning_configuration.h"
 #include <random_numbers/random_numbers.h>
 
 namespace ompl_interface
@@ -93,14 +93,14 @@ ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_
     kconstraints_set_->add(msg);
 }
 
-planning_models::KinematicState ompl_interface::ConstraintApproximation::getState(const PlanningGroupConstPtr &planning_group, unsigned int index) const
+planning_models::KinematicState ompl_interface::ConstraintApproximation::getState(const PlanningConfigurationConstPtr &planning_config, unsigned int index) const
 {
-  planning_models::KinematicState ks(planning_group->getPlanningScene()->getCurrentState());
+  planning_models::KinematicState ks(planning_config->getPlanningScene()->getCurrentState());
   if (state_storage_)
     if (state_storage_->getStates().size() > index)
     {
-      planning_group->getKMStateSpace().copyToKinematicState(ks, state_storage_->getStates()[index]);
-      ks.getJointStateGroup(planning_group->getJointModelGroup()->getName())->updateLinkTransforms();
+      planning_config->getKMStateSpace().copyToKinematicState(ks, state_storage_->getStates()[index]);
+      ks.getJointStateGroup(planning_config->getJointModelGroup()->getName())->updateLinkTransforms();
     }
   return ks;
 }
