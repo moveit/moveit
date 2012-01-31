@@ -36,13 +36,11 @@
 
 #include "ompl_interface_ros/ompl_interface_ros.h"
 #include "planning_scene_monitor/planning_scene_monitor.h"
-#include <tf/transform_listener.h>
-#include <boost/filesystem/path.hpp>
-#include <ompl/base/StateStorage.h>
-#include <fstream>
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <planning_models/conversions.h>
 
-static const std::string DBCONSTR_SERVICE_NAME="/compute_space_approximation";
 static const std::string ROBOT_DESCRIPTION="robot_description";
+
 
 int main(int argc, char **argv)
 {
@@ -54,25 +52,71 @@ int main(int argc, char **argv)
   ros::NodeHandle nh("~");
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
   ompl_interface_ros::OMPLInterfaceROS ompl_interface(psm.getPlanningScene());
-
+  /*
+  ros::Publisher pub_state = nh.advertise<moveit_msgs::DisplayTrajectory>("/display_motion_plan", 20);
   
-  moveit_msgs::Constraints constr;
-  constr.orientation_constraints.resize(1);
-  moveit_msgs::OrientationConstraint &ocm = constr.orientation_constraints[0];
-  ocm.link_name = "r_wrist_roll_link";
-  ocm.orientation.header.frame_id = psm.getPlanningScene()->getPlanningFrame();
-  ocm.orientation.quaternion.x = 0.0;
-  ocm.orientation.quaternion.y = 0.0;
-  ocm.orientation.quaternion.z = 0.0;
-  ocm.orientation.quaternion.w = 1.0;
-  ocm.absolute_roll_tolerance = 0.01;
-  ocm.absolute_pitch_tolerance = 0.01;
-  ocm.absolute_yaw_tolerance = M_PI;
-  ocm.weight = 1.0;
+  sleep(1);
+  const ompl_interface::ConstraintApproximation &ca = ompl_interface.getConstraintApproximations()->at(0);
+  for (unsigned int i = 0 ; i < 100 ; ++i)
+  {
+    planning_models::KinematicState ks = ca.getState(ompl_interface.getPlanningConfiguration(ca.group_), i);
+    moveit_msgs::DisplayTrajectory d;
+    d.model_id = psm.getPlanningScene()->getKinematicModel()->getName();
+    planning_models::kinematicStateToRobotState(ks, d.robot_state);
 
-  ompl_interface.addConstraintApproximation(constr, "right_arm", 100000);
+    const ompl::base::State *a = ca.state_storage_->getStates()[i];
+    const ompl::base::State *b = ca.state_storage_->getStates()[i + 100];
+    ompl::geometric::PathGeometric pg(ompl_interface.getPlanningConfiguration("right_arm")->getOMPLSimpleSetup().getSpaceInformation(), a, b);
+    pg.interpolate();
+    ompl_interface.getPlanningConfiguration("right_arm")->convertPath(pg, d.trajectory);
+    
+
+    pub_state.publish(d);
+    ros::Duration(1.0).sleep();
+  }
+  */
+
+  sleep(1);
+
+  moveit_msgs::Constraints constr1;
+  constr1.orientation_constraints.resize(1);
+  moveit_msgs::OrientationConstraint &ocm1 = constr1.orientation_constraints[0];
+  ocm1.link_name = "r_wrist_roll_link";
+  ocm1.orientation.header.frame_id = psm.getPlanningScene()->getPlanningFrame();
+  ocm1.orientation.quaternion.x = 0.0;
+  ocm1.orientation.quaternion.y = 0.0;
+  ocm1.orientation.quaternion.z = 0.0;
+  ocm1.orientation.quaternion.w = 1.0;
+  ocm1.absolute_roll_tolerance = 0.05;
+  ocm1.absolute_pitch_tolerance = 0.05;
+  ocm1.absolute_yaw_tolerance = M_PI;
+  ocm1.weight = 1.0;
+  
+  moveit_msgs::Constraints constr1S = constr1;
+  constr1S.orientation_constraints[0].absolute_roll_tolerance = 1e-6;
+  constr1S.orientation_constraints[0].absolute_pitch_tolerance = 1e-6;
+
+  ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", 10000);
+
+    /*
+  moveit_msgs::Constraints constr2;
+  constr2.orientation_constraints.resize(1);
+  moveit_msgs::OrientationConstraint &ocm2 = constr2.orientation_constraints[0];
+  ocm2.link_name = "l_wrist_roll_link";
+  ocm2.orientation.header.frame_id = psm.getPlanningScene()->getPlanningFrame();
+  ocm2.orientation.quaternion.x = 0.0;
+  ocm2.orientation.quaternion.y = 0.0;
+  ocm2.orientation.quaternion.z = 0.0;
+  ocm2.orientation.quaternion.w = 1.0;
+  ocm2.absolute_roll_tolerance = 0.01;
+  ocm2.absolute_pitch_tolerance = 0.01;
+  ocm2.absolute_yaw_tolerance = M_PI;
+  ocm2.weight = 1.0;
+
+  ompl_interface.addConstraintApproximation(constr2, "left_arm", 100000);
+    */
   ompl_interface.saveConstraintApproximations("/u/isucan/c/");
-  
+
   return 0;
 }
 

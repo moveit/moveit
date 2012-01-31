@@ -41,41 +41,41 @@
 
 namespace moveit_warehouse
 {
+  
+  typedef mongo_ros::MessageWithMetadata<moveit_msgs::PlanningScene>::ConstPtr PlanningSceneWithMetadata;
+  typedef mongo_ros::MessageWithMetadata<moveit_msgs::MotionPlanRequest>::ConstPtr MotionPlanRequestWithMetadata;
+  typedef mongo_ros::MessageWithMetadata<moveit_msgs::RobotTrajectory>::ConstPtr RobotTrajectoryWithMetadata;
+  
+  typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::PlanningScene> > PlanningSceneCollection;
+  typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::MotionPlanRequest> > MotionPlanRequestCollection;
+  typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotTrajectory> > RobotTrajectoryCollection;
+  
+  class PlanningSceneStorage
+  {
+  public:
+    PlanningSceneStorage();
     
-    typedef mongo_ros::MessageWithMetadata<moveit_msgs::PlanningScene>::ConstPtr PlanningSceneWithMetadata;
-    typedef mongo_ros::MessageWithMetadata<moveit_msgs::MotionPlanRequest>::ConstPtr MotionPlanRequestWithMetadata;
-    typedef mongo_ros::MessageWithMetadata<moveit_msgs::RobotTrajectory>::ConstPtr RobotTrajectoryWithMetadata;
+    void addPlanningScene(const moveit_msgs::PlanningScene &scene);
+    void addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
+    void addPlanningResult(const moveit_msgs::MotionPlanRequest &planning_query, const moveit_msgs::RobotTrajectory &result, const std::string &scene_name);
     
-    typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::PlanningScene> > PlanningSceneCollection;
-    typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::MotionPlanRequest> > MotionPlanRequestCollection;
-    typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotTrajectory> > RobotTrajectoryCollection;
-
-    class PlanningSceneStorage
-    {
-    public:
-	PlanningSceneStorage();
-	
-	void addPlanningScene(const moveit_msgs::PlanningScene &scene);
-	void addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
-	void addPlanningResult(const moveit_msgs::MotionPlanRequest &planning_query, const moveit_msgs::RobotTrajectory &result, const std::string &scene_name);
-	
-	void getPlanningSceneNames(std::vector<std::string> &names) const;
-	bool getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name) const;
-	void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const;
-	void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
-	void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &query_name, const std::string &scene_name) const;
-	
-	void removePlanningScene(const std::string &scene_name);
-	void removePlanningSceneQueries(const std::string &scene_name);
-	
-    private:
-	
-	std::string getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
-	std::string addNewPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name);
-	
-	PlanningSceneCollection	    planning_scene_collection_;
-	MotionPlanRequestCollection motion_plan_request_collection_;
-	RobotTrajectoryCollection   robot_trajectory_collection_;
-	
-    };
+    void getPlanningSceneNames(std::vector<std::string> &names) const;
+    bool getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name) const;
+    void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const;
+    void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
+    void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &query_name, const std::string &scene_name) const;
+    
+    void removePlanningScene(const std::string &scene_name);
+    void removePlanningSceneQueries(const std::string &scene_name);
+    
+  private:
+    
+    std::string getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
+    std::string addNewPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name);
+    
+    PlanningSceneCollection	    planning_scene_collection_;
+    MotionPlanRequestCollection motion_plan_request_collection_;
+    RobotTrajectoryCollection   robot_trajectory_collection_;
+    
+  };
 }
