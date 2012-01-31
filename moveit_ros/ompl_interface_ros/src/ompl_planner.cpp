@@ -57,6 +57,9 @@ public:
     {
         ROS_INFO("Received new planning request...");
         return ompl_interface_->solve(req, res);
+
+        //        const ompl::base::PlannerData &pd = ompl_interface_->getPlannerData();
+        
     }
 
     bool computeBenchmark(moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res)

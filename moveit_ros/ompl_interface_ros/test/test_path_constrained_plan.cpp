@@ -61,7 +61,7 @@ TEST(OmplPlanning, SimplePlan)
   planning_scene::PlanningScene &scene = *psm.getPlanningScene();
   EXPECT_TRUE(scene.isConfigured());
   
-  mplan_req.motion_plan_request.planner_id = "RRTConnectkConfigDefault";
+  mplan_req.motion_plan_request.planner_id = "LBKPIECEkConfigDefault";
   mplan_req.motion_plan_request.group_name = "right_arm";
   mplan_req.motion_plan_request.num_planning_attempts = 1;
   mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(15.0);
@@ -110,8 +110,8 @@ TEST(OmplPlanning, SimplePlan)
   ocm.orientation.quaternion.y = 0.0;
   ocm.orientation.quaternion.z = 0.0;
   ocm.orientation.quaternion.w = 1.0;
-  ocm.absolute_roll_tolerance = 0.4;
-  ocm.absolute_pitch_tolerance = 0.4;
+  ocm.absolute_roll_tolerance = 1.4;
+  ocm.absolute_pitch_tolerance = 1.4;
   ocm.absolute_yaw_tolerance = M_PI;
   ocm.weight = 1.0; 
 

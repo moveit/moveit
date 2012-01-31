@@ -116,7 +116,7 @@ ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_scene::Pla
   {
     scene_ = scene;
     
-    std::vector<ompl_interface::PlannerConfigs> pconfig;
+    std::vector<ompl_interface::PlanningConfigurationSettings> pconfig;
     configurePlanners(pconfig);
     
     // this call will configure planning for all groups known to the kinematic model
@@ -202,7 +202,7 @@ void ompl_interface_ros::OMPLInterfaceROS::configureIKSolvers(void)
   OMPLInterface::configureIKSolvers(imap);
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_interface::PlannerConfigs> &pconfig)
+void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_interface::PlanningConfigurationSettings> &pconfig)
 {
   std::vector<std::string> group_names = getAdditionalConfigGroupNames();
   
@@ -229,7 +229,7 @@ void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_in
     // set the parameters (if any) for the default group configuration;
     if (!specific_group_params.empty())
     {
-      ompl_interface::PlannerConfigs pc;
+      ompl_interface::PlanningConfigurationSettings pc;
       pc.name = group_names[i];
       pc.group = group_names[i];
       pc.config = specific_group_params;
@@ -250,7 +250,7 @@ void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_in
 	    {
 	      if (xml_config.getType() == XmlRpc::XmlRpcValue::TypeStruct)
 	      {
-		ompl_interface::PlannerConfigs pc;
+		ompl_interface::PlanningConfigurationSettings pc;
 		pc.name = group_names[i] + "[" + planner_config + "]";
 		pc.group = group_names[i];
 		// inherit parameters from the group (which can be overriden)
