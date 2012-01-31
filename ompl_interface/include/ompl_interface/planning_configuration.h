@@ -52,6 +52,7 @@
 
 namespace ompl_interface
 {
+
 /** @class PlanningConfiguration
  *  This class defines a planning configuration, i.e. a set of joints configured with a set of planners and a planning scene*/
 class PlanningConfiguration
@@ -74,6 +75,11 @@ public:
   const std::string& getName(void) const
   {
     return name_;
+  }
+  
+  const std::string& getJointModelGroupName(void) const
+  {
+    return joint_model_group_->getName();
   }
   
   /* \brief Return the joint model group this planning group is working with. */
