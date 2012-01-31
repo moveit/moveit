@@ -24,7 +24,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(${PROJECT_NAME}
   src/ompl_interface.cpp
-  src/planning_group.cpp
+  src/planning_configuration.cpp
   src/detail/kinematic_model_state_space.cpp
   src/detail/state_validity_checker.cpp
   src/detail/threadsafe_state_storage.cpp

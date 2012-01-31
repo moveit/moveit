@@ -37,32 +37,32 @@
 #ifndef OMPL_INTERFACE_DETAIL_STATE_VALIDITY_CHECKER_
 #define OMPL_INTERFACE_DETAIL_STATE_VALIDITY_CHECKER_
 
-#include "ompl_interface/planning_group.h"
+#include "ompl_interface/planning_configuration.h"
 #include "ompl_interface/detail/threadsafe_state_storage.h"
 
 namespace ompl_interface
 {
 
-    /** @class StateValidityChecker
-        @brief An interface for a OMPL state validity checker*/
-    class StateValidityChecker : public ompl::base::StateValidityChecker
-    {
-    public:
-
-        StateValidityChecker(const PlanningGroup *pg);
-
-        void useNewStartingState(void);
-        virtual bool isValid(const ompl::base::State *state) const;
-        virtual bool isValid(const ompl::base::State *state, double &dist) const;
-
-    protected:
-
-        const PlanningGroup                  *planning_group_;
-        std::string                           group_name_;
-        boost::scoped_ptr<TSStateStorage>     tss_;
-        collision_detection::CollisionRequest collision_request_simple_;
-        collision_detection::CollisionRequest collision_request_with_distance_;
-    };
+/** @class StateValidityChecker
+    @brief An interface for a OMPL state validity checker*/
+class StateValidityChecker : public ompl::base::StateValidityChecker
+{
+public:
+  
+  StateValidityChecker(const PlanningConfiguration *pg);
+  
+  void useNewStartingState(void);
+  virtual bool isValid(const ompl::base::State *state) const;
+  virtual bool isValid(const ompl::base::State *state, double &dist) const;
+  
+protected:
+  
+  const PlanningConfiguration          *planning_config_;
+  std::string                           group_name_;
+  boost::scoped_ptr<TSStateStorage>     tss_;
+  collision_detection::CollisionRequest collision_request_simple_;
+  collision_detection::CollisionRequest collision_request_with_distance_;
+};
 
 }
 

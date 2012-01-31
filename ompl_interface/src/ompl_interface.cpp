@@ -52,7 +52,7 @@ ompl_interface::OMPLInterface::~OMPLInterface(void)
 {
 }
 
-bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningSceneConstPtr &scene, const std::vector<PlannerConfigs> &pconfig)
+bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningSceneConstPtr &scene, const std::vector<PlanningConfigurationSettings> &pconfig)
 {
   scene_ = scene;
   if (!scene_ || !scene_->isConfigured())
@@ -67,7 +67,7 @@ bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
     const planning_models::KinematicModel::JointModelGroup *jmg = scene_->getKinematicModel()->getJointModelGroup(pconfig[i].group);
     if (jmg)
     {
-      planning_groups_[pconfig[i].name].reset(new PlanningGroup(pconfig[i].name, jmg, constraints_, pconfig[i].config, scene_));
+      planning_groups_[pconfig[i].name].reset(new PlanningConfiguration(pconfig[i].name, jmg, constraints_, pconfig[i].config, scene_));
       ROS_INFO_STREAM("Added planning configuration '" << pconfig[i].name << "'");
     }
   }
@@ -77,7 +77,7 @@ bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
     if (planning_groups_.find(it->first) == planning_groups_.end())
     {
       static const std::map<std::string, std::string> empty;
-      planning_groups_[it->first].reset(new PlanningGroup(it->first, it->second, constraints_, empty, scene_));
+      planning_groups_[it->first].reset(new PlanningConfiguration(it->first, it->second, constraints_, empty, scene_));
       ROS_INFO_STREAM("Added planning configuration '" << it->first << "'");
     }
   
@@ -87,7 +87,7 @@ bool ompl_interface::OMPLInterface::configure(const planning_scene::PlanningScen
 
 void ompl_interface::OMPLInterface::configureIKSolvers(const std::map<std::string, kinematic_constraints::IKAllocator> &ik_allocators)
 {
-  for (std::map<std::string, PlanningGroupPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
+  for (std::map<std::string, PlanningConfigurationPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
   {
     std::map<std::string, kinematic_constraints::IKAllocator>::const_iterator jt = ik_allocators.find(it->second->getJointModelGroup()->getName());
     if (jt == ik_allocators.end())
@@ -138,24 +138,24 @@ void ompl_interface::OMPLInterface::configureIKSolvers(const std::map<std::strin
 
 void ompl_interface::OMPLInterface::setMaximumSamplingAttempts(unsigned int max_sampling_attempts)
 {
-  for (std::map<std::string, PlanningGroupPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
+  for (std::map<std::string, PlanningConfigurationPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
     it->second->setMaximumSamplingAttempts(max_sampling_attempts);
 }
 
 void ompl_interface::OMPLInterface::setMaximumGoalSamples(unsigned int max_goal_samples)
 {
-  for (std::map<std::string, PlanningGroupPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
+  for (std::map<std::string, PlanningConfigurationPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
     it->second->setMaximumGoalSamples(max_goal_samples);
 }
 
 void ompl_interface::OMPLInterface::setMaximumPlanningThreads(unsigned int max_planning_threads)
 {
-  for (std::map<std::string, PlanningGroupPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
+  for (std::map<std::string, PlanningConfigurationPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
     it->second->setMaximumPlanningThreads(max_planning_threads);
 }
 
 bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
-                                                    PlanningGroup* &pg_to_use, unsigned int &attempts, double &timeout) const
+                                                    PlanningConfigurationPtr &pg_to_use, unsigned int &attempts, double &timeout) const
 {
   if (req.group_name.empty())
   {
@@ -165,7 +165,7 @@ bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPla
   }
   
   // identify the correct planning group
-  std::map<std::string, PlanningGroupPtr>::const_iterator pg = planning_groups_.end();
+  std::map<std::string, PlanningConfigurationPtr>::const_iterator pg = planning_groups_.end();
   if (!req.planner_id.empty())
   {
     pg = planning_groups_.find(req.group_name + "[" + req.planner_id + "]");
@@ -203,7 +203,7 @@ bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPla
     timeout = 1.0;
   }
   
-  pg_to_use = pg->second.get();
+  pg_to_use = pg->second;
   
   attempts = 1;
   if (req.num_planning_attempts > 0)
@@ -217,18 +217,17 @@ bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPla
 
 bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
 {
-  //    ompl::Profiler::ScopedStart pslv;
+  ompl::Profiler::ScopedStart pslv;
   
-  PlanningGroup *pg = NULL;
+  PlanningConfigurationPtr pg;
   unsigned int attempts = 0;
   double timeout = 0.0;
   if (!prepareForSolve(req.motion_plan_request, res.error_code, pg, attempts, timeout))
     return false;
+  last_planning_configuration_solve_ = pg;
   
   if (pg->solve(timeout, attempts))
   {
-    //        ompl::Profiler::Status();
-    
     double ptime = pg->getLastPlanTime();
     if (ptime < timeout)
       pg->simplifySolution(timeout - ptime);
@@ -252,7 +251,7 @@ bool ompl_interface::OMPLInterface::solve(const moveit_msgs::GetMotionPlan::Requ
 
 bool ompl_interface::OMPLInterface::benchmark(const moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res) const
 {
-  PlanningGroup *pg = NULL;
+  PlanningConfigurationPtr pg;
   unsigned int attempts = 0;
   double timeout = 0.0;
   if (!prepareForSolve(req.motion_plan_request, res.error_code, pg, attempts, timeout))
@@ -261,16 +260,18 @@ bool ompl_interface::OMPLInterface::benchmark(const moveit_msgs::ComputePlanning
   return pg->benchmark(timeout, attempts, req.filename);
 }
 
-bool ompl_interface::OMPLInterface::solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints, double timeout)
+bool ompl_interface::OMPLInterface::solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints, double timeout) const
 {
   moveit_msgs::Constraints empty;
   return solve(config, start_state, goal_constraints, empty, timeout);
 }
 
 bool ompl_interface::OMPLInterface::solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints,
-                                          const moveit_msgs::Constraints &path_constraints, double timeout)
-{
-  std::map<std::string, PlanningGroupPtr>::const_iterator pg = planning_groups_.find(config);
+                                          const moveit_msgs::Constraints &path_constraints, double timeout) const
+{ 
+  ompl::Profiler::ScopedStart pslv;
+
+  std::map<std::string, PlanningConfigurationPtr>::const_iterator pg = planning_groups_.find(config);
   if (pg == planning_groups_.end())
   {
     ROS_ERROR("Planner configuration '%s' not found", config.c_str());
@@ -281,6 +282,8 @@ bool ompl_interface::OMPLInterface::solve(const std::string &config, const plann
   std::vector<moveit_msgs::Constraints> goal_constraints_v(1, goal_constraints);
   if (!pg->second->setupPlanningContext(start_state, goal_constraints_v, path_constraints))
     return false;
+  
+  last_planning_configuration_solve_ = pg->second;
   
   // solve the planning problem
   if (pg->second->solve(timeout, 1))
@@ -295,13 +298,13 @@ bool ompl_interface::OMPLInterface::solve(const std::string &config, const plann
   return false;
 }
 
-const ompl_interface::PlanningGroupPtr& ompl_interface::OMPLInterface::getPlanningConfiguration(const std::string &config) const
+const ompl_interface::PlanningConfigurationPtr& ompl_interface::OMPLInterface::getPlanningConfiguration(const std::string &config) const
 {
-  std::map<std::string, PlanningGroupPtr>::const_iterator pg = planning_groups_.find(config);
+  std::map<std::string, PlanningConfigurationPtr>::const_iterator pg = planning_groups_.find(config);
   if (pg == planning_groups_.end())
   {
     ROS_ERROR("Planner configuration '%s' not found", config.c_str());
-    static PlanningGroupPtr empty;
+    static PlanningConfigurationPtr empty;
     return empty;
   }
   else
@@ -315,7 +318,7 @@ void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs
 
 void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard, const std::string &group, unsigned int samples)
 {  
-  const PlanningGroupPtr &pg = getPlanningConfiguration(group);
+  const PlanningConfigurationPtr &pg = getPlanningConfiguration(group);
   if (pg)
   {
     ompl::base::StateStoragePtr ss = pg->constructConstraintApproximation(constr_sampling, constr_hard, samples);
@@ -345,7 +348,7 @@ void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::stri
     if (fin.eof())
       break;
     fin >> filename;
-    const PlanningGroupPtr &pg = getPlanningConfiguration(group);
+    const PlanningConfigurationPtr &pg = getPlanningConfiguration(group);
     if (pg)
     {
       ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > *sstor_wm =
@@ -393,7 +396,7 @@ void ompl_interface::OMPLInterface::printConstraintApproximations(std::ostream &
 void ompl_interface::OMPLInterface::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) 
 {
   scene_ = planning_scene;
-  for(std::map<std::string, PlanningGroupPtr>::iterator it = planning_groups_.begin();
+  for(std::map<std::string, PlanningConfigurationPtr>::iterator it = planning_groups_.begin();
       it != planning_groups_.end();
       it++) {
     it->second->updatePlanningScene(scene_);

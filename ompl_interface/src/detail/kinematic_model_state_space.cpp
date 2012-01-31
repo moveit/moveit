@@ -80,6 +80,15 @@ void ompl_interface::KMStateSpace::copyState(ompl::base::State *destination, con
   destination->as<StateType>()->tag = source->as<StateType>()->tag;  
 }
 
+void ompl_interface::KMStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const
+{
+  CompoundStateSpace::interpolate(from, to, t, state);
+  if (from->as<StateType>()->tag >= 0 && to->as<StateType>()->tag >= 0)
+    state->as<StateType>()->tag = t < 0.5 ? from->as<StateType>()->tag : to->as<StateType>()->tag;
+  else
+    state->as<StateType>()->tag = std::max(from->as<StateType>()->tag, to->as<StateType>()->tag);
+}
+
 void ompl_interface::KMStateSpace::copyToKinematicState(planning_models::KinematicState &kstate, const ompl::base::State *state) const
 {
   if (jmg_)
