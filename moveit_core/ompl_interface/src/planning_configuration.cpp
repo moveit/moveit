@@ -201,11 +201,13 @@ void ompl_interface::PlanningConfiguration::setProjectionEvaluator(const std::st
       ROS_ERROR("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());
 }
 
+namespace ompl_interface
+{
 class ConstraintApproximationStateSampler : public ompl::base::StateSampler
 {
 public:
   
-  ConstraintApproximationStateSampler(const ompl::base::StateSpace *space, const ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > *state_storage) : 
+  ConstraintApproximationStateSampler(const ompl::base::StateSpace *space, const ConstraintApproximationStateStorage *state_storage) : 
     ompl::base::StateSampler(space), state_storage_(state_storage)
   {
   }
@@ -218,7 +220,7 @@ public:
   virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
   {
     int index = -1;
-    int tag = near->as<ompl_interface::KMStateSpace::StateType>()->tag;
+    int tag = near->as<KMStateSpace::StateType>()->tag;
     if (tag >= 0)
     {
       const std::vector<std::size_t> &md = state_storage_->getMetadata(tag);
@@ -244,9 +246,9 @@ public:
 protected:
   
   /** \brief The states to sample from */
-  const ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > *state_storage_;  
+  const ConstraintApproximationStateStorage *state_storage_;  
 };
-
+}
 
 ompl::base::StateSamplerPtr ompl_interface::PlanningConfiguration::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
 {
@@ -260,7 +262,7 @@ ompl::base::StateSamplerPtr ompl_interface::PlanningConfiguration::allocPathCons
 	if (constraint_approx_->at(i).state_storage_)
 	{
 	  ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
-	  return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, static_cast<ompl::base::StateStorageWithMetadata< std::vector<std::size_t> >*>(constraint_approx_->at(i).state_storage_.get())));
+	  return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, constraint_approx_->at(i).state_storage_));
         }
   const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_kinematic_constraints_set_->getAllConstraints());
   if (cs)
@@ -290,9 +292,8 @@ ompl::base::StateStoragePtr ompl_interface::PlanningConfiguration::constructCons
                                                                                                     unsigned int samples)
 {
   // state storage structure
-  ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > *sstor_wm =
-    new ompl::base::StateStorageWithMetadata< std::vector<std::size_t> >(ompl_simple_setup_.getStateSpace());
-  ompl::base::StateStoragePtr sstor(sstor_wm);
+  ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(ompl_simple_setup_.getStateSpace());
+  ompl::base::StateStoragePtr sstor(cass);
   
   // construct a sampler for the sampling constraints
   kinematic_constraints::KinematicConstraintSet kset(planning_scene_->getKinematicModel(), planning_scene_->getTransforms());
@@ -394,8 +395,8 @@ ompl::base::StateStoragePtr ompl_interface::PlanningConfiguration::constructCons
       {
 #pragma omp critical
 	{
-	  sstor_wm->getMetadata(i).push_back(j);
-	  sstor_wm->getMetadata(j).push_back(i);
+	  cass->getMetadata(i).push_back(j);
+	  cass->getMetadata(j).push_back(i);
 	  good++;
 	}
       }

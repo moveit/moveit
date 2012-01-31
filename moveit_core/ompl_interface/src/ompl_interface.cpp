@@ -323,7 +323,7 @@ void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs
   {
     ompl::base::StateStoragePtr ss = pg->constructConstraintApproximation(constr_sampling, constr_hard, samples);
     if (ss)
-      constraints_->push_back(ConstraintApproximation(scene_, group, constr_hard, group + "_" + 
+      constraints_->push_back(ConstraintApproximation(scene_->getKinematicModel(), group, constr_hard, group + "_" + 
 						      boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss));
     else
       ROS_ERROR("Unable to construct constraint approximation for group '%s'", group.c_str());
@@ -351,13 +351,11 @@ void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::stri
     const PlanningConfigurationPtr &pg = getPlanningConfiguration(group);
     if (pg)
     {
-      ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > *sstor_wm =
-	new ompl::base::StateStorageWithMetadata< std::vector<std::size_t> >(pg->getOMPLSimpleSetup().getStateSpace());
-      ompl::base::StateStoragePtr sstor(sstor_wm);
-      sstor->load((path + "/" + filename).c_str());
-      for (std::size_t i = 0 ; i < sstor->size() ; ++i)
-	sstor->getState(i)->as<KMStateSpace::StateType>()->tag = i;
-      constraints_->push_back(ConstraintApproximation(scene_, group, serialization, filename, sstor));
+      ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(pg->getOMPLSimpleSetup().getStateSpace());
+      cass->load((path + "/" + filename).c_str());
+      for (std::size_t i = 0 ; i < cass->size() ; ++i)
+	cass->getState(i)->as<KMStateSpace::StateType>()->tag = i;
+      constraints_->push_back(ConstraintApproximation(scene_->getKinematicModel(), group, serialization, filename, ompl::base::StateStoragePtr(cass)));
     }
   }
 }
@@ -402,4 +400,3 @@ void ompl_interface::OMPLInterface::updatePlanningScene(const planning_scene::Pl
     it->second->updatePlanningScene(scene_);
   }
 }
-
