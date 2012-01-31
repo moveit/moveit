@@ -59,7 +59,7 @@ namespace ompl_interface_ros
       void configureIKSolvers(void);
 
       /** @brief Configure the planners*/
-      void configurePlanners(std::vector<ompl_interface::PlannerConfigs> &pconfig);
+      void configurePlanners(std::vector<ompl_interface::PlanningConfigurationSettings> &pconfig);
 
       ros::NodeHandle                         nh_; /// The ROS node handle
 

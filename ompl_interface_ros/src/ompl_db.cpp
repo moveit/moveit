@@ -52,11 +52,14 @@ int main(int argc, char **argv)
   ros::NodeHandle nh("~");
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
   ompl_interface_ros::OMPLInterfaceROS ompl_interface(psm.getPlanningScene());
+
   /*
   ros::Publisher pub_state = nh.advertise<moveit_msgs::DisplayTrajectory>("/display_motion_plan", 20);
   
   sleep(1);
   const ompl_interface::ConstraintApproximation &ca = ompl_interface.getConstraintApproximations()->at(0);
+  const ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > *sswm =
+    static_cast<const ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > *>(ca.state_storage_.get());  
   for (unsigned int i = 0 ; i < 100 ; ++i)
   {
     planning_models::KinematicState ks = ca.getState(ompl_interface.getPlanningConfiguration(ca.group_), i);
@@ -65,9 +68,13 @@ int main(int argc, char **argv)
     planning_models::kinematicStateToRobotState(ks, d.robot_state);
 
     const ompl::base::State *a = ca.state_storage_->getStates()[i];
-    const ompl::base::State *b = ca.state_storage_->getStates()[i + 100];
+    if (sswm->getMetadata(i).empty())
+      continue;
+    const ompl::base::State *b = ca.state_storage_->getStates()[sswm->getMetadata(i).front()];
+  
+  //    const ompl::base::State *b = ca.state_storage_->getStates()[i + 100];
     ompl::geometric::PathGeometric pg(ompl_interface.getPlanningConfiguration("right_arm")->getOMPLSimpleSetup().getSpaceInformation(), a, b);
-    pg.interpolate();
+    pg.interpolate(10);
     ompl_interface.getPlanningConfiguration("right_arm")->convertPath(pg, d.trajectory);
     
 
@@ -76,6 +83,7 @@ int main(int argc, char **argv)
   }
   */
 
+  /*
   sleep(1);
 
   moveit_msgs::Constraints constr1;
@@ -98,6 +106,9 @@ int main(int argc, char **argv)
 
   ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", 10000);
 
+  */
+
+
     /*
   moveit_msgs::Constraints constr2;
   constr2.orientation_constraints.resize(1);
@@ -115,7 +126,7 @@ int main(int argc, char **argv)
 
   ompl_interface.addConstraintApproximation(constr2, "left_arm", 100000);
     */
-  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
+//  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
 
   return 0;
 }
