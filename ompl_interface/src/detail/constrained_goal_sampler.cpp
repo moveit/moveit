@@ -130,7 +130,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
         {
             state_.getJointStateGroup(planning_group_->getJointModelGroup()->getName())->setStateValues(values);
             double distance = 0.0;
-            if (kinematic_constraint_set_->decide(state_,distance))
+            if (kinematic_constraint_set_->decide(state_, distance))
             {
                 planning_group_->getKMStateSpace().copyToOMPLState(newGoal, values);
                 return true;

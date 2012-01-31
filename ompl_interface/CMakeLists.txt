@@ -34,3 +34,5 @@ rosbuild_add_library(${PROJECT_NAME}
   src/detail/projection_evaluators.cpp
   src/detail/constraint_approximations.cpp
   src/detail/ompl_console.cpp)
+
+rosbuild_add_openmp_flags(${PROJECT_NAME})
