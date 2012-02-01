@@ -416,6 +416,7 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
           j->variable_bounds_[0] = std::make_pair(urdf_joint->safety->soft_lower_limit, urdf_joint->safety->soft_upper_limit);
         else
           j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);
+        j->max_velocity_ = fabs(urdf_joint->limits->velocity);
         j->continuous_ = false;
         j->axis_ = Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
         result = j;
@@ -426,6 +427,7 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
         RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
         j->continuous_ = true;
         j->variable_bounds_[0] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
+        j->max_velocity_ = fabs(urdf_joint->limits->velocity);
         j->axis_ = Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
         result = j;
       }
@@ -436,7 +438,8 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
         if(urdf_joint->safety)
           j->variable_bounds_[0] = std::make_pair(urdf_joint->safety->soft_lower_limit, urdf_joint->safety->soft_upper_limit);
         else
-          j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);
+          j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);  
+        j->max_velocity_ = fabs(urdf_joint->limits->velocity);
         j->axis_ = Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
         result = j;
       }
@@ -728,7 +731,7 @@ void planning_models::KinematicModel::getDefaultValues(std::vector<double> &valu
 /* ------------------------ JointModel ------------------------ */
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :
-  name_(name), type_(UNKNOWN), parent_link_model_(NULL), child_link_model_(NULL),
+  name_(name), type_(UNKNOWN), max_velocity_(0.0), parent_link_model_(NULL), child_link_model_(NULL),
   mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), tree_index_(-1)
 {
 }

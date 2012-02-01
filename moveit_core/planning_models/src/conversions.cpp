@@ -48,11 +48,11 @@ static bool jointStateToKinematicState(const sensor_msgs::JointState &joint_stat
                      << ", " << joint_state.position.size());
     return false;
   }
-
+  
   std::map<std::string, double> joint_state_map;
   for (unsigned int i = 0 ; i < joint_state.name.size(); ++i)
     joint_state_map[joint_state.name[i]] = joint_state.position[i];
-
+  
   if (missing == NULL)
     state.setStateValues(joint_state_map);
   else
@@ -74,17 +74,17 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
     ROS_ERROR("Different number of names, values or frames in MultiDOFJointState message.");
     return false;
   }
-
+  
   std::vector<Eigen::Affine3d> transf(mjs.joint_names.size());
   bool tf_problem = false;
   bool error = false;
-
+  
   for (unsigned int i = 0 ; i < mjs.joint_names.size(); ++i)
   {
     if (!poseFromMsg(mjs.poses[i], transf[i]))
       ROS_WARN("MultiDOFJointState message has incorrect quaternion specification for joint '%s'. Assuming identity.",
                mjs.joint_names[i].c_str());
-
+    
     // if frames do not mach, attempt to transform
     if (mjs.frame_ids[i] != state.getKinematicModel()->getModelFrame())
     {
@@ -113,7 +113,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
       }
     }
   }
-
+  
   for (unsigned int i = 0 ; i < mjs.joint_names.size(); ++i)
   {
     const std::string &joint_name = mjs.joint_names[i];
@@ -124,16 +124,16 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
       continue;
     }
     planning_models::KinematicState::JointState* joint_state = state.getJointState(joint_name);
-
+    
     if (mjs.child_frame_ids[i] != joint_state->getJointModel()->getChildLinkModel()->getName())
     {
       ROS_WARN_STREAM("Robot state msg has bad multi_dof transform - child frame_ids do not match up with joint");
       tf_problem = true;
     }
-
+    
     joint_state->setVariableValues(transf[i]);
   }
-
+  
   return !tf_problem && !error;
 }
 
@@ -157,7 +157,7 @@ static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_
             missing.erase(vnames[i]);
         }
       }
-
+    
     return missing.empty();
   }
   else
@@ -204,14 +204,14 @@ void planning_models::kinematicStateToJointState(const KinematicState& state, se
 {
   const std::vector<KinematicState::JointState*> &js = state.getJointStateVector();
   joint_state = sensor_msgs::JointState();
-
+  
   for (std::size_t i = 0 ; i < js.size() ; ++i)
     if (js[i]->getVariableCount() == 1)
     {
       joint_state.name.push_back(js[i]->getName());
       joint_state.position.push_back(js[i]->getVariableValues()[0]);
     }
-
+  
   joint_state.header.frame_id = state.getKinematicModel()->getModelFrame();
 }
 
@@ -225,7 +225,7 @@ void planning_models::robotTrajectoryPointToRobotState(const moveit_msgs::RobotT
     rs.joint_state.position = rt.joint_trajectory.points[index].positions;
     rs.joint_state.velocity = rt.joint_trajectory.points[index].velocities;
   }
-
+  
   if (rt.multi_dof_joint_trajectory.points.size() > index)
   {
     rs.multi_dof_joint_state.joint_names = rt.multi_dof_joint_trajectory.joint_names;
