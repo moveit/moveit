@@ -46,6 +46,7 @@
 #include <moveit_msgs/ComputePlanningBenchmark.h>
 #include <kinematic_constraints/constraint_samplers.h>
 #include <planning_scene/planning_scene.h>
+#include <boost/thread/mutex.hpp>
 
 #include "ompl_interface/detail/kinematic_model_state_space.h"
 #include "ompl_interface/detail/constraint_approximations.h"
@@ -64,11 +65,11 @@ public:
      @brief Constructor
      @param name The name of the planning group
      @param jmg The joint model group to plan with
+     @param constraint_approx Known approximations of constraint spaces
      @param config A map of configuration parameters for the planners
-     @param scene A pointer to a planning scene
   */
-  PlanningConfiguration(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg, const ConstraintApproximationsPtr &constraint_approx,
-                        const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene);
+  PlanningConfiguration(const std::string &name, const planning_models::KinematicModelConstPtr &kmodel, const planning_models::KinematicModel::JointModelGroup *jmg,
+                        const ConstraintApproximationsPtr &constraint_approx, const std::map<std::string, std::string> &config);
   virtual ~PlanningConfiguration(void);
   
   /* \brief Return the name of this planning group. This is not always the same as the name of the joint group the planner is operating on */
@@ -191,7 +192,8 @@ public:
      @param status The return status code
      @return False if something goes wrong (status code provides more information on what went wrong)
   */
-  bool setupPlanningContext(const planning_models::KinematicState &start_state,
+  bool setupPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
+                            const planning_models::KinematicState &start_state,
                             const std::vector<moveit_msgs::Constraints> &goal_constraints,
                             const moveit_msgs::Constraints &path_constraints,
                             moveit_msgs::MoveItErrorCodes *status = NULL);
@@ -230,7 +232,6 @@ public:
   
   void convertPath(const ompl::geometric::PathGeometric &pg, moveit_msgs::RobotTrajectory &traj) const;
   
-  
   /* @brief Construct a database of states for the state space defined in this planning group.
      Returns the OMPL storage datastructure holding the generated states.
      @param constr the constraints to be satisfied
@@ -244,7 +245,9 @@ public:
      @param samples The number of attempts at generating samples */    
   ompl::base::StateStoragePtr constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard, unsigned int samples);
   
-  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
+  void lock(void) const;
+  void unlock(void) const;
+  
 protected:
   
   void useConfig(const std::map<std::string, std::string> &config);
@@ -259,7 +262,9 @@ protected:
   /// name of this planning group (or externally specified configuration name, if such a configuration is provided;
   /// there may be multiple (perhaps differently configured and differently named) configurations for the same group)
   std::string                                             name_;
-  
+
+  const planning_models::KinematicModelConstPtr           kmodel_;
+
   /// the group planning is performed for.
   const planning_models::KinematicModel::JointModelGroup *joint_model_group_;
   
@@ -312,7 +317,9 @@ protected:
   kinematic_constraints::IKAllocator                      ik_allocator_;
   
   kinematic_constraints::IKSubgroupAllocator              ik_subgroup_allocators_;
-  
+
+
+  mutable boost::mutex                                    lock_;
 };
 
 typedef boost::shared_ptr<PlanningConfiguration> PlanningConfigurationPtr;

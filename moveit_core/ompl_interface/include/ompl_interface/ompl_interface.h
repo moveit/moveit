@@ -59,13 +59,12 @@ class OMPLInterface
 {
 public: 
   
-  OMPLInterface(void);
+  OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel);
   virtual ~OMPLInterface(void);
   
-  /** @brief Configure with a planning scene and configuration for the planners.
-      @param scene The planning scene
-      @param pconfig The configuration for the planning scene */
-  bool configure(const planning_scene::PlanningSceneConstPtr &scene, const std::vector<PlanningConfigurationSettings> &pconfig);
+  /** @brief Specify configurations for the planners.
+      @param pconfig Configurations for the different planners */
+  bool configure(const std::vector<PlanningConfigurationSettings> &pconfig);
   
   /** @brief Configure the inverse kinematics solvers
       @param ik_allocators Allocate the inverse kinematics solvers*/
@@ -84,10 +83,13 @@ public:
   const PlanningConfigurationPtr& getPlanningConfiguration(const std::string &config) const;
   
   /** @brief Solve the planning problem*/
-  bool solve(const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
+  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
   
   /** @brief Benchmark the planning problem*/
-  bool benchmark(const moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res) const;
+  bool benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                 const moveit_msgs::ComputePlanningBenchmark::Request &req,                  
+                 moveit_msgs::ComputePlanningBenchmark::Response &res) const;
   
   /** @brief Solve the planning problem
    *  @param config
@@ -95,7 +97,9 @@ public:
    *  @param goal_constraints The goal constraints
    *  @param timeout The amount of time to spend on planning
    */
-  bool solve(const std::string &config, const planning_models::KinematicState &start_state, const moveit_msgs::Constraints &goal_constraints, double timeout) const;
+  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const std::string &config, const planning_models::KinematicState &start_state,
+             const moveit_msgs::Constraints &goal_constraints, double timeout) const;
   
   /** @brief Solve the planning problem
    *  @param config
@@ -104,11 +108,10 @@ public:
    *  @param path_constraints The path constraints
    *  @param timeout The amount of time to spend on planning
    */
-  bool solve(const std::string &config,
-             const planning_models::KinematicState &start_state,
+  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const std::string &config, const planning_models::KinematicState &start_state,
              const moveit_msgs::Constraints &goal_constraints,
-             const moveit_msgs::Constraints &path_constraints,
-             double timeout) const;
+             const moveit_msgs::Constraints &path_constraints, double timeout) const;
   
   const PlanningConfigurationPtr& getLastPlanningConfiguration(void) const
   {
@@ -133,17 +136,16 @@ public:
     return constraints_;
   }
   
-  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
-  
 protected:
   
   
   /** \brief Configure the OMPL planning context for a new planning request */
-  bool prepareForSolve(const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
-                       PlanningConfigurationPtr &pg_to_use, unsigned int &attempts, double &timeout) const;
+  bool prepareForSolve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                       const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
+                       PlanningConfigurationPtr &pc_to_use, unsigned int &attempts, double &timeout) const;
   
-  /** \brief The planning scene to consider as context when computing motion plans */
-  planning_scene::PlanningSceneConstPtr   scene_;
+  /** \brief The kinematic model for which motion plans are computed */
+  const planning_models::KinematicModelConstPtr   kmodel_;
   
   /** \brief All the existing planning configurations. The name
       of the configuration is the key of the map. This name can
