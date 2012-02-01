@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/state_validity_checker.h"
-#include <ompl/util/Profiler.h>
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const PlanningConfiguration *pc) :
   ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_config_(pc),
@@ -50,7 +49,9 @@ void ompl_interface::StateValidityChecker::useNewStartingState(void)
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state) const
-{
+{  
+  //  ompl::Profiler::ScopedBlock sblock("isValid");
+
   planning_models::KinematicState *kstate = tss_->getStateStorage();
   planning_config_->getKMStateSpace().copyToKinematicState(*kstate, state);
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
@@ -66,6 +67,8 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist) const
 {
+  //  ompl::Profiler::ScopedBlock sblock("isValid");
+  
   planning_models::KinematicState *kstate = tss_->getStateStorage();
   planning_config_->getKMStateSpace().copyToKinematicState(*kstate, state);
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();

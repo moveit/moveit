@@ -65,8 +65,6 @@
 #include <sstream>
 #include <fstream>
 
-#include <ompl/util/Profiler.h>
-
 ompl::base::PlannerPtr ompl_interface::PlanningConfiguration::plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
                                                                                const std::map<std::string, std::string> &config) const
 {
@@ -115,6 +113,7 @@ ompl_interface::PlanningConfiguration::PlanningConfiguration(const std::string &
   
 {
   max_solution_segment_length_ = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / 100.0;
+  ompl_simple_setup_.getSpaceInformation()->setStateValidityCheckingResolution(0.05);
   ompl_simple_setup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
   static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->useNewStartingState();
   ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningConfiguration::allocPathConstrainedSampler, this, _1));
@@ -594,7 +593,6 @@ bool ompl_interface::PlanningConfiguration::solve(double timeout, unsigned int c
   
   if (ompl_simple_setup_.getGoal()->isApproximate())
     ROS_WARN("Computed solution is approximate");
-  ompl::Profiler::Status();
   
   return result;
 }

@@ -41,7 +41,6 @@
 #include <set>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <ompl/util/Profiler.h>
 
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) : kmodel_(kmodel), configured_(false)
 {   
