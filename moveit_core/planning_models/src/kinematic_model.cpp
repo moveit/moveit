@@ -415,8 +415,14 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
         if (urdf_joint->safety)
           j->variable_bounds_[0] = std::make_pair(urdf_joint->safety->soft_lower_limit, urdf_joint->safety->soft_upper_limit);
         else
-          j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);
-        j->max_velocity_ = fabs(urdf_joint->limits->velocity);
+        {
+          if (urdf_joint->limits)
+            j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);
+          else
+            j->variable_bounds_[0] = std::make_pair(0.0, 0.0);
+        }
+        if (urdf_joint->limits)
+          j->max_velocity_ = fabs(urdf_joint->limits->velocity);
         j->continuous_ = false;
         j->axis_ = Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
         result = j;
@@ -427,7 +433,8 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
         RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
         j->continuous_ = true;
         j->variable_bounds_[0] = std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>());
-        j->max_velocity_ = fabs(urdf_joint->limits->velocity);
+        if (urdf_joint->limits)
+          j->max_velocity_ = fabs(urdf_joint->limits->velocity);
         j->axis_ = Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
         result = j;
       }
@@ -438,8 +445,14 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
         if(urdf_joint->safety)
           j->variable_bounds_[0] = std::make_pair(urdf_joint->safety->soft_lower_limit, urdf_joint->safety->soft_upper_limit);
         else
-          j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);  
-        j->max_velocity_ = fabs(urdf_joint->limits->velocity);
+        {
+          if (urdf_joint->limits)
+            j->variable_bounds_[0] = std::make_pair(urdf_joint->limits->lower, urdf_joint->limits->upper);  
+          else
+            j->variable_bounds_[0] = std::make_pair(0.0, 0.0);
+        }
+        if (urdf_joint->limits)
+          j->max_velocity_ = fabs(urdf_joint->limits->velocity);
         j->axis_ = Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
         result = j;
       }
