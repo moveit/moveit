@@ -102,13 +102,14 @@ ompl::base::PlannerPtr ompl_interface::PlanningConfiguration::plannerAllocator(c
   return ompl::base::PlannerPtr(p);
 }
 
-ompl_interface::PlanningConfiguration::PlanningConfiguration(const std::string &name, const planning_models::KinematicModel::JointModelGroup *jmg, 
+ompl_interface::PlanningConfiguration::PlanningConfiguration(const std::string &name, const planning_models::KinematicModelConstPtr &kmodel,
+                                                             const planning_models::KinematicModel::JointModelGroup *jmg, 
                                                              const ConstraintApproximationsPtr &constraint_approx,
-                                                             const std::map<std::string, std::string> &config, const planning_scene::PlanningSceneConstPtr &scene) :
+                                                             const std::map<std::string, std::string> &config) :
   
-  name_(name), joint_model_group_(jmg), planning_scene_(scene), kinematic_model_state_space_(new KMStateSpace(jmg)),
+  name_(name), kmodel_(kmodel), joint_model_group_(jmg), kinematic_model_state_space_(new KMStateSpace(jmg)),
   ompl_state_space_(kinematic_model_state_space_), ompl_simple_setup_(ompl_state_space_), ompl_benchmark_(ompl_simple_setup_),
-  parallel_plan_(ompl_simple_setup_.getProblemDefinition()), start_state_(scene->getCurrentState()), 
+  parallel_plan_(ompl_simple_setup_.getProblemDefinition()), start_state_(kmodel), 
   constraint_approx_(constraint_approx), last_plan_time_(0.0),
   max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
   
@@ -117,7 +118,6 @@ ompl_interface::PlanningConfiguration::PlanningConfiguration(const std::string &
   ompl_simple_setup_.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(new StateValidityChecker(this)));
   static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->useNewStartingState();
   ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&PlanningConfiguration::allocPathConstrainedSampler, this, _1));
-  path_kinematic_constraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(planning_scene_->getKinematicModel(), planning_scene_->getTransforms()));
   useConfig(config);
 }
 
@@ -165,7 +165,7 @@ void ompl_interface::PlanningConfiguration::setProjectionEvaluator(const std::st
   if (peval.find_first_of("link(") == 0 && peval[peval.length() - 1] == ')')
   {
     std::string link_name = peval.substr(5, peval.length() - 6);
-    if (planning_scene_->getKinematicModel()->hasLinkModel(link_name))
+    if (kmodel_->hasLinkModel(link_name))
       ompl_simple_setup_.getStateSpace()->registerDefaultProjection(ompl::base::ProjectionEvaluatorPtr(new ProjectionEvaluatorLinkPose(this, link_name)));
     else
       ROS_ERROR("Attempted to set projection evaluator with respect to position of link '%s', but that link is not known to the kinematic model.", link_name.c_str());
@@ -180,9 +180,9 @@ void ompl_interface::PlanningConfiguration::setProjectionEvaluator(const std::st
       while (ss.good() && !ss.eof())
       {
 	std::string v; ss >> v >> std::ws;
-	if (planning_scene_->getKinematicModel()->hasJointModel(v))
+	if (kmodel_->hasJointModel(v))
 	{
-	  unsigned int vc = planning_scene_->getKinematicModel()->getJointModel(v)->getVariableCount();
+	  unsigned int vc = kmodel_->getJointModel(v)->getVariableCount();
 	  if (vc > 0)
 	    j.push_back(std::make_pair(v, vc));
 	  else
@@ -229,13 +229,11 @@ public:
     }
     if (index < 0)
       index = rng_.uniformInt(0, state_storage_->size() - 1);
-    /*
-      double dist = space_->distance(near, state_storage_->getState(index));
-      if (dist > distance)
+    double dist = space_->distance(near, state_storage_->getState(index));
+    if (dist > distance)
       space_->interpolate(near, state_storage_->getState(index), distance / dist, state);
-      else
-    */
-    space_->copyState(state, state_storage_->getState(index));
+    else
+      space_->copyState(state, state_storage_->getState(index));
   }
   
   virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
@@ -256,25 +254,25 @@ ompl::base::StateSamplerPtr ompl_interface::PlanningConfiguration::allocPathCons
     ROS_FATAL("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
   ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
   
-  if (constraint_approx_ && !path_kinematic_constraints_set_->empty())
-    for (std::size_t i = 0 ; i < constraint_approx_->size() ; ++i)
-      if (path_kinematic_constraints_set_->equal(*constraint_approx_->at(i).kconstraints_set_, 0.5))
-	if (constraint_approx_->at(i).state_storage_)
-	{
-	  ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
-	  return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, constraint_approx_->at(i).state_storage_));
-        }
-  const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_kinematic_constraints_set_->getAllConstraints());
-  if (cs)
+  if (path_kinematic_constraints_set_)
   {
-    ROS_DEBUG("%s: Allocating specialized state sampler for state space", name_.c_str());
-    return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
+    if (constraint_approx_ && !path_kinematic_constraints_set_->empty())
+      for (std::size_t i = 0 ; i < constraint_approx_->size() ; ++i)
+        if (path_kinematic_constraints_set_->equal(*constraint_approx_->at(i).kconstraints_set_, 0.5))
+          if (constraint_approx_->at(i).state_storage_)
+          {
+            ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
+            return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, constraint_approx_->at(i).state_storage_));
+          }
+    const kinematic_constraints::ConstraintSamplerPtr &cs = getConstraintsSampler(path_kinematic_constraints_set_->getAllConstraints());
+    if (cs)
+    {
+      ROS_DEBUG("%s: Allocating specialized state sampler for state space", name_.c_str());
+      return ompl::base::StateSamplerPtr(new ConstrainedSampler(this, cs));
+    }
   }
-  else
-  {
-    ROS_DEBUG("%s: Allocating default state sampler for state space", name_.c_str());
-    return ss->allocDefaultStateSampler();
-  }
+  ROS_DEBUG("%s: Allocating default state sampler for state space", name_.c_str());
+  return ss->allocDefaultStateSampler();
 }
 
 ompl::base::GoalPtr ompl_interface::PlanningConfiguration::getGoalRepresentation(const kinematic_constraints::KinematicConstraintSetPtr &kset) const
@@ -291,16 +289,18 @@ ompl::base::StateStoragePtr ompl_interface::PlanningConfiguration::constructCons
                                                                                                     const moveit_msgs::Constraints &constr_hard,
                                                                                                     unsigned int samples)
 {
+  planning_scene_.reset();
+  
   // state storage structure
   ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(ompl_simple_setup_.getStateSpace());
   ompl::base::StateStoragePtr sstor(cass);
   
   // construct a sampler for the sampling constraints
-  kinematic_constraints::KinematicConstraintSet kset(planning_scene_->getKinematicModel(), planning_scene_->getTransforms());
+  kinematic_constraints::KinematicConstraintSet kset(kmodel_, planning_models::TransformsConstPtr(new planning_models::Transforms(kmodel_->getModelFrame())));
   kset.add(constr_hard);
   
   // default state
-  planning_models::KinematicState default_state(planning_scene_->getKinematicModel());
+  planning_models::KinematicState default_state(kmodel_);
   default_state.setToDefaultValues();
   int nthreads = 0;
   
@@ -409,8 +409,13 @@ ompl::base::StateStoragePtr ompl_interface::PlanningConfiguration::constructCons
 
 kinematic_constraints::ConstraintSamplerPtr ompl_interface::PlanningConfiguration::getConstraintsSampler(const moveit_msgs::Constraints &constr) const
 {
-  return kinematic_constraints::constructConstraintsSampler(joint_model_group_, constr, planning_scene_->getKinematicModel(), planning_scene_->getTransforms(),
-							    ik_allocator_, ik_subgroup_allocators_);
+  if (planning_scene_)
+    return kinematic_constraints::constructConstraintsSampler(joint_model_group_, constr, kmodel_, planning_scene_->getTransforms(),
+                                                              ik_allocator_, ik_subgroup_allocators_);
+  else
+    return kinematic_constraints::constructConstraintsSampler(joint_model_group_, constr, kmodel_,
+                                                              planning_models::TransformsConstPtr(new planning_models::Transforms(kmodel_->getModelFrame())),
+                                                              ik_allocator_, ik_subgroup_allocators_);
 }
 
 void ompl_interface::PlanningConfiguration::setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams)
@@ -423,11 +428,14 @@ void ompl_interface::PlanningConfiguration::setPlanningVolume(const moveit_msgs:
 						  wparams.min_corner.z, wparams.max_corner.z);
 }
 
-bool ompl_interface::PlanningConfiguration::setupPlanningContext(const planning_models::KinematicState &start_state,
+bool ompl_interface::PlanningConfiguration::setupPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
+                                                                 const planning_models::KinematicState &start_state,
                                                                  const std::vector<moveit_msgs::Constraints> &goal_constraints,
                                                                  const moveit_msgs::Constraints &path_constraints,
                                                                  moveit_msgs::MoveItErrorCodes *error)
 {
+  planning_scene_ = planning_scene;
+  
   // ******************* check if the input is correct
   goal_constraints_.clear();
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
@@ -462,6 +470,7 @@ bool ompl_interface::PlanningConfiguration::setupPlanningContext(const planning_
   ompl_simple_setup_.setStartState(ompl_start_state);
   
   // ******************* set the path constraints to use
+  path_kinematic_constraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(kmodel_, planning_scene_->getTransforms()));
   path_kinematic_constraints_set_->clear();
   path_kinematic_constraints_set_->add(path_constraints);
   
@@ -585,6 +594,7 @@ bool ompl_interface::PlanningConfiguration::solve(double timeout, unsigned int c
   
   if (ompl_simple_setup_.getGoal()->isApproximate())
     ROS_WARN("Computed solution is approximate");
+  ompl::Profiler::Status();
   
   return result;
 }
@@ -609,7 +619,7 @@ void ompl_interface::PlanningConfiguration::convertPath(const ompl::geometric::P
   const std::vector<const planning_models::KinematicModel::JointModel*> &jnt = joint_model_group_->getJointModels();
   std::vector<const planning_models::KinematicModel::JointModel*> onedof;
   std::vector<const planning_models::KinematicModel::JointModel*> mdof;
-  traj.joint_trajectory.header.frame_id = planning_scene_->getKinematicModel()->getModelFrame();
+  traj.joint_trajectory.header.frame_id = kmodel_->getModelFrame();
   for (std::size_t i = 0 ; i < jnt.size() ; ++i)
     if (jnt[i]->getVariableCount() == 1)
     {
@@ -619,7 +629,7 @@ void ompl_interface::PlanningConfiguration::convertPath(const ompl::geometric::P
     else
     {
       traj.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
-      traj.multi_dof_joint_trajectory.frame_ids.push_back(planning_scene_->getKinematicModel()->getModelFrame());
+      traj.multi_dof_joint_trajectory.frame_ids.push_back(kmodel_->getModelFrame());
       traj.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
       mdof.push_back(jnt[i]);
     }
@@ -658,7 +668,12 @@ bool ompl_interface::PlanningConfiguration::getSolutionPath(moveit_msgs::RobotTr
   return true;
 }
 
-void ompl_interface::PlanningConfiguration::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) 
+void ompl_interface::PlanningConfiguration::lock(void) const
 {
-  planning_scene_ = planning_scene;
+  lock_.lock();
+}
+
+void ompl_interface::PlanningConfiguration::unlock(void) const
+{
+  lock_.unlock();
 }

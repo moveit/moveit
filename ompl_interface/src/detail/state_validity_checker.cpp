@@ -39,7 +39,7 @@
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const PlanningConfiguration *pc) :
   ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_config_(pc),
-  group_name_(planning_config_->getJointModelGroup()->getName())
+  group_name_(planning_config_->getJointModelGroupName())
 {
   collision_request_with_distance_.distance = true;
 }
