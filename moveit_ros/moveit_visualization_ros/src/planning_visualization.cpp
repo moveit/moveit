@@ -39,7 +39,7 @@ namespace moveit_visualization_ros {
 PlanningVisualization::PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                              boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                              ros::Publisher& marker_publisher)
-  : ompl_interface_(planning_scene)
+  : planning_scene_(planning_scene), ompl_interface_(planning_scene->getKinematicModel())
 {
   group_visualization_.reset(new KinematicsStartGoalVisualization(planning_scene,
                                                                   interactive_marker_server,
@@ -54,7 +54,7 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
 } 
 
 void PlanningVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
-  ompl_interface_.updatePlanningScene(planning_scene);
+  planning_scene_ = planning_scene;
   group_visualization_->updatePlanningScene(planning_scene);
   joint_trajectory_visualization_->updatePlanningScene(planning_scene);
 }
@@ -88,7 +88,7 @@ void PlanningVisualization::generatePlan(void) {
   col.a = .8;
   col.b = 1.0;
 
-  ompl_interface_.solve(req, res);
+  ompl_interface_.solve(planning_scene_, req, res);
   ROS_INFO_STREAM("Trajectory has " << res.trajectory.joint_trajectory.points.size() << " joint names " << res.trajectory.joint_trajectory.joint_names.size());
   joint_trajectory_visualization_->setTrajectory(start_state,
                                                  res.trajectory.joint_trajectory,
