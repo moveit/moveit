@@ -109,29 +109,23 @@ namespace ompl_interface_ros
   };
 }
 
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_scene::PlanningSceneConstPtr &scene) : ompl_interface::OMPLInterface(), nh_("~")
+ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel) : ompl_interface::OMPLInterface(kmodel), nh_("~")
 {
   ROS_INFO("Initializing OMPL interface using ROS parameters");
-  if (scene->isConfigured())
+  
+  std::vector<ompl_interface::PlanningConfigurationSettings> pconfig;
+  configurePlanners(pconfig);
+  
+  // this call will configure planning for all groups known to the kinematic model
+  // and it will use additional configuration options, if available
+  if (configure(pconfig)) 
   {
-    scene_ = scene;
-    
-    std::vector<ompl_interface::PlanningConfigurationSettings> pconfig;
-    configurePlanners(pconfig);
-    
-    // this call will configure planning for all groups known to the kinematic model
-    // and it will use additional configuration options, if available
-    if (configure(scene, pconfig)) 
-    {
-      loadConstraintApproximations("/u/isucan/c/");
-      std::stringstream ss;
-      printConstraintApproximations(ss);
-      ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str());
-      configureIKSolvers();
-    }
+    loadConstraintApproximations("/u/isucan/c/");
+    std::stringstream ss;
+    printConstraintApproximations(ss);
+    ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str());
+    configureIKSolvers();
   }
-  else
-    ROS_ERROR("Planning scene is not configured. Cannot configure OMPL interface.");
 }
 
 std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConfigGroupNames(void)
@@ -150,7 +144,7 @@ std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConf
 	if (group_list[i].getType() == XmlRpc::XmlRpcValue::TypeString)
 	{
 	  std::string gnm = static_cast<std::string>(group_list[i]);
-	  if (scene_->getKinematicModel()->hasJointModelGroup(gnm))
+	  if (kmodel_->hasJointModelGroup(gnm))
 	  {
 	    ROS_INFO("  - group '%s'", gnm.c_str());
 	    group_names.push_back(gnm);

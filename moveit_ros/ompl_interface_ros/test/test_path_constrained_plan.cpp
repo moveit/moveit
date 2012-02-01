@@ -44,7 +44,7 @@
 static const std::string PLANNER_SERVICE_NAME="/ompl_planning/plan_kinematic_path";
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
-TEST(OmplPlanning, SimplePlan)
+TEST(OmplPlanning, PathConstrainedSimplePlan)
 {
   ros::NodeHandle nh;
   ros::service::waitForService(PLANNER_SERVICE_NAME);
@@ -110,8 +110,8 @@ TEST(OmplPlanning, SimplePlan)
   ocm.orientation.quaternion.y = 0.0;
   ocm.orientation.quaternion.z = 0.0;
   ocm.orientation.quaternion.w = 1.0;
-  ocm.absolute_roll_tolerance = 1.4;
-  ocm.absolute_pitch_tolerance = 1.4;
+  ocm.absolute_roll_tolerance = 0.4;
+  ocm.absolute_pitch_tolerance = 0.4;
   ocm.absolute_yaw_tolerance = M_PI;
   ocm.weight = 1.0; 
 

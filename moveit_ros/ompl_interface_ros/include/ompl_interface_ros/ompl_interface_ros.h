@@ -45,7 +45,7 @@ namespace ompl_interface_ros
     public:
       /** @brief Constructor
        *  @param scene A pointer to the planning scene*/
-      OMPLInterfaceROS(const planning_scene::PlanningSceneConstPtr &scene);
+      OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel);
 
       /** @brief Print the status of this node*/
       void printStatus(void);
