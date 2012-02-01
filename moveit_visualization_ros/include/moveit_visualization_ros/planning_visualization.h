@@ -57,6 +57,7 @@ protected:
 
   void generatePlan(void);
 
+  planning_scene::PlanningSceneConstPtr planning_scene_;
   ompl_interface_ros::OMPLInterfaceROS ompl_interface_;
   boost::shared_ptr<KinematicsStartGoalVisualization> group_visualization_;
   boost::shared_ptr<JointTrajectoryVisualization> joint_trajectory_visualization_;
