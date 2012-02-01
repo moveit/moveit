@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
   ros::NodeHandle nh("~");
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
-  ompl_interface_ros::OMPLInterfaceROS ompl_interface(psm.getPlanningScene());
+  ompl_interface_ros::OMPLInterfaceROS ompl_interface(psm.getPlanningScene()->getKinematicModel());
 
   /*
   ros::Publisher pub_state = nh.advertise<moveit_msgs::DisplayTrajectory>("/display_motion_plan", 20);
@@ -83,7 +83,6 @@ int main(int argc, char **argv)
   }
   */
 
-  /*
   sleep(1);
 
   moveit_msgs::Constraints constr1;
@@ -95,8 +94,8 @@ int main(int argc, char **argv)
   ocm1.orientation.quaternion.y = 0.0;
   ocm1.orientation.quaternion.z = 0.0;
   ocm1.orientation.quaternion.w = 1.0;
-  ocm1.absolute_roll_tolerance = 0.05;
-  ocm1.absolute_pitch_tolerance = 0.05;
+  ocm1.absolute_roll_tolerance = 0.15;
+  ocm1.absolute_pitch_tolerance = 0.15;
   ocm1.absolute_yaw_tolerance = M_PI;
   ocm1.weight = 1.0;
   
@@ -104,9 +103,8 @@ int main(int argc, char **argv)
   constr1S.orientation_constraints[0].absolute_roll_tolerance = 1e-6;
   constr1S.orientation_constraints[0].absolute_pitch_tolerance = 1e-6;
 
-  ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", 10000);
+  ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", 100000);
 
-  */
 
 
     /*
@@ -126,7 +124,7 @@ int main(int argc, char **argv)
 
   ompl_interface.addConstraintApproximation(constr2, "left_arm", 100000);
     */
-//  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
+  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
 
   return 0;
 }

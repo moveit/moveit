@@ -49,11 +49,11 @@ TEST(OmplInterface, StateConversion)
     planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
     planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
     EXPECT_TRUE(scene->isConfigured());
-    ompl_interface_ros::OMPLInterfaceROS oi(scene);
+    ompl_interface_ros::OMPLInterfaceROS oi(scene->getKinematicModel());
     const ompl_interface::KMStateSpace &ks = oi.getPlanningConfiguration("right_arm")->getKMStateSpace();
     planning_models::KinematicState kstate(scene->getKinematicModel());
-    ompl::base::ScopedState<> ostate1(ks.getOMPLSpace());
-    ompl::base::ScopedState<> ostate2(ks.getOMPLSpace());
+    ompl::base::ScopedState<> ostate1(oi.getPlanningConfiguration("right_arm")->getOMPLSimpleSetup().getStateSpace());
+    ompl::base::ScopedState<> ostate2(ostate1.getSpace());
     for (int i = 0 ; i < 100 ; ++i)
     {
         ostate1.random();
