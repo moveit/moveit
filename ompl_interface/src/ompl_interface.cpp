@@ -267,26 +267,26 @@ bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningScen
   return pc->benchmark(timeout, attempts, req.filename);
 }
 
-bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                          const std::string &config, const planning_models::KinematicState &start_state,
-                                          const moveit_msgs::Constraints &goal_constraints, double timeout) const
+ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                         const std::string &config, const planning_models::KinematicState &start_state,
+                                                         const moveit_msgs::Constraints &goal_constraints, double timeout) const
 {
   moveit_msgs::Constraints empty;
   return solve(planning_scene, config, start_state, goal_constraints, empty, timeout);
 }
 
-bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                          const std::string &config, const planning_models::KinematicState &start_state,
-                                          const moveit_msgs::Constraints &goal_constraints,
-                                          const moveit_msgs::Constraints &path_constraints, double timeout) const
+ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                         const std::string &config, const planning_models::KinematicState &start_state,
+                                                         const moveit_msgs::Constraints &goal_constraints,
+                                                         const moveit_msgs::Constraints &path_constraints, double timeout) const
 { 
   ompl::Profiler::ScopedStart pslv;
-
+  
   std::map<std::string, PlanningConfigurationPtr>::const_iterator pc = planning_groups_.find(config);
   if (pc == planning_groups_.end())
   {
-    ROS_ERROR("Planner configuration '%s' not found", config.c_str());
-    return false;
+    ROS_ERROR("Planner configuration '%s' not found", config.c_str()); 
+    return ompl::base::PathPtr();  
   }
   
   // configure the planning group
@@ -294,7 +294,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   boost::mutex::scoped_lock slock(pc->second->lock_);
   
   if (!pc->second->setupPlanningContext(planning_scene, start_state, goal_constraints_v, path_constraints))
-    return false;
+    return ompl::base::PathPtr();  
   
   last_planning_configuration_solve_ = pc->second;
   
@@ -305,10 +305,10 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     if (ptime < timeout)
       pc->second->simplifySolution(timeout - ptime);
     pc->second->interpolateSolution();
-    return true;
+    return ompl::base::PathPtr(new ompl::geometric::PathGeometric(pc->second->getOMPLSimpleSetup().getSolutionPath()));
   }
   
-  return false;
+  return ompl::base::PathPtr();  
 }
 
 const ompl_interface::PlanningConfigurationPtr& ompl_interface::OMPLInterface::getPlanningConfiguration(const std::string &config) const
