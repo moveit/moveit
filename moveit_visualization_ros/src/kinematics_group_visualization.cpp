@@ -29,9 +29,13 @@
 
 // Author: E. Gil Jones
 
+#include <vector>
+
 #include <moveit_visualization_ros/kinematics_group_visualization.h>
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
 #include <collision_detection/collision_tools.h>
+#include <planning_models/kinematic_model.h>
+#include <planning_models/kinematic_state.h>
 #include <random_numbers/random_numbers.h>
 
 namespace moveit_visualization_ros
@@ -172,35 +176,53 @@ void KinematicsGroupVisualization::updatePlanningScene(const planning_scene::Pla
 /** Set a random valid state for this group.
  * Returns: true if it succeeded (in which case the planning scene is
  * updated and new markers are published), false otherwise. */
-bool KinematicsGroupVisualization::setRandomState() {
+bool KinematicsGroupVisualization::setRandomState(unsigned int max_tries) {
 
-  geometry_msgs::Pose pose;
-  // TODO: figure out a smarter sampling strategy.  Should probably get
-  // joint / workspace bounds from the robot model.
   random_numbers::RandomNumberGenerator rng;
-  sensor_msgs::JointState sol;
-  moveit_msgs::MoveItErrorCodes err;
-  for(int i=0; i<1000; i++)
-  {
-    pose.position.x = rng.uniformReal(-1.0, 1.0);
-    pose.position.y = rng.uniformReal(-1.0, 1.0);
-    pose.position.z = rng.uniformReal(-1.0, 1.0);
-    pose.orientation.x = 0.0;
-    pose.orientation.y = 0.888;
-    pose.orientation.z = 0.0;
-    pose.orientation.w = -0.46;
 
-    if(validateEndEffectorState(pose, sol, err))
+  const planning_models::KinematicModel::JointModelGroup* jmg;
+  jmg = planning_scene_->getKinematicModel()->getJointModelGroup(group_name_);
+  if(!jmg)
+  {
+    ROS_ERROR_STREAM("No group named " << group_name_);
+    return false;
+  }
+  std::vector<const planning_models::KinematicModel::JointModel*> joint_models = jmg->getJointModels();
+  std::vector<std::string> joint_model_names = jmg->getJointModelNames();
+  ROS_ASSERT(joint_models.size() == joint_model_names.size());
+  std::vector<double> one_joint_values;
+  std::vector<double> all_joint_values;
+  planning_models::KinematicState ks(state_);
+
+  planning_models::KinematicState::JointStateGroup* jsg = ks.getJointStateGroup(group_name_);
+  for(unsigned int j=0;j<max_tries;j++)
+  {
+    all_joint_values.clear();
+    for(unsigned int i=0; i<joint_models.size(); i++)
+    {
+      one_joint_values.clear();
+      joint_models[i]->getRandomValues(rng, one_joint_values);
+      ROS_ASSERT(one_joint_values.size() == 1);
+      all_joint_values.push_back(one_joint_values[0]);
+    }
+    jsg->setStateValues(all_joint_values);
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+    planning_scene_->checkCollision(req, res, ks);
+    if(!res.collision)
     {
       // Update the state
-      state_.setStateValues(sol);
+      planning_models::KinematicState::JointStateGroup* real_jsg = state_.getJointStateGroup(group_name_);
+      real_jsg->setStateValues(all_joint_values);
       // Publish our markers
       sendCurrentMarkers();
 
       // Compute the new pose of the end-effector and force the associated
       // interactive marker there.
-      Eigen::Affine3d new_pose;
-      planning_models::poseFromMsg(pose, new_pose);
+      Eigen::Affine3d new_pose = state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform();
+      geometry_msgs::Pose pm;
+      planning_models::msgFromPose(new_pose, pm);
+      last_pose_ = pm;
       new_pose = new_pose*relative_transform_[interactive_marker_name_].inverse();
       geometry_msgs::Pose trans_pose;
       planning_models::msgFromPose(new_pose, trans_pose);
@@ -269,14 +291,6 @@ bool KinematicsGroupVisualization::validateEndEffectorState(const geometry_msgs:
                                                             sensor_msgs::JointState& sol,
                                                             moveit_msgs::MoveItErrorCodes& err)
 {
-  ROS_INFO("validateEndEffectorState() pose: (%.3f, %.3f, %.3f) X (%.3f, %.3f, %.3f, %.3f)",
-           pose.position.x,
-           pose.position.y,
-           pose.position.z,
-           pose.orientation.x,
-           pose.orientation.y,
-           pose.orientation.z,
-           pose.orientation.w);
   ros::WallTime start = ros::WallTime::now();
     
   //assuming pose is in world frame for now

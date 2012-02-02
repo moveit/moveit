@@ -17,7 +17,7 @@
   <depend package="robot_state_publisher"/>
   <depend package="ompl_interface_ros"/>
   <depend package="geometric_shapes"/>
-  <depend package="kinematic_contraints"/>
+  <depend package="planning_models"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_visualization_ros"/>
