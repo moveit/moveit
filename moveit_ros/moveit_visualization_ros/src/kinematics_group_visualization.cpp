@@ -29,9 +29,14 @@
 
 // Author: E. Gil Jones
 
+#include <vector>
+
 #include <moveit_visualization_ros/kinematics_group_visualization.h>
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
 #include <collision_detection/collision_tools.h>
+#include <planning_models/kinematic_model.h>
+#include <planning_models/kinematic_state.h>
+#include <random_numbers/random_numbers.h>
 
 namespace moveit_visualization_ros
 {
@@ -168,6 +173,67 @@ void KinematicsGroupVisualization::updatePlanningScene(const planning_scene::Pla
   updateEndEffectorState(last_pose_);
 }
 
+/** Set a random valid state for this group.
+ * Returns: true if it succeeded (in which case the planning scene is
+ * updated and new markers are published), false otherwise. */
+bool KinematicsGroupVisualization::setRandomState(unsigned int max_tries) {
+
+  random_numbers::RandomNumberGenerator rng;
+
+  const planning_models::KinematicModel::JointModelGroup* jmg;
+  jmg = planning_scene_->getKinematicModel()->getJointModelGroup(group_name_);
+  if(!jmg)
+  {
+    ROS_ERROR_STREAM("No group named " << group_name_);
+    return false;
+  }
+  std::vector<const planning_models::KinematicModel::JointModel*> joint_models = jmg->getJointModels();
+  std::vector<std::string> joint_model_names = jmg->getJointModelNames();
+  ROS_ASSERT(joint_models.size() == joint_model_names.size());
+  std::vector<double> one_joint_values;
+  std::vector<double> all_joint_values;
+  planning_models::KinematicState ks(state_);
+
+  planning_models::KinematicState::JointStateGroup* jsg = ks.getJointStateGroup(group_name_);
+  for(unsigned int j=0;j<max_tries;j++)
+  {
+    all_joint_values.clear();
+    for(unsigned int i=0; i<joint_models.size(); i++)
+    {
+      one_joint_values.clear();
+      joint_models[i]->getRandomValues(rng, one_joint_values);
+      ROS_ASSERT(one_joint_values.size() == 1);
+      all_joint_values.push_back(one_joint_values[0]);
+    }
+    jsg->setStateValues(all_joint_values);
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+    planning_scene_->checkCollision(req, res, ks);
+    if(!res.collision)
+    {
+      // Update the state
+      planning_models::KinematicState::JointStateGroup* real_jsg = state_.getJointStateGroup(group_name_);
+      real_jsg->setStateValues(all_joint_values);
+      // Publish our markers
+      sendCurrentMarkers();
+
+      // Compute the new pose of the end-effector and force the associated
+      // interactive marker there.
+      Eigen::Affine3d new_pose = state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform();
+      geometry_msgs::Pose pm;
+      planning_models::msgFromPose(new_pose, pm);
+      last_pose_ = pm;
+      new_pose = new_pose*relative_transform_[interactive_marker_name_].inverse();
+      geometry_msgs::Pose trans_pose;
+      planning_models::msgFromPose(new_pose, trans_pose);
+      interactive_marker_server_->setPose(interactive_marker_name_, trans_pose);
+      interactive_marker_server_->applyChanges();
+      return true;
+    }
+  }
+  return false;
+}
+
 void KinematicsGroupVisualization::processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
   if(feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::MENU_SELECT) {
@@ -221,10 +287,11 @@ void KinematicsGroupVisualization::sendCurrentMarkers()
   }
 }
 
-void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::Pose& pose) {
+bool KinematicsGroupVisualization::validateEndEffectorState(const geometry_msgs::Pose& pose,
+                                                            sensor_msgs::JointState& sol,
+                                                            moveit_msgs::MoveItErrorCodes& err)
+{
   ros::WallTime start = ros::WallTime::now();
-
-  last_pose_ = pose;
     
   //assuming pose is in world frame for now
   Eigen::Affine3d cur;
@@ -262,17 +329,25 @@ void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::P
                    << np.position.y << " " 
                    << np.position.z << " from " << ik_solver_->getBaseFrame()); 
   
+  moveit_msgs::Constraints emp_constraints;
+  bool result = ik_solver_->findConstraintAwareSolution(np,
+                                                        emp_constraints,
+                                                        planning_scene_,
+                                                        sol,
+                                                        err, 
+                                                        true);
+  ROS_DEBUG_STREAM("Total time is " << (ros::WallTime::now()-start));
+  return result;
+}
+
+void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::Pose& pose) 
+{
+  last_pose_ = pose;
+  
   sensor_msgs::JointState sol;
   moveit_msgs::MoveItErrorCodes err;
   
-  visualization_msgs::MarkerArray arr;
-  moveit_msgs::Constraints emp_constraints;
-  if(ik_solver_->findConstraintAwareSolution(np,
-                                             emp_constraints,
-                                             planning_scene_,
-                                             sol,
-                                             err, 
-                                             true)) {
+  if(validateEndEffectorState(pose, sol, err)) {
     if(last_solution_good_ == false) {
       last_solution_changed_ = true;
     } else {
@@ -301,7 +376,6 @@ void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::P
   //                                state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform(),
   //                                col);
   // }
-  ROS_DEBUG_STREAM("Total time is " << (ros::WallTime::now()-start));
 }
 
 void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 

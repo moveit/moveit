@@ -85,6 +85,14 @@ void KinematicsStartGoalVisualization::addMenuEntry(const std::string& name,
   goal_->addMenuEntry(name, callback);
 }
 
+void KinematicsStartGoalVisualization::setRandomStartGoal() {
+  if(!start_->setRandomState())
+    ROS_WARN("Failed to set random start state");
+  if(!goal_->setRandomState())
+    ROS_WARN("Failed to set random goal state");
+}
+
+
 void KinematicsStartGoalVisualization::startOn() {
   goal_->disable6DOFControls();
   goal_->setMarkerAlpha(0.25);
