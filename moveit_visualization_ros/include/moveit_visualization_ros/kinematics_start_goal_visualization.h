@@ -62,6 +62,8 @@ public:
   void addMenuEntry(const std::string& name, 
                     const boost::function<void(void)>& callback);
 
+  void setRandomStartGoal();
+
 protected:
 
   void startOn();

@@ -17,6 +17,7 @@
   <depend package="robot_state_publisher"/>
   <depend package="ompl_interface_ros"/>
   <depend package="geometric_shapes"/>
+  <depend package="planning_models"/>
   <depend package="rviz"/>
 
   <export>
