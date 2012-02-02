@@ -49,9 +49,10 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
 
 
   group_visualization_->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this));
+  group_visualization_->addMenuEntry("Random start / goal", boost::bind(&PlanningVisualization::generateRandomStartEnd, this));
   joint_trajectory_visualization_.reset(new JointTrajectoryVisualization(planning_scene,
                                                                          marker_publisher));
-} 
+}
 
 void PlanningVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
   planning_scene_ = planning_scene;
@@ -97,4 +98,11 @@ void PlanningVisualization::generatePlan(void) {
   joint_trajectory_visualization_->playCurrentTrajectory();
 }
 
+void PlanningVisualization::generateRandomStartEnd(void) {
+
+  ROS_INFO_STREAM("Getting request to set random start and end configurations");
+
+  group_visualization_->setRandomStartGoal();
 }
+
+} // namespace moveit_visualization_ros

@@ -81,6 +81,11 @@ public:
 
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
+  /** Set a random valid state for this group.
+   * Returns: true if it succeeded (in which case the planning scene is
+   * updated and new markers are published), false otherwise. */
+  bool setRandomState();
+
 protected:
 
   void sendCurrentMarkers();
@@ -93,6 +98,9 @@ protected:
                                     const std_msgs::ColorRGBA& color,
                                     bool add6dof); 
 
+  bool validateEndEffectorState(const geometry_msgs::Pose& pose,
+                                sensor_msgs::JointState& sol,
+                                moveit_msgs::MoveItErrorCodes& err);
 protected:
 
   std::string group_name_;

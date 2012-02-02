@@ -32,6 +32,7 @@
 #include <moveit_visualization_ros/kinematics_group_visualization.h>
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
 #include <collision_detection/collision_tools.h>
+#include <random_numbers/random_numbers.h>
 
 namespace moveit_visualization_ros
 {
@@ -168,6 +169,49 @@ void KinematicsGroupVisualization::updatePlanningScene(const planning_scene::Pla
   updateEndEffectorState(last_pose_);
 }
 
+/** Set a random valid state for this group.
+ * Returns: true if it succeeded (in which case the planning scene is
+ * updated and new markers are published), false otherwise. */
+bool KinematicsGroupVisualization::setRandomState() {
+
+  geometry_msgs::Pose pose;
+  // TODO: figure out a smarter sampling strategy.  Should probably get
+  // joint / workspace bounds from the robot model.
+  random_numbers::RandomNumberGenerator rng;
+  sensor_msgs::JointState sol;
+  moveit_msgs::MoveItErrorCodes err;
+  for(int i=0; i<1000; i++)
+  {
+    pose.position.x = rng.uniformReal(-1.0, 1.0);
+    pose.position.y = rng.uniformReal(-1.0, 1.0);
+    pose.position.z = rng.uniformReal(-1.0, 1.0);
+    pose.orientation.x = 0.0;
+    pose.orientation.y = 0.888;
+    pose.orientation.z = 0.0;
+    pose.orientation.w = -0.46;
+
+    if(validateEndEffectorState(pose, sol, err))
+    {
+      // Update the state
+      state_.setStateValues(sol);
+      // Publish our markers
+      sendCurrentMarkers();
+
+      // Compute the new pose of the end-effector and force the associated
+      // interactive marker there.
+      Eigen::Affine3d new_pose;
+      planning_models::poseFromMsg(pose, new_pose);
+      new_pose = new_pose*relative_transform_[interactive_marker_name_].inverse();
+      geometry_msgs::Pose trans_pose;
+      planning_models::msgFromPose(new_pose, trans_pose);
+      interactive_marker_server_->setPose(interactive_marker_name_, trans_pose);
+      interactive_marker_server_->applyChanges();
+      return true;
+    }
+  }
+  return false;
+}
+
 void KinematicsGroupVisualization::processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
   if(feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::MENU_SELECT) {
@@ -221,10 +265,19 @@ void KinematicsGroupVisualization::sendCurrentMarkers()
   }
 }
 
-void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::Pose& pose) {
+bool KinematicsGroupVisualization::validateEndEffectorState(const geometry_msgs::Pose& pose,
+                                                            sensor_msgs::JointState& sol,
+                                                            moveit_msgs::MoveItErrorCodes& err)
+{
+  ROS_INFO("validateEndEffectorState() pose: (%.3f, %.3f, %.3f) X (%.3f, %.3f, %.3f, %.3f)",
+           pose.position.x,
+           pose.position.y,
+           pose.position.z,
+           pose.orientation.x,
+           pose.orientation.y,
+           pose.orientation.z,
+           pose.orientation.w);
   ros::WallTime start = ros::WallTime::now();
-
-  last_pose_ = pose;
     
   //assuming pose is in world frame for now
   Eigen::Affine3d cur;
@@ -262,17 +315,25 @@ void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::P
                    << np.position.y << " " 
                    << np.position.z << " from " << ik_solver_->getBaseFrame()); 
   
+  moveit_msgs::Constraints emp_constraints;
+  bool result = ik_solver_->findConstraintAwareSolution(np,
+                                                        emp_constraints,
+                                                        planning_scene_,
+                                                        sol,
+                                                        err, 
+                                                        true);
+  ROS_DEBUG_STREAM("Total time is " << (ros::WallTime::now()-start));
+  return result;
+}
+
+void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::Pose& pose) 
+{
+  last_pose_ = pose;
+  
   sensor_msgs::JointState sol;
   moveit_msgs::MoveItErrorCodes err;
   
-  visualization_msgs::MarkerArray arr;
-  moveit_msgs::Constraints emp_constraints;
-  if(ik_solver_->findConstraintAwareSolution(np,
-                                             emp_constraints,
-                                             planning_scene_,
-                                             sol,
-                                             err, 
-                                             true)) {
+  if(validateEndEffectorState(pose, sol, err)) {
     if(last_solution_good_ == false) {
       last_solution_changed_ = true;
     } else {
@@ -301,7 +362,6 @@ void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::P
   //                                state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform(),
   //                                col);
   // }
-  ROS_DEBUG_STREAM("Total time is " << (ros::WallTime::now()-start));
 }
 
 void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 
