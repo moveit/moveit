@@ -53,7 +53,8 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs:
 {
     mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene.name,
 				 PLANNING_SCENE_TIME_NAME, scene.robot_state.joint_state.header.stamp.toSec());
-    planning_scene_collection_->insert(scene, metadata);
+    planning_scene_collection_->insert(scene, metadata); 
+    ROS_INFO("Saved scene '%s'", scene.name.c_str());
 }
 
 std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const
