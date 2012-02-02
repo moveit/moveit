@@ -20,6 +20,18 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+include(${QT_USE_FILE})
+include_directories(${CMAKE_BINARY_DIR})
+include_directories(${QT_INCLUDE_DIR})
+
+add_definitions(-DQT_NO_KEYWORDS)
+
+qt4_wrap_cpp(MOC_FILES
+  include/moveit_visualization_ros/interactive_object_visualization_widget.h
+  include/moveit_visualization_ros/interactive_object_visualization_qt_wrapper.h
+)
+
 #uncomment if you have defined messages
 #rosbuild_genmsg()
 #uncomment if you have defined services
@@ -32,6 +44,9 @@ rosbuild_add_library(${PROJECT_NAME}
   src/joint_trajectory_visualization.cpp 
   src/interactive_object_visualization.cpp 
   src/planning_visualization.cpp
+  src/interactive_object_visualization_widget.cpp
+  src/interactive_object_visualization_qt_wrapper.cpp
+  ${MOC_FILES}
   )
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
@@ -50,3 +65,6 @@ target_link_libraries(interactive_object_visualization_test ${PROJECT_NAME})
 
 rosbuild_add_executable(planning_components_visualizer src/planning_components_visualizer.cpp)
 target_link_libraries(planning_components_visualizer ${PROJECT_NAME})
+
+rosbuild_add_executable(planning_components_visualizer_full src/planning_components_visualizer_full.cpp)
+target_link_libraries(planning_components_visualizer_full ${QT_LIBRARIES} ${PROJECT_NAME})
