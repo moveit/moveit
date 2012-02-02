@@ -314,6 +314,12 @@ protected:
   /// when planning in parallel, this is the maximum number of threads to use at one time
   unsigned int                                            max_planning_threads_;
   
+  /// the maximum velocity to move with
+  double                                                  max_velocity_;
+
+  /// the maximum acceleration to move at
+  double                                                  max_acceleration_;
+  
   /// a function pointer that returns an IK solver for this group; this is useful for sampling states using IK
   kinematic_constraints::IKAllocator                      ik_allocator_;
   

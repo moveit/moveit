@@ -97,9 +97,9 @@ public:
    *  @param goal_constraints The goal constraints
    *  @param timeout The amount of time to spend on planning
    */
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const std::string &config, const planning_models::KinematicState &start_state,
-             const moveit_msgs::Constraints &goal_constraints, double timeout) const;
+  ompl::base::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                            const std::string &config, const planning_models::KinematicState &start_state,
+                            const moveit_msgs::Constraints &goal_constraints, double timeout) const;
   
   /** @brief Solve the planning problem
    *  @param config
@@ -108,10 +108,10 @@ public:
    *  @param path_constraints The path constraints
    *  @param timeout The amount of time to spend on planning
    */
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const std::string &config, const planning_models::KinematicState &start_state,
-             const moveit_msgs::Constraints &goal_constraints,
-             const moveit_msgs::Constraints &path_constraints, double timeout) const;
+  ompl::base::PathPtr solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                            const std::string &config, const planning_models::KinematicState &start_state,
+                            const moveit_msgs::Constraints &goal_constraints,
+                            const moveit_msgs::Constraints &path_constraints, double timeout) const;
   
   const PlanningConfigurationPtr& getLastPlanningConfiguration(void) const
   {

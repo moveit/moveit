@@ -109,8 +109,8 @@ ompl_interface::PlanningConfiguration::PlanningConfiguration(const std::string &
   ompl_state_space_(kinematic_model_state_space_), ompl_simple_setup_(ompl_state_space_), ompl_benchmark_(ompl_simple_setup_),
   parallel_plan_(ompl_simple_setup_.getProblemDefinition()), start_state_(kmodel), 
   constraint_approx_(constraint_approx), last_plan_time_(0.0),
-  max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4)
-  
+  max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4),
+  max_velocity_(10), max_acceleration_(2.0)
 {
   max_solution_segment_length_ = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / 100.0;
   ompl_simple_setup_.getSpaceInformation()->setStateValidityCheckingResolution(0.05);
@@ -135,6 +135,36 @@ void ompl_interface::PlanningConfiguration::useConfig(const std::map<std::string
   if (it != cfg.end())
   {
     setProjectionEvaluator(boost::trim_copy(it->second));
+    cfg.erase(it);
+  }
+  
+  it = cfg.find("max_velocity");
+  if (it != cfg.end())
+  {
+    try
+    {
+      max_velocity_ = boost::lexical_cast<double>(boost::trim_copy(it->second));
+      ROS_INFO("%s: Maximum velocity set to %lf", name_.c_str(), max_velocity_);
+    }
+    catch(boost::bad_lexical_cast &e)
+    {
+      ROS_ERROR("%s: Unable to parse maximum velocity: %s", name_.c_str(), e.what());
+    }
+    cfg.erase(it);
+  }
+
+  it = cfg.find("max_acceleration");
+  if (it != cfg.end())
+  {
+    try
+    {
+      max_velocity_ = boost::lexical_cast<double>(boost::trim_copy(it->second));
+      ROS_INFO("%s: Maximum acceleration set to %lf", name_.c_str(), max_velocity_);
+    }
+    catch(boost::bad_lexical_cast &e)
+    {
+      ROS_ERROR("%s: Unable to parse maximum acceleration: %s", name_.c_str(), e.what());
+    }
     cfg.erase(it);
   }
   
@@ -635,6 +665,8 @@ void ompl_interface::PlanningConfiguration::convertPath(const ompl::geometric::P
     traj.joint_trajectory.points.resize(pg.states.size());
   if (!mdof.empty())
     traj.multi_dof_joint_trajectory.points.resize(pg.states.size());
+  std::vector<double> times;
+  pg.computeFastTimeParametrization(max_velocity_, max_acceleration_, times, 50);
   for (std::size_t i = 0 ; i < pg.states.size() ; ++i)
   {
     kinematic_model_state_space_->copyToKinematicState(ks, pg.states[i]);
@@ -643,7 +675,7 @@ void ompl_interface::PlanningConfiguration::convertPath(const ompl::geometric::P
       traj.joint_trajectory.points[i].positions.resize(onedof.size());
       for (std::size_t j = 0 ; j < onedof.size() ; ++j)
 	traj.joint_trajectory.points[i].positions[j] = ks.getJointState(onedof[j]->getName())->getVariableValues()[0];
-      traj.joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+      traj.joint_trajectory.points[i].time_from_start = ros::Duration(times[i]);
     }
     if (!mdof.empty())
     {
@@ -653,7 +685,7 @@ void ompl_interface::PlanningConfiguration::convertPath(const ompl::geometric::P
 	planning_models::msgFromPose(ks.getJointState(mdof[j]->getName())->getVariableTransform(),
 				     traj.multi_dof_joint_trajectory.points[i].poses[j]);
       }
-      traj.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+      traj.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(times[i]);
     }
   }
 }
