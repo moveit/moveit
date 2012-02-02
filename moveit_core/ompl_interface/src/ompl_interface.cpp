@@ -146,8 +146,7 @@ void ompl_interface::OMPLInterface::setMaximumPlanningThreads(unsigned int max_p
     it->second->setMaximumPlanningThreads(max_planning_threads);
 }
 
-bool ompl_interface::OMPLInterface::prepareForSolve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                    const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
+bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
                                                     PlanningConfigurationPtr &pc_to_use, unsigned int &attempts, double &timeout) const
 {
   if (req.group_name.empty())
@@ -157,7 +156,7 @@ bool ompl_interface::OMPLInterface::prepareForSolve(const planning_scene::Planni
     return false;
   }
   
-  // identify the correct planning group
+  // identify the correct planning configuration
   std::map<std::string, PlanningConfigurationPtr>::const_iterator pc = planning_groups_.end();
   if (!req.planner_id.empty())
   {
@@ -177,17 +176,8 @@ bool ompl_interface::OMPLInterface::prepareForSolve(const planning_scene::Planni
     }
   }
   
-  // configure the planning group
+  pc_to_use = pc->second;
   
-  // get the starting state
-  planning_models::KinematicState ks = planning_scene->getCurrentState();
-  planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.start_state, ks);
-  
-  if (!pc->second->setupPlanningContext(planning_scene, ks, req.goal_constraints, req.path_constraints, &error_code))
-    return false;
-  pc->second->setPlanningVolume(req.workspace_parameters);
-  
-  // solve the planning problem
   timeout = req.allowed_planning_time.toSec();
   if (timeout <= 0.0)
   {
@@ -195,8 +185,6 @@ bool ompl_interface::OMPLInterface::prepareForSolve(const planning_scene::Planni
     ROS_ERROR("The timeout for planning must be positive (%lf specified). Assuming one second instead.", timeout);
     timeout = 1.0;
   }
-  
-  pc_to_use = pc->second;
   
   attempts = 1;
   if (req.num_planning_attempts > 0)
@@ -216,8 +204,20 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   PlanningConfigurationPtr pc;
   unsigned int attempts = 0;
   double timeout = 0.0;
-  if (!prepareForSolve(planning_scene, req.motion_plan_request, res.error_code, pc, attempts, timeout))
+  if (!prepareForSolve(req.motion_plan_request, res.error_code, pc, attempts, timeout))
     return false;
+  
+  // get the starting state
+  planning_models::KinematicState start_state = planning_scene->getCurrentState();
+  planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+  
+  // configure the planning configuration
+  boost::mutex::scoped_lock slock(pc->lock_);
+  
+  if (!pc->setupPlanningContext(planning_scene, start_state, req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints, &res.error_code))
+    return false;
+  pc->setPlanningVolume(req.motion_plan_request.workspace_parameters);
+  
   last_planning_configuration_solve_ = pc;
   
   if (pc->solve(timeout, attempts))
@@ -249,9 +249,21 @@ bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningScen
   PlanningConfigurationPtr pc;
   unsigned int attempts = 0;
   double timeout = 0.0;
-  if (!prepareForSolve(planning_scene, req.motion_plan_request, res.error_code, pc, attempts, timeout))
+  if (!prepareForSolve(req.motion_plan_request, res.error_code, pc, attempts, timeout))
     return false;
+
+  // get the starting state
+  planning_models::KinematicState start_state = planning_scene->getCurrentState();
+  planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+  
+  // configure the planning configuration
+  boost::mutex::scoped_lock slock(pc->lock_);
+  
+  if (!pc->setupPlanningContext(planning_scene, start_state, req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints, &res.error_code))
+    return false;
+  pc->setPlanningVolume(req.motion_plan_request.workspace_parameters);
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  
   return pc->benchmark(timeout, attempts, req.filename);
 }
 
@@ -278,7 +290,9 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   }
   
   // configure the planning group
-  std::vector<moveit_msgs::Constraints> goal_constraints_v(1, goal_constraints);
+  std::vector<moveit_msgs::Constraints> goal_constraints_v(1, goal_constraints);  
+  boost::mutex::scoped_lock slock(pc->second->lock_);
+  
   if (!pc->second->setupPlanningContext(planning_scene, start_state, goal_constraints_v, path_constraints))
     return false;
   
