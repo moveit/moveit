@@ -143,6 +143,7 @@ public:
   /** @brief Stop the world geometry monitor*/
   void stopWorldGeometryMonitor(void);
 
+  /** @brief Set the function to be called when an update to the scene is received */
   void setUpdateCallback(const boost::function<void()> &fn);
 
   /** \brief Return the time when the last update was made to the planning scene (by the monitor) */

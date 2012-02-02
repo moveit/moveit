@@ -11,8 +11,6 @@
 
   <depend package="mongo_ros"/>
   <depend package="moveit_msgs"/>
+  <depend package="planning_scene_monitor"/>
 
 </package>  
-
-
-
