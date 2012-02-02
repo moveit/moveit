@@ -140,8 +140,7 @@ protected:
   
   
   /** \brief Configure the OMPL planning context for a new planning request */
-  bool prepareForSolve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                       const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
+  bool prepareForSolve(const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
                        PlanningConfigurationPtr &pc_to_use, unsigned int &attempts, double &timeout) const;
   
   /** \brief The kinematic model for which motion plans are computed */

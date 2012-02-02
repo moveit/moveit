@@ -197,19 +197,19 @@ void planning_scene::PlanningScene::checkSelfCollision(const collision_detection
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res,
                                                    const planning_models::KinematicState &kstate) const
 {
-  // do self-collision checking with the unpadded version of the robot
-  if (parent_)
-    parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
-  else
-    crobot_unpadded_->checkSelfCollision(req, res, kstate, *acm_);
-
   // check collision with the world using the padded version
+  if (parent_)
+    getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, getAllowedCollisionMatrix());
+  else
+    cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+  
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
+    // do self-collision checking with the unpadded version of the robot
     if (parent_)
-      getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, getAllowedCollisionMatrix());
+      parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
     else
-      cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+      crobot_unpadded_->checkSelfCollision(req, res, kstate, *acm_);
   }
 }
 
@@ -228,19 +228,19 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
                                                    const planning_models::KinematicState &kstate,
                                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
-  // do self-collision checking with the unpadded version of the robot
-  if (parent_)
-    parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
-  else
-    crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
-
   // check collision with the world using the padded version
+  if (parent_)
+    getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, acm);
+  else
+    cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm);
+  
+  // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
     if (parent_)
-      getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, acm);
+      parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
     else
-      cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm);
+      crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
   }
 }
 
