@@ -214,6 +214,9 @@ bool KinematicsGroupVisualization::setRandomState(unsigned int max_tries) {
       // Update the state
       planning_models::KinematicState::JointStateGroup* real_jsg = state_.getJointStateGroup(group_name_);
       real_jsg->setStateValues(all_joint_values);
+
+      state_.updateLinkTransforms();
+      
       // Publish our markers
       sendCurrentMarkers();
 
@@ -332,6 +335,7 @@ bool KinematicsGroupVisualization::validateEndEffectorState(const geometry_msgs:
   moveit_msgs::Constraints emp_constraints;
   bool result = ik_solver_->findConstraintAwareSolution(np,
                                                         emp_constraints,
+                                                        &state_,
                                                         planning_scene_,
                                                         sol,
                                                         err, 
