@@ -66,13 +66,14 @@ public:
                      std::vector<geometry_msgs::Pose> &poses);
 
   bool getPositionIK(const geometry_msgs::Pose &ik_pose,
+                     const planning_models::KinematicState* seed_state,
                      const planning_scene::PlanningSceneConstPtr& scene,
                      sensor_msgs::JointState& solution,
                      moveit_msgs::MoveItErrorCodes& error_code);
   
   bool findConstraintAwareSolution(const geometry_msgs::Pose& pose,
                                    const moveit_msgs::Constraints& constraints,
-
+                                   const planning_models::KinematicState* seed_state,
                                    const planning_scene::PlanningSceneConstPtr& scene,
                                    sensor_msgs::JointState& solution,
                                    moveit_msgs::MoveItErrorCodes& error_code,
@@ -80,6 +81,7 @@ public:
   
   bool findConsistentConstraintAwareSolution(const geometry_msgs::Pose& pose,
                                              const moveit_msgs::Constraints& constraints,
+                                             const planning_models::KinematicState* seed_state,
                                              const planning_scene::PlanningSceneConstPtr& scene,
                                              sensor_msgs::JointState& solution,
                                              moveit_msgs::MoveItErrorCodes& error_code,
@@ -91,6 +93,7 @@ public:
                                 const Eigen::Vector3d& direction,
                                 const double& distance,
                                 const moveit_msgs::Constraints& constraints,
+                                const planning_models::KinematicState* seed_state,
                                 const planning_scene::PlanningSceneConstPtr& scene,
                                 moveit_msgs::MoveItErrorCodes& error_code, 
                                 trajectory_msgs::JointTrajectory& traj,

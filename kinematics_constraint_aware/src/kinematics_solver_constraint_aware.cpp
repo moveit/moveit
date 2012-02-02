@@ -91,12 +91,13 @@ bool KinematicsSolverConstraintAware::getPositionFK(const planning_models::Kinem
   return true;
 }
 bool KinematicsSolverConstraintAware::getPositionIK(const geometry_msgs::Pose &pose,
+                                                    const planning_models::KinematicState* seed_state,
                                                     const planning_scene::PlanningSceneConstPtr& scene,
                                                     sensor_msgs::JointState& solution,
                                                     moveit_msgs::MoveItErrorCodes& error_code)
 {
   std::map<std::string, double> seed_state_map;
-  scene->getCurrentState().getStateValues(seed_state_map);
+  seed_state->getStateValues(seed_state_map);
   std::vector<double> seed_state_vector(kinematics_solver_->getJointNames().size());
   for(unsigned int i = 0; i < kinematics_solver_->getJointNames().size(); i++) {
     seed_state_vector[i] = seed_state_map[kinematics_solver_->getJointNames()[i]];
@@ -119,6 +120,7 @@ bool KinematicsSolverConstraintAware::getPositionIK(const geometry_msgs::Pose &p
 
 bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry_msgs::Pose& pose,
                                                                   const moveit_msgs::Constraints& constraints,
+                                                                  const planning_models::KinematicState* seed_state,
                                                                   const planning_scene::PlanningSceneConstPtr& scene,
                                                                   sensor_msgs::JointState& solution,
                                                                   moveit_msgs::MoveItErrorCodes& error_code, 
@@ -132,7 +134,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
   
   //TODO - need better way to do this
   std::map<std::string, double> seed_state_map;
-  scene->getCurrentState().getStateValues(seed_state_map);
+  seed_state->getStateValues(seed_state_map);
   state_->setStateValues(seed_state_map);
   
   std::vector<double> seed_state_vector(kinematics_solver_->getJointNames().size());
@@ -160,6 +162,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
 
 bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(const geometry_msgs::Pose& pose,
                                                                             const moveit_msgs::Constraints& constraints,
+                                                                            const planning_models::KinematicState* seed_state,
                                                                             const planning_scene::PlanningSceneConstPtr& scene,
                                                                             sensor_msgs::JointState& solution,
                                                                             moveit_msgs::MoveItErrorCodes& error_code, 
@@ -174,7 +177,7 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
   last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
   
   std::map<std::string, double> seed_state_map;
-  planning_scene_->getCurrentState().getStateValues(seed_state_map);
+  seed_state->getStateValues(seed_state_map);
   state_->setStateValues(seed_state_map);
   
   std::vector<double> seed_state_vector(kinematics_solver_->getJointNames().size());
@@ -291,6 +294,7 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
                                                                const Eigen::Vector3d& direction,
                                                                const double& distance,
                                                                const moveit_msgs::Constraints& constraints,
+                                                               const planning_models::KinematicState* seed_state,
                                                                const planning_scene::PlanningSceneConstPtr& scene,
                                                                moveit_msgs::MoveItErrorCodes& error_code, 
                                                                trajectory_msgs::JointTrajectory& traj,
@@ -332,6 +336,7 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
     moveit_msgs::MoveItErrorCodes temp_error_code;
     if(findConsistentConstraintAwareSolution(trans_pose,
                                              constraints,
+                                             seed_state,
                                              scene,
                                              solution,
                                              temp_error_code,
