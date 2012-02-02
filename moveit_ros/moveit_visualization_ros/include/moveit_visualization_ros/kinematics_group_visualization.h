@@ -84,7 +84,7 @@ public:
   /** Set a random valid state for this group.
    * Returns: true if it succeeded (in which case the planning scene is
    * updated and new markers are published), false otherwise. */
-  bool setRandomState();
+  bool setRandomState(unsigned int max_tries=100);
 
 protected:
 
