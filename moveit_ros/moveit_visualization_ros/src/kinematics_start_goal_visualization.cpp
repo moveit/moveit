@@ -92,6 +92,11 @@ void KinematicsStartGoalVisualization::setRandomStartGoal() {
     ROS_WARN("Failed to set random goal state");
 }
 
+void KinematicsStartGoalVisualization::resetStartGoal() {
+  start_->resetState();
+  goal_->resetState();
+}
+
 
 void KinematicsStartGoalVisualization::startOn() {
   goal_->disable6DOFControls();

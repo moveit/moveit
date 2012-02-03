@@ -56,7 +56,8 @@ public:
 protected:
 
   void generatePlan(void);
-  void generateRandomStartEnd(void);
+  void generateRandomStartGoal(void);
+  void resetStartGoal(void);
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   ompl_interface_ros::OMPLInterfaceROS ompl_interface_;
