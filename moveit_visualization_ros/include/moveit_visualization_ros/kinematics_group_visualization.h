@@ -86,6 +86,9 @@ public:
    * updated and new markers are published), false otherwise. */
   bool setRandomState(unsigned int max_tries=100);
 
+  /** Set state for this group to be equal to the state in the planning scene. */
+  void resetState(void);
+
 protected:
 
   void sendCurrentMarkers();
@@ -98,9 +101,18 @@ protected:
                                     const std_msgs::ColorRGBA& color,
                                     bool add6dof); 
 
+  /** Call constraint-aware IK to determine whether the give EE pose is valid
+   * and collision-free.  Returns:
+   *   true if pose is valid; look in sol for the joint values
+   *   false otherwise; look in err for the reason
+   */
   bool validateEndEffectorState(const geometry_msgs::Pose& pose,
                                 sensor_msgs::JointState& sol,
                                 moveit_msgs::MoveItErrorCodes& err);
+
+  /** Update the end-effector interactive marker with data from state_ */
+  void updateEndEffectorInteractiveMarker(void);
+
 protected:
 
   std::string group_name_;

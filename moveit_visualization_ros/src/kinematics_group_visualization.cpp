@@ -216,25 +216,34 @@ bool KinematicsGroupVisualization::setRandomState(unsigned int max_tries) {
       real_jsg->setStateValues(all_joint_values);
 
       state_.updateLinkTransforms();
-      
-      // Publish our markers
-      sendCurrentMarkers();
 
-      // Compute the new pose of the end-effector and force the associated
-      // interactive marker there.
-      Eigen::Affine3d new_pose = state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform();
-      geometry_msgs::Pose pm;
-      planning_models::msgFromPose(new_pose, pm);
-      last_pose_ = pm;
-      new_pose = new_pose*relative_transform_[interactive_marker_name_].inverse();
-      geometry_msgs::Pose trans_pose;
-      planning_models::msgFromPose(new_pose, trans_pose);
-      interactive_marker_server_->setPose(interactive_marker_name_, trans_pose);
-      interactive_marker_server_->applyChanges();
+      sendCurrentMarkers();
+      updateEndEffectorInteractiveMarker();
       return true;
     }
   }
   return false;
+}
+
+/** Set state for this group to be equal to the state in the planning scene. */
+void KinematicsGroupVisualization::resetState(void) {
+  state_ = planning_scene_->getCurrentState();
+  sendCurrentMarkers();
+  updateEndEffectorInteractiveMarker();
+}
+
+void KinematicsGroupVisualization::updateEndEffectorInteractiveMarker(void) {
+  // Compute the new pose of the end-effector and force the associated
+  // interactive marker there.
+  Eigen::Affine3d new_pose = state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform();
+  geometry_msgs::Pose pm;
+  planning_models::msgFromPose(new_pose, pm);
+  last_pose_ = pm;
+  new_pose = new_pose*relative_transform_[interactive_marker_name_].inverse();
+  geometry_msgs::Pose trans_pose;
+  planning_models::msgFromPose(new_pose, trans_pose);
+  interactive_marker_server_->setPose(interactive_marker_name_, trans_pose);
+  interactive_marker_server_->applyChanges();
 }
 
 void KinematicsGroupVisualization::processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)

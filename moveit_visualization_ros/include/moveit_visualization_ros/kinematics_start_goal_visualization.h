@@ -63,6 +63,7 @@ public:
                     const boost::function<void(void)>& callback);
 
   void setRandomStartGoal();
+  void resetStartGoal();
 
 protected:
 
