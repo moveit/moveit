@@ -31,8 +31,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QMainWindow>
-#include <QDockWidget>
+#include <QMenuBar>
 
 #include "rviz/visualization_panel.h"
 #include "rviz/visualization_manager.h"
@@ -40,6 +39,7 @@
 #include <ros/ros.h>
 #include <moveit_visualization_ros/interactive_object_visualization_qt_wrapper.h>
 #include <moveit_visualization_ros/interactive_object_visualization_widget.h>
+#include <moveit_visualization_ros/primitive_object_addition_dialog.h>
 #include <moveit_visualization_ros/planning_visualization.h>
 #include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
 
@@ -54,6 +54,7 @@ boost::shared_ptr<InteractiveObjectVisualizationQtWrapper> iov_;
 
 void publisher_function() {
   ros::WallRate r(10.0);
+
   while(ros::ok())
   {
     joint_state_publisher_->broadcastRootTransform(planning_scene_monitor_->getPlanningScene()->getCurrentState());
@@ -147,13 +148,26 @@ int main(int argc, char **argv)
   main_window->resize(1500,1000);
   InteractiveObjectVisualizationWidget* iov_widget = new InteractiveObjectVisualizationWidget(main_window);
 
+  PrimitiveObjectAdditionDialog* primitive_object_dialog = new PrimitiveObjectAdditionDialog(main_window);
+
   QHBoxLayout* main_layout = new QHBoxLayout;
+  QMenuBar* menu_bar = new QMenuBar(main_window);
+  QMenu* coll_object_menu = menu_bar->addMenu("Collision Objects");
+
+  QAction* show_primitive_objects_dialog = coll_object_menu->addAction("Add Primitive Collision Object");
+  QObject::connect(show_primitive_objects_dialog, SIGNAL(triggered()), primitive_object_dialog, SLOT(show()));
+  main_layout->setMenuBar(menu_bar);
+  
   main_layout->addWidget(iov_widget);
   main_layout->addWidget(frame);
 
   main_window->setLayout(main_layout);
 
   QObject::connect(iov_widget, SIGNAL(addCubeRequested()), iov_.get(), SLOT(addCubeSignalled()));
+  QObject::connect(primitive_object_dialog, 
+                   SIGNAL(addCollisionObjectRequested(const moveit_msgs::CollisionObject&, const QColor&)), 
+                   iov_.get(), 
+                   SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
   main_window->show();
 
   app.exec();

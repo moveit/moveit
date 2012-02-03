@@ -20,7 +20,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(${QT_INCLUDE_DIR})
@@ -30,6 +30,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 qt4_wrap_cpp(MOC_FILES
   include/moveit_visualization_ros/interactive_object_visualization_widget.h
   include/moveit_visualization_ros/interactive_object_visualization_qt_wrapper.h
+  include/moveit_visualization_ros/primitive_object_addition_dialog.h
 )
 
 #uncomment if you have defined messages
@@ -46,6 +47,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/planning_visualization.cpp
   src/interactive_object_visualization_widget.cpp
   src/interactive_object_visualization_qt_wrapper.cpp
+  src/primitive_object_addition_dialog.cpp
   ${MOC_FILES}
   )
 #target_link_libraries(${PROJECT_NAME} another_library)

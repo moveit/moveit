@@ -46,6 +46,8 @@ InteractiveObjectVisualization::InteractiveObjectVisualization(planning_scene::P
     cylinder_counter_(0)
 {
   planning_scene_diff_.reset(new planning_scene::PlanningScene(planning_scene_));
+  default_object_color_.r = default_object_color_.g = default_object_color_.b = .75;
+  default_object_color_.a = 1.0;
 }
 
 
@@ -111,7 +113,17 @@ void InteractiveObjectVisualization::addCylinder(const std::string& name) {
 
 void InteractiveObjectVisualization::addObject(const std::string& name,
                                                const geometry_msgs::Pose& pose_msg,
-                                               const moveit_msgs::Shape& shape_msg) {
+                                               const moveit_msgs::Shape& shape_msg)
+{
+  std_msgs::ColorRGBA col;
+  col.r = col.b = col.g = .75;
+  col.a = 1.0;
+  addObject(name, pose_msg, shape_msg, col);
+}
+void InteractiveObjectVisualization::addObject(const std::string& name,
+                                               const geometry_msgs::Pose& pose_msg,
+                                               const moveit_msgs::Shape& shape_msg,
+                                               const std_msgs::ColorRGBA& col) {
   visualization_msgs::InteractiveMarker tm;
   bool already_have = interactive_marker_server_->get(name, tm);
   
@@ -119,10 +131,20 @@ void InteractiveObjectVisualization::addObject(const std::string& name,
   interactive_markers::MenuHandler::CheckState grow_state, shrink_state;
   grow_state = shrink_state = interactive_markers::MenuHandler::UNCHECKED;
 
+  std_msgs::ColorRGBA color_to_use = col;
+
   if(already_have) {
     moveit_msgs::CollisionObject rem;
     rem.id = name;
     rem.operation = moveit_msgs::CollisionObject::REMOVE;
+
+    if(tm.controls.size() > 0 && tm.controls[0].markers.size() > 0) {
+      if(tm.controls[0].markers[0].color.r != default_object_color_.r ||
+         tm.controls[0].markers[0].color.g != default_object_color_.g ||
+         tm.controls[0].markers[0].color.b != default_object_color_.b) {
+        color_to_use = tm.controls[0].markers[0].color;
+      }
+    }
 
     object_menu_handlers_[name].getCheckState(menu_name_to_handle_maps_[name]["Off"], off_state);
     object_menu_handlers_[name].getCheckState(menu_name_to_handle_maps_[name]["Grow"], grow_state);
@@ -176,6 +198,7 @@ void InteractiveObjectVisualization::addObject(const std::string& name,
   if(dof_marker_enabled_[name]) {
     add6DofControl(marker, false);
   }
+  recolorInteractiveMarker(marker, color_to_use);
   interactive_marker_server_->insert(marker);
   interactive_marker_server_->setCallback(marker.name, 
                                           boost::bind(&InteractiveObjectVisualization::processInteractiveMarkerFeedback, this, _1));

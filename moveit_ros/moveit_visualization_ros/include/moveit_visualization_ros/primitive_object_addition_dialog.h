@@ -29,26 +29,61 @@
 
 // Author: E. Gil Jones
 
-#include <moveit_visualization_ros/interactive_object_visualization_widget.h>
-#include <QBoxLayout>
+#ifndef _PRIMITIVE_OBJECT_ADDITION_DIALOG_H_
+#define _PRIMITIVE_OBJECT_ADDITION_DIALOG_H_
+
+#include <sstream>
+
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QComboBox>
+#include <QGroupBox>
+#include <QSpinBox>
+#include <QString>
+#include <QLineEdit>
 #include <QPushButton>
+
+#include <moveit_msgs/CollisionObject.h>
+#include <std_msgs/ColorRGBA.h>
 
 namespace moveit_visualization_ros
 {
 
-InteractiveObjectVisualizationWidget::InteractiveObjectVisualizationWidget(QWidget* parent) :
-  QWidget(parent)
+class PrimitiveObjectAdditionDialog: public QDialog
 {
-  QVBoxLayout* main_layout = new QVBoxLayout;
-  QPushButton* add_cube = new QPushButton(parent);
-  add_cube->setText("Add Cube");
+  Q_OBJECT
   
-  connect(add_cube, SIGNAL(clicked()), this, SIGNAL(addCubeRequested()));
+  public:
   
-  main_layout->addWidget(add_cube);
-  setLayout(main_layout);
+  PrimitiveObjectAdditionDialog(QWidget* parent);
+
+public Q_SLOTS:
+
+  void selectColorButtonPressed();
+  void createObjectConfirmedPressed();
+
+Q_SIGNALS:
+
+  void addCollisionObjectRequested(const moveit_msgs::CollisionObject& obj,
+                                   const QColor& color);
+
+protected:
+
+  QComboBox* collision_object_type_box_;
+  QLineEdit* collision_object_name_;
+  QSpinBox* collision_object_scale_x_box_;
+  QSpinBox* collision_object_scale_y_box_;
+  QSpinBox* collision_object_scale_z_box_;
+  QSpinBox* collision_object_pos_x_box_;
+  QSpinBox* collision_object_pos_y_box_;
+  QSpinBox* collision_object_pos_z_box_;
+  QPushButton* make_object_button_;
+
+  QPushButton* color_button_;
+  QColor selected_color_;
+};
+
 }
 
-}
-
-
+#endif

@@ -38,6 +38,8 @@
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
 #include <interactive_markers/menu_handler.h>
+#include <std_msgs/ColorRGBA.h>
+
 
 static const double DEFAULT_SCALE = .1;
 static const double DEFAULT_X = .5;
@@ -95,6 +97,12 @@ protected:
   void addObject(const std::string& name,
                  const geometry_msgs::Pose& pose_msg,
                  const moveit_msgs::Shape& shape_msg);
+
+  void addObject(const std::string& name,
+                 const geometry_msgs::Pose& pose_msg,
+                 const moveit_msgs::Shape& shape_msg,
+                 const std_msgs::ColorRGBA& col);
+
   void deleteObject(const std::string& name);
 
   void setResizeModeOff(const std::string& name);
@@ -118,6 +126,8 @@ protected:
   unsigned int cube_counter_;
   unsigned int sphere_counter_;
   unsigned int cylinder_counter_;
+
+  std_msgs::ColorRGBA default_object_color_;
 
   std::map<std::string, bool> dof_marker_enabled_;
   std::map<std::string, interactive_markers::MenuHandler> object_menu_handlers_;

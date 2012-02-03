@@ -30,12 +30,22 @@
 // Author: E. Gil Jones
 
 #include <moveit_visualization_ros/interactive_object_visualization_qt_wrapper.h>
+#include <moveit_visualization_ros/qt_helper_functions.h>
 
 namespace moveit_visualization_ros {
 
 void InteractiveObjectVisualizationQtWrapper::addCubeSignalled() {
   ROS_INFO_STREAM("Trying to add");
   addCube();
+}
+
+void InteractiveObjectVisualizationQtWrapper::addCollisionObjectSignalled(const moveit_msgs::CollisionObject& obj,
+                                                                          const QColor& color)
+{
+  addObject(obj.id, 
+            obj.poses[0],
+            obj.shapes[0],
+            convertQColorToRGBA(color));
 }
 
 }

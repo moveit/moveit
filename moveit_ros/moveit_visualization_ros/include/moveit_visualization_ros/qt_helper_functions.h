@@ -29,26 +29,32 @@
 
 // Author: E. Gil Jones
 
-#include <moveit_visualization_ros/interactive_object_visualization_widget.h>
-#include <QBoxLayout>
-#include <QPushButton>
+#ifndef _MOVEIT_QT_HELPER_FUNCTIONS_H_
+#define _MOVEIT_QT_HELPER_FUNCTIONS_H_
+
+#include <QString>
+#include <QColor>
+#include <std_msgs/ColorRGBA.h>
 
 namespace moveit_visualization_ros
 {
 
-InteractiveObjectVisualizationWidget::InteractiveObjectVisualizationWidget(QWidget* parent) :
-  QWidget(parent)
-{
-  QVBoxLayout* main_layout = new QVBoxLayout;
-  QPushButton* add_cube = new QPushButton(parent);
-  add_cube->setText("Add Cube");
-  
-  connect(add_cube, SIGNAL(clicked()), this, SIGNAL(addCubeRequested()));
-  
-  main_layout->addWidget(add_cube);
-  setLayout(main_layout);
+static inline QString makeQStringFromColor(const QColor& color) {
+  std::stringstream color_stream;
+  color_stream << "Color: ( " << color.red()<< ","
+               << color.green() << ","
+               << color.blue() << ")";
+  return QString::fromStdString(color_stream.str());
 }
 
+static inline std_msgs::ColorRGBA convertQColorToRGBA(const QColor& qcol) {
+  std_msgs::ColorRGBA col;
+  col.r = qcol.redF();
+  col.g = qcol.greenF();
+  col.b = qcol.blueF();
+  col.a = qcol.alphaF();
+  return col;
+};
+
 }
-
-
+#endif

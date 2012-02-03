@@ -34,7 +34,10 @@
 
 #include <ros/ros.h>
 #include <QObject>
+#include <QColor>
+
 #include <moveit_visualization_ros/interactive_object_visualization.h>
+#include <moveit_msgs/CollisionObject.h>
  
 namespace moveit_visualization_ros
 {
@@ -57,6 +60,9 @@ public:
 public Q_SLOTS: 
 
   void addCubeSignalled();
+
+  void addCollisionObjectSignalled(const moveit_msgs::CollisionObject& obj,
+                                   const QColor& color);
 
 };
 
