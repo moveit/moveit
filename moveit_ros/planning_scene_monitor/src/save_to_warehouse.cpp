@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "moveit_warehouse/warehouse.h"
+#include <moveit_warehouse/warehouse.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
@@ -74,8 +74,7 @@ int main(int argc, char **argv)
       for (std::size_t i = 0 ; i < names.size() ; ++i)
         ROS_INFO(" * %s", names[i].c_str());
     }
-    
-    
+        
     psm.setUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
     
     ros::waitForShutdown();
