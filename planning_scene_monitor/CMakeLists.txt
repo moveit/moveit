@@ -32,6 +32,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/planning_scene_monitor.cpp
   src/robot_model_loader.cpp
   src/current_state_monitor.cpp)
+rosbuild_link_boost(${PROJECT_NAME} signals)
 
 rosbuild_add_executable(demo_scene demos/demo_scene.cpp)
 target_link_libraries(demo_scene ${PROJECT_NAME})
@@ -41,3 +42,4 @@ target_link_libraries(environment_server ${PROJECT_NAME})
 
 rosbuild_add_executable(save_to_warehouse src/save_to_warehouse.cpp)
 target_link_libraries(save_to_warehouse ${PROJECT_NAME})
+rosbuild_link_boost(save_to_warehouse system)
