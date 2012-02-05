@@ -24,4 +24,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_gensrv()
 
 #common commands for building c++ executables and libraries
+rosbuild_add_boost_directories()
 rosbuild_add_library(${PROJECT_NAME} src/warehouse.cpp)
+rosbuild_link_boost(${PROJECT_NAME} system)
