@@ -50,7 +50,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/primitive_object_addition_dialog.cpp
   ${MOC_FILES}
   )
-#target_link_libraries(${PROJECT_NAME} another_library)
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(kinematics_visualization_test src/kinematics_visualization_test.cpp)
