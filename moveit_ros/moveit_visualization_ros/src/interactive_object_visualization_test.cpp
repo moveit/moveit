@@ -57,7 +57,7 @@ void updateCallback(planning_scene::PlanningSceneConstPtr planning_scene) {
   kv_->updatePlanningScene(planning_scene);
 }
 
-void addCubeCallback() {
+void addCubeCallback(const std::string& name) {
   iov_->addCube();
 }
 
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
                                                 interactive_marker_server_,
                                                 col));
   
-  kv_->addMenuEntry("Add Cube", boost::bind(&addCubeCallback));
+  kv_->addMenuEntry("Add Cube", boost::bind(&addCubeCallback, _1));
 
   iov_->setUpdateCallback(boost::bind(&updateCallback, _1));
    

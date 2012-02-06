@@ -61,8 +61,8 @@ public Q_SLOTS:
 
   void addCubeSignalled();
 
-  void addCollisionObjectSignalled(const moveit_msgs::CollisionObject& obj,
-                                   const QColor& color);
+  void addCollisionObjectSignalled(const moveit_msgs::CollisionObject&,
+                                   const QColor&);
 
 };
 

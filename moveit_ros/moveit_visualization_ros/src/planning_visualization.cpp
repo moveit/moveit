@@ -41,57 +41,94 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
                                              ros::Publisher& marker_publisher)
   : planning_scene_(planning_scene), ompl_interface_(planning_scene->getKinematicModel())
 {
-  group_visualization_.reset(new KinematicsStartGoalVisualization(planning_scene,
-                                                                  interactive_marker_server,
-                                                                  "right_arm",
-                                                                  "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
-                                                                  marker_publisher));
+  const std::vector<srdf::Model::Group>& groups = planning_scene_->getSrdfModel()->getGroups();
 
-
-  group_visualization_->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this));
-  group_visualization_->addMenuEntry("Random start and goal", boost::bind(&PlanningVisualization::generateRandomStartGoal, this));
-  group_visualization_->addMenuEntry("Reset start and goal", boost::bind(&PlanningVisualization::resetStartGoal, this));
+  for(unsigned int i = 0; i < groups.size(); i++) {
+    if(groups[i].chains_.size() > 0 && groups[i].subgroups_.size() == 0) {
+      group_visualization_map_[groups[i].name_].reset(new KinematicsStartGoalVisualization(planning_scene,
+                                                                                            interactive_marker_server,
+                                                                                            groups[i].name_,
+                                                                                            "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
+                                                                                            marker_publisher,
+                                                                                            false));
+      group_visualization_map_[groups[i].name_]->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this, _1));
+      group_visualization_map_[groups[i].name_]->addMenuEntry("Random start / goal", boost::bind(&PlanningVisualization::generateRandomStartEnd, this, _1));
+      group_visualization_map_[groups[i].name_]->addMenuEntry("Reset start and goal", boost::bind(&PlanningVisualization::resetStartGoal, this, _1));
+    }
+  }
+ 
   joint_trajectory_visualization_.reset(new JointTrajectoryVisualization(planning_scene,
                                                                          marker_publisher));
+
 }
 
 void PlanningVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
   planning_scene_ = planning_scene;
-  group_visualization_->updatePlanningScene(planning_scene);
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end(); 
+      it++) {
+    it->second->updatePlanningScene(planning_scene);
+  }
   joint_trajectory_visualization_->updatePlanningScene(planning_scene);
 }
 
 void PlanningVisualization::addMenuEntry(const std::string& name, 
-                                         const boost::function<void(void)>& callback)
+                                         const boost::function<void(const std::string&)>& callback)
 {
-  group_visualization_->addMenuEntry(name, callback);
+  //For now adding to all groups
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end(); 
+      it++) {
+    it->second->addMenuEntry(name, callback);
+  }
 }
 
+void PlanningVisualization::hideAllGroups() {
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end(); 
+      it++) {
+    it->second->hideAllMarkers();
+  }
+}
 
-void PlanningVisualization::generatePlan(void) {
+void PlanningVisualization::selectGroup(const std::string& group) {
+  if(current_group_ == group) return;
+  if(group_visualization_map_.find(group) == group_visualization_map_.end()) {
+    ROS_WARN_STREAM("No group name " << group);
+  }
+  if(!current_group_.empty()) {
+    group_visualization_map_[current_group_]->hideAllMarkers();
+  }
+  current_group_ = group;
+  group_visualization_map_[current_group_]->showAllMarkers();
+}
 
-  ROS_INFO_STREAM("Getting request to plan");
+void PlanningVisualization::generatePlan(const std::string& name) {
 
-  const planning_models::KinematicState& start_state = group_visualization_->getStartState();
+  ROS_INFO_STREAM("Planning for " << name);
+  if(group_visualization_map_.find(name) == group_visualization_map_.end()) {
+    ROS_INFO_STREAM("No group " << name << " so can't plan");
+  }
 
-  const planning_models::KinematicState& goal_state = group_visualization_->getGoalState();
+  const planning_models::KinematicState& start_state = group_visualization_map_[name]->getStartState();
+
+  const planning_models::KinematicState& goal_state = group_visualization_map_[name]->getGoalState();
   
   moveit_msgs::GetMotionPlan::Request req;
   moveit_msgs::GetMotionPlan::Response res;
 
-  req.motion_plan_request.group_name = "right_arm";
+  req.motion_plan_request.group_name = name;
   planning_models::kinematicStateToRobotState(start_state,req.motion_plan_request.start_state);
-  req.motion_plan_request.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(goal_state.getJointStateGroup("right_arm"),
+  req.motion_plan_request.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(goal_state.getJointStateGroup(name),
                                                                                                      .001, .001));
   req.motion_plan_request.num_planning_attempts = 1;
   req.motion_plan_request.allowed_planning_time = ros::Duration(3.0);
-
+  
   std_msgs::ColorRGBA col;
   col.a = .8;
   col.b = 1.0;
 
   ompl_interface_.solve(planning_scene_, req, res);
-  ROS_INFO_STREAM("Trajectory has " << res.trajectory.joint_trajectory.points.size() << " joint names " << res.trajectory.joint_trajectory.joint_names.size());
   joint_trajectory_visualization_->setTrajectory(start_state,
                                                  res.trajectory.joint_trajectory,
                                                  col);
@@ -99,18 +136,19 @@ void PlanningVisualization::generatePlan(void) {
   joint_trajectory_visualization_->playCurrentTrajectory();
 }
 
-void PlanningVisualization::generateRandomStartGoal(void) {
+void PlanningVisualization::generateRandomStartEnd(const std::string& name) {
 
   ROS_INFO_STREAM("Getting request to set random start and end configurations");
 
-  group_visualization_->setRandomStartGoal();
+  group_visualization_map_[name]->setRandomStartGoal();
 }
 
-void PlanningVisualization::resetStartGoal(void) {
+void PlanningVisualization::resetStartGoal(const std::string& name) {
 
   ROS_INFO_STREAM("Getting request to reset start and end configurations");
 
-  group_visualization_->resetStartGoal();
+  group_visualization_map_[name]->resetStartGoal();
 }
+
 
 } // namespace moveit_visualization_ros

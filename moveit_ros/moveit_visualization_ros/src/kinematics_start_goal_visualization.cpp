@@ -39,7 +39,8 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
                                                                    boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                                                    const std::string& group_name, 
                                                                    const std::string& kinematics_solver_name,
-                                                                   ros::Publisher& marker_publisher)
+                                                                   ros::Publisher& marker_publisher,
+                                                                   bool show)
 {
   std_msgs::ColorRGBA good_color;
   good_color.g = good_color.a = 1.0;
@@ -54,7 +55,8 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
                                                 kinematics_solver_name,
                                                 makeRandomColor(.2,1.0),
                                                 bad_color,
-                                                marker_publisher));
+                                                marker_publisher,
+                                                show));
 
   goal_.reset(new KinematicsGroupVisualization(planning_scene,
                                                interactive_marker_server,
@@ -63,12 +65,15 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
                                                kinematics_solver_name,
                                                makeRandomColor(.2,1.0),
                                                bad_color,
-                                               marker_publisher));
+                                               marker_publisher,
+                                               show));
 
   start_->addButtonClickCallback(boost::bind(&KinematicsStartGoalVisualization::startOn, this));
   goal_->addButtonClickCallback(boost::bind(&KinematicsStartGoalVisualization::goalOn, this));
 
-  goalOn();
+  if(show) {
+    goalOn();
+  }
 
 }
 
@@ -79,7 +84,7 @@ void KinematicsStartGoalVisualization::updatePlanningScene(const planning_scene:
 }
 
 void KinematicsStartGoalVisualization::addMenuEntry(const std::string& name, 
-                                                    const boost::function<void(void)>& callback)
+                                                    const boost::function<void(const std::string& name)>& callback)
 {
   start_->addMenuEntry(name, callback);
   goal_->addMenuEntry(name, callback);
@@ -110,6 +115,17 @@ void KinematicsStartGoalVisualization::goalOn() {
   start_->setMarkerAlpha(0.25);
   goal_->enable6DOFControls();
   goal_->setMarkerAlpha(1.0);
+}
+
+void KinematicsStartGoalVisualization::hideAllMarkers() {
+  start_->hideAllMarkers();
+  goal_->hideAllMarkers();
+}
+
+void KinematicsStartGoalVisualization::showAllMarkers() {
+  start_->showAllMarkers();
+  goal_->showAllMarkers();
+  startOn();
 }
 
 }

@@ -53,7 +53,8 @@ public:
                                const std::string& kinematics_solver_name,
                                const std_msgs::ColorRGBA& good_color,
                                const std_msgs::ColorRGBA& bad_color,
-                               ros::Publisher& marker_publisher); 
+                               ros::Publisher& marker_publisher,
+                               bool show=true); 
 
   ~KinematicsGroupVisualization() {
     removeLastMarkers();
@@ -63,6 +64,10 @@ public:
     return state_;
   }
 
+  const std::string& getGroupName() const {
+    return group_name_;
+  }
+  
   void updateEndEffectorState(const geometry_msgs::Pose& pose);
 
   void hideAllMarkers();
@@ -71,13 +76,13 @@ public:
 
   void setMarkerAlpha(double a);
 
-  void disable6DOFControls();
-  void enable6DOFControls();
+  void disable6DOFControls(bool load_saved = true);
+  void enable6DOFControls(bool load_saved = true);
 
   void addButtonClickCallback(const boost::function<void(void)>& button_click_callback);
 
   void addMenuEntry(const std::string& name, 
-                    const boost::function<void(void)>& callback);
+                    const boost::function<void(const std::string&)>& callback);
 
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
@@ -99,7 +104,8 @@ protected:
 
   void makeInteractiveControlMarker(const std::string& name,
                                     const std_msgs::ColorRGBA& color,
-                                    bool add6dof); 
+                                    bool add6dof,
+                                    bool load_saved = true); 
 
   /** Call constraint-aware IK to determine whether the give EE pose is valid
    * and collision-free.  Returns:
@@ -134,6 +140,7 @@ protected:
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
+  visualization_msgs::InteractiveMarker saved_marker_;
   planning_models::KinematicState state_;
   ros::Publisher marker_publisher_;
   
@@ -145,7 +152,7 @@ protected:
 
   std::map<std::string, Eigen::Affine3d> relative_transform_;
 
-  std::map<std::string, boost::function<void(void)> > default_callback_map_;
+  std::map<std::string, boost::function<void(const std::string& name)> > default_callback_map_;
 
   interactive_markers::MenuHandler default_menu_handler_;
   std::map<interactive_markers::MenuHandler::EntryHandle, std::string> menu_handle_to_string_map_;
