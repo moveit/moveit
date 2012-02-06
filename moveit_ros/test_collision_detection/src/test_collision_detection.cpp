@@ -70,6 +70,7 @@ void findSelfCollisionAndDisplayContacts()
     req.max_contacts = 1000;
     req.max_contacts_per_pair = 500;
     collision_detection::CollisionResult res;
+    req.verbose = true;
     scene->checkSelfCollision(req, res);
     std_msgs::ColorRGBA color;
     color.r = 1.0f;
