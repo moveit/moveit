@@ -40,8 +40,10 @@
 #include <moveit_visualization_ros/interactive_object_visualization_qt_wrapper.h>
 #include <moveit_visualization_ros/interactive_object_visualization_widget.h>
 #include <moveit_visualization_ros/primitive_object_addition_dialog.h>
-#include <moveit_visualization_ros/planning_visualization.h>
+#include <moveit_visualization_ros/planning_group_selection_menu.h>
+#include <moveit_visualization_ros/planning_visualization_qt_wrapper.h>
 #include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
+#include <OGRE/OgreLogManager.h>
 
 using namespace moveit_visualization_ros;
 
@@ -49,7 +51,7 @@ static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 
 boost::shared_ptr<KinematicStateJointStatePublisher> joint_state_publisher_;
 boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
-boost::shared_ptr<PlanningVisualization> pv_;
+boost::shared_ptr<PlanningVisualizationQtWrapper> pv_;
 boost::shared_ptr<InteractiveObjectVisualizationQtWrapper> iov_;
 
 void publisher_function() {
@@ -110,9 +112,9 @@ int main(int argc, char **argv)
   bad_color.a = 1.0;    
   bad_color.r = 1.0;    
 
-  pv_.reset(new PlanningVisualization(planning_scene_monitor_->getPlanningScene(),
-                                      interactive_marker_server_,
-                                      vis_marker_array_publisher));
+  pv_.reset(new PlanningVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
+                                               interactive_marker_server_,
+                                               vis_marker_array_publisher));
   
   iov_.reset(new InteractiveObjectVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
                                                          interactive_marker_server_,
@@ -124,10 +126,16 @@ int main(int argc, char **argv)
   pv_->addMenuEntry("Add Cylinder", boost::bind(&addCylinderCallback));
   pv_->addMenuEntry("Add Sphere", boost::bind(&addSphereCallback));
 
+  pv_->hideAllGroups();
+
   QApplication app( argc, argv );
+  
+  //must go before
+  Ogre::LogManager* log_manager = new Ogre::LogManager();
+  log_manager->createLog( "Ogre.log", false, false, false );
 
   rviz::VisualizationPanel* frame = new rviz::VisualizationPanel;
-
+  
   QList<int> sizes;
   sizes.push_back(0);
   sizes.push_back(1000);
@@ -152,6 +160,16 @@ int main(int argc, char **argv)
 
   QHBoxLayout* main_layout = new QHBoxLayout;
   QMenuBar* menu_bar = new QMenuBar(main_window);
+  PlanningGroupSelectionMenu* planning_group_selection_menu = new PlanningGroupSelectionMenu(menu_bar);
+
+  QObject::connect(planning_group_selection_menu, 
+                   SIGNAL(groupSelected(const QString&)),
+                   pv_.get(),
+                   SLOT(newGroupSelected(const QString&)));
+
+  planning_group_selection_menu->init(planning_scene_monitor_->getPlanningScene()->getSrdfModel());
+
+  menu_bar->addMenu(planning_group_selection_menu);
   QMenu* coll_object_menu = menu_bar->addMenu("Collision Objects");
 
   QAction* show_primitive_objects_dialog = coll_object_menu->addAction("Add Primitive Collision Object");
@@ -168,6 +186,7 @@ int main(int argc, char **argv)
                    SIGNAL(addCollisionObjectRequested(const moveit_msgs::CollisionObject&, const QColor&)), 
                    iov_.get(), 
                    SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
+
   main_window->show();
 
   app.exec();

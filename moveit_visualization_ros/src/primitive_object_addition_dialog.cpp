@@ -35,10 +35,10 @@
 #include <QColorDialog>
 #include <QObject>
 
-//namespace moveit_visualization_ros 
-//{
+namespace moveit_visualization_ros 
+{
 
-moveit_visualization_ros::PrimitiveObjectAdditionDialog::PrimitiveObjectAdditionDialog(QWidget* parent) :
+PrimitiveObjectAdditionDialog::PrimitiveObjectAdditionDialog(QWidget* parent) :
   QDialog(parent),
   selected_color_(128,128,128)
 {
@@ -128,13 +128,13 @@ moveit_visualization_ros::PrimitiveObjectAdditionDialog::PrimitiveObjectAddition
   setLayout(layout);
 }
 
-void moveit_visualization_ros::PrimitiveObjectAdditionDialog::selectColorButtonPressed() {
+void PrimitiveObjectAdditionDialog::selectColorButtonPressed() {
 
   selected_color_ = QColorDialog::getColor(selected_color_);
   color_button_->setText(makeQStringFromColor(selected_color_));
 };
 
-void moveit_visualization_ros::PrimitiveObjectAdditionDialog::createObjectConfirmedPressed() {
+void PrimitiveObjectAdditionDialog::createObjectConfirmedPressed() {
   moveit_msgs::CollisionObject coll;
   coll.id = collision_object_name_->text().toStdString();
   
@@ -169,4 +169,4 @@ void moveit_visualization_ros::PrimitiveObjectAdditionDialog::createObjectConfir
   addCollisionObjectRequested(coll, selected_color_);
 }
 
-
+}

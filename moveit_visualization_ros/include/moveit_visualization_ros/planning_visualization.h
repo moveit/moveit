@@ -36,6 +36,7 @@
 #include <moveit_visualization_ros/kinematics_start_goal_visualization.h>
 #include <moveit_visualization_ros/joint_trajectory_visualization.h>
 #include <ompl_interface_ros/ompl_interface_ros.h>
+#include <boost/function.hpp>
 
 namespace moveit_visualization_ros
 {
@@ -51,17 +52,22 @@ public:
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
   void addMenuEntry(const std::string& name, 
-                    const boost::function<void(void)>& callback);
+                    const boost::function<void(const std::string&)>& callback);
   
+  void selectGroup(const std::string& name);
+
+  void hideAllGroups();
+
 protected:
 
-  void generatePlan(void);
-  void generateRandomStartGoal(void);
-  void resetStartGoal(void);
+  void generatePlan(const std::string& name);
+  void generateRandomStartEnd(const std::string& name);
+  void resetStartGoal(const std::string& name);
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   ompl_interface_ros::OMPLInterfaceROS ompl_interface_;
-  boost::shared_ptr<KinematicsStartGoalVisualization> group_visualization_;
+  std::string current_group_;
+  std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> > group_visualization_map_;
   boost::shared_ptr<JointTrajectoryVisualization> joint_trajectory_visualization_;
   
 };

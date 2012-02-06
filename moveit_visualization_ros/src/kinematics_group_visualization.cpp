@@ -48,7 +48,8 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
                                                            const std::string& kinematics_solver_name,
                                                            const std_msgs::ColorRGBA& good_color,
                                                            const std_msgs::ColorRGBA& bad_color,
-                                                           ros::Publisher& marker_publisher) :
+                                                           ros::Publisher& marker_publisher, 
+                                                           bool show) :
   group_name_(group_name),
   suffix_name_(suffix_name),
   interactive_marker_name_(group_name+"_interactive_kinematics_"+suffix_name),
@@ -99,17 +100,21 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
   if(!end_effector_link_names_.size() > 1) {
     end_effector_link_names_.erase(end_effector_link_names_.begin());
   }
-  enable6DOFControls();
+  enable6DOFControls(false);
   default_menu_handler_.apply(*interactive_marker_server_, interactive_marker_name_);
   interactive_marker_server_->applyChanges();
-
+  
   geometry_msgs::Pose cur_pose;
   planning_models::msgFromPose(state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform(), cur_pose);
   updateEndEffectorState(cur_pose);
 };
 
 void KinematicsGroupVisualization::hideAllMarkers() {
+  interactive_marker_server_->get(interactive_marker_name_, saved_marker_);
   removeLastMarkers();
+  disable6DOFControls();
+  interactive_marker_server_->erase(interactive_marker_name_);
+  interactive_marker_server_->applyChanges();
 }
 
 void KinematicsGroupVisualization::showAllMarkers() {
@@ -117,6 +122,7 @@ void KinematicsGroupVisualization::showAllMarkers() {
     last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
     last_marker_array_.markers[i].color.a = stored_alpha_;
   }
+  enable6DOFControls();
 }
 
 void KinematicsGroupVisualization::setMarkerAlpha(double a) {
@@ -134,22 +140,26 @@ void KinematicsGroupVisualization::setMarkerAlpha(double a) {
                                dof_marker_enabled_);
 }
 
-void KinematicsGroupVisualization::disable6DOFControls() {
+void KinematicsGroupVisualization::disable6DOFControls(bool load_saved) {
+  interactive_marker_server_->get(interactive_marker_name_, saved_marker_);
   dof_marker_enabled_ = false;
   std_msgs::ColorRGBA good_color = good_color_;
   good_color.a = stored_alpha_;
   makeInteractiveControlMarker(interactive_marker_name_,
                                good_color,
-                               false);
+                               false,
+                               load_saved);
 }
 
-void KinematicsGroupVisualization::enable6DOFControls() {
+void KinematicsGroupVisualization::enable6DOFControls(bool load_saved) {
+  interactive_marker_server_->get(interactive_marker_name_, saved_marker_);
   dof_marker_enabled_ = true;
   std_msgs::ColorRGBA good_color = good_color_;
   good_color.a = stored_alpha_;
   makeInteractiveControlMarker(interactive_marker_name_,
                                good_color,
-                               true);
+                               true,
+                               load_saved);
 }
 
 void KinematicsGroupVisualization::addButtonClickCallback(const boost::function<void(void)>& button_click_callback) {
@@ -157,7 +167,7 @@ void KinematicsGroupVisualization::addButtonClickCallback(const boost::function<
 }
 
 void KinematicsGroupVisualization::addMenuEntry(const std::string& name, 
-                                               const boost::function<void(void)>& callback) {
+                                                const boost::function<void(const std::string& name)>& callback) {
   interactive_markers::MenuHandler::EntryHandle eh
     = default_menu_handler_.insert(name, 
                                    boost::bind(&KinematicsGroupVisualization::processInteractiveMenuFeedback, this, _1));
@@ -248,6 +258,7 @@ void KinematicsGroupVisualization::updateEndEffectorInteractiveMarker(void) {
 
 void KinematicsGroupVisualization::processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
+  ROS_INFO_STREAM("got menu feedback");
   if(feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::MENU_SELECT) {
     ROS_WARN_STREAM("Got something other than menu select on menu feedback function");
     return;
@@ -262,7 +273,7 @@ void KinematicsGroupVisualization::processInteractiveMenuFeedback(const visualiz
     ROS_WARN_STREAM("No callback associated with name " << name);
     return;
   }
-  default_callback_map_[name]();
+  default_callback_map_[name](group_name_);
 }
 
 void KinematicsGroupVisualization::removeLastMarkers() 
@@ -405,6 +416,9 @@ void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visual
       geometry_msgs::Pose trans_pose;
       planning_models::msgFromPose(new_pose, trans_pose);
       updateEndEffectorState(trans_pose);
+      //setting this so that we save it correctly
+      interactive_marker_server_->setPose(interactive_marker_name_, feedback->pose);
+      interactive_marker_server_->applyChanges();
     }
     break;
   case visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK:
@@ -413,16 +427,19 @@ void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visual
     }
     break;
   default:
-    ROS_DEBUG_STREAM("Getting event type " << (unsigned int)feedback->event_type);
+    ROS_INFO_STREAM("Getting event type " << (unsigned int)feedback->event_type);
+    break;
   }
 }; 
 
 void KinematicsGroupVisualization::makeInteractiveControlMarker(const std::string& name,
                                                                 const std_msgs::ColorRGBA& color,
-                                                                bool add_6dof)
+                                                                bool add_6dof,
+                                                                bool load_saved)
 {
   visualization_msgs::InteractiveMarker marker;
-  if(interactive_marker_server_->get(name, marker)) {
+  if(load_saved) {
+    marker = saved_marker_;
     removeAxisControls(marker);
     recolorInteractiveMarker(marker, color);
   } else {

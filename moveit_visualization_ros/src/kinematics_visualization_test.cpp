@@ -54,11 +54,11 @@ void simplePrintClick() {
   ROS_INFO_STREAM("Getting called click");
 }
 
-void simplePrintMenu1() {
+void simplePrintMenu1(const std::string& name) {
   ROS_INFO_STREAM("Getting called menu 1");
 }
 
-void simplePrintMenu2() {
+void simplePrintMenu2(const std::string& name) {
   ROS_INFO_STREAM("Getting called menu 2");
 }
 
@@ -125,15 +125,9 @@ int main(int argc, char** argv)
                                                                 bad_color,
                                                                 vis_marker_array_publisher);
 
-  
-
-  boost::function<void(void)> sp1 = simplePrintClick;
-  boost::function<void(void)> sp2 = simplePrintMenu1;
-  boost::function<void(void)> sp3 = simplePrintMenu2;
-
-  kv.addButtonClickCallback(sp1);
-  kv.addMenuEntry("monkey1", sp2);
-  kv.addMenuEntry("monkey2", sp3);
+  kv.addButtonClickCallback(boost::bind(&simplePrintClick));
+  kv.addMenuEntry("monkey1", boost::bind(&simplePrintMenu1, _1));
+  kv.addMenuEntry("monkey2", boost::bind(&simplePrintMenu2, _1));
  
   // geometry_msgs::PoseStamped pose;
   // pose.pose.position.x = .58;

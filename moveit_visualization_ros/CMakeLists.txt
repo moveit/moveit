@@ -31,6 +31,8 @@ qt4_wrap_cpp(MOC_FILES
   include/moveit_visualization_ros/interactive_object_visualization_widget.h
   include/moveit_visualization_ros/interactive_object_visualization_qt_wrapper.h
   include/moveit_visualization_ros/primitive_object_addition_dialog.h
+  include/moveit_visualization_ros/planning_group_selection_menu.h
+  include/moveit_visualization_ros/planning_visualization_qt_wrapper.h
 )
 
 #uncomment if you have defined messages
@@ -48,6 +50,8 @@ rosbuild_add_library(${PROJECT_NAME}
   src/interactive_object_visualization_widget.cpp
   src/interactive_object_visualization_qt_wrapper.cpp
   src/primitive_object_addition_dialog.cpp
+  src/planning_group_selection_menu.cpp
+  src/planning_visualization_qt_wrapper.cpp
   ${MOC_FILES}
   )
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
