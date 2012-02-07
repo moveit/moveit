@@ -120,10 +120,10 @@ ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::Ki
   // and it will use additional configuration options, if available
   if (configure(pconfig)) 
   {
-    loadConstraintApproximations("/u/isucan/c/");
+    /*    loadConstraintApproximations("/u/isucan/c/");
     std::stringstream ss;
     printConstraintApproximations(ss);
-    ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str());
+    ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str()); */
     configureIKSolvers();
   }
 }
