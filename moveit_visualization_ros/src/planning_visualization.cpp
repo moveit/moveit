@@ -31,6 +31,7 @@
 
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
 #include <moveit_visualization_ros/planning_visualization.h>
+#include <moveit_msgs/DisplayTrajectory.h>
 #include <kinematic_constraints/utils.h>
 #include <planning_models/conversions.h>
 
@@ -59,6 +60,9 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
  
   joint_trajectory_visualization_.reset(new JointTrajectoryVisualization(planning_scene,
                                                                          marker_publisher));
+
+  ros::NodeHandle nh;
+  display_traj_publisher_ = nh.advertise<moveit_msgs::DisplayTrajectory>("display_trajectory", 1);
 
 }
 
@@ -134,6 +138,12 @@ void PlanningVisualization::generatePlan(const std::string& name) {
                                                  col);
 
   joint_trajectory_visualization_->playCurrentTrajectory();
+
+  moveit_msgs::DisplayTrajectory d;
+  d.model_id = planning_scene_->getKinematicModel()->getName();
+  planning_models::kinematicStateToRobotState(start_state, d.robot_state);
+  d.trajectory = res.trajectory;
+  display_traj_publisher_.publish(d);
 }
 
 void PlanningVisualization::generateRandomStartEnd(const std::string& name) {
