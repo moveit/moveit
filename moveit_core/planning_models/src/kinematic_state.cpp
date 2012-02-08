@@ -850,6 +850,7 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
 {
   for(std::size_t i = 0; i < link_names.size(); ++i)
   {
+    ROS_DEBUG_STREAM("Trying to get marker for link " << link_names[i]);
     visualization_msgs::Marker mark;
     const LinkState* ls = getLinkState(link_names[i]);
     if(!ls || !ls->getLinkModel() || !ls->getLinkModel()->getShape()) continue;
@@ -861,7 +862,13 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
                                        mark);
     } else {
       mark.type = mark.MESH_RESOURCE;
-      mark.mesh_resource = ls->getLinkModel()->getFilename();
+      if(!ls->getLinkModel()->getVisualFilename().empty()) {
+        mark.mesh_use_embedded_materials = true;
+        mark.mesh_resource = ls->getLinkModel()->getVisualFilename();
+      } else {
+        mark.mesh_resource = ls->getLinkModel()->getFilename();
+      }
+      ROS_DEBUG_STREAM("Using filename " << mark.mesh_resource);
       //TODO - deal with scale, potentially get visual markers
       mark.scale.x = mark.scale.y = mark.scale.z = 1.0;
     }

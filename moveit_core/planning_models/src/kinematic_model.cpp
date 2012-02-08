@@ -339,9 +339,20 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
     const JointModelGroup *sg = getJointModelGroup(gc.subgroups_[i]);
     if (sg)
     {
+      //active joints
       const std::vector<const JointModel*> &js = sg->getJointModels();
       for (std::size_t j = 0 ; j < js.size() ; ++j)
         jset.insert(js[j]);
+      
+      //fixed joints
+      const std::vector<const JointModel*> &fs = sg->getFixedJointModels();
+      for (std::size_t j = 0 ; j < fs.size() ; ++j)
+        jset.insert(fs[j]);
+
+      //mimic joints
+      const std::vector<const JointModel*> &ms = sg->getMimicJointModels();
+      for (std::size_t j = 0 ; j < ms.size() ; ++j)
+        jset.insert(ms[j]);
     }
   }
 
@@ -535,6 +546,13 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
     result->shape_.reset();
   }
 
+  if(urdf_link->visual && urdf_link->visual->geometry) {
+    const urdf::Mesh *mesh = dynamic_cast<const urdf::Mesh*>(urdf_link->visual->geometry.get());
+    if (mesh && !mesh->filename.empty())
+    {
+      result->visual_filename_ = mesh->filename;
+    }
+  }
   if (urdf_link->parent_joint.get())
     result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
   else
@@ -1079,10 +1097,13 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
 
   // now we need to make another pass for group links (we include the fixed joints here)
   std::set<const LinkModel*> group_links_set;
-  for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
+  for (std::size_t i = 0 ; i < group_joints.size() ; ++i) {
     group_links_set.insert(group_joints[i]->getChildLinkModel());
+  }
   for (std::set<const LinkModel*>::iterator it = group_links_set.begin(); it != group_links_set.end(); ++it)
+  {
     link_model_vector_.push_back(*it);
+  }
   std::sort(link_model_vector_.begin(), link_model_vector_.end(), &orderLinksByIndex);
   for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
     link_model_name_vector_.push_back(link_model_vector_[i]->getName());
