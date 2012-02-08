@@ -489,7 +489,7 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
   visualization_msgs::Marker mesh;
   //header intentionally left empty, meaning that poses are relative to marker
 
-  mesh.mesh_use_embedded_materials = false;
+  mesh.mesh_use_embedded_materials = true;
   mesh.type = visualization_msgs::Marker::MESH_RESOURCE;
   mesh.scale.x = 1.0;
   mesh.scale.y = 1.0;
@@ -532,12 +532,12 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
       continue;
     }
 
-    if(ls->getLinkModel()->getFilename().empty()) {
+    if(ls->getLinkModel()->getVisualFilename().empty()) {
       ROS_DEBUG_STREAM("No filename for " << links[i]);
       continue;
     }
 
-    mesh.mesh_resource = ls->getLinkModel()->getFilename();
+    mesh.mesh_resource = ls->getLinkModel()->getVisualFilename();
     //getting pose relative to first pose
     Eigen::Affine3d ret_pose = bound_pose.inverse()*ls->getGlobalCollisionBodyTransform();
 

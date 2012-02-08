@@ -52,7 +52,6 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
                                                            bool show) :
   group_name_(group_name),
   suffix_name_(suffix_name),
-  interactive_marker_name_(group_name+"_interactive_kinematics_"+suffix_name),
   regular_marker_name_(group_name+"_kinematics_"+suffix_name),
   last_solution_good_(true),
   last_solution_changed_(false),
@@ -75,45 +74,101 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
     return;
   }
   
+  bool subgroups = false;
   const srdf::Model::Group& srdf_group = group_map.find(group_name)->second;
-  
-  if(srdf_group.chains_.size() == 0 ||
-     srdf_group.chains_[0].first.empty() ||
-     srdf_group.chains_[0].second.empty()) {
+  if(srdf_group.subgroups_.size() > 0) {
+    subgroups = true;
+  } else if(srdf_group.chains_.size() == 0 ||
+            srdf_group.chains_[0].first.empty() ||
+            srdf_group.chains_[0].second.empty()) {
     ROS_ERROR_STREAM("Group name " << group_name << " has no or messed up chain definition");
     return;
   }
 
-  kinematics::KinematicsBasePtr result;
-  result.reset(kinematics_loader_->createClassInstance(kinematics_solver_name));
-  
-  ik_solver_.reset(new kinematics_constraint_aware::KinematicsSolverConstraintAware(result,
-                                                                                    planning_scene_->getKinematicModel(),
-                                                                                    group_name));
+  if(subgroups) {
+    std::map<std::string, kinematics::KinematicsBasePtr> solver_map;
+    for(unsigned int i = 0; i < srdf_group.subgroups_.size(); i++) {
+      const srdf::Model::Group& subgroup = group_map.at(srdf_group.subgroups_[i]);
+      //TODO - deal with multi-chains etc
+      if(subgroup.chains_.size() > 0) {
+        subgroup_chain_names_.push_back(subgroup.name_);
+      }
+      kinematics::KinematicsBasePtr result;
+      result.reset(kinematics_loader_->createClassInstance(kinematics_solver_name));
+      solver_map[subgroup.name_] = result;
+      group_to_interactive_marker_names_[srdf_group.subgroups_[i]] = makeInteractiveMarkerName(srdf_group.subgroups_[i]);
+      interactive_marker_to_group_names_[makeInteractiveMarkerName(srdf_group.subgroups_[i])] = srdf_group.subgroups_[i];
+    }
+    ik_solver_.reset(new kinematics_constraint_aware::KinematicsSolverConstraintAware(solver_map,
+                                                                                      planning_scene_->getKinematicModel(),
+                                                                                      group_name));
+    std::map<std::string, geometry_msgs::Pose> poses;
 
-  const planning_models::KinematicModel::LinkModel* lm = state_.getKinematicModel()->getLinkModel(ik_solver_->getTipFrame());
-  if(lm == NULL) {
-    ROS_ERROR_STREAM("No link for tip frame " << ik_solver_->getTipFrame());
+    for(unsigned int i = 0; i < subgroup_chain_names_.size(); i++) {
+      //TODO - deal with non-chain groups
+      
+      kinematics::KinematicsBasePtr& solver = solver_map.at(subgroup_chain_names_[i]);
+      const planning_models::KinematicModel::LinkModel* lm = state_.getKinematicModel()->getLinkModel(solver->getTipFrame());
+      if(lm == NULL) {
+        ROS_ERROR_STREAM("No link for tip frame " << solver->getTipFrame());
+      }
+      enable6DOFControls(false);
+      for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
+          it != group_to_interactive_marker_names_.end();
+          it++) {
+        default_menu_handler_.apply(*interactive_marker_server_, it->second);
+      }
+      interactive_marker_server_->applyChanges();
+      
+      geometry_msgs::Pose cur_pose;
+      planning_models::msgFromPose(state_.getLinkState(solver->getTipFrame())->getGlobalLinkTransform(), cur_pose);
+      poses[solver->getGroupName()] = cur_pose;
+      ROS_DEBUG_STREAM("Adding pose for " << subgroup_chain_names_[i] << " "
+                       << cur_pose.position.x << " " 
+                       << cur_pose.position.y << " " 
+                       << cur_pose.position.z); 
+    }
+    last_poses_ = poses;
+    updateEndEffectorState(poses.begin()->first, poses.begin()->second);
+  } else {
+    kinematics::KinematicsBasePtr result;
+    result.reset(kinematics_loader_->createClassInstance(kinematics_solver_name));
+
+
+    ik_solver_.reset(new kinematics_constraint_aware::KinematicsSolverConstraintAware(result,
+                                                                                      planning_scene_->getKinematicModel(),
+                                                                                      group_name));
+
+    group_to_interactive_marker_names_[group_name] = makeInteractiveMarkerName();
+    interactive_marker_to_group_names_[makeInteractiveMarkerName()] = group_name;
+    
+    const planning_models::KinematicModel::LinkModel* lm = state_.getKinematicModel()->getLinkModel(result->getTipFrame());
+    if(lm == NULL) {
+      ROS_ERROR_STREAM("No link for tip frame " << result->getTipFrame());
+    }
+    enable6DOFControls(false);
+    default_menu_handler_.apply(*interactive_marker_server_, group_to_interactive_marker_names_[group_name]);
+    interactive_marker_server_->applyChanges();
+    
+    geometry_msgs::Pose cur_pose;
+    planning_models::msgFromPose(state_.getLinkState(result->getTipFrame())->getGlobalLinkTransform(), cur_pose);
+    updateEndEffectorState(group_name, cur_pose);
   }
-  end_effector_link_names_ = state_.getKinematicModel()->getChildLinkModelNames(lm);
-  //children will include tip link
-  if(!end_effector_link_names_.size() > 1) {
-    end_effector_link_names_.erase(end_effector_link_names_.begin());
-  }
-  enable6DOFControls(false);
-  default_menu_handler_.apply(*interactive_marker_server_, interactive_marker_name_);
-  interactive_marker_server_->applyChanges();
-  
-  geometry_msgs::Pose cur_pose;
-  planning_models::msgFromPose(state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform(), cur_pose);
-  updateEndEffectorState(cur_pose);
 };
 
 void KinematicsGroupVisualization::hideAllMarkers() {
-  interactive_marker_server_->get(interactive_marker_name_, saved_marker_);
+  for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
+      it != group_to_interactive_marker_names_.end();
+      it++) {
+    interactive_marker_server_->get(it->second, saved_markers_[it->second]);
+  }
   removeLastMarkers();
   disable6DOFControls();
-  interactive_marker_server_->erase(interactive_marker_name_);
+  for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
+      it != group_to_interactive_marker_names_.end();
+      it++) {
+    interactive_marker_server_->erase(it->second);
+  }
   interactive_marker_server_->applyChanges();
 }
 
@@ -135,31 +190,36 @@ void KinematicsGroupVisualization::setMarkerAlpha(double a) {
   stored_alpha_ = a;
   std_msgs::ColorRGBA good_color = good_color_;
   good_color.a = stored_alpha_;
-  makeInteractiveControlMarker(interactive_marker_name_,
-                               good_color,
-                               dof_marker_enabled_);
+  makeInteractiveControlMarkers(good_color,
+                                dof_marker_enabled_);
 }
 
 void KinematicsGroupVisualization::disable6DOFControls(bool load_saved) {
-  interactive_marker_server_->get(interactive_marker_name_, saved_marker_);
+  for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
+      it != group_to_interactive_marker_names_.end();
+      it++) {
+    interactive_marker_server_->get(it->second, saved_markers_[it->second]);
+  }
   dof_marker_enabled_ = false;
   std_msgs::ColorRGBA good_color = good_color_;
   good_color.a = stored_alpha_;
-  makeInteractiveControlMarker(interactive_marker_name_,
-                               good_color,
-                               false,
-                               load_saved);
+  makeInteractiveControlMarkers(good_color,
+                                false,
+                                load_saved);
 }
 
 void KinematicsGroupVisualization::enable6DOFControls(bool load_saved) {
-  interactive_marker_server_->get(interactive_marker_name_, saved_marker_);
+  for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
+      it != group_to_interactive_marker_names_.end();
+      it++) {
+    interactive_marker_server_->get(it->second, saved_markers_[it->second]);
+  }
   dof_marker_enabled_ = true;
   std_msgs::ColorRGBA good_color = good_color_;
   good_color.a = stored_alpha_;
-  makeInteractiveControlMarker(interactive_marker_name_,
-                               good_color,
-                               true,
-                               load_saved);
+  makeInteractiveControlMarkers(good_color,
+                                true,
+                                load_saved);
 }
 
 void KinematicsGroupVisualization::addButtonClickCallback(const boost::function<void(void)>& button_click_callback) {
@@ -180,7 +240,7 @@ void KinematicsGroupVisualization::addMenuEntry(const std::string& name,
 
 void KinematicsGroupVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
   planning_scene_ = planning_scene;
-  updateEndEffectorState(last_pose_);
+  updateEndEffectorState(last_poses_.begin()->first, last_poses_.begin()->second);
 }
 
 /** Set a random valid state for this group.
@@ -245,20 +305,25 @@ void KinematicsGroupVisualization::resetState(void) {
 void KinematicsGroupVisualization::updateEndEffectorInteractiveMarker(void) {
   // Compute the new pose of the end-effector and force the associated
   // interactive marker there.
-  Eigen::Affine3d new_pose = state_.getLinkState(ik_solver_->getTipFrame())->getGlobalLinkTransform();
-  geometry_msgs::Pose pm;
-  planning_models::msgFromPose(new_pose, pm);
-  last_pose_ = pm;
-  new_pose = new_pose*relative_transform_[interactive_marker_name_].inverse();
-  geometry_msgs::Pose trans_pose;
-  planning_models::msgFromPose(new_pose, trans_pose);
-  interactive_marker_server_->setPose(interactive_marker_name_, trans_pose);
+  const std::map<std::string, std::string>& tip_frame_map = ik_solver_->getTipFrames();
+  for(std::map<std::string, std::string>::const_iterator it = tip_frame_map.begin();
+      it != tip_frame_map.end();
+      it++) {
+    Eigen::Affine3d new_pose = state_.getLinkState(it->second)->getGlobalLinkTransform();
+    geometry_msgs::Pose pm;
+    planning_models::msgFromPose(new_pose, pm);
+    last_poses_[it->first] = pm;
+    new_pose = new_pose*relative_transforms_[it->first].inverse();
+    geometry_msgs::Pose trans_pose;
+    planning_models::msgFromPose(new_pose, trans_pose);
+    interactive_marker_server_->setPose(group_to_interactive_marker_names_[it->first], trans_pose);
+  }
   interactive_marker_server_->applyChanges();
 }
 
 void KinematicsGroupVisualization::processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
-  ROS_INFO_STREAM("got menu feedback");
+  ROS_DEBUG_STREAM("got menu feedback");
   if(feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::MENU_SELECT) {
     ROS_WARN_STREAM("Got something other than menu select on menu feedback function");
     return;
@@ -310,68 +375,77 @@ void KinematicsGroupVisualization::sendCurrentMarkers()
   }
 }
 
-bool KinematicsGroupVisualization::validateEndEffectorState(const geometry_msgs::Pose& pose,
+bool KinematicsGroupVisualization::validateEndEffectorState(const std::map<std::string, geometry_msgs::Pose>& poses,
                                                             sensor_msgs::JointState& sol,
                                                             moveit_msgs::MoveItErrorCodes& err)
 {
   ros::WallTime start = ros::WallTime::now();
+
+  std::map<std::string, unsigned int> redundancies;
     
-  //assuming pose is in world frame for now
-  Eigen::Affine3d cur;
-  planning_models::poseFromMsg(pose, cur);
+  const std::map<std::string, std::string>& tip_frame_map = ik_solver_->getTipFrames();
+  const std::map<std::string, std::string>& base_frame_map = ik_solver_->getBaseFrames();
+  std::map<std::string, geometry_msgs::Pose> conv_poses;
+  for(std::map<std::string, std::string>::const_iterator it = tip_frame_map.begin();
+      it != tip_frame_map.end();
+      it++) {
+    if(poses.find(it->first) == poses.end()) {
+      ROS_WARN_STREAM("Must provide pose for every group, no pose for subgroup " << it->first);
+      return false;
+    }
+    //assuming pose is in world frame for now
+    Eigen::Affine3d cur;
+    planning_models::poseFromMsg(poses.at(it->first), cur);
+    
+    state_.updateStateWithLinkAt(it->second, cur);
   
-  state_.updateStateWithLinkAt(ik_solver_->getTipFrame(), cur);
-  
-  //now need to get in base_frame
-  Eigen::Affine3d base_in_world = state_.getLinkState(ik_solver_->getBaseFrame())->getGlobalLinkTransform();
-  
-  ROS_DEBUG_STREAM("Base x y z " << base_in_world.translation().x() << " " 
-                   << base_in_world.translation().y() << " " 
-                   << base_in_world.translation().z()); 
+    //now need to get in base_frame
+    Eigen::Affine3d base_in_world = state_.getLinkState(base_frame_map.at(it->first))->getGlobalLinkTransform();
 
-  Eigen::Quaterniond quat(base_in_world.rotation());
+    ROS_DEBUG_STREAM("Base " << base_frame_map.at(it->first) << " x y z " << base_in_world.translation().x() << " " 
+                     << base_in_world.translation().y() << " " 
+                     << base_in_world.translation().z()); 
 
-  ROS_DEBUG_STREAM("Base rot x y z w " << quat.x() << " " 
-                   << quat.y() << " " 
-                   << quat.z() << " " 
-                   << quat.w()); 
-  
-  Eigen::Affine3d tip_in_base = base_in_world.inverse()*cur;
-
-  quat = Eigen::Quaterniond(tip_in_base.rotation());
-
-  ROS_DEBUG_STREAM("tip rot x y z w " << quat.x() << " " 
-                   << quat.y() << " " 
-                   << quat.z() << " " 
-                   << quat.w()); 
-  
-  geometry_msgs::Pose np;
-  planning_models::msgFromPose(tip_in_base, np);
-  
-  ROS_DEBUG_STREAM("X Y Z are " << np.position.x << " " 
-                   << np.position.y << " " 
-                   << np.position.z << " from " << ik_solver_->getBaseFrame()); 
-  
+    Eigen::Affine3d tip_in_base = base_in_world.inverse()*cur;
+    
+    geometry_msgs::Pose np;
+    planning_models::msgFromPose(tip_in_base, np);
+    
+    conv_poses[it->first] = np;
+    redundancies[it->first] = 2;
+  }
   moveit_msgs::Constraints emp_constraints;
-  bool result = ik_solver_->findConstraintAwareSolution(np,
-                                                        emp_constraints,
-                                                        &state_,
-                                                        planning_scene_,
-                                                        sol,
-                                                        err, 
-                                                        true);
-  ROS_DEBUG_STREAM("Total time is " << (ros::WallTime::now()-start));
+  bool result = true; 
+  if(conv_poses.size() == 1) {
+    result = ik_solver_->findConstraintAwareSolution(conv_poses.begin()->second,
+                                                     emp_constraints,
+                                                     &state_,
+                                                     planning_scene_,
+                                                     sol,
+                                                     err, 
+                                                     true);
+  } else {
+    result = ik_solver_->findConstraintAwareSolution(conv_poses,
+                                            redundancies,
+                                            emp_constraints,
+                                            &state_,
+                                            planning_scene_,
+                                            sol,
+                                            err, 
+                                            true);
+  }
+  ROS_DEBUG_STREAM("Total time is " << (ros::WallTime::now()-start) << " result " << result);
   return result;
 }
 
-void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::Pose& pose) 
+void KinematicsGroupVisualization::updateEndEffectorState(const std::string& group_name, const geometry_msgs::Pose& pose) 
 {
-  last_pose_ = pose;
+  last_poses_[group_name] = pose;
   
   sensor_msgs::JointState sol;
   moveit_msgs::MoveItErrorCodes err;
   
-  if(validateEndEffectorState(pose, sol, err)) {
+  if(validateEndEffectorState(last_poses_, sol, err)) {
     if(last_solution_good_ == false) {
       last_solution_changed_ = true;
     } else {
@@ -404,20 +478,22 @@ void KinematicsGroupVisualization::updateEndEffectorState(const geometry_msgs::P
 
 void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 
 {    
-  if(feedback->marker_name != interactive_marker_name_) {
-    ROS_INFO_STREAM("Getting values for " << feedback->marker_name);
+  if(interactive_marker_to_group_names_.find(feedback->marker_name) == interactive_marker_to_group_names_.end()) {
+    ROS_INFO_STREAM("Getting values for unknown group " << feedback->marker_name);
+    return;
   }
   switch (feedback->event_type) {
   case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
     {
+      std::string group_name = interactive_marker_to_group_names_[feedback->marker_name];
       Eigen::Affine3d new_pose;
       planning_models::poseFromMsg(feedback->pose, new_pose);
-      new_pose = new_pose*relative_transform_[feedback->marker_name];
+      new_pose = new_pose*relative_transforms_[group_name];
       geometry_msgs::Pose trans_pose;
       planning_models::msgFromPose(new_pose, trans_pose);
-      updateEndEffectorState(trans_pose);
+      updateEndEffectorState(group_name, trans_pose);
       //setting this so that we save it correctly
-      interactive_marker_server_->setPose(interactive_marker_name_, feedback->pose);
+      interactive_marker_server_->setPose(feedback->marker_name, feedback->pose);
       interactive_marker_server_->applyChanges();
     }
     break;
@@ -427,44 +503,49 @@ void KinematicsGroupVisualization::processInteractiveMarkerFeedback(const visual
     }
     break;
   default:
-    ROS_INFO_STREAM("Getting event type " << (unsigned int)feedback->event_type);
+    ROS_DEBUG_STREAM("Getting event type " << (unsigned int)feedback->event_type);
     break;
   }
 }; 
 
-void KinematicsGroupVisualization::makeInteractiveControlMarker(const std::string& name,
-                                                                const std_msgs::ColorRGBA& color,
-                                                                bool add_6dof,
-                                                                bool load_saved)
+void KinematicsGroupVisualization::makeInteractiveControlMarkers(const std_msgs::ColorRGBA& color,
+                                                                 bool add_6dof,
+                                                                 bool load_saved)
 {
-  visualization_msgs::InteractiveMarker marker;
-  if(load_saved) {
-    marker = saved_marker_;
-    removeAxisControls(marker);
-    recolorInteractiveMarker(marker, color);
-  } else {
-    marker = makeMeshButtonFromLinks(name,
-                                     state_,
-                                     end_effector_link_names_,
-                                     color,
-                                     .35,
-                                     true,
-                                     relative_transform_[name]);
-  }
+  for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
+      it != group_to_interactive_marker_names_.end();
+      it++) {
+    visualization_msgs::InteractiveMarker marker;
+    if(load_saved) {
+      ROS_DEBUG_STREAM("Loading marker " << it->second);
+      marker = saved_markers_[it->second];
+      removeAxisControls(marker);
+      recolorInteractiveMarker(marker, color);
+    } else {
+      ROS_DEBUG_STREAM("Creating marker " << it->second);
+      marker = makeMeshButtonFromLinks(it->second,
+                                       state_,
+                                       ik_solver_->getEndEffectorLinks().at(it->first),
+                                       color,
+                                       .35,
+                                       true,
+                                       relative_transforms_[it->first]);
+    }
+    
+    if(add_6dof) {
+      add6DofControl(marker, false);
+    }
+    marker.description=it->second;
 
-  if(add_6dof) {
-    add6DofControl(marker, false);
+    // make6DOFMarker(group_name_+"_ik",
+    //                ps,
+    //                .3,
+    //                false,
+    //                false);
+    interactive_marker_server_->insert(marker);
+    interactive_marker_server_->setCallback(marker.name, 
+                                            boost::bind(&KinematicsGroupVisualization::processInteractiveMarkerFeedback, this, _1));
   }
-  marker.description=group_name_+"_"+suffix_name_;
-
-  // make6DOFMarker(group_name_+"_ik",
-  //                ps,
-  //                .3,
-  //                false,
-  //                false);
-  interactive_marker_server_->insert(marker);
-  interactive_marker_server_->setCallback(marker.name, 
-                                          boost::bind(&KinematicsGroupVisualization::processInteractiveMarkerFeedback, this, _1));
   default_menu_handler_.reApply(*interactive_marker_server_);
   interactive_marker_server_->applyChanges();
 };

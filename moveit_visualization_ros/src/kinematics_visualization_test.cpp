@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 
   KinematicsGroupVisualization::KinematicsGroupVisualization kv(planning_scene_monitor_->getPlanningScene(),
                                                                 interactive_marker_server,
-                                                                "right_arm",
+                                                                "arms",
                                                                 "state",
                                                                 "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
                                                                 good_color,
