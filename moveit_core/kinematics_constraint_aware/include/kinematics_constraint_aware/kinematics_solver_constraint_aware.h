@@ -47,6 +47,45 @@
 namespace kinematics_constraint_aware 
 {
 
+static inline bool getCount(int &count, 
+                            const int &max_count, 
+                            const int &min_count)
+{
+  if(count > 0)
+  {
+    if(-count >= min_count)
+    {   
+      count = -count;
+      return true;
+    }
+    else if(count+1 <= max_count)
+    {
+      count = count+1;
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    if(1-count <= max_count)
+    {
+      count = 1-count;
+      return true;
+    }
+    else if(count-1 >= min_count)
+    {
+      count = count -1;
+      return true;
+    }
+    else
+      return false;
+  }
+}
+
+
 class KinematicsSolverConstraintAware 
 {
 public:
@@ -55,6 +94,11 @@ public:
                                   const planning_models::KinematicModelConstPtr& kmodel,
                                   const std::string& group_name);
   
+  KinematicsSolverConstraintAware(const std::map<std::string, kinematics::KinematicsBasePtr>& solver_map,
+                                  const planning_models::KinematicModelConstPtr& kmodel,
+                                  const std::string& group_name);
+    
+
   ~KinematicsSolverConstraintAware() {}
   
   bool isActive() const {
@@ -70,8 +114,23 @@ public:
                      const planning_scene::PlanningSceneConstPtr& scene,
                      sensor_msgs::JointState& solution,
                      moveit_msgs::MoveItErrorCodes& error_code);
+
+  bool getPositionIK(const std::map<std::string, geometry_msgs::Pose>& ik_poses,
+                     const planning_models::KinematicState* seed_state,
+                     const planning_scene::PlanningSceneConstPtr& scene,
+                     sensor_msgs::JointState& solution,
+                     moveit_msgs::MoveItErrorCodes& error_code);
   
   bool findConstraintAwareSolution(const geometry_msgs::Pose& pose,
+                                   const moveit_msgs::Constraints& constraints,
+                                   const planning_models::KinematicState* seed_state,
+                                   const planning_scene::PlanningSceneConstPtr& scene,
+                                   sensor_msgs::JointState& solution,
+                                   moveit_msgs::MoveItErrorCodes& error_code,
+                                   const bool& do_initial_pose_check = true);
+
+  bool findConstraintAwareSolution(const std::map<std::string, geometry_msgs::Pose>& poses,
+                                   const std::map<std::string, unsigned int>& redundancies,
                                    const moveit_msgs::Constraints& constraints,
                                    const planning_models::KinematicState* seed_state,
                                    const planning_scene::PlanningSceneConstPtr& scene,
@@ -108,34 +167,44 @@ public:
   //pass-throughs to solver
 
   double getSearchDiscretization() const {
-    return kinematics_solver_->getSearchDiscretization();
+    return solver_map_.begin()->second->getSearchDiscretization();
   }
 
   void setSearchDiscretization(const double& sd) {
-    kinematics_solver_->setSearchDiscretization(sd);
+    for(std::map<std::string, kinematics::KinematicsBasePtr>::iterator it = solver_map_.begin();
+        it != solver_map_.end();
+        it++) {
+      it->second->setSearchDiscretization(sd);
+    }
   }
 
   const std::string& getGroupName() const {
-    return kinematics_solver_->getGroupName();
+    return group_name_;
   }
 
-  virtual const std::string& getBaseFrame() const {
-    return kinematics_solver_->getBaseFrame();
+  virtual const std::map<std::string, std::string>& getBaseFrames() const {
+    return base_frame_map_;
   }
 
-  const std::string& getTipFrame() const {
-    return kinematics_solver_->getTipFrame();
+  virtual const std::map<std::string, std::string>& getTipFrames() const {
+    return tip_frame_map_;
   }
 
   const std::vector<std::string>& getJointNames() const {
-    return kinematics_solver_->getJointNames();
+    const planning_models::KinematicModel::JointModelGroup* joint_model_group = kmodel_->getJointModelGroup(group_name_);
+    return joint_model_group->getJointModelNames();
   }
 
   const std::vector<std::string>& getLinkNames() const {
-    return kinematics_solver_->getLinkNames();
+    const planning_models::KinematicModel::JointModelGroup* joint_model_group = kmodel_->getJointModelGroup(group_name_);
+    return joint_model_group->getLinkModelNames();
   }
 
-  const std::vector<std::string>& getEndEffectorLinks() const {
+  const std::vector<std::string>& getAllEndEffectorLinks() const {
+    return end_effector_link_vector_;
+  }
+
+  const std::map<std::string, std::vector<std::string> > getEndEffectorLinks() const {
     return end_effector_collision_links_;
   }
   
@@ -146,13 +215,22 @@ public:
 
 protected:
 
+  bool multiGroupInitialPoseCheck(const planning_models::KinematicState* seed_state,
+                                  const std::map<std::string, geometry_msgs::Pose>& poses);
+
+  std::string group_name_;
+  std::string current_subgroup_;
+  collision_detection::AllowedCollisionMatrix current_acm_;
+
   planning_models::KinematicModelConstPtr kmodel_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   bool active_;
 
-  kinematics::KinematicsBasePtr kinematics_solver_;
-
-  std::vector<std::string> end_effector_collision_links_;
+  std::map<std::string, kinematics::KinematicsBasePtr>  solver_map_;
+  std::map<std::string, std::string> tip_frame_map_;
+  std::map<std::string, std::string> base_frame_map_;
+  std::vector<std::string> end_effector_link_vector_;
+  std::map<std::string, std::vector<std::string> > end_effector_collision_links_;
 
   //for caching in a particular check
   bool do_initial_pose_check_;
