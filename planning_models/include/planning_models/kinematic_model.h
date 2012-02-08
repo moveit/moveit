@@ -381,6 +381,12 @@ public:
     {
       return filename_;
     }
+
+    /** \brief Get the filename of the mesh resource for this link */
+    const std::string& getVisualFilename(void) const
+    {
+      return visual_filename_;
+    }
     
     /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
     int getTreeIndex(void) const
@@ -445,6 +451,7 @@ public:
     
     /** \brief Filename associated with the mesh of this link (loaded in shape_). If empty, no mesh was used. */
     std::string               filename_;
+    std::string               visual_filename_;
     
     /** \brief The index assigned to this link when traversing the kinematic tree in depth first fashion */
     int                       tree_index_;
