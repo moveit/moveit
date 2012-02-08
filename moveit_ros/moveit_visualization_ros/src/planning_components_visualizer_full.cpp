@@ -146,10 +146,10 @@ int main(int argc, char **argv)
   //given the way that the vis manager is creating tools
   frame->getManager()->setCurrentTool(frame->getManager()->getTool(1));
 
-  std::string config_name = ros::package::getPath("pr2_arm_navigation")+"/config/pr2_planning_components_config.config";
+  //std::string config_name = ros::package::getPath("pr2_arm_navigation")+"/config/pr2_planning_components_config.config";
   std::string display_config_name = ros::package::getPath("pr2_arm_navigation")+"/config/pr2_planning_components_display_config.config";
 
-  frame->loadGeneralConfig(config_name);
+  //frame->loadGeneralConfig(config_name);
   frame->loadDisplayConfig(display_config_name);
 
   QWidget* main_window = new QWidget;

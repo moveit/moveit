@@ -45,7 +45,8 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
   const std::vector<srdf::Model::Group>& groups = planning_scene_->getSrdfModel()->getGroups();
 
   for(unsigned int i = 0; i < groups.size(); i++) {
-    if(groups[i].chains_.size() > 0 && groups[i].subgroups_.size() == 0) {
+    //special for arms for now
+    if(groups[i].chains_.size() > 0 || groups[i].name_ == "arms") {
       group_visualization_map_[groups[i].name_].reset(new KinematicsStartGoalVisualization(planning_scene,
                                                                                             interactive_marker_server,
                                                                                             groups[i].name_,
@@ -125,6 +126,9 @@ void PlanningVisualization::generatePlan(const std::string& name) {
   planning_models::kinematicStateToRobotState(start_state,req.motion_plan_request.start_state);
   req.motion_plan_request.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(goal_state.getJointStateGroup(name),
                                                                                                      .001, .001));
+
+  ROS_INFO_STREAM("Constraints size is " << req.motion_plan_request.goal_constraints[0].joint_constraints.size());
+
   req.motion_plan_request.num_planning_attempts = 1;
   req.motion_plan_request.allowed_planning_time = ros::Duration(3.0);
   

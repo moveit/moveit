@@ -68,7 +68,18 @@ public:
     return group_name_;
   }
   
+  std::string makeInteractiveMarkerName(const std::string& subgroup_name="") const {
+    if(subgroup_name.empty()) {
+      return group_name_+"_interactive_kinematics_"+suffix_name_;
+    } else {
+      return group_name_+"_"+subgroup_name+"_interactive_kinematics_"+suffix_name_;
+    }
+  }
+
   void updateEndEffectorState(const geometry_msgs::Pose& pose);
+
+  void updateEndEffectorState(const std::string& subgroup_name,
+                              const geometry_msgs::Pose& pose);
 
   void hideAllMarkers();
 
@@ -102,17 +113,16 @@ protected:
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
   void processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
-  void makeInteractiveControlMarker(const std::string& name,
-                                    const std_msgs::ColorRGBA& color,
-                                    bool add6dof,
-                                    bool load_saved = true); 
+  void makeInteractiveControlMarkers(const std_msgs::ColorRGBA& color,
+                                     bool add6dof,
+                                     bool load_saved = true); 
 
   /** Call constraint-aware IK to determine whether the give EE pose is valid
    * and collision-free.  Returns:
    *   true if pose is valid; look in sol for the joint values
    *   false otherwise; look in err for the reason
    */
-  bool validateEndEffectorState(const geometry_msgs::Pose& pose,
+  bool validateEndEffectorState(const std::map<std::string, geometry_msgs::Pose>& poses,
                                 sensor_msgs::JointState& sol,
                                 moveit_msgs::MoveItErrorCodes& err);
 
@@ -123,9 +133,10 @@ protected:
 
   std::string group_name_;
   std::string suffix_name_;
-  std::string interactive_marker_name_;
+  std::vector<std::string> subgroup_chain_names_;
+  std::map<std::string, std::string> group_to_interactive_marker_names_;
+  std::map<std::string, std::string> interactive_marker_to_group_names_;
   std::string regular_marker_name_;
-  std::vector<std::string> end_effector_link_names_;
 
   bool last_solution_good_;
   bool last_solution_changed_;
@@ -135,12 +146,12 @@ protected:
 
   double stored_alpha_;
 
-  geometry_msgs::Pose last_pose_;
+  std::map<std::string, geometry_msgs::Pose> last_poses_;
   visualization_msgs::MarkerArray last_marker_array_;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
-  visualization_msgs::InteractiveMarker saved_marker_;
+  std::map<std::string, visualization_msgs::InteractiveMarker> saved_markers_;
   planning_models::KinematicState state_;
   ros::Publisher marker_publisher_;
   
@@ -150,7 +161,7 @@ protected:
   boost::function<void(void)> button_click_callback_;
   bool dof_marker_enabled_;
 
-  std::map<std::string, Eigen::Affine3d> relative_transform_;
+  std::map<std::string, Eigen::Affine3d> relative_transforms_;
 
   std::map<std::string, boost::function<void(const std::string& name)> > default_callback_map_;
 
