@@ -697,7 +697,6 @@ bool KinematicsSolverConstraintAware::multiGroupInitialPoseCheck(const planning_
 
   std::string planning_frame_id = planning_scene_->getPlanningFrame();
   collision_detection::AllowedCollisionMatrix acm = planning_scene_->getAllowedCollisionMatrix();
-  collision_detection::AllowedCollisionMatrix other_arms = planning_scene_->getAllowedCollisionMatrix();
   
   std::vector<std::string> arm_links;
 
@@ -726,10 +725,12 @@ bool KinematicsSolverConstraintAware::multiGroupInitialPoseCheck(const planning_
     }
   }
   
-  for(unsigned int i = 0; i < arm_links.size(); i++) {
-    other_arms.setEntry(arm_links[i], arm_links, true);
+  collision_detection::AllowedCollisionMatrix other_arms = acm;
+  //need to re-enable collisions for all end-effector links
+  for(unsigned int i = 0; i < end_effector_link_vector_.size(); i++) {
+    other_arms.setEntry(end_effector_link_vector_[i], arm_links[i], false);
   }
-
+  
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   planning_scene_->checkCollision(req, res, *state_, acm);
