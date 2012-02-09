@@ -91,6 +91,7 @@ int main(int argc, char** argv)
   col.b = col.a = 1.0;
 
   jv.setTrajectory(planning_scene_monitor_->getPlanningScene()->getCurrentState(),
+                   "right_arm",
                    trajectory,
                    col);
   jv.playCurrentTrajectory();

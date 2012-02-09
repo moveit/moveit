@@ -138,6 +138,7 @@ void PlanningVisualization::generatePlan(const std::string& name) {
 
   ompl_interface_.solve(planning_scene_, req, res);
   joint_trajectory_visualization_->setTrajectory(start_state,
+                                                 name,
                                                  res.trajectory.joint_trajectory,
                                                  col);
 
