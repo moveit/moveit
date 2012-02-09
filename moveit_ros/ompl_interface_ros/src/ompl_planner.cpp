@@ -38,6 +38,7 @@
 #include "planning_scene_monitor/planning_scene_monitor.h"
 #include <tf/transform_listener.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <moveit_msgs/DisplayTrajectory.h>
 
 static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
 static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
@@ -53,17 +54,29 @@ public:
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
     benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);  
     pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 5);
+    pub_plan_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 1);
   }
   
   bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
   {
     ROS_INFO("Received new planning request...");
     bool result = ompl_interface_.solve(psm_.getPlanningScene(), req, res);
-    displayPlannerData("r_wrist_roll_link");
+    if (result)
+      displaySolution(res);
+    displayPlannerData("l_wrist_roll_link");
     std::stringstream ss;
     ompl::Profiler::Status(ss);
     ROS_INFO("%s", ss.str().c_str());
     return result;
+  }
+
+  void displaySolution(const moveit_msgs::GetMotionPlan::Response &mplan_res)
+  {
+    moveit_msgs::DisplayTrajectory d;
+    d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
+    d.robot_state = mplan_res.robot_state;
+    d.trajectory = mplan_res.trajectory;
+    pub_plan_.publish(d);
   }
   
   void displayPlannerData(const std::string &link_name)
@@ -126,6 +139,7 @@ private:
   ros::ServiceServer                            benchmark_service_;  
   ros::ServiceServer                            display_states_service_;
   ros::Publisher                                pub_markers_;
+  ros::Publisher                                pub_plan_;
 };
 
 int main(int argc, char **argv)
