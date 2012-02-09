@@ -33,6 +33,7 @@
 #define _INTERACTIVE_MARKER_HELPER_FUNCTIONS_H_
 
 #include <cmath>
+#include <float.h>
 
 #include <interactive_markers/tools.h>
 #include <visualization_msgs/InteractiveMarker.h>
@@ -497,6 +498,10 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
   mesh.color = color;
 
   std::vector<const bodies::Body*> bodies;
+  double x = 0.0, y = 0.0, z = 0.0;
+  double xmin = DBL_MAX, ymin = DBL_MAX, zmin = DBL_MAX;
+  double xmax = -DBL_MAX, ymax = -DBL_MAX, zmax = -DBL_MAX;
+  unsigned int count = 0;
   for(unsigned int i = 0; i < links.size(); i++) {
     
     const planning_models::KinematicState::LinkState* ls = state.getLinkState(links[i]);
@@ -509,17 +514,51 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
       ROS_DEBUG_STREAM("No shape for " << links[i]);
       continue;
     }
+    count++;
+    double xval = ls->getGlobalCollisionBodyTransform().translation().x();
+    double yval = ls->getGlobalCollisionBodyTransform().translation().y();
+    double zval = ls->getGlobalCollisionBodyTransform().translation().z();
 
-    bodies::Body* body = bodies::createBodyFromShape(&(*(ls->getLinkModel()->getShape())));
-    body->setPose(ls->getGlobalCollisionBodyTransform());
-    bodies.push_back(body);
+    //ROS_INFO_STREAM("Link " << ls->getName() << xval << " " << yval << " " << zval);
+    
+    x += xval;
+    y += yval;
+    z += zval;
+    if(xval < xmin) {
+      xmin = xval; 
+    }
+    if(xval > xmax) {
+      xmax = xval; 
+    }
+
+    if(yval < ymin) {
+      ymin = yval; 
+    }
+    if(yval > ymax) {
+      ymax = yval; 
+    }
+
+    if(zval < zmin) {
+      zmin = zval; 
+    }
+    if(zval > zmax) {
+      zmax = zval; 
+    }
+    //bodies::Body* body = bodies::createBodyFromShape(&(*(ls->getLinkModel()->getShape())));
+    //body->setPose(ls->getGlobalCollisionBodyTransform());
+    //bodies.push_back(body);
   }
+  Eigen::Translation3d trans(x/(count*1.0), y/(count*1.0), z/(count*1.0));
+  //ROS_INFO_STREAM("Min " << xmin << " " << ymin << " " << zmin);
+  //ROS_INFO_STREAM("Max " << xmax << " " << ymax << " " << zmax);
+  //bodies::BoundingSphere merged_sphere;
+  //bodies::computeBoundingSphere(bodies, merged_sphere);
+  double dia = fmax((xmax-xmin), fmax(ymax-ymin, zmax-zmin));
+  //TODO - better way to add padding?
+  int_marker.scale = dia+.05;
+  //int_marker.scale = merged_sphere.rad*2.0;
 
-  bodies::BoundingSphere merged_sphere;
-  bodies::computeBoundingSphere(bodies, merged_sphere);
-  int_marker.scale = merged_sphere.radius*2.0;
-
-  Eigen::Affine3d bound_pose = Eigen::Translation3d(merged_sphere.center)*Eigen::Quaterniond(first_pose.rotation());
+  Eigen::Affine3d bound_pose = trans*Eigen::Quaterniond(first_pose.rotation());
   planning_models::msgFromPose(bound_pose, int_marker.pose);
 
   relative_transform = bound_pose.inverse()*first_pose;

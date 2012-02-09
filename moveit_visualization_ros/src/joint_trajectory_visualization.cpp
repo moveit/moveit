@@ -44,9 +44,11 @@ JointTrajectoryVisualization::JointTrajectoryVisualization(const planning_scene:
 }; 
 
 void JointTrajectoryVisualization::setTrajectory(const planning_models::KinematicState& start_state,
+                                                 const std::string& group_name,
                                                  const trajectory_msgs::JointTrajectory& traj,
                                                  const std_msgs::ColorRGBA& color)
 {
+  link_model_names_ = planning_scene_->getKinematicModel()->getJointModelGroup(group_name)->getUpdatedLinkModelNames();
   current_state_ = start_state;
   current_joint_trajectory_ = traj;
   marker_color_ = color;
@@ -68,11 +70,6 @@ void JointTrajectoryVisualization::playCurrentTrajectory()
 
   playback_start_time_ = ros::WallTime::now();
   current_point_ = 0;
-
-  const planning_models::KinematicModel::LinkModel* lm = planning_scene_->getKinematicModel()->getJointModel(current_joint_trajectory_.joint_names[0])->getChildLinkModel();
-  
-  link_model_names_ = planning_scene_->getKinematicModel()->getChildLinkModelNames(lm);
-  ROS_INFO_STREAM("Request to play");
 
   playback_thread_.reset(new boost::thread(boost::bind(&JointTrajectoryVisualization::advanceTrajectory, this)));
 }

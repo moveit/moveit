@@ -50,6 +50,7 @@ public:
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
      
   void setTrajectory(const planning_models::KinematicState& start_state,
+                     const std::string& group_name,
                      const trajectory_msgs::JointTrajectory& traj,
                      const std_msgs::ColorRGBA& color);
 
