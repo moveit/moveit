@@ -38,7 +38,6 @@
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <ompl_interface_ros/ompl_interface_ros.h>
 #include <moveit_msgs/GetMotionPlan.h>
-#include <moveit_msgs/DisplayTrajectory.h>
 #include <kinematic_constraints/utils.h>
 
 static const std::string PLANNER_SERVICE_NAME="/ompl_planning/plan_kinematic_path";
@@ -68,7 +67,6 @@ TEST(OmplPlanning, JointGoal)
 {
     ros::NodeHandle nh;
     ros::service::waitForService(PLANNER_SERVICE_NAME);
-    ros::Publisher pub = nh.advertise<moveit_msgs::DisplayTrajectory>("display_test_motion_plan", 1);
     
     ros::ServiceClient planning_service_client = nh.serviceClient<moveit_msgs::GetMotionPlan>(PLANNER_SERVICE_NAME);
     EXPECT_TRUE(planning_service_client.exists());
@@ -84,7 +82,7 @@ TEST(OmplPlanning, JointGoal)
 
     // try a Joint goal
     mplan_req.motion_plan_request.group_name = "right_arm";
-    mplan_req.motion_plan_request.num_planning_attempts = 2;
+    mplan_req.motion_plan_request.num_planning_attempts = 5;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
     const std::vector<std::string>& joint_names = scene.getKinematicModel()->getJointModelGroup("right_arm")->getJointModelNames();
     mplan_req.motion_plan_request.goal_constraints.resize(1);
@@ -104,12 +102,6 @@ TEST(OmplPlanning, JointGoal)
     ASSERT_TRUE(planning_service_client.call(mplan_req, mplan_res));
     ASSERT_EQ(mplan_res.error_code.val, mplan_res.error_code.SUCCESS);
     EXPECT_GT(mplan_res.trajectory.joint_trajectory.points.size(), 0);
-    moveit_msgs::DisplayTrajectory d;
-    d.model_id = scene.getKinematicModel()->getName();
-    d.robot_state = mplan_res.robot_state;
-    d.trajectory = mplan_res.trajectory;
-    pub.publish(d);
-    ros::Duration(0.5).sleep();    
 }
 
 TEST(OmplPlanning, PositionGoal)
@@ -178,6 +170,7 @@ TEST(OmplPlanning, OrientationGoal)
     mplan_req.motion_plan_request.num_planning_attempts = 1;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
 
+
     moveit_msgs::OrientationConstraint ocm;
     ocm.link_name = "l_wrist_roll_link";
     ocm.orientation.header.frame_id = scene.getKinematicModel()->getModelFrame();
@@ -197,6 +190,7 @@ TEST(OmplPlanning, OrientationGoal)
     ASSERT_EQ(mplan_res.error_code.val, mplan_res.error_code.SUCCESS);
     EXPECT_GT(mplan_res.trajectory.joint_trajectory.points.size(), 0);
 }
+
 
 TEST(OmplPlanning, PoseGoal)
 {
@@ -256,7 +250,6 @@ TEST(OmplPlanning, PoseGoal)
     ASSERT_EQ(mplan_res.error_code.val, mplan_res.error_code.SUCCESS);
     EXPECT_GT(mplan_res.trajectory.joint_trajectory.points.size(), 0);
 }
-
 
 TEST(OmplPlanning, SimplePoseGoal)
 { 
