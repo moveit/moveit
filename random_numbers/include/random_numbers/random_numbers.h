@@ -39,6 +39,7 @@
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real.hpp>
+#include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
 
 namespace random_numbers
@@ -81,6 +82,12 @@ namespace random_numbers
          * @param value[3] A three dimensional array in which the computed euler angles will be released
          */
         void   eulerRPY(double value[3]);
+
+      
+      int getRandomIntegerInRange(int min, int max) {
+        boost::uniform_int<> dis(min,max);  
+        return dis(generator_);
+      }
 
     private:
 
