@@ -1,0 +1,22 @@
+<package>
+  <description brief="trajectory_processing">
+
+     trajectory_processing
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/trajectory_processing</url>
+  <depend package="spline_msgs"/>
+  <depend package="planning_models"/>
+  <depend package="moveit_msgs"/>
+  <depend package="angles"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltrajectory_processing"/>
+  </export>
+
+</package>
+
+
