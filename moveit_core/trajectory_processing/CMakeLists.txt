@@ -26,6 +26,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/linear_trajectory.cpp
   src/lspb_trajectory.cpp
   src/trajectory_processing_utils.cpp
+  src/iterative_smoother.cpp
   src/cubic_parameterized_trajectory.cpp
   src/cubic_parameterized_spline_velocity_scaler.cpp
 )
