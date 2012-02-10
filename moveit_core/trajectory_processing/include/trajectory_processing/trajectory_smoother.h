@@ -66,17 +66,10 @@ public:
    * This virtual method needs to implemented by the derived class.
    * \return true if successful, false if not
    */
-  virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
-                      trajectory_msgs::JointTrajectory& trajectory_out)
-  {
-    return false;
-  }
 
   virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
                       trajectory_msgs::JointTrajectory& trajectory_out,
-                      const std::vector<moveit_msgs::JointLimits>& joint_limits) {
-    return false;
-  }
+                      const std::vector<moveit_msgs::JointLimits>& joint_limits) = 0;
 };
 
 }
