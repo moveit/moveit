@@ -1,0 +1,14 @@
+<package>
+  <description brief="spline_msgs">
+
+     spline_msgs
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/spline_msgs</url>
+
+</package>
+
+
