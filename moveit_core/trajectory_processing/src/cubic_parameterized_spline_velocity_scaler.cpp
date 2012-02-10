@@ -42,7 +42,7 @@ namespace trajectory_processing
 
 bool CubicParameterizedSplineVelocityScaler::smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
                                                     trajectory_msgs::JointTrajectory& trajectory_out,
-                                                    const std::vector<moveit_msgs::JointLimits>& limits)
+                                                    const std::vector<moveit_msgs::JointLimits>& limits) const
 
 {
   trajectory_processing::CubicParameterizedTrajectory traj;

@@ -39,6 +39,7 @@
 
 #include <trajectory_processing/trajectory_smoother.h>
 #include <trajectory_processing/linear_trajectory.h>
+
 namespace trajectory_processing
 {
 
@@ -53,7 +54,7 @@ public:
 
   virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
                       trajectory_msgs::JointTrajectory& trajectory_out,
-                      const std::vector<moveit_msgs::JointLimits>& limits);
+                      const std::vector<moveit_msgs::JointLimits>& limits) const;
 };
 
 }
