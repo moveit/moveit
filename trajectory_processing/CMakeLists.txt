@@ -30,6 +30,28 @@ rosbuild_add_library(${PROJECT_NAME}
   src/cubic_parameterized_trajectory.cpp
   src/cubic_parameterized_spline_velocity_scaler.cpp
 )
+rosbuild_add_gtest(test_utils test/test_utils.cpp)
+target_link_libraries(test_utils ${PROJECT_NAME})
+rosbuild_add_gtest(regress_linear test/regress_linear.cpp)
+target_link_libraries(regress_linear ${PROJECT_NAME})
+rosbuild_add_gtest(regress_cubic test/regress_cubic.cpp)
+target_link_libraries(regress_cubic ${PROJECT_NAME})
+#THIS ONE BUILDS, BUT IS BROKEN
+#rosbuild_add_gtest(regress_cubic_parameterized test/regress_cubic_parameterized.cpp)
+#target_link_libraries(regress_cubic_parameterized ${PROJECT_NAME})
+rosbuild_add_gtest(regress_lspb test/regress_lspb.cpp)
+target_link_libraries(regress_lspb ${PROJECT_NAME})
+
+rosbuild_add_gtest(test_clamped_cubic_spline_smoother test/test_clamped_cubic_spline_smoother.cpp)
+target_link_libraries(test_clamped_cubic_spline_smoother ${PROJECT_NAME})
+rosbuild_add_gtest(test_linear_spline_velocity_scaler test/test_linear_spline_velocity_scaler.cpp)
+target_link_libraries(test_linear_spline_velocity_scaler ${PROJECT_NAME})
+
+#rosbuild_declare_test(test/test_linear_spline_velocity_scaler)
+#rosbuild_add_gtest_build_flags(test/test_linear_spline_velocity_scaler)
+#rosbuild_add_rostest(test/test_linear_spline_velocity_scaler.launch)
+#target_link_libraries(test/test_linear_spline_velocity_scaler spline_smoother)
+
 
 
 #uncomment if you have defined messages

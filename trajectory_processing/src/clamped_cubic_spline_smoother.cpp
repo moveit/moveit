@@ -39,8 +39,9 @@
 
 namespace trajectory_processing
 {
-bool ClampedCubicTrajectorySmoother::smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
-                                            trajectory_msgs::JointTrajectory& trajectory_out)
+bool ClampedCubicSplineSmoother::smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
+                                            trajectory_msgs::JointTrajectory& trajectory_out,
+                                            const std::vector<moveit_msgs::JointLimits>& limits) const
 {
   int length = trajectory_in.points.size();
   trajectory_out = trajectory_in;
@@ -57,14 +58,14 @@ bool ClampedCubicTrajectorySmoother::smooth(const trajectory_msgs::JointTrajecto
   }
   else
   {
-    ROS_ERROR("ClampedCubicTrajectorySmoother: does not support trajectory lengths > %d due to numerical instability.", MAX_TRIDIAGONAL_SOLVER_ELEMENTS);
+    ROS_ERROR("ClampedCubicSplineSmoother: does not support trajectory lengths > %d due to numerical instability.", MAX_TRIDIAGONAL_SOLVER_ELEMENTS);
     return false;
   }
 
   return true;
 }
 
-bool ClampedCubicTrajectorySmoother::smoothSegment(std::vector<trajectory_msgs::JointTrajectoryPoint>& wpts) const
+bool ClampedCubicSplineSmoother::smoothSegment(std::vector<trajectory_msgs::JointTrajectoryPoint>& wpts) const
 {
   int length = wpts.size();
   int num_joints = wpts[0].positions.size();

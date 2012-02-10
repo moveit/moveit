@@ -55,11 +55,11 @@ namespace trajectory_processing
  * Processing time is O(N), but this method appears to be numerically unstable for long trajectories
  * (N>20)
  */
-class ClampedCubicTrajectorySmoother: public TrajectorySmoother
+class ClampedCubicSplineSmoother: public TrajectorySmoother
 {
 public:
-  ClampedCubicTrajectorySmoother(){};
-  virtual ~ClampedCubicTrajectorySmoother(){};
+  ClampedCubicSplineSmoother(){};
+  virtual ~ClampedCubicSplineSmoother(){};
 
   static const int MAX_TRIDIAGONAL_SOLVER_ELEMENTS = 20;
 
@@ -69,10 +69,11 @@ public:
    * \return true if successful, false if not
    */
   virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
-                      trajectory_msgs::JointTrajectory& trajectory_out);
+                      trajectory_msgs::JointTrajectory& trajectory_out,
+                      const std::vector<moveit_msgs::JointLimits>& limits) const;
 
 private:
-  NumericalDifferentiationSplineSmoother num_diff_spline_smoother_;
+
   bool smoothSegment(std::vector<trajectory_msgs::JointTrajectoryPoint>& waypoints) const;
   
 };
