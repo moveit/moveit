@@ -52,7 +52,8 @@ public:
   virtual ~NumericalDifferentiationSplineSmoother();
 
   virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
-                      trajectory_msgs::JointTrajectory& trajectory_out);
+                      trajectory_msgs::JointTrajectory& trajectory_out,
+                      const std::vector<moveit_msgs::JointLimits>& limits);
 };
 
 }

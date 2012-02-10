@@ -42,7 +42,8 @@ namespace trajectory_processing
 {
 
 bool NumericalDifferentiationSplineSmoother::smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
-                                                    trajectory_msgs::JointTrajectory& trajectory_out)
+                                                    trajectory_msgs::JointTrajectory& trajectory_out,
+                                                    const std::vector<moveit_msgs::JointLimits>& limits)
 {
   bool success = true;
   int size = trajectory_in.points.size();
