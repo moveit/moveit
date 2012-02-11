@@ -882,10 +882,22 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
   return false;
 }
 
-bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory) const
+bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, 
+                                                const moveit_msgs::RobotTrajectory &trajectory) const
 {
   planning_models::KinematicState start(getCurrentState());
   planning_models::robotStateToKinematicState(*getTransforms(), start_state, start);
+  moveit_msgs::Constraints emp_constraints;
+  return isPathValid(&state, emp_constraints, emp_constraints, trajectory);
+}
+
+bool planning_scene::PlanningScene::isPathValid(const planning_models::KinematicState* state,
+                                                const moveit_msgs::Constraints& path_constraints,
+                                                const moveit_msgs::Constraints& goal_constraints,
+                                                const moveit_msgs::RobotTrajectory &trajectory) const
+{
+  //TODO - check path and goal constraints
+  planning_models::KinematicState start(*state);
   std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
                                      trajectory.multi_dof_joint_trajectory.points.size());
   for (std::size_t i = 0 ; i < state_count ; ++i)
@@ -902,3 +914,4 @@ bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &s
   }
   return true;
 }
+

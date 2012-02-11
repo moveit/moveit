@@ -43,6 +43,7 @@
 #include <collision_detection/collision_world.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/RobotTrajectory.h>
+#include <moveit_msgs/Constraints.h>
 #include <boost/noncopyable.hpp>
 
 namespace planning_scene
@@ -259,6 +260,11 @@ public:
 
   /** \brief Check if a given path is valid */
   bool isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory) const;
+
+  bool isPathValid(const planning_models::KinematicState* start, 
+                   const moveit_msgs::Constraints& path_constraints,
+                   const moveit_msgs::Constraints& goal_constraints,
+                   const moveit_msgs::RobotTrajectory &trajectory) const;
 
 protected:
 
