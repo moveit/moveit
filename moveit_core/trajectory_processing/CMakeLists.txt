@@ -11,6 +11,9 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
 rosbuild_init()
 
+find_package(Eigen REQUIRED)
+include_directories(${EIGEN_INCLUDE_DIRS})
+
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
@@ -29,6 +32,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/iterative_smoother.cpp
   src/cubic_parameterized_trajectory.cpp
   src/cubic_parameterized_spline_velocity_scaler.cpp
+  src/spline_shortcutter.cpp
 )
 rosbuild_add_gtest(test_utils test/test_utils.cpp)
 target_link_libraries(test_utils ${PROJECT_NAME})
