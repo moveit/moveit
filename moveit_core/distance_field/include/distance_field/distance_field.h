@@ -266,7 +266,7 @@ void DistanceField<T>::getIsoSurfaceMarkers(double min_radius, double max_radius
           this->gridToWorld(x,y,z,
                             nx, ny, nz);
           Eigen::Translation3d vec(nx,ny,nz);
-          vec = cur*vec;
+          //Eigen::Translation3d nv = cur.rotation()*vec;
           inf_marker.points[last].x = vec.x();
           inf_marker.points[last].y = vec.y();
           inf_marker.points[last].z = vec.z();

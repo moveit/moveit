@@ -426,7 +426,7 @@ int SignedPropagationDistanceField::eucDistSq(int3 point1, int3 point2)
   return dx*dx + dy*dy + dz*dz;
 }
 
-void SignedPropagationDistanceField::addPointsToField(const std::vector<int3>& points)
+void SignedPropagationDistanceField::addPointsToField(const std::vector<Eigen::Vector3d>& points)
 {
   // initialize the bucket queue
   positive_bucket_queue_.resize(max_distance_sq_+1);
