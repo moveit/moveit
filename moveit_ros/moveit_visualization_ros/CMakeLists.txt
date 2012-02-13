@@ -74,3 +74,6 @@ target_link_libraries(planning_components_visualizer ${PROJECT_NAME})
 
 rosbuild_add_executable(planning_components_visualizer_full src/planning_components_visualizer_full.cpp)
 target_link_libraries(planning_components_visualizer_full ${QT_LIBRARIES} ${PROJECT_NAME})
+
+rosbuild_add_executable(interactive_distance_field src/interactive_distance_field.cpp)
+target_link_libraries(interactive_distance_field ${QT_LIBRARIES} ${PROJECT_NAME})
