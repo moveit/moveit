@@ -19,6 +19,8 @@
   <depend package="geometric_shapes"/>
   <depend package="planning_models"/>
   <depend package="rviz"/>
+  <depend package="collision_distance_field"/>
+  <depend package="distance_field"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_visualization_ros"/>
