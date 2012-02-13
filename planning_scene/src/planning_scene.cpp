@@ -888,7 +888,7 @@ bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &s
   planning_models::KinematicState start(getCurrentState());
   planning_models::robotStateToKinematicState(*getTransforms(), start_state, start);
   moveit_msgs::Constraints emp_constraints;
-  return isPathValid(&state, emp_constraints, emp_constraints, trajectory);
+  return isPathValid(&start, emp_constraints, emp_constraints, trajectory);
 }
 
 bool planning_scene::PlanningScene::isPathValid(const planning_models::KinematicState* state,
