@@ -1,0 +1,20 @@
+<package>
+  <description brief="ik_plugin_loader">
+
+     ik_plugin_loader
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/ik_plugin_loader</url>
+  <depend package="kinematics_base"/>
+  <depend package="pluginlib"/>
+  <depend package="planning_models"/>
+  <depend package="roscpp"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lik_plugin_loader"/>
+  </export>  
+
+</package>
