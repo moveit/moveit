@@ -34,8 +34,12 @@
 #include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <collision_distance_field/collision_distance_field_types.h>
+#include <interactive_markers/interactive_marker_server.h>
+#include <visualization_msgs/InteractiveMarkerFeedback.h>
+#include <moveit_visualization_ros/interactive_marker_helper_functions.h>
+#include <planning_models/transforms.h>
 
-//using namespace moveit_visualization_ros;
+using namespace moveit_visualization_ros;
 
 static const std::string VIS_TOPIC_NAME = "distance_field_visualization";
 
@@ -53,6 +57,66 @@ void publisher_function() {
   }
 }
 
+class MovingMarkers {
+
+public:
+
+  MovingMarkers(boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
+                const std::string& world_frame,
+                double x_size, double y_size, double z_size) :
+    interactive_marker_server_(interactive_marker_server),
+    world_frame_(world_frame),
+    x_size_(x_size), y_size_(y_size), z_size_(z_size)
+  {
+    update_thread_.reset(new boost::thread(boost::bind(&MovingMarkers::updateAllMarkers, this)));
+  }
+  
+  void addSphere() {
+    geometry_msgs::PoseStamped ps;
+    ps.header.frame_id = world_frame_;
+    ps.pose.position.x = 1.0;
+    ps.pose.position.y = 1.0;
+    ps.pose.position.z = 1.0;
+    ps.pose.orientation.w = 1.0;
+    markers_["sphere"] = makeButtonSphere("sphere",
+                                          ps,
+                                          .1,
+                                          false,
+                                          false);
+    interactive_marker_server_->insert(markers_["sphere"]);
+    velocities_["sphere"] = Eigen::Translation3d(.01,0.0,0.0);
+  }    
+
+  void updateAllMarkers() {
+    while(ros::ok()) {
+      for(std::map<std::string, visualization_msgs::InteractiveMarker>::iterator it = markers_.begin();
+          it != markers_.end();
+          it++) {
+        Eigen::Affine3d pose_e; 
+        planning_models::poseFromMsg(it->second.pose, pose_e);
+        Eigen::Translation3d m(velocities_[it->first].x()*.05,
+                               velocities_[it->first].y()*.05,
+                               velocities_[it->first].z()*.05);
+        pose_e = pose_e*m;
+        planning_models::msgFromPose(pose_e, it->second.pose);
+        interactive_marker_server_->insert(it->second);
+        interactive_marker_server_->applyChanges();
+      }
+      boost::this_thread::sleep((ros::WallTime::now()+ros::WallDuration(.05)).toBoost());
+    }
+  }
+  
+protected:
+
+  boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;  
+  std::string world_frame_;
+  double x_size_, y_size_, z_size_;
+  boost::shared_ptr<boost::thread> update_thread_;
+  std::map<std::string, Eigen::Translation3d> velocities_; 
+  std::map<std::string, visualization_msgs::InteractiveMarker> markers_;
+
+};
+
 // void updateCallback(planning_scene::PlanningSceneConstPtr planning_scene) {
 //   kv_->updatePlanningScene(planning_scene);
 // }
@@ -68,8 +132,8 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  //boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
-  //interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
+  boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
+  interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
   joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
 
@@ -102,6 +166,10 @@ int main(int argc, char** argv)
                                       Eigen::Affine3d::Identity(),
                                       mark);
 
+  MovingMarkers mm(interactive_marker_server_,
+                   planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+                   5.0,5.0,5.0);
+  mm.addSphere();
   while(1) {
     vis_marker_publisher.publish(mark);
     ros::WallDuration(1.0).sleep();
