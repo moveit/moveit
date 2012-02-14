@@ -84,7 +84,7 @@ public:
                                           false,
                                           false);
     interactive_marker_server_->insert(markers_["sphere"]);
-    velocities_["sphere"] = Eigen::Translation3d(.01,0.0,0.0);
+    velocities_["sphere"] = Eigen::Translation3d(1.0,0.0,0.0);
   }    
 
   void updateAllMarkers() {
@@ -98,6 +98,15 @@ public:
                                velocities_[it->first].y()*.05,
                                velocities_[it->first].z()*.05);
         pose_e = pose_e*m;
+        if(pose_e.translation().x() > x_size_ || pose_e.translation().x() < -x_size_) {
+          velocities_[it->first].x() *= -1;
+        }
+        if(pose_e.translation().y() > y_size_ || pose_e.translation().y() < -y_size_) {
+          velocities_[it->first].y() *= -1;
+        }
+        if(pose_e.translation().z() > z_size_ || pose_e.translation().z() < -z_size_) {
+          velocities_[it->first].z() *= -1;
+        }
         planning_models::msgFromPose(pose_e, it->second.pose);
         interactive_marker_server_->insert(it->second);
         interactive_marker_server_->applyChanges();
@@ -133,7 +142,7 @@ int main(int argc, char** argv)
   spinner.start();
 
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
-  interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
+  interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_distance_field_visualization", "", false));
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
   joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
 
@@ -161,14 +170,14 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("Adding " << all_points.size() << " to field");
 
   visualization_msgs::Marker mark;
-  distance_field.getIsoSurfaceMarkers(0.0001,0.1,planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+  distance_field.getIsoSurfaceMarkers(0.0000,0.0001,planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
                                       ros::Time::now(),
                                       Eigen::Affine3d::Identity(),
                                       mark);
 
   MovingMarkers mm(interactive_marker_server_,
                    planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
-                   5.0,5.0,5.0);
+                   1.5,1.5,2.0);
   mm.addSphere();
   while(1) {
     vis_marker_publisher.publish(mark);
