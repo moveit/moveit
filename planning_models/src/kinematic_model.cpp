@@ -832,6 +832,28 @@ bool planning_models::KinematicModel::JointModel::isVariableWithinBounds(const s
   return true;
 }
 
+std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointModel::getJointLimits() const 
+{
+  std::vector<moveit_msgs::JointLimits> ret_vec;
+  for(unsigned int i = 0; i < variable_names_.size(); i++) {
+    moveit_msgs::JointLimits lim;
+    lim.joint_name = variable_names_[i];
+    lim.has_position_limits = true;
+    lim.min_position = variable_bounds_[i].first;
+    lim.min_position = variable_bounds_[i].second;
+    if(max_velocity_ != 0.0) {
+      lim.has_velocity_limits = true;
+    } else {
+      lim.has_velocity_limits = false;
+    }
+    lim.max_velocity = max_velocity_;
+    lim.has_acceleration_limits = false;
+    lim.max_acceleration = 0.0;
+    ret_vec.push_back(lim);
+  }
+  return ret_vec;
+}
+
 planning_models::KinematicModel::FixedJointModel::FixedJointModel(const std::string& name) : JointModel(name)
 {
   type_ = FIXED;
@@ -857,7 +879,7 @@ planning_models::KinematicModel::PlanarJointModel::PlanarJointModel(const std::s
   local_names_.push_back("y");
   local_names_.push_back("theta");
   for (int i = 0 ; i < 3 ; ++i)
-    variable_names_.push_back(name_ + "." + local_names_[i]);
+    variable_names_.push_back(name_ + "/" + local_names_[i]);
   variable_bounds_.resize(3);
   variable_bounds_[0] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
   variable_bounds_[1] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
@@ -903,7 +925,7 @@ planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const st
   local_names_.push_back("rot_z");
   local_names_.push_back("rot_w");
   for (int i = 0 ; i < 7 ; ++i)
-    variable_names_.push_back(name_ + "." + local_names_[i]);
+    variable_names_.push_back(name_ + "/" + local_names_[i]);
   variable_bounds_.resize(7);
   variable_bounds_[0] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
   variable_bounds_[1] = std::make_pair(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
@@ -993,6 +1015,15 @@ planning_models::KinematicModel::RevoluteJointModel::RevoluteJointModel(const st
   variable_bounds_.push_back(std::make_pair(-boost::math::constants::pi<double>(), boost::math::constants::pi<double>()));
   variable_names_.push_back(name_);
   type_ = REVOLUTE;
+}
+
+std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::RevoluteJointModel::getJointLimits() const {
+  std::vector<moveit_msgs::JointLimits> ret_vec = JointModel::getJointLimits();
+  ROS_ASSERT(ret_vec.size() == 1);
+  if(continuous_) {
+    ret_vec[0].has_position_limits = false;
+  }
+  return ret_vec;
 }
 
 void planning_models::KinematicModel::RevoluteJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
@@ -1162,6 +1193,16 @@ bool planning_models::KinematicModel::JointModelGroup::getDefaultValues(const st
     return false;
   values = it->second;
   return true;
+}
+
+std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointModelGroup::getJointLimits() const
+{
+  std::vector<moveit_msgs::JointLimits> ret_vec;
+  for(unsigned int i = 0; i < joint_model_vector_.size(); i++) {
+    std::vector<moveit_msgs::JointLimits> jvec = joint_model_vector_[i]->getJointLimits();
+    ret_vec.insert(ret_vec.end(), jvec.begin(), jvec.end());
+  }
+  return ret_vec;
 }
 
 void planning_models::KinematicModel::printModelInfo(std::ostream &out) const
