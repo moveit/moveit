@@ -55,7 +55,8 @@ static const int max_dist_in_voxels = max_dist/resolution+0.5;
 static const int max_dist_sq_in_voxels = max_dist_in_voxels*max_dist_in_voxels;
 
 static const Eigen::Vector3d point1(0.0,0.0,0.0);
-static const Eigen::Vector3d point2(0.2,0.2,0.2);
+static const Eigen::Vector3d point2(0.0,0.1,0.2);
+static const Eigen::Vector3d point3(0.4,0.0,0.0);
 
 
 int dist_sq(int x, int y, int z)
@@ -135,13 +136,18 @@ TEST(TestPropagationDistanceField, TestAddPoints)
 	// Update - iterative
   points.clear();
   points.push_back(point1);
+  points.push_back(point3);
   df.updatePointsInField(points,true);
   //print(df, numX, numY, numZ);
   check_distance_field( df, points, numX, numY, numZ);
 
+
+
+
 	// Update - not iterative
   points.clear();
   points.push_back(point2);
+  points.push_back(point3);
   df.updatePointsInField(points,false);
   print(df, numX, numY, numZ);
   check_distance_field( df, points, numX, numY, numZ);

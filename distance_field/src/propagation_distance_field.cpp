@@ -36,6 +36,7 @@
 
 #include <distance_field/propagation_distance_field.h>
 #include <visualization_msgs/Marker.h>
+#include <ros/console.h>
 
 namespace distance_field
 {
@@ -71,12 +72,49 @@ int PropagationDistanceField::eucDistSq(int3 point1, int3 point2)
   return dx*dx + dy*dy + dz*dz;
 }
 
+void PropagationDistanceField::print(const VoxelSet & set)
+{
+  ROS_DEBUG_STREAM( "[" );
+  VoxelSet::const_iterator it;
+  for( it=set.begin(); it!=set.end(); ++it)
+  {
+    int3 loc = *it;
+    int x = loc.x();
+    int y = loc.y();
+    int z = loc.z();
+    ROS_DEBUG_STREAM( "" << x << "," << y << "," << z << " " );
+  }
+  ROS_DEBUG_STREAM( "] size=" << set.size() << std::endl );
+}
+
+void PropagationDistanceField::print(const std::vector<Eigen::Vector3d>& points)
+{
+  ROS_DEBUG_STREAM( "[" );
+  std::vector<Eigen::Vector3d>::const_iterator it;
+  for( it=points.begin(); it!=points.end(); ++it)
+  {
+    Eigen::Vector3d loc = *it;
+    int x = loc.x();
+    int y = loc.y();
+    int z = loc.z();
+    ROS_DEBUG_STREAM( "" << x << "," << y << "," << z << " " );
+  }
+  ROS_DEBUG_STREAM( "] size=" << points.size() << std::endl );
+}
+
+
 void PropagationDistanceField::updatePointsInField(const std::vector<Eigen::Vector3d>& points, bool iterative)
 {
+  VoxelSet points_added;
+  VoxelSet points_removed(object_voxel_locations_);
+
+  ROS_DEBUG_STREAM( "obstacle_voxel_locations_=" );
+  print(object_voxel_locations_);
+  ROS_DEBUG_STREAM( "points=" );
+  print(points);
+
   if( iterative )
   {
-    VoxelSet points_added;
-    VoxelSet points_removed(object_voxel_locations_);
 
     // Compare and figure out what points are new,
     // and what points are to be deleted
@@ -88,39 +126,34 @@ void PropagationDistanceField::updatePointsInField(const std::vector<Eigen::Vect
                                 voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
       if( valid )
       {
-        if( iterative )
+        ROS_DEBUG_STREAM( " checking for "<<voxel_loc.x()<<","<<voxel_loc.y()<<","<<voxel_loc.z() << std::endl );
+        bool already_obstacle_voxel = ( object_voxel_locations_.find(voxel_loc) != object_voxel_locations_.end() );
+        if( !already_obstacle_voxel )
         {
-          bool already_obstacle_voxel = ( object_voxel_locations_.find(voxel_loc) != object_voxel_locations_.end() );
-          if( !already_obstacle_voxel )
-          {
-            // Not already in set of existing obstacles, so add to voxel list
-            object_voxel_locations_.insert(voxel_loc);
+          ROS_DEBUG_STREAM( " didn't find it"<<std::endl );
+          // Not already in set of existing obstacles, so add to voxel list
+          object_voxel_locations_.insert(voxel_loc);
 
-            // Add point to the set or expansion
-            points_added.insert(voxel_loc);
-          }
-          else
-          {
-            // Already an existing obstacle, so take off removal list
-            points_removed.erase(voxel_loc);
-          }
+          // Add point to the set for expansion
+          points_added.insert(voxel_loc);
         }
         else
         {
-          object_voxel_locations_.insert(voxel_loc);
-          points_added.insert(voxel_loc);
+          ROS_DEBUG_STREAM( " found it"<<std::endl );
+          // Already an existing obstacle, so take off removal list
+          points_removed.erase(voxel_loc);
         }
       }
     }
 
-   removeObstacleVoxels( points_removed );
-   addNewObstacleVoxels( points_added );
+    removeObstacleVoxels( points_removed );
+    addNewObstacleVoxels( points_added );
   }
 
   else	// !iterative
   {
-    VoxelSet points_added;
     reset();
+    object_voxel_locations_.clear();
 
     for( unsigned int i=0; i<points.size(); i++)
     {
@@ -136,6 +169,14 @@ void PropagationDistanceField::updatePointsInField(const std::vector<Eigen::Vect
     }
     addNewObstacleVoxels( points_added );
   }
+
+    ROS_DEBUG_STREAM( "new=" );
+    print(points_added);
+    ROS_DEBUG_STREAM( "removed=" );
+    print(points_removed);
+    ROS_DEBUG_STREAM( "obstacle_voxel_locations_=" );
+    print(object_voxel_locations_);
+    ROS_DEBUG_STREAM( std::endl );
 }
 
 void PropagationDistanceField::addPointsToField(const std::vector<Eigen::Vector3d>& points)
@@ -215,6 +256,7 @@ void PropagationDistanceField::removeObstacleVoxels(const VoxelSet& locations )
     voxel.location_ = loc;
     voxel.update_direction_ = initial_update_direction;
     stack.push_back(loc);
+    object_voxel_locations_.erase(loc);
   }
 
   // Reset all neighbors who's closest point is now gone.
@@ -232,6 +274,10 @@ void PropagationDistanceField::removeObstacleVoxels(const VoxelSet& locations )
       {
         PropDistanceFieldVoxel& nvoxel = getCell(nloc.x(), nloc.y(), nloc.z());
         int3& close_point = nvoxel.closest_point_;
+        if( !isCellValid( close_point.x(), close_point.y(), close_point.z() ) )
+        {
+          close_point = nloc;
+        }
         PropDistanceFieldVoxel& closest_point_voxel = getCell( close_point.x(), close_point.y(), close_point.z() );
 
         if( closest_point_voxel.distance_square_ != 0 )
