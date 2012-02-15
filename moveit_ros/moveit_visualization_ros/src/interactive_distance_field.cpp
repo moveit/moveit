@@ -87,6 +87,23 @@ public:
     velocities_["sphere"] = Eigen::Translation3d(1.0,0.0,0.0);
   }    
 
+  // TODO- add mutex
+  bool getFirstSpherePosition(Eigen::Translation3d& translation)
+  {
+    std::map<std::string, visualization_msgs::InteractiveMarker>::iterator it = markers_.begin();
+    if( it != markers_.end() )
+    {
+      Eigen::Affine3d pose_e;
+      planning_models::poseFromMsg(it->second.pose, pose_e);
+      translation.x() = pose_e.translation().x();
+      translation.y() = pose_e.translation().y();
+      translation.z() = pose_e.translation().z();
+      //transform.translation = pose_e.translation;
+      return true;
+    }
+    return false;
+  }
+
   void updateAllMarkers() {
     while(ros::ok()) {
       for(std::map<std::string, visualization_msgs::InteractiveMarker>::iterator it = markers_.begin();
@@ -156,11 +173,13 @@ int main(int argc, char** argv)
   vis_marker_publisher = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
-  distance_field::PropagationDistanceField distance_field(3.0, 3.0, 4.0, 0.025, -1.0, -1.5, -2.0, 1.0);
+  const double resolution = 0.025;
+  const double max_distance = 0.5;
+  distance_field::PropagationDistanceField distance_field(3.0, 3.0, 4.0, resolution, -1.0, -1.5, -2.0, max_distance);
 
-  shapes::Box* box = new shapes::Box(1.0, 1.0,1.0);
-  collision_distance_field::BodyDecomposition bd("box", box, 0.025, 0.0);
-  Eigen::Affine3d trans(Eigen::Translation3d(1.0,1.0,1.0)*Eigen::Quaterniond::Identity());
+  shapes::Box* box = new shapes::Box(2.5, 2.5, 0.4);
+  collision_distance_field::BodyDecomposition bd("box", box, resolution, 0.0);
+  Eigen::Affine3d trans(Eigen::Translation3d(0.0,0.0,-1.0)*Eigen::Quaterniond::Identity());
   bd.updatePose(trans);
   std::vector<Eigen::Vector3d> all_points = bd.getCollisionPoints();
 
@@ -170,29 +189,43 @@ int main(int argc, char** argv)
 
   visualization_msgs::Marker mark;
 
-  //distance_field.getIsoSurfaceMarkers(0.0000,0.5,planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
-  //                                    ros::Time::now(),
-  //                                    Eigen::Affine3d::Identity(),
-  //                                    mark);
-
-  //distance_field.getGradientMarkers(0.0000,0.50,planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
-  //                                  ros::Time::now(),
-  //                                  mark);
-
-  distance_field.getProjectionPlanes( planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
-                                      ros::Time::now(), 1.0,
-                                      mark);
-
   MovingMarkers mm(interactive_marker_server_,
                    planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
                    1.5,1.5,2.0);
   mm.addSphere();
 
+  int i = 0;
   while(1) {
+    Eigen::Translation3d translation;
+    if( mm.getFirstSpherePosition(translation) )
+    {
+/*    // TODO- create body decomposition for sphere
+      shapes::Box* box = new shapes::Box(1.0, 1.0,1.0);
+      collision_distance_field::BodyDecomposition bd("box", box, 0.025, 0.0);
+      Eigen::Affine3d trans(translation*Eigen::Quaterniond::Identity());
+      bd.updatePose(trans);
+*/
+      // Adding center point for sphere
+      Eigen::Vector3d point(translation.x(), translation.y(), translation.z());
+      //ROS_INFO_STREAM( "transform="<<point.x()<<","<<point.y()<<","<<point.z()<<std::endl );
+      all_points.push_back(point);
 
+      distance_field.updatePointsInField(all_points, true);
+
+      distance_field.getProjectionPlanes( planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+                                          ros::Time::now(), max_distance,
+                                          mark);
+      //distance_field.getIsoSurfaceMarkers(0.0000,0.5,planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+      //                                    ros::Time::now(),
+      //                                    Eigen::Affine3d::Identity(),
+      //                                    mark);
+
+      all_points.pop_back();
+      ROS_INFO_STREAM( "num_points="<<all_points.size()<<std::endl );
+    }
 
     vis_marker_publisher.publish(mark);
-    ros::WallDuration(1.0).sleep();
+    i++;
   }
   // std_msgs::ColorRGBA col;
   // col.r = col.g = col.b = .5;
