@@ -59,6 +59,8 @@ PropagationDistanceField::PropagationDistanceField(double size_x, double size_y,
   sqrt_table_.resize(max_distance_sq_+1);
   for (int i=0; i<=max_distance_sq_; ++i)
     sqrt_table_[i] = sqrt(double(i))*resolution;
+
+  reset();
 }
 
 int PropagationDistanceField::eucDistSq(int3 point1, int3 point2)
