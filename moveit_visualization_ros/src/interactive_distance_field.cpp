@@ -156,30 +156,41 @@ int main(int argc, char** argv)
   vis_marker_publisher = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
-  distance_field::PropagationDistanceField distance_field(3.0, 3.0, 4.0, .025, -1.0, -1.5, -2.0, .25);
+  distance_field::PropagationDistanceField distance_field(3.0, 3.0, 4.0, 0.10/*.025*/, -1.0, -1.5, -2.0, 1.0);
 
   shapes::Box* box = new shapes::Box(1.0, 1.0,1.0);
-
-  collision_distance_field::BodyDecomposition bd("box", box, .025, 0.0);
+  collision_distance_field::BodyDecomposition bd("box", box, 0.25/*.025*/, 0.0);
   Eigen::Affine3d trans(Eigen::Translation3d(1.0,1.0,1.0)*Eigen::Quaterniond::Identity());
   bd.updatePose(trans);
-
   std::vector<Eigen::Vector3d> all_points = bd.getCollisionPoints();
-  distance_field.addPointsToField(all_points);
 
-  ROS_INFO_STREAM("Adding " << all_points.size() << " to field");
+  //ROS_INFO_STREAM("Adding " << all_points.size() << " to field");
+
+  distance_field.updatePointsInField(all_points);
 
   visualization_msgs::Marker mark;
-  distance_field.getIsoSurfaceMarkers(0.0000,0.0001,planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
-                                      ros::Time::now(),
-                                      Eigen::Affine3d::Identity(),
+
+  //distance_field.getIsoSurfaceMarkers(0.0000,0.5,planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+  //                                    ros::Time::now(),
+  //                                    Eigen::Affine3d::Identity(),
+  //                                    mark);
+
+  //distance_field.getGradientMarkers(0.0000,0.50,planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+  //                                  ros::Time::now(),
+  //                                  mark);
+
+  distance_field.getProjectionPlanes( planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+                                      ros::Time::now(), 1.0,
                                       mark);
 
   MovingMarkers mm(interactive_marker_server_,
                    planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
                    1.5,1.5,2.0);
   mm.addSphere();
+
   while(1) {
+
+
     vis_marker_publisher.publish(mark);
     ros::WallDuration(1.0).sleep();
   }
