@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Mrinal Kalakrishnan */
+/** \author Mrinal Kalakrishnan, Ken Anderson */
 
 #ifndef DF_DISTANCE_FIELD_H_
 #define DF_DISTANCE_FIELD_H_
@@ -164,8 +164,15 @@ public:
                        const std::string & frame_id, const ros::Time stamp,
                        visualization_msgs::Marker& marker );
 
+  // TODO - doc
+  void getProjectionPlanes( const std::string & frame_id, const ros::Time stamp, const double max_distance,
+                            visualization_msgs::Marker& marker );
+
 protected:
   virtual double getDistance(const T& object) const=0;
+  void setPoint( 	const int xCell, const int yCell, const int zCell,
+                  const double dist, geometry_msgs::Point & points, std_msgs::ColorRGBA & color,
+                  const double max_distance );
 
 private:
   int inv_twice_resolution_;
@@ -236,7 +243,7 @@ void DistanceField<T>::getIsoSurfaceMarkers(double min_radius, double max_radius
   inf_marker.ns = "distance_field";
   inf_marker.id = 1;
   inf_marker.type = visualization_msgs::Marker::CUBE_LIST;
-  inf_marker.action = 0;
+  inf_marker.action = visualization_msgs::Marker::MODIFY;
   inf_marker.scale.x = this->resolution_[VoxelGrid<T>::DIM_X];
   inf_marker.scale.y = this->resolution_[VoxelGrid<T>::DIM_Y];
   inf_marker.scale.z = this->resolution_[VoxelGrid<T>::DIM_Z];
@@ -247,10 +254,6 @@ void DistanceField<T>::getIsoSurfaceMarkers(double min_radius, double max_radius
   //inf_marker.lifetime = ros::Duration(30.0);
 
   inf_marker.points.reserve(100000);
-  int num_total_cells =
-    this->num_cells_[VoxelGrid<T>::DIM_X]*
-    this->num_cells_[VoxelGrid<T>::DIM_Y]*
-    this->num_cells_[VoxelGrid<T>::DIM_Z];
   for (int x = 0; x < this->num_cells_[VoxelGrid<T>::DIM_X]; ++x)
   {
     for (int y = 0; y < this->num_cells_[VoxelGrid<T>::DIM_Y]; ++y)
@@ -258,6 +261,7 @@ void DistanceField<T>::getIsoSurfaceMarkers(double min_radius, double max_radius
       for (int z = 0; z < this->num_cells_[VoxelGrid<T>::DIM_Z]; ++z)
       {
         double dist = getDistanceFromCell(x,y,z);
+
         if (dist >= min_radius && dist <= max_radius)
         {
           int last = inf_marker.points.size();
@@ -266,7 +270,7 @@ void DistanceField<T>::getIsoSurfaceMarkers(double min_radius, double max_radius
           this->gridToWorld(x,y,z,
                             nx, ny, nz);
           Eigen::Translation3d vec(nx,ny,nz);
-          vec = cur*vec;
+          //Eigen::Translation3d nv = cur.rotation()*vec;
           inf_marker.points[last].x = vec.x();
           inf_marker.points[last].y = vec.y();
           inf_marker.points[last].z = vec.z();
@@ -471,6 +475,118 @@ void DistanceField<T>::getPlaneMarkers(distance_field::PlaneVisualizationType ty
     }
   }
 }
+
+
+template <typename T>
+void DistanceField<T>::setPoint( 	const int xCell, const int yCell, const int zCell,
+                                  const double dist, geometry_msgs::Point & point,
+                                  std_msgs::ColorRGBA & color, const double max_distance )
+{
+  double wx,wy,wz;
+  this->gridToWorld(xCell,yCell,zCell, wx,wy,wz);
+
+  point.x = wx;
+  point.y = wy;
+  point.z = wz;
+
+  color.r = 1.0;
+  color.g = dist/max_distance;//dist/max_distance * 0.5;
+  color.b = dist/max_distance;//dist/max_distance * 0.1;
+}
+
+
+template <typename T>
+void DistanceField<T>::getProjectionPlanes( const std::string & frame_id, const ros::Time stamp, double max_dist,
+                                            visualization_msgs::Marker& marker)
+{
+  int maxXCell = getNumCells(this->DIM_X);
+  int maxYCell = getNumCells(this->DIM_Y);
+  int maxZCell = getNumCells(this->DIM_Z);
+
+  double * x_projection = new double[maxYCell*maxZCell];
+  double * y_projection = new double[maxZCell*maxXCell];
+  double * z_projection = new double[maxXCell*maxYCell];
+  double initial_val = sqrt(INT_MAX);
+
+  // Initialize
+  for( int y = 0; y < maxYCell; y++ )
+    for( int x = 0; x < maxXCell; x++ )
+      z_projection[x+y*maxXCell] = initial_val;
+
+  for( int z = 0; z < maxZCell; z++ )
+    for( int y = 0; y < maxYCell; y++ )
+      x_projection[y+z*maxYCell] = initial_val;
+
+  for( int z = 0; z < maxZCell; z++ )
+    for( int x = 0; x < maxXCell; x++ )
+      y_projection[x+z*maxXCell] = initial_val;
+
+  // Calculate projections
+  for( int z = 0; z < maxZCell; z++ ) {
+    for( int y = 0; y < maxYCell; y++ ) {
+      for( int x = 0; x < maxXCell; x++ ) {
+        double dist = getDistanceFromCell(x,y,z);
+        z_projection[x+y*maxXCell] = std::min( dist, z_projection[x+y*maxXCell]);
+        x_projection[y+z*maxYCell] = std::min( dist, x_projection[y+z*maxYCell]);
+        y_projection[x+z*maxXCell] = std::min( dist, y_projection[x+z*maxXCell]);
+      }
+    }
+  }
+
+  // Make markers
+  marker.points.clear();
+  marker.header.frame_id = frame_id;
+  marker.header.stamp = stamp;
+  marker.ns = "distance_field_projection_plane";
+  marker.id = 1;
+  marker.type = visualization_msgs::Marker::CUBE_LIST;
+  marker.action = visualization_msgs::Marker::MODIFY;
+  marker.scale.x = getResolution(this->DIM_X);
+  marker.scale.y = getResolution(this->DIM_Y);
+  marker.scale.z = getResolution(this->DIM_Z);
+  marker.color.a = 1.0;
+  //marker.lifetime = ros::Duration(30.0);
+
+  int x, y, z;
+  int index = 0;
+  marker.points.resize(maxXCell*maxYCell + maxYCell*maxZCell + maxZCell*maxXCell);
+  marker.colors.resize(maxXCell*maxYCell + maxYCell*maxZCell + maxZCell*maxXCell);
+
+  z = 0;
+  for( y = 0; y < maxYCell; y++ ) {
+    for( x = 0; x < maxXCell; x++ ) {
+      double dist = z_projection[x+y*maxXCell];
+      setPoint( x, y, z, dist, marker.points[index], marker.colors[index], max_dist );
+      index++;
+    }
+  }
+
+  x = 0;
+  for( z = 0; z < maxZCell; z++ ) {
+    for( y = 0; y < maxYCell; y++ ) {
+      double dist = x_projection[y+z*maxYCell];
+      setPoint( x, y, z, dist, marker.points[index], marker.colors[index], max_dist );
+      index++;
+    }
+  }
+
+  y = 0;
+  for( z = 0; z < maxZCell; z++ ) {
+    for( x = 0; x < maxXCell; x++ ) {
+      double dist = y_projection[x+z*maxXCell];
+      setPoint( x, y, z, dist, marker.points[index], marker.colors[index], max_dist );
+      index++;
+    }
+  }
+
+  if( x_projection)
+    delete[] x_projection;
+  if( y_projection )
+    delete[] y_projection;
+  if( z_projection )
+    delete[] z_projection;
+}
+
 
 }
 #endif /* DF_DISTANCE_FIELD_H_ */
