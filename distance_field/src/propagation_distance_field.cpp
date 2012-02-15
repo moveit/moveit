@@ -78,11 +78,8 @@ void PropagationDistanceField::print(const VoxelSet & set)
   VoxelSet::const_iterator it;
   for( it=set.begin(); it!=set.end(); ++it)
   {
-    int3 loc = *it;
-    int x = loc.x();
-    int y = loc.y();
-    int z = loc.z();
-    ROS_DEBUG_STREAM( "" << x << "," << y << "," << z << " " );
+    int3 loc1 = *it;
+    ROS_DEBUG_STREAM( "" << loc1.x() << "," << loc1.y() << "," << loc1.z() << " " );
   }
   ROS_DEBUG_STREAM( "] size=" << set.size() << std::endl );
 }
@@ -93,11 +90,8 @@ void PropagationDistanceField::print(const std::vector<Eigen::Vector3d>& points)
   std::vector<Eigen::Vector3d>::const_iterator it;
   for( it=points.begin(); it!=points.end(); ++it)
   {
-    Eigen::Vector3d loc = *it;
-    int x = loc.x();
-    int y = loc.y();
-    int z = loc.z();
-    ROS_DEBUG_STREAM( "" << x << "," << y << "," << z << " " );
+    Eigen::Vector3d loc1 = *it;
+    ROS_DEBUG_STREAM( "" << loc1.x() << "," << loc1.y() << "," << loc1.z() << " " );
   }
   ROS_DEBUG_STREAM( "] size=" << points.size() << std::endl );
 }
