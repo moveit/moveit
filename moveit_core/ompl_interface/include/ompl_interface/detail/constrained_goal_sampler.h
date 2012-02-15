@@ -34,10 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
-#define OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
+#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
+#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
 
-#include "ompl_interface/planning_configuration.h"
 #include <ompl/base/GoalLazySamples.h>
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <kinematic_constraints/constraint_samplers.h>
@@ -45,13 +44,15 @@
 namespace ompl_interface
 {
 
+class ModelBasedPlanningContext;
+
 /** @class ConstrainedGoalSampler
  *  An interface to the OMPL goal lazy sampler*/
 class ConstrainedGoalSampler : public ompl::base::GoalLazySamples
 {
 public:
   
-  ConstrainedGoalSampler(const PlanningConfiguration *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
+  ConstrainedGoalSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
                          const kinematic_constraints::ConstraintSamplerPtr &cs = kinematic_constraints::ConstraintSamplerPtr());
   
 private:
@@ -59,7 +60,7 @@ private:
   bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
   bool sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
   
-  const PlanningConfiguration                     *planning_config_;
+  const ModelBasedPlanningContext                 *planning_context_;
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
   kinematic_constraints::ConstraintSamplerPtr      constraint_sampler_;
   planning_models::KinematicState                  state_;

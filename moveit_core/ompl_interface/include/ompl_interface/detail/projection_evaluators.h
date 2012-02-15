@@ -34,14 +34,16 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
-#define OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
+#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
+#define MOVEIT_OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
 
-#include "ompl_interface/planning_configuration.h"
+#include <ompl/base/ProjectionEvaluator.h>
 #include "ompl_interface/detail/threadsafe_state_storage.h"
 
 namespace ompl_interface
 {
+
+class ModelBasedPlanningContext;
 
 /** @class ProjectionEvaluatorLinkPose
     @brief */
@@ -49,7 +51,7 @@ class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
 {
 public:
   
-  ProjectionEvaluatorLinkPose(const PlanningConfiguration *pc, const std::string &link);
+  ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link);
   
   virtual unsigned int getDimension(void) const;
   virtual void defaultCellSizes(void);
@@ -57,10 +59,10 @@ public:
   
 private:
   
-  const PlanningConfiguration *planning_config_;
-  std::string                  group_name_;
-  std::string                  link_name_;
-  TSStateStorage               tss_;
+  const ModelBasedPlanningContext *planning_context_;
+  std::string                      group_name_;
+  std::string                      link_name_;
+  TSStateStorage                   tss_;
 };
 
 /** @class ProjectionEvaluatorJointValue
@@ -68,7 +70,7 @@ private:
 class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
 {
 public:
-  ProjectionEvaluatorJointValue(const PlanningConfiguration *pc, const std::vector<std::pair<std::string, unsigned int> > &joints);
+  ProjectionEvaluatorJointValue(const ModelBasedPlanningContext *pc, const std::vector<std::pair<std::string, unsigned int> > &joints);
   
   virtual unsigned int getDimension(void) const;
   virtual void defaultCellSizes(void);
@@ -76,7 +78,7 @@ public:
   
 private:
   
-  const PlanningConfiguration                       *planning_config_;
+  const ModelBasedPlanningContext                   *planning_context_;
   unsigned int                                       dimension_;
   std::vector<std::pair<std::string, unsigned int> > joints_;
 };
