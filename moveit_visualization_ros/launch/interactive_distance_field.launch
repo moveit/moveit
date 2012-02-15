@@ -5,6 +5,6 @@
   <node pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />
   <node pkg="moveit_visualization_ros" name="wall_clock_server" type="fake_time.py" />
 
-  <node pkg="moveit_visualization_ros" type="interactive_distance_field" name="interactive_distance_field" output="screen"/>
+  <node pkg="moveit_visualization_ros" type="interactive_distance_field" name="interactive_distance_field" output="screen" />
 
 </launch>
