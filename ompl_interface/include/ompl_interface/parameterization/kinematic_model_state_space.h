@@ -40,9 +40,12 @@
 #include <ompl/base/StateSpace.h>
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
+#include <boost/concept_check.hpp>
 
 namespace ompl_interface
 {
+
+
 
 /** @class KMStateSpace
  *  @brief Construction of OMPL state space from kinematic joints. This
@@ -76,6 +79,8 @@ public:
   virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
   virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
   
+
+
   /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
   void copyToKinematicState(const std::vector<planning_models::KinematicState::JointState*> &js, const ompl::base::State *state) const;
   
@@ -91,14 +96,21 @@ public:
   /// Copy the data from a kinematic state to an OMPL state. Only needed joint states are copied
   void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState &kstate) const;
   
+  void addProjectionEvaluator(const std::string &peval);
+  
+  void addProjectionEvaluator(const std::string &name, const std::string &peval);
+  
+  /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
+  void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
+  
+
+
+
   /// Get the joint models that this state space was constructed from
   const std::vector<const planning_models::KinematicModel::JointModel*> getJointModels(void) const
   {
     return joints_;
   }
-  
-  /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
-  void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
 private:
   

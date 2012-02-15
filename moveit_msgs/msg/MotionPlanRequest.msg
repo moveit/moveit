@@ -17,9 +17,6 @@ Constraints[] goal_constraints
 # No state at any point along the path in the produced motion plan will violate these constraints
 Constraints path_constraints
 
-# The joint limits to consider while planning (these are used optionally to override limits loaded from URDF)
-JointLimits[] joint_limits
-
 # The name of the motion planner to use. If no name is specified,
 # a default motion planner will be used
 string planner_id
