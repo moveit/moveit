@@ -158,23 +158,24 @@ public:
   /** \brief Unlock the scene */
   void unlockScene(void);
 
-  std::vector<moveit_msgs::JointLimits> getJointLimits(const std::string& joint) const {
-    if(individual_joint_limits_map_.find(joint) == individual_joint_limits_map_.end()) {
-      std::vector<moveit_msgs::JointLimits> emp_limits;
-      return emp_limits;
-    }
-    return individual_joint_limits_map_.at(joint);
+  std::vector<moveit_msgs::JointLimits> getJointLimits(const std::string& joint) const
+  {
+    if (individual_joint_limits_map_.find(joint) == individual_joint_limits_map_.end())
+      return std::vector<moveit_msgs::JointLimits>();
+    else
+      return individual_joint_limits_map_.at(joint);
   }
 
-  std::vector<moveit_msgs::JointLimits> getGroupJointLimits(const std::string& group) const {
-    if(group_joint_limits_map_.find(group) == group_joint_limits_map_.end()) {
-      std::vector<moveit_msgs::JointLimits> emp_limits;
-      return emp_limits;
-    }
-    return group_joint_limits_map_.at(group);
+  std::vector<moveit_msgs::JointLimits> getGroupJointLimits(const std::string& group) const
+  {
+    if (group_joint_limits_map_.find(group) == group_joint_limits_map_.end())
+      return std::vector<moveit_msgs::JointLimits>();
+    else
+      return group_joint_limits_map_.at(group);
   }
 
-  const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& getGroupJointLimitsMap() const {
+  const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& getGroupJointLimitsMap(void) const
+  {
     return group_joint_limits_map_;
   }
 
