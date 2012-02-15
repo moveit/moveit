@@ -35,10 +35,12 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/projection_evaluators.h"
+#include "ompl_interface/parameterization/model_based_planning_context.h"
 
-ompl_interface::ProjectionEvaluatorLinkPose::ProjectionEvaluatorLinkPose(const PlanningConfiguration *pc, const std::string &link) :
-  ompl::base::ProjectionEvaluator(&pc->getKMStateSpace()), planning_config_(pc),
-  group_name_(planning_config_->getJointModelGroup()->getName()), link_name_(link), tss_(pc->getStartState())
+ompl_interface::ProjectionEvaluatorLinkPose::ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link) :
+  ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace()), planning_context_(pc),
+  group_name_(planning_context_->getJointModelGroupName()), link_name_(link),
+  tss_(planning_context_->getCompleteInitialRobotState())
 {
 }
 
@@ -50,15 +52,15 @@ unsigned int ompl_interface::ProjectionEvaluatorLinkPose::getDimension(void) con
 void ompl_interface::ProjectionEvaluatorLinkPose::defaultCellSizes(void)
 {
   cellSizes_.resize(3);
-  cellSizes_[0] = 0.01;
-  cellSizes_[1] = 0.01;
-  cellSizes_[2] = 0.01;
+  cellSizes_[0] = 0.1;
+  cellSizes_[1] = 0.1;
+  cellSizes_[2] = 0.1;
 }
 
 void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const
 {
   planning_models::KinematicState *s = tss_.getStateStorage();
-  planning_config_->getKMStateSpace().copyToKinematicState(*s, state);
+  planning_context_->getOMPLStateSpace()->copyToKinematicState(*s, state);
   s->getJointStateGroup(group_name_)->updateLinkTransforms();
   
   const planning_models::KinematicState::LinkState *ls = s->getLinkState(link_name_);
@@ -68,8 +70,9 @@ void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::Stat
   projection(2) = o.z();
 }
 
-ompl_interface::ProjectionEvaluatorJointValue::ProjectionEvaluatorJointValue(const PlanningConfiguration *pc, const std::vector<std::pair<std::string, unsigned int> > &joints) :
-  ompl::base::ProjectionEvaluator(&pc->getKMStateSpace()), planning_config_(pc), joints_(joints)
+ompl_interface::ProjectionEvaluatorJointValue::ProjectionEvaluatorJointValue(const ModelBasedPlanningContext *pc,
+                                                                             const std::vector<std::pair<std::string, unsigned int> > &joints) :
+  ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace()), planning_context_(pc), joints_(joints)
 {
   dimension_ = 0;
   for (std::size_t i = 0 ; i < joints_.size() ; ++i)
@@ -92,7 +95,7 @@ void ompl_interface::ProjectionEvaluatorJointValue::project(const ompl::base::St
   unsigned int k = 0;
   for (std::size_t i = 0 ; i < joints_.size() ; ++i)
   {
-    const double *v = planning_config_->getKMStateSpace().getValueAddressAtName(state, joints_[i].first);
+    const double *v = planning_context_->getOMPLStateSpace()->getValueAddressAtName(state, joints_[i].first);
     for (unsigned int j = 0 ; j < joints_[i].second ; ++j)
       projection(k++) = v[j];
   }
