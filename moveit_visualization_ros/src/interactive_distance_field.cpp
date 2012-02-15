@@ -156,10 +156,10 @@ int main(int argc, char** argv)
   vis_marker_publisher = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
-  distance_field::PropagationDistanceField distance_field(3.0, 3.0, 4.0, 0.10/*.025*/, -1.0, -1.5, -2.0, 1.0);
+  distance_field::PropagationDistanceField distance_field(3.0, 3.0, 4.0, 0.025, -1.0, -1.5, -2.0, 1.0);
 
   shapes::Box* box = new shapes::Box(1.0, 1.0,1.0);
-  collision_distance_field::BodyDecomposition bd("box", box, 0.25/*.025*/, 0.0);
+  collision_distance_field::BodyDecomposition bd("box", box, 0.025, 0.0);
   Eigen::Affine3d trans(Eigen::Translation3d(1.0,1.0,1.0)*Eigen::Quaterniond::Identity());
   bd.updatePose(trans);
   std::vector<Eigen::Vector3d> all_points = bd.getCollisionPoints();
