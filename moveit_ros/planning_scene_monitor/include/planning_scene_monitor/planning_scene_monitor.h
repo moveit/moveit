@@ -171,6 +171,9 @@ protected:
   /** @brief Configure the default padding*/
   void configureDefaultPadding(void);
 
+  /** @brief Configure the default joint limits*/
+  void configureDefaultJointLimits(void);
+
   /** @brief Callback for a new planning scene msg*/
   void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
 
@@ -228,6 +231,10 @@ protected:
 
   /// the amount of time to wait in between updates to the robot state (in seconds)
   double                                dt_state_update_;
+
+  std::map<std::string, std::vector<moveit_msgs::JointLimits > > individual_joint_limits_map_;
+  std::map<std::string, std::vector<moveit_msgs::JointLimits> > group_joint_limits_map_;
+
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;

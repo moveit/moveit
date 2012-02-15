@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
 
@@ -74,3 +74,6 @@ target_link_libraries(planning_components_visualizer ${PROJECT_NAME})
 
 rosbuild_add_executable(planning_components_visualizer_full src/planning_components_visualizer_full.cpp)
 target_link_libraries(planning_components_visualizer_full ${QT_LIBRARIES} ${PROJECT_NAME})
+
+rosbuild_add_executable(interactive_distance_field src/interactive_distance_field.cpp)
+target_link_libraries(interactive_distance_field ${QT_LIBRARIES} ${PROJECT_NAME})
