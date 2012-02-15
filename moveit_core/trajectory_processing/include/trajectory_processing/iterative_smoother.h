@@ -56,7 +56,7 @@ public:
   /// points that exceed the velocity or acceleration bounds.
   virtual bool smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
                       trajectory_msgs::JointTrajectory& trajectory_out,
-                      const std::vector<moveit_msgs::JointLimits>& limits);
+                      const std::vector<moveit_msgs::JointLimits>& limits) const;
 
 private:
   int			max_iterations_;					/// @brief maximum number of iterations to find solution
