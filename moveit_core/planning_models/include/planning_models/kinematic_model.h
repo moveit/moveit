@@ -47,6 +47,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <moveit_msgs/JointLimits.h>
 
 #include <Eigen/Geometry>
 
@@ -208,6 +209,8 @@ public:
     {
       return max_velocity_;
     }
+
+    virtual std::vector<moveit_msgs::JointLimits> getJointLimits() const;
     
     /** \brief Given the joint values for a joint, compute the corresponding transform */
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const = 0;
@@ -338,6 +341,8 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     RevoluteJointModel(const std::string& name);
+
+    virtual std::vector<moveit_msgs::JointLimits> getJointLimits() const;
     
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const;
@@ -582,6 +587,9 @@ public:
     {
       return variable_count_;
     }
+
+    virtual std::vector<moveit_msgs::JointLimits> getJointLimits() const;
+    
     
   protected:
     
