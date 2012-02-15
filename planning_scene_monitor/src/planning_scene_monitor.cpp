@@ -82,6 +82,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
             scene_const_ = scene_;
             configureDefaultCollisionMatrix();
             configureDefaultPadding();
+            configureDefaultJointLimits();
             scene_->getCollisionRobot()->setPadding(default_robot_padd_);
             scene_->getCollisionRobot()->setScale(default_robot_scale_);
         }
@@ -467,4 +468,36 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding(void)
     nh_.param(robot_description_ + "_planning/default_robot_scale", default_robot_scale_, 1.0);
     nh_.param(robot_description_ + "_planning/default_object_padding", default_object_padd_, 0.0);
     nh_.param(robot_description_ + "_planning/default_attached_padding", default_attached_padd_, 0.0);
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::configureDefaultJointLimits(void)
+{
+  for(unsigned int i = 0; i < scene_->getKinematicModel()->getJointModels().size(); i++) {
+    std::vector<moveit_msgs::JointLimits> jlim = scene_->getKinematicModel()->getJointModels()[i]->getJointLimits();
+    for(unsigned int j = 0; j < jlim.size(); j++) {
+      std::string prefix = robot_description_+"_planning/joint_limits/"+jlim[j].joint_name+"/";
+      ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " before vel " << jlim[j].max_velocity);
+      bool has_vel = jlim[j].has_velocity_limits;
+      nh_.param(prefix+"has_velocity_limits", has_vel, has_vel);
+      jlim[j].has_velocity_limits = has_vel;
+      nh_.param(prefix+"max_velocity", jlim[j].max_velocity, jlim[j].max_velocity);
+      bool has_accel = jlim[j].has_acceleration_limits;
+      nh_.param(prefix+"has_acceleration_limits", has_accel, has_accel); 
+      jlim[j].has_acceleration_limits = has_accel;
+      nh_.param(prefix+"max_acceleration", jlim[j].max_acceleration, jlim[j].max_acceleration);
+      ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " after vel " << jlim[j].max_velocity);
+      ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " accel " << jlim[j].max_acceleration);
+    }
+    individual_joint_limits_map_[scene_->getKinematicModel()->getJointModels()[i]->getName()] = jlim;
+  }
+  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& jmgm = scene_->getKinematicModel()->getJointModelGroupMap();
+  for(std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin();
+      it != jmgm.end();
+      it++) {
+    for(unsigned int i = 0; i < it->second->getJointModelNames().size(); i++) {
+      group_joint_limits_map_[it->first].insert(group_joint_limits_map_[it->first].end(),
+                                                individual_joint_limits_map_[it->second->getJointModelNames()[i]].begin(),
+                                                individual_joint_limits_map_[it->second->getJointModelNames()[i]].end());
+    }
+  }
 }
