@@ -385,7 +385,7 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
 
 bool IterativeParabolicSmoother::smooth(const trajectory_msgs::JointTrajectory& trajectory_in,
                                         trajectory_msgs::JointTrajectory& trajectory_out,
-                                        const std::vector<moveit_msgs::JointLimits>& limits)
+                                        const std::vector<moveit_msgs::JointLimits>& limits) const
 {
   bool success = true;
   trajectory_out = trajectory_in;	//copy
