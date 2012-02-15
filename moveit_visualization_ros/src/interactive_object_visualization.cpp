@@ -422,9 +422,8 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
 {    
   ROS_DEBUG_STREAM("Processing feedback for " << feedback->marker_name);
   switch (feedback->event_type) {
-  case visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP:
+  case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
     {
-      //TODO - this can probably change when we can swap out markers and continue dragging
       interactive_markers::MenuHandler::CheckState off_state, grow_state, shrink_state;
       object_menu_handlers_[feedback->marker_name].getCheckState(menu_name_to_handle_maps_[feedback->marker_name]["Off"], off_state);
       object_menu_handlers_[feedback->marker_name].getCheckState(menu_name_to_handle_maps_[feedback->marker_name]["Grow"], grow_state);
@@ -436,15 +435,6 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
       } else {
         updateObjectPose(feedback->marker_name, feedback->pose);
       }
-    }
-    break;
-  case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
-    {
-      interactive_markers::MenuHandler::CheckState off_state;
-      object_menu_handlers_[feedback->marker_name].getCheckState(menu_name_to_handle_maps_[feedback->marker_name]["Off"], off_state);
-      if(off_state == interactive_markers::MenuHandler::CHECKED) {
-        updateObjectPose(feedback->marker_name, feedback->pose);
-      }      
     }
     break;
   case visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK:

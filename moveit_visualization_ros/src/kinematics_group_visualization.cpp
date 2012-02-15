@@ -48,11 +48,11 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
                                                            const std::string& kinematics_solver_name,
                                                            const std_msgs::ColorRGBA& good_color,
                                                            const std_msgs::ColorRGBA& bad_color,
-                                                           ros::Publisher& marker_publisher, 
-                                                           bool show) :
+                                                           ros::Publisher& marker_publisher) :
   group_name_(group_name),
   suffix_name_(suffix_name),
   regular_marker_name_(group_name+"_kinematics_"+suffix_name),
+  markers_hidden_(false),
   last_solution_good_(true),
   last_solution_changed_(false),
   good_color_(good_color),
@@ -61,8 +61,7 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
   planning_scene_(planning_scene),
   interactive_marker_server_(interactive_marker_server),
   state_(planning_scene_->getCurrentState()),
-  marker_publisher_(marker_publisher),
-  dof_marker_enabled_(false)
+  marker_publisher_(marker_publisher)
 {
   const std::map<std::string, srdf::Model::Group>& group_map 
     = planning_scene_->getKinematicModel()->getJointModelGroupConfigMap();
@@ -157,6 +156,7 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
 };
 
 void KinematicsGroupVisualization::hideAllMarkers() {
+  markers_hidden_ = true;
   for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
       it != group_to_interactive_marker_names_.end();
       it++) {
@@ -173,6 +173,7 @@ void KinematicsGroupVisualization::hideAllMarkers() {
 }
 
 void KinematicsGroupVisualization::showAllMarkers() {
+  markers_hidden_ = false;
   for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
     last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
     last_marker_array_.markers[i].color.a = stored_alpha_;
@@ -362,6 +363,7 @@ void KinematicsGroupVisualization::sendCurrentMarkers()
                            ros::Duration(0.0),
                            last_marker_array_,
                            ik_solver_->getLinkNames());
+    if(markers_hidden_) return;
     marker_publisher_.publish(last_marker_array_);
   } else {
     removeLastMarkers();

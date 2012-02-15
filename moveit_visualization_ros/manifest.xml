@@ -21,6 +21,7 @@
   <depend package="rviz"/>
   <depend package="collision_distance_field"/>
   <depend package="distance_field"/>
+  <depend package="trajectory_processing"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_visualization_ros"/>

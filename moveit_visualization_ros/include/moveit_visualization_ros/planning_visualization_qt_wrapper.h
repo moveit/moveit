@@ -46,9 +46,10 @@ class PlanningVisualizationQtWrapper : public QObject, public PlanningVisualizat
 public:
   
   PlanningVisualizationQtWrapper(planning_scene::PlanningSceneConstPtr planning_scene,
-                                          boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
-                                          ros::Publisher& marker_publisher) :
-    PlanningVisualization(planning_scene, interactive_marker_server, marker_publisher)
+                                 const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limits_map,
+                                 boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
+                                 ros::Publisher& marker_publisher) :
+    PlanningVisualization(planning_scene, group_joint_limits_map, interactive_marker_server, marker_publisher)
   {
   }
 

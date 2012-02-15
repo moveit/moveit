@@ -113,6 +113,7 @@ int main(int argc, char **argv)
   bad_color.r = 1.0;    
 
   pv_.reset(new PlanningVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
+                                               planning_scene_monitor_->getGroupJointLimitsMap(),
                                                interactive_marker_server_,
                                                vis_marker_array_publisher));
   

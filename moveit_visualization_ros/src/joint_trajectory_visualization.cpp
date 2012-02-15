@@ -31,6 +31,8 @@
 
 #include <moveit_visualization_ros/joint_trajectory_visualization.h>
 
+static const ros::WallDuration sleep_time = ros::WallDuration(.01);
+
 namespace moveit_visualization_ros
 {
 
@@ -68,21 +70,24 @@ void JointTrajectoryVisualization::playCurrentTrajectory()
     ROS_DEBUG_STREAM("Cancelling completed");
   }
 
-  playback_start_time_ = ros::WallTime::now();
-  current_point_ = 0;
-
   playback_thread_.reset(new boost::thread(boost::bind(&JointTrajectoryVisualization::advanceTrajectory, this)));
 }
 
 void JointTrajectoryVisualization::advanceTrajectory() {
   visualization_msgs::MarkerArray arr;
   try {
-    while(ros::ok() && current_point_ < current_joint_trajectory_.points.size()) {
+    unsigned int current_point = 0;
+    ros::WallTime playback_start_time = ros::WallTime::now();
+    bool use_time = false;
+    if(current_joint_trajectory_.points.back().time_from_start > ros::Duration(0.0)) {
+      use_time = true;
+    }
+    while(ros::ok() && current_point < current_joint_trajectory_.points.size()) {
       arr.markers.clear();
       std::map<std::string, double> joint_state;
       for(unsigned int i = 0; i < current_joint_trajectory_.joint_names.size(); i++) {
         joint_state[current_joint_trajectory_.joint_names[i]] =
-          current_joint_trajectory_.points[current_point_].positions[i];
+          current_joint_trajectory_.points[current_point].positions[i];
       }
       current_state_.setStateValues(joint_state);
       current_state_.getRobotMarkers(marker_color_,
@@ -91,14 +96,23 @@ void JointTrajectoryVisualization::advanceTrajectory() {
                                      arr,
                                      link_model_names_);
       marker_publisher_.publish(arr);
-      current_point_++;
       boost::this_thread::sleep((ros::WallTime::now()+ros::WallDuration(.05)).toBoost());
-    }
+      if(!use_time) {
+        current_point++;
+      } else {
+        for( ; current_point < current_joint_trajectory_.points.size(); current_point++) {
+          if(ros::WallDuration(current_joint_trajectory_.points[current_point].time_from_start.toSec()) >= 
+             (ros::WallTime::now()- playback_start_time)) {
+            break;
+          }
+        }
+      } 
+    } 
+    ROS_INFO_STREAM("Last time " << (ros::WallTime::now()- playback_start_time));
   } catch(...) {
     ROS_DEBUG_STREAM("Playback interrupted");
     return;
   }
-  
   if(!arr.markers.empty()) {
     for(unsigned int i = 0; i < arr.markers.size(); i++) {
       arr.markers[i].action = visualization_msgs::Marker::DELETE;

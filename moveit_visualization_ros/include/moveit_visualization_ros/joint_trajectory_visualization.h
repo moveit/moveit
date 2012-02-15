@@ -66,11 +66,9 @@ protected:
   planning_models::KinematicState current_state_;
   trajectory_msgs::JointTrajectory current_joint_trajectory_;
   std_msgs::ColorRGBA marker_color_;
-  
+
   std::vector<std::string> link_model_names_;
 
-  unsigned int current_point_;
-  ros::WallTime playback_start_time_;
   boost::shared_ptr<boost::thread> playback_thread_;
 };
 
