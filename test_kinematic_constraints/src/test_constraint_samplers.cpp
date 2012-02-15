@@ -394,27 +394,30 @@ TEST_F(ConstraintSamplerTestBase, DisplayGenericConstraintsSamples)
   pcm.target_point_offset.x = 0;
   pcm.target_point_offset.y = 0;
   pcm.target_point_offset.z = 0;
-  pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
-  pcm.constraint_region_shape.dimensions.push_back(0.01);
+  pcm.constraint_region_shape.type = moveit_msgs::Shape::BOX;
+  pcm.constraint_region_shape.dimensions.push_back(0.5);
+  pcm.constraint_region_shape.dimensions.push_back(1.0);
+  pcm.constraint_region_shape.dimensions.push_back(0.7);
   
   pcm.constraint_region_pose.header.frame_id = kmodel_->getModelFrame();
-  pcm.constraint_region_pose.pose.position.x = 0.55;
-  pcm.constraint_region_pose.pose.position.y = 0.2;
-  pcm.constraint_region_pose.pose.position.z = 1.25;
+  pcm.constraint_region_pose.pose.position.x = 0.8;
+  pcm.constraint_region_pose.pose.position.y = 0.4;
+  pcm.constraint_region_pose.pose.position.z = 0.7;
   pcm.constraint_region_pose.pose.orientation.x = 0.0;
   pcm.constraint_region_pose.pose.orientation.y = 0.0;
   pcm.constraint_region_pose.pose.orientation.z = 0.0;
   pcm.constraint_region_pose.pose.orientation.w = 1.0;
   pcm.weight = 1.0;
   c.position_constraints.push_back(pcm);
-  */ 
-
+  */
   moveit_msgs::PositionConstraint pcm2;
   pcm2.link_name = "r_wrist_roll_link";
   pcm2.target_point_offset.x = 0.7;
   pcm2.target_point_offset.y = 0;
   pcm2.target_point_offset.z = 0;
-  pcm2.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
+  pcm2.constraint_region_shape.type = moveit_msgs::Shape::BOX;
+  pcm2.constraint_region_shape.dimensions.push_back(0.01);
+  pcm2.constraint_region_shape.dimensions.push_back(0.01);
   pcm2.constraint_region_shape.dimensions.push_back(0.01);
   
   pcm2.constraint_region_pose.header.frame_id = "l_wrist_roll_link";
@@ -474,11 +477,11 @@ TEST_F(ConstraintSamplerTestBase, DisplayGenericConstraintsSamples)
   
   planning_models::KinematicState ks(kmodel_);
   ks.setToDefaultValues();
-  for (int t = 0 ; t < 1500 ; ++t)
+  for (int t = 0 ; t < 150000 ; ++t)
   {
     double distance;
     std::vector<double> values;
-    if ((s->sample(values, ks, 1000)))
+    if ((s->sample(values, ks, 3)))
     {
       ks.getJointStateGroup("arms")->setStateValues(values);
       bool valid = kset.decide(ks, distance);
@@ -489,7 +492,7 @@ TEST_F(ConstraintSamplerTestBase, DisplayGenericConstraintsSamples)
         d.model_id = kmodel_->getName();
         planning_models::kinematicStateToRobotState(ks, d.robot_state);
         pub_state.publish(d);
-        ros::WallDuration(1.0).sleep();
+        //        ros::WallDuration(1.0).sleep();
       }
     }
   }
