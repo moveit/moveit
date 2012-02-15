@@ -53,8 +53,7 @@ public:
                                const std::string& kinematics_solver_name,
                                const std_msgs::ColorRGBA& good_color,
                                const std_msgs::ColorRGBA& bad_color,
-                               ros::Publisher& marker_publisher,
-                               bool show=true); 
+                               ros::Publisher& marker_publisher);
 
   ~KinematicsGroupVisualization() {
     removeLastMarkers();
@@ -138,6 +137,7 @@ protected:
   std::map<std::string, std::string> interactive_marker_to_group_names_;
   std::string regular_marker_name_;
 
+  bool markers_hidden_;
   bool last_solution_good_;
   bool last_solution_changed_;
 

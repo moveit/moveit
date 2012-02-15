@@ -34,13 +34,17 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <kinematic_constraints/utils.h>
 #include <planning_models/conversions.h>
+#include <trajectory_processing/iterative_smoother.h>
 
 namespace moveit_visualization_ros {
 
 PlanningVisualization::PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                             const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limit_map,
                                              boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                              ros::Publisher& marker_publisher)
-  : planning_scene_(planning_scene), ompl_interface_(planning_scene->getKinematicModel())
+  : planning_scene_(planning_scene), 
+    ompl_interface_(planning_scene->getKinematicModel()),
+    group_joint_limit_map_(group_joint_limit_map)
 {
   const std::vector<srdf::Model::Group>& groups = planning_scene_->getSrdfModel()->getGroups();
 
@@ -58,6 +62,8 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
       group_visualization_map_[groups[i].name_]->addMenuEntry("Reset start and goal", boost::bind(&PlanningVisualization::resetStartGoal, this, _1));
     }
   }
+
+  trajectory_smoother_.reset(new trajectory_processing::IterativeParabolicSmoother());
  
   joint_trajectory_visualization_.reset(new JointTrajectoryVisualization(planning_scene,
                                                                          marker_publisher));
@@ -137,9 +143,15 @@ void PlanningVisualization::generatePlan(const std::string& name) {
   col.b = 1.0;
 
   ompl_interface_.solve(planning_scene_, req, res);
+  ROS_INFO_STREAM("Original last time " << res.trajectory.joint_trajectory.points.back().time_from_start);
+  trajectory_msgs::JointTrajectory traj = res.trajectory.joint_trajectory;
+  trajectory_smoother_->smooth(res.trajectory.joint_trajectory,
+                               traj,
+                               group_joint_limit_map_[name]);
+  ROS_INFO_STREAM("Smoothed last time " << traj.points.back().time_from_start);
   joint_trajectory_visualization_->setTrajectory(start_state,
                                                  name,
-                                                 res.trajectory.joint_trajectory,
+                                                 traj,
                                                  col);
 
   joint_trajectory_visualization_->playCurrentTrajectory();

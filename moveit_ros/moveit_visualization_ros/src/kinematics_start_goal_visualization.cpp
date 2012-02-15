@@ -55,8 +55,7 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
                                                 kinematics_solver_name,
                                                 makeRandomColor(.2,1.0),
                                                 bad_color,
-                                                marker_publisher,
-                                                show));
+                                                marker_publisher));
 
   goal_.reset(new KinematicsGroupVisualization(planning_scene,
                                                interactive_marker_server,
@@ -65,8 +64,7 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
                                                kinematics_solver_name,
                                                makeRandomColor(.2,1.0),
                                                bad_color,
-                                               marker_publisher,
-                                               show));
+                                               marker_publisher));
 
   start_->addButtonClickCallback(boost::bind(&KinematicsStartGoalVisualization::startOn, this));
   goal_->addButtonClickCallback(boost::bind(&KinematicsStartGoalVisualization::goalOn, this));
