@@ -57,8 +57,8 @@ struct compareInt3
       return ( loc_1.z() < loc_2.z() );
     else if( loc_1.y() != loc_2.y() )
       return ( loc_1.y() < loc_2.y() );
-    else if( loc_1.z() != loc_2.z() )
-      return ( loc_1.z() < loc_2.z() );
+    else if( loc_1.x() != loc_2.x() )
+      return ( loc_1.x() < loc_2.x() );
     return false;
   }
 };
@@ -160,6 +160,8 @@ private:
   int3 getLocationDifference(int directionNumber) const;	// TODO- separate out neighborhoods
   void initNeighborhoods();
   static int eucDistSq(int3 point1, int3 point2);
+  void print(const VoxelSet & set);
+  void print(const std::vector<Eigen::Vector3d>& points);
 };
 
 ////////////////////////// inline functions follow ////////////////////////////////////////
