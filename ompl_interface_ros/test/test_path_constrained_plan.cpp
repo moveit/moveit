@@ -110,9 +110,9 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   ocm.orientation.quaternion.y = 0.0;
   ocm.orientation.quaternion.z = 0.0;
   ocm.orientation.quaternion.w = 1.0;
-  ocm.absolute_roll_tolerance = 0.15;
-  ocm.absolute_pitch_tolerance = 0.15;
-  ocm.absolute_yaw_tolerance = M_PI;
+  ocm.absolute_x_axis_tolerance = 0.15;
+  ocm.absolute_y_axis_tolerance = 0.15;
+  ocm.absolute_z_axis_tolerance = M_PI;
   ocm.weight = 1.0; 
 
   ASSERT_TRUE(planning_service_client.call(mplan_req, mplan_res));

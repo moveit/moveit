@@ -34,34 +34,35 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_IK_PLUGIN_LOADER_
-#define MOVEIT_IK_PLUGIN_LOADER_
+#ifndef MOVEIT_KINEMATICS_PLUGIN_LOADER_
+#define MOVEIT_KINEMATICS_PLUGIN_LOADER_
 
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <planning_models/kinematic_model.h>
 #include <kinematics_base/kinematics_base.h>
 
-namespace ik_plugin_loader
+namespace kinematics_plugin_loader
 {
 
-/// function type that allocates an IK solver for a particular group
-typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> IKLoaderFn;
+/// function type that allocates an Kinematics solver for a particular group
+typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> KinematicsLoaderFn;
 
-class IKPluginLoader
+class KinematicsPluginLoader
 {
 public:
   
-  IKLoaderFn getLoaderFunction(void);
+  KinematicsLoaderFn getLoaderFunction(void);
   const std::vector<std::string>& getKnownGroups(void) const
   {
     return groups_;
   }
+  void status(void) const;
   
 private:
   
-  class IKLoaderImpl;
-  boost::shared_ptr<IKLoaderImpl> loader_;
+  class KinematicsLoaderImpl;
+  boost::shared_ptr<KinematicsLoaderImpl> loader_;
   std::vector<std::string> groups_;
 };
 }

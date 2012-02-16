@@ -137,9 +137,9 @@ void benchmarkPathConstrained(const std::string &config)
   ocm.orientation.quaternion.y = 0.0;
   ocm.orientation.quaternion.z = 0.0;
   ocm.orientation.quaternion.w = 1.0;
-  ocm.absolute_roll_tolerance = 0.2;
-  ocm.absolute_pitch_tolerance = 0.2;
-  ocm.absolute_yaw_tolerance = M_PI;
+  ocm.absolute_x_axis_tolerance = 0.2;
+  ocm.absolute_y_axis_tolerance = 0.2;
+  ocm.absolute_z_axis_tolerance = M_PI;
   ocm.weight = 1.0; 
   
   benchmark_service_client.call(mplan_req, mplan_res);
@@ -158,12 +158,12 @@ int main(int argc, char **argv)
 
   benchmarkSimplePlan("SBLkConfigDefault");
   benchmarkSimplePlan("LBKPIECEkConfigDefault");
-  benchmarkSimplePlan("RRTConnectkConfigDefault");
+  /*  benchmarkSimplePlan("RRTConnectkConfigDefault");
   benchmarkSimplePlan("BKPIECEkConfigDefault");
   benchmarkSimplePlan("KPIECEkConfigDefault");
   benchmarkSimplePlan("RRTkConfigDefault");
   benchmarkSimplePlan("ESTkConfigDefault");
-  
+  */
   
   return 0;
 }

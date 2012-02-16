@@ -39,6 +39,7 @@
 #include <tf/transform_listener.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <ompl/tools/debug/Profiler.h>
 
 static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
 static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
@@ -65,7 +66,7 @@ public:
       displaySolution(res);
     displayPlannerData("l_wrist_roll_link");
     std::stringstream ss;
-    ompl::Profiler::Status(ss);
+    ompl::tools::Profiler::Status(ss);
     ROS_INFO("%s", ss.str().c_str());
     return result;
   }
@@ -81,7 +82,7 @@ public:
   
   void displayPlannerData(const std::string &link_name)
   {    
-    const ompl_interface::PlanningConfigurationPtr &pc = ompl_interface_.getLastPlanningConfiguration();
+    const ompl_interface::ModelBasedPlanningContextPtr &pc = ompl_interface_.getLastPlanningContext();
     if (pc)
     {
       const ompl::base::PlannerData &pd = pc->getOMPLSimpleSetup().getPlannerData();
@@ -94,7 +95,7 @@ public:
       color.a = 1.0f;
       for (std::size_t i = 0 ; i < pd.states.size() ; ++i)
       {
-        pc->getKMStateSpace().copyToKinematicState(kstate, pd.states[i]);
+        pc->getOMPLStateSpace()->copyToKinematicState(kstate, pd.states[i]);
         kstate.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
         const Eigen::Vector3d &pos = kstate.getLinkState(link_name)->getGlobalLinkTransform().translation();
         
@@ -114,7 +115,7 @@ public:
         mk.lifetime = ros::Duration(10.0);
         arr.markers.push_back(mk);
       }
-      pub_markers_.publish(arr);
+      pub_markers_.publish(arr); 
     }
   }
   

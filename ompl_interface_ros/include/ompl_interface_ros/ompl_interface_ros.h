@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include <ompl_interface/ompl_interface.h>
+#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
 #include <ros/ros.h>
 
 namespace ompl_interface_ros
@@ -56,16 +57,15 @@ namespace ompl_interface_ros
       std::vector<std::string> getAdditionalConfigGroupNames(void);
 
       /** @brief Configure the IK solvers from the ROS param server*/
-      void configureIKSolvers(void);
+      void loadKinematicsSolvers(void);
 
       /** @brief Configure the planners*/
-      void configurePlanners(std::vector<ompl_interface::PlanningConfigurationSettings> &pconfig);
+      void loadPlannerConfigurations(void);
 
       ros::NodeHandle                         nh_; /// The ROS node handle
 
     private:
-        class IKLoader;
-        boost::shared_ptr<IKLoader>           ik_loader_;
+      kinematics_plugin_loader::KinematicsPluginLoader kinematics_loader_;
     };
 
 }

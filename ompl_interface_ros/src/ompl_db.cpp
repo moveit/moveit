@@ -94,16 +94,16 @@ int main(int argc, char **argv)
   ocm1.orientation.quaternion.y = 0.0;
   ocm1.orientation.quaternion.z = 0.0;
   ocm1.orientation.quaternion.w = 1.0;
-  ocm1.absolute_roll_tolerance = 0.15;
-  ocm1.absolute_pitch_tolerance = 0.15;
-  ocm1.absolute_yaw_tolerance = M_PI;
+  ocm1.absolute_x_axis_tolerance = 0.15;
+  ocm1.absolute_y_axis_tolerance = 0.15;
+  ocm1.absolute_z_axis_tolerance = M_PI;
   ocm1.weight = 1.0;
   
   moveit_msgs::Constraints constr1S = constr1;
-  constr1S.orientation_constraints[0].absolute_roll_tolerance = 1e-6;
-  constr1S.orientation_constraints[0].absolute_pitch_tolerance = 1e-6;
+  constr1S.orientation_constraints[0].absolute_x_axis_tolerance = 1e-6;
+  constr1S.orientation_constraints[0].absolute_y_axis_tolerance = 1e-6;
 
-  ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", 100000);
+  //  ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", 100000);
 
 
 
@@ -117,14 +117,14 @@ int main(int argc, char **argv)
   ocm2.orientation.quaternion.y = 0.0;
   ocm2.orientation.quaternion.z = 0.0;
   ocm2.orientation.quaternion.w = 1.0;
-  ocm2.absolute_roll_tolerance = 0.01;
-  ocm2.absolute_pitch_tolerance = 0.01;
-  ocm2.absolute_yaw_tolerance = M_PI;
+  ocm2.absolute_x_axis_tolerance = 0.01;
+  ocm2.absolute_y_axis_tolerance = 0.01;
+  ocm2.absolute_z_axis_tolerance = M_PI;
   ocm2.weight = 1.0;
 
   ompl_interface.addConstraintApproximation(constr2, "left_arm", 100000);
     */
-  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
+  //  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
 
   return 0;
 }
