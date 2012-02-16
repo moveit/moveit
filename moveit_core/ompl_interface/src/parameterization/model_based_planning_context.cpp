@@ -46,13 +46,11 @@
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const KinematicModelStateSpacePtr &state_space, 
                                                                      const ModelBasedPlanningContextSpecification &spec) :
-  spec_(spec), name_(name), ompl_state_space_(state_space), complete_initial_robot_state_(spec_.planning_scene_->getKinematicModel()),
+  spec_(spec), name_(name), ompl_state_space_(state_space), complete_initial_robot_state_(ompl_state_space_->getKinematicModel()),
   ompl_simple_setup_(ompl_state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
-  path_constraints_(spec_.planning_scene_->getKinematicModel(), spec_.planning_scene_->getTransforms()),
-  last_plan_time_(0.0), max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4),
-  max_velocity_(10), max_acceleration_(2.0)
+  last_plan_time_(0.0), max_goal_samples_(0), max_sampling_attempts_(0), max_planning_threads_(0),
+  max_velocity_(0), max_acceleration_(0.0), max_solution_segment_length_(0.0)
 {
-  max_solution_segment_length_ = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / 100.0;
   ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
 }
 
@@ -70,18 +68,22 @@ void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std
 
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
 {
-  return ompl_state_space_->allocDefaultStateSampler();
+  return ss->allocDefaultStateSampler();
 }
 
 void ompl_interface::ModelBasedPlanningContext::configure(void)
 {
+  if (!ompl_simple_setup_.getGoal())
+    return;
+  
   // convert the input state to the corresponding OMPL state
   ompl::base::ScopedState<> ompl_start_state(ompl_state_space_);
   ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
   ompl_simple_setup_.setStartState(ompl_start_state);
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
   
-  useConfig(spec_.config_);    
+  useConfig(spec_.config_);  
+  ompl_simple_setup_.setup();
 }
 
 void ompl_interface::ModelBasedPlanningContext::useConfig(const std::map<std::string, std::string> &config)
@@ -238,7 +240,8 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(voi
   for (std::size_t i = 0 ; i < goal_constraints_.size() ; ++i)
   {
     kc::ConstraintSamplerPtr cs = kc::constructConstraintsSampler(getJointModelGroup(), goal_constraints_[i]->getAllConstraints(), getKinematicModel(),
-                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getIKAllocator(), ompl_state_space_->getIKSubgroupAllocators());
+                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getIKAllocator(),
+                                                                  ompl_state_space_->getIKSubgroupAllocators());
     ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));
     goals.push_back(g);
   }
@@ -252,11 +255,16 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(voi
   return ob::GoalPtr();
 }
 
+void ompl_interface::ModelBasedPlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene)
+{
+  clear();
+  planning_scene_ = planning_scene;
+}
+
 void ompl_interface::ModelBasedPlanningContext::setStartState(const pm::KinematicState &complete_initial_robot_state)
 {
   clear();
   complete_initial_robot_state_ = complete_initial_robot_state;
-  configure();
 }
 
 void ompl_interface::ModelBasedPlanningContext::clear(void)
@@ -264,13 +272,13 @@ void ompl_interface::ModelBasedPlanningContext::clear(void)
   ompl_simple_setup_.clear();
   ompl_simple_setup_.clearStartStates();
   ompl_simple_setup_.setGoal(ob::GoalPtr());
-  path_constraints_.clear();
+  path_constraints_.reset();
   goal_constraints_.clear();
 }
 
-bool ompl_interface::ModelBasedPlanningContext::setupConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
-                                                                 const moveit_msgs::Constraints &path_constraints,
-                                                                 moveit_msgs::MoveItErrorCodes *error)
+bool ompl_interface::ModelBasedPlanningContext::setPlanningConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
+                                                                       const moveit_msgs::Constraints &path_constraints,
+                                                                       moveit_msgs::MoveItErrorCodes *error)
 {
   
   // ******************* check if the input is correct
@@ -292,16 +300,13 @@ bool ompl_interface::ModelBasedPlanningContext::setupConstraints(const std::vect
   }
   
   // ******************* set the path constraints to use
-  path_constraints_.clear();
-  path_constraints_.add(path_constraints);
+  path_constraints_.reset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
+  path_constraints_->add(path_constraints);
 
   ob::GoalPtr goal = constructGoal();
   ompl_simple_setup_.setGoal(goal);
   if (goal)
-  {
-    ompl_simple_setup_.setup();
     return true;
-  }
   else
     return false;
 }

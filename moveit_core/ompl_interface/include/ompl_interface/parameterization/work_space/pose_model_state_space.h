@@ -34,46 +34,37 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_FACTORY_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_
 
-#include "ompl_interface/parameterization/model_based_planning_context.h"
+#include "ompl_interface/parameterization/model_based_state_space.h"
+#include "ompl_interface/parameterization/joint_space/joint_model_state_space_helper.h"
 
 namespace ompl_interface
 {
 
-class ModelBasedPlanningContextFactory;
-typedef boost::shared_ptr<ModelBasedPlanningContextFactory> ModelBasedPlanningContextFactoryPtr;
-
-class ModelBasedPlanningContextFactory
+class PoseModelStateSpace : public KinematicModelStateSpace
 {
 public:
   
-  ModelBasedPlanningContextFactory(void)
+  PoseModelStateSpace(const KinematicModelStateSpaceSpecification &spec, unsigned int count) : 
+    KinematicModelStateSpace(spec), count_(count)
   {
+    configure();
   }
   
-  virtual ~ModelBasedPlanningContextFactory(void)
-  {
-  }
+  virtual void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const;
+  virtual void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const;
+  virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const;
   
-  ModelBasedPlanningContextPtr getNewPlanningContext(const std::string &name,
-                                                     const KinematicModelStateSpaceSpecification &space_spec,
-                                                     const ModelBasedPlanningContextSpecification &context_spec) const;
-  const std::string& getType(void) const
-  {
-    return type_;
-  }
+  virtual void setup(void);
   
-  virtual bool canRepresentProblem(const moveit_msgs::MotionPlanRequest &req) const = 0;
-  virtual unsigned int getPriority(void) const = 0;
-
-protected:
+private:
   
-  virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
-                                                            const KinematicModelStateSpaceSpecification &space_spec,
-                                                            const ModelBasedPlanningContextSpecification &context_spec) const = 0;
-  std::string type_;
+  void configure(void);
+  
+  unsigned int count_;
+  boost::scoped_ptr<JointModelStateSpaceHelper> redundancy_;
 };
 
 }

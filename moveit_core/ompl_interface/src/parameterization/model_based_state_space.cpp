@@ -150,7 +150,7 @@ void ompl_interface::KinematicModelStateSpace::useIKAllocators(const std::map<st
         ss << subs[i]->getName() << " ";
         ik_subgroup_allocators_[subs[i]] = ik_allocators.find(subs[i]->getName())->second;
       }
-      ROS_INFO("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
+      ROS_DEBUG("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
     }
   }
   else

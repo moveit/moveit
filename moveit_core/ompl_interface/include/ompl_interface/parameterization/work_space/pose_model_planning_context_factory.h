@@ -34,48 +34,43 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_FACTORY_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
 
-#include "ompl_interface/parameterization/model_based_planning_context.h"
+#include "ompl_interface/parameterization/model_based_planning_context_factory.h"
+#include "ompl_interface/parameterization/joint_space/joint_model_planning_context.h"
 
 namespace ompl_interface
 {
-
-class ModelBasedPlanningContextFactory;
-typedef boost::shared_ptr<ModelBasedPlanningContextFactory> ModelBasedPlanningContextFactoryPtr;
-
-class ModelBasedPlanningContextFactory
+class JointModelPlanningContextFactory : public ModelBasedPlanningContextFactory
 {
 public:
-  
-  ModelBasedPlanningContextFactory(void)
+
+  JointModelPlanningContextFactory(void) : ModelBasedPlanningContextFactory()
   {
+    type_ = "PoseModel";
+  }  
+  
+  virtual bool canRepresentProblem(const moveit_msgs::MotionPlanRequest &req) const
+  {
+    return true;
   }
   
-  virtual ~ModelBasedPlanningContextFactory(void)
+  virtual unsigned int getPriority(void) const
   {
+    return 1;
   }
-  
-  ModelBasedPlanningContextPtr getNewPlanningContext(const std::string &name,
-                                                     const KinematicModelStateSpaceSpecification &space_spec,
-                                                     const ModelBasedPlanningContextSpecification &context_spec) const;
-  const std::string& getType(void) const
-  {
-    return type_;
-  }
-  
-  virtual bool canRepresentProblem(const moveit_msgs::MotionPlanRequest &req) const = 0;
-  virtual unsigned int getPriority(void) const = 0;
 
 protected:
   
   virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
                                                             const KinematicModelStateSpaceSpecification &space_spec,
-                                                            const ModelBasedPlanningContextSpecification &context_spec) const = 0;
-  std::string type_;
+                                                            const ModelBasedPlanningContextSpecification &context_spec) const
+  {
+    return ModelBasedPlanningContextPtr(new JointModelPlanningContext(name, KinematicModelStateSpacePtr(new JointModelStateSpace(space_spec)), context_spec));
+  }
+  
 };
-
 }
 
 #endif

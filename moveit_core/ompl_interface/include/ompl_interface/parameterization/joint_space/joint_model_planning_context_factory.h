@@ -45,7 +45,12 @@ namespace ompl_interface
 class JointModelPlanningContextFactory : public ModelBasedPlanningContextFactory
 {
 public:
-    
+
+  JointModelPlanningContextFactory(void) : ModelBasedPlanningContextFactory()
+  {
+    type_ = "JointModel";
+  }  
+  
   virtual bool canRepresentProblem(const moveit_msgs::MotionPlanRequest &req) const
   {
     return true;

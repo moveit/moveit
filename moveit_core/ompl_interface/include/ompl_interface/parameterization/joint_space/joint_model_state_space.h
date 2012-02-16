@@ -38,6 +38,7 @@
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
+#include "ompl_interface/parameterization/joint_space/joint_model_state_space_helper.h"
 
 namespace ompl_interface
 {
@@ -46,25 +47,26 @@ class JointModelStateSpace : public KinematicModelStateSpace
 {
 public:
   
-  JointModelStateSpace(const KinematicModelStateSpaceSpecification &spec) : KinematicModelStateSpace(spec)
+  JointModelStateSpace(const KinematicModelStateSpaceSpecification &spec);
+  
+  virtual void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const
   {
-    configure();
+    helper_.copyToKinematicState(js, state);
   }
   
-  virtual void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const;
-  virtual void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const;
-  virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const;
+  virtual void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const
+  { 
+    helper_.copyToOMPLState(state, js);
+  }
+  
+  virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const
+  {    
+    helper_.copyToOMPLState(state, values);
+  }
   
 private:
-  
-  void configure(void);
-  void constructSpace(const std::vector<const pm::KinematicModel::JointModel*> &joints);
-  
-  /// The order in which the joints were used to construct the OMPL state space
-  std::vector<std::size_t> joint_mapping_;
-  
-  /// The order in which the joint variables were used to construct the OMPL state space
-  std::vector<std::size_t> variable_mapping_;
+
+  JointModelStateSpaceHelper helper_;
   
 };
 

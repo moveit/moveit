@@ -53,7 +53,8 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
   
   double distance = 0.0;
-  if (!planning_context_->getPathConstraints().decide(*kstate, distance))
+  const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
+  if (kset && !kset->decide(*kstate, distance))
     return false;
   
   collision_detection::CollisionResult res;
@@ -69,8 +70,9 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
   
-  double distance = 0.0;
-  if (!planning_context_->getPathConstraints().decide(*kstate, distance))
+  double distance = 0.0;  
+  const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
+  if (kset && !kset->decide(*kstate, distance))
   {
     dist = distance;
     return false;
