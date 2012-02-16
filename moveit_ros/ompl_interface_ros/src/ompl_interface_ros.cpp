@@ -35,97 +35,19 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include "ompl_interface_ros/ompl_interface_ros.h"
-#include <pluginlib/class_loader.h>
 #include <boost/thread/mutex.hpp>
 #include <sstream>
-
-namespace ompl_interface_ros
-{
-  class OMPLInterfaceROS::IKLoader
-  {
-  public:
-    IKLoader(const std::map<std::string, std::vector<std::string> > &possible_ik_solvers) : possible_ik_solvers_(possible_ik_solvers)
-    {
-      try
-      {
-	kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
-      }
-      catch(pluginlib::PluginlibException& e)
-      {
-	ROS_ERROR("Unable to construct IK loader. Error: %s", e.what());
-      }
-    }
-    
-    boost::shared_ptr<kinematics::KinematicsBase> allocIKSolver(const planning_models::KinematicModel::JointModelGroup *jmg)
-    {
-      boost::shared_ptr<kinematics::KinematicsBase> result;
-      ROS_DEBUG("Received request to allocate IK solver for group '%s'", jmg->getName().c_str());
-      if (kinematics_loader_ && jmg)
-      {
-	std::map<std::string, std::vector<std::string> >::const_iterator it = possible_ik_solvers_.find(jmg->getName());
-	if (it != possible_ik_solvers_.end())
-	{
-	  // just to be sure, do not call the same pluginlib instance allocation function in parallel
-	  boost::mutex::scoped_lock slock(lock_);
-	  for (std::size_t i = 0 ; !result && i < it->second.size() ; ++i)
-	  {
-	    try
-	    {
-	      result.reset(kinematics_loader_->createClassInstance(it->second[i]));
-	      if (result)
-	      {
-		/// \todo What is the search discretization? any reasonable way to determine this?
-		const std::vector<const planning_models::KinematicModel::JointModel*> &jnts = jmg->getJointModels();
-		const std::string &base = jnts.front()->getParentLinkModel() ? jnts.front()->getParentLinkModel()->getName() :
-		  jmg->getParentModel()->getModelFrame();
-		const std::string &tip = jnts.back()->getChildLinkModel()->getName();
-		if (!result->initialize(jmg->getName(), base, tip, 0.1))
-		{
-		  ROS_ERROR("IK solver of type '%s' could not initialize for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
-		  result.reset();
-		}
-		else
-		  ROS_DEBUG("Successfully allocated and initialized an IK solver of type '%s' for group '%s' at address %p",
-			    it->second[i].c_str(), jmg->getName().c_str(), result.get());
-	      }
-	    }
-	    catch (pluginlib::PluginlibException& e)
-	    {
-	      ROS_ERROR("The IK plugin (%s) failed to load. Error: %s", it->first.c_str(), e.what());
-	    }
-	  }
-	}
-	else
-	  ROS_DEBUG("No IK solver available for this group");
-      }
-      return result;
-    }
-    
-  private:
-    
-    const std::map<std::string, std::vector<std::string> >                 possible_ik_solvers_;
-    boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
-    boost::mutex                                                           lock_;
-  };
-}
 
 ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel) : ompl_interface::OMPLInterface(kmodel), nh_("~")
 {
   ROS_INFO("Initializing OMPL interface using ROS parameters");
+  loadPlannerConfigurations();
+  loadKinematicsSolvers();
   
-  std::vector<ompl_interface::PlanningConfigurationSettings> pconfig;
-  configurePlanners(pconfig);
-  
-  // this call will configure planning for all groups known to the kinematic model
-  // and it will use additional configuration options, if available
-  if (configure(pconfig)) 
-  {
-    /*    loadConstraintApproximations("/u/isucan/c/");
-    std::stringstream ss;
-    printConstraintApproximations(ss);
-    ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str()); */
-    configureIKSolvers();
-  }
+  /*    loadConstraintApproximations("/u/isucan/c/");
+        std::stringstream ss;
+        printConstraintApproximations(ss);
+        ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str()); */
 }
 
 std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConfigGroupNames(void)
@@ -165,41 +87,22 @@ std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConf
   return group_names;
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::configureIKSolvers(void)
+void ompl_interface_ros::OMPLInterfaceROS::loadKinematicsSolvers(void)
 {
-  ROS_INFO("Configuring IK solvers");
-  
-  std::vector<std::string> group_names = getAdditionalConfigGroupNames();
-  std::map<std::string, std::vector<std::string> > possible_ik_solvers;
-  
-  // read the list of plugin names for possible IK solvers
-  for (std::size_t i = 0 ; i < group_names.size() ; ++i)
-  {
-    std::string ksolver;
-    if (nh_.getParam(group_names[i] + "/kinematics_solver", ksolver))
-    {
-      std::stringstream ss(ksolver);
-      while (ss.good() && !ss.eof())
-      {
-	std::string solver; ss >> solver >> std::ws;
-	possible_ik_solvers[group_names[i]].push_back(solver);
-	ROS_INFO("Using IK solver '%s' for group '%s'.", solver.c_str(), group_names[i].c_str());
-      }
-    }
-  }
+  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_.getLoaderFunction();
+  const std::vector<std::string> &groups = kinematics_loader_.getKnownGroups();
   
   std::map<std::string, kinematic_constraints::IKAllocator> imap;
-  ik_loader_.reset(new OMPLInterfaceROS::IKLoader(possible_ik_solvers));
-  kinematic_constraints::IKAllocator ik_allocator = boost::bind(&OMPLInterfaceROS::IKLoader::allocIKSolver, ik_loader_.get(), _1);
-  for (std::map<std::string, std::vector<std::string> >::iterator it = possible_ik_solvers.begin() ; it != possible_ik_solvers.end() ; ++it)
-    imap[it->first] = ik_allocator;
-  OMPLInterface::configureIKSolvers(imap);
+  for (std::size_t i = 0 ; i < groups.size() ; ++i)
+    imap[groups[i]] =  kinematics_allocator;
+  
+  specifyIKSolvers(imap);
 }
 
-void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_interface::PlanningConfigurationSettings> &pconfig)
+void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations(void)
 {
   std::vector<std::string> group_names = getAdditionalConfigGroupNames();
-  
+  std::vector<ompl_interface::PlanningConfigurationSettings> pconfig;
   // read the planning configuration for each group
   pconfig.clear();
   for (std::size_t i = 0 ; i < group_names.size() ; ++i)
@@ -287,16 +190,10 @@ void ompl_interface_ros::OMPLInterfaceROS::configurePlanners(std::vector<ompl_in
     for (std::map<std::string, std::string>::const_iterator it = pconfig[i].config.begin() ; it != pconfig[i].config.end() ; ++it)
       ROS_DEBUG_STREAM(it->first << " = " << it->second);
   }
+  setPlanningConfigurations(pconfig);
 }
 
 void ompl_interface_ros::OMPLInterfaceROS::printStatus(void)
 {
-  if (isConfigured())
-  {
-    ROS_INFO("OMPL ROS interface is configured.");
-  }
-  else
-  {
-    ROS_ERROR("OMPL ROS interface is not configured.");
-  }
+  ROS_INFO("OMPL ROS interface is running.");
 }

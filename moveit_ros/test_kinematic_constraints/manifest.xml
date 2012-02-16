@@ -11,7 +11,7 @@
   <depend package="roscpp"/>
   <depend package="kinematic_constraints"/>
   <depend package="planning_scene_monitor"/>
-  <depend package="ik_plugin_loader"/>
+  <depend package="kinematics_plugin_loader"/>
 
 </package>
 

@@ -43,24 +43,24 @@
 static const std::string PLANNER_SERVICE_NAME="/ompl_planning/plan_kinematic_path";
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
-TEST(OmplInterface, StateConversion)
+TEST(OmplInterface, JointModelStateConversion)
 {
-    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
-    planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
-    EXPECT_TRUE(scene->isConfigured());
-    ompl_interface_ros::OMPLInterfaceROS oi(scene->getKinematicModel());
-    const ompl_interface::KMStateSpace &ks = oi.getPlanningConfiguration("right_arm")->getKMStateSpace();
-    planning_models::KinematicState kstate(scene->getKinematicModel());
-    ompl::base::ScopedState<> ostate1(oi.getPlanningConfiguration("right_arm")->getOMPLSimpleSetup().getStateSpace());
-    ompl::base::ScopedState<> ostate2(ostate1.getSpace());
-    for (int i = 0 ; i < 100 ; ++i)
-    {
-        ostate1.random();
-        kstate.setToRandomValues();
-        ks.copyToKinematicState(kstate, ostate1.get());
-        ks.copyToOMPLState(ostate2.get(), kstate);
-        EXPECT_EQ(ostate1, ostate2);
-    }
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
+  planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
+  EXPECT_TRUE(scene->isConfigured());
+  ompl_interface_ros::OMPLInterfaceROS oi(scene->getKinematicModel());
+  ompl_interface::ModelBasedPlanningContextPtr pc = oi.getPlanningContext("right_arm", "JointModel");
+  planning_models::KinematicState kstate(scene->getKinematicModel());
+  ompl::base::ScopedState<> ostate1(pc->getOMPLStateSpace());
+  ompl::base::ScopedState<> ostate2(ostate1.getSpace());
+  for (int i = 0 ; i < 100 ; ++i)
+  {
+    ostate1.random();
+    kstate.setToRandomValues();
+    pc->getOMPLStateSpace()->copyToKinematicState(kstate, ostate1.get());
+    pc->getOMPLStateSpace()->copyToOMPLState(ostate2.get(), kstate);
+    EXPECT_EQ(ostate1, ostate2);
+  }
 }
 
 TEST(OmplPlanning, JointGoal)
@@ -178,9 +178,9 @@ TEST(OmplPlanning, OrientationGoal)
     ocm.orientation.quaternion.y = 0.0;
     ocm.orientation.quaternion.z = 0.0;
     ocm.orientation.quaternion.w = 1.0;
-    ocm.absolute_roll_tolerance = 0.2;
-    ocm.absolute_pitch_tolerance = 0.1;
-    ocm.absolute_yaw_tolerance = 0.4;
+    ocm.absolute_x_axis_tolerance = 0.2;
+    ocm.absolute_y_axis_tolerance = 0.1;
+    ocm.absolute_z_axis_tolerance = 0.4;
     ocm.weight = 1.0;
 
     mplan_req.motion_plan_request.goal_constraints.resize(1);
@@ -219,9 +219,9 @@ TEST(OmplPlanning, PoseGoal)
     ocm.orientation.quaternion.y = 0.0;
     ocm.orientation.quaternion.z = 0.0;
     ocm.orientation.quaternion.w = 1.0;
-    ocm.absolute_roll_tolerance = 0.2;
-    ocm.absolute_pitch_tolerance = 0.1;
-    ocm.absolute_yaw_tolerance = 0.4;
+    ocm.absolute_x_axis_tolerance = 0.2;
+    ocm.absolute_y_axis_tolerance = 0.1;
+    ocm.absolute_z_axis_tolerance = 0.4;
     ocm.weight = 1.0;  
 
     mplan_req.motion_plan_request.goal_constraints.resize(1);

@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "ik_plugin_loader/ik_plugin_loader.h"
+#include "kinematics_plugin_loader/kinematics_plugin_loader.h"
 #include <pluginlib/class_loader.h>
 #include <boost/thread/mutex.hpp>
 #include <sstream>
@@ -42,14 +42,14 @@
 #include <map>
 #include <ros/ros.h>
 
-namespace ik_plugin_loader
+namespace kinematics_plugin_loader
 {
-class IKPluginLoader::IKLoaderImpl
+class KinematicsPluginLoader::KinematicsLoaderImpl
 {
 public:
-  IKLoaderImpl(const std::map<std::string, std::vector<std::string> > &possible_ik_solvers, 
-               const std::map<std::string, std::vector<double> > &search_res) :
-    possible_ik_solvers_(possible_ik_solvers), search_res_(search_res)
+  KinematicsLoaderImpl(const std::map<std::string, std::vector<std::string> > &possible_kinematics_solvers, 
+                       const std::map<std::string, std::vector<double> > &search_res) :
+    possible_kinematics_solvers_(possible_kinematics_solvers), search_res_(search_res)
   {
     try
     {
@@ -57,21 +57,29 @@ public:
     }
     catch(pluginlib::PluginlibException& e)
     {
-      ROS_ERROR("Unable to construct IK loader. Error: %s", e.what());
+      ROS_ERROR("Unable to construct kinematics loader. Error: %s", e.what());
     }
   }
   
-  boost::shared_ptr<kinematics::KinematicsBase> allocIKSolver(const planning_models::KinematicModel::JointModelGroup *jmg)
+  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolver(const planning_models::KinematicModel::JointModelGroup *jmg)
   {
     boost::shared_ptr<kinematics::KinematicsBase> result;
-    ROS_DEBUG("Received request to allocate IK solver for group '%s'", jmg->getName().c_str());
+    if (!jmg)
+    {
+      ROS_ERROR("Specified group is NULL. Cannot allocate kinematics solver.");
+      return result;
+    }
+    
+    ROS_DEBUG("Received request to allocate kinematics solver for group '%s'", jmg->getName().c_str());
+    
     if (kinematics_loader_ && jmg)
     {
-      std::map<std::string, std::vector<std::string> >::const_iterator it = possible_ik_solvers_.find(jmg->getName());
-      if (it != possible_ik_solvers_.end())
+      std::map<std::string, std::vector<std::string> >::const_iterator it = possible_kinematics_solvers_.find(jmg->getName());
+      if (it != possible_kinematics_solvers_.end())
       {
         // just to be sure, do not call the same pluginlib instance allocation function in parallel
         boost::mutex::scoped_lock slock(lock_);
+        
         for (std::size_t i = 0 ; !result && i < it->second.size() ; ++i)
         {
           try
@@ -87,41 +95,59 @@ public:
               double search_res = search_res_.find(jmg->getName())->second[i]; // we know this exists, by construction
               if (!result->initialize(jmg->getName(), base, tip, search_res))
               {
-                ROS_ERROR("IK solver of type '%s' could not initialize for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
+                ROS_ERROR("Kinematics solver of type '%s' could not be initialized for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
                 result.reset();
               }
               else
-                ROS_DEBUG("Successfully allocated and initialized an IK solver of type '%s' with search resolution %lf for group '%s' at address %p",
+                ROS_DEBUG("Successfully allocated and initialized a kinematics solver of type '%s' with search resolution %lf for group '%s' at address %p",
                           it->second[i].c_str(), search_res, jmg->getName().c_str(), result.get());
             }
           }
           catch (pluginlib::PluginlibException& e)
           {
-            ROS_ERROR("The IK plugin (%s) failed to load. Error: %s", it->first.c_str(), e.what());
+            ROS_ERROR("The kinematics plugin (%s) failed to load. Error: %s", it->first.c_str(), e.what());
           }
         }
       }
       else
-        ROS_DEBUG("No IK solver available for this group");
+        ROS_DEBUG("No kinematics solver available for this group");
     }
+    
+    if (!result)
+      ROS_DEBUG("No usable kinematics solver was found for this group");
     return result;
+  }
+  
+  void status(void) const
+  {
+    for (std::map<std::string, std::vector<std::string> >::const_iterator it = possible_kinematics_solvers_.begin() ; it != possible_kinematics_solvers_.end() ; ++it)
+      for (std::size_t i = 0 ; i < it->second.size() ; ++i)
+        ROS_INFO("Solver for group '%s': '%s' (search resolution = %lf)", it->first.c_str(), it->second[i].c_str(), search_res_.at(it->first)[i]);
   }
   
 private:
   
-  const std::map<std::string, std::vector<std::string> >                 possible_ik_solvers_;
-  const std::map<std::string, std::vector<double> >                      search_res_;
+  std::map<std::string, std::vector<std::string> >                       possible_kinematics_solvers_;
+  std::map<std::string, std::vector<double> >                            search_res_;
   boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
   boost::mutex                                                           lock_;
 };
 
 }
 
-ik_plugin_loader::IKLoaderFn ik_plugin_loader::IKPluginLoader::getLoaderFunction(void)
+void kinematics_plugin_loader::KinematicsPluginLoader::status(void) const
+{
+  if (loader_)
+    loader_->status();
+  else
+    ROS_INFO("Loader function was never required");
+}
+
+kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(void)
 {
   if (!loader_)
   {
-    ROS_INFO("Configuring IK solvers");
+    ROS_INFO("Configuring kinematics solvers");
     groups_.clear();
     
     ros::NodeHandle nh("~");
@@ -137,10 +163,10 @@ ik_plugin_loader::IKLoaderFn ik_plugin_loader::IKPluginLoader::getLoaderFunction
             std::string gnm = static_cast<std::string>(group_list[i]);
             group_names.push_back(gnm);
           }
-    std::map<std::string, std::vector<std::string> > possible_ik_solvers;
+    std::map<std::string, std::vector<std::string> > possible_kinematics_solvers;
     std::map<std::string, std::vector<double> > search_res;
     
-    // read the list of plugin names for possible IK solvers
+    // read the list of plugin names for possible kinematics solvers
     for (std::size_t i = 0 ; i < group_names.size() ; ++i)
     {
       std::string ksolver;
@@ -156,14 +182,16 @@ ik_plugin_loader::IKLoaderFn ik_plugin_loader::IKPluginLoader::getLoaderFunction
             groups_.push_back(group_names[i]);
           }
           std::string solver; ss >> solver >> std::ws;          
-          possible_ik_solvers[group_names[i]].push_back(solver);
-          ROS_INFO("Using IK solver '%s' for group '%s'.", solver.c_str(), group_names[i].c_str());
+          possible_kinematics_solvers[group_names[i]].push_back(solver);
+          ROS_INFO("Using kinematics solver '%s' for group '%s'.", solver.c_str(), group_names[i].c_str());
         }
       }
       
       std::string ksolver_res;
       if (nh.getParam(group_names[i] + "/kinematics_solver_search_resolution", ksolver_res))
       {
+        ROS_ERROR_STREAM(ksolver_res);
+        
         std::stringstream ss(ksolver_res);
         while (ss.good() && !ss.eof())
         {
@@ -171,13 +199,20 @@ ik_plugin_loader::IKLoaderFn ik_plugin_loader::IKPluginLoader::getLoaderFunction
           search_res[group_names[i]].push_back(res);
         }
       }
-
+      else
+      { // handle the case this param is just one value and parsed as a double 
+        double res;
+        if (nh.getParam(group_names[i] + "/kinematics_solver_search_resolution", res))
+          search_res[group_names[i]].push_back(res);
+      }
+      
       // make sure there is a default resolution at least specified for every solver (in case it was not specified on the param server)
-      while (search_res[group_names[i]].size() < possible_ik_solvers[group_names[i]].size())
+      while (search_res[group_names[i]].size() < possible_kinematics_solvers[group_names[i]].size())
         search_res[group_names[i]].push_back(0.1);
     }
-    loader_.reset(new IKLoaderImpl(possible_ik_solvers, search_res));
+
+    loader_.reset(new KinematicsLoaderImpl(possible_kinematics_solvers, search_res));
   }
-  
-  return boost::bind(&IKPluginLoader::IKLoaderImpl::allocIKSolver, loader_.get(), _1);
+
+  return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolver, loader_.get(), _1);
 }

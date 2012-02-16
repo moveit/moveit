@@ -37,7 +37,7 @@
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <kinematic_constraints/constraint_samplers.h>
-#include <ik_plugin_loader/ik_plugin_loader.h>
+#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
 #include <geometric_shapes/shape_operations.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_models/conversions.h>
@@ -131,15 +131,15 @@ TEST_F(ConstraintSamplerTestBase, JointConstraintsSampler)
     EXPECT_TRUE(jc3.decide(ks,distance));
   }
 
-  ik_plugin_loader::IKPluginLoader ik_loader;
-  ik_plugin_loader::IKLoaderFn ik_allocator = ik_loader.getLoaderFunction();
+  kinematics_plugin_loader::KinematicsPluginLoader kinematics_loader;
+  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader.getLoaderFunction();
   
   // test the automatic construction of constraint sampler
   moveit_msgs::Constraints c;
   
   // no constraints should give no sampler
   kinematic_constraints::ConstraintSamplerPtr s0 = kinematic_constraints::constructConstraintsSampler
-    (kmodel_->getJointModelGroup("arms"), c, kmodel_, tf, ik_allocator);
+    (kmodel_->getJointModelGroup("arms"), c, kmodel_, tf, kinematics_allocator);
   EXPECT_TRUE(s0.get() == NULL);
 
   // add the constraints
@@ -149,7 +149,7 @@ TEST_F(ConstraintSamplerTestBase, JointConstraintsSampler)
   c.joint_constraints.push_back(jcm4);
   
   kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::constructConstraintsSampler
-    (kmodel_->getJointModelGroup("arms"), c, kmodel_, tf, ik_allocator);
+    (kmodel_->getJointModelGroup("arms"), c, kmodel_, tf, kinematics_allocator);
   EXPECT_TRUE(s.get() != NULL);
   
   // test the generated sampler
@@ -193,10 +193,10 @@ TEST_F(ConstraintSamplerTestBase, OrientationConstraintsSampler)
   ocm.orientation.header.frame_id = kmodel_->getModelFrame();
   EXPECT_TRUE(oc.configure(ocm));
   
-  ik_plugin_loader::IKPluginLoader ik_loader;
-  ik_plugin_loader::IKLoaderFn ik_allocator = ik_loader.getLoaderFunction();
+  kinematics_plugin_loader::KinematicsPluginLoader kinematics_loader;
+  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader.getLoaderFunction();
   
-  kinematic_constraints::IKConstraintSampler iks(kmodel_->getJointModelGroup("right_arm"), ik_allocator,
+  kinematic_constraints::IKConstraintSampler iks(kmodel_->getJointModelGroup("right_arm"), kinematics_allocator,
                                                  kinematic_constraints::IKSamplingPose(oc));
   for (int t = 0 ; t < 100 ; ++t)
   {
@@ -253,10 +253,10 @@ TEST_F(ConstraintSamplerTestBase, PoseConstraintsSampler)
   
   EXPECT_TRUE(oc.configure(ocm));
 
-  ik_plugin_loader::IKPluginLoader ik_loader;
-  ik_plugin_loader::IKLoaderFn ik_allocator = ik_loader.getLoaderFunction();
+  kinematics_plugin_loader::KinematicsPluginLoader kinematics_loader;
+  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader.getLoaderFunction();
 
-  kinematic_constraints::IKConstraintSampler iks1(kmodel_->getJointModelGroup("left_arm"), ik_allocator,
+  kinematic_constraints::IKConstraintSampler iks1(kmodel_->getJointModelGroup("left_arm"), kinematics_allocator,
                                                   kinematic_constraints::IKSamplingPose(pc, oc));
   for (int t = 0 ; t < 100 ; ++t)
   {
@@ -268,7 +268,7 @@ TEST_F(ConstraintSamplerTestBase, PoseConstraintsSampler)
     EXPECT_TRUE(oc.decide(ks,distance));
   }
   
-  kinematic_constraints::IKConstraintSampler iks2(kmodel_->getJointModelGroup("left_arm"), ik_allocator,
+  kinematic_constraints::IKConstraintSampler iks2(kmodel_->getJointModelGroup("left_arm"), kinematics_allocator,
                                                   kinematic_constraints::IKSamplingPose(pc));
   for (int t = 0 ; t < 100 ; ++t)
   {
@@ -279,7 +279,7 @@ TEST_F(ConstraintSamplerTestBase, PoseConstraintsSampler)
     EXPECT_TRUE(pc.decide(ks,distance));
   }
   
-  kinematic_constraints::IKConstraintSampler iks3(kmodel_->getJointModelGroup("left_arm"), ik_allocator,
+  kinematic_constraints::IKConstraintSampler iks3(kmodel_->getJointModelGroup("left_arm"), kinematics_allocator,
                                                   kinematic_constraints::IKSamplingPose(oc));
   for (int t = 0 ; t < 100 ; ++t)
   {
@@ -297,7 +297,7 @@ TEST_F(ConstraintSamplerTestBase, PoseConstraintsSampler)
   c.orientation_constraints.push_back(ocm);
   
   kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::constructConstraintsSampler
-    (kmodel_->getJointModelGroup("left_arm"), c, kmodel_, tf, ik_allocator);
+    (kmodel_->getJointModelGroup("left_arm"), c, kmodel_, tf, kinematics_allocator);
   EXPECT_TRUE(s.get() != NULL);
   for (int t = 0 ; t < 100 ; ++t)
   {
@@ -358,11 +358,11 @@ TEST_F(ConstraintSamplerTestBase, GenericConstraintsSampler)
   ocm.weight = 1.0;
   c.orientation_constraints.push_back(ocm);
   
-  ik_plugin_loader::IKPluginLoader ik_loader;
-  ik_plugin_loader::IKLoaderFn ik_allocator = ik_loader.getLoaderFunction();
+  kinematics_plugin_loader::KinematicsPluginLoader kinematics_loader;
+  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader.getLoaderFunction();
   kinematic_constraints::IKSubgroupAllocator sa;
-  sa[kmodel_->getJointModelGroup("left_arm")] = ik_allocator;
-  sa[kmodel_->getJointModelGroup("right_arm")] = ik_allocator;
+  sa[kmodel_->getJointModelGroup("left_arm")] = kinematics_allocator;
+  sa[kmodel_->getJointModelGroup("right_arm")] = kinematics_allocator;
   
   planning_models::TransformsPtr tf = psm_->getPlanningScene()->getTransforms();
   kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::constructConstraintsSampler
@@ -457,11 +457,11 @@ TEST_F(ConstraintSamplerTestBase, DisplayGenericConstraintsSamples)
   ocm.weight = 1.0;
   c.orientation_constraints.push_back(ocm);
 
-  ik_plugin_loader::IKPluginLoader ik_loader;
-  ik_plugin_loader::IKLoaderFn ik_allocator = ik_loader.getLoaderFunction();
+  kinematics_plugin_loader::KinematicsPluginLoader kinematics_loader;
+  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader.getLoaderFunction();
   kinematic_constraints::IKSubgroupAllocator sa;
-  sa[kmodel_->getJointModelGroup("left_arm")] = ik_allocator;
-  sa[kmodel_->getJointModelGroup("right_arm")] = ik_allocator;
+  sa[kmodel_->getJointModelGroup("left_arm")] = kinematics_allocator;
+  sa[kmodel_->getJointModelGroup("right_arm")] = kinematics_allocator;
 
   ros::NodeHandle nh;
   ros::Publisher pub_state = nh.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 20);
