@@ -231,7 +231,6 @@ void PropagationDistanceField::removePointsFromField(const std::vector<Eigen::Ve
 
 void PropagationDistanceField::addNewObstacleVoxels(const VoxelSet& locations)
 {
-  int x, y, z;
   int initial_update_direction = getDirectionNumber(0,0,0);
   bucket_queue_[0].reserve(locations.size());
 
@@ -239,18 +238,14 @@ void PropagationDistanceField::addNewObstacleVoxels(const VoxelSet& locations)
   for( it=locations.begin(); it!=locations.end(); ++it)
   {
     int3 loc = *it;
-    x = loc.x();
-    y = loc.y();
-    z = loc.z();
-    bool valid = isCellValid( x, y, z);
+    bool valid = isCellValid( loc.x(),loc.y(),loc.z() );
     if (!valid)
       continue;
-    PropDistanceFieldVoxel& voxel = getCell(x,y,z);
+    PropDistanceFieldVoxel& voxel = getCell( loc.x(),loc.y(),loc.z() );
     voxel.distance_square_ = 0;
     voxel.closest_point_ = loc;
-    voxel.location_ = loc;
     voxel.update_direction_ = initial_update_direction;
-    bucket_queue_[0].push_back(&voxel);
+    bucket_queue_[0].push_back(loc);
   }
 
   propogate();
@@ -275,7 +270,6 @@ void PropagationDistanceField::removeObstacleVoxels(const VoxelSet& locations )
     PropDistanceFieldVoxel& voxel = getCell(loc.x(), loc.y(), loc.z());
     voxel.distance_square_ = max_distance_sq_;
     voxel.closest_point_ = loc;
-    voxel.location_ = loc;
     voxel.update_direction_ = initial_update_direction;
     stack.push_back(loc);
     object_voxel_locations_.erase(loc);
@@ -308,14 +302,13 @@ void PropagationDistanceField::removeObstacleVoxels(const VoxelSet& locations )
           {
             nvoxel.distance_square_ = max_distance_sq_;
             nvoxel.closest_point_ = nloc;
-            nvoxel.location_ = nloc;
             nvoxel.update_direction_ = initial_update_direction;
             stack.push_back(nloc);
           }
         }
         else
         {	// add to queue so we can propogate the values
-          bucket_queue_[0].push_back(&nvoxel);
+          bucket_queue_[0].push_back(nloc);
         }
       }
     }
@@ -326,20 +319,15 @@ void PropagationDistanceField::removeObstacleVoxels(const VoxelSet& locations )
 
 void PropagationDistanceField::propogate()
 {
-  int x, y, z, nx, ny, nz;
-  int3 loc;
 
   // now process the queue:
   for (unsigned int i=0; i<bucket_queue_.size(); ++i)
   {
-    std::vector<PropDistanceFieldVoxel*>::iterator list_it = bucket_queue_[i].begin();
+    std::vector<int3>::iterator list_it = bucket_queue_[i].begin();
     while(list_it!=bucket_queue_[i].end())
     {
-      PropDistanceFieldVoxel* vptr = *list_it;
-
-      x = vptr->location_.x();
-      y = vptr->location_.y();
-      z = vptr->location_.z();
+      int3 loc = *list_it;
+      PropDistanceFieldVoxel* vptr = &getCell(loc.x(), loc.y(), loc.z());
 
       // select the neighborhood list based on the update direction:
       std::vector<int3 >* neighborhood;
@@ -358,22 +346,15 @@ void PropagationDistanceField::propogate()
 
       for (unsigned int n=0; n<neighborhood->size(); n++)
       {
-        int dx = (*neighborhood)[n].x();
-        int dy = (*neighborhood)[n].y();
-        int dz = (*neighborhood)[n].z();
-        nx = x + dx;
-        ny = y + dy;
-        nz = z + dz;
-        if (!isCellValid(nx,ny,nz))
+        int3 diff = (*neighborhood)[n];
+        int3 nloc( loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z() );
+        if (!isCellValid(nloc.x(), nloc.y(), nloc.z()) )
           continue;
 
         // the real update code:
         // calculate the neighbor's new distance based on my closest filled voxel:
-        PropDistanceFieldVoxel* neighbor = &getCell(nx, ny, nz);
-        loc.x() = nx;
-        loc.y() = ny;
-        loc.z() = nz;
-        int new_distance_sq = eucDistSq(vptr->closest_point_, loc);
+        PropDistanceFieldVoxel* neighbor = &getCell(nloc.x(),nloc.y(),nloc.z());
+        int new_distance_sq = eucDistSq(vptr->closest_point_, nloc);
         if (new_distance_sq > max_distance_sq_)
           continue;
         if (new_distance_sq < neighbor->distance_square_)
@@ -381,11 +362,10 @@ void PropagationDistanceField::propogate()
           // update the neighboring voxel
           neighbor->distance_square_ = new_distance_sq;
           neighbor->closest_point_ = vptr->closest_point_;
-          neighbor->location_ = loc;
-          neighbor->update_direction_ = getDirectionNumber(dx, dy, dz);
+          neighbor->update_direction_ = getDirectionNumber(diff.x(), diff.y(), diff.z());
 
           // and put it in the queue:
-          bucket_queue_[new_distance_sq].push_back(neighbor);
+          bucket_queue_[new_distance_sq].push_back(nloc);
         }
       }
 
@@ -393,7 +373,6 @@ void PropagationDistanceField::propogate()
     }
     bucket_queue_[i].clear();
   }
-
 }
 
 void PropagationDistanceField::reset()

@@ -87,7 +87,6 @@ struct PropDistanceFieldVoxel
   PropDistanceFieldVoxel(int distance_sq);
 
   int distance_square_;         /**< Squared distance from the closest obstacle */
-  int3 location_;     	        /**< Grid location of this voxel */
   int3 closest_point_;	        /**< Closes obstacle from this voxel */
   int update_direction_;        /**< Direction from which this voxel was updated */
 
@@ -100,6 +99,7 @@ struct SignedPropDistanceFieldVoxel : public PropDistanceFieldVoxel
     SignedPropDistanceFieldVoxel(int distance_sq_positive, int distance_sq_negative);
     int positive_distance_square_;
     int negative_distance_square_;
+    int3 location_;     	        /**< Grid location of this voxel */
     int3 closest_positive_point_;
     int3 closest_negative_point_;
 
@@ -156,7 +156,7 @@ private:
   VoxelSet object_voxel_locations_;
 
   /// \brief Structure used to hold propogation frontier
-  std::vector<std::vector<PropDistanceFieldVoxel*> > bucket_queue_;
+  std::vector<std::vector<int3> > bucket_queue_;
   double max_distance_;
   int max_distance_sq_;
 
