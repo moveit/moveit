@@ -15,6 +15,7 @@ closest obstacle. The VoxelGrid class can also be used as a generic, templatized
 
   <depend package="visualization_msgs" />
   <depend package="moveit_msgs" />
+  <depend package="rosconsole" />
 
   <rosdep name="eigen" />
 

@@ -107,6 +107,51 @@ void PropagationDistanceField::updatePointsInField(const std::vector<Eigen::Vect
   ROS_DEBUG_STREAM( "points=" );
   print(points);
 
+//Test///////////////////
+/*
+  VoxelSet points_added2;
+  VoxelSet points_removed2;
+  std::vector<int3> test;
+  for( unsigned int i=0; i<points.size(); i++)
+  {
+    int3 voxel_loc;
+    bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(),
+                              voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
+    if( valid )
+    {
+      test.push_back(voxel_loc);
+    }
+  }
+  sort(test.begin(), test.end(), lessThan);
+
+  VoxelSet::iterator set_it = object_voxel_locations_.begin();
+  std::vector<int3>::iterator points_it = test.begin();
+  while( set_it != object_voxel_locations_.end() && points_it != test.end() )
+  {
+    if( equal( *set_it, *points_it ) )
+    {
+      //skip
+      ++points_it;
+    }
+    else if( lessThan( *set_it, *points_it ) || points_it == test.end() )
+    {
+      // add to remove list
+      points_removed2.insert(*set_it);
+      ++set_it;
+    }
+    else if( lessThan( *points_it, *set_it ) || set_it == object_voxel_locations_.end() )
+    {
+      // add to add list
+      points_added2.insert(*points_it);
+      ++points_it;
+    }
+  }
+
+  std::cout << "points_add.size=" << points_added2.size() << std::endl;
+  std::cout << "points_remove.size=" << points_removed2.size() << std::endl;
+*/
+//////////////////////////////
+
   if( iterative )
   {
 
@@ -199,6 +244,34 @@ void PropagationDistanceField::addPointsToField(const std::vector<Eigen::Vector3
   }
 
   addNewObstacleVoxels( voxel_locs );
+}
+
+void PropagationDistanceField::removePointsFromField(const std::vector<Eigen::Vector3d>& points)
+{
+  VoxelSet voxel_locs;
+
+  for( unsigned int i=0; i<points.size(); i++)
+  {
+    // Convert to voxel coordinates
+    int3 voxel_loc;
+    bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(),
+                              voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
+
+    if( valid )
+    {
+      bool already_obstacle_voxel = ( object_voxel_locations_.find(voxel_loc) != object_voxel_locations_.end() );
+      if( already_obstacle_voxel )
+      {
+        // Not already in set of existing obstacles, so add to voxel list
+        //object_voxel_locations_.erase(voxel_loc);
+
+        // Add point to the queue for expansion
+        voxel_locs.insert(voxel_loc);
+      }
+    }
+  }
+
+  removeObstacleVoxels( voxel_locs );
 }
 
 void PropagationDistanceField::addNewObstacleVoxels(const VoxelSet& locations)
