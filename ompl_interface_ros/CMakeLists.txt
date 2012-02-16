@@ -40,6 +40,16 @@ target_link_libraries(call_benchmark ${PROJECT_NAME})
 rosbuild_add_executable(ompl_db src/ompl_db.cpp)
 target_link_libraries(ompl_db ${PROJECT_NAME})
 
+set(SOURCE_FILES src/ompl_plugin.cpp)
+set(LIBRARY_NAME ompl_planner_plugin)
+include(CMakeDetermineSystem)
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+  rosbuild_add_library_module(${LIBRARY_NAME} ${SOURCE_FILES})
+else(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+  rosbuild_add_library(${LIBRARY_NAME} ${SOURCE_FILES})
+endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+target_link_libraries(${LIBRARY_NAME} ${PROJECT_NAME})
+
 # Unit tests
 rosbuild_add_gtest(test_planner test/test_planner.cpp)
 target_link_libraries(test_planner ${PROJECT_NAME})
