@@ -175,7 +175,7 @@ int main(int argc, char** argv)
 
   time_t start, diff;
   const double resolution = 0.025;
-  const double max_distance = 0.5;//25;
+  const double max_distance = 0.5;
   const bool 	 iterative = true;
   distance_field::PropagationDistanceField distance_field(3.0, 3.0, 4.0, resolution, -1.0, -1.5, -2.0, max_distance);
 
@@ -184,8 +184,9 @@ int main(int argc, char** argv)
   Eigen::Affine3d trans(Eigen::Translation3d(0.0,0.0,-1.0)*Eigen::Quaterniond::Identity());
   bd.updatePose(trans);
   std::vector<Eigen::Vector3d> table_points = bd.getCollisionPoints();
-  std::vector<Eigen::Vector3d> sphere_points = bd.getCollisionPoints();	// TODO: this seems the only way to not segfault...
-  sphere_points.clear();
+  std::vector<Eigen::Vector3d> sphere_points;
+  //sphere_points.push_back(bd.getCollisionPoints()[0]);// TODO: this seems the only way to not segfault...
+  //sphere_points.clear();
 
   //ROS_INFO_STREAM("Adding " << table_points.size() << " to field");
 
@@ -198,21 +199,22 @@ int main(int argc, char** argv)
                    1.5,1.5,2.0);
   mm.addSphere();
 
-  //shapes::Sphere* sphere = new shapes::Sphere(0.1);
-  //collision_distance_field::BodyDecomposition sbd("sphere", sphere, 0.025, 0.0);
+  shapes::Sphere* sphere = new shapes::Sphere(0.1);
+  collision_distance_field::BodyDecomposition sbd("sphere", sphere, 0.025, 0.0);
 
   int i = 0;
   while(1) {
     Eigen::Translation3d translation;
     if( mm.getFirstSpherePosition(translation) )
     {
-    // TODO- create body decomposition for sphere
-      //Eigen::Affine3d trans(translation*Eigen::Quaterniond::Identity());
-      //sbd.updatePose(trans);
+      // If using only the sphere's center point
+      //Eigen::Vector3d point(translation.x(), translation.y(), translation.z());
+      //ROS_INFO_STREAM( "transform="<<point.x()<<","<<point.y()<<","<<point.z()<<std::endl );
 
-      // Adding center point for sphere
-      Eigen::Vector3d point(translation.x(), translation.y(), translation.z());
-      ROS_INFO_STREAM( "transform="<<point.x()<<","<<point.y()<<","<<point.z()<<std::endl );
+      // If using the fully decomposed sphere body full sphere bodies
+      Eigen::Affine3d trans(translation*Eigen::Quaterniond::Identity());
+      sbd.updatePose(trans);
+
       start = clock();
 
       if( iterative )
@@ -221,17 +223,18 @@ int main(int argc, char** argv)
         if( sphere_points.size() >0 )
         {
           distance_field.removePointsFromField(sphere_points);
-          sphere_points.pop_back();
+          sphere_points.clear();
         }
-        sphere_points.push_back(point);
+
+        sphere_points = sbd.getCollisionPoints();
         distance_field.addPointsToField(sphere_points);
       }
       else
       {
         // Update the whole voxel map
-        table_points.push_back(point);
+        sphere_points = sbd.getCollisionPoints();
         distance_field.updatePointsInField(table_points, false);
-        table_points.pop_back();
+        distance_field.addPointsToField(sphere_points);
       }
 
       diff = start-clock();
