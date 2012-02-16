@@ -18,9 +18,12 @@
   <depend package="pluginlib"/>
   <depend package="kinematics_base"/>
   <depend package="kinematics_plugin_loader"/>
+  <depend package="pluginlib"/>
+  <depend package="planning_interface"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl_interface_ros `rosboost-cfg --lflags thread`"/>
+    <planning_interface plugin="${prefix}/lib/plugin_description.xml"/>
   </export>
 
 </package>
