@@ -107,51 +107,6 @@ void PropagationDistanceField::updatePointsInField(const std::vector<Eigen::Vect
   ROS_DEBUG_STREAM( "points=" );
   print(points);
 
-//Test///////////////////
-/*
-  VoxelSet points_added2;
-  VoxelSet points_removed2;
-  std::vector<int3> test;
-  for( unsigned int i=0; i<points.size(); i++)
-  {
-    int3 voxel_loc;
-    bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(),
-                              voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
-    if( valid )
-    {
-      test.push_back(voxel_loc);
-    }
-  }
-  sort(test.begin(), test.end(), lessThan);
-
-  VoxelSet::iterator set_it = object_voxel_locations_.begin();
-  std::vector<int3>::iterator points_it = test.begin();
-  while( set_it != object_voxel_locations_.end() && points_it != test.end() )
-  {
-    if( equal( *set_it, *points_it ) )
-    {
-      //skip
-      ++points_it;
-    }
-    else if( lessThan( *set_it, *points_it ) || points_it == test.end() )
-    {
-      // add to remove list
-      points_removed2.insert(*set_it);
-      ++set_it;
-    }
-    else if( lessThan( *points_it, *set_it ) || set_it == object_voxel_locations_.end() )
-    {
-      // add to add list
-      points_added2.insert(*points_it);
-      ++points_it;
-    }
-  }
-
-  std::cout << "points_add.size=" << points_added2.size() << std::endl;
-  std::cout << "points_remove.size=" << points_removed2.size() << std::endl;
-*/
-//////////////////////////////
-
   if( iterative )
   {
 
