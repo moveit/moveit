@@ -125,7 +125,7 @@ TEST(TestPropagationDistanceField, TestAddPoints)
   points.push_back(point1);
   points.push_back(point2);
   df.reset();
-  df.updatePointsInField(points);
+  df.addPointsToField(points);
 
   // Error checking
   //print(df, numX, numY, numZ);
@@ -133,7 +133,7 @@ TEST(TestPropagationDistanceField, TestAddPoints)
   // Check correctness
   check_distance_field( df, points, numX, numY, numZ);
 
-	// Update - iterative
+  // Update - iterative
   points.clear();
   points.push_back(point1);
   points.push_back(point3);
@@ -141,10 +141,17 @@ TEST(TestPropagationDistanceField, TestAddPoints)
   //print(df, numX, numY, numZ);
   check_distance_field( df, points, numX, numY, numZ);
 
+  // Remove
+  points.clear();
+  points.push_back(point1);
+  df.removePointsFromField(points);
+  //print(df, numX, numY, numZ);
+  points.clear();
+  points.push_back(point3);
+  check_distance_field( df, points, numX, numY, numZ);
 
 
-
-	// Update - not iterative
+  // Update - not iterative
   points.clear();
   points.push_back(point2);
   points.push_back(point3);
