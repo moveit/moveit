@@ -49,17 +49,31 @@ namespace distance_field
 {
 
 // less-than Comparison
+bool lessThan(int3 loc_1, int3 loc_2)
+{
+  if( loc_1.z() != loc_2.z() )
+    return ( loc_1.z() < loc_2.z() );
+  else if( loc_1.y() != loc_2.y() )
+    return ( loc_1.y() < loc_2.y() );
+  else if( loc_1.x() != loc_2.x() )
+    return ( loc_1.x() < loc_2.x() );
+  return false;
+}
+
+int equal(int3 loc_1, int3 loc_2)
+{
+  return(
+      loc_1.z() == loc_2.z() &&
+      loc_1.y() == loc_2.y() &&
+      loc_1.x() == loc_2.x() );
+}
+
+// Class
 struct compareInt3
 {
   bool operator()(int3 loc_1, int3 loc_2) const
   {
-    if( loc_1.z() != loc_2.z() )
-      return ( loc_1.z() < loc_2.z() );
-    else if( loc_1.y() != loc_2.y() )
-      return ( loc_1.y() < loc_2.y() );
-    else if( loc_1.x() != loc_2.x() )
-      return ( loc_1.x() < loc_2.x() );
-    return false;
+    return lessThan(loc_1,loc_2);
   }
 };
 
@@ -73,7 +87,6 @@ struct PropDistanceFieldVoxel
   PropDistanceFieldVoxel(int distance_sq);
 
   int distance_square_;         /**< Squared distance from the closest obstacle */
-  int3 location_;     	        /**< Grid location of this voxel */
   int3 closest_point_;	        /**< Closes obstacle from this voxel */
   int update_direction_;        /**< Direction from which this voxel was updated */
 
@@ -126,17 +139,23 @@ public:
   virtual void addPointsToField(const std::vector<Eigen::Vector3d>& points);
 
   /**
+   * \brief Incrementally remove the set of points in the distance field.
+   */
+  virtual void removePointsFromField(const std::vector<Eigen::Vector3d>& points);
+
+  /**
    * \brief Resets the distance field to the max_distance.
    */
   virtual void reset();
 
 private:
+
   /// \brief The set of all the obstacle voxels
   typedef std::set<int3, compareInt3> VoxelSet;
   VoxelSet object_voxel_locations_;
 
   /// \brief Structure used to hold propogation frontier
-  std::vector<std::vector<PropDistanceFieldVoxel*> > bucket_queue_;
+  std::vector<std::vector<int3> > bucket_queue_;
   double max_distance_;
   int max_distance_sq_;
 
@@ -197,8 +216,8 @@ class SignedPropagationDistanceField : public DistanceField<SignedPropDistanceFi
     virtual void reset();
 
   private:
-    std::vector<std::vector<SignedPropDistanceFieldVoxel*> > positive_bucket_queue_;
-    std::vector<std::vector<SignedPropDistanceFieldVoxel*> > negative_bucket_queue_;
+    std::vector<std::vector<int3> > positive_bucket_queue_;
+    std::vector<std::vector<int3> > negative_bucket_queue_;
     double max_distance_;
     int max_distance_sq_;
 
