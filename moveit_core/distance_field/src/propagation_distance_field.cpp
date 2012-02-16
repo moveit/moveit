@@ -508,6 +508,7 @@ void SignedPropagationDistanceField::addPointsToField(const std::vector<Eigen::V
     bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(), x, y, z);
     if (!valid)
       continue;
+		int3 loc(x,y,z);
     SignedPropDistanceFieldVoxel& voxel = getCell(x,y,z);
     voxel.positive_distance_square_ = 0;
     voxel.negative_distance_square_ = max_distance_sq_;
@@ -517,24 +518,22 @@ void SignedPropagationDistanceField::addPointsToField(const std::vector<Eigen::V
     voxel.closest_negative_point_.x() = SignedPropDistanceFieldVoxel::UNINITIALIZED;
     voxel.closest_negative_point_.y() = SignedPropDistanceFieldVoxel::UNINITIALIZED;
     voxel.closest_negative_point_.z() = SignedPropDistanceFieldVoxel::UNINITIALIZED;
-    voxel.location_.x() = x;
-    voxel.location_.y() = y;
-    voxel.location_.z() = z;
     voxel.update_direction_ = initial_update_direction;
-    positive_bucket_queue_[0].push_back(&voxel);
+    positive_bucket_queue_[0].push_back(loc);
   }
 
   // now process the queue:
   for (unsigned int i=0; i<positive_bucket_queue_.size(); ++i)
   {
-    std::vector<SignedPropDistanceFieldVoxel*>::iterator list_it = positive_bucket_queue_[i].begin();
+    std::vector<int3>::iterator list_it = positive_bucket_queue_[i].begin();
     while(list_it!=positive_bucket_queue_[i].end())
     {
-      SignedPropDistanceFieldVoxel* vptr = *list_it;
+      int3 loc = *list_it;
+      SignedPropDistanceFieldVoxel* vptr = &getCell(loc.x(),loc.y(),loc.z());
 
-      x = vptr->location_.x();
-      y = vptr->location_.y();
-      z = vptr->location_.z();
+      x = loc.x();
+      y = loc.y();
+      z = loc.z();
 
       // select the neighborhood list based on the update direction:
       std::vector<int3 >* neighborhood;
@@ -576,11 +575,10 @@ void SignedPropagationDistanceField::addPointsToField(const std::vector<Eigen::V
           // update the neighboring voxel
           neighbor->positive_distance_square_ = new_distance_sq;
           neighbor->closest_positive_point_ = vptr->closest_positive_point_;
-          neighbor->location_ = loc;
           neighbor->update_direction_ = getDirectionNumber(dx, dy, dz);
 
           // and put it in the queue:
-          positive_bucket_queue_[new_distance_sq].push_back(neighbor);
+          positive_bucket_queue_[new_distance_sq].push_back(loc);
         }
       }
 
@@ -609,12 +607,13 @@ void SignedPropagationDistanceField::addPointsToField(const std::vector<Eigen::V
             if(!isCellValid(nx, ny, nz))
               continue;
 
+            int3 nloc(nx,ny,nz);
             SignedPropDistanceFieldVoxel* neighbor = &getCell(nx, ny, nz);
 
             if(neighbor->closest_negative_point_.x() != SignedPropDistanceFieldVoxel::UNINITIALIZED)
             {
               neighbor->update_direction_ = initial_update_direction;
-              negative_bucket_queue_[0].push_back(neighbor);
+              negative_bucket_queue_[0].push_back(nloc);
             }
           }
         }
@@ -624,14 +623,15 @@ void SignedPropagationDistanceField::addPointsToField(const std::vector<Eigen::V
 
   for (unsigned int i=0; i<negative_bucket_queue_.size(); ++i)
   {
-    std::vector<SignedPropDistanceFieldVoxel*>::iterator list_it = negative_bucket_queue_[i].begin();
+    std::vector<int3>::iterator list_it = negative_bucket_queue_[i].begin();
     while(list_it!=negative_bucket_queue_[i].end())
     {
-      SignedPropDistanceFieldVoxel* vptr = *list_it;
+      int3 loc = *list_it;
+      SignedPropDistanceFieldVoxel* vptr = &getCell(loc.x(),loc.y(),loc.z());
 
-      x = vptr->location_.x();
-      y = vptr->location_.y();
-      z = vptr->location_.z();
+      x = loc.x();
+      y = loc.y();
+      z = loc.z();
 
       // select the neighborhood list based on the update direction:
       std::vector<int3 >* neighborhood;
@@ -656,6 +656,7 @@ void SignedPropagationDistanceField::addPointsToField(const std::vector<Eigen::V
         nx = x + dx;
         ny = y + dy;
         nz = z + dz;
+        int3 nloc(nx,ny,nz);
         if (!isCellValid(nx,ny,nz))
           continue;
 
@@ -673,11 +674,10 @@ void SignedPropagationDistanceField::addPointsToField(const std::vector<Eigen::V
           // update the neighboring voxel
           neighbor->negative_distance_square_ = new_distance_sq;
           neighbor->closest_negative_point_ = vptr->closest_negative_point_;
-          neighbor->location_ = loc;
           neighbor->update_direction_ = getDirectionNumber(dx, dy, dz);
 
           // and put it in the queue:
-          negative_bucket_queue_[new_distance_sq].push_back(neighbor);
+          negative_bucket_queue_[new_distance_sq].push_back(nloc);
         }
       }
 
