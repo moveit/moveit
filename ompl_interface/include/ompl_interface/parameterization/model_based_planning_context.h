@@ -58,7 +58,6 @@ typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si
 
 struct ModelBasedPlanningContextSpecification
 {
-  planning_scene::PlanningSceneConstPtr planning_scene_;
   std::map<std::string, std::string> config_;
   std::map<std::string, kc::IKAllocator> ik_allocators_;
   ConfiguredPlannerAllocator planner_allocator_;
@@ -96,7 +95,7 @@ public:
   
   const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
   {
-    return spec_.planning_scene_;
+    return planning_scene_;
   }
   
   const pm::KinematicState& getCompleteInitialRobotState(void) const
@@ -119,7 +118,7 @@ public:
     return ompl_benchmark_;
   }
 
-  const kc::KinematicConstraintSet& getPathConstraints(void) const
+  const kc::KinematicConstraintSetPtr& getPathConstraints(void) const
   {
     return path_constraints_;
   }
@@ -130,28 +129,28 @@ public:
     return max_sampling_attempts_;
   }
   
-  /* \brief Get the maximum number of goal samples */
-  unsigned int getMaximumGoalSamples(void) const
-  {
-    return max_goal_samples_;
-  }
-  
-  /* \brief Get the maximum number of planning threads allowed */
-  unsigned int getMaximumPlanningThreads(void) const
-  {
-    return max_planning_threads_;
-  }
-  
   /* \brief Set the maximum number of sampling attempts allowed */
   void setMaximumSamplingAttempts(unsigned int max_sampling_attempts)
   {
     max_sampling_attempts_ = max_sampling_attempts;
   }
   
+  /* \brief Get the maximum number of goal samples */
+  unsigned int getMaximumGoalSamples(void) const
+  {
+    return max_goal_samples_;
+  }
+  
   /* \brief Set the maximum number of goal samples */
   void setMaximumGoalSamples(unsigned int max_goal_samples)
   {
     max_goal_samples_ = max_goal_samples;
+  }
+
+  /* \brief Get the maximum number of planning threads allowed */
+  unsigned int getMaximumPlanningThreads(void) const
+  {
+    return max_planning_threads_;
   }
   
   /* \brief Set the maximum number of planning threads */
@@ -194,13 +193,14 @@ public:
   
   void setProjectionEvaluator(const std::string &peval);
   
+  void setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene);
   void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
   void setStartState(const pm::KinematicState &complete_initial_robot_state);
   
-  bool setupConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
-                        const moveit_msgs::Constraints &path_constraints,
-                        moveit_msgs::MoveItErrorCodes *error);
+  bool setPlanningConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
+                              const moveit_msgs::Constraints &path_constraints,
+                              moveit_msgs::MoveItErrorCodes *error);
   
   void clear(void);
   
@@ -251,7 +251,8 @@ protected:
   
   KinematicModelStateSpacePtr ompl_state_space_;
   pm::KinematicState          complete_initial_robot_state_;
-  
+  planning_scene::PlanningSceneConstPtr planning_scene_;
+
   /// the OMPL planning context; this contains the problem definition and the planner used
   og::SimpleSetup  ompl_simple_setup_;
   
@@ -261,29 +262,31 @@ protected:
   /// tool used to compute multiple plans in parallel; this uses the problem definition maintained by ompl_simple_setup_
   ot::ParallelPlan ompl_parallel_plan_;
   
-  kc::KinematicConstraintSet           path_constraints_;
+  kc::KinematicConstraintSetPtr           path_constraints_;
   std::vector<kc::KinematicConstraintSetPtr> goal_constraints_;
   
   /// the time spent computing the last plan
   double                                                  last_plan_time_;
   
-  /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
-  double                                                  max_solution_segment_length_;
-  
+
   /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
   unsigned int                                            max_goal_samples_;
-  
-  /// maximum number of attempts to be made at sampling a state when attempting to find valid states that satisfy some set of constraints
+
+    /// maximum number of attempts to be made at sampling a state when attempting to find valid states that satisfy some set of constraints
   unsigned int                                            max_sampling_attempts_;
   
   /// when planning in parallel, this is the maximum number of threads to use at one time
   unsigned int                                            max_planning_threads_;
-  
+
   /// the maximum velocity to move with
   double                                                  max_velocity_;
 
   /// the maximum acceleration to move at
   double                                                  max_acceleration_;
+
+
+  /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
+  double                                                  max_solution_segment_length_;
   
 };
 

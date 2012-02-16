@@ -36,6 +36,7 @@
 
 #include "ompl_interface/parameterization/joint_space/joint_model_planning_context.h"
 #include "ompl_interface/detail/projection_evaluators.h"
+#include "ompl_interface/detail/constrained_sampler.h"
 
 ompl::base::ProjectionEvaluatorPtr ompl_interface::JointModelPlanningContext::getProjectionEvaluator(const std::string &peval) const
 {
@@ -77,4 +78,25 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::JointModelPlanningContext::ge
     else
       ROS_ERROR("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());  
   return ob::ProjectionEvaluatorPtr();
+}
+
+ompl::base::StateSamplerPtr ompl_interface::JointModelPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
+{
+  if (ompl_state_space_.get() != ss)
+    ROS_FATAL("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
+  ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
+  
+  if (path_constraints_)
+  {
+    kc::ConstraintSamplerPtr cs = kc::constructConstraintsSampler(getJointModelGroup(), path_constraints_->getAllConstraints(), getKinematicModel(),
+                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getIKAllocator(),
+                                                                  ompl_state_space_->getIKSubgroupAllocators());
+    if (cs)
+    {
+      ROS_DEBUG("%s: Allocating specialized state sampler for state space", name_.c_str());
+      return ob::StateSamplerPtr(new ConstrainedSampler(this, cs));
+    }
+  }
+  ROS_DEBUG("%s: Allocating default state sampler for state space", name_.c_str());
+  return ss->allocDefaultStateSampler();
 }

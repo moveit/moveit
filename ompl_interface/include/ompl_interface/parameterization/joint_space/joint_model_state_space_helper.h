@@ -34,47 +34,47 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_FACTORY_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_HELPER_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_HELPER_
 
-#include "ompl_interface/parameterization/model_based_planning_context.h"
+#include "ompl_interface/parameterization/model_based_state_space.h"
 
 namespace ompl_interface
 {
 
-class ModelBasedPlanningContextFactory;
-typedef boost::shared_ptr<ModelBasedPlanningContextFactory> ModelBasedPlanningContextFactoryPtr;
-
-class ModelBasedPlanningContextFactory
-{
+class JointModelStateSpaceHelper
+{     
 public:
   
-  ModelBasedPlanningContextFactory(void)
+  JointModelStateSpaceHelper(const std::vector<const pm::KinematicModel::JointModel*> &joints)
   {
+    constructSpace(joints);
   }
   
-  virtual ~ModelBasedPlanningContextFactory(void)
+  void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const;
+  void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const;
+  void copyToOMPLState(ob::State *state, const std::vector<double> &values) const;
+  const ob::StateSpacePtr& getStateSpace(void) const
   {
+    return state_space_;
   }
   
-  ModelBasedPlanningContextPtr getNewPlanningContext(const std::string &name,
-                                                     const KinematicModelStateSpaceSpecification &space_spec,
-                                                     const ModelBasedPlanningContextSpecification &context_spec) const;
-  const std::string& getType(void) const
-  {
-    return type_;
-  }
+private:
   
-  virtual bool canRepresentProblem(const moveit_msgs::MotionPlanRequest &req) const = 0;
-  virtual unsigned int getPriority(void) const = 0;
-
-protected:
+  /// The order in which the joints were used to construct the OMPL state space
+  std::vector<std::size_t> joint_mapping_;
   
-  virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
-                                                            const KinematicModelStateSpaceSpecification &space_spec,
-                                                            const ModelBasedPlanningContextSpecification &context_spec) const = 0;
-  std::string type_;
+  /// The order in which the joint variables were used to construct the OMPL state space
+  std::vector<std::size_t> variable_mapping_;
+  
+  std::vector<ob::StateSpacePtr> components_;
+  
+  ob::StateSpacePtr state_space_;
+  
+  void constructSpace(const std::vector<const pm::KinematicModel::JointModel*> &joints);
 };
+
+
 
 }
 

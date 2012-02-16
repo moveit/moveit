@@ -45,6 +45,7 @@ namespace planning_scene
 typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
 typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
 static const std::string COLLISION_MAP_NS = "__map";
+static const std::string DEFAULT_SCENE_NAME = "(noname)";
 }
 
 planning_scene::PlanningScenePtr planning_scene::clone(const PlanningSceneConstPtr &scene)
@@ -56,6 +57,7 @@ planning_scene::PlanningScenePtr planning_scene::clone(const PlanningSceneConstP
 
 planning_scene::PlanningScene::PlanningScene(void) : configured_(false)
 {
+  name_ = DEFAULT_SCENE_NAME;
 }
 
 planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
@@ -68,7 +70,10 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
       name_ = parent_->getName() + "+";
   }
   else
+  {
     ROS_ERROR("NULL parent scene specified. Ignoring.");
+    name_ = DEFAULT_SCENE_NAME;
+  }
 }
 
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,

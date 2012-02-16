@@ -153,7 +153,7 @@ public:
   
 protected:
   
-  KinematicModelStateSpaceSpecification      spec_; 
+  KinematicModelStateSpaceSpecification spec_; 
 
   /// a function pointer that returns an IK solver for this group; this is useful for sampling states using IK
   kc::IKAllocator         ik_allocator_;

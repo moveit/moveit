@@ -210,7 +210,7 @@ public:
       return max_velocity_;
     }
 
-    virtual std::vector<moveit_msgs::JointLimits> getJointLimits() const;
+    virtual std::vector<moveit_msgs::JointLimits> getJointLimits(void) const;
     
     /** \brief Given the joint values for a joint, compute the corresponding transform */
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const = 0;
