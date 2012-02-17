@@ -25,5 +25,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #common commands for building c++ executables and libraries
 rosbuild_add_boost_directories()
-rosbuild_add_library(${PROJECT_NAME} src/warehouse.cpp)
+rosbuild_add_library(${PROJECT_NAME} 
+  src/warehouse.cpp
+  src/warehouse_connector.cpp)
 rosbuild_link_boost(${PROJECT_NAME} system)
+
+rosbuild_add_executable(warehouse_connector_test test/warehouse_connector_test.cpp)
+target_link_libraries(warehouse_connector_test ${PROJECT_NAME})
