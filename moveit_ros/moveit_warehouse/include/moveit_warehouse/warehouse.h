@@ -34,6 +34,9 @@
 
 /* Author: Ioan Sucan */
 
+#ifndef _MOVEIT_WAREHOUSE_H_
+#define _MOVEIT_WAREHOUSE_H_
+
 #include <mongo_ros/message_collection.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/MotionPlanRequest.h>
@@ -59,8 +62,11 @@ namespace moveit_warehouse
     void addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
     void addPlanningResult(const moveit_msgs::MotionPlanRequest &planning_query, const moveit_msgs::RobotTrajectory &result, const std::string &scene_name);
     
-    void getPlanningSceneNames(std::vector<std::string> &names) const;
-    bool getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name) const;
+    void getPlanningSceneNamesAndTimes(std::vector<std::string> &names,
+                                       std::vector<ros::Time>& times) const;
+    bool getPlanningScene(PlanningSceneWithMetadata &scene_m, 
+                          const std::string &scene_name,
+                          const ros::Time& time) const;
     void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const;
     void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
     void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &query_name, const std::string &scene_name) const;
@@ -79,3 +85,5 @@ namespace moveit_warehouse
     
   };
 }
+
+#endif

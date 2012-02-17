@@ -130,17 +130,24 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningResult(const moveit_msgs
     robot_trajectory_collection_->insert(result, metadata);
 }
 
-void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<std::string> &names) const
+void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNamesAndTimes(std::vector<std::string> &names,
+                                                                           std::vector<ros::Time> &times) const
 {
     names.clear();
+    times.clear();
     mongo_ros::Query q;
     std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, true, PLANNING_SCENE_TIME_NAME, true);
-    for (std::size_t i = 0; i < planning_scenes.size() ; ++i) 
-	if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_ID_NAME.c_str()))
-	    names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
+    for (std::size_t i = 0; i < planning_scenes.size() ; ++i) {
+      if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_ID_NAME.c_str()))
+        names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
+      if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_TIME_NAME.c_str()))
+        times.push_back(ros::Time(planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME)));
+    }
 }
 
-bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name) const
+bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithMetadata &scene_m, 
+                                                              const std::string &scene_name,
+                                                              const ros::Time& time) const
 {
     mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
     std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, false);
@@ -149,8 +156,20 @@ bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithM
 	ROS_WARN("Planning scene '%s' was not found in the database", scene_name.c_str());
 	return false;
     }
-    if (planning_scenes.size() > 1)
-	ROS_WARN("Multiple planning scenes named '%s' were found. Returning the first one.", scene_name.c_str());
+    if(planning_scenes.size() > 1) {
+      for(unsigned int i = 0; i < planning_scenes.size(); i++) {
+        if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_TIME_NAME.c_str())) {
+          //time within a second
+          if(fabs(time.toSec()-planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME)) < 1.0) {
+            ROS_INFO_STREAM("Matched time");
+            scene_m = planning_scenes[i];
+            return true;
+          }
+        }
+      }
+      ROS_INFO_STREAM("Didn't match time");
+    }
+      
     scene_m = planning_scenes[0];
     return true;
 }
