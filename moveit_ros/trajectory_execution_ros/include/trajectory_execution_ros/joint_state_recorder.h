@@ -34,39 +34,27 @@
 
 /** \author E. Gil Jones */
 
-#ifndef _FOLLOW_JOINT_TRAJECTORY_CONTROLLER_HANDLER_H_
-#define _FOLLOW_JOINT_TRAJECTORY_CONTROLLER_HANDLER_H_
+#ifndef _JOINT_STATE_RECORDER_H_
+#define _JOINT_STATE_RECORDER_H_
 
-#include <trajectory_execution_monitor/trajectory_controller_handler.h>
-#include <control_msgs/FollowJointTrajectoryAction.h>
+#include <ros/ros.h>
 
-#include <actionlib/client/simple_action_client.h>
-#include <actionlib/client/simple_client_goal_state.h>
+#include <trajectory_execution/trajectory_recorder.h>
+#include <sensor_msgs/JointState.h>
 
-/// \brief Controller handler for joint state trajectories.
-class FollowJointTrajectoryControllerHandler : public trajectory_execution_monitor::TrajectoryControllerHandler {
+/// \brief Recorder for joint state trajectories.
+class JointStateTrajectoryRecorder : public trajectory_execution::TrajectoryRecorder {
 
 public:
+
+  JointStateTrajectoryRecorder(const std::string& topic_name);
   
-  FollowJointTrajectoryControllerHandler(const std::string& group_name, 
-                                         const std::string& controller_name);
-
-  bool executeTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
-                         boost::shared_ptr<trajectory_execution_monitor::TrajectoryRecorder>& recorder,
-                         const trajectory_execution_monitor::TrajectoryFinishedCallbackFunction& traj_callback);
-
-  void cancelExecution();
-
-  void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
-                              const control_msgs::FollowJointTrajectoryResultConstPtr& result);
-
-  void controllerActiveCallback(); 
-
-  void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback);
-    
-
 protected:
-  actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> follow_joint_trajectory_action_client_;
-}; 
+
+  void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
+
+  ros::Subscriber joint_state_subscriber_;
+
+};
 
 #endif

@@ -36,7 +36,7 @@
 
 #include <ros/ros.h>
 
-#include <trajectory_execution_monitor_ros/joint_state_recorder.h>
+#include <trajectory_execution_ros/joint_state_recorder.h>
 
 JointStateTrajectoryRecorder::JointStateTrajectoryRecorder(const std::string& topic_name) :
   TrajectoryRecorder(topic_name)

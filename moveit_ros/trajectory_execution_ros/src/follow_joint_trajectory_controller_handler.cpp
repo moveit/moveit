@@ -34,7 +34,10 @@
 
 /** \author E. Gil Jones */
 
-#include <trajectory_execution_monitor_ros/follow_joint_trajectory_controller_handler.h>
+#include <trajectory_execution_ros/follow_joint_trajectory_controller_handler.h>
+
+namespace trajectory_execution_ros 
+{
 
 FollowJointTrajectoryControllerHandler::FollowJointTrajectoryControllerHandler(const std::string& group_name, 
                                                                                const std::string& controller_name) : 
@@ -47,8 +50,8 @@ FollowJointTrajectoryControllerHandler::FollowJointTrajectoryControllerHandler(c
 }
 
 bool FollowJointTrajectoryControllerHandler::executeTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
-                                                               boost::shared_ptr<trajectory_execution_monitor::TrajectoryRecorder>& recorder,
-                                                               const trajectory_execution_monitor::TrajectoryFinishedCallbackFunction& traj_callback)
+                                                               boost::shared_ptr<trajectory_execution::TrajectoryRecorder>& recorder,
+                                                               const trajectory_execution::TrajectoryFinishedCallbackFunction& traj_callback)
 {
   recorder_ = recorder;
   trajectory_finished_callback_ = traj_callback;
@@ -75,21 +78,21 @@ void FollowJointTrajectoryControllerHandler::controllerDoneCallback(const action
 {
   ROS_INFO_STREAM("Controller is done with state " << state.toString() );
   
-  if( controller_state_ == trajectory_execution_monitor::TrajectoryControllerStates::EXECUTING ||
-      controller_state_ == trajectory_execution_monitor::TrajectoryControllerStates::OVERSHOOTING )
+  if( controller_state_ == trajectory_execution::TrajectoryControllerStates::EXECUTING ||
+      controller_state_ == trajectory_execution::TrajectoryControllerStates::OVERSHOOTING )
   {
     if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      controller_state_ = trajectory_execution_monitor::TrajectoryControllerStates::SUCCESS;
+      controller_state_ = trajectory_execution::TrajectoryControllerStates::SUCCESS;
     }
     else
     {
       ROS_WARN_STREAM("Failed state is " << state.toString() << " code " << result->error_code);
-      controller_state_ = trajectory_execution_monitor::TrajectoryControllerStates::EXECUTION_FAILURE;
+      controller_state_ = trajectory_execution::TrajectoryControllerStates::EXECUTION_FAILURE;
     }
     
     // record overshoot
-    if( controller_state_==trajectory_execution_monitor::TrajectoryControllerStates::SUCCESS )
+    if( controller_state_==trajectory_execution::TrajectoryControllerStates::SUCCESS )
     {
       if( monitor_overshoot_ )
       {
@@ -118,3 +121,4 @@ void FollowJointTrajectoryControllerHandler::controllerFeedbackCallback(const co
   ROS_INFO_STREAM("Got feedback");
 }
 
+}
