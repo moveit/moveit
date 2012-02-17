@@ -72,11 +72,13 @@ int main(int argc, char** argv)
   vis_marker_publisher = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
+  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> 
+    kinematics_plugin_loader(new kinematics_plugin_loader::KinematicsPluginLoader());
 
   KinematicsStartGoalVisualization::KinematicsStartGoalVisualization kv(planning_scene_monitor_->getPlanningScene(),
                                                                         interactive_marker_server,
+                                                                        kinematics_plugin_loader,
                                                                         "right_arm",
-                                                                        "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
                                                                         vis_marker_array_publisher);
  
   ros::waitForShutdown();

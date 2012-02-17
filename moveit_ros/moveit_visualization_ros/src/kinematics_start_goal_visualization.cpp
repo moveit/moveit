@@ -37,8 +37,8 @@ namespace moveit_visualization_ros
 
 KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scene::PlanningSceneConstPtr planning_scene,
                                                                    boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
+                                                                   boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                                                    const std::string& group_name, 
-                                                                   const std::string& kinematics_solver_name,
                                                                    ros::Publisher& marker_publisher,
                                                                    bool show)
 {
@@ -50,18 +50,18 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
   
   start_.reset(new KinematicsGroupVisualization(planning_scene,
                                                 interactive_marker_server,
+                                                kinematics_plugin_loader,
                                                 group_name,
                                                 "start_position",
-                                                kinematics_solver_name,
                                                 makeRandomColor(.2,1.0),
                                                 bad_color,
                                                 marker_publisher));
 
   goal_.reset(new KinematicsGroupVisualization(planning_scene,
                                                interactive_marker_server,
+                                               kinematics_plugin_loader,
                                                group_name,
                                                "end_position",
-                                               kinematics_solver_name,
                                                makeRandomColor(.2,1.0),
                                                bad_color,
                                                marker_publisher));

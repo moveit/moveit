@@ -52,7 +52,7 @@ namespace moveit_visualization_ros
 class InteractiveObjectVisualization {
 public:
   
-  InteractiveObjectVisualization(planning_scene::PlanningSceneConstPtr planning_scene,
+  InteractiveObjectVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                  boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                  const std_msgs::ColorRGBA& color); 
 
@@ -69,6 +69,8 @@ public:
                         const geometry_msgs::Pose& pose);
 
 protected:
+
+  void updateOriginalPlanningScene(moveit_msgs::PlanningScenePtr& planning_scene);
 
   std::string generateNewCubeName() {
     std::stringstream iss;
@@ -109,7 +111,7 @@ protected:
   void setResizeModeGrow(const std::string& name);
   void setResizeModeShrink(const std::string& name);
   
-  void callUpdateCallback();
+  virtual void callUpdateCallback();
 
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback); 
   void processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback); 

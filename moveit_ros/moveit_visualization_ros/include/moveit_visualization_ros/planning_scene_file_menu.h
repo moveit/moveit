@@ -29,37 +29,49 @@
 
 // Author: E. Gil Jones
 
-#ifndef _PLANNING_VISUALIZATION_QT_WRAPPER_H_
-#define _PLANNING_VISUALIZATION_QT_WRAPPER_H_
+#ifndef _PLANNING_SCENE_FILE_MENU_H_
+#define _PLANNING_SCENE_FILE_MENU_H_
 
-#include <QObject>
 #include <QString>
+#include <QMenu>
+#include <QAction>
+#include <moveit_warehouse/warehouse_connector.h>
+#include <planning_scene/planning_scene.h>
+#include <moveit_visualization_ros/planning_scene_database_dialog.h>
 
-#include <moveit_visualization_ros/planning_visualization.h>
- 
 namespace moveit_visualization_ros
 {
 
-class PlanningVisualizationQtWrapper : public QObject, public PlanningVisualization
+class PlanningSceneFileMenu: public QMenu
 {
   Q_OBJECT
-public:
   
-  PlanningVisualizationQtWrapper(planning_scene::PlanningSceneConstPtr planning_scene,
-                                 const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limits_map,
-                                 boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
-                                 boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
-                                 ros::Publisher& marker_publisher) :
-    PlanningVisualization(planning_scene, group_joint_limits_map, interactive_marker_server, kinematics_plugin_loader, marker_publisher)
-  {
+  public:
+  
+  PlanningSceneFileMenu(QWidget* parent);
+  
+  PlanningSceneDatabaseDialog* getDatabaseDialog() {
+    return database_dialog_;
   }
+                                                                 
+public Q_SLOTS:
 
-  ~PlanningVisualizationQtWrapper() {
-  }
+  void connectToNewDatabaseSignalled();
+  void saveCurrentPlanningSceneSignalled();
+  void updatePlanningSceneSignalled(planning_scene::PlanningSceneConstPtr);
+  void loadPlanningSceneSignalled();
 
-public Q_SLOTS: 
+Q_SIGNALS:
 
-  void newGroupSelected(const QString&);
+protected:
+  
+  moveit_warehouse::WarehouseConnector warehouse_connector_;
+  boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> storage_;
+  planning_scene::PlanningSceneConstPtr planning_scene_;
+  PlanningSceneDatabaseDialog* database_dialog_;
+  
+  QAction* save_current_scene_;
+  QAction* load_planning_scene_;
 
 };
 

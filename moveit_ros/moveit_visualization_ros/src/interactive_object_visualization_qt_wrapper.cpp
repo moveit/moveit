@@ -39,6 +39,11 @@ void InteractiveObjectVisualizationQtWrapper::addCubeSignalled() {
   addCube();
 }
 
+void InteractiveObjectVisualizationQtWrapper::callUpdateCallback() {
+  InteractiveObjectVisualization::callUpdateCallback();
+  updatePlanningSceneSignal(planning_scene_diff_);
+}
+
 void InteractiveObjectVisualizationQtWrapper::addCollisionObjectSignalled(const moveit_msgs::CollisionObject& obj,
                                                                           const QColor& color)
 {
@@ -46,6 +51,10 @@ void InteractiveObjectVisualizationQtWrapper::addCollisionObjectSignalled(const 
             obj.poses[0],
             obj.shapes[0],
             convertQColorToRGBA(color));
+}
+
+void InteractiveObjectVisualizationQtWrapper::loadPlanningSceneSignalled(moveit_msgs::PlanningScenePtr planning_scene) {
+  updateOriginalPlanningScene(planning_scene);
 }
 
 }

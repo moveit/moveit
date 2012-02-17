@@ -41,9 +41,10 @@ namespace moveit_visualization_ros {
 PlanningVisualization::PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                              const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limit_map,
                                              boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
+                                             boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                              ros::Publisher& marker_publisher)
   : planning_scene_(planning_scene), 
-    ompl_interface_(planning_scene->getKinematicModel()),
+    ompl_interface_(planning_scene->getKinematicModel(), kinematics_plugin_loader),
     group_joint_limit_map_(group_joint_limit_map)
 {
   const std::vector<srdf::Model::Group>& groups = planning_scene_->getSrdfModel()->getGroups();
@@ -52,11 +53,11 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
     //special for arms for now
     if(groups[i].chains_.size() > 0 || groups[i].name_ == "arms") {
       group_visualization_map_[groups[i].name_].reset(new KinematicsStartGoalVisualization(planning_scene,
-                                                                                            interactive_marker_server,
-                                                                                            groups[i].name_,
-                                                                                            "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
-                                                                                            marker_publisher,
-                                                                                            false));
+                                                                                           interactive_marker_server,
+                                                                                           kinematics_plugin_loader,
+                                                                                           groups[i].name_,
+                                                                                           marker_publisher,
+                                                                                           false));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this, _1));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Random start / goal", boost::bind(&PlanningVisualization::generateRandomStartEnd, this, _1));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Reset start and goal", boost::bind(&PlanningVisualization::resetStartGoal, this, _1));
