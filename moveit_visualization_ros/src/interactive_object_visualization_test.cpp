@@ -95,11 +95,14 @@ int main(int argc, char** argv)
   bad_color.a = 1.0;    
   bad_color.r = 1.0;    
 
+  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> 
+    kinematics_plugin_loader(new kinematics_plugin_loader::KinematicsPluginLoader());
+
   kv_.reset(new KinematicsGroupVisualization(planning_scene_monitor_->getPlanningScene(),
                                              interactive_marker_server_,
+                                             kinematics_plugin_loader,
                                              "right_arm",
                                              "state",
-                                             "pr2_arm_kinematics/PR2ArmKinematicsPlugin",
                                              good_color,
                                              bad_color,
                                              vis_marker_array_publisher));

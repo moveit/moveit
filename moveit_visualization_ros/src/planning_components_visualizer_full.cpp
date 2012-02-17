@@ -41,6 +41,7 @@
 #include <moveit_visualization_ros/interactive_object_visualization_widget.h>
 #include <moveit_visualization_ros/primitive_object_addition_dialog.h>
 #include <moveit_visualization_ros/planning_group_selection_menu.h>
+#include <moveit_visualization_ros/planning_scene_file_menu.h>
 #include <moveit_visualization_ros/planning_visualization_qt_wrapper.h>
 #include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
 #include <OGRE/OgreLogManager.h>
@@ -85,15 +86,32 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "planning_components_visualizer_full", ros::init_options::NoSigintHandler);
 
+  ros::NodeHandle nh;
+  ros::NodeHandle loc_nh("~");
+
+  bool monitor_robot_state = false;
+  loc_nh.param("monitor_robot_state", monitor_robot_state, false);
+
+  // boost::shared_ptr<trajectory_execution::
+  // if(monitor_robot_state) {
+  //   bool allow_trajectory_execution = false;
+  //   loc_nh.param("allow_trajectory_execution", allow_trajectory_execution, false);
+  //   if(allow_trajectory_execution) {
+      
+  //   }
+  // }
+
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
   interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
   joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
 
-  boost::thread publisher_thread(boost::bind(&publisher_function));
-
-  ros::NodeHandle nh;
-
+  if(!monitor_robot_state) {
+    boost::thread publisher_thread(boost::bind(&publisher_function));
+  } else {
+    planning_scene_monitor_->startStateMonitor();
+  }
+  
   ros::Publisher vis_marker_array_publisher;
   ros::Publisher vis_marker_publisher;
 
@@ -112,9 +130,13 @@ int main(int argc, char **argv)
   bad_color.a = 1.0;    
   bad_color.r = 1.0;    
 
+  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> 
+    kinematics_plugin_loader(new kinematics_plugin_loader::KinematicsPluginLoader());
+
   pv_.reset(new PlanningVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
                                                planning_scene_monitor_->getGroupJointLimitsMap(),
                                                interactive_marker_server_,
+                                               kinematics_plugin_loader,
                                                vis_marker_array_publisher));
   
   iov_.reset(new InteractiveObjectVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
@@ -161,16 +183,25 @@ int main(int argc, char **argv)
 
   QHBoxLayout* main_layout = new QHBoxLayout;
   QMenuBar* menu_bar = new QMenuBar(main_window);
-  PlanningGroupSelectionMenu* planning_group_selection_menu = new PlanningGroupSelectionMenu(menu_bar);
+  PlanningSceneFileMenu* planning_scene_file_menu = new PlanningSceneFileMenu(menu_bar);
+  QObject::connect(iov_.get(),
+                   SIGNAL(updatePlanningSceneSignal(planning_scene::PlanningSceneConstPtr)),
+                   planning_scene_file_menu,
+                   SLOT(updatePlanningSceneSignalled(planning_scene::PlanningSceneConstPtr)));
+  QObject::connect(planning_scene_file_menu->getDatabaseDialog(),
+                   SIGNAL(planningSceneLoaded(moveit_msgs::PlanningScenePtr)),
+                   iov_.get(),
+                   SLOT(loadPlanningSceneSignalled(moveit_msgs::PlanningScenePtr)));
+  menu_bar->addMenu(planning_scene_file_menu);
 
+  PlanningGroupSelectionMenu* planning_group_selection_menu = new PlanningGroupSelectionMenu(menu_bar);
   QObject::connect(planning_group_selection_menu, 
                    SIGNAL(groupSelected(const QString&)),
                    pv_.get(),
                    SLOT(newGroupSelected(const QString&)));
-
   planning_group_selection_menu->init(planning_scene_monitor_->getPlanningScene()->getSrdfModel());
-
   menu_bar->addMenu(planning_group_selection_menu);
+
   QMenu* coll_object_menu = menu_bar->addMenu("Collision Objects");
 
   QAction* show_primitive_objects_dialog = coll_object_menu->addAction("Add Primitive Collision Object");

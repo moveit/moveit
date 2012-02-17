@@ -38,6 +38,7 @@
 #include <ompl_interface_ros/ompl_interface_ros.h>
 #include <boost/function.hpp>
 #include <trajectory_processing/trajectory_smoother.h>
+#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
 
 namespace moveit_visualization_ros
 {
@@ -49,6 +50,7 @@ public:
   PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                         const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limit_map,
                         boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
+                        boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                         ros::Publisher& marker_publisher);
   
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);

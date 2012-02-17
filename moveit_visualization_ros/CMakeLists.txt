@@ -32,6 +32,8 @@ qt4_wrap_cpp(MOC_FILES
   include/moveit_visualization_ros/interactive_object_visualization_qt_wrapper.h
   include/moveit_visualization_ros/primitive_object_addition_dialog.h
   include/moveit_visualization_ros/planning_group_selection_menu.h
+  include/moveit_visualization_ros/planning_scene_file_menu.h
+  include/moveit_visualization_ros/planning_scene_database_dialog.h
   include/moveit_visualization_ros/planning_visualization_qt_wrapper.h
 )
 
@@ -52,6 +54,8 @@ rosbuild_add_library(${PROJECT_NAME}
   src/primitive_object_addition_dialog.cpp
   src/planning_group_selection_menu.cpp
   src/planning_visualization_qt_wrapper.cpp
+  src/planning_scene_file_menu.cpp
+  src/planning_scene_database_dialog.cpp
   ${MOC_FILES}
   )
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})

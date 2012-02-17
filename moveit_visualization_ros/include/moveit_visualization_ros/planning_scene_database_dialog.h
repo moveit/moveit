@@ -29,38 +29,64 @@
 
 // Author: E. Gil Jones
 
-#ifndef _PLANNING_VISUALIZATION_QT_WRAPPER_H_
-#define _PLANNING_VISUALIZATION_QT_WRAPPER_H_
+#ifndef _PLANNING_SCENE_DATABASE_DIALOG_H_
+#define _PLANNING_SCENE_DATABASE_DIALOG_H_
 
-#include <QObject>
+#include <moveit_warehouse/warehouse.h>
+#include <planning_scene/planning_scene.h>
+
 #include <QString>
+#include <QMenu>
+#include <QAction>
+#include <QTableWidget>
+#include <QDialog>
+#include <QDateTime>
 
-#include <moveit_visualization_ros/planning_visualization.h>
- 
 namespace moveit_visualization_ros
 {
 
-class PlanningVisualizationQtWrapper : public QObject, public PlanningVisualization
+class PlanningSceneDatabaseDialog: public QDialog
 {
   Q_OBJECT
-public:
   
-  PlanningVisualizationQtWrapper(planning_scene::PlanningSceneConstPtr planning_scene,
-                                 const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limits_map,
-                                 boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
-                                 boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
-                                 ros::Publisher& marker_publisher) :
-    PlanningVisualization(planning_scene, group_joint_limits_map, interactive_marker_server, kinematics_plugin_loader, marker_publisher)
-  {
+  public:
+
+  PlanningSceneDatabaseDialog(QWidget* parent);
+                                             
+  void populateDatabaseDialog(boost::shared_ptr<moveit_warehouse::PlanningSceneStorage>& storage);
+                                                                                                
+public Q_SLOTS:
+
+  void loadSignalled();
+
+Q_SIGNALS:
+
+  void planningSceneLoaded(moveit_msgs::PlanningScenePtr);
+
+protected:
+
+  virtual void showEvent(QShowEvent* event);
+  
+  QTableWidget* planning_scene_table_;
+  boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> storage_;
+};
+
+class PlanningSceneDateTableItem: public QObject, public QTableWidgetItem
+{
+  Q_OBJECT
+  public:
+  
+  PlanningSceneDateTableItem(const QString& qs) : QTableWidgetItem(qs) {}
+  
+  bool operator< (const QTableWidgetItem& other) const {
+    QDateTime other_time = QDateTime::fromString(other.text());
+    QDateTime my_time = QDateTime::fromString(this->text());
+    if(my_time < other_time) {
+      return true;
+    } else {
+      return false;
+    }
   }
-
-  ~PlanningVisualizationQtWrapper() {
-  }
-
-public Q_SLOTS: 
-
-  void newGroupSelected(const QString&);
-
 };
 
 }

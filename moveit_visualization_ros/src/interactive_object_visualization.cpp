@@ -36,7 +36,7 @@ static const double MIN_DIMENSION = .02;
 
 namespace moveit_visualization_ros {
 
-InteractiveObjectVisualization::InteractiveObjectVisualization(planning_scene::PlanningSceneConstPtr planning_scene,
+InteractiveObjectVisualization::InteractiveObjectVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                                                const std_msgs::ColorRGBA& color) 
   : planning_scene_(planning_scene),
@@ -473,6 +473,29 @@ void InteractiveObjectVisualization::processInteractiveMenuFeedback(const visual
   }
 
   menu_handle_to_function_maps_[feedback->marker_name][feedback->menu_entry_id](feedback->marker_name);
+}
+
+void InteractiveObjectVisualization::updateOriginalPlanningScene(moveit_msgs::PlanningScenePtr& ptr) {
+  ROS_INFO_STREAM("Updating original");
+  //need to get rid of everything that's been added
+  for(std::map<std::string, bool>::iterator it = dof_marker_enabled_.begin();
+      it != dof_marker_enabled_.end();
+      it++) {
+    interactive_marker_server_->erase(it->first);
+  }
+  dof_marker_enabled_.clear();
+  object_menu_handlers_.clear();
+  menu_name_to_handle_maps_.clear();
+  menu_handle_to_function_maps_.clear();
+  interactive_marker_server_->applyChanges();
+  planning_scene_diff_.reset(new planning_scene::PlanningScene(planning_scene_));
+  planning_scene_diff_->setPlanningSceneMsg(*ptr);
+  for(unsigned int i = 0; i < ptr->world.collision_objects.size(); i++) {
+    addObject(ptr->world.collision_objects[i].id,
+              ptr->world.collision_objects[i].poses[0],
+              ptr->world.collision_objects[i].shapes[0]);
+  }
+  callUpdateCallback();
 }
 
 }

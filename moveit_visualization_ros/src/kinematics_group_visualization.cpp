@@ -43,9 +43,9 @@ namespace moveit_visualization_ros
 
 KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene, 
                                                            boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
+                                                           boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                                            const std::string& group_name, 
                                                            const std::string& suffix_name,
-                                                           const std::string& kinematics_solver_name,
                                                            const std_msgs::ColorRGBA& good_color,
                                                            const std_msgs::ColorRGBA& bad_color,
                                                            ros::Publisher& marker_publisher) :
@@ -66,8 +66,6 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
   const std::map<std::string, srdf::Model::Group>& group_map 
     = planning_scene_->getKinematicModel()->getJointModelGroupConfigMap();
   
-  kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));    
-  
   if(group_map.find(group_name) == group_map.end()) {
     ROS_ERROR_STREAM("No group named " << group_name);
     return;
@@ -84,6 +82,8 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
     return;
   }
 
+  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_plugin_loader->getLoaderFunction();
+
   if(subgroups) {
     std::map<std::string, kinematics::KinematicsBasePtr> solver_map;
     for(unsigned int i = 0; i < srdf_group.subgroups_.size(); i++) {
@@ -92,9 +92,12 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
       if(subgroup.chains_.size() > 0) {
         subgroup_chain_names_.push_back(subgroup.name_);
       }
-      kinematics::KinematicsBasePtr result;
-      result.reset(kinematics_loader_->createClassInstance(kinematics_solver_name));
-      solver_map[subgroup.name_] = result;
+      if(!kinematics_plugin_loader->isGroupKnown(subgroup.name_)) {
+        ROS_WARN_STREAM("No loader for group " << subgroup.name_);
+        continue;
+      }
+      const planning_models::KinematicModel::JointModelGroup* jmg = planning_scene_->getKinematicModel()->getJointModelGroup(subgroup.name_); 
+      solver_map[subgroup.name_] = kinematics_allocator(jmg);
       group_to_interactive_marker_names_[srdf_group.subgroups_[i]] = makeInteractiveMarkerName(srdf_group.subgroups_[i]);
       interactive_marker_to_group_names_[makeInteractiveMarkerName(srdf_group.subgroups_[i])] = srdf_group.subgroups_[i];
     }
@@ -130,9 +133,12 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
     last_poses_ = poses;
     updateEndEffectorState(poses.begin()->first, poses.begin()->second);
   } else {
-    kinematics::KinematicsBasePtr result;
-    result.reset(kinematics_loader_->createClassInstance(kinematics_solver_name));
-
+    if(!kinematics_plugin_loader->isGroupKnown(group_name)) {
+      ROS_WARN_STREAM("No loader for group " << group_name);
+      return;
+    }
+    const planning_models::KinematicModel::JointModelGroup* jmg = planning_scene_->getKinematicModel()->getJointModelGroup(group_name); 
+    kinematics::KinematicsBasePtr result = kinematics_allocator(jmg);
 
     ik_solver_.reset(new kinematics_constraint_aware::KinematicsSolverConstraintAware(result,
                                                                                       planning_scene_->getKinematicModel(),

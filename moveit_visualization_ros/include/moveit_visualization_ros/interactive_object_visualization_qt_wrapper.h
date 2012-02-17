@@ -35,6 +35,7 @@
 #include <ros/ros.h>
 #include <QObject>
 #include <QColor>
+#include <QMetaType>
 
 #include <moveit_visualization_ros/interactive_object_visualization.h>
 #include <moveit_msgs/CollisionObject.h>
@@ -52,10 +53,13 @@ public:
                                           const std_msgs::ColorRGBA& color) :
     InteractiveObjectVisualization(planning_scene, interactive_marker_server, color)
   {
+    qRegisterMetaType<planning_scene::PlanningSceneConstPtr>("PlanningSceneConstPtr");
   }
 
   ~InteractiveObjectVisualizationQtWrapper() {
   }
+
+  virtual void callUpdateCallback();
 
 public Q_SLOTS: 
 
@@ -63,6 +67,12 @@ public Q_SLOTS:
 
   void addCollisionObjectSignalled(const moveit_msgs::CollisionObject&,
                                    const QColor&);
+
+  void loadPlanningSceneSignalled(moveit_msgs::PlanningScenePtr);
+
+Q_SIGNALS:
+  
+  void updatePlanningSceneSignal(planning_scene::PlanningSceneConstPtr);
 
 };
 

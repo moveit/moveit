@@ -39,6 +39,7 @@
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
+#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
 
 namespace moveit_visualization_ros
 {
@@ -48,9 +49,9 @@ public:
   
   KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene_monitor,
                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
+                               boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                const std::string& group_name, 
                                const std::string& suffix_name, 
-                               const std::string& kinematics_solver_name,
                                const std_msgs::ColorRGBA& good_color,
                                const std_msgs::ColorRGBA& bad_color,
                                ros::Publisher& marker_publisher);
@@ -155,7 +156,6 @@ protected:
   planning_models::KinematicState state_;
   ros::Publisher marker_publisher_;
   
-  boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
   boost::shared_ptr<kinematics_constraint_aware::KinematicsSolverConstraintAware> ik_solver_;
   
   boost::function<void(void)> button_click_callback_;
