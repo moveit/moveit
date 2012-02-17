@@ -57,6 +57,14 @@ public:
   {
     return groups_;
   }
+  bool isGroupKnown(const std::string& name) const {
+    for(unsigned int i = 0; i < groups_.size(); i++) {
+      if(groups_[i] == name) {
+        return true;
+      }
+    }
+    return false;
+  }
   void status(void) const;
   
 private:
