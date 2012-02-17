@@ -48,6 +48,11 @@ namespace ompl_interface_ros
        *  @param scene A pointer to the planning scene*/
       OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel);
 
+      /** @brief Constructor
+       *  @param scene A pointer to the planning scene*/
+      OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel,
+                       boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& loader);
+
       /** @brief Print the status of this node*/
       void printStatus(void);
 
@@ -65,7 +70,7 @@ namespace ompl_interface_ros
       ros::NodeHandle                         nh_; /// The ROS node handle
 
     private:
-      kinematics_plugin_loader::KinematicsPluginLoader kinematics_loader_;
+      boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> kinematics_loader_;
     };
 
 }

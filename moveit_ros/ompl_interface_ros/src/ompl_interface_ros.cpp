@@ -38,7 +38,20 @@
 #include <boost/thread/mutex.hpp>
 #include <sstream>
 
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel) : ompl_interface::OMPLInterface(kmodel), nh_("~")
+ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel) : ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(new kinematics_plugin_loader::KinematicsPluginLoader())
+{
+  ROS_INFO("Initializing OMPL interface using ROS parameters");
+  loadPlannerConfigurations();
+  loadKinematicsSolvers();
+  
+  /*    loadConstraintApproximations("/u/isucan/c/");
+        std::stringstream ss;
+        printConstraintApproximations(ss);
+        ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str()); */
+}
+
+ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel,
+                                                       boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& loader) : ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(loader)
 {
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
@@ -89,8 +102,8 @@ std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConf
 
 void ompl_interface_ros::OMPLInterfaceROS::loadKinematicsSolvers(void)
 {
-  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_.getLoaderFunction();
-  const std::vector<std::string> &groups = kinematics_loader_.getKnownGroups();
+  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction();
+  const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
   
   std::map<std::string, kinematic_constraints::IKAllocator> imap;
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
