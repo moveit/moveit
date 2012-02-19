@@ -34,10 +34,10 @@
 
 /** \author E. Gil Jones, Ken Anderson */
 
-#include <trajectory_execution_monitor/trajectory_controller_handler.h>
-#include <trajectory_execution_monitor/trajectory_stats.h>
+#include <trajectory_execution/trajectory_controller_handler.h>
+#include <trajectory_execution/trajectory_stats.h>
 
-using namespace trajectory_execution_monitor;
+using namespace trajectory_execution;
 
 unsigned int TrajectoryControllerHandler::findClosestIndex( ros::Duration time_from_start )
 {

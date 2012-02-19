@@ -34,11 +34,11 @@
 
 /** \author E. Gil Jones, Ken Anderson */
 
-#include <trajectory_execution_monitor/trajectory_execution_monitor.h>
-#include <trajectory_execution_monitor/trajectory_stats.h>
+#include <trajectory_execution/trajectory_execution_monitor.h>
+#include <trajectory_execution/trajectory_stats.h>
 #include <planning_models/kinematic_state.h>
 
-using namespace trajectory_execution_monitor;
+using namespace trajectory_execution;
 
 TrajectoryExecutionRequest::TrajectoryExecutionRequest() :
   monitor_overshoot_(false),

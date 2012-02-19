@@ -34,9 +34,9 @@
 
 /** \author E. Gil Jones */
 
-#include <trajectory_execution_monitor/trajectory_recorder.h>
+#include <trajectory_execution/trajectory_recorder.h>
 
-using namespace trajectory_execution_monitor;
+using namespace trajectory_execution;
 
 void TrajectoryRecorder::callCallbacks(const ros::Time& time,
                                        const std::map<std::string, double>& joint_positions,
