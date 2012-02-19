@@ -117,6 +117,28 @@ public:
       ROS_DEBUG("No usable kinematics solver was found for this group");
     return result;
   }
+
+  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolverWithCache(const planning_models::KinematicModel::JointModelGroup *jmg)
+  {
+    {
+      boost::mutex::scoped_lock slock(lock_);
+      const std::vector<boost::shared_ptr<kinematics::KinematicsBase> > &vi = instances_[jmg];
+      for (std::size_t i = 0 ;  i < vi.size() ; ++i)
+        if (vi[i].unique())
+        {
+          ROS_DEBUG("Reusing cached kinematics solver for group '%s'", jmg->getName().c_str());
+          return vi[i]; // this is safe since the shared_ptr is copied on stack BEFORE the destructors in scope get called 
+        }
+    }
+    
+    boost::shared_ptr<kinematics::KinematicsBase> res = allocKinematicsSolver(jmg);
+    
+    {
+      boost::mutex::scoped_lock slock(lock_);
+      instances_[jmg].push_back(res);
+      return res;
+    }
+  }
   
   void status(void) const
   {
@@ -130,6 +152,8 @@ private:
   std::map<std::string, std::vector<std::string> >                       possible_kinematics_solvers_;
   std::map<std::string, std::vector<double> >                            search_res_;
   boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
+  std::map<const planning_models::KinematicModel::JointModelGroup*,
+           std::vector<boost::shared_ptr<kinematics::KinematicsBase> > > instances_;
   boost::mutex                                                           lock_;
 };
 
@@ -214,5 +238,5 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
     loader_.reset(new KinematicsLoaderImpl(possible_kinematics_solvers, search_res));
   }
 
-  return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolver, loader_.get(), _1);
+  return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(), _1);
 }
