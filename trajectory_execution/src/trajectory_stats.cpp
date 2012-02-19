@@ -38,10 +38,10 @@
 
 #include <cmath>
 #include <ros/ros.h>
-#include <trajectory_execution_monitor/trajectory_stats.h>
+#include <trajectory_execution/trajectory_stats.h>
 
 using namespace std;
-using namespace trajectory_execution_monitor;
+using namespace trajectory_execution;
 
 ros::Duration TrajectoryStats::getDuration(const trajectory_msgs::JointTrajectory& trajectory)
 {

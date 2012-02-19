@@ -42,7 +42,7 @@
 
 #include <trajectory_msgs/JointTrajectory.h>
 
-namespace trajectory_execution_monitor
+namespace trajectory_execution
 {
 
 /// \brief Function that gets called when new state information arrives

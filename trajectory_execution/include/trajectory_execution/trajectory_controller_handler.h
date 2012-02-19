@@ -40,9 +40,9 @@
 #include <ros/ros.h>
 #include <boost/function.hpp>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <trajectory_execution_monitor/trajectory_recorder.h>
+#include <trajectory_execution/trajectory_recorder.h>
 
-namespace trajectory_execution_monitor
+namespace trajectory_execution
 {
 
 namespace TrajectoryControllerStates
@@ -179,8 +179,8 @@ protected:
   ros::Duration min_overshoot_time_;
   ros::Duration max_overshoot_time_;
 
-  boost::shared_ptr<trajectory_execution_monitor::TrajectoryRecorder> recorder_;
-  trajectory_execution_monitor::TrajectoryFinishedCallbackFunction trajectory_finished_callback_;
+  boost::shared_ptr<trajectory_execution::TrajectoryRecorder> recorder_;
+  trajectory_execution::TrajectoryFinishedCallbackFunction trajectory_finished_callback_;
   TrajectoryControllerState	controller_state_;
 
   // Used for timeout
