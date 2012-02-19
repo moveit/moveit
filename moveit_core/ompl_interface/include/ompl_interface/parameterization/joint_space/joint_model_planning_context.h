@@ -46,7 +46,7 @@ namespace ompl_interface
 class JointModelPlanningContext : public ModelBasedPlanningContext
 {
 public:
-  JointModelPlanningContext(const std::string &name, const KinematicModelStateSpacePtr &state_space, const ModelBasedPlanningContextSpecification &spec) :
+  JointModelPlanningContext(const std::string &name, const ModelBasedStateSpacePtr &state_space, const ModelBasedPlanningContextSpecification &spec) :
     ModelBasedPlanningContext(name, state_space, spec)
   {
   }

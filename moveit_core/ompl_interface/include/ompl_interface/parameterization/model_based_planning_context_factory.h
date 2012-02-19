@@ -58,7 +58,7 @@ public:
   }
   
   ModelBasedPlanningContextPtr getNewPlanningContext(const std::string &name,
-                                                     const KinematicModelStateSpaceSpecification &space_spec,
+                                                     const ModelBasedStateSpaceSpecification &space_spec,
                                                      const ModelBasedPlanningContextSpecification &context_spec) const;
   const std::string& getType(void) const
   {
@@ -71,7 +71,7 @@ public:
 protected:
   
   virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
-                                                            const KinematicModelStateSpaceSpecification &space_spec,
+                                                            const ModelBasedStateSpaceSpecification &space_spec,
                                                             const ModelBasedPlanningContextSpecification &context_spec) const = 0;
   std::string type_;
 };

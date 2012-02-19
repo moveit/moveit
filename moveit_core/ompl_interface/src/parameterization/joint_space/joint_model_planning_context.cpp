@@ -89,8 +89,8 @@ ompl::base::StateSamplerPtr ompl_interface::JointModelPlanningContext::allocPath
   if (path_constraints_)
   {
     kc::ConstraintSamplerPtr cs = kc::constructConstraintsSampler(getJointModelGroup(), path_constraints_->getAllConstraints(), getKinematicModel(),
-                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getIKAllocator(),
-                                                                  ompl_state_space_->getIKSubgroupAllocators());
+                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getKinematicsAllocator(), 
+                                                                  ompl_state_space_->getKinematicsSubgroupAllocators());
     if (cs)
     {
       ROS_DEBUG("%s: Allocating specialized state sampler for state space", name_.c_str());

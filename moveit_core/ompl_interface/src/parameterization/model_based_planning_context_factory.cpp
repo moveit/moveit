@@ -37,11 +37,10 @@
 #include "ompl_interface/parameterization/model_based_planning_context_factory.h"
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::ModelBasedPlanningContextFactory::getNewPlanningContext(const std::string &name,
-                                                                                                                     const KinematicModelStateSpaceSpecification &space_spec,
+                                                                                                                     const ModelBasedStateSpaceSpecification &space_spec,
                                                                                                                      const ModelBasedPlanningContextSpecification &context_spec) const
 {
   ModelBasedPlanningContextPtr mp = allocPlanningContext(name, space_spec, context_spec);
-  mp->getOMPLStateSpace()->useIKAllocators(context_spec.ik_allocators_);
   mp->configure();
   return mp;
 }

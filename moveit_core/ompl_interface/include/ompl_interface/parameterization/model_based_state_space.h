@@ -40,7 +40,7 @@
 #include <ompl/base/StateSpace.h>
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
-#include <moveit_msgs/JointLimits.h>
+#include <kinematic_constraints/kinematic_constraint.h>
 #include <kinematic_constraints/constraint_samplers.h>
 
 namespace ompl_interface
@@ -50,19 +50,19 @@ namespace ob = ompl::base;
 namespace pm = planning_models;
 namespace kc = kinematic_constraints;
 
-class KinematicModelStateSpace;
-typedef boost::shared_ptr<KinematicModelStateSpace> KinematicModelStateSpacePtr;
+class ModelBasedStateSpace;
+typedef boost::shared_ptr<ModelBasedStateSpace> ModelBasedStateSpacePtr;
 
-struct KinematicModelStateSpaceSpecification
+struct ModelBasedStateSpaceSpecification
 {
-  KinematicModelStateSpaceSpecification(const pm::KinematicModelConstPtr &kmodel,
-                                        const pm::KinematicModel::JointModelGroup *jmg) :
+  ModelBasedStateSpaceSpecification(const pm::KinematicModelConstPtr &kmodel,
+                                    const pm::KinematicModel::JointModelGroup *jmg) :
     kmodel_(kmodel), joint_model_group_(jmg)
   {
   }
-
-  KinematicModelStateSpaceSpecification(const pm::KinematicModelConstPtr &kmodel,
-                                        const std::string &group_name) :
+  
+  ModelBasedStateSpaceSpecification(const pm::KinematicModelConstPtr &kmodel,
+                                    const std::string &group_name) :
     kmodel_(kmodel), joint_model_group_(kmodel_->getJointModelGroup(group_name))
   {
     if (!joint_model_group_)
@@ -71,9 +71,11 @@ struct KinematicModelStateSpaceSpecification
   
   pm::KinematicModelConstPtr                 kmodel_;
   const pm::KinematicModel::JointModelGroup *joint_model_group_;
+  kc::IKAllocator                            kinematics_allocator_;
+  kc::IKSubgroupAllocator                    kinematics_subgroup_allocators_;
 };
 
-class KinematicModelStateSpace : public ob::CompoundStateSpace
+class ModelBasedStateSpace : public ob::CompoundStateSpace
 {
 public:
   
@@ -87,15 +89,15 @@ public:
     int tag;
   };
   
-  KinematicModelStateSpace(const KinematicModelStateSpaceSpecification &spec) : 
+  ModelBasedStateSpace(const ModelBasedStateSpaceSpecification &spec) : 
     ob::CompoundStateSpace(), spec_(spec)
   {
   }
   
-  virtual ~KinematicModelStateSpace(void)
+  virtual ~ModelBasedStateSpace(void)
   {
   }
-    
+  
   virtual ob::State* allocState(void) const;
   virtual void freeState(ob::State *state) const;
   virtual void copyState(ob::State *destination, const ob::State *source) const;
@@ -116,7 +118,7 @@ public:
     return getJointModelGroup()->getName();
   }
   
-  const KinematicModelStateSpaceSpecification& getSpecification(void) const
+  const ModelBasedStateSpaceSpecification& getSpecification(void) const
   {
     return spec_;
   }
@@ -139,25 +141,19 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
 
-  void useIKAllocators(const std::map<std::string, kc::IKAllocator> &ik_allocators);
-  
-  const kc::IKAllocator& getIKAllocator(void) const
+  const kc::IKAllocator& getKinematicsAllocator(void) const
   {
-    return ik_allocator_;
+    return spec_.kinematics_allocator_;
   }
 
-  const kc::IKSubgroupAllocator& getIKSubgroupAllocators(void) const
+  const kc::IKSubgroupAllocator& getKinematicsSubgroupAllocators(void) const
   {
-    return ik_subgroup_allocators_;
+    return spec_.kinematics_subgroup_allocators_;
   }
   
 protected:
   
-  KinematicModelStateSpaceSpecification spec_; 
-
-  /// a function pointer that returns an IK solver for this group; this is useful for sampling states using IK
-  kc::IKAllocator         ik_allocator_;
-  kc::IKSubgroupAllocator ik_subgroup_allocators_;
+  ModelBasedStateSpaceSpecification spec_; 
   
 };
 }

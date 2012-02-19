@@ -43,7 +43,6 @@
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/tools/multiplan/ParallelPlan.h>
-#include <kinematic_constraints/kinematic_constraint.h>
 
 namespace ompl_interface
 {
@@ -59,7 +58,6 @@ typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si
 struct ModelBasedPlanningContextSpecification
 {
   std::map<std::string, std::string> config_;
-  std::map<std::string, kc::IKAllocator> ik_allocators_;
   ConfiguredPlannerAllocator planner_allocator_;
 };
   
@@ -67,7 +65,7 @@ class ModelBasedPlanningContext
 {  
 public:  
   
-  ModelBasedPlanningContext(const std::string &name, const KinematicModelStateSpacePtr &state_space, const ModelBasedPlanningContextSpecification &spec);
+  ModelBasedPlanningContext(const std::string &name, const ModelBasedStateSpacePtr &state_space, const ModelBasedPlanningContextSpecification &spec);
   
   virtual ~ModelBasedPlanningContext(void)
   {
@@ -77,7 +75,12 @@ public:
   {
     return name_;
   }
-  
+
+  const ModelBasedPlanningContextSpecification& getSpecification(void) const
+  {
+    return spec_;
+  }
+
   const pm::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return ompl_state_space_->getKinematicModel();
@@ -103,7 +106,7 @@ public:
     return complete_initial_robot_state_;
   }
   
-  const KinematicModelStateSpacePtr& getOMPLStateSpace(void) const
+  const ModelBasedStateSpacePtr& getOMPLStateSpace(void) const
   {
     return ompl_state_space_;
   }
@@ -249,7 +252,7 @@ protected:
   
   std::string name_;
   
-  KinematicModelStateSpacePtr ompl_state_space_;
+  ModelBasedStateSpacePtr ompl_state_space_;
   pm::KinematicState          complete_initial_robot_state_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
 
@@ -264,10 +267,9 @@ protected:
   
   kc::KinematicConstraintSetPtr           path_constraints_;
   std::vector<kc::KinematicConstraintSetPtr> goal_constraints_;
-  
+
   /// the time spent computing the last plan
-  double                                                  last_plan_time_;
-  
+  double                                                  last_plan_time_;  
 
   /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
   unsigned int                                            max_goal_samples_;

@@ -36,8 +36,8 @@
 
 #include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
 
-ompl_interface::JointModelStateSpace::JointModelStateSpace(const KinematicModelStateSpaceSpecification &spec) :
-  KinematicModelStateSpace(spec), helper_(spec.joint_model_group_->getJointModels())
+ompl_interface::JointModelStateSpace::JointModelStateSpace(const ModelBasedStateSpaceSpecification &spec) :
+  ModelBasedStateSpace(spec), helper_(spec.joint_model_group_->getJointModels())
 {
   const ob::StateSpacePtr &space = helper_.getStateSpace();
   unsigned int ns = space->as<ob::CompoundStateSpace>()->getSubSpaceCount();

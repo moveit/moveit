@@ -39,32 +39,74 @@
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
 #include "ompl_interface/parameterization/joint_space/joint_model_state_space_helper.h"
+#include <ompl/base/spaces/SE3StateSpace.h>
 
 namespace ompl_interface
 {
 
-class PoseModelStateSpace : public KinematicModelStateSpace
+class PoseModelStateSpace : public ModelBasedStateSpace
 {
 public:
-  
-  PoseModelStateSpace(const KinematicModelStateSpaceSpecification &spec, unsigned int count) : 
-    KinematicModelStateSpace(spec), count_(count)
+
+  /// Add a tag to the state representation
+  class StateType : public ModelBasedStateSpace::StateType
   {
-    configure();
+  public:
+    StateType(void) : ModelBasedStateSpace::StateType(), joints_computed(true), pose_computed(false)
+    {
+    }    
+    bool joints_computed;
+    bool pose_computed;
+  };
+  
+  PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
+
+  virtual ~PoseModelStateSpace(void)
+  {
   }
+  
+  virtual ob::State* allocState(void) const;
+  virtual void freeState(ob::State *state) const;  
+  virtual void copyState(ob::State *destination, const ob::State *source) const;
+  virtual void interpolate(const ob::State *from, const ob::State *to, const double t, ob::State *state) const;
   
   virtual void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const;
   virtual void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const;
   virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const;
   
-  virtual void setup(void);
-  
 private:
   
-  void configure(void);
+  struct PoseComponent
+  {
+    PoseComponent(const pm::KinematicModel::JointModelGroup *subgroup, 
+                  const kc::IKAllocator &kinematics_allocator);
+    
+    bool computeStateFK(ob::State *state) const;
+    bool computeStateIK(ob::State *state) const;
+
+    const pm::KinematicModel::JointModelGroup *subgroup_;    
+    boost::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
+    JointModelStateSpaceHelper joint_model_;
+    ob::SE3StateSpace *se3_component_;
+    ob::StateSpacePtr state_space_;
+    std::vector<std::string> fk_link_;
+    std::vector<std::string> joint_names_;
+    std::vector<unsigned int> joint_val_count_;
+    unsigned int variable_count_;
+  };
   
-  unsigned int count_;
-  boost::scoped_ptr<JointModelStateSpaceHelper> redundancy_;
+  void constructSpace(const pm::KinematicModel::JointModelGroup *group, 
+                      const kc::IKAllocator &ik_allocator);
+  void constructSpace(const pm::KinematicModel::JointModelGroup *group, 
+                      const kc::IKSubgroupAllocator &ik_allocator);
+  void constructSpaceFromPoses(void);
+
+  bool computeStateFK(ob::State *state) const;
+  bool computeStateIK(ob::State *state) const;
+  bool computeStateK(ob::State *state) const;
+
+  
+  std::vector<PoseComponent> poses_;
 };
 
 }
