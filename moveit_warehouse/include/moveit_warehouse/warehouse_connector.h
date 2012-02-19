@@ -34,6 +34,9 @@
 
 /* Author: E. Gil Jones */
 
+#ifndef MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
+#define MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
+
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
@@ -61,3 +64,5 @@ protected:
 };
 
 }
+
+#endif

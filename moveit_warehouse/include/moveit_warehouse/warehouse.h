@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef _MOVEIT_WAREHOUSE_H_
-#define _MOVEIT_WAREHOUSE_H_
+#ifndef MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_
+#define MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_
 
 #include <mongo_ros/message_collection.h>
 #include <moveit_msgs/PlanningScene.h>
