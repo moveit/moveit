@@ -43,11 +43,11 @@
 namespace ompl_interface
 {
 
-class JointModelStateSpace : public KinematicModelStateSpace
+class JointModelStateSpace : public ModelBasedStateSpace
 {
 public:
   
-  JointModelStateSpace(const KinematicModelStateSpaceSpecification &spec);
+  JointModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
   
   virtual void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const
   {

@@ -64,10 +64,10 @@ public:
 protected:
   
   virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
-                                                            const KinematicModelStateSpaceSpecification &space_spec,
+                                                            const ModelBasedStateSpaceSpecification &space_spec,
                                                             const ModelBasedPlanningContextSpecification &context_spec) const
   {
-    return ModelBasedPlanningContextPtr(new JointModelPlanningContext(name, KinematicModelStateSpacePtr(new JointModelStateSpace(space_spec)), context_spec));
+    return ModelBasedPlanningContextPtr(new JointModelPlanningContext(name, ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec)), context_spec));
   }
   
 };

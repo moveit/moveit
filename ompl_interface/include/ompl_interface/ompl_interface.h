@@ -67,11 +67,8 @@ public:
   void setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig);
   
   /** @brief Specify the available inverse kinematics solvers
-      @param ik_allocators Allocate the inverse kinematics solvers*/
-  void specifyIKSolvers(const std::map<std::string, kinematic_constraints::IKAllocator> &ik_allocators)
-  {
-    ik_allocators_ = ik_allocators;
-  }  
+      @param kinematics_allocators Allocate the inverse kinematics solvers*/
+  void specifyIKSolvers(const std::map<std::string, kinematic_constraints::IKAllocator> &kinematics_allocators);
 
   /* \brief Get the maximum number of sampling attempts allowed */
   unsigned int getMaximumSamplingAttempts(void) const
@@ -229,7 +226,8 @@ protected:
   const planning_models::KinematicModelConstPtr   kmodel_;
   
   /** \brief A map from group names to IK allocators; these are the available IK solvers */
-  std::map<std::string, kinematic_constraints::IKAllocator> ik_allocators_;
+  std::map<const pm::KinematicModel::JointModelGroup*,
+           std::pair<kc::IKAllocator, kc::IKSubgroupAllocator> > kinematics_allocators_;
   
   std::map<std::string, ob::PlannerAllocator>                known_planners_;
   std::map<std::string, ModelBasedPlanningContextFactoryPtr> planning_context_factories_; 
@@ -260,7 +258,7 @@ protected:
   double                                                  max_solution_segment_length_;
   
   /** \brief The planning group for which solve() was called last */
-  mutable ModelBasedPlanningContextPtr                last_planning_context_solve_;
+  mutable ModelBasedPlanningContextPtr                    last_planning_context_solve_;
   
   //  ConstraintApproximationsPtr                     constraints_;
   

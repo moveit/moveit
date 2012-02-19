@@ -44,7 +44,7 @@
 #include <ompl/base/GoalLazySamples.h>
 #include <ompl/tools/debug/Profiler.h>
 
-ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const KinematicModelStateSpacePtr &state_space, 
+ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedStateSpacePtr &state_space, 
                                                                      const ModelBasedPlanningContextSpecification &spec) :
   spec_(spec), name_(name), ompl_state_space_(state_space), complete_initial_robot_state_(ompl_state_space_->getKinematicModel()),
   ompl_simple_setup_(ompl_state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
@@ -73,17 +73,21 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
 
 void ompl_interface::ModelBasedPlanningContext::configure(void)
 {
-  if (!ompl_simple_setup_.getGoal())
-    return;
-  
-  // convert the input state to the corresponding OMPL state
-  ompl::base::ScopedState<> ompl_start_state(ompl_state_space_);
-  ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
-  ompl_simple_setup_.setStartState(ompl_start_state);
-  ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
-  
-  useConfig(spec_.config_);  
-  ompl_simple_setup_.setup();
+  if (ompl_simple_setup_.getGoal())
+  {
+    // convert the input state to the corresponding OMPL state
+    ompl::base::ScopedState<> ompl_start_state(ompl_state_space_);
+    ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
+    ompl_simple_setup_.setStartState(ompl_start_state);
+    ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
+    
+    useConfig(spec_.config_);  
+    ompl_simple_setup_.setup();
+  }
+  else
+  {
+    ompl_simple_setup_.getStateSpace()->setup();
+  }
 }
 
 void ompl_interface::ModelBasedPlanningContext::useConfig(const std::map<std::string, std::string> &config)
@@ -150,6 +154,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(const std::map<std::st
   ompl_simple_setup_.getSpaceInformation()->setup();
   ompl_simple_setup_.getSpaceInformation()->params().setParams(cfg, true);
 }
+
 
 void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams)
 {
@@ -240,8 +245,8 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(voi
   for (std::size_t i = 0 ; i < goal_constraints_.size() ; ++i)
   {
     kc::ConstraintSamplerPtr cs = kc::constructConstraintsSampler(getJointModelGroup(), goal_constraints_[i]->getAllConstraints(), getKinematicModel(),
-                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getIKAllocator(),
-                                                                  ompl_state_space_->getIKSubgroupAllocators());
+                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getKinematicsAllocator(),
+                                                                  ompl_state_space_->getKinematicsSubgroupAllocators());
     ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));
     goals.push_back(g);
   }
