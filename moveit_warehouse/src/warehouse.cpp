@@ -44,173 +44,231 @@ static const std::string MOTION_PLAN_REQUEST_ID_NAME = "motion_request_id";
 
 moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage()
 {
-    planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene"));
-    motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request"));
-    robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory"));
+  planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene"));
+  motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request"));
+  robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory"));
 }
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)
 {
-    mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene.name,
-				 PLANNING_SCENE_TIME_NAME, scene.robot_state.joint_state.header.stamp.toSec());
-    planning_scene_collection_->insert(scene, metadata); 
-    ROS_INFO("Saved scene '%s'", scene.name.c_str());
+  mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene.name,
+                               PLANNING_SCENE_TIME_NAME, scene.robot_state.joint_state.header.stamp.toSec());
+  planning_scene_collection_->insert(scene, metadata); 
+  ROS_INFO("Saved scene '%s'", scene.name.c_str());
 }
 
 std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const
 {
-    // get all existing motion planning requests for this planning scene
-    mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
-    std::vector<MotionPlanRequestWithMetadata> existing_requests = motion_plan_request_collection_->pullAllResults(q, false);
-    
-    // if there are no requests stored, we are done
-    if (existing_requests.empty())
-	return "";
-    
-    // compute the serialization of the message passed as argument
-    const size_t serial_size_arg = ros::serialization::serializationLength(planning_query);
-    boost::shared_array<uint8_t> buffer_arg(new uint8_t[serial_size_arg]);
-    ros::serialization::OStream stream_arg(buffer_arg.get(), serial_size_arg);
-    ros::serialization::serialize(stream_arg, planning_query);
-    const void* data_arg = buffer_arg.get();
-    
-    for (std::size_t i = 0 ; i < existing_requests.size() ; ++i)
-    {
-	const size_t serial_size = ros::serialization::serializationLength(static_cast<const moveit_msgs::MotionPlanRequest&>(*existing_requests[i]));
-	if (serial_size != serial_size_arg)
-	    continue;
-	boost::shared_array<uint8_t> buffer(new uint8_t[serial_size]);
-	ros::serialization::OStream stream(buffer.get(), serial_size);
-	ros::serialization::serialize(stream, static_cast<const moveit_msgs::MotionPlanRequest&>(*existing_requests[i]));
-	const void* data = buffer.get();
-	if (memcmp(data_arg, data, serial_size) == 0)
-	    // we found the same message twice
-	    return existing_requests[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME);
-    }
+  // get all existing motion planning requests for this planning scene
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  std::vector<MotionPlanRequestWithMetadata> existing_requests = motion_plan_request_collection_->pullAllResults(q, false);
+  
+  // if there are no requests stored, we are done
+  if (existing_requests.empty())
     return "";
+  
+  // compute the serialization of the message passed as argument
+  const size_t serial_size_arg = ros::serialization::serializationLength(planning_query);
+  boost::shared_array<uint8_t> buffer_arg(new uint8_t[serial_size_arg]);
+  ros::serialization::OStream stream_arg(buffer_arg.get(), serial_size_arg);
+  ros::serialization::serialize(stream_arg, planning_query);
+  const void* data_arg = buffer_arg.get();
+  
+  for (std::size_t i = 0 ; i < existing_requests.size() ; ++i)
+  {
+    const size_t serial_size = ros::serialization::serializationLength(static_cast<const moveit_msgs::MotionPlanRequest&>(*existing_requests[i]));
+    if (serial_size != serial_size_arg)
+      continue;
+    boost::shared_array<uint8_t> buffer(new uint8_t[serial_size]);
+    ros::serialization::OStream stream(buffer.get(), serial_size);
+    ros::serialization::serialize(stream, static_cast<const moveit_msgs::MotionPlanRequest&>(*existing_requests[i]));
+    const void* data = buffer.get();
+    if (memcmp(data_arg, data, serial_size) == 0)
+      // we found the same message twice
+      return existing_requests[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME);
+  }
+  return "";
 }
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name)
 {   
-    std::string id = getMotionPlanRequestName(planning_query, scene_name);
-    if (id != query_name || id == "")
-        addNewPlanningRequest(planning_query, scene_name, query_name);
+  std::string id = getMotionPlanRequestName(planning_query, scene_name);
+  if (id != query_name || id == "")
+    addNewPlanningRequest(planning_query, scene_name, query_name);
 }
 
 std::string moveit_warehouse::PlanningSceneStorage::addNewPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name)
 { 
-    std::string id = query_name;
-    if (id.empty())
-    {	
-	std::set<std::string> used;
-	mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
-	std::vector<MotionPlanRequestWithMetadata> existing_requests = motion_plan_request_collection_->pullAllResults(q, true);
-	for (std::size_t i = 0 ; i < existing_requests.size() ; ++i)
-	    used.insert(existing_requests[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME));
-	std::size_t index = existing_requests.size();
-	do
-	{
-	    id = "Motion Plan Request " + boost::lexical_cast<std::string>(index);
-	    index++;
-	} while (used.find(id) != used.end());	
-    }
-    mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene_name,
-				 MOTION_PLAN_REQUEST_ID_NAME, id);
-    motion_plan_request_collection_->insert(planning_query, metadata);
-    return id;
+  std::string id = query_name;
+  if (id.empty())
+  {	
+    std::set<std::string> used;
+    mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+    std::vector<MotionPlanRequestWithMetadata> existing_requests = motion_plan_request_collection_->pullAllResults(q, true);
+    for (std::size_t i = 0 ; i < existing_requests.size() ; ++i)
+      used.insert(existing_requests[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME));
+    std::size_t index = existing_requests.size();
+    do
+    {
+      id = "Motion Plan Request " + boost::lexical_cast<std::string>(index);
+      index++;
+    } while (used.find(id) != used.end());	
+  }
+  mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene_name,
+                               MOTION_PLAN_REQUEST_ID_NAME, id);
+  motion_plan_request_collection_->insert(planning_query, metadata);
+  return id;
 }
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningResult(const moveit_msgs::MotionPlanRequest &planning_query, const moveit_msgs::RobotTrajectory &result, const std::string &scene_name)
 {
-    std::string id = getMotionPlanRequestName(planning_query, scene_name);
-    if (id.empty())
-	id = addNewPlanningRequest(planning_query, scene_name, "");
-    mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene_name,
-				 MOTION_PLAN_REQUEST_ID_NAME, id);
-    robot_trajectory_collection_->insert(result, metadata);
+  std::string id = getMotionPlanRequestName(planning_query, scene_name);
+  if (id.empty())
+    id = addNewPlanningRequest(planning_query, scene_name, "");
+  mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene_name,
+                               MOTION_PLAN_REQUEST_ID_NAME, id);
+  robot_trajectory_collection_->insert(result, metadata);
 }
 
-void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNamesAndTimes(std::vector<std::string> &names,
-                                                                           std::vector<ros::Time> &times) const
+void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNamesAndTimes(std::vector<std::string> &names, std::vector<ros::Time> &times) const
 {
-    names.clear();
-    times.clear();
-    mongo_ros::Query q;
-    std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, true, PLANNING_SCENE_TIME_NAME, true);
-    for (std::size_t i = 0; i < planning_scenes.size() ; ++i) {
-      if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_ID_NAME.c_str()))
-        names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
+  names.clear();
+  times.clear();
+  mongo_ros::Query q;
+  std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, true, PLANNING_SCENE_TIME_NAME, true);
+  for (std::size_t i = 0; i < planning_scenes.size() ; ++i)
+  {
+    if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_ID_NAME.c_str()))
+      names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
+    if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_TIME_NAME.c_str()))
+      times.push_back(ros::Time(planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME)));
+  }
+}
+
+void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<std::string> &names) const
+{
+  names.clear();
+  mongo_ros::Query q;
+  std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, true, PLANNING_SCENE_TIME_NAME, true);
+  for (std::size_t i = 0; i < planning_scenes.size() ; ++i)
+    if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_ID_NAME.c_str()))
+      names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
+}
+
+bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name) const
+{
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, false);
+  if (planning_scenes.empty())
+  {
+    ROS_WARN("Planning scene '%s' was not found in the database", scene_name.c_str());
+    return false;
+  }
+  if (planning_scenes.size() > 1)
+  {
+    double max_tm = 0.0;
+    int index = -1;
+    for (unsigned int i = 0; i < planning_scenes.size(); ++i)
       if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_TIME_NAME.c_str()))
-        times.push_back(ros::Time(planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME)));
-    }
-}
-
-bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithMetadata &scene_m, 
-                                                              const std::string &scene_name,
-                                                              const ros::Time& time) const
-{
-    mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
-    std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, false);
-    if (planning_scenes.empty())
-    {
-	ROS_WARN("Planning scene '%s' was not found in the database", scene_name.c_str());
-	return false;
-    }
-    if(planning_scenes.size() > 1) {
-      for(unsigned int i = 0; i < planning_scenes.size(); i++) {
-        if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_TIME_NAME.c_str())) {
-          //time within a second
-          if(fabs(time.toSec()-planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME)) < 1.0) {
-            ROS_INFO_STREAM("Matched time");
-            scene_m = planning_scenes[i];
-            return true;
-          }
+      {
+        double tm = planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME);
+        if (index < 0 || tm > max_tm)
+        {
+          max_tm = tm;
+          index = i;
         }
       }
-      ROS_INFO_STREAM("Didn't match time");
+    if (index < 0) 
+      ROS_INFO_STREAM("No time information was found for any of the scenes named " << scene_name);      
+    else
+    {
+      scene_m = planning_scenes[index];
+      return true;
     }
-      
-    scene_m = planning_scenes[0];
-    return true;
+  }
+  
+  scene_m = planning_scenes[0];
+  return true;
+}
+
+bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name,
+                                                              const ros::Time& time, double margin) const
+{
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, false);
+  if (planning_scenes.empty())
+  {
+    ROS_WARN("Planning scene '%s' was not found in the database", scene_name.c_str());
+    return false;
+  }
+  if (planning_scenes.size() > 1)
+  {
+    double diff = 0.0;
+    int index = -1;
+    for (unsigned int i = 0; i < planning_scenes.size(); ++i)
+      if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_TIME_NAME.c_str()))
+      {
+        double d = fabs(time.toSec() - planning_scenes[i]->lookupDouble(PLANNING_SCENE_TIME_NAME));
+        if (index < 0 || d < diff)
+        {
+          diff = d;
+          index = i;
+        }
+      }
+    if (diff > margin)
+      ROS_INFO_STREAM("Did not match time for scene " << scene_name);
+    else 
+      ROS_INFO_STREAM("Matched time stamp for scene " << scene_name);
+    if (index < 0)
+      ROS_INFO_STREAM("No time information was found for any of the scenes named " << scene_name);      
+    else
+    {
+      scene_m = planning_scenes[index];
+      return true;
+    }
+  }
+  
+  scene_m = planning_scenes[0];
+  return true;
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const
 {
-    mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
-    planning_queries = motion_plan_request_collection_->pullAllResults(q, false);
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  planning_queries = motion_plan_request_collection_->pullAllResults(q, false);
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results,
 								const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const
 {
-    std::string id = getMotionPlanRequestName(planning_query, scene_name);
-    if (id.empty())
-	planning_results.clear();
-    else
-	getPlanningResults(planning_results, id, scene_name);
+  std::string id = getMotionPlanRequestName(planning_query, scene_name);
+  if (id.empty())
+    planning_results.clear();
+  else
+    getPlanningResults(planning_results, id, scene_name);
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results,
 								const std::string &planning_query, const std::string &scene_name) const
 {
-    mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
-    q.append(MOTION_PLAN_REQUEST_ID_NAME, planning_query);
-    planning_results = robot_trajectory_collection_->pullAllResults(q, false);
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  q.append(MOTION_PLAN_REQUEST_ID_NAME, planning_query);
+  planning_results = robot_trajectory_collection_->pullAllResults(q, false);
 }
 
 void moveit_warehouse::PlanningSceneStorage::removePlanningScene(const std::string &scene_name)
 {
-    removePlanningSceneQueries(scene_name);
-    mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
-    unsigned int rem = planning_scene_collection_->removeMessages(q);
-    ROS_DEBUG("Removed %u PlanningScene messages (named '%s')", rem, scene_name.c_str());
+  removePlanningSceneQueries(scene_name);
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  unsigned int rem = planning_scene_collection_->removeMessages(q);
+  ROS_DEBUG("Removed %u PlanningScene messages (named '%s')", rem, scene_name.c_str());
 }
 
 void moveit_warehouse::PlanningSceneStorage::removePlanningSceneQueries(const std::string &scene_name)
 {
-    mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
-    unsigned int rem = robot_trajectory_collection_->removeMessages(q);
-    ROS_DEBUG("Removed %u RobotTrajectory messages for scene '%s'", rem, scene_name.c_str());
-    rem = motion_plan_request_collection_->removeMessages(q);
-    ROS_DEBUG("Removed %u MotionPlanRequest messages for scene '%s'", rem, scene_name.c_str());
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  unsigned int rem = robot_trajectory_collection_->removeMessages(q);
+  ROS_DEBUG("Removed %u RobotTrajectory messages for scene '%s'", rem, scene_name.c_str());
+  rem = motion_plan_request_collection_->removeMessages(q);
+  ROS_DEBUG("Removed %u MotionPlanRequest messages for scene '%s'", rem, scene_name.c_str());
 }
