@@ -24,6 +24,8 @@
   <depend package="trajectory_processing"/>
   <depend package="moveit_warehouse"/>
   <depend package="kinematics_plugin_loader"/>
+  <depend package="trajectory_execution"/>
+  <depend package="trajectory_execution_ros"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_visualization_ros"/>

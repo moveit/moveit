@@ -81,6 +81,10 @@ void KinematicsStartGoalVisualization::updatePlanningScene(const planning_scene:
   goal_->updatePlanningScene(planning_scene);
 }
 
+void KinematicsStartGoalVisualization::resetStartState() {
+  start_->resetState();
+}
+
 void KinematicsStartGoalVisualization::addMenuEntry(const std::string& name, 
                                                     const boost::function<void(const std::string& name)>& callback)
 {

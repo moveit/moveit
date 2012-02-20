@@ -38,6 +38,7 @@
 #include <ompl_interface_ros/ompl_interface_ros.h>
 #include <boost/function.hpp>
 #include <trajectory_processing/trajectory_smoother.h>
+#include <trajectory_processing/trajectory_shortcutter.h>
 #include <kinematics_plugin_loader/kinematics_plugin_loader.h>
 
 namespace moveit_visualization_ros
@@ -55,12 +56,23 @@ public:
   
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
+  void resetAllStartStates();
+
   void addMenuEntry(const std::string& name, 
                     const boost::function<void(const std::string&)>& callback);
   
   void selectGroup(const std::string& name);
 
   void hideAllGroups();
+
+  bool getLastTrajectory(std::string& group_name,
+                         trajectory_msgs::JointTrajectory& traj) const
+  {
+    if(!last_trajectory_ok_) return false;
+    group_name = last_group_name_;
+    traj = last_trajectory_;
+    return true;
+  }
 
 protected:
 
@@ -71,12 +83,17 @@ protected:
   planning_scene::PlanningSceneConstPtr planning_scene_;
   ompl_interface_ros::OMPLInterfaceROS ompl_interface_;
   boost::shared_ptr<trajectory_processing::TrajectorySmoother> trajectory_smoother_;
+  boost::shared_ptr<trajectory_processing::TrajectoryShortcutter> unnormalize_shortcutter_;
   std::map<std::string, std::vector<moveit_msgs::JointLimits> > group_joint_limit_map_;
   std::string current_group_;
   std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> > group_visualization_map_;
   boost::shared_ptr<JointTrajectoryVisualization> joint_trajectory_visualization_;
   ros::Publisher display_traj_publisher_;
   
+  std::string last_group_name_;
+  trajectory_msgs::JointTrajectory last_trajectory_;
+  bool last_trajectory_ok_;
+
 };
 
 }

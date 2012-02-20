@@ -35,6 +35,7 @@
 #include <kinematic_constraints/utils.h>
 #include <planning_models/conversions.h>
 #include <trajectory_processing/iterative_smoother.h>
+#include <trajectory_processing/unnormalize_shortcutter.h>
 
 namespace moveit_visualization_ros {
 
@@ -45,7 +46,8 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
                                              ros::Publisher& marker_publisher)
   : planning_scene_(planning_scene), 
     ompl_interface_(planning_scene->getKinematicModel(), kinematics_plugin_loader),
-    group_joint_limit_map_(group_joint_limit_map)
+    group_joint_limit_map_(group_joint_limit_map),
+    last_trajectory_ok_(false)
 {
   const std::vector<srdf::Model::Group>& groups = planning_scene_->getSrdfModel()->getGroups();
 
@@ -64,6 +66,7 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
     }
   }
 
+  unnormalize_shortcutter_.reset(new trajectory_processing::UnnormalizeShortcutter(planning_scene->getKinematicModel()));
   trajectory_smoother_.reset(new trajectory_processing::IterativeParabolicSmoother());
  
   joint_trajectory_visualization_.reset(new JointTrajectoryVisualization(planning_scene,
@@ -82,6 +85,14 @@ void PlanningVisualization::updatePlanningScene(const planning_scene::PlanningSc
     it->second->updatePlanningScene(planning_scene);
   }
   joint_trajectory_visualization_->updatePlanningScene(planning_scene);
+}
+
+void PlanningVisualization::resetAllStartStates() {
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end(); 
+      it++) {
+    it->second->resetStartState();
+  }
 }
 
 void PlanningVisualization::addMenuEntry(const std::string& name, 
@@ -143,25 +154,44 @@ void PlanningVisualization::generatePlan(const std::string& name) {
   col.a = .8;
   col.b = 1.0;
 
-  ompl_interface_.solve(planning_scene_, req, res);
-  ROS_INFO_STREAM("Original last time " << res.trajectory.joint_trajectory.points.back().time_from_start);
-  trajectory_msgs::JointTrajectory traj = res.trajectory.joint_trajectory;
-  trajectory_smoother_->smooth(res.trajectory.joint_trajectory,
-                               traj,
-                               group_joint_limit_map_[name]);
-  ROS_INFO_STREAM("Smoothed last time " << traj.points.back().time_from_start);
-  joint_trajectory_visualization_->setTrajectory(start_state,
-                                                 name,
-                                                 traj,
-                                                 col);
+  if(ompl_interface_.solve(planning_scene_, req, res)) {
+    ROS_INFO_STREAM("Original last time " << res.trajectory.joint_trajectory.points.back().time_from_start);
+    trajectory_msgs::JointTrajectory traj;
+    moveit_msgs::MoveItErrorCodes error_code;
+    moveit_msgs::Constraints emp_constraints;
+    unnormalize_shortcutter_->shortcut(planning_scene_,
+                                       name,
+                                       &start_state,
+                                       group_joint_limit_map_[name],
+                                       emp_constraints,
+                                       emp_constraints,
+                                       res.trajectory.joint_trajectory,
+                                       ros::Duration(0.0),
+                                       traj,
+                                       error_code);
+    trajectory_smoother_->smooth(res.trajectory.joint_trajectory,
+                                 traj,
+                                 group_joint_limit_map_[name]);
+    ROS_INFO_STREAM("Smoothed last time " << traj.points.back().time_from_start);
+    joint_trajectory_visualization_->setTrajectory(start_state,
+                                                   name,
+                                                   traj,
+                                                   col);
+    
+    joint_trajectory_visualization_->playCurrentTrajectory();
 
-  joint_trajectory_visualization_->playCurrentTrajectory();
-
-  moveit_msgs::DisplayTrajectory d;
-  d.model_id = planning_scene_->getKinematicModel()->getName();
-  planning_models::kinematicStateToRobotState(start_state, d.robot_state);
-  d.trajectory = res.trajectory;
-  display_traj_publisher_.publish(d);
+    moveit_msgs::DisplayTrajectory d;
+    d.model_id = planning_scene_->getKinematicModel()->getName();
+    planning_models::kinematicStateToRobotState(start_state, d.robot_state);
+    d.trajectory = res.trajectory;
+    display_traj_publisher_.publish(d);
+    last_trajectory_ = traj;
+    last_group_name_ = name;
+    last_trajectory_ok_ = true;
+  } else {
+    last_trajectory_ok_ = false;
+    ROS_INFO_STREAM("Planning failed");
+  }
 }
 
 void PlanningVisualization::generateRandomStartEnd(const std::string& name) {

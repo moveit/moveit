@@ -68,6 +68,8 @@ public:
   void updateObjectPose(const std::string& name,
                         const geometry_msgs::Pose& pose);
 
+  void updateCurrentState(const planning_models::KinematicState& current_state);
+
 protected:
 
   void updateOriginalPlanningScene(moveit_msgs::PlanningScenePtr& planning_scene);

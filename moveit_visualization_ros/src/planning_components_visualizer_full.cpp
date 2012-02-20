@@ -45,6 +45,9 @@
 #include <moveit_visualization_ros/planning_visualization_qt_wrapper.h>
 #include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
 #include <OGRE/OgreLogManager.h>
+#include <trajectory_execution/trajectory_execution_monitor.h>
+#include <trajectory_execution_ros/follow_joint_trajectory_controller_handler.h>
+#include <trajectory_execution_ros/joint_state_recorder.h>
 
 using namespace moveit_visualization_ros;
 
@@ -54,6 +57,7 @@ boost::shared_ptr<KinematicStateJointStatePublisher> joint_state_publisher_;
 boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
 boost::shared_ptr<PlanningVisualizationQtWrapper> pv_;
 boost::shared_ptr<InteractiveObjectVisualizationQtWrapper> iov_;
+boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor_;
 
 void publisher_function() {
   ros::WallRate r(10.0);
@@ -82,9 +86,41 @@ void addSphereCallback() {
   iov_->addSphere();
 }
 
+bool doneWithExecution() {
+  ROS_INFO_STREAM("Done");
+  return true;
+} 
+
+void executeLastTrajectory() {
+  std::string group_name;
+  trajectory_msgs::JointTrajectory traj;
+  if(pv_->getLastTrajectory(group_name, traj)) {
+    trajectory_execution::TrajectoryExecutionRequest ter;
+    ter.group_name_ = group_name;
+    ter.controller_name_ = (group_name == "right_arm" ? "/r_arm_controller/follow_joint_trajectory" : "/l_arm_controller/follow_joint_trajectory");
+    ter.trajectory_ = traj;
+    ROS_DEBUG_STREAM("Attempting to execute trajectory for group name " << group_name << " controller " << ter.controller_name_); 
+
+    std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
+    ter_reqs.push_back(ter);
+
+    trajectory_execution_monitor_->executeTrajectories(ter_reqs,
+                                                       boost::bind(&doneWithExecution));
+  }
+}
+
+void updateToCurrentState() {
+  iov_->updateCurrentState(planning_scene_monitor_->getPlanningScene()->getCurrentState());
+  pv_->resetAllStartStates();
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "planning_components_visualizer_full", ros::init_options::NoSigintHandler);
+
+  // CAN'T SPIN AS RVIZ ALREADY IS!!!!
+  // ros::AsyncSpinner spinner(1);
+  // spinner.start();
 
   ros::NodeHandle nh;
   ros::NodeHandle loc_nh("~");
@@ -92,26 +128,41 @@ int main(int argc, char **argv)
   bool monitor_robot_state = false;
   loc_nh.param("monitor_robot_state", monitor_robot_state, false);
 
-  // boost::shared_ptr<trajectory_execution::
-  // if(monitor_robot_state) {
-  //   bool allow_trajectory_execution = false;
-  //   loc_nh.param("allow_trajectory_execution", allow_trajectory_execution, false);
-  //   if(allow_trajectory_execution) {
-      
-  //   }
-  // }
-
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
   interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
-  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
-  joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
 
+  boost::shared_ptr<tf::TransformListener> transformer;
   if(!monitor_robot_state) {
+    ROS_INFO_STREAM("Starting publisher thread");
+    joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
     boost::thread publisher_thread(boost::bind(&publisher_function));
   } else {
+    transformer.reset(new tf::TransformListener());
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", transformer.get()));
     planning_scene_monitor_->startStateMonitor();
   }
-  
+
+  bool allow_trajectory_execution = false;
+  if(monitor_robot_state) {
+    loc_nh.param("allow_trajectory_execution", allow_trajectory_execution, false);
+    if(allow_trajectory_execution) {
+      trajectory_execution_monitor_.reset(new trajectory_execution::TrajectoryExecutionMonitor(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
+      boost::shared_ptr<trajectory_execution::TrajectoryRecorder> 
+        joint_state_recorder(new trajectory_execution_ros::JointStateTrajectoryRecorder("/joint_states"));
+
+      boost::shared_ptr<trajectory_execution::TrajectoryControllerHandler> 
+        right_arm_controller_handler(new trajectory_execution_ros::FollowJointTrajectoryControllerHandler("right_arm",
+                                                                                                          "/r_arm_controller/follow_joint_trajectory"));
+      boost::shared_ptr<trajectory_execution::TrajectoryControllerHandler> 
+        left_arm_controller_handler(new trajectory_execution_ros::FollowJointTrajectoryControllerHandler("left_arm",
+                                                                                                     "/l_arm_controller/follow_joint_trajectory"));
+      trajectory_execution_monitor_->addTrajectoryRecorder(joint_state_recorder);
+      trajectory_execution_monitor_->addTrajectoryControllerHandler(right_arm_controller_handler);
+      trajectory_execution_monitor_->addTrajectoryControllerHandler(left_arm_controller_handler);
+    }
+  }
+
   ros::Publisher vis_marker_array_publisher;
   ros::Publisher vis_marker_publisher;
 
@@ -145,10 +196,15 @@ int main(int argc, char **argv)
   
   iov_->setUpdateCallback(boost::bind(&updateCallback, _1));
 
-  pv_->addMenuEntry("Add Cube", boost::bind(&addCubeCallback));
-  pv_->addMenuEntry("Add Cylinder", boost::bind(&addCylinderCallback));
-  pv_->addMenuEntry("Add Sphere", boost::bind(&addSphereCallback));
-
+  // pv_->addMenuEntry("Add Cube", boost::bind(&addCubeCallback));
+  // pv_->addMenuEntry("Add Cylinder", boost::bind(&addCylinderCallback));
+  // pv_->addMenuEntry("Add Sphere", boost::bind(&addSphereCallback));
+  if(monitor_robot_state) {
+    pv_->addMenuEntry("Reset start state", boost::bind(&updateToCurrentState));
+    if(allow_trajectory_execution) {
+      pv_->addMenuEntry("Execute last trajectory", boost::bind(&executeLastTrajectory));
+    }
+  }
   pv_->hideAllGroups();
 
   QApplication app( argc, argv );
