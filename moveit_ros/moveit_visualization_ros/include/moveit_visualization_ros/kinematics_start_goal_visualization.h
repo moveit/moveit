@@ -61,6 +61,8 @@ public:
 
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
+  void resetStartState();
+
   void addMenuEntry(const std::string& name, 
                     const boost::function<void(const std::string&)>& callback);
 

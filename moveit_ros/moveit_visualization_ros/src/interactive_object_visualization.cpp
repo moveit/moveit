@@ -239,6 +239,11 @@ void InteractiveObjectVisualization::addObject(const std::string& name,
   callUpdateCallback();
 }
 
+void InteractiveObjectVisualization::updateCurrentState(const planning_models::KinematicState& current_state) {
+  planning_scene_diff_->setCurrentState(current_state);
+  callUpdateCallback();
+}
+
 void InteractiveObjectVisualization::setUpdateCallback(const boost::function<void(planning_scene::PlanningSceneConstPtr)>& callback) {
   update_callback_ = callback;
 }
