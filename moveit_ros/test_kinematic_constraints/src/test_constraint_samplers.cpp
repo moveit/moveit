@@ -360,13 +360,13 @@ TEST_F(ConstraintSamplerTestBase, GenericConstraintsSampler)
   
   kinematics_plugin_loader::KinematicsPluginLoader kinematics_loader;
   kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader.getLoaderFunction();
-  kinematic_constraints::IKSubgroupAllocator sa;
+  kinematic_constraints::KinematicsSubgroupAllocator sa;
   sa[kmodel_->getJointModelGroup("left_arm")] = kinematics_allocator;
   sa[kmodel_->getJointModelGroup("right_arm")] = kinematics_allocator;
   
   planning_models::TransformsPtr tf = psm_->getPlanningScene()->getTransforms();
   kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::constructConstraintsSampler
-    (kmodel_->getJointModelGroup("arms"), c, kmodel_, tf, kinematic_constraints::IKAllocator(), sa);
+    (kmodel_->getJointModelGroup("arms"), c, kmodel_, tf, kinematic_constraints::KinematicsAllocator(), sa);
   
   EXPECT_TRUE(s.get() != NULL);
   
@@ -459,7 +459,7 @@ TEST_F(ConstraintSamplerTestBase, DisplayGenericConstraintsSamples)
 
   kinematics_plugin_loader::KinematicsPluginLoader kinematics_loader;
   kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader.getLoaderFunction();
-  kinematic_constraints::IKSubgroupAllocator sa;
+  kinematic_constraints::KinematicsSubgroupAllocator sa;
   sa[kmodel_->getJointModelGroup("left_arm")] = kinematics_allocator;
   sa[kmodel_->getJointModelGroup("right_arm")] = kinematics_allocator;
 
@@ -468,7 +468,7 @@ TEST_F(ConstraintSamplerTestBase, DisplayGenericConstraintsSamples)
   
   planning_models::TransformsPtr tf = psm_->getPlanningScene()->getTransforms();
   kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::constructConstraintsSampler
-    (kmodel_->getJointModelGroup("arms"), c, kmodel_, tf, kinematic_constraints::IKAllocator(), sa);
+    (kmodel_->getJointModelGroup("arms"), c, kmodel_, tf, kinematic_constraints::KinematicsAllocator(), sa);
   
   EXPECT_TRUE(s.get() != NULL);
   
