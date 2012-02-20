@@ -65,7 +65,8 @@ int main(int argc, char **argv)
     psm.startWorldGeometryMonitor();
     moveit_warehouse::PlanningSceneStorage pss;
     std::vector<std::string> names;
-    pss.getPlanningSceneNames(names);
+    std::vector<ros::Time> times;
+    pss.getPlanningSceneNamesAndTimes(names, times);
     if (names.empty())
       ROS_INFO("There are no previously stored scenes");
     else
