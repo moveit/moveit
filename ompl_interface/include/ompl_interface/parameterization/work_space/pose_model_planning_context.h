@@ -34,19 +34,19 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_PLANNING_CONTEXT_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_PLANNING_CONTEXT_
 
 #include "ompl_interface/parameterization/model_based_planning_context.h"
-#include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
+#include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
 
 namespace ompl_interface
 {
 
-class JointModelPlanningContext : public ModelBasedPlanningContext
+class PoseModelPlanningContext : public ModelBasedPlanningContext
 {
 public:
-  JointModelPlanningContext(const std::string &name, const KinematicModelStateSpacePtr &state_space, const ModelBasedPlanningContextSpecification &spec) :
+  PoseModelPlanningContext(const std::string &name, const ModelBasedStateSpacePtr &state_space, const ModelBasedPlanningContextSpecification &spec) :
     ModelBasedPlanningContext(name, state_space, spec)
   {
   }

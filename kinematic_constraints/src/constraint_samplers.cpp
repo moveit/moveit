@@ -139,7 +139,7 @@ kinematic_constraints::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<Po
 }
 
 kinematic_constraints::IKConstraintSampler::IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, 
-                                                                const IKAllocator &ik_alloc, const IKSamplingPose &sp) :
+                                                                const KinematicsAllocator &ik_alloc, const IKSamplingPose &sp) :
   ConstraintSampler(jmg), ik_alloc_(ik_alloc), sp_(sp), ik_timeout_(0.5)
 {
   if (sp_.pc_ && sp_.oc_)
@@ -487,8 +487,8 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
                                                                                                const moveit_msgs::Constraints &constr,
                                                                                                const planning_models::KinematicModelConstPtr &kmodel,
                                                                                                const planning_models::TransformsConstPtr &ftf,
-                                                                                               const IKAllocator &ik_alloc,
-                                                                                               const IKSubgroupAllocator &ik_subgroup_alloc)
+                                                                                               const KinematicsAllocator &ik_alloc,
+                                                                                               const KinematicsSubgroupAllocator &ik_subgroup_alloc)
 {
   ROS_DEBUG("Attempting to construct constrained state sampler for group '%s'", jmg->getName().c_str());
   
@@ -640,7 +640,7 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
     
     std::vector<ConstraintSamplerPtr> samplers;
     std::set<std::size_t> usedP, usedO;
-    for (std::map<const planning_models::KinematicModel::JointModelGroup*, IKAllocator>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
+    for (std::map<const planning_models::KinematicModel::JointModelGroup*, KinematicsAllocator>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
     {
       // construct a sub-set of constraints that uperate on the sub-group for which we have an IK allocator
       moveit_msgs::Constraints sub_constr;

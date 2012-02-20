@@ -66,11 +66,7 @@ void ompl_interface::PoseModelStateSpace::copyState(ob::State *destination, cons
 {
   // copy the state data
   ModelBasedStateSpace::copyState(destination, source);
-  
-  // copy additional data
-  destination->as<StateType>()->pose_computed = source->as<StateType>()->pose_computed;
-  destination->as<StateType>()->joints_computed = source->as<StateType>()->joints_computed;
-  
+    
   // compute additional stuff if needed
   computeStateK(destination);
 }
@@ -82,7 +78,7 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ob::State *from, con
   // we cover the worst case scenario by copying the state to a temp location, since the copy operation also computes 
   // all the kinematics stuff
   
-  if (!from->as<StateType>()->pose_computed)
+  if (!from->as<StateType>()->poseComputed())
   {
     ob::State *temp = allocState();
     copyState(temp, from);
@@ -91,7 +87,7 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ob::State *from, con
     return;
   }
   
-  if (!to->as<StateType>()->pose_computed)
+  if (!to->as<StateType>()->poseComputed())
   {
     ob::State *temp = allocState();
     copyState(temp, to);
@@ -104,14 +100,14 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ob::State *from, con
   
   // after interpolation we cannot be sure about the joint values (we use them as seed only)
   // so we recompute IK
-  state->as<StateType>()->joints_computed = false;
+  state->as<StateType>()->setJointsComputed(false);
   computeStateIK(state);
 }
   
 void ompl_interface::PoseModelStateSpace::copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const
 {
   // if joint values are not computed, we compute them
-  if (!state->as<StateType>()->joints_computed)
+  if (!state->as<StateType>()->jointsComputed())
   {
     ob::State *temp = allocState();
     copyState(temp, state);
@@ -153,8 +149,8 @@ void ompl_interface::PoseModelStateSpace::copyToOMPLState(ob::State *state, cons
       for (std::size_t j = 0 ; j < vals.size() ; ++j)
         ompl_val[j] = vals[j];
     }
-  state->as<StateType>()->joints_computed = true;
-  state->as<StateType>()->pose_computed = false;
+  state->as<StateType>()->setJointsComputed(true);
+  state->as<StateType>()->setPoseComputed(false);
   computeStateIK(state);
 }
 
@@ -174,13 +170,13 @@ void ompl_interface::PoseModelStateSpace::copyToOMPLState(ob::State *state, cons
         ompl_val[j] = values[vindex++];
     }
   }
-  state->as<StateType>()->joints_computed = true;
-  state->as<StateType>()->pose_computed = false;
+  state->as<StateType>()->setJointsComputed(true);
+  state->as<StateType>()->setPoseComputed(false);
   computeStateIK(state);
 }
 
 ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const pm::KinematicModel::JointModelGroup *subgroup, 
-                                                                  const kc::IKAllocator &kinematics_allocator) :
+                                                                  const kc::KinematicsAllocator &kinematics_allocator) :
   subgroup_(subgroup), kinematics_solver_(kinematics_allocator(subgroup)),
   joint_model_(subgroup->getJointModels())
 {
@@ -269,16 +265,16 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateIK(ob::Stat
 }
 
 void ompl_interface::PoseModelStateSpace::constructSpace(const pm::KinematicModel::JointModelGroup *group, 
-                                                         const kc::IKAllocator &ik_allocator)
+                                                         const kc::KinematicsAllocator &ik_allocator)
 {
   poses_.push_back(PoseComponent(group, ik_allocator));
   constructSpaceFromPoses();
 }
 
 void ompl_interface::PoseModelStateSpace::constructSpace(const pm::KinematicModel::JointModelGroup *group, 
-                                                         const kc::IKSubgroupAllocator &ik_allocator)
+                                                         const kc::KinematicsSubgroupAllocator &ik_allocator)
 {
-  for (std::map<const pm::KinematicModel::JointModelGroup*, kc::IKAllocator>::const_iterator it = ik_allocator.begin() ; it != ik_allocator.end() ; ++it)
+  for (std::map<const pm::KinematicModel::JointModelGroup*, kc::KinematicsAllocator>::const_iterator it = ik_allocator.begin() ; it != ik_allocator.end() ; ++it)
     poses_.push_back(PoseComponent(it->first, it->second));
   constructSpaceFromPoses();
 }
@@ -293,31 +289,40 @@ void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses(void)
 
 bool ompl_interface::PoseModelStateSpace::computeStateFK(ob::State *state) const
 {
-  if (state->as<StateType>()->pose_computed)
+  if (state->as<StateType>()->poseComputed())
     return true;
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     if (!poses_[i].computeStateFK(state->as<StateType>()->components[i]))
+    {
+      state->as<StateType>()->markInvalid();
       return false;
-  state->as<StateType>()->pose_computed = true;
+    }
+  state->as<StateType>()->setPoseComputed(true);
   return true;
 }
 
 bool ompl_interface::PoseModelStateSpace::computeStateIK(ob::State *state) const
 {  
-  if (state->as<StateType>()->joints_computed)
+  if (state->as<StateType>()->jointsComputed())
     return true;
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     if (!poses_[i].computeStateIK(state->as<StateType>()->components[i]))
+    {
+      state->as<StateType>()->markInvalid();
       return false;
-  state->as<StateType>()->joints_computed = true;
+    }
+  state->as<StateType>()->setJointsComputed(true);
   return true;
 }
 
 bool ompl_interface::PoseModelStateSpace::computeStateK(ob::State *state) const
 {
-  if (state->as<StateType>()->joints_computed && !state->as<StateType>()->pose_computed)
+  if (state->as<StateType>()->jointsComputed() && !state->as<StateType>()->poseComputed())
     return computeStateFK(state);
-  if (!state->as<StateType>()->joints_computed && state->as<StateType>()->pose_computed)
+  if (!state->as<StateType>()->jointsComputed() && state->as<StateType>()->poseComputed())
     return computeStateIK(state);
-  return state->as<StateType>()->joints_computed && state->as<StateType>()->pose_computed;
+  if (state->as<StateType>()->jointsComputed() && state->as<StateType>()->poseComputed())
+    return true;
+  state->as<StateType>()->markInvalid();
+  return false;
 }

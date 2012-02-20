@@ -34,38 +34,17 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
+#include "ompl_interface/parameterization/work_space/pose_model_planning_context.h"
+#include "ompl_interface/detail/projection_evaluators.h"
+#include "ompl_interface/detail/constrained_sampler.h"
 
-#include "ompl_interface/parameterization/model_based_planning_context_factory.h"
-#include "ompl_interface/parameterization/joint_space/joint_model_planning_context.h"
-
-namespace ompl_interface
+ompl::base::ProjectionEvaluatorPtr ompl_interface::PoseModelPlanningContext::getProjectionEvaluator(const std::string &peval) const
 {
-class JointModelPlanningContextFactory : public ModelBasedPlanningContextFactory
-{
-public:
 
-  JointModelPlanningContextFactory(void) : ModelBasedPlanningContextFactory()
-  {
-    type_ = "JointModel";
-  }  
-  
-  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const
-  {
-    return 100;
-  }
-
-protected:
-  
-  virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
-                                                            const ModelBasedStateSpaceSpecification &space_spec,
-                                                            const ModelBasedPlanningContextSpecification &context_spec) const
-  {
-    return ModelBasedPlanningContextPtr(new JointModelPlanningContext(name, ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec)), context_spec));
-  }
-  
-};
+  return ob::ProjectionEvaluatorPtr();
 }
 
-#endif
+ompl::base::StateSamplerPtr ompl_interface::PoseModelPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
+{
+  return ss->allocDefaultStateSampler();
+}

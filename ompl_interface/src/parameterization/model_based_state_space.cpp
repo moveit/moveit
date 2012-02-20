@@ -87,7 +87,9 @@ void ompl_interface::ModelBasedStateSpace::freeState(ob::State *state) const
 void ompl_interface::ModelBasedStateSpace::copyState(ob::State *destination, const ob::State *source) const
 {
   CompoundStateSpace::copyState(destination, source);
-  destination->as<StateType>()->tag = source->as<StateType>()->tag;  
+  destination->as<StateType>()->flags = source->as<StateType>()->flags;
+  destination->as<StateType>()->distance = source->as<StateType>()->distance;
+  destination->as<StateType>()->tag = source->as<StateType>()->tag;
 }
 
 void ompl_interface::ModelBasedStateSpace::interpolate(const ob::State *from, const ob::State *to, const double t, ob::State *state) const
