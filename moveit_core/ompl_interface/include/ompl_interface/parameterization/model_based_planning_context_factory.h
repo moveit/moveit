@@ -45,6 +45,8 @@ namespace ompl_interface
 class ModelBasedPlanningContextFactory;
 typedef boost::shared_ptr<ModelBasedPlanningContextFactory> ModelBasedPlanningContextFactoryPtr;
 
+typedef std::map<const pm::KinematicModel::JointModelGroup*, std::pair<kc::KinematicsAllocator, kc::KinematicsSubgroupAllocator> > AvailableKinematicsSolvers;
+
 class ModelBasedPlanningContextFactory
 {
 public:
@@ -64,9 +66,8 @@ public:
   {
     return type_;
   }
-  
-  virtual bool canRepresentProblem(const moveit_msgs::MotionPlanRequest &req) const = 0;
-  virtual unsigned int getPriority(void) const = 0;
+
+  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const = 0;
 
 protected:
   

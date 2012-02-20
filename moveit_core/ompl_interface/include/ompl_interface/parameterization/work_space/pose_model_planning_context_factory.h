@@ -34,40 +34,68 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_PLANNING_CONTEXT_FACTORY_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_PLANNING_CONTEXT_FACTORY_
 
 #include "ompl_interface/parameterization/model_based_planning_context_factory.h"
-#include "ompl_interface/parameterization/joint_space/joint_model_planning_context.h"
+#include "ompl_interface/parameterization/work_space/pose_model_planning_context.h"
 
 namespace ompl_interface
 {
-class JointModelPlanningContextFactory : public ModelBasedPlanningContextFactory
+class PoseModelPlanningContextFactory : public ModelBasedPlanningContextFactory
 {
 public:
 
-  JointModelPlanningContextFactory(void) : ModelBasedPlanningContextFactory()
+  PoseModelPlanningContextFactory(void) : ModelBasedPlanningContextFactory()
   {
     type_ = "PoseModel";
   }  
   
-  virtual bool canRepresentProblem(const moveit_msgs::MotionPlanRequest &req) const
+  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const
   {
-    return true;
+    const pm::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req.group_name);
+    if (jmg)
+    {
+      AvailableKinematicsSolvers::const_iterator it = aks.find(jmg);
+      if (it != aks.end())
+      {
+        bool ik = false;
+        // check that we have a direct means to compute IK
+        if (it->second.first)
+          ik = true;
+        else
+          if (!it->second.second.empty())
+          {
+            // or an IK solver for each of the subgroups
+            unsigned int vc = 0;
+            for (kc::KinematicsSubgroupAllocator::const_iterator jt = it->second.second.begin() ; jt != it->second.second.end() ; ++jt)
+              vc += jt->first->getVariableCount();
+            if (vc == jmg->getVariableCount())
+              ik = true;
+          }
+        
+        if (ik)
+        {
+          // if we have path constraints, we prefer interpolating in pose space
+          if ((!req.path_constraints.position_constraints.empty() || !req.path_constraints.orientation_constraints.empty()) &&
+              req.path_constraints.joint_constraints.empty() && req.path_constraints.visibility_constraints.empty())
+            return 150;
+          else
+            return 50;
+        }
+      }
+    }
+    
+    return -1;
   }
   
-  virtual unsigned int getPriority(void) const
-  {
-    return 1;
-  }
-
 protected:
   
   virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
-                                                            const KinematicModelStateSpaceSpecification &space_spec,
+                                                            const ModelBasedStateSpaceSpecification &space_spec,
                                                             const ModelBasedPlanningContextSpecification &context_spec) const
   {
-    return ModelBasedPlanningContextPtr(new JointModelPlanningContext(name, KinematicModelStateSpacePtr(new JointModelStateSpace(space_spec)), context_spec));
+    return ModelBasedPlanningContextPtr(new PoseModelPlanningContext(name, ModelBasedStateSpacePtr(new PoseModelStateSpace(space_spec)), context_spec));
   }
   
 };

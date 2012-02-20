@@ -65,10 +65,10 @@ public:
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
   void setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig);
-  
+
   /** @brief Specify the available inverse kinematics solvers
       @param kinematics_allocators Allocate the inverse kinematics solvers*/
-  void specifyIKSolvers(const std::map<std::string, kinematic_constraints::IKAllocator> &kinematics_allocators);
+  void specifyIKSolvers(const std::map<std::string, kc::KinematicsAllocator> &kinematics_allocators);
 
   /* \brief Get the maximum number of sampling attempts allowed */
   unsigned int getMaximumSamplingAttempts(void) const
@@ -226,8 +226,7 @@ protected:
   const planning_models::KinematicModelConstPtr   kmodel_;
   
   /** \brief A map from group names to IK allocators; these are the available IK solvers */
-  std::map<const pm::KinematicModel::JointModelGroup*,
-           std::pair<kc::IKAllocator, kc::IKSubgroupAllocator> > kinematics_allocators_;
+  AvailableKinematicsSolvers                      kinematics_allocators_;
   
   std::map<std::string, ob::PlannerAllocator>                known_planners_;
   std::map<std::string, ModelBasedPlanningContextFactoryPtr> planning_context_factories_; 

@@ -71,8 +71,8 @@ struct ModelBasedStateSpaceSpecification
   
   pm::KinematicModelConstPtr                 kmodel_;
   const pm::KinematicModel::JointModelGroup *joint_model_group_;
-  kc::IKAllocator                            kinematics_allocator_;
-  kc::IKSubgroupAllocator                    kinematics_subgroup_allocators_;
+  kc::KinematicsAllocator                    kinematics_allocator_;
+  kc::KinematicsSubgroupAllocator            kinematics_subgroup_allocators_;
 };
 
 class ModelBasedStateSpace : public ob::CompoundStateSpace
@@ -83,10 +83,65 @@ public:
   class StateType : public ob::CompoundStateSpace::StateType
   {
   public:
-    StateType(void) : ob::CompoundStateSpace::StateType(), tag(-1)
+    enum
+      {
+        VALIDITY_KNOWN = 1,
+        GOAL_DISTANCE_KNOWN = 2,
+        VALIDITY_TRUE = 4,
+      };
+    
+    StateType(void) : ob::CompoundStateSpace::StateType(), flags(0), distance(0.0), tag(-1)
     {
-    }    
-    int tag;
+    }
+        
+    void markValid(double d)
+    {
+      distance = d; 
+      flags |= GOAL_DISTANCE_KNOWN;
+      markValid();
+    }
+    
+    void markValid(void)
+    {
+      flags |= (VALIDITY_KNOWN | VALIDITY_TRUE);
+    }
+    
+    void markInvalid(double d)
+    {
+      distance = d;
+      flags |= GOAL_DISTANCE_KNOWN;
+      markInvalid();
+    }
+    
+    void markInvalid(void)
+    {
+      flags &= ~VALIDITY_TRUE;
+      flags |= VALIDITY_KNOWN;
+    }
+    
+    bool isValidityKnown(void) const
+    {
+      return flags & VALIDITY_KNOWN;
+    }
+    
+    bool isMarkedValid(void) const
+    {
+      return flags & VALIDITY_TRUE;
+    }
+    
+    bool isGoalDistanceKnown(void) const
+    {
+      return flags & GOAL_DISTANCE_KNOWN;
+    }
+    
+    void resetKnownValues(void)
+    {
+      flags &= ~(VALIDITY_KNOWN | GOAL_DISTANCE_KNOWN);
+    }
+
+    int    flags;
+    double distance;
+    int    tag;
   };
   
   ModelBasedStateSpace(const ModelBasedStateSpaceSpecification &spec) : 
@@ -141,12 +196,12 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
 
-  const kc::IKAllocator& getKinematicsAllocator(void) const
+  const kc::KinematicsAllocator& getKinematicsAllocator(void) const
   {
     return spec_.kinematics_allocator_;
   }
 
-  const kc::IKSubgroupAllocator& getKinematicsSubgroupAllocators(void) const
+  const kc::KinematicsSubgroupAllocator& getKinematicsSubgroupAllocators(void) const
   {
     return spec_.kinematics_subgroup_allocators_;
   }

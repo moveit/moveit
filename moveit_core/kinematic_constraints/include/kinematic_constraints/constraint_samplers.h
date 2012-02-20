@@ -77,10 +77,10 @@ typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
 typedef boost::shared_ptr<const ConstraintSampler> ConstraintSamplerConstPtr;
 
 /// function type that allocates an IK solver for a particular group
-typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> IKAllocator;
+typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> KinematicsAllocator;
 
 /// some groups do not have IK solver associated to them, but may contain disjoint groups that do have IK solvers associated to them
-typedef std::map<const planning_models::KinematicModel::JointModelGroup*, IKAllocator> IKSubgroupAllocator;
+typedef std::map<const planning_models::KinematicModel::JointModelGroup*, KinematicsAllocator> KinematicsSubgroupAllocator;
 
 class JointConstraintSampler : public ConstraintSampler
 {
@@ -128,7 +128,7 @@ class IKConstraintSampler : public ConstraintSampler
 {
 public:
   
-  IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const IKAllocator &ik_alloc, const IKSamplingPose &sp);
+  IKConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const KinematicsAllocator &ik_alloc, const IKSamplingPose &sp);
   
   double getIKTimeout(void) const
   {
@@ -163,7 +163,7 @@ protected:
   bool callIK(const geometry_msgs::Pose &ik_query, double timeout, std::vector<double> &solution);
   bool loadIKSolver(void);
   
-  IKAllocator                                   ik_alloc_;
+  KinematicsAllocator                           ik_alloc_;
   IKSamplingPose                                sp_;
   boost::shared_ptr<kinematics::KinematicsBase> kb_;
   double                                        ik_timeout_;
@@ -193,7 +193,7 @@ protected:
 
 ConstraintSamplerPtr constructConstraintsSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const moveit_msgs::Constraints &constr,
                                                  const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf,
-                                                 const IKAllocator &ik_alloc = IKAllocator(), const IKSubgroupAllocator &ik_subgroup_alloc = IKSubgroupAllocator());
+                                                 const KinematicsAllocator &ik_alloc = KinematicsAllocator(), const KinematicsSubgroupAllocator &ik_subgroup_alloc = KinematicsSubgroupAllocator());
 }
 
 

@@ -52,11 +52,43 @@ public:
   class StateType : public ModelBasedStateSpace::StateType
   {
   public:
-    StateType(void) : ModelBasedStateSpace::StateType(), joints_computed(true), pose_computed(false)
+    enum 
+      {
+        JOINTS_COMPUTED = 8,
+        POSE_COMPUTED = 16
+      };
+    
+    StateType(void) : ModelBasedStateSpace::StateType()
     {
+      flags |= JOINTS_COMPUTED;
     }    
-    bool joints_computed;
-    bool pose_computed;
+    
+    bool jointsComputed(void) const
+    {
+      return flags & JOINTS_COMPUTED;
+    }
+    
+    bool poseComputed(void) const
+    {
+      return flags & POSE_COMPUTED;
+    }
+    
+    void setJointsComputed(bool value)
+    {
+      if (value)
+        flags |= JOINTS_COMPUTED;
+      else
+        flags &= ~JOINTS_COMPUTED;
+    }
+
+    void setPoseComputed(bool value)
+    {
+      if (value)
+        flags |= POSE_COMPUTED;
+      else
+        flags &= ~POSE_COMPUTED;
+    }
+    
   };
   
   PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
@@ -79,7 +111,7 @@ private:
   struct PoseComponent
   {
     PoseComponent(const pm::KinematicModel::JointModelGroup *subgroup, 
-                  const kc::IKAllocator &kinematics_allocator);
+                  const kc::KinematicsAllocator &kinematics_allocator);
     
     bool computeStateFK(ob::State *state) const;
     bool computeStateIK(ob::State *state) const;
@@ -96,9 +128,9 @@ private:
   };
   
   void constructSpace(const pm::KinematicModel::JointModelGroup *group, 
-                      const kc::IKAllocator &ik_allocator);
+                      const kc::KinematicsAllocator &ik_allocator);
   void constructSpace(const pm::KinematicModel::JointModelGroup *group, 
-                      const kc::IKSubgroupAllocator &ik_allocator);
+                      const kc::KinematicsSubgroupAllocator &ik_allocator);
   void constructSpaceFromPoses(void);
 
   bool computeStateFK(ob::State *state) const;

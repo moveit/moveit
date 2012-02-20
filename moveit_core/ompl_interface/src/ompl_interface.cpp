@@ -58,6 +58,7 @@
 #include <ompl/tools/debug/Profiler.h>
 
 #include "ompl_interface/parameterization/joint_space/joint_model_planning_context_factory.h"
+#include "ompl_interface/parameterization/work_space/pose_model_planning_context_factory.h"
 
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
   kmodel_(kmodel), max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4),
@@ -100,16 +101,16 @@ ompl::base::PlannerPtr ompl_interface::OMPLInterface::plannerAllocator(const omp
   }
 }
 
-void ompl_interface::OMPLInterface::specifyIKSolvers(const std::map<std::string, kc::IKAllocator> &kinematics_allocators)
+void ompl_interface::OMPLInterface::specifyIKSolvers(const std::map<std::string, kc::KinematicsAllocator> &kinematics_allocators)
 {
   kinematics_allocators_.clear();
   const std::map<std::string, pm::KinematicModel::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
   for (std::map<std::string, pm::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
   {
     const pm::KinematicModel::JointModelGroup *jmg = it->second;
-    std::pair<kc::IKAllocator, kc::IKSubgroupAllocator> result;
+    std::pair<kc::KinematicsAllocator, kc::KinematicsSubgroupAllocator> result;
     
-    std::map<std::string, kc::IKAllocator>::const_iterator jt = kinematics_allocators.find(jmg->getName());
+    std::map<std::string, kc::KinematicsAllocator>::const_iterator jt = kinematics_allocators.find(jmg->getName());
     if (jt == kinematics_allocators.end())
     {
       // if an IK allocator is NOT available for this group, we try to see if we can use subgroups for IK
@@ -119,7 +120,7 @@ void ompl_interface::OMPLInterface::specifyIKSolvers(const std::map<std::string,
       std::vector<const pm::KinematicModel::JointModelGroup*> subs;
       
       // go through the groups that we know have IK allocators and see if they are included in the group that does not; fi so, put that group in sub
-      for (std::map<std::string, kc::IKAllocator>::const_iterator kt = kinematics_allocators.begin() ;
+      for (std::map<std::string, kc::KinematicsAllocator>::const_iterator kt = kinematics_allocators.begin() ;
            kt != kinematics_allocators.end() ; ++kt)
       {
         const pm::KinematicModel::JointModelGroup *sub = jmg->getParentModel()->getJointModelGroup(kt->first);
@@ -178,6 +179,7 @@ void ompl_interface::OMPLInterface::registerDefaultPlanners(void)
 void ompl_interface::OMPLInterface::registerDefaultPlanningContexts(void)
 {
   registerPlanningContextFactory(ModelBasedPlanningContextFactoryPtr(new JointModelPlanningContextFactory()));
+  registerPlanningContextFactory(ModelBasedPlanningContextFactoryPtr(new PoseModelPlanningContextFactory()));
 }
 
 void ompl_interface::OMPLInterface::setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig)
@@ -218,8 +220,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getP
                                                                                                const PlanningConfigurationSettings &config) const
 {
   ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
-  std::map<const pm::KinematicModel::JointModelGroup*,
-    std::pair<kc::IKAllocator, kc::IKSubgroupAllocator> >::const_iterator it = kinematics_allocators_.find(space_spec.joint_model_group_);
+  AvailableKinematicsSolvers::const_iterator it = kinematics_allocators_.find(space_spec.joint_model_group_);
   if (it != kinematics_allocators_.end())
   {
     space_spec.kinematics_allocator_ = it->second.first;
@@ -257,10 +258,17 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   
   // find the problem representation to use
   const ModelBasedPlanningContextFactory *factory = NULL;
+  int prev_priority = -1;
   for (std::map<std::string, ModelBasedPlanningContextFactoryPtr>::const_iterator it = planning_context_factories_.begin() ; it != planning_context_factories_.end() ; ++it)
-    if (!factory || it->second->getPriority() > factory->getPriority())
-      if (it->second->canRepresentProblem(req))
+  {
+    int priority = it->second->canRepresentProblem(req, kmodel_, kinematics_allocators_);
+    if (priority >= 0)
+      if (!factory || priority > prev_priority)
+      {
         factory = it->second.get();
+        prev_priority = priority;
+      }
+  }
   
   if (!factory)
   {
