@@ -48,32 +48,18 @@
 namespace distance_field
 {
 
-// less-than Comparison
-bool lessThan(int3 loc_1, int3 loc_2)
-{
-  if( loc_1.z() != loc_2.z() )
-    return ( loc_1.z() < loc_2.z() );
-  else if( loc_1.y() != loc_2.y() )
-    return ( loc_1.y() < loc_2.y() );
-  else if( loc_1.x() != loc_2.x() )
-    return ( loc_1.x() < loc_2.x() );
-  return false;
-}
-
-int equal(int3 loc_1, int3 loc_2)
-{
-  return(
-      loc_1.z() == loc_2.z() &&
-      loc_1.y() == loc_2.y() &&
-      loc_1.x() == loc_2.x() );
-}
-
 // Class
 struct compareInt3
 {
   bool operator()(int3 loc_1, int3 loc_2) const
   {
-    return lessThan(loc_1,loc_2);
+    if( loc_1.z() != loc_2.z() )
+      return ( loc_1.z() < loc_2.z() );
+    else if( loc_1.y() != loc_2.y() )
+      return ( loc_1.y() < loc_2.y() );
+    else if( loc_1.x() != loc_2.x() )
+      return ( loc_1.x() < loc_2.x() );
+    return false;
   }
 };
 
