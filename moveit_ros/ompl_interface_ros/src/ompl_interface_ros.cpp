@@ -105,7 +105,7 @@ void ompl_interface_ros::OMPLInterfaceROS::loadKinematicsSolvers(void)
   kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction();
   const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
   
-  std::map<std::string, kinematic_constraints::IKAllocator> imap;
+  std::map<std::string, kinematic_constraints::KinematicsAllocator> imap;
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
     imap[groups[i]] =  kinematics_allocator;
   
