@@ -63,13 +63,13 @@ void TrajectoryExecutionMonitor::addTrajectoryControllerHandler(boost::shared_pt
 void TrajectoryExecutionMonitor::executeTrajectories(const std::vector<TrajectoryExecutionRequest>& to_execute,
                                                      const boost::function<bool(TrajectoryExecutionDataVector)>& done_callback) {
   
-  execution_data_ = &to_execute;
+  execution_data_ = to_execute;
   execution_result_vector_.reset();
   result_callback_ = done_callback;
   
   current_trajectory_index_ = 0;
   
-  if(!sendTrajectory((*execution_data_)[current_trajectory_index_])) {
+  if(!sendTrajectory(execution_data_[current_trajectory_index_])) {
     result_callback_(execution_result_vector_);
   }
 };
@@ -137,15 +137,13 @@ void TrajectoryExecutionMonitor::trajectoryFinishedCallbackFunction(
   execution_result_vector_.back().recorded_trajectory_ = last_requested_handler_->getLastRecordedTrajectory();
   execution_result_vector_.back().overshoot_trajectory_ = last_requested_handler_->getLastOvershootTrajectory();
 
-  const TrajectoryExecutionRequest& req = (*execution_data_)[current_trajectory_index_];
-  bool ok = (	controller_state==TrajectoryControllerStates::SUCCESS ||
-                controller_state==TrajectoryControllerStates::OVERSHOOT_TIMEOUT);
-  bool continue_execution =
-    ok ||
-    req.failure_ok_ ||
-    (	req.test_for_close_enough_ && closeEnough(req,execution_result_vector_.back()));
+  const TrajectoryExecutionRequest& req = execution_data_[current_trajectory_index_];
+  bool ok = (controller_state==TrajectoryControllerStates::SUCCESS ||
+             controller_state==TrajectoryControllerStates::OVERSHOOT_TIMEOUT);
+  bool continue_execution = ok || req.failure_ok_ ||
+    (req.test_for_close_enough_ && closeEnough(req,execution_result_vector_.back()));
 
-  if(	continue_execution )
+  if(continue_execution )
   {
     ROS_INFO_STREAM("Trajectory finished");
 
@@ -169,22 +167,22 @@ void TrajectoryExecutionMonitor::trajectoryFinishedCallbackFunction(
     }
 
     current_trajectory_index_++;
-    if(current_trajectory_index_ >= execution_data_->size()) {
+    if(current_trajectory_index_ >= execution_data_.size()) {
       result_callback_(execution_result_vector_);
       return;
     }
     for(int i = (int)current_trajectory_index_-1; i >= 0; i--) {
-      if((*execution_data_)[i].group_name_ == (*execution_data_)[current_trajectory_index_].group_name_) {
+      if(execution_data_[i].group_name_ == execution_data_[current_trajectory_index_].group_name_) {
         ROS_INFO_STREAM("Last index is " << i << " current is " << current_trajectory_index_);
-	compareLastRecordedToStart((*execution_data_)[i],
-				   (*execution_data_)[current_trajectory_index_],
+	compareLastRecordedToStart(execution_data_[i],
+				   execution_data_[current_trajectory_index_],
 				   execution_result_vector_[i]);
 	break;
       }
     }
 
     // Start next trajectory
-    if(!sendTrajectory((*execution_data_)[current_trajectory_index_])) {
+    if(!sendTrajectory(execution_data_[current_trajectory_index_])) {
       result_callback_(execution_result_vector_);
     }
   } else {

@@ -152,7 +152,7 @@ protected:
 
   boost::function<bool(TrajectoryExecutionDataVector)> result_callback_;
   TrajectoryExecutionDataVector execution_result_vector_;
-  const std::vector<TrajectoryExecutionRequest>* execution_data_;
+  std::vector<TrajectoryExecutionRequest> execution_data_;
   unsigned int current_trajectory_index_;
 
   boost::shared_ptr<TrajectoryControllerHandler> last_requested_handler_;
