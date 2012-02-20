@@ -46,6 +46,8 @@ namespace moveit_visualization_ros
 
 class KinematicsGroupVisualization {
 public:
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene_monitor,
                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
@@ -161,7 +163,9 @@ protected:
   boost::function<void(void)> button_click_callback_;
   bool dof_marker_enabled_;
 
-  std::map<std::string, Eigen::Affine3d> relative_transforms_;
+  std::map<std::string, Eigen::Affine3d,
+           std::less<std::string>,
+           Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > relative_transforms_;
 
   std::map<std::string, boost::function<void(const std::string& name)> > default_callback_map_;
 
