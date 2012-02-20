@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/trajectory_execution_ros</url>
   <depend package="trajectory_execution"/>
+  <depend package="actionlib"/>
 
   <rosdep name="eigen"/>
 

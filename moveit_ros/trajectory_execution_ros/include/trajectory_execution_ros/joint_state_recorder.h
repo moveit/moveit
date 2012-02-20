@@ -42,6 +42,9 @@
 #include <trajectory_execution/trajectory_recorder.h>
 #include <sensor_msgs/JointState.h>
 
+namespace trajectory_execution_ros
+{
+
 /// \brief Recorder for joint state trajectories.
 class JointStateTrajectoryRecorder : public trajectory_execution::TrajectoryRecorder {
 
@@ -56,5 +59,7 @@ protected:
   ros::Subscriber joint_state_subscriber_;
 
 };
+
+}
 
 #endif
