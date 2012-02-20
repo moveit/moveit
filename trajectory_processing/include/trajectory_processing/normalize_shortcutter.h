@@ -48,7 +48,7 @@ class NormalizeShortcutter : public TrajectoryShortcutter
 {
 public:
 
-  NormalizeShortcutter(const planning_models::KinematicModelPtr& kmodel) :
+  NormalizeShortcutter(const planning_models::KinematicModelConstPtr& kmodel) :
     kmodel_(kmodel) {
   };
 
@@ -63,11 +63,11 @@ public:
                         const trajectory_msgs::JointTrajectory& trajectory_in,
                         const ros::Duration& allowed_time,
                         trajectory_msgs::JointTrajectory& trajectory_out,
-                        moveit_msgs::MoveItErrorCodes& error_code) const = 0;
+                        moveit_msgs::MoveItErrorCodes& error_code) const;
 
 protected:
   
-  const planning_models::KinematicModelPtr& kmodel_;
+  const planning_models::KinematicModelConstPtr& kmodel_;
 
 };
 
