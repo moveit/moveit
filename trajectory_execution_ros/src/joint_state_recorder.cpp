@@ -38,6 +38,9 @@
 
 #include <trajectory_execution_ros/joint_state_recorder.h>
 
+namespace trajectory_execution_ros
+{
+
 JointStateTrajectoryRecorder::JointStateTrajectoryRecorder(const std::string& topic_name) :
   TrajectoryRecorder(topic_name)
 {
@@ -56,4 +59,6 @@ void JointStateTrajectoryRecorder::jointStateCallback(const sensor_msgs::JointSt
   callCallbacks(joint_state->header.stamp,
                 joint_positions,
                 joint_velocities);
+}
+
 }
