@@ -117,8 +117,7 @@ void tridiagonalSolve(std::vector<T>& a,
  * Resizes the velocities and accelerations for every waypoint, filling in zeros if necessary
  * Ensures that time is strictly increasing
  */
-template <typename T>
-bool checkTrajectoryConsistency(T& waypoint_traj)
+inline bool checkTrajectoryConsistency(trajectory_msgs::JointTrajectory& waypoint_traj)
 {
   unsigned int length = waypoint_traj.points.size();
   unsigned int num_joints = waypoint_traj.joint_names.size();
