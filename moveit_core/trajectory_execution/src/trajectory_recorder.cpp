@@ -32,48 +32,32 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/** \author E. Gil Jones */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
+#include <trajectory_execution/trajectory_recorder.h>
 
-#include <ompl/base/StateSampler.h>
-#include <kinematic_constraints/constraint_samplers.h>
+using namespace trajectory_execution;
 
-namespace ompl_interface
+void TrajectoryRecorder::callCallbacks(const ros::Time& time,
+                                       const std::map<std::string, double>& joint_positions,
+                                       const std::map<std::string, double>& joint_velocities)
 {
+  // Call all the callbacks
+  for(std::map<std::string, NewStateCallbackFunction>::const_iterator it = callback_map_.begin();
+      it != callback_map_.end();
+      it++) 
+  {
+    it->second(time, 
+               joint_positions,
+               joint_velocities);
+  }
 
-class ModelBasedPlanningContext;
+  // Delete the callbacks that just requested to be deleted
+  for(unsigned int i=0; i<deregister_list_.size(); ++i)
+  {
+    const std::string& name = deregister_list_[i];
+    callback_map_.erase(name);
+  }
+  deregister_list_.clear();
 
-/** @class ConstrainedSampler
- *  This class defines a sampler that tries to find a sample that satisfies the constraints*/
-class ConstrainedSampler : public ompl::base::StateSampler
-{
-public:
-  /** @brief Default constructor
-   *  @param pg The planning group
-   *  @param cs A pointer to a kinematic constraint sampler
-   */
-  ConstrainedSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::ConstraintSamplerPtr &cs);
-  
-  /** @brief Sample a state (uniformly)*/
-  virtual void sampleUniform(ompl::base::State *state);
-  
-  /** @brief Sample a state (uniformly) within a certain distance of another state*/
-  virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance);
-  
-  /** @brief Sample a state using the specified Gaussian*/
-  virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev);
-  
-private:
-  
-  bool sampleC(ompl::base::State *state);
-  
-  const ModelBasedPlanningContext            *planning_context_;
-  ompl::base::StateSamplerPtr                 default_;
-  kinematic_constraints::ConstraintSamplerPtr constraint_sampler_;
 };
-
-}
-
-#endif

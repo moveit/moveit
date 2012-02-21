@@ -35,154 +35,276 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include "ompl_interface/ompl_interface.h"
+
 #include <planning_models/conversions.h>
 #include <algorithm>
 #include <fstream>
 #include <set>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/rrt/pRRT.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/LazyRRT.h>
+#include <ompl/geometric/planners/est/EST.h>
+#include <ompl/geometric/planners/sbl/SBL.h>
+#include <ompl/geometric/planners/sbl/pSBL.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/kpiece/BKPIECE1.h>
+#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
+#include <ompl/contrib/rrt_star/RRTstar.h>
+#include <ompl/geometric/planners/prm/PRM.h>
 
-ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) : kmodel_(kmodel), configured_(false)
-{   
-  constraints_.reset(new std::vector<ConstraintApproximation>());
+#include <ompl/tools/debug/Profiler.h>
+
+#include "ompl_interface/parameterization/joint_space/joint_model_planning_context_factory.h"
+#include "ompl_interface/parameterization/work_space/pose_model_planning_context_factory.h"
+
+ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
+  kmodel_(kmodel), max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4),
+  max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
+{
+  //  constraints_.reset(new std::vector<ConstraintApproximation>());
+
+  registerDefaultPlanners();
+  registerDefaultPlanningContexts();
 }
 
 ompl_interface::OMPLInterface::~OMPLInterface(void)
 {
 }
 
-bool ompl_interface::OMPLInterface::configure(const std::vector<PlanningConfigurationSettings> &pconfig)
+namespace ompl_interface
 {
-  // construct specified configurations
-  for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
-  {
-    const planning_models::KinematicModel::JointModelGroup *jmg = kmodel_->getJointModelGroup(pconfig[i].group);
-    if (jmg)
-    {
-      planning_groups_[pconfig[i].name].reset(new PlanningConfiguration(pconfig[i].name, kmodel_, jmg, constraints_, pconfig[i].config));
-      ROS_INFO_STREAM("Added planning configuration '" << pconfig[i].name << "'");
-    }
-  }
-  // construct default configurations
-  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
-  for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
-    if (planning_groups_.find(it->first) == planning_groups_.end())
-    {
-      static const std::map<std::string, std::string> empty;
-      planning_groups_[it->first].reset(new PlanningConfiguration(it->first, kmodel_, it->second, constraints_, empty));
-      ROS_INFO_STREAM("Added planning configuration '" << it->first << "'");
-    }
-  
-  configured_ = true;
-  return true;
+
+template<typename T>
+static ob::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si)
+{
+  return ob::PlannerPtr(new T(si));
+}
 }
 
-void ompl_interface::OMPLInterface::configureIKSolvers(const std::map<std::string, kinematic_constraints::IKAllocator> &ik_allocators)
+ompl::base::PlannerPtr ompl_interface::OMPLInterface::plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
+                                                                       const std::map<std::string, std::string> &config) const
 {
-  for (std::map<std::string, PlanningConfigurationPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
+  std::map<std::string, ob::PlannerAllocator>::const_iterator it = known_planners_.find(planner);
+  if (it != known_planners_.end())
   {
-    std::map<std::string, kinematic_constraints::IKAllocator>::const_iterator jt = ik_allocators.find(it->second->getJointModelGroup()->getName());
-    if (jt == ik_allocators.end())
+    ob::PlannerPtr p = it->second(si);
+    p->params().setParams(config, true);
+    return p;
+  }
+  else
+  {
+    ROS_ERROR("Unknown planner: '%s'", planner.c_str());
+    return ob::PlannerPtr();
+  }
+}
+
+void ompl_interface::OMPLInterface::specifyIKSolvers(const std::map<std::string, kc::KinematicsAllocator> &kinematics_allocators)
+{
+  kinematics_allocators_.clear();
+  const std::map<std::string, pm::KinematicModel::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
+  for (std::map<std::string, pm::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
+  {
+    const pm::KinematicModel::JointModelGroup *jmg = it->second;
+    std::pair<kc::KinematicsAllocator, kc::KinematicsSubgroupAllocator> result;
+    
+    std::map<std::string, kc::KinematicsAllocator>::const_iterator jt = kinematics_allocators.find(jmg->getName());
+    if (jt == kinematics_allocators.end())
     {
       // if an IK allocator is NOT available for this group, we try to see if we can use subgroups for IK
-      const planning_models::KinematicModel::JointModelGroup *jmg = it->second->getJointModelGroup();
-      const planning_models::KinematicModel *km = jmg->getParentModel();
-      std::set<const planning_models::KinematicModel::JointModel*> joints;
+      std::set<const pm::KinematicModel::JointModel*> joints;
       joints.insert(jmg->getJointModels().begin(), jmg->getJointModels().end());
       
-      std::vector<const planning_models::KinematicModel::JointModelGroup*> subs;
+      std::vector<const pm::KinematicModel::JointModelGroup*> subs;
       
       // go through the groups that we know have IK allocators and see if they are included in the group that does not; fi so, put that group in sub
-      for (std::map<std::string, kinematic_constraints::IKAllocator>::const_iterator kt = ik_allocators.begin() ; kt != ik_allocators.end() ; ++kt)
+      for (std::map<std::string, kc::KinematicsAllocator>::const_iterator kt = kinematics_allocators.begin() ;
+           kt != kinematics_allocators.end() ; ++kt)
       {
-	const planning_models::KinematicModel::JointModelGroup *sub = km->getJointModelGroup(kt->first);
-	std::set<const planning_models::KinematicModel::JointModel*> sub_joints;
-	sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
-	
-	if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
-	{
-	  std::set<const planning_models::KinematicModel::JointModel*> result;
-	  std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
-			      std::inserter(result, result.end()));
-	  subs.push_back(sub);
-	  joints = result;
-	}
+        const pm::KinematicModel::JointModelGroup *sub = jmg->getParentModel()->getJointModelGroup(kt->first);
+        std::set<const pm::KinematicModel::JointModel*> sub_joints;
+        sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
+        
+        if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
+        {
+          std::set<const pm::KinematicModel::JointModel*> result;
+          std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
+                              std::inserter(result, result.end()));
+          subs.push_back(sub);
+          joints = result;
+        }
       }
       
       // if we found subgroups, pass that information to the planning group
       if (!subs.empty())
       {
-	kinematic_constraints::IKSubgroupAllocator &sa = it->second->ik_subgroup_allocators_;
-	std::stringstream ss;
-	for (std::size_t i = 0 ; i < subs.size() ; ++i)
-	{
-	  ss << subs[i]->getName() << " ";
-	  sa.ik_allocators_[subs[i]] = ik_allocators.find(subs[i]->getName())->second;
-	}
-	ROS_INFO("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
+        std::stringstream ss;
+        for (std::size_t i = 0 ; i < subs.size() ; ++i)
+        {
+          ss << subs[i]->getName() << " ";
+          result.second[subs[i]] = kinematics_allocators.find(subs[i]->getName())->second;
+        }
+        ROS_DEBUG("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
       }
     }
     else
       // if the IK allocator is for this group, we use it
-      it->second->ik_allocator_ = jt->second;
+      result.first = jt->second;
+    
+    kinematics_allocators_[jmg] = result;
+  }  
+}
+  
+ompl_interface::ConfiguredPlannerAllocator ompl_interface::OMPLInterface::getPlannerAllocator(void) const
+{
+  return boost::bind(&OMPLInterface::plannerAllocator, this, _1, _2, _3);
+}
+
+void ompl_interface::OMPLInterface::registerDefaultPlanners(void)
+{
+  registerPlannerAllocator("geometric::RRT", boost::bind(&allocatePlanner<og::RRT>, _1));
+  registerPlannerAllocator("geometric::RRTConnect", boost::bind(&allocatePlanner<og::RRTConnect>, _1));
+  registerPlannerAllocator("geometric::LazyRRT", boost::bind(&allocatePlanner<og::LazyRRT>, _1));
+  registerPlannerAllocator("geometric::EST", boost::bind(&allocatePlanner<og::EST>, _1));
+  registerPlannerAllocator("geometric::SBL", boost::bind(&allocatePlanner<og::SBL>, _1));
+  registerPlannerAllocator("geometric::KPIECE", boost::bind(&allocatePlanner<og::KPIECE1>, _1));
+  registerPlannerAllocator("geometric::BKPIECE", boost::bind(&allocatePlanner<og::BKPIECE1>, _1));
+  registerPlannerAllocator("geometric::LBKPIECE", boost::bind(&allocatePlanner<og::LBKPIECE1>, _1));
+  registerPlannerAllocator("geometric::RRTstar", boost::bind(&allocatePlanner<og::RRTstar>, _1));
+  registerPlannerAllocator("geometric::PRM", boost::bind(&allocatePlanner<og::PRM>, _1));
+}
+
+void ompl_interface::OMPLInterface::registerDefaultPlanningContexts(void)
+{
+  registerPlanningContextFactory(ModelBasedPlanningContextFactoryPtr(new JointModelPlanningContextFactory()));
+  registerPlanningContextFactory(ModelBasedPlanningContextFactoryPtr(new PoseModelPlanningContextFactory()));
+}
+
+void ompl_interface::OMPLInterface::setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig)
+{
+  planner_configs_.clear();
+  for (std::size_t i = 0 ; i < pconfig.size() ; ++i)
+    planner_configs_[pconfig[i].name] = pconfig[i];
+
+  // construct default configurations
+  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
+  for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
+    if (planner_configs_.find(it->first) == planner_configs_.end())
+    {
+      PlanningConfigurationSettings empty;
+      empty.name = empty.group = it->first;
+      planner_configs_[empty.name] = empty;
+    }
+}
+
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const std::string &config, const std::string& factory_type) const
+{
+  std::map<std::string, PlanningConfigurationSettings>::const_iterator pc = planner_configs_.find(config);
+  if (pc != planner_configs_.end())
+  {
+    std::map<std::string, ModelBasedPlanningContextFactoryPtr>::const_iterator f = 
+      factory_type.empty() ? planning_context_factories_.begin() : planning_context_factories_.find(factory_type);
+    if (f != planning_context_factories_.end())
+      return getPlanningContext(f->second.get(), pc->second);
+    else
+      ROS_ERROR("Factory of type '%s' was not found", factory_type.c_str());    
   }
+  else
+    ROS_ERROR("Planning configuration '%s' was not found", config.c_str());
+  return ModelBasedPlanningContextPtr();
 }
 
-void ompl_interface::OMPLInterface::setMaximumSamplingAttempts(unsigned int max_sampling_attempts)
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const ModelBasedPlanningContextFactory *factory, 
+                                                                                               const PlanningConfigurationSettings &config) const
 {
-  for (std::map<std::string, PlanningConfigurationPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
-    it->second->setMaximumSamplingAttempts(max_sampling_attempts);
+  ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
+  AvailableKinematicsSolvers::const_iterator it = kinematics_allocators_.find(space_spec.joint_model_group_);
+  if (it != kinematics_allocators_.end())
+  {
+    space_spec.kinematics_allocator_ = it->second.first;
+    space_spec.kinematics_subgroup_allocators_ = it->second.second;
+  }
+  ModelBasedPlanningContextSpecification context_spec;
+  context_spec.config_ = config.config;
+  context_spec.planner_allocator_ = getPlannerAllocator();
+  
+  ModelBasedPlanningContextPtr context = factory->getNewPlanningContext(config.name, space_spec, context_spec);
+  context->setMaximumPlanningThreads(max_planning_threads_);
+  context->setMaximumGoalSamples(max_goal_samples_);
+  context->setMaximumSamplingAttempts(max_sampling_attempts_);
+  context->setMaximumVelocity(max_velocity_);
+  context->setMaximumAcceleration(max_acceleration_);
+  if (max_solution_segment_length_ <= std::numeric_limits<double>::epsilon())
+    context->setMaximumSolutionSegmentLength(context->getOMPLSimpleSetup().getStateSpace()->getMaximumExtent() / 100.0);
+  else
+    context->setMaximumSolutionSegmentLength(max_solution_segment_length_);
+  
+  return context;
 }
 
-void ompl_interface::OMPLInterface::setMaximumGoalSamples(unsigned int max_goal_samples)
-{
-  for (std::map<std::string, PlanningConfigurationPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
-    it->second->setMaximumGoalSamples(max_goal_samples);
-}
-
-void ompl_interface::OMPLInterface::setMaximumPlanningThreads(unsigned int max_planning_threads)
-{
-  for (std::map<std::string, PlanningConfigurationPtr>::iterator it = planning_groups_.begin() ; it != planning_groups_.end() ; ++it)
-    it->second->setMaximumPlanningThreads(max_planning_threads);
-}
-
-bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code,
-                                                    PlanningConfigurationPtr &pc_to_use, unsigned int &attempts, double &timeout) const
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPlanRequest &req, 
+                                                                                            const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                                                            moveit_msgs::MoveItErrorCodes &error_code,
+                                                                                            unsigned int &attempts, double &timeout) const
 {
   if (req.group_name.empty())
   {
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     ROS_ERROR("No group specified to plan for");
-    return false;
+    return ModelBasedPlanningContextPtr();
   }
   
+  // find the problem representation to use
+  const ModelBasedPlanningContextFactory *factory = NULL;
+  int prev_priority = -1;
+  for (std::map<std::string, ModelBasedPlanningContextFactoryPtr>::const_iterator it = planning_context_factories_.begin() ; it != planning_context_factories_.end() ; ++it)
+  {
+    int priority = it->second->canRepresentProblem(req, kmodel_, kinematics_allocators_);
+    if (priority >= 0)
+      if (!factory || priority > prev_priority)
+      {
+        factory = it->second.get();
+        prev_priority = priority;
+      }
+  }
+  
+  if (!factory)
+  {
+    ROS_ERROR("There are no known planning contexts that can represent the given planning problem");
+    return ModelBasedPlanningContextPtr();
+  }
+  else
+    ROS_DEBUG("Using '%s' parameterization for solving problem", factory->getType().c_str());
+  
   // identify the correct planning configuration
-  std::map<std::string, PlanningConfigurationPtr>::const_iterator pc = planning_groups_.end();
+  std::map<std::string, PlanningConfigurationSettings>::const_iterator pc = planner_configs_.end();
   if (!req.planner_id.empty())
   {
-    pc = planning_groups_.find(req.group_name + "[" + req.planner_id + "]");
-    if (pc == planning_groups_.end())
+    pc = planner_configs_.find(req.group_name + "[" + req.planner_id + "]");
+    if (pc == planner_configs_.end())
       ROS_WARN_STREAM("Cannot find planning configuration for group '" << req.group_name
 		      << "' using planner '" << req.planner_id << "'. Will use defaults instead.");
   }
-  if (pc == planning_groups_.end())
+  if (pc == planner_configs_.end())
   {
-    pc = planning_groups_.find(req.group_name);
-    if (pc == planning_groups_.end())
+    pc = planner_configs_.find(req.group_name);
+    if (pc == planner_configs_.end())
     {
       error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
       ROS_ERROR_STREAM("Cannot find planning configuration for group '" << req.group_name << "'");
-      return false;
+      return ModelBasedPlanningContextPtr();
     }
   }
   
-  pc_to_use = pc->second;
+  ModelBasedPlanningContextPtr context = getPlanningContext(factory, pc->second);
   
   timeout = req.allowed_planning_time.toSec();
   if (timeout <= 0.0)
   {
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ALLOWED_PLANNING_TIME;
-    ROS_ERROR("The timeout for planning must be positive (%lf specified). Assuming one second instead.", timeout);
+    ROS_INFO("The timeout for planning must be positive (%lf specified). Assuming one second instead.", timeout);
     timeout = 1.0;
   }
   
@@ -193,46 +315,44 @@ bool ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPla
     if (req.num_planning_attempts < 0)
       ROS_ERROR("The number of desired planning attempts should be positive. Assuming one attempt.");
   
-  return true;
+  return context;
 }
 
 bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                           const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
 {
-  ompl::Profiler::ScopedStart pslv;
+  ompl::tools::Profiler::ScopedStart pslv;
   
-  PlanningConfigurationPtr pc;
-  unsigned int attempts = 0;
+  unsigned int attempts = 1;
   double timeout = 0.0;
-  if (!prepareForSolve(req.motion_plan_request, res.error_code, pc, attempts, timeout))
+  ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, res.error_code, attempts, timeout);
+  if (!context)
     return false;
+
+  last_planning_context_solve_ = context;
   
   // get the starting state
   planning_models::KinematicState start_state = planning_scene->getCurrentState();
   planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+  context->setPlanningScene(planning_scene);
+  context->setStartState(start_state);
+  context->setPlanningConstraints(req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints, &res.error_code);
+  context->setPlanningVolume(req.motion_plan_request.workspace_parameters);
+  context->configure();
   
-  // configure the planning configuration
-  boost::mutex::scoped_lock slock(pc->lock_);
-  
-  if (!pc->setupPlanningContext(planning_scene, start_state, req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints, &res.error_code))
-    return false;
-  pc->setPlanningVolume(req.motion_plan_request.workspace_parameters);
-  
-  last_planning_configuration_solve_ = pc;
-  
-  if (pc->solve(timeout, attempts))
+  if (context->solve(timeout, attempts))
   {
-    double ptime = pc->getLastPlanTime();
+    double ptime = context->getLastPlanTime();
     if (ptime < timeout)
-      pc->simplifySolution(timeout - ptime);
-    pc->interpolateSolution();
+      context->simplifySolution(timeout - ptime);
+    context->interpolateSolution();
     
     // fill the response
-    ROS_DEBUG("%s: Returning successful solution with %lu states", pc->getName().c_str(),
-	      pc->getOMPLSimpleSetup().getSolutionPath().states.size());
-    planning_models::kinematicStateToRobotState(pc->getStartState(), res.robot_state);
-    res.planning_time = ros::Duration(pc->getLastPlanTime());
-    pc->getSolutionPath(res.trajectory);
+    ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
+	      context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
+    pm::kinematicStateToRobotState(start_state, res.robot_state);
+    res.planning_time = ros::Duration(context->getLastPlanTime());
+    context->getSolutionPath(res.trajectory);
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return true;
   }
@@ -244,85 +364,71 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 }
 
 bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                              const moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res) const
-{
-  PlanningConfigurationPtr pc;
-  unsigned int attempts = 0;
+                                              const moveit_msgs::ComputePlanningBenchmark::Request &req,
+                                              moveit_msgs::ComputePlanningBenchmark::Response &res) const
+{  
+  unsigned int attempts = 1;
   double timeout = 0.0;
-  if (!prepareForSolve(req.motion_plan_request, res.error_code, pc, attempts, timeout))
+  ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, res.error_code, attempts, timeout);
+  if (!context)
     return false;
-
+  
   // get the starting state
   planning_models::KinematicState start_state = planning_scene->getCurrentState();
   planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
-  
-  // configure the planning configuration
-  boost::mutex::scoped_lock slock(pc->lock_);
-  
-  if (!pc->setupPlanningContext(planning_scene, start_state, req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints, &res.error_code))
-    return false;
-  pc->setPlanningVolume(req.motion_plan_request.workspace_parameters);
+
+  context->setPlanningScene(planning_scene);
+  context->setStartState(start_state);
+  context->setPlanningConstraints(req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints, &res.error_code);
+  context->setPlanningVolume(req.motion_plan_request.workspace_parameters);
+  context->configure();
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-  
-  return pc->benchmark(timeout, attempts, req.filename);
+  return context->benchmark(timeout, attempts, req.filename);
 }
 
 ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                          const std::string &config, const planning_models::KinematicState &start_state,
-                                                         const moveit_msgs::Constraints &goal_constraints, double timeout) const
+                                                         const moveit_msgs::Constraints &goal_constraints, double timeout,
+                                                         const std::string &factory_type) const
 {
   moveit_msgs::Constraints empty;
-  return solve(planning_scene, config, start_state, goal_constraints, empty, timeout);
+  return solve(planning_scene, config, start_state, goal_constraints, empty, timeout, factory_type);
 }
 
 ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                          const std::string &config, const planning_models::KinematicState &start_state,
                                                          const moveit_msgs::Constraints &goal_constraints,
-                                                         const moveit_msgs::Constraints &path_constraints, double timeout) const
+                                                         const moveit_msgs::Constraints &path_constraints, double timeout,
+                                                         const std::string &factory_type) const
 { 
-  ompl::Profiler::ScopedStart pslv;
+  ompl::tools::Profiler::ScopedStart pslv;
   
-  std::map<std::string, PlanningConfigurationPtr>::const_iterator pc = planning_groups_.find(config);
-  if (pc == planning_groups_.end())
-  {
-    ROS_ERROR("Planner configuration '%s' not found", config.c_str()); 
-    return ompl::base::PathPtr();  
-  }
+  ModelBasedPlanningContextPtr context = getPlanningContext(config, factory_type);
+  if (!context)
+    return ob::PathPtr();
   
-  // configure the planning group
   std::vector<moveit_msgs::Constraints> goal_constraints_v(1, goal_constraints);  
-  boost::mutex::scoped_lock slock(pc->second->lock_);
+  context->setPlanningScene(planning_scene);
+  context->setStartState(start_state);
+  context->setPlanningConstraints(goal_constraints_v, path_constraints, NULL);
+  context->configure();
   
-  if (!pc->second->setupPlanningContext(planning_scene, start_state, goal_constraints_v, path_constraints))
-    return ompl::base::PathPtr();  
-  
-  last_planning_configuration_solve_ = pc->second;
+  last_planning_context_solve_ = context;
   
   // solve the planning problem
-  if (pc->second->solve(timeout, 1))
+  if (context->solve(timeout, 1))
   {
-    double ptime = pc->second->getLastPlanTime();
+    double ptime = context->getLastPlanTime();
     if (ptime < timeout)
-      pc->second->simplifySolution(timeout - ptime);
-    pc->second->interpolateSolution();
-    return ompl::base::PathPtr(new ompl::geometric::PathGeometric(pc->second->getOMPLSimpleSetup().getSolutionPath()));
+      context->simplifySolution(timeout - ptime);
+    context->interpolateSolution();
+    return ob::PathPtr(new og::PathGeometric(context->getOMPLSimpleSetup().getSolutionPath()));
   }
   
-  return ompl::base::PathPtr();  
+  return ob::PathPtr();  
 }
 
-const ompl_interface::PlanningConfigurationPtr& ompl_interface::OMPLInterface::getPlanningConfiguration(const std::string &config) const
-{
-  std::map<std::string, PlanningConfigurationPtr>::const_iterator pc = planning_groups_.find(config);
-  if (pc == planning_groups_.end())
-  {
-    ROS_ERROR("Planner configuration '%s' not found", config.c_str());
-    static PlanningConfigurationPtr empty;
-    return empty;
-  }
-  else
-    return pc->second;
-}
+/*
 
 void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, unsigned int samples)
 {
@@ -408,3 +514,4 @@ void ompl_interface::OMPLInterface::printConstraintApproximations(std::ostream &
     out << constraints_->at(i).constraint_msg_ << std::endl;
   }
 }
+*/

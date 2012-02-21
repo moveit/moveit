@@ -2,7 +2,7 @@
 
 <robot name="pr2_test">
   
-  <virtual_joint name="world_joint" type="planar" parent_frame="odom" child_link="base_footprint"/> 
+  <virtual_joint name="world_joint" type="planar" parent_frame="odom_combined" child_link="base_footprint"/> 
   
   <group name="right_arm">
     <chain base_link="torso_lift_link" tip_link="r_wrist_roll_link"/>

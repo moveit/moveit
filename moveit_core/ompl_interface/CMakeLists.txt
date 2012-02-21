@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE Release)
+set(ROS_BUILD_TYPE Debug)
 
 rosbuild_init()
 
@@ -23,15 +23,26 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(${PROJECT_NAME}
   src/ompl_interface.cpp
-  src/planning_configuration.cpp
-  src/detail/kinematic_model_state_space.cpp
-  src/detail/state_validity_checker.cpp
+  src/parameterization/model_based_state_space.cpp
+  src/parameterization/model_based_planning_context.cpp
+  src/parameterization/model_based_planning_context_factory.cpp
+  src/parameterization/joint_space/joint_model_state_space.cpp
+  src/parameterization/joint_space/joint_model_state_space_helper.cpp
+  src/parameterization/joint_space/joint_model_planning_context.cpp
+  src/parameterization/joint_space/joint_model_planning_context_factory.cpp  
+  src/parameterization/work_space/pose_model_state_space.cpp  
+  src/parameterization/work_space/pose_model_planning_context.cpp
+  src/parameterization/work_space/pose_model_planning_context_factory.cpp
   src/detail/threadsafe_state_storage.cpp
+  src/detail/state_validity_checker.cpp
+  src/detail/projection_evaluators.cpp
   src/detail/goal_union.cpp
   src/detail/constrained_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
-  src/detail/projection_evaluators.cpp
-  src/detail/constraint_approximations.cpp
-  src/detail/ompl_console.cpp)
+  src/detail/ompl_console.cpp
+)
+
+#  src/detail/constraint_approximations.cpp
+
 
 rosbuild_add_openmp_flags(${PROJECT_NAME})

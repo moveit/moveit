@@ -48,28 +48,6 @@ bool planning_models::quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::
   return true;
 }
 
-double planning_models::normalizeAngle(double angle) {
-  
-  double ret = angle;
-  
-  while(ret < -2*M_PI) {
-    ret += 2*M_PI;
-  }
-  while(ret > 2*M_PI) {
-    ret -= 2*M_PI;
-  }
-  return ret;
-}
-/*
-  void planning_models::getEulerAngles(const Eigen::Affine3d& t, double& r, double& p, double& y) 
-  {
-  //taken from pcl - x,y,z convention
-  r  = atan2f(t(2,1), t(2,2));
-  p = asinf(-t(2,0));
-  y   = atan2f(t(1,0), t(0,0));
-  }
-*/
-
 bool planning_models::poseFromMsg(const geometry_msgs::Pose &tmsg, Eigen::Affine3d &t)
 {
   Eigen::Quaterniond q; bool r = quatFromMsg(tmsg.orientation, q);

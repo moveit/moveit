@@ -37,11 +37,11 @@
 #include <ros/ros.h>
 #include <boost/function.hpp>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <trajectory_execution_monitor/trajectory_recorder.h>
-#include <trajectory_execution_monitor/trajectory_controller_handler.h>
+#include <trajectory_execution/trajectory_recorder.h>
+#include <trajectory_execution/trajectory_controller_handler.h>
 #include <planning_models/kinematic_model.h>
 
-namespace trajectory_execution_monitor
+namespace trajectory_execution
 {
 
 /// \brief Collection of information required for requesting the execution of a trajectory.
@@ -152,7 +152,7 @@ protected:
 
   boost::function<bool(TrajectoryExecutionDataVector)> result_callback_;
   TrajectoryExecutionDataVector execution_result_vector_;
-  const std::vector<TrajectoryExecutionRequest>* execution_data_;
+  std::vector<TrajectoryExecutionRequest> execution_data_;
   unsigned int current_trajectory_index_;
 
   boost::shared_ptr<TrajectoryControllerHandler> last_requested_handler_;
