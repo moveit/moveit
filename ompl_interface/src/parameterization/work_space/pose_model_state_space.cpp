@@ -103,7 +103,46 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ob::State *from, con
   state->as<StateType>()->setJointsComputed(false);
   computeStateIK(state);
 }
+
+ompl::base::StateSamplerPtr ompl_interface::PoseModelStateSpace::allocStateSampler(void) const
+{
+  class WrappedStateSampler : public ob::StateSampler
+  {
+  public:
+    
+    WrappedStateSampler(const ob::StateSpace *space, const ob::StateSamplerPtr &wrapped) : ob::StateSampler(space), wrapped_(wrapped)
+    {
+    }
+    
+    virtual void sampleUniform(ob::State *state)
+    {
+      state->as<StateType>()->setPoseComputed(false);
+      wrapped_->sampleUniform(state);
+      static_cast<const PoseModelStateSpace*>(space_)->computeStateFK(state);
+    }
+    
+    virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
+    {
+      state->as<StateType>()->setPoseComputed(false);
+      wrapped_->sampleUniformNear(state, near, distance);
+      static_cast<const PoseModelStateSpace*>(space_)->computeStateFK(state);
+    }
+    
+    virtual void sampleGaussian(ob::State *state, const ob::State *mean, const double stdDev)
+    {
+      state->as<StateType>()->setPoseComputed(false);
+      wrapped_->sampleGaussian(state, mean, stdDev);
+      static_cast<const PoseModelStateSpace*>(space_)->computeStateFK(state);
+    }
+    
+  protected:
+    
+    ob::StateSamplerPtr wrapped_;    
+  };
   
+  return ob::StateSamplerPtr(static_cast<ob::StateSampler*>(new WrappedStateSampler(this, ModelBasedStateSpace::allocStateSampler())));
+}
+
 void ompl_interface::PoseModelStateSpace::copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const
 {
   // if joint values are not computed, we compute them
@@ -151,7 +190,7 @@ void ompl_interface::PoseModelStateSpace::copyToOMPLState(ob::State *state, cons
     }
   state->as<StateType>()->setJointsComputed(true);
   state->as<StateType>()->setPoseComputed(false);
-  computeStateIK(state);
+  computeStateFK(state);
 }
 
 void ompl_interface::PoseModelStateSpace::copyToOMPLState(ob::State *state, const std::vector<double> &values) const
@@ -172,7 +211,7 @@ void ompl_interface::PoseModelStateSpace::copyToOMPLState(ob::State *state, cons
   }
   state->as<StateType>()->setJointsComputed(true);
   state->as<StateType>()->setPoseComputed(false);
-  computeStateIK(state);
+  computeStateFK(state);
 }
 
 ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const pm::KinematicModel::JointModelGroup *subgroup, 

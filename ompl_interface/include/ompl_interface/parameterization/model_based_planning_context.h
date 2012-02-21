@@ -243,7 +243,7 @@ public:
 
 protected:
 
-  virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const = 0;
+  virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const;
   virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
   virtual void useConfig(const std::map<std::string, std::string> &config);
   virtual ob::GoalPtr constructGoal(void);

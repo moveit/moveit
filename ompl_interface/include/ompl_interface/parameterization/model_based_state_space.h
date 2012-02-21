@@ -157,7 +157,8 @@ public:
   virtual void freeState(ob::State *state) const;
   virtual void copyState(ob::State *destination, const ob::State *source) const;
   virtual void interpolate(const ob::State *from, const ob::State *to, const double t, ob::State *state) const;
-  
+  virtual void printState(const ob::State *state, std::ostream &out) const;
+
   const pm::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return spec_.kmodel_;

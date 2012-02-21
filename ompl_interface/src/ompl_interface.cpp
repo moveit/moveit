@@ -61,7 +61,7 @@
 #include "ompl_interface/parameterization/work_space/pose_model_planning_context_factory.h"
 
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
-  kmodel_(kmodel), max_goal_samples_(10), max_sampling_attempts_(10000), max_planning_threads_(4),
+  kmodel_(kmodel), max_goal_samples_(10), max_sampling_attempts_(10), max_planning_threads_(4),
   max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
   //  constraints_.reset(new std::vector<ConstraintApproximation>());
@@ -152,7 +152,7 @@ void ompl_interface::OMPLInterface::specifyIKSolvers(const std::map<std::string,
     else
       // if the IK allocator is for this group, we use it
       result.first = jt->second;
-    
+
     kinematics_allocators_[jmg] = result;
   }  
 }
@@ -226,6 +226,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getP
     space_spec.kinematics_allocator_ = it->second.first;
     space_spec.kinematics_subgroup_allocators_ = it->second.second;
   }
+  
   ModelBasedPlanningContextSpecification context_spec;
   context_spec.config_ = config.config;
   context_spec.planner_allocator_ = getPlannerAllocator();
@@ -336,29 +337,39 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
   context->setPlanningScene(planning_scene);
   context->setStartState(start_state);
-  context->setPlanningConstraints(req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints, &res.error_code);
   context->setPlanningVolume(req.motion_plan_request.workspace_parameters);
-  context->configure();
-  
-  if (context->solve(timeout, attempts))
+  if (context->setPlanningConstraints(req.motion_plan_request.goal_constraints, req.motion_plan_request.path_constraints, &res.error_code))
   {
-    double ptime = context->getLastPlanTime();
-    if (ptime < timeout)
-      context->simplifySolution(timeout - ptime);
-    context->interpolateSolution();
+    ROS_DEBUG("%s: New planning context is set.", context->getName().c_str());
+    context->configure();  
     
-    // fill the response
-    ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
-	      context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
-    pm::kinematicStateToRobotState(start_state, res.robot_state);
-    res.planning_time = ros::Duration(context->getLastPlanTime());
-    context->getSolutionPath(res.trajectory);
-    res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-    return true;
+    if (context->solve(timeout, attempts))
+    {
+      double ptime = context->getLastPlanTime();
+      if (ptime < timeout)
+        context->simplifySolution(timeout - ptime);
+      context->interpolateSolution();
+      
+      // fill the response
+      ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
+                context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
+      pm::kinematicStateToRobotState(start_state, res.robot_state);
+      res.planning_time = ros::Duration(context->getLastPlanTime());
+      context->getSolutionPath(res.trajectory);
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      context->getOMPLSimpleSetup().print();
+      return true;
+    }
+    else
+    {
+      ROS_INFO("Unable to solve the planning problem");
+      context->getOMPLSimpleSetup().print();
+      return false;
+    }
   }
   else
   {
-    ROS_INFO("Unable to solve the planning problem");
+    ROS_ERROR("Unable to set planning context");
     return false;
   }
 }

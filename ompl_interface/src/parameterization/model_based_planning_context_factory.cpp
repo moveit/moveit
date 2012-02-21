@@ -41,6 +41,6 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::ModelBasedPlanningC
                                                                                                                      const ModelBasedPlanningContextSpecification &context_spec) const
 {
   ModelBasedPlanningContextPtr mp = allocPlanningContext(name, space_spec, context_spec);
-  mp->configure();
+  mp->getOMPLStateSpace()->computeLocations();
   return mp;
 }

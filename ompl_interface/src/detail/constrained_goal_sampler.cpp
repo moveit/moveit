@@ -46,9 +46,10 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedP
                       boost::bind(&ConstrainedGoalSampler::sampleUsingGAIK, this, _1, _2), false),
   planning_context_(pc), kinematic_constraint_set_(ks), constraint_sampler_(cs), state_(pc->getCompleteInitialRobotState())
 {
+  ROS_DEBUG("Constructed a ConstrainedGoalSampler instance");
   startSampling();
 }
-
+  
 bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ob::GoalLazySamples *gls, ob::State *newGoal)
 {
   unsigned int ma = planning_context_->getMaximumSamplingAttempts();
@@ -134,7 +135,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
       {
         planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, values);
         return true;
-      }
+      }  
     }
   return false;
 }

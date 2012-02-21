@@ -38,14 +38,14 @@
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_PLANNING_CONTEXT_FACTORY_
 
 #include "ompl_interface/parameterization/model_based_planning_context_factory.h"
-#include "ompl_interface/parameterization/work_space/pose_model_planning_context.h"
+#include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
 
 namespace ompl_interface
 {
 class PoseModelPlanningContextFactory : public ModelBasedPlanningContextFactory
 {
 public:
-
+  
   PoseModelPlanningContextFactory(void) : ModelBasedPlanningContextFactory()
   {
     type_ = "PoseModel";
@@ -95,7 +95,7 @@ protected:
                                                             const ModelBasedStateSpaceSpecification &space_spec,
                                                             const ModelBasedPlanningContextSpecification &context_spec) const
   {
-    return ModelBasedPlanningContextPtr(new PoseModelPlanningContext(name, ModelBasedStateSpacePtr(new PoseModelStateSpace(space_spec)), context_spec));
+    return ModelBasedPlanningContextPtr(new ModelBasedPlanningContext(name, ModelBasedStateSpacePtr(new PoseModelStateSpace(space_spec)), context_spec));
   }
   
 };

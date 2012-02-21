@@ -101,6 +101,10 @@ public:
   virtual void freeState(ob::State *state) const;  
   virtual void copyState(ob::State *destination, const ob::State *source) const;
   virtual void interpolate(const ob::State *from, const ob::State *to, const double t, ob::State *state) const;
+  virtual ob::StateSamplerPtr allocStateSampler(void) const;
+  bool computeStateFK(ob::State *state) const;
+  bool computeStateIK(ob::State *state) const;
+  bool computeStateK(ob::State *state) const;
   
   virtual void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const;
   virtual void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const;
@@ -132,10 +136,6 @@ private:
   void constructSpace(const pm::KinematicModel::JointModelGroup *group, 
                       const kc::KinematicsSubgroupAllocator &ik_allocator);
   void constructSpaceFromPoses(void);
-
-  bool computeStateFK(ob::State *state) const;
-  bool computeStateIK(ob::State *state) const;
-  bool computeStateK(ob::State *state) const;
 
   
   std::vector<PoseComponent> poses_;
