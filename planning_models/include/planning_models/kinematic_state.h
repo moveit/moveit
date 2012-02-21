@@ -54,6 +54,8 @@ class KinematicState
   
 public:
   
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  
   /** \brief Forward definition of a joint state */;
   class JointState;
   
@@ -71,6 +73,7 @@ public:
   {
     friend class KinematicState;
   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     /** brief Constructs the joint state from the model */
     JointState(const KinematicModel::JointModel* jm);
@@ -160,7 +163,6 @@ public:
     }
     
   private:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     /** \brief The joint model this state corresponds to */
     const KinematicModel::JointModel   *joint_model_;
@@ -177,7 +179,9 @@ public:
   
   /** @brief A class storing properties for attached bodies */
   struct AttachedBodyProperties
-  {
+  {  
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW 
+    
     /** \brief Default constructor */
     AttachedBodyProperties(void);
     
@@ -206,7 +210,9 @@ public:
   {
     friend class KinematicState;
   public:
-    
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     /** \brief Construct an attached body for a specified \e link. The name of this body is \e id and it consists of \e shapes that
         attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
     AttachedBody(const LinkState *link, const std::string &id,
@@ -274,7 +280,6 @@ public:
     void computeTransform(void);
     
   private:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     /** \brief The link that owns this attached body */
     const LinkState                          *parent_link_state_;
@@ -283,7 +288,7 @@ public:
     boost::shared_ptr<AttachedBodyProperties> properties_;
     
     /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
-    std::vector<Eigen::Affine3d>                  global_collision_body_transforms_;
+    std::vector<Eigen::Affine3d>              global_collision_body_transforms_;
   };
   
   /** @brief The state corresponding to a link */
@@ -291,7 +296,9 @@ public:
   {
     friend class KinematicState;
   public:
-    
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     /** @brief Constructor */
     LinkState(const KinematicState *state, const KinematicModel::LinkModel* lm);
     ~LinkState(void);
@@ -384,7 +391,6 @@ public:
     void clearAttachedBodies(void);
     
   private:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     /** \brief The kinematic state this link is part of */
     const KinematicState            *kinematic_state_;
@@ -539,7 +545,7 @@ public:
         getRandomNumberGenerator() instead. */
     boost::scoped_ptr<random_numbers::RandomNumberGenerator> rng_;
   };
-  
+
   /** \brief Create a state corresponding to a given kinematic model */
   KinematicState(const KinematicModelConstPtr &kinematic_model);
   
@@ -718,7 +724,7 @@ public:
   KinematicState& operator=(const KinematicState &other);
   
 private:
-  
+
   void buildState(void);
   void copyFrom(const KinematicState &ks);
   
@@ -734,7 +740,7 @@ private:
   std::map<std::string, LinkState*>       link_state_map_;
   
   /** \brief Additional transform to be applied to the tree of links */
-  Eigen::Affine3d                             root_transform_;
+  Eigen::Affine3d                         root_transform_;
   
   /** \brief A map from group names to instances of the group state */
   std::map<std::string, JointStateGroup*> joint_state_group_map_;

@@ -41,7 +41,7 @@
 
 #include <trajectory_msgs/JointTrajectory.h>
 
-namespace trajectory_execution_monitor
+namespace trajectory_execution
 {
 
 ////

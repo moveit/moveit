@@ -33,6 +33,8 @@ rosbuild_add_library(${PROJECT_NAME}
   src/cubic_parameterized_trajectory.cpp
   src/cubic_parameterized_spline_velocity_scaler.cpp
   src/spline_shortcutter.cpp
+  src/unnormalize_shortcutter.cpp
+  src/normalize_shortcutter.cpp
   src/ParabolicPathSmooth/Timer.cpp
   src/ParabolicPathSmooth/DynamicPath.cpp
   src/ParabolicPathSmooth/ParabolicRamp.cpp

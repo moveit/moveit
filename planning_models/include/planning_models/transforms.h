@@ -54,10 +54,6 @@ void msgFromPose(const Eigen::Affine3d &t, geometry_msgs::Transform &tmsg);
 typedef std::map<std::string, Eigen::Affine3d, std::less<std::string>, 
                  Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > EigenAffine3dMapType;
 
-double normalizeAngle(double angle);
-
-//void getEulerAngles(const Eigen::Affine3d& t, double& r, double& p, double& y);
-
 /** @brief Provides an implementation of a snapshot of a transform tree that can be easily queried for
     transforming different quantities. Transforms are maintained as a list of transforms to a particular frame.
     All stored transforms are considered fixed. Some operations also take a KinematicState as argument to allow inclusion
@@ -209,7 +205,7 @@ public:
 
 private:
 
-  std::string                        target_frame_;
+  std::string          target_frame_;
   
   EigenAffine3dMapType transforms_;
 };

@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,48 +32,31 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_PLANNING_CONTEXT_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_PLANNING_CONTEXT_
 
-#include <ompl/base/StateSampler.h>
-#include <kinematic_constraints/constraint_samplers.h>
+#include "ompl_interface/parameterization/model_based_planning_context.h"
+#include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
 
 namespace ompl_interface
 {
 
-class ModelBasedPlanningContext;
-
-/** @class ConstrainedSampler
- *  This class defines a sampler that tries to find a sample that satisfies the constraints*/
-class ConstrainedSampler : public ompl::base::StateSampler
+class PoseModelPlanningContext : public ModelBasedPlanningContext
 {
 public:
-  /** @brief Default constructor
-   *  @param pg The planning group
-   *  @param cs A pointer to a kinematic constraint sampler
-   */
-  ConstrainedSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::ConstraintSamplerPtr &cs);
+  PoseModelPlanningContext(const std::string &name, const ModelBasedStateSpacePtr &state_space, const ModelBasedPlanningContextSpecification &spec) :
+    ModelBasedPlanningContext(name, state_space, spec)
+  {
+  }
   
-  /** @brief Sample a state (uniformly)*/
-  virtual void sampleUniform(ompl::base::State *state);
+protected:
   
-  /** @brief Sample a state (uniformly) within a certain distance of another state*/
-  virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance);
-  
-  /** @brief Sample a state using the specified Gaussian*/
-  virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev);
-  
-private:
-  
-  bool sampleC(ompl::base::State *state);
-  
-  const ModelBasedPlanningContext            *planning_context_;
-  ompl::base::StateSamplerPtr                 default_;
-  kinematic_constraints::ConstraintSamplerPtr constraint_sampler_;
-};
+  virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const;
+  virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
 
+};
 }
 
 #endif

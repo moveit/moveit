@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,32 +32,44 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author E. Gil Jones */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#include <trajectory_execution_monitor/trajectory_recorder.h>
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_
 
-using namespace trajectory_execution_monitor;
+#include "ompl_interface/parameterization/model_based_state_space.h"
+#include "ompl_interface/parameterization/joint_space/joint_model_state_space_helper.h"
 
-void TrajectoryRecorder::callCallbacks(const ros::Time& time,
-                                       const std::map<std::string, double>& joint_positions,
-                                       const std::map<std::string, double>& joint_velocities)
+namespace ompl_interface
 {
-  // Call all the callbacks
-  for(std::map<std::string, NewStateCallbackFunction>::const_iterator it = callback_map_.begin();
-      it != callback_map_.end();
-      it++) 
-  {
-    it->second(time, 
-               joint_positions,
-               joint_velocities);
-  }
 
-  // Delete the callbacks that just requested to be deleted
-  for(unsigned int i=0; i<deregister_list_.size(); ++i)
+class JointModelStateSpace : public ModelBasedStateSpace
+{
+public:
+  
+  JointModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
+  
+  virtual void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const
   {
-    const std::string& name = deregister_list_[i];
-    callback_map_.erase(name);
+    helper_.copyToKinematicState(js, state);
   }
-  deregister_list_.clear();
+  
+  virtual void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const
+  { 
+    helper_.copyToOMPLState(state, js);
+  }
+  
+  virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const
+  {    
+    helper_.copyToOMPLState(state, values);
+  }
+  
+private:
 
+  JointModelStateSpaceHelper helper_;
+  
 };
+
+}
+
+#endif

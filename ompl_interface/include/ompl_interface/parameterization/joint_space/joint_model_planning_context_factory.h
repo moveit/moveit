@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,48 +32,40 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
 
-#include <ompl/base/StateSampler.h>
-#include <kinematic_constraints/constraint_samplers.h>
+#include "ompl_interface/parameterization/model_based_planning_context_factory.h"
+#include "ompl_interface/parameterization/joint_space/joint_model_planning_context.h"
 
 namespace ompl_interface
 {
-
-class ModelBasedPlanningContext;
-
-/** @class ConstrainedSampler
- *  This class defines a sampler that tries to find a sample that satisfies the constraints*/
-class ConstrainedSampler : public ompl::base::StateSampler
+class JointModelPlanningContextFactory : public ModelBasedPlanningContextFactory
 {
 public:
-  /** @brief Default constructor
-   *  @param pg The planning group
-   *  @param cs A pointer to a kinematic constraint sampler
-   */
-  ConstrainedSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::ConstraintSamplerPtr &cs);
-  
-  /** @brief Sample a state (uniformly)*/
-  virtual void sampleUniform(ompl::base::State *state);
-  
-  /** @brief Sample a state (uniformly) within a certain distance of another state*/
-  virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance);
-  
-  /** @brief Sample a state using the specified Gaussian*/
-  virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev);
-  
-private:
-  
-  bool sampleC(ompl::base::State *state);
-  
-  const ModelBasedPlanningContext            *planning_context_;
-  ompl::base::StateSamplerPtr                 default_;
-  kinematic_constraints::ConstraintSamplerPtr constraint_sampler_;
-};
 
+  JointModelPlanningContextFactory(void) : ModelBasedPlanningContextFactory()
+  {
+    type_ = "JointModel";
+  }  
+  
+  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const
+  {
+    return 100;
+  }
+
+protected:
+  
+  virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
+                                                            const ModelBasedStateSpaceSpecification &space_spec,
+                                                            const ModelBasedPlanningContextSpecification &context_spec) const
+  {
+    return ModelBasedPlanningContextPtr(new JointModelPlanningContext(name, ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec)), context_spec));
+  }
+  
+};
 }
 
 #endif

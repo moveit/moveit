@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,47 +32,49 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_HELPER_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_HELPER_
 
-#include <ompl/base/StateSampler.h>
-#include <kinematic_constraints/constraint_samplers.h>
+#include "ompl_interface/parameterization/model_based_state_space.h"
 
 namespace ompl_interface
 {
 
-class ModelBasedPlanningContext;
-
-/** @class ConstrainedSampler
- *  This class defines a sampler that tries to find a sample that satisfies the constraints*/
-class ConstrainedSampler : public ompl::base::StateSampler
-{
+class JointModelStateSpaceHelper
+{     
 public:
-  /** @brief Default constructor
-   *  @param pg The planning group
-   *  @param cs A pointer to a kinematic constraint sampler
-   */
-  ConstrainedSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::ConstraintSamplerPtr &cs);
   
-  /** @brief Sample a state (uniformly)*/
-  virtual void sampleUniform(ompl::base::State *state);
+  JointModelStateSpaceHelper(const std::vector<const pm::KinematicModel::JointModel*> &joints)
+  {
+    constructSpace(joints);
+  }
   
-  /** @brief Sample a state (uniformly) within a certain distance of another state*/
-  virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance);
-  
-  /** @brief Sample a state using the specified Gaussian*/
-  virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev);
+  void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const;
+  void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const;
+  void copyToOMPLState(ob::State *state, const std::vector<double> &values) const;
+  const ob::StateSpacePtr& getStateSpace(void) const
+  {
+    return state_space_;
+  }
   
 private:
   
-  bool sampleC(ompl::base::State *state);
+  /// The order in which the joints were used to construct the OMPL state space
+  std::vector<std::size_t> joint_mapping_;
   
-  const ModelBasedPlanningContext            *planning_context_;
-  ompl::base::StateSamplerPtr                 default_;
-  kinematic_constraints::ConstraintSamplerPtr constraint_sampler_;
+  /// The order in which the joint variables were used to construct the OMPL state space
+  std::vector<std::size_t> variable_mapping_;
+  
+  std::vector<ob::StateSpacePtr> components_;
+  
+  ob::StateSpacePtr state_space_;
+  
+  void constructSpace(const std::vector<const pm::KinematicModel::JointModel*> &joints);
 };
+
+
 
 }
 

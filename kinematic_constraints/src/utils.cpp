@@ -124,9 +124,9 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     ocm.link_name = link_name;
     ocm.orientation.header = pose.header;
     ocm.orientation.quaternion = pose.pose.orientation;
-    ocm.absolute_roll_tolerance = tolerance_angle;
-    ocm.absolute_pitch_tolerance = tolerance_angle;
-    ocm.absolute_yaw_tolerance = tolerance_angle;
+    ocm.absolute_x_axis_tolerance = tolerance_angle;
+    ocm.absolute_y_axis_tolerance = tolerance_angle;
+    ocm.absolute_z_axis_tolerance = tolerance_angle;
     ocm.weight = 1.0;
 
     return goal;
@@ -139,9 +139,9 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     moveit_msgs::OrientationConstraint &ocm = goal.orientation_constraints[0];
     ocm.link_name = link_name;
     ocm.orientation = quat;
-    ocm.absolute_roll_tolerance = tolerance;
-    ocm.absolute_pitch_tolerance = tolerance;
-    ocm.absolute_yaw_tolerance = tolerance;
+    ocm.absolute_x_axis_tolerance = tolerance;
+    ocm.absolute_y_axis_tolerance = tolerance;
+    ocm.absolute_z_axis_tolerance = tolerance;
     ocm.weight = 1.0;
     return goal;
 }

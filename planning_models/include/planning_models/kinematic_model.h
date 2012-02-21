@@ -210,7 +210,7 @@ public:
       return max_velocity_;
     }
 
-    virtual std::vector<moveit_msgs::JointLimits> getJointLimits() const;
+    virtual std::vector<moveit_msgs::JointLimits> getJointLimits(void) const;
     
     /** \brief Given the joint values for a joint, compute the corresponding transform */
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const = 0;
@@ -314,7 +314,8 @@ public:
   {
     friend class KinematicModel;
   public:
-    
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     PrismaticJointModel(const std::string& name);
     
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
@@ -337,7 +338,8 @@ public:
   {
     friend class KinematicModel;
   public:
-    
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     RevoluteJointModel(const std::string& name);
 
     virtual std::vector<moveit_msgs::JointLimits> getJointLimits() const;
@@ -371,7 +373,9 @@ public:
   {
     friend class KinematicModel;
   public:
-    
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     LinkModel(void);
     ~LinkModel(void);
     
@@ -460,7 +464,7 @@ public:
     
     /** \brief The index assigned to this link when traversing the kinematic tree in depth first fashion */
     int                       tree_index_;
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   };
   
   class JointModelGroup
@@ -871,7 +875,7 @@ protected:
   JointModel                               *root_joint_;
   
   /** \brief The first physical link for the robot */
-  LinkModel                               *root_link_;
+  LinkModel                                *root_link_;
   
   /** \brief A map from group names to joint groups */
   std::map<std::string, JointModelGroup*>   joint_model_group_map_;

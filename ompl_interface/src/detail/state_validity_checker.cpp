@@ -35,52 +35,82 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/state_validity_checker.h"
+#include "ompl_interface/parameterization/model_based_planning_context.h"
 
-ompl_interface::StateValidityChecker::StateValidityChecker(const PlanningConfiguration *pc) :
-  ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_config_(pc),
-  group_name_(planning_config_->getJointModelGroupName())
+ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc) :
+  ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc),
+  group_name_(pc->getJointModelGroupName()), tss_(pc->getCompleteInitialRobotState())
 {
   collision_request_with_distance_.distance = true;
-}
-
-void ompl_interface::StateValidityChecker::useNewStartingState(void)
-{
-  tss_.reset(new TSStateStorage(planning_config_->getStartState()));
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state) const
 {  
   //  ompl::Profiler::ScopedBlock sblock("isValid");
 
-  planning_models::KinematicState *kstate = tss_->getStateStorage();
-  planning_config_->getKMStateSpace().copyToKinematicState(*kstate, state);
+  if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown())
+    return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
+  
+  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
   
   double distance = 0.0;
-  if (!planning_config_->getPathConstraints()->decide(*kstate, distance))
+  const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
+  if (kset && !kset->decide(*kstate, distance))
+  {
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
+  }
   
   collision_detection::CollisionResult res;
-  planning_config_->getPlanningScene()->checkCollision(collision_request_simple_, res, *kstate);
-  return res.collision == false;
+  planning_context_->getPlanningScene()->checkCollision(collision_request_simple_, res, *kstate);
+  if (res.collision == false)
+  {
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
+    return true;
+  }
+  else
+  {   
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    return false;
+  }
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist) const
 {
   //  ompl::Profiler::ScopedBlock sblock("isValid");
   
-  planning_models::KinematicState *kstate = tss_->getStateStorage();
-  planning_config_->getKMStateSpace().copyToKinematicState(*kstate, state);
+  if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown() && state->as<ModelBasedStateSpace::StateType>()->isGoalDistanceKnown())
+  {
+    dist = state->as<ModelBasedStateSpace::StateType>()->distance;
+    return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
+  }
+  
+  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
   
-  double distance = 0.0;
-  if (!planning_config_->getPathConstraints()->decide(*kstate, distance))
+  double distance = 0.0;  
+  const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
+  if (kset && !kset->decide(*kstate, distance))
   {
     dist = distance;
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
     return false;
   }
+  
   collision_detection::CollisionResult res;
-  planning_config_->getPlanningScene()->checkCollision(collision_request_with_distance_, res, *kstate);
+  planning_context_->getPlanningScene()->checkCollision(collision_request_with_distance_, res, *kstate);
   dist = res.distance;
-  return res.collision == false;
+  if (res.collision == false)
+  {
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid(dist);
+    return true;
+  }
+  else
+  {
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
+    return false;
+  }
 }
