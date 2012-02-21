@@ -40,11 +40,10 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
                                                                    boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                                                    const std::string& group_name, 
                                                                    ros::Publisher& marker_publisher,
-                                                                   bool show)
+                                                                   bool show) :
+  planning_scene_(planning_scene),
+  start_chained_(false)
 {
-  std_msgs::ColorRGBA good_color;
-  good_color.g = good_color.a = 1.0;
-
   std_msgs::ColorRGBA bad_color;
   bad_color.r = bad_color.a = 1.0;
   
@@ -77,12 +76,15 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
 
 void KinematicsStartGoalVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) 
 {
+  planning_scene_ = planning_scene;
   start_->updatePlanningScene(planning_scene);
   goal_->updatePlanningScene(planning_scene);
 }
 
 void KinematicsStartGoalVisualization::resetStartState() {
-  start_->resetState();
+  if(!start_chained_) {
+    start_->resetState();
+  }
 }
 
 void KinematicsStartGoalVisualization::addMenuEntry(const std::string& name, 
@@ -93,7 +95,7 @@ void KinematicsStartGoalVisualization::addMenuEntry(const std::string& name,
 }
 
 void KinematicsStartGoalVisualization::setRandomStartGoal() {
-  if(!start_->setRandomState())
+  if(!start_chained_ && !start_->setRandomState())
     ROS_WARN("Failed to set random start state");
   if(!goal_->setRandomState())
     ROS_WARN("Failed to set random goal state");
@@ -106,28 +108,36 @@ void KinematicsStartGoalVisualization::resetStartGoal() {
 
 
 void KinematicsStartGoalVisualization::startOn() {
-  goal_->disable6DOFControls();
-  goal_->setMarkerAlpha(0.25);
-  start_->enable6DOFControls();
-  start_->setMarkerAlpha(1.0);
+  if(!start_chained_) {
+    goal_->disable6DOFControls();
+    goal_->setMarkerAlpha(0.25);
+    start_->enable6DOFControls();
+    start_->setMarkerAlpha(1.0);
+  }
 }
 
 void KinematicsStartGoalVisualization::goalOn() {
-  start_->disable6DOFControls();
-  start_->setMarkerAlpha(0.25);
+  if(!start_chained_) {
+    start_->disable6DOFControls();
+    start_->setMarkerAlpha(0.25);
+  }
   goal_->enable6DOFControls();
   goal_->setMarkerAlpha(1.0);
 }
 
 void KinematicsStartGoalVisualization::hideAllMarkers() {
-  start_->hideAllMarkers();
+  if(!start_chained_) {
+    start_->hideAllMarkers();
+  }
   goal_->hideAllMarkers();
 }
 
 void KinematicsStartGoalVisualization::showAllMarkers() {
-  start_->showAllMarkers();
+  if(!start_chained_) {
+    start_->showAllMarkers();
+  }
   goal_->showAllMarkers();
-  startOn();
+  goalOn();
 }
 
 }

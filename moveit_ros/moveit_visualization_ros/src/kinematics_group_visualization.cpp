@@ -52,7 +52,9 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
   group_name_(group_name),
   suffix_name_(suffix_name),
   regular_marker_name_(group_name+"_kinematics_"+suffix_name),
-  markers_hidden_(false),
+  use_good_bad_(false),
+  regular_markers_hidden_(false),
+  all_markers_hidden_(false),
   last_solution_good_(true),
   last_solution_changed_(false),
   good_color_(good_color),
@@ -161,8 +163,18 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
   }
 };
 
+void KinematicsGroupVisualization::hideRegularMarkers(){
+  regular_markers_hidden_ = true;
+  removeLastMarkers();
+}
+
+void KinematicsGroupVisualization::showRegularMarkers() {
+  regular_markers_hidden_ = false;
+  sendCurrentMarkers();
+}
+
 void KinematicsGroupVisualization::hideAllMarkers() {
-  markers_hidden_ = true;
+  all_markers_hidden_ = true;
   for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
       it != group_to_interactive_marker_names_.end();
       it++) {
@@ -179,25 +191,37 @@ void KinematicsGroupVisualization::hideAllMarkers() {
 }
 
 void KinematicsGroupVisualization::showAllMarkers() {
-  markers_hidden_ = false;
+  all_markers_hidden_ = false;
   for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
     last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
     last_marker_array_.markers[i].color.a = stored_alpha_;
   }
+  updateEndEffectorState(last_poses_.begin()->first, last_poses_.begin()->second);
   enable6DOFControls();
 }
 
 void KinematicsGroupVisualization::setMarkerAlpha(double a) {
-  for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
-    last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
-    last_marker_array_.markers[i].header.stamp = ros::Time::now();
-    last_marker_array_.markers[i].color.a = a;
+  if(!regular_markers_hidden_) {
+    for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
+      last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
+      last_marker_array_.markers[i].header.stamp = ros::Time::now();
+      last_marker_array_.markers[i].color.a = a;
+    }
+    marker_publisher_.publish(last_marker_array_);
   }
-  marker_publisher_.publish(last_marker_array_);
   stored_alpha_ = a;
-  std_msgs::ColorRGBA good_color = good_color_;
-  good_color.a = stored_alpha_;
-  makeInteractiveControlMarkers(good_color,
+  std_msgs::ColorRGBA color;
+  if(use_good_bad_) {
+    if(last_solution_good_) {
+      color = good_color_;
+    } else {
+      color = bad_color_;
+    }
+  } else {
+    color = good_color_;
+  }
+  color.a = stored_alpha_;
+  makeInteractiveControlMarkers(color,
                                 dof_marker_enabled_);
 }
 
@@ -222,9 +246,18 @@ void KinematicsGroupVisualization::enable6DOFControls(bool load_saved) {
     interactive_marker_server_->get(it->second, saved_markers_[it->second]);
   }
   dof_marker_enabled_ = true;
-  std_msgs::ColorRGBA good_color = good_color_;
-  good_color.a = stored_alpha_;
-  makeInteractiveControlMarkers(good_color,
+  std_msgs::ColorRGBA color;
+  if(use_good_bad_) {
+    if(last_solution_good_) {
+      color = good_color_;
+    } else {
+      color = bad_color_;
+    }
+  } else {
+    color = good_color_;
+  }
+  color.a = stored_alpha_;
+  makeInteractiveControlMarkers(color,
                                 true,
                                 load_saved);
 }
@@ -247,7 +280,9 @@ void KinematicsGroupVisualization::addMenuEntry(const std::string& name,
 
 void KinematicsGroupVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
   planning_scene_ = planning_scene;
-  updateEndEffectorState(last_poses_.begin()->first, last_poses_.begin()->second);
+  if(!all_markers_hidden_) {
+    updateEndEffectorState(last_poses_.begin()->first, last_poses_.begin()->second);
+  }
 }
 
 /** Set a random valid state for this group.
@@ -356,10 +391,14 @@ void KinematicsGroupVisualization::removeLastMarkers()
     last_marker_array_.markers[i].action = visualization_msgs::Marker::DELETE;
   }
   marker_publisher_.publish(last_marker_array_);
+  last_marker_array_.markers.clear();
 }
 
 void KinematicsGroupVisualization::sendCurrentMarkers()
 {
+  if(use_good_bad_ && last_solution_changed_) {
+    enable6DOFControls(true);
+  }
   if(last_solution_good_) {
     last_marker_array_.markers.clear();
     std_msgs::ColorRGBA col = good_color_;
@@ -369,7 +408,7 @@ void KinematicsGroupVisualization::sendCurrentMarkers()
                            ros::Duration(0.0),
                            last_marker_array_,
                            ik_solver_->getLinkNames());
-    if(markers_hidden_) return;
+    if(all_markers_hidden_ || regular_markers_hidden_) return;
     marker_publisher_.publish(last_marker_array_);
   } else {
     removeLastMarkers();

@@ -63,6 +63,7 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
       group_visualization_map_[groups[i].name_]->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this, _1));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Random start / goal", boost::bind(&PlanningVisualization::generateRandomStartEnd, this, _1));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Reset start and goal", boost::bind(&PlanningVisualization::resetStartGoal, this, _1));
+      group_visualization_map_[groups[i].name_]->setGoodBadMode(true);
     }
   }
 
@@ -111,6 +112,14 @@ void PlanningVisualization::hideAllGroups() {
       it != group_visualization_map_.end(); 
       it++) {
     it->second->hideAllMarkers();
+  }
+}
+
+void PlanningVisualization::setAllStartChainModes(bool chain) {
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end(); 
+      it++) {
+    it->second->setChainStartToCurrent(chain);
   }
 }
 

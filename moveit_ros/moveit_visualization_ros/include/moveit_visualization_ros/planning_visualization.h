@@ -74,6 +74,8 @@ public:
     return true;
   }
 
+  void setAllStartChainModes(bool chain);
+
 protected:
 
   void generatePlan(const std::string& name);

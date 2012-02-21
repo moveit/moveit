@@ -80,6 +80,8 @@ int main(int argc, char** argv)
                                                                         kinematics_plugin_loader,
                                                                         "right_arm",
                                                                         vis_marker_array_publisher);
+
+  kv.setGoodBadMode(true);
  
   ros::waitForShutdown();
 }
