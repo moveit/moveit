@@ -52,7 +52,11 @@ public:
   }
 
   const planning_models::KinematicState& getStartState() const {
-    return start_->getState();
+    if(start_chained_) {
+      return planning_scene_->getCurrentState();
+    } else {
+      return start_->getState();
+    }
   }
 
   const planning_models::KinematicState& getGoalState() const {
@@ -69,10 +73,40 @@ public:
   void setRandomStartGoal();
   void resetStartGoal();
 
+  void setGoodBadMode(bool use_good_bad) {
+    start_->setGoodBadMode(use_good_bad);
+    goal_->setGoodBadMode(use_good_bad);
+  }
+
+  void hideRegularMarkers() {
+    if(!start_chained_) {
+      start_->hideRegularMarkers();
+    }
+    goal_->hideRegularMarkers();
+  }
+  void showRegularMarkers() {
+    if(!start_chained_) {
+      start_->showRegularMarkers();
+    }
+    goal_->showRegularMarkers();
+  }
+
   void hideAllMarkers();
   void showAllMarkers();
 
+  void setChainStartToCurrent(bool to_chain)
+  {
+    start_chained_ = to_chain;
+    if(to_chain) {
+      start_->hideAllMarkers();
+    }
+  }
+
 protected:
+
+  planning_scene::PlanningSceneConstPtr planning_scene_;
+
+  bool start_chained_;
 
   void startOn();
   void goalOn();

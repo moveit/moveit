@@ -83,9 +83,18 @@ public:
   void updateEndEffectorState(const std::string& subgroup_name,
                               const geometry_msgs::Pose& pose);
 
+  void hideRegularMarkers();
+  
+  void showRegularMarkers();
+
   void hideAllMarkers();
 
   void showAllMarkers();
+
+  void setGoodBadMode(bool use_good_bad) {
+    use_good_bad_ = use_good_bad;
+    enable6DOFControls(true);
+  }
 
   void setMarkerAlpha(double a);
 
@@ -139,8 +148,10 @@ protected:
   std::map<std::string, std::string> group_to_interactive_marker_names_;
   std::map<std::string, std::string> interactive_marker_to_group_names_;
   std::string regular_marker_name_;
+  bool use_good_bad_;
 
-  bool markers_hidden_;
+  bool regular_markers_hidden_;
+  bool all_markers_hidden_;
   bool last_solution_good_;
   bool last_solution_changed_;
 

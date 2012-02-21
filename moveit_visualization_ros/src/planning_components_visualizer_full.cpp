@@ -202,6 +202,7 @@ int main(int argc, char **argv)
   if(monitor_robot_state) {
     pv_->addMenuEntry("Reset start state", boost::bind(&updateToCurrentState));
     if(allow_trajectory_execution) {
+      pv_->setAllStartChainModes(true);
       pv_->addMenuEntry("Execute last trajectory", boost::bind(&executeLastTrajectory));
     }
   }
