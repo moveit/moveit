@@ -101,6 +101,17 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ob::State *from, co
     state->as<StateType>()->tag = std::max(from->as<StateType>()->tag, to->as<StateType>()->tag);
 }
 
+void ompl_interface::ModelBasedStateSpace::printState(const ob::State *state, std::ostream &out) const
+{
+  CompoundStateSpace::printState(state, out);
+  out << "Tag: " << state->as<StateType>()->tag << std::endl;
+  out << "Validity known: " << (state->as<StateType>()->isValidityKnown() ? "Yes" : "No") << std::endl;
+  if (state->as<StateType>()->isValidityKnown())
+    out << "Validity value: " << (state->as<StateType>()->isMarkedValid() ? "Yes" : "No") << std::endl;
+  if (state->as<StateType>()->isGoalDistanceKnown())
+    out << "Distance to goal: " << state->as<StateType>()->distance << std::endl;
+}
+
 void ompl_interface::ModelBasedStateSpace::copyToKinematicState(pm::KinematicState &kstate, const ob::State *state) const
 {
   copyToKinematicState(kstate.getJointStateGroup(getJointModelGroupName())->getJointStateVector(), state);

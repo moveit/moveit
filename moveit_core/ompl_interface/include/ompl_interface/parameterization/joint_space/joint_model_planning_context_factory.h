@@ -38,7 +38,7 @@
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
 
 #include "ompl_interface/parameterization/model_based_planning_context_factory.h"
-#include "ompl_interface/parameterization/joint_space/joint_model_planning_context.h"
+#include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
 
 namespace ompl_interface
 {
@@ -62,7 +62,7 @@ protected:
                                                             const ModelBasedStateSpaceSpecification &space_spec,
                                                             const ModelBasedPlanningContextSpecification &context_spec) const
   {
-    return ModelBasedPlanningContextPtr(new JointModelPlanningContext(name, ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec)), context_spec));
+    return ModelBasedPlanningContextPtr(new ModelBasedPlanningContext(name, ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec)), context_spec));
   }
   
 };

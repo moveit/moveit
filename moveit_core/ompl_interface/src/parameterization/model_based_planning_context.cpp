@@ -39,6 +39,7 @@
 #include "ompl_interface/detail/constrained_sampler.h"
 #include "ompl_interface/detail/constrained_goal_sampler.h"
 #include "ompl_interface/detail/goal_union.h"
+#include "ompl_interface/detail/projection_evaluators.h"
 #include <kinematic_constraints/utils.h>
 
 #include <ompl/base/GoalLazySamples.h>
@@ -66,8 +67,66 @@ void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std
     ompl_state_space_->registerDefaultProjection(pe);
 }
 
+ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::string &peval) const
+{
+  if (peval.find_first_of("link(") == 0 && peval[peval.length() - 1] == ')')
+  {
+    std::string link_name = peval.substr(5, peval.length() - 6);
+    if (getKinematicModel()->hasLinkModel(link_name))
+      return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorLinkPose(this, link_name));
+    else
+      ROS_ERROR("Attempted to set projection evaluator with respect to position of link '%s', but that link is not known to the kinematic model.", link_name.c_str());
+  }
+  else
+    if (peval.find_first_of("joints(") == 0 && peval[peval.length() - 1] == ')')
+    {
+      std::string joints = peval.substr(7, peval.length() - 8);
+      boost::replace_all(joints, ",", " ");
+      std::vector<std::pair<std::string, unsigned int> > j;
+      std::stringstream ss(joints);
+      while (ss.good() && !ss.eof())
+      {
+	std::string v; ss >> v >> std::ws;
+	if (getKinematicModel()->hasJointModel(v))
+	{
+	  unsigned int vc = getKinematicModel()->getJointModel(v)->getVariableCount();
+	  if (vc > 0)
+	    j.push_back(std::make_pair(v, vc));
+	  else
+	    ROS_WARN("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
+	}
+	else
+	  ROS_ERROR("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the kinematic model.",
+		    name_.c_str(), v.c_str());
+      }
+      if (j.empty())
+	ROS_ERROR("%s: No valid joints specified for joint projection", name_.c_str());
+      else
+	return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorJointValue(this, j));
+    }
+    else
+      ROS_ERROR("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());  
+  return ob::ProjectionEvaluatorPtr();
+}
+
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
 {
+  if (ompl_state_space_.get() != ss)
+    ROS_FATAL("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
+  ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
+  
+  if (path_constraints_)
+  {
+    kc::ConstraintSamplerPtr cs = kc::constructConstraintsSampler(getJointModelGroup(), path_constraints_->getAllConstraints(), getKinematicModel(),
+                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getKinematicsAllocator(), 
+                                                                  ompl_state_space_->getKinematicsSubgroupAllocators());
+    if (cs)
+    {
+      ROS_DEBUG("%s: Allocating specialized state sampler for state space", name_.c_str());
+      return ob::StateSamplerPtr(new ConstrainedSampler(this, cs));
+    }
+  }
+  ROS_DEBUG("%s: Allocating default state sampler for state space", name_.c_str());
   return ss->allocDefaultStateSampler();
 }
 
@@ -83,10 +142,6 @@ void ompl_interface::ModelBasedPlanningContext::configure(void)
     
     useConfig(spec_.config_);  
     ompl_simple_setup_.setup();
-  }
-  else
-  {
-    ompl_simple_setup_.getStateSpace()->setup();
   }
 }
 
@@ -155,9 +210,20 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(const std::map<std::st
   ompl_simple_setup_.getSpaceInformation()->params().setParams(cfg, true);
 }
 
-
 void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams)
 {
+  if (wparams.min_corner.x == wparams.max_corner.x && wparams.min_corner.x == 0.0 &&
+      wparams.min_corner.y == wparams.max_corner.y && wparams.min_corner.y == 0.0 &&
+      wparams.min_corner.z == wparams.max_corner.z && wparams.min_corner.z == 0.0)
+  {
+    ROS_DEBUG("It looks like the planning volume was not specified. Using default values.");
+    moveit_msgs::WorkspaceParameters default_wp;
+    default_wp.min_corner.x = default_wp.min_corner.y = default_wp.min_corner.z = -1.0;
+    default_wp.max_corner.x = default_wp.max_corner.y = default_wp.max_corner.z = 1.0;
+    setPlanningVolume(default_wp);    
+    return;
+  }
+  
   ROS_DEBUG("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]", name_.c_str(),
 	    wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
   
@@ -256,7 +322,6 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(voi
   else
     ROS_ERROR("Unable to construct goal representation");
   
-  ROS_DEBUG("%s: New planning context is set.", name_.c_str());
   return ob::GoalPtr();
 }
 

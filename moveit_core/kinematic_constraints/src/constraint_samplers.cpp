@@ -444,7 +444,7 @@ kinematic_constraints::UnionConstraintSampler::UnionConstraintSampler(const plan
     for (std::size_t j = 0 ; j < fd.size() ; ++j)
       frame_depends_.push_back(fd[j]);
     
-    ROS_DEBUG_STREAM("Union sampler for group '" << jmg->getName() << " includes sampler for group '" << samplers_[i]->getJointModelGroup()->getName() << "'");
+    ROS_DEBUG_STREAM("Union sampler for group '" << jmg->getName() << "' includes sampler for group '" << samplers_[i]->getJointModelGroup()->getName() << "'");
     bijection_[i].resize(gi.size(), -1);
     const std::map<std::string, unsigned int> &sgi = samplers_[i]->getJointModelGroup()->getJointVariablesIndexMap();
     for (std::map<std::string, unsigned int>::const_iterator it = sgi.begin() ; it != sgi.end() ; ++it)
@@ -459,7 +459,9 @@ kinematic_constraints::UnionConstraintSampler::UnionConstraintSampler(const plan
 
 bool kinematic_constraints::UnionConstraintSampler::sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts)
 {
+  values.clear();
   jmg_->getRandomValues(random_number_generator_, values);
+
   std::vector<double> v;
   if (samplers_.size() >= 1)
   {
