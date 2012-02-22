@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Author: E. Gil Jones
+// Author: E. Gil Jones, Ken Anderson
 
 #include <ros/ros.h>
 #include <distance_field/propagation_distance_field.h>
@@ -71,7 +71,7 @@ public:
     update_thread_.reset(new boost::thread(boost::bind(&MovingMarkers::updateAllMarkers, this)));
   }
   
-  void addSphere() {
+  void addSphere( const double radius ) {
     geometry_msgs::PoseStamped ps;
     ps.header.frame_id = world_frame_;
     ps.pose.position.x = 1.0;
@@ -80,7 +80,7 @@ public:
     ps.pose.orientation.w = 1.0;
     markers_["sphere"] = makeButtonSphere("sphere",
                                           ps,
-                                          .1,
+                                          radius,
                                           false,
                                           false);
     interactive_marker_server_->insert(markers_["sphere"]);
@@ -174,9 +174,10 @@ int main(int argc, char** argv)
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
   time_t start, diff;
-  const double resolution = 0.025;
-  const double max_distance = 0.5;
+  const double resolution = 0.025;			//0.5
+  const double max_distance = 0.5;			//1.5
   const bool 	 iterative = true;
+  const double sphere_radius = 0.10;		//0.25
   distance_field::PropagationDistanceField distance_field(3.0, 3.0, 4.0, resolution, -1.0, -1.5, -2.0, max_distance);
 
   shapes::Box* box = new shapes::Box(2.5, 2.5, 0.4);
@@ -185,8 +186,6 @@ int main(int argc, char** argv)
   bd.updatePose(trans);
   std::vector<Eigen::Vector3d> table_points = bd.getCollisionPoints();
   std::vector<Eigen::Vector3d> sphere_points;
-  //sphere_points.push_back(bd.getCollisionPoints()[0]);// TODO: this seems the only way to not segfault...
-  //sphere_points.clear();
 
   //ROS_INFO_STREAM("Adding " << table_points.size() << " to field");
 
@@ -197,9 +196,9 @@ int main(int argc, char** argv)
   MovingMarkers mm(interactive_marker_server_,
                    planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
                    1.5,1.5,2.0);
-  mm.addSphere();
+  mm.addSphere(sphere_radius);
 
-  shapes::Sphere* sphere = new shapes::Sphere(0.1);
+  shapes::Sphere* sphere = new shapes::Sphere(sphere_radius);
   collision_distance_field::BodyDecomposition sbd("sphere", sphere, 0.025, 0.0);
 
   int i = 0;
@@ -207,10 +206,6 @@ int main(int argc, char** argv)
     Eigen::Translation3d translation;
     if( mm.getFirstSpherePosition(translation) )
     {
-      // If using only the sphere's center point
-      //Eigen::Vector3d point(translation.x(), translation.y(), translation.z());
-      //ROS_INFO_STREAM( "transform="<<point.x()<<","<<point.y()<<","<<point.z()<<std::endl );
-
       // If using the fully decomposed sphere body full sphere bodies
       Eigen::Affine3d trans(translation*Eigen::Quaterniond::Identity());
       sbd.updatePose(trans);
@@ -237,7 +232,7 @@ int main(int argc, char** argv)
         distance_field.addPointsToField(sphere_points);
       }
 
-      diff = start-clock();
+      diff = clock()-start;
       std::cout<< "timeToUpdate=" << (double)diff/CLOCKS_PER_SEC << std::endl;
       start = clock();
       distance_field.getProjectionPlanes( planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
@@ -248,7 +243,7 @@ int main(int argc, char** argv)
       //                                    Eigen::Affine3d::Identity(),
       //                                    mark);
 
-      diff = start-clock();
+      diff = clock()-start;
       std::cout<< "timeToProject=" << (double)diff/CLOCKS_PER_SEC << std::endl;
 
       ROS_INFO_STREAM( "num_points="<<table_points.size()+sphere_points.size()<<std::endl );
