@@ -37,6 +37,7 @@
 #include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ros/console.h>
+#include <ompl/tools/debug/Profiler.h>
 
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec) : 
   ModelBasedStateSpace(spec)
@@ -82,7 +83,13 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ob::State *from, con
   {
     ob::State *temp = allocState();
     copyState(temp, from);
-    interpolate(temp, to, t, state);
+    if (temp->as<StateType>()->poseComputed())
+      interpolate(temp, to, t, state);
+    else
+    {  
+      ModelBasedStateSpace::interpolate(from, to, t, state);
+      state->as<StateType>()->markInvalid();
+    }
     freeState(temp);
     return;
   }
@@ -90,57 +97,36 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ob::State *from, con
   if (!to->as<StateType>()->poseComputed())
   {
     ob::State *temp = allocState();
-    copyState(temp, to);
-    interpolate(from, temp, t, state);
+    copyState(temp, to);   
+    if (temp->as<StateType>()->poseComputed())
+      interpolate(from, temp, t, state);
+    else
+    {   
+      ModelBasedStateSpace::interpolate(from, to, t, state);
+      state->as<StateType>()->markInvalid();
+    }
     freeState(temp);
     return;
   }
   
   ModelBasedStateSpace::interpolate(from, to, t, state);
-  
+
   // after interpolation we cannot be sure about the joint values (we use them as seed only)
   // so we recompute IK
   state->as<StateType>()->setJointsComputed(false);
   computeStateIK(state);
 }
 
-ompl::base::StateSamplerPtr ompl_interface::PoseModelStateSpace::allocStateSampler(void) const
+void ompl_interface::PoseModelStateSpace::beforeStateSample(ob::State *sampled) const
 {
-  class WrappedStateSampler : public ob::StateSampler
-  {
-  public:
-    
-    WrappedStateSampler(const ob::StateSpace *space, const ob::StateSamplerPtr &wrapped) : ob::StateSampler(space), wrapped_(wrapped)
-    {
-    }
-    
-    virtual void sampleUniform(ob::State *state)
-    {
-      state->as<StateType>()->setPoseComputed(false);
-      wrapped_->sampleUniform(state);
-      static_cast<const PoseModelStateSpace*>(space_)->computeStateFK(state);
-    }
-    
-    virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
-    {
-      state->as<StateType>()->setPoseComputed(false);
-      wrapped_->sampleUniformNear(state, near, distance);
-      static_cast<const PoseModelStateSpace*>(space_)->computeStateFK(state);
-    }
-    
-    virtual void sampleGaussian(ob::State *state, const ob::State *mean, const double stdDev)
-    {
-      state->as<StateType>()->setPoseComputed(false);
-      wrapped_->sampleGaussian(state, mean, stdDev);
-      static_cast<const PoseModelStateSpace*>(space_)->computeStateFK(state);
-    }
-    
-  protected:
-    
-    ob::StateSamplerPtr wrapped_;    
-  };
-  
-  return ob::StateSamplerPtr(static_cast<ob::StateSampler*>(new WrappedStateSampler(this, ModelBasedStateSpace::allocStateSampler())));
+  ModelBasedStateSpace::beforeStateSample(sampled);
+  sampled->as<StateType>()->setPoseComputed(false);
+}
+
+void ompl_interface::PoseModelStateSpace::afterStateSample(ob::State *sampled) const
+{  
+  computeStateFK(sampled);
+  ModelBasedStateSpace::afterStateSample(sampled);
 }
 
 void ompl_interface::PoseModelStateSpace::copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const
@@ -150,12 +136,14 @@ void ompl_interface::PoseModelStateSpace::copyToKinematicState(const std::vector
   {
     ob::State *temp = allocState();
     copyState(temp, state);
+    bool cont = false;
     if (computeStateIK(temp))
       copyToKinematicState(js, temp);
     else
-      ROS_ERROR("Cannot copy invalid OMPL state to KinematicState");
+      cont = true;
     freeState(temp);
-    return;
+    if (!cont)
+      return;
   }
   
   if (poses_.size() == 1)
@@ -178,6 +166,9 @@ void ompl_interface::PoseModelStateSpace::copyToKinematicState(const std::vector
 
 void ompl_interface::PoseModelStateSpace::copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const
 {
+  state->as<StateType>()->clearKnownInformation();
+  state->as<StateType>()->setJointsComputed(true);
+  state->as<StateType>()->setPoseComputed(false);
   if (poses_.size() == 1)
     poses_[0].joint_model_.copyToOMPLState(state->as<StateType>()->as<ob::CompoundState>(0)->components[0], js);
   else
@@ -188,13 +179,14 @@ void ompl_interface::PoseModelStateSpace::copyToOMPLState(ob::State *state, cons
       for (std::size_t j = 0 ; j < vals.size() ; ++j)
         ompl_val[j] = vals[j];
     }
-  state->as<StateType>()->setJointsComputed(true);
-  state->as<StateType>()->setPoseComputed(false);
   computeStateFK(state);
 }
 
 void ompl_interface::PoseModelStateSpace::copyToOMPLState(ob::State *state, const std::vector<double> &values) const
-{
+{ 
+  state->as<StateType>()->clearKnownInformation(); 
+  state->as<StateType>()->setJointsComputed(true);
+  state->as<StateType>()->setPoseComputed(false);  
   if (poses_.size() == 1)
     poses_[0].joint_model_.copyToOMPLState(state->as<StateType>()->as<ob::CompoundState>(0)->components[0], values);
   else
@@ -209,8 +201,6 @@ void ompl_interface::PoseModelStateSpace::copyToOMPLState(ob::State *state, cons
         ompl_val[j] = values[vindex++];
     }
   }
-  state->as<StateType>()->setJointsComputed(true);
-  state->as<StateType>()->setPoseComputed(false);
   computeStateFK(state);
 }
 

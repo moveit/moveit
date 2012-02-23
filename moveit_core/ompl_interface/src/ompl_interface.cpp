@@ -357,13 +357,11 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
       res.planning_time = ros::Duration(context->getLastPlanTime());
       context->getSolutionPath(res.trajectory);
       res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-      context->getOMPLSimpleSetup().print();
       return true;
     }
     else
     {
       ROS_INFO("Unable to solve the planning problem");
-      context->getOMPLSimpleSetup().print();
       return false;
     }
   }

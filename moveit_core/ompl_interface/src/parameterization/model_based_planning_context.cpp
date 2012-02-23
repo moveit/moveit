@@ -303,6 +303,12 @@ bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(moveit_msgs::Rob
   return true;
 }
 
+void ompl_interface::ModelBasedPlanningContext::setVerboseStateValidityChecks(bool flag)
+{
+  if (ompl_simple_setup_.getStateValidityChecker())
+    static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->setVerbose(flag);
+}
+
 ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(void)
 { 
   // ******************* set up the goal representation, based on goal constraints

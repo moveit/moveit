@@ -194,6 +194,8 @@ public:
     max_acceleration_ = ma;
   }
   
+  void setVerboseStateValidityChecks(bool flag);
+  
   void setProjectionEvaluator(const std::string &peval);
   
   void setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene);

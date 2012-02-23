@@ -393,7 +393,8 @@ bool kinematic_constraints::IKConstraintSampler::callIK(const geometry_msgs::Pos
     return true;
   }
   else
-    ROS_DEBUG("IK solver failed with error %d", error.val);
+    if (error.val != moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION)
+      ROS_ERROR("IK solver failed with error %d", error.val);
   return false;
 }
 
