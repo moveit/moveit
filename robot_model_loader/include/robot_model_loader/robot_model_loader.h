@@ -34,15 +34,15 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_SCENE_MONITOR_ROBOT_MODEL_LOADER_
-#define PLANNING_SCENE_MONITOR_ROBOT_MODEL_LOADER_
+#ifndef MOVEIT_ROBOT_MODEL_LOADER_ROBOT_MODEL_LOADER_
+#define MOVEIT_ROBOT_MODEL_LOADER_ROBOT_MODEL_LOADER_
 
 #include <ros/ros.h>
 #include <urdf/model.h>
 #include <srdf/model.h>
 #include <boost/shared_ptr.hpp>
 
-namespace planning_scene_monitor
+namespace robot_model_loader
 {
     /** @class RobotModelLoader
      *  @brief Default constructor
