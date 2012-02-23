@@ -55,9 +55,14 @@ void TrajectoryExecutionMonitor::addTrajectoryRecorder(boost::shared_ptr<Traject
   trajectory_recorder_map_[trajectory_recorder->getName()] = trajectory_recorder;
 }
 
-void TrajectoryExecutionMonitor::addTrajectoryControllerHandler(boost::shared_ptr<TrajectoryControllerHandler>& trajectory_controller_handler) {
+void TrajectoryExecutionMonitor::addTrajectoryControllerHandler(boost::shared_ptr<TrajectoryControllerHandler>& trajectory_controller_handler,
+                                                                bool is_default) {
   trajectory_controller_handler_map_[trajectory_controller_handler->getGroupControllerComboName()] = 
     trajectory_controller_handler;
+  if(is_default) {
+    default_trajectory_controller_handler_map_[trajectory_controller_handler->getGroupName()] = 
+      trajectory_controller_handler;
+  }
 }
 
 void TrajectoryExecutionMonitor::executeTrajectories(const std::vector<TrajectoryExecutionRequest>& to_execute,
@@ -76,6 +81,13 @@ void TrajectoryExecutionMonitor::executeTrajectories(const std::vector<Trajector
 
 bool TrajectoryExecutionMonitor::sendTrajectory(const TrajectoryExecutionRequest& ter) {
   
+  std::string req_controller_name = ter.controller_name_;
+  if(req_controller_name.empty()) {
+    req_controller_name = getDefaultControllerName(ter.group_name_);
+  }
+
+  switchAssociatedStopStartControllers(ter.group_name_, req_controller_name);
+
   execution_result_vector_.resize(execution_result_vector_.size()+1);
   
   std::string recorder_name = ter.recorder_name_;
@@ -88,18 +100,21 @@ bool TrajectoryExecutionMonitor::sendTrajectory(const TrajectoryExecutionRequest
     execution_result_vector_.back().result_ = NO_RECORDER;
     return false;
   } 
+  boost::shared_ptr<TrajectoryRecorder>& requested_recorder = trajectory_recorder_map_.find(recorder_name)->second;  
+  if(!ter.controller_name_.empty()) {
+    std::string combo_name = TrajectoryControllerHandler::combineGroupControllerNamespaceNames(ter.group_name_,
+                                                                                               req_controller_name,
+                                                                                               ter.ns_name_);
   
-  std::string combo_name = TrajectoryControllerHandler::combineGroupAndControllerNames(ter.group_name_,
-                                                                                       ter.controller_name_);
-  
-  if(trajectory_controller_handler_map_.find(combo_name) == trajectory_controller_handler_map_.end()) {
-    execution_result_vector_.back().result_ = NO_HANDLER;
-    return false;
+    if(trajectory_controller_handler_map_.find(combo_name) == trajectory_controller_handler_map_.end()) {
+      ROS_WARN_STREAM("No handler with name " << combo_name);
+      execution_result_vector_.back().result_ = NO_HANDLER;
+      return false;
+    }
+    last_requested_handler_ = trajectory_controller_handler_map_.find(combo_name)->second;
+  } else {
+    last_requested_handler_ = default_trajectory_controller_handler_map_[ter.group_name_];
   }
-  
-  boost::shared_ptr<TrajectoryRecorder>& requested_recorder = trajectory_recorder_map_.find(recorder_name)->second;
-  last_requested_handler_ = trajectory_controller_handler_map_.find(combo_name)->second;
-
   // Enable overshoot, if required
   if(ter.monitor_overshoot_)
   {
@@ -119,19 +134,16 @@ bool TrajectoryExecutionMonitor::sendTrajectory(const TrajectoryExecutionRequest
   }
 
   traj.header.stamp = ros::Time::now();
-  if(!last_requested_handler_->executeTrajectory(
-                                                 traj,
+  if(!last_requested_handler_->executeTrajectory(traj,
                                                  requested_recorder,
-                                                 boost::bind(&TrajectoryExecutionMonitor::trajectoryFinishedCallbackFunction, this, _1))
-     )
+                                                 boost::bind(&TrajectoryExecutionMonitor::trajectoryFinishedCallbackFunction, this, _1)))
   {
     execution_result_vector_.back().result_ = HANDLER_FAILED_ENTIRELY;
   }
   return true;
 }
 
-void TrajectoryExecutionMonitor::trajectoryFinishedCallbackFunction(
-                                                                    TrajectoryControllerState controller_state )
+void TrajectoryExecutionMonitor::trajectoryFinishedCallbackFunction(TrajectoryControllerState controller_state)
 {
   //adding this in any case
   execution_result_vector_.back().recorded_trajectory_ = last_requested_handler_->getLastRecordedTrajectory();
@@ -193,6 +205,75 @@ void TrajectoryExecutionMonitor::trajectoryFinishedCallbackFunction(
   }
 };
 
+void TrajectoryExecutionMonitor::switchAssociatedStopStartControllers(const std::string& group_name,
+                                                                      const std::string& desired_controller)
+                                                                   
+{
+  std::string current_controller = getCurrentController(group_name);
+  if(current_controller == desired_controller) return;
+  
+  std::vector<std::string> stop_controllers, start_controllers;
+
+  start_controllers.push_back(desired_controller);
+  current_controller_group_name_map_[desired_controller] = group_name;
+  current_group_controller_name_map_[group_name] = desired_controller;
+
+  if(current_controller_group_name_map_.find(current_controller) == current_controller_group_name_map_.end()) {
+    ROS_ERROR_STREAM("Current controller " << " not found in current controller group_name_map");
+  }
+  const std::string& current_group = current_controller_group_name_map_.at(current_controller);
+
+  //first case - simple swap
+  if(current_group == group_name) {
+    stop_controllers.push_back(current_controller);
+    start_controllers.push_back(desired_controller);
+    current_controller_group_name_map_.erase(current_controller);
+    return;
+  } 
+    
+  const srdf::Model::Group& des_config =
+    kmodel_->getJointModelGroupConfigMap().at(group_name);
+  
+  const srdf::Model::Group& cur_config =
+    kmodel_->getJointModelGroupConfigMap().at(current_group);
+  
+  if(des_config.subgroups_.size() == 0 &&
+     cur_config.subgroups_.size() == 0) {
+    ROS_WARN_STREAM("Other group owns controller but no subgroups");
+  }
+  const planning_models::KinematicModel::JointModelGroup* des_jmg = kmodel_->getJointModelGroup(group_name);
+  const planning_models::KinematicModel::JointModelGroup* cur_jmg = kmodel_->getJointModelGroup(current_group);
+
+  bool des_parent_cur = des_jmg->isSubgroup(current_group);
+  bool cur_parent_des = cur_jmg->isSubgroup(group_name);
+  
+  if(cur_parent_des && des_parent_cur) {
+    ROS_WARN_STREAM("Circular dependency");
+    return;
+  }
+  if(des_parent_cur) {
+    //case where the desired is the supergroup, so we need to stop all the subgroup controllers
+    for(unsigned int i = 0; i < des_config.subgroups_.size(); i++) {
+      stop_controllers.push_back(getCurrentController(des_config.subgroups_[i]));
+      current_controller_group_name_map_.erase(stop_controllers.back());
+      current_group_controller_name_map_[des_config.subgroups_[i]] = desired_controller;
+    }
+  } else {
+    //case where the desired in the subgroup, so we need to start the other subgroups
+    stop_controllers.push_back(current_controller);
+    //need to assign parent to the child
+    current_group_controller_name_map_[current_group] = desired_controller;
+    for(unsigned int i = 0; i < cur_config.subgroups_.size(); i++) {
+      if(cur_config.subgroups_[i] != group_name) {
+        start_controllers.push_back(default_trajectory_controller_handler_map_.at(cur_config.subgroups_[i])->getControllerName());
+        current_controller_group_name_map_[start_controllers.back()] = cur_config.subgroups_[i];
+        current_group_controller_name_map_[cur_config.subgroups_[i]] = start_controllers.back();
+      }
+    }
+  }
+  switchControllers(stop_controllers, start_controllers);
+}
+ 
 bool TrajectoryExecutionMonitor::closeEnough(const TrajectoryExecutionRequest& ter,
                                              const TrajectoryExecutionData& ted) {
   if(ted.recorded_trajectory_.points.size() == 0) {
@@ -270,4 +351,12 @@ void TrajectoryExecutionMonitor::compareLastRecordedToStart(const TrajectoryExec
 		  << fabs(recorded_pose.translation().x()-next_requested_pose.translation().x()) << " " 
                   << fabs(recorded_pose.translation().y()-next_requested_pose.translation().y()) << " " 
                   << fabs(recorded_pose.translation().z()-next_requested_pose.translation().z())); 
+}
+
+std::string TrajectoryExecutionMonitor::getCurrentController(const std::string& group_name) const {
+  if(current_group_controller_name_map_.find(group_name) == current_group_controller_name_map_.end()) {
+    ROS_WARN_STREAM("No controller for group " << group_name);
+    return std::string("");
+  }
+  return current_group_controller_name_map_.at(group_name);
 }
