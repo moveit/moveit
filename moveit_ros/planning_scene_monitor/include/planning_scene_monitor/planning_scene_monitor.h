@@ -34,15 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_SCENE_MONITOR_PLANNING_SCENE_MONITOR_
-#define PLANNING_SCENE_MONITOR_PLANNING_SCENE_MONITOR_
+#ifndef MOVEIT_PLANNING_SCENE_MONITOR_PLANNING_SCENE_MONITOR_
+#define MOVEIT_PLANNING_SCENE_MONITOR_PLANNING_SCENE_MONITOR_
 
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 #include <planning_scene/planning_scene.h>
-#include "planning_scene_monitor/robot_model_loader.h"
 #include "planning_scene_monitor/current_state_monitor.h"
 
 namespace planning_scene_monitor
@@ -254,7 +253,7 @@ protected:
   double                                dt_state_update_;
 
   std::map<std::string, std::vector<moveit_msgs::JointLimits > > individual_joint_limits_map_;
-  std::map<std::string, std::vector<moveit_msgs::JointLimits> > group_joint_limits_map_;
+  std::map<std::string, std::vector<moveit_msgs::JointLimits> >  group_joint_limits_map_;
 
 };
 

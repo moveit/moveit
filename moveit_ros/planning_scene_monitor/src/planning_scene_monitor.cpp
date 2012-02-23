@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, E. Gil Jones */
 
 #include "planning_scene_monitor/planning_scene_monitor.h"
+#include <robot_model_loader/robot_model_loader.h>
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description) :
     nh_("~"), tf_(NULL)
@@ -69,7 +70,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
     collision_map_subscriber_ = NULL;
     collision_map_filter_ = NULL;
 
-    RobotModelLoader rml(robot_description);
+    robot_model_loader::RobotModelLoader rml(robot_description);
     robot_description_ = rml.getRobotDescription();
     if (rml.getURDF())
     {
