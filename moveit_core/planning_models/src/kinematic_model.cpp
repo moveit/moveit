@@ -334,6 +334,7 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
   }
 
   // add joints from subgroups
+  std::set<std::string> subgroup_set;
   for (std::size_t i = 0 ; i < gc.subgroups_.size() ; ++i)
   {
     const JointModelGroup *sg = getJointModelGroup(gc.subgroups_[i]);
@@ -353,6 +354,11 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
       const std::vector<const JointModel*> &ms = sg->getMimicJointModels();
       for (std::size_t j = 0 ; j < ms.size() ; ++j)
         jset.insert(ms[j]);
+      
+      subgroup_set.insert(gc.subgroups_[i]);
+      for(unsigned int j = 0; j < sg->getSubgroupNames().size(); j++) {
+        subgroup_set.insert(sg->getSubgroupNames()[j]);
+      }
     }
   }
 
@@ -368,7 +374,13 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
 
   std::sort(joints.begin(), joints.end(), &orderJointsByIndex);
 
+  std::vector<std::string> subgroup_names;
+  for(std::set<std::string>::iterator it = subgroup_set.begin(); it != subgroup_set.end(); it++) {
+    subgroup_names.push_back(*it);
+  }
+
   JointModelGroup *jmg = new JointModelGroup(gc.name_, joints, this);
+  jmg->subgroup_names_ = subgroup_names;
   joint_model_group_map_[gc.name_] = jmg;
   joint_model_group_config_map_[gc.name_] = gc;
   joint_model_group_names_.push_back(gc.name_);

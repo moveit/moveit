@@ -103,7 +103,7 @@ TEST(Loading, SimpleRobot)
     std::map<std::string, double> state_values;
     new_state.getStateValues(state_values);
 
-    EXPECT_EQ(state_values["base_joint.rot_w"], 1.0);
+    EXPECT_EQ(state_values["base_joint/rot_w"], 1.0);
 
     EXPECT_EQ(std::string("myrobot"), model->getName());
     EXPECT_EQ((unsigned int)7, new_state.getVariableCount());
@@ -147,9 +147,9 @@ TEST(LoadingAndFK, SimpleRobot)
     static const std::string MODEL1_INFO =
         "Model myrobot in frame odom_combined, of dimension 3\n"
         "Joint values bounds:\n"
-        "   base_joint.x [DBL_MIN, DBL_MAX]\n"
-        "   base_joint.y [DBL_MIN, DBL_MAX]\n"
-        "   base_joint.theta [-3.14159, 3.14159]\n"
+        "   base_joint/x [DBL_MIN, DBL_MAX]\n"
+        "   base_joint/y [DBL_MIN, DBL_MAX]\n"
+        "   base_joint/theta [-3.14159, 3.14159]\n"
         "Available groups: \n"
         "   base (of dimension 3):\n"
         "    joints:\n"
@@ -192,15 +192,15 @@ TEST(LoadingAndFK, SimpleRobot)
 
 
     std::map<std::string, double> joint_values;
-    joint_values["base_joint.x"] = 10.0;
-    joint_values["base_joint.y"] = 8.0;
+    joint_values["base_joint/x"] = 10.0;
+    joint_values["base_joint/y"] = 8.0;
 
     //testing incomplete state
     std::vector<std::string> missing_states;
     state.setStateValues(joint_values, missing_states);
     ASSERT_EQ(missing_states.size(), 1);
-    EXPECT_EQ(missing_states[0], std::string("base_joint.theta"));
-    joint_values["base_joint.theta"] = 0.0;
+    EXPECT_EQ(missing_states[0], std::string("base_joint/theta"));
+    joint_values["base_joint/theta"] = 0.0;
 
     state.setStateValues(joint_values, missing_states);
     ASSERT_EQ(missing_states.size(), 0);
@@ -217,9 +217,9 @@ TEST(LoadingAndFK, SimpleRobot)
 
     const std::map<std::string, unsigned int>& ind_map = model->getJointVariablesIndexMap();
     std::vector<double> jv(state.getVariableCount(), 0.0);
-    jv[ind_map.at("base_joint.x")] = 10.0;
-    jv[ind_map.at("base_joint.y")] = 8.0;
-    jv[ind_map.at("base_joint.theta")] = 0.0;
+    jv[ind_map.at("base_joint/x")] = 10.0;
+    jv[ind_map.at("base_joint/y")] = 8.0;
+    jv[ind_map.at("base_joint/theta")] = 0.0;
 
     state.setStateValues(jv);
     EXPECT_NEAR(10.0, state.getLinkState("base_link")->getGlobalLinkTransform().translation().x(), 1e-5);
@@ -333,9 +333,9 @@ TEST(FK, OneRobot)
     static const std::string MODEL2_INFO =
         "Model one_robot in frame odom_combined, of dimension 5\n"
         "Joint values bounds: \n"
-        "   base_joint.x [DBL_MIN, DBL_MAX]\n"
-        "   base_joint.y [DBL_MIN, DBL_MAX]\n"
-        "   base_joint.theta [-3.14159, 3.14159]\n"
+        "   base_joint/x [DBL_MIN, DBL_MAX]\n"
+        "   base_joint/y [DBL_MIN, DBL_MAX]\n"
+        "   base_joint/theta [-3.14159, 3.14159]\n"
         "   joint_a [-3.14159, 3.14159]\n"
         "   joint_c [0.00000, 0.08900]\n"
         "\n"
@@ -369,6 +369,7 @@ TEST(FK, OneRobot)
         "     links:\n"
         "      base_link\n"
         "      link_a\n"
+        "      link_b\n"
         "      link_c\n"
         "     roots:\n"
         "      base_joint";
@@ -423,7 +424,7 @@ TEST(FK, OneRobot)
     ASSERT_EQ(g_one->getLinkModelNames().size(), 3);
     //g_two only has three links
     ASSERT_EQ(g_two->getLinkModelNames().size(), 3);
-    ASSERT_EQ(g_three->getLinkModelNames().size(), 3);
+    ASSERT_EQ(g_three->getLinkModelNames().size(), 4);
 
     std::vector<std::string> jmn = g_one->getJointModelNames();
     std::sort(jmn.begin(), jmn.end());
@@ -469,9 +470,9 @@ TEST(FK, OneRobot)
     state.setToDefaultValues();
 
     std::map<std::string, double> joint_values;
-    joint_values["base_joint.x"]=1.0;
-    joint_values["base_joint.y"]=1.0;
-    joint_values["base_joint.theta"]=0.5;
+    joint_values["base_joint/x"]=1.0;
+    joint_values["base_joint/y"]=1.0;
+    joint_values["base_joint/theta"]=0.5;
     joint_values["joint_a"] = -0.5;
     joint_values["joint_c"] = 0.1;
     state.getJointStateGroup("base_from_joints")->setStateValues(joint_values);
