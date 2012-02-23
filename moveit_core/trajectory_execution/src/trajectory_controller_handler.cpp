@@ -173,7 +173,7 @@ void TrajectoryControllerHandler::done()
   timer_.stop();
   const TrajectoryControllerState state = controller_state_;
   controller_state_ = TrajectoryControllerStates::IDLE;
-  recorder_->deregisterCallback(group_controller_combo_name_);
+  recorder_->deregisterCallback(group_controller_ns_combo_name_);
   trajectory_finished_callback_( state );
 }
 
@@ -182,6 +182,6 @@ void TrajectoryControllerHandler::doneDelayed()
   timer_.stop();
   const TrajectoryControllerState state = controller_state_;
   controller_state_ = TrajectoryControllerStates::IDLE;
-  recorder_->delayedDeregisterCallback(group_controller_combo_name_);
+  recorder_->delayedDeregisterCallback(group_controller_ns_combo_name_);
   trajectory_finished_callback_( state );
 }
