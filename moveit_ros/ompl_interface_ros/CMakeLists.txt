@@ -60,5 +60,8 @@ target_link_libraries(test_simple_plan ${PROJECT_NAME})
 rosbuild_add_gtest(test_path_constrained_plan test/test_path_constrained_plan.cpp)
 target_link_libraries(test_path_constrained_plan ${PROJECT_NAME})
 
+rosbuild_add_gtest(test_complex_path_constrained_plan test/test_complex_path_constrained_plan.cpp)
+target_link_libraries(test_complex_path_constrained_plan ${PROJECT_NAME})
+
 rosbuild_add_gtest(test_dual_arm test/test_dual_arm_plan.cpp)
 target_link_libraries(test_dual_arm ${PROJECT_NAME})

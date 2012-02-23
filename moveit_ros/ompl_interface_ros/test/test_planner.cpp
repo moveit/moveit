@@ -49,7 +49,7 @@ TEST(OmplInterface, JointModelStateConversion)
   planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
   EXPECT_TRUE(scene->isConfigured());
   ompl_interface_ros::OMPLInterfaceROS oi(scene->getKinematicModel());
-  ompl_interface::ModelBasedPlanningContextPtr pc = oi.getPlanningContext("right_arm", "JointModel");
+  ompl_interface::ModelBasedPlanningContextPtr pc = oi.getPlanningContext("arms", "JointModel");
   planning_models::KinematicState kstate(scene->getKinematicModel());
   ompl::base::ScopedState<> ostate1(pc->getOMPLStateSpace());
   ompl::base::ScopedState<> ostate2(ostate1.getSpace());
@@ -192,6 +192,7 @@ TEST(OmplPlanning, OrientationGoal)
 }
 
 
+
 TEST(OmplPlanning, PoseGoal)
 {
     ros::NodeHandle nh;
@@ -209,7 +210,7 @@ TEST(OmplPlanning, PoseGoal)
 
     // try a position goal
     mplan_req.motion_plan_request.group_name = "left_arm";
-    mplan_req.motion_plan_request.num_planning_attempts = 5;
+    mplan_req.motion_plan_request.num_planning_attempts = 1;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
 
     moveit_msgs::OrientationConstraint ocm;
@@ -291,7 +292,7 @@ TEST(OmplPlanning, SimplePoseGoal)
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "test_ompl_planning", ros::init_options::AnonymousName);
+  ros::init(argc, argv, "test_ompl_planning");
   ros::AsyncSpinner spinner(1);
   spinner.start();
 

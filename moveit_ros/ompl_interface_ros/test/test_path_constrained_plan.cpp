@@ -61,7 +61,7 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   planning_scene::PlanningScene &scene = *psm.getPlanningScene();
   EXPECT_TRUE(scene.isConfigured());
   
-  mplan_req.motion_plan_request.planner_id = "LBKPIECEkConfigDefault";
+  mplan_req.motion_plan_request.planner_id = "KPIECEkConfigDefault";
   mplan_req.motion_plan_request.group_name = "right_arm";
   mplan_req.motion_plan_request.num_planning_attempts = 1;
   mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(15.0);
@@ -97,7 +97,6 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-1.993988668449755);
   mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-2.2779628049776051);
   
-
 
 
   // add path constraints
