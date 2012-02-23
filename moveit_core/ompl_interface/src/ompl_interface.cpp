@@ -437,6 +437,11 @@ ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::P
   return ob::PathPtr();  
 }
 
+void ompl_interface::OMPLInterface::terminateSolve(void)
+{
+}
+
+
 /*
 
 void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, unsigned int samples)
