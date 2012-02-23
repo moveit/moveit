@@ -60,12 +60,38 @@
 #include "ompl_interface/parameterization/joint_space/joint_model_planning_context_factory.h"
 #include "ompl_interface/parameterization/work_space/pose_model_planning_context_factory.h"
 
+namespace ompl_interface
+{
+class OMPLInterface::LastPlanningContext
+{
+public:
+  
+  ModelBasedPlanningContextPtr getContext(void)
+  {
+    boost::mutex::scoped_lock slock(lock_);
+    return last_planning_context_solve_;
+  }
+  
+  void setContext(const ModelBasedPlanningContextPtr &context)
+  {
+    boost::mutex::scoped_lock slock(lock_);
+    last_planning_context_solve_ = context;
+  }
+
+private:
+  /* The planning group for which solve() was called last */
+  ModelBasedPlanningContextPtr last_planning_context_solve_;
+  boost::mutex                 lock_;
+  
+};
+}
+
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
   kmodel_(kmodel), max_goal_samples_(10), max_sampling_attempts_(10), max_planning_threads_(4),
   max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
   //  constraints_.reset(new std::vector<ConstraintApproximation>());
-
+  last_planning_context_.reset(new LastPlanningContext());
   registerDefaultPlanners();
   registerDefaultPlanningContexts();
 }
@@ -330,7 +356,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (!context)
     return false;
 
-  last_planning_context_solve_ = context;
+  last_planning_context_->setContext(context);
   
   // get the starting state
   planning_models::KinematicState start_state = planning_scene->getCurrentState();
@@ -422,7 +448,7 @@ ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::P
   context->setPlanningConstraints(goal_constraints_v, path_constraints, NULL);
   context->configure();
   
-  last_planning_context_solve_ = context;
+  last_planning_context_->setContext(context);
   
   // solve the planning problem
   if (context->solve(timeout, 1))
@@ -439,6 +465,14 @@ ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::P
 
 void ompl_interface::OMPLInterface::terminateSolve(void)
 {
+  const ModelBasedPlanningContextPtr &context = last_planning_context_->getContext();
+  if (context)
+    context->terminateSolve();
+}
+
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getLastPlanningContext(void) const
+{
+  return last_planning_context_->getContext();
 }
 
 

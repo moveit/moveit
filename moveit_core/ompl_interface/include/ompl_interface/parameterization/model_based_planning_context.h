@@ -223,6 +223,8 @@ public:
   */
   bool benchmark(double timeout, unsigned int count, const std::string &filename = "");
   
+  void terminateSolve(void);
+  
   /* @brief Get the amount of time spent on the last plan*/
   double getLastPlanTime(void) const
   {
