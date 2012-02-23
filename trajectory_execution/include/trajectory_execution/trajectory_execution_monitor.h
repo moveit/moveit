@@ -34,6 +34,9 @@
 
 /** \author E. Gil Jones, Ken Anderson */
 
+#ifndef _TRAJECTORY_EXECUTION_MONITOR_H_
+#define _TRAJECTORY_EXECUTION_MONITOR_H_
+
 #include <ros/ros.h>
 #include <boost/function.hpp>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -49,6 +52,7 @@ struct TrajectoryExecutionRequest {
   
   std::string group_name_;
   std::string controller_name_;
+  std::string ns_name_;
   std::string recorder_name_;
 
   bool monitor_overshoot_;
@@ -119,27 +123,57 @@ class TrajectoryExecutionMonitor
 
 public:
   
-  TrajectoryExecutionMonitor(const planning_models::KinematicModelConstPtr kmodel) : kmodel_(kmodel)
+  TrajectoryExecutionMonitor(const planning_models::KinematicModelConstPtr& kmodel) : kmodel_(kmodel)
   {};
+
+  virtual ~TrajectoryExecutionMonitor() {};
 
   /// \brief Add a recorder to a list of recorders
   void addTrajectoryRecorder(boost::shared_ptr<TrajectoryRecorder>& trajectory_recorder);
 
   /// \brief Add a controller to a list of controllers
-  void addTrajectoryControllerHandler(boost::shared_ptr<TrajectoryControllerHandler>& trajectory_controller_handler);
+  void addTrajectoryControllerHandler(boost::shared_ptr<TrajectoryControllerHandler>& trajectory_controller_handler,
+                                      bool is_default);
 
   /// \brief Execute a series of trajectories, in order.
   /// The callbacks will get called, in order, after each trajectory is finished executing.
   void executeTrajectories(const std::vector<TrajectoryExecutionRequest>& to_execute,
                            const boost::function<bool(TrajectoryExecutionDataVector)>& done_callback);
 
+  void switchAssociatedStopStartControllers(const std::string& group_name,
+                                            const std::string& desired_controller);
+
+  std::string getCurrentController(const std::string& group_name) const;
+
+  std::string getDefaultControllerName(const std::string& group_name) const {
+    if(default_trajectory_controller_handler_map_.find(group_name) == default_trajectory_controller_handler_map_.end()) {
+      return std::string("");
+    }
+    return default_trajectory_controller_handler_map_.at(group_name)->getControllerName();
+  }
+
+  const std::map<std::string, bool>& getOriginalControllerConfiguration() const {
+    return original_controller_configuration_map_;
+  }
+
+  virtual void loadController(const std::string& name) = 0;
+  
+  virtual void unloadController(const std::string& name) = 0;
+
+  virtual bool getRunningControllerMap(std::map<std::string, bool>& controller_map) = 0;
+
+  virtual void restoreOriginalControllers() = 0;
+
 protected:
+  
+  virtual void switchControllers(const std::vector<std::string>& off_controllers,
+                                 const std::vector<std::string>& on_controllers) = 0;
   
   bool sendTrajectory(const TrajectoryExecutionRequest& ter);
   
   /// \brief Gets called after the execution of a trajectory.
-  void trajectoryFinishedCallbackFunction( TrajectoryControllerState controller_state );
-
+  void trajectoryFinishedCallbackFunction(TrajectoryControllerState controller_state);
+                                    
   /// \brief Returns true if the executed trajectory endpoint is close to intended trajectory endpoint.
   bool closeEnough(const TrajectoryExecutionRequest& ter,
                    const TrajectoryExecutionData& ted);
@@ -157,10 +191,34 @@ protected:
 
   boost::shared_ptr<TrajectoryControllerHandler> last_requested_handler_;
   std::map<std::string, boost::shared_ptr<TrajectoryRecorder> > trajectory_recorder_map_;
+  //map by combo_name
   std::map<std::string, boost::shared_ptr<TrajectoryControllerHandler> > trajectory_controller_handler_map_;
+  
+  //map by group_name
+  std::map<std::string, boost::shared_ptr<TrajectoryControllerHandler> > default_trajectory_controller_handler_map_;
+
+  std::vector<std::string> loaded_controllers_;
+
+  //map from group to possible controllers to whether or not we have a controller handler
+  std::map<std::string, std::map<std::string, bool> > group_possible_controllers_map_;
+
+  //map from controllers to groups, mostly for preclusion
+  std::map<std::string, std::map<std::string, bool> > controller_possible_group_map_;
+
+  std::map<std::string, bool> original_controller_configuration_map_;
+  std::map<std::string, std::string> group_default_controllers_;
+  std::map<std::string, std::string> controllers_default_group_;
+
+  //map from group to running controller
+  std::map<std::string, std::string> current_group_controller_name_map_;
+
+  //map from running controller to associated group
+  std::map<std::string, std::string> current_controller_group_name_map_;
 
   planning_models::KinematicModelConstPtr kmodel_;
 
 };
 
 }
+
+#endif

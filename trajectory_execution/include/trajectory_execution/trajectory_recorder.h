@@ -46,16 +46,21 @@ namespace trajectory_execution
 {
 
 /// \brief Function that gets called when new state information arrives
-typedef boost::function<bool(	const ros::Time& time, const std::map<std::string, double>&,
-                              const std::map<std::string,double>&)> NewStateCallbackFunction;
+typedef boost::function<bool(const ros::Time& time, const std::map<std::string, double>&,
+                             const std::map<std::string,double>&)> NewStateCallbackFunction;
 
 /// \brief Records the trajectory by calling registered callback functions as new states arrive.
 class TrajectoryRecorder {
 
 public:
 
-  TrajectoryRecorder(const std::string& recorder_name) : recorder_name_(recorder_name) 
-  {};
+  TrajectoryRecorder() {};
+
+  virtual bool initialize(const std::string& recorder_name) 
+  {
+    recorder_name_ = recorder_name;
+    return true;
+  } 
 
   /// \brief Register a callback function to get called when a new state arrives.
   void registerCallback(const std::string& name, const NewStateCallbackFunction& callback) {

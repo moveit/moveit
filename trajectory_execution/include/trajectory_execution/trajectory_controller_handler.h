@@ -72,32 +72,36 @@ class TrajectoryControllerHandler {
 
 public:
 
-  TrajectoryControllerHandler(const std::string& group_name,
-                              const std::string& controller_name) :
-    group_name_(group_name),
-    controller_name_(controller_name),
-    monitor_overshoot_(false),
-    controller_state_(TrajectoryControllerStates::IDLE),
-    timeout_(ros::Duration(100))
-  {
-    group_controller_combo_name_ = combineGroupAndControllerNames(group_name,controller_name);  
-  };
+  TrajectoryControllerHandler() {};
 
   virtual ~TrajectoryControllerHandler() {
-
   }
 
-  static std::string combineGroupAndControllerNames(const std::string& group_name,
-                                                    const std::string& controller_name) {
-    return(group_name+"_"+controller_name);
+  virtual bool initialize(const std::string& group_name,
+                          const std::string& controller_name,
+                          const std::string& ns)
+  {
+    group_name_ = group_name;
+    controller_name_ = controller_name;
+    ns_name_ = ns;
+    monitor_overshoot_ = false;
+    controller_state_ = TrajectoryControllerStates::IDLE;
+    timeout_ = ros::Duration(100);
+    group_controller_ns_combo_name_ = combineGroupControllerNamespaceNames(group_name_,controller_name_, ns_name_);  
+    return true;
+  };
+
+  static std::string combineGroupControllerNamespaceNames(const std::string& group_name,
+                                                          const std::string& controller_name,
+                                                          const std::string& ns_name) {
+    return(group_name+"_"+controller_name+"_"+ns_name);
   }
 
   /// \brief This function is called if the trajectory should monitor overshoot (after the trajectory is executed).
   /// Returns true if the subclass can monitor overshoot
-  bool enableOvershoot(
-                        double max_overshoot_velocity_epsilon,
-                        ros::Duration min_overshoot_time,
-                        ros::Duration max_overshoot_time);
+  bool enableOvershoot(double max_overshoot_velocity_epsilon,
+                       ros::Duration min_overshoot_time,
+                       ros::Duration max_overshoot_time);
 
   /// \brief Disable overshoot monitoring. Overshoot monitoring is disabled by default.
   void disableOvershoot();
@@ -141,7 +145,7 @@ public:
   }
 
   const std::string& getGroupControllerComboName() const {
-    return group_controller_combo_name_;
+    return group_controller_ns_combo_name_;
   }
 
 protected:
@@ -168,7 +172,8 @@ protected:
 
   std::string group_name_;
   std::string controller_name_;
-  std::string group_controller_combo_name_;
+  std::string ns_name_;
+  std::string group_controller_ns_combo_name_;
 
   trajectory_msgs::JointTrajectory recorded_trajectory_;
   trajectory_msgs::JointTrajectory overshoot_trajectory_;
