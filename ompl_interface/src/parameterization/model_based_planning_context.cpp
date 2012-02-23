@@ -489,3 +489,8 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   
   return result;
 }
+
+void ompl_interface::ModelBasedPlanningContext::terminateSolve(void)
+{
+  
+}

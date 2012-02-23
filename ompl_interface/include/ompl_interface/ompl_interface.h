@@ -138,10 +138,7 @@ public:
     max_acceleration_ = ma;
   }
   
-  const ModelBasedPlanningContextPtr& getLastPlanningContext(void) const
-  {
-    return last_planning_context_solve_;
-  }
+  ModelBasedPlanningContextPtr getLastPlanningContext(void) const;
   
   /** @brief Solve the planning problem*/
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -225,10 +222,10 @@ protected:
   
   
   /** \brief The kinematic model for which motion plans are computed */
-  const planning_models::KinematicModelConstPtr   kmodel_;
+  planning_models::KinematicModelConstPtr                    kmodel_;
   
   /** \brief A map from group names to IK allocators; these are the available IK solvers */
-  AvailableKinematicsSolvers                      kinematics_allocators_;
+  AvailableKinematicsSolvers                                 kinematics_allocators_;
   
   std::map<std::string, ob::PlannerAllocator>                known_planners_;
   std::map<std::string, ModelBasedPlanningContextFactoryPtr> planning_context_factories_; 
@@ -238,28 +235,30 @@ protected:
       be of the form "group_name[config_name]" if there are
       particular configurations specified for a group, or of the
       form "group_name" if default settings are to be used. */
-  std::map<std::string, PlanningConfigurationSettings>    planner_configs_;
+  std::map<std::string, PlanningConfigurationSettings>       planner_configs_;
   
   /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
-  unsigned int                                            max_goal_samples_;
+  unsigned int                                               max_goal_samples_;
   
   /// maximum number of attempts to be made at sampling a state when attempting to find valid states that satisfy some set of constraints
-  unsigned int                                            max_sampling_attempts_;
+  unsigned int                                               max_sampling_attempts_;
   
   /// when planning in parallel, this is the maximum number of threads to use at one time
-  unsigned int                                            max_planning_threads_;
+  unsigned int                                               max_planning_threads_;
   
   /// the maximum velocity to move with
-  double                                                  max_velocity_;
+  double                                                     max_velocity_;
   
   /// the maximum acceleration to move at
-  double                                                  max_acceleration_;
+  double                                                     max_acceleration_;
   
   /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
-  double                                                  max_solution_segment_length_;
+  double                                                     max_solution_segment_length_;
+
+private:
   
-  /** \brief The planning group for which solve() was called last */
-  mutable ModelBasedPlanningContextPtr                    last_planning_context_solve_;
+  struct LastPlanningContext;
+  boost::shared_ptr<LastPlanningContext> last_planning_context_;
   
   //  ConstraintApproximationsPtr                     constraints_;
   
