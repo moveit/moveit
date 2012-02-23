@@ -51,14 +51,17 @@ class FollowJointTrajectoryControllerHandler : public trajectory_execution::Traj
 
 public:
   
-  FollowJointTrajectoryControllerHandler(const std::string& group_name, 
-                                         const std::string& controller_name);
+  FollowJointTrajectoryControllerHandler() {};
 
-  bool executeTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
-                         boost::shared_ptr<trajectory_execution::TrajectoryRecorder>& recorder,
-                         const trajectory_execution::TrajectoryFinishedCallbackFunction& traj_callback);
+  virtual bool initialize(const std::string& group_name, 
+                          const std::string& controller_name,
+                          const std::string& ns_name);
+  
+  virtual bool executeTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
+                                 boost::shared_ptr<trajectory_execution::TrajectoryRecorder>& recorder,
+                                 const trajectory_execution::TrajectoryFinishedCallbackFunction& traj_callback);
 
-  void cancelExecution();
+  virtual void cancelExecution();
 
   void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
                               const control_msgs::FollowJointTrajectoryResultConstPtr& result);
@@ -69,8 +72,10 @@ public:
     
 
 protected:
-  actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> follow_joint_trajectory_action_client_;
+  boost::shared_ptr<actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> > follow_joint_trajectory_action_client_;
 }; 
+
+
 
 }
 #endif

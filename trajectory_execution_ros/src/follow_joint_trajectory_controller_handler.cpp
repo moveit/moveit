@@ -35,18 +35,22 @@
 /** \author E. Gil Jones */
 
 #include <trajectory_execution_ros/follow_joint_trajectory_controller_handler.h>
+#include <pluginlib/class_list_macros.h>
 
 namespace trajectory_execution_ros 
 {
 
-FollowJointTrajectoryControllerHandler::FollowJointTrajectoryControllerHandler(const std::string& group_name, 
-                                                                               const std::string& controller_name) : 
-  TrajectoryControllerHandler(group_name, controller_name),
-  follow_joint_trajectory_action_client_(controller_name, true)
+bool FollowJointTrajectoryControllerHandler::initialize(const std::string& group_name, 
+                                                        const std::string& controller_name,
+                                                        const std::string& ns_name)
 {
-  while(ros::ok() && !follow_joint_trajectory_action_client_.waitForServer(ros::Duration(5.0))){
+  TrajectoryControllerHandler::initialize(group_name, controller_name, ns_name);
+  
+  follow_joint_trajectory_action_client_.reset(new actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>(controller_name+"/"+ns_name, true));
+  while(ros::ok() && !follow_joint_trajectory_action_client_->waitForServer(ros::Duration(5.0))){
     ROS_INFO_STREAM("Waiting for the follow joint trajectory action for group " << group_name << " on the topic " << controller_name << " to come up");
   }
+  return true;
 }
 
 bool FollowJointTrajectoryControllerHandler::executeTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
@@ -61,11 +65,11 @@ bool FollowJointTrajectoryControllerHandler::executeTrajectory(const trajectory_
   control_msgs::FollowJointTrajectoryGoal goal;
   goal.trajectory = trajectory;
   
-  follow_joint_trajectory_action_client_.sendGoal(goal,
-                                                  boost::bind(&FollowJointTrajectoryControllerHandler::controllerDoneCallback, this, _1, _2),
-                                                  boost::bind(&FollowJointTrajectoryControllerHandler::controllerActiveCallback, this),
-                                                  boost::bind(&FollowJointTrajectoryControllerHandler::controllerFeedbackCallback, this, _1));
-  recorder_->registerCallback(group_controller_combo_name_, 
+  follow_joint_trajectory_action_client_->sendGoal(goal,
+                                                   boost::bind(&FollowJointTrajectoryControllerHandler::controllerDoneCallback, this, _1, _2),
+                                                   boost::bind(&FollowJointTrajectoryControllerHandler::controllerActiveCallback, this),
+                                                   boost::bind(&FollowJointTrajectoryControllerHandler::controllerFeedbackCallback, this, _1));
+  recorder_->registerCallback(group_controller_ns_combo_name_, 
                               boost::bind(&FollowJointTrajectoryControllerHandler::addNewStateToRecordedTrajectory, this, _1, _2, _3));
   return true;
 }
@@ -122,3 +126,7 @@ void FollowJointTrajectoryControllerHandler::controllerFeedbackCallback(const co
 }
 
 }
+
+PLUGINLIB_DECLARE_CLASS(trajectory_execution_ros, FollowJointTrajectoryControllerHandler,
+                        trajectory_execution_ros::FollowJointTrajectoryControllerHandler,
+                        trajectory_execution::TrajectoryControllerHandler);

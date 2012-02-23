@@ -10,11 +10,14 @@
   <url>http://ros.org/wiki/trajectory_execution_ros</url>
   <depend package="trajectory_execution"/>
   <depend package="actionlib"/>
+  <depend package="pluginlib"/>
+  <depend package="pr2_mechanism_msgs"/>
 
   <rosdep name="eigen"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltrajectory_execution_ros" />
+    <trajectory_execution plugin="${prefix}/plugin_description.xml"/>
   </export>
 
 </package>

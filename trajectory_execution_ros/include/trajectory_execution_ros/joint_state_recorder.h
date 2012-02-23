@@ -50,8 +50,10 @@ class JointStateTrajectoryRecorder : public trajectory_execution::TrajectoryReco
 
 public:
 
-  JointStateTrajectoryRecorder(const std::string& topic_name);
-  
+  JointStateTrajectoryRecorder() {};
+
+  virtual bool initialize(const std::string& recorder_name);
+
 protected:
 
   void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);

@@ -26,7 +26,8 @@ include_directories(${EIGEN_INCLUDE_DIRS})
 
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME} src/joint_state_recorder.cpp
-  src/follow_joint_trajectory_controller_handler.cpp)
+  src/follow_joint_trajectory_controller_handler.cpp
+  src/trajectory_execution_monitor_ros.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)

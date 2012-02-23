@@ -37,15 +37,17 @@
 #include <ros/ros.h>
 
 #include <trajectory_execution_ros/joint_state_recorder.h>
+#include <pluginlib/class_list_macros.h>
 
 namespace trajectory_execution_ros
 {
 
-JointStateTrajectoryRecorder::JointStateTrajectoryRecorder(const std::string& topic_name) :
-  TrajectoryRecorder(topic_name)
+bool JointStateTrajectoryRecorder::initialize(const std::string& topic_name)
 {
+  TrajectoryRecorder::initialize(topic_name);
   ros::NodeHandle nh;
   joint_state_subscriber_ = nh.subscribe(topic_name, 25, &JointStateTrajectoryRecorder::jointStateCallback, this);
+  return true;
 }
 
 void JointStateTrajectoryRecorder::jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state) {
@@ -62,3 +64,7 @@ void JointStateTrajectoryRecorder::jointStateCallback(const sensor_msgs::JointSt
 }
 
 }
+
+PLUGINLIB_DECLARE_CLASS(trajectory_execution_ros, JointStateTrajectoryRecorder,
+                        trajectory_execution_ros::JointStateTrajectoryRecorder,
+                        trajectory_execution::TrajectoryRecorder);
