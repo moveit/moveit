@@ -588,6 +588,17 @@ public:
       return variable_count_;
     }
 
+    const std::vector<std::string>& getSubgroupNames() const {
+      return subgroup_names_;
+    }
+
+    bool isSubgroup(const std::string& group) const {
+      for(unsigned int i = 0; i < subgroup_names_.size(); i++) {
+        if(group == subgroup_names_[i]) return true;
+      }
+      return false;
+    }
+
     virtual std::vector<moveit_msgs::JointLimits> getJointLimits() const;
     
     
@@ -641,6 +652,9 @@ public:
     
     /** \brief The number of variables necessary to describe this group of joints */
     unsigned int                                variable_count_;
+
+    /** \brief The set of labelled subgroups that are included in this group */
+    std::vector<std::string> subgroup_names_;
     
     /** \brief The set of default states specified for this group in the SRDF */
     std::map<std::string, std::map<std::string,

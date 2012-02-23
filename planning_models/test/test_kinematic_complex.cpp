@@ -209,6 +209,19 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     EXPECT_TRUE(tq.w() == 1.0);
 }
 
+TEST_F(LoadPlanningModelsPr2, SubgroupInit) {
+
+  planning_models::KinematicModel kmodel(urdf_model_, srdf_model_);  
+  const planning_models::KinematicModel::JointModelGroup* jmg = kmodel.getJointModelGroup("arms");
+  ASSERT_TRUE(jmg);
+  EXPECT_EQ(jmg->getSubgroupNames().size(), 2);
+  EXPECT_TRUE(jmg->isSubgroup("right_arm"));
+
+  const planning_models::KinematicModel::JointModelGroup* jmg2 = kmodel.getJointModelGroup("whole_body");
+  EXPECT_EQ(jmg2->getSubgroupNames().size(), 4);
+  EXPECT_TRUE(jmg2->isSubgroup("arms"));
+  EXPECT_TRUE(jmg2->isSubgroup("right_arm"));
+}
 
 int main(int argc, char **argv)
 {
