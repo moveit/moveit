@@ -36,6 +36,7 @@
 
 #include "ompl_interface_ros/ompl_interface_ros.h"
 #include "planning_scene_monitor/planning_scene_monitor.h"
+#include <planning_models/conversions.h>
 #include <tf/transform_listener.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <moveit_msgs/DisplayTrajectory.h>
@@ -55,16 +56,22 @@ public:
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
     benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);  
     pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 5);
-    pub_plan_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 1);
+    pub_plan_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 100);
   }
   
   bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
   {
     ROS_INFO("Received new planning request...");
     bool result = ompl_interface_.solve(psm_.getPlanningScene(), req, res);
+    
+    //    boost::thread *t = new boost::thread(boost::bind(&OMPLPlannerService::displayRandomPaths, this));
+    
+    
+    //    return result;
+    
     if (result)
       displaySolution(res);
-    displayPlannerData("l_wrist_roll_link");
+    // displayPlannerData("r_wrist_roll_link");
     std::stringstream ss;
     ompl::tools::Profiler::Status(ss);
     ROS_INFO("%s", ss.str().c_str());
@@ -78,6 +85,108 @@ public:
     d.robot_state = mplan_res.robot_state;
     d.trajectory = mplan_res.trajectory;
     pub_plan_.publish(d);
+  }
+  
+  void displayRandomPaths(void)
+  {
+    
+    const ompl_interface::ModelBasedPlanningContextPtr &pc = ompl_interface_.getLastPlanningContext();
+
+    //    std::cout << pc->getOMPLSimpleSetup().getSpaceInformation()->probabilityOfValidState(1000) << std::endl;
+    
+    
+    planning_models::KinematicState ks(pc->getCompleteInitialRobotState());
+    ompl::base::ScopedState<> s(pc->getOMPLStateSpace());
+    ompl::base::ScopedState<> s0(s);
+    bool first = true;
+    for (int i = 0 ; i < 120 ; ++i)
+    {
+      ROS_INFO("i = %d", i);
+      s.random();
+      if (!pc->getOMPLSimpleSetup().getSpaceInformation()->isValid(s.get()))
+        continue;
+      if (!first)
+      {
+        ompl::geometric::PathGeometric pg(pc->getOMPLSimpleSetup().getSpaceInformation(), s0.get(), s.get());
+        pg.interpolate(3);
+        
+        if (pc->getOMPLSimpleSetup().getSpaceInformation()->checkMotion(s0.get(), s.get()))
+          ROS_INFO("Valid Path");
+        else
+          ROS_INFO("Invalid Path");
+
+        pc->setVerboseStateValidityChecks(true);
+        for (std::size_t i = 0 ; i < pg.getStateCount() ; ++i)
+        {
+          const ompl_interface::ModelBasedStateSpace::StateType *s = pg.getState(i)->as<ompl_interface::ModelBasedStateSpace::StateType>();
+          pc->getOMPLSimpleSetup().getSpaceInformation()->isValid(s);
+        }
+        pc->setVerboseStateValidityChecks(false);
+        ROS_INFO("\n");
+        pg.interpolate(30);
+        moveit_msgs::DisplayTrajectory d;
+        d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
+        planning_models::kinematicStateToRobotState(pc->getCompleteInitialRobotState(), d.robot_state);
+        pc->convertPath(pg, d.trajectory);
+        pub_plan_.publish(d);
+        ros::Duration(5.0).sleep();
+      }
+      first = false;
+      s0 = s;
+      pc->getOMPLStateSpace()->copyToKinematicState(ks, s.get());
+      moveit_msgs::DisplayTrajectory d;
+      d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
+      planning_models::kinematicStateToRobotState(ks, d.robot_state);
+      pub_plan_.publish(d);  
+      ros::Duration(0.5).sleep();
+    }
+
+    /*
+    boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> kpl = ompl_interface_.getKinematicsPluginLoader();
+    kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kpl->getLoaderFunction();
+    kinematic_constraints::KinematicsSubgroupAllocator sa;
+    sa[psm_.getPlanningScene()->getKinematicModel()->getJointModelGroup("left_arm")] = kinematics_allocator;
+    sa[psm_.getPlanningScene()->getKinematicModel()->getJointModelGroup("right_arm")] = kinematics_allocator;
+    
+    kinematic_constraints::ConstraintSamplerPtr smp = kinematic_constraints::constructConstraintsSampler
+      (psm_.getPlanningScene()->getKinematicModel()->getJointModelGroup("arms"),  pc->getPathConstraints()->getAllConstraints(),
+       psm_.getPlanningScene()->getKinematicModel(), psm_.getPlanningScene()->getTransforms(), kinematic_constraints::KinematicsAllocator(), sa);
+
+    for (int i = 0 ; i < 1000 ; ++i)
+    {
+      ROS_INFO("j = %d", i);
+      std::vector<double> values;
+      if (smp->sample(values, ks, 10))
+      {
+        ks.getJointStateGroup("arms")->setStateValues(values);
+        moveit_msgs::DisplayTrajectory d;
+        d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
+        planning_models::kinematicStateToRobotState(ks, d.robot_state);
+        pub_plan_.publish(d);  
+        ros::Duration(0.5).sleep();
+      }
+    }
+    */
+
+    /*    
+    
+    for (int i = 0 ; i < 10 ; ++i)
+    {
+      ROS_INFO("i = %d", i);
+      
+      ompl::geometric::PathGeometric pg(pc->getOMPLSimpleSetup().getSpaceInformation());
+      pg.random(); 
+      //      pg.interpolate(20);
+      moveit_msgs::DisplayTrajectory d;
+      d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
+      planning_models::kinematicStateToRobotState(pc->getCompleteInitialRobotState(), d.robot_state);
+      pc->convertPath(pg, d.trajectory);
+      pub_plan_.publish(d);
+      //      std::cout << d << std::endl;
+      
+      ros::Duration(5.0).sleep();
+    }
+    */
   }
   
   void displayPlannerData(const std::string &link_name)
@@ -142,6 +251,7 @@ private:
   ros::Publisher                                pub_markers_;
   ros::Publisher                                pub_plan_;
 };
+
 
 int main(int argc, char **argv)
 {

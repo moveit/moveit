@@ -69,6 +69,11 @@ class OMPLPlanner : public planning_interface::Planner
       return result;
     }
 
+    void terminate(void) const
+    {
+      ompl_interface_->terminateSolve();
+    }
+  
   private:
     boost::shared_ptr<OMPLInterfaceROS> ompl_interface_;
 };

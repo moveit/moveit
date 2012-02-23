@@ -53,6 +53,11 @@ namespace ompl_interface_ros
       OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel,
                        boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& loader);
 
+      const boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& getKinematicsPluginLoader(void) const
+      {
+        return kinematics_loader_;
+      }
+      
       /** @brief Print the status of this node*/
       void printStatus(void);
 
@@ -67,7 +72,7 @@ namespace ompl_interface_ros
       /** @brief Configure the planners*/
       void loadPlannerConfigurations(void);
 
-      ros::NodeHandle                         nh_; /// The ROS node handle
+      ros::NodeHandle nh_; /// The ROS node handle
 
     private:
       boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> kinematics_loader_;
