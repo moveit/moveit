@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "kinematics_plugin_loader/kinematics_plugin_loader.h"
+#include <robot_model_loader/robot_model_loader.h>
 #include <pluginlib/class_loader.h>
 #include <boost/thread/mutex.hpp>
 #include <sstream>

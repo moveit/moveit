@@ -34,15 +34,15 @@
 
 /* Author: Ioan Sucan */
 
-#include "planning_scene_monitor/robot_model_loader.h"
+#include "robot_model_loader/robot_model_loader.h"
 
-planning_scene_monitor::RobotModelLoader::RobotModelLoader(const std::string &robot_description) : nh_("~")
+robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description) : nh_("~")
 {
     if (nh_.searchParam(robot_description, robot_description_))
         loadRobotFromParamServer();
 }
 
-bool planning_scene_monitor::RobotModelLoader::loadRobotFromParamServer(void)
+bool robot_model_loader::RobotModelLoader::loadRobotFromParamServer(void)
 {
     std::string content;
     if (nh_.getParam(robot_description_, content))
