@@ -57,6 +57,8 @@ public:
   virtual bool isValid(const ompl::base::State *state) const;
   virtual bool isValid(const ompl::base::State *state, double &dist) const;
   
+  void setVerbose(bool flag);
+  
 protected:
   
   const ModelBasedPlanningContext      *planning_context_;
@@ -64,6 +66,7 @@ protected:
   TSStateStorage                        tss_;
   collision_detection::CollisionRequest collision_request_simple_;
   collision_detection::CollisionRequest collision_request_with_distance_;
+  bool                                  verbose_;
 };
 
 }

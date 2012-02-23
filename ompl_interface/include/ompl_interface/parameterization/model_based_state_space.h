@@ -124,6 +124,11 @@ public:
       return flags & VALIDITY_KNOWN;
     }
     
+    void clearKnownInformation(void)
+    {
+      flags &= ~(VALIDITY_KNOWN | VALIDITY_TRUE | GOAL_DISTANCE_KNOWN);
+    }
+    
     bool isMarkedValid(void) const
     {
       return flags & VALIDITY_TRUE;
@@ -158,7 +163,9 @@ public:
   virtual void copyState(ob::State *destination, const ob::State *source) const;
   virtual void interpolate(const ob::State *from, const ob::State *to, const double t, ob::State *state) const;
   virtual void printState(const ob::State *state, std::ostream &out) const;
-
+  virtual ob::StateSamplerPtr allocStateSampler(void) const;
+  virtual ob::StateSamplerPtr allocDefaultStateSampler(void) const;
+  
   const pm::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return spec_.kmodel_;
@@ -209,7 +216,18 @@ public:
   
 protected:
   
+  /** \brief Function that is called for every sampled state (before the sampling process) */
+  virtual void beforeStateSample(ob::State *sampled) const;
+
+  /** \brief Function that is called for every sampled state (at the completion of the sampling process) */
+  virtual void afterStateSample(ob::State *sampled) const;
+  
   ModelBasedStateSpaceSpecification spec_; 
+  
+private:
+  
+  class WrappedStateSampler;
+  friend class WrappedStateSampler;
   
 };
 }

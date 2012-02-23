@@ -39,9 +39,16 @@
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc) :
   ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc),
-  group_name_(pc->getJointModelGroupName()), tss_(pc->getCompleteInitialRobotState())
+  group_name_(pc->getJointModelGroupName()), tss_(pc->getCompleteInitialRobotState()), verbose_(false)
 {
   collision_request_with_distance_.distance = true;
+}
+
+void ompl_interface::StateValidityChecker::setVerbose(bool flag)
+{
+  verbose_ = flag;
+  //  collision_request_simple_.verbose = flag;
+  //  collision_request_with_distance_.verbose = flag;
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state) const
@@ -57,7 +64,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   
   double distance = 0.0;
   const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
-  if (kset && !kset->decide(*kstate, distance))
+  if (kset && !kset->decide(*kstate, distance, verbose_))
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
@@ -93,7 +100,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   
   double distance = 0.0;  
   const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
-  if (kset && !kset->decide(*kstate, distance))
+  if (kset && !kset->decide(*kstate, distance, verbose_))
   {
     dist = distance;
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);

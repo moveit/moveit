@@ -70,7 +70,7 @@ struct CollisionType {
 
 struct CollisionSphere {
 
-  CollisionSphere(Eigen::Vector3d rel, double radius)
+  CollisionSphere(const Eigen::Vector3d &rel, double radius)
   {
     relative_vec_ = rel;
     radius_ = radius;

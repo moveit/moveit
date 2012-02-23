@@ -36,6 +36,7 @@
 
 #include "ompl_interface/detail/constrained_sampler.h"
 #include "ompl_interface/parameterization/model_based_planning_context.h"
+#include <ompl/tools/debug/Profiler.h>
 
 ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc, const kc::ConstraintSamplerPtr &cs) :
   ob::StateSampler(pc->getOMPLStateSpace().get()), planning_context_(pc), default_(space_->allocDefaultStateSampler()), constraint_sampler_(cs)

@@ -93,12 +93,73 @@ void ompl_interface::ModelBasedStateSpace::copyState(ob::State *destination, con
 }
 
 void ompl_interface::ModelBasedStateSpace::interpolate(const ob::State *from, const ob::State *to, const double t, ob::State *state) const
-{
+{  
+  state->as<StateType>()->clearKnownInformation();
   CompoundStateSpace::interpolate(from, to, t, state);
   if (from->as<StateType>()->tag >= 0 && to->as<StateType>()->tag >= 0)
     state->as<StateType>()->tag = t < 0.5 ? from->as<StateType>()->tag : to->as<StateType>()->tag;
   else
     state->as<StateType>()->tag = std::max(from->as<StateType>()->tag, to->as<StateType>()->tag);
+}
+
+void ompl_interface::ModelBasedStateSpace::beforeStateSample(ob::State *sampled) const
+{
+  sampled->as<StateType>()->clearKnownInformation();
+}
+
+void ompl_interface::ModelBasedStateSpace::afterStateSample(ob::State *sampled) const
+{
+}
+
+namespace ompl_interface
+{
+class ModelBasedStateSpace::WrappedStateSampler : public ob::StateSampler
+{
+public:
+  
+  WrappedStateSampler(const ob::StateSpace *space, const ob::StateSamplerPtr &wrapped) : ob::StateSampler(space), wrapped_(wrapped)
+  {
+  }
+  
+  virtual void sampleUniform(ob::State *state)
+  {
+    space_->as<ModelBasedStateSpace>()->beforeStateSample(state);
+    wrapped_->sampleUniform(state);
+    space_->as<ModelBasedStateSpace>()->afterStateSample(state);
+  }
+  
+  virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
+  {  
+    space_->as<ModelBasedStateSpace>()->beforeStateSample(state);
+    wrapped_->sampleUniformNear(state, near, distance); 
+    space_->as<ModelBasedStateSpace>()->afterStateSample(state);
+  }
+  
+  virtual void sampleGaussian(ob::State *state, const ob::State *mean, const double stdDev)
+  {
+    space_->as<ModelBasedStateSpace>()->beforeStateSample(state);
+    wrapped_->sampleGaussian(state, mean, stdDev);
+    space_->as<ModelBasedStateSpace>()->afterStateSample(state);
+  }
+  
+protected:
+  
+  ob::StateSamplerPtr wrapped_;    
+};
+}
+
+ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocStateSampler(void) const
+{
+  ompl::base::StateSamplerPtr ss = ob::CompoundStateSpace::allocStateSampler();
+  if (dynamic_cast<WrappedStateSampler*>(ss.get()))
+    return ss;
+  else
+    return ob::StateSamplerPtr(new WrappedStateSampler(this, ss));
+}
+
+ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultStateSampler(void) const
+{
+  return ob::StateSamplerPtr(new WrappedStateSampler(this, ob::CompoundStateSpace::allocDefaultStateSampler()));
 }
 
 void ompl_interface::ModelBasedStateSpace::printState(const ob::State *state, std::ostream &out) const
