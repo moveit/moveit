@@ -176,6 +176,8 @@ public:
                     const moveit_msgs::Constraints &path_constraints, double timeout,
                     const std::string &factory_type = "") const;
   
+  void terminateSolve(void);
+  
   ModelBasedPlanningContextPtr getPlanningContext(const std::string &config, const std::string &factory_type = "") const;
   
   void registerPlannerAllocator(const std::string &planner_id, const ob::PlannerAllocator &pa)

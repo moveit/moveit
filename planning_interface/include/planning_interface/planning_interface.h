@@ -72,6 +72,10 @@ class Planner
                        moveit_msgs::GetMotionPlan::Response &res) const = 0;
     virtual bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,
                                    planner_capability_t& capabilities) const = 0;
+
+    /// Request termination, if a solve() function is currently computing plans
+    virtual void terminate(void) const = 0;
+  
 };
 
 } // planning_interface
