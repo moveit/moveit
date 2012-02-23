@@ -45,9 +45,7 @@
 #include <moveit_visualization_ros/planning_visualization_qt_wrapper.h>
 #include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
 #include <OGRE/OgreLogManager.h>
-#include <trajectory_execution/trajectory_execution_monitor.h>
-#include <trajectory_execution_ros/follow_joint_trajectory_controller_handler.h>
-#include <trajectory_execution_ros/joint_state_recorder.h>
+#include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
 
 using namespace moveit_visualization_ros;
 
@@ -58,6 +56,17 @@ boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_m
 boost::shared_ptr<PlanningVisualizationQtWrapper> pv_;
 boost::shared_ptr<InteractiveObjectVisualizationQtWrapper> iov_;
 boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor_;
+
+bool first_update = true;
+
+void sigHandler(int x) {
+  ROS_INFO_STREAM("Getting sig handler");
+  iov_.reset();
+  pv_.reset();
+  trajectory_execution_monitor_->restoreOriginalControllers();
+  planning_scene_monitor_.reset();
+  exit(0);
+}
 
 void publisher_function() {
   ros::WallRate r(10.0);
@@ -86,20 +95,27 @@ void addSphereCallback() {
   iov_->addSphere();
 }
 
+void updateSceneCallback() {
+  if(first_update) {
+    ROS_INFO_STREAM("Got update scene callback");
+    pv_->resetAllStartAndGoalStates();
+    first_update = false;
+  }
+}
+
 bool doneWithExecution() {
   ROS_INFO_STREAM("Done");
   return true;
 } 
-
 void executeLastTrajectory() {
   std::string group_name;
   trajectory_msgs::JointTrajectory traj;
   if(pv_->getLastTrajectory(group_name, traj)) {
     trajectory_execution::TrajectoryExecutionRequest ter;
     ter.group_name_ = group_name;
-    ter.controller_name_ = (group_name == "right_arm" ? "/r_arm_controller/follow_joint_trajectory" : "/l_arm_controller/follow_joint_trajectory");
+
     ter.trajectory_ = traj;
-    ROS_DEBUG_STREAM("Attempting to execute trajectory for group name " << group_name << " controller " << ter.controller_name_); 
+    ROS_DEBUG_STREAM("Attempting to execute trajectory for group name " << group_name); 
 
     std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
     ter_reqs.push_back(ter);
@@ -121,6 +137,9 @@ int main(int argc, char **argv)
   // CAN'T SPIN AS RVIZ ALREADY IS!!!!
   // ros::AsyncSpinner spinner(1);
   // spinner.start();
+
+  signal(SIGINT, sigHandler);
+  signal(SIGTERM, sigHandler);
 
   ros::NodeHandle nh;
   ros::NodeHandle loc_nh("~");
@@ -147,19 +166,7 @@ int main(int argc, char **argv)
   if(monitor_robot_state) {
     loc_nh.param("allow_trajectory_execution", allow_trajectory_execution, false);
     if(allow_trajectory_execution) {
-      trajectory_execution_monitor_.reset(new trajectory_execution::TrajectoryExecutionMonitor(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
-      boost::shared_ptr<trajectory_execution::TrajectoryRecorder> 
-        joint_state_recorder(new trajectory_execution_ros::JointStateTrajectoryRecorder("/joint_states"));
-
-      boost::shared_ptr<trajectory_execution::TrajectoryControllerHandler> 
-        right_arm_controller_handler(new trajectory_execution_ros::FollowJointTrajectoryControllerHandler("right_arm",
-                                                                                                          "/r_arm_controller/follow_joint_trajectory"));
-      boost::shared_ptr<trajectory_execution::TrajectoryControllerHandler> 
-        left_arm_controller_handler(new trajectory_execution_ros::FollowJointTrajectoryControllerHandler("left_arm",
-                                                                                                     "/l_arm_controller/follow_joint_trajectory"));
-      trajectory_execution_monitor_->addTrajectoryRecorder(joint_state_recorder);
-      trajectory_execution_monitor_->addTrajectoryControllerHandler(right_arm_controller_handler);
-      trajectory_execution_monitor_->addTrajectoryControllerHandler(left_arm_controller_handler);
+      trajectory_execution_monitor_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
     }
   }
 
@@ -277,6 +284,8 @@ int main(int argc, char **argv)
                    SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
 
   main_window->show();
+
+  planning_scene_monitor_->setUpdateCallback(boost::bind(&updateSceneCallback));
 
   app.exec();
 

@@ -196,8 +196,13 @@ void KinematicsGroupVisualization::showAllMarkers() {
     last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
     last_marker_array_.markers[i].color.a = stored_alpha_;
   }
-  updateEndEffectorState(last_poses_.begin()->first, last_poses_.begin()->second);
   enable6DOFControls();
+  updateEndEffectorInteractiveMarker();
+  for(std::map<std::string, geometry_msgs::Pose>::iterator it = last_poses_.begin();
+      it != last_poses_.end();
+      it++) {
+    updateEndEffectorState(it->first, it->second);
+  }
 }
 
 void KinematicsGroupVisualization::setMarkerAlpha(double a) {

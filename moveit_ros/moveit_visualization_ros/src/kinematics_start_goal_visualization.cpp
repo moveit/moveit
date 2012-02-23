@@ -102,7 +102,9 @@ void KinematicsStartGoalVisualization::setRandomStartGoal() {
 }
 
 void KinematicsStartGoalVisualization::resetStartGoal() {
-  start_->resetState();
+  if(!start_chained_) {
+    start_->resetState();
+  }
   goal_->resetState();
 }
 

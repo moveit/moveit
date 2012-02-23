@@ -88,6 +88,14 @@ void PlanningVisualization::updatePlanningScene(const planning_scene::PlanningSc
   joint_trajectory_visualization_->updatePlanningScene(planning_scene);
 }
 
+void PlanningVisualization::resetAllStartAndGoalStates() {
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end(); 
+      it++) {
+    it->second->resetStartGoal();
+  }
+}
+
 void PlanningVisualization::resetAllStartStates() {
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
       it != group_visualization_map_.end(); 
@@ -178,7 +186,7 @@ void PlanningVisualization::generatePlan(const std::string& name) {
                                        ros::Duration(0.0),
                                        traj,
                                        error_code);
-    trajectory_smoother_->smooth(res.trajectory.joint_trajectory,
+    trajectory_smoother_->smooth(traj,
                                  traj,
                                  group_joint_limit_map_[name]);
     ROS_INFO_STREAM("Smoothed last time " << traj.points.back().time_from_start);
