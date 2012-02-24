@@ -102,6 +102,25 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ob::State *from, co
     state->as<StateType>()->tag = std::max(from->as<StateType>()->tag, to->as<StateType>()->tag);
 }
 
+void ompl_interface::ModelBasedStateSpace::serialize(void *serialization, const ob::State *state) const
+{
+  memcpy(serialization, &(state->as<StateType>()->flags), sizeof(int));
+  memcpy(reinterpret_cast<char*>(serialization) + sizeof(int), &(state->as<StateType>()->tag), sizeof(int));
+  ob::CompoundStateSpace::serialize(reinterpret_cast<char*>(serialization) + sizeof(int) * 2, state);
+}
+
+void ompl_interface::ModelBasedStateSpace::deserialize(ob::State *state, const void *serialization) const
+{
+  memcpy(&(state->as<StateType>()->flags), serialization, sizeof(int));
+  memcpy(&(state->as<StateType>()->tag), reinterpret_cast<const char*>(serialization) + sizeof(int), sizeof(int));
+  ob::CompoundStateSpace::deserialize(state, reinterpret_cast<const char*>(serialization) + sizeof(int) * 2);
+}
+
+unsigned int ompl_interface::ModelBasedStateSpace::getSerializationLength(void) const
+{
+  return ob::CompoundStateSpace::getSerializationLength() + sizeof(int) * 2;
+}
+
 void ompl_interface::ModelBasedStateSpace::beforeStateSample(ob::State *sampled) const
 {
   sampled->as<StateType>()->clearKnownInformation();

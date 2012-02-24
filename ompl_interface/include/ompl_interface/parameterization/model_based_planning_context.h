@@ -38,11 +38,13 @@
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
+#include "ompl_interface/detail/constraint_approximations.h"
 #include <planning_scene/planning_scene.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/tools/multiplan/ParallelPlan.h>
+#include <ompl/base/StateStorage.h>
 
 namespace ompl_interface
 {
@@ -243,6 +245,11 @@ public:
   
   void convertPath(const og::PathGeometric &pg, moveit_msgs::RobotTrajectory &traj) const;  
 
+
+  ob::StateStoragePtr constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling,
+                                                       const moveit_msgs::Constraints &constr_hard,
+                                                       unsigned int samples);
+  
   virtual void configure(void);
 
 protected:

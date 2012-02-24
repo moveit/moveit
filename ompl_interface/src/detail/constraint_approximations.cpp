@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/constraint_approximations.h"
-#include "ompl_interface/planning_configuration.h"
 #include <random_numbers/random_numbers.h>
 
 namespace ompl_interface
@@ -74,9 +73,9 @@ void hexToMsg(const std::string &hex, T& msg)
 }
 
 ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group,
-								 const std::string &serialization, const std::string &filename,
+                                                                 const std::string &factory, const std::string &serialization, const std::string &filename,
 								 const ompl::base::StateStoragePtr &storage) :
-  group_(group), serialization_(serialization), ompldb_filename_(filename), state_storage_ptr_(storage)
+  group_(group), factory_(factory), serialization_(serialization), ompldb_filename_(filename), state_storage_ptr_(storage)
 {
   hexToMsg(serialization, constraint_msg_);
   state_storage_ = static_cast<const ConstraintApproximationStateStorage*>(state_storage_ptr_.get());
@@ -86,9 +85,9 @@ ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_
 }
 
 ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group,
-								 const moveit_msgs::Constraints &msg, const std::string &filename,
+                                                                 const std::string &factory, const moveit_msgs::Constraints &msg, const std::string &filename,
 								 const ompl::base::StateStoragePtr &storage) :
-  group_(group), constraint_msg_(msg), ompldb_filename_(filename), state_storage_ptr_(storage)
+  group_(group), factory_(factory), constraint_msg_(msg), ompldb_filename_(filename), state_storage_ptr_(storage)
 {
   msgToHex(msg, serialization_);
   state_storage_ = static_cast<const ConstraintApproximationStateStorage*>(state_storage_ptr_.get());

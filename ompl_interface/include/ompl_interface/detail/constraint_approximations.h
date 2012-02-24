@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef OMPL_INTERFACE_DETAIL_CONSTRAINT_APPROXIMATION_
-#define OMPL_INTERFACE_DETAIL_CONSTRAINT_APPROXIMATION_
+#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINT_APPROXIMATION_
+#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINT_APPROXIMATION_
 
 #include <planning_scene/planning_scene.h>
 #include <kinematic_constraints/kinematic_constraint.h>
@@ -48,12 +48,13 @@ typedef ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > Constra
 
 struct ConstraintApproximation
 {
-  ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group,
+  ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
                           const std::string &serialization, const std::string &filename, const ompl::base::StateStoragePtr &storage);
-  ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group,
+  ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
                           const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage);
   
   std::string                                      group_;
+  std::string                                      factory_;
   std::string                                      serialization_;
   moveit_msgs::Constraints                         constraint_msg_;
   kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;

@@ -37,10 +37,8 @@ rosbuild_add_library(${PROJECT_NAME}
   src/detail/goal_union.cpp
   src/detail/constrained_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
+  src/detail/constraint_approximations.cpp
   src/detail/ompl_console.cpp
 )
-
-#  src/detail/constraint_approximations.cpp
-
 
 rosbuild_add_openmp_flags(${PROJECT_NAME})

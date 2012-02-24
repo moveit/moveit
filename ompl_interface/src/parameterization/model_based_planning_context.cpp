@@ -494,3 +494,130 @@ void ompl_interface::ModelBasedPlanningContext::terminateSolve(void)
 {
   
 }
+
+ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling,
+                                                                                                        const moveit_msgs::Constraints &constr_hard,
+                                                                                                        unsigned int samples)
+{
+  planning_scene_.reset();
+  
+  // state storage structure
+  ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(ompl_simple_setup_.getStateSpace());
+  ob::StateStoragePtr sstor(cass);
+  
+  // construct a sampler for the sampling constraints
+  kc::KinematicConstraintSet kset(getKinematicModel(), pm::TransformsConstPtr(new pm::Transforms(getKinematicModel()->getModelFrame())));
+  kset.add(constr_hard);
+  
+  // default state
+  pm::KinematicState default_state(getKinematicModel());
+  default_state.setToDefaultValues();
+  int nthreads = 0;
+  
+  // construct the constrained states
+#pragma omp parallel
+  { 
+#pragma omp master
+    {
+      nthreads = omp_get_num_threads();    
+    }
+    
+    pm::KinematicState kstate(default_state);
+    
+    const ob::SpaceInformationPtr &si = ompl_simple_setup_.getSpaceInformation();
+    kc::ConstraintSamplerPtr cs = kc::constructConstraintsSampler(getJointModelGroup(), constr_sampling, getKinematicModel(),
+                                                                  pm::TransformsConstPtr(new pm::Transforms(getKinematicModel()->getModelFrame())),
+                                                                  ompl_state_space_->getKinematicsAllocator(),
+                                                                  ompl_state_space_->getKinematicsSubgroupAllocators());
+    
+    ob::StateSamplerPtr ss(cs ? ob::StateSamplerPtr(new ConstrainedSampler(this, cs)) :
+                           ompl_simple_setup_.getStateSpace()->allocDefaultStateSampler());
+    
+    ompl::base::ScopedState<> temp(si);
+    unsigned int attempts = 0;
+    int done = -1;
+    bool slow_warn = false;
+    ompl::time::point start = ompl::time::now();
+    while (sstor->size() < samples)
+    {
+      ++attempts;
+      if (!slow_warn && attempts > 10 && attempts > sstor->size() * 100)
+      {
+	slow_warn = true;
+	ROS_WARN("Computation of valid state database is very slow...");
+      }
+      
+      if (attempts > samples && sstor->size() == 0)
+      {
+	ROS_ERROR("Unable to generate any samples");
+	break;
+      }
+      
+      ss->sampleUniform(temp.get());
+      ompl_state_space_->copyToKinematicState(kstate, temp.get());
+      kstate.getJointStateGroup(getJointModelGroup()->getName())->updateLinkTransforms();
+      double distance = 0.0;
+      if (kset.decide(kstate, distance))
+      {
+#pragma omp critical
+	{
+	  if (sstor->size() < samples)
+	    sstor->addState(temp.get());
+	}
+      }
+      
+#pragma omp master
+      {
+	int done_now = 100 * sstor->size() / samples;
+	if (done != done_now)
+	{
+	  done = done_now;
+	  ROS_INFO("%d%% complete", done);
+	}
+      }
+    }
+#pragma omp master
+    {
+      ROS_INFO("Generated %u states in %lf seconds", (unsigned int)sstor->size(), ompl::time::seconds(ompl::time::now() - start));
+    }
+  }
+  
+  // construct connexions
+  const ob::StateSpacePtr &space = ompl_simple_setup_.getStateSpace();
+  std::vector<planning_models::KinematicState> kstates(nthreads, default_state);
+  const std::vector<const ompl::base::State*> &states = sstor->getStates();
+  std::vector<ompl::base::ScopedState<> > temps(nthreads, ompl::base::ScopedState<>(space));
+  
+  ompl::time::point start = ompl::time::now();
+  int good = 0;
+  
+#pragma omp parallel for schedule(dynamic) 
+  for (std::size_t j = 0 ; j < sstor->size() ; ++j)
+  {
+    int threadid = omp_get_thread_num();
+    pm::KinematicState &kstate = kstates[threadid];
+    pm::KinematicState::JointStateGroup *jsg = kstate.getJointStateGroup(getJointModelGroup()->getName());
+    ompl::base::State *temp = temps[threadid].get();
+    double distance = 0.0;
+    
+    for (std::size_t i = j + 1 ; i < sstor->size() ; ++i)
+    {
+      space->interpolate(states[j], states[i], 0.5, temp);
+      ompl_state_space_->copyToKinematicState(kstate, temp);
+      jsg->updateLinkTransforms();
+      if (kset.decide(kstate, distance))
+      {
+#pragma omp critical
+	{
+	  cass->getMetadata(i).push_back(j);
+	  cass->getMetadata(j).push_back(i);
+	  good++;
+	}
+      }
+    }
+  }
+  ROS_INFO("Computed possible connexions in %lf seconds. Added %d connexions", ompl::time::seconds(ompl::time::now() - start), good);
+  
+  return sstor;
+}
+

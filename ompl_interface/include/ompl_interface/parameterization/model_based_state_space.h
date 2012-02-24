@@ -163,8 +163,13 @@ public:
   virtual void copyState(ob::State *destination, const ob::State *source) const;
   virtual void interpolate(const ob::State *from, const ob::State *to, const double t, ob::State *state) const;
   virtual void printState(const ob::State *state, std::ostream &out) const;
+  virtual void serialize(void *serialization, const ob::State *state) const;
+  virtual void deserialize(ob::State *state, const void *serialization) const;
+  virtual unsigned int getSerializationLength(void) const;
+
   virtual ob::StateSamplerPtr allocStateSampler(void) const;
   virtual ob::StateSamplerPtr allocDefaultStateSampler(void) const;
+
   
   const pm::KinematicModelConstPtr& getKinematicModel(void) const
   {
