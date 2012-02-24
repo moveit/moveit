@@ -347,7 +347,8 @@ void ompl_interface::ModelBasedPlanningContext::clear(void)
 {
   ompl_simple_setup_.clear();
   ompl_simple_setup_.clearStartStates();
-  ompl_simple_setup_.setGoal(ob::GoalPtr());
+  ompl_simple_setup_.setGoal(ob::GoalPtr());  
+  ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr());
   path_constraints_.reset();
   goal_constraints_.clear();
 }
@@ -572,7 +573,7 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 	if (done != done_now)
 	{
 	  done = done_now;
-	  ROS_INFO("%d%% complete", done);
+	  ROS_INFO("%d%% complete (kept %0.1f%% sampled states)", done, (double)sstor->size() / (double)attempts);
 	}
       }
     }
@@ -620,4 +621,3 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
   
   return sstor;
 }
-

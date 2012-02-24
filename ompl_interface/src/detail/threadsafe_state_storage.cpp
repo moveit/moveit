@@ -38,7 +38,7 @@
 
 ompl_interface::TSStateStorage::TSStateStorage(const planning_models::KinematicModelPtr &kmodel) : start_state_(kmodel)
 {
-    start_state_.setToDefaultValues();
+  start_state_.setToDefaultValues();
 }
 
 ompl_interface::TSStateStorage::TSStateStorage(const planning_models::KinematicState &start_state) : start_state_(start_state)
@@ -46,22 +46,22 @@ ompl_interface::TSStateStorage::TSStateStorage(const planning_models::KinematicS
 }
 
 ompl_interface::TSStateStorage::~TSStateStorage(void)
-{
-    for (std::map<boost::thread::id, planning_models::KinematicState*>::iterator it = thread_states_.begin() ; it != thread_states_.end() ; ++it)
-        delete it->second;
+{    
+  for (std::map<boost::thread::id, planning_models::KinematicState*>::iterator it = thread_states_.begin() ; it != thread_states_.end() ; ++it)
+    delete it->second;
 }
 
 planning_models::KinematicState* ompl_interface::TSStateStorage::getStateStorage(void) const
 {
-    planning_models::KinematicState *st = NULL;
-    boost::mutex::scoped_lock slock(lock_);
-    std::map<boost::thread::id, planning_models::KinematicState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
-    if (it == thread_states_.end())
-    {
-        st = new planning_models::KinematicState(start_state_);
-        thread_states_[boost::this_thread::get_id()] = st;
-    }
-    else
-        st = it->second;
-    return st;
+  planning_models::KinematicState *st = NULL;
+  boost::mutex::scoped_lock slock(lock_);
+  std::map<boost::thread::id, planning_models::KinematicState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
+  if (it == thread_states_.end())
+  {
+    st = new planning_models::KinematicState(start_state_);
+    thread_states_[boost::this_thread::get_id()] = st;
+  }
+  else
+    st = it->second;
+  return st;
 }

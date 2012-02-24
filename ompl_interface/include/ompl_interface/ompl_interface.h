@@ -253,11 +253,14 @@ protected:
   
   /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
   double                                                     max_solution_segment_length_;
+
 private:
   
-  struct LastPlanningContext;
+  class LastPlanningContext;
   boost::shared_ptr<LastPlanningContext> last_planning_context_;
-  
+
+  struct CachedContexts;
+  boost::shared_ptr<CachedContexts>      cached_contexts_;
 };
 
 }
