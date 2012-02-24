@@ -61,7 +61,7 @@ TEST(OmplPlanning, SimplePlan)
     planning_scene::PlanningScene &scene = *psm.getPlanningScene();
     EXPECT_TRUE(scene.isConfigured());
 
-    mplan_req.motion_plan_request.planner_id = "KPIECEkConfigDefault";
+    mplan_req.motion_plan_request.planner_id = "RRTConnectkConfigDefault";
     mplan_req.motion_plan_request.group_name = "right_arm";
     mplan_req.motion_plan_request.num_planning_attempts = 1;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);

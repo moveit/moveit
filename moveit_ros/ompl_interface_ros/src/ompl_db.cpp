@@ -103,7 +103,7 @@ int main(int argc, char **argv)
   constr1S.orientation_constraints[0].absolute_x_axis_tolerance = 1e-6;
   constr1S.orientation_constraints[0].absolute_y_axis_tolerance = 1e-6;
 
-  //  ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", 100000);
+  ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", "PoseModel", 1000);
 
 
 
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 
   ompl_interface.addConstraintApproximation(constr2, "left_arm", 100000);
     */
-  //  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
+  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
 
   return 0;
 }
