@@ -78,12 +78,25 @@ public:
     last_planning_context_solve_ = context;
   }
 
+  void clear(void)
+  {    
+    boost::mutex::scoped_lock slock(lock_);
+    last_planning_context_solve_.reset();
+  }
+  
 private:
   /* The planning group for which solve() was called last */
   ModelBasedPlanningContextPtr last_planning_context_solve_;
-  boost::mutex                 lock_;
-  
+  boost::mutex                 lock_;  
 };
+
+struct OMPLInterface::CachedContexts
+{
+  std::map<std::pair<std::string, std::string>,
+           std::vector<ModelBasedPlanningContextPtr> > contexts_;
+  boost::mutex                                         lock_;
+};
+
 }
 
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
@@ -92,6 +105,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicMod
 {
   constraints_.reset(new std::vector<ConstraintApproximation>());
   last_planning_context_.reset(new LastPlanningContext());
+  cached_contexts_.reset(new CachedContexts());
   registerDefaultPlanners();
   registerDefaultPlanningContexts();
 }
@@ -244,20 +258,45 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getP
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(const ModelBasedPlanningContextFactory *factory, 
                                                                                                const PlanningConfigurationSettings &config) const
-{
-  ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
-  AvailableKinematicsSolvers::const_iterator it = kinematics_allocators_.find(space_spec.joint_model_group_);
-  if (it != kinematics_allocators_.end())
+{    
+  ModelBasedPlanningContextPtr context;
   {
-    space_spec.kinematics_allocator_ = it->second.first;
-    space_spec.kinematics_subgroup_allocators_ = it->second.second;
+    boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+    std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
+      cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
+    if (cc != cached_contexts_->contexts_.end())
+    {
+      for (std::size_t i = 0 ; i < cc->second.size() ; ++i)
+        if (cc->second[i].unique())
+        {
+          ROS_DEBUG("Reusing cached planning context");
+          context = cc->second[i];
+          break;
+        }
+    }
   }
   
-  ModelBasedPlanningContextSpecification context_spec;
-  context_spec.config_ = config.config;
-  context_spec.planner_allocator_ = getPlannerAllocator();
+  if (!context)
+  {
+    ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
+    AvailableKinematicsSolvers::const_iterator it = kinematics_allocators_.find(space_spec.joint_model_group_);
+    if (it != kinematics_allocators_.end())
+    {
+      space_spec.kinematics_allocator_ = it->second.first;
+      space_spec.kinematics_subgroup_allocators_ = it->second.second;
+    }
+    
+    ModelBasedPlanningContextSpecification context_spec;
+    context_spec.config_ = config.config;
+    context_spec.planner_allocator_ = getPlannerAllocator();
+    ROS_DEBUG("Creating new planning context");
+    context = factory->getNewPlanningContext(config.name, space_spec, context_spec); 
+    {
+      boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+      cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
+    }
+  }
   
-  ModelBasedPlanningContextPtr context = factory->getNewPlanningContext(config.name, space_spec, context_spec);
   context->setMaximumPlanningThreads(max_planning_threads_);
   context->setMaximumGoalSamples(max_goal_samples_);
   context->setMaximumSamplingAttempts(max_sampling_attempts_);
@@ -268,7 +307,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getP
   else
     context->setMaximumSolutionSegmentLength(max_solution_segment_length_);
   
-  return context;
+  return context;  
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prepareForSolve(const moveit_msgs::MotionPlanRequest &req, 
@@ -349,6 +388,8 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
                                           const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
 {
   ompl::tools::Profiler::ScopedStart pslv;
+  ot::Profiler::ScopedBlock sblock("OMPLInterfaceSolve");
+  last_planning_context_->clear();
   
   unsigned int attempts = 1;
   double timeout = 0.0;
@@ -437,6 +478,7 @@ ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::P
                                                          const std::string &factory_type) const
 { 
   ompl::tools::Profiler::ScopedStart pslv;
+  last_planning_context_->clear();
   
   ModelBasedPlanningContextPtr context = getPlanningContext(config, factory_type);
   if (!context)

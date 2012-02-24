@@ -187,7 +187,7 @@ void ompl_interface::ModelBasedStateSpace::printState(const ob::State *state, st
   out << "Tag: " << state->as<StateType>()->tag << std::endl;
   out << "Validity known: " << (state->as<StateType>()->isValidityKnown() ? "Yes" : "No") << std::endl;
   if (state->as<StateType>()->isValidityKnown())
-    out << "Validity value: " << (state->as<StateType>()->isMarkedValid() ? "Yes" : "No") << std::endl;
+    out << "Validity value: " << (state->as<StateType>()->isMarkedValid() ? "True" : "False") << std::endl;
   if (state->as<StateType>()->isGoalDistanceKnown())
     out << "Distance to goal: " << state->as<StateType>()->distance << std::endl;
 }

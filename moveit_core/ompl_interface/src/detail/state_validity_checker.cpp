@@ -36,6 +36,7 @@
 
 #include "ompl_interface/detail/state_validity_checker.h"
 #include "ompl_interface/parameterization/model_based_planning_context.h"
+#include <ompl/tools/debug/Profiler.h>
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc) :
   ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc),
@@ -47,16 +48,16 @@ ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlann
 void ompl_interface::StateValidityChecker::setVerbose(bool flag)
 {
   verbose_ = flag;
-  //  collision_request_simple_.verbose = flag;
-  //  collision_request_with_distance_.verbose = flag;
+  collision_request_simple_.verbose = flag;
+  collision_request_with_distance_.verbose = flag;
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state) const
 {  
-  //  ompl::Profiler::ScopedBlock sblock("isValid");
+  ompl::tools::Profiler::ScopedBlock sblock("isValid");
 
   if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown())
-    return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
+    return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();  
   
   planning_models::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
@@ -86,7 +87,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist) const
 {
-  //  ompl::Profiler::ScopedBlock sblock("isValid");
+  ompl::tools::Profiler::ScopedBlock sblock("isValidD");
   
   if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown() && state->as<ModelBasedStateSpace::StateType>()->isGoalDistanceKnown())
   {

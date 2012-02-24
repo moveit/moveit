@@ -18,6 +18,11 @@ rosbuild_add_boost_directories()
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FCL REQUIRED fcl)
+include_directories(${FCL_INCLUDE_DIRS})
+link_directories(${FCL_LIBRARY_DIRS})
+
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
@@ -42,8 +47,7 @@ rosbuild_add_library(${PROJECT_NAME}
 )
 
 rosbuild_add_compile_flags(${PROJECT_NAME} ${SSE_FLAGS})
+target_link_libraries(${PROJECT_NAME} ${FCL_LIBRARIES})
 
 rosbuild_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
 target_link_libraries(test_fcl_collision_detection ${PROJECT_NAME})
-
-
