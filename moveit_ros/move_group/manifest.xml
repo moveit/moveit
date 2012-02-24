@@ -1,0 +1,22 @@
+<package>
+  <description brief="move_group">
+
+     move_group
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/move_group</url>
+
+  <depend package="roscpp"/>
+  <depend package="actionlib"/>
+  <depend package="pluginlib"/>
+  <depend package="tf"/>
+  <depend package="planning_interface"/>
+  <depend package="trajectory_execution_ros"/>
+  <depend package="planning_scene_monitor"/>
+
+</package>
+
+

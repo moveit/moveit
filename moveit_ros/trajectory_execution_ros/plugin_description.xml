@@ -1,0 +1,11 @@
+<library path="lib/libtrajectory_execution_ros">
+  <class name="trajectory_execution_ros/FollowJointTrajectoryControllerHandler" type="trajectory_execution_ros::FollowJointTrajectoryControllerHandler" base_class_type="trajectory_execution::TrajectoryControllerHandler">
+    <description>
+    </description>
+  </class>
+  <class name="trajectory_execution_ros/JointStateTrajectoryRecorder" type="trajectory_execution_ros::JointStateTrajectoryRecorder" base_class_type="trajectory_execution::TrajectoryRecorder">
+    <description>
+    </description>
+  </class>
+
+</library>
