@@ -187,20 +187,17 @@ public:
     planning_context_factories_[factory->getType()] = factory;
   }  
   
+  void addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard, const std::string &group, const std::string &factory, unsigned int samples);
+  void addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &factory, unsigned int samples);
+  void loadConstraintApproximations(const std::string &path);
+  void saveConstraintApproximations(const std::string &path);
+  void printConstraintApproximations(std::ostream &out = std::cout) const;
+  void clearConstraintApproximations();
   
-  /*    
-    void addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard, const std::string &group, unsigned int samples);
-    void addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, unsigned int samples);
-    void loadConstraintApproximations(const std::string &path);
-    void saveConstraintApproximations(const std::string &path);
-    void printConstraintApproximations(std::ostream &out = std::cout) const;
-    void clearConstraintApproximations();
-    
-    const ConstraintApproximationsPtr& getConstraintApproximations(void) const
-    {
+  const ConstraintApproximationsPtr& getConstraintApproximations(void) const
+  {
     return constraints_;
-    }
-  */
+  }
   
   ConfiguredPlannerAllocator getPlannerAllocator(void) const;
   
@@ -236,6 +233,8 @@ protected:
       particular configurations specified for a group, or of the
       form "group_name" if default settings are to be used. */
   std::map<std::string, PlanningConfigurationSettings>       planner_configs_;
+
+  ConstraintApproximationsPtr                                constraints_;
   
   /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
   unsigned int                                               max_goal_samples_;
@@ -254,13 +253,10 @@ protected:
   
   /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
   double                                                     max_solution_segment_length_;
-
 private:
   
   struct LastPlanningContext;
   boost::shared_ptr<LastPlanningContext> last_planning_context_;
-  
-  //  ConstraintApproximationsPtr                     constraints_;
   
 };
 

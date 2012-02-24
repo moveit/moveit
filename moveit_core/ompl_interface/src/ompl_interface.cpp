@@ -90,7 +90,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicMod
   kmodel_(kmodel), max_goal_samples_(10), max_sampling_attempts_(10), max_planning_threads_(4),
   max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
-  //  constraints_.reset(new std::vector<ConstraintApproximation>());
+  constraints_.reset(new std::vector<ConstraintApproximation>());
   last_planning_context_.reset(new LastPlanningContext());
   registerDefaultPlanners();
   registerDefaultPlanningContexts();
@@ -475,22 +475,19 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getL
   return last_planning_context_->getContext();
 }
 
-
-/*
-
-void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, unsigned int samples)
+void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &factory, unsigned int samples)
 {
-  addConstraintApproximation(constr, constr, group, samples);
+  addConstraintApproximation(constr, constr, group, factory, samples);
 }
 
-void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard, const std::string &group, unsigned int samples)
+void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard, const std::string &group, const std::string &factory, unsigned int samples)
 {  
-  const PlanningConfigurationPtr &pc = getPlanningConfiguration(group);
+  const ModelBasedPlanningContextPtr &pc = getPlanningContext(group, factory);
   if (pc)
   {
     ompl::base::StateStoragePtr ss = pc->constructConstraintApproximation(constr_sampling, constr_hard, samples);
     if (ss)
-      constraints_->push_back(ConstraintApproximation(kmodel_, group, constr_hard, group + "_" + 
+      constraints_->push_back(ConstraintApproximation(kmodel_, group, factory, constr_hard, group + "_" + 
 						      boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss));
     else
       ROS_ERROR("Unable to construct constraint approximation for group '%s'", group.c_str());
@@ -507,15 +504,18 @@ void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::stri
   
   while (fin.good() && !fin.eof())
   {
-    std::string group, serialization, filename;
+    std::string group, factory, serialization, filename;
     fin >> group;
+    if (fin.eof())
+      break;
+    fin >> factory;
     if (fin.eof())
       break;
     fin >> serialization;    
     if (fin.eof())
       break;
     fin >> filename;
-    const PlanningConfigurationPtr &pc = getPlanningConfiguration(group);
+    const ModelBasedPlanningContextPtr &pc = getPlanningContext(group, factory);
     if (pc)
     {
       ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(pc->getOMPLSimpleSetup().getStateSpace());
@@ -523,10 +523,11 @@ void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::stri
       std::size_t sum = 0;
       for (std::size_t i = 0 ; i < cass->size() ; ++i)
       {
-        cass->getState(i)->as<KMStateSpace::StateType>()->tag = i;
+        cass->getState(i)->as<ModelBasedStateSpace::StateType>()->tag = i;
+        cass->getState(i)->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
         sum += cass->getMetadata(i).size();
       }
-      constraints_->push_back(ConstraintApproximation(kmodel_, group, serialization, filename, ompl::base::StateStoragePtr(cass)));
+      constraints_->push_back(ConstraintApproximation(kmodel_, group, factory, serialization, filename, ompl::base::StateStoragePtr(cass)));
       ROS_INFO("Loaded %lu states and %lu connextions (%0.1lf per state) from %s", cass->size(), sum, (double)sum / (double)cass->size(), filename.c_str());
     }
   }
@@ -540,6 +541,7 @@ void ompl_interface::OMPLInterface::saveConstraintApproximations(const std::stri
   for (std::size_t i = 0 ; i < constraints_->size() ; ++i)
   {
     fout << constraints_->at(i).group_ << std::endl;
+    fout << constraints_->at(i).factory_ << std::endl;
     fout << constraints_->at(i).serialization_ << std::endl;
     fout << constraints_->at(i).ompldb_filename_ << std::endl;
     if (constraints_->at(i).state_storage_)
@@ -558,8 +560,9 @@ void ompl_interface::OMPLInterface::printConstraintApproximations(std::ostream &
   for (std::size_t i = 0 ; i < constraints_->size() ; ++i)
   {
     out << constraints_->at(i).group_ << std::endl;
+    out << constraints_->at(i).factory_ << std::endl;
     out << constraints_->at(i).ompldb_filename_ << std::endl;
     out << constraints_->at(i).constraint_msg_ << std::endl;
   }
 }
-*/
+
