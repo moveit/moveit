@@ -63,43 +63,6 @@ ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::Ki
         ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str()); */
 }
 
-std::vector<std::string> ompl_interface_ros::OMPLInterfaceROS::getAdditionalConfigGroupNames(void)
-{
-  XmlRpc::XmlRpcValue group_list;
-  std::vector<std::string> group_names;
-  
-  // read the list of group names that have additional configurations
-  if (nh_.getParam("groups", group_list))
-  {
-    ROS_INFO("Using additional configurations for planning groups on param server:");
-    if (group_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
-    {
-      for (int32_t i = 0; i < group_list.size(); ++i)
-      {
-	if (group_list[i].getType() == XmlRpc::XmlRpcValue::TypeString)
-	{
-	  std::string gnm = static_cast<std::string>(group_list[i]);
-	  if (kmodel_->hasJointModelGroup(gnm))
-	  {
-	    ROS_INFO("  - group '%s'", gnm.c_str());
-	    group_names.push_back(gnm);
-	  }
-	  else
-	    ROS_ERROR("Additional configuration specified for group '%s', but that group is not known to the kinematic model.", gnm.c_str());
-	}
-	else
-	  ROS_ERROR("Group names should be strings");
-      }
-    }
-    else
-      ROS_ERROR("Group list should be of XmlRpc Array type");
-  }
-  else
-    ROS_INFO("No additional configurations for planning groups found on param server");
-  
-  return group_names;
-}
-
 void ompl_interface_ros::OMPLInterfaceROS::loadKinematicsSolvers(void)
 {
   kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction();
@@ -114,7 +77,7 @@ void ompl_interface_ros::OMPLInterfaceROS::loadKinematicsSolvers(void)
 
 void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations(void)
 {
-  std::vector<std::string> group_names = getAdditionalConfigGroupNames();
+  const std::vector<std::string> &group_names = kmodel_->getJointModelGroupNames();  
   std::vector<ompl_interface::PlanningConfigurationSettings> pconfig;
   // read the planning configuration for each group
   pconfig.clear();

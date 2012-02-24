@@ -63,9 +63,6 @@ namespace ompl_interface_ros
 
     protected:
 
-      /** @brief Get additional configuration information for groups*/
-      std::vector<std::string> getAdditionalConfigGroupNames(void);
-
       /** @brief Configure the IK solvers from the ROS param server*/
       void loadKinematicsSolvers(void);
 

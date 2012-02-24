@@ -51,24 +51,25 @@ typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const plan
 class KinematicsPluginLoader
 {
 public:
+
+  /// Take as optional argument the name of the parameter under which the robot description can be found
+  KinematicsPluginLoader(const std::string &robot_description = "robot_description") : robot_description_(robot_description)
+  {
+  }
   
   KinematicsLoaderFn getLoaderFunction(void);
+
   const std::vector<std::string>& getKnownGroups(void) const
   {
     return groups_;
   }
-  bool isGroupKnown(const std::string& name) const {
-    for(unsigned int i = 0; i < groups_.size(); i++) {
-      if(groups_[i] == name) {
-        return true;
-      }
-    }
-    return false;
-  }
+
+  bool isGroupKnown(const std::string& name) const;
   void status(void) const;
   
 private:
-  
+
+  std::string robot_description_;  
   class KinematicsLoaderImpl;
   boost::shared_ptr<KinematicsLoaderImpl> loader_;
   std::vector<std::string> groups_;
