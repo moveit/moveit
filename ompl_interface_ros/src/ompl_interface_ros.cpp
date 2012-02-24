@@ -38,7 +38,8 @@
 #include <boost/thread/mutex.hpp>
 #include <sstream>
 
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel) : ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(new kinematics_plugin_loader::KinematicsPluginLoader())
+ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel) :
+  ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(new kinematics_plugin_loader::KinematicsPluginLoader())
 {
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
@@ -51,7 +52,8 @@ ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::Ki
 }
 
 ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel,
-                                                       boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& loader) : ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(loader)
+                                                       boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& loader) :
+  ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(loader)
 {
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
@@ -91,13 +93,35 @@ void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations(void)
     // get parameters specific for the group
     std::map<std::string, std::string> specific_group_params;
     for (std::size_t k = 0 ; k < sizeof(KNOWN_GROUP_PARAMS) / sizeof(std::string) ; ++k)
+    {
       if (nh_.hasParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k]))
       {
 	std::string value;
-	nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value);
-	if (!value.empty())
-	  specific_group_params[KNOWN_GROUP_PARAMS[k]] = value;
+	if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value))
+        {
+          if (!value.empty())
+            specific_group_params[KNOWN_GROUP_PARAMS[k]] = value;
+        }
+        else
+        {
+          double value_d;
+          if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
+            specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_d);
+          else
+          {
+            int value_i;
+            if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
+              specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_i);
+            else
+            {
+              bool value_b;
+              if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_b))
+                specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_b);
+            }
+          }
+        }
       }
+    }
     
     // set the parameters (if any) for the default group configuration;
     if (!specific_group_params.empty())
@@ -156,8 +180,6 @@ void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations(void)
       else
 	ROS_ERROR("The planner_configs argument of a group configuration should be an array of strings (for group '%s')", group_names[i].c_str());
     }
-    else
-      ROS_INFO("Group '%s' mentioned for additional configuration but no planner_configs specified. Using default settings.", group_names[i].c_str());
   }
   
   for (std::size_t i = 0 ; i < pconfig.size() ; ++i)

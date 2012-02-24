@@ -227,8 +227,14 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
         else
         { // handle the case this param is just one value and parsed as a double 
           double res;
-          if (nh.getParam(known_groups[i].name_ + "/kinematics_solver_search_resolution", res))
+          if (nh.getParam(ksolver_res_param_name, res))
             search_res[known_groups[i].name_].push_back(res);
+          else
+          {
+            int res_i;
+            if (nh.getParam(ksolver_res_param_name, res_i))
+              search_res[known_groups[i].name_].push_back(res_i);
+          }
         }
       }
       

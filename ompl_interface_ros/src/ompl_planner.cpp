@@ -63,12 +63,6 @@ public:
   {
     ROS_INFO("Received new planning request...");
     bool result = ompl_interface_.solve(psm_.getPlanningScene(), req, res);
-    
-    //    boost::thread *t = new boost::thread(boost::bind(&OMPLPlannerService::displayRandomPaths, this));
-    
-    
-    //    return result;
-    
     if (result)
       displaySolution(res);
     // displayPlannerData("r_wrist_roll_link");
