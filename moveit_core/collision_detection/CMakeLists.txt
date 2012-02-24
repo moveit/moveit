@@ -15,9 +15,6 @@ rosbuild_init()
 rosbuild_check_for_sse()
 rosbuild_add_boost_directories()
 
-find_package(Eigen REQUIRED)
-include_directories(${EIGEN_INCLUDE_DIRS})
-
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FCL REQUIRED fcl)
 include_directories(${FCL_INCLUDE_DIRS})

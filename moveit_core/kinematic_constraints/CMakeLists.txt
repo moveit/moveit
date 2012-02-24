@@ -14,9 +14,6 @@ rosbuild_init()
 
 rosbuild_add_boost_directories()
 
-find_package(Eigen REQUIRED)
-include_directories(${EIGEN_INCLUDE_DIRS})
-
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
