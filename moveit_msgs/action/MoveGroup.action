@@ -1,0 +1,17 @@
+# Description of goal to reach
+Constraints[] goal_constraints
+
+# Description of path constraints to impose
+Constraints   path_constraints
+
+---
+# An error code reflecting what went wrong
+MoveItErrorCodes error_code
+
+ContactInformation[] contacts
+---
+# The internal state that the move arm action currently is in
+string state
+
+# Time to completion - this is a combination of requested planning time and trajectory completion time
+duration time_to_completion

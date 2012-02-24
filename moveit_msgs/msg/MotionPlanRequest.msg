@@ -30,7 +30,3 @@ int32 num_planning_attempts
 
 # The maximum amount of time the motion planner is allowed to plan for
 duration allowed_planning_time
-
-# An expected path duration (in seconds) along with an expected discretization of the path allows the planner to determine the discretization of the trajectory that it returns
-duration expected_path_duration
-duration expected_path_dt
