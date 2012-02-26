@@ -240,7 +240,29 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
                                                                   const planning_scene::PlanningSceneConstPtr& scene,
                                                                   sensor_msgs::JointState& solution,
                                                                   moveit_msgs::MoveItErrorCodes& error_code, 
-                                                                  const bool& do_initial_pose_check)
+                                                                  const bool& do_initial_pose_check,
+                                                                  const bool& use_unpadded_robot)
+{
+  return findConstraintAwareSolution(pose,
+                                     constraints,
+                                     seed_state,
+                                     scene,
+                                     scene->getAllowedCollisionMatrix(),
+                                     solution, 
+                                     error_code,
+                                     do_initial_pose_check,
+                                     use_unpadded_robot);
+}
+
+bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry_msgs::Pose& pose,
+                                                                  const moveit_msgs::Constraints& constraints,
+                                                                  const planning_models::KinematicState* seed_state,
+                                                                  const planning_scene::PlanningSceneConstPtr& scene,
+                                                                  const collision_detection::AllowedCollisionMatrix& acm,
+                                                                  sensor_msgs::JointState& solution,
+                                                                  moveit_msgs::MoveItErrorCodes& error_code, 
+                                                                  const bool& do_initial_pose_check,
+                                                                  const bool& use_unpadded_robot)
 {
   if(solver_map_.size() > 1) {
     ROS_WARN_STREAM("No single position ik for multi-group");
@@ -251,6 +273,8 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
   do_initial_pose_check_ = do_initial_pose_check;
   constraints_ = constraints;
   planning_scene_ = scene;
+  acm_ = acm;
+  use_unpadded_robot_ = use_unpadded_robot;
 
   last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
   
@@ -265,13 +289,14 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
   } 
   
   std::vector<double> sol;
-  bool ik_valid = solver_map_[group_name_]->searchPositionIK(pose,
-                                                   seed_state_vector,
-                                                   1.0,
-                                                   sol,
-                                                   boost::bind(&KinematicsSolverConstraintAware::initialPoseCheck, this, _1, _2, _3),
-                                                   boost::bind(&KinematicsSolverConstraintAware::collisionCheck, this, _1, _2, _3),
-                                                   error_code);
+  bool ik_valid 
+    = solver_map_[group_name_]->searchPositionIK(pose,
+                                                 seed_state_vector,
+                                                 1.0,
+                                                 sol,
+                                                 boost::bind(&KinematicsSolverConstraintAware::initialPoseCheck, this, _1, _2, _3),
+                                                 boost::bind(&KinematicsSolverConstraintAware::collisionCheck, this, _1, _2, _3),
+                                                 error_code);
   if(ik_valid) {
     solution.name = solver_map_[group_name_]->getJointNames();
     solution.position = sol;
@@ -289,7 +314,31 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
                                                                   const planning_scene::PlanningSceneConstPtr& scene,
                                                                   sensor_msgs::JointState& solution,
                                                                   moveit_msgs::MoveItErrorCodes& error_code, 
-                                                                  const bool& do_initial_pose_check)
+                                                                  const bool& do_initial_pose_check,
+                                                                  const bool& use_unpadded_robot)
+{
+  return findConstraintAwareSolution(poses, 
+                                     redundancies,
+                                     constraints,
+                                     seed_state,
+                                     scene,
+                                     scene->getAllowedCollisionMatrix(),
+                                     solution,
+                                     error_code,
+                                     do_initial_pose_check,
+                                     use_unpadded_robot);
+}
+
+bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map<std::string, geometry_msgs::Pose>& poses,
+                                                                  const std::map<std::string, unsigned int>& redundancies,
+                                                                  const moveit_msgs::Constraints& constraints,
+                                                                  const planning_models::KinematicState* seed_state,
+                                                                  const planning_scene::PlanningSceneConstPtr& scene,
+                                                                  const collision_detection::AllowedCollisionMatrix& acm,
+                                                                  sensor_msgs::JointState& solution,
+                                                                  moveit_msgs::MoveItErrorCodes& error_code, 
+                                                                  const bool& do_initial_pose_check,
+                                                                  const bool& use_unpadded_robot)
 {
   if(solver_map_.size() == 1) {
     ROS_WARN_STREAM("No single position ik for multi-group");
@@ -300,6 +349,8 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
   do_initial_pose_check_ = do_initial_pose_check;
   constraints_ = constraints;
   planning_scene_ = scene;
+  acm_ = acm;
+  use_unpadded_robot_ = use_unpadded_robot;
 
   last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
 
@@ -365,8 +416,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
   }
 
   std::list<std::string> fixed_list = names_list;
-  collision_detection::AllowedCollisionMatrix acm = planning_scene_->getAllowedCollisionMatrix();
-  std::vector<collision_detection::AllowedCollisionMatrix> disabled_acms(fixed_list.size(), acm);
+  std::vector<collision_detection::AllowedCollisionMatrix> disabled_acms(fixed_list.size(), acm_);
 
   unsigned int index = 0;
   //no need to do this for the first 
@@ -438,7 +488,11 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
       state_->setStateValues(sol_values);
       collision_detection::CollisionRequest req;
       collision_detection::CollisionResult res;
-      planning_scene_->checkCollision(req, res, *state_, disabled_acms[search_list.size()-1]);
+      if(!use_unpadded_robot_) {
+        planning_scene_->checkCollision(req, res, *state_, disabled_acms[search_list.size()-1]);
+      } else {
+        planning_scene_->checkCollisionUnpadded(req, res, *state_, disabled_acms[search_list.size()-1]);
+      }
       if(!res.collision) {
         if(fixed_list.empty()) {
           //valid values for everything
@@ -482,16 +536,42 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
   state_->getStateValues(solution);
   return true;
 }                                          
+
+bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(const geometry_msgs::Pose& pose,
+                                                                            const moveit_msgs::Constraints& constraints,
+                                                                            const planning_models::KinematicState* seed_state,
+                                                                            const planning_scene::PlanningSceneConstPtr& scene,
+                                                                             sensor_msgs::JointState& solution,
+                                                                            moveit_msgs::MoveItErrorCodes& error_code, 
+                                                                            const unsigned int& redundancy,
+                                                                            const double& max_consistency,
+                                                                            const bool& do_initial_pose_check,
+                                                                            const bool& use_unpadded_robot)
+{
+  return findConsistentConstraintAwareSolution(pose,
+                                               constraints,
+                                               seed_state,
+                                               scene,
+                                               scene->getAllowedCollisionMatrix(),
+                                               solution,
+                                               error_code,
+                                               redundancy,
+                                               max_consistency,
+                                               do_initial_pose_check,
+                                               use_unpadded_robot);
+}
  
 bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(const geometry_msgs::Pose& pose,
                                                                             const moveit_msgs::Constraints& constraints,
                                                                             const planning_models::KinematicState* seed_state,
                                                                             const planning_scene::PlanningSceneConstPtr& scene,
+                                                                            const collision_detection::AllowedCollisionMatrix& acm,
                                                                             sensor_msgs::JointState& solution,
                                                                             moveit_msgs::MoveItErrorCodes& error_code, 
                                                                             const unsigned int& redundancy,
                                                                             const double& max_consistency,
-                                                                            const bool& do_initial_pose_check)
+                                                                            const bool& do_initial_pose_check,
+                                                                            const bool& use_unpadded_robot)
 {
 
   if(solver_map_.size() > 1) {
@@ -504,6 +584,8 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
   do_initial_pose_check_ = do_initial_pose_check;
   planning_scene_ = scene;
   constraints_ = constraints;
+  acm_ = acm;
+  use_unpadded_robot_ = use_unpadded_robot;
 
   last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
   
@@ -518,14 +600,14 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
   
   std::vector<double> sol;
   bool ik_valid = solver_map_[group_name_]->searchPositionIK(pose,
-                                                       seed_state_vector,
-                                                       1.0,
-                                                       redundancy,
-                                                       max_consistency,
-                                                       sol,
-                                                       boost::bind(&KinematicsSolverConstraintAware::initialPoseCheck, this, _1, _2, _3),
-                                                       boost::bind(&KinematicsSolverConstraintAware::collisionCheck, this, _1, _2, _3),
-                                                       error_code);
+                                                             seed_state_vector,
+                                                             1.0,
+                                                             redundancy,
+                                                             max_consistency,
+                                                             sol,
+                                                             boost::bind(&KinematicsSolverConstraintAware::initialPoseCheck, this, _1, _2, _3),
+                                                             boost::bind(&KinematicsSolverConstraintAware::collisionCheck, this, _1, _2, _3),
+                                                             error_code);
   if(ik_valid) {
     solution.name = solver_map_[group_name_]->getJointNames();
     solution.position = sol;
@@ -569,10 +651,18 @@ void KinematicsSolverConstraintAware::collisionCheck(const geometry_msgs::Pose &
   collision_detection::CollisionResult res;
   //req.contacts = true;
   //req.max_contacts = 1;
-  if(use_acm) { 
-    planning_scene_->checkCollision(req, res, *state_, current_acm_);
+  if(!use_unpadded_robot_) {
+    if(use_acm) { 
+      planning_scene_->checkCollision(req, res, *state_, current_acm_);
+    } else {
+      planning_scene_->checkCollision(req, res, *state_);
+    }
   } else {
-    planning_scene_->checkCollision(req, res, *state_);
+    if(use_acm) { 
+      planning_scene_->checkCollisionUnpadded(req, res, *state_, current_acm_);
+    } else {
+      planning_scene_->checkCollisionUnpadded(req, res, *state_, acm_);
+    }
   }
   if(res.collision) {
     ROS_DEBUG_STREAM_NAMED("kinematics_collision", getCollisionDetectedString(res));
@@ -604,7 +694,7 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
   state_->updateStateWithLinkAt(solver_map_[group_name_]->getTipFrame(), nt);
 
   //disabling all collision for arm links
-  collision_detection::AllowedCollisionMatrix acm = planning_scene_->getAllowedCollisionMatrix();
+  collision_detection::AllowedCollisionMatrix acm = acm_;
   for(unsigned int i = 0; i < solver_map_[group_name_]->getLinkNames().size(); i++) {
     acm.setDefaultEntry(solver_map_[group_name_]->getLinkNames()[i], true);
     acm.setEntry(solver_map_[group_name_]->getLinkNames()[i], true);
@@ -643,7 +733,45 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
                                                                const bool& premultiply,
                                                                const unsigned int& num_points,
                                                                const ros::Duration& total_dur,
-                                                               const bool& do_initial_pose_check)
+                                                               const bool& do_initial_pose_check,
+                                                               const bool& use_unpadded_robot)
+{
+  return interpolateIKDirectional(start_pose,
+                                  direction,
+                                  distance,
+                                  constraints,
+                                  seed_state,
+                                  scene,
+                                  scene->getAllowedCollisionMatrix(),
+                                  error_code,
+                                  traj,
+                                  redundancy,
+                                  max_consistency,
+                                  reverse,
+                                  premultiply,
+                                  num_points,
+                                  total_dur,
+                                  do_initial_pose_check,
+                                  use_unpadded_robot);
+}
+
+bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_msgs::Pose& start_pose,
+                                                               const Eigen::Vector3d& direction,
+                                                               const double& distance,
+                                                               const moveit_msgs::Constraints& constraints,
+                                                               const planning_models::KinematicState* seed_state,
+                                                               const planning_scene::PlanningSceneConstPtr& scene,
+                                                               const collision_detection::AllowedCollisionMatrix& acm,
+                                                               moveit_msgs::MoveItErrorCodes& error_code, 
+                                                               trajectory_msgs::JointTrajectory& traj,
+                                                               const unsigned int& redundancy,
+                                                               const double& max_consistency,
+                                                               const bool& reverse, 
+                                                               const bool& premultiply,
+                                                               const unsigned int& num_points,
+                                                               const ros::Duration& total_dur,
+                                                               const bool& do_initial_pose_check,
+                                                               const bool& use_unpadded_robot)
 {
   trajectory_msgs::JointTrajectory ret_traj;
   ret_traj.joint_names = solver_map_[group_name_]->getJointNames();
@@ -677,11 +805,13 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
                                              constraints,
                                              seed_state,
                                              scene,
+                                             acm,
                                              solution,
                                              temp_error_code,
                                              redundancy,
                                              max_consistency,
-                                             do_initial_pose_check)) {
+                                             do_initial_pose_check,
+                                             use_unpadded_robot)) {
       ret_traj.points[i-1].positions = solution.position;
       ret_traj.points[i-1].time_from_start = ros::Duration((i*1.0)*total_dur.toSec()/(num_points*1.0));
     } else {
@@ -696,7 +826,7 @@ bool KinematicsSolverConstraintAware::multiGroupInitialPoseCheck(const planning_
                                                                  const std::map<std::string, geometry_msgs::Pose>& poses) {
 
   std::string planning_frame_id = planning_scene_->getPlanningFrame();
-  collision_detection::AllowedCollisionMatrix acm = planning_scene_->getAllowedCollisionMatrix();
+  collision_detection::AllowedCollisionMatrix acm = acm_;
   
   std::vector<std::string> arm_links;
 
