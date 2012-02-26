@@ -127,7 +127,18 @@ public:
                                    const planning_scene::PlanningSceneConstPtr& scene,
                                    sensor_msgs::JointState& solution,
                                    moveit_msgs::MoveItErrorCodes& error_code,
-                                   const bool& do_initial_pose_check = true);
+                                   const bool& do_initial_pose_check = true,
+                                   const bool& use_unpadded_robot = false);
+
+  bool findConstraintAwareSolution(const geometry_msgs::Pose& pose,
+                                   const moveit_msgs::Constraints& constraints,
+                                   const planning_models::KinematicState* seed_state,
+                                   const planning_scene::PlanningSceneConstPtr& scene,
+                                   const collision_detection::AllowedCollisionMatrix& acm,
+                                   sensor_msgs::JointState& solution,
+                                   moveit_msgs::MoveItErrorCodes& error_code,
+                                   const bool& do_initial_pose_check = true,
+                                   const bool& use_unpadded_robot = false);
 
   bool findConstraintAwareSolution(const std::map<std::string, geometry_msgs::Pose>& poses,
                                    const std::map<std::string, unsigned int>& redundancies,
@@ -136,7 +147,19 @@ public:
                                    const planning_scene::PlanningSceneConstPtr& scene,
                                    sensor_msgs::JointState& solution,
                                    moveit_msgs::MoveItErrorCodes& error_code,
-                                   const bool& do_initial_pose_check = true);
+                                   const bool& do_initial_pose_check = true,
+                                   const bool& use_unpadded_robot = false);
+
+  bool findConstraintAwareSolution(const std::map<std::string, geometry_msgs::Pose>& poses,
+                                   const std::map<std::string, unsigned int>& redundancies,
+                                   const moveit_msgs::Constraints& constraints,
+                                   const planning_models::KinematicState* seed_state,
+                                   const planning_scene::PlanningSceneConstPtr& scene,
+                                   const collision_detection::AllowedCollisionMatrix& matrix,
+                                   sensor_msgs::JointState& solution,
+                                   moveit_msgs::MoveItErrorCodes& error_code,
+                                   const bool& do_initial_pose_check = true,
+                                   const bool& use_unpadded_robot = false);
   
   bool findConsistentConstraintAwareSolution(const geometry_msgs::Pose& pose,
                                              const moveit_msgs::Constraints& constraints,
@@ -146,7 +169,39 @@ public:
                                              moveit_msgs::MoveItErrorCodes& error_code,
                                              const unsigned int& redundancy,
                                              const double& max_consistency,
-                                             const bool& do_initial_pose_check = true);
+                                             const bool& do_initial_pose_check = true,
+                                             const bool& use_unpadded_robot = false);
+
+  bool findConsistentConstraintAwareSolution(const geometry_msgs::Pose& pose,
+                                             const moveit_msgs::Constraints& constraints,
+                                             const planning_models::KinematicState* seed_state,
+                                             const planning_scene::PlanningSceneConstPtr& scene,
+                                             const collision_detection::AllowedCollisionMatrix& matrix,
+                                             sensor_msgs::JointState& solution,
+                                             moveit_msgs::MoveItErrorCodes& error_code,
+                                             const unsigned int& redundancy,
+                                             const double& max_consistency,
+                                             const bool& do_initial_pose_check = true,
+                                             const bool& use_unpadded_robot = false);
+
+  bool interpolateIKDirectional(const geometry_msgs::Pose& start_pose,
+                                const Eigen::Vector3d& direction,
+                                const double& distance,
+                                const moveit_msgs::Constraints& constraints,
+                                const planning_models::KinematicState* seed_state,
+                                const planning_scene::PlanningSceneConstPtr& scene,
+                                const collision_detection::AllowedCollisionMatrix& matrix,
+
+                                moveit_msgs::MoveItErrorCodes& error_code, 
+                                trajectory_msgs::JointTrajectory& traj,
+                                const unsigned int& redundancy,
+                                const double& max_consistency,
+                                const bool& reverse, 
+                                const bool& premultiply,
+                                const unsigned int& num_points,
+                                const ros::Duration& total_dur,
+                                const bool& do_initial_pose_check = true,
+                                const bool& use_unpadded_robot = false);
 
   bool interpolateIKDirectional(const geometry_msgs::Pose& start_pose,
                                 const Eigen::Vector3d& direction,
@@ -162,8 +217,8 @@ public:
                                 const bool& premultiply,
                                 const unsigned int& num_points,
                                 const ros::Duration& total_dur,
-                                const bool& do_initial_pose_check);
-
+                                const bool& do_initial_pose_check = true,
+                                const bool& use_unpadded_robot = false);
   //pass-throughs to solver
 
   double getSearchDiscretization() const {
@@ -233,9 +288,13 @@ protected:
   std::map<std::string, std::vector<std::string> > end_effector_collision_links_;
 
   //for caching in a particular check
+  //need to make lock to be thread-safe
+  //need to make thread-local to use in parallel
   bool do_initial_pose_check_;
   planning_models::KinematicState* state_;
   moveit_msgs::Constraints constraints_;
+  collision_detection::AllowedCollisionMatrix acm_;
+  bool use_unpadded_robot_;
 
   collision_detection::CollisionResult last_initial_pose_check_collision_result_;
 
