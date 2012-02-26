@@ -163,6 +163,15 @@ public:
     // if we have an updated robot, return that one
     return (crobot_const_ || !parent_) ? crobot_const_ : parent_->getCollisionRobot();
   }
+
+  /** \brief Get the representation of the collision robot */
+  const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded(void) const
+  {
+    // if we have an updated robot, return that one
+    return (crobot_unpadded_const_ || !parent_) ? crobot_unpadded_const_ : parent_->getCollisionRobotUnpadded();
+  }
+
+
   /** \brief Get the representation of the collision robot */
   const collision_detection::CollisionRobotPtr& getCollisionRobot(void);
 
@@ -181,6 +190,13 @@ public:
                       collision_detection::CollisionResult &res,
                       const planning_models::KinematicState &kstate,
                       const collision_detection::AllowedCollisionMatrix& acm) const;
+
+  /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
+      allowed collision matrix (\e acm) */
+  void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+                              collision_detection::CollisionResult &res,
+                              const planning_models::KinematicState &kstate,
+                              const collision_detection::AllowedCollisionMatrix& acm) const;
 
   /** \brief Check whether the current state is in self collision */
   void checkSelfCollision(const collision_detection::CollisionRequest& req,
@@ -266,6 +282,10 @@ public:
                    const moveit_msgs::Constraints& goal_constraints,
                    const moveit_msgs::RobotTrajectory &trajectory) const;
 
+  //takes current matrix and disables all collisions for links that are not
+  //part of the indicated group, returning the matrix
+  collision_detection::AllowedCollisionMatrix disableCollisionsForNonUpdatedLinks(const std::string& group) const;
+
 protected:
 
   void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
@@ -289,6 +309,7 @@ protected:
   planning_models::TransformsConstPtr            ftf_const_;
 
   collision_detection::CollisionRobotPtr         crobot_unpadded_;
+  collision_detection::CollisionRobotConstPtr    crobot_unpadded_const_;
   collision_detection::CollisionRobotPtr         crobot_;
   collision_detection::CollisionRobotConstPtr    crobot_const_;
 

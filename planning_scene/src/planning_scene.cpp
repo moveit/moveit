@@ -249,6 +249,27 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
   }
 }
 
+void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+                                                           collision_detection::CollisionResult &res,
+                                                           const planning_models::KinematicState &kstate,
+                                                           const collision_detection::AllowedCollisionMatrix& acm) const
+{
+  // check collision with the world using the padded version
+  if (parent_)
+    getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), kstate, acm);
+  else
+    cworld_->checkRobotCollision(req, res, *crobot_unpadded_, kstate, acm);
+  
+  // do self-collision checking with the unpadded version of the robot
+  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+  {
+    if (parent_)
+      parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
+    else
+      crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
+  }
+}
+
 void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
                                                        collision_detection::CollisionResult &res,
                                                        const planning_models::KinematicState &kstate,
@@ -524,8 +545,11 @@ void planning_scene::PlanningScene::decoupleParent(void)
     if (!acm_)
       acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
 
-    crobot_unpadded_.reset(new DefaultCRobotType(kmodel_));
+    if(!crobot_unpadded_) {
 
+      crobot_unpadded_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobotUnpadded())));
+      crobot_unpadded_const_ = crobot_unpadded_;
+    }
     if (!crobot_)
     {
       crobot_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobot())));
@@ -920,3 +944,27 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
   return true;
 }
 
+collision_detection::AllowedCollisionMatrix planning_scene::PlanningScene::disableCollisionsForNonUpdatedLinks(const std::string& group) const 
+{
+  collision_detection::AllowedCollisionMatrix acm = getAllowedCollisionMatrix();
+  const planning_models::KinematicModel::JointModelGroup* jmg = getKinematicModel()->getJointModelGroup(group);
+  if(jmg == NULL) {
+    ROS_WARN_STREAM("Can't disable collisions for non-existent group " << group);
+    return acm;
+  }
+  const std::vector<std::string> all_links = getKinematicModel()->getLinkModelNames();
+  const std::vector<std::string> updated_links = jmg->getUpdatedLinkModelNames();
+  std::map<std::string, bool> updated_link_map;
+
+  for(unsigned int i = 0; i < updated_links.size(); i++) {
+    updated_link_map[updated_links[i]] = true;
+  }
+  //anything not in the map gets set to allowed
+  for(unsigned int i = 0; i < all_links.size(); i++) {
+    if(updated_link_map.find(all_links[i]) == updated_link_map.end()) {
+      acm.setDefaultEntry(all_links[i], true);
+    }
+  }
+
+  return acm;
+}
