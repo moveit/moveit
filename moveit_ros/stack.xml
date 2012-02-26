@@ -1,0 +1,15 @@
+<stack>
+  <description brief="moveit">Implementation of generic components for planning and execution of motions.</description>
+  <author>Maintained by Sachin Chitta, Ioan Sucan</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit</url>
+  <depend stack="common_msgs" /> <!-- geometry_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, visualization_msgs -->
+  <depend stack="common_rosdeps" /> <!-- common_rosdeps -->
+  <depend stack="fast_collision_library" /> <!-- fcl -->
+  <depend stack="robot_model" /> <!-- urdf, srdf, resource_retriever -->
+  <depend stack="ros" />
+  <depend stack="ros_comm" /> <!-- rosconsole, std_msgs -->
+  <depend stack="moveit" />
+
+</stack>
