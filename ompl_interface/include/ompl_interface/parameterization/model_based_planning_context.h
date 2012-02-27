@@ -45,6 +45,7 @@
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/tools/multiplan/ParallelPlan.h>
 #include <ompl/base/StateStorage.h>
+#include <boost/thread/mutex.hpp>
 
 namespace ompl_interface
 {
@@ -54,7 +55,7 @@ namespace ot = ompl::tools;
 class ModelBasedPlanningContext;
 typedef boost::shared_ptr<ModelBasedPlanningContext> ModelBasedPlanningContextPtr;
 
-typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
+typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si, const std::string &planner, const std::string &name,
                                        const std::map<std::string, std::string> &config)> ConfiguredPlannerAllocator;
 
 struct ModelBasedPlanningContextSpecification
@@ -256,29 +257,35 @@ protected:
 
   virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const;
   virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
-  virtual void useConfig(const std::map<std::string, std::string> &config);
+  virtual void useConfig(void);
   virtual ob::GoalPtr constructGoal(void);
-  
+
+  void registerTerminationCondition(const ob::PlannerTerminationCondition &ptc);
+  void unregisterTerminationCondition();
+    
   ModelBasedPlanningContextSpecification spec_;
   
   std::string name_;
   
   ModelBasedStateSpacePtr ompl_state_space_;
-  pm::KinematicState          complete_initial_robot_state_;
+  pm::KinematicState complete_initial_robot_state_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
 
   /// the OMPL planning context; this contains the problem definition and the planner used
-  og::SimpleSetup  ompl_simple_setup_;
+  og::SimpleSetup ompl_simple_setup_;
   
   /// the OMPL tool for benchmarking planners
-  ot::Benchmark  ompl_benchmark_;
+  ot::Benchmark ompl_benchmark_;
   
   /// tool used to compute multiple plans in parallel; this uses the problem definition maintained by ompl_simple_setup_
   ot::ParallelPlan ompl_parallel_plan_;
   
-  kc::KinematicConstraintSetPtr           path_constraints_;
+  kc::KinematicConstraintSetPtr              path_constraints_;
   std::vector<kc::KinematicConstraintSetPtr> goal_constraints_;
 
+  const ob::PlannerTerminationCondition *ptc_;
+  boost::mutex ptc_lock_;
+    
   /// the time spent computing the last plan
   double                                                  last_plan_time_;  
 
