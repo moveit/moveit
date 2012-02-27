@@ -78,7 +78,7 @@ ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_
   group_(group), factory_(factory), serialization_(serialization), ompldb_filename_(filename), state_storage_ptr_(storage)
 {
   hexToMsg(serialization, constraint_msg_);
-  state_storage_ = static_cast<const ConstraintApproximationStateStorage*>(state_storage_ptr_.get());
+  state_storage_ = static_cast<ConstraintApproximationStateStorage*>(state_storage_ptr_.get());
   kconstraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(kinematic_model,
                                                                             planning_models::TransformsConstPtr(new planning_models::Transforms(kinematic_model->getModelFrame()))));
   kconstraints_set_->add(constraint_msg_);
@@ -90,7 +90,7 @@ ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_
   group_(group), factory_(factory), constraint_msg_(msg), ompldb_filename_(filename), state_storage_ptr_(storage)
 {
   msgToHex(msg, serialization_);
-  state_storage_ = static_cast<const ConstraintApproximationStateStorage*>(state_storage_ptr_.get());
+  state_storage_ = static_cast<ConstraintApproximationStateStorage*>(state_storage_ptr_.get());
   kconstraints_set_.reset(new kinematic_constraints::KinematicConstraintSet(kinematic_model,
                                                                             planning_models::TransformsConstPtr(new planning_models::Transforms(kinematic_model->getModelFrame()))));
   kconstraints_set_->add(msg);
