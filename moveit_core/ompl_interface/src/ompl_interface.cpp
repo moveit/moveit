@@ -125,12 +125,14 @@ static ob::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si)
 }
 
 ompl::base::PlannerPtr ompl_interface::OMPLInterface::plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
-                                                                       const std::map<std::string, std::string> &config) const
+                                                                       const std::string &name, const std::map<std::string, std::string> &config) const
 {
   std::map<std::string, ob::PlannerAllocator>::const_iterator it = known_planners_.find(planner);
   if (it != known_planners_.end())
   {
     ob::PlannerPtr p = it->second(si);
+    if (!name.empty())
+      p->setName(name);
     p->params().setParams(config, true);
     return p;
   }
@@ -199,7 +201,7 @@ void ompl_interface::OMPLInterface::specifyIKSolvers(const std::map<std::string,
   
 ompl_interface::ConfiguredPlannerAllocator ompl_interface::OMPLInterface::getPlannerAllocator(void) const
 {
-  return boost::bind(&OMPLInterface::plannerAllocator, this, _1, _2, _3);
+  return boost::bind(&OMPLInterface::plannerAllocator, this, _1, _2, _3, _4);
 }
 
 void ompl_interface::OMPLInterface::registerDefaultPlanners(void)
@@ -412,9 +414,9 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     
     if (context->solve(timeout, attempts))
     {
-      double ptime = context->getLastPlanTime();
-      if (ptime < timeout)
-        context->simplifySolution(timeout - ptime);
+	//      double ptime = context->getLastPlanTime();
+	//      if (ptime < timeout)
+	//        context->simplifySolution(timeout - ptime);
       context->interpolateSolution();
       
       // fill the response

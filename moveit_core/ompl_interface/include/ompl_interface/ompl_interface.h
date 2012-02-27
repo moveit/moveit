@@ -204,7 +204,7 @@ public:
 protected:
   
   ob::PlannerPtr plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
-                                  const std::map<std::string, std::string> &config) const;
+                                  const std::string &name, const std::map<std::string, std::string> &config) const;
   
   void registerDefaultPlanners(void);
   void registerDefaultPlanningContexts(void);

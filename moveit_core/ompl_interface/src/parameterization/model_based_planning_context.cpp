@@ -140,13 +140,14 @@ void ompl_interface::ModelBasedPlanningContext::configure(void)
     ompl_simple_setup_.setStartState(ompl_start_state);
     ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
     
-    useConfig(spec_.config_);  
+    useConfig();  
     ompl_simple_setup_.setup();
   }
 }
 
-void ompl_interface::ModelBasedPlanningContext::useConfig(const std::map<std::string, std::string> &config)
+void ompl_interface::ModelBasedPlanningContext::useConfig(void)
 {
+  const std::map<std::string, std::string> &config = spec_.config_;
   if (config.empty())
     return;
   std::map<std::string, std::string> cfg = config;
@@ -200,7 +201,8 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(const std::map<std::st
     // remove the 'type' parameter; the rest are parameters for the planner itself
     std::string type = it->second;
     cfg.erase(it);
-    ompl_simple_setup_.setPlannerAllocator(boost::bind(spec_.planner_allocator_, _1, type, cfg));
+    ompl_simple_setup_.setPlannerAllocator(boost::bind(spec_.planner_allocator_, _1, type, 
+						       name_ != getJointModelGroupName() ? name_ : "", cfg));
     ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
 	     name_.c_str(), type.c_str());
   }
@@ -427,8 +429,11 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   if (count <= 1)
   {
     ROS_DEBUG("%s: Solving the planning problem once...", name_.c_str());
-    result = ompl_simple_setup_.solve(timeout);
+    ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout);
+    registerTerminationCondition(ptc);
+    result = ompl_simple_setup_.solve(ptc);
     last_plan_time_ = ompl_simple_setup_.getLastPlanComputationTime();
+    unregisterTerminationCondition();
   }
   else
   {
@@ -442,17 +447,23 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 	  ompl_parallel_plan_.addPlannerAllocator(ompl_simple_setup_.getPlannerAllocator());
       else
 	for (unsigned int i = 0 ; i < count ; ++i)
-	  ompl_parallel_plan_.addPlanner(ompl::geometric::getDefaultPlanner(ompl_simple_setup_.getGoal()));
+	  ompl_parallel_plan_.addPlanner(ompl::geometric::getDefaultPlanner(ompl_simple_setup_.getGoal())); 
+
+      ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout);    
+      registerTerminationCondition(ptc);
       ompl::time::point start = ompl::time::now();
-      result = ompl_parallel_plan_.solve(timeout, 1, count, true);
+      result = ompl_parallel_plan_.solve(ptc, 1, count, true);
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
+      unregisterTerminationCondition();
     }
     else
     {
+      ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout);    
+      registerTerminationCondition(ptc);
       ompl::time::point start = ompl::time::now();
       int n = count / max_planning_threads_;
       result = true;
-      for (int i = 0 ; i < n ; ++i)
+      for (int i = 0 ; i < n && ptc() == false ; ++i)
       {
 	ompl_parallel_plan_.clearPlanners();
 	if (ompl_simple_setup_.getPlannerAllocator())
@@ -460,12 +471,12 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 	    ompl_parallel_plan_.addPlannerAllocator(ompl_simple_setup_.getPlannerAllocator());
 	else
 	  for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)
-	    ompl_parallel_plan_.addPlanner(ompl::geometric::getDefaultPlanner(ompl_simple_setup_.getGoal()));
-	bool r = ompl_parallel_plan_.solve(timeout, 1, max_planning_threads_, true);
-	result = result && r;
+	    ompl_parallel_plan_.addPlanner(og::getDefaultPlanner(ompl_simple_setup_.getGoal()));
+	bool r = ompl_parallel_plan_.solve(ptc, 1, max_planning_threads_, true);
+	result = result && r; 
       }
       n = count % max_planning_threads_;
-      if (n)
+      if (n && ptc() == false)
       {
 	ompl_parallel_plan_.clearPlanners();
 	if (ompl_simple_setup_.getPlannerAllocator())
@@ -473,11 +484,12 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 	    ompl_parallel_plan_.addPlannerAllocator(ompl_simple_setup_.getPlannerAllocator());
 	else
 	  for (int i = 0 ; i < n ; ++i)
-	    ompl_parallel_plan_.addPlanner(ompl::geometric::getDefaultPlanner(ompl_simple_setup_.getGoal()));
-	bool r = ompl_parallel_plan_.solve(timeout, 1, n, true);
+	    ompl_parallel_plan_.addPlanner(og::getDefaultPlanner(ompl_simple_setup_.getGoal()));
+	bool r = ompl_parallel_plan_.solve(ptc, 1, n, true);
 	result = result && r;
       }
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
+      unregisterTerminationCondition();
     }
   }
   
@@ -491,9 +503,23 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   return result;
 }
 
+void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(const ob::PlannerTerminationCondition &ptc)
+{
+  boost::mutex::scoped_lock slock(ptc_lock_);
+  ptc_ = &ptc;
+}
+
+void ompl_interface::ModelBasedPlanningContext::unregisterTerminationCondition(void)
+{ 
+  boost::mutex::scoped_lock slock(ptc_lock_);
+  ptc_ = NULL;
+}
+
 void ompl_interface::ModelBasedPlanningContext::terminateSolve(void)
 {
-  
+  boost::mutex::scoped_lock slock(ptc_lock_);
+  if (ptc_)
+    ptc_->terminate();
 }
 
 ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling,
