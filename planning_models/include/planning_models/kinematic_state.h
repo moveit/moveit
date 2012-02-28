@@ -709,18 +709,10 @@ public:
    *  @param arr The returned marker array
    */
   void getRobotMarkers(visualization_msgs::MarkerArray& arr) const;
-  
-  // void getPaddedRobotMarkers(const std::map<std::string, double>& link_padding_map,
-  //                            const std_msgs::ColorRGBA& color,
-  //                            const std::string& ns,
-  //                            const ros::Duration& dur
-  //                            visualization_msgs::MarkerArray& arr);
-  
-  
-  // void getPaddedRobotMarkers(visualization_msgs::MarkerArray& arr,
-  //                            const std::vector<std::string>* link_names = NULL) const;
-  
-  
+    
+  /** \brief Get the distance between this state and another one. This distance does not consider topology -- it is only the L2 norm on the joint vector */
+  double distance(const KinematicState &state) const;
+    
   KinematicState& operator=(const KinematicState &other);
   
 private:
