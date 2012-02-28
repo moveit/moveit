@@ -54,9 +54,10 @@ void benchmarkSimplePlan(const std::string &config)
     planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
     planning_scene::PlanningScene &scene = *psm.getPlanningScene();
 
+    mplan_req.average_count = 50;
+    
     mplan_req.motion_plan_request.planner_id = config;
     mplan_req.motion_plan_request.group_name = "right_arm";
-    mplan_req.motion_plan_request.num_planning_attempts = 100;
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
     const std::vector<std::string>& joint_names = scene.getKinematicModel()->getJointModelGroup("right_arm")->getJointModelNames();
     mplan_req.motion_plan_request.goal_constraints.resize(1);
@@ -152,8 +153,10 @@ int main(int argc, char **argv)
   spinner.start();
   
   benchmarkSimplePlan("SBLkConfigDefault");
-  benchmarkSimplePlan("RRTConnectkConfigDefault");
-
+  benchmarkSimplePlan("SBLkConfigDefaultD");
+  benchmarkSimplePlan("SBLkConfigDefaultH");
+  benchmarkSimplePlan("SBLkConfigDefaultDH");
+  benchmarkSimplePlan("SBLkConfigDefaultDD");
 
   //  benchmarkSimplePlan("KPIECEkConfigDefault");
   /*

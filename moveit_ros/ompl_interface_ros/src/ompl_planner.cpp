@@ -225,11 +225,7 @@ public:
   bool computeBenchmark(moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res)
   {
       ROS_INFO("Received new benchmark request...");
-      
-      planning_scene::PlanningScenePtr scene(new planning_scene::PlanningScene());
-      scene->configure(psm_.getPlanningScene()->getUrdfModel(), psm_.getPlanningScene()->getSrdfModel());
-      scene->setPlanningSceneMsg(req.scene);
-      return ompl_interface_.benchmark(scene, req, res);
+      return ompl_interface_.benchmark(psm_.getPlanningScene(), req, res);
   }
   
   void status(void)
