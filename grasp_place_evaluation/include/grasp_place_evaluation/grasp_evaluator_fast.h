@@ -36,10 +36,8 @@
 #ifndef _GRASP_EVALUATOR_FAST_
 #define _GRASP_EVALUATOR_FAST_
 
-#include <grasp_evaluator.h>
+#include <grasp_place_evaluation/grasp_evaluator.h>
 #include <kinematics_constraint_aware/kinematics_solver_constraint_aware.h>
-
-//#include <pr2_arm_kinematics_constraint_aware/pr2_arm_ik_solver_constraint_aware.h>
 
 namespace grasp_place_evaluation {
 
@@ -70,57 +68,14 @@ inline geometry_msgs::Vector3 doNegate(const geometry_msgs::Vector3& vec) {
   return v;
 }
 
-class GraspTesterFast : public GraspTester
+class GraspEvaluatorFast : public GraspEvaluator
 {
-protected:
-  virtual void testGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                         const object_manipulation_msgs::Grasp &grasp,
-                         GraspExecutionInfo &execution_info);  
-  
-  //! Dynamic link padding to be used for grasp operation
-  virtual std::vector<arm_navigation_msgs::LinkPadding> 
-    linkPaddingForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal);
+public:
 
-  bool getInterpolatedIK(const std::string& arm_name,
-                         const tf::Transform& first_pose,
-                         const tf::Vector3& direction,
-                         const double& distance,
-                         const std::vector<double>& ik_solution,
-                         const bool& reverse, 
-                         const bool& premultiply,
-                         trajectory_msgs::JointTrajectory& traj);
+  GraspEvaluatorFast(const planning_models::KinematicModelConstPtr& kmodel,
+                     const std::map<std::string, kinematics::KinematicsBasePtr>& solver_map);
 
-  //arm_kinematics_constraint_aware::ArmKinematicsSolverConstraintAware* right_arm_solver_;
-
-  std::map<std::string, arm_kinematics_constraint_aware::ArmKinematicsSolverConstraintAware*> ik_solver_map_;
-  //std::map<std::string, pr2_arm_kinematics::PR2ArmIKSolverConstraintAware*> ik_solver_map_;
-  
-  double consistent_angle_;
-  unsigned int num_points_;
-  unsigned int redundancy_;
-  
-  ros::Publisher vis_marker_array_publisher_;
-  ros::Publisher vis_marker_publisher_;
-
-  planning_environment::CollisionModels* getCollisionModels();
-  planning_models::KinematicState* getPlanningSceneState();
-
-  planning_environment::CollisionModels* cm_;
-  planning_models::KinematicState* state_;
-
- public:
-
-  pluginlib::ClassLoader<kinematics::KinematicsBase> kinematics_loader_;
-
-  //! Also adds a grasp marker at the pre-grasp location
-  GraspTesterFast(planning_environment::CollisionModels* cm = NULL,
-		  const std::string& plugin_name="pr2_arm_kinematics/PR2ArmKinematicsPlugin");
-
-  ~GraspTesterFast();
-
-  void setPlanningSceneState(planning_models::KinematicState* state) {
-    state_ = state;
-  }
+  ~GraspEvaluatorFast(){}
 
   void getGroupJoints(const std::string& group_name,
                       std::vector<std::string>& group_links);
@@ -128,10 +83,38 @@ protected:
   void getGroupLinks(const std::string& group_name,
                      std::vector<std::string>& group_links);
 
-  virtual void testGrasps(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                          const std::vector<object_manipulation_msgs::Grasp> &grasps,
+  std::string getEndEffectorName(const boost::shared_ptr<const srdf::Model>& srdf_model,
+                                 const std::string& arm_name);
+  
+
+  virtual void testGrasps(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                          const planning_models::KinematicState* seed_state,
+                          const moveit_manipulation_msgs::PickupGoal &pickup_goal,
+                          const std::vector<moveit_manipulation_msgs::Grasp> &grasps,
                           std::vector<GraspExecutionInfo> &execution_info,
                           bool return_on_first_hit);
+    
+protected:
+  bool getInterpolatedIK(const std::string& arm_name,
+                         const planning_scene::PlanningSceneConstPtr& scene,
+                         const collision_detection::AllowedCollisionMatrix& acm,
+                         const geometry_msgs::Pose& first_pose,
+                         const Eigen::Vector3d& direction,
+                         const double& distance,
+                         const std::vector<double>& ik_solution,
+                         const bool& reverse, 
+                         const bool& premultiply,
+                         const bool& use_unpadded_robot,
+                         planning_models::KinematicState* seed_state,
+                         trajectory_msgs::JointTrajectory& traj);
+  
+  const planning_models::KinematicModelConstPtr kmodel_;
+  std::map<std::string, boost::shared_ptr<kinematics_constraint_aware::KinematicsSolverConstraintAware> > constraint_aware_solver_map_;
+  
+  double consistent_angle_;
+  unsigned int num_points_;
+  unsigned int redundancy_;
+  
 };
 
 } //namespace grasp_execution

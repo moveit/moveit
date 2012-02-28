@@ -40,6 +40,8 @@
 #include <moveit_manipulation_msgs/PickupGoal.h>
 
 #include <trajectory_msgs/JointTrajectory.h>
+#include <planning_scene/planning_scene.h>
+#include <planning_models/kinematic_state.h>
 
 namespace grasp_place_evaluation {
 
@@ -58,10 +60,6 @@ struct GraspExecutionInfo {
 //! needed for execution
 class GraspEvaluator {
 protected:
-  //! Tests a single grasp
-  virtual void testGrasp(const moveit_manipulation_msgs::PickupGoal &pickup_goal,
-                         const moveit_manipulation_msgs::Grasp &grasp,
-                         GraspExecutionInfo &execution_info) = 0;  
 
   //! Function used to provide feedback on which grasp is being tested
   //! Might find a more elegant mechanism in the future
@@ -70,28 +68,20 @@ protected:
   //! Function used to check for interrupts
   boost::function<bool()> interrupt_function_;
 public:
-  GraspTester() : marker_publisher_(NULL) {}
+  GraspEvaluator();
 
-  //! Tests a set of grasps and provides their execution info
-  virtual void testGrasps(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                          const std::vector<object_manipulation_msgs::Grasp> &grasps,
+  virtual void testGrasps(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                          const planning_models::KinematicState* seed_state,
+                          const moveit_manipulation_msgs::PickupGoal &pickup_goal,
+                          const std::vector<moveit_manipulation_msgs::Grasp> &grasps,
                           std::vector<GraspExecutionInfo> &execution_info,
-                          bool return_on_first_hit);
+                          bool return_on_first_hit) = 0;
 
   //! Sets the feedback function
   void setFeedbackFunction(boost::function<void(size_t)> f){feedback_function_ = f;}
 
   //! Sets the interrupt function
   void setInterruptFunction(boost::function<bool()> f){interrupt_function_ = f;}
-
-  //! Helper function for convenience
-  object_manipulation_msgs::GraspResult Result(int result_code, bool continuation)
-  {
-    object_manipulation_msgs::GraspResult result;
-    result.result_code = result_code;
-    result.continuation_possible = continuation;
-    return result;
-  }
 };
 
 }
