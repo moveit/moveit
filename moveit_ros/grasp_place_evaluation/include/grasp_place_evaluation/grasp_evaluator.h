@@ -68,7 +68,7 @@ protected:
   //! Function used to check for interrupts
   boost::function<bool()> interrupt_function_;
 public:
-  GraspEvaluator();
+  GraspEvaluator() {};
 
   virtual void testGrasps(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const planning_models::KinematicState* seed_state,

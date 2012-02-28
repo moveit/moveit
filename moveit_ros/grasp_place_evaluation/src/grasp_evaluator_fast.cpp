@@ -51,7 +51,7 @@ GraspEvaluatorFast::GraspEvaluatorFast(const planning_models::KinematicModelCons
   for(std::map<std::string, kinematics::KinematicsBasePtr>::const_iterator it = solver_map.begin(); 
       it != solver_map.end();
       it++) {
-    constraint_aware_solver_map_[it->first].reset(new kinematics_constraint_aware::KinematicsSolverConstraintAware(it->second, kmodel, it->first));
+    constraint_aware_solver_map_[it->first].reset(new kinematics_constraint_aware::KinematicsSolverConstraintAware(it->second, kmodel_, it->first));
     constraint_aware_solver_map_[it->first]->setSearchDiscretization(.05);
   }
 }
@@ -86,6 +86,13 @@ std::string GraspEvaluatorFast::getEndEffectorName(const boost::shared_ptr<const
   }
   ROS_WARN_STREAM("No end effector group found for arm " << arm_name << " tip link " << tip_link);
   return "";
+}
+
+std::string GraspEvaluatorFast::getAttachLink(const std::string& end_effector_name) 
+{
+  const planning_models::KinematicModel::JointModelGroup* jmg = 
+    kmodel_->getJointModelGroup(end_effector_name);
+  return jmg->getLinkModelNames()[0];
 }
 
 bool GraspEvaluatorFast::getInterpolatedIK(const std::string& arm_name,
@@ -411,21 +418,20 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   bool in_object_frame = false;
   Eigen::Affine3d obj_pose(Eigen::Affine3d::Identity());
 
-  // if(pickup_goal.target.reference_frame_id == pickup_goal.collision_object_name) {
-  //   in_object_frame = true;
-  //   geometry_msgs::PoseStamped obj_world_pose_stamped;
-  //   cm->convertPoseGivenWorldTransform(*state,
-  //                                      cm->getWorldFrameId(),
-  //                                      pickup_goal.target.potential_models[0].pose.header,
-  //                                      pickup_goal.target.potential_models[0].pose.pose,
-  //                                      obj_world_pose_stamped);
-  //   tf::poseMsgToTF(obj_world_pose_stamped.pose, obj_pose);
-  // }
+  if(pickup_goal.target.reference_frame_id == pickup_goal.collision_object_name) {
+    in_object_frame = true;
+    Eigen::Affine3d potential_pose;
+    planning_models::poseFromMsg(pickup_goal.target.potential_models[0].pose.pose, potential_pose);
+    planning_scene->getTransforms()->transformPose(state,
+                                                   pickup_goal.target.potential_models[0].pose.header.frame_id,
+                                                   potential_pose,
+                                                   obj_pose);
+  }
   
   execution_info.clear();
   execution_info.resize(grasps.size());
 
-  Eigen::Vector3d pregrasp_dir(1.0,0.0,0.0);
+  Eigen::Vector3d pregrasp_dir(-1.0,0.0,0.0);
   //tf::vector3MsgToTF(doNegate(handDescription().approachDirection(pickup_goal.arm_name)), pregrasp_dir);
   pregrasp_dir.normalize();
 
@@ -454,16 +460,12 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     execution_info[i].result_.continuation_possible = true;
 
     if(!in_object_frame) {
-      // geometry_msgs::PoseStamped grasp_world_pose_stamped;
-      // if(!cm->convertPoseGivenWorldTransform(*state,
-      //                                        cm->getWorldFrameId(),
-      //                                        target_header,
-      //                                        grasps[i].grasp_pose,
-      //                                        grasp_world_pose_stamped)) {
-      //   ROS_WARN_STREAM("Can't convert into non-object frame " << target_header.frame_id);
-      //   continue;
-      // }
-      // tf::poseMsgToTF(grasp_world_pose_stamped.pose, grasp_poses[i]);
+      Eigen::Affine3d grasp_pose;
+      planning_models::poseFromMsg(grasps[i].grasp_pose, grasp_pose);
+      planning_scene->getTransforms()->transformPose(state,
+                                                     target_header.frame_id,
+                                                     grasp_pose,
+                                                     grasp_poses[i]);
     } else {
       Eigen::Affine3d gp;
       planning_models::poseFromMsg(grasps[i].grasp_pose, gp);
@@ -486,8 +488,10 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   //making world where we can attach the object
   boost::shared_ptr<planning_scene::PlanningScene> attached_object_diff_scene(new planning_scene::PlanningScene(planning_scene));
   moveit_msgs::AttachedCollisionObject att_obj;
+  att_obj.link_name = getAttachLink(end_effector_group);
   att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
   att_obj.object.id = pickup_goal.collision_object_name;
+  att_obj.touch_links = end_effector_links;
   attached_object_diff_scene->processAttachedCollisionObjectMsg(att_obj);
   //TODO - add touch links
 
@@ -579,9 +583,9 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       moveit_msgs::Constraints emp;
       sensor_msgs::JointState solution;
       moveit_msgs::MoveItErrorCodes error_code;
-      ROS_INFO_STREAM("X y z " << base_link_grasp_pose.position.x << " " 
-		      << base_link_grasp_pose.position.y << " " 
-		      << base_link_grasp_pose.position.z);
+      ROS_DEBUG_STREAM("X y z " << base_link_grasp_pose.position.x << " " 
+                       << base_link_grasp_pose.position.y << " " 
+                       << base_link_grasp_pose.position.z);
       if(!constraint_aware_solver_map_[pickup_goal.arm_name]->findConstraintAwareSolution(base_link_grasp_pose,
                                                                                           emp,
                                                                                           &state,
