@@ -10,8 +10,8 @@
   <url>http://ros.org/wiki/moveit_benchmarks</url>
   <depend package="planning_interface"/>
   <depend package="pluginlib"/>
-  <depend package="tf"/>
-  <depend package="planning_scene_monitor"/>
+  <depend package="planning_scene"/>
+  <depend package="robot_model_loader"/>
   <depend package="moveit_warehouse"/>
 
 </package>

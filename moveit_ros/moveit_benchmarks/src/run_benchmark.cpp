@@ -172,7 +172,7 @@ public:
 		++progress;
 		ros::WallTime start = ros::WallTime::now();
 		bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
-		runs[c]["runtime REAL"] = boost::lexical_cast<std::string>((ros::WallTime::now() - start).toSec());
+		runs[c]["time REAL"] = boost::lexical_cast<std::string>((ros::WallTime::now() - start).toSec());
 		runs[c]["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
 		double L = 0.0;
 		if (solved)
@@ -182,7 +182,7 @@ public:
 		    for (std::size_t k = 1 ; k < p.size() ; ++k)
 			L += p[k-1]->distance(*p[k]);
 		}
-		runs[c]["path length REAL"] = L;
+		runs[c]["path_length REAL"] = boost::lexical_cast<std::string>(L);
 	    }
 	    data.push_back(runs);
 	}
