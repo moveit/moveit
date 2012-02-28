@@ -96,6 +96,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
     crobot_.reset(new DefaultCRobotType(kmodel_));
     crobot_unpadded_.reset(new DefaultCRobotType(kmodel_));
     crobot_const_ = crobot_;
+    crobot_unpadded_const_ = crobot_unpadded_;
 
     cworld_.reset(new DefaultCWorldType());
     cworld_const_ = cworld_;
@@ -142,6 +143,7 @@ void planning_scene::PlanningScene::clearDiffs(void)
   crobot_.reset();
   crobot_const_.reset();
   crobot_unpadded_.reset();
+  crobot_unpadded_const_.reset();
 }
 
 void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
@@ -206,15 +208,15 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
   if (parent_)
     getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, getAllowedCollisionMatrix());
   else
-    cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+    getCollisionWorld()->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
   
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
     // do self-collision checking with the unpadded version of the robot
     if (parent_)
-      parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
+      getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
     else
-      crobot_unpadded_->checkSelfCollision(req, res, kstate, *acm_);
+      getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, *acm_);
   }
 }
 
@@ -222,10 +224,7 @@ void planning_scene::PlanningScene::checkSelfCollision(const collision_detection
                                                        const planning_models::KinematicState &kstate) const
 {
   // do self-collision checking with the unpadded version of the robot
-  if (parent_)
-    parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
-  else
-    crobot_unpadded_->checkSelfCollision(req, res, kstate, *acm_);
+  getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
 }
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
@@ -234,18 +233,12 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
                                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
-  if (parent_)
-    getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, acm);
-  else
-    cworld_->checkRobotCollision(req, res, *crobot_, kstate, acm);
+  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, acm);
   
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
-    if (parent_)
-      parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
-    else
-      crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
+    getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
   }
 }
 
@@ -255,18 +248,12 @@ void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detec
                                                            const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
-  if (parent_)
-    getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), kstate, acm);
-  else
-    cworld_->checkRobotCollision(req, res, *crobot_unpadded_, kstate, acm);
-  
+  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), kstate, acm);
+
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
-    if (parent_)
-      parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
-    else
-      crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
+    getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
   }
 }
 
@@ -276,10 +263,7 @@ void planning_scene::PlanningScene::checkSelfCollision(const collision_detection
                                                        const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // do self-collision checking with the unpadded version of the robot
-  if (parent_)
-    parent_->crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
-  else
-    crobot_unpadded_->checkSelfCollision(req, res, kstate, acm);
+  getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
 }
 
 const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::getCollisionRobot(void)
@@ -546,7 +530,6 @@ void planning_scene::PlanningScene::decoupleParent(void)
       acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
 
     if(!crobot_unpadded_) {
-
       crobot_unpadded_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobotUnpadded())));
       crobot_unpadded_const_ = crobot_unpadded_;
     }
@@ -654,6 +637,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
       crobot_const_ = crobot_;
     }
     crobot_unpadded_.reset(new DefaultCRobotType(kmodel_));
+    crobot_unpadded_const_ = crobot_unpadded_;
 
     cworld_->recordChanges(false);
     cworld_->clearChanges();
