@@ -37,7 +37,7 @@
 namespace kinematics_constraint_aware 
 {
 
-KinematicsSolverConstraintAware::KinematicsSolverConstraintAware(kinematics::KinematicsBasePtr& solver,
+KinematicsSolverConstraintAware::KinematicsSolverConstraintAware(const kinematics::KinematicsBasePtr& solver,
                                                                  const planning_models::KinematicModelConstPtr& kmodel,
                                                                  const std::string& group_name) :
   group_name_(group_name),
@@ -282,7 +282,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
   std::map<std::string, double> seed_state_map;
   seed_state->getStateValues(seed_state_map);
   state_->setStateValues(seed_state_map);
-  
+
   std::vector<double> seed_state_vector(solver_map_[group_name_]->getJointNames().size());
   for(unsigned int i = 0; i < solver_map_[group_name_]->getJointNames().size(); i++) {
     seed_state_vector[i] = seed_state_map[solver_map_[group_name_]->getJointNames()[i]];
@@ -815,6 +815,8 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
       ret_traj.points[i-1].positions = solution.position;
       ret_traj.points[i-1].time_from_start = ros::Duration((i*1.0)*total_dur.toSec()/(num_points*1.0));
     } else {
+      ROS_DEBUG_STREAM("Point " << i << " of " << num_points << " infeasible " << temp_error_code.val);
+      ROS_DEBUG_STREAM("Point x y z " << trans_pose.position.x << " " << trans_pose.position.y << " " << trans_pose.position.z);
       return false;
     }
   }
