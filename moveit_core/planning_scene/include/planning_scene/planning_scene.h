@@ -277,10 +277,15 @@ public:
   /** \brief Check if a given path is valid */
   bool isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory) const;
 
+  /** \brief Check if a given path is valid */
   bool isPathValid(const planning_models::KinematicState* start, 
                    const moveit_msgs::Constraints& path_constraints,
                    const moveit_msgs::Constraints& goal_constraints,
                    const moveit_msgs::RobotTrajectory &trajectory) const;
+
+  /** \brief Convert a trajectory to its corresponding kinematic states */
+  void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
+				std::vector<planning_models::KinematicStatePtr> &states) const;
 
   //takes current matrix and disables all collisions for links that are not
   //part of the indicated group, returning the matrix

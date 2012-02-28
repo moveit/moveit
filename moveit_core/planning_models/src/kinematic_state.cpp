@@ -812,6 +812,20 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::Jo
     return it->second;
 }
 
+double planning_models::KinematicState::distance(const KinematicState &state) const
+{
+  double d = 0.0;
+  std::vector<double> j1, j2;
+  getStateValues(j1);
+  state.getStateValues(j2);
+  for (std::size_t i = 0 ; i < j1.size() ; ++i)
+  {
+    double di = j1[i] - j2[i];
+    d += di * di;
+  }
+  return d;
+}
+
 // ------ marker functions ------
 
 void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA& color,
