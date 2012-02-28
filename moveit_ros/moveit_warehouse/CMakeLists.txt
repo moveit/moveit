@@ -32,3 +32,7 @@ rosbuild_link_boost(${PROJECT_NAME} system)
 
 rosbuild_add_executable(warehouse_connector_test test/warehouse_connector_test.cpp)
 target_link_libraries(warehouse_connector_test ${PROJECT_NAME})
+
+rosbuild_add_executable(broadcast src/broadcast.cpp)
+target_link_libraries(broadcast ${PROJECT_NAME})
+rosbuild_link_boost(broadcast program_options)
