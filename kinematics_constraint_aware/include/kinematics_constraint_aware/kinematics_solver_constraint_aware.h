@@ -90,7 +90,7 @@ class KinematicsSolverConstraintAware
 {
 public:
   
-  KinematicsSolverConstraintAware(kinematics::KinematicsBasePtr& solver,
+  KinematicsSolverConstraintAware(const kinematics::KinematicsBasePtr& solver,
                                   const planning_models::KinematicModelConstPtr& kmodel,
                                   const std::string& group_name);
   
@@ -191,7 +191,6 @@ public:
                                 const planning_models::KinematicState* seed_state,
                                 const planning_scene::PlanningSceneConstPtr& scene,
                                 const collision_detection::AllowedCollisionMatrix& matrix,
-
                                 moveit_msgs::MoveItErrorCodes& error_code, 
                                 trajectory_msgs::JointTrajectory& traj,
                                 const unsigned int& redundancy,
