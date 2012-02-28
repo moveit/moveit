@@ -38,15 +38,19 @@
 #include <planning_scene/planning_scene.h>
 #include <planning_models/kinematic_model.h>
 #include <moveit_msgs/GetMotionPlan.h>
+#include <string>
 
 namespace planning_interface
 {
 
-typedef struct
+// This struct will change a lot over time as we figure out what's
+// needed.
+struct PlannerCapability
 {
-  // This struct will change a lot over time as we figure out what's
-  // needed.
-  bool dummy;
+  PlannerCapability(void)
+  {
+  }
+
   /*
   bool can_plan_from_collision;
   bool can_plan_to_collision;
@@ -55,7 +59,7 @@ typedef struct
   bool can_handle_path_constraints;
   bool needs_distance_field;
   */
-} planner_capability_t;
+};
 
 class Planner
 {
@@ -63,15 +67,20 @@ class Planner
     Planner() {}
     virtual ~Planner() {};
 
-    // Subclass may implement methods below
+    /// Subclass may implement methods below
     virtual void init(const planning_models::KinematicModelConstPtr& model) {}
-
-    // Subclass must implement methods below
+    
+    /// 
+    virtual std::string getDescription(void) const { return ""; }
+    
+    /// Subclass must implement methods below
     virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                        const moveit_msgs::GetMotionPlan::Request &req, 
                        moveit_msgs::GetMotionPlan::Response &res) const = 0;
+
+    /// Determine whether this plugin instance is able to represent this planning request
     virtual bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,
-                                   planner_capability_t& capabilities) const = 0;
+                                   PlannerCapability& capabilities) const = 0;
 
     /// Request termination, if a solve() function is currently computing plans
     virtual void terminate(void) const = 0;
