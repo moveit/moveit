@@ -245,6 +245,7 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution(void)
   {
     og::PathGeometric &pg = ompl_simple_setup_.getSolutionPath();
     pg.interpolate((std::size_t)floor(0.5 + pg.length() / max_solution_segment_length_));
+    //    pg.interpolate();
   }
 }
 
@@ -430,6 +431,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   
   // \todo Fix above code to do interpolation of prefix & suffix paths for fixed states;
 
+  ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
   bool result = false;
   if (count <= 1)
   {
@@ -501,6 +503,10 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   if (gls)
     // just in case we need to stop sampling
     static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->stopSampling();
+
+  int v = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getValidMotionCount();
+  int iv = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
+  ROS_DEBUG("There were %d valid motions and %d invalid motions.", v, iv);
   
   if (ompl_simple_setup_.getGoal()->isApproximate())
     ROS_WARN("Computed solution is approximate");

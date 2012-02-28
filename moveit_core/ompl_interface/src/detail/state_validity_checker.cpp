@@ -57,7 +57,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   ompl::tools::Profiler::ScopedBlock sblock("isValid");
 
   if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown())
-    return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();  
+      return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();  
   
   planning_models::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);

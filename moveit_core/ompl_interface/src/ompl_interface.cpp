@@ -461,7 +461,7 @@ bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningScen
   context->setPlanningVolume(req.motion_plan_request.workspace_parameters);
   context->configure();
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-  return context->benchmark(timeout, attempts, req.filename);
+  return context->benchmark(timeout, std::max(1u, req.average_count), req.filename);
 }
 
 ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
