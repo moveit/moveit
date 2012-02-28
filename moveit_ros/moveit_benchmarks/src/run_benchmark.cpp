@@ -117,12 +117,14 @@ public:
 	    for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
 		if (planner_interfaces_.find(req.planner_interfaces[i]) == planner_interfaces_.end())
 		    ROS_ERROR("Planning interface '%s' was not found", req.planner_interfaces[i].c_str());
-	
+
+	res.planner_interfaces.clear();
 	std::vector<planning_interface::Planner*> pi;
 	std::vector<planning_interface::PlannerCapability> pc;
 	planning_interface::PlannerCapability capabilities;	
 	moveit_msgs::GetMotionPlan::Request mp_req;
 	mp_req.motion_plan_request = req.motion_plan_request;
+
 	for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
 	     it != planner_interfaces_.end(); ++it)
 	{
@@ -141,6 +143,7 @@ public:
 	    
 	    if (it->second->canServiceRequest(mp_req, capabilities))
 	    {
+		res.planner_interfaces.push_back(it->first);
 		pi.push_back(it->second.get());
 		pc.push_back(capabilities);
 	    }
@@ -164,6 +167,7 @@ public:
 	moveit_msgs::GetMotionPlan::Response mp_res;
 	typedef std::vector<std::map<std::string, std::string> > RunData;
 	std::vector<RunData> data;
+	std::vector<bool> first(pi.size(), true);
 	for (std::size_t i = 0 ; i < pi.size() ; ++i)
 	{
 	    RunData runs(req.average_count);
@@ -178,11 +182,19 @@ public:
 		if (solved)
 		{
 		    std::vector<planning_models::KinematicStatePtr> p;
-		    scene_->convertToKinematicStates(mp_res.robot_state, mp_res.trajectory, p);
+		    scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory, p);
 		    for (std::size_t k = 1 ; k < p.size() ; ++k)
 			L += p[k-1]->distance(*p[k]);
 		}
 		runs[c]["path_length REAL"] = boost::lexical_cast<std::string>(L);
+		
+		// record the first solution in the response
+		if (solved && first[c])
+		{
+		    first[c] = false;
+		    res.trajectory[c] = mp_res.trajectory;
+		    res.trajectory_start[c] = mp_res.trajectory_start;
+		}
 	    }
 	    data.push_back(runs);
 	}

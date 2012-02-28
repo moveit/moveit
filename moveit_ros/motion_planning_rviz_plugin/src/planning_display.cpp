@@ -86,18 +86,8 @@ struct PlanningDisplay::ReceivedTrajectoryMessage
   ReceivedTrajectoryMessage(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene) : message_(message)
   {
     start_state_.reset(new planning_models::KinematicState(scene->getCurrentState()));
-    planning_models::robotStateToKinematicState(*scene->getTransforms(), message_->robot_state, *start_state_);
-
-    std::size_t state_count = std::max(message_->trajectory.joint_trajectory.points.size(),
-                                       message_->trajectory.multi_dof_joint_trajectory.points.size());
-    for (std::size_t i = 0 ; i < state_count ; ++i)
-    {
-      moveit_msgs::RobotState rs;
-      planning_models::robotTrajectoryPointToRobotState(message_->trajectory, i, rs);
-      planning_models::KinematicStatePtr state(new planning_models::KinematicState(*start_state_));
-      planning_models::robotStateToKinematicState(*scene->getTransforms(), rs, *state);
-      trajectory_.push_back(state);
-    }
+    planning_models::robotStateToKinematicState(*scene->getTransforms(), message_->trajectory_start, *start_state_);
+    scene->convertToKinematicStates(message_->trajectory_start, message_->trajectory, trajectory_);
   }
 
   moveit_msgs::DisplayTrajectory::ConstPtr message_;

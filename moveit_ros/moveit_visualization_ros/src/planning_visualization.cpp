@@ -199,7 +199,7 @@ void PlanningVisualization::generatePlan(const std::string& name) {
 
     moveit_msgs::DisplayTrajectory d;
     d.model_id = planning_scene_->getKinematicModel()->getName();
-    planning_models::kinematicStateToRobotState(start_state, d.robot_state);
+    planning_models::kinematicStateToRobotState(start_state, d.trajectory_start);
     d.trajectory = res.trajectory;
     display_traj_publisher_.publish(d);
     last_trajectory_ = traj;
