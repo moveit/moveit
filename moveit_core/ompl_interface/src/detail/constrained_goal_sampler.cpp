@@ -46,14 +46,14 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedP
                       boost::bind(&ConstrainedGoalSampler::sampleUsingGAIK, this, _1, _2), false),
   planning_context_(pc), kinematic_constraint_set_(ks), constraint_sampler_(cs), state_(pc->getCompleteInitialRobotState())
 {
-  ROS_DEBUG("Constructed a ConstrainedGoalSampler instance");
+  ROS_DEBUG("Constructed a ConstrainedGoalSampler instance at address %p", this);
   startSampling();
 }
   
 bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ob::GoalLazySamples *gls, ob::State *newGoal)
 {
   unsigned int ma = planning_context_->getMaximumSamplingAttempts();
-  
+
   // terminate after too many attempts
   if (gls->samplingAttemptsCount() >= ma)
     return false;
@@ -114,17 +114,18 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ob::GoalLazyS
 bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples *gls, ob::State *newGoal)
 {
   unsigned int ma = planning_context_->getMaximumSamplingAttempts();
-  
+
   // terminate after too many attempts
   if (gls->samplingAttemptsCount() >= ma)
     return false;
   // terminate after a maximum number of samples
   if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
-    return false;
+    return false;  
+
   // terminate the sampling thread when a solution has been found
   if (gls->isAchieved())
     return false;
-  
+
   std::vector<double> values;
   for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
     if (constraint_sampler_->sample(values, planning_context_->getCompleteInitialRobotState(), ma))

@@ -255,6 +255,9 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
   std::vector<const planning_models::KinematicModel::JointModel*> onedof;
   std::vector<const planning_models::KinematicModel::JointModel*> mdof;
   traj.joint_trajectory.header.frame_id = getPlanningScene()->getPlanningFrame();
+  traj.joint_trajectory.joint_names.clear();
+  traj.multi_dof_joint_trajectory.joint_names.clear();
+  traj.multi_dof_joint_trajectory.child_frame_ids.clear();
   for (std::size_t i = 0 ; i < jnt.size() ; ++i)
     if (jnt[i]->getVariableCount() == 1)
     {
