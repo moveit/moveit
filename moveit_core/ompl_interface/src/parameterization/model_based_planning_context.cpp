@@ -428,6 +428,8 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   if (!ompl_simple_setup_.getProblemDefinition()->fixInvalidInputStates(d, d, 100))
     ompl_simple_setup_.getProblemDefinition()->fixInvalidInputStates(d * 10.0, d * 10.0, 100);
   
+  // \todo Fix above code to do interpolation of prefix & suffix paths for fixed states;
+
   bool result = false;
   if (count <= 1)
   {

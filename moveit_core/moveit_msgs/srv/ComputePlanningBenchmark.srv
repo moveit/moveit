@@ -17,5 +17,15 @@ uint32 average_count
 string filename
 
 ---
+
+# The planning interfaces that were used in the benchmark
+string[] planner_interfaces
+
+# The first solution trajectory that was found, if any was found
+RobotTrajectory[] trajectory
+
+# The corresponding robot state for the solution trajectory (full state)
+RobotState[] trajectory_start
+
 # Error code - encodes the overall reason for failure
 MoveItErrorCodes error_code
