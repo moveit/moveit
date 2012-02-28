@@ -173,7 +173,7 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
       planning_models::kinematicStateToRobotState(ks, mplan_req.motion_plan_request.start_state); 
       moveit_msgs::DisplayTrajectory d;
       d.model_id = scene.getKinematicModel()->getName();
-      d.robot_state = mplan_req.motion_plan_request.start_state;
+      d.trajectory_start = mplan_req.motion_plan_request.start_state;
       pub.publish(d);
       ros::Duration(0.5).sleep();
       found = true;
@@ -191,7 +191,7 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   
   moveit_msgs::DisplayTrajectory d;
   d.model_id = scene.getKinematicModel()->getName();
-  d.robot_state = mplan_res.robot_state;
+  d.trajectory_start = mplan_res.trajectory_start;
   d.trajectory = mplan_res.trajectory;
   pub.publish(d);
   ros::Duration(0.5).sleep(); 

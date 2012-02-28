@@ -76,7 +76,7 @@ public:
   {
     moveit_msgs::DisplayTrajectory d;
     d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
-    d.robot_state = mplan_res.robot_state;
+    d.trajectory_start = mplan_res.trajectory_start;
     d.trajectory = mplan_res.trajectory;
     pub_plan_.publish(d);
   }
@@ -120,7 +120,7 @@ public:
         pg.interpolate(30);
         moveit_msgs::DisplayTrajectory d;
         d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
-        planning_models::kinematicStateToRobotState(pc->getCompleteInitialRobotState(), d.robot_state);
+        planning_models::kinematicStateToRobotState(pc->getCompleteInitialRobotState(), d.trajectory_start);
         pc->convertPath(pg, d.trajectory);
         pub_plan_.publish(d);
         ros::Duration(5.0).sleep();
@@ -130,7 +130,7 @@ public:
       pc->getOMPLStateSpace()->copyToKinematicState(ks, s.get());
       moveit_msgs::DisplayTrajectory d;
       d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
-      planning_models::kinematicStateToRobotState(ks, d.robot_state);
+      planning_models::kinematicStateToRobotState(ks, d.trajectory_start);
       pub_plan_.publish(d);  
       ros::Duration(0.5).sleep();
     }
