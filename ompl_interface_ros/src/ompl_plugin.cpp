@@ -54,10 +54,10 @@ class OMPLPlanner : public planning_interface::Planner
     }
 
     bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,
-                           planning_interface::planner_capability_t& capabilities) const
+                           planning_interface::PlannerCapability &capabilities) const
     {
       // TODO: this is a dummy implementation
-      capabilities.dummy = false;
+	//      capabilities.dummy = false;
       return true;
     }
 
@@ -68,6 +68,8 @@ class OMPLPlanner : public planning_interface::Planner
       bool result = ompl_interface_->solve(planning_scene, req, res);
       return result;
     }
+
+    std::string getDescription(void) const { return "OMPL Interface"; }
 
     void terminate(void) const
     {

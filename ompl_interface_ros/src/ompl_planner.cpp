@@ -65,7 +65,7 @@ public:
     bool result = ompl_interface_.solve(psm_.getPlanningScene(), req, res);
     if (result)
       displaySolution(res);
-    // displayPlannerData("r_wrist_roll_link");
+    displayPlannerData("r_wrist_roll_link");
     std::stringstream ss;
     ompl::tools::Profiler::Status(ss);
     ROS_INFO("%s", ss.str().c_str());
@@ -215,7 +215,7 @@ public:
         mk.pose.orientation.w = 1.0;
         mk.scale.x = mk.scale.y = mk.scale.z = 0.035;
         mk.color = color;
-        mk.lifetime = ros::Duration(10.0);
+        mk.lifetime = ros::Duration(30.0);
         arr.markers.push_back(mk);
       }
       pub_markers_.publish(arr); 
@@ -224,8 +224,12 @@ public:
   
   bool computeBenchmark(moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res)
   {
-    ROS_INFO("Received new benchmark request...");
-    return ompl_interface_.benchmark(psm_.getPlanningScene(), req, res);
+      ROS_INFO("Received new benchmark request...");
+      
+      planning_scene::PlanningScenePtr scene(new planning_scene::PlanningScene());
+      scene->configure(psm_.getPlanningScene()->getUrdfModel(), psm_.getPlanningScene()->getSrdfModel());
+      scene->setPlanningSceneMsg(req.scene);
+      return ompl_interface_.benchmark(scene, req, res);
   }
   
   void status(void)
