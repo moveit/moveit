@@ -1,0 +1,19 @@
+<package>
+  <description brief="moveit_benchmarks">
+
+     moveit_benchmarks
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_benchmarks</url>
+  <depend package="planning_interface"/>
+  <depend package="pluginlib"/>
+  <depend package="tf"/>
+  <depend package="planning_scene_monitor"/>
+  <depend package="moveit_warehouse"/>
+
+</package>
+
+
