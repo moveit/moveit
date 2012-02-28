@@ -422,7 +422,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
       // fill the response
       ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
                 context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
-      pm::kinematicStateToRobotState(start_state, res.robot_state);
+      pm::kinematicStateToRobotState(start_state, res.trajectory_start);
       res.planning_time = ros::Duration(context->getLastPlanTime());
       context->getSolutionPath(res.trajectory);
       res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
