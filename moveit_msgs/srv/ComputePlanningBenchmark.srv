@@ -1,8 +1,17 @@
 # This service contains the definition for a request for benchmark
 # to the motion planner 
 
+# The scene to consider in the benchmark
+PlanningScene scene
+
 # The problem to benchmark
 MotionPlanRequest motion_plan_request
+
+# The planning instances to use in the benchmark
+string[] planner_interfaces
+
+# Number of runs to execute for each planning interface (so that the information can be averaged later)
+uint32 average_count
 
 # The file where to store the results
 string filename

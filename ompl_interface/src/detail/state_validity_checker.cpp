@@ -87,7 +87,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist) const
 {
-  ompl::tools::Profiler::ScopedBlock sblock("isValidD");
+    //  ompl::tools::Profiler::ScopedBlock sblock("isValidD");
   
   if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown() && state->as<ModelBasedStateSpace::StateType>()->isGoalDistanceKnown())
   {
