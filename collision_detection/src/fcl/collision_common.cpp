@@ -304,30 +304,6 @@ namespace collision_detection
     return boost::shared_ptr<fcl::CollisionGeometry>(g);
   } 
 
-  void transform2fcl(const Eigen::Affine3d &b, fcl::SimpleTransform &f)
-  {
-    Eigen::Quaterniond q(b.rotation());
-    f.setTranslation(fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
-    f.setQuatRotation(fcl::SimpleQuaternion(q.w(), q.x(), q.y(), q.z()));
-  }
-  fcl::SimpleTransform transform2fcl(const Eigen::Affine3d &b)
-  {
-    fcl::SimpleTransform t;
-    transform2fcl(b, t);
-    return t;
-  }
-  void fcl2contact(const fcl::Contact &fc, Contact &c)
-  {
-    c.pos = Eigen::Vector3d(fc.pos[0], fc.pos[1], fc.pos[2]);
-    c.normal = Eigen::Vector3d(fc.normal[0], fc.normal[1], fc.normal[2]);
-    c.depth = fc.penetration_depth;
-    const CollisionGeometryData *cgd1 = static_cast<const CollisionGeometryData*>(fc.o1->getUserData());
-    c.body_name_1 = cgd1->getID();
-    c.body_type_1 = cgd1->type;
-    const CollisionGeometryData *cgd2 = static_cast<const CollisionGeometryData*>(fc.o2->getUserData());
-    c.body_name_2 = cgd2->getID();
-    c.body_type_2 = cgd2->type;
-  }
 }
 
 void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager *manager)
