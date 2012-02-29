@@ -415,9 +415,9 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     
     if (context->solve(timeout, attempts))
     {
-	//      double ptime = context->getLastPlanTime();
-	//      if (ptime < timeout)
-	//        context->simplifySolution(timeout - ptime);
+      double ptime = context->getLastPlanTime();
+      if (ptime < timeout)
+	context->simplifySolution(timeout - ptime);
       context->interpolateSolution();
       
       // fill the response
