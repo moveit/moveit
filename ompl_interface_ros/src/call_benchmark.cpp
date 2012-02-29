@@ -153,10 +153,12 @@ int main(int argc, char **argv)
   spinner.start();
   
   benchmarkSimplePlan("SBLkConfigDefault");
-  benchmarkSimplePlan("SBLkConfigDefaultD");
-  benchmarkSimplePlan("SBLkConfigDefaultH");
-  benchmarkSimplePlan("SBLkConfigDefaultDH");
-  benchmarkSimplePlan("SBLkConfigDefaultDD");
+  benchmarkSimplePlan("ESTkConfigDefault");
+  benchmarkSimplePlan("BKPIECEkConfigDefault");
+  benchmarkSimplePlan("LBKPIECEkConfigDefault");
+  benchmarkSimplePlan("KPIECEkConfigDefault");
+  benchmarkSimplePlan("RRTkConfigDefault");
+  benchmarkSimplePlan("RRTConnectkConfigDefault");
 
   //  benchmarkSimplePlan("KPIECEkConfigDefault");
   /*
