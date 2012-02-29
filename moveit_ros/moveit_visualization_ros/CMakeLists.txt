@@ -56,6 +56,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/planning_visualization_qt_wrapper.cpp
   src/planning_scene_file_menu.cpp
   src/planning_scene_database_dialog.cpp
+  src/moveit_visualizer.cpp
   ${MOC_FILES}
   )
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
@@ -73,11 +74,14 @@ target_link_libraries(joint_trajectory_visualization_test ${PROJECT_NAME})
 rosbuild_add_executable(interactive_object_visualization_test src/interactive_object_visualization_test.cpp)
 target_link_libraries(interactive_object_visualization_test ${PROJECT_NAME})
 
-rosbuild_add_executable(planning_components_visualizer src/planning_components_visualizer.cpp)
-target_link_libraries(planning_components_visualizer ${PROJECT_NAME})
+#rosbuild_add_executable(planning_components_visualizer src/planning_components_visualizer.cpp)
+#target_link_libraries(planning_components_visualizer ${PROJECT_NAME})
 
-rosbuild_add_executable(planning_components_visualizer_full src/planning_components_visualizer_full.cpp)
-target_link_libraries(planning_components_visualizer_full ${QT_LIBRARIES} ${PROJECT_NAME})
+#rosbuild_add_executable(planning_components_visualizer_full src/planning_components_visualizer_full.cpp)
+#target_link_libraries(planning_components_visualizer_full ${QT_LIBRARIES} ${PROJECT_NAME})
+
+rosbuild_add_executable(moveit_visualizer src/moveit_visualizer_main.cpp)
+target_link_libraries(moveit_visualizer ${QT_LIBRARIES} ${PROJECT_NAME})
 
 rosbuild_add_executable(interactive_distance_field src/interactive_distance_field.cpp)
 target_link_libraries(interactive_distance_field ${QT_LIBRARIES} ${PROJECT_NAME})
