@@ -207,9 +207,11 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(void)
 	     name_.c_str(), type.c_str());
   }
   
-  // call the setParams() after setup()
+  // call the setParams() after setup(), so we know what the params are
   ompl_simple_setup_.getSpaceInformation()->setup();
   ompl_simple_setup_.getSpaceInformation()->params().setParams(cfg, true);
+  // call setup() again for possibly new param values
+  ompl_simple_setup_.getSpaceInformation()->setup();
 }
 
 void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams)
@@ -245,7 +247,6 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution(void)
   {
     og::PathGeometric &pg = ompl_simple_setup_.getSolutionPath();
     pg.interpolate((std::size_t)floor(0.5 + pg.length() / max_solution_segment_length_));
-    //    pg.interpolate();
   }
 }
 

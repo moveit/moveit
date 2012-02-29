@@ -134,6 +134,7 @@ ompl::base::PlannerPtr ompl_interface::OMPLInterface::plannerAllocator(const omp
     if (!name.empty())
       p->setName(name);
     p->params().setParams(config, true);
+    p->setup();
     return p;
   }
   else
