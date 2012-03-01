@@ -411,32 +411,42 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
   }
 }
 
-void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const
+bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns,
+                                                          moveit_msgs::CollisionObject& co) const 
 {
-  moveit_msgs::CollisionObject co;
+  co = moveit_msgs::CollisionObject();
   co.header.frame_id = getPlanningFrame();
   co.id = ns;
   co.operation = moveit_msgs::CollisionObject::ADD;
-  const collision_detection::CollisionWorld::Object &obj = *getCollisionWorld()->getObject(ns);
-  for (std::size_t j = 0 ; j < obj.static_shapes_.size() ; ++j)
+  const collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns);
+  if(!obj) return false;
+  for (std::size_t j = 0 ; j < obj->static_shapes_.size() ; ++j)
   {
     moveit_msgs::StaticShape sm;
-    if (constructMsgFromShape(obj.static_shapes_[j], sm))
+    if (constructMsgFromShape(obj->static_shapes_[j], sm))
       co.static_shapes.push_back(sm);
   }
-  for (std::size_t j = 0 ; j < obj.shapes_.size() ; ++j)
+  for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
   {
     moveit_msgs::Shape sm;
-    if (constructMsgFromShape(obj.shapes_[j], sm))
+    if (constructMsgFromShape(obj->shapes_[j], sm))
     {
       co.shapes.push_back(sm);
       geometry_msgs::Pose p;
-      planning_models::msgFromPose(obj.shape_poses_[j], p);
+      planning_models::msgFromPose(obj->shape_poses_[j], p);
       co.poses.push_back(p);
     }
   }
-  if (!co.shapes.empty() || !co.static_shapes.empty())
-    scene.world.collision_objects.push_back(co);
+  return true;
+}
+
+void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const
+{
+  moveit_msgs::CollisionObject co;
+  if(getCollisionObjectMsg(ns, co)) {
+    if (!co.shapes.empty() || !co.static_shapes.empty())
+      scene.world.collision_objects.push_back(co);
+  }
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const
