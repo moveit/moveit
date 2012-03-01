@@ -77,6 +77,10 @@ public:
 
   void setAllStartChainModes(bool chain);
 
+  std::string getCurrentGroup() const {
+    return current_group_;
+  }
+
 protected:
 
   void generatePlan(const std::string& name);

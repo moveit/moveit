@@ -70,6 +70,13 @@ public:
 
   void updateCurrentState(const planning_models::KinematicState& current_state);
 
+  void addMenuEntry(const std::string& menu_name,
+                    const boost::function<void(const std::string&)>& callback);
+
+  void addMenuEntry(const std::string& object_name,
+                    const std::string& menu_name,
+                    const boost::function<void(const std::string&)>& callback);
+
 protected:
 
   void updateOriginalPlanningScene(moveit_msgs::PlanningScenePtr& planning_scene);
@@ -132,6 +139,8 @@ protected:
   unsigned int cylinder_counter_;
 
   std_msgs::ColorRGBA default_object_color_;
+
+  std::map<std::string, boost::function<void(const std::string&)> > all_callback_map_;
 
   std::map<std::string, bool> dof_marker_enabled_;
   std::map<std::string, interactive_markers::MenuHandler> object_menu_handlers_;

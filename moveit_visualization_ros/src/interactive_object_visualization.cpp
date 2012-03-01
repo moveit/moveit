@@ -151,9 +151,6 @@ void InteractiveObjectVisualization::addObject(const std::string& name,
     object_menu_handlers_[name].getCheckState(menu_name_to_handle_maps_[name]["Shrink"], shrink_state);
   
     planning_scene_diff_->processCollisionObjectMsg(rem);
-    object_menu_handlers_.erase(name);
-    menu_name_to_handle_maps_.erase(name);
-    menu_handle_to_function_maps_.erase(name);
   }
 
   moveit_msgs::CollisionObject coll;
@@ -200,40 +197,56 @@ void InteractiveObjectVisualization::addObject(const std::string& name,
   }
   recolorInteractiveMarker(marker, color_to_use);
   interactive_marker_server_->insert(marker);
-  interactive_marker_server_->setCallback(marker.name, 
+  interactive_marker_server_->setCallback(name, 
                                           boost::bind(&InteractiveObjectVisualization::processInteractiveMarkerFeedback, this, _1));
 
-  interactive_markers::MenuHandler::EntryHandle del_entry
-    = object_menu_handlers_[name].insert("Delete object", 
-                                         boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-  menu_handle_to_function_maps_[name][del_entry] = boost::bind(&InteractiveObjectVisualization::deleteObject, this, _1);
+  if(menu_name_to_handle_maps_[name].find("Delete object") == menu_name_to_handle_maps_[name].end()) {
+    interactive_markers::MenuHandler::EntryHandle del_entry
+      = object_menu_handlers_[name].insert("Delete object", 
+                                           boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    menu_handle_to_function_maps_[name][del_entry] = boost::bind(&InteractiveObjectVisualization::deleteObject, this, _1);
+    menu_name_to_handle_maps_[name]["Delete object"] = del_entry;
+  }
+  if(menu_name_to_handle_maps_[name].find("Resize Mode") == menu_name_to_handle_maps_[name].end()) {
+    interactive_markers::MenuHandler::EntryHandle resize_entry
+      = object_menu_handlers_[name].insert("Resize Mode", 
+                                           boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    
+    menu_name_to_handle_maps_[name]["Resize Mode"] = resize_entry;
+
+    interactive_markers::MenuHandler::EntryHandle off_entry = 
+      object_menu_handlers_[name].insert(resize_entry, "Off", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    object_menu_handlers_[name].setCheckState(off_entry, off_state);
+    
+    menu_name_to_handle_maps_[name]["Off"] = off_entry;
+    menu_handle_to_function_maps_[name][off_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeOff, this, _1);
+    
+    interactive_markers::MenuHandler::EntryHandle grow_entry = 
+      object_menu_handlers_[name].insert(resize_entry, "Grow", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    object_menu_handlers_[name].setCheckState(grow_entry, grow_state);
+    
+    menu_name_to_handle_maps_[name]["Grow"] = grow_entry;
+    menu_handle_to_function_maps_[name][grow_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeGrow, this, _1);
+    
+    interactive_markers::MenuHandler::EntryHandle shrink_entry = 
+      object_menu_handlers_[name].insert(resize_entry, "Shrink", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    object_menu_handlers_[name].setCheckState(shrink_entry, shrink_state);
+    
+    menu_name_to_handle_maps_[name]["Shrink"] = shrink_entry;
+    menu_handle_to_function_maps_[name][shrink_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeShrink, this, _1);
+  }
+  for(std::map<std::string, boost::function<void(const std::string&)> >::iterator it = all_callback_map_.begin();
+      it != all_callback_map_.end(); 
+      it++) {
+    if(menu_name_to_handle_maps_[name].find(it->first) == menu_name_to_handle_maps_[name].end()) {
+      interactive_markers::MenuHandler::EntryHandle eh = object_menu_handlers_[name].insert(it->first,
+                                                                                            boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+      menu_name_to_handle_maps_[name][it->first] = eh;
+      menu_handle_to_function_maps_[name][eh] = it->second;
+    }
+  }
   
-  interactive_markers::MenuHandler::EntryHandle resize_entry
-    = object_menu_handlers_[name].insert("Resize Mode", 
-                                         boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-  
-  interactive_markers::MenuHandler::EntryHandle off_entry = 
-    object_menu_handlers_[name].insert(resize_entry, "Off", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-  object_menu_handlers_[name].setCheckState(off_entry, off_state);
-  
-  menu_name_to_handle_maps_[name]["Off"] = off_entry;
-  menu_handle_to_function_maps_[name][off_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeOff, this, _1);
-  
-  interactive_markers::MenuHandler::EntryHandle grow_entry = 
-    object_menu_handlers_[name].insert(resize_entry, "Grow", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-  object_menu_handlers_[name].setCheckState(grow_entry, grow_state);
-  
-  menu_name_to_handle_maps_[name]["Grow"] = grow_entry;
-  menu_handle_to_function_maps_[name][grow_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeGrow, this, _1);
-  
-  interactive_markers::MenuHandler::EntryHandle shrink_entry = 
-    object_menu_handlers_[name].insert(resize_entry, "Shrink", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-  object_menu_handlers_[name].setCheckState(shrink_entry, shrink_state);
-  
-  menu_name_to_handle_maps_[name]["Shrink"] = shrink_entry;
-  menu_handle_to_function_maps_[name][shrink_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeShrink, this, _1);
-  
-  object_menu_handlers_[name].apply(*interactive_marker_server_, marker.name);
+  object_menu_handlers_[name].apply(*interactive_marker_server_, name);
 
   interactive_marker_server_->applyChanges();
   callUpdateCallback();
@@ -501,6 +514,39 @@ void InteractiveObjectVisualization::updateOriginalPlanningScene(moveit_msgs::Pl
               ptr->world.collision_objects[i].shapes[0]);
   }
   callUpdateCallback();
+}
+
+void InteractiveObjectVisualization::addMenuEntry(const std::string& menu_name,
+                                                  const boost::function<void(const std::string&)>& callback)
+{
+  all_callback_map_[menu_name] = callback;
+  for(std::map<std::string, interactive_markers::MenuHandler>::iterator it = object_menu_handlers_.begin();
+      it != object_menu_handlers_.end();
+      it++) {
+    interactive_markers::MenuHandler::EntryHandle eh 
+      = it->second.insert(menu_name,
+                          boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    menu_name_to_handle_maps_[it->first][menu_name] = eh;
+    menu_handle_to_function_maps_[it->first][eh] = callback;
+    it->second.apply(*interactive_marker_server_, it->first);
+  }
+  interactive_marker_server_->applyChanges();
+}
+
+void InteractiveObjectVisualization::addMenuEntry(const std::string& object_name,
+                                                  const std::string& menu_name,
+                                                  const boost::function<void(const std::string&)>& callback)
+{
+  if(object_menu_handlers_.find(object_name) == object_menu_handlers_.end()) {
+    ROS_WARN_STREAM("No object " << object_name << " for adding menu entry");
+  }
+  interactive_markers::MenuHandler& mh = object_menu_handlers_[object_name];
+  interactive_markers::MenuHandler::EntryHandle eh = mh.insert(menu_name,
+                                                               boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+  menu_name_to_handle_maps_[object_name][menu_name] = eh;
+  menu_handle_to_function_maps_[object_name][eh] = callback;
+  mh.apply(*interactive_marker_server_, object_name);
+  interactive_marker_server_->applyChanges();
 }
 
 }

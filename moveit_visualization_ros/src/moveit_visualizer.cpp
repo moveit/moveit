@@ -181,7 +181,10 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
 MoveItVisualizer::~MoveItVisualizer() {
   iov_.reset();
   pv_.reset();
-  trajectory_execution_monitor_->restoreOriginalControllers();
+  if(trajectory_execution_monitor_) {
+    trajectory_execution_monitor_->restoreOriginalControllers();
+    trajectory_execution_monitor_.reset();
+  }
   planning_scene_monitor_.reset();
   delete rviz_frame_;
 }
@@ -198,6 +201,7 @@ void MoveItVisualizer::publisherFunction() {
 }
 
 void MoveItVisualizer::updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene) {
+  current_diff_ = planning_scene;
   pv_->updatePlanningScene(planning_scene);
 }
 

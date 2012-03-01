@@ -54,7 +54,7 @@ public:
 
   ~MoveItVisualizer();
 
-  void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene);
+  virtual void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene);
 
   void updateToCurrentState();
 
@@ -74,6 +74,8 @@ protected:
   ros::Publisher vis_marker_publisher_;
 
   rviz::VisualizationPanel* rviz_frame_;
+
+  planning_scene::PlanningSceneConstPtr current_diff_;
 
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
   boost::shared_ptr<KinematicStateJointStatePublisher> joint_state_publisher_;
