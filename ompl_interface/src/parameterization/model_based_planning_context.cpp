@@ -552,7 +552,10 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
   pm::KinematicState default_state(getKinematicModel());
   default_state.setToDefaultValues();
   int nthreads = 0;
-  
+  unsigned int attempts = 0;
+
+  ompl_state_space_->setPlanningVolume(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
+
   // construct the constrained states
 #pragma omp parallel
   { 
@@ -568,24 +571,32 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
                                                                   pm::TransformsConstPtr(new pm::Transforms(getKinematicModel()->getModelFrame())),
                                                                   ompl_state_space_->getKinematicsAllocator(),
                                                                   ompl_state_space_->getKinematicsSubgroupAllocators());
-    
-    ob::StateSamplerPtr ss(cs ? ob::StateSamplerPtr(new ConstrainedSampler(this, cs)) :
-                           ompl_simple_setup_.getStateSpace()->allocDefaultStateSampler());
+    ConstrainedSampler *csmp = cs ? new ConstrainedSampler(this, cs) : NULL;
+    ob::StateSamplerPtr ss(csmp ? ob::StateSamplerPtr(csmp) : ompl_simple_setup_.getStateSpace()->allocDefaultStateSampler());
     
     ompl::base::ScopedState<> temp(si);
-    unsigned int attempts = 0;
     int done = -1;
     bool slow_warn = false;
     ompl::time::point start = ompl::time::now();
     while (sstor->size() < samples)
     {
       ++attempts;
-      if (!slow_warn && attempts > 10 && attempts > sstor->size() * 100)
-      {
-	slow_warn = true;
-	ROS_WARN("Computation of valid state database is very slow...");
+#pragma omp master
+      {      
+	int done_now = 100 * sstor->size() / samples;
+	if (done != done_now)
+	{
+	  done = done_now;
+	  ROS_INFO("%d%% complete (kept %0.1lf%% sampled states)", done, 100.0 * (double)sstor->size() / (double)attempts);
+	}
+
+	if (!slow_warn && attempts > 10 && attempts > sstor->size() * 100)
+	{
+	  slow_warn = true;
+	  ROS_WARN("Computation of valid state database is very slow...");
+	}
       }
-      
+
       if (attempts > samples && sstor->size() == 0)
       {
 	ROS_ERROR("Unable to generate any samples");
@@ -604,20 +615,13 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 	    sstor->addState(temp.get());
 	}
       }
-      
-#pragma omp master
-      {
-	int done_now = 100 * sstor->size() / samples;
-	if (done != done_now)
-	{
-	  done = done_now;
-	  ROS_INFO("%d%% complete (kept %0.1f%% sampled states)", done, (double)sstor->size() / (double)attempts);
-	}
-      }
     }
+    
 #pragma omp master
     {
-      ROS_INFO("Generated %u states in %lf seconds", (unsigned int)sstor->size(), ompl::time::seconds(ompl::time::now() - start));
+      ROS_INFO("Generated %u states in %lf seconds", (unsigned int)sstor->size(), ompl::time::seconds(ompl::time::now() - start)); 
+      if (csmp)
+	ROS_INFO("Constrained sampling rate: %lf", csmp->getConstrainedSamplingRate());
     }
   }
   

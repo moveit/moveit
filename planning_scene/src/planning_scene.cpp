@@ -612,9 +612,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   {
     for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
       processCollisionObjectMsg(scene.world.collision_objects[i]);
-
-    if (!scene.world.collision_map.header.frame_id.empty() && !scene.world.collision_map.boxes.empty())
-      processCollisionMapMsg(scene.world.collision_map);
+    processCollisionMapMsg(scene.world.collision_map);
   }
 }
 
@@ -671,6 +669,8 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
 
 void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
 {
+  if (map.boxes.empty())
+    return;
   const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
   for (std::size_t i = 0 ; i < map.boxes.size() ; ++i)
   {
