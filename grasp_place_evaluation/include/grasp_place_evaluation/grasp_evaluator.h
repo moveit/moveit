@@ -45,11 +45,15 @@
 
 namespace grasp_place_evaluation {
 
-//! Encapsulates the result of feasibility testing and the information needed for eexcuting
+//! Encapsulates the result of feasibility testing and the information needed for executing
 //! a grasp, assuming an approach-grasp-lift method.
 struct GraspExecutionInfo {
+  std::string group_name_;
   trajectory_msgs::JointTrajectory approach_trajectory_; 
   trajectory_msgs::JointTrajectory lift_trajectory_; 
+  Eigen::Affine3d grasp_pose_;
+  Eigen::Affine3d pregrasp_pose_;
+  Eigen::Affine3d lift_pose_;
   moveit_manipulation_msgs::GraspResult result_;
   int marker_id_;
 };

@@ -1,0 +1,16 @@
+<package>
+  <description brief="moveit_manipulation_visualization">
+
+     moveit_manipulation_visualization
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_manipulation_visualization</url>
+  <depend package="moveit_visualization_ros"/>
+  <depend package="grasp_place_evaluation"/>
+
+</package>
+
+

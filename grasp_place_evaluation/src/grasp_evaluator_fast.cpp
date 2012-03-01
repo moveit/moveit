@@ -88,6 +88,13 @@ std::string GraspEvaluatorFast::getEndEffectorName(const boost::shared_ptr<const
   return "";
 }
 
+std::string GraspEvaluatorFast::getTipLink(const std::string& group_name) {
+  if(constraint_aware_solver_map_.find(group_name) == constraint_aware_solver_map_.end()) {
+    return "";
+  }
+  return constraint_aware_solver_map_.at(group_name)->getTipFrames().begin()->second;
+}
+
 std::string GraspEvaluatorFast::getAttachLink(const std::string& end_effector_name) 
 {
   const planning_models::KinematicModel::JointModelGroup* jmg = 
@@ -369,7 +376,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   std::map<std::string, double> planning_scene_state_values;
   state.getStateValues(planning_scene_state_values);
 
-  const std::string& tip_link = constraint_aware_solver_map_.at(pickup_goal.arm_name)->getTipFrames().begin()->second;
+  std::string tip_link = getTipLink(pickup_goal.arm_name);
   
   std::string end_effector_group = getEndEffectorName(planning_scene->getSrdfModel(),
                                                       pickup_goal.arm_name);
@@ -403,9 +410,9 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
 
   //turning off collisions for the arm associated with this end effector
   for(unsigned int i = 0; i < arm_links.size(); i++) {
-    object_all_arm_disable_acm.setEntry(arm_links[i], true);
-    object_support_all_arm_disable_acm.setEntry(arm_links[i], true);
-    group_all_arm_disable_acm.setEntry(arm_links[i], true);
+    object_all_arm_disable_acm.setDefaultEntry(arm_links[i], true);
+    object_support_all_arm_disable_acm.setDefaultEntry(arm_links[i], true);
+    group_all_arm_disable_acm.setDefaultEntry(arm_links[i], true);
   }
   
   //first we apply link padding for grasp check
@@ -458,6 +465,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
 
     //always true
     execution_info[i].result_.continuation_possible = true;
+    execution_info[i].group_name_ = pickup_goal.arm_name;
 
     if(!in_object_frame) {
       Eigen::Affine3d grasp_pose;
@@ -476,6 +484,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
     //cm->setAlteredAllowedCollisionMatrix(object_support_all_arm_disable_acm);
+    execution_info[i].grasp_pose_ = grasp_poses[i];
     planning_scene->checkCollisionUnpadded(req, res, state, object_support_all_arm_disable_acm);
     if(res.collision) {
       execution_info[i].result_.result_code = GraspResult::GRASP_IN_COLLISION;
@@ -513,6 +522,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     collision_detection::CollisionResult res;
     attached_object_diff_scene->checkCollision(req,res,state,
                                                object_support_all_arm_disable_acm);
+    execution_info[i].lift_pose_ = lift_pose;
     if(res.collision) {
       ROS_DEBUG_STREAM("Lift in collision");
       execution_info[i].result_.result_code = GraspResult::LIFT_IN_COLLISION;
@@ -542,6 +552,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     //cm->setAlteredAllowedCollisionMatrix(group_all_arm_disable_acm);
     planning_scene->checkCollision(req,res,state,
                                    group_all_arm_disable_acm);
+    execution_info[i].pregrasp_pose_ = pre_grasp_pose;
     if(res.collision) {
       ROS_DEBUG_STREAM("Pre-grasp in collision");
       execution_info[i].result_.result_code = GraspResult::PREGRASP_IN_COLLISION;
