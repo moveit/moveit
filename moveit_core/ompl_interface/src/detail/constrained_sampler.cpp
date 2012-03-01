@@ -39,7 +39,8 @@
 #include <ompl/tools/debug/Profiler.h>
 
 ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc, const kc::ConstraintSamplerPtr &cs) :
-  ob::StateSampler(pc->getOMPLStateSpace().get()), planning_context_(pc), default_(space_->allocDefaultStateSampler()), constraint_sampler_(cs)
+  ob::StateSampler(pc->getOMPLStateSpace().get()), planning_context_(pc), default_(space_->allocDefaultStateSampler()),
+  constraint_sampler_(cs), constrained_success_(0), constrained_failure_(0)
 {
 }
 
@@ -49,8 +50,13 @@ bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
   if (constraint_sampler_->sample(values, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumSamplingAttempts()))
   {
     planning_context_->getOMPLStateSpace()->copyToOMPLState(state, values);
-    return space_->satisfiesBounds(state);
+    if (space_->satisfiesBounds(state))
+    {
+	++constrained_success_;
+	return true;
+    }
   }
+  ++constrained_failure_;
   return false;
 }
 

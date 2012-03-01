@@ -342,8 +342,8 @@ planning_models::KinematicState::LinkState* planning_models::KinematicState::get
   std::map<std::string, LinkState*>::const_iterator it = link_state_map_.find(name);
   if (it == link_state_map_.end())
   {
-    ROS_ERROR("Joint state '%s' not found", name.c_str());
-    return NULL;
+    ROS_ERROR("Link state '%s' not found", name.c_str());
+    return NULL; 
   }
   else
     return it->second;
