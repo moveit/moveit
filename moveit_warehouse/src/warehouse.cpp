@@ -155,6 +155,30 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<s
       names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
 }
 
+bool moveit_warehouse::PlanningSceneStorage::getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name, const ros::Time& time, double margin) const
+{
+  PlanningSceneWithMetadata scene_m;
+  if (getPlanningScene(scene_m, scene_name, time, margin))
+  {
+    world = scene_m->world;
+    return true;
+  }
+  else
+    return false;
+}
+
+bool moveit_warehouse::PlanningSceneStorage::getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name) const
+{
+  PlanningSceneWithMetadata scene_m;
+  if (getPlanningScene(scene_m, scene_name))
+  {
+    world = scene_m->world;
+    return true;
+  }
+  else
+    return false;
+}
+
 bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name) const
 {
   mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
