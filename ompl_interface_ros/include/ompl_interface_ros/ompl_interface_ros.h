@@ -62,6 +62,9 @@ namespace ompl_interface_ros
       void printStatus(void);
 
     protected:
+	
+      /** @brief Configure everything using the param server */
+      void loadParams(void);
 
       /** @brief Configure the IK solvers from the ROS param server*/
       void loadKinematicsSolvers(void);

@@ -41,28 +41,29 @@
 ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel) :
   ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(new kinematics_plugin_loader::KinematicsPluginLoader())
 {
-  ROS_INFO("Initializing OMPL interface using ROS parameters");
-  loadPlannerConfigurations();
-  loadKinematicsSolvers();
-  
-  /*    loadConstraintApproximations("/u/isucan/c/");
-        std::stringstream ss;
-        printConstraintApproximations(ss);
-        ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str()); */
+  loadParams();
 }
 
 ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel,
                                                        boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& loader) :
   ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(loader)
 {
+  loadParams();
+}
+
+void ompl_interface_ros::OMPLInterfaceROS::loadParams(void)
+{ 
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
   loadKinematicsSolvers();
-  
-  /*    loadConstraintApproximations("/u/isucan/c/");
+  std::string cpath;
+  if (nh_.getParam("constraint_approximations", cpath))
+      loadConstraintApproximations(cpath);
+  /*    
         std::stringstream ss;
         printConstraintApproximations(ss);
         ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str()); */
+
 }
 
 void ompl_interface_ros::OMPLInterfaceROS::loadKinematicsSolvers(void)
