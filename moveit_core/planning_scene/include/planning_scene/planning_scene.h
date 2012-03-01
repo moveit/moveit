@@ -291,6 +291,9 @@ public:
   //part of the indicated group, returning the matrix
   collision_detection::AllowedCollisionMatrix disableCollisionsForNonUpdatedLinks(const std::string& group) const;
 
+  bool getCollisionObjectMsg(const std::string& ns,
+                             moveit_msgs::CollisionObject& obj) const;
+
 protected:
 
   void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
