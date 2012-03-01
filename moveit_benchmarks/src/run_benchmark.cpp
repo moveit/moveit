@@ -161,6 +161,8 @@ public:
 	for (std::size_t i = 0 ; i < pi.size() ; ++i)
 	    ROS_INFO_STREAM("  * " << pi[i]->getDescription());
 	scene_->setPlanningSceneMsg(req.scene);
+	res.trajectory_start.resize(pi.size());
+	res.trajectory.resize(pi.size());	
 
 	ros::WallTime startTime = ros::WallTime::now();
 	boost::progress_display progress(pi.size() * req.average_count, std::cout);
@@ -176,6 +178,7 @@ public:
 		++progress;
 		ros::WallTime start = ros::WallTime::now();
 		bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
+		
 		runs[c]["time REAL"] = boost::lexical_cast<std::string>((ros::WallTime::now() - start).toSec());
 		runs[c]["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
 		double L = 0.0;
@@ -187,13 +190,13 @@ public:
 			L += p[k-1]->distance(*p[k]);
 		}
 		runs[c]["path_length REAL"] = boost::lexical_cast<std::string>(L);
-		
+
 		// record the first solution in the response
-		if (solved && first[c])
+		if (solved && first[i])
 		{
-		    first[c] = false;
-		    res.trajectory[c] = mp_res.trajectory;
-		    res.trajectory_start[c] = mp_res.trajectory_start;
+		    first[i] = false;
+		    res.trajectory[i] = mp_res.trajectory;
+		    res.trajectory_start[i] = mp_res.trajectory_start;
 		}
 	    }
 	    data.push_back(runs);

@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 
   ompl_interface.addConstraintApproximation(constr2, "left_arm", 100000);
     */
-  ompl_interface.saveConstraintApproximations("/u/isucan/c/");
+  ompl_interface.saveConstraintApproximations("/home/isucan/c/");
 
   return 0;
 }
