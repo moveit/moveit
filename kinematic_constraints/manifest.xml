@@ -16,6 +16,7 @@
   <depend package="kinematics_base"/>
   <depend package="kinematics_msgs"/>
   <depend package="collision_detection"/>
+  <depend package="visualization_msgs"/>
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lkinematic_constraints"/>

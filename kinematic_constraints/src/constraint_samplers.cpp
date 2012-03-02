@@ -486,12 +486,12 @@ bool kinematic_constraints::UnionConstraintSampler::sample(std::vector<double> &
   return true;
 }
 
-kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructConstraintsSampler(const planning_models::KinematicModel::JointModelGroup *jmg,
-                                                                                               const moveit_msgs::Constraints &constr,
-                                                                                               const planning_models::KinematicModelConstPtr &kmodel,
-                                                                                               const planning_models::TransformsConstPtr &ftf,
-                                                                                               const KinematicsAllocator &ik_alloc,
-                                                                                               const KinematicsSubgroupAllocator &ik_subgroup_alloc)
+kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::ConstraintSampler::constructFromMessage(const planning_models::KinematicModel::JointModelGroup *jmg,
+													   const moveit_msgs::Constraints &constr,
+													   const planning_models::KinematicModelConstPtr &kmodel,
+													   const planning_models::TransformsConstPtr &ftf,
+													   const KinematicsAllocator &ik_alloc,
+													   const KinematicsSubgroupAllocator &ik_subgroup_alloc)
 {
   ROS_DEBUG("Attempting to construct constrained state sampler for group '%s'", jmg->getName().c_str());
   
@@ -667,7 +667,7 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
       if (!sub_constr.orientation_constraints.empty() || !sub_constr.position_constraints.empty())
       {
         ROS_DEBUG("Attempting to construct a sampler for the '%s' subgroup of '%s'", it->first->getName().c_str(), jmg->getName().c_str());
-        ConstraintSamplerPtr cs = constructConstraintsSampler(it->first, sub_constr, kmodel, ftf, it->second);
+        ConstraintSamplerPtr cs = constructFromMessage(it->first, sub_constr, kmodel, ftf, it->second);
         if (cs)
         {
           ROS_DEBUG("Constructed a sampler for the joints corresponding to group '%s', but part of group '%s'", 
@@ -692,4 +692,42 @@ kinematic_constraints::ConstraintSamplerPtr kinematic_constraints::constructCons
   ROS_DEBUG("No constraints sampler allocated for group '%s'", jmg->getName().c_str());
   
   return ConstraintSamplerPtr();
+}
+
+void kinematic_constraints::ConstraintSampler::visualizeDistribution(const planning_models::KinematicState &complete_state, const std::string &link_name, unsigned int count,
+								     unsigned int attempts, visualization_msgs::MarkerArray &markers)
+{
+  planning_models::KinematicState ks(complete_state); 
+  std_msgs::ColorRGBA color;
+  color.r = 1.0f;
+  color.g = 0.0f;
+  color.b = 0.0f;
+  color.a = 1.0f;
+  for (unsigned int i = 0 ; i < count ; ++i)
+  {
+    std::vector<double> vals;
+    if (!sample(vals, ks, attempts))
+	continue;
+    ks.getJointStateGroup(getJointModelGroup()->getName())->setStateValues(vals);
+    const planning_models::KinematicState::LinkState *ls = ks.getLinkState(link_name);
+    if (ls)
+    {
+      const Eigen::Vector3d &pos = ls->getGlobalLinkTransform().translation();
+      visualization_msgs::Marker mk;
+      mk.header.stamp = ros::Time::now();
+      mk.header.frame_id = jmg_->getParentModel()->getModelFrame();
+      mk.ns = "constraint_samples";
+      mk.id = i;
+      mk.type = visualization_msgs::Marker::SPHERE;
+      mk.action = visualization_msgs::Marker::ADD;
+      mk.pose.position.x = pos.x();
+      mk.pose.position.y = pos.y();
+      mk.pose.position.z = pos.z();
+      mk.pose.orientation.w = 1.0;
+      mk.scale.x = mk.scale.y = mk.scale.z = 0.035;
+      mk.color = color;
+      mk.lifetime = ros::Duration(30.0);
+      markers.markers.push_back(mk);
+    }
+  }
 }

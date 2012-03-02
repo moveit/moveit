@@ -61,7 +61,8 @@ typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si
 struct ModelBasedPlanningContextSpecification
 {
   std::map<std::string, std::string> config_;
-  ConfiguredPlannerAllocator planner_allocator_;
+  ConfiguredPlannerAllocator planner_allocator_; 
+  ConstraintApproximationsPtr constraints_;
 };
   
 class ModelBasedPlanningContext
@@ -279,7 +280,9 @@ protected:
   
   /// tool used to compute multiple plans in parallel; this uses the problem definition maintained by ompl_simple_setup_
   ot::ParallelPlan ompl_parallel_plan_;
-  
+
+  std::vector<int> space_signature_;
+
   kc::KinematicConstraintSetPtr              path_constraints_;
   std::vector<kc::KinematicConstraintSetPtr> goal_constraints_;
 
