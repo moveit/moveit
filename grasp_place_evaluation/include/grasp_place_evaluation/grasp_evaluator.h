@@ -48,14 +48,18 @@ namespace grasp_place_evaluation {
 //! Encapsulates the result of feasibility testing and the information needed for executing
 //! a grasp, assuming an approach-grasp-lift method.
 struct GraspExecutionInfo {
-  std::string group_name_;
   trajectory_msgs::JointTrajectory approach_trajectory_; 
   trajectory_msgs::JointTrajectory lift_trajectory_; 
   Eigen::Affine3d grasp_pose_;
   Eigen::Affine3d pregrasp_pose_;
   Eigen::Affine3d lift_pose_;
+  boost::shared_ptr<planning_scene::PlanningScene> attached_object_diff_scene_;
   moveit_manipulation_msgs::GraspResult result_;
-  int marker_id_;
+};
+
+struct GraspExecutionInfoVector : public std::vector<GraspExecutionInfo> {
+  moveit_manipulation_msgs::PickupGoal pickup_goal_;
+  std::vector<moveit_manipulation_msgs::Grasp> grasps_;
 };
 
 // ---------------------------- Definitions ---------------------------------
@@ -78,7 +82,7 @@ public:
                           const planning_models::KinematicState* seed_state,
                           const moveit_manipulation_msgs::PickupGoal &pickup_goal,
                           const std::vector<moveit_manipulation_msgs::Grasp> &grasps,
-                          std::vector<GraspExecutionInfo> &execution_info,
+                          GraspExecutionInfoVector &execution_info_vector,
                           bool return_on_first_hit) = 0;
 
   //! Sets the feedback function

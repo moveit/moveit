@@ -363,7 +363,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
                                     const planning_models::KinematicState* seed_state,
                                     const moveit_manipulation_msgs::PickupGoal &pickup_goal,
                                     const std::vector<moveit_manipulation_msgs::Grasp> &grasps,
-                                    std::vector<GraspExecutionInfo> &execution_info,
+                                    GraspExecutionInfoVector &execution_info,
                                     bool return_on_first_hit) 
   
 {
@@ -436,6 +436,8 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   }
   
   execution_info.clear();
+  execution_info.pickup_goal_ = pickup_goal;
+  execution_info.grasps_ = grasps;
   execution_info.resize(grasps.size());
 
   Eigen::Vector3d pregrasp_dir(-1.0,0.0,0.0);
@@ -464,8 +466,6 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     state.setStateValues(pre_grasp_joint_vals);
 
     //always true
-    execution_info[i].result_.continuation_possible = true;
-    execution_info[i].group_name_ = pickup_goal.arm_name;
 
     if(!in_object_frame) {
       Eigen::Affine3d grasp_pose;
@@ -494,34 +494,39 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     }
   }
 
-  //making world where we can attach the object
-  boost::shared_ptr<planning_scene::PlanningScene> attached_object_diff_scene(new planning_scene::PlanningScene(planning_scene));
   moveit_msgs::AttachedCollisionObject att_obj;
   att_obj.link_name = getAttachLink(end_effector_group);
   att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
   att_obj.object.id = pickup_goal.collision_object_name;
   att_obj.touch_links = end_effector_links;
-  attached_object_diff_scene->processAttachedCollisionObjectMsg(att_obj);
-  //TODO - add touch links
 
   //first we do lift, with the hand in the grasp posture (collisions allowed between gripper and object)
   for(unsigned int i = 0; i < grasps.size(); i++) {
   
     if(execution_info[i].result_.result_code != 0) continue;
 
+    execution_info[i].attached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
+
+    geometry_msgs::Pose grasp_pose_msg;
+    planning_models::msgFromPose(grasp_poses[i], grasp_pose_msg);
+    execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj,
+                                                                                     &grasp_pose_msg);
+    
+    execution_info[i].attached_object_diff_scene_->getCurrentState().setStateValues(planning_scene_state_values);
+
     std::map<std::string, double> grasp_joint_vals;    
     for(unsigned int j = 0; j < grasps[i].grasp_posture.name.size(); j++) {
       grasp_joint_vals[grasps[i].grasp_posture.name[j]] = grasps[i].grasp_posture.position[j];
     }
-    state.setStateValues(grasp_joint_vals);
+    execution_info[i].attached_object_diff_scene_->getCurrentState().setStateValues(grasp_joint_vals);
 
     Eigen::Affine3d lift_pose = lift_trans*grasp_poses[i];
-    state.updateStateWithLinkAt(tip_link,lift_pose);
+    execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,lift_pose);
 
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
-    attached_object_diff_scene->checkCollision(req,res,state,
-                                               object_support_all_arm_disable_acm);
+    execution_info[i].attached_object_diff_scene_->checkCollision(req,res, execution_info[i].attached_object_diff_scene_->getCurrentState(),
+                                                                  object_support_all_arm_disable_acm);
     execution_info[i].lift_pose_ = lift_pose;
     if(res.collision) {
       ROS_DEBUG_STREAM("Lift in collision");
@@ -661,7 +666,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       execution_info[i].lift_trajectory_.joint_names = joint_names;
       //TODO - figure out if we need to muck with allowed collision matrix for the diff scene
       if(!getInterpolatedIK(pickup_goal.arm_name,
-                            attached_object_diff_scene,
+                            execution_info[i].attached_object_diff_scene_,
                             object_support_disable_acm,
                             base_link_grasp_pose,
                             lift_dir,
@@ -670,7 +675,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
                             false,
                             true,
                             true,
-                            &state,
+                            &execution_info[i].attached_object_diff_scene_->getCurrentState(),
                             execution_info[i].lift_trajectory_)) {
         ROS_DEBUG_STREAM("No interpolated IK for grasp to lift");
         execution_info[i].result_.result_code = GraspResult::LIFT_UNFEASIBLE;
@@ -719,8 +724,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       } 
       state.setStateValues(lift_ik);
       res = collision_detection::CollisionResult();
-      //todo - deal with the allowed collision matrix
-      attached_object_diff_scene->checkCollision(req, res, state);
+      execution_info[i].attached_object_diff_scene_->checkCollision(req, res, execution_info[i].attached_object_diff_scene_->getCurrentState());
       if(res.collision) {
         ROS_DEBUG_STREAM("Final lift check failed");
         execution_info[i].result_.result_code = GraspResult::LIFT_OUT_OF_REACH;

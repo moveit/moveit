@@ -48,6 +48,8 @@ public:
   void attemptToGrasp(const std::string& object_name);
   
 protected:
+
+  void attemptToGraspThread(const std::string& object_name);
   
   boost::shared_ptr<moveit_manipulation_visualization::GraspEvaluationVisualization> grasp_evaluation_visualization_;
   
