@@ -494,7 +494,6 @@ void InteractiveObjectVisualization::processInteractiveMenuFeedback(const visual
 }
 
 void InteractiveObjectVisualization::updateOriginalPlanningScene(moveit_msgs::PlanningScenePtr& ptr) {
-  ROS_INFO_STREAM("Updating original");
   //need to get rid of everything that's been added
   for(std::map<std::string, bool>::iterator it = dof_marker_enabled_.begin();
       it != dof_marker_enabled_.end();
