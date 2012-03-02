@@ -292,6 +292,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getP
     ModelBasedPlanningContextSpecification context_spec;
     context_spec.config_ = config.config;
     context_spec.planner_allocator_ = getPlannerAllocator();
+    context_spec.constraints_ = constraints_;
     ROS_DEBUG("Creating new planning context");
     context = factory->getNewPlanningContext(config.name, space_spec, context_spec); 
     {
@@ -543,9 +544,9 @@ void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::stri
 {
   ROS_INFO("Loading constrained space approximations from '%s'", path.c_str());
   
-  std::ifstream fin((path + "/list").c_str());
+  std::ifstream fin((path + "/manifest").c_str());
   if (!fin.good())
-    ROS_ERROR("Unable to find 'list' in folder '%s'", path.c_str());
+    ROS_DEBUG("Manifest not found in folder '%s'", path.c_str());
   
   while (fin.good() && !fin.eof())
   {
@@ -568,12 +569,11 @@ void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::stri
       std::size_t sum = 0;
       for (std::size_t i = 0 ; i < cass->size() ; ++i)
       {
-        cass->getState(i)->as<ModelBasedStateSpace::StateType>()->tag = i;
         cass->getState(i)->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
         sum += cass->getMetadata(i).size();
       }
       constraints_->push_back(ConstraintApproximation(kmodel_, group, factory, serialization, filename, ompl::base::StateStoragePtr(cass)));
-      ROS_INFO("Loaded %lu states and %lu connextions (%0.1lf per state) from %s", cass->size(), sum, (double)sum / (double)cass->size(), filename.c_str());
+      ROS_INFO("Loaded %lu states and %lu connections (%0.1lf per state) from %s", cass->size(), sum, (double)sum / (double)cass->size(), filename.c_str());
     }
   }
 }
@@ -582,7 +582,7 @@ void ompl_interface::OMPLInterface::saveConstraintApproximations(const std::stri
 {
   ROS_INFO("Saving %u constrained space approximations to '%s'", (unsigned int)constraints_->size(), path.c_str());
   
-  std::ofstream fout((path + "/list").c_str());
+  std::ofstream fout((path + "/manifest").c_str());
   for (std::size_t i = 0 ; i < constraints_->size() ; ++i)
   {
     fout << constraints_->at(i).group_ << std::endl;

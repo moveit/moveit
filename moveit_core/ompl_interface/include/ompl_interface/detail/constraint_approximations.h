@@ -40,6 +40,7 @@
 #include <planning_scene/planning_scene.h>
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <ompl/base/StateStorage.h>
+#include <visualization_msgs/MarkerArray.h>
 
 namespace ompl_interface
 {
@@ -52,13 +53,17 @@ struct ConstraintApproximation
                           const std::string &serialization, const std::string &filename, const ompl::base::StateStoragePtr &storage);
   ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
                           const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage);
-  
+
+  void visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const;
+    
   std::string                                      group_;
   std::string                                      factory_;
   std::string                                      serialization_;
   moveit_msgs::Constraints                         constraint_msg_;
+  planning_models::KinematicModelConstPtr          kmodel_;
   kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;
-  
+  std::vector<int>                                 space_signature_;
+    
   std::string                                      ompldb_filename_;
   ompl::base::StateStoragePtr                      state_storage_ptr_;
   ConstraintApproximationStateStorage             *state_storage_;

@@ -43,6 +43,7 @@
 #include <kinematic_constraints/utils.h>
 
 #include <ompl/base/GoalLazySamples.h>
+#include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/debug/Profiler.h>
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedStateSpacePtr &state_space, 
@@ -52,6 +53,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   last_plan_time_(0.0), max_goal_samples_(0), max_sampling_attempts_(0), max_planning_threads_(0),
   max_velocity_(0), max_acceleration_(0.0), max_solution_segment_length_(0.0)
 {
+  ompl_simple_setup_.getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
 }
 
@@ -108,6 +110,52 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
       ROS_ERROR("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());  
   return ob::ProjectionEvaluatorPtr();
 }
+namespace ompl_interface
+{
+class ConstraintApproximationStateSampler : public ob::StateSampler
+{
+public:
+  
+  ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage) : 
+    ob::StateSampler(space), state_storage_(state_storage)
+  {
+  }
+  
+  virtual void sampleUniform(ob::State *state)
+  { 
+    space_->copyState(state, state_storage_->getState(rng_.uniformInt(0, state_storage_->size() - 1)));
+  }
+  
+  virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
+  {
+    int index = -1;
+    int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
+    if (tag >= 0)
+    {
+      const std::vector<std::size_t> &md = state_storage_->getMetadata(tag);
+      if (!md.empty() && rng_.uniform01() * md.size() > 1.0)
+        index = md[rng_.uniformInt(0, md.size() - 1)];
+    }
+    if (index < 0)
+      index = rng_.uniformInt(0, state_storage_->size() - 1);
+    double dist = space_->distance(near, state_storage_->getState(index));
+    if (dist > distance)
+      space_->interpolate(near, state_storage_->getState(index), distance / dist, state);
+    else
+      space_->copyState(state, state_storage_->getState(index));
+  }
+  
+  virtual void sampleGaussian(ob::State *state, const ob::State *mean, const double stdDev)
+  {
+    sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
+  }
+  
+protected:
+  
+  /** \brief The states to sample from */
+  const ConstraintApproximationStateStorage *state_storage_;  
+};
+}
 
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
 {
@@ -117,9 +165,20 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
   
   if (path_constraints_)
   {
-    kc::ConstraintSamplerPtr cs = kc::constructConstraintsSampler(getJointModelGroup(), path_constraints_->getAllConstraints(), getKinematicModel(),
-                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getKinematicsAllocator(), 
-                                                                  ompl_state_space_->getKinematicsSubgroupAllocators());
+    if (spec_.constraints_)
+    {
+      for (std::size_t i = 0 ; i < spec_.constraints_->size() ; ++i)
+	if (spec_.constraints_->at(i).group_ == getJointModelGroupName() && spec_.constraints_->at(i).space_signature_ == space_signature_ && 
+	    spec_.constraints_->at(i).state_storage_ && spec_.constraints_->at(i).kconstraints_set_->equal(*path_constraints_, 0.1))
+	{
+	  ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
+	  return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_->at(i).state_storage_));
+	}
+    }
+    
+    kc::ConstraintSamplerPtr cs = kc::ConstraintSampler::constructFromMessage(getJointModelGroup(), path_constraints_->getAllConstraints(), getKinematicModel(),
+									      getPlanningScene()->getTransforms(), ompl_state_space_->getKinematicsAllocator(), 
+									      ompl_state_space_->getKinematicsSubgroupAllocators());
     if (cs)
     {
       ROS_DEBUG("%s: Allocating specialized state sampler for state space", name_.c_str());
@@ -195,7 +254,10 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(void)
   
   it = cfg.find("type");
   if (it == cfg.end())
-    ROS_WARN("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
+  {
+    if (name_ != getJointModelGroupName())
+      ROS_WARN("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
+  }
   else
   {
     // remove the 'type' parameter; the rest are parameters for the planner itself
@@ -323,9 +385,9 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(voi
   std::vector<ob::GoalPtr> goals;
   for (std::size_t i = 0 ; i < goal_constraints_.size() ; ++i)
   {
-    kc::ConstraintSamplerPtr cs = kc::constructConstraintsSampler(getJointModelGroup(), goal_constraints_[i]->getAllConstraints(), getKinematicModel(),
-                                                                  getPlanningScene()->getTransforms(), ompl_state_space_->getKinematicsAllocator(),
-                                                                  ompl_state_space_->getKinematicsSubgroupAllocators());
+    kc::ConstraintSamplerPtr cs = kc::ConstraintSampler::constructFromMessage(getJointModelGroup(), goal_constraints_[i]->getAllConstraints(), getKinematicModel(),
+									      getPlanningScene()->getTransforms(), ompl_state_space_->getKinematicsAllocator(),
+									      ompl_state_space_->getKinematicsSubgroupAllocators());
     ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));
     goals.push_back(g);
   }
@@ -538,8 +600,6 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
                                                                                                         const moveit_msgs::Constraints &constr_hard,
                                                                                                         unsigned int samples)
 {
-  planning_scene_.reset();
-  
   // state storage structure
   ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(ompl_simple_setup_.getStateSpace());
   ob::StateStoragePtr sstor(cass);
@@ -551,26 +611,28 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
   // default state
   pm::KinematicState default_state(getKinematicModel());
   default_state.setToDefaultValues();
+  setStartState(default_state);
+  
   int nthreads = 0;
   unsigned int attempts = 0;
 
-  ompl_state_space_->setPlanningVolume(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
+  ompl_state_space_->setPlanningVolume(-20.0, 20.0, -20.0, 20.0, -20.0, 20.0);
 
   // construct the constrained states
 #pragma omp parallel
   { 
 #pragma omp master
     {
-      nthreads = omp_get_num_threads();    
+	nthreads = omp_get_num_threads();    
     }
     
     pm::KinematicState kstate(default_state);
     
     const ob::SpaceInformationPtr &si = ompl_simple_setup_.getSpaceInformation();
-    kc::ConstraintSamplerPtr cs = kc::constructConstraintsSampler(getJointModelGroup(), constr_sampling, getKinematicModel(),
-                                                                  pm::TransformsConstPtr(new pm::Transforms(getKinematicModel()->getModelFrame())),
-                                                                  ompl_state_space_->getKinematicsAllocator(),
-                                                                  ompl_state_space_->getKinematicsSubgroupAllocators());
+    kc::ConstraintSamplerPtr cs = kc::ConstraintSampler::constructFromMessage(getJointModelGroup(), constr_sampling, getKinematicModel(),
+									      pm::TransformsConstPtr(new pm::Transforms(getKinematicModel()->getModelFrame())),
+									      ompl_state_space_->getKinematicsAllocator(),
+									      ompl_state_space_->getKinematicsSubgroupAllocators());
     ConstrainedSampler *csmp = cs ? new ConstrainedSampler(this, cs) : NULL;
     ob::StateSamplerPtr ss(csmp ? ob::StateSamplerPtr(csmp) : ompl_simple_setup_.getStateSpace()->allocDefaultStateSampler());
     
@@ -612,7 +674,10 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 #pragma omp critical
 	{
 	  if (sstor->size() < samples)
+	  {
+	    temp->as<ModelBasedStateSpace::StateType>()->tag = sstor->size();
 	    sstor->addState(temp.get());
+	  }
 	}
       }
     }
@@ -624,6 +689,12 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 	ROS_INFO("Constrained sampling rate: %lf", csmp->getConstrainedSamplingRate());
     }
   }
+  ROS_INFO("Computing graph connections...");
+  
+  ompl::tools::SelfConfig sc(ompl_simple_setup_.getSpaceInformation());
+  double range = 0.0;
+  sc.configurePlannerRange(range);
+  unsigned int maxC = sstor->size() / 50; // connect to maximum 2% of the state space
   
   // construct connexions
   const ob::StateSpacePtr &space = ompl_simple_setup_.getStateSpace();
@@ -633,6 +704,7 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
   
   ompl::time::point start = ompl::time::now();
   int good = 0;
+  int done = -1;
   
 #pragma omp parallel for schedule(dynamic) 
   for (std::size_t j = 0 ; j < sstor->size() ; ++j)
@@ -642,9 +714,18 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
     pm::KinematicState::JointStateGroup *jsg = kstate.getJointStateGroup(getJointModelGroup()->getName());
     ompl::base::State *temp = temps[threadid].get();
     double distance = 0.0;
+    int done_now = 100 * j / sstor->size();
+    if (done != done_now)
+    {
+	done = done_now;
+	ROS_INFO("%d%% complete", done);
+    }
     
     for (std::size_t i = j + 1 ; i < sstor->size() ; ++i)
     {
+      if (space->distance(states[j], states[i]) > range)
+	continue;
+	
       space->interpolate(states[j], states[i], 0.5, temp);
       ompl_state_space_->copyToKinematicState(kstate, temp);
       jsg->updateLinkTransforms();
@@ -656,6 +737,8 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 	  cass->getMetadata(j).push_back(i);
 	  good++;
 	}
+	if (cass->getMetadata(j).size() >= maxC)
+	  break;
       }
     }
   }

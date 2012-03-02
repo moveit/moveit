@@ -108,7 +108,8 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_m
     {
       fcl::CollisionObject *collObj = new fcl::CollisionObject(geoms_[i], transform2fcl(link_states[i]->getGlobalCollisionBodyTransform()));
       fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
-      const std::vector<planning_models::KinematicState::AttachedBody*> ab = link_states[i]->getAttachedBodies();
+      std::vector<const planning_models::KinematicState::AttachedBody*> ab;
+      link_states[i]->getAttachedBodies(ab);
       for (std::size_t j = 0 ; j < ab.size() ; ++j)
       {
 	const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &objs = getAttachedBodyObjects(ab[j]);

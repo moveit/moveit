@@ -42,9 +42,21 @@
 #include <kinematics_base/kinematics_base.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
+#include <visualization_msgs/MarkerArray.h>
 
 namespace kinematic_constraints
 {
+
+class ConstraintSampler;
+    
+typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
+typedef boost::shared_ptr<const ConstraintSampler> ConstraintSamplerConstPtr;
+
+/// function type that allocates an IK solver for a particular group
+typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> KinematicsAllocator;
+
+/// some groups do not have IK solver associated to them, but may contain disjoint groups that do have IK solvers associated to them
+typedef std::map<const planning_models::KinematicModel::JointModelGroup*, KinematicsAllocator> KinematicsSubgroupAllocator;
 
 class ConstraintSampler
 {
@@ -65,22 +77,20 @@ public:
   }
   
   virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts = 100) = 0;
-  
+
+  void visualizeDistribution(const planning_models::KinematicState &complete_state, const std::string &link_name, unsigned int count,
+			     unsigned int attempts, visualization_msgs::MarkerArray &markers);
+
+  static ConstraintSamplerPtr constructFromMessage(const planning_models::KinematicModel::JointModelGroup *jmg, const moveit_msgs::Constraints &constr,
+						   const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf,
+						   const KinematicsAllocator &ik_alloc = KinematicsAllocator(),
+						   const KinematicsSubgroupAllocator &ik_subgroup_alloc = KinematicsSubgroupAllocator());
 protected:
   
   const planning_models::KinematicModel::JointModelGroup *jmg_;
   std::vector<std::string>                                frame_depends_;
   random_numbers::RandomNumberGenerator                   random_number_generator_;
 };
-
-typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
-typedef boost::shared_ptr<const ConstraintSampler> ConstraintSamplerConstPtr;
-
-/// function type that allocates an IK solver for a particular group
-typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> KinematicsAllocator;
-
-/// some groups do not have IK solver associated to them, but may contain disjoint groups that do have IK solvers associated to them
-typedef std::map<const planning_models::KinematicModel::JointModelGroup*, KinematicsAllocator> KinematicsSubgroupAllocator;
 
 class JointConstraintSampler : public ConstraintSampler
 {
@@ -191,9 +201,6 @@ protected:
   std::vector<std::vector<unsigned int> > bijection_;
 };
 
-ConstraintSamplerPtr constructConstraintsSampler(const planning_models::KinematicModel::JointModelGroup *jmg, const moveit_msgs::Constraints &constr,
-                                                 const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf,
-                                                 const KinematicsAllocator &ik_alloc = KinematicsAllocator(), const KinematicsSubgroupAllocator &ik_subgroup_alloc = KinematicsSubgroupAllocator());
 }
 
 

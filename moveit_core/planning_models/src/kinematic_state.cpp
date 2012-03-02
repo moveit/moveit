@@ -117,7 +117,8 @@ void planning_models::KinematicState::copyFrom(const KinematicState &ks)
   // copy attached bodies
   for (unsigned int i = 0 ; i < ks.link_state_vector_.size() ; ++i)
   {
-    const std::vector<AttachedBody*> &ab = ks.link_state_vector_[i]->getAttachedBodies();
+    std::vector<const AttachedBody*> ab;
+    ks.link_state_vector_[i]->getAttachedBodies(ab);
     LinkState *ls = link_state_map_[ks.link_state_vector_[i]->getName()];
     for (std::size_t j = 0 ; j < ab.size() ; ++j)
       ls->attachBody(ab[j]->properties_);
@@ -349,17 +350,34 @@ planning_models::KinematicState::LinkState* planning_models::KinematicState::get
     return it->second;
 }
 
+bool planning_models::KinematicState::hasAttachedBody(const std::string &id) const
+{
+  return attached_body_map_.find(id) != attached_body_map_.end();
+}
+
+const planning_models::KinematicState::AttachedBody* planning_models::KinematicState::getAttachedBody(const std::string &id) const
+{
+  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
+  if (it == attached_body_map_.end())
+  {
+    ROS_ERROR("Attached body '%s' not found", id.c_str());
+    return NULL;
+  }
+  else
+    return it->second;
+}
+
 void planning_models::KinematicState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
 {
-  for (std::size_t i = 0 ; i < link_state_vector_.size() ; ++i)
-  {
-    const std::vector<AttachedBody*> &ab = link_state_vector_[i]->getAttachedBodies();
-    attached_bodies.insert(attached_bodies.end(), ab.begin(), ab.end());
-  }
+  attached_bodies.clear();
+  attached_bodies.reserve(attached_body_map_.size());
+  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
+    attached_bodies.push_back(it->second);
 }
 
 void planning_models::KinematicState::clearAttachedBodies(void)
 {
+  attached_body_map_.clear();
   for (std::size_t i = 0 ; i < link_state_vector_.size() ; ++i)
     link_state_vector_[i]->clearAttachedBodies();
 }
@@ -503,7 +521,7 @@ bool planning_models::KinematicState::JointState::satisfiesBounds(void) const
 
 //-------------------- LinkState ---------------------
 
-planning_models::KinematicState::LinkState::LinkState(const KinematicState *state, const planning_models::KinematicModel::LinkModel* lm) :
+planning_models::KinematicState::LinkState::LinkState(KinematicState *state, const planning_models::KinematicModel::LinkModel* lm) :
   kinematic_state_(state), link_model_(lm), parent_joint_state_(NULL), parent_link_state_(NULL)
 {
   global_link_transform_.setIdentity();
@@ -532,9 +550,9 @@ void planning_models::KinematicState::LinkState::computeTransform(void)
 }
 
 void planning_models::KinematicState::LinkState::updateAttachedBodies(void)
-{
-  for (unsigned int i = 0 ; i < attached_body_vector_.size() ; ++i)
-    attached_body_vector_[i]->computeTransform();
+{  
+  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
+    it->second->computeTransform();
 }
 
 void planning_models::KinematicState::LinkState::attachBody(const std::string &id,
@@ -542,41 +560,66 @@ void planning_models::KinematicState::LinkState::attachBody(const std::string &i
                                                             const std::vector<Eigen::Affine3d> &attach_trans,
                                                             const std::vector<std::string> &touch_links)
 {
-  attached_body_vector_.push_back(new AttachedBody(this, id, shapes, attach_trans, touch_links));
-  attached_body_vector_.back()->computeTransform();
+  AttachedBody *ab = new AttachedBody(this, id, shapes, attach_trans, touch_links);
+  attached_body_map_[id] = ab;
+  kinematic_state_->attached_body_map_[id] = ab;
+  ab->computeTransform();
 }
 
 void planning_models::KinematicState::LinkState::attachBody(const boost::shared_ptr<AttachedBodyProperties> &properties)
+{ 
+  AttachedBody *ab = new AttachedBody(this, properties);
+  attached_body_map_[ab->getName()] = ab;
+  kinematic_state_->attached_body_map_[ab->getName()] = ab;
+  ab->computeTransform();
+}
+
+bool planning_models::KinematicState::LinkState::hasAttachedBody(const std::string &id) const
 {
-  attached_body_vector_.push_back(new AttachedBody(this, properties));
-  attached_body_vector_.back()->computeTransform();
+  return attached_body_map_.find(id) != attached_body_map_.end();
 }
 
 const planning_models::KinematicState::AttachedBody* planning_models::KinematicState::LinkState::getAttachedBody(const std::string &id) const
 {
-  for (std::size_t i = 0 ; i < attached_body_vector_.size() ; ++i)
-    if (attached_body_vector_[i]->getName() == id)
-      return attached_body_vector_[i];
-  return NULL;
+  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
+  if (it == attached_body_map_.end())
+  {
+    ROS_ERROR("Attached body '%s' not found on link '%s'", id.c_str(), getName().c_str());
+    return NULL;
+  }
+  else
+    return it->second;
+}
+
+void planning_models::KinematicState::LinkState::getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const
+{
+  attached_bodies.clear();
+  attached_bodies.reserve(attached_body_map_.size());
+  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
+    attached_bodies.push_back(it->second);
 }
 
 bool planning_models::KinematicState::LinkState::clearAttachedBody(const std::string &id)
-{
-  for (std::size_t i = 0; i < attached_body_vector_.size(); ++i)
-    if (attached_body_vector_[i]->getName() == id)
-    {
-      delete attached_body_vector_[i];
-      attached_body_vector_.erase(attached_body_vector_.begin() + i);
-      return true;
-    }
+{  
+  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
+  if (it != attached_body_map_.end())
+  {
+    delete it->second;
+    attached_body_map_.erase(id);
+    kinematic_state_->attached_body_map_.erase(id);
+    return true;
+  }
   return false;
 }
 
 void planning_models::KinematicState::LinkState::clearAttachedBodies(void)
-{
-  for (std::size_t i = 0; i < attached_body_vector_.size(); ++i)
-    delete attached_body_vector_[i];
-  attached_body_vector_.clear();
+{ 
+  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ;  ++it)
+  {
+    kinematic_state_->attached_body_map_.erase(it->first);
+    delete it->second;
+  }
+  attached_body_map_.clear();
 }
 
 
@@ -824,6 +867,37 @@ double planning_models::KinematicState::distance(const KinematicState &state) co
     d += di * di;
   }
   return d;
+}
+
+const Eigen::Affine3d* planning_models::KinematicState::getFrameTransform(const std::string &id) const
+{
+  std::map<std::string, LinkState*>::const_iterator it = link_state_map_.find(id);
+  if (it != link_state_map_.end())
+    return &(it->second->getGlobalLinkTransform());
+  std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(id);
+  if (jt == attached_body_map_.end())
+  {
+    ROS_ERROR("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an attached body id).",
+	      kinematic_model_->getModelFrame().c_str(), id.c_str(), id.c_str());
+    return NULL;
+  }
+  const std::vector<Eigen::Affine3d> &tf = jt->second->getGlobalCollisionBodyTransforms();
+  if (tf.empty())
+  {
+    ROS_ERROR("Attached body '%s' has no geometry associated to it. No transform to return.", id.c_str());
+    return NULL;
+  }
+  if (tf.size() > 0)
+    ROS_WARN("There are multiple geometries associated to attached body '%s'. Returning the transform for the first one.", id.c_str());
+  return &(tf[0]);
+}
+
+bool planning_models::KinematicState::knowsFrameTransform(const std::string &id) const
+{ 
+  if (hasLinkState(id))
+    return true;
+  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
+  return it != attached_body_map_.end() && it->second->getGlobalCollisionBodyTransforms().size() == 1;
 }
 
 // ------ marker functions ------

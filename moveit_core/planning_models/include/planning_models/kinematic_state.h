@@ -51,7 +51,6 @@ namespace planning_models
  *   state which can change. Const members are thread safe */
 class KinematicState
 {
-  
 public:
   
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -67,7 +66,9 @@ public:
   
   /** \brief Forward definition of a joint group state */
   class JointStateGroup;
-  
+
+  friend class LinkState;
+
   /** @brief Definition of a joint state - representation of state for a single joint */
   class JointState
   {
@@ -191,16 +192,16 @@ public:
     ~AttachedBodyProperties(void);
     
     /** \brief The geometries of the attached body */
-    std::vector<shapes::Shape*> shapes_;
+    std::vector<shapes::Shape*>  shapes_;
     
     /** \brief The constant transforms applied to the link (needs to be specified by user) */
-    std::vector<Eigen::Affine3d>    attach_trans_;
+    std::vector<Eigen::Affine3d> attach_trans_;
     
     /** \brief The set of links this body is allowed to touch */
-    std::set<std::string>       touch_links_;
+    std::set<std::string>        touch_links_;
     
     /** \brief string id for reference */
-    std::string                 id_;
+    std::string                  id_;
   };
   
   /** @brief Object defining bodies that can be attached to robot
@@ -300,7 +301,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     /** @brief Constructor */
-    LinkState(const KinematicState *state, const KinematicModel::LinkModel* lm);
+    LinkState(KinematicState *state, const KinematicModel::LinkModel* lm);
     ~LinkState(void);
     
     /** @brief Get the name of link corresponding to this state */
@@ -343,14 +344,14 @@ public:
     }
     
     /** @brief Get all the bodies attached to this link */
-    const std::vector<AttachedBody*>& getAttachedBodies(void) const
-    {
-      return attached_body_vector_;
-    }
+    void getAttachedBodies(std::vector<const AttachedBody*> &attached_bodies) const;
     
     /** @brief Get the attached body with name \e id */
     const AttachedBody* getAttachedBody(const std::string &id) const;
     
+    /** \brief Check if an attached body named \e id exists in this group */
+    bool hasAttachedBody(const std::string &id) const;
+      
     /** @brief Get the global transform for this link */
     const Eigen::Affine3d& getGlobalLinkTransform(void) const
     {
@@ -393,15 +394,15 @@ public:
   private:
     
     /** \brief The kinematic state this link is part of */
-    const KinematicState            *kinematic_state_;
+    KinematicState                      *kinematic_state_;
     
-    const KinematicModel::LinkModel *link_model_;
+    const KinematicModel::LinkModel     *link_model_;
     
-    const JointState                *parent_joint_state_;
+    const JointState                    *parent_joint_state_;
     
-    const LinkState                 *parent_link_state_;
+    const LinkState                     *parent_link_state_;
     
-    std::vector<AttachedBody*>       attached_body_vector_;
+    std::map<std::string, AttachedBody*> attached_body_map_;
     
     /** \brief The global transform this link forwards (computed by forward kinematics) */
     Eigen::Affine3d                      global_link_transform_;
@@ -622,7 +623,7 @@ public:
   bool hasJointState(const std::string &joint) const;
   
   /** \brief Check if a link is updated by this state */
-  bool hasLinkState(const std::string& joint) const;
+  bool hasLinkState(const std::string &link) const;
   
   /** \brief Get a joint state by its name */
   JointState* getJointState(const std::string &joint) const;
@@ -657,6 +658,19 @@ public:
   /** \brief Clear all attached bodies */
   void clearAttachedBodies(void);
   
+  /** \brief Get the attached body named \e name. Return NULL if not found. */
+  const AttachedBody* getAttachedBody(const std::string &name) const;
+    
+  /** \brief Check if an attached body named \e id exists in this state */
+  bool hasAttachedBody(const std::string &id) const;
+
+  /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name or an attached body id.
+      Return NULL when no transform is available. */
+  const Eigen::Affine3d* getFrameTransform(const std::string &id) const;
+
+  /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name or an attached body id */
+  bool knowsFrameTransform(const std::string &id) const;
+
   /** \brief Print information about the constructed model */
   void printStateInfo(std::ostream &out = std::cout) const;
   
@@ -737,6 +751,9 @@ private:
   /** \brief A map from group names to instances of the group state */
   std::map<std::string, JointStateGroup*> joint_state_group_map_;
   
+  /** \brief The attached bodies that are part of this state (from all links) */
+  std::map<std::string, AttachedBody*>    attached_body_map_;
+    
   /** \brief For certain operations a state needs a random number generator. However, it may be slightly expensive
       to allocate the random number generator if many state instances are generated. For this reason, the generator
       is allocated on a need basis, by the getRandomNumberGenerator() function. Never use the rng_ member directly, but call

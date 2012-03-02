@@ -117,11 +117,12 @@ const Eigen::Affine3d& planning_models::Transforms::getTransform(const planning_
   if (kstate.getKinematicModel()->getModelFrame() != target_frame_)
     ROS_ERROR("Target frame is assumed to be '%s' but the model of the kinematic state places the robot in frame '%s'",
               target_frame_.c_str(), kstate.getKinematicModel()->getModelFrame().c_str());
-  if (const planning_models::KinematicState::LinkState *state = kstate.getLinkState(from_frame))
-    return state->getGlobalLinkTransform();
-  ROS_ERROR_STREAM("Unable to transform from frame '" + from_frame + "' to frame '" + target_frame_ + "'");
-  // return identity
-  return transforms_.find(target_frame_)->second;
+  const Eigen::Affine3d *t = kstate.getFrameTransform(from_frame);
+  if (t)
+    return *t;
+  else
+    // return identity
+    return transforms_.find(target_frame_)->second;
 }
 
 void planning_models::Transforms::transformVector3(const std::string &from_frame, const Eigen::Vector3d &v_in, Eigen::Vector3d &v_out) const

@@ -15,6 +15,7 @@
   <depend package="kinematic_constraints"/>
   <depend package="kinematics_base"/>
   <depend package="moveit_msgs"/>
+  <depend package="visualization_msgs"/>
   <depend package="collision_detection"/> 
   <depend package="planning_scene"/> 
 
