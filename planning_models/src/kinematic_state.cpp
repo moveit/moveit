@@ -941,7 +941,22 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
     ROS_DEBUG_STREAM("Trying to get marker for link " << link_names[i]);
     visualization_msgs::Marker mark;
     const LinkState* ls = getLinkState(link_names[i]);
-    if(!ls || !ls->getLinkModel() || !ls->getLinkModel()->getShape()) continue;
+    if(!ls) continue;
+    std::vector<const AttachedBody*> attached_bodies;
+    ls->getAttachedBodies(attached_bodies);
+    for(unsigned int j = 0; j < attached_bodies.size(); j++) {
+      if(attached_bodies[j]->getShapes().size() > 0) {
+        visualization_msgs::Marker att_mark;
+        att_mark.header.frame_id = kinematic_model_->getModelFrame();
+        att_mark.header.stamp = ros::Time::now();
+        shapes::constructMarkerFromShape(attached_bodies[j]->getShapes()[0],
+                                         att_mark);
+        msgFromPose(attached_bodies[j]->getGlobalCollisionBodyTransforms()[0],
+                    att_mark.pose);
+        arr.markers.push_back(att_mark);
+      }
+    }
+    if(!ls->getLinkModel() || !ls->getLinkModel()->getShape()) continue;
     mark.header.frame_id = kinematic_model_->getModelFrame();
     mark.header.stamp = ros::Time::now();
     msgFromPose(ls->getGlobalCollisionBodyTransform(), mark.pose);
