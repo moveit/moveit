@@ -96,8 +96,6 @@ KinematicsSolverConstraintAware::KinematicsSolverConstraintAware(const std::map<
     return;
   }
 
-  state_ = new planning_models::KinematicState(kmodel_);
-
   const planning_models::KinematicModel::JointModelGroup* joint_model_group = kmodel_->getJointModelGroup(group_name);
   if(joint_model_group == NULL) {
     ROS_WARN_STREAM("No joint group " << group_name);
@@ -278,10 +276,11 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
 
   last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
   
+  state_ = new planning_models::KinematicState(*seed_state);
+
   //TODO - need better way to do this
   std::map<std::string, double> seed_state_map;
   seed_state->getStateValues(seed_state_map);
-  state_->setStateValues(seed_state_map);
 
   std::vector<double> seed_state_vector(solver_map_[group_name_]->getJointNames().size());
   for(unsigned int i = 0; i < solver_map_[group_name_]->getJointNames().size(); i++) {
@@ -304,6 +303,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
     solution.name.clear();
     solution.position.clear();
   }
+  delete state_;
   return ik_valid;
 }
 
@@ -354,13 +354,15 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
 
   last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
 
+  state_ = new planning_models::KinematicState(*seed_state);
+
   std::map<std::string, double> seed_state_map;
   seed_state->getStateValues(seed_state_map);
-  state_->setStateValues(seed_state_map);
 
   if(do_initial_pose_check) {
     if(!multiGroupInitialPoseCheck(seed_state, poses)) {
       error_code.val = error_code.IK_LINK_IN_COLLISION;
+      delete state_;
       return false;
     }
     ROS_DEBUG_STREAM("Passing intial pose check");
@@ -381,6 +383,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
     if(solver_it == solver_map_.end()) {
       ROS_WARN_STREAM("No solver named " << it->first);
       error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+      delete state_;
       return false;      
     }
     kinematics::KinematicsBasePtr& solver = solver_it->second;
@@ -388,6 +391,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
     //building necessary stuff
     if(redundancies.find(it->first) == redundancies.end()) {
       ROS_WARN_STREAM("No redundancy specified for group " << it->first);
+      delete state_;
       return false;
     }
 
@@ -396,6 +400,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
     if(redundancy_index >= solver->getJointNames().size()) {
       ROS_WARN_STREAM("Redundancy value of " << redundancy_index 
                       << " for group " << it->first << " larger than joints size " << solver->getJointNames().size());
+      delete state_;
       return false;
     }
 
@@ -527,6 +532,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
         ROS_DEBUG_STREAM("No ik solution");
         error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
         ROS_INFO_STREAM("Count is " << count);
+        delete state_;
         return false;
       }
       fixed_list.push_back(bad_ok);
@@ -534,6 +540,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
   }
   ROS_DEBUG_STREAM("Returning ok");
   state_->getStateValues(solution);
+  delete state_;
   return true;
 }                                          
 
@@ -591,8 +598,8 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
   
   std::map<std::string, double> seed_state_map;
   seed_state->getStateValues(seed_state_map);
-  state_->setStateValues(seed_state_map);
-  
+  state_ = new planning_models::KinematicState(*seed_state);
+
   std::vector<double> seed_state_vector(solver_map_[group_name_]->getJointNames().size());
   for(unsigned int i = 0; i < solver_map_[group_name_]->getJointNames().size(); i++) {
     seed_state_vector[i] = seed_state_map[solver_map_[group_name_]->getJointNames()[i]];
@@ -615,6 +622,7 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
     solution.name.clear();
     solution.position.clear();
   }
+  delete state_;
   return ik_valid;
 }
 
@@ -780,7 +788,10 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
   Eigen::Affine3d first_pose;
   planning_models::poseFromMsg(start_pose, first_pose);
 
+  planning_models::KinematicState cont_state(*seed_state);
+
   for(unsigned int i = 1; i <= num_points; i++) {
+
     int val;
     if(reverse) {
       val = num_points-i;
@@ -803,7 +814,7 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
     moveit_msgs::MoveItErrorCodes temp_error_code;
     if(findConsistentConstraintAwareSolution(trans_pose,
                                              constraints,
-                                             seed_state,
+                                             &cont_state,
                                              scene,
                                              acm,
                                              solution,
@@ -812,6 +823,7 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
                                              max_consistency,
                                              do_initial_pose_check,
                                              use_unpadded_robot)) {
+      cont_state.setStateValues(solution);
       ret_traj.points[i-1].positions = solution.position;
       ret_traj.points[i-1].time_from_start = ros::Duration((i*1.0)*total_dur.toSec()/(num_points*1.0));
     } else {
