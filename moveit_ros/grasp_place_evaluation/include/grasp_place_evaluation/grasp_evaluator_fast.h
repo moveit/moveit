@@ -94,7 +94,7 @@ public:
                           const planning_models::KinematicState* seed_state,
                           const moveit_manipulation_msgs::PickupGoal &pickup_goal,
                           const std::vector<moveit_manipulation_msgs::Grasp> &grasps,
-                          std::vector<GraspExecutionInfo> &execution_info,
+                          GraspExecutionInfoVector &execution_info_vector,
                           bool return_on_first_hit);
     
 protected:

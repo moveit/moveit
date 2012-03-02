@@ -53,8 +53,13 @@ void MoveItManipulationVisualizer::updatePlanningScene(planning_scene::PlanningS
   grasp_evaluation_visualization_->updatePlanningScene(planning_scene);
 }
 
+
+
 void MoveItManipulationVisualizer::attemptToGrasp(const std::string& obj) {
-  
+  boost::thread(boost::bind(&MoveItManipulationVisualizer::attemptToGraspThread, this, obj));
+}
+
+void MoveItManipulationVisualizer::attemptToGraspThread(const std::string& obj) {
   moveit_msgs::CollisionObject co;
   if(!current_diff_->getCollisionObjectMsg(obj, 
                                            co)) {
@@ -75,10 +80,30 @@ void MoveItManipulationVisualizer::attemptToGrasp(const std::string& obj) {
   std::vector<moveit_manipulation_msgs::Grasp> grasps;
   grasps.resize(1);
   grasps[0].grasp_pose = co.poses[0];
-  grasps[0].grasp_pose.position.x -= ((co.shapes[0].dimensions[0]/2.0)+.12); 
-  grasps[0].desired_approach_distance = .1;
-  grasps[0].min_approach_distance = .1;
-  
+  grasps[0].grasp_pose.position.x -= ((co.shapes[0].dimensions[0]/2.0)+.15); 
+  grasps[0].desired_approach_distance = .12;
+  grasps[0].min_approach_distance = .12;
+  if(pv_->getCurrentGroup() == "right_arm") {
+    grasps[0].pre_grasp_posture.name.push_back("r_gripper_r_finger_joint");
+    grasps[0].pre_grasp_posture.name.push_back("r_gripper_l_finger_joint");
+    grasps[0].pre_grasp_posture.name.push_back("r_gripper_r_finger_tip_joint");
+    grasps[0].pre_grasp_posture.name.push_back("r_gripper_l_finger_tip_joint");
+  } else {
+    grasps[0].pre_grasp_posture.name.push_back("l_gripper_r_finger_joint");
+    grasps[0].pre_grasp_posture.name.push_back("l_gripper_l_finger_joint");
+    grasps[0].pre_grasp_posture.name.push_back("l_gripper_r_finger_tip_joint");
+    grasps[0].pre_grasp_posture.name.push_back("l_gripper_l_finger_tip_joint");
+  }
+  grasps[0].pre_grasp_posture.position.push_back(.35);
+  grasps[0].pre_grasp_posture.position.push_back(.35);
+  grasps[0].pre_grasp_posture.position.push_back(.35);
+  grasps[0].pre_grasp_posture.position.push_back(.35);
+  grasps[0].grasp_posture.name = grasps[0].pre_grasp_posture.name;
+  grasps[0].grasp_posture.position.push_back(.25);
+  grasps[0].grasp_posture.position.push_back(.25);
+  grasps[0].grasp_posture.position.push_back(.25);
+  grasps[0].grasp_posture.position.push_back(.25);
+
   grasp_evaluation_visualization_->evaluateGrasps(pv_->getCurrentGroup(),
                                                   goal,
                                                   &current_diff_->getCurrentState(),

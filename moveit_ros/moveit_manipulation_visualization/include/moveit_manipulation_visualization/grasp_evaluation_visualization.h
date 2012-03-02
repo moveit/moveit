@@ -35,6 +35,7 @@
 #include <grasp_place_evaluation/grasp_evaluator_fast.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <moveit_visualization_ros/joint_trajectory_visualization.h>
 
 namespace moveit_manipulation_visualization {
 
@@ -58,7 +59,15 @@ public:
                       const planning_models::KinematicState* seed_state,
                       const std::vector<moveit_manipulation_msgs::Grasp>& grasps);
 
-  void showGraspPose(unsigned int num);
+  void showGraspPose(unsigned int num,
+                     bool show_grasp,
+                     bool show_pregrasp,
+                     bool show_lift);
+  
+  void playInterpolationTrajectories(unsigned int num,
+                                     bool play_approach,
+                                     bool play_lift);
+  
   
   // bool  getEvaluatedGrasp(unsigned int num,
   //                         grasp_place_evaluation::GraspExecutionInfo& grasp) const;
@@ -68,8 +77,10 @@ protected:
   planning_scene::PlanningSceneConstPtr planning_scene_;
   ros::Publisher marker_publisher_;
   
-  std::vector<grasp_place_evaluation::GraspExecutionInfo> last_grasp_evaluation_info_;
+  grasp_place_evaluation::GraspExecutionInfoVector last_grasp_evaluation_info_;
   boost::shared_ptr<grasp_place_evaluation::GraspEvaluatorFast> grasp_evaluator_fast_;
+
+  boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization_;
 };
 
 }
