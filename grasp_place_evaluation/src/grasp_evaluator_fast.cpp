@@ -507,10 +507,9 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
 
     execution_info[i].attached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
 
-    geometry_msgs::Pose grasp_pose_msg;
-    planning_models::msgFromPose(grasp_poses[i], grasp_pose_msg);
-    execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj,
-                                                                                     &grasp_pose_msg);
+    execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
+
+    execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
     
     execution_info[i].attached_object_diff_scene_->getCurrentState().setStateValues(planning_scene_state_values);
 
