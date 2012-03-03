@@ -75,7 +75,7 @@ int main(int argc, char** argv)
   boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> 
     kinematics_plugin_loader(new kinematics_plugin_loader::KinematicsPluginLoader());
 
-  KinematicsStartGoalVisualization::KinematicsStartGoalVisualization kv(planning_scene_monitor_->getPlanningScene(),
+  KinematicsStartGoalVisualization kv(planning_scene_monitor_->getPlanningScene(),
                                                                         interactive_marker_server,
                                                                         kinematics_plugin_loader,
                                                                         "right_arm",
