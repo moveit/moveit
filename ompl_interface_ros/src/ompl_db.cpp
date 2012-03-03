@@ -52,38 +52,73 @@ int main(int argc, char **argv)
   ros::NodeHandle nh("~");
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
   ompl_interface_ros::OMPLInterfaceROS ompl_interface(psm.getPlanningScene()->getKinematicModel());
+  ros::Publisher pub_markers = nh.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 5);
+  ros::Publisher pub_state = nh.advertise<moveit_msgs::DisplayTrajectory>("/display_motion_plan", 20);
+
+  
+
+  sleep(1);
+  
+
+
+  
+  moveit_msgs::Constraints c;
+
+
+  moveit_msgs::PositionConstraint pcm2;
+  pcm2.link_name = "r_wrist_roll_link";
+  pcm2.target_point_offset.x = 0.7;
+  pcm2.target_point_offset.y = 0;
+  pcm2.target_point_offset.z = 0;
+  pcm2.constraint_region_shape.type = moveit_msgs::Shape::BOX;
+  pcm2.constraint_region_shape.dimensions.push_back(0.01);
+  pcm2.constraint_region_shape.dimensions.push_back(0.01);
+  pcm2.constraint_region_shape.dimensions.push_back(0.01);
+  
+  pcm2.constraint_region_pose.header.frame_id = "l_wrist_roll_link";
+  pcm2.constraint_region_pose.pose.position.x = 0.0;
+  pcm2.constraint_region_pose.pose.position.y = 0.0;
+  pcm2.constraint_region_pose.pose.position.z = 0.0;
+  pcm2.constraint_region_pose.pose.orientation.x = 0.0;
+  pcm2.constraint_region_pose.pose.orientation.y = 0.0;
+  pcm2.constraint_region_pose.pose.orientation.z = 0.0;
+  pcm2.constraint_region_pose.pose.orientation.w = 1.0;
+  pcm2.weight = 1.0;
+  c.position_constraints.push_back(pcm2);
+
+
+  moveit_msgs::OrientationConstraint ocm;
+  ocm.link_name = "l_wrist_roll_link";
+  ocm.orientation.header.frame_id = psm.getPlanningScene()->getPlanningFrame();
+  ocm.orientation.quaternion.x = 0.5;
+  ocm.orientation.quaternion.y = 0.5;
+  ocm.orientation.quaternion.z = 0.5;
+  ocm.orientation.quaternion.w = 0.5;
+  ocm.absolute_x_axis_tolerance = 0.01;
+  ocm.absolute_y_axis_tolerance = M_PI;
+  ocm.absolute_z_axis_tolerance = 0.01;
+  ocm.weight = 1.0;
+  c.orientation_constraints.push_back(ocm);
+
+  ocm.link_name = "r_wrist_roll_link";
+  ocm.orientation.header.frame_id = "l_wrist_roll_link";
+  ocm.orientation.quaternion.x = 0.0;
+  ocm.orientation.quaternion.y = 0.0;
+  ocm.orientation.quaternion.z = 1.0;
+  ocm.orientation.quaternion.w = 0.0;
+  ocm.absolute_x_axis_tolerance = 0.01;
+  ocm.absolute_y_axis_tolerance = 0.01;
+  ocm.absolute_z_axis_tolerance = 0.01;
+  ocm.weight = 1.0;
+  c.orientation_constraints.push_back(ocm);
+  
+  moveit_msgs::Constraints cS = c;
+
+  ompl_interface.addConstraintApproximation(cS, c, "arms", "PoseModel", psm.getPlanningScene()->getCurrentState(), 1000);
+
+
 
   /*
-  ros::Publisher pub_state = nh.advertise<moveit_msgs::DisplayTrajectory>("/display_motion_plan", 20);
-  
-  sleep(1);
-  const ompl_interface::ConstraintApproximation &ca = ompl_interface.getConstraintApproximations()->at(0);
-  const ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > *sswm =
-    static_cast<const ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > *>(ca.state_storage_.get());  
-  for (unsigned int i = 0 ; i < 100 ; ++i)
-  {
-    planning_models::KinematicState ks = ca.getState(ompl_interface.getPlanningConfiguration(ca.group_), i);
-    moveit_msgs::DisplayTrajectory d;
-    d.model_id = psm.getPlanningScene()->getKinematicModel()->getName();
-    planning_models::kinematicStateToRobotState(ks, d.robot_state);
-
-    const ompl::base::State *a = ca.state_storage_->getStates()[i];
-    if (sswm->getMetadata(i).empty())
-      continue;
-    const ompl::base::State *b = ca.state_storage_->getStates()[sswm->getMetadata(i).front()];
-  
-  //    const ompl::base::State *b = ca.state_storage_->getStates()[i + 100];
-    ompl::geometric::PathGeometric pg(ompl_interface.getPlanningConfiguration("right_arm")->getOMPLSimpleSetup().getSpaceInformation(), a, b);
-    pg.interpolate(10);
-    ompl_interface.getPlanningConfiguration("right_arm")->convertPath(pg, d.trajectory);
-    
-
-    pub_state.publish(d);
-    ros::Duration(1.0).sleep();
-  }
-  */
-
-  sleep(1);
 
   moveit_msgs::Constraints constr1;
   constr1.orientation_constraints.resize(1);
@@ -94,8 +129,8 @@ int main(int argc, char **argv)
   ocm1.orientation.quaternion.y = 0.0;
   ocm1.orientation.quaternion.z = 0.0;
   ocm1.orientation.quaternion.w = 1.0;
-  ocm1.absolute_x_axis_tolerance = 0.15;
-  ocm1.absolute_y_axis_tolerance = 0.15;
+  ocm1.absolute_x_axis_tolerance = 0.1;
+  ocm1.absolute_y_axis_tolerance = 0.1;
   ocm1.absolute_z_axis_tolerance = M_PI;
   ocm1.weight = 1.0;
   
@@ -103,11 +138,53 @@ int main(int argc, char **argv)
   constr1S.orientation_constraints[0].absolute_x_axis_tolerance = 1e-6;
   constr1S.orientation_constraints[0].absolute_y_axis_tolerance = 1e-6;
 
-  ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", "PoseModel", 1000);
+  ompl_interface.addConstraintApproximation(constr1S, constr1, "right_arm", "PoseModel", 10000);
+  */
 
 
+  
 
-    /*
+  const ompl_interface::ConstraintApproximation &ca = ompl_interface.getConstraintApproximations()->at(0);
+  visualization_msgs::MarkerArray arr;  
+  ca.visualizeDistribution("r_wrist_roll_link", 1000, arr);
+  pub_markers.publish(arr); 
+
+    
+
+  ompl_interface::ModelBasedPlanningContextPtr pc = ompl_interface.getPlanningContext("arms", "PoseModel");
+
+  kinematic_constraints::KinematicConstraintSet kset(pc->getKinematicModel(),
+						     planning_models::TransformsPtr(new planning_models::Transforms(pc->getKinematicModel()->getModelFrame())));
+  kset.add(c);
+
+
+  planning_models::KinematicState ks(pc->getKinematicModel());
+  ks.setToDefaultValues();
+  sleep(1);
+  //  const ompl_interface::ConstraintApproximation &ca = ompl_interface.getConstraintApproximations()->at(0);
+  for (unsigned int i = 0 ; i < 5 ; ++i)
+  {
+    const ompl::base::State *a = ca.state_storage_->getStates()[i];
+    pc->getOMPLStateSpace()->copyToKinematicState(ks, a);
+    ks.updateLinkTransforms();
+    
+    double dd;
+    if (!kset.decide(ks, dd))
+    {
+	kset.decide(ks, dd, true);
+	std::cout << std::endl;
+    }
+    
+    
+    moveit_msgs::DisplayTrajectory d;
+    d.model_id = psm.getPlanningScene()->getKinematicModel()->getName();
+    planning_models::kinematicStateToRobotState(ks, d.trajectory_start);
+    pub_state.publish(d);
+    ros::Duration(1.0).sleep();
+  }  
+  
+
+  /*
   moveit_msgs::Constraints constr2;
   constr2.orientation_constraints.resize(1);
   moveit_msgs::OrientationConstraint &ocm2 = constr2.orientation_constraints[0];
@@ -117,15 +194,21 @@ int main(int argc, char **argv)
   ocm2.orientation.quaternion.y = 0.0;
   ocm2.orientation.quaternion.z = 0.0;
   ocm2.orientation.quaternion.w = 1.0;
-  ocm2.absolute_x_axis_tolerance = 0.01;
-  ocm2.absolute_y_axis_tolerance = 0.01;
+  ocm2.absolute_x_axis_tolerance = 0.1;
+  ocm2.absolute_y_axis_tolerance = 0.1;
   ocm2.absolute_z_axis_tolerance = M_PI;
   ocm2.weight = 1.0;
+  moveit_msgs::Constraints constr2S = constr2;
+  constr2S.orientation_constraints[0].absolute_x_axis_tolerance = 1e-6;
+  constr2S.orientation_constraints[0].absolute_y_axis_tolerance = 1e-6;
 
-  ompl_interface.addConstraintApproximation(constr2, "left_arm", 100000);
-    */
+  ompl_interface.addConstraintApproximation(constr2S, constr2, "left_arm", "PoseModel", 10000);
+  */    
   ompl_interface.saveConstraintApproximations("/home/isucan/c/");
-
+  ROS_INFO("Done");
+  
+  ros::waitForShutdown();
+  
   return 0;
 }
 

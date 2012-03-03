@@ -45,6 +45,31 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
     Eigen::Affine3d t;
     t = Eigen::Translation3d(0.45, -0.45, 0.7);
     scene->getCollisionWorld()->addToObject("pole", new shapes::Box(0.1, 0.1, 1.4), t);
+
+
+
+
+    moveit_msgs::AttachedCollisionObject aco;
+    aco.link_name = "r_wrist_roll_link";
+    aco.touch_links.push_back("r_wrist_roll_link");
+    
+    random_numbers::RandomNumberGenerator rng;
+    moveit_msgs::CollisionObject &co = aco.object;
+    co.id = "attached";
+    co.header.stamp = ros::Time::now();
+    co.header.frame_id = aco.link_name;
+    co.operation = moveit_msgs::CollisionObject::ADD;
+    co.shapes.resize(1);
+    co.shapes[0].type = moveit_msgs::Shape::BOX;
+    co.shapes[0].dimensions.push_back(0.3);
+    co.shapes[0].dimensions.push_back(0.01);
+    co.shapes[0].dimensions.push_back(0.3);
+    co.poses.resize(1);
+    co.poses[0].position.x = 0.28;
+    co.poses[0].position.y = 0;
+    co.poses[0].position.z = 0;
+    co.poses[0].orientation.w = 1.0;
+    scene->processAttachedCollisionObjectMsg(aco);
 }
 
 void sendScene(void)
@@ -86,7 +111,8 @@ void sendCollisionObject(void)
     co.poses[0].orientation.w = 1.0;
     pub_co.publish(co);
     ROS_INFO("Object published.");
-    
+    ros::Duration(0.5).sleep();
+
 }
 
 int main(int argc, char **argv)

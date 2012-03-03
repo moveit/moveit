@@ -61,7 +61,7 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   planning_scene::PlanningScene &scene = *psm.getPlanningScene();
   EXPECT_TRUE(scene.isConfigured());
   
-  mplan_req.motion_plan_request.planner_id = "KPIECEkConfigDefault";
+  mplan_req.motion_plan_request.planner_id = "RRTConnectkConfigDefault";
   mplan_req.motion_plan_request.group_name = "right_arm";
   mplan_req.motion_plan_request.num_planning_attempts = 1;
   mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(15.0);
@@ -78,7 +78,7 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
     mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[i].weight = 1.0;
   }
   
-  mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[0].position = -0.30826385287398406;
+  mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[0].position = -0.20826385287398406;
   mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[1].position = 0.61185361475247468;
   mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[2].position = -0.67790861269459102;
   mplan_req.motion_plan_request.goal_constraints[0].joint_constraints[3].position = -1.0372591097007691;
@@ -89,7 +89,7 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
 
 
   mplan_req.motion_plan_request.start_state.joint_state.name = joint_names;
-  mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-0.61044517893021499);
+  mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-1.21044517893021499);
   mplan_req.motion_plan_request.start_state.joint_state.position.push_back(0.038959594993384528);
   mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-0.81412902362644646);
   mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-1.0989597173881371);
