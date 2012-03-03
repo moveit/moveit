@@ -680,8 +680,7 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
   }
 }
 
-bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object,
-                                                                      geometry_msgs::Pose* attach_link_pose)
+bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object)
 {
   if (!getKinematicModel()->hasLinkModel(object.link_name))
   {
@@ -695,8 +694,10 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     return false;
   }
 
-  if (!kstate_) // there must be a parent in this case
+  if (!kstate_) { // there must be a parent in this case
+    ROS_INFO_STREAM("Making new state");
     kstate_.reset(new planning_models::KinematicState(parent_->getCurrentState()));
+  }
 
   if (object.object.operation == moveit_msgs::CollisionObject::ADD)
   {
@@ -704,13 +705,6 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     {
       ROS_ERROR("Number of shapes does not match number of poses in attached collision object message");
       return false;
-    }
-
-    if(attach_link_pose != NULL) {
-      Eigen::Affine3d att_pose_e;
-      planning_models::poseFromMsg(*attach_link_pose, att_pose_e);
-      kstate_->updateStateWithLinkAt(object.link_name, 
-                                     att_pose_e);
     }
 
     planning_models::KinematicState::LinkState *ls = kstate_->getLinkState(object.link_name);

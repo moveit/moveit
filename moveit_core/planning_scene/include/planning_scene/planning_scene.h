@@ -239,8 +239,7 @@ public:
   
 
   bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
-  bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object,
-                                         geometry_msgs::Pose* attach_link_pose = NULL);
+  bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
   void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
 
   /** \brief Set the current robot state to be \e state. If not
