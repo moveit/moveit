@@ -131,7 +131,7 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
 
   QWidget* main_window = new QWidget;
   main_window->resize(1500,1000);
-  InteractiveObjectVisualizationWidget* iov_widget = new InteractiveObjectVisualizationWidget(main_window);
+  //InteractiveObjectVisualizationWidget* iov_widget = new InteractiveObjectVisualizationWidget(main_window);
 
   PrimitiveObjectAdditionDialog* primitive_object_dialog = new PrimitiveObjectAdditionDialog(main_window);
 
@@ -162,12 +162,12 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
   QObject::connect(show_primitive_objects_dialog, SIGNAL(triggered()), primitive_object_dialog, SLOT(show()));
   main_layout->setMenuBar(menu_bar);
   
-  main_layout->addWidget(iov_widget);
+  //main_layout->addWidget(iov_widget);
   main_layout->addWidget(rviz_frame_);
 
   main_window->setLayout(main_layout);
 
-  QObject::connect(iov_widget, SIGNAL(addCubeRequested()), iov_.get(), SLOT(addCubeSignalled()));
+  //QObject::connect(iov_widget, SIGNAL(addCubeRequested()), iov_.get(), SLOT(addCubeSignalled()));
   QObject::connect(primitive_object_dialog, 
                    SIGNAL(addCollisionObjectRequested(const moveit_msgs::CollisionObject&, const QColor&)), 
                    iov_.get(), 

@@ -61,7 +61,7 @@ void JointTrajectoryVisualization::updatePlanningScene(const planning_scene::Pla
   planning_scene_ = planning_scene;
 }
 
-void JointTrajectoryVisualization::playCurrentTrajectory()
+void JointTrajectoryVisualization::playCurrentTrajectory(bool block)
 {
   if(playback_thread_) {
     ROS_DEBUG_STREAM("Cancelling current playback");
@@ -70,7 +70,16 @@ void JointTrajectoryVisualization::playCurrentTrajectory()
     ROS_DEBUG_STREAM("Cancelling completed");
   }
 
-  playback_thread_.reset(new boost::thread(boost::bind(&JointTrajectoryVisualization::advanceTrajectory, this)));
+  if(block) {
+    boost::unique_lock<boost::mutex> lock(trajectory_playing_mutex_);
+    playback_happening_ = true;
+    playback_thread_.reset(new boost::thread(boost::bind(&JointTrajectoryVisualization::advanceTrajectory, this)));
+    while(playback_happening_) {
+      trajectory_finished_.wait(lock);
+    }
+  } else {
+    playback_thread_.reset(new boost::thread(boost::bind(&JointTrajectoryVisualization::advanceTrajectory, this)));
+  }
 }
 
 void JointTrajectoryVisualization::advanceTrajectory() {
@@ -111,6 +120,7 @@ void JointTrajectoryVisualization::advanceTrajectory() {
     ROS_INFO_STREAM("Last time " << (ros::WallTime::now()- playback_start_time));
   } catch(...) {
     ROS_DEBUG_STREAM("Playback interrupted");
+    
     return;
   }
   if(!arr.markers.empty()) {
@@ -119,6 +129,11 @@ void JointTrajectoryVisualization::advanceTrajectory() {
     }
     marker_publisher_.publish(arr);
   }
+  {
+    boost::lock_guard<boost::mutex> lock(trajectory_playing_mutex_);
+    playback_happening_=false;
+  }
+  trajectory_finished_.notify_all();
 }
 
 }
