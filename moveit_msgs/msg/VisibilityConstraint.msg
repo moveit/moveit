@@ -30,13 +30,23 @@ geometry_msgs/PoseStamped sensor_pose
 # because of the orientation of the disc with respect to the sensor. It is possible
 # for example to view the disk almost from a side, in which case the visibility cone 
 # can end up having close to 0 volume. The view angle is defined to be the angle between
-# the normal to the visibility disc and the direction vector from the target origin to the
-# sensor origin. The value below represents the minimum desired view angle. For a perfect view,
-# this value will be 0 (the two vectors are the same). For a completely obstructed view
+# the normal to the visibility disc and the direction vector from the sensor origin.
+# The value below represents the minimum desired view angle. For a perfect view,
+# this value will be 0 (the two vectors are exact opposites). For a completely obstructed view
 # this value will be Pi/2 (the vectors are perpendicular). This value defined below 
 # is the maximum view angle to be maintained. This should be a value in the open interval
 # (0, Pi/2). If 0 is set, the view angle is NOT enforced.
 float64 max_view_angle
+
+# This angle is used similarly to max_view_angle but limits the maximum angle
+# between the sensor origin direction vector and the axis that connects the
+# sensor origin to the target frame origin. The value is again in the range (0, Pi/2)
+# and is NOT enforced if set to 0.
+float64 max_range_angle
+
+# The axis that is assumed to indicate the direction of view for the sensor
+# X = 0, Y = 1, Z = 2
+int8 sensor_view_direction
 
 # A weighting factor for this constraint (denotes relative importance to other constraints. Closer to zero means less important)
 float64 weight

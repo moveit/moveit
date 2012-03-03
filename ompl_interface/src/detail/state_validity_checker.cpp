@@ -54,7 +54,7 @@ void ompl_interface::StateValidityChecker::setVerbose(bool flag)
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state) const
 {  
-  ompl::tools::Profiler::ScopedBlock sblock("isValid");
+    //  ompl::tools::Profiler::ScopedBlock sblock("isValid");
 
   if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown())
       return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();  

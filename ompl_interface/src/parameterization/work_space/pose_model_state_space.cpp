@@ -310,6 +310,7 @@ void ompl_interface::PoseModelStateSpace::constructSpace(const pm::KinematicMode
 
 void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses(void)
 {
+  std::sort(poses_.begin(), poses_.end());
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     addSubSpace(poses_[i].state_space_, 1.0);  
   setName(getJointModelGroupName() + "_PoseModel");

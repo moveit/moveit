@@ -375,9 +375,8 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
   std::sort(joints.begin(), joints.end(), &orderJointsByIndex);
 
   std::vector<std::string> subgroup_names;
-  for(std::set<std::string>::iterator it = subgroup_set.begin(); it != subgroup_set.end(); it++) {
+  for(std::set<std::string>::iterator it = subgroup_set.begin(); it != subgroup_set.end(); it++)
     subgroup_names.push_back(*it);
-  }
 
   JointModelGroup *jmg = new JointModelGroup(gc.name_, joints, this);
   jmg->subgroup_names_ = subgroup_names;

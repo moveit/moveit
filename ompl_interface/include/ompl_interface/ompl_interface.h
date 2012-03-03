@@ -187,8 +187,12 @@ public:
     planning_context_factories_[factory->getType()] = factory;
   }  
   
-  void addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard, const std::string &group, const std::string &factory, unsigned int samples);
-  void addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &factory, unsigned int samples);
+  void addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
+				  const std::string &group, const std::string &factory, const pm::KinematicState &kstate,
+				  unsigned int samples);
+  void addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &factory,
+				  const pm::KinematicState &kstate, unsigned int samples);
+
   void loadConstraintApproximations(const std::string &path);
   void saveConstraintApproximations(const std::string &path);
   void printConstraintApproximations(std::ostream &out = std::cout) const;
@@ -196,7 +200,17 @@ public:
   
   const ConstraintApproximationsPtr& getConstraintApproximations(void) const
   {
-    return constraints_;
+    return constraints_approximations_;
+  }
+
+  void useConstraintsApproximations(bool flag)
+  {
+    use_constraints_approximations_ = flag;
+  }
+    
+  bool isUsingConstraintsApproximations(void) const
+  {
+    return use_constraints_approximations_;
   }
   
   ConfiguredPlannerAllocator getPlannerAllocator(void) const;
@@ -234,8 +248,10 @@ protected:
       form "group_name" if default settings are to be used. */
   std::map<std::string, PlanningConfigurationSettings>       planner_configs_;
 
-  ConstraintApproximationsPtr                                constraints_;
+  ConstraintApproximationsPtr                                constraints_approximations_;
   
+  bool                                                       use_constraints_approximations_;
+    
   /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
   unsigned int                                               max_goal_samples_;
   

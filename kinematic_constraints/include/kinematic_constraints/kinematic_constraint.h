@@ -300,12 +300,15 @@ public:
   virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
   shapes::Mesh* getVisibilityCone(const planning_models::KinematicState &state) const;
+  void getMarkers(const planning_models::KinematicState &state, visualization_msgs::MarkerArray &markers) const;
+
   virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
   virtual bool enabled(void) const;
   void print(std::ostream &out = std::cout) const;
   
 protected:
-  
+  bool decideContact(collision_detection::Contact &contact) const;
+
   collision_detection::CollisionRobotPtr collision_robot_;
   collision_detection::CollisionWorldPtr collision_world_;
   bool                                   mobile_sensor_frame_;
@@ -313,11 +316,13 @@ protected:
   std::string                            target_frame_id_;
   std::string                            sensor_frame_id_;
   Eigen::Affine3d                        sensor_pose_;
+  int                                    sensor_view_direction_;
   Eigen::Affine3d                        target_pose_;
   unsigned int                           cone_sides_;
   std::vector<Eigen::Vector3d>           points_;
   double                                 target_radius_;
   double                                 max_view_angle_;
+  double                                 max_range_angle_;
 };
 
 class KinematicConstraintSet

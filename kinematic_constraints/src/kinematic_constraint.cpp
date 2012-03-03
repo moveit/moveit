@@ -42,6 +42,7 @@
 #include <collision_detection/fcl/collision_world.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/bind.hpp>
 #include <limits>
 
 namespace kinematic_constraints
@@ -491,7 +492,7 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
   
   // compute the points on the base circle of the cone that make up the cone sides
   points_.clear();
-  double delta = boost::math::constants::pi<double>() / (double)cone_sides_;
+  double delta = 2.0 * boost::math::constants::pi<double>() / (double)cone_sides_;
   double a = 0.0;
   for (unsigned int i = 0 ; i < cone_sides_ ; ++i, a += delta)
   {
@@ -539,6 +540,8 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
     constraint_weight_ = vc.weight;
   
   max_view_angle_ = vc.max_view_angle;
+  max_range_angle_ = vc.max_range_angle;
+  sensor_view_direction_ = vc.sensor_view_direction;
   
   return target_radius_ > std::numeric_limits<double>::epsilon();
 }
@@ -549,9 +552,8 @@ bool kinematic_constraints::VisibilityConstraint::equal(const KinematicConstrain
     return false;
   const VisibilityConstraint &o = static_cast<const VisibilityConstraint&>(other);
   
-  if (target_frame_id_ == o.target_frame_id_ &&
-      sensor_frame_id_ == o.sensor_frame_id_ &&
-      cone_sides_ == o.cone_sides_)
+  if (target_frame_id_ == o.target_frame_id_ && sensor_frame_id_ == o.sensor_frame_id_ &&
+      cone_sides_ == o.cone_sides_ && sensor_view_direction_ == o.sensor_view_direction_)
   {
     if (fabs(max_view_angle_ - o.max_view_angle_) > margin ||
         fabs(target_radius_ - o.target_radius_) > margin)
@@ -579,8 +581,8 @@ bool kinematic_constraints::VisibilityConstraint::enabled(void) const
 shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(const planning_models::KinematicState &state) const
 {
   // the current pose of the sensor
-  const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) : sensor_pose_;
-  const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) : target_pose_;
+  const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) * sensor_pose_ : sensor_pose_;
+  const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) * target_pose_ : target_pose_;
   
   // transform the points on the disc to the desired target frame
   const std::vector<Eigen::Vector3d> *points = &points_;
@@ -599,7 +601,7 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
   m->vertices = new double[m->vertex_count * 3];
   m->triangle_count = cone_sides_ * 2;
   m->triangles = new unsigned int[m->triangle_count * 3];
-  // we do NOT allocate normals becaconfigure we do not compute them
+  // we do NOT allocate normals because we do not compute them
   
   // the sensor origin
   m->vertices[0] = sp.translation().x();
@@ -647,6 +649,70 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
   return m;
 }
 
+void kinematic_constraints::VisibilityConstraint::getMarkers(const planning_models::KinematicState &state, visualization_msgs::MarkerArray &markers) const
+{
+  shapes::Mesh *m = getVisibilityCone(state);
+  visualization_msgs::Marker mk;
+  shapes::constructMarkerFromShape(m, mk);
+  delete m;
+  mk.header.frame_id = model_->getModelFrame();
+  mk.header.stamp = ros::Time::now();
+  mk.ns = "constraints";
+  mk.id = 1;
+  mk.action = visualization_msgs::Marker::ADD;
+  mk.pose.position.x = 0;
+  mk.pose.position.y = 0;
+  mk.pose.position.z = 0;
+  mk.pose.orientation.x = 0;
+  mk.pose.orientation.y = 0;
+  mk.pose.orientation.z = 0;
+  mk.pose.orientation.w = 1;
+  mk.lifetime = ros::Duration(60);
+  mk.color.a = 0.5;
+  mk.color.r = 1.0;
+  mk.color.g = 0.0;
+  mk.color.b = 0.0;
+  markers.markers.push_back(mk);
+  
+  const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) * sensor_pose_ : sensor_pose_;
+  const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) * target_pose_ : target_pose_;
+  
+  visualization_msgs::Marker mka;
+  mka.type = visualization_msgs::Marker::LINE_STRIP;
+  mka.action = visualization_msgs::Marker::ADD;
+  mka.color = mk.color;
+  mka.pose = mk.pose;
+  
+  mka.header = mk.header;
+  mka.ns = mk.ns;
+  mka.id = 2;
+  mka.lifetime = mk.lifetime;
+  mka.scale.x = mka.scale.y = mka.scale.z = 0.05;
+  mka.colors.resize(2, mk.color);
+  mka.colors[1].g = 1.0;
+  mka.colors[1].r = 0.0;
+  mka.points.resize(2);  
+  Eigen::Vector3d d = tp.translation() - tp.rotation().col(2) * 0.5;
+  mka.points[0].x = tp.translation().x();
+  mka.points[0].y = tp.translation().y();
+  mka.points[0].z = tp.translation().z();
+  mka.points[1].x = d.x();
+  mka.points[1].y = d.y();
+  mka.points[1].z = d.z();
+  markers.markers.push_back(mka);
+  
+  mka.id = 3;  
+  d = sp.translation() + sp.rotation().col(0) * 0.5; 
+  mka.points[0].x = sp.translation().x();
+  mka.points[0].y = sp.translation().y();
+  mka.points[0].z = sp.translation().z();
+  mka.points[1].x = d.x();
+  mka.points[1].y = d.y();
+  mka.points[1].z = d.z();
+  
+  markers.markers.push_back(mka);
+}
+
 bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::KinematicState &state, double &distance, bool verbose) const
 {
   if (target_radius_ <= std::numeric_limits<double>::epsilon())
@@ -655,21 +721,55 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
     return true;
   }
   
-  if (max_view_angle_ > 0.0)
+  if (max_view_angle_ > 0.0 || max_range_angle_ > 0.0)
   {
-    const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) : sensor_pose_;
-    const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) : target_pose_;
-    const Eigen::Vector3d &dir = (tp.translation() - sp.translation()).normalized();
-    const Eigen::Vector3d &normal = tp.rotation().col(2);
-    double ang = acos(dir.dot(normal));
-    if (max_view_angle_ < ang)
+    const Eigen::Affine3d &sp = mobile_sensor_frame_ ? tf_->getTransform(state, sensor_frame_id_) * sensor_pose_ : sensor_pose_;
+    const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) * target_pose_ : target_pose_;
+    const Eigen::Vector3d &normal2 = sp.rotation().col(sensor_view_direction_);
+
+    if (max_view_angle_ > 0.0)
     {
-      if (verbose)
-        ROS_INFO("Visibility constraint is violated becaconfigure the view angle is %lf (above the maximum allowed of %lf)", ang, max_view_angle_);
-      distance = 0.0;
-      return false;
+      const Eigen::Vector3d &normal1 = tp.rotation().col(2); // along Z axis
+      double dp = normal2.dot(normal1);
+      if (dp < 0.0)
+      { 
+        if (verbose)
+	    ROS_INFO("Visibility constraint is violated because the sensor is looking at the wrong side");
+	distance = 0.0;
+	return false;
+      }
+      double ang = acos(dp);
+      if (max_view_angle_ < ang)
+      {
+	if (verbose)
+	  ROS_INFO("Visibility constraint is violated because the view angle is %lf (above the maximum allowed of %lf)", ang, max_view_angle_);
+	distance = 0.0;
+	return false;
+      }
+    }
+    if (max_range_angle_ > 0.0)
+    {
+      const Eigen::Vector3d &dir = (tp.translation() - sp.translation()).normalized();
+      double dp = normal2.dot(dir); 
+      if (dp < 0.0)
+      { 
+        if (verbose)
+	    ROS_INFO("Visibility constraint is violated because the sensor is looking at the wrong side");
+	distance = 0.0;
+	return false;
+      }
+      
+      double ang = acos(dp);
+      if (max_range_angle_ < ang)
+      {
+	if (verbose)
+	  ROS_INFO("Visibility constraint is violated because the range angle is %lf (above the maximum allowed of %lf)", ang, max_view_angle_);
+	distance = 0.0;
+	return false;
+      }
     }
   }
+  ROS_INFO("here");
   
   shapes::Mesh *m = getVisibilityCone(state);
   if (!m)
@@ -685,9 +785,12 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
   // check for collisions between the robot and the cone
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
+  collision_detection::AllowedCollisionMatrix acm;
+  acm.setDefaultEntry("cone", boost::bind(&VisibilityConstraint::decideContact, this, _1));
   req.contacts = true;
+  req.verbose = verbose;
   req.max_contacts = 1;
-  collision_world_->checkRobotCollision(req, res, *collision_robot_, state);
+  collision_world_->checkRobotCollision(req, res, *collision_robot_, state, acm);
   
   if (verbose)
   {
@@ -698,6 +801,22 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
   
   distance = res.collision ? res.contacts.begin()->second.front().depth : 0.0;
   return (!res.collision);
+}
+
+bool kinematic_constraints::VisibilityConstraint::decideContact(collision_detection::Contact &contact) const
+{
+    if (contact.body_type_1 == collision_detection::BodyTypes::ROBOT_ATTACHED ||
+	contact.body_type_2 == collision_detection::BodyTypes::ROBOT_ATTACHED)
+	return true;
+    if (contact.body_type_1 == collision_detection::BodyTypes::ROBOT_LINK &&
+	contact.body_type_2 == collision_detection::BodyTypes::WORLD_OBJECT &&
+	(contact.body_name_1 == sensor_frame_id_ || contact.body_name_1 == target_frame_id_))
+	return true;
+    if (contact.body_type_2 == collision_detection::BodyTypes::ROBOT_LINK &&
+	contact.body_type_1 == collision_detection::BodyTypes::WORLD_OBJECT &&
+	(contact.body_name_2 == sensor_frame_id_ || contact.body_name_2 == target_frame_id_))
+	return true;    
+    return false;
 }
 
 void kinematic_constraints::VisibilityConstraint::print(std::ostream &out) const
