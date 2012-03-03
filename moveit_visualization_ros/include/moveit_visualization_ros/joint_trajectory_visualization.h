@@ -54,7 +54,7 @@ public:
                      const trajectory_msgs::JointTrajectory& traj,
                      const std_msgs::ColorRGBA& color);
 
-  void playCurrentTrajectory();
+  void playCurrentTrajectory(bool block = false);
 
 protected:
 
@@ -70,6 +70,12 @@ protected:
   std::vector<std::string> link_model_names_;
 
   boost::shared_ptr<boost::thread> playback_thread_;
+
+  boost::condition_variable trajectory_finished_;
+  boost::mutex trajectory_playing_mutex_;
+  bool playback_happening_;
+
+  
 };
 
 }
