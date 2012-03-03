@@ -114,6 +114,7 @@ void ompl_interface::ModelBasedStateSpace::deserialize(ob::State *state, const v
   memcpy(&(state->as<StateType>()->flags), serialization, sizeof(int));
   memcpy(&(state->as<StateType>()->tag), reinterpret_cast<const char*>(serialization) + sizeof(int), sizeof(int));
   ob::CompoundStateSpace::deserialize(state, reinterpret_cast<const char*>(serialization) + sizeof(int) * 2);
+  state->as<StateType>()->clearKnownInformation();
 }
 
 unsigned int ompl_interface::ModelBasedStateSpace::getSerializationLength(void) const
@@ -185,6 +186,7 @@ void ompl_interface::ModelBasedStateSpace::printState(const ob::State *state, st
 {
   CompoundStateSpace::printState(state, out);
   out << "Tag: " << state->as<StateType>()->tag << std::endl;
+  out << "Flags: " << state->as<StateType>()->flags << std::endl;
   out << "Validity known: " << (state->as<StateType>()->isValidityKnown() ? "Yes" : "No") << std::endl;
   if (state->as<StateType>()->isValidityKnown())
     out << "Validity value: " << (state->as<StateType>()->isMarkedValid() ? "True" : "False") << std::endl;

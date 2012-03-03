@@ -887,7 +887,7 @@ const Eigen::Affine3d* planning_models::KinematicState::getFrameTransform(const 
     ROS_ERROR("Attached body '%s' has no geometry associated to it. No transform to return.", id.c_str());
     return NULL;
   }
-  if (tf.size() > 0)
+  if (tf.size() > 1)
     ROS_WARN("There are multiple geometries associated to attached body '%s'. Returning the transform for the first one.", id.c_str());
   return &(tf[0]);
 }

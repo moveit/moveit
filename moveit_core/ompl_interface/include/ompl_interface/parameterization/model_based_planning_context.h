@@ -62,7 +62,7 @@ struct ModelBasedPlanningContextSpecification
 {
   std::map<std::string, std::string> config_;
   ConfiguredPlannerAllocator planner_allocator_; 
-  ConstraintApproximationsPtr constraints_;
+  ConstraintApproximationsPtr constraints_approximations_;
 };
   
 class ModelBasedPlanningContext
@@ -210,7 +210,12 @@ public:
   bool setPlanningConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
                               const moveit_msgs::Constraints &path_constraints,
                               moveit_msgs::MoveItErrorCodes *error);
-  
+
+  void setConstraintsApproximations(const ConstraintApproximationsPtr &constraints_approximations)
+  {
+    spec_.constraints_approximations_ = constraints_approximations;
+  }
+    
   void clear(void);
   
   
@@ -250,7 +255,8 @@ public:
 
   ob::StateStoragePtr constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling,
                                                        const moveit_msgs::Constraints &constr_hard,
-                                                       unsigned int samples);
+						       const pm::KinematicState &default_state,
+						       unsigned int samples);
   
   virtual void configure(void);
 

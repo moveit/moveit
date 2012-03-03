@@ -149,10 +149,12 @@ namespace collision_detection
 	      --want_contact_count;
 	      cdata->res_->contacts[pc].push_back(c);
 	      cdata->res_->contact_count++;
-	      ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was stored.", cd1->getID().c_str(), cd2->getID().c_str());
+	      if (cdata->req_->verbose)
+		ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was stored.", cd1->getID().c_str(), cd2->getID().c_str());
 	    }
 	    else
-	      ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was not stored.", cd1->getID().c_str(), cd2->getID().c_str());
+	      if (cdata->req_->verbose)
+		ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was not stored.", cd1->getID().c_str(), cd2->getID().c_str());
 	    cdata->res_->collision = true;
 	    if (want_contact_count == 0)
 	      break;

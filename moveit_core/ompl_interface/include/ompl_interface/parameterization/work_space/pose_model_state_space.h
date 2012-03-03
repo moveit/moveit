@@ -123,6 +123,10 @@ private:
     
     bool computeStateFK(ob::State *state) const;
     bool computeStateIK(ob::State *state) const;
+    bool operator<(const PoseComponent &o) const
+    {
+      return subgroup_->getName() < o.subgroup_->getName();
+    }
 
     const pm::KinematicModel::JointModelGroup *subgroup_;    
     boost::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;

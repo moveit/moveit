@@ -165,14 +165,14 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
   
   if (path_constraints_)
   {
-    if (spec_.constraints_)
+    if (spec_.constraints_approximations_)
     {
-      for (std::size_t i = 0 ; i < spec_.constraints_->size() ; ++i)
-	if (spec_.constraints_->at(i).group_ == getJointModelGroupName() && spec_.constraints_->at(i).space_signature_ == space_signature_ && 
-	    spec_.constraints_->at(i).state_storage_ && spec_.constraints_->at(i).kconstraints_set_->equal(*path_constraints_, 0.1))
+      for (std::size_t i = 0 ; i < spec_.constraints_approximations_->size() ; ++i)
+	if (spec_.constraints_approximations_->at(i).group_ == getJointModelGroupName() && spec_.constraints_approximations_->at(i).space_signature_ == space_signature_ && 
+	    spec_.constraints_approximations_->at(i).state_storage_ && spec_.constraints_approximations_->at(i).kconstraints_set_->equal(*path_constraints_, 0.1))
 	{
 	  ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
-	  return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_->at(i).state_storage_));
+	  return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_approximations_->at(i).state_storage_));
 	}
     }
     
@@ -493,7 +493,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     ompl_simple_setup_.getProblemDefinition()->fixInvalidInputStates(d * 10.0, d * 10.0, 100);
   
   // \todo Fix above code to do interpolation of prefix & suffix paths for fixed states;
-
+  
   ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
   bool result = false;
   if (count <= 1)
@@ -598,6 +598,7 @@ void ompl_interface::ModelBasedPlanningContext::terminateSolve(void)
 
 ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling,
                                                                                                         const moveit_msgs::Constraints &constr_hard,
+													const pm::KinematicState &default_state,
                                                                                                         unsigned int samples)
 {
   // state storage structure
@@ -609,8 +610,6 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
   kset.add(constr_hard);
   
   // default state
-  pm::KinematicState default_state(getKinematicModel());
-  default_state.setToDefaultValues();
   setStartState(default_state);
   
   int nthreads = 0;
@@ -746,3 +745,51 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
   
   return sstor;
 }
+/*
+ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocatorRange(const boost::function<bool(const State*)> &from,
+											  const boost::function<bool(const State*)> &to) const
+{
+    if (states_.empty())
+        throw Exception("Cannot allocate state sampler from empty state storage");
+
+    std::size_t minIndex = 0;
+    std::size_t maxIndex = states_.size() - 1;
+    if (from)
+    {
+	std::size_t rangeStart = minIndex;
+	std::size_t rangeEnd = maxIndex;
+	
+	while (rangeStart < rangeEnd)
+	{
+	    std::size_t mid = (rangeStart + rangeEnd) / 2;
+	    if (from(states_[mid]))
+		rangeEnd = mid;
+	    else
+		rangeStart = mid + 1;
+	}
+	minIndex = rangeEnd;
+    }
+    if (to)
+    {	
+	std::size_t rangeStart = minIndex;
+	std::size_t rangeEnd = maxIndex;
+
+	while (rangeStart < rangeEnd)
+	{
+	    std::size_t mid = (rangeStart + rangeEnd) / 2;
+	    if (to(states_[mid]))
+		rangeStart = mid + 1;
+	    else
+		rangeEnd = mid;
+	}
+	if (to(states_[rangeEnd]))
+	    maxIndex = rangeEnd;
+	else
+	    maxIndex = rangeEnd - 1;
+    }
+    msg_.debug("Stored states sampling range is [%u, %u]", (unsigned int)minIndex, (unsigned int)maxIndex);
+
+    std::vector<int> sig;
+    space_->computeSignature(sig);    
+    return boost::bind(&allocPrecomputedStateSampler, _1, sig, &states_, minIndex, maxIndex);
+    }*/
