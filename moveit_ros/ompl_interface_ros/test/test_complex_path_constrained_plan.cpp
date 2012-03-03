@@ -62,7 +62,7 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   planning_scene::PlanningScene &scene = *psm.getPlanningScene();
   EXPECT_TRUE(scene.isConfigured());
 
-  mplan_req.motion_plan_request.planner_id = "KPIECEkConfigDefault";
+  mplan_req.motion_plan_request.planner_id = "RRTConnectkConfigDefault";
   mplan_req.motion_plan_request.group_name = "arms";
   mplan_req.motion_plan_request.num_planning_attempts = 1;
   mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
@@ -103,9 +103,9 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   pcm2.target_point_offset.y = 0;
   pcm2.target_point_offset.z = 0;
   pcm2.constraint_region_shape.type = moveit_msgs::Shape::BOX;
-  pcm2.constraint_region_shape.dimensions.push_back(0.001);
-  pcm2.constraint_region_shape.dimensions.push_back(0.001);
-  pcm2.constraint_region_shape.dimensions.push_back(0.001);
+  pcm2.constraint_region_shape.dimensions.push_back(0.1);
+  pcm2.constraint_region_shape.dimensions.push_back(0.1);
+  pcm2.constraint_region_shape.dimensions.push_back(0.1);
   
   pcm2.constraint_region_pose.header.frame_id = "l_wrist_roll_link";
   pcm2.constraint_region_pose.pose.position.x = 0.0;
@@ -125,9 +125,9 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   ocm.orientation.quaternion.y = 0.5;
   ocm.orientation.quaternion.z = 0.5;
   ocm.orientation.quaternion.w = 0.5;
-  ocm.absolute_x_axis_tolerance = 0.01;
+  ocm.absolute_x_axis_tolerance = 0.1;
   ocm.absolute_y_axis_tolerance = M_PI;
-  ocm.absolute_z_axis_tolerance = 0.01;
+  ocm.absolute_z_axis_tolerance = 0.1;
   ocm.weight = 1.0;
   c.orientation_constraints.push_back(ocm);
 
@@ -137,9 +137,9 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   ocm.orientation.quaternion.y = 0.0;
   ocm.orientation.quaternion.z = 1.0;
   ocm.orientation.quaternion.w = 0.0;
-  ocm.absolute_x_axis_tolerance = 0.01;
-  ocm.absolute_y_axis_tolerance = 0.01;
-  ocm.absolute_z_axis_tolerance = 0.01;
+  ocm.absolute_x_axis_tolerance = 0.1;
+  ocm.absolute_y_axis_tolerance = 0.1;
+  ocm.absolute_z_axis_tolerance = 0.1;
   ocm.weight = 1.0;
   c.orientation_constraints.push_back(ocm);
 
@@ -153,7 +153,7 @@ TEST(OmplPlanning, PathConstrainedSimplePlan)
   sa[scene.getKinematicModel()->getJointModelGroup("left_arm")] = kinematics_allocator;
   sa[scene.getKinematicModel()->getJointModelGroup("right_arm")] = kinematics_allocator;
 
-  kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::constructConstraintsSampler
+  kinematic_constraints::ConstraintSamplerPtr s = kinematic_constraints::ConstraintSampler::constructFromMessage
     (scene.getKinematicModel()->getJointModelGroup("arms"), c, scene.getKinematicModel(), scene.getTransforms(), kinematic_constraints::KinematicsAllocator(), sa);
   
   EXPECT_TRUE(s.get() != NULL);

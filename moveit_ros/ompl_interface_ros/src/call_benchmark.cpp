@@ -55,7 +55,6 @@ void benchmarkSimplePlan(const std::string &config)
     planning_scene::PlanningScene &scene = *psm.getPlanningScene();
 
     mplan_req.average_count = 50;
-    
     mplan_req.motion_plan_request.planner_id = config;
     mplan_req.motion_plan_request.group_name = "right_arm";
     mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
@@ -88,10 +87,11 @@ void benchmarkPathConstrained(const std::string &config)
   
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, NULL);
   planning_scene::PlanningScene &scene = *psm.getPlanningScene();
-  
+
+  mplan_req.average_count = 50;
   mplan_req.motion_plan_request.planner_id = config;
-  mplan_req.motion_plan_request.group_name = "right_arm";
-  mplan_req.motion_plan_request.num_planning_attempts = 30;
+  mplan_req.motion_plan_request.group_name = "right_arm"; 
+
   mplan_req.motion_plan_request.allowed_planning_time = ros::Duration(15.0);
   const std::vector<std::string>& joint_names = scene.getKinematicModel()->getJointModelGroup("right_arm")->getJointModelNames();
   mplan_req.motion_plan_request.goal_constraints.resize(1);
@@ -117,7 +117,7 @@ void benchmarkPathConstrained(const std::string &config)
   
   
   mplan_req.motion_plan_request.start_state.joint_state.name = joint_names;
-  mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-0.61044517893021499);
+  mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-1.21044517893021499);
   mplan_req.motion_plan_request.start_state.joint_state.position.push_back(0.038959594993384528);
   mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-0.81412902362644646);
   mplan_req.motion_plan_request.start_state.joint_state.position.push_back(-1.0989597173881371);
@@ -138,11 +138,11 @@ void benchmarkPathConstrained(const std::string &config)
   ocm.orientation.quaternion.y = 0.0;
   ocm.orientation.quaternion.z = 0.0;
   ocm.orientation.quaternion.w = 1.0;
-  ocm.absolute_x_axis_tolerance = 0.2;
-  ocm.absolute_y_axis_tolerance = 0.2;
+  ocm.absolute_x_axis_tolerance = 0.1;
+  ocm.absolute_y_axis_tolerance = 0.1;
   ocm.absolute_z_axis_tolerance = M_PI;
   ocm.weight = 1.0; 
-  
+
   benchmark_service_client.call(mplan_req, mplan_res);
 }
 
@@ -151,7 +151,16 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "call_ompl_planning", ros::init_options::AnonymousName);
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
+  benchmarkPathConstrained("SBLkConfigDefault");
+  benchmarkPathConstrained("ESTkConfigDefault");
+  benchmarkPathConstrained("BKPIECEkConfigDefault");
+  benchmarkPathConstrained("LBKPIECEkConfigDefault");
+  benchmarkPathConstrained("KPIECEkConfigDefault");
+  benchmarkPathConstrained("RRTkConfigDefault"); 
+  benchmarkPathConstrained("RRTConnectkConfigDefault");
+
+  /*  
   benchmarkSimplePlan("SBLkConfigDefault");
   benchmarkSimplePlan("ESTkConfigDefault");
   benchmarkSimplePlan("BKPIECEkConfigDefault");
@@ -159,7 +168,7 @@ int main(int argc, char **argv)
   benchmarkSimplePlan("KPIECEkConfigDefault");
   benchmarkSimplePlan("RRTkConfigDefault");
   benchmarkSimplePlan("RRTConnectkConfigDefault");
-
+*/
   //  benchmarkSimplePlan("KPIECEkConfigDefault");
   /*
   benchmarkSimplePlan("ESTkConfigDefault");
