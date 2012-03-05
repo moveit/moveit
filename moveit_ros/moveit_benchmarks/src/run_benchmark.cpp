@@ -45,6 +45,8 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/progress.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/math/constants/constants.hpp>
+
 #include <unistd.h>
 #include <fstream>
 
@@ -179,18 +181,72 @@ public:
 		ros::WallTime start = ros::WallTime::now();
 		bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
 		
+		// collect data 
 		runs[c]["time REAL"] = boost::lexical_cast<std::string>((ros::WallTime::now() - start).toSec());
 		runs[c]["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
 		double L = 0.0;
+		double clearance = 0.0;
+		double smoothness = 0.0;		
+		bool correct = true;
 		if (solved)
 		{
 		    std::vector<planning_models::KinematicStatePtr> p;
 		    scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory, p);
+
+		    // compute path length
 		    for (std::size_t k = 1 ; k < p.size() ; ++k)
 			L += p[k-1]->distance(*p[k]);
-		}
-		runs[c]["path_length REAL"] = boost::lexical_cast<std::string>(L);
 
+		    // compute correctness and clearance
+		    collision_detection::CollisionRequest req;
+		    req.distance = true;
+		    for (std::size_t k = 0 ; k < p.size() ; ++k)
+		    {
+			collision_detection::CollisionResult res;
+			scene_->checkCollisionUnpadded(req, res, *p[k]);
+			if (res.collision)
+			    correct = false;
+			clearance += res.distance;
+		    }
+		    clearance /= (double)p.size();
+
+		    // compute smoothness
+		    if (p.size() > 2)
+		    {
+			double a = p[0]->distance(*p[1]);
+			for (std::size_t i = 2 ; i < p.size() ; ++i)
+			{
+			    // view the path as a sequence of segments, and look at the triangles it forms:
+			    //          s1
+			    //          /\          s4
+			    //      a  /  \ b       |
+			    //        /    \        |
+			    //       /......\_______|
+			    //     s0    c   s2     s3
+			    //
+			    // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
+			    double b = p[i-1]->distance(*p[i]);
+			    double c = p[i-2]->distance(*p[i]);
+			    double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
+			    
+			    if (acosValue > -1.0 && acosValue < 1.0)
+			    {
+				// the smoothness is actually the outside angle of the one we compute
+				double angle = (boost::math::constants::pi<double>() - acos(acosValue));
+				
+				// and we normalize by the length of the segments
+				double k = 2.0 * angle / (a + b);
+				smoothness += k * k;
+			    }
+			    a = b;
+			}
+		    }
+		}
+		runs[c]["correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
+		runs[c]["path_length REAL"] = boost::lexical_cast<std::string>(L);
+		runs[c]["clearance REAL"] = boost::lexical_cast<std::string>(clearance);
+		runs[c]["smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
+		
 		// record the first solution in the response
 		if (solved && first[i])
 		{
