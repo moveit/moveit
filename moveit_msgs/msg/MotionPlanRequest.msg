@@ -14,6 +14,10 @@ RobotState start_state
 # if the constraints for a particular region are satisfied
 Constraints[] goal_constraints
 
+# For testing purposes it is sometimes helpful to pick a random state
+# as the starting state. This state is selected to match planning constraints
+bool random_valid_start_goal
+
 # No state at any point along the path in the produced motion plan will violate these constraints
 Constraints path_constraints
 

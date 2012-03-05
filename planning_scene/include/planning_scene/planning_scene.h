@@ -171,7 +171,6 @@ public:
     return (crobot_unpadded_const_ || !parent_) ? crobot_unpadded_const_ : parent_->getCollisionRobotUnpadded();
   }
 
-
   /** \brief Get the representation of the collision robot */
   const collision_detection::CollisionRobotPtr& getCollisionRobot(void);
 
