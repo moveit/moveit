@@ -163,12 +163,11 @@ public:
 	for (std::size_t i = 0 ; i < pi.size() ; ++i)
 	    ROS_INFO_STREAM("  * " << pi[i]->getDescription());
 	scene_->setPlanningSceneMsg(req.scene);
-	res.trajectory_start.resize(pi.size());
-	res.trajectory.resize(pi.size());	
+	res.responses.resize(pi.size());
 
 	ros::WallTime startTime = ros::WallTime::now();
 	boost::progress_display progress(pi.size() * req.average_count, std::cout);
-	moveit_msgs::GetMotionPlan::Response mp_res;
+	moveit_msgs::MotionPlanDetailedResponse mp_res;
 	typedef std::vector<std::map<std::string, std::string> > RunData;
 	std::vector<RunData> data;
 	std::vector<bool> first(pi.size(), true);
@@ -180,9 +179,10 @@ public:
 		++progress;
 		ros::WallTime start = ros::WallTime::now();
 		bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
+		double total_time = (ros::WallTime::now() - start).toSec();
 		
 		// collect data 
-		runs[c]["time REAL"] = boost::lexical_cast<std::string>((ros::WallTime::now() - start).toSec());
+		runs[c]["total_time REAL"] = boost::lexical_cast<std::string>(total_time);
 		runs[c]["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
 		double L = 0.0;
 		double clearance = 0.0;
@@ -190,69 +190,77 @@ public:
 		bool correct = true;
 		if (solved)
 		{
-		    std::vector<planning_models::KinematicStatePtr> p;
-		    scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory, p);
-
-		    // compute path length
-		    for (std::size_t k = 1 ; k < p.size() ; ++k)
-			L += p[k-1]->distance(*p[k]);
-
-		    // compute correctness and clearance
-		    collision_detection::CollisionRequest req;
-		    req.distance = true;
-		    for (std::size_t k = 0 ; k < p.size() ; ++k)
+		    double process_time = total_time;
+		    for (std::size_t j = 0 ; j < mp_res.trajectory.size() ; ++j)
 		    {
-			collision_detection::CollisionResult res;
-			scene_->checkCollisionUnpadded(req, res, *p[k]);
-			if (res.collision)
-			    correct = false;
-			clearance += res.distance;
-		    }
-		    clearance /= (double)p.size();
-
-		    // compute smoothness
-		    if (p.size() > 2)
-		    {
-			double a = p[0]->distance(*p[1]);
-			for (std::size_t i = 2 ; i < p.size() ; ++i)
+			std::vector<planning_models::KinematicStatePtr> p;
+			scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory[j], p);
+			
+			// compute path length
+			for (std::size_t k = 1 ; k < p.size() ; ++k)
+			    L += p[k-1]->distance(*p[k]);
+			
+			// compute correctness and clearance
+			collision_detection::CollisionRequest req;
+			req.distance = true;
+			for (std::size_t k = 0 ; k < p.size() ; ++k)
 			{
-			    // view the path as a sequence of segments, and look at the triangles it forms:
-			    //          s1
-			    //          /\          s4
-			    //      a  /  \ b       |
-			    //        /    \        |
-			    //       /......\_______|
-			    //     s0    c   s2     s3
-			    //
-			    // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
-			    double b = p[i-1]->distance(*p[i]);
-			    double c = p[i-2]->distance(*p[i]);
-			    double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
-			    
-			    if (acosValue > -1.0 && acosValue < 1.0)
-			    {
-				// the smoothness is actually the outside angle of the one we compute
-				double angle = (boost::math::constants::pi<double>() - acos(acosValue));
-				
-				// and we normalize by the length of the segments
-				double k = 2.0 * angle / (a + b);
-				smoothness += k * k;
-			    }
-			    a = b;
+			    collision_detection::CollisionResult res;
+			    scene_->checkCollisionUnpadded(req, res, *p[k]);
+			    if (res.collision)
+				correct = false;
+			    clearance += res.distance;
 			}
+			clearance /= (double)p.size();
+			
+			// compute smoothness
+			if (p.size() > 2)
+			{
+			    double a = p[0]->distance(*p[1]);
+			    for (std::size_t k = 2 ; k < p.size() ; ++k)
+			    {
+				// view the path as a sequence of segments, and look at the triangles it forms:
+				//          s1
+				//          /\          s4
+				//      a  /  \ b       |
+				//        /    \        |
+				//       /......\_______|
+				//     s0    c   s2     s3
+				//
+				// use Pythagoras generalized theorem to find the cos of the angle between segments a and b
+				double b = p[k-1]->distance(*p[k]);
+				double c = p[k-2]->distance(*p[k]);
+				double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
+				
+				if (acosValue > -1.0 && acosValue < 1.0)
+				{
+				    // the smoothness is actually the outside angle of the one we compute
+				    double angle = (boost::math::constants::pi<double>() - acos(acosValue));
+				    
+				    // and we normalize by the length of the segments
+				    double u = 2.0 * angle / (a + b);
+				    smoothness += u * u;
+				}
+				a = b;
+			    }
+			}
+			runs[c]["path_" + mp_res.description[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
+			runs[c]["path_" + mp_res.description[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
+			runs[c]["path_" + mp_res.description[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
+			runs[c]["path_" + mp_res.description[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
+			runs[c]["path_" + mp_res.description[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time[j]);
+			process_time -= mp_res.processing_time[j].toSec();
 		    }
+		    if (process_time <= 0.0)
+		      process_time = 0.0;
+		    runs[c]["process_time REAL"] = boost::lexical_cast<std::string>(process_time);
 		}
-		runs[c]["correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-		runs[c]["path_length REAL"] = boost::lexical_cast<std::string>(L);
-		runs[c]["clearance REAL"] = boost::lexical_cast<std::string>(clearance);
-		runs[c]["smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
 		
 		// record the first solution in the response
 		if (solved && first[i])
 		{
 		    first[i] = false;
-		    res.trajectory[i] = mp_res.trajectory;
-		    res.trajectory_start[i] = mp_res.trajectory_start;
+		    res.responses[i] = mp_res;
 		}
 	    }
 	    data.push_back(runs);
