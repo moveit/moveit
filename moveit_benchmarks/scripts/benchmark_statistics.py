@@ -382,8 +382,6 @@ if __name__ == "__main__":
         # If we update the database, we recompute the views as well
         options.view = True
 
-    if options.view:
-        compute_views(options.dbname)
 
     if options.plot:
         plot_statistics(options.dbname, options.plot)
