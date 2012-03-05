@@ -42,6 +42,7 @@
 #include "ompl_interface/detail/projection_evaluators.h"
 #include <kinematic_constraints/utils.h>
 
+#include <ompl/base/samplers/UniformValidStateSampler.h>
 #include <ompl/base/GoalLazySamples.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/debug/Profiler.h>
@@ -50,7 +51,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
                                                                      const ModelBasedPlanningContextSpecification &spec) :
   spec_(spec), name_(name), ompl_state_space_(state_space), complete_initial_robot_state_(ompl_state_space_->getKinematicModel()),
   ompl_simple_setup_(ompl_state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
-  last_plan_time_(0.0), max_goal_samples_(0), max_sampling_attempts_(0), max_planning_threads_(0),
+  last_plan_time_(0.0), last_simplify_time_(0.0), max_goal_samples_(0), max_sampling_attempts_(0), max_planning_threads_(0),
   max_velocity_(0), max_acceleration_(0.0), max_solution_segment_length_(0.0)
 {
   ompl_simple_setup_.getStateSpace()->computeSignature(space_signature_);
@@ -127,7 +128,7 @@ public:
   }
   
   virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
-  {
+    {
     int index = -1;
     int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
     if (tag >= 0)
@@ -136,11 +137,13 @@ public:
       if (!md.empty() && rng_.uniform01() * md.size() > 1.0)
         index = md[rng_.uniformInt(0, md.size() - 1)];
     }
-    if (index < 0)
+    if (index < 0) 
       index = rng_.uniformInt(0, state_storage_->size() - 1);
+    
+    double dd = distance * 3000000;
     double dist = space_->distance(near, state_storage_->getState(index));
-    if (dist > distance)
-      space_->interpolate(near, state_storage_->getState(index), distance / dist, state);
+    if (dist > dd)
+      space_->interpolate(near, state_storage_->getState(index), dd / dist, state);
     else
       space_->copyState(state, state_storage_->getState(index));
   }
@@ -191,17 +194,15 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
 
 void ompl_interface::ModelBasedPlanningContext::configure(void)
 {
-  if (ompl_simple_setup_.getGoal())
-  {
-    // convert the input state to the corresponding OMPL state
-    ompl::base::ScopedState<> ompl_start_state(ompl_state_space_);
-    ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
-    ompl_simple_setup_.setStartState(ompl_start_state);
-    ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
+  // convert the input state to the corresponding OMPL state
+  ompl::base::ScopedState<> ompl_start_state(ompl_state_space_);
+  ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
+  ompl_simple_setup_.setStartState(ompl_start_state);
+  ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
     
-    useConfig();  
+  useConfig();  
+  if (ompl_simple_setup_.getGoal())
     ompl_simple_setup_.setup();
-  }
 }
 
 void ompl_interface::ModelBasedPlanningContext::useConfig(void)
@@ -301,6 +302,7 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
 void ompl_interface::ModelBasedPlanningContext::simplifySolution(double timeout)
 {
   ompl_simple_setup_.simplifySolution(timeout);
+  last_simplify_time_ = ompl_simple_setup_.getLastSimplificationTime();
 }
 
 void ompl_interface::ModelBasedPlanningContext::interpolateSolution(void)
@@ -402,13 +404,11 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(voi
 
 void ompl_interface::ModelBasedPlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene)
 {
-  clear();
   planning_scene_ = planning_scene;
 }
 
 void ompl_interface::ModelBasedPlanningContext::setStartState(const pm::KinematicState &complete_initial_robot_state)
 {
-  clear();
   complete_initial_robot_state_ = complete_initial_robot_state;
 }
 
@@ -422,9 +422,41 @@ void ompl_interface::ModelBasedPlanningContext::clear(void)
   goal_constraints_.clear();
 }
 
-bool ompl_interface::ModelBasedPlanningContext::setPlanningConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
-                                                                       const moveit_msgs::Constraints &path_constraints,
-                                                                       moveit_msgs::MoveItErrorCodes *error)
+bool ompl_interface::ModelBasedPlanningContext::setRandomStartGoal(void)
+{
+  ob::ValidStateSamplerPtr vss(new ob::UniformValidStateSampler(ompl_simple_setup_.getSpaceInformation().get()));
+  vss->setNrAttempts(10000);
+  ob::ScopedState<> ss(ompl_state_space_);
+  if (vss->sample(ss.get()))
+  {
+    ompl_state_space_->copyToKinematicState(complete_initial_robot_state_, ss.get());
+    ROS_INFO("Selected a random valid start state");
+    if (vss->sample(ss.get()))
+    {
+      ompl_simple_setup_.setGoalState(ss);
+      ROS_INFO("Selected a random valid goal state");
+      return true;
+    }
+    else
+      ROS_WARN("Unable to select random valid goals state");
+  }
+  else
+    ROS_WARN("Unable to select random valid start/goal states");
+  return false;
+}
+
+bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_msgs::Constraints &path_constraints,
+								   moveit_msgs::MoveItErrorCodes *error)
+{
+  // ******************* set the path constraints to use
+  path_constraints_.reset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
+  path_constraints_->add(path_constraints);
+  return true;
+}
+								   
+bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
+								   const moveit_msgs::Constraints &path_constraints,
+								   moveit_msgs::MoveItErrorCodes *error)
 {
   
   // ******************* check if the input is correct
@@ -437,6 +469,7 @@ bool ompl_interface::ModelBasedPlanningContext::setPlanningConstraints(const std
     if (!kset->empty())
       goal_constraints_.push_back(kset);
   }
+  
   if (goal_constraints_.empty())
   {
     ROS_WARN("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
@@ -445,10 +478,6 @@ bool ompl_interface::ModelBasedPlanningContext::setPlanningConstraints(const std
     return false;
   }
   
-  // ******************* set the path constraints to use
-  path_constraints_.reset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
-  path_constraints_->add(path_constraints);
-
   ob::GoalPtr goal = constructGoal();
   ompl_simple_setup_.setGoal(goal);
   if (goal)
@@ -610,6 +639,7 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
   kset.add(constr_hard);
   
   // default state
+  clear();
   setStartState(default_state);
   
   int nthreads = 0;
@@ -688,12 +718,16 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 	ROS_INFO("Constrained sampling rate: %lf", csmp->getConstrainedSamplingRate());
     }
   }
+  if (1)
+  {
+      
   ROS_INFO("Computing graph connections...");
   
   ompl::tools::SelfConfig sc(ompl_simple_setup_.getSpaceInformation());
   double range = 0.0;
   sc.configurePlannerRange(range);
-  unsigned int maxC = sstor->size() / 50; // connect to maximum 2% of the state space
+  
+  unsigned int maxC = std::min(50, (int)sstor->size() / 50); // connect to maximum 2% of the state space
   
   // construct connexions
   const ob::StateSpacePtr &space = ompl_simple_setup_.getStateSpace();
@@ -722,26 +756,40 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
     
     for (std::size_t i = j + 1 ; i < sstor->size() ; ++i)
     {
-      if (space->distance(states[j], states[i]) > range)
-	continue;
+	double d = space->distance(states[j], states[i]);
+	if (d > range * 2.0 || d < range / 3.0)
+	    continue;
 	
       space->interpolate(states[j], states[i], 0.5, temp);
       ompl_state_space_->copyToKinematicState(kstate, temp);
       jsg->updateLinkTransforms();
       if (kset.decide(kstate, distance))
       {
+	  space->interpolate(states[j], states[i], 0.25, temp);
+	  ompl_state_space_->copyToKinematicState(kstate, temp);
+	  jsg->updateLinkTransforms();
+	  if (kset.decide(kstate, distance))
+	  {
+	      space->interpolate(states[j], states[i], 0.75, temp);
+	      ompl_state_space_->copyToKinematicState(kstate, temp);
+	      jsg->updateLinkTransforms();
+	      if (kset.decide(kstate, distance))
+	      {
 #pragma omp critical
-	{
-	  cass->getMetadata(i).push_back(j);
-	  cass->getMetadata(j).push_back(i);
-	  good++;
-	}
-	if (cass->getMetadata(j).size() >= maxC)
-	  break;
+		  {
+		      cass->getMetadata(i).push_back(j);
+		      cass->getMetadata(j).push_back(i);
+		      good++;
+		  }
+		  if (cass->getMetadata(j).size() >= maxC)
+		      break;
+	      }
+	  }
       }
     }
   }
   ROS_INFO("Computed possible connexions in %lf seconds. Added %d connexions", ompl::time::seconds(ompl::time::now() - start), good);
+  }
   
   return sstor;
 }

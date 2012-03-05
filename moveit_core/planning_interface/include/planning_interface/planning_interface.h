@@ -38,6 +38,7 @@
 #include <planning_scene/planning_scene.h>
 #include <planning_models/kinematic_model.h>
 #include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/MotionPlanDetailedResponse.h>
 #include <string>
 
 namespace planning_interface
@@ -77,6 +78,10 @@ class Planner
     virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                        const moveit_msgs::GetMotionPlan::Request &req, 
                        moveit_msgs::GetMotionPlan::Response &res) const = 0;
+
+    virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+		       const moveit_msgs::GetMotionPlan::Request &req, 
+		       moveit_msgs::MotionPlanDetailedResponse &res) const = 0;
 
     /// Determine whether this plugin instance is able to represent this planning request
     virtual bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,

@@ -140,9 +140,13 @@ public:
   
   ModelBasedPlanningContextPtr getLastPlanningContext(void) const;
   
-  /** @brief Solve the planning problem*/
+  /** @brief Solve the planning problem */
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
              const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
+
+  /** @brief Solve the planning problem but give a more detailed response */
+  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::MotionPlanDetailedResponse &res) const;
   
   /** @brief Benchmark the planning problem*/
   bool benchmark(const planning_scene::PlanningSceneConstPtr& planning_scene,

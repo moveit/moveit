@@ -120,7 +120,17 @@ public:
     return ompl_simple_setup_;
   }
 
+  og::SimpleSetup& getOMPLSimpleSetup(void)
+  {
+    return ompl_simple_setup_;
+  }
+
   const ot::Benchmark& getOMPLBenchmark(void) const
+  {
+    return ompl_benchmark_;
+  }
+
+  ot::Benchmark& getOMPLBenchmark(void)
   {
     return ompl_benchmark_;
   }
@@ -207,9 +217,12 @@ public:
 
   void setStartState(const pm::KinematicState &complete_initial_robot_state);
   
-  bool setPlanningConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
-                              const moveit_msgs::Constraints &path_constraints,
-                              moveit_msgs::MoveItErrorCodes *error);
+  bool setRandomStartGoal(void);
+  bool setGoalConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
+			  const moveit_msgs::Constraints &path_constraints,
+			  moveit_msgs::MoveItErrorCodes *error);
+  bool setPathConstraints(const moveit_msgs::Constraints &path_constraints,
+			  moveit_msgs::MoveItErrorCodes *error);
 
   void setConstraintsApproximations(const ConstraintApproximationsPtr &constraints_approximations)
   {
@@ -234,10 +247,16 @@ public:
   
   void terminateSolve(void);
   
-  /* @brief Get the amount of time spent on the last plan*/
+  /* @brief Get the amount of time spent computing the last plan */
   double getLastPlanTime(void) const
   {
     return last_plan_time_;
+  }
+
+  /* @brief Get the amount of time spent simplifying the last plan */
+  double getLastSimplifyTime(void) const
+  {
+    return last_simplify_time_;
   }
   
   /* @brief Apply smoothing and try to simplify the plan
@@ -297,6 +316,9 @@ protected:
     
   /// the time spent computing the last plan
   double                                                  last_plan_time_;  
+
+  /// the time spent simplifying the last plan
+  double                                                  last_simplify_time_;  
 
   /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
   unsigned int                                            max_goal_samples_;
