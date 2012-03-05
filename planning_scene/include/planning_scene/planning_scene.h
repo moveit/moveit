@@ -190,9 +190,20 @@ public:
                       collision_detection::CollisionResult &res,
                       const planning_models::KinematicState &kstate,
                       const collision_detection::AllowedCollisionMatrix& acm) const;
+    
+  /** \brief Check whether the current state is in collision, 
+      but use a collision_detection::CollisionRobot instance that has no padding.  */
+  void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+			      collision_detection::CollisionResult &res) const;
+
+  /** \brief Check whether a specified state (\e kstate) is in collision, 
+      but use a collision_detection::CollisionRobot instance that has no padding.  */
+  void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+                              collision_detection::CollisionResult &res,
+                              const planning_models::KinematicState &kstate) const;
 
   /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
-      allowed collision matrix (\e acm) */
+      allowed collision matrix (\e acm), but use a collision_detection::CollisionRobot instance that has no padding.  */
   void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                               collision_detection::CollisionResult &res,
                               const planning_models::KinematicState &kstate,

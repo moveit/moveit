@@ -237,9 +237,20 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
   
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-  {
     getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
-  }
+}
+
+void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+							   collision_detection::CollisionResult &res) const
+{
+  return checkCollisionUnpadded(req, res, getCurrentState(), getAllowedCollisionMatrix());
+}
+
+void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+							   collision_detection::CollisionResult &res,
+							   const planning_models::KinematicState &kstate) const
+{
+  return checkCollisionUnpadded(req, res, kstate, getAllowedCollisionMatrix());
 }
 
 void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
@@ -443,7 +454,8 @@ bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns,
 void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const
 {
   moveit_msgs::CollisionObject co;
-  if(getCollisionObjectMsg(ns, co)) {
+  if(getCollisionObjectMsg(ns, co))
+  {
     if (!co.shapes.empty() || !co.static_shapes.empty())
       scene.world.collision_objects.push_back(co);
   }
