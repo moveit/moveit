@@ -465,7 +465,7 @@ void kinematic_constraints::OrientationConstraint::print(std::ostream &out) cons
 }
 
 kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
-  KinematicConstraint(model, tf), collision_robot_(new collision_detection::CollisionRobotFCL(model)), collision_world_(new collision_detection::CollisionWorldFCL())
+  KinematicConstraint(model, tf), collision_robot_(new collision_detection::CollisionRobotFCL(model))
 {
   type_ = VISIBILITY_CONSTRAINT;
 }
@@ -769,7 +769,6 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
       }
     }
   }
-  ROS_INFO("here");
   
   shapes::Mesh *m = getVisibilityCone(state);
   if (!m)
@@ -777,11 +776,11 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
     distance = 0.0;
     return false;
   }
-  
+
   // add the visibility cone as an object
-  collision_world_->clearObjects();
-  collision_world_->addToObject("cone", m, Eigen::Affine3d::Identity());
-  
+  collision_detection::CollisionWorldFCL collision_world;
+  collision_world.addToObject("cone", m, Eigen::Affine3d::Identity());
+
   // check for collisions between the robot and the cone
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
@@ -789,9 +788,9 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
   acm.setDefaultEntry("cone", boost::bind(&VisibilityConstraint::decideContact, this, _1));
   req.contacts = true;
   req.verbose = verbose;
-  req.max_contacts = 1;
-  collision_world_->checkRobotCollision(req, res, *collision_robot_, state, acm);
-  
+  req.max_contacts = 1; 
+  collision_world.checkRobotCollision(req, res, *collision_robot_, state, acm);
+
   if (verbose)
   {
     std::stringstream ss;

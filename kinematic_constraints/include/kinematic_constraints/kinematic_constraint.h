@@ -310,7 +310,6 @@ protected:
   bool decideContact(collision_detection::Contact &contact) const;
 
   collision_detection::CollisionRobotPtr collision_robot_;
-  collision_detection::CollisionWorldPtr collision_world_;
   bool                                   mobile_sensor_frame_;
   bool                                   mobile_target_frame_;
   std::string                            target_frame_id_;
