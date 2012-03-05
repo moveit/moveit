@@ -65,11 +65,17 @@ class OMPLPlanner : public planning_interface::Planner
                const moveit_msgs::GetMotionPlan::Request &req, 
                moveit_msgs::GetMotionPlan::Response &res) const
     {
-      bool result = ompl_interface_->solve(planning_scene, req, res);
-      return result;
+      return ompl_interface_->solve(planning_scene, req, res);
     }
 
-    std::string getDescription(void) const { return "OMPL Interface"; }
+    bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+	       const moveit_msgs::GetMotionPlan::Request &req, 
+	       moveit_msgs::MotionPlanDetailedResponse &res) const
+    {
+      return ompl_interface_->solve(planning_scene, req, res);
+    }
+
+    std::string getDescription(void) const { return "OMPL"; }
 
     void terminate(void) const
     {

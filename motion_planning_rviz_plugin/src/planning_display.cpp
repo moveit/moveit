@@ -456,11 +456,11 @@ void PlanningDisplay::renderShape(Ogre::SceneNode *node, const shapes::Shape *s,
 void PlanningDisplay::renderPlanningScene()
 {
     static rviz::Color colors[] = {
-        rviz::Color(0.2f, 0.9f, 0.2f),
-        rviz::Color(0.0f, 0.1f, 0.9f),
+        rviz::Color(0.2f, 0.9f, 0.2f)
+	/*        rviz::Color(0.0f, 0.1f, 0.9f),
         rviz::Color(0.0f, 0.9f, 0.9f),
         rviz::Color(0.9f, 0.9f, 0.0f),
-        rviz::Color(0.9f, 0.0f, 0.2f)
+        rviz::Color(0.9f, 0.0f, 0.2f) */
     };
     static rviz::Color attached_color(0.6f, 0.6f, 0.6f);
 
