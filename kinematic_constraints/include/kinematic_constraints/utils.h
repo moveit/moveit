@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef KINEMATIC_CONSTRAINTS_UTILS_
-#define KINEMATIC_CONSTRAINTS_UTILS_
+#ifndef MOVEIT_KINEMATIC_CONSTRAINTS_UTILS_
+#define MOVEIT_KINEMATIC_CONSTRAINTS_UTILS_
 
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <geometry_msgs/PointStamped.h>

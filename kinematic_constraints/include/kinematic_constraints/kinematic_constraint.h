@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
-#define KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
+#ifndef MOVEIT_KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
+#define MOVEIT_KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
 
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
@@ -100,7 +100,7 @@ public:
   
   const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
   {
-    return model_;
+    return kmodel_;
   }
   
   const planning_models::TransformsConstPtr& getTransforms(void) const
@@ -111,7 +111,7 @@ public:
 protected:
   
   ConstraintType                          type_;
-  planning_models::KinematicModelConstPtr model_;
+  planning_models::KinematicModelConstPtr kmodel_;
   planning_models::TransformsConstPtr     tf_;
   double                                  constraint_weight_;
 };
@@ -329,7 +329,7 @@ class KinematicConstraintSet
 public:
   
   KinematicConstraintSet(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
-    model_(model), tf_(tf)
+    kmodel_(model), tf_(tf)
   {
   }
   
@@ -406,7 +406,7 @@ public:
   
 protected:
   
-  planning_models::KinematicModelConstPtr         model_;
+  planning_models::KinematicModelConstPtr         kmodel_;
   planning_models::TransformsConstPtr             tf_;
   
   std::vector<KinematicConstraintPtr>             kinematic_constraints_;
