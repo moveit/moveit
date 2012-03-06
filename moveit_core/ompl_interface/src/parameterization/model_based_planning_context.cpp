@@ -128,7 +128,7 @@ public:
   }
   
   virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
-    {
+  {
     int index = -1;
     int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
     if (tag >= 0)
@@ -140,7 +140,7 @@ public:
     if (index < 0) 
       index = rng_.uniformInt(0, state_storage_->size() - 1);
     
-    double dd = distance * 3000000;
+    double dd = distance;
     double dist = space_->distance(near, state_storage_->getState(index));
     if (dist > dd)
       space_->interpolate(near, state_storage_->getState(index), dd / dist, state);
@@ -628,7 +628,7 @@ void ompl_interface::ModelBasedPlanningContext::terminateSolve(void)
 ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling,
                                                                                                         const moveit_msgs::Constraints &constr_hard,
 													const pm::KinematicState &default_state,
-                                                                                                        unsigned int samples)
+                                                                                                        unsigned int samples, unsigned int edges_per_sample)
 {
   // state storage structure
   ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(ompl_simple_setup_.getStateSpace());
@@ -718,126 +718,125 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 	ROS_INFO("Constrained sampling rate: %lf", csmp->getConstrainedSamplingRate());
     }
   }
-  if (1)
+
+  if (edges_per_sample > 0)
   {
-      
-  ROS_INFO("Computing graph connections...");
-  
-  ompl::tools::SelfConfig sc(ompl_simple_setup_.getSpaceInformation());
-  double range = 0.0;
-  sc.configurePlannerRange(range);
-  
-  unsigned int maxC = std::min(50, (int)sstor->size() / 50); // connect to maximum 2% of the state space
-  
-  // construct connexions
-  const ob::StateSpacePtr &space = ompl_simple_setup_.getStateSpace();
-  std::vector<planning_models::KinematicState> kstates(nthreads, default_state);
-  const std::vector<const ompl::base::State*> &states = sstor->getStates();
-  std::vector<ompl::base::ScopedState<> > temps(nthreads, ompl::base::ScopedState<>(space));
-  
-  ompl::time::point start = ompl::time::now();
-  int good = 0;
-  int done = -1;
-  
+    ROS_INFO("Computing graph connections...");
+    
+    ompl::tools::SelfConfig sc(ompl_simple_setup_.getSpaceInformation());
+    double range = 0.0;
+    sc.configurePlannerRange(range);
+    
+    // construct connexions
+    const ob::StateSpacePtr &space = ompl_simple_setup_.getStateSpace();
+    std::vector<planning_models::KinematicState> kstates(nthreads, default_state);
+    const std::vector<const ompl::base::State*> &states = sstor->getStates();
+    std::vector<ompl::base::ScopedState<> > temps(nthreads, ompl::base::ScopedState<>(space));
+    
+    ompl::time::point start = ompl::time::now();
+    int good = 0;
+    int done = -1;
+    
 #pragma omp parallel for schedule(dynamic) 
-  for (std::size_t j = 0 ; j < sstor->size() ; ++j)
-  {
-    int threadid = omp_get_thread_num();
-    pm::KinematicState &kstate = kstates[threadid];
-    pm::KinematicState::JointStateGroup *jsg = kstate.getJointStateGroup(getJointModelGroup()->getName());
-    ompl::base::State *temp = temps[threadid].get();
-    double distance = 0.0;
-    int done_now = 100 * j / sstor->size();
-    if (done != done_now)
+    for (std::size_t j = 0 ; j < sstor->size() ; ++j)
     {
+      int threadid = omp_get_thread_num();
+      pm::KinematicState &kstate = kstates[threadid];
+      pm::KinematicState::JointStateGroup *jsg = kstate.getJointStateGroup(getJointModelGroup()->getName());
+      ompl::base::State *temp = temps[threadid].get();
+      double distance = 0.0;
+      int done_now = 100 * j / sstor->size();
+      if (done != done_now)
+      {
 	done = done_now;
 	ROS_INFO("%d%% complete", done);
-    }
-    
-    for (std::size_t i = j + 1 ; i < sstor->size() ; ++i)
-    {
+      }
+      
+      for (std::size_t i = j + 1 ; i < sstor->size() ; ++i)
+      {
 	double d = space->distance(states[j], states[i]);
 	if (d > range * 2.0 || d < range / 3.0)
-	    continue;
+          continue;
 	
-      space->interpolate(states[j], states[i], 0.5, temp);
-      ompl_state_space_->copyToKinematicState(kstate, temp);
-      jsg->updateLinkTransforms();
-      if (kset.decide(kstate, distance))
-      {
+        space->interpolate(states[j], states[i], 0.5, temp);
+        ompl_state_space_->copyToKinematicState(kstate, temp);
+        jsg->updateLinkTransforms();
+        if (kset.decide(kstate, distance))
+        {
 	  space->interpolate(states[j], states[i], 0.25, temp);
 	  ompl_state_space_->copyToKinematicState(kstate, temp);
 	  jsg->updateLinkTransforms();
 	  if (kset.decide(kstate, distance))
 	  {
-	      space->interpolate(states[j], states[i], 0.75, temp);
-	      ompl_state_space_->copyToKinematicState(kstate, temp);
-	      jsg->updateLinkTransforms();
-	      if (kset.decide(kstate, distance))
-	      {
+            space->interpolate(states[j], states[i], 0.75, temp);
+            ompl_state_space_->copyToKinematicState(kstate, temp);
+            jsg->updateLinkTransforms();
+            if (kset.decide(kstate, distance))
+            {
 #pragma omp critical
-		  {
-		      cass->getMetadata(i).push_back(j);
-		      cass->getMetadata(j).push_back(i);
-		      good++;
-		  }
-		  if (cass->getMetadata(j).size() >= maxC)
-		      break;
-	      }
+              {
+                cass->getMetadata(i).push_back(j);
+                cass->getMetadata(j).push_back(i);
+                good++;
+              }
+              if (cass->getMetadata(j).size() >= edges_per_sample)
+                break;
+            }
 	  }
+        }
       }
     }
-  }
-  ROS_INFO("Computed possible connexions in %lf seconds. Added %d connexions", ompl::time::seconds(ompl::time::now() - start), good);
+    ROS_INFO("Computed possible connexions in %lf seconds. Added %d connexions", ompl::time::seconds(ompl::time::now() - start), good);
   }
   
   return sstor;
 }
 /*
-ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocatorRange(const boost::function<bool(const State*)> &from,
-											  const boost::function<bool(const State*)> &to) const
-{
-    if (states_.empty())
-        throw Exception("Cannot allocate state sampler from empty state storage");
-
-    std::size_t minIndex = 0;
-    std::size_t maxIndex = states_.size() - 1;
-    if (from)
-    {
-	std::size_t rangeStart = minIndex;
-	std::size_t rangeEnd = maxIndex;
-	
-	while (rangeStart < rangeEnd)
-	{
-	    std::size_t mid = (rangeStart + rangeEnd) / 2;
-	    if (from(states_[mid]))
-		rangeEnd = mid;
-	    else
-		rangeStart = mid + 1;
-	}
-	minIndex = rangeEnd;
-    }
-    if (to)
-    {	
-	std::size_t rangeStart = minIndex;
-	std::size_t rangeEnd = maxIndex;
-
-	while (rangeStart < rangeEnd)
-	{
-	    std::size_t mid = (rangeStart + rangeEnd) / 2;
-	    if (to(states_[mid]))
-		rangeStart = mid + 1;
-	    else
-		rangeEnd = mid;
-	}
-	if (to(states_[rangeEnd]))
-	    maxIndex = rangeEnd;
-	else
-	    maxIndex = rangeEnd - 1;
-    }
-    msg_.debug("Stored states sampling range is [%u, %u]", (unsigned int)minIndex, (unsigned int)maxIndex);
-
-    std::vector<int> sig;
-    space_->computeSignature(sig);    
-    return boost::bind(&allocPrecomputedStateSampler, _1, sig, &states_, minIndex, maxIndex);
-    }*/
+  ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocatorRange(const boost::function<bool(const State*)> &from,
+  const boost::function<bool(const State*)> &to) const
+  {
+  if (states_.empty())
+  throw Exception("Cannot allocate state sampler from empty state storage");
+  
+  std::size_t minIndex = 0;
+  std::size_t maxIndex = states_.size() - 1;
+  if (from)
+  {
+  std::size_t rangeStart = minIndex;
+  std::size_t rangeEnd = maxIndex;
+  
+  while (rangeStart < rangeEnd)
+  {
+  std::size_t mid = (rangeStart + rangeEnd) / 2;
+  if (from(states_[mid]))
+  rangeEnd = mid;
+  else
+  rangeStart = mid + 1;
+  }
+  minIndex = rangeEnd;
+  }
+  if (to)
+  {	
+  std::size_t rangeStart = minIndex;
+  std::size_t rangeEnd = maxIndex;
+  
+  while (rangeStart < rangeEnd)
+  {
+  std::size_t mid = (rangeStart + rangeEnd) / 2;
+  if (to(states_[mid]))
+  rangeStart = mid + 1;
+  else
+  rangeEnd = mid;
+  }
+  if (to(states_[rangeEnd]))
+  maxIndex = rangeEnd;
+  else
+  maxIndex = rangeEnd - 1;
+  }
+  msg_.debug("Stored states sampling range is [%u, %u]", (unsigned int)minIndex, (unsigned int)maxIndex);
+  
+  std::vector<int> sig;
+  space_->computeSignature(sig);    
+  return boost::bind(&allocPrecomputedStateSampler, _1, sig, &states_, minIndex, maxIndex);
+  }
+*/

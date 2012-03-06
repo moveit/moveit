@@ -60,7 +60,7 @@ static double normalizeAngle(double angle)
 }
 
 kinematic_constraints::KinematicConstraint::KinematicConstraint(const planning_models::KinematicModelConstPtr &model, const planning_models::TransformsConstPtr &tf) :
-  type_(UNKNOWN_CONSTRAINT), model_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
+  type_(UNKNOWN_CONSTRAINT), kmodel_(model), tf_(tf), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
 
@@ -70,7 +70,7 @@ kinematic_constraints::KinematicConstraint::~KinematicConstraint(void)
 
 bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointConstraint &jc)
 {
-  joint_model_ = model_->getJointModel(jc.joint_name);
+  joint_model_ = kmodel_->getJointModel(jc.joint_name);
   joint_is_continuous_ = false;
   if (joint_model_)
   {
@@ -195,7 +195,7 @@ void kinematic_constraints::JointConstraint::print(std::ostream &out) const
 
 bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::PositionConstraint &pc)
 {
-  link_model_ = model_->getLinkModel(pc.link_name);
+  link_model_ = kmodel_->getLinkModel(pc.link_name);
   offset_ = Eigen::Vector3d(pc.target_point_offset.x, pc.target_point_offset.y, pc.target_point_offset.z);
   has_offset_ = offset_.squaredNorm() > std::numeric_limits<double>::epsilon();
   boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region_shape));
@@ -340,7 +340,7 @@ bool kinematic_constraints::PositionConstraint::enabled(void) const
 
 bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::OrientationConstraint &oc)
 {
-  link_model_ = model_->getLinkModel(oc.link_name);
+  link_model_ = kmodel_->getLinkModel(oc.link_name);
   Eigen::Quaterniond q;
   if (!planning_models::quatFromMsg(oc.orientation.quaternion, q))
     ROS_WARN("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc.link_name.c_str(),
@@ -655,7 +655,7 @@ void kinematic_constraints::VisibilityConstraint::getMarkers(const planning_mode
   visualization_msgs::Marker mk;
   shapes::constructMarkerFromShape(m, mk);
   delete m;
-  mk.header.frame_id = model_->getModelFrame();
+  mk.header.frame_id = kmodel_->getModelFrame();
   mk.header.stamp = ros::Time::now();
   mk.ns = "constraints";
   mk.id = 1;
@@ -844,7 +844,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
   bool result = true;
   for (unsigned int i = 0 ; i < jc.size() ; ++i)
   {
-    JointConstraint *ev = new JointConstraint(model_, tf_);
+    JointConstraint *ev = new JointConstraint(kmodel_, tf_);
     bool u = ev->configure(jc[i]);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -859,7 +859,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
   bool result = true;
   for (unsigned int i = 0 ; i < pc.size() ; ++i)
   {
-    PositionConstraint *ev = new PositionConstraint(model_, tf_);
+    PositionConstraint *ev = new PositionConstraint(kmodel_, tf_);
     bool u = ev->configure(pc[i]);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -874,7 +874,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
   bool result = true;
   for (unsigned int i = 0 ; i < oc.size() ; ++i)
   {
-    OrientationConstraint *ev = new OrientationConstraint(model_, tf_);
+    OrientationConstraint *ev = new OrientationConstraint(kmodel_, tf_);
     bool u = ev->configure(oc[i]);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -889,7 +889,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
   bool result = true;
   for (unsigned int i = 0 ; i < vc.size() ; ++i)
   {
-    VisibilityConstraint *ev = new VisibilityConstraint(model_, tf_);
+    VisibilityConstraint *ev = new VisibilityConstraint(kmodel_, tf_);
     bool u = ev->configure(vc[i]);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));

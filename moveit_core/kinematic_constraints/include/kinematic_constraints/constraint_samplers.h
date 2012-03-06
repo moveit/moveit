@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef KINEMATIC_CONSTRAINTS_CONSTRAINT_SAMPLERS_
-#define KINEMATIC_CONSTRAINTS_CONSTRAINT_SAMPLERS_
+#ifndef MOVEIT_KINEMATIC_CONSTRAINTS_CONSTRAINT_SAMPLERS_
+#define MOVEIT_KINEMATIC_CONSTRAINTS_CONSTRAINT_SAMPLERS_
 
 #include "kinematic_constraints/kinematic_constraint.h"
 #include <random_numbers/random_numbers.h>

@@ -525,8 +525,6 @@ bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningScen
   ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, res.error_code, attempts, timeout);
   if (!context)
     return false;
-
-
   return context->benchmark(timeout, std::max(1u, req.average_count), req.filename);
 }
 
@@ -587,19 +585,20 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getL
 }
 
 void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &factory,
-							       const pm::KinematicState &kstate, unsigned int samples)
+                                                               const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
 {
-  addConstraintApproximation(constr, constr, group, factory, kstate, samples);
+  addConstraintApproximation(constr, constr, group, factory, kstate, samples, edges_per_sample);
 }
 
-void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard, const std::string &group,
-							       const std::string &factory,  const pm::KinematicState &kstate, unsigned int samples)
+void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
+                                                               const std::string &group, const std::string &factory,
+                                                               const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
 {  
   const ModelBasedPlanningContextPtr &pc = getPlanningContext(group, factory);
   if (pc)
   {
     ros::WallTime start = ros::WallTime::now();
-    ompl::base::StateStoragePtr ss = pc->constructConstraintApproximation(constr_sampling, constr_hard, kstate, samples);
+    ompl::base::StateStoragePtr ss = pc->constructConstraintApproximation(constr_sampling, constr_hard, kstate, samples, edges_per_sample);
     ROS_INFO("Spend %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
     if (ss)
       constraints_approximations_->push_back(ConstraintApproximation(kmodel_, group, factory, constr_hard, group + "_" + 
