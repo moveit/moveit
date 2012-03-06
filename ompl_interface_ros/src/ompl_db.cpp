@@ -114,7 +114,7 @@ int main(int argc, char **argv)
   
   moveit_msgs::Constraints cS = c;
 
-  ompl_interface.addConstraintApproximation(cS, c, "arms", "PoseModel", psm.getPlanningScene()->getCurrentState(), 1000);
+  //  ompl_interface.addConstraintApproximation(cS, c, "arms", "PoseModel", psm.getPlanningScene()->getCurrentState(), 1000);
 
 
 
@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 
   ompl_interface.addConstraintApproximation(constr2S, constr2, "left_arm", "PoseModel", 10000);
   */    
-  ompl_interface.saveConstraintApproximations("/home/isucan/c/");
+  //  ompl_interface.saveConstraintApproximations("/home/isucan/c/");
   ROS_INFO("Done");
   
   ros::waitForShutdown();
