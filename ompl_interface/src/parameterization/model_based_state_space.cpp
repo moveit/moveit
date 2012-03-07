@@ -96,10 +96,13 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ob::State *from, co
 {  
   state->as<StateType>()->clearKnownInformation();
   CompoundStateSpace::interpolate(from, to, t, state);
-  if (from->as<StateType>()->tag >= 0 && to->as<StateType>()->tag >= 0)
-    state->as<StateType>()->tag = t < 0.5 ? from->as<StateType>()->tag : to->as<StateType>()->tag;
+  if (from->as<StateType>()->tag >= 0 && t < 0.05)
+    state->as<StateType>()->tag = from->as<StateType>()->tag;
   else
-    state->as<StateType>()->tag = std::max(from->as<StateType>()->tag, to->as<StateType>()->tag);
+    if (to->as<StateType>()->tag >= 0 && t > 0.95)
+      state->as<StateType>()->tag = to->as<StateType>()->tag;
+    else
+      state->as<StateType>()->tag = -1;
 }
 
 void ompl_interface::ModelBasedStateSpace::serialize(void *serialization, const ob::State *state) const

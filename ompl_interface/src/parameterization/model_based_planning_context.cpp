@@ -135,10 +135,14 @@ public:
     {
       const std::vector<std::size_t> &md = state_storage_->getMetadata(tag);
       if (!md.empty() && rng_.uniform01() * md.size() > 1.0)
+      {
         index = md[rng_.uniformInt(0, md.size() - 1)];
+      }
     }
     if (index < 0) 
+    {
       index = rng_.uniformInt(0, state_storage_->size() - 1);
+    }
     
     double dist = space_->distance(near, state_storage_->getState(index));
     if (dist > distance)
@@ -761,7 +765,7 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
       {
 	double d = space->distance(states[j], states[i]);
 
-	if (d > range * 3.0 || d < range / 10.0)
+        if (d > range * 3.0 || d < range / 100.0)
           continue;
         
         space->interpolate(states[j], states[i], 0.5, temp);
