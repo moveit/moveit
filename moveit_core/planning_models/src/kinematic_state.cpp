@@ -866,7 +866,7 @@ double planning_models::KinematicState::distance(const KinematicState &state) co
     double di = j1[i] - j2[i];
     d += di * di;
   }
-  return d;
+  return sqrt(d);
 }
 
 const Eigen::Affine3d* planning_models::KinematicState::getFrameTransform(const std::string &id) const
