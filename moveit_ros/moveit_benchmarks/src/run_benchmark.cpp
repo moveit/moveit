@@ -56,305 +56,304 @@ static const std::string BENCHMARK_SERVICE_NAME="benchmark_planning_problem"; //
 class BenchmarkService
 {
 public:
-    BenchmarkService(void)
+  BenchmarkService(void)
+  {
+    // initialize a planning scene
+    robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
+    rml.getRobotDescription();
+    if (rml.getURDF())
     {
-	// initialize a planning scene
-	robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
-	rml.getRobotDescription();
-	if (rml.getURDF())
-	{
-	    scene_.reset(new planning_scene::PlanningScene());
-	    scene_->configure(rml.getURDF(), rml.getSRDF() ? rml.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()));
-	    if (scene_->isConfigured())
-	    {
-		cscene_ = scene_;		
-		// load the planning plugins
-		try
-		{
-		    planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("planning_interface", "planning_interface::Planner"));
-		}
-		catch(pluginlib::PluginlibException& ex)
-		{
-		    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
-		}
-		
-		const std::vector<std::string> &classes = planner_plugin_loader_->getDeclaredClasses();
-		for (std::size_t i = 0 ; i < classes.size() ; ++i)
-		{
-		    ROS_INFO("Attempting to load and configure %s", classes[i].c_str());
-		    try
-		    {
-			planning_interface::Planner *p = planner_plugin_loader_->createClassInstance(classes[i]);
-			p->init(scene_->getKinematicModel());
-			planner_interfaces_[classes[i]].reset(p);
-		    }
-		    catch (pluginlib::PluginlibException& ex)
-		    {
-			ROS_ERROR_STREAM("Exception while loading planner '" << classes[i] << "': " << ex.what());
-		    }
-		}
-		
-		if (planner_interfaces_.empty())
-		    ROS_ERROR("No planning plugins have been loaded. Nothing to do for the benchmarking service.");
-		else
-		{
-		    std::stringstream ss;
-		    for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
-			 it != planner_interfaces_.end(); ++it)
-			ss << it->first << " ";
-		    ROS_INFO("Available planner instances: %s", ss.str().c_str());
-		    benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &BenchmarkService::computeBenchmark, this);
-		}
-	    }
-	    else
-		ROS_ERROR("Unable to configure planning scene");
-	}
-	else
-	    ROS_ERROR("Unable to load URDF for parameter %s", ROBOT_DESCRIPTION.c_str());
+      scene_.reset(new planning_scene::PlanningScene());
+      scene_->configure(rml.getURDF(), rml.getSRDF() ? rml.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()));
+      if (scene_->isConfigured())
+      {
+        cscene_ = scene_;		
+        // load the planning plugins
+        try
+        {
+          planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("planning_interface", "planning_interface::Planner"));
+        }
+        catch(pluginlib::PluginlibException& ex)
+        {
+          ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
+        }
+	
+        const std::vector<std::string> &classes = planner_plugin_loader_->getDeclaredClasses();
+        for (std::size_t i = 0 ; i < classes.size() ; ++i)
+        {
+          ROS_INFO("Attempting to load and configure %s", classes[i].c_str());
+          try
+          {
+            planning_interface::Planner *p = planner_plugin_loader_->createClassInstance(classes[i]);
+            p->init(scene_->getKinematicModel());
+            planner_interfaces_[classes[i]].reset(p);
+          }
+          catch (pluginlib::PluginlibException& ex)
+          {
+            ROS_ERROR_STREAM("Exception while loading planner '" << classes[i] << "': " << ex.what());
+          }
+        }
+	
+        if (planner_interfaces_.empty())
+          ROS_ERROR("No planning plugins have been loaded. Nothing to do for the benchmarking service.");
+        else
+        {
+          std::stringstream ss;
+          for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
+               it != planner_interfaces_.end(); ++it)
+            ss << it->first << " ";
+          ROS_INFO("Available planner instances: %s", ss.str().c_str());
+          benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &BenchmarkService::computeBenchmark, this);
+        }
+      }
+      else
+        ROS_ERROR("Unable to configure planning scene");
     }
+    else
+      ROS_ERROR("Unable to load URDF for parameter %s", ROBOT_DESCRIPTION.c_str());
+  }
+  
+  bool computeBenchmark(moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res)
+  {      
+    if (!req.planner_interfaces.empty())
+      for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
+        if (planner_interfaces_.find(req.planner_interfaces[i]) == planner_interfaces_.end())
+          ROS_ERROR("Planning interface '%s' was not found", req.planner_interfaces[i].c_str());
     
-    bool computeBenchmark(moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res)
-    {      
-	if (!req.planner_interfaces.empty())
-	    for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
-		if (planner_interfaces_.find(req.planner_interfaces[i]) == planner_interfaces_.end())
-		    ROS_ERROR("Planning interface '%s' was not found", req.planner_interfaces[i].c_str());
-
-	res.planner_interfaces.clear();
-	std::vector<planning_interface::Planner*> pi;
-	std::vector<planning_interface::PlannerCapability> pc;
-	planning_interface::PlannerCapability capabilities;	
-	moveit_msgs::GetMotionPlan::Request mp_req;
-	mp_req.motion_plan_request = req.motion_plan_request;
-
-	for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
-	     it != planner_interfaces_.end(); ++it)
-	{
-	    if (!req.planner_interfaces.empty())
-	    {
-		bool found = false;
-		for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
-		    if (req.planner_interfaces[i] == it->first)
-		    {
-			found = true;
-			break;
-		    }
-		if (!found)
-		    continue;
-	    }
-	    
-	    if (it->second->canServiceRequest(mp_req, capabilities))
-	    {
-		res.planner_interfaces.push_back(it->first);
-		pi.push_back(it->second.get());
-		pc.push_back(capabilities);
-	    }
-	    else
-		ROS_WARN_STREAM("Planning interface '" << it->second->getDescription() << "' is not able to solve the specified benchmark problem.");
-	}
-	
-	if (pi.empty())
-	{
-	    ROS_ERROR("There are no planning interfaces to benchmark");
-	    return false;	    
-	}
-
-	ROS_INFO("Benchmarking planning interfaces:");
-	for (std::size_t i = 0 ; i < pi.size() ; ++i)
-	    ROS_INFO_STREAM("  * " << pi[i]->getDescription());
-	scene_->setPlanningSceneMsg(req.scene);
-	res.responses.resize(pi.size());
-
-	ros::WallTime startTime = ros::WallTime::now();
-	boost::progress_display progress(pi.size() * req.average_count, std::cout);
-	moveit_msgs::MotionPlanDetailedResponse mp_res;
-	typedef std::vector<std::map<std::string, std::string> > RunData;
-	std::vector<RunData> data;
-	std::vector<bool> first(pi.size(), true);
-	for (std::size_t i = 0 ; i < pi.size() ; ++i)
-	{
-	    RunData runs(req.average_count);
-	    for (unsigned int c = 0 ; c < req.average_count ; ++c)
-	    {
-		++progress;
-		ros::WallTime start = ros::WallTime::now();
-		bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
-		double total_time = (ros::WallTime::now() - start).toSec();
-		
-		// collect data 
-		runs[c]["total_time REAL"] = boost::lexical_cast<std::string>(total_time);
-		runs[c]["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
-		double L = 0.0;
-		double clearance = 0.0;
-		double smoothness = 0.0;		
-		bool correct = true;
-		if (solved)
-		{
-		    double process_time = total_time;
-		    for (std::size_t j = 0 ; j < mp_res.trajectory.size() ; ++j)
-		    {
-			std::vector<planning_models::KinematicStatePtr> p;
-			scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory[j], p);
-			
-			// compute path length
-			for (std::size_t k = 1 ; k < p.size() ; ++k)
-			    L += p[k-1]->distance(*p[k]);
-			
-			// compute correctness and clearance
-			collision_detection::CollisionRequest req;
-			req.distance = true;
-			for (std::size_t k = 0 ; k < p.size() ; ++k)
-			{
-			    collision_detection::CollisionResult res;
-			    scene_->checkCollisionUnpadded(req, res, *p[k]);
-			    if (res.collision)
-				correct = false;
-			    clearance += res.distance;
-			}
-			clearance /= (double)p.size();
-			
-			// compute smoothness
-			if (p.size() > 2)
-			{
-			    double a = p[0]->distance(*p[1]);
-			    for (std::size_t k = 2 ; k < p.size() ; ++k)
-			    {
-				// view the path as a sequence of segments, and look at the triangles it forms:
-				//          s1
-				//          /\          s4
-				//      a  /  \ b       |
-				//        /    \        |
-				//       /......\_______|
-				//     s0    c   s2     s3
-				//
-				// use Pythagoras generalized theorem to find the cos of the angle between segments a and b
-				double b = p[k-1]->distance(*p[k]);
-				double c = p[k-2]->distance(*p[k]);
-				double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
-				
-				if (acosValue > -1.0 && acosValue < 1.0)
-				{
-				    // the smoothness is actually the outside angle of the one we compute
-				    double angle = (boost::math::constants::pi<double>() - acos(acosValue));
-				    
-				    // and we normalize by the length of the segments
-				    double u = 2.0 * angle / (a + b);
-				    smoothness += u * u;
-				}
-				a = b;
-			    }
-			}
-			runs[c]["path_" + mp_res.description[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-			runs[c]["path_" + mp_res.description[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
-			runs[c]["path_" + mp_res.description[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
-			runs[c]["path_" + mp_res.description[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
-			runs[c]["path_" + mp_res.description[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time[j]);
-			process_time -= mp_res.processing_time[j].toSec();
-		    }
-		    if (process_time <= 0.0)
-		      process_time = 0.0;
-		    runs[c]["process_time REAL"] = boost::lexical_cast<std::string>(process_time);
-		}
-		
-		// record the first solution in the response
-		if (solved && first[i])
-		{
-		    first[i] = false;
-		    res.responses[i] = mp_res;
-		}
-	    }
-	    data.push_back(runs);
-	}
-	double duration = (ros::WallTime::now() - startTime).toSec();
-	
-	std::ofstream out(req.filename.c_str());
-	std::string host = getHostname();
-	
-	out << "Experiment " << (cscene_->getName().empty() ? "NO_NAME" : cscene_->getName()) << std::endl;
-	out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
-	out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
-	out << "<<<|" << std::endl << "ROS" << std::endl << "|>>>" << std::endl;
-	out << "0 is the random seed" << std::endl; // we do not record random seeds
-	out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
-	out << "10240 MB per run" << std::endl; // we don't limit memory usage
-	out << req.average_count << " runs per planner" << std::endl;
-	out << duration << " seconds spent to collect the data" << std::endl;
-	out << pi.size() << " planners" << std::endl;
-	for (std::size_t i = 0 ; i < pi.size() ; ++i)
-	{
-	    out << pi[i]->getDescription() << std::endl;
-	    // in general, we could have properties specific for a planner;
-	    // right now, we do not include such properties
-	    out << "0 common properties" << std::endl;
-	    
-	    // construct the list of all possible properties for all runs
-	    std::set<std::string> propSeen;
-	    for (std::size_t j = 0 ; j < data[i].size() ; ++j)
-		for (std::map<std::string, std::string>::const_iterator mit = data[i][j].begin() ; mit != data[i][j].end() ; ++mit)
-		    propSeen.insert(mit->first);
-	    std::vector<std::string> properties;
-	    for (std::set<std::string>::iterator it = propSeen.begin() ; it != propSeen.end() ; ++it)
-		properties.push_back(*it);
-	    out << properties.size() << " properties for each run" << std::endl;
-	    for (unsigned int j = 0 ; j < properties.size() ; ++j)
-		out << properties[j] << std::endl;
-	    out << data[i].size() << " runs" << std::endl;
-	    for (std::size_t j = 0 ; j < data[i].size() ; ++j)
-	    {
-		for (unsigned int k = 0 ; k < properties.size() ; ++k)
-		{
-		    std::map<std::string, std::string>::const_iterator it = data[i][j].find(properties[k]);
-		    if (it != data[i][j].end())
-			out << it->second;
-		    out << "; ";
-		}
-		out << std::endl;
-	    }
-	    out << '.' << std::endl;
-	}
-	out.close();
-	ROS_INFO("Results saved to '%s'", req.filename.c_str());
-	res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-	return true;
-    }
+    res.planner_interfaces.clear();
+    std::vector<planning_interface::Planner*> pi;
+    std::vector<planning_interface::PlannerCapability> pc;
+    planning_interface::PlannerCapability capabilities;	
+    moveit_msgs::GetMotionPlan::Request mp_req;
+    mp_req.motion_plan_request = req.motion_plan_request;
     
-    void status(void) const
+    for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
+         it != planner_interfaces_.end(); ++it)
     {
+      if (!req.planner_interfaces.empty())
+      {
+        bool found = false;
+        for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
+          if (req.planner_interfaces[i] == it->first)
+          {
+            found = true;
+            break;
+          }
+        if (!found)
+          continue;
+      }
+      
+      if (it->second->canServiceRequest(mp_req, capabilities))
+      {
+        res.planner_interfaces.push_back(it->first);
+        pi.push_back(it->second.get());
+        pc.push_back(capabilities);
+      }
+      else
+        ROS_WARN_STREAM("Planning interface '" << it->second->getDescription() << "' is not able to solve the specified benchmark problem.");
     }
     
+    if (pi.empty())
+    {
+      ROS_ERROR("There are no planning interfaces to benchmark");
+      return false;	    
+    }
+    
+    ROS_INFO("Benchmarking planning interfaces:");
+    for (std::size_t i = 0 ; i < pi.size() ; ++i)
+      ROS_INFO_STREAM("  * " << pi[i]->getDescription());
+    scene_->setPlanningSceneMsg(req.scene);
+    res.responses.resize(pi.size());
+    
+    ros::WallTime startTime = ros::WallTime::now();
+    boost::progress_display progress(pi.size() * req.average_count, std::cout);
+    moveit_msgs::MotionPlanDetailedResponse mp_res;
+    typedef std::vector<std::map<std::string, std::string> > RunData;
+    std::vector<RunData> data;
+    std::vector<bool> first(pi.size(), true);
+    for (std::size_t i = 0 ; i < pi.size() ; ++i)
+    {
+      RunData runs(req.average_count);
+      for (unsigned int c = 0 ; c < req.average_count ; ++c)
+      {
+        ++progress;
+        ros::WallTime start = ros::WallTime::now();
+        bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
+        double total_time = (ros::WallTime::now() - start).toSec();
+	
+        // collect data 
+        runs[c]["total_time REAL"] = boost::lexical_cast<std::string>(total_time);
+        runs[c]["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
+        double L = 0.0;
+        double clearance = 0.0;
+        double smoothness = 0.0;		
+        bool correct = true;
+        if (solved)
+        {
+          double process_time = total_time;
+          for (std::size_t j = 0 ; j < mp_res.trajectory.size() ; ++j)
+          {
+            std::vector<planning_models::KinematicStatePtr> p;
+            scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory[j], p);                        
+            
+            // compute path length
+            for (std::size_t k = 1 ; k < p.size() ; ++k)
+              L += p[k-1]->distance(*p[k]);
+            
+            // compute correctness and clearance
+            collision_detection::CollisionRequest req;
+            req.distance = true;
+            for (std::size_t k = 0 ; k < p.size() ; ++k)
+            {
+              collision_detection::CollisionResult res;
+              scene_->checkCollisionUnpadded(req, res, *p[k]);
+              if (res.collision)
+                correct = false;
+              clearance += res.distance;
+            }
+            clearance /= (double)p.size();
+            
+            // compute smoothness
+            if (p.size() > 2)
+            {
+              double a = p[0]->distance(*p[1]);
+              for (std::size_t k = 2 ; k < p.size() ; ++k)
+              {
+                // view the path as a sequence of segments, and look at the triangles it forms:
+                //          s1
+                //          /\          s4
+                //      a  /  \ b       |
+                //        /    \        |
+                //       /......\_______|
+                //     s0    c   s2     s3
+                //
+                // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
+                double b = p[k-1]->distance(*p[k]);
+                double c = p[k-2]->distance(*p[k]);
+                double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
+                if (acosValue > -1.0 && acosValue < 1.0)
+                {
+                  // the smoothness is actually the outside angle of the one we compute
+                  double angle = (boost::math::constants::pi<double>() - acos(acosValue));
+                  
+                  // and we normalize by the length of the segments
+                  double u = 2.0 * angle / (a + b);
+                  smoothness += u * u;
+                }
+                a = b;
+              }
+            }
+            runs[c]["path_" + mp_res.description[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
+            runs[c]["path_" + mp_res.description[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
+            runs[c]["path_" + mp_res.description[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
+            runs[c]["path_" + mp_res.description[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
+            runs[c]["path_" + mp_res.description[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time[j]);
+            process_time -= mp_res.processing_time[j].toSec();
+          }
+          if (process_time <= 0.0)
+            process_time = 0.0;
+          runs[c]["process_time REAL"] = boost::lexical_cast<std::string>(process_time);
+        }
+	
+        // record the first solution in the response
+        if (solved && first[i])
+        {
+          first[i] = false;
+          res.responses[i] = mp_res;
+        }
+      }
+      data.push_back(runs);
+    }
+    double duration = (ros::WallTime::now() - startTime).toSec();
+    
+    std::ofstream out(req.filename.c_str());
+    std::string host = getHostname();
+    
+    out << "Experiment " << (cscene_->getName().empty() ? "NO_NAME" : cscene_->getName()) << std::endl;
+    out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
+    out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
+    out << "<<<|" << std::endl << "ROS" << std::endl << "|>>>" << std::endl;
+    out << "0 is the random seed" << std::endl; // we do not record random seeds
+    out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
+    out << "10240 MB per run" << std::endl; // we don't limit memory usage
+    out << req.average_count << " runs per planner" << std::endl;
+    out << duration << " seconds spent to collect the data" << std::endl;
+    out << pi.size() << " planners" << std::endl;
+    for (std::size_t i = 0 ; i < pi.size() ; ++i)
+    {
+      out << pi[i]->getDescription() << std::endl;
+      // in general, we could have properties specific for a planner;
+      // right now, we do not include such properties
+      out << "0 common properties" << std::endl;
+      
+      // construct the list of all possible properties for all runs
+      std::set<std::string> propSeen;
+      for (std::size_t j = 0 ; j < data[i].size() ; ++j)
+        for (std::map<std::string, std::string>::const_iterator mit = data[i][j].begin() ; mit != data[i][j].end() ; ++mit)
+          propSeen.insert(mit->first);
+      std::vector<std::string> properties;
+      for (std::set<std::string>::iterator it = propSeen.begin() ; it != propSeen.end() ; ++it)
+        properties.push_back(*it);
+      out << properties.size() << " properties for each run" << std::endl;
+      for (unsigned int j = 0 ; j < properties.size() ; ++j)
+        out << properties[j] << std::endl;
+      out << data[i].size() << " runs" << std::endl;
+      for (std::size_t j = 0 ; j < data[i].size() ; ++j)
+      {
+        for (unsigned int k = 0 ; k < properties.size() ; ++k)
+        {
+          std::map<std::string, std::string>::const_iterator it = data[i][j].find(properties[k]);
+          if (it != data[i][j].end())
+            out << it->second;
+          out << "; ";
+        }
+        out << std::endl;
+      }
+      out << '.' << std::endl;
+    }
+    out.close();
+    ROS_INFO("Results saved to '%s'", req.filename.c_str());
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    return true;
+  }
+  
+  void status(void) const
+  {
+  }
+  
 private:
-    
-    std::string getHostname(void) const
+  
+  std::string getHostname(void) const
+  {
+    static const int BUF_SIZE = 1024;
+    char buffer[BUF_SIZE];
+    int err = gethostname(buffer, sizeof(buffer));
+    if (err != 0)
+      return std::string();
+    else
     {
-	static const int BUF_SIZE = 1024;
-	char buffer[BUF_SIZE];
-	int err = gethostname(buffer, sizeof(buffer));
-	if (err != 0)
-	    return std::string();
-	else
-	{
-	    buffer[BUF_SIZE - 1] = '\0';
-	    return std::string(buffer);
-	}
+      buffer[BUF_SIZE - 1] = '\0';
+      return std::string(buffer);
     }
-    
-    ros::NodeHandle nh_;
-    planning_scene::PlanningScenePtr scene_;
-    planning_scene::PlanningSceneConstPtr cscene_;
-    boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
-    std::map<std::string, boost::shared_ptr<planning_interface::Planner> > planner_interfaces_;
-    ros::ServiceServer benchmark_service_;
+  }
+  
+  ros::NodeHandle nh_;
+  planning_scene::PlanningScenePtr scene_;
+  planning_scene::PlanningSceneConstPtr cscene_;
+  boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
+  std::map<std::string, boost::shared_ptr<planning_interface::Planner> > planner_interfaces_;
+  ros::ServiceServer benchmark_service_;
 };
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "planning_scene_benchmark", ros::init_options::AnonymousName);
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-    
-    BenchmarkService bs;
-    bs.status();
-    ros::waitForShutdown();
-    
-    return 0;
+  ros::init(argc, argv, "planning_scene_benchmark", ros::init_options::AnonymousName);
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+  
+  BenchmarkService bs;
+  bs.status();
+  ros::waitForShutdown();
+  
+  return 0;
 }
