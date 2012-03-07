@@ -310,7 +310,8 @@ protected:
 
   kc::KinematicConstraintSetPtr              path_constraints_;
   std::vector<kc::KinematicConstraintSetPtr> goal_constraints_;
-
+  std::string path_constraints_name_;
+  
   const ob::PlannerTerminationCondition *ptc_;
   boost::mutex ptc_lock_;
     

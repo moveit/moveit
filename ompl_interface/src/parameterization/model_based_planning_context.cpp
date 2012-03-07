@@ -140,10 +140,12 @@ public:
     if (index < 0) 
       index = rng_.uniformInt(0, state_storage_->size() - 1);
     
-    double dd = distance;
     double dist = space_->distance(near, state_storage_->getState(index));
-    if (dist > dd)
-      space_->interpolate(near, state_storage_->getState(index), dd / dist, state);
+    if (dist > distance)
+    {
+      double d = rng_.uniformReal(0.0, distance);
+      space_->interpolate(near, state_storage_->getState(index), d / dist, state);
+    }
     else
       space_->copyState(state, state_storage_->getState(index));
   }
@@ -168,11 +170,12 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
   
   if (path_constraints_)
   {
-    if (spec_.constraints_approximations_)
+    if (spec_.constraints_approximations_  && !path_constraints_name_.empty())
     {
       for (std::size_t i = 0 ; i < spec_.constraints_approximations_->size() ; ++i)
-	if (spec_.constraints_approximations_->at(i).group_ == getJointModelGroupName() && spec_.constraints_approximations_->at(i).space_signature_ == space_signature_ && 
-	    spec_.constraints_approximations_->at(i).state_storage_ && spec_.constraints_approximations_->at(i).kconstraints_set_->equal(*path_constraints_, 0.1))
+	if (spec_.constraints_approximations_->at(i).constraint_msg_.name == path_constraints_name_ && 
+            spec_.constraints_approximations_->at(i).space_signature_ == space_signature_ && 
+	    spec_.constraints_approximations_->at(i).state_storage_)
 	{
 	  ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
 	  return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_approximations_->at(i).state_storage_));
@@ -420,6 +423,7 @@ void ompl_interface::ModelBasedPlanningContext::clear(void)
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr());
   path_constraints_.reset();
   goal_constraints_.clear();
+  path_constraints_name_.clear();
 }
 
 bool ompl_interface::ModelBasedPlanningContext::setRandomStartGoal(void)
@@ -451,6 +455,7 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
   // ******************* set the path constraints to use
   path_constraints_.reset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
   path_constraints_->add(path_constraints);
+  path_constraints_name_ = path_constraints.name;
   return true;
 }
 								   
@@ -721,7 +726,7 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 
   if (edges_per_sample > 0)
   {
-    ROS_INFO("Computing graph connections...");
+    ROS_INFO("Computing graph connections (max %u edges per sample) ...", edges_per_sample);
     
     ompl::tools::SelfConfig sc(ompl_simple_setup_.getSpaceInformation());
     double range = 0.0;
@@ -755,9 +760,10 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
       for (std::size_t i = j + 1 ; i < sstor->size() ; ++i)
       {
 	double d = space->distance(states[j], states[i]);
-	if (d > range * 2.0 || d < range / 3.0)
+
+	if (d > range * 3.0 || d < range / 10.0)
           continue;
-	
+        
         space->interpolate(states[j], states[i], 0.5, temp);
         ompl_state_space_->copyToKinematicState(kstate, temp);
         jsg->updateLinkTransforms();
