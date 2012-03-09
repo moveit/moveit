@@ -23,22 +23,19 @@ include_directories(${QT_INCLUDE_DIR})
 
 add_definitions(-DQT_NO_KEYWORDS)
 
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-#uncomment if you have defined services
-#rosbuild_gensrv()
-
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-#rosbuild_add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
+qt4_wrap_cpp(MOC_FILES
+  include/moveit_manipulation_visualization/grasp_evaluation_visualization_dialog.h
+)
 
 rosbuild_add_library(${PROJECT_NAME} 
   src/grasp_evaluation_visualization.cpp
-  src/moveit_manipulation_visualizer.cpp)
+  src/moveit_manipulation_visualizer.cpp
+  src/grasp_generator_dummy.cpp
+  src/grasp_generator_visualization.cpp
+  src/grasp_evaluation_visualization_dialog.cpp
+  ${MOC_FILES}
+)
 
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
 rosbuild_add_executable(moveit_manipulation_visualizer src/moveit_manipulation_visualizer_main.cpp)
 target_link_libraries(moveit_manipulation_visualizer ${PROJECT_NAME})

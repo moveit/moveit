@@ -33,26 +33,92 @@
 #define _GRASP_EVALUATION_VISUALIZATION_DIALOG_H_
 
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization.h>
+#include <moveit_manipulation_visualization/grasp_generator_visualization.h>
 
 #include <QDialog>
+#include <QComboBox>
+#include <QSpinBox>
+#include <QLabel>
 
 namespace moveit_manipulation_visualization {
 
-class GraspEvaluationVisualizationDialog: public GraspEvaluationVisualization, public QDialog {
+class GraspEvaluationVisualizationDialog: public QDialog {
 
   Q_OBJECT
   
   public:
 
-  GraspEvaluationVisualizationDialog(QDialog* parent, 
+  GraspEvaluationVisualizationDialog(QWidget* parent, 
                                      const planning_scene::PlanningSceneConstPtr& planning_scene,
                                      boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                      boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                      ros::Publisher& marker_publisher);
+  
+  virtual ~GraspEvaluationVisualizationDialog() {};
+                                            
+  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
-  virtual ~GraspEvaluationVisualization() {};
+public Q_SLOTS:
+  
+  void populateObjectComboBox(const planning_scene::PlanningSceneConstPtr& planning_scene);
+
+  void generatedGraspBrowserNumberChanged(int i);
+  void generateGraspsForObject();
+
+  void evaluateGeneratedGrasps();
+  void evaluatedGraspBrowserNumberChanged(int i);
+
+  void planningGroupChanged(const QString&);
+  void selectedObjectChanged(const QString &text);
+
+  void playInterpolatedTrajectory();
+
+  void planForGraspExecution();
+
+  void planGenerationFinished(const std::string&,
+                              const trajectory_msgs::JointTrajectory&);
+
+  void planGenerationFailed(moveit_msgs::MoveItErrorCodes& err);
+
+  void playFullGraspExecution();
+
+Q_SIGNALS:
+
+  void newPlanningSceneUpdated(const planning_scene::PlanningSceneConstPtr&);
+
+  void requestSetGoalState(const std::string&,
+                           const planning_models::KinematicState*);
+
+  void requestPlanGeneration(bool);
 
 protected:
+
+  void disableGeneration();
+  void disableEvaluation();
+
+  void playFullGraspExecutionThread();
+
+  planning_scene::PlanningSceneConstPtr planning_scene_;
+
+  std::string current_object_;
+  std::string current_arm_;
+  std::string generated_grasp_frame_;
+  std::vector<moveit_manipulation_msgs::Grasp> current_generated_grasps_;
+  trajectory_msgs::JointTrajectory last_planned_trajectory_;
+  
+
+  QComboBox* object_name_combo_;
+  QSpinBox* generated_grasps_browser_;
+  QPushButton* evaluate_grasp_button_;
+  QSpinBox* evaluated_grasp_browser_;
+  QLabel* evaluation_result_indicator_;
+  QPushButton* play_interpolated_trajectory_button_;
+  QPushButton* plan_for_grasp_execution_button_;
+  QLabel* plan_execution_indicator_;
+  QPushButton* play_full_grasp_execution_button_;
+
+  boost::shared_ptr<GraspGeneratorVisualization> grasp_generator_visualization_;
+  boost::shared_ptr<GraspEvaluationVisualization> grasp_evaluation_visualization_;
 
 };
 

@@ -37,77 +37,101 @@ MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
   MoveItVisualizer() 
 {
   
-  grasp_evaluation_visualization_.reset(new GraspEvaluationVisualization(planning_scene_monitor_->getPlanningScene(),
-                                                                         interactive_marker_server_,
-                                                                         kinematics_plugin_loader_,
-                                                                         vis_marker_array_publisher_));
+  grasp_evaluation_visualization_dialog_ = new GraspEvaluationVisualizationDialog(main_window_,
+                                                                                  planning_scene_monitor_->getPlanningScene(),
+                                                                                  interactive_marker_server_,
+                                                                                  kinematics_plugin_loader_,
+                                                                                  vis_marker_array_publisher_);
+  grasp_evaluation_visualization_dialog_->planningGroupChanged(QString(pv_->getCurrentGroup().c_str()));
   
+
   iov_->addMenuEntry("Attempt To Grasp",
                      boost::bind(&MoveItManipulationVisualizer::attemptToGrasp, this, _1));
  
+  QObject::connect(planning_group_selection_menu_, SIGNAL(groupSelected(const QString&)),
+                   grasp_evaluation_visualization_dialog_, SLOT(planningGroupChanged(const QString&)));
+
+  QObject::connect(grasp_evaluation_visualization_dialog_, 
+                   SIGNAL(requestSetGoalState(const std::string&, const planning_models::KinematicState*)),
+                   pv_.get(),
+                   SLOT(setGoalStateRequested(const std::string&, const planning_models::KinematicState*)));
+  QObject::connect(grasp_evaluation_visualization_dialog_,
+                   SIGNAL(requestPlanGeneration(bool)),
+                   pv_.get(),
+                   SLOT(generatePlanRequested(bool)));
+  QObject::connect(pv_.get(),
+                   SIGNAL(planGenerated(const std::string&, const trajectory_msgs::JointTrajectory&)),
+                   grasp_evaluation_visualization_dialog_,
+                   SLOT(planGenerationFinished(const std::string&, const trajectory_msgs::JointTrajectory&)));
+  QObject::connect(pv_.get(),
+                   SIGNAL(planFailed(moveit_msgs::MoveItErrorCodes&)),
+                   grasp_evaluation_visualization_dialog_,
+                   SLOT(planGenerationFailed(moveit_msgs::MoveItErrorCodes&)));
+  
 }
 
 void MoveItManipulationVisualizer::updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene)
 {
   MoveItVisualizer::updatePlanningScene(planning_scene);
-  grasp_evaluation_visualization_->updatePlanningScene(planning_scene);
+  grasp_evaluation_visualization_dialog_->updatePlanningScene(planning_scene);
 }
 
 
 
 void MoveItManipulationVisualizer::attemptToGrasp(const std::string& obj) {
-  boost::thread(boost::bind(&MoveItManipulationVisualizer::attemptToGraspThread, this, obj));
+  grasp_evaluation_visualization_dialog_->show();
+  //boost::thread(boost::bind(&MoveItManipulationVisualizer::attemptToGraspThread, this, obj));
 }
 
-void MoveItManipulationVisualizer::attemptToGraspThread(const std::string& obj) {
-  moveit_msgs::CollisionObject co;
-  if(!current_diff_->getCollisionObjectMsg(obj, 
-                                           co)) {
-    ROS_WARN_STREAM("Don't appear to have object " << obj << " in planning scene");
-    return;
-  }
+// void MoveItManipulationVisualizer::attemptToGraspThread(const std::string& obj) {
+//   moveit_msgs::CollisionObject co;
+//   if(!current_diff_->getCollisionObjectMsg(obj, 
+//                                            co)) {
+//     ROS_WARN_STREAM("Don't appear to have object " << obj << " in planning scene");
+//     return;
+//   }
 
-  moveit_manipulation_msgs::PickupGoal goal;
-  goal.arm_name = pv_->getCurrentGroup();
-  goal.collision_object_name = obj;
+//   moveit_manipulation_msgs::PickupGoal goal;
+//   goal.arm_name = pv_->getCurrentGroup();
+//   goal.collision_object_name = obj;
   
-  goal.target.collision_name = obj;
-  goal.target.reference_frame_id = co.header.frame_id;
+//   goal.target.collision_name = obj;
+//   goal.target.reference_frame_id = co.header.frame_id;
 
-  goal.lift.direction.vector.z = 1;
-  goal.lift.desired_distance = .1;
+//   goal.lift.direction.vector.z = 1;
+//   goal.lift.desired_distance = .1;
 
-  std::vector<moveit_manipulation_msgs::Grasp> grasps;
-  grasps.resize(1);
-  grasps[0].grasp_pose = co.poses[0];
-  grasps[0].grasp_pose.position.x -= ((co.shapes[0].dimensions[0]/2.0)+.15); 
-  grasps[0].desired_approach_distance = .12;
-  grasps[0].min_approach_distance = .12;
-  if(pv_->getCurrentGroup() == "right_arm") {
-    grasps[0].pre_grasp_posture.name.push_back("r_gripper_r_finger_joint");
-    grasps[0].pre_grasp_posture.name.push_back("r_gripper_l_finger_joint");
-    grasps[0].pre_grasp_posture.name.push_back("r_gripper_r_finger_tip_joint");
-    grasps[0].pre_grasp_posture.name.push_back("r_gripper_l_finger_tip_joint");
-  } else {
-    grasps[0].pre_grasp_posture.name.push_back("l_gripper_r_finger_joint");
-    grasps[0].pre_grasp_posture.name.push_back("l_gripper_l_finger_joint");
-    grasps[0].pre_grasp_posture.name.push_back("l_gripper_r_finger_tip_joint");
-    grasps[0].pre_grasp_posture.name.push_back("l_gripper_l_finger_tip_joint");
-  }
-  grasps[0].pre_grasp_posture.position.push_back(.35);
-  grasps[0].pre_grasp_posture.position.push_back(.35);
-  grasps[0].pre_grasp_posture.position.push_back(.35);
-  grasps[0].pre_grasp_posture.position.push_back(.35);
-  grasps[0].grasp_posture.name = grasps[0].pre_grasp_posture.name;
-  grasps[0].grasp_posture.position.push_back(.25);
-  grasps[0].grasp_posture.position.push_back(.25);
-  grasps[0].grasp_posture.position.push_back(.25);
-  grasps[0].grasp_posture.position.push_back(.25);
+//   std::vector<moveit_manipulation_msgs::Grasp> grasps;
+//   grasps.resize(1);
+//   grasps[0].grasp_pose = co.poses[0];
+//   grasps[0].grasp_pose.position.x -= ((co.shapes[0].dimensions[0]/2.0)+.15); 
+//   grasps[0].desired_approach_distance = .12;
+//   grasps[0].min_approach_distance = .12;
+//   if(pv_->getCurrentGroup() == "right_arm") {
+//     grasps[0].pre_grasp_posture.name.push_back("r_gripper_r_finger_joint");
+//     grasps[0].pre_grasp_posture.name.push_back("r_gripper_l_finger_joint");
+//     grasps[0].pre_grasp_posture.name.push_back("r_gripper_r_finger_tip_joint");
+//     grasps[0].pre_grasp_posture.name.push_back("r_gripper_l_finger_tip_joint");
+//   } else {
+//     grasps[0].pre_grasp_posture.name.push_back("l_gripper_r_finger_joint");
+//     grasps[0].pre_grasp_posture.name.push_back("l_gripper_l_finger_joint");
+//     grasps[0].pre_grasp_posture.name.push_back("l_gripper_r_finger_tip_joint");
+//     grasps[0].pre_grasp_posture.name.push_back("l_gripper_l_finger_tip_joint");
+//   }
+//   grasps[0].pre_grasp_posture.position.push_back(.35);
+//   grasps[0].pre_grasp_posture.position.push_back(.35);
+//   grasps[0].pre_grasp_posture.position.push_back(.35);
+//   grasps[0].pre_grasp_posture.position.push_back(.35);
+//   grasps[0].grasp_posture.name = grasps[0].pre_grasp_posture.name;
+//   grasps[0].grasp_posture.position.push_back(.25);
+//   grasps[0].grasp_posture.position.push_back(.25);
+//   grasps[0].grasp_posture.position.push_back(.25);
+//   grasps[0].grasp_posture.position.push_back(.25);
 
-  grasp_evaluation_visualization_->evaluateGrasps(pv_->getCurrentGroup(),
-                                                  goal,
-                                                  &current_diff_->getCurrentState(),
-                                                  grasps);
-}
+//   grasp_evaluation_visualization_dialog_->evaluateGrasps(pv_->getCurrentGroup(),
+//                                                          goal,
+//                                                          &current_diff_->getCurrentState(),
+//                                                          grasps);
+// }
 
 }
