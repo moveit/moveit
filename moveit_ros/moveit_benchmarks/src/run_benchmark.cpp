@@ -193,6 +193,9 @@ public:
           double process_time = total_time;
           for (std::size_t j = 0 ; j < mp_res.trajectory.size() ; ++j)
           {
+            L = 0.0;
+            clearance = 0.0;
+            smoothness = 0.0;
             std::vector<planning_models::KinematicStatePtr> p;
             scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory[j], p);                        
             
@@ -202,14 +205,14 @@ public:
             
             // compute correctness and clearance
             collision_detection::CollisionRequest req;
-            req.distance = true;
             for (std::size_t k = 0 ; k < p.size() ; ++k)
             {
               collision_detection::CollisionResult res;
               scene_->checkCollisionUnpadded(req, res, *p[k]);
               if (res.collision)
                 correct = false;
-              clearance += res.distance;
+              double d = scene_->distanceUnpadded(*p[k]);
+              clearance += d;
             }
             clearance /= (double)p.size();
             
@@ -229,19 +232,20 @@ public:
                 //
                 // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
                 double b = p[k-1]->distance(*p[k]);
-                double c = p[k-2]->distance(*p[k]);
-                double acosValue = (a*a + b*b - c*c) / (2.0*a*b);
+                double cdist = p[k-2]->distance(*p[k]);
+                double acosValue = (a*a + b*b - cdist*cdist) / (2.0*a*b);
                 if (acosValue > -1.0 && acosValue < 1.0)
                 {
                   // the smoothness is actually the outside angle of the one we compute
                   double angle = (boost::math::constants::pi<double>() - acos(acosValue));
                   
                   // and we normalize by the length of the segments
-                  double u = 2.0 * angle / (a + b);
+                  double u = 2.0 * angle; /// (a + b);
                   smoothness += u * u;
                 }
                 a = b;
               }
+              smoothness /= (double)p.size();
             }
             runs[c]["path_" + mp_res.description[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
             runs[c]["path_" + mp_res.description[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
