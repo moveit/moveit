@@ -202,14 +202,15 @@ public:
             
             // compute correctness and clearance
             collision_detection::CollisionRequest req;
-            req.distance = true;
             for (std::size_t k = 0 ; k < p.size() ; ++k)
             {
               collision_detection::CollisionResult res;
               scene_->checkCollisionUnpadded(req, res, *p[k]);
               if (res.collision)
                 correct = false;
-              clearance += res.distance;
+              double d = scene_->distanceUnpadded(*p[k]);
+              ROS_INFO("d = %lf", d);
+              clearance += d;
             }
             clearance /= (double)p.size();
             
