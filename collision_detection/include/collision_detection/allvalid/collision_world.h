@@ -42,22 +42,29 @@
 namespace collision_detection
 {
 
-    class CollisionWorldAllValid : public CollisionWorld
-    {
-    public:
+class CollisionWorldAllValid : public CollisionWorld
+{
+public:
+  
+  CollisionWorldAllValid(void);
+  CollisionWorldAllValid(const CollisionWorld &other);
+  
+  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
+  
+  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
+  
+  virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
+  
+  virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
 
-        CollisionWorldAllValid(void);
-        CollisionWorldAllValid(const CollisionWorld &other);
-
-        virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state) const;
-
-        virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-
-        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
-
-        virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
-
-    };
+  virtual double distanceRobot(const CollisionRobot &robot, const planning_models::KinematicState &state) const;
+  
+  virtual double distanceRobot(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
+  
+  virtual double distanceWorld(const CollisionWorld &world) const;
+  
+  virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const;
+};
 
 }
 
