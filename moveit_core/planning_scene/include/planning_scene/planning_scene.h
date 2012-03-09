@@ -232,6 +232,8 @@ public:
                           const planning_models::KinematicState &kstate,
                           const collision_detection::AllowedCollisionMatrix& acm) const;
 
+  double distanceUnpadded(const planning_models::KinematicState &kstate);
+  
   /** \brief Check if this planning scene has been configured or not */
   bool isConfigured(void) const
   {
@@ -254,12 +256,11 @@ public:
   /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene message. */
   void setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
 
-  
-
   bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
   bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
   void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
-
+  bool getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& obj) const;
+  
   /** \brief Set the current robot state to be \e state. If not
       all joint values are specified, the previously maintained
       joint values are kept. */
@@ -279,7 +280,20 @@ public:
   {
     return parent_ ? parent_->getSrdfModel() : srdf_model_;
   }
+  
+  /** \brief Get the colors associated to the various objects in the scene */
+  const std::map<std::string, std_msgs::ColorRGBA>& getObjectColors(void) const
+  {
+    return colors_ ? *colors_ : parent_->getObjectColors();
+  }
+  
+  bool hasColor(const std::string &id) const;
 
+  const std_msgs::ColorRGBA& getColor(const std::string &id) const;
+  void setColor(const std::string &id, const std_msgs::ColorRGBA &color);
+  void removeColor(const std::string &id);
+  void getKnownColors(std::map<std::string, std_msgs::ColorRGBA> &kc) const;
+  
   /** \brief Clear the diffs accumulated for this planning scene, with respect to the parent. This function is a no-op if there is no parent specified. */
   void clearDiffs(void);
 
@@ -308,9 +322,6 @@ public:
   //takes current matrix and disables all collisions for links that are not
   //part of the indicated group, returning the matrix
   collision_detection::AllowedCollisionMatrix disableCollisionsForNonUpdatedLinks(const std::string& group) const;
-
-  bool getCollisionObjectMsg(const std::string& ns,
-                             moveit_msgs::CollisionObject& obj) const;
 
 protected:
 
@@ -347,6 +358,9 @@ protected:
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
+  boost::shared_ptr< std::map<std::string, std_msgs::ColorRGBA> >
+                                                 colors_;
+  
   bool                                           configured_;
 
 };
