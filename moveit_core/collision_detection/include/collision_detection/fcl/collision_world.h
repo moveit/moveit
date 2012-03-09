@@ -55,6 +55,11 @@ namespace collision_detection
     virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
     virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const;
     virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix &acm) const;
+
+    virtual double distanceRobot(const CollisionRobot &robot, const planning_models::KinematicState &state) const;  
+    virtual double distanceRobot(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
+    virtual double distanceWorld(const CollisionWorld &world) const;
+    virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const;
     
     virtual void addToObject(const std::string &id, shapes::StaticShape *shape);
     virtual void addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3d &pose);
@@ -68,12 +73,14 @@ namespace collision_detection
     
     void checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const;
     void checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
+    double distanceRobotHelper(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
     
-    void constructFCLObject(const Object *obj, FCLObject &fcl_obj) const;
+    void constructFCLObject(const Object *obj, FCLObject &fcl_obj, bool obb) const;
     void updateFCLObject(const std::string &id);
     
     boost::scoped_ptr<fcl::BroadPhaseCollisionManager> manager_;
-    std::map<std::string, FCLObject >                  fcl_objs_;
+    std::map<std::string, FCLObject >                  fcl_objs_obb_;
+    std::map<std::string, FCLObject >                  fcl_objs_rss_;
     
   };
   

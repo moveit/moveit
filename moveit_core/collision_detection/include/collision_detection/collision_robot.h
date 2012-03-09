@@ -107,6 +107,18 @@ namespace collision_detection
 				     const CollisionRobot &other_robot,
 				     const planning_models::KinematicState &other_state,
 				     const AllowedCollisionMatrix &acm) const = 0;
+
+    virtual double distanceSelf(const planning_models::KinematicState &state) const = 0;
+    
+    virtual double distanceSelf(const planning_models::KinematicState &state,
+                                const AllowedCollisionMatrix &acm) const = 0;
+
+    virtual double distanceOther(const CollisionRobot &other_robot,
+                                 const planning_models::KinematicState &other_state) const = 0;
+
+    virtual double distanceOther(const CollisionRobot &other_robot,
+                                 const planning_models::KinematicState &other_state,
+                                 const AllowedCollisionMatrix &acm) const = 0;
     
     /** @brief The kinematic model corresponding to this collision model*/
     const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
@@ -166,7 +178,7 @@ namespace collision_detection
 	additional structures that may need such updating when link scale or padding changes.
 	@param links the names of the links whose padding or scaling were updated */
     virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
-    
+
     /** @brief The kinematic model corresponding to this collision model*/
     planning_models::KinematicModelConstPtr kmodel_;
     
