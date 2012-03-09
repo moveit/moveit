@@ -209,7 +209,6 @@ public:
               if (res.collision)
                 correct = false;
               double d = scene_->distanceUnpadded(*p[k]);
-              ROS_INFO("d = %lf", d);
               clearance += d;
             }
             clearance /= (double)p.size();
