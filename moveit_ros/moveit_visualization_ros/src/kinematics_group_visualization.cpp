@@ -349,6 +349,12 @@ void KinematicsGroupVisualization::resetState(void) {
   updateEndEffectorInteractiveMarker();
 }
 
+void KinematicsGroupVisualization::setState(const planning_models::KinematicState& state) {
+  state_ = state;
+  sendCurrentMarkers();
+  updateEndEffectorInteractiveMarker();
+}
+
 void KinematicsGroupVisualization::updateEndEffectorInteractiveMarker(void) {
   // Compute the new pose of the end-effector and force the associated
   // interactive marker there.

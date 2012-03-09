@@ -129,14 +129,14 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
   //frame->loadGeneralConfig(config_name);
   rviz_frame_->loadDisplayConfig(display_config_name);
 
-  QWidget* main_window = new QWidget;
-  main_window->resize(1500,1000);
-  //InteractiveObjectVisualizationWidget* iov_widget = new InteractiveObjectVisualizationWidget(main_window);
+  main_window_ = new QWidget;
+  main_window_->resize(1500,1000);
+  //InteractiveObjectVisualizationWidget* iov_widget = new InteractiveObjectVisualizationWidget(main_window_);
 
-  PrimitiveObjectAdditionDialog* primitive_object_dialog = new PrimitiveObjectAdditionDialog(main_window);
+  PrimitiveObjectAdditionDialog* primitive_object_dialog = new PrimitiveObjectAdditionDialog(main_window_);
 
   QHBoxLayout* main_layout = new QHBoxLayout;
-  QMenuBar* menu_bar = new QMenuBar(main_window);
+  QMenuBar* menu_bar = new QMenuBar(main_window_);
   PlanningSceneFileMenu* planning_scene_file_menu = new PlanningSceneFileMenu(menu_bar);
   QObject::connect(iov_.get(),
                    SIGNAL(updatePlanningSceneSignal(planning_scene::PlanningSceneConstPtr)),
@@ -148,13 +148,13 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
                    SLOT(loadPlanningSceneSignalled(moveit_msgs::PlanningScenePtr)));
   menu_bar->addMenu(planning_scene_file_menu);
 
-  PlanningGroupSelectionMenu* planning_group_selection_menu = new PlanningGroupSelectionMenu(menu_bar);
-  QObject::connect(planning_group_selection_menu, 
+  planning_group_selection_menu_ = new PlanningGroupSelectionMenu(menu_bar);
+  QObject::connect(planning_group_selection_menu_, 
                    SIGNAL(groupSelected(const QString&)),
                    pv_.get(),
                    SLOT(newGroupSelected(const QString&)));
-  planning_group_selection_menu->init(planning_scene_monitor_->getPlanningScene()->getSrdfModel());
-  menu_bar->addMenu(planning_group_selection_menu);
+  planning_group_selection_menu_->init(planning_scene_monitor_->getPlanningScene()->getSrdfModel());
+  menu_bar->addMenu(planning_group_selection_menu_);
 
   QMenu* coll_object_menu = menu_bar->addMenu("Collision Objects");
 
@@ -165,7 +165,7 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
   //main_layout->addWidget(iov_widget);
   main_layout->addWidget(rviz_frame_);
 
-  main_window->setLayout(main_layout);
+  main_window_->setLayout(main_layout);
 
   //QObject::connect(iov_widget, SIGNAL(addCubeRequested()), iov_.get(), SLOT(addCubeSignalled()));
   QObject::connect(primitive_object_dialog, 
@@ -173,7 +173,7 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
                    iov_.get(), 
                    SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
 
-  main_window->show();
+  main_window_->show();
 
   planning_scene_monitor_->setUpdateCallback(boost::bind(&MoveItVisualizer::updateSceneCallback, this));
 }

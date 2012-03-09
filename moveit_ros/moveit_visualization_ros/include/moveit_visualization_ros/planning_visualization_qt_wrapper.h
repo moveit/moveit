@@ -49,10 +49,7 @@ public:
                                  const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limits_map,
                                  boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
-                                 ros::Publisher& marker_publisher) :
-    PlanningVisualization(planning_scene, group_joint_limits_map, interactive_marker_server, kinematics_plugin_loader, marker_publisher)
-  {
-  }
+                                 ros::Publisher& marker_publisher);
 
   ~PlanningVisualizationQtWrapper() {
   }
@@ -60,6 +57,21 @@ public:
 public Q_SLOTS: 
 
   void newGroupSelected(const QString&);
+
+  void generatePlanRequested(bool);
+
+  void setStartStateRequested(const std::string&,
+                            const planning_models::KinematicState*);
+
+  void setGoalStateRequested(const std::string&,
+                             const planning_models::KinematicState*);
+
+Q_SIGNALS:
+
+  void planGenerated(const std::string&,
+                     const trajectory_msgs::JointTrajectory&);
+
+  void planFailed(moveit_msgs::MoveItErrorCodes& err);
 
 };
 

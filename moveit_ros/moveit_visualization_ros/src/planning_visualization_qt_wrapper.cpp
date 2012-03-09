@@ -31,12 +31,53 @@
 
 #include <moveit_visualization_ros/planning_visualization_qt_wrapper.h>
 
+#include <QMetaType>
+
 namespace moveit_visualization_ros {
+
+PlanningVisualizationQtWrapper::
+PlanningVisualizationQtWrapper(planning_scene::PlanningSceneConstPtr planning_scene,
+                               const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limits_map,
+                               boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
+                               boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                               ros::Publisher& marker_publisher) :
+  PlanningVisualization(planning_scene, group_joint_limits_map, interactive_marker_server, kinematics_plugin_loader, marker_publisher)
+{
+  qRegisterMetaType<planning_models::KinematicState*>("KinematicState");
+  qRegisterMetaType<trajectory_msgs::JointTrajectory>("trajectory_msgs::JointTrajectory");
+  qRegisterMetaType<moveit_msgs::MoveItErrorCodes>("moveit_msgs::MoveItErrorCodes");
+}
+
 
 void PlanningVisualizationQtWrapper::newGroupSelected(const QString& new_group) {
 
   ROS_INFO_STREAM("new group: " << new_group.toStdString());
   selectGroup(new_group.toStdString());
+}
+
+void PlanningVisualizationQtWrapper::generatePlanRequested(bool play) {
+  generatePlan(current_group_, play);
+  if(last_trajectory_ok_) {
+    planGenerated(current_group_,
+                  last_trajectory_);
+  } else {
+    moveit_msgs::MoveItErrorCodes failed_message;
+    planFailed(failed_message);
+  }
+}
+
+void PlanningVisualizationQtWrapper::setStartStateRequested(const std::string& group_name,
+                                                            const planning_models::KinematicState* state)
+{
+  setStartState(group_name,
+                *state);
+}
+
+void PlanningVisualizationQtWrapper::setGoalStateRequested(const std::string& group_name,
+                                                           const planning_models::KinematicState* state)
+{
+  setGoalState(group_name,
+               *state);
 }
 
 }

@@ -108,6 +108,13 @@ void KinematicsStartGoalVisualization::resetStartGoal() {
   goal_->resetState();
 }
 
+void KinematicsStartGoalVisualization::setStartState(const planning_models::KinematicState& state) {
+  start_->setState(state);
+}
+
+void KinematicsStartGoalVisualization::setGoalState(const planning_models::KinematicState& state) {
+  goal_->setState(state);
+}
 
 void KinematicsStartGoalVisualization::startOn() {
   if(!start_chained_) {

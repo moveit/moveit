@@ -74,6 +74,8 @@ protected:
   ros::Publisher vis_marker_publisher_;
 
   rviz::VisualizationPanel* rviz_frame_;
+  QWidget* main_window_;
+  PlanningGroupSelectionMenu* planning_group_selection_menu_;  
 
   planning_scene::PlanningSceneConstPtr current_diff_;
 
