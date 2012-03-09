@@ -49,7 +49,7 @@ PlanningSceneDatabaseDialog::PlanningSceneDatabaseDialog(QWidget* parent) :
   planning_scene_table_ = new QTableWidget(this);
   layout->addWidget(planning_scene_table_);
   
-  QHBoxLayout* button_layout = new QHBoxLayout(this);
+  QHBoxLayout* button_layout = new QHBoxLayout();
   QPushButton* load_button = new QPushButton(this);
   load_button->setText("Load...");
   QPushButton* remove_button = new QPushButton(this);

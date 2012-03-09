@@ -81,9 +81,15 @@ public:
     return current_group_;
   }
 
+  void setGoalState(const std::string& group_name,
+                    const planning_models::KinematicState& state);
+
+  void setStartState(const std::string& group_name,
+                     const planning_models::KinematicState& state);
+
 protected:
 
-  void generatePlan(const std::string& name);
+  void generatePlan(const std::string& name, bool play=true);
   void generateRandomStartEnd(const std::string& name);
   void resetStartGoal(const std::string& name);
 

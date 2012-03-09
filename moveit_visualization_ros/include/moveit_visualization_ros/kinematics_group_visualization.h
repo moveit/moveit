@@ -116,6 +116,8 @@ public:
   /** Set state for this group to be equal to the state in the planning scene. */
   void resetState(void);
 
+  void setState(const planning_models::KinematicState& state);
+
 protected:
 
   void sendCurrentMarkers();

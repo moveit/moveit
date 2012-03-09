@@ -60,7 +60,7 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
                                                                                            groups[i].name_,
                                                                                            marker_publisher,
                                                                                            false));
-      group_visualization_map_[groups[i].name_]->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this, _1));
+      group_visualization_map_[groups[i].name_]->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this, _1, true));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Random start / goal", boost::bind(&PlanningVisualization::generateRandomStartEnd, this, _1));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Reset start and goal", boost::bind(&PlanningVisualization::resetStartGoal, this, _1));
       group_visualization_map_[groups[i].name_]->setGoodBadMode(true);
@@ -123,6 +123,26 @@ void PlanningVisualization::hideAllGroups() {
   }
 }
 
+void PlanningVisualization::setGoalState(const std::string& group_name,
+                                         const planning_models::KinematicState& state) 
+{
+  if(group_visualization_map_.find(group_name) == group_visualization_map_.end()) {
+    ROS_WARN_STREAM("No group " << group_name << " for setting goal state");
+    return;
+  }
+  group_visualization_map_.at(group_name)->setGoalState(state);
+}
+
+void PlanningVisualization::setStartState(const std::string& group_name,
+                                         const planning_models::KinematicState& state) 
+{
+  if(group_visualization_map_.find(group_name) == group_visualization_map_.end()) {
+    ROS_WARN_STREAM("No group " << group_name << " for setting goal state");
+    return;
+  }
+  group_visualization_map_.at(group_name)->setStartState(state);
+}
+
 void PlanningVisualization::setAllStartChainModes(bool chain) {
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
       it != group_visualization_map_.end(); 
@@ -143,7 +163,7 @@ void PlanningVisualization::selectGroup(const std::string& group) {
   group_visualization_map_[current_group_]->showAllMarkers();
 }
 
-void PlanningVisualization::generatePlan(const std::string& name) {
+void PlanningVisualization::generatePlan(const std::string& name, bool play) {
 
   ROS_INFO_STREAM("Planning for " << name);
   if(group_visualization_map_.find(name) == group_visualization_map_.end()) {
@@ -194,9 +214,9 @@ void PlanningVisualization::generatePlan(const std::string& name) {
                                                    name,
                                                    traj,
                                                    col);
-    
-    joint_trajectory_visualization_->playCurrentTrajectory();
-
+    if(play) {
+      joint_trajectory_visualization_->playCurrentTrajectory();
+    }
     moveit_msgs::DisplayTrajectory d;
     d.model_id = planning_scene_->getKinematicModel()->getName();
     planning_models::kinematicStateToRobotState(start_state, d.trajectory_start);
