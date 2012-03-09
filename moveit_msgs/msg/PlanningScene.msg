@@ -19,5 +19,8 @@ LinkScale[] link_scale
 # attached collision objects
 AttachedCollisionObject[] attached_collision_objects
 
-#the collision map
+# Colors for the attached collision_objects
+std_msgs/ColorRGBA[] attached_collision_objects_colors
+
+# the collision map
 PlanningSceneWorld world

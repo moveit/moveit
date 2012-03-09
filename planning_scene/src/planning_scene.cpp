@@ -103,6 +103,8 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
     cworld_.reset(new DefaultCWorldType());
     cworld_const_ = cworld_;
 
+    colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
+    
     configured_ = true;
   }
   else
@@ -148,6 +150,7 @@ void planning_scene::PlanningScene::clearDiffs(void)
   crobot_const_.reset();
   crobot_unpadded_.reset();
   crobot_unpadded_const_.reset();
+  colors_.reset();
 }
 
 void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
@@ -180,6 +183,8 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
         if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
         {
           collision_detection::CollisionWorld::Object *obj = cworld_->getObject(changes[i].id_)->clone();
+          if (hasColor(changes[i].id_))
+            scene->setColor(changes[i].id_, getColor(changes[i].id_));
           w->addToObject(obj->id_, obj->shapes_, obj->shape_poses_);
           w->addToObject(obj->id_, obj->static_shapes_);
           // memory now belongs to the other collision world, so we do not delete it
@@ -188,11 +193,19 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
         }
         else
           if (changes[i].type_ == collision_detection::CollisionWorld::Change::REMOVE)
+          {
             w->removeObject(changes[i].id_);
+            scene->removeColor(changes[i].id_);
+          }
           else
             ROS_ERROR("Unknown change on collision world");
     }
   }
+}
+
+double planning_scene::PlanningScene::distanceUnpadded(const planning_models::KinematicState &kstate)
+{
+  return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate);
 }
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res) const
@@ -355,17 +368,11 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
     scene.world.collision_objects.clear();
     scene.world.collision_map = moveit_msgs::CollisionMap();
 
-    bool skip_cmap = false;
+    bool do_cmap = false;
     const std::vector<collision_detection::CollisionWorld::Change> &changes = cworld_->getChanges();
     for (std::size_t i = 0 ; i < changes.size() ; ++i)
       if (changes[i].id_ == COLLISION_MAP_NS)
-      {
-        if (!skip_cmap)
-        {
-          skip_cmap = true;
-          getPlanningSceneMsgCollisionMap(scene);
-        }
-      }
+        do_cmap = true;
       else
       {
         if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
@@ -384,6 +391,8 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
           else
             ROS_ERROR("Unknown change on collision world");
       }
+    if (do_cmap)
+      getPlanningSceneMsgCollisionMap(scene);
   }
   else
   {
@@ -422,12 +431,15 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
       }
     }
     if (!aco.object.shapes.empty())
+    {
       scene.attached_collision_objects.push_back(aco);
+      if (hasColor(aco.object.id))
+        scene.attached_collision_objects_colors.push_back(getColor(aco.object.id));
+    }
   }
 }
 
-bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns,
-                                                          moveit_msgs::CollisionObject& co) const 
+bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& co) const 
 {
   co = moveit_msgs::CollisionObject();
   co.header.frame_id = getPlanningFrame();
@@ -458,10 +470,14 @@ bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns,
 void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const
 {
   moveit_msgs::CollisionObject co;
-  if(getCollisionObjectMsg(ns, co))
+  if (getCollisionObjectMsg(ns, co))
   {
     if (!co.shapes.empty() || !co.static_shapes.empty())
+    {
       scene.world.collision_objects.push_back(co);
+      if (hasColor(co.id))
+        scene.world.colors.push_back(getColor(co.id));
+    }
   }
 }
 
@@ -491,6 +507,8 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
       planning_models::msgFromPose(map.shape_poses_[i], obb.pose);
       scene.world.collision_map.boxes.push_back(obb);
     }
+    if (hasColor(COLLISION_MAP_NS))
+      scene.world.colors.push_back(getColor(COLLISION_MAP_NS));
   }
 }
 
@@ -578,6 +596,21 @@ void planning_scene::PlanningScene::decoupleParent(void)
       cworld_->clearChanges();
     }
 
+    if (!colors_)
+    {
+      std::map<std::string, std_msgs::ColorRGBA> kc;
+      parent_->getKnownColors(kc);
+      colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>(kc));
+    }
+    else
+    {
+      std::map<std::string, std_msgs::ColorRGBA> kc;
+      parent_->getKnownColors(kc);
+      for (std::map<std::string, std_msgs::ColorRGBA>::const_iterator it = kc.begin() ; it != kc.end() ; ++it)
+        if (colors_->find(it->first) == colors_->end())
+          (*colors_)[it->first] = it->second;
+    }
+    
     configured_ = true;
   }
 
@@ -608,7 +641,12 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
   if (!scene.attached_collision_objects.empty())
     for (std::size_t i = 0 ; i < scene.attached_collision_objects.size() ; ++i)
+    {
       processAttachedCollisionObjectMsg(scene.attached_collision_objects[i]);
+      if (scene.attached_collision_objects_colors.size() > i)
+        setColor(scene.attached_collision_objects[i].object.id, scene.attached_collision_objects_colors[i]);
+    }
+  
 
   // if at least some links are mentioned in the allowed collision matrix, then we have an update
   if (!scene.allowed_collision_matrix.entry_names.empty())
@@ -629,8 +667,16 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
        !scene.world.collision_map.boxes.empty()) || !scene.world.collision_objects.empty())
   {
     for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
+    {
       processCollisionObjectMsg(scene.world.collision_objects[i]);
+      if (scene.world.colors.size() >= scene.world.collision_objects.size() && scene.world.collision_objects[i].operation == moveit_msgs::CollisionObject::ADD)
+        setColor(scene.world.collision_objects[i].id, scene.world.colors[i]);
+      else
+        removeColor(scene.world.collision_objects[i].id);
+    }
     processCollisionMapMsg(scene.world.collision_map);
+    if (scene.world.colors.size() > scene.world.collision_objects.size() || (scene.world.colors.size() == 1 && scene.world.collision_objects.size() != 1))
+      setColor(COLLISION_MAP_NS, scene.world.colors.back());
   }
 }
 
@@ -678,13 +724,28 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix));
   crobot_->setPadding(scene.link_padding);
   crobot_->setScale(scene.link_scale);
-  cworld_->clearObjects();
+  cworld_->clearObjects(); 
+  colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
   for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
+  {
     processCollisionObjectMsg(scene.world.collision_objects[i]);
+    if (scene.world.colors.size() >= scene.world.collision_objects.size() && scene.world.collision_objects[i].operation == moveit_msgs::CollisionObject::ADD)
+      setColor(scene.world.collision_objects[i].id, scene.world.colors[i]);
+    else
+      removeColor(scene.world.collision_objects[i].id);
+  }
+  
   kstate_->clearAttachedBodies();
   for (std::size_t i = 0 ; i < scene.attached_collision_objects.size() ; ++i)
+  {
     processAttachedCollisionObjectMsg(scene.attached_collision_objects[i]);
+    if (scene.attached_collision_objects_colors.size() > i)
+      setColor(scene.attached_collision_objects[i].object.id, scene.attached_collision_objects_colors[i]);
+  }
+  
   processCollisionMapMsg(scene.world.collision_map);
+  if (scene.world.colors.size() > scene.world.collision_objects.size() || (scene.world.colors.size() == 1 && scene.world.collision_objects.size() != 1))
+    setColor(COLLISION_MAP_NS, scene.world.colors.back());
 }
 
 void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
@@ -714,10 +775,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     return false;
   }
 
-  if (!kstate_) { // there must be a parent in this case
-    ROS_INFO_STREAM("Making new state");
+  if (!kstate_) // there must be a parent in this case
     kstate_.reset(new planning_models::KinematicState(parent_->getCurrentState()));
-  }
 
   if (object.object.operation == moveit_msgs::CollisionObject::ADD)
   {
@@ -901,30 +960,64 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         cworld_->addToObject(object.id, s, t * p);
       }
     }
-    /*
-    if(!acm.hasEntry(object.id))
-    {
-      ROS_INFO_STREAM("Adding entry for " << object.id);
-      acm.setEntry(object.id, false);
-    }
-    */
     return true;
   }
   else
     if (object.operation == moveit_msgs::CollisionObject::REMOVE)
     {
       cworld_->removeObject(object.id);
-      /*
-      if(acm.hasEntry(object.id))
-      {
-        ROS_INFO_STREAM("Removing entry for " << object.id);
-        acm.removeEntry(object.id);
-	}*/
       return true;
     }
     else
       ROS_ERROR("Unknown collision object operation: %d", object.operation);
   return false;
+}
+
+bool planning_scene::PlanningScene::hasColor(const std::string &id) const
+{
+  if (colors_)
+    if (colors_->find(id) != colors_->end())
+      return true;
+  if (parent_)
+    return parent_->hasColor(id);
+  return false;
+}
+
+const std_msgs::ColorRGBA& planning_scene::PlanningScene::getColor(const std::string &id) const
+{
+  if (colors_)
+  {
+    std::map<std::string, std_msgs::ColorRGBA>::const_iterator it = colors_->find(id);
+    if (it != colors_->end())
+      return it->second;
+  }
+  if (parent_)
+    return parent_->getColor(id);
+  static const std_msgs::ColorRGBA empty;
+  return empty;
+}
+
+void planning_scene::PlanningScene::getKnownColors(std::map<std::string, std_msgs::ColorRGBA> &kc) const
+{
+  kc.clear();
+  if (parent_)
+    parent_->getKnownColors(kc);
+  if (colors_)
+    for (std::map<std::string, std_msgs::ColorRGBA>::const_iterator it = colors_->begin(); it != colors_->end() ; ++it)
+      kc[it->first] = it->second;
+}
+
+void planning_scene::PlanningScene::setColor(const std::string &id, const std_msgs::ColorRGBA &color)
+{
+  if (!colors_)
+    colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
+  (*colors_)[id] = color;
+}
+
+void planning_scene::PlanningScene::removeColor(const std::string &id)
+{
+  if (colors_)
+    colors_->erase(id);
 }
 
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, 

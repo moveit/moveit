@@ -46,6 +46,7 @@
 #include <ompl/base/GoalLazySamples.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/debug/Profiler.h>
+#include <ompl/base/spaces/SE3StateSpace.h>
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedStateSpacePtr &state_space, 
                                                                      const ModelBasedPlanningContextSpecification &spec) :
@@ -111,8 +112,12 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
       ROS_ERROR("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());  
   return ob::ProjectionEvaluatorPtr();
 }
+
+double OFFSET = 0.0;
+
 namespace ompl_interface
 {
+
 class ConstraintApproximationStateSampler : public ob::StateSampler
 {
 public:
@@ -120,11 +125,21 @@ public:
   ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage) : 
     ob::StateSampler(space), state_storage_(state_storage)
   {
+    min_index_ = 0;
+    max_index_ = state_storage_->size() - 1;
+  }
+  
+  ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage,
+                                      int mini, int maxi) : 
+    ob::StateSampler(space), state_storage_(state_storage)
+  {
+    min_index_ = mini;
+    max_index_ = maxi;
   }
   
   virtual void sampleUniform(ob::State *state)
   { 
-    space_->copyState(state, state_storage_->getState(rng_.uniformInt(0, state_storage_->size() - 1)));
+    space_->copyState(state, state_storage_->getState(rng_.uniformInt(min_index_, max_index_)));
   }
   
   virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
@@ -141,7 +156,7 @@ public:
     }
     if (index < 0) 
     {
-      index = rng_.uniformInt(0, state_storage_->size() - 1);
+      index = rng_.uniformInt(min_index_, max_index_);
     }
     
     double dist = space_->distance(near, state_storage_->getState(index));
@@ -163,6 +178,9 @@ protected:
   
   /** \brief The states to sample from */
   const ConstraintApproximationStateStorage *state_storage_;  
+  unsigned int min_index_;
+  unsigned int max_index_;
+  
 };
 }
 
@@ -182,7 +200,30 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
 	    spec_.constraints_approximations_->at(i).state_storage_)
 	{
 	  ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
-	  return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_approximations_->at(i).state_storage_));
+          const ConstraintApproximationStateStorage *stor = spec_.constraints_approximations_->at(i).state_storage_;
+          if (path_constraints_name_ == "dual_arm" && stor->size() > 10000)
+          {
+            int mini = -1, maxi = -1;
+            for (int k = stor->size() - 1 ; k>=0 ; --k)
+            {
+              const ompl::base::SE3StateSpace::StateType *se3_11 = stor->getState(k)->as<ompl::base::CompoundState>()->components[0]->as<ompl::base::CompoundState>()->components[1]->as<ompl::base::SE3StateSpace::StateType>();
+              const ompl::base::SE3StateSpace::StateType *se3_12 = stor->getState(k)->as<ompl::base::CompoundState>()->components[1]->as<ompl::base::CompoundState>()->components[1]->as<ompl::base::SE3StateSpace::StateType>();
+              double dx = se3_11->getX() - se3_12->getX();
+              double dy = se3_11->getY() - se3_12->getY();
+              double dz = se3_11->getZ() - se3_12->getZ();
+              double d = sqrt(dx*dx  + dy*dy + dz*dz);
+              //              std::cout << d<< std::endl;
+              
+              if (d >= OFFSET - 0.005 && mini == -1)
+                mini = k;
+              if (d <= OFFSET + 0.005)
+                maxi = k;
+            }
+            std::swap(mini, maxi);
+            ROS_DEBUG("Sampling range is %d, %d for offset %lf", mini, maxi, OFFSET);
+            return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_approximations_->at(i).state_storage_, mini, maxi));
+          }
+          return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_approximations_->at(i).state_storage_));
 	}
     }
     
@@ -460,6 +501,12 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
   path_constraints_.reset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
   path_constraints_->add(path_constraints);
   path_constraints_name_ = path_constraints.name;
+  
+  if (path_constraints_name_ == "dual_arm")
+  {
+    OFFSET = path_constraints.position_constraints[0].target_point_offset.x;
+  }
+  
   return true;
 }
 								   
@@ -472,7 +519,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
   goal_constraints_.clear();
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
   {
-    moveit_msgs::Constraints constr = kc::mergeConstraints(goal_constraints[i], path_constraints);
+    moveit_msgs::Constraints constr = goal_constraints[i];//kc::mergeConstraints(goal_constraints[i], path_constraints);
     kc::KinematicConstraintSetPtr kset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
     kset->add(constr);
     if (!kset->empty())
@@ -637,6 +684,7 @@ void ompl_interface::ModelBasedPlanningContext::terminateSolve(void)
 ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling,
                                                                                                         const moveit_msgs::Constraints &constr_hard,
 													const pm::KinematicState &default_state,
+                                                                                                        const ConstraintStateStorageOrderFn &order,
                                                                                                         unsigned int samples, unsigned int edges_per_sample)
 {
   // state storage structure
@@ -719,7 +767,6 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 	}
       }
     }
-    
 #pragma omp master
     {
       ROS_INFO("Generated %u states in %lf seconds", (unsigned int)sstor->size(), ompl::time::seconds(ompl::time::now() - start)); 
@@ -727,7 +774,12 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
 	ROS_INFO("Constrained sampling rate: %lf", csmp->getConstrainedSamplingRate());
     }
   }
-
+  if (order)
+  {
+    ROS_INFO("Sorting states...");
+    sstor->sort(order);
+  }
+  
   if (edges_per_sample > 0)
   {
     ROS_INFO("Computing graph connections (max %u edges per sample) ...", edges_per_sample);
@@ -801,52 +853,3 @@ ompl::base::StateStoragePtr ompl_interface::ModelBasedPlanningContext::construct
   
   return sstor;
 }
-/*
-  ompl::base::StateSamplerAllocator ompl::base::StateStorage::getStateSamplerAllocatorRange(const boost::function<bool(const State*)> &from,
-  const boost::function<bool(const State*)> &to) const
-  {
-  if (states_.empty())
-  throw Exception("Cannot allocate state sampler from empty state storage");
-  
-  std::size_t minIndex = 0;
-  std::size_t maxIndex = states_.size() - 1;
-  if (from)
-  {
-  std::size_t rangeStart = minIndex;
-  std::size_t rangeEnd = maxIndex;
-  
-  while (rangeStart < rangeEnd)
-  {
-  std::size_t mid = (rangeStart + rangeEnd) / 2;
-  if (from(states_[mid]))
-  rangeEnd = mid;
-  else
-  rangeStart = mid + 1;
-  }
-  minIndex = rangeEnd;
-  }
-  if (to)
-  {	
-  std::size_t rangeStart = minIndex;
-  std::size_t rangeEnd = maxIndex;
-  
-  while (rangeStart < rangeEnd)
-  {
-  std::size_t mid = (rangeStart + rangeEnd) / 2;
-  if (to(states_[mid]))
-  rangeStart = mid + 1;
-  else
-  rangeEnd = mid;
-  }
-  if (to(states_[rangeEnd]))
-  maxIndex = rangeEnd;
-  else
-  maxIndex = rangeEnd - 1;
-  }
-  msg_.debug("Stored states sampling range is [%u, %u]", (unsigned int)minIndex, (unsigned int)maxIndex);
-  
-  std::vector<int> sig;
-  space_->computeSignature(sig);    
-  return boost::bind(&allocPrecomputedStateSampler, _1, sig, &states_, minIndex, maxIndex);
-  }
-*/

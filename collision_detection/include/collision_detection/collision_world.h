@@ -132,7 +132,19 @@ namespace collision_detection
 				     CollisionResult &res,
 				     const CollisionWorld &other_world,
 				     const AllowedCollisionMatrix &acm) const = 0;
+
+    virtual double distanceRobot(const CollisionRobot &robot,
+                                 const planning_models::KinematicState &state) const = 0;
     
+    virtual double distanceRobot(const CollisionRobot &robot,
+                                 const planning_models::KinematicState &state,
+                                 const AllowedCollisionMatrix &acm) const = 0;
+
+    virtual double distanceWorld(const CollisionWorld &world) const = 0;
+
+    virtual double distanceWorld(const CollisionWorld &world,
+                                 const AllowedCollisionMatrix &acm) const = 0;
+
     /**********************************************************************/
     /* Collision Bodies                                                   */
     /**********************************************************************/

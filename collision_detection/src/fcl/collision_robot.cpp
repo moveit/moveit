@@ -46,73 +46,126 @@ collision_detection::CollisionRobotFCL::CollisionRobotFCL(const planning_models:
     if (links_[i] && links_[i]->getShape())
     {
       boost::shared_ptr<fcl::CollisionGeometry> cg =
-	createCollisionGeometry(links_[i]->getShape().get(), getLinkScale(links_[i]->getName()), getLinkPadding(links_[i]->getName()));
+	createCollisionGeometryOBB(links_[i]->getShape().get(), getLinkScale(links_[i]->getName()), getLinkPadding(links_[i]->getName()));
+      CollisionGeometryData *cgd = NULL;
       if (cg)
       {
-	CollisionGeometryData *cgd = new CollisionGeometryData(links_[i]);
+	cgd = new CollisionGeometryData(links_[i]);
 	collision_geometry_data_[links_[i]->getName()].reset(cgd);
-	index_map_[links_[i]->getName()] = geoms_.size();
+	index_map_[links_[i]->getName()] = geoms_obb_.size();
 	cg->setUserData(cgd);
       }
       else
 	links_[i] = NULL;
-      geoms_.push_back(cg);
+      geoms_obb_.push_back(cg);
+
+      if (cg)
+      {
+        cg = createCollisionGeometryRSS(links_[i]->getShape().get(), getLinkScale(links_[i]->getName()), getLinkPadding(links_[i]->getName()));
+	cg->setUserData(cgd);
+      }
+      geoms_rss_.push_back(cg);
     }
     else
     {
       links_[i] = NULL;
-      geoms_.push_back(boost::shared_ptr<fcl::CollisionGeometry>());
+      geoms_obb_.push_back(boost::shared_ptr<fcl::CollisionGeometry>());
+      geoms_rss_.push_back(boost::shared_ptr<fcl::CollisionGeometry>());
     }
 }
 
 collision_detection::CollisionRobotFCL::CollisionRobotFCL(const CollisionRobotFCL &other) : CollisionRobot(other)
 {
   links_ = other.links_;
-  geoms_ = other.geoms_;
+  geoms_obb_ = other.geoms_obb_;
+  geoms_rss_ = other.geoms_rss_;
   collision_geometry_data_ = other.collision_geometry_data_;
   index_map_ = other.index_map_;
 }
 
-const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >&
-collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const planning_models::KinematicState::AttachedBody *ab) const
+namespace collision_detection
 {
-  // need an actualy instance of the shared ptr for thread safety
+namespace
+{
+typedef std::map<boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties>,
+                 std::vector<boost::shared_ptr<fcl::CollisionGeometry> > > AttachedBodyObject;
+
+static inline const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >&
+getAttachedBodyObjectsHelper(boost::mutex &lock, const planning_models::KinematicState::AttachedBody *ab,
+                             std::map<std::string, boost::shared_ptr<CollisionGeometryData> > &cgd_map,
+                             AttachedBodyObject &o1, AttachedBodyObject &o2, bool obb)
+{ 
+  // need an actual instance of the shared ptr for thread safety
   boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties> props = ab->getProperties();
-  boost::mutex::scoped_lock slock(attached_bodies_lock_);
-  AttachedBodyObject::const_iterator it = attached_bodies_.find(props);
-  if (it != attached_bodies_.end())
+  boost::mutex::scoped_lock slock(lock);
+
+  AttachedBodyObject::const_iterator it = o1.find(props);
+  if (it != o1.end())
     return it->second;
   
-  CollisionGeometryData *cgd = new CollisionGeometryData(props.get());
+  CollisionGeometryData *cgd = NULL;
   
-  // this is safe because collision_geometry_data_ is not modified elsewhere and we are already locked in this function
-  const_cast<CollisionRobotFCL*>(this)->collision_geometry_data_[props->id_].reset(cgd);
+  it = o2.find(props);
+  if (it != o2.end())
+  {
+    const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &arr = it->second;
+    if (arr.empty())
+    {   
+      cgd = new CollisionGeometryData(props.get());
+      // this is safe because collision_geometry_data_ is not modified elsewhere and we are already locked in this function
+      cgd_map[props->id_].reset(cgd);
+    }
+    else
+      cgd = (CollisionGeometryData*)arr.front()->getUserData();
+  }
+  else
+  {
+    cgd = new CollisionGeometryData(props.get());
+    // this is safe because collision_geometry_data_ is not modified elsewhere and we are already locked in this function
+    cgd_map[props->id_].reset(cgd);
+  }
   
   const std::vector<shapes::Shape*> &shapes = ab->getShapes();
   std::vector<boost::shared_ptr<fcl::CollisionGeometry> > obj;
   for (std::size_t i = 0 ; i < shapes.size() ; ++i)
   {
-    boost::shared_ptr<fcl::CollisionGeometry> co = createCollisionGeometry(shapes[i]);
+    boost::shared_ptr<fcl::CollisionGeometry> co = obb ? createCollisionGeometryOBB(shapes[i]) : createCollisionGeometryRSS(shapes[i]);
     if (co)
       co->setUserData(cgd);
     obj.push_back(co);
   }
-  return attached_bodies_.insert(std::make_pair(props, obj)).first->second;
+  return o1.insert(std::make_pair(props, obj)).first->second;
 }
 
-void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_models::KinematicState &state, FCLObject &fcl_obj) const
+}
+}
+
+const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >&
+collision_detection::CollisionRobotFCL::getAttachedBodyObjectsOBB(const planning_models::KinematicState::AttachedBody *ab) const
 {
+  return getAttachedBodyObjectsHelper(attached_bodies_lock_, ab, const_cast<CollisionRobotFCL*>(this)->collision_geometry_data_, attached_bodies_obb_, attached_bodies_rss_, true);
+}
+
+const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >&
+collision_detection::CollisionRobotFCL::getAttachedBodyObjectsRSS(const planning_models::KinematicState::AttachedBody *ab) const
+{
+  return getAttachedBodyObjectsHelper(attached_bodies_lock_, ab, const_cast<CollisionRobotFCL*>(this)->collision_geometry_data_, attached_bodies_rss_, attached_bodies_obb_, false);
+}
+
+void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_models::KinematicState &state, FCLObject &fcl_obj, bool obb) const
+{
+  const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &geoms = obb ? geoms_obb_ : geoms_rss_;
   const std::vector<planning_models::KinematicState::LinkState*> &link_states = state.getLinkStateVector();
-  for (std::size_t i = 0 ; i < geoms_.size() ; ++i)
-    if (geoms_[i])
+  for (std::size_t i = 0 ; i < geoms.size() ; ++i)
+    if (geoms[i])
     {
-      fcl::CollisionObject *collObj = new fcl::CollisionObject(geoms_[i], transform2fcl(link_states[i]->getGlobalCollisionBodyTransform()));
+      fcl::CollisionObject *collObj = new fcl::CollisionObject(geoms[i], transform2fcl(link_states[i]->getGlobalCollisionBodyTransform()));
       fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
       std::vector<const planning_models::KinematicState::AttachedBody*> ab;
       link_states[i]->getAttachedBodies(ab);
       for (std::size_t j = 0 ; j < ab.size() ; ++j)
       {
-	const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &objs = getAttachedBodyObjects(ab[j]);
+	const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &objs = obb ? getAttachedBodyObjectsOBB(ab[j]) : getAttachedBodyObjectsRSS(ab[j]);
 	const std::vector<Eigen::Affine3d> &ab_t = ab[j]->getGlobalCollisionBodyTransforms();
 	for (std::size_t k = 0 ; k < objs.size() ; ++k)
 	  if (objs[k])
@@ -127,7 +180,7 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_m
 void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const planning_models::KinematicState &state, FCLManager &manager) const
 {
   manager.manager_.reset(new fcl::SSaPCollisionManager());
-  constructFCLObject(state, manager.object_);
+  constructFCLObject(state, manager.object_, true);
   manager.object_.registerTo(manager.manager_.get());
   manager.manager_->update();
 }
@@ -174,7 +227,7 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
   
   const CollisionRobotFCL &fcl_rob = dynamic_cast<const CollisionRobotFCL&>(other_robot);
   FCLObject other_fcl_obj;
-  fcl_rob.constructFCLObject(other_state, other_fcl_obj);
+  fcl_rob.constructFCLObject(other_state, other_fcl_obj, true);
   
   CollisionData cd(&req, &res, acm);
   for (std::size_t i = 0 ; !cd.done_ && i < other_fcl_obj.collision_objects_.size() ; ++i)
@@ -189,11 +242,40 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
     const planning_models::KinematicModel::LinkModel *lmodel = kmodel_->getLinkModel(links[i]);
     if (it != index_map_.end() && lmodel)
     {
-      boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(lmodel->getShape().get(), getLinkScale(links[i]), getLinkPadding(links[i]));
-      cg->setUserData(geoms_[it->second]->getUserData());
-      geoms_[it->second] = cg;
+      boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometryOBB(lmodel->getShape().get(), getLinkScale(links[i]), getLinkPadding(links[i]));
+      cg->setUserData(geoms_obb_[it->second]->getUserData());
+      geoms_obb_[it->second] = cg;
+
+      cg = createCollisionGeometryRSS(lmodel->getShape().get(), getLinkScale(links[i]), getLinkPadding(links[i]));
+      cg->setUserData(geoms_rss_[it->second]->getUserData());
+      geoms_rss_[it->second] = cg;
     }
     else
       ROS_ERROR("Updating padding or scaling for unknown link: '%s'", links[i].c_str());
   }
+}
+
+double collision_detection::CollisionRobotFCL::distanceSelf(const planning_models::KinematicState &state) const
+{
+  return 0.0;
+}
+
+double collision_detection::CollisionRobotFCL::distanceSelf(const planning_models::KinematicState &state,
+                                                            const AllowedCollisionMatrix &acm) const
+{
+  return 0.0;
+}
+
+
+double collision_detection::CollisionRobotFCL::distanceOther(const CollisionRobot &other_robot,
+                                                             const planning_models::KinematicState &other_state) const
+{
+  return 0.0;
+}
+
+double collision_detection::CollisionRobotFCL::distanceOther(const CollisionRobot &other_robot,
+                                                             const planning_models::KinematicState &other_state,
+                                                             const AllowedCollisionMatrix &acm) const
+{
+  return 0.0;
 }

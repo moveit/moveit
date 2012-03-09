@@ -71,3 +71,23 @@ void collision_detection::CollisionWorldAllValid::checkWorldCollision(const Coll
   if (req.verbose)
     ROS_INFO("Using AllValid collision detection. No collision checking is performed.");
 }
+
+double collision_detection::CollisionWorldAllValid::distanceRobot(const CollisionRobot &robot, const planning_models::KinematicState &state) const
+{
+  return 0.0;
+}
+
+double collision_detection::CollisionWorldAllValid::distanceRobot(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const
+{
+  return 0.0;
+}
+
+double collision_detection::CollisionWorldAllValid::distanceWorld(const CollisionWorld &world) const
+{
+  return 0.0;
+}
+
+double collision_detection::CollisionWorldAllValid::distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const
+{
+  return 0.0;
+}
