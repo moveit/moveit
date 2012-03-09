@@ -187,6 +187,17 @@ void planning_models::KinematicState::setStateValues(const sensor_msgs::JointSta
   setStateValues(vals);
 }
 
+void planning_models::KinematicState::setStateValues(const std::vector<std::string>& joint_names,
+                                                     const std::vector<double>& joint_values)
+{
+  std::map<std::string, double> vals;
+  unsigned int position_size = joint_values.size();
+  for(unsigned int i = 0 ; i < joint_names.size() ; ++i)
+    if (i < position_size)
+      vals[joint_names[i]] = joint_values[i];
+  setStateValues(vals);
+}
+
 void planning_models::KinematicState::getStateValues(std::vector<double>& joint_state_values) const
 {
   joint_state_values.clear();
