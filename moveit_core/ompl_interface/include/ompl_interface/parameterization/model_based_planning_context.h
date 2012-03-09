@@ -275,6 +275,7 @@ public:
   ob::StateStoragePtr constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling,
                                                        const moveit_msgs::Constraints &constr_hard,
 						       const pm::KinematicState &default_state,
+                                                       const ConstraintStateStorageOrderFn &order, 
 						       unsigned int samples, unsigned int edges_per_sample);
   
   virtual void configure(void);

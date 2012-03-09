@@ -193,9 +193,23 @@ public:
   
   void addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
                                   const std::string &group, const std::string &factory,
-                                  const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample);
-  void addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &factory,
-                                  const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample);
+                                  const pm::KinematicState &kstate, 
+                                  unsigned int samples, unsigned int edges_per_sample);
+  
+  void addConstraintApproximation(const moveit_msgs::Constraints &constr,
+                                  const std::string &group, const std::string &factory,
+                                  const pm::KinematicState &kstate,
+                                  unsigned int samples, unsigned int edges_per_sample);
+
+  void addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
+                                  const std::string &group, const std::string &factory,
+                                  const pm::KinematicState &kstate, const ConstraintStateStorageOrderFn &order, 
+                                  unsigned int samples, unsigned int edges_per_sample);
+
+  void addConstraintApproximation(const moveit_msgs::Constraints &constr,
+                                  const std::string &group, const std::string &factory,
+                                  const pm::KinematicState &kstate, const ConstraintStateStorageOrderFn &order, 
+                                  unsigned int samples, unsigned int edges_per_sample);
 
   void loadConstraintApproximations(const std::string &path);
   void saveConstraintApproximations(const std::string &path);

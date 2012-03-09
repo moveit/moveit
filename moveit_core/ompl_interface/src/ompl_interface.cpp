@@ -593,12 +593,29 @@ void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs
 void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
                                                                const std::string &group, const std::string &factory,
                                                                const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
+{ 
+  addConstraintApproximation(constr_sampling, constr_hard, group, factory, kstate, ConstraintStateStorageOrderFn(), samples, edges_per_sample);
+
+}
+
+void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr,
+                                                               const std::string &group, const std::string &factory,
+                                                               const pm::KinematicState &kstate, const ConstraintStateStorageOrderFn &order, 
+                                                               unsigned int samples, unsigned int edges_per_sample)
+{ 
+  addConstraintApproximation(constr, constr, group, factory, kstate, order, samples, edges_per_sample);
+}
+
+void ompl_interface::OMPLInterface::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
+                                                               const std::string &group, const std::string &factory,
+                                                               const pm::KinematicState &kstate, const ConstraintStateStorageOrderFn &order, 
+                                                               unsigned int samples, unsigned int edges_per_sample)
 {  
   const ModelBasedPlanningContextPtr &pc = getPlanningContext(group, factory);
   if (pc)
   {
     ros::WallTime start = ros::WallTime::now();
-    ompl::base::StateStoragePtr ss = pc->constructConstraintApproximation(constr_sampling, constr_hard, kstate, samples, edges_per_sample);
+    ompl::base::StateStoragePtr ss = pc->constructConstraintApproximation(constr_sampling, constr_hard, kstate, order, samples, edges_per_sample);
     ROS_INFO("Spend %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
     if (ss)
       constraints_approximations_->push_back(ConstraintApproximation(kmodel_, group, factory, constr_hard, group + "_" + 
