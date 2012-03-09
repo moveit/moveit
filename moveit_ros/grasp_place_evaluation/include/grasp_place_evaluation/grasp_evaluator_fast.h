@@ -77,19 +77,6 @@ public:
 
   ~GraspEvaluatorFast(){}
 
-  void getGroupJoints(const std::string& group_name,
-                      std::vector<std::string>& group_links);
-  
-  void getGroupLinks(const std::string& group_name,
-                     std::vector<std::string>& group_links);
-
-  std::string getEndEffectorName(const boost::shared_ptr<const srdf::Model>& srdf_model,
-                                 const std::string& arm_name);
-
-  std::string getTipLink(const std::string& group_name);
-
-  std::string getAttachLink(const std::string& end_effector_name);  
-
   virtual void testGrasps(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const planning_models::KinematicState* seed_state,
                           const moveit_manipulation_msgs::PickupGoal &pickup_goal,

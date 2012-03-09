@@ -81,9 +81,26 @@ void GraspEvaluationVisualization::evaluateGrasps(const std::string& group_name,
                                     last_grasp_evaluation_info_,
                                     true);
   //showGraspPose(0, true, true, true);
-  playInterpolationTrajectories(0,
-                                true,
-                                true);
+  // playInterpolationTrajectories(0,
+  //                               true,
+  //                               true);
+}
+
+bool GraspEvaluationVisualization::getEvaluatedGrasp(unsigned int num,
+                                                     grasp_place_evaluation::GraspExecutionInfo& grasp) const {
+  if(num >= last_grasp_evaluation_info_.size()) {
+    return false;
+  }
+  grasp = last_grasp_evaluation_info_[num];
+  return true;
+}
+
+void GraspEvaluationVisualization::removeAllMarkers() {
+  for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
+    last_marker_array_.markers[i].action = visualization_msgs::Marker::DELETE;
+  }
+  marker_publisher_.publish(last_marker_array_);
+  last_marker_array_.markers.clear();
 }
 
 void GraspEvaluationVisualization::showGraspPose(unsigned int num,
@@ -94,18 +111,16 @@ void GraspEvaluationVisualization::showGraspPose(unsigned int num,
     return;
   }
 
-  std::vector<std::string> end_effector_links;
-  grasp_evaluator_fast_->getGroupLinks(grasp_evaluator_fast_->getEndEffectorName(planning_scene_->getSrdfModel(),
-                                                                                 last_grasp_evaluation_info_.pickup_goal_.arm_name),
-                                       end_effector_links);
+  removeAllMarkers();
+
+  std::vector<std::string> end_effector_links = 
+    planning_scene_->getSemanticModel()->getGroupLinks(planning_scene_->getSemanticModel()->getEndEffector(last_grasp_evaluation_info_.pickup_goal_.arm_name));
   
   planning_models::KinematicState state(planning_scene_->getCurrentState());
 
-  visualization_msgs::MarkerArray arr;
-  
   if(show_grasp) {
     state.setStateValues(last_grasp_evaluation_info_.grasps_[num].grasp_posture);
-    state.updateStateWithLinkAt(grasp_evaluator_fast_->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
+    state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
                                 last_grasp_evaluation_info_[num].grasp_pose_);
 
     std_msgs::ColorRGBA col;
@@ -114,12 +129,12 @@ void GraspEvaluationVisualization::showGraspPose(unsigned int num,
     state.getRobotMarkers(col,
                           "grasp",
                           ros::Duration(0.0),
-                          arr,
+                          last_marker_array_,
                           end_effector_links);
   }
   if(show_pregrasp) {
     state.setStateValues(last_grasp_evaluation_info_.grasps_[num].pre_grasp_posture);
-    state.updateStateWithLinkAt(grasp_evaluator_fast_->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
+    state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
                                 last_grasp_evaluation_info_[num].pregrasp_pose_);
 
     std_msgs::ColorRGBA col;
@@ -128,14 +143,14 @@ void GraspEvaluationVisualization::showGraspPose(unsigned int num,
     state.getRobotMarkers(col,
                           "pregrasp",
                           ros::Duration(0.0),
-                          arr,
+                          last_marker_array_,
                           end_effector_links);
   }
 
   if(show_lift) {
     state.setStateValues(last_grasp_evaluation_info_.grasps_[num].grasp_posture);
 
-    state.updateStateWithLinkAt(grasp_evaluator_fast_->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
+    state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
                                 last_grasp_evaluation_info_[num].lift_pose_);
 
     std_msgs::ColorRGBA col;
@@ -144,16 +159,16 @@ void GraspEvaluationVisualization::showGraspPose(unsigned int num,
     state.getRobotMarkers(col,
                           "lift",
                           ros::Duration(0.0),
-                          arr,
+                          last_marker_array_,
                           end_effector_links);
   }
 
-  marker_publisher_.publish(arr);
+  marker_publisher_.publish(last_marker_array_);
 }
 
-void GraspEvaluationVisualization::playInterpolationTrajectories(unsigned int num,
-                                                                 bool play_approach,
-                                                                 bool play_lift) {
+void GraspEvaluationVisualization::playInterpolatedTrajectories(unsigned int num,
+                                                                bool play_approach,
+                                                                bool play_lift) {
   if(num >= last_grasp_evaluation_info_.size()) {
     return;
   }
@@ -161,6 +176,14 @@ void GraspEvaluationVisualization::playInterpolationTrajectories(unsigned int nu
   if(last_grasp_evaluation_info_[num].result_.result_code != moveit_manipulation_msgs::GraspResult::SUCCESS) {
     return;
   }
+  
+  boost::thread(boost::bind(&GraspEvaluationVisualization::playInterpolatedTrajectoriesThread, this, num, play_approach, play_lift));
+}
+
+void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(unsigned int num,
+                                                                      bool play_approach,
+                                                                      bool play_lift)
+{
 
   std_msgs::ColorRGBA col;
   col.b = col.r = col.a = 1.0;
@@ -180,28 +203,6 @@ void GraspEvaluationVisualization::playInterpolationTrajectories(unsigned int nu
     }
   } 
   if(play_lift) {
-    
-    // boost::shared_ptr<planning_scene::PlanningScene> attached_object_diff_scene(new planning_scene::PlanningScene(planning_scene_));
-    // planning_models::KinematicState state(attached_object_diff_scene->getCurrentState());
-    // std::map<std::string, double> grasp_values;
-    // for(unsigned int i = 0; i < last_grasp_evaluation_info_[num].lift_trajectory_.joint_names.size(); i++) {
-    //   grasp_values[last_grasp_evaluation_info_[num].lift_trajectory_.joint_names[i]] 
-    //     = last_grasp_evaluation_info_[num].lift_trajectory_.points.front().positions[i];
-    // }
-    // state.setStateValues(grasp_values);
-    // attached_object_diff_scene->setCurrentState(state);
-    
-    moveit_msgs::AttachedCollisionObject att_obj;
-    att_obj.link_name = grasp_evaluator_fast_->getAttachLink(grasp_evaluator_fast_->getEndEffectorName(planning_scene_->getSrdfModel(),
-                                                                                                       last_grasp_evaluation_info_.pickup_goal_.arm_name));
-    
-    att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
-    att_obj.object.id = last_grasp_evaluation_info_.pickup_goal_.collision_object_name;
-    grasp_evaluator_fast_->getGroupLinks(grasp_evaluator_fast_->getEndEffectorName(planning_scene_->getSrdfModel(),
-                                                                                   last_grasp_evaluation_info_.pickup_goal_.arm_name),
-                                         att_obj.touch_links);
-    //attached_object_diff_scene->processAttachedCollisionObjectMsg(att_obj);
-
     last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState().setStateValues(last_grasp_evaluation_info_.grasps_[num].pre_grasp_posture);
 
     joint_trajectory_visualization_->updatePlanningScene(last_grasp_evaluation_info_[num].attached_object_diff_scene_);

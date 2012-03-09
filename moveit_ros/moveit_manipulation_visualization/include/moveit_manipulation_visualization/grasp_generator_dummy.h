@@ -1,19 +1,19 @@
 /*
  * Copyright (c) 2012, Willow Garage, Inc.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Willow Garage, Inc. nor the names of its
+ *     * Neither the name of the <ORGANIZATION> nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -27,32 +27,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _MOVEIT_MANIPULATION_VISUALIZER_H_
-#define _MOVEIT_MANIPULATION_VISUALIZER_H_
+// Author: E. Gil Jones
 
-#include <moveit_visualization_ros/moveit_visualizer.h>
-#include <moveit_manipulation_visualization/grasp_evaluation_visualization_dialog.h>
+#ifndef _GRASP_GENERATOR_DUMMY_H_
+#define _GRASP_GENERATOR_DUMMY_H_
+
+#include <planning_scene/planning_scene.h>
+#include <moveit_manipulation_msgs/Grasp.h>
 
 namespace moveit_manipulation_visualization {
 
-class MoveItManipulationVisualizer : public moveit_visualization_ros::MoveItVisualizer {
-  
+class GraspGeneratorDummy {
+
 public:
-  
-  MoveItManipulationVisualizer();
-  
-  virtual ~MoveItManipulationVisualizer(){};
-  
-  virtual void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene);
 
-  void attemptToGrasp(const std::string& object_name);
-  
-protected:
+  GraspGeneratorDummy(){};
 
-  //void attemptToGraspThread(const std::string& object_name);
-  
-  moveit_manipulation_visualization::GraspEvaluationVisualizationDialog* grasp_evaluation_visualization_dialog_;
-  
+  ~GraspGeneratorDummy(){};
+
+  bool generateGrasps(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                      const std::string& obj,
+                      const std::string& arm_name,
+                      std::vector<moveit_manipulation_msgs::Grasp>& grasps,
+                      std::string& frame_name);
 };
 
 }

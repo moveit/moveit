@@ -57,6 +57,31 @@ struct GraspExecutionInfo {
   moveit_manipulation_msgs::GraspResult result_;
 };
 
+inline static std::string convertToStringStatus(const moveit_manipulation_msgs::GraspResult& gr) {
+  if(gr.result_code == moveit_manipulation_msgs::GraspResult::SUCCESS) {
+    return "Success";
+  } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::GRASP_OUT_OF_REACH) {
+    return "Grasp out of reach";
+  } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::GRASP_IN_COLLISION) {
+    return "Grasp in collision";
+  } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::GRASP_UNFEASIBLE) {
+    return "Grasp unfeasible";
+  } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::PREGRASP_OUT_OF_REACH) {
+    return "Pregrasp out of reach";
+  } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::PREGRASP_IN_COLLISION) {
+    return "Pregrasp in collision";
+  } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::PREGRASP_UNFEASIBLE) {
+    return "Pregrasp unfeasible";
+  } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::LIFT_OUT_OF_REACH) {
+    return "Lift out of reach";
+  } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::LIFT_IN_COLLISION) {
+    return "Lift in collision";
+  } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::LIFT_UNFEASIBLE) {
+    return "Lift unfeasible";
+  } 
+  return "Unknown";
+}
+
 struct GraspExecutionInfoVector : public std::vector<GraspExecutionInfo> {
   moveit_manipulation_msgs::PickupGoal pickup_goal_;
   std::vector<moveit_manipulation_msgs::Grasp> grasps_;

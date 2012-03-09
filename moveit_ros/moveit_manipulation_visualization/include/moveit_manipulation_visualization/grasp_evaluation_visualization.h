@@ -54,6 +54,8 @@ public:
     planning_scene_ = planning_scene;
   }
 
+  void removeAllMarkers();
+
   void evaluateGrasps(const std::string& group_name,
                       const moveit_manipulation_msgs::PickupGoal& goal,
                       const planning_models::KinematicState* seed_state,
@@ -64,18 +66,31 @@ public:
                      bool show_pregrasp,
                      bool show_lift);
   
-  void playInterpolationTrajectories(unsigned int num,
+  void playInterpolatedTrajectories(unsigned int num,
                                      bool play_approach,
                                      bool play_lift);
   
+
+  unsigned int getEvaluationInfoSize() const {
+    return last_grasp_evaluation_info_.size();
+  }
   
-  // bool  getEvaluatedGrasp(unsigned int num,
-  //                         grasp_place_evaluation::GraspExecutionInfo& grasp) const;
+  bool getEvaluatedGrasp(unsigned int num,
+                         grasp_place_evaluation::GraspExecutionInfo& grasp) const;
   
+  boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization>& getJointTrajectoryVisualization() {
+    return joint_trajectory_visualization_;
+  }
+
 protected:
+
+  void playInterpolatedTrajectoriesThread(unsigned int num,
+                                          bool play_approach,
+                                          bool play_lift);
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   ros::Publisher marker_publisher_;
+  visualization_msgs::MarkerArray last_marker_array_;
   
   grasp_place_evaluation::GraspExecutionInfoVector last_grasp_evaluation_info_;
   boost::shared_ptr<grasp_place_evaluation::GraspEvaluatorFast> grasp_evaluator_fast_;

@@ -56,52 +56,6 @@ GraspEvaluatorFast::GraspEvaluatorFast(const planning_models::KinematicModelCons
   }
 }
 
-void GraspEvaluatorFast::getGroupLinks(const std::string& group_name,
-                                    std::vector<std::string>& group_links)
-{
-  const planning_models::KinematicModel::JointModelGroup* jmg = 
-    kmodel_->getJointModelGroup(group_name);
-  if(jmg == NULL) return;
-  group_links = jmg->getLinkModelNames();
-}
-
-void GraspEvaluatorFast::getGroupJoints(const std::string& group_name,
-                                        std::vector<std::string>& group_joints)
-{
-  if(constraint_aware_solver_map_.find(group_name) == constraint_aware_solver_map_.end()) {
-    ROS_ERROR_STREAM("No group for solver " << group_name);
-    return;
-  }
-  group_joints = constraint_aware_solver_map_[group_name]->getJointNames();
-}
-
-std::string GraspEvaluatorFast::getEndEffectorName(const boost::shared_ptr<const srdf::Model>& srdf_model,
-                                                   const std::string& arm_name) {
-  const std::string& tip_link = constraint_aware_solver_map_.at(arm_name)->getTipFrames().begin()->second;
-  const std::vector<srdf::Model::EndEffector> end_effectors = srdf_model->getEndEffectors();
-  for(unsigned int i = 0; i < end_effectors.size(); i++) {
-    if(end_effectors[i].parent_link_ == tip_link) {
-      return end_effectors[i].component_group_;
-    }
-  }
-  ROS_WARN_STREAM("No end effector group found for arm " << arm_name << " tip link " << tip_link);
-  return "";
-}
-
-std::string GraspEvaluatorFast::getTipLink(const std::string& group_name) {
-  if(constraint_aware_solver_map_.find(group_name) == constraint_aware_solver_map_.end()) {
-    return "";
-  }
-  return constraint_aware_solver_map_.at(group_name)->getTipFrames().begin()->second;
-}
-
-std::string GraspEvaluatorFast::getAttachLink(const std::string& end_effector_name) 
-{
-  const planning_models::KinematicModel::JointModelGroup* jmg = 
-    kmodel_->getJointModelGroup(end_effector_name);
-  return jmg->getLinkModelNames()[0];
-}
-
 bool GraspEvaluatorFast::getInterpolatedIK(const std::string& arm_name,
                                            const planning_scene::PlanningSceneConstPtr& scene,
                                            const collision_detection::AllowedCollisionMatrix& acm,
@@ -376,14 +330,12 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   std::map<std::string, double> planning_scene_state_values;
   state.getStateValues(planning_scene_state_values);
 
-  std::string tip_link = getTipLink(pickup_goal.arm_name);
+  std::string tip_link = planning_scene->getSemanticModel()->getTipLink(pickup_goal.arm_name);
   
-  std::string end_effector_group = getEndEffectorName(planning_scene->getSrdfModel(),
-                                                      pickup_goal.arm_name);
+  std::string end_effector_group = planning_scene->getSemanticModel()->getEndEffector(pickup_goal.arm_name);
   
-  std::vector<std::string> end_effector_links, arm_links; 
-  getGroupLinks(end_effector_group, end_effector_links);
-  getGroupLinks(pickup_goal.arm_name, arm_links);
+  std::vector<std::string> end_effector_links = planning_scene->getSemanticModel()->getGroupLinks(end_effector_group);
+  std::vector<std::string> arm_links = planning_scene->getSemanticModel()->getGroupLinks(pickup_goal.arm_name);
   
   collision_detection::AllowedCollisionMatrix original_acm = planning_scene->getAllowedCollisionMatrix();
   collision_detection::AllowedCollisionMatrix group_disable_acm = planning_scene->disableCollisionsForNonUpdatedLinks(pickup_goal.arm_name);
@@ -495,7 +447,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   }
 
   moveit_msgs::AttachedCollisionObject att_obj;
-  att_obj.link_name = getAttachLink(end_effector_group);
+  att_obj.link_name = planning_scene->getSemanticModel()->getAttachLink(end_effector_group);
   att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
   att_obj.object.id = pickup_goal.collision_object_name;
   att_obj.touch_links = end_effector_links;
@@ -567,8 +519,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
 
   std_msgs::Header world_header;
   world_header.frame_id = planning_scene->getPlanningFrame();
-  std::vector<std::string> joint_names;
-  getGroupJoints(pickup_goal.arm_name, joint_names);
+  std::vector<std::string> joint_names = planning_scene->getSemanticModel()->getGroupJoints(pickup_goal.arm_name);
 
   if(return_on_first_hit) {
     
