@@ -37,6 +37,7 @@
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
 #include <planning_models/conversions.h>
+#include <planning_models/semantic_model.h>
 #include <gtest/gtest.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
@@ -221,6 +222,19 @@ TEST_F(LoadPlanningModelsPr2, SubgroupInit) {
   EXPECT_EQ(jmg2->getSubgroupNames().size(), 4);
   EXPECT_TRUE(jmg2->isSubgroup("arms"));
   EXPECT_TRUE(jmg2->isSubgroup("right_arm"));
+}
+
+TEST_F(LoadPlanningModelsPr2, SemanticInit) {
+
+  boost::shared_ptr<planning_models::KinematicModel> kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));  
+  planning_models::SemanticModel smodel(kmodel, srdf_model_);
+  
+  EXPECT_TRUE(smodel.isArm("right_arm"));
+  EXPECT_TRUE(smodel.hasEndEffector("right_arm"));
+  EXPECT_FALSE(smodel.isEndEffector("right_arm"));
+  EXPECT_EQ(smodel.getEndEffector("right_arm"), "r_end_effector");
+  EXPECT_EQ(smodel.getTipLink("right_arm"), "r_wrist_roll_link");
+  EXPECT_EQ(smodel.getBaseLink("right_arm"), "torso_lift_link");
 }
 
 int main(int argc, char **argv)
