@@ -193,6 +193,7 @@ public:
           double process_time = total_time;
           for (std::size_t j = 0 ; j < mp_res.trajectory.size() ; ++j)
           {
+            correct = true;
             L = 0.0;
             clearance = 0.0;
             smoothness = 0.0;
