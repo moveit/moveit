@@ -270,14 +270,14 @@ public:
       data.push_back(runs);
     }
     double duration = (ros::WallTime::now() - startTime).toSec();
-    
-    std::ofstream out(req.filename.c_str());
     std::string host = getHostname();
     
+    std::ofstream out(req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log").c_str() :
+                      req.filename.c_str());
     out << "Experiment " << (cscene_->getName().empty() ? "NO_NAME" : cscene_->getName()) << std::endl;
     out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
-    out << "<<<|" << std::endl << "ROS" << std::endl << "|>>>" << std::endl;
+    out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
     out << "0 is the random seed" << std::endl; // we do not record random seeds
     out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
     out << "10240 MB per run" << std::endl; // we don't limit memory usage
