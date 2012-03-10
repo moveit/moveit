@@ -100,7 +100,7 @@ struct OMPLInterface::CachedContexts
 }
 
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
-    kmodel_(kmodel), max_goal_samples_(10), max_sampling_attempts_(10), max_planning_threads_(4),
+    kmodel_(kmodel), max_goal_samples_(200), max_sampling_attempts_(200), max_planning_threads_(4),
   max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
   constraints_approximations_.reset(new std::vector<ConstraintApproximation>());
