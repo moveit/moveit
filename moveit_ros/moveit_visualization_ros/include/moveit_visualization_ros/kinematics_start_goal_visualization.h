@@ -73,6 +73,9 @@ public:
   void setRandomStartGoal();
   void resetStartGoal();
 
+  void setStartState(const planning_models::KinematicState& state);
+  void setGoalState(const planning_models::KinematicState& state);
+
   void setGoodBadMode(bool use_good_bad) {
     start_->setGoodBadMode(use_good_bad);
     goal_->setGoodBadMode(use_good_bad);
