@@ -39,6 +39,7 @@
 #include <collision_detection/fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
+#include <kinematic_constraints/kinematic_constraint.h>
 
 namespace planning_scene
 {
@@ -1012,24 +1013,62 @@ void planning_scene::PlanningScene::removeColor(const std::string &id)
     colors_->erase(id);
 }
 
-bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, 
-                                                const moveit_msgs::RobotTrajectory &trajectory) const
+bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, bool verbose) const
 {
-  planning_models::KinematicState start(getCurrentState());
-  planning_models::robotStateToKinematicState(*getTransforms(), start_state, start);
   moveit_msgs::Constraints emp_constraints;
-  return isPathValid(&start, emp_constraints, emp_constraints, trajectory);
+  return isStateValid(state, emp_constraints, verbose);
 }
 
-bool planning_scene::PlanningScene::isPathValid(const planning_models::KinematicState* state,
+bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
+{
+  planning_models::KinematicState s(getCurrentState());
+  planning_models::robotStateToKinematicState(*getTransforms(), state, s);
+  collision_detection::CollisionRequest req;
+  req.verbose = verbose;
+  collision_detection::CollisionResult  res;
+  checkCollision(req, res, s);
+  if (res.collision)
+    return false;
+  kinematic_constraints::KinematicConstraintSet ks(getKinematicModel(), getTransforms());
+  ks.add(constr);
+  if (ks.empty())
+    return true;
+  double dist;
+  return ks.decide(s, dist, verbose);
+}
+
+bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, 
+                                                const moveit_msgs::RobotTrajectory &trajectory,
+                                                bool verbose,
+                                                std::size_t *first_invalid_index) const
+{
+  moveit_msgs::Constraints emp_constraints;
+  return isPathValid(start_state, emp_constraints, emp_constraints, trajectory, verbose, first_invalid_index);
+}
+
+bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const moveit_msgs::Constraints& goal_constraints,
-                                                const moveit_msgs::RobotTrajectory &trajectory) const
-{
-  //TODO - check path and goal constraints
-  planning_models::KinematicState start(*state);
+                                                const moveit_msgs::RobotTrajectory &trajectory,
+                                                bool verbose,
+                                                std::size_t *first_invalid_index) const
+{  
+  planning_models::KinematicState start(getCurrentState());
+  planning_models::robotStateToKinematicState(*getTransforms(), start_state, start);
+  return isPathValid(start, path_constraints, goal_constraints, trajectory, verbose, first_invalid_index);
+}
+
+bool planning_scene::PlanningScene::isPathValid(const planning_models::KinematicState &start,
+                                                const moveit_msgs::Constraints& path_constraints,
+                                                const moveit_msgs::Constraints& goal_constraints,
+                                                const moveit_msgs::RobotTrajectory &trajectory,
+                                                bool verbose,
+                                                std::size_t *first_invalid_index) const
+{  
   std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
                                      trajectory.multi_dof_joint_trajectory.points.size());
+  kinematic_constraints::KinematicConstraintSet ks_p(getKinematicModel(), getTransforms());
+  ks_p.add(path_constraints);
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
     moveit_msgs::RobotState rs;
@@ -1037,10 +1076,34 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
     planning_models::KinematicStatePtr st(new planning_models::KinematicState(start));
     planning_models::robotStateToKinematicState(*getTransforms(), rs, *st);
     collision_detection::CollisionRequest req;
+    req.verbose = verbose;
     collision_detection::CollisionResult  res;
     checkCollision(req, res, *st);
     if (res.collision)
+    {
+      if (first_invalid_index)
+        *first_invalid_index = i;
       return false;
+    }
+    double dist;
+    if (!ks_p.empty() && !ks_p.decide(*st, dist, verbose))
+    {
+      if (first_invalid_index)
+        *first_invalid_index = i;
+      return false;
+    }
+    // check goal for last state
+    if (i + 1 == state_count)
+    {
+      kinematic_constraints::KinematicConstraintSet ks_g(getKinematicModel(), getTransforms());
+      ks_g.add(goal_constraints);
+      if (!ks_g.empty() && !ks_g.decide(*st, dist, verbose))
+      {
+        if (first_invalid_index)
+          *first_invalid_index = i;
+        return false;
+      }
+    }
   }
   return true;
 } 
