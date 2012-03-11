@@ -569,6 +569,9 @@ public:
   
   /** @brief Set the joint state values from a joint state message */
   void setStateValues(const sensor_msgs::JointState& msg);
+
+  void setStateValues(const std::vector<std::string>& joint_names,
+                      const std::vector<double>& joint_values);
   
   /** @brief Get the joint state values. The order in which the values are specified matches the order
    *  of the joints in the KinematicModel corresponding to this state.*/
