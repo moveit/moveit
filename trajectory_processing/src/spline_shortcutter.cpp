@@ -71,7 +71,7 @@ bool SplineShortcutter::shortcut(const planning_scene::PlanningSceneConstPtr& sc
   moveit_msgs::RobotTrajectory traj;
   traj.joint_trajectory = trajectory_in;
 
-  if(!scene->isPathValid(start_state,
+  if(!scene->isPathValid(*start_state,
                          path_constraints,
                          goal_constraints,
                          traj)) {
@@ -107,7 +107,7 @@ bool SplineShortcutter::shortcut(const planning_scene::PlanningSceneConstPtr& sc
   }
 
   traj.joint_trajectory = trajectory_out;
-  if(!scene->isPathValid(start_state,
+  if(!scene->isPathValid(*start_state,
                          path_constraints,
                          goal_constraints,
                          traj)) {
@@ -153,7 +153,7 @@ bool SplineShortcutter::shortcut(const planning_scene::PlanningSceneConstPtr& sc
     moveit_msgs::Constraints empty_goal_constraints;
 
     traj.joint_trajectory = discretized_trajectory;
-    if(scene->isPathValid(start_state,
+    if(scene->isPathValid(*start_state,
                           path_constraints,
                           empty_goal_constraints,
                           traj)) {
