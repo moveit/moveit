@@ -87,6 +87,8 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
 
     kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
     kmodel_const_ = kmodel_;
+    smodel_.reset(new planning_models::SemanticModel(kmodel_, srdf_model));
+    smodel_const_ = smodel_;    
     ftf_.reset(new planning_models::Transforms(kmodel_->getModelFrame()));
     ftf_const_ = ftf_;
 
@@ -139,6 +141,8 @@ void planning_scene::PlanningScene::clearDiffs(void)
 
   kmodel_.reset();
   kmodel_const_.reset();
+  smodel_.reset();
+  smodel_const_.reset();
   ftf_.reset();
   ftf_const_.reset();
   kstate_.reset();
@@ -557,6 +561,8 @@ void planning_scene::PlanningScene::decoupleParent(void)
     srdf_model_ = parent_->srdf_model_;
     kmodel_ = parent_->kmodel_;
     kmodel_const_ = kmodel_;
+    smodel_ = parent_->smodel_;
+    smodel_const_ = smodel_;
 
     if (!ftf_)
     {
@@ -688,6 +694,8 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
     srdf_model_ = parent_->srdf_model_;
     kmodel_ = parent_->kmodel_;
     kmodel_const_ = kmodel_;
+    smodel_ = parent_->smodel_;
+    smodel_const_ = smodel_;
 
     if (!ftf_)
     {
