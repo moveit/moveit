@@ -298,15 +298,30 @@ public:
       parent and the pointer to the parent is discarded. */
   void decoupleParent(void);
 
-  /** \brief Check if a given path is valid */
-  bool isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory) const;
+  /** \brief Check if a given state is valid */
+  bool isStateValid(const moveit_msgs::RobotState &state, bool verbose = false) const;
+
+  /** \brief Check if a given state is valid */
+  bool isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
 
   /** \brief Check if a given path is valid */
-  bool isPathValid(const planning_models::KinematicState* start, 
+  bool isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
+                   bool verbose = false, std::size_t *first_invalid_index = NULL) const;
+
+  /** \brief Check if a given path is valid */
+  bool isPathValid(const moveit_msgs::RobotState &start_state,
                    const moveit_msgs::Constraints& path_constraints,
                    const moveit_msgs::Constraints& goal_constraints,
-                   const moveit_msgs::RobotTrajectory &trajectory) const;
+                   const moveit_msgs::RobotTrajectory &trajectory,
+                   bool verbose = false, std::size_t *first_invalid_index = NULL) const;
 
+  /** \brief Check if a given path is valid */
+  bool isPathValid(const planning_models::KinematicState &start_state,
+                   const moveit_msgs::Constraints& path_constraints,
+                   const moveit_msgs::Constraints& goal_constraints,
+                   const moveit_msgs::RobotTrajectory &trajectory,
+                   bool verbose = false, std::size_t *first_invalid_index = NULL) const;
+  
   /** \brief Convert a trajectory to its corresponding kinematic states */
   void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
 				std::vector<planning_models::KinematicStatePtr> &states) const;
