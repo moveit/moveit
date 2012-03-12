@@ -29,4 +29,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_add_library(${PROJECT_NAME} src/grasp_evaluator_fast.cpp)
+rosbuild_add_library(${PROJECT_NAME} 
+  src/interpolation_evaluator.cpp
+  src/grasp_evaluator_fast.cpp
+  src/place_evaluator_fast.cpp)
