@@ -49,31 +49,68 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
 
   frame_name = planning_scene->getPlanningFrame();
 
-  grasps.resize(1);
+  Eigen::Affine3d obj_pose;
+  planning_models::poseFromMsg(co.poses[0], obj_pose);
+
+  grasps.resize(4);
+  
+  //FRONT
   grasps[0].grasp_pose = co.poses[0];
   grasps[0].grasp_pose.position.x -= ((co.shapes[0].dimensions[0]/2.0)+.15); 
   grasps[0].desired_approach_distance = .12;
   grasps[0].min_approach_distance = .12;
-  if(arm_name == "right_arm") {
-    grasps[0].pre_grasp_posture.name.push_back("r_gripper_r_finger_joint");
-    grasps[0].pre_grasp_posture.name.push_back("r_gripper_l_finger_joint");
-    grasps[0].pre_grasp_posture.name.push_back("r_gripper_r_finger_tip_joint");
-    grasps[0].pre_grasp_posture.name.push_back("r_gripper_l_finger_tip_joint");
-  } else {
-    grasps[0].pre_grasp_posture.name.push_back("l_gripper_r_finger_joint");
-    grasps[0].pre_grasp_posture.name.push_back("l_gripper_l_finger_joint");
-    grasps[0].pre_grasp_posture.name.push_back("l_gripper_r_finger_tip_joint");
-    grasps[0].pre_grasp_posture.name.push_back("l_gripper_l_finger_tip_joint");
+
+  {
+    //TOP
+    Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitY()));
+    Eigen::Affine3d np = obj_pose*rot;
+    planning_models::msgFromPose(np, grasps[1].grasp_pose);
+    grasps[1].grasp_pose.position.z += ((co.shapes[0].dimensions[1]/2.0)+.15); 
+    grasps[1].desired_approach_distance = .12;
+    grasps[1].min_approach_distance = .12;
   }
-  grasps[0].pre_grasp_posture.position.push_back(.35);
-  grasps[0].pre_grasp_posture.position.push_back(.35);
-  grasps[0].pre_grasp_posture.position.push_back(.35);
-  grasps[0].pre_grasp_posture.position.push_back(.35);
-  grasps[0].grasp_posture.name = grasps[0].pre_grasp_posture.name;
-  grasps[0].grasp_posture.position.push_back(.25);
-  grasps[0].grasp_posture.position.push_back(.25);
-  grasps[0].grasp_posture.position.push_back(.25);
-  grasps[0].grasp_posture.position.push_back(.25);
+  {
+    //LEFT
+    Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
+    Eigen::Affine3d np = obj_pose*rot;
+    planning_models::msgFromPose(np, grasps[2].grasp_pose);
+    grasps[2].grasp_pose.position.y -= ((co.shapes[0].dimensions[0]/2.0)+.15); 
+    grasps[2].desired_approach_distance = .12;
+    grasps[2].min_approach_distance = .12;
+  }
+  {
+    //RIGHT
+    Eigen::Affine3d rot(Eigen::AngleAxisd(-90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
+    Eigen::Affine3d np = obj_pose*rot;
+    planning_models::msgFromPose(np, grasps[3].grasp_pose);
+    grasps[3].grasp_pose.position.y += ((co.shapes[0].dimensions[0]/2.0)+.15); 
+    grasps[3].desired_approach_distance = .12;
+    grasps[3].min_approach_distance = .12;
+  }
+
+
+  for(unsigned int i = 0; i < grasps.size(); i++) {
+    if(arm_name == "right_arm") {
+      grasps[i].pre_grasp_posture.name.push_back("r_gripper_r_finger_joint");
+      grasps[i].pre_grasp_posture.name.push_back("r_gripper_l_finger_joint");
+      grasps[i].pre_grasp_posture.name.push_back("r_gripper_r_finger_tip_joint");
+      grasps[i].pre_grasp_posture.name.push_back("r_gripper_l_finger_tip_joint");
+    } else {
+      grasps[i].pre_grasp_posture.name.push_back("l_gripper_r_finger_joint");
+      grasps[i].pre_grasp_posture.name.push_back("l_gripper_l_finger_joint");
+      grasps[i].pre_grasp_posture.name.push_back("l_gripper_r_finger_tip_joint");
+      grasps[i].pre_grasp_posture.name.push_back("l_gripper_l_finger_tip_joint");
+    }
+    grasps[i].pre_grasp_posture.position.push_back(.35);
+    grasps[i].pre_grasp_posture.position.push_back(.35);
+    grasps[i].pre_grasp_posture.position.push_back(.35);
+    grasps[i].pre_grasp_posture.position.push_back(.35);
+    grasps[i].grasp_posture.name = grasps[i].pre_grasp_posture.name;
+    grasps[i].grasp_posture.position.push_back(.25);
+    grasps[i].grasp_posture.position.push_back(.25);
+    grasps[i].grasp_posture.position.push_back(.25);
+    grasps[i].grasp_posture.position.push_back(.25);
+  }
   return true;
 }
 

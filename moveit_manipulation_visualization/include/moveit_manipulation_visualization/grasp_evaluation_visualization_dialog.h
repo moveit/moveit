@@ -70,6 +70,7 @@ public Q_SLOTS:
 
   void planningGroupChanged(const QString&);
   void selectedObjectChanged(const QString &text);
+  void selectedSupportChanged(const QString &text);
 
   void playInterpolatedTrajectory();
 
@@ -103,12 +104,14 @@ protected:
   std::string current_object_;
   std::string current_arm_;
   std::string generated_grasp_frame_;
+  std::string current_support_;
   std::vector<moveit_manipulation_msgs::Grasp> current_generated_grasps_;
   trajectory_msgs::JointTrajectory last_planned_trajectory_;
   
 
   QComboBox* object_name_combo_;
   QSpinBox* generated_grasps_browser_;
+  QComboBox* support_name_combo_;
   QPushButton* evaluate_grasp_button_;
   QSpinBox* evaluated_grasp_browser_;
   QLabel* evaluation_result_indicator_;

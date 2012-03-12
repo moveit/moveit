@@ -74,6 +74,7 @@ void GraspEvaluationVisualization::evaluateGrasps(const std::string& group_name,
                                                   const planning_models::KinematicState* seed_state,
                                                   const std::vector<moveit_manipulation_msgs::Grasp>& grasps)
 {
+  last_grasp_evaluation_info_.clear();
   grasp_evaluator_fast_->testGrasps(planning_scene_,
                                     seed_state,
                                     goal, 
@@ -85,6 +86,19 @@ void GraspEvaluationVisualization::evaluateGrasps(const std::string& group_name,
   //                               true,
   //                               true);
 }
+
+// void GraspEvaluationVisualization::evaluateNextGrasps(const std::string& group_name,
+//                                                       const moveit_manipulation_msgs::PickupGoal& goal,
+//                                                       const planning_models::KinematicState* seed_state,
+//                                                       const std::vector<moveit_manipulation_msgs::Grasp>& grasps)
+// {
+//   grasp_evaluator_fast_->testGrasps(planning_scene_,
+//                                     seed_state,
+//                                     goal, 
+//                                     grasps,
+//                                     last_grasp_evaluation_info_,
+//                                     true);
+// }
 
 bool GraspEvaluationVisualization::getEvaluatedGrasp(unsigned int num,
                                                      grasp_place_evaluation::GraspExecutionInfo& grasp) const {

@@ -1,6 +1,6 @@
 /*********************************************************************
 *
-*  Copyright (c) 2009, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
 #define _GRASP_EVALUATOR_FAST_
 
 #include <grasp_place_evaluation/grasp_evaluator.h>
-#include <kinematics_constraint_aware/kinematics_solver_constraint_aware.h>
+#include <grasp_place_evaluation/interpolation_evaluator.h>
 
 namespace grasp_place_evaluation {
 
@@ -60,15 +60,7 @@ namespace grasp_place_evaluation {
   10 cm, so we know at least that that is not colliding with the object. 
 */
 
-inline geometry_msgs::Vector3 doNegate(const geometry_msgs::Vector3& vec) {
-  geometry_msgs::Vector3 v;
-  v.x = - vec.x;
-  v.y = - vec.y;
-  v.z = - vec.z;
-  return v;
-}
-
-class GraspEvaluatorFast : public GraspEvaluator
+class GraspEvaluatorFast : public GraspEvaluator, public InterpolationEvaluator
 {
 public:
 
@@ -84,27 +76,6 @@ public:
                           GraspExecutionInfoVector &execution_info_vector,
                           bool return_on_first_hit);
     
-protected:
-  bool getInterpolatedIK(const std::string& arm_name,
-                         const planning_scene::PlanningSceneConstPtr& scene,
-                         const collision_detection::AllowedCollisionMatrix& acm,
-                         const geometry_msgs::Pose& first_pose,
-                         const Eigen::Vector3d& direction,
-                         const double& distance,
-                         const std::vector<double>& ik_solution,
-                         const bool& reverse, 
-                         const bool& premultiply,
-                         const bool& use_unpadded_robot,
-                         planning_models::KinematicState* seed_state,
-                         trajectory_msgs::JointTrajectory& traj);
-  
-  const planning_models::KinematicModelConstPtr kmodel_;
-  std::map<std::string, boost::shared_ptr<kinematics_constraint_aware::KinematicsSolverConstraintAware> > constraint_aware_solver_map_;
-  
-  double consistent_angle_;
-  unsigned int num_points_;
-  unsigned int redundancy_;
-  
 };
 
 } //namespace grasp_execution

@@ -57,7 +57,7 @@ struct GraspExecutionInfo {
   moveit_manipulation_msgs::GraspResult result_;
 };
 
-inline static std::string convertToStringStatus(const moveit_manipulation_msgs::GraspResult& gr) {
+inline static std::string convertGraspResultToStringStatus(const moveit_manipulation_msgs::GraspResult& gr) {
   if(gr.result_code == moveit_manipulation_msgs::GraspResult::SUCCESS) {
     return "Success";
   } else if(gr.result_code == moveit_manipulation_msgs::GraspResult::GRASP_OUT_OF_REACH) {

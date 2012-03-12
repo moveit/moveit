@@ -1,6 +1,6 @@
 /*********************************************************************
 *
-*  Copyright (c) 2009, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -31,87 +31,36 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-// Author(s): Matei Ciocarlie, E. Gil Jones
+// Author(s): E. Gil Jones
 
-#ifndef _PLACE_TESTER_FAST_
-#define _PLACE_TESTER_FAST_
+#ifndef _PLACE_EVALUATOR_FAST_
+#define _PLACE_EVALUATOR_FAST_
 
-#include "object_manipulator/place_execution/descend_retreat_place.h"
-#include <arm_kinematics_constraint_aware/arm_kinematics_solver_constraint_aware.h>
-//#include <pr2_arm_kinematics_constraint_aware/pr2_arm_ik_solver_constraint_aware.h>
+#include <grasp_place_evaluation/place_evaluator.h>
+#include <grasp_place_evaluation/interpolation_evaluator.h>
 
-#include <pluginlib/class_loader.h>
+namespace grasp_place_evaluation {
 
-namespace object_manipulator {
-
-class PlaceTesterFast : public PlaceTester
+class PlaceEvaluatorFast : public PlaceEvaluator, public InterpolationEvaluator 
 {
-protected:
+public:
 
-  geometry_msgs::Vector3 doNegate(const geometry_msgs::Vector3& vec) {
-    geometry_msgs::Vector3 v;
-    v.x = - vec.x;
-    v.y = - vec.y;
-    v.z = - vec.z;
-    return v;
-  }
+  PlaceEvaluatorFast(const planning_models::KinematicModelConstPtr& kmodel,
+                     const std::map<std::string, kinematics::KinematicsBasePtr>& solver_map);
 
-  virtual void testPlace(const object_manipulation_msgs::PlaceGoal &placre_goal,
-                         const geometry_msgs::PoseStamped &place_locations,
-                         PlaceExecutionInfo &execution_info);
-  
-  //! Dynamic link padding to be used for grasp operation
-  std::vector<arm_navigation_msgs::LinkPadding> 
-  linkPaddingForPlace(const object_manipulation_msgs::PlaceGoal &place_goal);
-  
-  void getGroupLinks(const std::string& group_name,
-                     std::vector<std::string>& group_links);
+  ~PlaceEvaluatorFast(){};
 
-  bool getInterpolatedIK(const std::string& arm_name,
-                         const tf::Transform& first_pose,
-                         const tf::Vector3& direction,
-                         const double& distance,
-                         const std::vector<double>& ik_solution,
-                         const bool& reverse, 
-                         const bool& premultiply,
-                         trajectory_msgs::JointTrajectory& traj);
-    
-  std::map<std::string, arm_kinematics_constraint_aware::ArmKinematicsSolverConstraintAware*> ik_solver_map_;
-  //std::map<std::string, pr2_arm_kinematics::PR2ArmIKSolverConstraintAware*> ik_solver_map_;
-  
-  double consistent_angle_;
-  unsigned int num_points_;
-  unsigned int redundancy_;
-  
-  ros::Publisher vis_marker_array_publisher_;
-  ros::Publisher vis_marker_publisher_;
 
-  planning_environment::CollisionModels* getCollisionModels();
-  planning_models::KinematicState* getPlanningSceneState();
-
-  planning_environment::CollisionModels* cm_;
-  planning_models::KinematicState* state_;
-
- public:
-  //! Also adds a grasp marker at the pre-grasp location
-  PlaceTesterFast(planning_environment::CollisionModels* cm = NULL,
-		  const std::string& plugin_name="pr2_arm_kinematics/PR2ArmKinematicsPlugin");
-
-  ~PlaceTesterFast();
-
-  void setPlanningSceneState(planning_models::KinematicState* state) {
-    state_ = state;
-  }
-
-  void testPlaces(const object_manipulation_msgs::PlaceGoal &place_goal,
-                  const std::vector<geometry_msgs::PoseStamped> &place_locations,
-                  std::vector<PlaceExecutionInfo> &execution_info,
-                  bool return_on_first_hit);
-
-  pluginlib::ClassLoader<kinematics::KinematicsBase> kinematics_loader_;
+  virtual void testPlaceLocations(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                  const planning_models::KinematicState* seed_state,
+                                  const moveit_manipulation_msgs::PlaceGoal &place_goal, 
+                                  const std::vector<geometry_msgs::PoseStamped>& place_locations,
+                                  PlaceExecutionInfoVector &execution_info_vector,
+                                  bool return_on_first_hit) = 0;
 
 };
 
-} //namespace grasp_execution
+}
 
 #endif
+

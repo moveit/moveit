@@ -65,6 +65,13 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   object_layout->addWidget(object_name_line);
   object_layout->addWidget(object_name_combo_);
   layout->addLayout(object_layout);
+  QHBoxLayout* support_layout = new QHBoxLayout();
+  QLabel* support_name_line = new QLabel(this);
+  support_name_line->setText("Support surface: ");
+  support_name_combo_ = new QComboBox(this);
+  support_layout->addWidget(support_name_line);
+  support_layout->addWidget(support_name_combo_);
+  layout->addLayout(support_layout);
 
   QFrame* line_1 = new QFrame();
   line_1->setFrameShape(QFrame::HLine);
@@ -89,10 +96,13 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   layout->addWidget(evaluate_grasp_button_);
   QHBoxLayout* evaluator_layout = new QHBoxLayout();
   evaluated_grasp_browser_ = new QSpinBox(this);
+  evaluated_grasp_browser_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   evaluation_result_indicator_ = new QLabel(this);
   evaluation_result_indicator_->setText("None");
+  evaluation_result_indicator_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
   evaluator_layout->addWidget(evaluated_grasp_browser_);
   evaluator_layout->addWidget(evaluation_result_indicator_);
+  
   layout->addLayout(evaluator_layout);
   play_interpolated_trajectory_button_ = new QPushButton("Play Interpolated Trajectory");
   layout->addWidget(play_interpolated_trajectory_button_);
@@ -112,6 +122,8 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
           this, SLOT(populateObjectComboBox(const planning_scene::PlanningSceneConstPtr&)));
   connect(object_name_combo_, SIGNAL(currentIndexChanged(const QString&)),
           this, SLOT(selectedObjectChanged(const QString&)));
+  connect(support_name_combo_, SIGNAL(currentIndexChanged(const QString&)),
+          this, SLOT(selectedSupportChanged(const QString&)));
   connect(evaluate_grasp_button_, SIGNAL(clicked()), this, SLOT(evaluateGeneratedGrasps()));
   connect(evaluated_grasp_browser_, SIGNAL(valueChanged(int)), this, SLOT(evaluatedGraspBrowserNumberChanged(int)));
   connect(play_interpolated_trajectory_button_, SIGNAL(clicked()), this, SLOT(playInterpolatedTrajectory()));
@@ -137,14 +149,24 @@ void GraspEvaluationVisualizationDialog::populateObjectComboBox(const planning_s
 {
   const QString current = object_name_combo_->currentText();
   object_name_combo_->clear();
+  const QString current_support = support_name_combo_->currentText();
+  support_name_combo_->clear();
   std::vector<std::string> object_ids = planning_scene->getCollisionWorld()->getObjectIds();
   bool has_current_text = false;
+  bool has_current_support = false;
   unsigned int ind = 0;
+  unsigned int support_ind = 0;
+  support_name_combo_->addItem("");
   for(unsigned int i = 0; i < object_ids.size(); i++) {
     object_name_combo_->addItem(object_ids[i].c_str());
+    support_name_combo_->addItem(object_ids[i].c_str());
     if(object_ids[i] == current.toStdString()) {
       has_current_text = true;
       ind = i;
+    }
+    if(object_ids[i] == current_support.toStdString()) {
+      has_current_support = true;
+      support_ind = i;
     }
   }
   if(has_current_text) {
@@ -152,6 +174,9 @@ void GraspEvaluationVisualizationDialog::populateObjectComboBox(const planning_s
   } else {
     disableGeneration();
     disableEvaluation();
+  }
+  if(has_current_support) {
+    support_name_combo_->setCurrentIndex(support_ind);
   }
 }
 
@@ -202,6 +227,8 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
   goal.lift.direction.vector.z = 1;
   goal.lift.desired_distance = .1;
 
+  goal.collision_support_surface_name = current_support_;
+
   grasp_evaluation_visualization_->evaluateGrasps(current_arm_,
                                                   goal,
                                                   &planning_scene_->getCurrentState(),
@@ -216,7 +243,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
         evaluated_grasp_browser_->setEnabled(true);
         evaluated_grasp_browser_->setValue(i+1);
         evaluation_result_indicator_->setEnabled(true);
-        evaluatedGraspBrowserNumberChanged(1);
+        evaluatedGraspBrowserNumberChanged(i+1);
         success = true;
         break;
       }
@@ -237,7 +264,7 @@ void GraspEvaluationVisualizationDialog::evaluatedGraspBrowserNumberChanged(int 
   } else {
     grasp_place_evaluation::GraspExecutionInfo ev;
     grasp_evaluation_visualization_->getEvaluatedGrasp(i-1, ev);
-    evaluation_result_indicator_->setText(grasp_place_evaluation::convertToStringStatus(ev.result_).c_str());
+    evaluation_result_indicator_->setText(grasp_place_evaluation::convertGraspResultToStringStatus(ev.result_).c_str());
     grasp_evaluation_visualization_->showGraspPose(i-1,
                                                   true,
                                                   true,
@@ -254,6 +281,13 @@ void GraspEvaluationVisualizationDialog::selectedObjectChanged(const QString &te
     return;
   }
   disableGeneration();
+  disableEvaluation();
+}
+
+void GraspEvaluationVisualizationDialog::selectedSupportChanged(const QString &text) {
+  if(text.toStdString() == current_support_) {
+    return;
+  }
   disableEvaluation();
 }
 
