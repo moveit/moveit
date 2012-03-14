@@ -90,6 +90,13 @@ public:
 protected:
 
   void generatePlan(const std::string& name, bool play=true);
+  bool generatePlanForScene(const planning_scene::PlanningSceneConstPtr& scene,
+                            const std::string& arm_name,
+                            const planning_models::KinematicState* start_state,
+                            const planning_models::KinematicState* goal_state,
+                            trajectory_msgs::JointTrajectory& traj,
+                            moveit_msgs::MoveItErrorCodes& error_code) const;
+
   void generateRandomStartEnd(const std::string& name);
   void resetStartGoal(const std::string& name);
 

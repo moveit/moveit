@@ -60,6 +60,11 @@ public Q_SLOTS:
 
   void generatePlanRequested(bool);
 
+  void generatePlanDiffSceneRequested(const std::string&,
+                                      const planning_scene::PlanningSceneConstPtr&,
+                                      const planning_models::KinematicState*);
+
+
   void setStartStateRequested(const std::string&,
                             const planning_models::KinematicState*);
 

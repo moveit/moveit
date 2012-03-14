@@ -171,45 +171,20 @@ void PlanningVisualization::generatePlan(const std::string& name, bool play) {
   }
 
   const planning_models::KinematicState& start_state = group_visualization_map_[name]->getStartState();
-
   const planning_models::KinematicState& goal_state = group_visualization_map_[name]->getGoalState();
-  
-  moveit_msgs::GetMotionPlan::Request req;
-  moveit_msgs::GetMotionPlan::Response res;
 
-  req.motion_plan_request.group_name = name;
-  planning_models::kinematicStateToRobotState(start_state,req.motion_plan_request.start_state);
-  req.motion_plan_request.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(goal_state.getJointStateGroup(name),
-                                                                                                     .001, .001));
+  moveit_msgs::MoveItErrorCodes error_code;
+  trajectory_msgs::JointTrajectory traj;
+  if(generatePlanForScene(planning_scene_,
+                  name,
+                  &start_state,
+                  &goal_state,
+                  traj,
+                  error_code)) {
+    std_msgs::ColorRGBA col;
+    col.a = .8;
+    col.b = 1.0;
 
-  ROS_INFO_STREAM("Constraints size is " << req.motion_plan_request.goal_constraints[0].joint_constraints.size());
-
-  req.motion_plan_request.num_planning_attempts = 1;
-  req.motion_plan_request.allowed_planning_time = ros::Duration(3.0);
-  
-  std_msgs::ColorRGBA col;
-  col.a = .8;
-  col.b = 1.0;
-
-  if(ompl_interface_.solve(planning_scene_, req, res)) {
-    ROS_INFO_STREAM("Original last time " << res.trajectory.joint_trajectory.points.back().time_from_start);
-    trajectory_msgs::JointTrajectory traj;
-    moveit_msgs::MoveItErrorCodes error_code;
-    moveit_msgs::Constraints emp_constraints;
-    unnormalize_shortcutter_->shortcut(planning_scene_,
-                                       name,
-                                       &start_state,
-                                       group_joint_limit_map_[name],
-                                       emp_constraints,
-                                       emp_constraints,
-                                       res.trajectory.joint_trajectory,
-                                       ros::Duration(0.0),
-                                       traj,
-                                       error_code);
-    trajectory_smoother_->smooth(traj,
-                                 traj,
-                                 group_joint_limit_map_[name]);
-    ROS_INFO_STREAM("Smoothed last time " << traj.points.back().time_from_start);
     joint_trajectory_visualization_->setTrajectory(start_state,
                                                    name,
                                                    traj,
@@ -220,7 +195,7 @@ void PlanningVisualization::generatePlan(const std::string& name, bool play) {
     moveit_msgs::DisplayTrajectory d;
     d.model_id = planning_scene_->getKinematicModel()->getName();
     planning_models::kinematicStateToRobotState(start_state, d.trajectory_start);
-    d.trajectory = res.trajectory;
+    d.trajectory.joint_trajectory = traj;
     display_traj_publisher_.publish(d);
     last_trajectory_ = traj;
     last_group_name_ = name;
@@ -230,6 +205,50 @@ void PlanningVisualization::generatePlan(const std::string& name, bool play) {
     ROS_INFO_STREAM("Planning failed");
   }
 }
+
+bool PlanningVisualization::generatePlanForScene(const planning_scene::PlanningSceneConstPtr& scene,
+                                                 const std::string& group_name,
+                                                 const planning_models::KinematicState* start_state,
+                                                 const planning_models::KinematicState* goal_state,
+                                                 trajectory_msgs::JointTrajectory& ret_traj,
+                                                 moveit_msgs::MoveItErrorCodes& error_code) const
+{
+  moveit_msgs::GetMotionPlan::Request req;
+  moveit_msgs::GetMotionPlan::Response res;
+
+  req.motion_plan_request.group_name = group_name;
+  planning_models::kinematicStateToRobotState(*start_state,req.motion_plan_request.start_state);
+  req.motion_plan_request.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(goal_state->getJointStateGroup(group_name),
+                                                                                                     .001, .001));
+
+  req.motion_plan_request.num_planning_attempts = 1;
+  req.motion_plan_request.allowed_planning_time = ros::Duration(3.0);
+  
+  if(ompl_interface_.solve(scene, req, res)) {
+    ROS_INFO_STREAM("Original last time " << res.trajectory.joint_trajectory.points.back().time_from_start);
+    trajectory_msgs::JointTrajectory traj;
+    moveit_msgs::MoveItErrorCodes error_code;
+    moveit_msgs::Constraints emp_constraints;
+    unnormalize_shortcutter_->shortcut(scene,
+                                       group_name,
+                                       start_state,
+                                       group_joint_limit_map_.at(group_name),
+                                       emp_constraints,
+                                       emp_constraints,
+                                       res.trajectory.joint_trajectory,
+                                       ros::Duration(0.0),
+                                       traj,
+                                       error_code);
+    trajectory_smoother_->smooth(traj,
+                                 ret_traj,
+                                 group_joint_limit_map_.at(group_name));
+    ROS_INFO_STREAM("Smoothed last time " << ret_traj.points.back().time_from_start);
+    return true;
+  } else {
+    return false;
+  } 
+}                                         
+                                         
 
 void PlanningVisualization::generateRandomStartEnd(const std::string& name) {
 

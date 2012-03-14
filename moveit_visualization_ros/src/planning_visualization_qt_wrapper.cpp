@@ -46,6 +46,7 @@ PlanningVisualizationQtWrapper(planning_scene::PlanningSceneConstPtr planning_sc
   qRegisterMetaType<planning_models::KinematicState*>("KinematicState");
   qRegisterMetaType<trajectory_msgs::JointTrajectory>("trajectory_msgs::JointTrajectory");
   qRegisterMetaType<moveit_msgs::MoveItErrorCodes>("moveit_msgs::MoveItErrorCodes");
+  qRegisterMetaType<planning_scene::PlanningSceneConstPtr>("planning_scene::PlanningSceneConstPtr");
 }
 
 
@@ -65,6 +66,26 @@ void PlanningVisualizationQtWrapper::generatePlanRequested(bool play) {
     planFailed(failed_message);
   }
 }
+
+void PlanningVisualizationQtWrapper::generatePlanDiffSceneRequested(const std::string& group,
+                                                                    const planning_scene::PlanningSceneConstPtr& scene,
+                                                                    const planning_models::KinematicState* goal_state) 
+{
+  trajectory_msgs::JointTrajectory traj;
+  moveit_msgs::MoveItErrorCodes error_code;
+  if(generatePlanForScene(scene,
+                          group,
+                          &scene->getCurrentState(),
+                          goal_state,
+                          traj,
+                          error_code)) {
+    planGenerated(group,
+                  traj);
+  } else {
+    planFailed(error_code);
+  }
+}
+
 
 void PlanningVisualizationQtWrapper::setStartStateRequested(const std::string& group_name,
                                                             const planning_models::KinematicState* state)
