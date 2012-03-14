@@ -40,6 +40,7 @@
 #include <cmath>
 #include <algorithm>
 #include <set>
+#include <float.h>
 
 #include <ros/console.h>
 #include <resource_retriever/retriever.h>
@@ -408,16 +409,16 @@ Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
   return shape;
 }
 
-bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk)
+bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list)
 {
   moveit_msgs::Shape shape_msg;
   if (constructMsgFromShape(shape, shape_msg))
-    return constructMarkerFromShape(shape_msg, mk);
+    return constructMarkerFromShape(shape_msg, mk, use_mesh_triangle_list);
   else
     return false;
 }
 
-bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization_msgs::Marker &mk)
+bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization_msgs::Marker &mk, bool use_mesh_triangle_list)
 {
   switch (shape_msg.type)
   {
@@ -461,36 +462,42 @@ bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization
     break;
 
   case moveit_msgs::Shape::MESH:
-    mk.type = visualization_msgs::Marker::LINE_LIST;
-    mk.scale.x = mk.scale.y = mk.scale.z = 0.01;
-    if (shape_msg.dimensions.size() != 0)
+    if (shape_msg.dimensions.size() != 0) {
       ROS_ERROR("Unexpected number of dimensions in mesh definition");
-    else
-    {
-      if (shape_msg.triangles.size() % 3 != 0)
-        ROS_ERROR("Number of triangle indices is not divisible by 3");
-      else
+      return false;
+    } 
+    if (shape_msg.triangles.size() % 3 != 0) {
+      ROS_ERROR("Number of triangle indices is not divisible by 3");
+      return false;
+    }
+    if (shape_msg.triangles.empty() || shape_msg.vertices.empty()) {
+      ROS_ERROR("Mesh definition is empty");
+      return false;
+    }
+    if(!use_mesh_triangle_list) {
+      mk.type = visualization_msgs::Marker::LINE_LIST;
+      mk.scale.x = mk.scale.y = mk.scale.z = 0.01;
+      std::size_t nt = shape_msg.triangles.size() / 3;
+      for (std::size_t i = 0 ; i < nt ; ++i)
       {
-        if (shape_msg.triangles.empty() || shape_msg.vertices.empty())
-          ROS_ERROR("Mesh definition is empty");
-        else
-        {
-          std::size_t nt = shape_msg.triangles.size() / 3;
-          for (std::size_t i = 0 ; i < nt ; ++i)
-          {
-            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
-            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
-            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
-            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
-            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
-            mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
-          }
-          return true;
-        }
+        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
+        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
+        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
+        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
+        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
+        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
+      }
+    } else {
+      mk.type = visualization_msgs::Marker::TRIANGLE_LIST;
+      mk.scale.x = mk.scale.y = mk.scale.z = 1.0;
+      for (std::size_t i = 0 ; i < shape_msg.triangles.size(); i+=3)
+      {
+        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[i]]);
+        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[i+1]]);
+        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[i+2]]);
       }
     }
-    return false;
-
+    return true;
   default:
     ROS_ERROR("Unknown shape type: %d", (int)shape_msg.type);
     return false;
@@ -587,6 +594,60 @@ bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &s
     ROS_ERROR("Unable to construct shape message for shape of type %d", (int)shape->type);
     return false;
   }
+  return true;
+}
+
+bool getShapeExtents(const moveit_msgs::Shape& shape_msg,
+                     double& x_extent,
+                     double& y_extent,
+                     double& z_extent, 
+                     double& max_dimension) 
+{
+  if(shape_msg.type == moveit_msgs::Shape::SPHERE) {
+    if(shape_msg.dimensions.size() != 1) return false;
+    x_extent = y_extent = z_extent = shape_msg.dimensions[0];
+  } else if(shape_msg.type == moveit_msgs::Shape::BOX) {
+    if(shape_msg.dimensions.size() != 3) return false;
+    x_extent = shape_msg.dimensions[0];
+    y_extent = shape_msg.dimensions[1];
+    z_extent = shape_msg.dimensions[2];
+  } else if(shape_msg.type == moveit_msgs::Shape::CYLINDER) {
+    if(shape_msg.dimensions.size() != 2) return false;
+    x_extent = shape_msg.dimensions[0];
+    y_extent = shape_msg.dimensions[0];
+    z_extent = shape_msg.dimensions[1];
+  } else if(shape_msg.type == moveit_msgs::Shape::MESH) {
+    if(shape_msg.vertices.size() == 0) return false;
+    double xmin = DBL_MAX, ymin = DBL_MAX, zmin = DBL_MAX;
+    double xmax = -DBL_MAX, ymax = -DBL_MAX, zmax = -DBL_MAX;
+    for(unsigned int i = 0; i < shape_msg.vertices.size(); i++) {
+      if(shape_msg.vertices[i].x > xmax) {
+        xmax = shape_msg.vertices[i].x;
+      }
+      if(shape_msg.vertices[i].x < xmin) {
+        xmin = shape_msg.vertices[i].x;
+      }
+      if(shape_msg.vertices[i].y > ymax) {
+        ymax = shape_msg.vertices[i].y;
+      }
+      if(shape_msg.vertices[i].y < ymin) {
+        ymin = shape_msg.vertices[i].y;
+      }
+      if(shape_msg.vertices[i].z > zmax) {
+        zmax = shape_msg.vertices[i].z;
+      }
+      if(shape_msg.vertices[i].z < zmin) {
+        zmin = shape_msg.vertices[i].z;
+      }
+    }
+    x_extent = xmax-xmin;
+    y_extent = ymax-ymin;
+    z_extent = zmax-zmin;
+  } else {
+    return false;
+  }
+  
+  max_dimension = fmax(x_extent, fmax(y_extent, z_extent));
   return true;
 }
 
