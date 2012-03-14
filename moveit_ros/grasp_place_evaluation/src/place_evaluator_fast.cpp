@@ -69,7 +69,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
   std::vector<std::string> arm_links = planning_scene->getSemanticModel()->getGroupLinks(place_goal.arm_name);
 
   collision_detection::AllowedCollisionMatrix original_acm = planning_scene->getAllowedCollisionMatrix();
-  collision_detection::AllowedCollisionMatrix group_disable_acm = planning_scene->disableCollisionsForNonUpdatedLinks(place_goal.arm_name);
+  collision_detection::AllowedCollisionMatrix group_disable_acm = original_acm;//planning_scene->disableCollisionsForNonUpdatedLinks(place_goal.arm_name);
 
   collision_detection::AllowedCollisionMatrix object_disable_acm = group_disable_acm;
   object_disable_acm.setEntry(place_goal.collision_object_name, end_effector_links, true); 
@@ -98,11 +98,11 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
     group_all_arm_disable_acm.setDefaultEntry(arm_links[i], true);
   }
 
-  //TODO - deal with repeat calls
-  //execution_info.clear();
+  execution_info.place_locations_ = place_locations;
+  execution_info.place_goal_ = place_goal;
   execution_info.resize(place_locations.size());
 
-  Eigen::Vector3d approach_dir(1.0, 0.0, 0.0); 
+  Eigen::Vector3d approach_dir(0.0, 0.0, 1.0); 
   //doNegate(place_goal.approach.direction.vector, approach_dir);
   approach_dir.normalize();
 
@@ -130,14 +130,16 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
   //now this is place specific
   for(unsigned int i = 0; i < place_locations.size(); i++) {
 
+    if(execution_info[i].result_.result_code != 0) {
+      ROS_INFO_STREAM("Assuming place " << i << " already evaluated");
+      continue;
+    }
+
     // ------------- CHECKING PLACE POSE ------------------
 
     //using the grasp posture
     state.setStateValues(post_place_joint_vals);
     
-    //always true
-    execution_info[i].result_.continuation_possible = true;
-
     Eigen::Affine3d place_pose;
     planning_models::poseFromMsg(place_locations[i].pose, place_pose);
     planning_scene->getTransforms()->transformPose(state,
@@ -229,7 +231,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
       continue;
     }
 
-    // ------------- CHECKING INTERPOLATED IK FROM PREPLACE TO pLACE ------------------        
+    // ------------- CHECKING INTERPOLATED IK FROM PREPLACE TO PLACE ------------------        
 
     std::map<std::string, double> ik_map_place = place_joint_vals;
     std::map<std::string, double> ik_map_post_place = post_place_joint_vals;

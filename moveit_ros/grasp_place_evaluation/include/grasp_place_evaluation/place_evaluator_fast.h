@@ -56,7 +56,7 @@ public:
                                   const moveit_manipulation_msgs::PlaceGoal &place_goal, 
                                   const std::vector<geometry_msgs::PoseStamped>& place_locations,
                                   PlaceExecutionInfoVector &execution_info_vector,
-                                  bool return_on_first_hit) = 0;
+                                  bool return_on_first_hit);
 
 };
 

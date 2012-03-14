@@ -61,11 +61,11 @@ struct PlaceExecutionInfo {
   Eigen::Affine3d place_pose_;
   Eigen::Affine3d preplace_pose_;
   Eigen::Affine3d retreat_pose_;
-  boost::shared_ptr<planning_scene::PlanningScene> detached_object_diff_scene_;
+  planning_scene::PlanningScenePtr detached_object_diff_scene_;
   moveit_manipulation_msgs::PlaceLocationResult result_;
 };
 
-inline static std::string convertGraspResultToStringStatus(const moveit_manipulation_msgs::PlaceLocationResult& pr) {
+inline static std::string convertPlaceResultToStringStatus(const moveit_manipulation_msgs::PlaceLocationResult& pr) {
   if(pr.result_code == moveit_manipulation_msgs::PlaceLocationResult::SUCCESS) {
     return "Success";
   } else if(pr.result_code == moveit_manipulation_msgs::PlaceLocationResult::PLACE_OUT_OF_REACH) {
@@ -92,7 +92,7 @@ inline static std::string convertGraspResultToStringStatus(const moveit_manipula
 
 struct PlaceExecutionInfoVector : public std::vector<PlaceExecutionInfo> {
   moveit_manipulation_msgs::PlaceGoal place_goal_;
-  std::vector<geometry_msgs::Pose> place_locations_;
+  std::vector<geometry_msgs::PoseStamped> place_locations_;
 };
 
 
@@ -103,11 +103,11 @@ public:
   
   //! Places a grasped object at a specified location
   virtual void testPlaceLocations(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const planning_models::KinematicState* seed_state,
-                     const moveit_manipulation_msgs::PlaceGoal &place_goal, 
-                     const std::vector<geometry_msgs::PoseStamped>& place_locations,
-                     PlaceExecutionInfoVector &execution_info_vector,
-                     bool return_on_first_hit) = 0;
+                                  const planning_models::KinematicState* seed_state,
+                                  const moveit_manipulation_msgs::PlaceGoal &place_goal, 
+                                  const std::vector<geometry_msgs::PoseStamped>& place_locations,
+                                  PlaceExecutionInfoVector &execution_info_vector,
+                                  bool return_on_first_hit) = 0;
 
 };
 

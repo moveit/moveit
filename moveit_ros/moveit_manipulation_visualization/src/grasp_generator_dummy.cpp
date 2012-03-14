@@ -47,15 +47,17 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
     return false;
   }
 
-  frame_name = planning_scene->getPlanningFrame();
+  frame_name = obj;
 
-  Eigen::Affine3d obj_pose;
-  planning_models::poseFromMsg(co.poses[0], obj_pose);
+  //Eigen::Affine3d obj_pose;
+  //planning_models::poseFromMsg(co.poses[0], obj_pose);
+
+  Eigen::Affine3d ident(Eigen::Affine3d::Identity());
 
   grasps.resize(4);
   
   //FRONT
-  grasps[0].grasp_pose = co.poses[0];
+  grasps[0].grasp_pose = geometry_msgs::Pose();
   grasps[0].grasp_pose.position.x -= ((co.shapes[0].dimensions[0]/2.0)+.15); 
   grasps[0].desired_approach_distance = .12;
   grasps[0].min_approach_distance = .12;
@@ -63,7 +65,7 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
   {
     //TOP
     Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitY()));
-    Eigen::Affine3d np = obj_pose*rot;
+    Eigen::Affine3d np = ident*rot;
     planning_models::msgFromPose(np, grasps[1].grasp_pose);
     grasps[1].grasp_pose.position.z += ((co.shapes[0].dimensions[1]/2.0)+.15); 
     grasps[1].desired_approach_distance = .12;
@@ -72,7 +74,7 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
   {
     //LEFT
     Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
-    Eigen::Affine3d np = obj_pose*rot;
+    Eigen::Affine3d np = ident*rot;
     planning_models::msgFromPose(np, grasps[2].grasp_pose);
     grasps[2].grasp_pose.position.y -= ((co.shapes[0].dimensions[0]/2.0)+.15); 
     grasps[2].desired_approach_distance = .12;
@@ -81,7 +83,7 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
   {
     //RIGHT
     Eigen::Affine3d rot(Eigen::AngleAxisd(-90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
-    Eigen::Affine3d np = obj_pose*rot;
+    Eigen::Affine3d np = ident*rot;
     planning_models::msgFromPose(np, grasps[3].grasp_pose);
     grasps[3].grasp_pose.position.y += ((co.shapes[0].dimensions[0]/2.0)+.15); 
     grasps[3].desired_approach_distance = .12;
