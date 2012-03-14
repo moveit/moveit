@@ -30,6 +30,7 @@
 // Author: E. Gil Jones
 
 #include <moveit_manipulation_visualization/grasp_generator_dummy.h>
+#include <geometric_shapes/shape_operations.h>
 
 namespace moveit_manipulation_visualization {
 
@@ -56,9 +57,12 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
 
   grasps.resize(4);
   
+  double xex, yex, zex, maxex;
+  shapes::getShapeExtents(co.shapes[0], xex, yex, zex, maxex);
+
   //FRONT
   grasps[0].grasp_pose = geometry_msgs::Pose();
-  grasps[0].grasp_pose.position.x -= ((co.shapes[0].dimensions[0]/2.0)+.15); 
+  grasps[0].grasp_pose.position.x -= (xex/2.0+.15); 
   grasps[0].desired_approach_distance = .12;
   grasps[0].min_approach_distance = .12;
 
@@ -67,7 +71,7 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
     Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitY()));
     Eigen::Affine3d np = ident*rot;
     planning_models::msgFromPose(np, grasps[1].grasp_pose);
-    grasps[1].grasp_pose.position.z += ((co.shapes[0].dimensions[1]/2.0)+.15); 
+    grasps[1].grasp_pose.position.z += (zex/2.0+.15); 
     grasps[1].desired_approach_distance = .12;
     grasps[1].min_approach_distance = .12;
   }
@@ -76,7 +80,7 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
     Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
     Eigen::Affine3d np = ident*rot;
     planning_models::msgFromPose(np, grasps[2].grasp_pose);
-    grasps[2].grasp_pose.position.y -= ((co.shapes[0].dimensions[0]/2.0)+.15); 
+    grasps[2].grasp_pose.position.y -= (yex/2.0+.15); 
     grasps[2].desired_approach_distance = .12;
     grasps[2].min_approach_distance = .12;
   }
@@ -85,7 +89,7 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
     Eigen::Affine3d rot(Eigen::AngleAxisd(-90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
     Eigen::Affine3d np = ident*rot;
     planning_models::msgFromPose(np, grasps[3].grasp_pose);
-    grasps[3].grasp_pose.position.y += ((co.shapes[0].dimensions[0]/2.0)+.15); 
+    grasps[3].grasp_pose.position.y += (yex/2.0+.15); 
     grasps[3].desired_approach_distance = .12;
     grasps[3].min_approach_distance = .12;
   }

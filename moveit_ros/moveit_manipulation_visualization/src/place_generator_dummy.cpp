@@ -76,10 +76,11 @@ bool PlaceGeneratorDummy::generatePlaceLocations(const planning_scene::PlanningS
     return false;
   }
 
-  double obj_dim = attached_shape.dimensions[0];
+  double xex, yex, zex, maxex;
+  shapes::getShapeExtents(attached_shape, xex, yex, zex, maxex);
 
-  double l = sup.shapes[0].dimensions[0]-2.0*obj_dim;
-  double w = sup.shapes[0].dimensions[1]-2.0*obj_dim;
+  double l = sup.shapes[0].dimensions[0]-2.0*xex;
+  double w = sup.shapes[0].dimensions[1]-2.0*yex;
   double d = sup.shapes[0].dimensions[2];
 
   double spacing = .1;
