@@ -100,7 +100,7 @@ struct OMPLInterface::CachedContexts
 }
 
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
-    kmodel_(kmodel), max_goal_samples_(200), max_sampling_attempts_(200), max_planning_threads_(4),
+    kmodel_(kmodel), max_goal_samples_(20), max_sampling_attempts_(10), max_planning_threads_(4),
   max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
   constraints_approximations_.reset(new std::vector<ConstraintApproximation>());
@@ -133,8 +133,8 @@ ompl::base::PlannerPtr ompl_interface::OMPLInterface::plannerAllocator(const omp
   if (it != known_planners_.end())
   {
     ob::PlannerPtr p = it->second(si);
-    //    if (!name.empty())
-    //      p->setName(name);
+    if (!name.empty())
+      p->setName(name);
     p->params().setParams(config, true);
     p->setup();
     return p;

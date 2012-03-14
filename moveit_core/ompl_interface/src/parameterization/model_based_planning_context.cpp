@@ -113,8 +113,6 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
   return ob::ProjectionEvaluatorPtr();
 }
 
-double OFFSET = 0.0;
-
 namespace ompl_interface
 {
 
@@ -200,29 +198,6 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
 	    spec_.constraints_approximations_->at(i).state_storage_)
 	{
 	  ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
-          const ConstraintApproximationStateStorage *stor = spec_.constraints_approximations_->at(i).state_storage_;
-          if (path_constraints_name_ == "dual_arm" && stor->size() > 10000)
-          {
-            int mini = -1, maxi = -1;
-            for (int k = stor->size() - 1 ; k>=0 ; --k)
-            {
-              const ompl::base::SE3StateSpace::StateType *se3_11 = stor->getState(k)->as<ompl::base::CompoundState>()->components[0]->as<ompl::base::CompoundState>()->components[1]->as<ompl::base::SE3StateSpace::StateType>();
-              const ompl::base::SE3StateSpace::StateType *se3_12 = stor->getState(k)->as<ompl::base::CompoundState>()->components[1]->as<ompl::base::CompoundState>()->components[1]->as<ompl::base::SE3StateSpace::StateType>();
-              double dx = se3_11->getX() - se3_12->getX();
-              double dy = se3_11->getY() - se3_12->getY();
-              double dz = se3_11->getZ() - se3_12->getZ();
-              double d = sqrt(dx*dx  + dy*dy + dz*dz);
-              //              std::cout << d<< std::endl;
-              
-              if (d >= OFFSET - 0.005 && mini == -1)
-                mini = k;
-              if (d <= OFFSET + 0.005)
-                maxi = k;
-            }
-            std::swap(mini, maxi);
-            ROS_DEBUG("Sampling range is %d, %d for offset %lf", mini, maxi, OFFSET);
-            return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_approximations_->at(i).state_storage_, mini, maxi));
-          }
           return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_approximations_->at(i).state_storage_));
 	}
     }
@@ -501,12 +476,7 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
   path_constraints_.reset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
   path_constraints_->add(path_constraints);
   path_constraints_name_ = path_constraints.name;
-  
-  if (path_constraints_name_ == "dual_arm")
-  {
-    OFFSET = path_constraints.position_constraints[0].target_point_offset.x;
-  }
-  
+    
   return true;
 }
 								   
