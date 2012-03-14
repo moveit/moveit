@@ -212,7 +212,7 @@ public:
               scene_->checkCollisionUnpadded(req, res, *p[k]);
               if (res.collision)
                 correct = false;
-              double d = scene_->distanceUnpadded(*p[k]);
+              double d = scene_->distanceToCollisionUnpadded(*p[k]);
               clearance += d;
             }
             clearance /= (double)p.size();
