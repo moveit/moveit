@@ -182,12 +182,17 @@ void InteractiveObjectVisualization::addObject(const std::string& name,
                                 shape_msg.dimensions[1],
                                 false, 
                                 false);
-  } else {
+  } else if(shape_msg.type == moveit_msgs::Shape::SPHERE) {
     marker = makeButtonSphere(name,
                               pose_stamped,
                               shape_msg.dimensions[0],
                               false, 
                               false);
+  } else if(shape_msg.type == moveit_msgs::Shape::MESH) {
+    marker = makeButtonMesh(name,
+                            shape_msg,
+                            pose_stamped,
+                            color_to_use);
   }
   if(dof_marker_enabled_.find(name) == dof_marker_enabled_.end()) {
     dof_marker_enabled_[name] = true;
