@@ -87,13 +87,15 @@ double collision_detection::CollisionRobotAllValid::distanceSelf(const planning_
 }
 
 
-double collision_detection::CollisionRobotAllValid::distanceOther(const CollisionRobot &other_robot,
+double collision_detection::CollisionRobotAllValid::distanceOther(const planning_models::KinematicState &state,
+                                                                  const CollisionRobot &other_robot,
                                                                   const planning_models::KinematicState &other_state) const
 {
   return 0.0;
 }
 
-double collision_detection::CollisionRobotAllValid::distanceOther(const CollisionRobot &other_robot,
+double collision_detection::CollisionRobotAllValid::distanceOther(const planning_models::KinematicState &state,
+                                                                  const CollisionRobot &other_robot,
                                                                   const planning_models::KinematicState &other_state,
                                                                   const AllowedCollisionMatrix &acm) const
 {

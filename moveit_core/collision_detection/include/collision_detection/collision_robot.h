@@ -108,15 +108,29 @@ namespace collision_detection
 				     const planning_models::KinematicState &other_state,
 				     const AllowedCollisionMatrix &acm) const = 0;
 
+    /** \brief The distance to self-collision given the robot is at state \e state. */
     virtual double distanceSelf(const planning_models::KinematicState &state) const = 0;
     
+    /** \brief The distance to self-collision given the robot is at state \e state, ignoring 
+        the distances between links that are allowed to always collide (as specified by \e acm) */
     virtual double distanceSelf(const planning_models::KinematicState &state,
                                 const AllowedCollisionMatrix &acm) const = 0;
 
-    virtual double distanceOther(const CollisionRobot &other_robot,
+    /** \brief The distance to another robot instance.
+        @param state The state of this robot to consider
+        @param other_robot The other robot instance to measure distance to
+        @param other_state The state of the other robot */
+    virtual double distanceOther(const planning_models::KinematicState &state,
+                                 const CollisionRobot &other_robot,
                                  const planning_models::KinematicState &other_state) const = 0;
 
-    virtual double distanceOther(const CollisionRobot &other_robot,
+    /** \brief The distance to another robot instance, ignoring distances between links that are allowed to always collide.
+        @param state The state of this robot to consider
+        @param other_robot The other robot instance to measure distance to
+        @param other_state The state of the other robot 
+        @param acm The collision matrix specifying which links are allowed to always collide */
+    virtual double distanceOther(const planning_models::KinematicState &state,
+                                 const CollisionRobot &other_robot,
                                  const planning_models::KinematicState &other_state,
                                  const AllowedCollisionMatrix &acm) const = 0;
     

@@ -231,8 +231,18 @@ public:
                           collision_detection::CollisionResult &res,
                           const planning_models::KinematicState &kstate,
                           const collision_detection::AllowedCollisionMatrix& acm) const;
+  
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision */
+  double distanceToCollision(const planning_models::KinematicState &kstate) const;
 
-  double distanceUnpadded(const planning_models::KinematicState &kstate);
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, if the robot has no padding */
+  double distanceToCollisionUnpadded(const planning_models::KinematicState &kstate) const;
+
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide. */
+  double distanceToCollision(const planning_models::KinematicState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
+
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide, if the robot has no padding. */
+  double distanceToCollisionUnpadded(const planning_models::KinematicState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
   
   /** \brief Check if this planning scene has been configured or not */
   bool isConfigured(void) const

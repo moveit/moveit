@@ -133,15 +133,24 @@ namespace collision_detection
 				     const CollisionWorld &other_world,
 				     const AllowedCollisionMatrix &acm) const = 0;
 
+    /** \brief Compute the shortest distance between a robot and the world 
+     *  @param robot The robot to check distance for
+     *  @param state The state for the robot to check distances from */
     virtual double distanceRobot(const CollisionRobot &robot,
                                  const planning_models::KinematicState &state) const = 0;
-    
+
+    /** \brief Compute the shortest distance between a robot and the world 
+     *  @param robot The robot to check distance for
+     *  @param state The state for the robot to check distances from 
+     *  @param acm Using an allowed collision matrix has the effect of ignoring distances from links that are always allowed to be in collision. */    
     virtual double distanceRobot(const CollisionRobot &robot,
                                  const planning_models::KinematicState &state,
                                  const AllowedCollisionMatrix &acm) const = 0;
 
+    /** \brief The shortest distance to another world instance (\e world) */
     virtual double distanceWorld(const CollisionWorld &world) const = 0;
 
+    /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements that are allowed to collide (as specified by \e acm) */
     virtual double distanceWorld(const CollisionWorld &world,
                                  const AllowedCollisionMatrix &acm) const = 0;
 

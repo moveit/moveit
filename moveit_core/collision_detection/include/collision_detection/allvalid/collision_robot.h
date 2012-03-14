@@ -64,9 +64,11 @@ public:
   
   virtual double distanceSelf(const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
   
-  virtual double distanceOther(const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const;
+  virtual double distanceOther(const planning_models::KinematicState &state,
+                               const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const;
   
-  virtual double distanceOther(const CollisionRobot &other_robot, const planning_models::KinematicState &other_state, const AllowedCollisionMatrix &acm) const;
+  virtual double distanceOther(const planning_models::KinematicState &state, const CollisionRobot &other_robot,
+                               const planning_models::KinematicState &other_state, const AllowedCollisionMatrix &acm) const;
   
 };
 

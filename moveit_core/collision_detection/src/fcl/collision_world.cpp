@@ -79,6 +79,8 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
   for (std::size_t i = 0 ; !cd.done_ && i < fcl_obj.collision_objects_.size() ; ++i)
     manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
   
+  if (req.distance)
+    res.distance = distanceRobotHelper(robot, state, acm);
   if (req.verbose)
   {
     if (res.collision)
@@ -111,6 +113,8 @@ void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const Col
       for (std::size_t i = 0 ; !cd.done_ && i < it->second.collision_objects_.size() ; ++i)
 	manager_->collide(it->second.collision_objects_[i].get(), &cd, &collisionCallback);
   }
+  if (req.distance)
+    res.distance = distanceWorldHelper(other_world, acm);
   if (req.verbose)
   {
     if (res.collision)
@@ -305,11 +309,15 @@ double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobo
 
 double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorld &world) const
 {
-  return 0.0;
+  return distanceWorldHelper(world, NULL);
 }
 
 double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const
 {
-  return 0.0;
+  return distanceWorldHelper(world, &acm);
 }
 
+double collision_detection::CollisionWorldFCL::distanceWorldHelper(const CollisionWorld &world, const AllowedCollisionMatrix *acm) const
+{
+  return 0.0;
+}

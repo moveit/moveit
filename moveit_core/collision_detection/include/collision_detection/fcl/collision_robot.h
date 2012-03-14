@@ -67,9 +67,11 @@ namespace collision_detection
     
     virtual double distanceSelf(const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
     
-    virtual double distanceOther(const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const;
+    virtual double distanceOther(const planning_models::KinematicState &state,
+                                 const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const;
     
-    virtual double distanceOther(const CollisionRobot &other_robot, const planning_models::KinematicState &other_state, const AllowedCollisionMatrix &acm) const;
+    virtual double distanceOther(const planning_models::KinematicState &state, const CollisionRobot &other_robot,
+                                 const planning_models::KinematicState &other_state, const AllowedCollisionMatrix &acm) const;
  
   protected:
     
@@ -84,6 +86,9 @@ namespace collision_detection
     void checkOtherCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
 				   const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
 				   const AllowedCollisionMatrix *acm) const;
+    double distanceSelfHelper(const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
+    double distanceOtherHelper(const planning_models::KinematicState &state, const CollisionRobot &other_robot,
+                               const planning_models::KinematicState &other_state, const AllowedCollisionMatrix *acm) const;
     
     std::vector<planning_models::KinematicModel::LinkModel*>         links_;
     std::vector<boost::shared_ptr<fcl::CollisionGeometry> >          geoms_obb_;

@@ -74,6 +74,7 @@ namespace collision_detection
     void checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const;
     void checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
     double distanceRobotHelper(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
+    double distanceWorldHelper(const CollisionWorld &world, const AllowedCollisionMatrix *acm) const;
     
     void constructFCLObject(const Object *obj, FCLObject &fcl_obj, bool obb) const;
     void updateFCLObject(const std::string &id);
