@@ -29,17 +29,21 @@
 
 // Author: E. Gil Jones
 
-#include <moveit_visualization_ros/primitive_object_addition_dialog.h>
+#include <moveit_visualization_ros/mesh_object_addition_dialog.h>
 #include <moveit_visualization_ros/qt_helper_functions.h>
+#include <geometric_shapes/shape_operations.h>
 
 #include <QColorDialog>
 #include <QObject>
 #include <QMetaType>
+#include <QGroupBox>
+#include <QFileDialog>
+#include <QFontMetrics>
 
 namespace moveit_visualization_ros 
 {
 
-PrimitiveObjectAdditionDialog::PrimitiveObjectAdditionDialog(QWidget* parent) :
+MeshObjectAdditionDialog::MeshObjectAdditionDialog(QWidget* parent) :
   QDialog(parent),
   selected_color_(128,128,128)
 {
@@ -47,52 +51,52 @@ PrimitiveObjectAdditionDialog::PrimitiveObjectAdditionDialog(QWidget* parent) :
 
   QVBoxLayout* layout = new QVBoxLayout(this);
   QGroupBox* panel = new QGroupBox(this);
-  panel->setTitle("New Primitive Collision Object");
+  panel->setTitle("New Mesh Collision Object");
 
-  QVBoxLayout* panelLayout = new QVBoxLayout();
+  QVBoxLayout* panel_layout = new QVBoxLayout();
 
   collision_object_name_ = new QLineEdit(this);
-  panelLayout->addWidget(collision_object_name_);
+  panel_layout->addWidget(collision_object_name_);
 
-  collision_object_type_box_ = new QComboBox(this);
-  collision_object_type_box_->addItem("Box");
-  collision_object_type_box_->addItem("Cylinder");
-  collision_object_type_box_->addItem("Sphere");
-  collision_object_type_box_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+  QHBoxLayout* filename_layout = new QHBoxLayout();
+  QPushButton* select_file_button = new QPushButton("Select mesh file");
+  mesh_file_label_ = new QLabel(this);
+  mesh_file_label_->setText("No Mesh File Selected");
+  filename_layout->addWidget(select_file_button);
+  filename_layout->addWidget(mesh_file_label_);
+  panel_layout->addLayout(filename_layout);
 
-  panelLayout->addWidget(collision_object_type_box_);
+  QGroupBox* scale_box = new QGroupBox(panel);
+  scale_box->setTitle("Scale (x,y,z) %");
+  QHBoxLayout* scale_layout = new QHBoxLayout();
 
-  QGroupBox* scaleBox = new QGroupBox(panel);
-  scaleBox->setTitle("Scale (x,y,z) cm");
-  QHBoxLayout* scaleLayout = new QHBoxLayout();
-
-  collision_object_scale_x_box_ = new QSpinBox(scaleBox);
-  collision_object_scale_y_box_ = new QSpinBox(scaleBox);
-  collision_object_scale_z_box_ = new QSpinBox(scaleBox);
-  collision_object_scale_x_box_->setRange(1, 10000);
-  collision_object_scale_y_box_->setRange(1, 10000);
-  collision_object_scale_z_box_->setRange(1, 10000);
-  collision_object_scale_x_box_->setValue(10);
-  collision_object_scale_y_box_->setValue(10);
-  collision_object_scale_z_box_->setValue(10);
+  collision_object_scale_x_box_ = new QSpinBox(scale_box);
+  collision_object_scale_y_box_ = new QSpinBox(scale_box);
+  collision_object_scale_z_box_ = new QSpinBox(scale_box);
+  collision_object_scale_x_box_->setRange(1, 1000);
+  collision_object_scale_y_box_->setRange(1, 1000);
+  collision_object_scale_z_box_->setRange(1, 1000);
+  collision_object_scale_x_box_->setValue(100);
+  collision_object_scale_y_box_->setValue(100);
+  collision_object_scale_z_box_->setValue(100);
   collision_object_scale_x_box_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   collision_object_scale_y_box_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   collision_object_scale_z_box_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
-  scaleLayout->addWidget(collision_object_scale_x_box_);
-  scaleLayout->addWidget(collision_object_scale_y_box_);
-  scaleLayout->addWidget(collision_object_scale_z_box_);
+  scale_layout->addWidget(collision_object_scale_x_box_);
+  scale_layout->addWidget(collision_object_scale_y_box_);
+  scale_layout->addWidget(collision_object_scale_z_box_);
 
-  scaleBox->setLayout(scaleLayout);
-  panelLayout->addWidget(scaleBox);
+  scale_box->setLayout(scale_layout);
+  panel_layout->addWidget(scale_box);
 
-  QGroupBox* posBox = new QGroupBox(panel);
-  posBox->setTitle("Position (x,y,z) cm");
-  QHBoxLayout* posLayout = new QHBoxLayout();
+  QGroupBox* pos_box = new QGroupBox(panel);
+  pos_box->setTitle("Position (x,y,z) cm");
+  QHBoxLayout* pos_layout = new QHBoxLayout();
 
-  collision_object_pos_x_box_ = new QSpinBox(posBox);
-  collision_object_pos_y_box_ = new QSpinBox(posBox);
-  collision_object_pos_z_box_ = new QSpinBox(posBox);
+  collision_object_pos_x_box_ = new QSpinBox(pos_box);
+  collision_object_pos_y_box_ = new QSpinBox(pos_box);
+  collision_object_pos_z_box_ = new QSpinBox(pos_box);
   collision_object_pos_x_box_->setRange(-10000, 10000);
   collision_object_pos_y_box_->setRange(-10000, 10000);
   collision_object_pos_z_box_->setRange(-10000, 10000);
@@ -103,14 +107,14 @@ PrimitiveObjectAdditionDialog::PrimitiveObjectAdditionDialog(QWidget* parent) :
   collision_object_pos_y_box_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   collision_object_pos_z_box_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
-  posLayout->addWidget(collision_object_pos_x_box_);
-  posLayout->addWidget(collision_object_pos_y_box_);
-  posLayout->addWidget(collision_object_pos_z_box_);
+  pos_layout->addWidget(collision_object_pos_x_box_);
+  pos_layout->addWidget(collision_object_pos_y_box_);
+  pos_layout->addWidget(collision_object_pos_z_box_);
 
-  posBox->setLayout(posLayout);
-  panelLayout->addWidget(posBox);
+  pos_box->setLayout(pos_layout);
+  panel_layout->addWidget(pos_box);
 
-  panel->setLayout(panelLayout);
+  panel->setLayout(panel_layout);
   layout->addWidget(panel);
 
   color_button_ = new QPushButton(this);
@@ -122,41 +126,68 @@ PrimitiveObjectAdditionDialog::PrimitiveObjectAdditionDialog(QWidget* parent) :
   make_object_button_->setText("Create...");
   make_object_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   make_object_button_->setDefault(true);
+  make_object_button_->setDisabled(true);
   connect(make_object_button_, SIGNAL(clicked()), this, SLOT(createObjectConfirmedPressed()));
+
+  connect(collision_object_name_, SIGNAL(textChanged(const QString&)), this, SLOT(collisionNameEdited(const QString&)));
+  connect(select_file_button, SIGNAL(clicked()), this,  SLOT(selectFileButtonPressed()));
 
   layout->addWidget(color_button_);
   layout->addWidget(make_object_button_);
   setLayout(layout);
 }
 
-void PrimitiveObjectAdditionDialog::selectColorButtonPressed() {
+void MeshObjectAdditionDialog::collisionNameEdited(const QString& coll)
+{
+  if(!coll.isEmpty() && !mesh_file_full_name_.isEmpty()) {
+    make_object_button_->setEnabled(true);
+  } else {
+    make_object_button_->setDisabled(true);
+  }
+}
+
+void MeshObjectAdditionDialog::selectFileButtonPressed() {
+  QFileDialog dialog(this);
+  dialog.setFileMode(QFileDialog::ExistingFile);
+  dialog.setNameFilter("Meshes (*.stl *.dae)");
+  if(dialog.exec()) {
+    QStringList mesh_name_list = dialog.selectedFiles();
+    mesh_file_full_name_ = mesh_name_list[0];
+    mesh_file_label_->setText(mesh_file_label_->fontMetrics().elidedText(mesh_name_list[0], Qt::ElideLeft, 200));
+    if(!collision_object_name_->text().isEmpty()) {
+      make_object_button_->setEnabled(true);
+    }
+  }
+}
+
+void MeshObjectAdditionDialog::selectColorButtonPressed() {
 
   selected_color_ = QColorDialog::getColor(selected_color_);
   color_button_->setText(makeQStringFromColor(selected_color_));
 };
 
-void PrimitiveObjectAdditionDialog::createObjectConfirmedPressed() {
+void MeshObjectAdditionDialog::createObjectConfirmedPressed() {
   moveit_msgs::CollisionObject coll;
   coll.id = collision_object_name_->text().toStdString();
   
-  coll.shapes.resize(1);
-  std::string object_type = collision_object_type_box_->currentText().toStdString();
-  if(object_type == "Box") {
-    coll.shapes[0].type = moveit_msgs::Shape::BOX;
-    coll.shapes[0].dimensions.resize(3);
-    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
-    coll.shapes[0].dimensions[1] = (float)collision_object_scale_y_box_->value() / 100.0f;
-    coll.shapes[0].dimensions[2] = (float)collision_object_scale_z_box_->value() / 100.0f;
-  } else if (object_type == "Cylinder") {
-    coll.shapes[0].type = moveit_msgs::Shape::CYLINDER;
-    coll.shapes[0].dimensions.resize(2);
-    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
-    coll.shapes[0].dimensions[1] = (float)collision_object_scale_z_box_->value() / 100.0f;
-  } else if (object_type == "Sphere") {
-    coll.shapes[0].type = moveit_msgs::Shape::SPHERE;
-    coll.shapes[0].dimensions.resize(1);
-    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
+  Eigen::Vector3d scale((double)collision_object_scale_x_box_->value() / 100.0f,
+                        (double)collision_object_scale_y_box_->value() / 100.0f,
+                        (double)collision_object_scale_z_box_->value() / 100.0f);
+  
+  shapes::Mesh* mesh = shapes::createMeshFromFilename("file://"+mesh_file_full_name_.toStdString(), 
+                                                      scale);
+
+  if(!mesh) {
+    ROS_WARN_STREAM("Some problem loading mesh");
+    return;
   }
+
+  coll.shapes.resize(1);
+  if(!constructMsgFromShape(mesh, coll.shapes[0])) {
+    ROS_WARN_STREAM("Some problem constructing shape msg");
+    return;
+  }
+  delete mesh;
 
   coll.poses.resize(1);
   coll.poses[0].position.x = (float)collision_object_pos_x_box_->value() / 100.0f;

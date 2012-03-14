@@ -34,6 +34,8 @@
 #include <QMenuBar>
 
 #include <moveit_visualization_ros/moveit_visualizer.h>
+#include <moveit_visualization_ros/primitive_object_addition_dialog.h>
+#include <moveit_visualization_ros/mesh_object_addition_dialog.h>
 
 static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 
@@ -134,6 +136,7 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
   //InteractiveObjectVisualizationWidget* iov_widget = new InteractiveObjectVisualizationWidget(main_window_);
 
   PrimitiveObjectAdditionDialog* primitive_object_dialog = new PrimitiveObjectAdditionDialog(main_window_);
+  MeshObjectAdditionDialog* mesh_object_dialog = new MeshObjectAdditionDialog(main_window_);
 
   QHBoxLayout* main_layout = new QHBoxLayout;
   QMenuBar* menu_bar = new QMenuBar(main_window_);
@@ -160,6 +163,9 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
 
   QAction* show_primitive_objects_dialog = coll_object_menu->addAction("Add Primitive Collision Object");
   QObject::connect(show_primitive_objects_dialog, SIGNAL(triggered()), primitive_object_dialog, SLOT(show()));
+  QAction* show_mesh_objects_dialog = coll_object_menu->addAction("Add Mesh Collision Object");
+  QObject::connect(show_mesh_objects_dialog, SIGNAL(triggered()), mesh_object_dialog, SLOT(show()));
+
   main_layout->setMenuBar(menu_bar);
   
   //main_layout->addWidget(iov_widget);
@@ -172,6 +178,12 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
                    SIGNAL(addCollisionObjectRequested(const moveit_msgs::CollisionObject&, const QColor&)), 
                    iov_.get(), 
                    SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
+
+  QObject::connect(mesh_object_dialog, 
+                   SIGNAL(addCollisionObjectRequested(const moveit_msgs::CollisionObject&, const QColor&)), 
+                   iov_.get(), 
+                   SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
+
 
   main_window_->show();
 

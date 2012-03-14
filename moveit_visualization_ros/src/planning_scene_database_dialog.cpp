@@ -32,7 +32,6 @@
 #include <moveit_visualization_ros/planning_scene_database_dialog.h>
 #include <moveit_visualization_ros/qt_helper_functions.h>
 
-#include <QFileDialog>
 #include <QVBoxLayout>
 #include <QHeaderView>
 #include <QPushButton>

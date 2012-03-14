@@ -44,6 +44,7 @@
 #include <planning_models/kinematic_state.h>
 #include <planning_models/transforms.h>
 #include <geometric_shapes/body_operations.h>
+#include <geometric_shapes/shape_operations.h>
 
 static bool done_seed = false;
 
@@ -463,6 +464,38 @@ inline visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& n
     add6DofControl(int_marker, fixed);
   }
 
+  return int_marker;
+}
+
+inline visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& marker_name,
+                                                            const moveit_msgs::Shape& mesh_shape,
+                                                            const geometry_msgs::PoseStamped &stamped,                                                                                                                       const std_msgs::ColorRGBA& color)
+{
+  visualization_msgs::InteractiveMarker int_marker;
+  int_marker.header = stamped.header;
+  int_marker.name = marker_name;
+  int_marker.pose = stamped.pose;
+
+  visualization_msgs::InteractiveMarkerControl control;
+
+  visualization_msgs::Marker mesh_mark;
+  mesh_mark.mesh_use_embedded_materials = false;
+  if(!shapes::constructMarkerFromShape(mesh_shape, mesh_mark, true)) {
+    ROS_WARN_STREAM("Some problem constructing mesh marker " << marker_name);
+    return int_marker;
+  }
+  double x, y, z, max;
+  if(!shapes::getShapeExtents(mesh_shape, x, y, z, max)) {
+    ROS_WARN_STREAM("Some problem with marker extents");
+    int_marker.scale = 1.0;
+  } else {
+    int_marker.scale = .05+max;
+  }
+  mesh_mark.color = color;
+  control.markers.push_back(mesh_mark);
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+  control.always_visible = true;
+  int_marker.controls.push_back( control );
   return int_marker;
 }
 
