@@ -204,9 +204,24 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
   }
 }
 
-double planning_scene::PlanningScene::distanceUnpadded(const planning_models::KinematicState &kstate)
+double planning_scene::PlanningScene::distanceToCollisionUnpadded(const planning_models::KinematicState &kstate) const
 {
   return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate);
+}
+
+double planning_scene::PlanningScene::distanceToCollisionUnpadded(const planning_models::KinematicState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
+{
+  return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, acm);
+}
+
+double planning_scene::PlanningScene::distanceToCollision(const planning_models::KinematicState &kstate) const
+{
+  return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate);
+}
+
+double planning_scene::PlanningScene::distanceToCollision(const planning_models::KinematicState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
+{
+  return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, acm);
 }
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res) const

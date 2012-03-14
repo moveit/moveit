@@ -203,6 +203,8 @@ void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const Coll
   allocSelfCollisionBroadPhase(state, manager);
   CollisionData cd(&req, &res, acm);
   manager.manager_->collide(&cd, &collisionCallback);
+  if (req.distance)
+    res.distance = distanceSelfHelper(state, acm);
 }
 
 void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
@@ -232,6 +234,8 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
   CollisionData cd(&req, &res, acm);
   for (std::size_t i = 0 ; !cd.done_ && i < other_fcl_obj.collision_objects_.size() ; ++i)
     manager.manager_->collide(other_fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
+  if (req.distance)
+    res.distance = distanceOtherHelper(state, other_robot, other_state, acm);
 }
 
 void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::vector<std::string> &links)
@@ -257,25 +261,40 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
 
 double collision_detection::CollisionRobotFCL::distanceSelf(const planning_models::KinematicState &state) const
 {
-  return 0.0;
+  return distanceSelfHelper(state, NULL);
 }
 
 double collision_detection::CollisionRobotFCL::distanceSelf(const planning_models::KinematicState &state,
                                                             const AllowedCollisionMatrix &acm) const
 {
-  return 0.0;
+  return distanceSelfHelper(state, &acm);
 }
 
-
-double collision_detection::CollisionRobotFCL::distanceOther(const CollisionRobot &other_robot,
-                                                             const planning_models::KinematicState &other_state) const
+double collision_detection::CollisionRobotFCL::distanceSelfHelper(const planning_models::KinematicState &state,
+                                                                  const AllowedCollisionMatrix *acm) const
 {
   return 0.0;
 }
 
-double collision_detection::CollisionRobotFCL::distanceOther(const CollisionRobot &other_robot,
+double collision_detection::CollisionRobotFCL::distanceOther(const planning_models::KinematicState &state,
+                                                             const CollisionRobot &other_robot,
+                                                             const planning_models::KinematicState &other_state) const
+{
+  return distanceOtherHelper(state, other_robot, other_state, NULL);
+}
+
+double collision_detection::CollisionRobotFCL::distanceOther(const planning_models::KinematicState &state,
+                                                             const CollisionRobot &other_robot,
                                                              const planning_models::KinematicState &other_state,
                                                              const AllowedCollisionMatrix &acm) const
+{
+  return distanceOtherHelper(state, other_robot, other_state, &acm);
+}
+
+double collision_detection::CollisionRobotFCL::distanceOtherHelper(const planning_models::KinematicState &state,
+                                                                   const CollisionRobot &other_robot,
+                                                                   const planning_models::KinematicState &other_state,
+                                                                   const AllowedCollisionMatrix *acm) const
 {
   return 0.0;
 }
