@@ -79,11 +79,16 @@ StaticShape* constructShapeFromMsg(const moveit_msgs::StaticShape &shape_msg);
 bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &shape_msg);
 
 /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
-bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk);
+bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list=false);
 
 /** \brief Construct the marker that corresponds to the shape shape message.  Return false on failure. */
-bool constructMarkerFromShape(const moveit_msgs::Shape &shape, visualization_msgs::Marker &mk);
+bool constructMarkerFromShape(const moveit_msgs::Shape &shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list=false);
 
+bool getShapeExtents(const moveit_msgs::Shape& shape_msg,
+                     double& x_extent,
+                     double& y_extent,
+                     double& z_extent, 
+                     double& max_dimension);
 }
 
 #endif
