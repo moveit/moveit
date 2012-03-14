@@ -161,7 +161,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   for(unsigned int i = 0; i < grasps.size(); i++) {
 
     if(execution_info[i].result_.result_code != 0) {
-      ROS_INFO_STREAM("Assuming grasp " << i << " already evaluated");
+      ROS_DEBUG_STREAM("Assuming grasp " << i << " already evaluated");
       continue;
     }
 

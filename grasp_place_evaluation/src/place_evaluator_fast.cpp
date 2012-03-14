@@ -131,7 +131,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
   for(unsigned int i = 0; i < place_locations.size(); i++) {
 
     if(execution_info[i].result_.result_code != 0) {
-      ROS_INFO_STREAM("Assuming place " << i << " already evaluated");
+      ROS_DEBUG_STREAM("Assuming place " << i << " already evaluated");
       continue;
     }
 

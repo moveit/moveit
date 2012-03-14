@@ -413,18 +413,16 @@ void GraspEvaluationVisualizationDialog::planForGraspExecution() {
     ROS_WARN_STREAM("Asked to plan, but no approach trajectory");
     return;
   }
-  planning_models::KinematicState state(planning_scene_->getCurrentState());
-  state.setStateValues(ev.approach_trajectory_.joint_names,
-                       ev.approach_trajectory_.points.front().positions);
+  planning_models::KinematicState goal_state(planning_scene_->getCurrentState());
+  goal_state.setStateValues(ev.approach_trajectory_.joint_names,
+                            ev.approach_trajectory_.points.front().positions);
 
   plan_execution_indicator_->setText("Planning");
 
   //emit
-  requestSetGoalState(current_arm_,
-                      &state);
-  
-  //emit
-  requestPlanGeneration(false);
+  requestDiffScenePlanGeneration(current_arm_,
+                                 planning_scene_,
+                                 &goal_state);
 }
 
 void GraspEvaluationVisualizationDialog::planGenerationFinished(const std::string& group_name,
