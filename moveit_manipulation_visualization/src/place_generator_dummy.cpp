@@ -1,0 +1,132 @@
+/*
+ * Copyright (c) 2012, Willow Garage, Inc.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <ORGANIZATION> nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+// Author: E. Gil Jones
+
+#include <moveit_manipulation_visualization/place_generator_dummy.h>
+#include <geometric_shapes/shape_operations.h>
+
+namespace moveit_manipulation_visualization {
+
+bool PlaceGeneratorDummy::generatePlaceLocations(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                 const std::string& object,
+                                                 const std::string& support,
+                                                 std::vector<geometry_msgs::PoseStamped>& place_locations)
+{
+  place_locations.clear();
+
+  moveit_msgs::CollisionObject sup;
+  if(!planning_scene->getCollisionObjectMsg(support, 
+                                            sup)) {
+    ROS_WARN_STREAM("Don't appear to have object " << support << " in planning scene for place support");
+    return false;
+  }
+
+  std::vector<const planning_models::KinematicState::AttachedBody*> ab;
+  planning_scene->getCurrentState().getAttachedBodies(ab);
+
+  if(ab.size() == 0) {
+    ROS_WARN_STREAM("No attached bodies associated with current state of planning scene.  Can't place");
+    return false;
+  }
+  moveit_msgs::Shape attached_shape;
+  bool found = false;
+  for(unsigned int i = 0; i < ab.size(); i++) {
+    if(ab[i]->getName() == object) {
+      shapes::constructMsgFromShape(ab[i]->getShapes()[0], attached_shape);
+      found = true;
+      break;
+    }
+  }
+  if(!found) {
+    ROS_WARN_STREAM("Don't appear to have object " << object << " in planning scene for place");
+  }
+
+  Eigen::Affine3d sup_pose;
+  planning_models::poseFromMsg(sup.poses[0], sup_pose);
+
+  if(sup.shapes[0].dimensions.size() != 3) {
+    ROS_WARN_STREAM("Dummy generator can only deal with support surface boxes");
+    return false;
+  }
+
+  double obj_dim = attached_shape.dimensions[0];
+
+  double l = sup.shapes[0].dimensions[0]-2.0*obj_dim;
+  double w = sup.shapes[0].dimensions[1]-2.0*obj_dim;
+  double d = sup.shapes[0].dimensions[2];
+
+  double spacing = .1;
+
+  unsigned int lnum = floor(l/spacing);
+  unsigned int wnum = floor(w/spacing);
+
+  std::vector<double> angles;
+  angles.push_back(0);
+  angles.push_back(M_PI/4.0);
+  angles.push_back(-M_PI/4.0);
+  angles.push_back(M_PI/2.0);
+  angles.push_back(-M_PI/2.0);
+
+  unsigned int total_place_locations = lnum*wnum*angles.size();
+
+  std::vector<unsigned int> random_numbers(total_place_locations);
+  for(unsigned int i = 0; i < total_place_locations; i++) {
+    random_numbers[i] = i;
+  }
+  //random_shuffle(random_numbers.begin(), random_numbers.end());
+  
+  place_locations.resize(total_place_locations);
+  unsigned int cur_ind = 0;
+  for(unsigned int i = 0; i < lnum; i++) {
+    for(unsigned int j = 0; j < wnum; j++) { 
+      for(unsigned int k = 0; k < angles.size(); k++, cur_ind++) {
+        geometry_msgs::PoseStamped place_pose;
+        place_pose.pose = sup.poses[0];
+        place_pose.header.frame_id = planning_scene->getPlanningFrame();
+        place_pose.pose.position.x += -(l/2.0)+((i*1.0)*spacing);
+        place_pose.pose.position.y += -(w/2.0)+((j*1.0)*spacing);
+        place_pose.pose.position.z += d;
+        Eigen::Affine3d cur;
+        planning_models::poseFromMsg(place_pose.pose, cur);
+        Eigen::Affine3d trans(Eigen::AngleAxisd(angles[k], Eigen::Vector3d::UnitZ()));
+        Eigen::Affine3d conv = cur*trans;
+        planning_models::msgFromPose(conv, place_pose.pose);
+        ROS_DEBUG_STREAM("Place location " << i << " " << j << " " 
+                         << place_pose.pose.position.x << " " 
+                         << place_pose.pose.position.y << " " 
+                         << place_pose.pose.position.z);
+        place_locations[random_numbers[cur_ind]] = place_pose;
+      }
+    }
+  }
+  return true;
+}
+
+}

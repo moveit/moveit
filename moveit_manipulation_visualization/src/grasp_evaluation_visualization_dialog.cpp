@@ -51,6 +51,11 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   grasp_evaluation_visualization_(new GraspEvaluationVisualization(planning_scene, 
                                                                    interactive_marker_server, 
                                                                    kinematics_plugin_loader, 
+                                                                   marker_publisher)),
+  place_generator_visualization_(new PlaceGeneratorVisualization(marker_publisher)),
+  place_evaluation_visualization_(new PlaceEvaluationVisualization(planning_scene, 
+                                                                   interactive_marker_server, 
+                                                                   kinematics_plugin_loader, 
                                                                    marker_publisher))
 {
   qRegisterMetaType<planning_scene::PlanningSceneConstPtr>("planning_scene::PlanningSceneConstPtr");
@@ -91,7 +96,7 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   line_2->setFrameShadow(QFrame::Sunken);
   layout->addWidget(line_2);
 
-  evaluate_grasp_button_ = new QPushButton("Evaluate Until Success");
+  evaluate_grasp_button_ = new QPushButton("Start Grasp Evaluation");
   evaluate_grasp_button_->setDisabled(true);
   layout->addWidget(evaluate_grasp_button_);
   QHBoxLayout* evaluator_layout = new QHBoxLayout();
@@ -102,7 +107,6 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   evaluation_result_indicator_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
   evaluator_layout->addWidget(evaluated_grasp_browser_);
   evaluator_layout->addWidget(evaluation_result_indicator_);
-  
   layout->addLayout(evaluator_layout);
   play_interpolated_trajectory_button_ = new QPushButton("Play Interpolated Trajectory");
   layout->addWidget(play_interpolated_trajectory_button_);
@@ -116,6 +120,55 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   play_full_grasp_execution_button_ = new QPushButton("Play full grasp execution");
   layout->addWidget(play_full_grasp_execution_button_);
 
+  QFrame* line_3 = new QFrame();
+  line_3->setFrameShape(QFrame::HLine);
+  line_3->setFrameShadow(QFrame::Sunken);
+  layout->addWidget(line_3);
+
+  QHBoxLayout* place_surface_layout = new QHBoxLayout();
+  QLabel* place_name_line = new QLabel(this);
+  place_name_line->setText("Place surface: ");
+  place_name_combo_ = new QComboBox(this);
+  place_surface_layout->addWidget(place_name_line);
+  place_surface_layout->addWidget(place_name_combo_);
+  layout->addLayout(place_surface_layout);
+
+  QHBoxLayout* place_generator_layout = new QHBoxLayout();
+  generate_place_locations_button_ = new QPushButton("Generate Place Locations");
+  generated_place_locations_browser_ = new QSpinBox(this);
+  place_generator_layout->addWidget(generate_place_locations_button_);
+  place_generator_layout->addWidget(generated_place_locations_browser_);
+  layout->addLayout(place_generator_layout);
+
+  QFrame* line_4 = new QFrame();
+  line_4->setFrameShape(QFrame::HLine);
+  line_4->setFrameShadow(QFrame::Sunken);
+  layout->addWidget(line_4);
+
+  evaluate_place_locations_button_ = new QPushButton("Start Place Location Evaluation");
+  evaluate_place_locations_button_->setDisabled(true);
+  layout->addWidget(evaluate_place_locations_button_);
+  QHBoxLayout* place_evaluator_layout = new QHBoxLayout();
+  evaluated_place_locations_browser_ = new QSpinBox(this);
+  evaluated_place_locations_browser_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  evaluation_place_locations_result_indicator_ = new QLabel(this);
+  evaluation_place_locations_result_indicator_->setText("None");
+  evaluation_place_locations_result_indicator_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+  place_evaluator_layout->addWidget(evaluated_place_locations_browser_);
+  place_evaluator_layout->addWidget(evaluation_place_locations_result_indicator_);
+  layout->addLayout(place_evaluator_layout);
+  play_placing_interpolated_trajectory_button_ = new QPushButton("Play Placing Interpolated Trajectory");
+  layout->addWidget(play_placing_interpolated_trajectory_button_);
+  QHBoxLayout* place_location_execution_layout = new QHBoxLayout();
+  plan_for_place_execution_button_ = new QPushButton("Plan for Place Location Execution");
+  plan_place_execution_indicator_ = new QLabel(this);
+  plan_place_execution_indicator_->setText("None");
+  place_location_execution_layout->addWidget(plan_for_place_execution_button_);
+  place_location_execution_layout->addWidget(plan_place_execution_indicator_);
+  layout->addLayout(place_location_execution_layout);
+  play_grasp_and_place_execution_button_ = new QPushButton("Play full grasp and place execution");
+  layout->addWidget(play_grasp_and_place_execution_button_);
+
   connect(get_grasps_button, SIGNAL(clicked()), this, SLOT(generateGraspsForObject()));
   connect(generated_grasps_browser_, SIGNAL(valueChanged(int)), this, SLOT(generatedGraspBrowserNumberChanged(int)));
   connect(this, SIGNAL(newPlanningSceneUpdated(const planning_scene::PlanningSceneConstPtr&)), 
@@ -124,11 +177,23 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
           this, SLOT(selectedObjectChanged(const QString&)));
   connect(support_name_combo_, SIGNAL(currentIndexChanged(const QString&)),
           this, SLOT(selectedSupportChanged(const QString&)));
+  connect(place_name_combo_, SIGNAL(currentIndexChanged(const QString&)),
+          this, SLOT(selectedPlaceChanged(const QString&)));
+
   connect(evaluate_grasp_button_, SIGNAL(clicked()), this, SLOT(evaluateGeneratedGrasps()));
   connect(evaluated_grasp_browser_, SIGNAL(valueChanged(int)), this, SLOT(evaluatedGraspBrowserNumberChanged(int)));
   connect(play_interpolated_trajectory_button_, SIGNAL(clicked()), this, SLOT(playInterpolatedTrajectory()));
   connect(plan_for_grasp_execution_button_, SIGNAL(clicked()), this, SLOT(planForGraspExecution()));
   connect(play_full_grasp_execution_button_, SIGNAL(clicked()), this, SLOT(playFullGraspExecution()));
+
+  connect(generate_place_locations_button_, SIGNAL(clicked()), this, SLOT(generatePlaceLocations()));
+  connect(generated_place_locations_browser_, SIGNAL(valueChanged(int)), this, SLOT(generatedPlaceLocationsBrowserNumberChanged(int)));
+
+  connect(evaluate_place_locations_button_, SIGNAL(clicked()), this, SLOT(evaluateGeneratedPlaceLocations()));
+  connect(evaluated_place_locations_browser_, SIGNAL(valueChanged(int)), this, SLOT(evaluatedPlaceLocationsBrowserNumberChanged(int)));
+  connect(play_placing_interpolated_trajectory_button_, SIGNAL(clicked()), this, SLOT(playPlacingInterpolatedTrajectory()));
+  connect(plan_for_place_execution_button_, SIGNAL(clicked()), this, SLOT(planForPlaceExecution()));
+  connect(play_grasp_and_place_execution_button_, SIGNAL(clicked()), this, SLOT(playFullGraspAndPlaceExecution()));
 
   populateObjectComboBox(planning_scene);
 }
@@ -151,15 +216,20 @@ void GraspEvaluationVisualizationDialog::populateObjectComboBox(const planning_s
   object_name_combo_->clear();
   const QString current_support = support_name_combo_->currentText();
   support_name_combo_->clear();
+  const QString current_place = place_name_combo_->currentText();
+  place_name_combo_->clear();
   std::vector<std::string> object_ids = planning_scene->getCollisionWorld()->getObjectIds();
   bool has_current_text = false;
   bool has_current_support = false;
+  bool has_current_place = false;
   unsigned int ind = 0;
   unsigned int support_ind = 0;
+  unsigned int place_ind = 0;
   support_name_combo_->addItem("");
   for(unsigned int i = 0; i < object_ids.size(); i++) {
     object_name_combo_->addItem(object_ids[i].c_str());
     support_name_combo_->addItem(object_ids[i].c_str());
+    place_name_combo_->addItem(object_ids[i].c_str());
     if(object_ids[i] == current.toStdString()) {
       has_current_text = true;
       ind = i;
@@ -168,15 +238,23 @@ void GraspEvaluationVisualizationDialog::populateObjectComboBox(const planning_s
       has_current_support = true;
       support_ind = i;
     }
+    if(object_ids[i] == current_place.toStdString()) {
+      has_current_place = true;
+      place_ind = i;
+    }
   }
   if(has_current_text) {
     object_name_combo_->setCurrentIndex(ind);
   } else {
     disableGeneration();
-    disableEvaluation();
   }
   if(has_current_support) {
-    support_name_combo_->setCurrentIndex(support_ind);
+    support_name_combo_->setCurrentIndex(support_ind+1);
+  }
+  if(has_current_place) {
+    place_name_combo_->setCurrentIndex(place_ind);
+  } else {
+    disablePlaceEvaluation();
   }
 }
 
@@ -223,45 +301,61 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
   goal.collision_object_name = current_object_;
   goal.target.collision_name = current_object_;
   goal.target.reference_frame_id = generated_grasp_frame_;
-  
+  if(generated_grasp_frame_ == current_object_) {
+  }
+
   goal.lift.direction.vector.z = 1;
   goal.lift.desired_distance = .1;
 
   goal.collision_support_surface_name = current_support_;
 
+  unsigned int cur_size = grasp_evaluation_visualization_->getEvaluationInfoSize();
+
+  if(cur_size == current_generated_grasps_.size()) {
+    ROS_INFO_STREAM("Starting from scratch");
+    grasp_evaluation_visualization_->resetGraspExecutionInfo();
+  }
+
   grasp_evaluation_visualization_->evaluateGrasps(current_arm_,
                                                   goal,
                                                   &planning_scene_->getCurrentState(),
                                                   current_generated_grasps_);
+
   if(grasp_evaluation_visualization_->getEvaluationInfoSize() > 0) {
     evaluated_grasp_browser_->setRange(0, grasp_evaluation_visualization_->getEvaluationInfoSize());
+    evaluated_grasp_browser_->setEnabled(true);
     bool success = false;
-    for(unsigned int i = 0; i < grasp_evaluation_visualization_->getEvaluationInfoSize(); i++) {
+    for(unsigned int i = cur_size; i < grasp_evaluation_visualization_->getEvaluationInfoSize(); i++) {
       grasp_place_evaluation::GraspExecutionInfo ev;
       grasp_evaluation_visualization_->getEvaluatedGrasp(i, ev);
       if(ev.result_.result_code == moveit_manipulation_msgs::GraspResult::SUCCESS) {
-        evaluated_grasp_browser_->setEnabled(true);
         evaluated_grasp_browser_->setValue(i+1);
         evaluation_result_indicator_->setEnabled(true);
         evaluatedGraspBrowserNumberChanged(i+1);
         success = true;
+        if(grasp_evaluation_visualization_->getEvaluationInfoSize() < current_generated_grasps_.size()) {
+          evaluate_grasp_button_->setText("Continue Grasp Evaluation"); 
+        }
         break;
       }
     }
     if(!success) {
-      evaluated_grasp_browser_->setValue(0);
+      evaluated_grasp_browser_->setValue(cur_size);
     }
   }
 }
 
 void GraspEvaluationVisualizationDialog::evaluatedGraspBrowserNumberChanged(int i) {
+  disablePlaceGeneration();
   if(i == 0) {
     grasp_evaluation_visualization_->removeAllMarkers();
     evaluation_result_indicator_->setText("None");
     play_interpolated_trajectory_button_->setDisabled(true);
     plan_for_grasp_execution_button_->setDisabled(true);
     plan_execution_indicator_->setText("None");
+    plan_execution_indicator_->setDisabled(true);
   } else {
+    plan_execution_indicator_->setText("None");
     grasp_place_evaluation::GraspExecutionInfo ev;
     grasp_evaluation_visualization_->getEvaluatedGrasp(i-1, ev);
     evaluation_result_indicator_->setText(grasp_place_evaluation::convertGraspResultToStringStatus(ev.result_).c_str());
@@ -272,6 +366,11 @@ void GraspEvaluationVisualizationDialog::evaluatedGraspBrowserNumberChanged(int 
     if(ev.result_.result_code == moveit_manipulation_msgs::GraspResult::SUCCESS) {
       play_interpolated_trajectory_button_->setEnabled(true);
       plan_for_grasp_execution_button_->setEnabled(true);
+      plan_execution_indicator_->setEnabled(true);
+    } else {
+      play_interpolated_trajectory_button_->setDisabled(true);
+      plan_for_grasp_execution_button_->setDisabled(true);
+      plan_execution_indicator_->setDisabled(true);
     }
   }
 }
@@ -280,39 +379,30 @@ void GraspEvaluationVisualizationDialog::selectedObjectChanged(const QString &te
   if(text.toStdString() == current_object_) {
     return;
   }
+  current_object_ = text.toStdString();
   disableGeneration();
-  disableEvaluation();
 }
 
 void GraspEvaluationVisualizationDialog::selectedSupportChanged(const QString &text) {
   if(text.toStdString() == current_support_) {
     return;
   }
+  current_support_ = text.toStdString();
   disableEvaluation();
 }
 
-void GraspEvaluationVisualizationDialog::disableGeneration() {
-  generated_grasps_browser_->setDisabled(true);
-  generated_grasps_browser_->setRange(0, 0);
-  grasp_generator_visualization_->removeAllMarkers();
-}
-
-void GraspEvaluationVisualizationDialog::disableEvaluation() {
-  evaluate_grasp_button_->setDisabled(true);
-  evaluated_grasp_browser_->setDisabled(true);
-  evaluated_grasp_browser_->setRange(0,0);
-  evaluation_result_indicator_->setText("None");
-  evaluation_result_indicator_->setDisabled(true);
-  play_interpolated_trajectory_button_->setDisabled(true);
-  plan_for_grasp_execution_button_->setDisabled(true);
-  plan_execution_indicator_->setText("None");
-  plan_execution_indicator_->setDisabled(true);
-  play_full_grasp_execution_button_->setDisabled(true);
+void GraspEvaluationVisualizationDialog::selectedPlaceChanged(const QString &text) {
+  if(text.toStdString() == current_place_) {
+    return;
+  }
+  current_place_ = text.toStdString();
+  disablePlaceEvaluation();
 }
 
 void GraspEvaluationVisualizationDialog::playInterpolatedTrajectory() {
   grasp_evaluation_visualization_->playInterpolatedTrajectories(evaluated_grasp_browser_->value()-1,
                                                                 true, 
+                                                                true,
                                                                 true);
 }
 
@@ -339,13 +429,27 @@ void GraspEvaluationVisualizationDialog::planForGraspExecution() {
 
 void GraspEvaluationVisualizationDialog::planGenerationFinished(const std::string& group_name,
                                                                 const trajectory_msgs::JointTrajectory& traj) {
-  plan_execution_indicator_->setText("Success");
-  play_full_grasp_execution_button_->setEnabled(true);
-  last_planned_trajectory_ = traj;
+  if(plan_place_execution_indicator_->isEnabled()) {
+    ROS_INFO_STREAM("Setting place");
+    plan_place_execution_indicator_->setText("Success");
+    play_grasp_and_place_execution_button_->setEnabled(true);
+    last_place_planned_trajectory_ = traj;
+  } else {
+    ROS_INFO_STREAM("Setting grasp");
+    plan_execution_indicator_->setText("Success");
+    play_full_grasp_execution_button_->setEnabled(true);
+    last_planned_trajectory_ = traj;
+    place_name_combo_->setEnabled(true);
+    generate_place_locations_button_->setEnabled(true);
+  }
 }
 
 void GraspEvaluationVisualizationDialog::planGenerationFailed(moveit_msgs::MoveItErrorCodes& err) {
-  plan_execution_indicator_->setText("Failed");
+  if(plan_place_execution_indicator_->isEnabled()) {
+    plan_place_execution_indicator_->setText("Failed");
+  } else {
+    plan_execution_indicator_->setText("Failed");
+  }
 }
 
 void GraspEvaluationVisualizationDialog::playFullGraspExecution() {
@@ -353,6 +457,12 @@ void GraspEvaluationVisualizationDialog::playFullGraspExecution() {
 }
 
 void GraspEvaluationVisualizationDialog::playFullGraspExecutionThread() {
+
+  if(last_planned_trajectory_.points.size() == 0) {
+    ROS_WARN_STREAM("Last planned trajectory is size 0");
+    return;
+  }
+
   std_msgs::ColorRGBA col;
   col.b = col.r = col.a = 1.0;
   grasp_evaluation_visualization_->getJointTrajectoryVisualization()->setTrajectory(planning_scene_->getCurrentState(),
@@ -362,7 +472,245 @@ void GraspEvaluationVisualizationDialog::playFullGraspExecutionThread() {
   grasp_evaluation_visualization_->getJointTrajectoryVisualization()->playCurrentTrajectory(true);
   grasp_evaluation_visualization_->playInterpolatedTrajectories(evaluated_grasp_browser_->value()-1,
                                                                 true,
+                                                                true, 
+                                                                false);
+}
+
+void GraspEvaluationVisualizationDialog::generatePlaceLocations() {
+  generated_place_locations_browser_->setRange(0,0);
+  generated_place_locations_browser_->setDisabled(true);
+  current_generated_place_locations_.clear();
+
+  grasp_place_evaluation::GraspExecutionInfo ev;
+  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev);
+  if(ev.result_.result_code != moveit_manipulation_msgs::GraspResult::SUCCESS) {
+    ROS_WARN_STREAM("Can't call place for unsuccessful grasp");
+    return;
+  }
+  std::string current_object = object_name_combo_->currentText().toStdString();
+  std::string place_support_surface = place_name_combo_->currentText().toStdString();
+  if(current_object == place_support_surface) {
+    ROS_WARN_STREAM("Can't place object " << current_object << " on itself");
+    return;
+  }
+  if(!place_generator_visualization_->generatePlaces(ev.attached_object_diff_scene_,
+                                                     current_object,
+                                                     place_support_surface,
+                                                     current_generated_place_locations_)) {
+    ROS_WARN_STREAM("Something wrong with place generator");
+    return;
+  }
+  if(current_generated_place_locations_.size() == 0) {
+    ROS_WARN_STREAM("No place locations generated");
+    return;
+  }
+  generated_place_locations_browser_->setEnabled(true);
+  generated_place_locations_browser_->setRange(0, current_generated_place_locations_.size());
+  generated_place_locations_browser_->setValue(1);
+  generatedPlaceLocationsBrowserNumberChanged(1);
+  evaluate_place_locations_button_->setEnabled(true);
+}
+
+void GraspEvaluationVisualizationDialog::generatedPlaceLocationsBrowserNumberChanged(int i) {
+  if(i == 0) {
+    place_generator_visualization_->removeAllMarkers();
+  } else {
+    grasp_place_evaluation::GraspExecutionInfo ev;
+    grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev);
+    place_generator_visualization_->showPlace(ev.attached_object_diff_scene_,
+                                              current_arm_,
+                                              current_generated_grasps_[evaluated_grasp_browser_->value()-1],
+                                              current_generated_place_locations_[generated_place_locations_browser_->value()-1]);
+  }
+}
+
+void GraspEvaluationVisualizationDialog::evaluateGeneratedPlaceLocations() {
+  grasp_place_evaluation::GraspExecutionInfo ev;
+  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev);
+  
+  moveit_manipulation_msgs::PlaceGoal goal;
+  goal.arm_name = current_arm_;
+  goal.place_locations = current_generated_place_locations_;
+  goal.grasp = current_generated_grasps_[evaluated_grasp_browser_->value()-1];
+  goal.min_retreat_distance = .1;
+  goal.desired_retreat_distance = .1;
+  goal.approach.desired_distance = .1;
+  goal.collision_object_name = object_name_combo_->currentText().toStdString();
+  goal.collision_support_surface_name = place_name_combo_->currentText().toStdString();
+  
+  unsigned int cur_size = place_evaluation_visualization_->getEvaluationInfoSize();
+  
+  if(cur_size == current_generated_place_locations_.size()) {
+    ROS_INFO_STREAM("Starting from scratch");
+    place_evaluation_visualization_->resetPlaceExecutionInfo();
+  }
+  ev.attached_object_diff_scene_->getCurrentState().setStateValues(ev.lift_trajectory_.joint_names,
+                                                                   ev.lift_trajectory_.points.back().positions);
+  place_evaluation_visualization_->updatePlanningScene(ev.attached_object_diff_scene_);
+  place_evaluation_visualization_->evaluatePlaceLocations(current_arm_,
+                                                          goal,
+                                                          &ev.attached_object_diff_scene_->getCurrentState(),
+                                                          current_generated_place_locations_);
+  if(place_evaluation_visualization_->getEvaluationInfoSize() > 0) {
+    evaluated_place_locations_browser_->setRange(0, place_evaluation_visualization_->getEvaluationInfoSize());
+    evaluated_place_locations_browser_->setEnabled(true);
+    bool success = false;
+    for(unsigned int i = cur_size; i < place_evaluation_visualization_->getEvaluationInfoSize(); i++) {
+      grasp_place_evaluation::PlaceExecutionInfo ev;
+      place_evaluation_visualization_->getEvaluatedPlace(i, ev);
+      if(ev.result_.result_code == moveit_manipulation_msgs::PlaceLocationResult::SUCCESS) {
+        evaluated_place_locations_browser_->setValue(i+1);
+        evaluation_place_locations_result_indicator_->setEnabled(true);
+        evaluatedPlaceLocationsBrowserNumberChanged(i+1);
+        success = true;
+        if(place_evaluation_visualization_->getEvaluationInfoSize() < current_generated_place_locations_.size()) {
+          evaluate_place_locations_button_->setText("Continue Place Evaluation");
+        }
+        break;
+      }
+    }
+    if(!success) {
+      evaluated_place_locations_browser_->setValue(cur_size);
+    }
+  }
+}
+
+void GraspEvaluationVisualizationDialog::evaluatedPlaceLocationsBrowserNumberChanged(int i) {
+  if(i == 0) {
+    place_evaluation_visualization_->removeAllMarkers();
+    evaluation_place_locations_result_indicator_->setText("None");
+    play_placing_interpolated_trajectory_button_->setDisabled(true);
+    plan_for_place_execution_button_->setDisabled(true);
+    plan_place_execution_indicator_->setText("None");
+    plan_place_execution_indicator_->setDisabled(true);
+  } else {
+    plan_place_execution_indicator_->setText("None");
+    grasp_place_evaluation::PlaceExecutionInfo ev;
+    place_evaluation_visualization_->getEvaluatedPlace(i-1, ev);
+    evaluation_place_locations_result_indicator_->setText(grasp_place_evaluation::convertPlaceResultToStringStatus(ev.result_).c_str());
+    place_evaluation_visualization_->showPlacePose(i-1,
+                                                   true,
+                                                   true,
+                                                   true);
+    if(ev.result_.result_code == moveit_manipulation_msgs::PlaceLocationResult::SUCCESS) {
+      play_placing_interpolated_trajectory_button_->setEnabled(true);
+      plan_for_place_execution_button_->setEnabled(true);
+      plan_place_execution_indicator_->setEnabled(true);
+    } else {
+      play_placing_interpolated_trajectory_button_->setDisabled(true);
+      plan_for_place_execution_button_->setDisabled(true);
+      plan_place_execution_indicator_->setDisabled(true);
+    }
+  }
+}
+
+void GraspEvaluationVisualizationDialog::playPlacingInterpolatedTrajectory() {
+  place_evaluation_visualization_->playInterpolatedTrajectories(evaluated_place_locations_browser_->value()-1,
+                                                                true,
                                                                 true);
+}
+
+void GraspEvaluationVisualizationDialog::planForPlaceExecution() {
+  grasp_place_evaluation::GraspExecutionInfo ev_grasp;
+  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev_grasp);
+  if(ev_grasp.lift_trajectory_.points.size() == 0) {
+    ROS_WARN_STREAM("Asked to plan, but no lift trajectory for grasp");
+    return;
+  }
+
+  grasp_place_evaluation::PlaceExecutionInfo ev_place;
+  place_evaluation_visualization_->getEvaluatedPlace(evaluated_place_locations_browser_->value()-1, ev_place);
+  if(ev_place.approach_trajectory_.points.size() == 0) {
+    ROS_WARN_STREAM("Asked to plan, but no approach trajectory");
+    return;
+  }
+  ev_grasp.attached_object_diff_scene_->getCurrentState().setStateValues(ev_grasp.lift_trajectory_.joint_names,
+                                                                         ev_grasp.lift_trajectory_.points.back().positions);
+
+  planning_models::KinematicState goal_state(ev_grasp.attached_object_diff_scene_->getCurrentState());
+  goal_state.setStateValues(ev_place.approach_trajectory_.joint_names,
+                            ev_place.approach_trajectory_.points.front().positions);
+
+  plan_place_execution_indicator_->setText("Planning");
+
+  //emit
+  requestDiffScenePlanGeneration(current_arm_,
+                                 ev_grasp.attached_object_diff_scene_,
+                                 &goal_state);
+
+}
+
+void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecution() {
+  boost::thread(boost::bind(&GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecutionThread, this));
+}
+
+void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecutionThread() {
+  //this plays until lift
+  playFullGraspExecutionThread();
+
+  ROS_INFO_STREAM("Done with grasp execution thread");
+
+  grasp_place_evaluation::GraspExecutionInfo ev_grasp;
+  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev_grasp);
+  
+  std_msgs::ColorRGBA col;
+  col.b = col.r = col.a = 1.0;
+  place_evaluation_visualization_->getJointTrajectoryVisualization()->setTrajectory(ev_grasp.attached_object_diff_scene_->getCurrentState(),
+                                                                                    current_arm_,
+                                                                                    last_place_planned_trajectory_,
+                                                                                    col);
+  place_evaluation_visualization_->getJointTrajectoryVisualization()->playCurrentTrajectory(true);
+  place_evaluation_visualization_->playInterpolatedTrajectories(evaluated_place_locations_browser_->value()-1,
+                                                                true,
+                                                                true);
+}
+
+void GraspEvaluationVisualizationDialog::disableGeneration() {
+  generated_grasps_browser_->setDisabled(true);
+  generated_grasps_browser_->setRange(0, 0);
+  grasp_generator_visualization_->removeAllMarkers();
+  disableEvaluation();
+}
+
+void GraspEvaluationVisualizationDialog::disableEvaluation() {
+  evaluate_grasp_button_->setText("Start Grasp Evaluation"); 
+  evaluate_grasp_button_->setDisabled(true);
+  grasp_evaluation_visualization_->resetGraspExecutionInfo();
+  evaluated_grasp_browser_->setDisabled(true);
+  evaluated_grasp_browser_->setRange(0,0);
+  evaluation_result_indicator_->setText("None");
+  evaluation_result_indicator_->setDisabled(true);
+  play_interpolated_trajectory_button_->setDisabled(true);
+  plan_for_grasp_execution_button_->setDisabled(true);
+  plan_execution_indicator_->setText("None");
+  plan_execution_indicator_->setDisabled(true);
+  play_full_grasp_execution_button_->setDisabled(true);
+  grasp_evaluation_visualization_->removeAllMarkers();
+  disablePlaceGeneration();
+}
+
+void GraspEvaluationVisualizationDialog::disablePlaceGeneration() {
+  place_name_combo_->setDisabled(true);
+  generate_place_locations_button_->setDisabled(true);
+  generated_place_locations_browser_->setDisabled(true);
+  place_generator_visualization_->removeAllMarkers();
+  disablePlaceEvaluation();
+}
+
+void GraspEvaluationVisualizationDialog::disablePlaceEvaluation() {
+  evaluate_place_locations_button_->setText("Start Place Location Evaluation"); 
+  evaluate_place_locations_button_->setDisabled(true);
+  place_evaluation_visualization_->resetPlaceExecutionInfo();
+  evaluated_place_locations_browser_->setDisabled(true);
+  evaluated_place_locations_browser_->setRange(0,0);
+  evaluation_place_locations_result_indicator_->setText("None");
+  evaluation_place_locations_result_indicator_->setDisabled(true);
+  play_placing_interpolated_trajectory_button_->setDisabled(true);
+  plan_for_place_execution_button_->setDisabled(true);
+  plan_place_execution_indicator_->setText("None");
+  plan_place_execution_indicator_->setDisabled(true);
+  play_grasp_and_place_execution_button_->setDisabled(true);
+  place_evaluation_visualization_->removeAllMarkers();
 }
 
 } //namespace

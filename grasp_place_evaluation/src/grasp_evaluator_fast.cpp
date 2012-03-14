@@ -47,222 +47,6 @@ GraspEvaluatorFast::GraspEvaluatorFast(const planning_models::KinematicModelCons
 {  
 }
 
-// void GraspEvaluatorFast::testGrasp(const moveit_msgs::PickupGoal &pickup_goal,
-//                                    const moveit_msgs::Grasp &grasp,
-//                                    GraspExecutionInfo &execution_info)
-// {
-// ros::WallTime start = ros::WallTime::now();
-
-// //always true
-// execution_info.result_.continuation_possible = true;
-
-// planning_environment::CollisionModels* cm = getCollisionModels();
-// planning_models::KinematicState* state = getPlanningSceneState();
-
-// std::vector<std::string> end_effector_links, arm_links; 
-// getGroupLinks(handDescription().gripperCollisionName(pickup_goal.arm_name), end_effector_links);
-// getGroupLinks(handDescription().armGroup(pickup_goal.arm_name), arm_links);
-
-// collision_space::EnvironmentModel::AllowedCollisionMatrix original_acm = cm->getCurrentAllowedCollisionMatrix();
-// cm->disableCollisionsForNonUpdatedLinks(handDescription().gripperCollisionName(pickup_goal.arm_name));
-// collision_space::EnvironmentModel::AllowedCollisionMatrix group_disable_acm = cm->getCurrentAllowedCollisionMatrix();
-// group_disable_acm.changeEntry(pickup_goal.collision_object_name, end_effector_links, true); 
-
-// //turning off collisions for the arm associated with this end effector
-// for(unsigned int i = 0; i < arm_links.size(); i++) {
-//   group_disable_acm.changeEntry(arm_links[i], true);
-// }
-
-// cm->setAlteredAllowedCollisionMatrix(group_disable_acm);
-
-// //first we apply link padding for grasp check
-
-// cm->applyLinkPaddingToCollisionSpace(linkPaddingForGrasp(pickup_goal));
-
-// //using pre-grasp posture, cause grasp_posture only matters for closing the gripper
-// std::map<std::string, double> pre_grasp_joint_vals;    
-// for(unsigned int j = 0; j < grasp.pre_grasp_posture.name.size(); j++) {
-//   pre_grasp_joint_vals[grasp.pre_grasp_posture.name[j]] = grasp.pre_grasp_posture.position[j];
-// }
-// state->setKinematicState(pre_grasp_joint_vals);
-
-// //assume for now grasp pose is in correct frame
-
-// std_msgs::Header target_header;
-// target_header.frame_id = pickup_goal.target.reference_frame_id;
-// geometry_msgs::PoseStamped grasp_world_pose_stamped;
-// cm->convertPoseGivenWorldTransform(*state,
-//                                   cm->getWorldFrameId(),
-//                                   target_header,
-//                                   grasp.grasp_pose,
-//                                   grasp_world_pose_stamped);
-// tf::Transform grasp_pose;
-// tf::poseMsgToTF(grasp_world_pose_stamped.pose, grasp_pose);
-// state->updateKinematicStateWithLinkAt(handDescription().gripperFrame(pickup_goal.arm_name),grasp_pose);
-
-// std_msgs::ColorRGBA col_grasp;
-// col_grasp.r = 0.0;
-// col_grasp.g = 1.0;
-// col_grasp.b = 0.0;
-// col_grasp.a = 1.0;
-
-// if(cm->isKinematicStateInCollision(*state)) {
-//   ROS_INFO_STREAM("Grasp pose in collision");
-//   execution_info.result_.result_code = GraspResult::GRASP_IN_COLLISION;
-// }
-
-// //now we turn link paddings off for rest of the pose checks
-// //cm->revertCollisionSpacePaddingToDefault();
-
-// tf::Vector3 pregrasp_dir;
-// tf::vector3MsgToTF(doNegate(handDescription().approachDirection(pickup_goal.arm_name)), pregrasp_dir);
-// pregrasp_dir.normalize();
-
-// tf::Vector3 distance_pregrasp_dir = pregrasp_dir*fabs(grasp.desired_approach_distance);
-
-// tf::Transform pre_grasp_trans(tf::Quaternion(0,0,0,1.0), distance_pregrasp_dir);
-// tf::Transform pre_grasp_pose = grasp_pose*pre_grasp_trans;
-// state->updateKinematicStateWithLinkAt(handDescription().gripperFrame(pickup_goal.arm_name),pre_grasp_pose);
-
-// if(cm->isKinematicStateInCollision(*state)) {
-//   ROS_INFO_STREAM("Pre-grasp pose in collision");
-//   execution_info.result_.result_code = GraspResult::PREGRASP_IN_COLLISION;
-// }
-
-// tf::Vector3 lift_dir;
-// tf::vector3MsgToTF(pickup_goal.lift.direction.vector, lift_dir);
-// lift_dir.normalize();
-// tf::Vector3 distance_lift_dir = lift_dir*fabs(pickup_goal.lift.desired_distance);
-// tf::Transform lift_trans(tf::Quaternion(0,0,0,1.0), distance_lift_dir);
-
-// //only works if pre-grasp in robot frame
-// tf::Transform lift_pose = lift_trans*grasp_pose;
-// state->updateKinematicStateWithLinkAt(handDescription().gripperFrame(pickup_goal.arm_name),lift_pose);
-
-// if(cm->isKinematicStateInCollision(*state)) {
-//   ROS_INFO_STREAM("Lift pose in collision");
-//   execution_info.result_.result_code = GraspResult::LIFT_IN_COLLISION;
-// }
-
-// //now we turn link paddings back on for rest of the evaluation
-// //cm->applyLinkPaddingToCollisionSpace(linkPaddingForGrasp(pickup_goal));
-// //and also go back to pretty much the original acm
-// cm->setAlteredAllowedCollisionMatrix(original_acm);
-// cm->disableCollisionsForNonUpdatedLinks(pickup_goal.arm_name);
-// group_disable_acm = cm->getCurrentAllowedCollisionMatrix();
-// group_disable_acm.changeEntry(pickup_goal.collision_object_name, end_effector_links, true); 
-// cm->setAlteredAllowedCollisionMatrix(group_disable_acm);
-
-// //now grasp pose is in world frame
-// std_msgs::Header world_header;
-// world_header.frame_id = cm->getWorldFrameId();
-
-// //now call ik for grasp
-// geometry_msgs::Pose grasp_geom_pose;
-// tf::poseTFToMsg(grasp_pose, grasp_geom_pose);
-// geometry_msgs::PoseStamped base_link_grasp_pose;
-// cm->convertPoseGivenWorldTransform(*state,
-//                                   "torso_lift_link",
-//                                   world_header,
-//                                   grasp_geom_pose,
-//                                   base_link_grasp_pose);
-// moveit_msgs::Constraints emp;
-// sensor_msgs::JointState solution;
-// moveit_msgs::MoveItErrorCodes error_code;
-// if(!ik_solver_map_[pickup_goal.arm_name]->findConstraintAwareSolution(base_link_grasp_pose.pose,
-//                                                                       emp,
-//                                                                       state,
-//                                                                       solution,
-//                                                                       error_code,
-//                                                                       false)) {
-//   ROS_INFO_STREAM("Grasp out of reach");
-//   execution_info.result_.result_code = GraspResult::GRASP_OUT_OF_REACH;
-// } 
-
-// std::vector<std::string> grasp_ik_names = solution.name;
-// std::vector<double> grasp_ik_solution = solution.position;
-
-// //state will have a good seed state
-// geometry_msgs::Pose pre_grasp_geom_pose;
-// tf::poseTFToMsg(pre_grasp_pose, pre_grasp_geom_pose);
-// geometry_msgs::PoseStamped base_link_pre_grasp_pose;
-// cm->convertPoseGivenWorldTransform(*state,
-//                                   "torso_lift_link",
-//                                   world_header,
-//                                   pre_grasp_geom_pose,
-//                                   base_link_pre_grasp_pose);
-
-// if(!ik_solver_map_[pickup_goal.arm_name]->findConsistentConstraintAwareSolution(base_link_pre_grasp_pose.pose,
-//                                                                                 emp,
-//                                                                                 state,
-//                                                                                 solution,
-//                                                                                 error_code,
-//                                                                                 redundancy_,
-//                                                                                 consistent_angle_, 
-//                                                                                 false)) {
-//   ROS_INFO_STREAM("Pre-grasp out of reach");
-//   execution_info.result_.result_code = GraspResult::PREGRASP_OUT_OF_REACH;
-// } 
-
-// //now we want to go back to the grasp
-// std::map<std::string, double> grasp_ik_map;
-// for(unsigned int i = 0; i < grasp_ik_names.size(); i++) {
-//   grasp_ik_map[grasp_ik_names[i]] = grasp_ik_solution[i];
-// }
-// state->setKinematicState(grasp_ik_map);
-
-// geometry_msgs::Pose lift_geom_pose;
-// tf::poseTFToMsg(lift_pose, lift_geom_pose);
-// geometry_msgs::PoseStamped base_link_lift_pose;
-// cm->convertPoseGivenWorldTransform(*state,
-//                                   "torso_lift_link",
-//                                   world_header,
-//                                   lift_geom_pose,
-//                                   base_link_lift_pose);
-
-// if(!ik_solver_map_[pickup_goal.arm_name]->findConsistentConstraintAwareSolution(base_link_lift_pose.pose,
-//                                                                                 emp,
-//                                                                                 state,
-//                                                                                 solution,
-//                                                                                 error_code,
-//                                                                                 redundancy_,
-//                                                                                 consistent_angle_,
-//                                                                                 false)) {
-//   ROS_INFO_STREAM("Lift out of reach");
-//   execution_info.result_.result_code = GraspResult::LIFT_OUT_OF_REACH;
-// } 
-  
-// tf::Transform base_link_bullet_grasp_pose;
-// tf::poseMsgToTF(base_link_grasp_pose.pose, base_link_bullet_grasp_pose);
-// //now we need to do interpolated ik
-// if(!getInterpolatedIK(pickup_goal.arm_name,
-//                       base_link_bullet_grasp_pose,
-//                       pregrasp_dir,
-//                       grasp.desired_approach_distance,
-//                       grasp_ik_solution,
-//                       true,
-//                       false,
-//                       execution_info.approach_trajectory_)) {
-//   ROS_INFO_STREAM("No interpolated IK for pre-grasp to grasp");
-//   execution_info.result_.result_code = GraspResult::PREGRASP_UNFEASIBLE;
-// }
-
-// if(!getInterpolatedIK(pickup_goal.arm_name,
-//                       base_link_bullet_grasp_pose,
-//                       lift_dir,
-//                       pickup_goal.lift.desired_distance,
-//                       grasp_ik_solution,
-//                       false,
-//                       true,
-//                       execution_info.lift_trajectory_)) {
-//   ROS_INFO_STREAM("No interpolated IK for grasp to lift");
-//   execution_info.result_.result_code = GraspResult::LIFT_UNFEASIBLE;
-// }
-
-// ROS_INFO_STREAM("Success took " << (ros::WallTime::now()-start));
-// execution_info.result_.result_code = GraspResult::SUCCESS;
-//}
-
 void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                     const planning_models::KinematicState* seed_state,
                                     const moveit_manipulation_msgs::PickupGoal &pickup_goal,
@@ -288,7 +72,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   std::vector<std::string> arm_links = planning_scene->getSemanticModel()->getGroupLinks(pickup_goal.arm_name);
   
   collision_detection::AllowedCollisionMatrix original_acm = planning_scene->getAllowedCollisionMatrix();
-  collision_detection::AllowedCollisionMatrix group_disable_acm = planning_scene->disableCollisionsForNonUpdatedLinks(pickup_goal.arm_name);
+  collision_detection::AllowedCollisionMatrix group_disable_acm = original_acm;//planning_scene->disableCollisionsForNonUpdatedLinks(pickup_goal.arm_name);
 
   collision_detection::AllowedCollisionMatrix object_disable_acm = group_disable_acm;
   object_disable_acm.setEntry(pickup_goal.collision_object_name, end_effector_links, true); 
@@ -328,21 +112,30 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   Eigen::Affine3d obj_pose(Eigen::Affine3d::Identity());
 
   if(pickup_goal.target.reference_frame_id == pickup_goal.collision_object_name) {
+    moveit_msgs::CollisionObject co;
+    if(!planning_scene->getCollisionObjectMsg(pickup_goal.collision_object_name, 
+                                              co)) {
+      ROS_WARN_STREAM("Don't appear to have object " << pickup_goal.collision_object_name 
+                      << " in planning scene, so can't tell where it is to pick it up");
+      return;
+    }
     in_object_frame = true;
-    Eigen::Affine3d potential_pose;
-    planning_models::poseFromMsg(pickup_goal.target.potential_models[0].pose.pose, potential_pose);
-    planning_scene->getTransforms()->transformPose(state,
-                                                   pickup_goal.target.potential_models[0].pose.header.frame_id,
-                                                   potential_pose,
-                                                   obj_pose);
-  }
+    //TODO - Use potential pose?
+    //Eigen::Affine3d potential_pose;
+    //planning_models::poseFromMsg(pickup_goal.target.potential_models[0].pose.pose, potential_pose);
+    // planning_scene->getTransforms()->transformPose(state,
+    //                                                pickup_goal.target.potential_models[0].pose.header.frame_id,
+    //                                                potential_pose,
+    //                                                obj_pose);
+    planning_models::poseFromMsg(co.poses[0], obj_pose);
+  } 
   
   //assumes that whatever is in there is valid
   unsigned int current_size = execution_info.size();
   execution_info.pickup_goal_ = pickup_goal;
   execution_info.grasps_ = grasps;
   execution_info.resize(grasps.size());
-  for(unsigned int i = current_size-1; i < execution_info.size(); i++) {
+  for(unsigned int i = current_size; i < execution_info.size(); i++) {
     execution_info[i].result_.result_code = 0;
   }
 
@@ -593,6 +386,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     state.setStateValues(pre_grasp_ik);
     //the start of the approach needs to be collision-free according to the default collision matrix
     //cm->setAlteredAllowedCollisionMatrix(group_disable_acm);
+    //req.verbose = true;
     res = collision_detection::CollisionResult();
     planning_scene->checkCollision(req, res, state, group_disable_acm);
     if(res.collision) {
@@ -600,14 +394,14 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       execution_info[i].result_.result_code = GraspResult::PREGRASP_OUT_OF_REACH;
       outcome_count[GraspResult::PREGRASP_OUT_OF_REACH]++;
       continue;
-    }
+    } 
     
+    // ------------- CHECKING LIFT OK FOR PLANNING ------------------            
+
     if(execution_info[i].lift_trajectory_.points.empty()) {
       ROS_WARN_STREAM("No result code and no points in lift trajectory");
       continue;
     }    
-
-    // ------------- CHECKING LIFT OK FOR PLANNING ------------------            
 
     std::map<std::string, double> lift_ik = ik_map_pre_grasp;
     for(unsigned int j = 0; j < joint_names.size(); j++) {

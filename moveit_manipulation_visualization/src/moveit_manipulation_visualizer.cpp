@@ -59,6 +59,14 @@ MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
                    SIGNAL(requestPlanGeneration(bool)),
                    pv_.get(),
                    SLOT(generatePlanRequested(bool)));
+  QObject::connect(grasp_evaluation_visualization_dialog_,
+                   SIGNAL(requestDiffScenePlanGeneration(const std::string&,
+                                                         const planning_scene::PlanningSceneConstPtr&,
+                                                         const planning_models::KinematicState*)),
+                   pv_.get(),
+                   SLOT(generatePlanDiffSceneRequested(const std::string&,
+                                                       const planning_scene::PlanningSceneConstPtr&,
+                                                       const planning_models::KinematicState*)));
   QObject::connect(pv_.get(),
                    SIGNAL(planGenerated(const std::string&, const trajectory_msgs::JointTrajectory&)),
                    grasp_evaluation_visualization_dialog_,

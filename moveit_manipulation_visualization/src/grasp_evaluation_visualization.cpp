@@ -69,36 +69,22 @@ GraspEvaluationVisualization(const planning_scene::PlanningSceneConstPtr& planni
   
 }
 
+void GraspEvaluationVisualization::resetGraspExecutionInfo() {
+  last_grasp_evaluation_info_.clear();
+}
+
 void GraspEvaluationVisualization::evaluateGrasps(const std::string& group_name,
                                                   const moveit_manipulation_msgs::PickupGoal& goal,
                                                   const planning_models::KinematicState* seed_state,
                                                   const std::vector<moveit_manipulation_msgs::Grasp>& grasps)
 {
-  last_grasp_evaluation_info_.clear();
   grasp_evaluator_fast_->testGrasps(planning_scene_,
                                     seed_state,
                                     goal, 
                                     grasps,
                                     last_grasp_evaluation_info_,
                                     true);
-  //showGraspPose(0, true, true, true);
-  // playInterpolationTrajectories(0,
-  //                               true,
-  //                               true);
 }
-
-// void GraspEvaluationVisualization::evaluateNextGrasps(const std::string& group_name,
-//                                                       const moveit_manipulation_msgs::PickupGoal& goal,
-//                                                       const planning_models::KinematicState* seed_state,
-//                                                       const std::vector<moveit_manipulation_msgs::Grasp>& grasps)
-// {
-//   grasp_evaluator_fast_->testGrasps(planning_scene_,
-//                                     seed_state,
-//                                     goal, 
-//                                     grasps,
-//                                     last_grasp_evaluation_info_,
-//                                     true);
-// }
 
 bool GraspEvaluationVisualization::getEvaluatedGrasp(unsigned int num,
                                                      grasp_place_evaluation::GraspExecutionInfo& grasp) const {
@@ -182,7 +168,8 @@ void GraspEvaluationVisualization::showGraspPose(unsigned int num,
 
 void GraspEvaluationVisualization::playInterpolatedTrajectories(unsigned int num,
                                                                 bool play_approach,
-                                                                bool play_lift) {
+                                                                bool play_lift,
+                                                                bool in_thread) {
   if(num >= last_grasp_evaluation_info_.size()) {
     return;
   }
@@ -191,7 +178,11 @@ void GraspEvaluationVisualization::playInterpolatedTrajectories(unsigned int num
     return;
   }
   
-  boost::thread(boost::bind(&GraspEvaluationVisualization::playInterpolatedTrajectoriesThread, this, num, play_approach, play_lift));
+  if(in_thread) {
+    boost::thread(boost::bind(&GraspEvaluationVisualization::playInterpolatedTrajectoriesThread, this, num, play_approach, play_lift));
+  } else {
+    playInterpolatedTrajectoriesThread(num, play_approach, play_lift);
+  }
 }
 
 void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(unsigned int num,
@@ -206,25 +197,34 @@ void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(unsigned i
     joint_trajectory_visualization_->updatePlanningScene(planning_scene_);
     planning_models::KinematicState state(planning_scene_->getCurrentState());
     state.setStateValues(last_grasp_evaluation_info_.grasps_[num].pre_grasp_posture);
-    joint_trajectory_visualization_->setTrajectory(state,
-                                                   last_grasp_evaluation_info_.pickup_goal_.arm_name,
-                                                   last_grasp_evaluation_info_[num].approach_trajectory_,
-                                                   col);
-    if(play_lift) {
-      joint_trajectory_visualization_->playCurrentTrajectory(true);
+    if(last_grasp_evaluation_info_[num].approach_trajectory_.points.size() == 0) {
+      ROS_WARN_STREAM("No points in approach trajectory");
     } else {
-      joint_trajectory_visualization_->playCurrentTrajectory();
+      joint_trajectory_visualization_->setTrajectory(state,
+                                                     last_grasp_evaluation_info_.pickup_goal_.arm_name,
+                                                     last_grasp_evaluation_info_[num].approach_trajectory_,
+                                                     col);
+      if(play_lift) {
+        joint_trajectory_visualization_->playCurrentTrajectory(true);
+      } else {
+        joint_trajectory_visualization_->playCurrentTrajectory();
+      }
     }
   } 
   if(play_lift) {
     last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState().setStateValues(last_grasp_evaluation_info_.grasps_[num].pre_grasp_posture);
 
-    joint_trajectory_visualization_->updatePlanningScene(last_grasp_evaluation_info_[num].attached_object_diff_scene_);
-    joint_trajectory_visualization_->setTrajectory(last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState(),
-                                                   last_grasp_evaluation_info_.pickup_goal_.arm_name,
-                                                   last_grasp_evaluation_info_[num].lift_trajectory_,
-                                                   col);
-    joint_trajectory_visualization_->playCurrentTrajectory(true);
+    if(last_grasp_evaluation_info_[num].lift_trajectory_.points.size() == 0) {
+      ROS_WARN_STREAM("No points in lift trajectory");
+    } else {
+      
+      joint_trajectory_visualization_->updatePlanningScene(last_grasp_evaluation_info_[num].attached_object_diff_scene_);
+      joint_trajectory_visualization_->setTrajectory(last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState(),
+                                                     last_grasp_evaluation_info_.pickup_goal_.arm_name,
+                                                     last_grasp_evaluation_info_[num].lift_trajectory_,
+                                                     col);
+      joint_trajectory_visualization_->playCurrentTrajectory(true);
+    }
   }
 }
 

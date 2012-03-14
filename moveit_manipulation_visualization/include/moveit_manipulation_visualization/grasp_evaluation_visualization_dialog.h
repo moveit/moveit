@@ -32,8 +32,10 @@
 #ifndef _GRASP_EVALUATION_VISUALIZATION_DIALOG_H_
 #define _GRASP_EVALUATION_VISUALIZATION_DIALOG_H_
 
-#include <moveit_manipulation_visualization/grasp_evaluation_visualization.h>
 #include <moveit_manipulation_visualization/grasp_generator_visualization.h>
+#include <moveit_manipulation_visualization/grasp_evaluation_visualization.h>
+#include <moveit_manipulation_visualization/place_generator_visualization.h>
+#include <moveit_manipulation_visualization/place_evaluation_visualization.h>
 
 #include <QDialog>
 #include <QComboBox>
@@ -71,17 +73,24 @@ public Q_SLOTS:
   void planningGroupChanged(const QString&);
   void selectedObjectChanged(const QString &text);
   void selectedSupportChanged(const QString &text);
+  void selectedPlaceChanged(const QString &text);
 
   void playInterpolatedTrajectory();
-
   void planForGraspExecution();
 
   void planGenerationFinished(const std::string&,
                               const trajectory_msgs::JointTrajectory&);
-
   void planGenerationFailed(moveit_msgs::MoveItErrorCodes& err);
 
   void playFullGraspExecution();
+
+  void generatePlaceLocations();
+  void generatedPlaceLocationsBrowserNumberChanged(int);
+  void evaluateGeneratedPlaceLocations();
+  void evaluatedPlaceLocationsBrowserNumberChanged(int);
+  void playPlacingInterpolatedTrajectory();
+  void planForPlaceExecution();
+  void playFullGraspAndPlaceExecution();
 
 Q_SIGNALS:
 
@@ -92,12 +101,19 @@ Q_SIGNALS:
 
   void requestPlanGeneration(bool);
 
+  void requestDiffScenePlanGeneration(const std::string&,
+                                      const planning_scene::PlanningSceneConstPtr&,
+                                      const planning_models::KinematicState*);
+
 protected:
 
   void disableGeneration();
   void disableEvaluation();
+  void disablePlaceGeneration();
+  void disablePlaceEvaluation();
 
   void playFullGraspExecutionThread();
+  void playFullGraspAndPlaceExecutionThread();
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
 
@@ -107,11 +123,18 @@ protected:
   std::string current_support_;
   std::vector<moveit_manipulation_msgs::Grasp> current_generated_grasps_;
   trajectory_msgs::JointTrajectory last_planned_trajectory_;
+
+  std::string current_place_;
+  std::vector<geometry_msgs::PoseStamped> current_generated_place_locations_;
+  trajectory_msgs::JointTrajectory last_place_planned_trajectory_;
+  
   
 
   QComboBox* object_name_combo_;
-  QSpinBox* generated_grasps_browser_;
   QComboBox* support_name_combo_;
+
+  QSpinBox* generated_grasps_browser_;
+
   QPushButton* evaluate_grasp_button_;
   QSpinBox* evaluated_grasp_browser_;
   QLabel* evaluation_result_indicator_;
@@ -120,8 +143,23 @@ protected:
   QLabel* plan_execution_indicator_;
   QPushButton* play_full_grasp_execution_button_;
 
+  QComboBox* place_name_combo_;
+  QPushButton* generate_place_locations_button_;
+  QSpinBox* generated_place_locations_browser_;
+
+  QPushButton* evaluate_place_locations_button_;
+  QSpinBox* evaluated_place_locations_browser_;
+  QLabel* evaluation_place_locations_result_indicator_;
+  QPushButton* play_placing_interpolated_trajectory_button_;
+  QPushButton* plan_for_place_execution_button_;
+  QLabel* plan_place_execution_indicator_;
+  QPushButton* play_grasp_and_place_execution_button_;
+
   boost::shared_ptr<GraspGeneratorVisualization> grasp_generator_visualization_;
   boost::shared_ptr<GraspEvaluationVisualization> grasp_evaluation_visualization_;
+
+  boost::shared_ptr<PlaceGeneratorVisualization> place_generator_visualization_;
+  boost::shared_ptr<PlaceEvaluationVisualization> place_evaluation_visualization_;
 
 };
 

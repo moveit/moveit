@@ -53,7 +53,7 @@ struct GraspExecutionInfo {
   Eigen::Affine3d grasp_pose_;
   Eigen::Affine3d pregrasp_pose_;
   Eigen::Affine3d lift_pose_;
-  boost::shared_ptr<planning_scene::PlanningScene> attached_object_diff_scene_;
+  planning_scene::PlanningScenePtr attached_object_diff_scene_;
   moveit_manipulation_msgs::GraspResult result_;
 };
 

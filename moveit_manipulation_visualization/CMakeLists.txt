@@ -32,6 +32,9 @@ rosbuild_add_library(${PROJECT_NAME}
   src/moveit_manipulation_visualizer.cpp
   src/grasp_generator_dummy.cpp
   src/grasp_generator_visualization.cpp
+  src/place_generator_dummy.cpp
+  src/place_generator_visualization.cpp
+  src/place_evaluation_visualization.cpp
   src/grasp_evaluation_visualization_dialog.cpp
   ${MOC_FILES}
 )
