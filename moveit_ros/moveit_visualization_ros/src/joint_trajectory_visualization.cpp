@@ -70,6 +70,11 @@ void JointTrajectoryVisualization::playCurrentTrajectory(bool block)
     ROS_DEBUG_STREAM("Cancelling completed");
   }
 
+  if(current_joint_trajectory_.points.size() == 0) {
+    ROS_WARN_STREAM("No points in trajectory, not playing");
+    return;
+  }
+
   if(block) {
     boost::unique_lock<boost::mutex> lock(trajectory_playing_mutex_);
     playback_happening_ = true;

@@ -48,7 +48,7 @@ PrimitiveObjectAdditionDialog::PrimitiveObjectAdditionDialog(QWidget* parent) :
   QGroupBox* panel = new QGroupBox(this);
   panel->setTitle("New Primitive Collision Object");
 
-  QVBoxLayout* panelLayout = new QVBoxLayout(panel);
+  QVBoxLayout* panelLayout = new QVBoxLayout();
 
   collision_object_name_ = new QLineEdit(this);
   panelLayout->addWidget(collision_object_name_);
@@ -63,7 +63,7 @@ PrimitiveObjectAdditionDialog::PrimitiveObjectAdditionDialog(QWidget* parent) :
 
   QGroupBox* scaleBox = new QGroupBox(panel);
   scaleBox->setTitle("Scale (x,y,z) cm");
-  QHBoxLayout* scaleLayout = new QHBoxLayout(scaleBox);
+  QHBoxLayout* scaleLayout = new QHBoxLayout();
 
   collision_object_scale_x_box_ = new QSpinBox(scaleBox);
   collision_object_scale_y_box_ = new QSpinBox(scaleBox);
@@ -87,7 +87,7 @@ PrimitiveObjectAdditionDialog::PrimitiveObjectAdditionDialog(QWidget* parent) :
 
   QGroupBox* posBox = new QGroupBox(panel);
   posBox->setTitle("Position (x,y,z) cm");
-  QHBoxLayout* posLayout = new QHBoxLayout(posBox);
+  QHBoxLayout* posLayout = new QHBoxLayout();
 
   collision_object_pos_x_box_ = new QSpinBox(posBox);
   collision_object_pos_y_box_ = new QSpinBox(posBox);
