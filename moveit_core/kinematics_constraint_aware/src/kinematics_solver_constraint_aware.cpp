@@ -600,9 +600,14 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
   seed_state->getStateValues(seed_state_map);
   state_ = new planning_models::KinematicState(*seed_state);
 
+  double init = 0.0;
   std::vector<double> seed_state_vector(solver_map_[group_name_]->getJointNames().size());
   for(unsigned int i = 0; i < solver_map_[group_name_]->getJointNames().size(); i++) {
     seed_state_vector[i] = seed_state_map[solver_map_[group_name_]->getJointNames()[i]];
+    if(i == redundancy) {
+      ROS_INFO_STREAM("Seed state value " << seed_state_vector[i]);
+      init = seed_state_vector[i];
+    }
   } 
   
   std::vector<double> sol;
@@ -617,6 +622,7 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
                                                              error_code);
   if(ik_valid) {
     solution.name = solver_map_[group_name_]->getJointNames();
+    ROS_INFO_STREAM("After fact " << solution.position[redundancy] << " diff " << init-solution.position[redundancy] << " max " << max_consistency); 
     solution.position = sol;
   } else {
     solution.name.clear();
@@ -792,15 +798,15 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
 
   for(unsigned int i = 1; i <= num_points; i++) {
 
-    int val;
+    unsigned int ind;
     if(reverse) {
-      val = num_points-i;
+      ind = num_points-i;
     } else {
-      val = i;
+      ind = i-1;
     }
 
     //assumes that the axis is aligned
-    Eigen::Affine3d trans(Eigen::Translation3d(direction*val*fabs(distance/(num_points*1.0)))*Eigen::Quaterniond(1.0,0.0,0.0,0.0));
+    Eigen::Affine3d trans(Eigen::Translation3d(direction*((i-1)*1.0)*fabs(distance/(num_points*1.0)))*Eigen::Quaterniond(1.0,0.0,0.0,0.0));
     Eigen::Affine3d mult_trans;
     if(premultiply) {
       mult_trans = trans*first_pose;
@@ -824,8 +830,9 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
                                              do_initial_pose_check,
                                              use_unpadded_robot)) {
       cont_state.setStateValues(solution);
-      ret_traj.points[i-1].positions = solution.position;
-      ret_traj.points[i-1].time_from_start = ros::Duration((i*1.0)*total_dur.toSec()/(num_points*1.0));
+      ret_traj.points[ind].positions = solution.position;
+      ret_traj.points[ind].time_from_start = ros::Duration((ind*1.0)*total_dur.toSec()/(num_points*1.0));
+      ROS_INFO_STREAM("Point " << ind << " redundancy " << solution.position[redundancy]);
     } else {
       ROS_DEBUG_STREAM("Point " << i << " of " << num_points << " infeasible " << temp_error_code.val);
       ROS_DEBUG_STREAM("Point x y z " << trans_pose.position.x << " " << trans_pose.position.y << " " << trans_pose.position.z);
