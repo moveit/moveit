@@ -87,8 +87,7 @@ bool constructMarkerFromShape(const moveit_msgs::Shape &shape, visualization_msg
 bool getShapeExtents(const moveit_msgs::Shape& shape_msg,
                      double& x_extent,
                      double& y_extent,
-                     double& z_extent, 
-                     double& max_dimension);
+                     double& z_extent);
 }
 
 #endif

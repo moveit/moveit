@@ -600,8 +600,7 @@ bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &s
 bool getShapeExtents(const moveit_msgs::Shape& shape_msg,
                      double& x_extent,
                      double& y_extent,
-                     double& z_extent, 
-                     double& max_dimension) 
+                     double& z_extent)
 {
   if(shape_msg.type == moveit_msgs::Shape::SPHERE) {
     if(shape_msg.dimensions.size() != 1) return false;
@@ -645,9 +644,7 @@ bool getShapeExtents(const moveit_msgs::Shape& shape_msg,
     z_extent = zmax-zmin;
   } else {
     return false;
-  }
-  
-  max_dimension = fmax(x_extent, fmax(y_extent, z_extent));
+  }  
   return true;
 }
 
