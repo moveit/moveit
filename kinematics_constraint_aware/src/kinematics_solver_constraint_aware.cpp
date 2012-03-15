@@ -605,7 +605,6 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
   for(unsigned int i = 0; i < solver_map_[group_name_]->getJointNames().size(); i++) {
     seed_state_vector[i] = seed_state_map[solver_map_[group_name_]->getJointNames()[i]];
     if(i == redundancy) {
-      ROS_INFO_STREAM("Seed state value " << seed_state_vector[i]);
       init = seed_state_vector[i];
     }
   } 
@@ -622,8 +621,12 @@ bool KinematicsSolverConstraintAware::findConsistentConstraintAwareSolution(cons
                                                              error_code);
   if(ik_valid) {
     solution.name = solver_map_[group_name_]->getJointNames();
-    ROS_INFO_STREAM("After fact " << solution.position[redundancy] << " diff " << init-solution.position[redundancy] << " max " << max_consistency); 
     solution.position = sol;
+    if(fabs(init-solution.position[redundancy]) > max_consistency) {
+      ROS_WARN_STREAM("Solver violating max consistency " << solution.position[redundancy] 
+                      << " diff " << init-solution.position[redundancy] 
+                      << " max " << max_consistency); 
+    }
   } else {
     solution.name.clear();
     solution.position.clear();
