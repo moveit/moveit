@@ -37,8 +37,8 @@ target_link_libraries(ompl_planner ${PROJECT_NAME})
 rosbuild_add_executable(call_benchmark src/call_benchmark.cpp)
 target_link_libraries(call_benchmark ${PROJECT_NAME})
 
-rosbuild_add_executable(ompl_db src/ompl_db.cpp)
-target_link_libraries(ompl_db ${PROJECT_NAME})
+#rosbuild_add_executable(ompl_db src/ompl_db.cpp)
+#target_link_libraries(ompl_db ${PROJECT_NAME})
 
 set(SOURCE_FILES src/ompl_plugin.cpp)
 set(LIBRARY_NAME ompl_planner_plugin)
