@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/constrained_goal_sampler.h"
-#include "ompl_interface/parameterization/model_based_planning_context.h"
+#include "ompl_interface/model_based_planning_context.h"
 #include <ompl/geometric/ik/GAIK.h>
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,

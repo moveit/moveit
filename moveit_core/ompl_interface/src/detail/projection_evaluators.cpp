@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/projection_evaluators.h"
-#include "ompl_interface/parameterization/model_based_planning_context.h"
+#include "ompl_interface/model_based_planning_context.h"
 
 ompl_interface::ProjectionEvaluatorLinkPose::ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link) :
   ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace()), planning_context_(pc),

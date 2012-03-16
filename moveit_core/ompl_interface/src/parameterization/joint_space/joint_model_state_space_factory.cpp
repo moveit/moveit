@@ -34,13 +34,17 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface/parameterization/model_based_planning_context_factory.h"
+#include "ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h"
+#include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::ModelBasedPlanningContextFactory::getNewPlanningContext(const std::string &name,
-                                                                                                                     const ModelBasedStateSpaceSpecification &space_spec,
-                                                                                                                     const ModelBasedPlanningContextSpecification &context_spec) const
+int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
+								     const pm::KinematicModelConstPtr &kmodel,
+								     const AvailableKinematicsSolvers &aks) const
 {
-  ModelBasedPlanningContextPtr mp = allocPlanningContext(name, space_spec, context_spec);
-  mp->getOMPLStateSpace()->computeLocations();
-  return mp;
+  return 100;
+}
+  
+ompl_interface::ModelBasedStateSpacePtr ompl_interface::JointModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const
+{
+  return ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec));
 }

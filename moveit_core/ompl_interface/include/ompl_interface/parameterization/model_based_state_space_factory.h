@@ -34,4 +34,49 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface/parameterization/work_space/pose_model_planning_context_factory.h"
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
+
+#include "ompl_interface/parameterization/model_based_state_space.h"
+#include <moveit_msgs/MotionPlanRequest.h>
+
+namespace ompl_interface
+{
+
+class ModelBasedStateSpaceFactory;
+typedef boost::shared_ptr<ModelBasedStateSpaceFactory> ModelBasedStateSpaceFactoryPtr;
+
+typedef std::map<const pm::KinematicModel::JointModelGroup*, std::pair<kc::KinematicsAllocator, kc::KinematicsSubgroupAllocator> > AvailableKinematicsSolvers;
+
+class ModelBasedStateSpaceFactory
+{
+public:
+  
+  ModelBasedStateSpaceFactory(void)
+  {
+  }
+  
+  virtual ~ModelBasedStateSpaceFactory(void)
+  {
+  }
+  
+  ModelBasedStateSpacePtr getNewStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
+
+  const std::string& getType(void) const
+  {
+    return type_;
+  }
+
+  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
+				  const pm::KinematicModelConstPtr &kmodel,
+				  const AvailableKinematicsSolvers &aks) const = 0;
+
+protected:
+  
+  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const = 0;
+  std::string type_;
+};
+
+}
+
+#endif

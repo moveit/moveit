@@ -34,25 +34,11 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_PLANNING_CONTEXT_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_PLANNING_CONTEXT_FACTORY_
-
-#include "ompl_interface/parameterization/model_based_planning_context_factory.h"
+#include "ompl_interface/parameterization/work_space/pose_model_state_space_factory.h"
 #include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
 
-namespace ompl_interface
+int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const
 {
-class PoseModelPlanningContextFactory : public ModelBasedPlanningContextFactory
-{
-public:
-  
-  PoseModelPlanningContextFactory(void) : ModelBasedPlanningContextFactory()
-  {
-    type_ = "PoseModel";
-  }  
-  
-  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const
-  {
     const pm::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req.group_name);
     if (jmg)
     {
@@ -87,18 +73,9 @@ public:
     }
     
     return -1;
-  }
-  
-protected:
-  
-  virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
-                                                            const ModelBasedStateSpaceSpecification &space_spec,
-                                                            const ModelBasedPlanningContextSpecification &context_spec) const
-  {
-    return ModelBasedPlanningContextPtr(new ModelBasedPlanningContext(name, ModelBasedStateSpacePtr(new PoseModelStateSpace(space_spec)), context_spec));
-  }
-  
-};
 }
 
-#endif
+ompl_interface::ModelBasedStateSpacePtr ompl_interface::PoseModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const
+{
+  return ModelBasedStateSpacePtr(new PoseModelStateSpace(space_spec));
+}

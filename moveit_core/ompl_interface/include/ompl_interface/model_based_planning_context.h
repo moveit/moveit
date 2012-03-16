@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_
+#ifndef MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
+#define MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
 #include "ompl_interface/detail/constraint_approximations.h"
@@ -271,13 +271,6 @@ public:
   
   void convertPath(const og::PathGeometric &pg, moveit_msgs::RobotTrajectory &traj) const;  
 
-
-  ob::StateStoragePtr constructConstraintApproximation(const moveit_msgs::Constraints &constr_sampling,
-                                                       const moveit_msgs::Constraints &constr_hard,
-						       const pm::KinematicState &default_state,
-                                                       const ConstraintStateStorageOrderFn &order, 
-						       unsigned int samples, unsigned int edges_per_sample);
-  
   virtual void configure(void);
 
 protected:

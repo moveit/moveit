@@ -34,49 +34,11 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_PLANNING_CONTEXT_FACTORY_
+#include "ompl_interface/parameterization/model_based_state_space_factory.h"
 
-#include "ompl_interface/parameterization/model_based_planning_context.h"
-
-namespace ompl_interface
+ompl_interface::ModelBasedStateSpacePtr ompl_interface::ModelBasedStateSpaceFactory::getNewStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const
 {
-
-class ModelBasedPlanningContextFactory;
-typedef boost::shared_ptr<ModelBasedPlanningContextFactory> ModelBasedPlanningContextFactoryPtr;
-
-typedef std::map<const pm::KinematicModel::JointModelGroup*, std::pair<kc::KinematicsAllocator, kc::KinematicsSubgroupAllocator> > AvailableKinematicsSolvers;
-
-class ModelBasedPlanningContextFactory
-{
-public:
-  
-  ModelBasedPlanningContextFactory(void)
-  {
-  }
-  
-  virtual ~ModelBasedPlanningContextFactory(void)
-  {
-  }
-  
-  ModelBasedPlanningContextPtr getNewPlanningContext(const std::string &name,
-                                                     const ModelBasedStateSpaceSpecification &space_spec,
-                                                     const ModelBasedPlanningContextSpecification &context_spec) const;
-  const std::string& getType(void) const
-  {
-    return type_;
-  }
-
-  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const = 0;
-
-protected:
-  
-  virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
-                                                            const ModelBasedStateSpaceSpecification &space_spec,
-                                                            const ModelBasedPlanningContextSpecification &context_spec) const = 0;
-  std::string type_;
-};
-
+  ModelBasedStateSpacePtr ss = allocStateSpace(space_spec);
+  ss->computeLocations();
+  return ss;
 }
-
-#endif

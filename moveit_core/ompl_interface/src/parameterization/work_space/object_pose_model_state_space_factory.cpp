@@ -34,4 +34,4 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "ompl_interface/parameterization/joint_space/joint_model_planning_context_factory.h"
+//#include "ompl_interface/parameterization/work_space/object_pose_model_state_space_factory.h"
