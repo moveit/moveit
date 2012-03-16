@@ -84,10 +84,10 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       for(unsigned int i = 0; i < end_effector_links.size(); i++){
 	object_support_disable_acm.setDefaultEntry(end_effector_links[i], true);
       }
-    }
-    else{
-      ROS_INFO("not all");
+    } else {
       object_support_disable_acm.setEntry(pickup_goal.collision_support_surface_name, end_effector_links, true); 
+      //will come into play when object is attached
+      object_support_disable_acm.setEntry(pickup_goal.collision_support_surface_name, pickup_goal.collision_object_name, true); 
     }
   }
   collision_detection::AllowedCollisionMatrix object_all_arm_disable_acm = object_disable_acm;
@@ -187,19 +187,32 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       planning_models::poseFromMsg(grasps[i].grasp_pose, gp);
       grasp_poses[i] = obj_pose*gp;
     }
-    state.updateStateWithLinkAt(tip_link,grasp_poses[i]);
+    moveit_msgs::AttachedCollisionObject att_obj;
+    att_obj.link_name = planning_scene->getSemanticModel()->getAttachLink(end_effector_group);
+    att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
+    att_obj.object.id = pickup_goal.collision_object_name;
+    att_obj.touch_links = end_effector_links;
+
+    execution_info[i].attached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
+    execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
+    execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
+    execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
 
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
     //cm->setAlteredAllowedCollisionMatrix(object_support_all_arm_disable_acm);
+    //req.verbose = true;
     execution_info[i].grasp_pose_ = grasp_poses[i];
-    planning_scene->checkCollisionUnpadded(req, res, state, object_support_all_arm_disable_acm);
+    execution_info[i].attached_object_diff_scene_->checkCollision(req, res, 
+                                                                  execution_info[i].attached_object_diff_scene_->getCurrentState(), 
+                                                                  object_support_all_arm_disable_acm);
+    //req.verbose = false;
     if(res.collision) {
       execution_info[i].result_.result_code = GraspResult::GRASP_IN_COLLISION;
       outcome_count[GraspResult::GRASP_IN_COLLISION]++;
       continue;
     } 
-    
+
     // ------------- CHECKING PREGRASP POSE ------------------    
 
     Eigen::Translation3d distance_pregrasp_dir(pregrasp_dir*fabs(grasps[0].desired_approach_distance));    
@@ -220,17 +233,6 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     }
 
     // ------------- CHECKING LIFT POSE ------------------    
-
-    moveit_msgs::AttachedCollisionObject att_obj;
-    att_obj.link_name = planning_scene->getSemanticModel()->getAttachLink(end_effector_group);
-    att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
-    att_obj.object.id = pickup_goal.collision_object_name;
-    att_obj.touch_links = end_effector_links;
-
-    execution_info[i].attached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
-    execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
-    execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
-    execution_info[i].attached_object_diff_scene_->getCurrentState().setStateValues(planning_scene_state_values);
 
     std::map<std::string, double> grasp_joint_vals;    
     for(unsigned int j = 0; j < grasps[i].grasp_posture.name.size(); j++) {
@@ -310,6 +312,8 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       ik_map_grasp[grasps[i].grasp_posture.name[j]] = grasps[i].grasp_posture.position[j];
     }
     
+    ROS_DEBUG_STREAM("Original ik redundancy pose " << ik_map_pre_grasp["r_upper_arm_roll_joint"]);
+
     state.setStateValues(ik_map_pre_grasp);      
     execution_info[i].approach_trajectory_.joint_names = joint_names;
     //now we need to do interpolated ik
@@ -319,7 +323,6 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
                           base_link_grasp_pose,
                           pregrasp_dir,
                           grasps[i].desired_approach_distance,
-                          solution.position,
                           true,
                           false,
                           true,
@@ -331,14 +334,14 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       continue;
     }
     
-    ROS_DEBUG_STREAM("Last approach point is " <<
-                     execution_info[i].approach_trajectory_.points.back().positions[0] << " " << 
-                     execution_info[i].approach_trajectory_.points.back().positions[1] << " " <<
-                     execution_info[i].approach_trajectory_.points.back().positions[2] << " " <<
-                     execution_info[i].approach_trajectory_.points.back().positions[3] << " " <<
-                     execution_info[i].approach_trajectory_.points.back().positions[4] << " " <<
-                     execution_info[i].approach_trajectory_.points.back().positions[5] << " " <<
-                     execution_info[i].approach_trajectory_.points.back().positions[6]);
+    ROS_INFO_STREAM("Last approach point is " <<
+                    execution_info[i].approach_trajectory_.points.back().positions[0] << " " << 
+                    execution_info[i].approach_trajectory_.points.back().positions[1] << " " <<
+                    execution_info[i].approach_trajectory_.points.back().positions[2] << " " <<
+                    execution_info[i].approach_trajectory_.points.back().positions[3] << " " <<
+                    execution_info[i].approach_trajectory_.points.back().positions[4] << " " <<
+                    execution_info[i].approach_trajectory_.points.back().positions[5] << " " <<
+                    execution_info[i].approach_trajectory_.points.back().positions[6]);
     
     // ------------- CHECKING INTERPOLATED IK FROM GRASP TO LIFT ------------------        o
 
@@ -351,7 +354,6 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
                           base_link_grasp_pose,
                           lift_dir,
                           pickup_goal.lift.desired_distance,
-                          solution.position,
                           false,
                           true,
                           true,
@@ -363,21 +365,20 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       continue;
     }
 
-    ROS_DEBUG_STREAM("First lift point is " <<
-                     execution_info[i].lift_trajectory_.points.front().positions[0] << " " << 
-                     execution_info[i].lift_trajectory_.points.front().positions[1] << " " << 
-                     execution_info[i].lift_trajectory_.points.front().positions[2] << " " <<
-                     execution_info[i].lift_trajectory_.points.front().positions[3] << " " <<
-                     execution_info[i].lift_trajectory_.points.front().positions[4] << " " <<
-                     execution_info[i].lift_trajectory_.points.front().positions[5] << " " <<
-                     execution_info[i].lift_trajectory_.points.front().positions[6]);
+    ROS_INFO_STREAM("First lift point is " <<
+                    execution_info[i].lift_trajectory_.points.front().positions[0] << " " << 
+                    execution_info[i].lift_trajectory_.points.front().positions[1] << " " << 
+                    execution_info[i].lift_trajectory_.points.front().positions[2] << " " <<
+                    execution_info[i].lift_trajectory_.points.front().positions[3] << " " <<
+                    execution_info[i].lift_trajectory_.points.front().positions[4] << " " <<
+                    execution_info[i].lift_trajectory_.points.front().positions[5] << " " <<
+                    execution_info[i].lift_trajectory_.points.front().positions[6]);
     
+    // ------------- CHECKING PREGRASP OK FOR PLANNING ------------------            
     if(execution_info[i].approach_trajectory_.points.empty()) {
       ROS_WARN_STREAM("No result code and no points in approach trajectory");
       continue;
     }
-
-    // ------------- CHECKING PREGRASP OK FOR PLANNING ------------------            
 
     std::map<std::string, double> pre_grasp_ik = ik_map_pre_grasp;
     for(unsigned int j = 0; j < joint_names.size(); j++) {

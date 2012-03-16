@@ -76,17 +76,20 @@ bool PlaceGeneratorDummy::generatePlaceLocations(const planning_scene::PlanningS
     return false;
   }
 
-  double xex, yex, zex, maxex;
-  shapes::getShapeExtents(attached_shape, xex, yex, zex, maxex);
+  double xex, yex, zex;
+  shapes::getShapeExtents(attached_shape, xex, yex, zex);
 
-  double l = sup.shapes[0].dimensions[0]-2.0*xex;
-  double w = sup.shapes[0].dimensions[1]-2.0*yex;
-  double d = sup.shapes[0].dimensions[2];
+  double l = sup.shapes[0].dimensions[0]-xex;
+  double w = sup.shapes[0].dimensions[1]-yex;
+  double d = sup.shapes[0].dimensions[2]/2.0+zex/2.0;
 
   double spacing = .1;
 
   unsigned int lnum = floor(l/spacing);
   unsigned int wnum = floor(w/spacing);
+
+  l = ((lnum*1.0)*spacing);
+  w = ((wnum*1.0)*spacing);
 
   std::vector<double> angles;
   angles.push_back(0);
@@ -94,8 +97,15 @@ bool PlaceGeneratorDummy::generatePlaceLocations(const planning_scene::PlanningS
   angles.push_back(-M_PI/4.0);
   angles.push_back(M_PI/2.0);
   angles.push_back(-M_PI/2.0);
+  angles.push_back(-M_PI);
+  angles.push_back(M_PI);
 
   unsigned int total_place_locations = lnum*wnum*angles.size();
+
+  if(total_place_locations == 0) {
+    ROS_WARN_STREAM("Surface too small for placing");
+    return false;
+  }
 
   std::vector<unsigned int> random_numbers(total_place_locations);
   for(unsigned int i = 0; i < total_place_locations; i++) {

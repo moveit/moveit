@@ -127,8 +127,7 @@ protected:
   std::string current_place_;
   std::vector<geometry_msgs::PoseStamped> current_generated_place_locations_;
   trajectory_msgs::JointTrajectory last_place_planned_trajectory_;
-  
-  
+  trajectory_msgs::JointTrajectory last_return_from_place_planned_trajectory_;
 
   QComboBox* object_name_combo_;
   QComboBox* support_name_combo_;

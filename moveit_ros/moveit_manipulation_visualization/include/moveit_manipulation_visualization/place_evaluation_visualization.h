@@ -70,7 +70,8 @@ public:
   
   void playInterpolatedTrajectories(unsigned int num,
                                     bool play_approach,
-                                    bool play_retreat);
+                                    bool play_retreat,
+                                    bool in_thread = true);
   
 
   unsigned int getEvaluationInfoSize() const {

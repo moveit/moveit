@@ -48,6 +48,8 @@ InterpolationEvaluator::InterpolationEvaluator(const planning_models::KinematicM
     num_points_(num_points), 
     redundancy_(redundancy)
 {  
+  ROS_INFO_STREAM("Consistent angle is " << consistent_angle_);
+
   for(std::map<std::string, kinematics::KinematicsBasePtr>::const_iterator it = solver_map.begin(); 
       it != solver_map.end();
       it++) {
@@ -62,20 +64,12 @@ bool InterpolationEvaluator::getInterpolatedIK(const std::string& arm_name,
                                                const geometry_msgs::Pose& first_pose,
                                                const Eigen::Vector3d& direction,
                                                const double& distance,
-                                               const std::vector<double>& ik_solution,
                                                const bool& reverse, 
                                                const bool& premultiply,
                                                const bool& use_unpadded_robot,
-                                               planning_models::KinematicState* seed_state,
-                                               trajectory_msgs::JointTrajectory& traj) {
-  
-  std::map<std::string, double> ik_solution_map;
-  for(unsigned int i = 0; i < traj.joint_names.size(); i++) {
-    ik_solution_map[traj.joint_names[i]] = ik_solution[i];
-  }
-  
-  seed_state->setStateValues(ik_solution_map);
-  
+                                               const planning_models::KinematicState* seed_state,
+                                               trajectory_msgs::JointTrajectory& traj) 
+{
   moveit_msgs::Constraints emp;
   moveit_msgs::MoveItErrorCodes error_code;
   return constraint_aware_solver_map_[arm_name]->interpolateIKDirectional(first_pose,

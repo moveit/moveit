@@ -72,11 +72,10 @@ protected:
                          const geometry_msgs::Pose& first_pose,
                          const Eigen::Vector3d& direction,
                          const double& distance,
-                         const std::vector<double>& ik_solution,
                          const bool& reverse, 
                          const bool& premultiply,
                          const bool& use_unpadded_robot,
-                         planning_models::KinematicState* seed_state,
+                         const planning_models::KinematicState* seed_state,
                          trajectory_msgs::JointTrajectory& traj);
   
   const planning_models::KinematicModelConstPtr kmodel_;

@@ -81,12 +81,12 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
       for(unsigned int i = 0; i < end_effector_links.size(); i++){
 	object_support_disable_acm.setDefaultEntry(end_effector_links[i], true);
       }
-    }
-    else{
-      ROS_INFO("not all");
+    } else {
       object_support_disable_acm.setEntry(place_goal.collision_support_surface_name, end_effector_links, true); 
     }
   }
+  object_support_disable_acm.setEntry(place_goal.collision_support_surface_name, place_goal.collision_object_name, true); 
+
   collision_detection::AllowedCollisionMatrix object_all_arm_disable_acm = object_disable_acm;
   collision_detection::AllowedCollisionMatrix object_support_all_arm_disable_acm = object_support_disable_acm;
   collision_detection::AllowedCollisionMatrix group_all_arm_disable_acm = group_disable_acm;
@@ -102,10 +102,11 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
   execution_info.place_goal_ = place_goal;
   execution_info.resize(place_locations.size());
 
-  Eigen::Vector3d approach_dir(0.0, 0.0, 1.0); 
-  //doNegate(place_goal.approach.direction.vector, approach_dir);
+  Eigen::Vector3d approach_dir;
+  approach_dir.x() = place_goal.approach.direction.vector.x;
+  approach_dir.y() = place_goal.approach.direction.vector.y;
+  approach_dir.z() = place_goal.approach.direction.vector.z;
   approach_dir.normalize();
-
   Eigen::Translation3d distance_approach_dir(approach_dir*fabs(place_goal.approach.desired_distance));
   Eigen::Affine3d approach_trans(distance_approach_dir*Eigen::Quaterniond::Identity());
 
@@ -191,11 +192,10 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
     
     execution_info[i].detached_object_diff_scene_->getCurrentState().setStateValues(planning_scene_state_values_post_place);
     execution_info[i].retreat_pose_ = execution_info[i].place_pose_*retreat_trans;
-    state.updateStateWithLinkAt(tip_link, execution_info[i].retreat_pose_);
+    execution_info[i].detached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link, execution_info[i].retreat_pose_);
     
     res = collision_detection::CollisionResult();
-    //TODO - figure out if this is the right ACM for release
-    planning_scene->checkCollision(req, res, state, group_all_arm_disable_acm);
+    planning_scene->checkCollision(req, res, execution_info[i].detached_object_diff_scene_->getCurrentState(), group_all_arm_disable_acm);
     if(res.collision) {
       ROS_DEBUG_STREAM("Retreat in collision");
       execution_info[i].result_.result_code = moveit_manipulation_msgs::PlaceLocationResult::RETREAT_IN_COLLISION;
@@ -249,7 +249,6 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
                           base_link_place_pose,
                           approach_dir,
                           place_goal.approach.desired_distance,
-                          solution.position,
                           true,
                           true,
                           true,
@@ -271,7 +270,6 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
                           base_link_place_pose,
                           retreat_dir,
                           place_goal.desired_retreat_distance,
-                          solution.position,
                           false,
                           false,
                           true,

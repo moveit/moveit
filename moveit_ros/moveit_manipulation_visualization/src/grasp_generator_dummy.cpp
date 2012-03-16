@@ -57,9 +57,9 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
 
   grasps.resize(4);
   
-  double xex, yex, zex, maxex;
-  shapes::getShapeExtents(co.shapes[0], xex, yex, zex, maxex);
-
+  double xex, yex, zex;
+  shapes::getShapeExtents(co.shapes[0], xex, yex, zex);
+  
   //FRONT
   grasps[0].grasp_pose = geometry_msgs::Pose();
   grasps[0].grasp_pose.position.x -= (xex/2.0+.15); 
