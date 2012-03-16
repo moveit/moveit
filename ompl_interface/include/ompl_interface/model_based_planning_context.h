@@ -38,7 +38,6 @@
 #define MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
-#include "ompl_interface/detail/constraint_approximations.h"
 #include <planning_scene/planning_scene.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <ompl/geometric/SimpleSetup.h>
@@ -57,12 +56,16 @@ typedef boost::shared_ptr<ModelBasedPlanningContext> ModelBasedPlanningContextPt
 
 typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si, const std::string &planner, const std::string &name,
                                        const std::map<std::string, std::string> &config)> ConfiguredPlannerAllocator;
-
+class ConstraintsLibrary;
 struct ModelBasedPlanningContextSpecification
 {
+  ModelBasedPlanningContextSpecification(void) : constraints_library_(NULL)
+  {
+  }
+  
   std::map<std::string, std::string> config_;
   ConfiguredPlannerAllocator planner_allocator_; 
-  ConstraintApproximationsPtr constraints_approximations_;
+  const ConstraintsLibrary* constraints_library_;
 };
   
 class ModelBasedPlanningContext
@@ -224,9 +227,9 @@ public:
   bool setPathConstraints(const moveit_msgs::Constraints &path_constraints,
 			  moveit_msgs::MoveItErrorCodes *error);
 
-  void setConstraintsApproximations(const ConstraintApproximationsPtr &constraints_approximations)
+  void setConstraintsApproximations(const ConstraintsLibrary *constraints_library)
   {
-    spec_.constraints_approximations_ = constraints_approximations;
+    spec_.constraints_library_ = constraints_library;
   }
     
   void clear(void);

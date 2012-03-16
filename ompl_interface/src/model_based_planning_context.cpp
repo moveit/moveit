@@ -40,6 +40,7 @@
 #include "ompl_interface/detail/constrained_goal_sampler.h"
 #include "ompl_interface/detail/goal_union.h"
 #include "ompl_interface/detail/projection_evaluators.h"
+#include "ompl_interface/constraints_library.h"
 #include <kinematic_constraints/utils.h>
 
 #include <ompl/base/samplers/UniformValidStateSampler.h>
@@ -113,75 +114,6 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
   return ob::ProjectionEvaluatorPtr();
 }
 
-namespace ompl_interface
-{
-
-class ConstraintApproximationStateSampler : public ob::StateSampler
-{
-public:
-  
-  ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage) : 
-    ob::StateSampler(space), state_storage_(state_storage)
-  {
-    min_index_ = 0;
-    max_index_ = state_storage_->size() - 1;
-  }
-  
-  ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage,
-                                      int mini, int maxi) : 
-    ob::StateSampler(space), state_storage_(state_storage)
-  {
-    min_index_ = mini;
-    max_index_ = maxi;
-  }
-  
-  virtual void sampleUniform(ob::State *state)
-  { 
-    space_->copyState(state, state_storage_->getState(rng_.uniformInt(min_index_, max_index_)));
-  }
-  
-  virtual void sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
-  {
-    int index = -1;
-    int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
-    if (tag >= 0)
-    {
-      const std::vector<std::size_t> &md = state_storage_->getMetadata(tag);
-      if (!md.empty() && rng_.uniform01() * md.size() > 1.0)
-      {
-        index = md[rng_.uniformInt(0, md.size() - 1)];
-      }
-    }
-    if (index < 0) 
-    {
-      index = rng_.uniformInt(min_index_, max_index_);
-    }
-    
-    double dist = space_->distance(near, state_storage_->getState(index));
-    if (dist > distance)
-    {
-      double d = rng_.uniformReal(0.0, distance);
-      space_->interpolate(near, state_storage_->getState(index), d / dist, state);
-    }
-    else
-      space_->copyState(state, state_storage_->getState(index));
-  }
-  
-  virtual void sampleGaussian(ob::State *state, const ob::State *mean, const double stdDev)
-  {
-    sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
-  }
-  
-protected:
-  
-  /** \brief The states to sample from */
-  const ConstraintApproximationStateStorage *state_storage_;  
-  unsigned int min_index_;
-  unsigned int max_index_;
-  
-};
-}
-
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
 {
   if (ompl_state_space_.get() != ss)
@@ -190,16 +122,10 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
   
   if (path_constraints_)
   {
-    if (spec_.constraints_approximations_  && !path_constraints_name_.empty())
+    if (spec_.constraints_library_  && !path_constraints_name_.empty())
     {
-      for (std::size_t i = 0 ; i < spec_.constraints_approximations_->size() ; ++i)
-	if (spec_.constraints_approximations_->at(i).constraint_msg_.name == path_constraints_name_ && 
-            spec_.constraints_approximations_->at(i).space_signature_ == space_signature_ && 
-	    spec_.constraints_approximations_->at(i).state_storage_)
-	{
-	  ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
-          return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(ss, spec_.constraints_approximations_->at(i).state_storage_));
-	}
+      ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
+      //      return ;      
     }
     
     kc::ConstraintSamplerPtr cs = kc::ConstraintSampler::constructFromMessage(getJointModelGroup(), path_constraints_->getAllConstraints(), getKinematicModel(),
