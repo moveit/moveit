@@ -55,6 +55,7 @@ Body* constructBodyFromMsg(const moveit_msgs::Shape &shape, const geometry_msgs:
 /** \brief Compute a bounding sphere to enclose a set of bounding spheres */
 void mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, BoundingSphere &mergedSphere);
 
+/** \brief Compute the bounding sphere for a set of \e bodies and store the resulting sphere in \e mergedSphere */
 void computeBoundingSphere(const std::vector<const Body*>& bodies, BoundingSphere &mergedSphere);
 
 }

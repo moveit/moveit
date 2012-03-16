@@ -1126,7 +1126,6 @@ void bodies::BodyVector::clear(void)
   for(unsigned int i = 0; i < bodies_.size(); i++)
     delete bodies_[i];
   bodies_.clear();
-  rsqrs_.clear();
 }
 
 void bodies::BodyVector::addBody(Body *body)
@@ -1134,7 +1133,6 @@ void bodies::BodyVector::addBody(Body *body)
   bodies_.push_back(body);
   BoundingSphere sphere;
   body->computeBoundingSphere(sphere);
-  rsqrs_.push_back(sphere.radius * sphere.radius);
 }
 
 void bodies::BodyVector::addBody(const shapes::Shape *shape, const Eigen::Affine3d& pose, double padding)
@@ -1172,29 +1170,26 @@ const bodies::Body* bodies::BodyVector::getBody(unsigned int i) const
     return bodies_[i];
 }
 
-double bodies::BodyVector::getBoundingSphereRadiusSquared(unsigned int i) const
+bool bodies::BodyVector::containsPoint(const Eigen::Vector3d &p, std::size_t &index, bool verbose) const
 {
-  if (i >= rsqrs_.size())
-  {
-    ROS_ERROR("There is no body at index %u", i);
-    return -1.0;
-  }
-  else
-    return rsqrs_[i];
+  for (std::size_t i = 0 ; i < bodies_.size() ; ++i)
+    if (bodies_[i]->containsPoint(p, verbose))
+    {
+      index = i;
+      return true;
+    }
+  return false;
 }
 
 bool bodies::BodyVector::containsPoint(const Eigen::Vector3d &p, bool verbose) const
 {
-  for (unsigned int i = 0 ; i < bodies_.size() ; ++i)
-    if (bodies_[i]->containsPoint(p, verbose))
-      return true;
-  return false;
+  std::size_t dummy;
+  return containsPoint(p, dummy, verbose);
 }
 
-bool bodies::BodyVector::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, int &index, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
+bool bodies::BodyVector::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::size_t &index, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
 {
-  index = -1;
-  for (unsigned int i = 0 ; i < bodies_.size() ; ++i)
+  for (std::size_t i = 0 ; i < bodies_.size() ; ++i)
     if (bodies_[i]->intersectsRay(origin, dir, intersections, count))
     {
       index = i;

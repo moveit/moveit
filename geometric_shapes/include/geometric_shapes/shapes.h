@@ -32,241 +32,254 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/*  Author: Ioan Sucan */
 
-#ifndef GEOMETRIC_SHAPES_SHAPES_
-#define GEOMETRIC_SHAPES_SHAPES_
+#ifndef MOVEIT_GEOMETRIC_SHAPES_SHAPES_
+#define MOVEIT_GEOMETRIC_SHAPES_SHAPES_
 
 #include <cstdlib>
 #include <vector>
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 
-/** Definition of various shapes. No properties such as position are
-    included. These are simply the descriptions and dimensions of
-    shapes. */
-
+/** \brief Definition of various shapes. No properties such as
+    position are included. These are simply the descriptions and
+    dimensions of shapes. */
 namespace shapes
 {
 
-    /** \brief A list of known shape types */
-    enum ShapeType { UNKNOWN_SHAPE, SPHERE, CYLINDER, BOX, MESH };
+/** \brief A list of known shape types */
+enum ShapeType { UNKNOWN_SHAPE, SPHERE, CYLINDER, BOX, MESH };
 
-    /** \brief A list of known static shape types */
-    enum StaticShapeType { UNKNOWN_STATIC_SHAPE, PLANE };
+/** \brief A list of known static shape types */
+enum StaticShapeType { UNKNOWN_STATIC_SHAPE, PLANE };
 
 
-    /** \brief A basic definition of a shape. Shapes are considered centered at origin */
-    class Shape
-    {
-    public:
-        Shape(void)
-        {
-            type = UNKNOWN_SHAPE;
-        }
+/** \brief A basic definition of a shape. Shapes are considered centered at origin */
+class Shape
+{
+public:
+  Shape(void)
+  {
+    type = UNKNOWN_SHAPE;
+  }
+  
+  virtual ~Shape(void)
+  {
+  }
+  
+  /** \brief Create a copy of this shape */
+  virtual Shape* clone(void) const = 0;
+  
+  /** \brief Print information about this shape */
+  virtual void print(std::ostream &out = std::cout) const;
+  
+  /** \brief Scale this shape by a factor */
+  void scale(double scale);
+  
+  /** \brief Add padding to this shape */
+  void padd(double padding);
+  
+  /** \brief Scale and padd this shape */
+  virtual void scaleAndPadd(double scale, double padd) = 0;
+  
+  /** \brief The type of the shape */
+  ShapeType type;
+};
 
-        virtual ~Shape(void)
-        {
-        }
+/** \brief A basic definition of a static shape. Static shapes do not have a pose */
+class StaticShape
+{
+public:
+  StaticShape(void)
+  {
+    type = UNKNOWN_STATIC_SHAPE;
+  }
+  
+  virtual ~StaticShape(void)
+  {
+  }
+  
+  /** \brief Create a copy of this shape */
+  virtual StaticShape* clone(void) const = 0;
+  
+  /** \brief Print information about this shape */
+  virtual void print(std::ostream &out = std::cout) const;
 
-        /** \brief Create a copy of this shape */
-        virtual Shape* clone(void) const = 0;
+  /** \brief The type of the shape */
+  StaticShapeType type;
+};
 
-        /** \brief Print information about this shape */
-        virtual void print(std::ostream &out = std::cout) const;
+/** \brief Definition of a sphere */
+class Sphere : public Shape
+{
+public:
+  Sphere(void) : Shape()
+  {
+    type   = SPHERE;
+    radius = 0.0;
+  }
+  
+  Sphere(double r) : Shape()
+  {
+    type   = SPHERE;
+    radius = r;
+  }
+  
+  virtual void scaleAndPadd(double scale, double padd);
+  virtual Shape* clone(void) const;
+  virtual void print(std::ostream &out = std::cout) const;
+  
+  /** \brief The radius of the sphere */
+  double radius;
+};
 
-        /** \brief Scale this shape by a factor */
-        void scale(double scale);
+/** \brief Definition of a cylinder */
+class Cylinder : public Shape
+{
+public:
+  Cylinder(void) : Shape()
+  {
+    type   = CYLINDER;
+    length = radius = 0.0;
+  }
+  
+  Cylinder(double r, double l) : Shape()
+  {
+    type   = CYLINDER;
+    length = l;
+    radius = r;
+  }
+  
+  virtual void scaleAndPadd(double scale, double padd);
+  virtual Shape* clone(void) const;
+  virtual void print(std::ostream &out = std::cout) const;
+  
+  /** \brief The length of the cylinder */
+  double length;
 
-        /** \brief Add padding to this shape */
-        void padd(double padding);
+  /** \brief The radius of the cylinder */
+  double radius;
+};
 
-        /** \brief Scale and padd this shape */
-        virtual void scaleAndPadd(double scale, double padd) = 0;
+/** \brief Definition of a box */
+class Box : public Shape
+{
+public:
+  Box(void) : Shape()
+  {
+    type = BOX;
+    size[0] = size[1] = size[2] = 0.0;
+  }
+  
+  Box(double x, double y, double z) : Shape()
+  {
+    type = BOX;
+    size[0] = x;
+    size[1] = y;
+    size[2] = z;
+  }
+  
+  virtual void scaleAndPadd(double scale, double padd);
+  virtual Shape* clone(void) const;
+  virtual void print(std::ostream &out = std::cout) const;
+  
+  /** \brief x, y, z dimensions of the box (axis-aligned) */
+  double size[3];
+};
 
-        ShapeType type;
-    };
+/** \brief Definition of a triangle mesh */
+class Mesh : public Shape
+{
+public:
+  Mesh(void) : Shape()
+  {
+    type = MESH;
+    vertex_count = 0;
+    vertices = NULL;
+    triangle_count = 0;
+    triangles = NULL;
+    normals = NULL;
+  }
+  
+  Mesh(unsigned int v_count, unsigned int t_count) : Shape()
+  {
+    type = MESH;
+    vertex_count = v_count;
+    vertices = new double[v_count * 3];
+    triangle_count = t_count;
+    triangles = new unsigned int[t_count * 3];
+    normals = new double[t_count * 3];
+  }
+  
+  virtual ~Mesh(void)
+  {
+    if (vertices)
+      delete[] vertices;
+    if (triangles)
+      delete[] triangles;
+    if (normals)
+      delete[] normals;
+  }
+  
+  virtual void scaleAndPadd(double scale, double padd);
+  virtual Shape* clone(void) const;
+  virtual void print(std::ostream &out = std::cout) const;
+  
+  /** \brief The number of available vertices */
+  unsigned int  vertex_count;
+  
+  /** \brief The position for each vertex vertex k has values at
+   * index (3k, 3k+1, 3k+2) = (x,y,z) */
+  double       *vertices;
+  
+  /** \brief The number of triangles formed with the vertices */
+  unsigned int  triangle_count;
+  
+  /** \brief The vertex indices for each triangle
+   * triangle k has vertices at index (3k, 3k+1, 3k+2) = (v1, v2, v3) */
+  unsigned int *triangles;
+  
+  /** \brief The normal to each triangle; unit vector represented
+      as (x,y,z); If missing from the mesh, these vectors are computed  */
+  double       *normals;
+};
 
-    /** \brief A basic definition of a static shape. Static shapes do not have a pose */
-    class StaticShape
-    {
-    public:
-        StaticShape(void)
-        {
-            type = UNKNOWN_STATIC_SHAPE;
-        }
+/** \brief Definition of a plane with equation ax + by + cz + d = 0 */
+class Plane : public StaticShape
+{
+public:
+  
+  Plane(void) : StaticShape()
+  {
+    type = PLANE;
+    a = b = c = d = 0.0;
+  }
+  
+  Plane(double pa, double pb, double pc, double pd) : StaticShape()
+  {
+    type = PLANE;
+    a = pa; b = pb; c = pc; d = pd;
+  }
+  
+  virtual StaticShape* clone(void) const;
+  virtual void print(std::ostream &out = std::cout) const;
+  
+  /** \brief The plane equation is ax + by + cz + d = 0 */
+  double a, b, c, d;
+};
 
-        virtual ~StaticShape(void)
-        {
-        }
+/** \brief Shared pointer to a Shape */
+typedef boost::shared_ptr<Shape> ShapePtr;
 
-        /** \brief Create a copy of this shape */
-        virtual StaticShape* clone(void) const = 0;
+/** \brief Shared pointer to a const Shape */
+typedef boost::shared_ptr<const Shape> ShapeConstPtr;
 
-        /** \brief Print information about this shape */
-        virtual void print(std::ostream &out = std::cout) const;
+/** \brief Shared pointer to a StaticShape */
+typedef boost::shared_ptr<StaticShape> StaticShapePtr;
 
-        StaticShapeType type;
-    };
-
-    /** \brief Definition of a sphere */
-    class Sphere : public Shape
-    {
-    public:
-        Sphere(void) : Shape()
-        {
-            type   = SPHERE;
-            radius = 0.0;
-        }
-
-        Sphere(double r) : Shape()
-        {
-            type   = SPHERE;
-            radius = r;
-        }
-
-        virtual void scaleAndPadd(double scale, double padd);
-        virtual Shape* clone(void) const;
-        virtual void print(std::ostream &out = std::cout) const;
-
-        double radius;
-    };
-
-    /** \brief Definition of a cylinder */
-    class Cylinder : public Shape
-    {
-    public:
-        Cylinder(void) : Shape()
-        {
-            type   = CYLINDER;
-            length = radius = 0.0;
-        }
-
-        Cylinder(double r, double l) : Shape()
-        {
-            type   = CYLINDER;
-            length = l;
-            radius = r;
-        }
-
-        virtual void scaleAndPadd(double scale, double padd);
-        virtual Shape* clone(void) const;
-        virtual void print(std::ostream &out = std::cout) const;
-
-        double length, radius;
-    };
-
-    /** \brief Definition of a box */
-    class Box : public Shape
-    {
-    public:
-        Box(void) : Shape()
-        {
-            type = BOX;
-            size[0] = size[1] = size[2] = 0.0;
-        }
-
-        Box(double x, double y, double z) : Shape()
-        {
-            type = BOX;
-            size[0] = x;
-            size[1] = y;
-            size[2] = z;
-        }
-
-        virtual void scaleAndPadd(double scale, double padd);
-        virtual Shape* clone(void) const;
-        virtual void print(std::ostream &out = std::cout) const;
-
-        /** \brief x, y, z */
-        double size[3];
-    };
-
-    /** \brief Definition of a triangle mesh */
-    class Mesh : public Shape
-    {
-    public:
-        Mesh(void) : Shape()
-        {
-            type = MESH;
-            vertex_count = 0;
-            vertices = NULL;
-            triangle_count = 0;
-            triangles = NULL;
-            normals = NULL;
-        }
-
-        Mesh(unsigned int v_count, unsigned int t_count) : Shape()
-        {
-            type = MESH;
-            vertex_count = v_count;
-            vertices = new double[v_count * 3];
-            triangle_count = t_count;
-            triangles = new unsigned int[t_count * 3];
-            normals = new double[t_count * 3];
-        }
-
-        virtual ~Mesh(void)
-        {
-            if (vertices)
-                delete[] vertices;
-            if (triangles)
-                delete[] triangles;
-            if (normals)
-                delete[] normals;
-        }
-
-        virtual void scaleAndPadd(double scale, double padd);
-        virtual Shape* clone(void) const;
-        virtual void print(std::ostream &out = std::cout) const;
-
-        /** \brief The number of available vertices */
-        unsigned int  vertex_count;
-
-        /** \brief The position for each vertex vertex k has values at
-         * index (3k, 3k+1, 3k+2) = (x,y,z) */
-        double       *vertices;
-
-        /** \brief The number of triangles formed with the vertices */
-        unsigned int  triangle_count;
-
-        /** \brief The vertex indices for each triangle
-         * triangle k has vertices at index (3k, 3k+1, 3k+2) = (v1, v2, v3) */
-        unsigned int *triangles;
-
-        /** \brief The normal to each triangle; unit vector represented
-            as (x,y,z); If missing from the mesh, these vectors are computed  */
-        double       *normals;
-    };
-
-    /** \brief Definition of a plane with equation ax + by + cz + d = 0 */
-    class Plane : public StaticShape
-    {
-    public:
-
-        Plane(void) : StaticShape()
-        {
-            type = PLANE;
-            a = b = c = d = 0.0;
-        }
-
-        Plane(double pa, double pb, double pc, double pd) : StaticShape()
-        {
-            type = PLANE;
-            a = pa; b = pb; c = pc; d = pd;
-        }
-
-        virtual StaticShape* clone(void) const;
-        virtual void print(std::ostream &out = std::cout) const;
-
-        double a, b, c, d;
-    };
-
-    typedef boost::shared_ptr<Shape> ShapePtr;
-    typedef boost::shared_ptr<const Shape> ShapeConstPtr;
-
-    typedef boost::shared_ptr<StaticShape> StaticShapePtr;
-    typedef boost::shared_ptr<const StaticShape> StaticShapeConstPtr;
+/** \brief Shared pointer to a const StaticShape */
+typedef boost::shared_ptr<const StaticShape> StaticShapeConstPtr;
 }
 
 #endif
