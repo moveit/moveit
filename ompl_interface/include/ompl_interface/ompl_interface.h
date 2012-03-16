@@ -118,7 +118,7 @@ public:
     max_solution_segment_length_ = mssl;
   }
   
-  double getMaximumVeolcity(void) const
+  double getMaximumVelocity(void) const
   {
     return max_velocity_;    
   }
