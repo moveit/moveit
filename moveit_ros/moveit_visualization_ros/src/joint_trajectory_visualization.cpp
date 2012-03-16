@@ -50,6 +50,12 @@ void JointTrajectoryVisualization::setTrajectory(const planning_models::Kinemati
                                                  const trajectory_msgs::JointTrajectory& traj,
                                                  const std_msgs::ColorRGBA& color)
 {
+  if(playback_thread_) {
+    ROS_DEBUG_STREAM("Cancelling current playback");
+    playback_thread_->interrupt();
+    playback_thread_->join();
+    ROS_DEBUG_STREAM("Cancelling completed");
+  }
   link_model_names_ = planning_scene_->getKinematicModel()->getJointModelGroup(group_name)->getUpdatedLinkModelNames();
   current_state_ = start_state;
   current_joint_trajectory_ = traj;
