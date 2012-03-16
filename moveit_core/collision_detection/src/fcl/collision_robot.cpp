@@ -157,24 +157,26 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_m
   const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &geoms = obb ? geoms_obb_ : geoms_rss_;
   const std::vector<planning_models::KinematicState::LinkState*> &link_states = state.getLinkStateVector();
   for (std::size_t i = 0 ; i < geoms.size() ; ++i)
+  {
     if (geoms[i])
     {
       fcl::CollisionObject *collObj = new fcl::CollisionObject(geoms[i], transform2fcl(link_states[i]->getGlobalCollisionBodyTransform()));
       fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
-      std::vector<const planning_models::KinematicState::AttachedBody*> ab;
-      link_states[i]->getAttachedBodies(ab);
-      for (std::size_t j = 0 ; j < ab.size() ; ++j)
-      {
-	const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &objs = obb ? getAttachedBodyObjectsOBB(ab[j]) : getAttachedBodyObjectsRSS(ab[j]);
-	const std::vector<Eigen::Affine3d> &ab_t = ab[j]->getGlobalCollisionBodyTransforms();
-	for (std::size_t k = 0 ; k < objs.size() ; ++k)
-	  if (objs[k])
-	  {
-	    fcl::CollisionObject *collObj = new fcl::CollisionObject(objs[k], transform2fcl(ab_t[k]));
-	    fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
-	  }
-      }
     }
+    std::vector<const planning_models::KinematicState::AttachedBody*> ab;
+    link_states[i]->getAttachedBodies(ab);
+    for (std::size_t j = 0 ; j < ab.size() ; ++j)
+    {
+      const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &objs = obb ? getAttachedBodyObjectsOBB(ab[j]) : getAttachedBodyObjectsRSS(ab[j]);
+      const std::vector<Eigen::Affine3d> &ab_t = ab[j]->getGlobalCollisionBodyTransforms();
+      for (std::size_t k = 0 ; k < objs.size() ; ++k)
+        if (objs[k])
+        {
+          fcl::CollisionObject *collObj = new fcl::CollisionObject(objs[k], transform2fcl(ab_t[k]));
+          fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
+        }
+    }
+  }
 }
 
 void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const planning_models::KinematicState &state, FCLManager &manager) const
