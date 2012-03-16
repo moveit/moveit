@@ -252,15 +252,69 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
 
   collision_detection::CollisionResult res3;
   crobot_->checkSelfCollision(req, res2, kstate, *acm_);
-  ASSERT_TRUE(res3.collision);
-  ASSERT_EQ(res3.contacts.size(),1);
-  ASSERT_EQ(res3.contacts.begin()->second.size(),1);
+  ASSERT_FALSE(res3.collision);
+}
 
-  for(collision_detection::CollisionResult::ContactMap::const_iterator it = res3.contacts.begin();
-      it != res3.contacts.end();
-      it++) {
-    EXPECT_NEAR(it->second[0].pos.x(), 3.0, 0.33);
-  }
+TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+
+  acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true)); 
+
+  planning_models::KinematicState kstate(kmodel_);
+  kstate.setToDefaultValues();
+
+  Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
+  pos1.translation().x() = 5.0;
+
+  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
+  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  ASSERT_FALSE(res.collision);  
+
+  shapes::Shape* shape = new shapes::Box(.1,.1,.1);
+  cworld_->addToObject("box", shape, pos1);
+  
+  res = collision_detection::CollisionResult();
+  cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+  ASSERT_TRUE(res.collision);  
+
+  //deletes shape
+  cworld_->removeObject("box");
+
+  shape = new shapes::Box(.1,.1,.1);
+  std::vector<shapes::Shape*> shapes;
+  std::vector<Eigen::Affine3d> poses;
+  shapes.push_back(shape);
+  poses.push_back(Eigen::Affine3d::Identity());
+  std::vector<std::string> touch_links;
+  kstate.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
+
+  res = collision_detection::CollisionResult();
+  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  ASSERT_TRUE(res.collision);  
+
+  //deletes shape
+  kstate.getLinkState("r_gripper_palm_link")->clearAttachedBody("box");
+
+  touch_links.push_back("r_gripper_palm_link");
+  shapes[0] = new shapes::Box(.1,.1,.1); 
+  kstate.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
+
+  res = collision_detection::CollisionResult();
+  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  ASSERT_FALSE(res.collision);  
+
+  pos1.translation().x() = 5.01;
+  shapes::Shape* coll = new shapes::Box(.1, .1, .1);
+  cworld_->addToObject("coll", coll, pos1);  
+  res = collision_detection::CollisionResult();
+  cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+  ASSERT_TRUE(res.collision);  
+
+  acm_->setEntry("coll", "r_gripper_palm_link", true);
+  res = collision_detection::CollisionResult();
+  cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+  ASSERT_TRUE(res.collision);  
 }
 
 int main(int argc, char **argv)
