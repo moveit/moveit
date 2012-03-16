@@ -138,6 +138,11 @@ public:
     max_acceleration_ = ma;
   }
   
+  const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
+  {
+    return kmodel_;
+  }
+  
   ModelBasedPlanningContextPtr getLastPlanningContext(void) const;
     
   ModelBasedPlanningContextPtr getPlanningContext(const std::string &config, const std::string &factory_type = "") const;

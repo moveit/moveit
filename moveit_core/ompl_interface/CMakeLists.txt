@@ -24,6 +24,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 rosbuild_add_library(${PROJECT_NAME}
   src/ompl_interface.cpp
   src/planning_context_manager.cpp
+  src/constraints_library.cpp
   src/model_based_planning_context.cpp
   src/parameterization/model_based_state_space.cpp
   src/parameterization/model_based_state_space_factory.cpp
@@ -40,7 +41,6 @@ rosbuild_add_library(${PROJECT_NAME}
   src/detail/goal_union.cpp
   src/detail/constrained_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
-  src/detail/constraint_approximations.cpp
   src/detail/ompl_console.cpp
 )
 

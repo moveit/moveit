@@ -163,9 +163,9 @@ protected:
   void configureConstraints(const ModelBasedPlanningContextPtr &context) const
   {
     if (use_constraints_approximations_)
-      ;
+      context->setConstraintsApproximations(&constraints_library_);
     else
-      ;
+      context->setConstraintsApproximations(NULL);
   }
   
   /** \brief Configure the OMPL planning context for a new planning request */
