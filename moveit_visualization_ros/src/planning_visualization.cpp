@@ -49,6 +49,8 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
     group_joint_limit_map_(group_joint_limit_map),
     last_trajectory_ok_(false)
 {
+  ompl_interface_.setMaximumSolutionSegmentLength(.1);
+
   const std::vector<srdf::Model::Group>& groups = planning_scene_->getSrdfModel()->getGroups();
 
   for(unsigned int i = 0; i < groups.size(); i++) {
@@ -225,6 +227,7 @@ bool PlanningVisualization::generatePlanForScene(const planning_scene::PlanningS
   req.motion_plan_request.allowed_planning_time = ros::Duration(3.0);
   
   if(ompl_interface_.solve(scene, req, res)) {
+    ROS_INFO_STREAM("Got " << res.trajectory.joint_trajectory.points.size());
     ROS_INFO_STREAM("Original last time " << res.trajectory.joint_trajectory.points.back().time_from_start);
     trajectory_msgs::JointTrajectory traj;
     moveit_msgs::MoveItErrorCodes error_code;

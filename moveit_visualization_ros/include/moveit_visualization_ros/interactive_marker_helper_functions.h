@@ -484,11 +484,13 @@ inline visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& m
     ROS_WARN_STREAM("Some problem constructing mesh marker " << marker_name);
     return int_marker;
   }
-  double x, y, z, max;
-  if(!shapes::getShapeExtents(mesh_shape, x, y, z, max)) {
+  double x, y, z;
+  if(!shapes::getShapeExtents(mesh_shape, x, y, z)) {
     ROS_WARN_STREAM("Some problem with marker extents");
     int_marker.scale = 1.0;
   } else {
+    double max;
+    max = fmax(x, fmax(y, z));
     int_marker.scale = .05+max;
   }
   mesh_mark.color = color;
