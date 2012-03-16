@@ -168,7 +168,9 @@ void PlaceEvaluationVisualization::showPlacePose(unsigned int num,
 
 void PlaceEvaluationVisualization::playInterpolatedTrajectories(unsigned int num,
                                                                 bool play_approach,
-                                                                bool play_retreat) {
+                                                                bool play_retreat,
+                                                                bool in_thread)
+{
   if(num >= last_place_evaluation_info_.size()) {
     return;
   }
@@ -177,7 +179,11 @@ void PlaceEvaluationVisualization::playInterpolatedTrajectories(unsigned int num
     return;
   }
   
-  boost::thread(boost::bind(&PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread, this, num, play_approach, play_retreat));
+  if(in_thread) {
+    boost::thread(boost::bind(&PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread, this, num, play_approach, play_retreat));
+  } else {
+    playInterpolatedTrajectoriesThread(num, play_approach, play_retreat);
+  }
 }
 
 void PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread(unsigned int num,

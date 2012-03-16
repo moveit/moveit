@@ -307,8 +307,10 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
   goal.lift.direction.vector.z = 1;
   goal.lift.desired_distance = .1;
 
-  goal.collision_support_surface_name = current_support_;
-
+  if(!current_support_.empty()) {
+    goal.allow_gripper_support_collision = true;
+    goal.collision_support_surface_name = current_support_;
+  }
   unsigned int cur_size = grasp_evaluation_visualization_->getEvaluationInfoSize();
 
   if(cur_size == current_generated_grasps_.size()) {
@@ -346,6 +348,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
 }
 
 void GraspEvaluationVisualizationDialog::evaluatedGraspBrowserNumberChanged(int i) {
+  play_full_grasp_execution_button_->setDisabled(true);
   disablePlaceGeneration();
   if(i == 0) {
     grasp_evaluation_visualization_->removeAllMarkers();
@@ -428,10 +431,31 @@ void GraspEvaluationVisualizationDialog::planForGraspExecution() {
 void GraspEvaluationVisualizationDialog::planGenerationFinished(const std::string& group_name,
                                                                 const trajectory_msgs::JointTrajectory& traj) {
   if(plan_place_execution_indicator_->isEnabled()) {
-    ROS_INFO_STREAM("Setting place");
-    plan_place_execution_indicator_->setText("Success");
-    play_grasp_and_place_execution_button_->setEnabled(true);
-    last_place_planned_trajectory_ = traj;
+    if(last_place_planned_trajectory_.points.size() == 0) {
+      last_place_planned_trajectory_ = traj;
+      ROS_INFO_STREAM("Setting place");
+      grasp_place_evaluation::PlaceExecutionInfo ev;
+      place_evaluation_visualization_->getEvaluatedPlace(evaluated_place_locations_browser_->value()-1, ev);
+      if(ev.retreat_trajectory_.points.size() == 0) {
+        ROS_WARN_STREAM("Asked to plan, but no approach trajectory");
+        return;
+      }
+      ev.detached_object_diff_scene_->getCurrentState().setStateValues(ev.retreat_trajectory_.joint_names,
+                                                                       ev.retreat_trajectory_.points.back().positions);
+
+      plan_execution_indicator_->setText("Planning back to start");
+      
+      //emit
+      requestDiffScenePlanGeneration(current_arm_,
+                                     ev.detached_object_diff_scene_,
+                                     &planning_scene_->getCurrentState());
+      
+    } else {
+      ROS_INFO_STREAM("Return from place traj has " << traj.points.size() << " points");
+      last_return_from_place_planned_trajectory_ = traj;
+      plan_place_execution_indicator_->setText("Success");
+      play_grasp_and_place_execution_button_->setEnabled(true);
+    }
   } else {
     ROS_INFO_STREAM("Setting grasp");
     plan_execution_indicator_->setText("Success");
@@ -491,6 +515,7 @@ void GraspEvaluationVisualizationDialog::generatePlaceLocations() {
     ROS_WARN_STREAM("Can't place object " << current_object << " on itself");
     return;
   }
+  ROS_INFO_STREAM("Generating place locations");
   if(!place_generator_visualization_->generatePlaces(ev.attached_object_diff_scene_,
                                                      current_object,
                                                      place_support_surface,
@@ -532,7 +557,9 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedPlaceLocations() {
   goal.grasp = current_generated_grasps_[evaluated_grasp_browser_->value()-1];
   goal.min_retreat_distance = .1;
   goal.desired_retreat_distance = .1;
+  goal.approach.direction.vector.z = 1.0;
   goal.approach.desired_distance = .1;
+  goal.allow_gripper_support_collision = true;
   goal.collision_object_name = object_name_combo_->currentText().toStdString();
   goal.collision_support_surface_name = place_name_combo_->currentText().toStdString();
   
@@ -574,6 +601,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedPlaceLocations() {
 }
 
 void GraspEvaluationVisualizationDialog::evaluatedPlaceLocationsBrowserNumberChanged(int i) {
+  play_grasp_and_place_execution_button_->setDisabled(true);
   if(i == 0) {
     place_evaluation_visualization_->removeAllMarkers();
     evaluation_place_locations_result_indicator_->setText("None");
@@ -629,7 +657,9 @@ void GraspEvaluationVisualizationDialog::planForPlaceExecution() {
   goal_state.setStateValues(ev_place.approach_trajectory_.joint_names,
                             ev_place.approach_trajectory_.points.front().positions);
 
-  plan_place_execution_indicator_->setText("Planning");
+  last_place_planned_trajectory_.points.clear();
+
+  plan_place_execution_indicator_->setText("Planning to place");
 
   //emit
   requestDiffScenePlanGeneration(current_arm_,
@@ -650,6 +680,9 @@ void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecutionThread() 
 
   grasp_place_evaluation::GraspExecutionInfo ev_grasp;
   grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev_grasp);
+
+  grasp_place_evaluation::PlaceExecutionInfo ev_place;
+  place_evaluation_visualization_->getEvaluatedPlace(evaluated_place_locations_browser_->value()-1, ev_place);
   
   std_msgs::ColorRGBA col;
   col.b = col.r = col.a = 1.0;
@@ -660,7 +693,13 @@ void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecutionThread() 
   place_evaluation_visualization_->getJointTrajectoryVisualization()->playCurrentTrajectory(true);
   place_evaluation_visualization_->playInterpolatedTrajectories(evaluated_place_locations_browser_->value()-1,
                                                                 true,
-                                                                true);
+                                                                true, 
+                                                                false);
+  place_evaluation_visualization_->getJointTrajectoryVisualization()->setTrajectory(ev_place.detached_object_diff_scene_->getCurrentState(),
+                                                                                    current_arm_,
+                                                                                    last_return_from_place_planned_trajectory_,
+                                                                                    col);
+  place_evaluation_visualization_->getJointTrajectoryVisualization()->playCurrentTrajectory(true);
 }
 
 void GraspEvaluationVisualizationDialog::disableGeneration() {
@@ -691,6 +730,7 @@ void GraspEvaluationVisualizationDialog::disablePlaceGeneration() {
   place_name_combo_->setDisabled(true);
   generate_place_locations_button_->setDisabled(true);
   generated_place_locations_browser_->setDisabled(true);
+  generated_place_locations_browser_->setRange(0,0);
   place_generator_visualization_->removeAllMarkers();
   disablePlaceEvaluation();
 }
