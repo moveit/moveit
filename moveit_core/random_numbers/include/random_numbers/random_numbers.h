@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef RANDOM_NUMBERS_RANDOM_NUMBERS_
-#define RANDOM_NUMBERS_RANDOM_NUMBERS_
+#ifndef MOVEIT_RANDOM_NUMBERS_RANDOM_NUMBERS_
+#define MOVEIT_RANDOM_NUMBERS_RANDOM_NUMBERS_
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real.hpp>
@@ -44,58 +44,59 @@
 
 namespace random_numbers
 {
-    /** \brief Random number generation (wrapper for boost). An instance of this class
-        cannot be used by multiple threads at once (member functions
-        are not const). However, the constructor is thread safe and
-        different instances can be used safely in any number of
-        threads. It is also guaranteed that all created instances will
-        have a "random" random seed. */
-    class RandomNumberGenerator
-    {
-    public:
-
-        /** \brief Constructor. Always sets a "random" random seed */
-        RandomNumberGenerator(void);
-
-        /** \brief Generate a random real between 0 and 1 */
-        double uniform01(void)
-        {
-            return uni_();
-        }
-
-      /**
-       * @brief Generate a random real within given bounds: [\e lower_bound, \e upper_bound)
-       * @param lower_bound The lower bound
-       * @param upper_bound The upper bound
-       */
-        double uniformReal(double lower_bound, double upper_bound)
-        {
-            return (upper_bound - lower_bound) * uni_() + lower_bound;
-        }
-
-        /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w)
-         * @param value[4] A four dimensional array in which the computed quaternion will be returned
-         */
-        void   quaternion(double value[4]);
-
-        /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range [-pi, pi). The computed value has the order (roll, pitch, yaw)
-         * @param value[3] A three dimensional array in which the computed euler angles will be released
-         */
-        void   eulerRPY(double value[3]);
-
-      
-      int getRandomIntegerInRange(int min, int max) {
-        boost::uniform_int<> dis(min,max);  
-        return dis(generator_);
-      }
-
-    private:
-
-        boost::mt19937                                                           generator_;
-        boost::uniform_real<>                                                    uniDist_;
-        boost::variate_generator<boost::mt19937&, boost::uniform_real<> >        uni_;
-
-    };
+/** \brief Random number generation (wrapper for boost). An instance of this class
+    cannot be used by multiple threads at once (member functions
+    are not const). However, the constructor is thread safe and
+    different instances can be used safely in any number of
+    threads. It is also guaranteed that all created instances will
+    have a "random" random seed. */
+class RandomNumberGenerator
+{
+public:
+  
+  /** \brief Constructor. Always sets a "random" random seed */
+  RandomNumberGenerator(void);
+  
+  /** \brief Generate a random real between 0 and 1 */
+  double uniform01(void)
+  {
+    return uni_();
+  }
+  
+  /**
+   * @brief Generate a random real within given bounds: [\e lower_bound, \e upper_bound)
+   * @param lower_bound The lower bound
+   * @param upper_bound The upper bound
+   */
+  double uniformReal(double lower_bound, double upper_bound)
+  {
+    return (upper_bound - lower_bound) * uni_() + lower_bound;
+  }
+  
+  /** \brief Uniform random unit quaternion sampling. The computed value has the order (x,y,z,w)
+   * @param value[4] A four dimensional array in which the computed quaternion will be returned
+   */
+  void quaternion(double value[4]);
+  
+  /** \brief Uniform random sampling of Euler roll-pitch-yaw angles, each in the range [-pi, pi). The computed value has the order (roll, pitch, yaw)
+   * @param value[3] A three dimensional array in which the computed euler angles will be released
+   */
+  void eulerRPY(double value[3]);
+  
+  /** \brief Generate an integer uniformly at random within a specified range (inclusive) */
+  int uniformInteger(int min, int max)
+  {
+    boost::uniform_int<> dis(min,max);  
+    return dis(generator_);
+  }
+  
+private:
+  
+  boost::mt19937                                                    generator_;
+  boost::uniform_real<>                                             uniDist_;
+  boost::variate_generator<boost::mt19937&, boost::uniform_real<> > uni_;
+  
+};
 
 }
 

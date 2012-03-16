@@ -32,10 +32,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
-#ifndef GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
-#define GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
+#ifndef MOVEIT_GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
+#define MOVEIT_GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
 
 #include "geometric_shapes/shapes.h"
 #include <moveit_msgs/Shape.h>
@@ -84,10 +84,8 @@ bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk
 /** \brief Construct the marker that corresponds to the shape shape message.  Return false on failure. */
 bool constructMarkerFromShape(const moveit_msgs::Shape &shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list=false);
 
-bool getShapeExtents(const moveit_msgs::Shape& shape_msg,
-                     double& x_extent,
-                     double& y_extent,
-                     double& z_extent);
+/** \brief Get the dimensions of an axis-aligned bounding box for the shape described by \e shape_msg */
+bool getShapeExtents(const moveit_msgs::Shape& shape_msg, double& x_extent, double& y_extent, double& z_extent);
 }
 
 #endif
