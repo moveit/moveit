@@ -1,8 +1,0 @@
-FILENAME = ompl-1803.tar.gz
-TARBALL = build/$(FILENAME)
-TARBALL_URL = https://code.ros.org/svn/release/download/thirdparty/ompl/$(FILENAME)
-TARBALL_PATCH =
-
-SOURCE_DIR = build/ompl_arch
-UNPACK_CMD = tar xzf
-MD5SUM_FILE = $(FILENAME).md5sum

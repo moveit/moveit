@@ -1,0 +1,5 @@
+
+---
+
+# The planning instances to use in the benchmark
+PlannerInterfaceDescription[] planner_interfaces

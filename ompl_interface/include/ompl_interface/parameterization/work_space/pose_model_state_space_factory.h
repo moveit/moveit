@@ -34,37 +34,28 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_PLANNING_CONTEXT_FACTORY_
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_FACTORY_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_FACTORY_
 
-#include "ompl_interface/parameterization/model_based_planning_context_factory.h"
-#include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
+#include "ompl_interface/parameterization/model_based_state_space_factory.h"
 
 namespace ompl_interface
 {
-class JointModelPlanningContextFactory : public ModelBasedPlanningContextFactory
+class PoseModelStateSpaceFactory : public ModelBasedStateSpaceFactory
 {
 public:
-
-  JointModelPlanningContextFactory(void) : ModelBasedPlanningContextFactory()
+  
+  PoseModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
   {
-    type_ = "JointModel";
+    type_ = "PoseModel";
   }  
   
-  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const
-  {
-    return 100;
-  }
-
+  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const;
+    
 protected:
   
-  virtual ModelBasedPlanningContextPtr allocPlanningContext(const std::string &name,
-                                                            const ModelBasedStateSpaceSpecification &space_spec,
-                                                            const ModelBasedPlanningContextSpecification &context_spec) const
-  {
-    return ModelBasedPlanningContextPtr(new ModelBasedPlanningContext(name, ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec)), context_spec));
-  }
-  
+  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
+    
 };
 }
 

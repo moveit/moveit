@@ -34,4 +34,31 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-//#include "ompl_interface/parameterization/work_space/object_pose_model_planning_context_factory.h"
+#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_FACTORY_
+#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_FACTORY_
+
+#include "ompl_interface/parameterization/model_based_state_space_factory.h"
+
+namespace ompl_interface
+{
+class JointModelStateSpaceFactory : public ModelBasedStateSpaceFactory
+{
+public:
+
+  JointModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
+  {
+    type_ = "JointModel";
+  }  
+  
+  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
+				  const pm::KinematicModelConstPtr &kmodel,
+				  const AvailableKinematicsSolvers &aks) const;
+
+protected:
+  
+  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
+  
+};
+}
+
+#endif

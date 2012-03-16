@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/detail/state_validity_checker.h"
-#include "ompl_interface/parameterization/model_based_planning_context.h"
+#include "ompl_interface/model_based_planning_context.h"
 #include <ompl/tools/debug/Profiler.h>
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc) :
