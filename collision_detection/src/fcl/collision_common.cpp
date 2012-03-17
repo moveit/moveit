@@ -62,7 +62,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
-          ROS_INFO("Collision between '%s' and '%s' is always allowed. No contacts are computed.",
+          ROS_DEBUG("Collision between '%s' and '%s' is always allowed. No contacts are computed.",
                    cd1->getID().c_str(), cd2->getID().c_str());
       }
       else
@@ -70,7 +70,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         {
           cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), dcf);
           if (cdata->req_->verbose)
-            ROS_INFO("Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(), cd2->getID().c_str());
+            ROS_DEBUG("Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(), cd2->getID().c_str());
         }
     }
   }
@@ -101,7 +101,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   // if collisions are always allowed, we are done
   if (always_allow_collision)
     return false;
-  
+
+  if (cdata->req_->verbose) {
+    ROS_INFO_STREAM("Actually checking collisions between " << cd1->getID() << " and " << cd2->getID());
+  } else {
+    ROS_DEBUG_STREAM("Actually checking collisions between " << cd1->getID() << " and " << cd2->getID());
+  }
+
   // see if we need to compute a contact
   std::size_t want_contact_count = 0;
   if (cdata->req_->contacts)
@@ -131,9 +137,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     int num_contacts = fcl::collide(o1, o2, std::numeric_limits<int>::max(), exhaustive, enable_contact, contacts);
     if (num_contacts > 0)
     {
-      if (cdata->req_->verbose)
+      if (cdata->req_->verbose) {
         ROS_INFO("Found %d contacts between '%s' and '%s'. These contacts will be evaluated to check if they are accepted or not",
-                 num_contacts, cd1->getID().c_str(), cd2->getID().c_str());
+                 num_contacts, cd1->getID().c_str(), cd2->getID().c_str()); 
+      } 
       Contact c;
       const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
@@ -182,9 +189,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
           want_contact_count = 0;
         }
 	
-        if (cdata->req_->verbose)
+        if (cdata->req_->verbose) {
           ROS_INFO("Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
                    num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)num_contacts);
+        } else {
+          ROS_DEBUG_NAMED("contact_information", "Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
+                          num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)num_contacts);
+        }
         const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
           std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
         cdata->res_->collision = true;
@@ -206,9 +217,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       if (num_contacts > 0)
       {
         cdata->res_->collision = true;
-        if (cdata->req_->verbose)
+        if (cdata->req_->verbose) {
           ROS_INFO("Found a contact between '%s' and '%s', which constitutes a collision. Contact information is not stored.",
                    cd1->getID().c_str(), cd2->getID().c_str());
+        } else {
+          ROS_DEBUG_NAMED("contact_information", "Found a contact between '%s' and '%s', which constitutes a collision. Contact information is not stored.",
+                          cd1->getID().c_str(), cd2->getID().c_str());
+        }
       }
     }
   }
@@ -217,9 +232,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     if (!cdata->req_->contacts || cdata->res_->contact_count >= cdata->req_->max_contacts)
     {
       cdata->done_ = true;
-      if (cdata->req_->verbose)
-        ROS_INFO("Collision checking is considered complete (collision was found and %d contacts are stored)",
+      if (cdata->req_->verbose) {
+         ROS_INFO("Collision checking is considered complete (collision was found and %d contacts are stored)",
                  (unsigned int)cdata->res_->contact_count);
+      } else {
+        ROS_DEBUG_NAMED("contact_information", "Collision checking is considered complete (collision was found and %d contacts are stored)",
+                        (unsigned int)cdata->res_->contact_count);
+      }
     }
   
   return cdata->done_;
