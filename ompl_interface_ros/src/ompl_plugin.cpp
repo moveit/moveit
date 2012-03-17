@@ -77,6 +77,16 @@ class OMPLPlanner : public planning_interface::Planner
 
     std::string getDescription(void) const { return "OMPL"; }
 
+    void getPlanningAlgorithms(std::vector<std::string> &algs) const
+    {
+      const std::map<std::string, ompl_interface::PlanningConfigurationSettings> &pconfig = 
+        ompl_interface_->getPlanningContextManager().getPlanningConfigurations();
+      algs.clear();
+      for (std::map<std::string, ompl_interface::PlanningConfigurationSettings>::const_iterator it = pconfig.begin() ; 
+           it != pconfig.end() ; ++it)
+        algs.push_back(it->first);
+    }
+
     void terminate(void) const
     {
       ompl_interface_->terminateSolve();
