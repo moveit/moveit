@@ -49,7 +49,7 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
     group_joint_limit_map_(group_joint_limit_map),
     last_trajectory_ok_(false)
 {
-  ompl_interface_.setMaximumSolutionSegmentLength(.1);
+  ompl_interface_.getPlanningContextManager().setMaximumSolutionSegmentLength(.1);
 
   const std::vector<srdf::Model::Group>& groups = planning_scene_->getSrdfModel()->getGroups();
 
