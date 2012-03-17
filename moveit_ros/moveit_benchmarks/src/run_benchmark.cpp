@@ -117,11 +117,12 @@ public:
   {      
     if (!req.planner_interfaces.empty())
       for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
-        if (planner_interfaces_.find(req.planner_interfaces[i]) == planner_interfaces_.end())
-          ROS_ERROR("Planning interface '%s' was not found", req.planner_interfaces[i].c_str());
+        if (planner_interfaces_.find(req.planner_interfaces[i].name) == planner_interfaces_.end())
+          ROS_ERROR("Planning interface '%s' was not found", req.planner_interfaces[i].name.c_str());
     
     res.planner_interfaces.clear();
     std::vector<planning_interface::Planner*> pi;
+    std::vector<std::vector<std::string> > planner_ids;
     std::vector<planning_interface::PlannerCapability> pc;
     planning_interface::PlannerCapability capabilities;	
     moveit_msgs::GetMotionPlan::Request mp_req;
@@ -130,24 +131,47 @@ public:
     for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
          it != planner_interfaces_.end(); ++it)
     {
+      int found = -1;
       if (!req.planner_interfaces.empty())
       {
-        bool found = false;
         for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
-          if (req.planner_interfaces[i] == it->first)
+          if (req.planner_interfaces[i].name == it->first)
           {
-            found = true;
+            found = i;
             break;
           }
-        if (!found)
+        if (found < 0)
           continue;
       }
       
       if (it->second->canServiceRequest(mp_req, capabilities))
       {
-        res.planner_interfaces.push_back(it->first);
+        res.planner_interfaces.resize(res.planner_interfaces.size() + 1);
+        res.planner_interfaces.back().name = it->first;
         pi.push_back(it->second.get());
         pc.push_back(capabilities);
+        planner_ids.resize(planner_ids.size() + 1);
+        std::vector<std::string> known;
+        pi.back()->getPlanningAlgorithms(known);
+        if (found < 0 || req.planner_interfaces[found].planner_ids.empty())
+          planner_ids.back() = known;
+        else
+        {
+          for (std::size_t k = 0 ; k < req.planner_interfaces[found].planner_ids.size() ; ++k)
+          {
+            bool fnd = false;
+            for (std::size_t q = 0 ; q < known.size() ; ++q)
+              if (known[q] == req.planner_interfaces[found].planner_ids[k])
+              {
+                fnd = true;
+                break;
+              }
+            if (fnd)
+              planner_ids.back().push_back(req.planner_interfaces[found].planner_ids[k]);
+            else
+              ROS_ERROR("The planner id '%s' is not known to the planning interface '%s'", req.planner_interfaces[found].planner_ids[k].c_str(), it->first.c_str());
+          }          
+        }
       }
       else
         ROS_WARN_STREAM("Planning interface '" << it->second->getDescription() << "' is not able to solve the specified benchmark problem.");
@@ -160,13 +184,24 @@ public:
     }
     
     ROS_INFO("Benchmarking planning interfaces:");
+    std::stringstream sst;
     for (std::size_t i = 0 ; i < pi.size() ; ++i)
-      ROS_INFO_STREAM("  * " << pi[i]->getDescription());
+    {
+      sst << "  * " << pi[i]->getDescription() << " [ ";
+      for (std::size_t k = 0 ; k < planner_ids[i].size() ; ++k)
+        sst << planner_ids[i][k] << " ";
+      sst << "]" << std::endl;
+    }
+    ROS_INFO("%s", sst.str().c_str());
     scene_->setPlanningSceneMsg(req.scene);
     res.responses.resize(pi.size());
+
+    std::size_t total_n_planners = 0;
+    for (std::size_t i = 0 ; i < planner_ids.size() ; ++i)
+      total_n_planners += planner_ids[i].size();
     
     ros::WallTime startTime = ros::WallTime::now();
-    boost::progress_display progress(pi.size() * req.average_count, std::cout);
+    boost::progress_display progress(total_n_planners * req.average_count, std::cout);
     moveit_msgs::MotionPlanDetailedResponse mp_res;
     typedef std::vector<std::map<std::string, std::string> > RunData;
     std::vector<RunData> data;
