@@ -92,6 +92,9 @@ public Q_SLOTS:
   void planForPlaceExecution();
   void playFullGraspAndPlaceExecution();
 
+  void gotGeneratedGraspList(bool,
+                             std::vector<moveit_manipulation_msgs::Grasp>);                             
+
 Q_SIGNALS:
 
   void newPlanningSceneUpdated(const planning_scene::PlanningSceneConstPtr&);
@@ -104,6 +107,8 @@ Q_SIGNALS:
   void requestDiffScenePlanGeneration(const std::string&,
                                       const planning_scene::PlanningSceneConstPtr&,
                                       const planning_models::KinematicState*);
+  void requestGraspListGeneration(const std::string&,
+                                  const std::string&);
 
 protected:
 

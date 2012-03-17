@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/moveit_manipulation_visualization</url>
   <depend package="moveit_visualization_ros"/>
   <depend package="grasp_place_evaluation"/>
+  <depend package="moveit_household_objects_database"/>
 
 </package>
 

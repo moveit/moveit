@@ -264,17 +264,33 @@ void GraspEvaluationVisualizationDialog::generateGraspsForObject() {
   current_object_ = object_name_combo_->currentText().toStdString();
   ROS_INFO_STREAM("Attempting to grasp " << current_object_);
   current_generated_grasps_.clear();
-  if(!grasp_generator_visualization_->generateGrasps(planning_scene_,
-                                                     current_arm_,
-                                                     current_object_,
-                                                     current_generated_grasps_,
-                                                     generated_grasp_frame_)) {
-    ROS_WARN_STREAM("Something wrong with grasp generator");
-    return;
-  }
-  if(current_generated_grasps_.size() == 0) {
-    ROS_WARN_STREAM("No grasps generated");
-    return;
+
+  //emit
+  requestGraspListGeneration(current_object_,
+                             current_arm_);
+}
+
+void GraspEvaluationVisualizationDialog::gotGeneratedGraspList(bool ok,
+                                                               std::vector<moveit_manipulation_msgs::Grasp> grasps)
+{
+  if(!ok || grasps.size() == 0) {
+    ROS_INFO_STREAM("Using dummy grasp generator");
+    if(!grasp_generator_visualization_->generateGrasps(planning_scene_,
+                                                       current_arm_,
+                                                       current_object_,
+                                                       current_generated_grasps_,
+                                                       generated_grasp_frame_)) {
+      ROS_WARN_STREAM("Something wrong with grasp generator");
+      return;
+    }
+    if(current_generated_grasps_.size() == 0) {
+      ROS_WARN_STREAM("No grasps generated");
+      return;
+    }
+  } else {
+    ROS_INFO_STREAM("Using database grasps");
+    generated_grasp_frame_ = current_object_;
+    current_generated_grasps_ = grasps;
   }
   generated_grasps_browser_->setEnabled(true);
   generated_grasps_browser_->setRange(0, current_generated_grasps_.size());

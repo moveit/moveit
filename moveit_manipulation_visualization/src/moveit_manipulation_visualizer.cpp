@@ -30,6 +30,7 @@
 // Author: E. Gil Jones
 
 #include <moveit_manipulation_visualization/moveit_manipulation_visualizer.h>
+#include <moveit_manipulation_visualization/household_object_addition_dialog.h>
 
 namespace moveit_manipulation_visualization {
 
@@ -47,6 +48,12 @@ MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
 
   iov_->addMenuEntry("Attempt To Grasp",
                      boost::bind(&MoveItManipulationVisualizer::attemptToGrasp, this, _1));
+
+  HouseholdObjectAdditionDialog* household_object_dialog = new HouseholdObjectAdditionDialog(main_window_,
+                                                                                             planning_scene_monitor_->getPlanningScene()->getSemanticModel());
+
+  QAction* show_household_objects_dialog = coll_object_menu_->addAction("Add Household Collision Object");
+  QObject::connect(show_household_objects_dialog, SIGNAL(triggered()), household_object_dialog, SLOT(show()));
  
   QObject::connect(planning_group_selection_menu_, SIGNAL(groupSelected(const QString&)),
                    grasp_evaluation_visualization_dialog_, SLOT(planningGroupChanged(const QString&)));
@@ -75,6 +82,26 @@ MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
                    SIGNAL(planFailed(moveit_msgs::MoveItErrorCodes&)),
                    grasp_evaluation_visualization_dialog_,
                    SLOT(planGenerationFailed(moveit_msgs::MoveItErrorCodes&)));
+
+  QObject::connect(household_object_dialog, 
+                   SIGNAL(addCollisionObjectRequested(const moveit_msgs::CollisionObject&, const QColor&)), 
+                   iov_.get(), 
+                   SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
+
+  QObject::connect(grasp_evaluation_visualization_dialog_,
+                   SIGNAL(requestGraspListGeneration(const std::string&,
+                                                     const std::string&)),
+                   household_object_dialog,
+                   SLOT(generateGraspList(const std::string&,
+                                          const std::string&)));
+
+  QObject::connect(household_object_dialog,
+                   SIGNAL(graspListGenerated(bool,
+                                             std::vector<moveit_manipulation_msgs::Grasp>)),
+                   grasp_evaluation_visualization_dialog_,
+                   SLOT(gotGeneratedGraspList(bool,
+                                              std::vector<moveit_manipulation_msgs::Grasp>)));
+
   
 }
 
