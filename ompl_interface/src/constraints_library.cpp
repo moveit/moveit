@@ -141,6 +141,55 @@ protected:
 
 }
 
+ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model,
+                                                                 const std::string &group, const std::string &factory,
+                                                                 const moveit_msgs::Constraints &msg, const std::string &filename,
+                                                                 const ompl::base::StateStoragePtr &storage) :
+  kmodel_(kinematic_model), group_(group), factory_(factory), constraint_msg_(msg),
+  ompldb_filename_(filename), state_storage_ptr_(storage)
+{
+  state_storage_ = static_cast<ConstraintApproximationStateStorage*>(state_storage_ptr_.get());
+  state_storage_->getStateSpace()->computeSignature(space_signature_);
+}
+
+void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const
+{
+  planning_models::KinematicState kstate(kmodel_);
+  kstate.setToDefaultValues();
+  
+  ompl::RNG rng;
+  std_msgs::ColorRGBA color;
+  color.r = 0.0f;
+  color.g = 1.0f;
+  color.b = 1.0f;
+  color.a = 1.0f;
+  if (state_storage_->size() < count)
+    count = state_storage_->size();
+  
+  for (std::size_t i = 0 ; i < count ; ++i)
+  {
+    state_storage_->getStateSpace()->as<ModelBasedStateSpace>()->copyToKinematicState(kstate, state_storage_->getState(rng.uniformInt(0, state_storage_->size() - 1)));
+    kstate.getJointStateGroup(group_)->updateLinkTransforms();
+    const Eigen::Vector3d &pos = kstate.getLinkState(link_name)->getGlobalLinkTransform().translation();
+    
+    visualization_msgs::Marker mk;
+    mk.header.stamp = ros::Time::now();
+    mk.header.frame_id = kmodel_->getModelFrame();
+    mk.ns = "stored_constraint_data";
+    mk.id = i;
+    mk.type = visualization_msgs::Marker::SPHERE;
+    mk.action = visualization_msgs::Marker::ADD;
+    mk.pose.position.x = pos.x();
+    mk.pose.position.y = pos.y();
+    mk.pose.position.z = pos.z();
+    mk.pose.orientation.w = 1.0;
+    mk.scale.x = mk.scale.y = mk.scale.z = 0.035;
+    mk.color = color;
+    mk.lifetime = ros::Duration(30.0);
+    arr.markers.push_back(mk);
+  }
+}
+
 void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std::string &path)
 {
   ROS_INFO("Loading constrained space approximations from '%s'", path.c_str());

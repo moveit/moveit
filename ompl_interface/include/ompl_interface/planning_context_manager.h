@@ -161,6 +161,11 @@ public:
 
   ConfiguredPlannerAllocator getPlannerAllocator(void) const;
 
+  const std::map<std::string, PlanningConfigurationSettings>& getPlanningConfigurations(void) const
+  {
+    return planner_configs_;
+  }
+  
 protected:
   
   ob::PlannerPtr plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
