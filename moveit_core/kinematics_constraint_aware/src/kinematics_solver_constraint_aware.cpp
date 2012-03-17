@@ -835,7 +835,7 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
       cont_state.setStateValues(solution);
       ret_traj.points[ind].positions = solution.position;
       ret_traj.points[ind].time_from_start = ros::Duration((ind*1.0)*total_dur.toSec()/(num_points*1.0));
-      ROS_INFO_STREAM("Point " << ind << " redundancy " << solution.position[redundancy]);
+      ROS_DEBUG_STREAM("Point " << ind << " redundancy " << solution.position[redundancy]);
     } else {
       ROS_DEBUG_STREAM("Point " << i << " of " << num_points << " infeasible " << temp_error_code.val);
       ROS_DEBUG_STREAM("Point x y z " << trans_pose.position.x << " " << trans_pose.position.y << " " << trans_pose.position.z);
