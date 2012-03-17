@@ -159,11 +159,11 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
   planning_group_selection_menu_->init(planning_scene_monitor_->getPlanningScene()->getSrdfModel());
   menu_bar->addMenu(planning_group_selection_menu_);
 
-  QMenu* coll_object_menu = menu_bar->addMenu("Collision Objects");
+  coll_object_menu_ = menu_bar->addMenu("Collision Objects");
 
-  QAction* show_primitive_objects_dialog = coll_object_menu->addAction("Add Primitive Collision Object");
+  QAction* show_primitive_objects_dialog = coll_object_menu_->addAction("Add Primitive Collision Object");
   QObject::connect(show_primitive_objects_dialog, SIGNAL(triggered()), primitive_object_dialog, SLOT(show()));
-  QAction* show_mesh_objects_dialog = coll_object_menu->addAction("Add Mesh Collision Object");
+  QAction* show_mesh_objects_dialog = coll_object_menu_->addAction("Add Mesh Collision Object");
   QObject::connect(show_mesh_objects_dialog, SIGNAL(triggered()), mesh_object_dialog, SLOT(show()));
 
   main_layout->setMenuBar(menu_bar);

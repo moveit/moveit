@@ -42,6 +42,7 @@
 #include <OGRE/OgreLogManager.h>
 #include <rviz/visualization_panel.h>
 #include <rviz/visualization_manager.h>
+#include <QMenu>
 
 namespace moveit_visualization_ros {
 
@@ -75,6 +76,7 @@ protected:
   rviz::VisualizationPanel* rviz_frame_;
   QWidget* main_window_;
   PlanningGroupSelectionMenu* planning_group_selection_menu_;  
+  QMenu* coll_object_menu_;
 
   planning_scene::PlanningSceneConstPtr current_diff_;
 
