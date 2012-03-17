@@ -71,9 +71,12 @@ class Planner
     /// Subclass may implement methods below
     virtual void init(const planning_models::KinematicModelConstPtr& model) {}
     
-    /// 
+    /// Get a short string that identifies the planning interface
     virtual std::string getDescription(void) const { return ""; }
-    
+
+    /// Get the names of the known planning algorithms (values that can be filled as planner_id in the planning request)
+    virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const { }
+  
     /// Subclass must implement methods below
     virtual bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                        const moveit_msgs::GetMotionPlan::Request &req, 

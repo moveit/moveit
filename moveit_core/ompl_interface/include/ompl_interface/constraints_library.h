@@ -98,7 +98,9 @@ public:
   const std::string& getFilename(void) const
   {
     return ompldb_filename_;
-  }
+  }  
+
+  void visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const;
   
 protected:
   
