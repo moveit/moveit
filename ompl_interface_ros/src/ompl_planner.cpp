@@ -41,10 +41,14 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <ompl/tools/debug/Profiler.h>
+#include <moveit_msgs/GetMotionPlan.h>
+#include <moveit_msgs/ComputePlanningBenchmark.h>
+#include <moveit_msgs/ConstructConstraintApproximation.h>
 
 static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
 static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
 static const std::string BENCHMARK_SERVICE_NAME="benchmark_planning_problem"; // name of the advertised service (within the ~ namespace)
+static const std::string CONSTRUCT_CONSTRAINT_APPROXIMATION_SERVICE_NAME="construct_constraint_approximation"; // name of the advertised service (within the ~ namespace)
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
 
 class OMPLPlannerService
@@ -54,7 +58,8 @@ public:
   OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor &psm) : nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getKinematicModel())
   {
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
-    benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);  
+    benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);
+    construct_ca_service_ = nh_.advertiseService(CONSTRUCT_CONSTRAINT_APPROXIMATION_SERVICE_NAME, &OMPLPlannerService::constructConstraintApproximation, this);
     pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 5);
     pub_plan_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 100);
   }
@@ -124,6 +129,24 @@ public:
       ROS_INFO("Received new benchmark request...");
       return ompl_interface_.benchmark(psm_.getPlanningScene(), req, res);
   }
+
+  bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)
+  {
+    planning_models::KinematicState kstate(psm_.getPlanningScene()->getCurrentState());
+    planning_models::robotStateToKinematicState(*psm_.getPlanningScene()->getTransforms(), req.start_state, kstate);
+    ompl_interface::ConstraintApproximationConstructionResults ca_res = 
+      ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group, req.state_space_parameterization,
+                                                                         kstate, req.samples, req.edges_per_sample);
+    if (ca_res.approx)
+    {
+      res.sampling_success_rate = ca_res.sampling_success_rate;
+      res.state_sampling_time = ca_res.state_sampling_time;
+      res.state_connection_time = ca_res.state_connection_time;
+      return ompl_interface_.saveConstraintApproximations();
+    }
+    else
+      return false;
+  }
   
   void status(void)
   {
@@ -138,6 +161,7 @@ private:
   ompl_interface_ros::OMPLInterfaceROS          ompl_interface_;
   ros::ServiceServer                            plan_service_;
   ros::ServiceServer                            benchmark_service_;  
+  ros::ServiceServer                            construct_ca_service_;  
   ros::ServiceServer                            display_states_service_;
   ros::Publisher                                pub_markers_;
   ros::Publisher                                pub_plan_;

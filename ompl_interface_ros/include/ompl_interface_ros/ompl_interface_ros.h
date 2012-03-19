@@ -58,6 +58,12 @@ namespace ompl_interface_ros
         return kinematics_loader_;
       }
       
+      /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint approximations to */
+      bool saveConstraintApproximations(void);
+      
+      /** @brief Look up param server 'constraint_approximations' and use its value as the path to load constraint approximations to */
+      bool loadConstraintApproximations(void);
+      
       /** @brief Print the status of this node*/
       void printStatus(void);
 
