@@ -65,7 +65,6 @@ public:
     bool result = ompl_interface_.solve(psm_.getPlanningScene(), req, res);
     if (result)
       displaySolution(res);
-    displayPlannerData("r_wrist_roll_link");
     std::stringstream ss;
     ompl::tools::Profiler::Status(ss);
     ROS_INFO("%s", ss.str().c_str());
@@ -79,108 +78,6 @@ public:
     d.trajectory_start = mplan_res.trajectory_start;
     d.trajectory = mplan_res.trajectory;
     pub_plan_.publish(d);
-  }
-  
-  void displayRandomPaths(void)
-  {
-    
-    const ompl_interface::ModelBasedPlanningContextPtr &pc = ompl_interface_.getLastPlanningContext();
-
-    //    std::cout << pc->getOMPLSimpleSetup().getSpaceInformation()->probabilityOfValidState(1000) << std::endl;
-    
-    
-    planning_models::KinematicState ks(pc->getCompleteInitialRobotState());
-    ompl::base::ScopedState<> s(pc->getOMPLStateSpace());
-    ompl::base::ScopedState<> s0(s);
-    bool first = true;
-    for (int i = 0 ; i < 120 ; ++i)
-    {
-      ROS_INFO("i = %d", i);
-      s.random();
-      if (!pc->getOMPLSimpleSetup().getSpaceInformation()->isValid(s.get()))
-        continue;
-      if (!first)
-      {
-        ompl::geometric::PathGeometric pg(pc->getOMPLSimpleSetup().getSpaceInformation(), s0.get(), s.get());
-        pg.interpolate(3);
-        
-        if (pc->getOMPLSimpleSetup().getSpaceInformation()->checkMotion(s0.get(), s.get()))
-          ROS_INFO("Valid Path");
-        else
-          ROS_INFO("Invalid Path");
-
-        pc->setVerboseStateValidityChecks(true);
-        for (std::size_t i = 0 ; i < pg.getStateCount() ; ++i)
-        {
-          const ompl_interface::ModelBasedStateSpace::StateType *s = pg.getState(i)->as<ompl_interface::ModelBasedStateSpace::StateType>();
-          pc->getOMPLSimpleSetup().getSpaceInformation()->isValid(s);
-        }
-        pc->setVerboseStateValidityChecks(false);
-        ROS_INFO("\n");
-        pg.interpolate(30);
-        moveit_msgs::DisplayTrajectory d;
-        d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
-        planning_models::kinematicStateToRobotState(pc->getCompleteInitialRobotState(), d.trajectory_start);
-        pc->convertPath(pg, d.trajectory);
-        pub_plan_.publish(d);
-        ros::Duration(5.0).sleep();
-      }
-      first = false;
-      s0 = s;
-      pc->getOMPLStateSpace()->copyToKinematicState(ks, s.get());
-      moveit_msgs::DisplayTrajectory d;
-      d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
-      planning_models::kinematicStateToRobotState(ks, d.trajectory_start);
-      pub_plan_.publish(d);  
-      ros::Duration(0.5).sleep();
-    }
-
-    /*
-    boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> kpl = ompl_interface_.getKinematicsPluginLoader();
-    kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kpl->getLoaderFunction();
-    kinematic_constraints::KinematicsSubgroupAllocator sa;
-    sa[psm_.getPlanningScene()->getKinematicModel()->getJointModelGroup("left_arm")] = kinematics_allocator;
-    sa[psm_.getPlanningScene()->getKinematicModel()->getJointModelGroup("right_arm")] = kinematics_allocator;
-    
-    kinematic_constraints::ConstraintSamplerPtr smp = kinematic_constraints::constructConstraintsSampler
-      (psm_.getPlanningScene()->getKinematicModel()->getJointModelGroup("arms"),  pc->getPathConstraints()->getAllConstraints(),
-       psm_.getPlanningScene()->getKinematicModel(), psm_.getPlanningScene()->getTransforms(), kinematic_constraints::KinematicsAllocator(), sa);
-
-    for (int i = 0 ; i < 1000 ; ++i)
-    {
-      ROS_INFO("j = %d", i);
-      std::vector<double> values;
-      if (smp->sample(values, ks, 10))
-      {
-        ks.getJointStateGroup("arms")->setStateValues(values);
-        moveit_msgs::DisplayTrajectory d;
-        d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
-        planning_models::kinematicStateToRobotState(ks, d.robot_state);
-        pub_plan_.publish(d);  
-        ros::Duration(0.5).sleep();
-      }
-    }
-    */
-
-    /*    
-    
-    for (int i = 0 ; i < 10 ; ++i)
-    {
-      ROS_INFO("i = %d", i);
-      
-      ompl::geometric::PathGeometric pg(pc->getOMPLSimpleSetup().getSpaceInformation());
-      pg.random(); 
-      //      pg.interpolate(20);
-      moveit_msgs::DisplayTrajectory d;
-      d.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
-      planning_models::kinematicStateToRobotState(pc->getCompleteInitialRobotState(), d.robot_state);
-      pc->convertPath(pg, d.trajectory);
-      pub_plan_.publish(d);
-      //      std::cout << d << std::endl;
-      
-      ros::Duration(5.0).sleep();
-    }
-    */
   }
   
   void displayPlannerData(const std::string &link_name)
