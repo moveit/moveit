@@ -1,0 +1,16 @@
+<package>
+  <description brief="moveit_configuration_tools">
+
+     moveit_configuration_tools
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_configuration_tools</url>
+  <depend package="planning_models"/>
+  <depend package="kinematics_constraint_aware"/>
+
+</package>
+
+
