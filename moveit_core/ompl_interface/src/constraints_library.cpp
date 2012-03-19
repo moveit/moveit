@@ -140,17 +140,47 @@ protected:
   
 };
 
+ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::StateSpace *space, const std::vector<int> &expected_signature,
+                                                                     const ConstraintApproximationStateStorage *state_storage, int mini, int maxi)
+{
+  std::vector<int> sig;
+  space->computeSignature(sig);
+  if (sig != expected_signature)
+    return ompl::base::StateSamplerPtr();
+  else
+    return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage, mini, maxi));
+}
+
 }
 
 ompl_interface::ConstraintApproximation::ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model,
-                                                                 const std::string &group, const std::string &factory,
+                                                                 const std::string &group, const std::string &state_space_parameterization,
                                                                  const moveit_msgs::Constraints &msg, const std::string &filename,
-                                                                 const ompl::base::StateStoragePtr &storage) :
-  kmodel_(kinematic_model), group_(group), factory_(factory), constraint_msg_(msg),
-  ompldb_filename_(filename), state_storage_ptr_(storage)
+                                                                 const ompl::base::StateStoragePtr &storage,
+                                                                 const ConstraintApproximationFactory *parent_factory) :
+  kmodel_(kinematic_model), group_(group), state_space_parameterization_(state_space_parameterization), constraint_msg_(msg),
+  ompldb_filename_(filename), state_storage_ptr_(storage), parent_factory_(parent_factory)
 {
   state_storage_ = static_cast<ConstraintApproximationStateStorage*>(state_storage_ptr_.get());
   state_storage_->getStateSpace()->computeSignature(space_signature_);
+}
+
+ompl::base::StateSamplerAllocator ompl_interface::ConstraintApproximation::getStateSamplerAllocator(const moveit_msgs::Constraints &msg) const
+{
+  if (state_storage_->size() == 0)
+    return ompl::base::StateSamplerAllocator();
+  int mini = 0;
+  int maxi = state_storage_->size() - 1;
+  if (parent_factory_)
+  {
+    ConstraintStateStorageDelimiterFn above = parent_factory_->getAboveDelimiterFunction(msg);
+    ConstraintStateStorageDelimiterFn below = parent_factory_->getBelowDelimiterFunction(msg);
+    if (above || below)
+    {
+      // figure out mini & maxi
+    }
+  }
+  return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_, mini, maxi);
 }
 
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const
@@ -193,6 +223,7 @@ void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::s
 
 void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std::string &path)
 {
+  constraint_approximations_.clear();
   std::ifstream fin((path + "/manifest").c_str());
   if (!fin.good())
   {
@@ -204,18 +235,18 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
   
   while (fin.good() && !fin.eof())
   {
-    std::string group, factory, serialization, filename;
+    std::string group, state_space_parameterization, serialization, filename;
     fin >> group;
     if (fin.eof())
       break;
-    fin >> factory;
+    fin >> state_space_parameterization;
     if (fin.eof())
       break;
     fin >> serialization;    
     if (fin.eof())
       break;
     fin >> filename;
-    const ModelBasedPlanningContextPtr &pc = context_manager_.getPlanningContext(group, factory);
+    const ModelBasedPlanningContextPtr &pc = context_manager_.getPlanningContext(group, state_space_parameterization);
     if (pc)
     {
       moveit_msgs::Constraints msg;
@@ -225,12 +256,15 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
       ConstraintApproximationPtr cap;
       if (constraint_factories_.find(msg.name) != constraint_factories_.end())
         cap = constraint_factories_[msg.name]->allocApproximation(context_manager_.getKinematicModel(),
-                                                                  group, factory, msg, filename, ompl::base::StateStoragePtr(cass));
+                                                                  group, state_space_parameterization, msg, filename, ompl::base::StateStoragePtr(cass));
       else
         cap.reset(new ConstraintApproximation(context_manager_.getKinematicModel(),
-                                              group, factory, msg, filename, ompl::base::StateStoragePtr(cass)));
+                                              group, state_space_parameterization, msg, filename, ompl::base::StateStoragePtr(cass)));
       if (cap)
       {
+        if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
+          ROS_WARN("Overwriting constraint approximation named '%s'", cap->getName().c_str());
+        
         constraint_approximations_[cap->getName()] = cap;
         std::size_t sum = 0;
         for (std::size_t i = 0 ; i < cass->size() ; ++i)
@@ -250,7 +284,7 @@ void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std:
   for (std::map<std::string, ConstraintApproximationPtr>::const_iterator it = constraint_approximations_.begin() ; it != constraint_approximations_.end() ; ++it)
   {
     fout << it->second->getGroup() << std::endl;
-    fout << it->second->getFactory() << std::endl;
+    fout << it->second->getStateSpaceParameterization() << std::endl;
     std::string serialization;
     msgToHex(it->second->getConstraintsMsg(), serialization);
     fout << serialization << std::endl;
@@ -268,30 +302,39 @@ void ompl_interface::ConstraintsLibrary::clearConstraintApproximations(void)
 
 void ompl_interface::ConstraintsLibrary::printConstraintApproximations(std::ostream &out) const
 {
-
   for (std::map<std::string, ConstraintApproximationPtr>::const_iterator it = constraint_approximations_.begin() ; it != constraint_approximations_.end() ; ++it)
   {
     out << it->second->getGroup() << std::endl;
-    out << it->second->getFactory() << std::endl;
+    out << it->second->getStateSpaceParameterization() << std::endl;
     out << it->second->getFilename() << std::endl;
     out << it->second->getConstraintsMsg() << std::endl;
   }
 }
 
+const ompl_interface::ConstraintApproximationPtr& ompl_interface::ConstraintsLibrary::getConstraintApproximation(const moveit_msgs::Constraints &msg) const
+{
+  std::map<std::string, ConstraintApproximationPtr>::const_iterator it = constraint_approximations_.find(msg.name);
+  if (it != constraint_approximations_.end())
+    return it->second;
+
+  static ConstraintApproximationPtr empty;
+  return empty;
+}
+
 ompl_interface::ConstraintApproximationConstructionResults
-ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &factory,
+ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &state_space_parameterization,
                                                                const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
 {
-  return addConstraintApproximation(constr, constr, group, factory, kstate, samples, edges_per_sample);
+  return addConstraintApproximation(constr, constr, group, state_space_parameterization, kstate, samples, edges_per_sample);
 }
 
 ompl_interface::ConstraintApproximationConstructionResults
 ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
-                                                               const std::string &group, const std::string &factory,
+                                                               const std::string &group, const std::string &state_space_parameterization,
                                                                const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
 { 
   ConstraintApproximationConstructionResults res;
-  const ModelBasedPlanningContextPtr &pc = context_manager_.getPlanningContext(group, factory);
+  const ModelBasedPlanningContextPtr &pc = context_manager_.getPlanningContext(group, state_space_parameterization);
   if (pc)
   {
     std::map<std::string, ConstraintApproximationFactoryPtr>::const_iterator it = constraint_factories_.find(constr_hard.name);
@@ -310,13 +353,15 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
     {
       ConstraintApproximationPtr ca;
       if (fct)
-        ca = fct->allocApproximation(context_manager_.getKinematicModel(), group, factory, constr_hard, group + "_" + 
+        ca = fct->allocApproximation(context_manager_.getKinematicModel(), group, state_space_parameterization, constr_hard, group + "_" + 
                                      boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss);
       else
-        ca.reset(new ConstraintApproximation(context_manager_.getKinematicModel(), group, factory, constr_hard, group + "_" + 
+        ca.reset(new ConstraintApproximation(context_manager_.getKinematicModel(), group, state_space_parameterization, constr_hard, group + "_" + 
                                              boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss));
       if (ca)
       {
+        if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
+          ROS_WARN("Overwriting constraint approximation named '%s'", ca->getName().c_str());
         constraint_approximations_[ca->getName()] = ca;
         res.approx = ca;
       }

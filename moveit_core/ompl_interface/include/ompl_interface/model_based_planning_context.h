@@ -306,8 +306,8 @@ protected:
   std::vector<int> space_signature_;
 
   kc::KinematicConstraintSetPtr              path_constraints_;
+  moveit_msgs::Constraints                   path_constraints_msg_;
   std::vector<kc::KinematicConstraintSetPtr> goal_constraints_;
-  std::string path_constraints_name_;
   
   const ob::PlannerTerminationCondition *ptc_;
   boost::mutex ptc_lock_;
