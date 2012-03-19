@@ -314,26 +314,31 @@ public:
     std::vector<bool> first(pi.size(), true);
     for (std::size_t i = 0 ; i < pi.size() ; ++i)
     {
-      RunData runs(req.average_count);
-      for (unsigned int c = 0 ; c < req.average_count ; ++c)
+      for (std::size_t j = 0 ; j < planner_ids[i].size() ; ++j)
       {
-        ++progress;
-        ros::WallTime start = ros::WallTime::now();
-        bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
-        double total_time = (ros::WallTime::now() - start).toSec();
-	
-        // collect data 
-        collectMetrics(runs[c], mp_res, solved, total_time);
-	
-        // record the first solution in the response
-        if (solved && first[i])
+        mp_req.motion_plan_request.planner_id = planner_ids[i][j];
+        RunData runs(req.average_count);
+        for (unsigned int c = 0 ; c < req.average_count ; ++c)
         {
-          first[i] = false;
-          res.responses[i] = mp_res;
+          ++progress;
+          ros::WallTime start = ros::WallTime::now();
+          bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
+          double total_time = (ros::WallTime::now() - start).toSec();
+          
+          // collect data 
+          collectMetrics(runs[c], mp_res, solved, total_time);
+          
+          // record the first solution in the response
+          if (solved && first[i])
+          {
+            first[i] = false;
+            res.responses[i] = mp_res;
+          }
         }
+        data.push_back(runs);
       }
-      data.push_back(runs);
     }
+    
     double duration = (ros::WallTime::now() - startTime).toSec();
     std::string host = getHostname();
     
@@ -348,39 +353,41 @@ public:
     out << "10240 MB per run" << std::endl; // we don't limit memory usage
     out << req.average_count << " runs per planner" << std::endl;
     out << duration << " seconds spent to collect the data" << std::endl;
-    out << pi.size() << " planners" << std::endl;
-    for (std::size_t i = 0 ; i < pi.size() ; ++i)
-    {
-      out << pi[i]->getDescription() << std::endl;
-      // in general, we could have properties specific for a planner;
-      // right now, we do not include such properties
-      out << "0 common properties" << std::endl;
-      
-      // construct the list of all possible properties for all runs
-      std::set<std::string> propSeen;
-      for (std::size_t j = 0 ; j < data[i].size() ; ++j)
-        for (std::map<std::string, std::string>::const_iterator mit = data[i][j].begin() ; mit != data[i][j].end() ; ++mit)
-          propSeen.insert(mit->first);
-      std::vector<std::string> properties;
-      for (std::set<std::string>::iterator it = propSeen.begin() ; it != propSeen.end() ; ++it)
-        properties.push_back(*it);
-      out << properties.size() << " properties for each run" << std::endl;
-      for (unsigned int j = 0 ; j < properties.size() ; ++j)
-        out << properties[j] << std::endl;
-      out << data[i].size() << " runs" << std::endl;
-      for (std::size_t j = 0 ; j < data[i].size() ; ++j)
+    out << total_n_planners << " planners" << std::endl;
+    std::size_t ri = 0;
+    for (std::size_t q = 0 ; q < pi.size() ; ++q)
+      for (std::size_t p = 0 ; p < planner_ids[q].size() ; ++p, ++ri)
       {
-        for (unsigned int k = 0 ; k < properties.size() ; ++k)
+        out << pi[q]->getDescription() + "_" + planner_ids[q][p] << std::endl;
+        // in general, we could have properties specific for a planner;
+        // right now, we do not include such properties
+        out << "0 common properties" << std::endl;
+        
+        // construct the list of all possible properties for all runs
+        std::set<std::string> propSeen;
+        for (std::size_t j = 0 ; j < data[ri].size() ; ++j)
+          for (std::map<std::string, std::string>::const_iterator mit = data[ri][j].begin() ; mit != data[ri][j].end() ; ++mit)
+            propSeen.insert(mit->first);
+        std::vector<std::string> properties;
+        for (std::set<std::string>::iterator it = propSeen.begin() ; it != propSeen.end() ; ++it)
+          properties.push_back(*it);
+        out << properties.size() << " properties for each run" << std::endl;
+        for (unsigned int j = 0 ; j < properties.size() ; ++j)
+          out << properties[j] << std::endl;
+        out << data[ri].size() << " runs" << std::endl;
+        for (std::size_t j = 0 ; j < data[ri].size() ; ++j)
         {
-          std::map<std::string, std::string>::const_iterator it = data[i][j].find(properties[k]);
-          if (it != data[i][j].end())
-            out << it->second;
-          out << "; ";
+          for (unsigned int k = 0 ; k < properties.size() ; ++k)
+          {
+            std::map<std::string, std::string>::const_iterator it = data[ri][j].find(properties[k]);
+            if (it != data[ri][j].end())
+              out << it->second;
+            out << "; ";
+          }
+          out << std::endl;
         }
-        out << std::endl;
+        out << '.' << std::endl;
       }
-      out << '.' << std::endl;
-    }
     out.close();
     ROS_INFO("Results saved to '%s'", req.filename.c_str());
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
