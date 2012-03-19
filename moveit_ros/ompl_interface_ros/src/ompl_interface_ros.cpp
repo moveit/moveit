@@ -51,19 +51,35 @@ ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::Ki
   loadParams();
 }
 
+bool ompl_interface_ros::OMPLInterfaceROS::saveConstraintApproximations(void)
+{
+  std::string cpath;
+  if (nh_.getParam("constraint_approximations", cpath))
+  {
+    OMPLInterface::saveConstraintApproximations(cpath);
+    return true;
+  }
+  ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
+  return false;
+}
+
+bool ompl_interface_ros::OMPLInterfaceROS::loadConstraintApproximations(void)
+{
+  std::string cpath;
+  if (nh_.getParam("constraint_approximations", cpath))
+  {
+    OMPLInterface::loadConstraintApproximations(cpath);
+    return true;
+  }
+  return false;
+}
+
 void ompl_interface_ros::OMPLInterfaceROS::loadParams(void)
 { 
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
   loadKinematicsSolvers();
-  std::string cpath;
-  if (nh_.getParam("constraint_approximations", cpath))
-      loadConstraintApproximations(cpath);
-  /*    
-        std::stringstream ss;
-        printConstraintApproximations(ss);
-        ROS_INFO("Available constraint approximations:\n\n%s\n", ss.str().c_str()); */
-
+  loadConstraintApproximations();
 }
 
 void ompl_interface_ros::OMPLInterfaceROS::loadKinematicsSolvers(void)
