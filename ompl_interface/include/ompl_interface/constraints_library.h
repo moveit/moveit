@@ -157,6 +157,14 @@ public:
   }
 };
 
+struct ConstraintApproximationConstructionResults
+{
+  ConstraintApproximationPtr approx;
+  double                     state_sampling_time;
+  double                     state_connection_time;
+  double                     sampling_success_rate;
+};
+
 class ConstraintsLibrary
 {
 public:
@@ -169,16 +177,18 @@ public:
   
   void saveConstraintApproximations(const std::string &path);
   
-  void addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
-                                  const std::string &group, const std::string &factory,
-                                  const pm::KinematicState &kstate, 
-                                  unsigned int samples, unsigned int edges_per_sample);
+  ConstraintApproximationConstructionResults
+  addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
+                             const std::string &group, const std::string &factory,
+                             const pm::KinematicState &kstate, 
+                             unsigned int samples, unsigned int edges_per_sample);
   
-  void addConstraintApproximation(const moveit_msgs::Constraints &constr,
-                                  const std::string &group, const std::string &factory,
-                                  const pm::KinematicState &kstate,
-                                  unsigned int samples, unsigned int edges_per_sample);
-    
+  ConstraintApproximationConstructionResults
+  addConstraintApproximation(const moveit_msgs::Constraints &constr,
+                             const std::string &group, const std::string &factory,
+                             const pm::KinematicState &kstate,
+                             unsigned int samples, unsigned int edges_per_sample);
+  
   void printConstraintApproximations(std::ostream &out = std::cout) const;
   void clearConstraintApproximations(void);
   
@@ -209,7 +219,8 @@ private:
                                                                const moveit_msgs::Constraints &constr_hard,
                                                                const pm::KinematicState &default_state,
                                                                const ConstraintStateStorageOrderFn &order,
-                                                               unsigned int samples, unsigned int edges_per_sample);
+                                                               unsigned int samples, unsigned int edges_per_sample,
+                                                               ConstraintApproximationConstructionResults &result);
   
   const PlanningContextManager &context_manager_;
   std::map<std::string, ConstraintApproximationPtr> constraint_approximations_;

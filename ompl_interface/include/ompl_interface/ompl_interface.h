@@ -137,6 +137,16 @@ public:
   {
     return context_manager_;
   }
+
+  ConstraintsLibrary& getConstraintsLibrary(void)
+  {
+    return constraints_library_;
+  }
+
+  const ConstraintsLibrary& getConstraintsLibrary(void) const
+  {
+    return constraints_library_;
+  }
   
   void useConstraintsApproximations(bool flag)
   {
