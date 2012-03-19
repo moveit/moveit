@@ -38,6 +38,7 @@
 #include "ompl_interface/detail/constrained_sampler.h"
 #include <ompl/tools/config/SelfConfig.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/filesystem.hpp>
 #include <fstream>
 
 namespace ompl_interface
@@ -192,11 +193,14 @@ void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::s
 
 void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std::string &path)
 {
-  ROS_INFO("Loading constrained space approximations from '%s'", path.c_str());
-  
   std::ifstream fin((path + "/manifest").c_str());
   if (!fin.good())
-    ROS_DEBUG("Manifest not found in folder '%s'", path.c_str());
+  {
+    ROS_DEBUG("Manifest not found in folder '%s'. Not loading constraint approximations.", path.c_str());
+    return;
+  }
+  
+  ROS_INFO("Loading constrained space approximations from '%s'", path.c_str());
   
   while (fin.good() && !fin.eof())
   {
@@ -240,6 +244,7 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
 void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std::string &path)
 {
   ROS_INFO("Saving %u constrained space approximations to '%s'", (unsigned int)constraint_approximations_.size(), path.c_str());
+  boost::filesystem::create_directories(path);
   
   std::ofstream fout((path + "/manifest").c_str());
   for (std::map<std::string, ConstraintApproximationPtr>::const_iterator it = constraint_approximations_.begin() ; it != constraint_approximations_.end() ; ++it)
@@ -273,17 +278,19 @@ void ompl_interface::ConstraintsLibrary::printConstraintApproximations(std::ostr
   }
 }
 
-void ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &factory,
-                                                                    const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
+ompl_interface::ConstraintApproximationConstructionResults
+ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &factory,
+                                                               const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
 {
-  addConstraintApproximation(constr, constr, group, factory, kstate, samples, edges_per_sample);
+  return addConstraintApproximation(constr, constr, group, factory, kstate, samples, edges_per_sample);
 }
 
-void ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
-                                                                    const std::string &group, const std::string &factory,
-                                                                    const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
+ompl_interface::ConstraintApproximationConstructionResults
+ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
+                                                               const std::string &group, const std::string &factory,
+                                                               const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
 { 
-
+  ConstraintApproximationConstructionResults res;
   const ModelBasedPlanningContextPtr &pc = context_manager_.getPlanningContext(group, factory);
   if (pc)
   {
@@ -297,7 +304,7 @@ void ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit
     }
     
     ros::WallTime start = ros::WallTime::now();
-    ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, kstate, order, samples, edges_per_sample);
+    ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, kstate, order, samples, edges_per_sample, res);
     ROS_INFO("Spend %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
     if (ss)
     {
@@ -309,11 +316,15 @@ void ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit
         ca.reset(new ConstraintApproximation(context_manager_.getKinematicModel(), group, factory, constr_hard, group + "_" + 
                                              boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) + ".ompldb", ss));
       if (ca)
+      {
         constraint_approximations_[ca->getName()] = ca;
+        res.approx = ca;
+      }
     }
     else
       ROS_ERROR("Unable to construct constraint approximation for group '%s'", group.c_str());
   }
+  return res;
 }
 
 ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstraintApproximation(const ModelBasedPlanningContextPtr &pcontext,
@@ -321,7 +332,8 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
                                                                                                  const moveit_msgs::Constraints &constr_hard,
                                                                                                  const pm::KinematicState &default_state,
                                                                                                  const ConstraintStateStorageOrderFn &order,
-                                                                                                 unsigned int samples, unsigned int edges_per_sample)
+                                                                                                 unsigned int samples, unsigned int edges_per_sample,
+                                                                                                 ConstraintApproximationConstructionResults &result)
 {
   // state storage structure
   ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(pcontext->getOMPLStateSpace());
@@ -405,9 +417,13 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     }
 #pragma omp master
     {
-      ROS_INFO("Generated %u states in %lf seconds", (unsigned int)sstor->size(), ompl::time::seconds(ompl::time::now() - start)); 
+      result.state_sampling_time = ompl::time::seconds(ompl::time::now() - start);
+      ROS_INFO("Generated %u states in %lf seconds", (unsigned int)sstor->size(), result.state_sampling_time); 
       if (csmp)
-	ROS_INFO("Constrained sampling rate: %lf", csmp->getConstrainedSamplingRate());
+      {
+        result.sampling_success_rate = csmp->getConstrainedSamplingRate();
+        ROS_INFO("Constrained sampling rate: %lf", result.sampling_success_rate);
+      }
     }
   }
   if (order)
@@ -484,7 +500,8 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
         }
       }
     }
-    ROS_INFO("Computed possible connexions in %lf seconds. Added %d connexions", ompl::time::seconds(ompl::time::now() - start), good);
+    result.state_connection_time = ompl::time::seconds(ompl::time::now() - start);
+    ROS_INFO("Computed possible connexions in %lf seconds. Added %d connexions", result.state_connection_time, good);
   }
   
   return sstor;

@@ -45,3 +45,4 @@ rosbuild_add_library(${PROJECT_NAME}
 )
 
 rosbuild_add_openmp_flags(${PROJECT_NAME})
+rosbuild_link_boost(${PROJECT_NAME} thread date_time serialization system filesystem)

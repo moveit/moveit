@@ -1,0 +1,30 @@
+# A constraint is constructed for a particular group only. The start state is used to know where the robot links are located (the links that are not affected by group joints moving)
+RobotState start_state
+
+# group to construct the approximation for
+string group
+
+# There are multiple state space parametrizations possible. This is specific to the planner.
+string state_space_parameterization
+
+# The number of samples to attempt to construct in the database
+uint32 samples
+
+# The number of edges to attempt to add to each sample
+uint32 edges_per_sample
+
+# The 
+Constraints constraint
+---
+
+# the percentage of sampled states that meet the specified constraints
+float64 sampling_success_rate
+
+# total time spent generating states
+float64 state_sampling_time
+
+# total time spent connecting states
+float64 state_connection_time
+
+# location of database
+string filename
