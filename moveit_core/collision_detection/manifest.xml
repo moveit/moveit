@@ -19,7 +19,7 @@
   
   <rosdep name="eigen" />
   <export>
-    <cpp cflags="`pkg-config --cflags fcl` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lcollision_detection `rosboost-cfg --lflags thread`"/>
+    <cpp cflags="`pkg-config --cflags fcl` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lcollision_detection `pkg-config --libs fcl` `rosboost-cfg --lflags thread`"/>
   </export>
   
   <platform os="ubuntu" version="10.04"/>
