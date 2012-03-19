@@ -142,6 +142,7 @@ public:
       res.sampling_success_rate = ca_res.sampling_success_rate;
       res.state_sampling_time = ca_res.state_sampling_time;
       res.state_connection_time = ca_res.state_connection_time;
+      res.filename = ca_res.approx->getFilename();
       return ompl_interface_.saveConstraintApproximations();
     }
     else
