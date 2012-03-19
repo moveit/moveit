@@ -87,7 +87,7 @@ public:
   }
   
   ConstraintApproximationStateSampler(const ob::StateSpace *space, const ConstraintApproximationStateStorage *state_storage,
-                                      int mini, int maxi) : 
+                                      std::size_t mini, std::size_t maxi) : 
     ob::StateSampler(space), state_storage_(state_storage)
   {
     min_index_ = mini;
@@ -141,7 +141,7 @@ protected:
 };
 
 ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::StateSpace *space, const std::vector<int> &expected_signature,
-                                                                     const ConstraintApproximationStateStorage *state_storage, int mini, int maxi)
+                                                                     const ConstraintApproximationStateStorage *state_storage, std::size_t mini, std::size_t maxi)
 {
   std::vector<int> sig;
   space->computeSignature(sig);
@@ -169,16 +169,70 @@ ompl::base::StateSamplerAllocator ompl_interface::ConstraintApproximation::getSt
 {
   if (state_storage_->size() == 0)
     return ompl::base::StateSamplerAllocator();
-  int mini = 0;
-  int maxi = state_storage_->size() - 1;
+  std::size_t mini = 0;
+  std::size_t maxi = state_storage_->size() - 1;
   if (parent_factory_)
   {
     ConstraintStateStorageDelimiterFn above = parent_factory_->getAboveDelimiterFunction(msg);
     ConstraintStateStorageDelimiterFn below = parent_factory_->getBelowDelimiterFunction(msg);
-    if (above || below)
+
+    // figure out mini & maxi
+    if (above)
     {
-      // figure out mini & maxi
+      std::size_t rangeStart = mini;
+      std::size_t rangeEnd = maxi;
+      
+      while (rangeStart < rangeEnd)
+      {
+        std::size_t mid = (rangeStart + rangeEnd) / 2;
+        if (above(state_storage_->getState(mid)))
+          rangeStart = mid + 1;
+        else
+          rangeEnd = mid;
+      }
+      if (rangeEnd < maxi)
+        mini = rangeEnd + 1;
+      else
+        mini = maxi;
     }
+    
+    if (below)
+    {	
+      std::size_t rangeStart = mini;
+      std::size_t rangeEnd = maxi;
+      
+      while (rangeStart < rangeEnd)
+      {
+        std::size_t mid = (rangeStart + rangeEnd) / 2;
+        if (below(state_storage_->getState(mid)))
+        {
+          if (mid == 0)
+            rangeEnd = 0;
+          else
+            rangeEnd = mid - 1;
+        }
+        else
+          rangeStart = mid;
+      }
+      if (rangeStart > 0)
+        maxi = rangeStart - 1;
+      else
+        maxi = 0;
+    }
+    
+    if (mini > maxi)
+    {
+      ROS_DEBUG("Empty sampling range found for constraint: %u, %u", (unsigned int)mini, (unsigned int)maxi);
+      return ompl::base::StateSamplerAllocator();
+    }
+    
+    if ((above && above(state_storage_->getState(mini))) || (below && below(state_storage_->getState(maxi))))
+    {
+      ROS_DEBUG("Empty sampling range found for constraint: %u, %u", (unsigned int)mini, (unsigned int)maxi);
+      return ompl::base::StateSamplerAllocator();
+    }
+    
+    ROS_DEBUG("Stored states sampling range is [%u, %u]", (unsigned int)mini, (unsigned int)maxi);
   }
   return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_, mini, maxi);
 }
