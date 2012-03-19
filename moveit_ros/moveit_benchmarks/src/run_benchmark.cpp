@@ -42,6 +42,7 @@
 #include <planning_models/conversions.h>
 
 #include <moveit_msgs/ComputePlanningBenchmark.h>
+#include <moveit_msgs/QueryPlannerInterfaces.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/progress.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -51,11 +52,13 @@
 #include <fstream>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
-static const std::string BENCHMARK_SERVICE_NAME="benchmark_planning_problem"; // name of the advertised service (within the ~ namespace)
+static const std::string BENCHMARK_SERVICE_NAME="benchmark_planning_problem"; // name of the advertised benchmarking service (within the ~ namespace)
+static const std::string QUERY_SERVICE_NAME="query_known_planner_interfaces"; // name of the advertised query service (within the ~ namespace)
 
 class BenchmarkService
 {
 public:
+  
   BenchmarkService(void)
   {
     // initialize a planning scene
@@ -104,6 +107,7 @@ public:
             ss << it->first << " ";
           ROS_INFO("Available planner instances: %s", ss.str().c_str());
           benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &BenchmarkService::computeBenchmark, this);
+          query_service_ = nh_.advertiseService(QUERY_SERVICE_NAME, &BenchmarkService::queryInterfaces, this);
         }
       }
       else
@@ -113,8 +117,105 @@ public:
       ROS_ERROR("Unable to load URDF for parameter %s", ROBOT_DESCRIPTION.c_str());
   }
   
+  bool queryInterfaces(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
+  {    
+    for (std::map<std::string, boost::shared_ptr<planning_interface::Planner> >::const_iterator it = planner_interfaces_.begin() ; 
+         it != planner_interfaces_.end(); ++it)
+    {
+      moveit_msgs::PlannerInterfaceDescription pi_desc;
+      pi_desc.name = it->first;
+      it->second->getPlanningAlgorithms(pi_desc.planner_ids);
+      res.planner_interfaces.push_back(pi_desc);
+    }
+    return true;
+  }
+  
+  void collectMetrics(std::map<std::string, std::string> &rundata, const moveit_msgs::MotionPlanDetailedResponse &mp_res, bool solved, double total_time)
+  {
+    rundata["total_time REAL"] = boost::lexical_cast<std::string>(total_time);
+    rundata["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
+    
+    double L = 0.0;
+    double clearance = 0.0;
+    double smoothness = 0.0;		
+    bool correct = true;
+    if (solved)
+    {
+      double process_time = total_time;
+      for (std::size_t j = 0 ; j < mp_res.trajectory.size() ; ++j)
+      {
+        correct = true;
+        L = 0.0;
+        clearance = 0.0;
+        smoothness = 0.0;
+        std::vector<planning_models::KinematicStatePtr> p;
+        scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory[j], p);                        
+        
+        // compute path length
+        for (std::size_t k = 1 ; k < p.size() ; ++k)
+          L += p[k-1]->distance(*p[k]);
+        
+        // compute correctness and clearance
+        collision_detection::CollisionRequest req;
+        for (std::size_t k = 0 ; k < p.size() ; ++k)
+        {
+          collision_detection::CollisionResult res;
+          scene_->checkCollisionUnpadded(req, res, *p[k]);
+          if (res.collision)
+            correct = false;
+          double d = scene_->distanceToCollisionUnpadded(*p[k]);
+          clearance += d;
+        }
+        clearance /= (double)p.size();
+        
+        // compute smoothness
+        if (p.size() > 2)
+        {
+          double a = p[0]->distance(*p[1]);
+          for (std::size_t k = 2 ; k < p.size() ; ++k)
+          {
+            // view the path as a sequence of segments, and look at the triangles it forms:
+            //          s1
+            //          /\          s4
+            //      a  /  \ b       |
+            //        /    \        |
+            //       /......\_______|
+            //     s0    c   s2     s3
+            //
+            // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
+            double b = p[k-1]->distance(*p[k]);
+            double cdist = p[k-2]->distance(*p[k]);
+            double acosValue = (a*a + b*b - cdist*cdist) / (2.0*a*b);
+            if (acosValue > -1.0 && acosValue < 1.0)
+            {
+              // the smoothness is actually the outside angle of the one we compute
+              double angle = (boost::math::constants::pi<double>() - acos(acosValue));
+              
+              // and we normalize by the length of the segments
+              double u = 2.0 * angle; /// (a + b);
+              smoothness += u * u;
+            }
+            a = b;
+          }
+          smoothness /= (double)p.size();
+        }
+        rundata["path_" + mp_res.description[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
+        rundata["path_" + mp_res.description[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
+        rundata["path_" + mp_res.description[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
+        rundata["path_" + mp_res.description[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
+        rundata["path_" + mp_res.description[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time[j]);
+        process_time -= mp_res.processing_time[j].toSec();
+      }
+      if (process_time <= 0.0)
+        process_time = 0.0;
+      rundata["process_time REAL"] = boost::lexical_cast<std::string>(process_time);
+      
+    }
+  }
+  
   bool computeBenchmark(moveit_msgs::ComputePlanningBenchmark::Request &req, moveit_msgs::ComputePlanningBenchmark::Response &res)
   {      
+    // figure out which planners to test
     if (!req.planner_interfaces.empty())
       for (std::size_t i = 0 ; i < req.planner_interfaces.size() ; ++i)
         if (planner_interfaces_.find(req.planner_interfaces[i].name) == planner_interfaces_.end())
@@ -183,6 +284,8 @@ public:
       return false;	    
     }
     
+    
+    // output information about tested planners
     ROS_INFO("Benchmarking planning interfaces:");
     std::stringstream sst;
     for (std::size_t i = 0 ; i < pi.size() ; ++i)
@@ -193,6 +296,8 @@ public:
       sst << "]" << std::endl;
     }
     ROS_INFO("%s", sst.str().c_str());
+    
+    // configure planning context 
     scene_->setPlanningSceneMsg(req.scene);
     res.responses.resize(pi.size());
 
@@ -200,6 +305,7 @@ public:
     for (std::size_t i = 0 ; i < planner_ids.size() ; ++i)
       total_n_planners += planner_ids[i].size();
     
+    // benchmark all the planners
     ros::WallTime startTime = ros::WallTime::now();
     boost::progress_display progress(total_n_planners * req.average_count, std::cout);
     moveit_msgs::MotionPlanDetailedResponse mp_res;
@@ -217,83 +323,7 @@ public:
         double total_time = (ros::WallTime::now() - start).toSec();
 	
         // collect data 
-        runs[c]["total_time REAL"] = boost::lexical_cast<std::string>(total_time);
-        runs[c]["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
-        double L = 0.0;
-        double clearance = 0.0;
-        double smoothness = 0.0;		
-        bool correct = true;
-        if (solved)
-        {
-          double process_time = total_time;
-          for (std::size_t j = 0 ; j < mp_res.trajectory.size() ; ++j)
-          {
-            correct = true;
-            L = 0.0;
-            clearance = 0.0;
-            smoothness = 0.0;
-            std::vector<planning_models::KinematicStatePtr> p;
-            scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory[j], p);                        
-            
-            // compute path length
-            for (std::size_t k = 1 ; k < p.size() ; ++k)
-              L += p[k-1]->distance(*p[k]);
-            
-            // compute correctness and clearance
-            collision_detection::CollisionRequest req;
-            for (std::size_t k = 0 ; k < p.size() ; ++k)
-            {
-              collision_detection::CollisionResult res;
-              scene_->checkCollisionUnpadded(req, res, *p[k]);
-              if (res.collision)
-                correct = false;
-              double d = scene_->distanceToCollisionUnpadded(*p[k]);
-              clearance += d;
-            }
-            clearance /= (double)p.size();
-            
-            // compute smoothness
-            if (p.size() > 2)
-            {
-              double a = p[0]->distance(*p[1]);
-              for (std::size_t k = 2 ; k < p.size() ; ++k)
-              {
-                // view the path as a sequence of segments, and look at the triangles it forms:
-                //          s1
-                //          /\          s4
-                //      a  /  \ b       |
-                //        /    \        |
-                //       /......\_______|
-                //     s0    c   s2     s3
-                //
-                // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
-                double b = p[k-1]->distance(*p[k]);
-                double cdist = p[k-2]->distance(*p[k]);
-                double acosValue = (a*a + b*b - cdist*cdist) / (2.0*a*b);
-                if (acosValue > -1.0 && acosValue < 1.0)
-                {
-                  // the smoothness is actually the outside angle of the one we compute
-                  double angle = (boost::math::constants::pi<double>() - acos(acosValue));
-                  
-                  // and we normalize by the length of the segments
-                  double u = 2.0 * angle; /// (a + b);
-                  smoothness += u * u;
-                }
-                a = b;
-              }
-              smoothness /= (double)p.size();
-            }
-            runs[c]["path_" + mp_res.description[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-            runs[c]["path_" + mp_res.description[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
-            runs[c]["path_" + mp_res.description[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
-            runs[c]["path_" + mp_res.description[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
-            runs[c]["path_" + mp_res.description[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time[j]);
-            process_time -= mp_res.processing_time[j].toSec();
-          }
-          if (process_time <= 0.0)
-            process_time = 0.0;
-          runs[c]["process_time REAL"] = boost::lexical_cast<std::string>(process_time);
-        }
+        collectMetrics(runs[c], mp_res, solved, total_time);
 	
         // record the first solution in the response
         if (solved && first[i])
@@ -383,6 +413,7 @@ private:
   boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
   std::map<std::string, boost::shared_ptr<planning_interface::Planner> > planner_interfaces_;
   ros::ServiceServer benchmark_service_;
+  ros::ServiceServer query_service_;
 };
 
 int main(int argc, char **argv)
