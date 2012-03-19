@@ -122,10 +122,22 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
   
   if (path_constraints_)
   {
-    if (spec_.constraints_library_  && !path_constraints_name_.empty())
+    if (spec_.constraints_library_)
     {
-      ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
-      //      return ;      
+      const ConstraintApproximationPtr &ca = spec_.constraints_library_->getConstraintApproximation(path_constraints_msg_);
+      if (ca)
+      {
+        ompl::base::StateSamplerAllocator c_ssa = ca->getStateSamplerAllocator(path_constraints_msg_);
+        if (c_ssa)
+        {
+          ompl::base::StateSamplerPtr res = c_ssa(ss);
+          if (res)
+          {
+            ROS_DEBUG("Using precomputed state sampler (approximated constraint space)");
+            return res;
+          }
+        }
+      }
     }
     
     kc::ConstraintSamplerPtr cs = kc::ConstraintSampler::constructFromMessage(getJointModelGroup(), path_constraints_->getAllConstraints(), getKinematicModel(),
@@ -369,7 +381,6 @@ void ompl_interface::ModelBasedPlanningContext::clear(void)
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr());
   path_constraints_.reset();
   goal_constraints_.clear();
-  path_constraints_name_.clear();
 }
 
 bool ompl_interface::ModelBasedPlanningContext::setRandomStartGoal(void)
@@ -401,8 +412,8 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
   // ******************* set the path constraints to use
   path_constraints_.reset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
   path_constraints_->add(path_constraints);
-  path_constraints_name_ = path_constraints.name;
-    
+  path_constraints_msg_ = path_constraints;
+  
   return true;
 }
 								   
@@ -415,7 +426,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
   goal_constraints_.clear();
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
   {
-    moveit_msgs::Constraints constr = goal_constraints[i];//kc::mergeConstraints(goal_constraints[i], path_constraints);
+    moveit_msgs::Constraints constr = kc::mergeConstraints(goal_constraints[i], path_constraints);
     kc::KinematicConstraintSetPtr kset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
     kset->add(constr);
     if (!kset->empty())

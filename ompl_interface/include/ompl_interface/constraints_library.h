@@ -48,13 +48,21 @@ namespace ompl_interface
 
 typedef ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > ConstraintApproximationStateStorage;
 typedef boost::function<bool(const ompl::base::State*, const ompl::base::State*)> ConstraintStateStorageOrderFn;
+typedef boost::function<bool(const ompl::base::State*)> ConstraintStateStorageDelimiterFn;
+
+class ConstraintApproximation;
+typedef boost::shared_ptr<ConstraintApproximation> ConstraintApproximationPtr;
+
+class ConstraintApproximationFactory;
+typedef boost::shared_ptr<ConstraintApproximationFactory> ConstraintApproximationFactoryPtr;
 
 class ConstraintApproximation
 {
 public:
   
-  ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
-                          const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage);
+  ConstraintApproximation(const planning_models::KinematicModelConstPtr &kinematic_model, const std::string &group, const std::string &state_space_parameterization,
+                          const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage, 
+                          const ConstraintApproximationFactory *parent_factory = NULL);
   
   virtual ~ConstraintApproximation(void)
   {
@@ -65,12 +73,9 @@ public:
     return constraint_msg_.name;
   }
   
-  virtual ompl::base::StateSamplerAllocator getStateSamplerAllocator(const moveit_msgs::Constraints &msg) const
-  {
-    return state_storage_->getStateSamplerAllocator();
-  }
+  virtual ompl::base::StateSamplerAllocator getStateSamplerAllocator(const moveit_msgs::Constraints &msg) const;
   
-  const std::vector<int> getSpaceSignature(void) const
+  const std::vector<int>& getSpaceSignature(void) const
   {
     return space_signature_;
   }
@@ -80,9 +85,9 @@ public:
     return group_;
   }  
   
-  const std::string& getFactory(void) const
+  const std::string& getStateSpaceParameterization(void) const
   {
-    return factory_;
+    return state_space_parameterization_;
   }
   
   const moveit_msgs::Constraints& getConstraintsMsg(void) const
@@ -106,7 +111,7 @@ protected:
   
   planning_models::KinematicModelConstPtr          kmodel_;
   std::string                                      group_;
-  std::string                                      factory_;
+  std::string                                      state_space_parameterization_;
 
   moveit_msgs::Constraints                         constraint_msg_;
   
@@ -115,9 +120,9 @@ protected:
   std::string                                      ompldb_filename_;
   ompl::base::StateStoragePtr                      state_storage_ptr_;
   ConstraintApproximationStateStorage             *state_storage_;
+  
+  const ConstraintApproximationFactory            *parent_factory_;
 };
-
-typedef boost::shared_ptr<ConstraintApproximation> ConstraintApproximationPtr;
 
 class ConstraintApproximationFactory
 {
@@ -130,18 +135,26 @@ public:
   {
   }
   
-  ConstraintStateStorageOrderFn getOrderFunction(void) const
+  virtual ConstraintStateStorageOrderFn getOrderFunction(void) const
   {
     return ConstraintStateStorageOrderFn();    
   }
+
+  virtual ConstraintStateStorageDelimiterFn getAboveDelimiterFunction(const moveit_msgs::Constraints &msg) const
+  {
+    return ConstraintStateStorageDelimiterFn();
+  }
+  
+  virtual ConstraintStateStorageDelimiterFn getBelowDelimiterFunction(const moveit_msgs::Constraints &msg) const
+  {
+    return ConstraintStateStorageDelimiterFn();
+  }  
   
   virtual ConstraintApproximationPtr allocApproximation(const planning_models::KinematicModelConstPtr &kinematic_model,
-                                                        const std::string &group, const std::string &factory,
+                                                        const std::string &group, const std::string &state_space_parameterization,
                                                         const moveit_msgs::Constraints &msg, const std::string &filename,
                                                         const ompl::base::StateStoragePtr &storage) const = 0;
 };
-
-typedef boost::shared_ptr<ConstraintApproximationFactory> ConstraintApproximationFactoryPtr;
 
 template<typename C>
 class SpecialConstraintApproximationFactory : public ConstraintApproximationFactory
@@ -149,11 +162,11 @@ class SpecialConstraintApproximationFactory : public ConstraintApproximationFact
 public:
   
   virtual ConstraintApproximationPtr allocApproximation(const planning_models::KinematicModelConstPtr &kinematic_model,
-                                                        const std::string &group, const std::string &factory,
+                                                        const std::string &group, const std::string &state_space_parameterization,
                                                         const moveit_msgs::Constraints &msg, std::string &filename,
                                                         const ompl::base::StateStoragePtr &storage) const
   {
-    return ConstraintApproximationPtr(new C(kinematic_model, group, factory, msg, filename, storage));
+    return ConstraintApproximationPtr(new C(kinematic_model, group, state_space_parameterization, msg, filename, storage, this));
   }
 };
 
@@ -179,13 +192,13 @@ public:
   
   ConstraintApproximationConstructionResults
   addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
-                             const std::string &group, const std::string &factory,
+                             const std::string &group, const std::string &state_space_parameterization,
                              const pm::KinematicState &kstate, 
                              unsigned int samples, unsigned int edges_per_sample);
   
   ConstraintApproximationConstructionResults
   addConstraintApproximation(const moveit_msgs::Constraints &constr,
-                             const std::string &group, const std::string &factory,
+                             const std::string &group, const std::string &state_space_parameterization,
                              const pm::KinematicState &kstate,
                              unsigned int samples, unsigned int edges_per_sample);
   
@@ -203,14 +216,7 @@ public:
     constraint_factories_[name] = new SpecialConstraintApproximationFactory<C>(name);
   }
   
-  const ConstraintApproximationPtr& getConstraintApproximation(const moveit_msgs::Constraints &msg)
-  {
-    std::map<std::string, ConstraintApproximationPtr>::const_iterator it = constraint_approximations_.find(msg.name);
-    if (it != constraint_approximations_.end())
-      return it->second;
-    static ConstraintApproximationPtr empty;
-    return empty;
-  }
+  const ConstraintApproximationPtr& getConstraintApproximation(const moveit_msgs::Constraints &msg) const;
   
 private:
   
