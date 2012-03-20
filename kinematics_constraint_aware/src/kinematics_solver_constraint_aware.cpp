@@ -809,7 +809,7 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
     }
 
     //assumes that the axis is aligned
-    Eigen::Affine3d trans(Eigen::Translation3d(direction*((i-1)*1.0)*fabs(distance/(num_points*1.0)))*Eigen::Quaterniond(1.0,0.0,0.0,0.0));
+    Eigen::Affine3d trans(Eigen::Translation3d(direction*((i-1)*1.0)*fabs(distance/(num_points-1*1.0)))*Eigen::Quaterniond(1.0,0.0,0.0,0.0));
     Eigen::Affine3d mult_trans;
     if(premultiply) {
       mult_trans = trans*first_pose;
