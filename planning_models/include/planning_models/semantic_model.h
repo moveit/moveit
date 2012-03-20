@@ -89,6 +89,10 @@ public:
 
   const planning_models::SemanticGroup* getGroup(const std::string& group_name ) const;
 
+  std::string getModelName() const {
+    return kmodel_->getName();
+  }
+
 protected:
   
   KinematicModelConstPtr kmodel_;
