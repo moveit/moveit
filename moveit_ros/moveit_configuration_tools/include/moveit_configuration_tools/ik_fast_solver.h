@@ -3,7 +3,7 @@
 
 typedef double IKReal;
 
-namespace kinematics_constraint_aware {
+namespace moveit_configuration_tools {
 class ik_solver_base {
 public:
   virtual int solve(Eigen::Affine3d &pose, const std::vector<double> &ik_seed_state) = 0;
@@ -14,20 +14,25 @@ template <class  T> class ikfast_solver: public ik_solver_base{
 public:
   typedef bool (*ik_type)(const IKReal* eetrans, const IKReal* eerot, const IKReal* pfree, std::vector<T>& vsolutions);
   ikfast_solver(ik_type ik,int numJoints):ik(ik),numJoints(numJoints) {}
+
   virtual int solve(Eigen::Affine3d &pose, const std::vector<double> &vfree){
       
     solutions.clear();
 
+    //Eigen::Affine3d rot(Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitY()));
+    
+    Eigen::Matrix3d rot = pose.rotation();
+
     double vals[9];
-    vals[0] = pose.rotation()(0,0);
-    vals[1] = pose.rotation()(0,1);
-    vals[2] = pose.rotation()(0,2);
-    vals[3] = pose.rotation()(1,0);
-    vals[4] = pose.rotation()(1,1);
-    vals[5] = pose.rotation()(1,2);
-    vals[6] = pose.rotation()(2,0);
-    vals[7] = pose.rotation()(2,1);
-    vals[8] = pose.rotation()(2,2);
+    vals[0] = rot(0,0);
+    vals[1] = rot(0,1);
+    vals[2] = rot(0,2);
+    vals[3] = rot(1,0);
+    vals[4] = rot(1,1);
+    vals[5] = rot(1,2);
+    vals[6] = rot(2,0);
+    vals[7] = rot(2,1);
+    vals[8] = rot(2,2);
 
     double trans[3];
     trans[0] = pose.translation().x();

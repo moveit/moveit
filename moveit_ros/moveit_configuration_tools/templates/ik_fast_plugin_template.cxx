@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <kinematics_base/kinematics_base.h>
 #include <urdf/model.h>
-#include <kinematics_constraint_aware/ik_fast_solver.h>
+#include <moveit_configuration_tools/ik_fast_solver.h>
 #include <planning_models/transforms.h>
 
 namespace _ROBOT_NAME___GROUP_NAME__kinematics
@@ -17,14 +17,14 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   std::vector<double> joint_max_vector_;
   std::vector<bool> joint_has_limits_vector_;
   std::vector<std::string> link_names_;
-  kinematics_constraint_aware::ik_solver_base* ik_solver_;
+  moveit_configuration_tools::ik_solver_base* ik_solver_;
   size_t num_joints_;
   std::vector<int> free_params_;
   void (*fk)(const IKReal* j, IKReal* eetrans, IKReal* eerot);
   
 public:
 
-  IKFastKinematicsPlugin():ik_solver_(0) {}
+  IKFastKinematicsPlugin():ik_solver_(0), num_joints_(0) {}
   ~IKFastKinematicsPlugin(){ if(ik_solver_) delete ik_solver_;}
 
   void fillFreeParams(int count, int *array) { free_params_.clear(); for(int i=0; i<count;++i) free_params_.push_back(array[i]); }
@@ -33,6 +33,12 @@ public:
                   const std::string& base_name,
                   const std::string& tip_name,
                   double search_discretization) {
+
+    if(num_joints_ != 0) {
+      ROS_WARN_STREAM("Already initialized, not reinitializing");
+      return true;
+    }
+
     setValues(group_name, base_name, tip_name,search_discretization);
 
     ros::NodeHandle node_handle("~/"+group_name);
@@ -42,7 +48,7 @@ public:
       
     fillFreeParams(getNumFreeParameters(),getFreeParameters());
     num_joints_ = getNumJoints();
-    ik_solver_ = new kinematics_constraint_aware::ikfast_solver<IKSolution>(ik, num_joints_);
+    ik_solver_ = new moveit_configuration_tools::ikfast_solver<IKSolution>(ik, num_joints_);
     fk=fk;
       
     if(free_params_.size()>1){
@@ -74,6 +80,7 @@ public:
       boost::shared_ptr<urdf::Joint> joint = link->parent_joint;
       if(joint){
         if (joint->type != urdf::Joint::UNKNOWN && joint->type != urdf::Joint::FIXED) {
+          ROS_INFO_STREAM("Pushing back " << joint->name);
 	  joint_names_.push_back(joint->name);
           float lower, upper;
           int hasLimits;
@@ -108,7 +115,7 @@ public:
     }
     
     if(joint_names_.size() != num_joints_){
-      ROS_FATAL("Joints number mismatch.");
+      ROS_FATAL_STREAM("Joints number mismatch. Num joints " << num_joints_ << " joint names size is " << joint_names_.size());
       return false;
     }
       
@@ -211,7 +218,7 @@ public:
     if(free_params_.size()==0){
       return getPositionIK(ik_pose, ik_seed_state,solution, error_code);
     }
-	
+
     Eigen::Affine3d frame;
     planning_models::poseFromMsg(ik_pose, frame);
 
