@@ -427,7 +427,8 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   before = ros::WallTime::now();
   crobot_->checkSelfCollision(req,res,kstate2);
   second_check = (ros::WallTime::now()-before).toSec();
-
+  
+  EXPECT_LT(first_check, .0001);
   EXPECT_LT(fabs(first_check-second_check), .0001);
 }
 
