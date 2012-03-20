@@ -215,6 +215,11 @@ bool HouseholdObjectAdditionDialog::loadDatabaseGrasps(const int model_id,
                                                        const std::string& arm_name,
                                                        std::vector<moveit_manipulation_msgs::Grasp>& grasps) 
 {
+  if(semantic_model_->getModelName() != "pr2" &&
+     semantic_model_->getModelName() != "pr2_test") {
+    ROS_INFO_STREAM("Not generating grasps for non-pr2 robot " << semantic_model_->getModelName());
+    return false;
+  }
   grasps.clear();
   std::vector< boost::shared_ptr<moveit_household_objects_database::DatabaseGrasp> > db_grasps;
   if(!database_->getClusterRepGrasps(model_id, 

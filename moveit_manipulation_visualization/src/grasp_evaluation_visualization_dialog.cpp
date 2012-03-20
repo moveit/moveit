@@ -503,7 +503,9 @@ void GraspEvaluationVisualizationDialog::playFullGraspExecutionThread() {
 
   std_msgs::ColorRGBA col;
   col.b = col.r = col.a = 1.0;
-  grasp_evaluation_visualization_->getJointTrajectoryVisualization()->setTrajectory(planning_scene_->getCurrentState(),
+  planning_models::KinematicState state(planning_scene_->getCurrentState());
+  state.setStateValues(current_generated_grasps_[evaluated_grasp_browser_->value()-1].pre_grasp_posture);
+  grasp_evaluation_visualization_->getJointTrajectoryVisualization()->setTrajectory(state,
                                                                                     current_arm_,
                                                                                     last_planned_trajectory_,
                                                                                     col);
