@@ -503,6 +503,7 @@ inline visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& m
 
 inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::string& marker_name,
                                                                      const planning_models::KinematicState& state,
+                                                                     const std::string& parent_link,
                                                                      const std::vector<std::string>& links,
                                                                      const std_msgs::ColorRGBA& color, 
                                                                      const double scale, 
@@ -512,8 +513,13 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
   visualization_msgs::InteractiveMarker int_marker;
   if(links.size() == 0) return int_marker;
 
-  const planning_models::KinematicState::LinkState* first_link = state.getLinkState(links[0]);
-  Eigen::Affine3d first_pose = first_link->getGlobalCollisionBodyTransform();
+  const planning_models::KinematicState::LinkState* parent_link_state = state.getLinkState(parent_link);
+  Eigen::Affine3d parent_pose = parent_link_state->getGlobalCollisionBodyTransform();
+
+  const planning_models::KinematicState::LinkState* first_link_state = state.getLinkState(links[0]);
+  Eigen::Affine3d first_pose = first_link_state->getGlobalCollisionBodyTransform();
+  
+  Eigen::Affine3d init_transform = parent_pose.inverse()*first_pose;
 
   int_marker.header.frame_id = "/"+state.getKinematicModel()->getModelFrame();
   int_marker.name = marker_name;
@@ -525,7 +531,7 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
   visualization_msgs::Marker mesh;
   //header intentionally left empty, meaning that poses are relative to marker
 
-  mesh.mesh_use_embedded_materials = true;
+  mesh.mesh_use_embedded_materials = false;
   mesh.type = visualization_msgs::Marker::MESH_RESOURCE;
   mesh.scale.x = 1.0;
   mesh.scale.y = 1.0;
@@ -593,10 +599,10 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
   int_marker.scale = dia+.05;
   //int_marker.scale = merged_sphere.rad*2.0;
 
-  Eigen::Affine3d bound_pose = trans*Eigen::Quaterniond(first_pose.rotation());
+  Eigen::Affine3d bound_pose = (trans*init_transform)*Eigen::Quaterniond(parent_pose.rotation());
   planning_models::msgFromPose(bound_pose, int_marker.pose);
 
-  relative_transform = bound_pose.inverse()*first_pose;
+  relative_transform = bound_pose.inverse()*parent_pose;
   
   for(unsigned int i = 0; i < links.size(); i++) {
     

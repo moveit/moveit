@@ -465,6 +465,15 @@ bool KinematicsGroupVisualization::validateEndEffectorState(const std::map<std::
                      << base_in_world.translation().z()); 
 
     Eigen::Affine3d tip_in_base = base_in_world.inverse()*cur;
+
+    ROS_DEBUG_STREAM("Tip " << tip_frame_map.at(it->first) << " x y z " << tip_in_base.translation().x() << " " 
+                     << tip_in_base.translation().y() << " " 
+                     << tip_in_base.translation().z()); 
+    Eigen::Quaterniond rot_quat(tip_in_base.rotation());
+    ROS_DEBUG_STREAM("Tip " << tip_frame_map.at(it->first) << " x y z w " << rot_quat.x() << " " 
+                     << rot_quat.y() << " " 
+                     << rot_quat.z() << " " 
+                     << rot_quat.w());
     
     geometry_msgs::Pose np;
     planning_models::msgFromPose(tip_in_base, np);
@@ -581,9 +590,14 @@ void KinematicsGroupVisualization::makeInteractiveControlMarkers(const std_msgs:
       recolorInteractiveMarker(marker, color);
     } else {
       ROS_DEBUG_STREAM("Creating marker " << it->second);
+      std::vector<std::string> button_links = ik_solver_->getEndEffectorLinks().at(it->first);
+      if(button_links.empty()) {
+        button_links.push_back(ik_solver_->getLinkNames().back());
+      }
       marker = makeMeshButtonFromLinks(it->second,
                                        state_,
-                                       ik_solver_->getEndEffectorLinks().at(it->first),
+                                       ik_solver_->getTipFrames().at(it->first),
+                                       button_links,
                                        color,
                                        .35,
                                        true,

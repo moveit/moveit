@@ -15,6 +15,8 @@ if __name__ == '__main__':
 
     robot_name = sys.argv[1]
     directory_name = roslib.packages.get_pkg_dir(robot_name + "_arm_navigation")
+    
+    print directory_name
 
     #if(not roslib.packages.is_pkg_dir(directory_name)):
     #    print(robot_name + " package does not exist ")
@@ -48,6 +50,8 @@ if __name__ == '__main__':
             if not os.path.exists(directory_name+'/src'):
                 os.makedirs(directory_name+'/src')
                 
+            print 'Writing to ', directory_name+'/src/'+robot_name+"_"+group_name+"_ikfast_plugin.cpp"
+
             output_template = open(directory_name+'/src/'+robot_name+"_"+group_name+"_ikfast_plugin.cpp",'w')
             output_template.write(template_text)
                        
