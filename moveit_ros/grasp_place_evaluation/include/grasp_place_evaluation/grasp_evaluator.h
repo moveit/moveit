@@ -48,6 +48,13 @@ namespace grasp_place_evaluation {
 //! Encapsulates the result of feasibility testing and the information needed for executing
 //! a grasp, assuming an approach-grasp-lift method.
 struct GraspExecutionInfo {
+  
+  GraspExecutionInfo() {
+    grasp_pose_.setIdentity();
+    pregrasp_pose_.setIdentity();
+    lift_pose_.setIdentity();
+  }
+
   trajectory_msgs::JointTrajectory approach_trajectory_; 
   trajectory_msgs::JointTrajectory lift_trajectory_; 
   Eigen::Affine3d grasp_pose_;
