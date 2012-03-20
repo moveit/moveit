@@ -160,6 +160,8 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   //now this is grasp specific
   for(unsigned int i = 0; i < grasps.size(); i++) {
 
+    ros::WallTime now = ros::WallTime::now();
+
     if(execution_info[i].result_.result_code != 0) {
       ROS_DEBUG_STREAM("Assuming grasp " << i << " already evaluated");
       continue;
@@ -193,6 +195,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     att_obj.object.id = pickup_goal.collision_object_name;
     att_obj.touch_links = end_effector_links;
 
+
     execution_info[i].attached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
     execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
     execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
@@ -203,13 +206,22 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     //cm->setAlteredAllowedCollisionMatrix(object_support_all_arm_disable_acm);
     //req.verbose = true;
     execution_info[i].grasp_pose_ = grasp_poses[i];
+    //ros::WallTime before_coll = ros::WallTime::now();    
     execution_info[i].attached_object_diff_scene_->checkCollision(req, res, 
                                                                   execution_info[i].attached_object_diff_scene_->getCurrentState(), 
                                                                   object_support_all_arm_disable_acm);
+    //ROS_INFO_STREAM("First coll check took " << (ros::WallTime::now()-before_coll));
+    // ros::WallTime second_coll = ros::WallTime::now();    
+    // execution_info[i].attached_object_diff_scene_->checkCollision(req, res, 
+    //                                                               execution_info[i].attached_object_diff_scene_->getCurrentState(), 
+    //                                                               object_support_all_arm_disable_acm);
+    //ROS_INFO_STREAM("Second coll check took " << (ros::WallTime::now()-second_coll));
+
     //req.verbose = false;
     if(res.collision) {
       execution_info[i].result_.result_code = GraspResult::GRASP_IN_COLLISION;
       outcome_count[GraspResult::GRASP_IN_COLLISION]++;
+      //ROS_INFO_STREAM("Full eval for grasp in collision took " << (ros::WallTime::now()-now));
       continue;
     } 
 

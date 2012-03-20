@@ -56,6 +56,13 @@ namespace grasp_place_evaluation {
 */
 
 struct PlaceExecutionInfo {
+
+  PlaceExecutionInfo() {
+    place_pose_.setIdentity();
+    preplace_pose_.setIdentity();
+    retreat_pose_.setIdentity();
+  }
+
   trajectory_msgs::JointTrajectory approach_trajectory_; 
   trajectory_msgs::JointTrajectory retreat_trajectory_; 
   Eigen::Affine3d place_pose_;
