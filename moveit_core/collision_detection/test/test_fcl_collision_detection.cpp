@@ -45,7 +45,9 @@
 #include <planning_models/transforms.h>
 #include <collision_detection/fcl/collision_world.h>
 #include <collision_detection/fcl/collision_robot.h>
+#include <geometric_shapes/shape_operations.h>
 
+#include <boost/filesystem.hpp>
 
 
 typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
@@ -89,8 +91,8 @@ protected:
   planning_models::TransformsPtr                 ftf_;
   planning_models::TransformsConstPtr            ftf_const_;
   
-  collision_detection::CollisionRobotPtr         crobot_;
-  collision_detection::CollisionWorldPtr         cworld_;
+  boost::shared_ptr<DefaultCRobotType>        crobot_;
+  boost::shared_ptr<DefaultCWorldType>        cworld_;
   
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
@@ -315,6 +317,56 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
   res = collision_detection::CollisionResult();
   cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
   ASSERT_TRUE(res.collision);  
+}
+
+TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
+
+  planning_models::KinematicState kstate(kmodel_);
+  kstate.setToDefaultValues();
+
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+
+  collision_detection::CollisionRobotFCL new_crobot(*crobot_.get());
+
+  ros::WallTime before = ros::WallTime::now();
+  new_crobot.checkSelfCollision(req,res,kstate);
+  double first_check = (ros::WallTime::now()-before).toSec();
+  before = ros::WallTime::now();
+  new_crobot.checkSelfCollision(req,res,kstate);
+  double second_check = (ros::WallTime::now()-before).toSec();
+
+  EXPECT_LT(fabs(first_check-second_check), .0001);
+  
+  ROS_INFO_STREAM("Diff " << first_check-second_check << " first " << first_check << " second " << second_check);
+
+  std::vector<shapes::Shape*> shapes;
+  shapes.resize(1);
+
+  boost::filesystem::path path(boost::filesystem::current_path());
+  
+  std::stringstream s;
+  s << path;
+  
+  shapes[0] = shapes::createMeshFromFilename("file://"+s.str()+"/../planning_models/test/kinect.dae");
+
+  std::vector<Eigen::Affine3d> poses;
+  poses.push_back(Eigen::Affine3d::Identity());
+
+  std::vector<std::string> touch_links;
+  kstate.getLinkState("r_gripper_palm_link")->attachBody("kinect", shapes, poses, touch_links);
+
+  before = ros::WallTime::now();
+  new_crobot.checkSelfCollision(req,res,kstate);
+  first_check = (ros::WallTime::now()-before).toSec();
+  before = ros::WallTime::now();
+  new_crobot.checkSelfCollision(req,res,kstate);
+  second_check = (ros::WallTime::now()-before).toSec();
+
+  EXPECT_LT(fabs(first_check-second_check), .0001);
+
+  ROS_INFO_STREAM("Attached diff " << first_check-second_check << " first " << first_check << " second " << second_check);
+  
 }
 
 int main(int argc, char **argv)
