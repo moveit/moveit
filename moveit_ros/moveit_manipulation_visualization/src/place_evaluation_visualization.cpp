@@ -148,19 +148,22 @@ void PlaceEvaluationVisualization::showPlacePose(unsigned int num,
   }
 
   if(show_retreat) {
-    state.setStateValues(last_place_evaluation_info_.place_goal_.grasp.grasp_posture);
+    
+    planning_models::KinematicState diff_state(last_place_evaluation_info_[num].detached_object_diff_scene_->getCurrentState());    
 
-    state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_place_evaluation_info_.place_goal_.arm_name),
-                                last_place_evaluation_info_[num].retreat_pose_);
+    diff_state.setStateValues(last_place_evaluation_info_.place_goal_.grasp.grasp_posture);
+
+    diff_state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_place_evaluation_info_.place_goal_.arm_name),
+                                     last_place_evaluation_info_[num].retreat_pose_);
 
     std_msgs::ColorRGBA col;
     col.b = col.g = col.a = 1.0;
     
-    state.getRobotMarkers(col,
-                          "retreat",
-                          ros::Duration(0.0),
-                          last_marker_array_,
-                          end_effector_links);
+    diff_state.getRobotMarkers(col,
+                               "retreat",
+                               ros::Duration(0.0),
+                               last_marker_array_,
+                               end_effector_links);
   }
 
   marker_publisher_.publish(last_marker_array_);
@@ -182,7 +185,9 @@ void PlaceEvaluationVisualization::playInterpolatedTrajectories(unsigned int num
   if(in_thread) {
     boost::thread(boost::bind(&PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread, this, num, play_approach, play_retreat));
   } else {
+    removeAllMarkers();
     playInterpolatedTrajectoriesThread(num, play_approach, play_retreat);
+    showPlacePose(num, true, true, true);
   }
 }
 

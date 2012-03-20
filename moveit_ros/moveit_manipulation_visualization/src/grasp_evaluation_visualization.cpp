@@ -148,15 +148,18 @@ void GraspEvaluationVisualization::showGraspPose(unsigned int num,
   }
 
   if(show_lift) {
-    state.setStateValues(last_grasp_evaluation_info_.grasps_[num].grasp_posture);
 
-    state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
-                                last_grasp_evaluation_info_[num].lift_pose_);
+    planning_models::KinematicState diff_state(last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState());    
+
+    diff_state.setStateValues(last_grasp_evaluation_info_.grasps_[num].grasp_posture);
+
+    diff_state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
+                                     last_grasp_evaluation_info_[num].lift_pose_);
 
     std_msgs::ColorRGBA col;
     col.b = col.g = col.a = 1.0;
     
-    state.getRobotMarkers(col,
+    diff_state.getRobotMarkers(col,
                           "lift",
                           ros::Duration(0.0),
                           last_marker_array_,
@@ -181,7 +184,9 @@ void GraspEvaluationVisualization::playInterpolatedTrajectories(unsigned int num
   if(in_thread) {
     boost::thread(boost::bind(&GraspEvaluationVisualization::playInterpolatedTrajectoriesThread, this, num, play_approach, play_lift));
   } else {
+    removeAllMarkers();
     playInterpolatedTrajectoriesThread(num, play_approach, play_lift);
+    showGraspPose(num, true, true, true);
   }
 }
 
@@ -212,7 +217,7 @@ void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(unsigned i
     }
   } 
   if(play_lift) {
-    last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState().setStateValues(last_grasp_evaluation_info_.grasps_[num].pre_grasp_posture);
+    last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState().setStateValues(last_grasp_evaluation_info_.grasps_[num].grasp_posture);
 
     if(last_grasp_evaluation_info_[num].lift_trajectory_.points.size() == 0) {
       ROS_WARN_STREAM("No points in lift trajectory");

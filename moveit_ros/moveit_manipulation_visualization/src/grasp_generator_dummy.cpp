@@ -61,7 +61,7 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
   shapes::getShapeExtents(co.shapes[0], xex, yex, zex);
   
   //FRONT
-  grasps[0].grasp_pose = geometry_msgs::Pose();
+  planning_models::msgFromPose(ident, grasps[0].grasp_pose);
   grasps[0].grasp_pose.position.x -= (xex/2.0+.15); 
   grasps[0].desired_approach_distance = .12;
   grasps[0].min_approach_distance = .12;
