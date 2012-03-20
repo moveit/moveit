@@ -345,10 +345,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
 
   boost::filesystem::path path(boost::filesystem::current_path());
   
-  std::stringstream s;
-  s << path;
-  
-  shapes[0] = shapes::createMeshFromFilename("file://"+s.str()+"/../planning_models/test/kinect.dae");
+  shapes[0] = shapes::createMeshFromFilename("file://"+path.string()+"/../planning_models/test/kinect.dae");
 
   std::vector<Eigen::Affine3d> poses;
   poses.push_back(Eigen::Affine3d::Identity());
