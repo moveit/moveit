@@ -44,8 +44,9 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
     
     Eigen::Affine3d t;
     t = Eigen::Translation3d(0.45, -0.45, 0.7);
-    scene->getCollisionWorld()->addToObject("pole", new shapes::Box(0.1, 0.1, 1.4), t);
+    scene->getCollisionWorld()->addToObject("pole", shapes::ShapeConstPtr(new shapes::Box(0.1, 0.1, 1.4)), t);
 
+    /*
     moveit_msgs::AttachedCollisionObject aco;
     aco.link_name = "r_wrist_roll_link";
     aco.touch_links.push_back("r_wrist_roll_link");
@@ -71,7 +72,7 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
     cl.r = 1.0f;
     cl.g = 0.0f;
     cl.b = 0.0f;
-    scene->setColor(co.id, cl);    
+    scene->setColor(co.id, cl);    */
 }
 
 void sendScene(void)

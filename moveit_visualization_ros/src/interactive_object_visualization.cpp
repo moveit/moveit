@@ -299,7 +299,7 @@ void InteractiveObjectVisualization::growObject(const std::string& name,
   Eigen::Affine3d diff = cur_pose.inverse()*new_pose;
 
   moveit_msgs::Shape shape;
-  shapes::constructMsgFromShape(obj->shapes_[0], shape);
+  shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
   if(shape.type == moveit_msgs::Shape::BOX) {
     shape.dimensions[0] += fabs(diff.translation().x());
     shape.dimensions[1] += fabs(diff.translation().y());
@@ -355,7 +355,7 @@ void InteractiveObjectVisualization::shrinkObject(const std::string& name,
   }
 
   moveit_msgs::Shape shape;
-  shapes::constructMsgFromShape(obj->shapes_[0], shape);
+  shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
   if(shape.type == moveit_msgs::Shape::BOX) {
     diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
     diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[1]+MIN_DIMENSION);
@@ -465,7 +465,7 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
       dof_marker_enabled_[feedback->marker_name] = !dof_marker_enabled_[feedback->marker_name];
       collision_detection::CollisionWorld::ObjectConstPtr obj = planning_scene_diff_->getCollisionWorld()->getObject(feedback->marker_name);
       moveit_msgs::Shape shape;
-      shapes::constructMsgFromShape(obj->shapes_[0], shape);
+      shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
       geometry_msgs::Pose cur_pose_msg;
       planning_models::msgFromPose(obj->shape_poses_[0], cur_pose_msg);
       addObject(feedback->marker_name,
