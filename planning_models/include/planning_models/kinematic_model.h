@@ -433,7 +433,7 @@ public:
     }
     
     /** \brief Get shape associated to the collision geometry for this link */
-    const shapes::ShapePtr& getShape(void) const
+    const shapes::ShapeConstPtr& getShape(void) const
     {
       return shape_;
     }
@@ -450,16 +450,18 @@ public:
     std::vector<JointModel*>  child_joint_models_;
     
     /** \brief The constant transform applied to the link (local) */
-    Eigen::Affine3d               joint_origin_transform_;
+    Eigen::Affine3d           joint_origin_transform_;
     
     /** \brief The constant transform applied to the collision geometry of the link (local) */
-    Eigen::Affine3d               collision_origin_transform_;
+    Eigen::Affine3d           collision_origin_transform_;
     
     /** \brief The collision geometry of the link */
-    shapes::ShapePtr          shape_;
-    
-    /** \brief Filename associated with the mesh of this link (loaded in shape_). If empty, no mesh was used. */
+    shapes::ShapeConstPtr     shape_;
+
+    /** \brief Filename associated with the collision geometry mesh of this link (loaded in shape_). If empty, no mesh was used. */
     std::string               filename_;
+
+    /** \brief Filename associated with the visual geometry mesh of this link (loaded in shape_). If empty, no mesh was used. */
     std::string               visual_filename_;
     
     /** \brief The index assigned to this link when traversing the kinematic tree in depth first fashion */

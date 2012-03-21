@@ -567,7 +567,7 @@ void planning_models::KinematicState::LinkState::updateAttachedBodies(void)
 }
 
 void planning_models::KinematicState::LinkState::attachBody(const std::string &id,
-                                                            const std::vector<shapes::Shape*> &shapes,
+                                                            const std::vector<shapes::ShapeConstPtr> &shapes,
                                                             const std::vector<Eigen::Affine3d> &attach_trans,
                                                             const std::vector<std::string> &touch_links)
 {
@@ -642,9 +642,7 @@ planning_models::KinematicState::AttachedBodyProperties::AttachedBodyProperties(
 
 planning_models::KinematicState::AttachedBodyProperties::AttachedBodyProperties(const AttachedBodyProperties &other)
 {
-  for (std::size_t i = 0 ; i < other.shapes_.size() ; ++i)
-    shapes_.push_back(other.shapes_[i]->clone());
-  
+  shapes_ = other.shapes_;
   attach_trans_ = other.attach_trans_;
   touch_links_ = other.touch_links_;
   id_ = other.id_;
@@ -652,12 +650,10 @@ planning_models::KinematicState::AttachedBodyProperties::AttachedBodyProperties(
 
 planning_models::KinematicState::AttachedBodyProperties::~AttachedBodyProperties(void)
 {
-  for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
-    delete shapes_[i];
 }
 
 planning_models::KinematicState::AttachedBody::AttachedBody(const planning_models::KinematicState::LinkState* parent_link_state,
-                                                            const std::string &id, const std::vector<shapes::Shape*> &shapes,
+                                                            const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes,
                                                             const std::vector<Eigen::Affine3d> &attach_trans,
                                                             const std::vector<std::string> &touch_links) :
   parent_link_state_(parent_link_state)
@@ -688,18 +684,50 @@ planning_models::KinematicState::AttachedBody::~AttachedBody(void)
 
 void planning_models::KinematicState::AttachedBody::setScale(double scale)
 {
-  AttachedBodyProperties *ab = new AttachedBodyProperties(*properties_);
+  // if we are the sole owner of the AttachedBodyProperties, we need not create a clone
+  AttachedBodyProperties *ab = properties_.unique() ? properties_.get() : new AttachedBodyProperties(*properties_);
+  
   for (std::size_t i = 0 ; i < ab->shapes_.size() ; ++i)
-    ab->shapes_[i]->scale(scale);
-  properties_.reset(ab);
+  {
+    // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
+    if (ab->shapes_[i].unique())
+      const_cast<shapes::Shape*>(ab->shapes_[i].get())->scale(scale);
+    else
+    {
+      // if the shape is owned elsewhere, we make a copy:
+      shapes::Shape *copy = ab->shapes_[i]->clone();
+      copy->scale(scale);
+      ab->shapes_[i].reset(copy);
+    }
+  }
+  
+  // if we copied the AttachedBodyProperties, reset the copy
+  if (properties_.get() != ab)
+    properties_.reset(ab);
 }
 
 void planning_models::KinematicState::AttachedBody::setPadding(double padding)
 {
-  AttachedBodyProperties *ab = new AttachedBodyProperties(*properties_);
+  // if we are the sole owner of the AttachedBodyProperties, we need not create a clone
+  AttachedBodyProperties *ab = properties_.unique() ? properties_.get() : new AttachedBodyProperties(*properties_);
+  
   for (std::size_t i = 0 ; i < ab->shapes_.size() ; ++i)
-    ab->shapes_[i]->padd(padding);
-  properties_.reset(ab);
+  {
+    // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
+    if (ab->shapes_[i].unique())
+      const_cast<shapes::Shape*>(ab->shapes_[i].get())->padd(padding);
+    else
+    {
+      // if the shape is owned elsewhere, we make a copy:
+      shapes::Shape *copy = ab->shapes_[i]->clone();
+      copy->padd(padding);
+      ab->shapes_[i].reset(copy);
+    }
+  }
+  
+  // if we copied the AttachedBodyProperties, reset the copy
+  if (properties_.get() != ab)
+    properties_.reset(ab);  
 }
 
 void planning_models::KinematicState::AttachedBody::computeTransform(void)
@@ -944,44 +972,44 @@ void planning_models::KinematicState::getRobotMarkers(const std_msgs::ColorRGBA&
   }
 }
 
-void planning_models::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr,
-                                                      const std::vector<std::string> &link_names) const
+void planning_models::KinematicState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std::vector<std::string> &link_names) const
 {
   for(std::size_t i = 0; i < link_names.size(); ++i)
   {
     ROS_DEBUG_STREAM("Trying to get marker for link " << link_names[i]);
     visualization_msgs::Marker mark;
     const LinkState* ls = getLinkState(link_names[i]);
-    if(!ls) continue;
+    if (!ls)
+      continue;
     std::vector<const AttachedBody*> attached_bodies;
     ls->getAttachedBodies(attached_bodies);
-    for(unsigned int j = 0; j < attached_bodies.size(); j++) {
-      if(attached_bodies[j]->getShapes().size() > 0) {
+    for(unsigned int j = 0; j < attached_bodies.size(); ++j)
+      if(attached_bodies[j]->getShapes().size() > 0)
+      {
         visualization_msgs::Marker att_mark;
         att_mark.header.frame_id = kinematic_model_->getModelFrame();
         att_mark.header.stamp = ros::Time::now();
-        shapes::constructMarkerFromShape(attached_bodies[j]->getShapes()[0],
-                                         att_mark);
-        msgFromPose(attached_bodies[j]->getGlobalCollisionBodyTransforms()[0],
-                    att_mark.pose);
+        shapes::constructMarkerFromShape(attached_bodies[j]->getShapes()[0].get(), att_mark);
+        msgFromPose(attached_bodies[j]->getGlobalCollisionBodyTransforms()[0], att_mark.pose);
         arr.markers.push_back(att_mark);
       }
-    }
-    if(!ls->getLinkModel() || !ls->getLinkModel()->getShape()) continue;
+    if(!ls->getLinkModel() || !ls->getLinkModel()->getShape())
+      continue;
     mark.header.frame_id = kinematic_model_->getModelFrame();
     mark.header.stamp = ros::Time::now();
     msgFromPose(ls->getGlobalCollisionBodyTransform(), mark.pose);
-    if(ls->getLinkModel()->getFilename().empty()) {
-      shapes::constructMarkerFromShape(ls->getLinkModel()->getShape().get(),
-                                       mark);
-    } else {
+    if(ls->getLinkModel()->getFilename().empty())
+      shapes::constructMarkerFromShape(ls->getLinkModel()->getShape().get(), mark);
+    else
+    {
       mark.type = mark.MESH_RESOURCE;
-      if(!ls->getLinkModel()->getVisualFilename().empty()) {
+      if(!ls->getLinkModel()->getVisualFilename().empty())
+      {
         mark.mesh_use_embedded_materials = true;
         mark.mesh_resource = ls->getLinkModel()->getVisualFilename();
-      } else {
+      } 
+      else
         mark.mesh_resource = ls->getLinkModel()->getFilename();
-      }
       ROS_DEBUG_STREAM("Using filename " << mark.mesh_resource);
       //TODO - deal with scale, potentially get visual markers
       mark.scale.x = mark.scale.y = mark.scale.z = 1.0;

@@ -163,22 +163,20 @@ namespace collision_detection
     struct Object
     {
       Object(const std::string &id);
+
       virtual ~Object(void);
       
-      /** @brief Clone this object */
-      virtual Object* clone(void) const;
-      
       /** \brief The id for this object */
-      std::string                         id_;
+      std::string                               id_;
       
       /** \brief An array of static shapes */
-      std::vector< shapes::StaticShape* > static_shapes_;
+      std::vector< shapes::StaticShapeConstPtr> static_shapes_;
       
       /** \brief An array of shapes */
-      std::vector< shapes::Shape* >       shapes_;
+      std::vector< shapes::ShapeConstPtr>       shapes_;
       
       /** \brief An array of shape poses */
-      std::vector< Eigen::Affine3d >          shape_poses_;
+      std::vector< Eigen::Affine3d >            shape_poses_;
     };
     
     typedef boost::shared_ptr<Object> ObjectPtr;
@@ -209,27 +207,27 @@ namespace collision_detection
     
     /** \brief Add shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
     void addToObject(const std::string &id,
-		     const std::vector<shapes::Shape*> &shapes,
+		     const std::vector<shapes::ShapeConstPtr> &shapes,
 		     const std::vector<Eigen::Affine3d> &poses);
     
     /** \brief Add static shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
     void addToObject(const std::string &id,
-		     const std::vector<shapes::StaticShape*> &shapes);
+		     const std::vector<shapes::StaticShapeConstPtr> &shapes);
     
     /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
-    virtual void addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3d &pose);
+    virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
     
     /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
-    virtual void addToObject(const std::string &id, shapes::StaticShape *shape);
+    virtual void addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape);
     
     /** \brief Update the pose of a shape in an object. Shape equality is verified by comparing pointers. Returns true on success. */
-    virtual bool moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3d &pose);
+    virtual bool moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
     
     /** \brief Remove shape from object. Shape equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
-    virtual bool removeShapeFromObject(const std::string &id, const shapes::Shape *shape);
+    virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
     
     /** \brief Remove shape from object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
-    virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShape *shape);
+    virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShapeConstPtr &shape);
     
     /** \brief Remove a particular object. If there are no other pointers to the corresponding instance of Object, the memory is freed. */
     virtual void removeObject(const std::string &id);
