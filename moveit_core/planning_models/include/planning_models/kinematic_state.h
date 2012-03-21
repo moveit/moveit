@@ -192,16 +192,16 @@ public:
     ~AttachedBodyProperties(void);
     
     /** \brief The geometries of the attached body */
-    std::vector<shapes::Shape*>  shapes_;
+    std::vector<shapes::ShapeConstPtr> shapes_;
     
     /** \brief The constant transforms applied to the link (needs to be specified by user) */
-    std::vector<Eigen::Affine3d> attach_trans_;
+    std::vector<Eigen::Affine3d>       attach_trans_;
     
     /** \brief The set of links this body is allowed to touch */
-    std::set<std::string>        touch_links_;
+    std::set<std::string>              touch_links_;
     
     /** \brief string id for reference */
-    std::string                  id_;
+    std::string                        id_;
   };
   
   /** @brief Object defining bodies that can be attached to robot
@@ -217,7 +217,7 @@ public:
     /** \brief Construct an attached body for a specified \e link. The name of this body is \e id and it consists of \e shapes that
         attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
     AttachedBody(const LinkState *link, const std::string &id,
-                 const std::vector<shapes::Shape*> &shapes,
+                 const std::vector<shapes::ShapeConstPtr> &shapes,
                  const std::vector<Eigen::Affine3d> &attach_trans,
                  const std::vector<std::string> &touch_links);
     
@@ -242,7 +242,7 @@ public:
     }
     
     /** \brief Get the shapes that make up this attached body */
-    const std::vector<shapes::Shape*>& getShapes(void) const
+    const std::vector<shapes::ShapeConstPtr>& getShapes(void) const
     {
       return properties_->shapes_;
     }
@@ -372,7 +372,7 @@ public:
        @param touch_links The set of links that the attached body is allowed to touch
     */
     void attachBody(const std::string &id,
-                    const std::vector<shapes::Shape*> &shapes,
+                    const std::vector<shapes::ShapeConstPtr> &shapes,
                     const std::vector<Eigen::Affine3d> &attach_trans,
                     const std::vector<std::string> &touch_links);
     

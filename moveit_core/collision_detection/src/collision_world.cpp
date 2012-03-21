@@ -63,7 +63,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
     checkRobotCollision(req, res, robot, state, acm);
 }
 
-void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::Shape*> &shapes, const std::vector<Eigen::Affine3d> &poses)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses)
 {
   if (shapes.size() != poses.size())
     ROS_ERROR("Number of shapes and number of poses do not match. Not adding this object to collision world.");
@@ -72,7 +72,7 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
       addToObject(id, shapes[i], poses[i]);
 }
 
-void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::StaticShape*> &shapes)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::StaticShapeConstPtr> &shapes)
 {
   for (std::size_t i = 0 ; i < shapes.size() ; ++i)
     addToObject(id, shapes[i]);
@@ -104,10 +104,10 @@ bool collision_detection::CollisionWorld::hasObject(const std::string &id) const
 void collision_detection::CollisionWorld::ensureUnique(ObjectPtr &id)
 {
   if (id && !id.unique())
-    id.reset(id->clone());
+    id.reset(new Object(*id));
 }
 
-void collision_detection::CollisionWorld::addToObject(const std::string &id, shapes::StaticShape *shape)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape)
 {
   // make sure that if a new object is created, it knows its name
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
@@ -129,7 +129,7 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, sha
     changeAddObj(it->second.get());
 }
 
-void collision_detection::CollisionWorld::addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3d &pose)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
   // make sure that if a new object is created, it knows its name
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
@@ -152,7 +152,7 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, sha
     changeAddObj(it->second.get());
 }
 
-bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3d &pose)
+bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
@@ -177,7 +177,7 @@ bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &i
   return false;
 }
 
-bool collision_detection::CollisionWorld::removeShapeFromObject(const std::string &id, const shapes::Shape *shape)
+bool collision_detection::CollisionWorld::removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
@@ -208,7 +208,7 @@ bool collision_detection::CollisionWorld::removeShapeFromObject(const std::strin
   return false;
 }
 
-bool collision_detection::CollisionWorld::removeStaticShapeFromObject(const std::string &id, const shapes::StaticShape *shape)
+bool collision_detection::CollisionWorld::removeStaticShapeFromObject(const std::string &id, const shapes::StaticShapeConstPtr &shape)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
@@ -259,17 +259,6 @@ collision_detection::CollisionWorld::Object::Object(const std::string &id) : id_
 {
 }
 
-collision_detection::CollisionWorld::Object* collision_detection::CollisionWorld::Object::clone(void) const
-{
-  Object *o = new Object(id_);
-  for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
-    o->shapes_.push_back(shapes_[i]->clone());
-  for (std::size_t i = 0 ; i < static_shapes_.size() ; ++i)
-    o->static_shapes_.push_back(static_shapes_[i]->clone());
-  o->shape_poses_ = shape_poses_;
-  return o;
-}
-
 void collision_detection::CollisionWorld::changeRemoveObj(const std::string &id)
 {
   for (std::vector<Change>::reverse_iterator it = changes_.rbegin() ; it != changes_.rend() ; ++it)
@@ -314,8 +303,4 @@ void collision_detection::CollisionWorld::clearChanges(void)
 
 collision_detection::CollisionWorld::Object::~Object(void)
 {
-  for (std::size_t i = 0 ; i < static_shapes_.size() ; ++i)
-    delete static_shapes_[i];
-  for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
-    delete shapes_[i];
 }

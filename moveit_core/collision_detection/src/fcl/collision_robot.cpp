@@ -106,18 +106,8 @@ getAttachedBodyObjectsHelper(boost::mutex &lock, const planning_models::Kinemati
   CollisionGeometryData *cgd = NULL;
   
   it = o2.find(props);
-  if (it != o2.end())
-  {
-    const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &arr = it->second;
-    if (arr.empty())
-    {   
-      cgd = new CollisionGeometryData(props.get());
-      // this is safe because collision_geometry_data_ is not modified elsewhere and we are already locked in this function
-      cgd_map[props->id_].reset(cgd);
-    }
-    else
-      cgd = (CollisionGeometryData*)arr.front()->getUserData();
-  }
+  if (it != o2.end() && !it->second.empty())
+    cgd = (CollisionGeometryData*)it->second.front()->getUserData();    
   else
   {
     cgd = new CollisionGeometryData(props.get());
@@ -125,11 +115,11 @@ getAttachedBodyObjectsHelper(boost::mutex &lock, const planning_models::Kinemati
     cgd_map[props->id_].reset(cgd);
   }
   
-  const std::vector<shapes::Shape*> &shapes = ab->getShapes();
+  const std::vector<shapes::ShapeConstPtr> &shapes = ab->getShapes();
   std::vector<boost::shared_ptr<fcl::CollisionGeometry> > obj;
   for (std::size_t i = 0 ; i < shapes.size() ; ++i)
   {
-    boost::shared_ptr<fcl::CollisionGeometry> co = obb ? createCollisionGeometryOBB(shapes[i]) : createCollisionGeometryRSS(shapes[i]);
+    boost::shared_ptr<fcl::CollisionGeometry> co = obb ? createCollisionGeometryOBB(shapes[i].get()) : createCollisionGeometryRSS(shapes[i].get());
     if (co)
       co->setUserData(cgd);
     obj.push_back(co);
@@ -156,6 +146,7 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_m
 {
   const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &geoms = obb ? geoms_obb_ : geoms_rss_;
   const std::vector<planning_models::KinematicState::LinkState*> &link_states = state.getLinkStateVector();
+  fcl_obj.collision_objects_.reserve(geoms.size());
   for (std::size_t i = 0 ; i < geoms.size() ; ++i)
   {
     if (geoms[i])

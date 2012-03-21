@@ -779,7 +779,7 @@ bool kinematic_constraints::VisibilityConstraint::decide(const planning_models::
 
   // add the visibility cone as an object
   collision_detection::CollisionWorldFCL collision_world;
-  collision_world.addToObject("cone", m, Eigen::Affine3d::Identity());
+  collision_world.addToObject("cone", shapes::ShapeConstPtr(m), Eigen::Affine3d::Identity());
 
   // check for collisions between the robot and the cone
   collision_detection::CollisionRequest req;

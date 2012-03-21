@@ -128,7 +128,7 @@ void collision_detection::CollisionWorldFCL::constructFCLObject(const Object *ob
 {
   for (std::size_t i = 0 ; i < obj->static_shapes_.size() ; ++i)
   {
-    boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(obj->static_shapes_[i]);
+    boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(obj->static_shapes_[i].get());
     if (cg)
     {
       CollisionGeometryData *cgd = new CollisionGeometryData(obj);
@@ -140,7 +140,7 @@ void collision_detection::CollisionWorldFCL::constructFCLObject(const Object *ob
   }
   for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
   {
-    boost::shared_ptr<fcl::CollisionGeometry> cg = obb ? createCollisionGeometryOBB(obj->shapes_[i]) : createCollisionGeometryRSS(obj->shapes_[i]);
+    boost::shared_ptr<fcl::CollisionGeometry> cg = obb ? createCollisionGeometryOBB(obj->shapes_[i].get()) : createCollisionGeometryRSS(obj->shapes_[i].get());
     if (cg)
     {
       CollisionGeometryData *cgd = new CollisionGeometryData(obj);
@@ -199,19 +199,19 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
   manager_->update();
 }
 
-void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, shapes::StaticShape *shape)
+void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape)
 {
   CollisionWorld::addToObject(id, shape);
   updateFCLObject(id);
 }
 
-void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, shapes::Shape *shape, const Eigen::Affine3d &pose)
+void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
   CollisionWorld::addToObject(id, shape, pose);
   updateFCLObject(id);
 }
 
-bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string &id, const shapes::Shape *shape, const Eigen::Affine3d &pose)
+bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
   if (CollisionWorld::moveShapeInObject(id, shape, pose))
   {
@@ -222,7 +222,7 @@ bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string
     return false;
 }
 
-bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::string &id, const shapes::Shape *shape)
+bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape)
 {
   if (CollisionWorld::removeShapeFromObject(id, shape))
   {
@@ -233,7 +233,7 @@ bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::st
     return false;
 }
 
-bool collision_detection::CollisionWorldFCL::removeStaticShapeFromObject(const std::string &id, const shapes::StaticShape *shape)
+bool collision_detection::CollisionWorldFCL::removeStaticShapeFromObject(const std::string &id, const shapes::StaticShapeConstPtr &shape)
 {
   if (CollisionWorld::removeStaticShapeFromObject(id, shape))
   {

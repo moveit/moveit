@@ -274,7 +274,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
   ASSERT_FALSE(res.collision);  
 
   shapes::Shape* shape = new shapes::Box(.1,.1,.1);
-  cworld_->addToObject("box", shape, pos1);
+  cworld_->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
   
   res = collision_detection::CollisionResult();
   cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
@@ -284,9 +284,9 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
   cworld_->removeObject("box");
 
   shape = new shapes::Box(.1,.1,.1);
-  std::vector<shapes::Shape*> shapes;
+  std::vector<shapes::ShapeConstPtr> shapes;
   std::vector<Eigen::Affine3d> poses;
-  shapes.push_back(shape);
+  shapes.push_back(shapes::ShapeConstPtr(shape));
   poses.push_back(Eigen::Affine3d::Identity());
   std::vector<std::string> touch_links;
   kstate.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
@@ -299,7 +299,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
   kstate.getLinkState("r_gripper_palm_link")->clearAttachedBody("box");
 
   touch_links.push_back("r_gripper_palm_link");
-  shapes[0] = new shapes::Box(.1,.1,.1); 
+  shapes[0].reset(new shapes::Box(.1,.1,.1));
   kstate.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
 
   res = collision_detection::CollisionResult();
@@ -308,7 +308,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
 
   pos1.translation().x() = 5.01;
   shapes::Shape* coll = new shapes::Box(.1, .1, .1);
-  cworld_->addToObject("coll", coll, pos1);  
+  cworld_->addToObject("coll", shapes::ShapeConstPtr(coll), pos1);  
   res = collision_detection::CollisionResult();
   cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
   ASSERT_TRUE(res.collision);  
@@ -340,13 +340,13 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
   
   ROS_INFO_STREAM("Diff " << first_check-second_check << " first " << first_check << " second " << second_check);
 
-  std::vector<shapes::Shape*> shapes;
+  std::vector<shapes::ShapeConstPtr> shapes;
   shapes.resize(1);
 
   boost::filesystem::path path(boost::filesystem::current_path());
   
-  shapes[0] = shapes::createMeshFromFilename("file://"+path.string()+"/../planning_models/test/kinect.dae");
-
+  shapes[0].reset(shapes::createMeshFromFilename("file://"+path.string()+"/../planning_models/test/kinect.dae"));
+  
   std::vector<Eigen::Affine3d> poses;
   poses.push_back(Eigen::Affine3d::Identity());
 
@@ -385,14 +385,14 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   collision_detection::CollisionResult res;
 
   boost::filesystem::path path(boost::filesystem::current_path());
-  shapes::Shape* shape = shapes::createMeshFromFilename("file://"+path.string()+"/../planning_models/test/kinect.dae"); 
+  shapes::ShapeConstPtr shape(shapes::createMeshFromFilename("file://"+path.string()+"/../planning_models/test/kinect.dae"));
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
 
   cworld_->addToObject("kinect", shape, pos1);
 
   planning_models::KinematicState kstate(kmodel_);
   kstate.setToDefaultValues();
-
+  
   ros::WallTime before = ros::WallTime::now();
   cworld_->checkRobotCollision(req, res, *crobot_, kstate);
   double first_check = (ros::WallTime::now()-before).toSec();
@@ -416,8 +416,6 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   kstate1.getLinkState("r_gripper_palm_link")->attachBody("kinect", object->shapes_, object->shape_poses_, touch_links);
   kstate2.getLinkState("r_gripper_palm_link")->attachBody("kinect", object->shapes_, object->shape_poses_, touch_links);
   
-  object->shapes_.clear();
-
   //going to take a while, but that's fine
   crobot_->checkSelfCollision(req,res,kstate1);
 
@@ -427,6 +425,8 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   before = ros::WallTime::now();
   crobot_->checkSelfCollision(req,res,kstate2);
   second_check = (ros::WallTime::now()-before).toSec();
+
+  ROS_INFO_STREAM("Check diff " << first_check-second_check << " first " << first_check << " second " << second_check);
   
   EXPECT_LT(first_check, .0001);
   EXPECT_LT(fabs(first_check-second_check), .0001);

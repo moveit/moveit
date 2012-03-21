@@ -183,14 +183,11 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
       for (std::size_t i = 0 ; i < changes.size() ; ++i)
         if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
         {
-          collision_detection::CollisionWorld::Object *obj = cworld_->getObject(changes[i].id_)->clone();
+          collision_detection::CollisionWorld::ObjectConstPtr obj = cworld_->getObject(changes[i].id_);
           if (hasColor(changes[i].id_))
             scene->setColor(changes[i].id_, getColor(changes[i].id_));
           w->addToObject(obj->id_, obj->shapes_, obj->shape_poses_);
           w->addToObject(obj->id_, obj->static_shapes_);
-          // memory now belongs to the other collision world, so we do not delete it
-          obj->shapes_.clear(); obj->shape_poses_.clear(); obj->static_shapes_.clear();
-          delete obj;
         }
         else
           if (changes[i].type_ == collision_detection::CollisionWorld::Change::REMOVE)
@@ -433,12 +430,12 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
     aco.object.header.frame_id = aco.link_name;
     aco.object.id = ab[i]->getName();
     aco.object.operation = moveit_msgs::CollisionObject::ADD;
-    const std::vector<shapes::Shape*>& ab_shapes = ab[i]->getShapes();
+    const std::vector<shapes::ShapeConstPtr>& ab_shapes = ab[i]->getShapes();
     const std::vector<Eigen::Affine3d>& ab_tf = ab[i]->getFixedTransforms();
     for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
     {
       moveit_msgs::Shape sm;
-      if (constructMsgFromShape(ab_shapes[j], sm))
+      if (constructMsgFromShape(ab_shapes[j].get(), sm))
       {
         aco.object.shapes.push_back(sm);
         geometry_msgs::Pose p;
@@ -461,18 +458,18 @@ bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns,
   co.header.frame_id = getPlanningFrame();
   co.id = ns;
   co.operation = moveit_msgs::CollisionObject::ADD;
-  const collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns);
-  if(!obj) return false;
+  collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns);
+  if (!obj) return false;
   for (std::size_t j = 0 ; j < obj->static_shapes_.size() ; ++j)
   {
     moveit_msgs::StaticShape sm;
-    if (constructMsgFromShape(obj->static_shapes_[j], sm))
+    if (constructMsgFromShape(obj->static_shapes_[j].get(), sm))
       co.static_shapes.push_back(sm);
   }
   for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
   {
     moveit_msgs::Shape sm;
-    if (constructMsgFromShape(obj->shapes_[j], sm))
+    if (constructMsgFromShape(obj->shapes_[j].get(), sm))
     {
       co.shapes.push_back(sm);
       geometry_msgs::Pose p;
@@ -512,15 +509,15 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
   scene.world.collision_map.boxes.clear();
   if (getCollisionWorld()->hasObject(COLLISION_MAP_NS))
   {
-    const collision_detection::CollisionWorld::Object& map = *getCollisionWorld()->getObject(COLLISION_MAP_NS);
-    if (!map.static_shapes_.empty())
+    collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(COLLISION_MAP_NS);
+    if (!map->static_shapes_.empty())
       ROS_ERROR("Static shapes are not supported in the collision map.");
-    for (std::size_t i = 0 ; i < map.shapes_.size() ; ++i)
+    for (std::size_t i = 0 ; i < map->shapes_.size() ; ++i)
     {
-      shapes::Box *b = static_cast<shapes::Box*>(map.shapes_[i]);
+      const shapes::Box *b = static_cast<const shapes::Box*>(map->shapes_[i].get());
       moveit_msgs::OrientedBoundingBox obb;
       obb.extents.x = b->size[0]; obb.extents.y = b->size[1]; obb.extents.z = b->size[2];
-      planning_models::msgFromPose(map.shape_poses_[i], obb.pose);
+      planning_models::msgFromPose(map->shape_poses_[i], obb.pose);
       scene.world.collision_map.boxes.push_back(obb);
     }
     if (hasColor(COLLISION_MAP_NS))
@@ -773,7 +770,7 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
   {
     Eigen::Affine3d p; planning_models::poseFromMsg(map.boxes[i].pose, p);
     shapes::Shape *s = new shapes::Box(map.boxes[i].extents.x, map.boxes[i].extents.y, map.boxes[i].extents.z);
-    cworld_->addToObject(COLLISION_MAP_NS, s, t * p);
+    cworld_->addToObject(COLLISION_MAP_NS, shapes::ShapeConstPtr(s), t * p);
   }
 }
 
@@ -805,7 +802,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     planning_models::KinematicState::LinkState *ls = kstate_->getLinkState(object.link_name);
     if (ls)
     {
-      std::vector<shapes::Shape*> shapes;
+      std::vector<shapes::ShapeConstPtr> shapes;
       std::vector<Eigen::Affine3d> poses;
 
       // we need to add some shapes; if the message is empty, maybe the object is already in the world
@@ -816,26 +813,12 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           ROS_DEBUG("Attaching world object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
 
           // extract the shapes from the world
-          collision_detection::CollisionWorld::ObjectPtr obj = cworld_->getObject(object.object.id);
+          collision_detection::CollisionWorld::ObjectConstPtr obj = cworld_->getObject(object.object.id);
           shapes = obj->shapes_;
           poses = obj->shape_poses_;
           // remove the pointer to the objects from the collision world
           cworld_->removeObject(object.object.id);
-
-          if (obj.unique())
-          {
-            // make sure the memory for the shapes is not deleted
-            obj->shapes_.clear();
-            ROS_DEBUG("The memory representing shapes was moved from the collision world to the planning model");
-          }
-          else
-          {
-            // clone the shapes because we cannot assume their ownership; this will probably rarely happen (if ever)
-            for (std::size_t i = 0 ; i < shapes.size() ; ++i)
-              shapes[i] = shapes[i]->clone();
-            ROS_DEBUG("The memory representing shapes was copied from the collision world to the planning model");
-          }
-
+          
           if (!obj->static_shapes_.empty())
             ROS_WARN("Static shapes from object '%s' are lost when the object is attached to the robot", object.object.id.c_str());
 
@@ -855,7 +838,10 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       {
         // we clear the world objects with the same name, since we got an update on their geometry
         if (cworld_->hasObject(object.object.id))
+        {
+          ROS_DEBUG("Removing wold object with the same name as newly attached object: '%s'", object.object.id.c_str());
           cworld_->removeObject(object.object.id);
+        }
         if (!object.object.static_shapes.empty())
           ROS_ERROR("Static shapes are ignored for attached object '%s'", object.object.id.c_str());
 
@@ -865,7 +851,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           if (s)
           {
             Eigen::Affine3d p; planning_models::poseFromMsg(object.object.poses[i], p);
-            shapes.push_back(s);
+            shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
         }
@@ -907,23 +893,15 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties> prop = ab->getProperties();
           std::vector<Eigen::Affine3d> poses = ab->getGlobalCollisionBodyTransforms();
           ls->clearAttachedBody(object.object.id);
-
-          if (prop.unique())
-          {
-            ROS_DEBUG("The memory representing shapes was moved from the planning model to the collision world");
-            cworld_->addToObject(object.object.id, prop->shapes_, poses);
-            prop->shapes_.clear(); // memory is now owned by the collision world
-          }
+          
+          if (cworld_->hasObject(object.object.id))
+            ROS_WARN("The collision world already has an object with the same name as the body about to be detached. NOT adding the detached body '%s' to the collision world.", object.object.id.c_str());
           else
           {
-            // the attached body is used elsewhere, so we do not modify it
-            std::vector<shapes::Shape*> shapes(prop->shapes_.size());
-            for (std::size_t i = 0 ; i < shapes.size() ; ++i)
-              shapes[i] = prop->shapes_[i]->clone();
-            ROS_DEBUG("The memory representing shapes was copied from the planning model to the collision world");
-            cworld_->addToObject(object.object.id, shapes, poses);
+            cworld_->addToObject(object.object.id, prop->shapes_, poses);
+            ROS_DEBUG("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
           }
-          ROS_DEBUG("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
+          
           return true;
         }
         else
@@ -963,7 +941,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     {
       shapes::StaticShape *s = shapes::constructShapeFromMsg(object.static_shapes[i]);
       if (s)
-        cworld_->addToObject(object.id, s);
+        cworld_->addToObject(object.id, shapes::StaticShapeConstPtr(s));
     }
 
     const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), object.header.frame_id);
@@ -973,7 +951,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
       if (s)
       {
         Eigen::Affine3d p; planning_models::poseFromMsg(object.poses[i], p);
-        cworld_->addToObject(object.id, s, t * p);
+        cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
       }
     }
     return true;
