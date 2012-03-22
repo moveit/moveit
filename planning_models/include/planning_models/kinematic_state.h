@@ -181,8 +181,6 @@ public:
   /** @brief A class storing properties for attached bodies */
   struct AttachedBodyProperties
   {  
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW 
-    
     /** \brief Default constructor */
     AttachedBodyProperties(void);
     
@@ -193,9 +191,6 @@ public:
     
     /** \brief The geometries of the attached body */
     std::vector<shapes::ShapeConstPtr> shapes_;
-    
-    /** \brief The constant transforms applied to the link (needs to be specified by user) */
-    std::vector<Eigen::Affine3d>       attach_trans_;
     
     /** \brief The set of links this body is allowed to touch */
     std::set<std::string>              touch_links_;
@@ -225,7 +220,9 @@ public:
         link, but share its properties (name, shapes, fixed
         transforms, touched links) with another instance. This
         allows more efficient copying of states. */
-    AttachedBody(const LinkState *link, const boost::shared_ptr<AttachedBodyProperties> &properties);
+    AttachedBody(const LinkState *link, 
+                 const boost::shared_ptr<AttachedBodyProperties> &properties,
+                 const std::vector<Eigen::Affine3d> &attach_trans);
     
     ~AttachedBody(void);
     
@@ -248,10 +245,6 @@ public:
     }
     
     /** \brief Get the fixed transform (the transforms to the shapes associated with this body) */
-    const std::vector<Eigen::Affine3d>& getFixedTransforms(void) const
-    {
-      return properties_->attach_trans_;
-    }
     
     /** \brief Get the links that the attached body is allowed to touch */
     const std::set<std::string>& getTouchLinks(void) const
@@ -264,7 +257,12 @@ public:
     {
       return properties_;
     }
-    
+
+    const std::vector<Eigen::Affine3d>& getFixedTransforms(void) const
+    {
+      return attach_trans_;
+    }
+
     /** \brief Get the global transforms for the collision bodies */
     const std::vector<Eigen::Affine3d>& getGlobalCollisionBodyTransforms(void) const
     {
@@ -288,6 +286,9 @@ public:
     /** \brief The properties of the attached body. These can be shared by multiple states (they do not change often) */
     boost::shared_ptr<AttachedBodyProperties> properties_;
     
+    /** \brief The constant transforms applied to the link (needs to be specified by user) */
+    std::vector<Eigen::Affine3d>       attach_trans_;
+
     /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
     std::vector<Eigen::Affine3d>              global_collision_body_transforms_;
   };
@@ -380,7 +381,8 @@ public:
        @brief Attach a body to this link
        @param properties The properties associated with this body
     */
-    void attachBody(const boost::shared_ptr<AttachedBodyProperties> &properties);
+    void attachBody(const boost::shared_ptr<AttachedBodyProperties> &properties,
+                    const std::vector<Eigen::Affine3d> &attach_trans);
     
     /**
        @brief Clear the attached body
