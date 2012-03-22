@@ -121,7 +121,7 @@ void planning_models::KinematicState::copyFrom(const KinematicState &ks)
     ks.link_state_vector_[i]->getAttachedBodies(ab);
     LinkState *ls = link_state_map_[ks.link_state_vector_[i]->getName()];
     for (std::size_t j = 0 ; j < ab.size() ; ++j)
-      ls->attachBody(ab[j]->properties_);
+      ls->attachBody(ab[j]->properties_, ab[j]->attach_trans_);
   }
   std::map<std::string, double> current_joint_values;
   ks.getStateValues(current_joint_values);
@@ -577,9 +577,10 @@ void planning_models::KinematicState::LinkState::attachBody(const std::string &i
   ab->computeTransform();
 }
 
-void planning_models::KinematicState::LinkState::attachBody(const boost::shared_ptr<AttachedBodyProperties> &properties)
+void planning_models::KinematicState::LinkState::attachBody(const boost::shared_ptr<AttachedBodyProperties> &properties, 
+                                                            const std::vector<Eigen::Affine3d> &attach_trans)
 { 
-  AttachedBody *ab = new AttachedBody(this, properties);
+  AttachedBody *ab = new AttachedBody(this, properties, attach_trans);
   attached_body_map_[ab->getName()] = ab;
   kinematic_state_->attached_body_map_[ab->getName()] = ab;
   ab->computeTransform();
@@ -643,7 +644,6 @@ planning_models::KinematicState::AttachedBodyProperties::AttachedBodyProperties(
 planning_models::KinematicState::AttachedBodyProperties::AttachedBodyProperties(const AttachedBodyProperties &other)
 {
   shapes_ = other.shapes_;
-  attach_trans_ = other.attach_trans_;
   touch_links_ = other.touch_links_;
   id_ = other.id_;
 }
@@ -660,7 +660,7 @@ planning_models::KinematicState::AttachedBody::AttachedBody(const planning_model
 {
   properties_.reset(new AttachedBodyProperties());
   properties_->id_ = id;
-  properties_->attach_trans_ = attach_trans;
+  attach_trans_ = attach_trans;
   properties_->touch_links_.insert(touch_links.begin(), touch_links.end());
   properties_->shapes_ = shapes;
   
@@ -670,10 +670,11 @@ planning_models::KinematicState::AttachedBody::AttachedBody(const planning_model
 }
 
 planning_models::KinematicState::AttachedBody::AttachedBody(const planning_models::KinematicState::LinkState* parent_link_state,
-                                                            const boost::shared_ptr<AttachedBodyProperties> &properties) :
-  parent_link_state_(parent_link_state), properties_(properties)
+                                                            const boost::shared_ptr<AttachedBodyProperties> &properties, 
+                                                            const std::vector<Eigen::Affine3d> &attach_trans) :
+  parent_link_state_(parent_link_state), properties_(properties), attach_trans_(attach_trans)
 {
-  global_collision_body_transforms_.resize(properties_->attach_trans_.size());
+  global_collision_body_transforms_.resize(attach_trans_.size());
   for(std::size_t i = 0 ; i < global_collision_body_transforms_.size() ; ++i)
     global_collision_body_transforms_[i].setIdentity();
 }
@@ -715,7 +716,7 @@ void planning_models::KinematicState::AttachedBody::setPadding(double padding)
   {
     // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
     if (ab->shapes_[i].unique())
-      const_cast<shapes::Shape*>(ab->shapes_[i].get())->padd(padding);
+      const_cast<shapes::Shape*>(ab->shapes_[i].get())->padd(padding); 
     else
     {
       // if the shape is owned elsewhere, we make a copy:
@@ -733,7 +734,7 @@ void planning_models::KinematicState::AttachedBody::setPadding(double padding)
 void planning_models::KinematicState::AttachedBody::computeTransform(void)
 {
   for(std::size_t i = 0; i < global_collision_body_transforms_.size() ; ++i)
-    global_collision_body_transforms_[i] = parent_link_state_->getGlobalLinkTransform() * properties_->attach_trans_[i];
+    global_collision_body_transforms_[i] = parent_link_state_->getGlobalLinkTransform() * attach_trans_[i];
 }
 
 //--------------------- JointStateGroup --------------------------
