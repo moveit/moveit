@@ -267,7 +267,9 @@ public:
   void setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
 
   bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
-  bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
+  bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object,
+                                         boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties> attached_body_properties = boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties>());
+
   void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
   bool getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& obj) const;
   

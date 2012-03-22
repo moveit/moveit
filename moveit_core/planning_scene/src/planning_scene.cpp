@@ -774,7 +774,8 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
   }
 }
 
-bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object)
+bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object, 
+                                                                      boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties> attached_body_properties)
 {
   if (!getKinematicModel()->hasLinkModel(object.link_name))
   {
@@ -874,7 +875,11 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       if (ls->clearAttachedBody(object.object.id))
         ROS_WARN("The kinematic state already had an object named '%s' attached to link '%s'. The object was replaced.",
                  object.object.id.c_str(), object.link_name.c_str());
-      ls->attachBody(object.object.id, shapes, poses, object.touch_links);
+      if(attached_body_properties) {
+        ls->attachBody(attached_body_properties, poses);
+      } else {
+        ls->attachBody(object.object.id, shapes, poses, object.touch_links);
+      }
       ROS_DEBUG("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       return true;
     }
