@@ -336,7 +336,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
   new_crobot.checkSelfCollision(req,res,kstate);
   double second_check = (ros::WallTime::now()-before).toSec();
 
-  EXPECT_LT(fabs(first_check-second_check), .0001);
+  EXPECT_LT(fabs(first_check-second_check), .001);
   
   ROS_INFO_STREAM("Diff " << first_check-second_check << " first " << first_check << " second " << second_check);
 
@@ -361,7 +361,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
   second_check = (ros::WallTime::now()-before).toSec();
 
   //the first check is going to take a while, as data must be constructed
-  EXPECT_LT(second_check, .0001);
+  EXPECT_LT(second_check, .01);
 
   ROS_INFO_STREAM("Attached diff " << first_check-second_check << " first " << first_check << " second " << second_check);
   
@@ -373,7 +373,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
   new_crobot.checkSelfCollision(req,res,kstate);
   second_check = (ros::WallTime::now()-before).toSec();
 
-  EXPECT_LT(fabs(first_check-second_check), .0001);
+  EXPECT_LT(fabs(first_check-second_check), .001);
 
   ROS_INFO_STREAM("Attached robot second diff " << first_check-second_check << " first " << first_check << " second " << second_check);
 
@@ -387,6 +387,8 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   boost::filesystem::path path(boost::filesystem::current_path());
   shapes::ShapeConstPtr shape(shapes::createMeshFromFilename("file://"+path.string()+"/../planning_models/test/kinect.dae"));
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
+  Eigen::Affine3d pos2 = Eigen::Affine3d::Identity();
+  pos2.translation().x() = 10.0;
 
   cworld_->addToObject("kinect", shape, pos1);
 
@@ -400,7 +402,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   cworld_->checkRobotCollision(req, res, *crobot_, kstate);
   double second_check = (ros::WallTime::now()-before).toSec();
 
-  EXPECT_LT(second_check, .0001);
+  EXPECT_LT(second_check, .01);
 
   ROS_INFO_STREAM("Check diff " << first_check-second_check << " first " << first_check << " second " << second_check);
   
@@ -415,25 +417,35 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   std::vector<std::string> touch_links;
   kstate1.getLinkState("r_gripper_palm_link")->attachBody("kinect", object->shapes_, object->shape_poses_, touch_links);
 
+  std::vector<Eigen::Affine3d> other_poses;
+  other_poses.push_back(pos2);
+
   // This creates a new set of constant properties for the attached body, which happens to be the same as the one above;
   // kstate2.getLinkState("r_gripper_palm_link")->attachBody("kinect", object->shapes_, object->shape_poses_, touch_links);
   // for efficiency reasons, we should do this:
-  kstate2.getLinkState("r_gripper_palm_link")->attachBody(kstate1.getAttachedBody("kinect")->getProperties());
+  kstate2.getLinkState("r_gripper_palm_link")->attachBody(kstate1.getAttachedBody("kinect")->getProperties(), other_poses);
 
   //going to take a while, but that's fine
+  res = collision_detection::CollisionResult();
   crobot_->checkSelfCollision(req,res,kstate1);
 
+  EXPECT_TRUE(res.collision);
+
+  ROS_INFO_STREAM("Before");
+
   before = ros::WallTime::now();
-  crobot_->checkSelfCollision(req,res,kstate1);
+  crobot_->checkSelfCollision(req,res,kstate1, *acm_);
   first_check = (ros::WallTime::now()-before).toSec();
   before = ros::WallTime::now();
-  crobot_->checkSelfCollision(req,res,kstate2);
+  req.verbose = true;
+  res = collision_detection::CollisionResult();
+  crobot_->checkSelfCollision(req,res,kstate2, *acm_);
   second_check = (ros::WallTime::now()-before).toSec();
 
   ROS_INFO_STREAM("Check diff " << first_check-second_check << " first " << first_check << " second " << second_check);
   
-  EXPECT_LT(first_check, .0001);
-  EXPECT_LT(fabs(first_check-second_check), .0001);
+  EXPECT_LT(first_check, .01);
+  EXPECT_LT(fabs(first_check-second_check), .001);
 }
 
 int main(int argc, char **argv)
