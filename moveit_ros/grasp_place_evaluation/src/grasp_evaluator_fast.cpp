@@ -198,7 +198,12 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
 
     execution_info[i].attached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
     execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
-    execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
+    if(!execution_info.attached_body_properties_) {
+      execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
+      execution_info.attached_body_properties_ = execution_info[i].attached_object_diff_scene_->getCurrentState().getAttachedBody(pickup_goal.collision_object_name)->getProperties();
+    } else {
+      execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj, execution_info.attached_body_properties_);      
+    }
     execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
 
     collision_detection::CollisionRequest req;
@@ -215,7 +220,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     // execution_info[i].attached_object_diff_scene_->checkCollision(req, res, 
     //                                                               execution_info[i].attached_object_diff_scene_->getCurrentState(), 
     //                                                               object_support_all_arm_disable_acm);
-    //ROS_INFO_STREAM("Second coll check took " << (ros::WallTime::now()-second_coll));
+    // ROS_INFO_STREAM("Second coll check took " << (ros::WallTime::now()-second_coll));
 
     //req.verbose = false;
     if(res.collision) {
