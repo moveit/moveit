@@ -90,6 +90,7 @@ inline static std::string convertGraspResultToStringStatus(const moveit_manipula
 }
 
 struct GraspExecutionInfoVector : public std::vector<GraspExecutionInfo> {
+  boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties> attached_body_properties_;
   moveit_manipulation_msgs::PickupGoal pickup_goal_;
   std::vector<moveit_manipulation_msgs::Grasp> grasps_;
 };
