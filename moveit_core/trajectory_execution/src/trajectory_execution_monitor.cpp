@@ -86,8 +86,9 @@ bool TrajectoryExecutionMonitor::sendTrajectory(const TrajectoryExecutionRequest
     req_controller_name = getDefaultControllerName(ter.group_name_);
   }
 
-  switchAssociatedStopStartControllers(ter.group_name_, req_controller_name);
-
+  if(manage_controllers_) {
+    switchAssociatedStopStartControllers(ter.group_name_, req_controller_name);
+  }
   execution_result_vector_.resize(execution_result_vector_.size()+1);
   
   std::string recorder_name = ter.recorder_name_;

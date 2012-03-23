@@ -1006,7 +1006,7 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
       mark.type = mark.MESH_RESOURCE;
       if(!ls->getLinkModel()->getVisualFilename().empty())
       {
-        mark.mesh_use_embedded_materials = true;
+        mark.mesh_use_embedded_materials = false;
         mark.mesh_resource = ls->getLinkModel()->getVisualFilename();
       } 
       else
