@@ -56,10 +56,16 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
     ROS_INFO_STREAM("Starting publisher thread");
     joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
     planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
-    boost::thread publisher_thread(boost::bind(&MoveItVisualizer::publisherFunction, this));
+    boost::thread publisher_thread(boost::bind(&MoveItVisualizer::publisherFunction, this, true));
   } else {
     transformer.reset(new tf::TransformListener());
     planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", transformer.get()));
+    joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
+    bool publish_root_transform = false;
+    loc_nh.param("publish_root_transform", publish_root_transform, false);
+    if(publish_root_transform) {
+      boost::thread publisher_thread(boost::bind(&MoveItVisualizer::publisherFunction, this, false));
+    }
     planning_scene_monitor_->startStateMonitor();
   }
 
@@ -67,7 +73,9 @@ MoveItVisualizer::MoveItVisualizer() : first_update_(false) {
   if(monitor_robot_state) {
     loc_nh.param("allow_trajectory_execution", allow_trajectory_execution, false);
     if(allow_trajectory_execution) {
-      trajectory_execution_monitor_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
+      bool manage_controllers= false;
+      loc_nh.param("manage_controllers", manage_controllers, true);
+      trajectory_execution_monitor_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(planning_scene_monitor_->getPlanningScene()->getKinematicModel(), manage_controllers));
     }
   }
 
@@ -201,13 +209,15 @@ MoveItVisualizer::~MoveItVisualizer() {
   delete rviz_frame_;
 }
 
-void MoveItVisualizer::publisherFunction() { 
+void MoveItVisualizer::publisherFunction(bool joint_states) { 
   ros::WallRate r(10.0);
 
   while(ros::ok())
   {
     joint_state_publisher_->broadcastRootTransform(planning_scene_monitor_->getPlanningScene()->getCurrentState());
-    joint_state_publisher_->publishKinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState());
+    if(joint_states) {
+      joint_state_publisher_->publishKinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState());
+    }
     r.sleep();
   }
 }
