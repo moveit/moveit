@@ -66,7 +66,7 @@ protected:
 
   void updateSceneCallback();
 
-  void publisherFunction();
+  void publisherFunction(bool joint_states);
 
   bool first_update_;
 
