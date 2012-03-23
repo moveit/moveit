@@ -121,10 +121,13 @@ struct TrajectoryExecutionDataVector : public std::vector<TrajectoryExecutionDat
 class TrajectoryExecutionMonitor
 {
 
-public:
+ public:
   
-  TrajectoryExecutionMonitor(const planning_models::KinematicModelConstPtr& kmodel) : kmodel_(kmodel)
-  {};
+ TrajectoryExecutionMonitor(const planning_models::KinematicModelConstPtr& kmodel,
+			    bool manage_controllers=true) 
+   : kmodel_(kmodel), 
+     manage_controllers_(manage_controllers)
+{};
 
   virtual ~TrajectoryExecutionMonitor() {};
 
@@ -216,7 +219,7 @@ protected:
   std::map<std::string, std::string> current_controller_group_name_map_;
 
   planning_models::KinematicModelConstPtr kmodel_;
-
+  bool manage_controllers_;
 };
 
 }
