@@ -43,8 +43,9 @@
 namespace trajectory_execution_ros
 {
 
-TrajectoryExecutionMonitorRos::TrajectoryExecutionMonitorRos(const planning_models::KinematicModelConstPtr& kmodel) : 
-  TrajectoryExecutionMonitor(kmodel),
+  TrajectoryExecutionMonitorRos::TrajectoryExecutionMonitorRos(const planning_models::KinematicModelConstPtr& kmodel,
+							       bool manage_controllers) : 
+    TrajectoryExecutionMonitor(kmodel, manage_controllers),
   controller_handler_loader_("trajectory_execution", "trajectory_execution::TrajectoryControllerHandler"),
   recorder_loader_("trajectory_execution", "trajectory_execution::TrajectoryRecorder")
 {
@@ -55,91 +56,93 @@ TrajectoryExecutionMonitorRos::TrajectoryExecutionMonitorRos(const planning_mode
   std::string controller_manager_ns;
   nh.param("controller_manager_ns", controller_manager_ns, std::string("pr2_controller_manager"));
 
-  ros::service::waitForService(controller_manager_ns+"/list_controllers");
+  if(manage_controllers_) {
+    ros::service::waitForService(controller_manager_ns+"/list_controllers");
+    
+    lister_service_ = gh.serviceClient<pr2_mechanism_msgs::ListControllers>(controller_manager_ns+"/list_controllers", true);
+    switcher_service_ = gh.serviceClient<pr2_mechanism_msgs::SwitchController>(controller_manager_ns+"/switch_controller", true);
+    loader_service_ = gh.serviceClient<pr2_mechanism_msgs::LoadController>(controller_manager_ns+"/load_controller", true);
+    unloader_service_ = gh.serviceClient<pr2_mechanism_msgs::UnloadController>(controller_manager_ns+"/unload_controller", true);
 
-  lister_service_ = gh.serviceClient<pr2_mechanism_msgs::ListControllers>(controller_manager_ns+"/list_controllers", true);
-  switcher_service_ = gh.serviceClient<pr2_mechanism_msgs::SwitchController>(controller_manager_ns+"/switch_controller", true);
-  loader_service_ = gh.serviceClient<pr2_mechanism_msgs::LoadController>(controller_manager_ns+"/load_controller", true);
-  unloader_service_ = gh.serviceClient<pr2_mechanism_msgs::UnloadController>(controller_manager_ns+"/unload_controller", true);
-
-  while(1) {
-    bool some_running = getRunningControllerMap(original_controller_configuration_map_);
-    if(!some_running) {
-      ROS_INFO_STREAM("Not enough controllers .  Waiting");
-      ros::WallDuration(1.0).sleep();
-    } else {
-      break;
+    while(1) {
+      bool some_running = getRunningControllerMap(original_controller_configuration_map_);
+      if(!some_running) {
+	ROS_INFO_STREAM("Not enough controllers .  Waiting");
+	ros::WallDuration(1.0).sleep();
+      } else {
+	break;
+      }
     }
   }
   const std::map<std::string, srdf::Model::Group>& group_map = kmodel_->getJointModelGroupConfigMap();
-
+  
   for(std::map<std::string, srdf::Model::Group>::const_iterator it = group_map.begin();
       it != group_map.end();
       it++) 
-  {
-    XmlRpc::XmlRpcValue controller_names;
-    if(nh.getParam(it->first+"/controllers", controller_names)) {
-      if(controller_names.getType() != XmlRpc::XmlRpcValue::TypeArray) {
-        ROS_WARN_STREAM("Controller names for " << it->first << " formatted badly");
-        continue;
-      }
-      if(controller_names.size() == 0) {
-        ROS_WARN_STREAM("No controllers specified for " << it->first);
-      }
-      for(int i = 0; i < controller_names.size(); i++) {
-        if(!controller_names[i].hasMember("name")) {
-          ROS_WARN_STREAM("All controllers have a name");
-          continue;
-        } 
-        const std::string cname = std::string(controller_names[i]["name"]);
-        if(!controller_names[i].hasMember("ns") || !controller_names[i].hasMember("type")) {
-          group_possible_controllers_map_[it->first][cname] = false;
-          continue;
-        }
-        std::string ns = std::string(controller_names[i]["ns"]);
-        std::string type = std::string(controller_names[i]["type"]);
-        bool load = false;
-        bool is_default = false;
-        if(controller_names[i].hasMember("load")) {
-          load = controller_names[i]["load"];
-        }
-        controller_possible_group_map_[cname][it->first] = true;
-        group_possible_controllers_map_[it->first][cname] = true;
-        if(controller_names[i].hasMember("default")) {
-          is_default = controller_names[i]["default"];
-        }
-        if(!load) {
-          if(original_controller_configuration_map_.find(cname) == original_controller_configuration_map_.end()) {
-            ROS_WARN_STREAM("Controller " << cname << " not loaded and not going to load");
-            continue;
-          }
-          ROS_INFO_STREAM("Not loading " << cname);
-        }
-        if(load) {
-          if(original_controller_configuration_map_.find(cname) != original_controller_configuration_map_.end()) {
-            ROS_INFO_STREAM("Controller " << cname << " already loaded.  won't load");
-            loaded_controllers_.push_back(cname);
-          } else {
-            ROS_INFO_STREAM("Attempting to load " << cname);
-            loadController(cname);
-          }
-        }
-        ROS_INFO_STREAM("Loading group " << it->first << " controller " << cname << " ns " << ns 
-                        << " type " << type << " load " << load << " default " << is_default);
-        boost::shared_ptr<trajectory_execution::TrajectoryControllerHandler> handler;
-        handler.reset(controller_handler_loader_.createClassInstance(type));
-        if(!handler) {
-          ROS_WARN_STREAM("Couldn't create plugin instance of type " << type);
-          continue;
-        } else {
-          handler->initialize(it->first, 
-                              cname,
-                              ns);
-          addTrajectoryControllerHandler(handler, is_default);
-        }
+    {
+      XmlRpc::XmlRpcValue controller_names;
+      if(nh.getParam(it->first+"/controllers", controller_names)) {
+	if(controller_names.getType() != XmlRpc::XmlRpcValue::TypeArray) {
+	  ROS_WARN_STREAM("Controller names for " << it->first << " formatted badly");
+	  continue;
+	}
+	if(controller_names.size() == 0) {
+	  ROS_WARN_STREAM("No controllers specified for " << it->first);
+	}
+	for(int i = 0; i < controller_names.size(); i++) {
+	  if(!controller_names[i].hasMember("name")) {
+	    ROS_WARN_STREAM("All controllers have a name");
+	    continue;
+	  } 
+	  const std::string cname = std::string(controller_names[i]["name"]);
+	  if(!controller_names[i].hasMember("ns") || !controller_names[i].hasMember("type")) {
+	    group_possible_controllers_map_[it->first][cname] = false;
+	    continue;
+	  }
+	  std::string ns = std::string(controller_names[i]["ns"]);
+	  std::string type = std::string(controller_names[i]["type"]);
+	  bool load = false;
+	  bool is_default = false;
+	  if(controller_names[i].hasMember("load")) {
+	    load = controller_names[i]["load"];
+	  }
+	  controller_possible_group_map_[cname][it->first] = true;
+	  group_possible_controllers_map_[it->first][cname] = true;
+	  if(controller_names[i].hasMember("default")) {
+	    is_default = controller_names[i]["default"];
+	  }
+	  if(manage_controllers_ && !load) {
+	    if(original_controller_configuration_map_.find(cname) == original_controller_configuration_map_.end()) {
+	      ROS_WARN_STREAM("Controller " << cname << " not loaded and not going to load");
+	      continue;
+	    }
+	    ROS_INFO_STREAM("Not loading " << cname);
+	  }
+	  if(manage_controllers_ && load) {
+	    if(original_controller_configuration_map_.find(cname) != original_controller_configuration_map_.end()) {
+	      ROS_INFO_STREAM("Controller " << cname << " already loaded.  won't load");
+	      loaded_controllers_.push_back(cname);
+	    } else {
+	      ROS_INFO_STREAM("Attempting to load " << cname);
+	      loadController(cname);
+	    }
+	  }
+	  ROS_INFO_STREAM("Loading group " << it->first << " controller " << cname << " ns " << ns 
+			  << " type " << type << " load " << load << " default " << is_default);
+	  boost::shared_ptr<trajectory_execution::TrajectoryControllerHandler> handler;
+	  handler.reset(controller_handler_loader_.createClassInstance(type));
+	  if(!handler) {
+	    ROS_WARN_STREAM("Couldn't create plugin instance of type " << type);
+	    continue;
+	  } else {
+	    handler->initialize(it->first, 
+				cname,
+				ns);
+	    addTrajectoryControllerHandler(handler, is_default);
+	  }
+	}
       }
     }
-  }
   std::vector<std::string> recorders = recorder_loader_.getDeclaredClasses();
   if(recorders.size() == 0) {
     ROS_WARN_STREAM("No recorder plugins found");
@@ -194,8 +197,10 @@ TrajectoryExecutionMonitorRos::TrajectoryExecutionMonitorRos(const planning_mode
 }
 
 TrajectoryExecutionMonitorRos::~TrajectoryExecutionMonitorRos() {
-  ROS_INFO_STREAM("Restoring controllers");
-  restoreOriginalControllers();
+  if(manage_controllers_) {
+    ROS_INFO_STREAM("Restoring controllers");
+    restoreOriginalControllers();
+  }
 }
 
 bool TrajectoryExecutionMonitorRos::getRunningControllerMap(std::map<std::string, bool>& controller_map) {

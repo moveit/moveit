@@ -47,7 +47,8 @@ namespace trajectory_execution_ros
 class TrajectoryExecutionMonitorRos : public trajectory_execution::TrajectoryExecutionMonitor
 {
 public:
-  TrajectoryExecutionMonitorRos(const planning_models::KinematicModelConstPtr& kmodel);
+  TrajectoryExecutionMonitorRos(const planning_models::KinematicModelConstPtr& kmodel, 
+				bool manage_controllers=true);
 
   virtual ~TrajectoryExecutionMonitorRos();
   
@@ -60,7 +61,6 @@ public:
   void unloadAllLoadedControllers();
 
 protected:
-
   virtual void switchControllers(const std::vector<std::string>& on_controllers,
                                  const std::vector<std::string>& off_controllers);
   
