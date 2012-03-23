@@ -59,7 +59,7 @@ bool PlaceGeneratorDummy::generatePlaceLocations(const planning_scene::PlanningS
   bool found = false;
   for(unsigned int i = 0; i < ab.size(); i++) {
     if(ab[i]->getName() == object) {
-      shapes::constructMsgFromShape(ab[i]->getShapes()[0], attached_shape);
+      shapes::constructMsgFromShape(ab[i]->getShapes()[0].get(), attached_shape);
       found = true;
       break;
     }
