@@ -3,7 +3,7 @@
 \page definePlanningRequest Defining a Motion Plan Request
 
 The most flexible way to interact with motion planning at the ROS
-level is GetMotionPlan and ComputePlanningBenchmark services. This is
+level is through the GetMotionPlan and ComputePlanningBenchmark services. This is
 also the most complex way, so if you are looking for something simple
 that just moves e.g., the arm, to a specified pose or joint state,
 please see the \ref MoveGroup_action "MoveGroup action".  For C++
