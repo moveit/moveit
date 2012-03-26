@@ -34,4 +34,63 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-//#include "ompl_interface/parameterization/work_space/object_pose_model_state_space_factory.h"
+#include "ompl_interface/parameterization/work_space/object_pose_model_state_space_factory.h"
+
+int ompl_interface::ObjectPoseModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const
+{
+  const pm::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req.group_name);
+  if (jmg)
+  {
+    AvailableKinematicsSolvers::const_iterator it = aks.find(jmg);
+    if (it != aks.end())
+    {
+      bool ik = false;
+      // check that we have a direct means to compute IK
+      if (it->second.first)
+        ik = true;
+      else
+        if (!it->second.second.empty())
+        {
+          // or an IK solver for each of the subgroups
+          unsigned int vc = 0;
+          for (kc::KinematicsSubgroupAllocator::const_iterator jt = it->second.second.begin() ; jt != it->second.second.end() ; ++jt)
+            vc += jt->first->getVariableCount();
+          if (vc == jmg->getVariableCount())
+            ik = true;
+        }
+      
+      if (ik)
+      {
+        // if we have path constraints, we prefer interpolating in pose space
+        if ((!req.path_constraints.position_constraints.empty() || !req.path_constraints.orientation_constraints.empty()) &&
+            req.path_constraints.joint_constraints.empty() && req.path_constraints.visibility_constraints.empty())
+        {
+          /*
+            struct Info
+            {
+            int pc;
+            int oc;
+            };
+            std::map<std::string, Info> info;
+            for (std::size_t i = 0 ; i < req.path_constraints.position_constraints.size() ; ++i)
+            info[req.path_constraints.position_constraints.link_name].pc = i;
+            for (std::size_t i = 0 ; i < req.path_constraints.orientation_constraints.size() ; ++i)
+            info[req.path_constraints.orientation_constraints.link_name].oc = i;
+            std::string dep;
+            for (std::map<std::string, Info>::const_iterator kt = info.begin() ; kt != info.end() ; ++kt)
+            if (kt->second.pc > 0)
+          */
+          
+          return 150;
+        }
+      }
+    }
+  }
+  
+  return -1;
+}
+
+ompl_interface::ModelBasedStateSpacePtr ompl_interface::ObjectPoseModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const
+{
+  return ModelBasedStateSpacePtr(new ObjectPoseModelStateSpace(space_spec));
+}
