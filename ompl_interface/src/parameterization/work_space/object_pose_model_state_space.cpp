@@ -226,7 +226,7 @@ void ompl_interface::ObjectPoseModelStateSpace::copyToOMPLState(ob::State *state
 }
 
 ompl_interface::ObjectPoseModelStateSpace::PoseComponent::PoseComponent(const pm::KinematicModel::JointModelGroup *subgroup, 
-                                                                  const kc::KinematicsAllocator &kinematics_allocator) :
+                                                                        const kc::KinematicsAllocator &kinematics_allocator) :
   subgroup_(subgroup), kinematics_solver_(kinematics_allocator(subgroup)),
   joint_model_(subgroup->getJointModels())
 {
@@ -307,14 +307,14 @@ bool ompl_interface::ObjectPoseModelStateSpace::PoseComponent::computeStateIK(ob
 }
 
 void ompl_interface::ObjectPoseModelStateSpace::constructSpace(const pm::KinematicModel::JointModelGroup *group, 
-                                                         const kc::KinematicsAllocator &ik_allocator)
+                                                               const kc::KinematicsAllocator &ik_allocator)
 {
   poses_.push_back(PoseComponent(group, ik_allocator));
   constructSpaceFromPoses();
 }
 
 void ompl_interface::ObjectPoseModelStateSpace::constructSpace(const pm::KinematicModel::JointModelGroup *group, 
-                                                         const kc::KinematicsSubgroupAllocator &ik_allocator)
+                                                               const kc::KinematicsSubgroupAllocator &ik_allocator)
 {
   for (std::map<const pm::KinematicModel::JointModelGroup*, kc::KinematicsAllocator>::const_iterator it = ik_allocator.begin() ; it != ik_allocator.end() ; ++it)
     poses_.push_back(PoseComponent(it->first, it->second));

@@ -102,6 +102,11 @@ public:
     offset_transforms_ = offset_transforms;
   }
   
+  const std::vector<Eigen::Affine3d>& getOffsetTransforms(void) const
+  {
+    return offset_transforms_;
+  }
+  
   virtual ob::State* allocState(void) const;
   virtual void freeState(ob::State *state) const;  
   virtual void copyState(ob::State *destination, const ob::State *source) const;
