@@ -78,7 +78,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   // check if a link is touching an attached object
   if (cd1->type == BodyTypes::ROBOT_LINK && cd2->type == BodyTypes::ROBOT_ATTACHED)
   {
-    if (cd2->ptr.ab->touch_links_.find(cd1->getID()) != cd2->ptr.ab->touch_links_.end())
+    const std::set<std::string> &tl = cd2->ptr.ab->getTouchLinks();
+    if (tl.find(cd1->getID()) != tl.end())
     {
       always_allow_collision = true;
       if (cdata->req_->verbose)
@@ -89,7 +90,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   else
     if (cd2->type == BodyTypes::ROBOT_LINK && cd1->type == BodyTypes::ROBOT_ATTACHED)
     {
-      if (cd1->ptr.ab->touch_links_.find(cd2->getID()) != cd1->ptr.ab->touch_links_.end())
+      const std::set<std::string> &tl = cd1->ptr.ab->getTouchLinks();
+      if (tl.find(cd2->getID()) != tl.end())
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
@@ -102,12 +104,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   if (always_allow_collision)
     return false;
 
-  if (cdata->req_->verbose) {
+  if (cdata->req_->verbose)
     ROS_INFO_STREAM("Actually checking collisions between " << cd1->getID() << " and " << cd2->getID());
-  } else {
-    ROS_DEBUG_STREAM("Actually checking collisions between " << cd1->getID() << " and " << cd2->getID());
-  }
-
+  
   // see if we need to compute a contact
   std::size_t want_contact_count = 0;
   if (cdata->req_->contacts)
@@ -137,10 +136,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     int num_contacts = fcl::collide(o1, o2, std::numeric_limits<int>::max(), exhaustive, enable_contact, contacts);
     if (num_contacts > 0)
     {
-      if (cdata->req_->verbose) {
+      if (cdata->req_->verbose)
         ROS_INFO("Found %d contacts between '%s' and '%s'. These contacts will be evaluated to check if they are accepted or not",
-                 num_contacts, cd1->getID().c_str(), cd2->getID().c_str()); 
-      } 
+                 num_contacts, cd1->getID().c_str(), cd2->getID().c_str());       
       Contact c;
       const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
@@ -189,13 +187,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
           want_contact_count = 0;
         }
 	
-        if (cdata->req_->verbose) {
-          ROS_INFO("Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
-                   num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)num_contacts);
-        } else {
-          ROS_DEBUG_NAMED("contact_information", "Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
-                          num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)num_contacts);
-        }
+        if (cdata->req_->verbose)
+          ROS_INFO_NAMED("contact_information", "Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
+                         num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)num_contacts);
         const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
           std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
         cdata->res_->collision = true;
@@ -217,13 +211,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       if (num_contacts > 0)
       {
         cdata->res_->collision = true;
-        if (cdata->req_->verbose) {
-          ROS_INFO("Found a contact between '%s' and '%s', which constitutes a collision. Contact information is not stored.",
+        if (cdata->req_->verbose)
+          ROS_INFO_NAMED("contact_information", "Found a contact between '%s' and '%s', which constitutes a collision. Contact information is not stored.",
                    cd1->getID().c_str(), cd2->getID().c_str());
-        } else {
-          ROS_DEBUG_NAMED("contact_information", "Found a contact between '%s' and '%s', which constitutes a collision. Contact information is not stored.",
-                          cd1->getID().c_str(), cd2->getID().c_str());
-        }
       }
     }
   }
@@ -232,26 +222,34 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     if (!cdata->req_->contacts || cdata->res_->contact_count >= cdata->req_->max_contacts)
     {
       cdata->done_ = true;
-      if (cdata->req_->verbose) {
-         ROS_INFO("Collision checking is considered complete (collision was found and %d contacts are stored)",
-                 (unsigned int)cdata->res_->contact_count);
-      } else {
-        ROS_DEBUG_NAMED("contact_information", "Collision checking is considered complete (collision was found and %d contacts are stored)",
-                        (unsigned int)cdata->res_->contact_count);
-      }
+      if (cdata->req_->verbose) 
+        ROS_INFO_NAMED("contact_information", "Collision checking is considered complete (collision was found and %d contacts are stored)",
+                       (unsigned int)cdata->res_->contact_count);
     }
   
   return cdata->done_;
 }
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShape *shape)
-{
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShapeConstPtr &shape)
+{ 
+  static std::map<boost::weak_ptr<const shapes::StaticShape>, boost::shared_ptr<fcl::CollisionGeometry> > CACHE;
+  static unsigned int CACHE_CLEAN_COUNT = 0;
+  static boost::mutex CACHE_LOCK;
+
+  boost::weak_ptr<const shapes::StaticShape> wptr(shape);
+  {
+    boost::mutex::scoped_lock slock(CACHE_LOCK);
+    std::map<boost::weak_ptr<const shapes::StaticShape>, boost::shared_ptr<fcl::CollisionGeometry> >::const_iterator cache_it = CACHE.find(wptr);
+    if (cache_it != CACHE.end())
+      return cache_it->second;
+  }
+  
   fcl::CollisionGeometry* g = NULL;
   switch (shape->type)
   {
   case shapes::PLANE:
     {
-      const shapes::Plane *p = static_cast<const shapes::Plane*>(shape);
+      const shapes::Plane *p = static_cast<const shapes::Plane*>(shape.get());
       g = new fcl::Plane(p->a, p->b, p->c, p->d);
     }
     break;
@@ -259,37 +257,71 @@ boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::
     ROS_FATAL("This shape type (%d) is not supported using FCL yet", (int)shape->type);
   }
   if (g)
+  {
     g->computeLocalAABB();
-  return boost::shared_ptr<fcl::CollisionGeometry>(g);
+    boost::shared_ptr<fcl::CollisionGeometry> res(g);
+    boost::mutex::scoped_lock slock(CACHE_LOCK);
+    CACHE[wptr] = res;
+    CACHE_CLEAN_COUNT++;
+    
+    // clean-up for cache (we don't want to keep infinitely large number of weak ptrs stored)
+    if (CACHE_CLEAN_COUNT > 100)
+    {
+      CACHE_CLEAN_COUNT = 0;
+      unsigned int from = CACHE.size();
+      for (std::map<boost::weak_ptr<const shapes::StaticShape>, boost::shared_ptr<fcl::CollisionGeometry> >::iterator it = CACHE.begin() ; it != CACHE.end() ; )
+      {
+        std::map<boost::weak_ptr<const shapes::StaticShape>, boost::shared_ptr<fcl::CollisionGeometry> >::iterator nit = it; ++nit;
+        if (it->first.expired())
+          CACHE.erase(it);
+        it = nit;
+      }
+      ROS_DEBUG("Cleaning up cache for FCL objects that correspond to static shapes. Cache size reduced from %u to %u", from, (unsigned int)CACHE.size());
+    }
+    return res;
+  }
+  return boost::shared_ptr<fcl::CollisionGeometry>();
 }
 
 template<typename BV>
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape)
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::ShapeConstPtr &shape)
 {
+  static std::map<boost::weak_ptr<const shapes::Shape>, boost::shared_ptr<fcl::CollisionGeometry> > CACHE;
+  static unsigned int CACHE_CLEAN_COUNT = 0;
+  static boost::mutex CACHE_LOCK;
+
+  boost::weak_ptr<const shapes::Shape> wptr(shape);
+  {
+    boost::mutex::scoped_lock slock(CACHE_LOCK);
+    std::map<boost::weak_ptr<const shapes::Shape>, boost::shared_ptr<fcl::CollisionGeometry> >::const_iterator cache_it = CACHE.find(wptr);
+    if (cache_it != CACHE.end())
+      return cache_it->second;
+  }
+  
   fcl::BVHModel<BV>* g = new fcl::BVHModel<BV>();
   
   switch (shape->type)
   {
   case shapes::SPHERE:
     {
-      fcl::generateBVHModel(*g, fcl::Sphere(static_cast<const shapes::Sphere*>(shape)->radius));
+      fcl::generateBVHModel(*g, fcl::Sphere(static_cast<const shapes::Sphere*>(shape.get())->radius));
     }
     break;
   case shapes::BOX:
     {
-      const double *size = static_cast<const shapes::Box*>(shape)->size;
+      const double *size = static_cast<const shapes::Box*>(shape.get())->size;
       fcl::generateBVHModel(*g, fcl::Box(size[0], size[1], size[2]));
     }
     break;
   case shapes::CYLINDER:
     {
-      fcl::generateBVHModel(*g, fcl::Cylinder(static_cast<const shapes::Cylinder*>(shape)->radius,
-                                              static_cast<const shapes::Cylinder*>(shape)->length));
+      fcl::generateBVHModel(*g, fcl::Cylinder(static_cast<const shapes::Cylinder*>(shape.get())->radius,
+                                              static_cast<const shapes::Cylinder*>(shape.get())->length));
     }
     break;
   case shapes::MESH:
     {
-      const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(shape);
+      const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(shape.get());
       if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
       {
         std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
@@ -310,39 +342,64 @@ boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::
     ROS_FATAL("This shape type (%d) is not supported using FCL yet", (int)shape->type);
   }
   if (g)
+  {
     g->computeLocalAABB();
-  return boost::shared_ptr<fcl::CollisionGeometry>(g);
+    boost::shared_ptr<fcl::CollisionGeometry> res(g);
+    boost::mutex::scoped_lock slock(CACHE_LOCK);
+    CACHE[wptr] = res;
+    CACHE_CLEAN_COUNT++;
+    
+    // clean-up for cache (we don't want to keep infinitely large number of weak ptrs stored)
+    if (CACHE_CLEAN_COUNT > 100)
+    {
+      CACHE_CLEAN_COUNT = 0;
+      unsigned int from = CACHE.size();
+      for (std::map<boost::weak_ptr<const shapes::Shape>, boost::shared_ptr<fcl::CollisionGeometry> >::iterator it = CACHE.begin() ; it != CACHE.end() ; )
+      {
+        std::map<boost::weak_ptr<const shapes::Shape>, boost::shared_ptr<fcl::CollisionGeometry> >::iterator nit = it; ++nit;
+        if (it->first.expired())
+        {
+          it->second.reset();
+          CACHE.erase(it);
+        }
+        it = nit;
+      }
+      ROS_DEBUG("Cleaning up cache for FCL objects that correspond to shapes. Cache size reduced from %u to %u", from, (unsigned int)CACHE.size());
+    }
+    return res;
+  }
+  return boost::shared_ptr<fcl::CollisionGeometry>();
 } 
 
 template<typename BV>
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::Shape *shape, double scale, double padding)
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding)
 {
   if (fabs(scale - 1.0) <= std::numeric_limits<double>::epsilon() && fabs(padding) <= std::numeric_limits<double>::epsilon())
     return createCollisionGeometry<BV>(shape);
   else
   {
-    boost::scoped_ptr<shapes::Shape> scaled_shape(shape->clone());
+    boost::shared_ptr<shapes::Shape> scaled_shape(shape->clone());
     scaled_shape->scaleAndPadd(scale, padding);
-    return createCollisionGeometry<BV>(scaled_shape.get());
+    return createCollisionGeometry<BV>(scaled_shape);
   }
 }
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::Shape *shape)
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::ShapeConstPtr &shape)
 {
   return createCollisionGeometry<fcl::OBB>(shape);
 }
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::Shape *shape)
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::ShapeConstPtr &shape)
 {
   return createCollisionGeometry<fcl::RSS>(shape);
 }
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::Shape *shape, double scale, double padding)
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::ShapeConstPtr &shape, double scale, double padding)
 { 
   return createCollisionGeometry<fcl::OBB>(shape, scale, padding);
 }
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::Shape *shape, double scale, double padding)
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::ShapeConstPtr &shape, double scale, double padding)
 { 
   return createCollisionGeometry<fcl::RSS>(shape, scale, padding);
 }
