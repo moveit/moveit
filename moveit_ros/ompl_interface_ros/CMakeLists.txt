@@ -34,12 +34,6 @@ rosbuild_add_library(${PROJECT_NAME} src/ompl_interface_ros.cpp)
 rosbuild_add_executable(ompl_planner src/ompl_planner.cpp)
 target_link_libraries(ompl_planner ${PROJECT_NAME})
 
-rosbuild_add_executable(call_benchmark src/call_benchmark.cpp)
-target_link_libraries(call_benchmark ${PROJECT_NAME})
-
-rosbuild_add_executable(call_cca src/call_cca.cpp)
-target_link_libraries(call_cca ${PROJECT_NAME})
-
 set(SOURCE_FILES src/ompl_plugin.cpp)
 set(LIBRARY_NAME ompl_planner_plugin)
 include(CMakeDetermineSystem)
@@ -50,18 +44,3 @@ else(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 target_link_libraries(${LIBRARY_NAME} ${PROJECT_NAME})
 
-# Unit tests
-rosbuild_add_gtest(test_planner test/test_planner.cpp)
-target_link_libraries(test_planner ${PROJECT_NAME})
-
-rosbuild_add_gtest(test_simple_plan test/test_simple_plan.cpp)
-target_link_libraries(test_simple_plan ${PROJECT_NAME})
-
-rosbuild_add_gtest(test_path_constrained_plan test/test_path_constrained_plan.cpp)
-target_link_libraries(test_path_constrained_plan ${PROJECT_NAME})
-
-rosbuild_add_gtest(test_complex_path_constrained_plan test/test_complex_path_constrained_plan.cpp)
-target_link_libraries(test_complex_path_constrained_plan ${PROJECT_NAME})
-
-rosbuild_add_gtest(test_dual_arm test/test_dual_arm_plan.cpp)
-target_link_libraries(test_dual_arm ${PROJECT_NAME})
