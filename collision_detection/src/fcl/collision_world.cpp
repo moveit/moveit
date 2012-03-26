@@ -128,7 +128,7 @@ void collision_detection::CollisionWorldFCL::constructFCLObject(const Object *ob
 {
   for (std::size_t i = 0 ; i < obj->static_shapes_.size() ; ++i)
   {
-    boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(obj->static_shapes_[i].get());
+    boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(obj->static_shapes_[i]);
     if (cg)
     {
       CollisionGeometryData *cgd = new CollisionGeometryData(obj);
@@ -140,7 +140,7 @@ void collision_detection::CollisionWorldFCL::constructFCLObject(const Object *ob
   }
   for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
   {
-    boost::shared_ptr<fcl::CollisionGeometry> cg = obb ? createCollisionGeometryOBB(obj->shapes_[i].get()) : createCollisionGeometryRSS(obj->shapes_[i].get());
+    boost::shared_ptr<fcl::CollisionGeometry> cg = obb ? createCollisionGeometryOBB(obj->shapes_[i]) : createCollisionGeometryRSS(obj->shapes_[i]);
     if (cg)
     {
       CollisionGeometryData *cgd = new CollisionGeometryData(obj);

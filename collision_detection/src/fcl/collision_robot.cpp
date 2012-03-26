@@ -46,31 +46,33 @@ collision_detection::CollisionRobotFCL::CollisionRobotFCL(const planning_models:
     if (links_[i] && links_[i]->getShape())
     {
       boost::shared_ptr<fcl::CollisionGeometry> cg =
-	createCollisionGeometryOBB(links_[i]->getShape().get(), getLinkScale(links_[i]->getName()), getLinkPadding(links_[i]->getName()));
+	createCollisionGeometryOBB(links_[i]->getShape(), getLinkScale(links_[i]->getName()), getLinkPadding(links_[i]->getName()));
       CollisionGeometryData *cgd = NULL;
       if (cg)
       {
 	cgd = new CollisionGeometryData(links_[i]);
-	collision_geometry_data_[links_[i]->getName()].reset(cgd);
 	index_map_[links_[i]->getName()] = geoms_obb_.size();
 	cg->setUserData(cgd);
       }
       else
 	links_[i] = NULL;
-      geoms_obb_.push_back(cg);
-
+      geoms_obb_.push_back(FCLGeometry(cg, boost::shared_ptr<CollisionGeometryData>(cgd)));
       if (cg)
       {
-        cg = createCollisionGeometryRSS(links_[i]->getShape().get(), getLinkScale(links_[i]->getName()), getLinkPadding(links_[i]->getName()));
-	cg->setUserData(cgd);
+        cg = createCollisionGeometryRSS(links_[i]->getShape(), getLinkScale(links_[i]->getName()), getLinkPadding(links_[i]->getName()));
+        if (cg)
+        {
+          cgd = new CollisionGeometryData(links_[i]);
+          cg->setUserData(cgd);
+        }
       }
-      geoms_rss_.push_back(cg);
+      geoms_rss_.push_back(FCLGeometry(cg, boost::shared_ptr<CollisionGeometryData>(cgd)));
     }
     else
     {
       links_[i] = NULL;
-      geoms_obb_.push_back(boost::shared_ptr<fcl::CollisionGeometry>());
-      geoms_rss_.push_back(boost::shared_ptr<fcl::CollisionGeometry>());
+      geoms_obb_.push_back(FCLGeometry());
+      geoms_rss_.push_back(FCLGeometry());
     }
 }
 
@@ -79,92 +81,52 @@ collision_detection::CollisionRobotFCL::CollisionRobotFCL(const CollisionRobotFC
   links_ = other.links_;
   geoms_obb_ = other.geoms_obb_;
   geoms_rss_ = other.geoms_rss_;
-  collision_geometry_data_ = other.collision_geometry_data_;
   index_map_ = other.index_map_;
 }
 
-namespace collision_detection
+void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const planning_models::KinematicState::AttachedBody *ab, bool obb, std::vector<FCLGeometry> &geoms) const
 {
-namespace
-{
-typedef std::map<boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties>,
-                 std::vector<boost::shared_ptr<fcl::CollisionGeometry> > > AttachedBodyObject;
-
-static inline const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >&
-getAttachedBodyObjectsHelper(boost::mutex &lock, const planning_models::KinematicState::AttachedBody *ab,
-                             std::map<std::string, boost::shared_ptr<CollisionGeometryData> > &cgd_map,
-                             AttachedBodyObject &o1, AttachedBodyObject &o2, bool obb)
-{ 
-  // need an actual instance of the shared ptr for thread safety
-  boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties> props = ab->getProperties();
-  boost::mutex::scoped_lock slock(lock);
-
-  AttachedBodyObject::const_iterator it = o1.find(props);
-  if (it != o1.end())
-    return it->second;
-  
-  CollisionGeometryData *cgd = NULL;
-  
-  it = o2.find(props);
-  if (it != o2.end() && !it->second.empty())
-    cgd = (CollisionGeometryData*)it->second.front()->getUserData();    
-  else
-  {
-    cgd = new CollisionGeometryData(props.get());
-    // this is safe because collision_geometry_data_ is not modified elsewhere and we are already locked in this function
-    cgd_map[props->id_].reset(cgd);
-  }
-  
   const std::vector<shapes::ShapeConstPtr> &shapes = ab->getShapes();
-  std::vector<boost::shared_ptr<fcl::CollisionGeometry> > obj;
   for (std::size_t i = 0 ; i < shapes.size() ; ++i)
   {
-    boost::shared_ptr<fcl::CollisionGeometry> co = obb ? createCollisionGeometryOBB(shapes[i].get()) : createCollisionGeometryRSS(shapes[i].get());
+    boost::shared_ptr<fcl::CollisionGeometry> co = obb ? createCollisionGeometryOBB(shapes[i]) : createCollisionGeometryRSS(shapes[i]);
     if (co)
+    {
+      CollisionGeometryData *cgd = new CollisionGeometryData(ab);
       co->setUserData(cgd);
-    obj.push_back(co);
+      geoms.push_back(FCLGeometry(co, boost::shared_ptr<CollisionGeometryData>(cgd)));
+    }
   }
-  return o1.insert(std::make_pair(props, obj)).first->second;
-}
-
-}
-}
-
-const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >&
-collision_detection::CollisionRobotFCL::getAttachedBodyObjectsOBB(const planning_models::KinematicState::AttachedBody *ab) const
-{
-  return getAttachedBodyObjectsHelper(attached_bodies_lock_, ab, const_cast<CollisionRobotFCL*>(this)->collision_geometry_data_, attached_bodies_obb_, attached_bodies_rss_, true);
-}
-
-const std::vector<boost::shared_ptr<fcl::CollisionGeometry> >&
-collision_detection::CollisionRobotFCL::getAttachedBodyObjectsRSS(const planning_models::KinematicState::AttachedBody *ab) const
-{
-  return getAttachedBodyObjectsHelper(attached_bodies_lock_, ab, const_cast<CollisionRobotFCL*>(this)->collision_geometry_data_, attached_bodies_rss_, attached_bodies_obb_, false);
 }
 
 void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_models::KinematicState &state, FCLObject &fcl_obj, bool obb) const
 {
-  const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &geoms = obb ? geoms_obb_ : geoms_rss_;
+  const std::vector<FCLGeometry> &geoms = obb ? geoms_obb_ : geoms_rss_;
   const std::vector<planning_models::KinematicState::LinkState*> &link_states = state.getLinkStateVector();
   fcl_obj.collision_objects_.reserve(geoms.size());
   for (std::size_t i = 0 ; i < geoms.size() ; ++i)
   {
-    if (geoms[i])
+    if (geoms[i].collision_geometry_)
     {
-      fcl::CollisionObject *collObj = new fcl::CollisionObject(geoms[i], transform2fcl(link_states[i]->getGlobalCollisionBodyTransform()));
+      fcl::CollisionObject *collObj = new fcl::CollisionObject(geoms[i].collision_geometry_, transform2fcl(link_states[i]->getGlobalCollisionBodyTransform()));
       fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
+      // the CollisionGeometryData is already stored in the class member geoms_obb_ or geoms_rss_, so we need not copy it
     }
     std::vector<const planning_models::KinematicState::AttachedBody*> ab;
     link_states[i]->getAttachedBodies(ab);
     for (std::size_t j = 0 ; j < ab.size() ; ++j)
     {
-      const std::vector<boost::shared_ptr<fcl::CollisionGeometry> > &objs = obb ? getAttachedBodyObjectsOBB(ab[j]) : getAttachedBodyObjectsRSS(ab[j]);
+      std::vector<FCLGeometry> objs;
+      getAttachedBodyObjects(ab[j], obb, objs);
       const std::vector<Eigen::Affine3d> &ab_t = ab[j]->getGlobalCollisionBodyTransforms();
       for (std::size_t k = 0 ; k < objs.size() ; ++k)
-        if (objs[k])
+        if (objs[k].collision_geometry_)
         {
-          fcl::CollisionObject *collObj = new fcl::CollisionObject(objs[k], transform2fcl(ab_t[k]));
+          fcl::CollisionObject *collObj = new fcl::CollisionObject(objs[k].collision_geometry_, transform2fcl(ab_t[k]));
           fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
+          // we copy the shared ptr to the CollisionGeometryData, as this is not stored by the class itself, 
+          // and would be destroyed when objs goes out of scope.
+          fcl_obj.collision_geometry_data_.push_back(objs[k].collision_geometry_data_);
         }
     }
   }
@@ -239,13 +201,13 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
     const planning_models::KinematicModel::LinkModel *lmodel = kmodel_->getLinkModel(links[i]);
     if (it != index_map_.end() && lmodel)
     {
-      boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometryOBB(lmodel->getShape().get(), getLinkScale(links[i]), getLinkPadding(links[i]));
-      cg->setUserData(geoms_obb_[it->second]->getUserData());
-      geoms_obb_[it->second] = cg;
+      boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometryOBB(lmodel->getShape(), getLinkScale(links[i]), getLinkPadding(links[i]));
+      cg->setUserData(geoms_obb_[it->second].collision_geometry_->getUserData());
+      geoms_obb_[it->second].collision_geometry_ = cg;
 
-      cg = createCollisionGeometryRSS(lmodel->getShape().get(), getLinkScale(links[i]), getLinkPadding(links[i]));
-      cg->setUserData(geoms_rss_[it->second]->getUserData());
-      geoms_rss_[it->second] = cg;
+      cg = createCollisionGeometryRSS(lmodel->getShape(), getLinkScale(links[i]), getLinkPadding(links[i]));
+      cg->setUserData(geoms_rss_[it->second].collision_geometry_->getUserData());
+      geoms_rss_[it->second].collision_geometry_ = cg;
     }
     else
       ROS_ERROR("Updating padding or scaling for unknown link: '%s'", links[i].c_str());

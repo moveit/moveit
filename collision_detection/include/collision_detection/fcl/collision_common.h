@@ -50,7 +50,7 @@ struct CollisionGeometryData
     ptr.link = link;
   }
   
-  CollisionGeometryData(const planning_models::KinematicState::AttachedBodyProperties *ab) : type(BodyTypes::ROBOT_ATTACHED)
+  CollisionGeometryData(const planning_models::KinematicState::AttachedBody *ab) : type(BodyTypes::ROBOT_ATTACHED)
   {
     ptr.ab = ab;
   }
@@ -67,7 +67,7 @@ struct CollisionGeometryData
     case BodyTypes::ROBOT_LINK:
       return ptr.link->getName();
     case BodyTypes::ROBOT_ATTACHED:
-      return ptr.ab->id_;
+      return ptr.ab->getName();
     default:
       break;
     }
@@ -77,9 +77,9 @@ struct CollisionGeometryData
   BodyType type;
   union
   {
-    const planning_models::KinematicModel::LinkModel              *link;
-    const planning_models::KinematicState::AttachedBodyProperties *ab;
-    const CollisionWorld::Object                                  *obj;
+    const planning_models::KinematicModel::LinkModel    *link;
+    const planning_models::KinematicState::AttachedBody *ab;
+    const CollisionWorld::Object                        *obj;
   } ptr;
 };
 
@@ -100,6 +100,22 @@ struct CollisionData
   bool                          done_;
 };
 
+struct FCLGeometry
+{
+  FCLGeometry(void)
+  {
+  }
+  
+  FCLGeometry(const boost::shared_ptr<fcl::CollisionGeometry> &collision_geometry,
+              const boost::shared_ptr<CollisionGeometryData> &collision_geometry_data) :
+    collision_geometry_(collision_geometry), collision_geometry_data_(collision_geometry_data)
+  {
+  }
+  
+  boost::shared_ptr<fcl::CollisionGeometry> collision_geometry_;
+  boost::shared_ptr<CollisionGeometryData>  collision_geometry_data_;
+};
+
 struct FCLObject
 {
   void registerTo(fcl::BroadPhaseCollisionManager *manager);
@@ -118,11 +134,11 @@ struct FCLManager
 
 bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data);
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShape *shape);
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::Shape *shape);
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::Shape *shape);
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::Shape *shape, double scale, double padding);
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::Shape *shape, double scale, double padding);
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShapeConstPtr &shape);
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::ShapeConstPtr &shape);
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::ShapeConstPtr &shape);
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::ShapeConstPtr &shape, double scale, double padding);
+boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::ShapeConstPtr &shape, double scale, double padding);
 
 inline void transform2fcl(const Eigen::Affine3d &b, fcl::SimpleTransform &f)
 {

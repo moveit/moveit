@@ -421,9 +421,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   other_poses.push_back(pos2);
 
   // This creates a new set of constant properties for the attached body, which happens to be the same as the one above;
-  // kstate2.getLinkState("r_gripper_palm_link")->attachBody("kinect", object->shapes_, object->shape_poses_, touch_links);
-  // for efficiency reasons, we should do this:
-  kstate2.getLinkState("r_gripper_palm_link")->attachBody(kstate1.getAttachedBody("kinect")->getProperties(), other_poses);
+  kstate2.getLinkState("r_gripper_palm_link")->attachBody("kinect", object->shapes_, object->shape_poses_, touch_links);
 
   //going to take a while, but that's fine
   res = collision_detection::CollisionResult();

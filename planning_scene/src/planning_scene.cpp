@@ -774,8 +774,7 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
   }
 }
 
-bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object, 
-                                                                      boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties> attached_body_properties)
+bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object)
 {
   if (!getKinematicModel()->hasLinkModel(object.link_name))
   {
@@ -875,11 +874,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       if (ls->clearAttachedBody(object.object.id))
         ROS_WARN("The kinematic state already had an object named '%s' attached to link '%s'. The object was replaced.",
                  object.object.id.c_str(), object.link_name.c_str());
-      if(attached_body_properties) {
-        ls->attachBody(attached_body_properties, poses);
-      } else {
-        ls->attachBody(object.object.id, shapes, poses, object.touch_links);
-      }
+      ls->attachBody(object.object.id, shapes, poses, object.touch_links);      
       ROS_DEBUG("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       return true;
     }
@@ -895,7 +890,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         const planning_models::KinematicState::AttachedBody *ab = ls->getAttachedBody(object.object.id);
         if (ab)
         {
-          boost::shared_ptr<planning_models::KinematicState::AttachedBodyProperties> prop = ab->getProperties();
+          std::vector<shapes::ShapeConstPtr> shapes = ab->getShapes();
           std::vector<Eigen::Affine3d> poses = ab->getGlobalCollisionBodyTransforms();
           ls->clearAttachedBody(object.object.id);
           
@@ -903,7 +898,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             ROS_WARN("The collision world already has an object with the same name as the body about to be detached. NOT adding the detached body '%s' to the collision world.", object.object.id.c_str());
           else
           {
-            cworld_->addToObject(object.object.id, prop->shapes_, poses);
+            cworld_->addToObject(object.object.id, shapes, poses);
             ROS_DEBUG("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
           }
           
