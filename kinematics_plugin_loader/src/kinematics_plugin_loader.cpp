@@ -88,7 +88,7 @@ public:
         {
           try
           {
-            result.reset(kinematics_loader_->createClassInstance(it->second[i]));
+            result = kinematics_loader_->createInstance(it->second[i]);
             if (result)
             {
               /// \todo What is the search discretization? any reasonable way to determine this?

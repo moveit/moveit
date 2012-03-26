@@ -87,9 +87,9 @@ public:
           ROS_INFO("Attempting to load and configure %s", classes[i].c_str());
           try
           {
-            planning_interface::Planner *p = planner_plugin_loader_->createClassInstance(classes[i]);
+            boost::shared_ptr<planning_interface::Planner> p = planner_plugin_loader_->createInstance(classes[i]);
             p->init(scene_->getKinematicModel());
-            planner_interfaces_[classes[i]].reset(p);
+            planner_interfaces_[classes[i]] = p;
           }
           catch (pluginlib::PluginlibException& ex)
           {
