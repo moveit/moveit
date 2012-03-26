@@ -486,7 +486,7 @@ void PlanningDisplay::renderPlanningScene(void)
         color.r_ = c.r; color.g_ = c.g; color.b_ = c.b; 
       }
       for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)
-        renderShape(scene_node_, o->shapes_[j], o->shape_poses_[j], color, scene_alpha_);
+        renderShape(scene_node_, o->shapes_[j].get(), o->shape_poses_[j], color, scene_alpha_);
     }
     
     std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
@@ -500,11 +500,11 @@ void PlanningDisplay::renderPlanningScene(void)
         color.r_ = c.r; color.g_ = c.g; color.b_ = c.b; 
       }
       const std::vector<Eigen::Affine3d> &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
-      const std::vector<shapes::Shape*> &ab_shapes = attached_bodies[i]->getShapes();
+      const std::vector<shapes::ShapeConstPtr> &ab_shapes = attached_bodies[i]->getShapes();
       for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
       {
-        renderShape(scene_robot_->getVisualNode(), ab_shapes[j], ab_t[j], color, robot_scene_alpha_);
-        renderShape(scene_robot_->getCollisionNode(), ab_shapes[j], ab_t[j], color, robot_scene_alpha_);
+        renderShape(scene_robot_->getVisualNode(), ab_shapes[j].get(), ab_t[j], color, robot_scene_alpha_);
+        renderShape(scene_robot_->getCollisionNode(), ab_shapes[j].get(), ab_t[j], color, robot_scene_alpha_);
       }
     }
   }
