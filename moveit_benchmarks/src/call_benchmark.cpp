@@ -96,7 +96,7 @@ bool readOptions(const char *filename, BenchmarkOptions &opt)
   boost::program_options::options_description desc;
   desc.add_options()
     ("scene.name", boost::program_options::value<std::string>(), "Scene name")
-    ("scene.runs", boost::program_options::value<std::size_t>(), "Number of runs")
+    ("scene.runs", boost::program_options::value<std::string>(), "Number of runs")
     ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
   
   boost::program_options::variables_map vm;
@@ -212,7 +212,7 @@ void runBenchmark(const moveit_warehouse::PlanningSceneStorage &pss, const Bench
     req.motion_plan_request = static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]);
     ROS_INFO("Calling benchmark %u of %u for scene '%s' ...", (unsigned int)(i + 1), (unsigned int)planning_queries.size(), opt.scene.c_str());
     if (benchmark_service_client.call(req, res))
-      ROS_INFO("Success!");    
+      ROS_INFO("Success! Log data saved to '%s'", res.filename.c_str());    
     else
       ROS_ERROR("Failed!");
   }
@@ -240,6 +240,7 @@ int main(int argc, char **argv)
     ROS_ERROR("There are no plugins to benchmark.");
   else
   { 
+    unsigned int proc = 0;
     moveit_warehouse::PlanningSceneStorage pss;
     for (int i = 1 ; i < argc ; ++i)
     {
@@ -250,9 +251,10 @@ int main(int argc, char **argv)
         printOptions(ss, opt);
         ROS_INFO("Calling benchmark with options:\n%s\n", ss.str().c_str());
         runBenchmark(pss, opt);
+        proc++;
       }
     }
-    ROS_INFO("Done.");
+    ROS_INFO("Processed %u benchmark configuration files", proc);
   }
   
   return 0;
