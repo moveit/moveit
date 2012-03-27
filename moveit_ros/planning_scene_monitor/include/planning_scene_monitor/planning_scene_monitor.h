@@ -144,7 +144,10 @@ public:
 
   /** @brief Set the function to be called when an update to the scene is received */
   void setUpdateCallback(const boost::function<void()> &fn);
-
+  
+  /** @brief Get the topic names that the monitor is listening to */
+  void getMonitoredTopics(std::vector<std::string> &topics) const;
+  
   /** \brief Return the time when the last update was made to the planning scene (by the monitor) */
   const ros::Time& getLastUpdateTime(void) const
   {

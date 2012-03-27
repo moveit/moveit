@@ -36,6 +36,8 @@
 
 #include <moveit_warehouse/warehouse.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
+#include <boost/algorithm/string/join.hpp>
+#include <ros/console.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
@@ -47,8 +49,24 @@ void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_war
   {
     moveit_msgs::PlanningScene psmsg;
     psm->getPlanningScene()->getPlanningSceneMsg(psmsg);
-    pss->addPlanningScene(psmsg); 
+    pss->addPlanningScene(psmsg);
+    ROS_INFO_STREAM("Saved scene '" << psmsg.name << "'");
   }
+  else
+    ROS_INFO("Scene name is empty. Not saving.");
+}
+
+void onMotionPlanRequest(const moveit_msgs::MotionPlanRequestConstPtr &req,
+                         planning_scene_monitor::PlanningSceneMonitor *psm,
+                         moveit_warehouse::PlanningSceneStorage *pss)
+{
+  if (psm->getPlanningScene()->getName().empty())
+  {
+    ROS_INFO("Scene name is empty. Not saving planning request.");
+    return;
+  }
+  pss->addPlanningRequest(*req, psm->getPlanningScene()->getName());
+  ROS_INFO("Saved a planning request for scene '%s'.", psm->getPlanningScene()->getName().c_str());
 }
 
 int main(int argc, char **argv)
@@ -77,8 +95,13 @@ int main(int argc, char **argv)
     }
         
     psm.setUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
+    boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
+    ros::Subscriber mplan_req_sub = nh.subscribe("/motion_plan_request", 100, callback);
+    std::vector<std::string> topics;
+    psm.getMonitoredTopics(topics);
+    ROS_INFO_STREAM("Listening for scene updates on topics " << boost::algorithm::join(topics, ", "));
+    ROS_INFO_STREAM("Listening for planning requests on topic " << mplan_req_sub.getTopic());
     
     ros::waitForShutdown();
-    
     return 0;
 }

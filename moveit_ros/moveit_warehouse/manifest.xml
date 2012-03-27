@@ -11,7 +11,7 @@
 
   <depend package="mongo_ros"/>
   <depend package="moveit_msgs"/>
-
+  <depend package="planning_scene_monitor"/>
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_warehouse"/>
   </export>

@@ -37,7 +37,3 @@ target_link_libraries(demo_scene ${PROJECT_NAME})
 
 rosbuild_add_executable(environment_server src/environment_server.cpp)
 target_link_libraries(environment_server ${PROJECT_NAME})
-
-rosbuild_add_executable(save_to_warehouse src/save_to_warehouse.cpp)
-target_link_libraries(save_to_warehouse ${PROJECT_NAME})
-rosbuild_link_boost(save_to_warehouse system)
