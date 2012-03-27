@@ -56,7 +56,12 @@ typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotTraject
 class PlanningSceneStorage
 {
 public:
-  PlanningSceneStorage();
+  /** \brief Initialize the planning scene storage to connect to a specified \e host and \e port for the MongoDB. 
+      If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying 
+      which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
+      If these params are not found either, a final attempt is made to look for the param values under /moveit_warehouse/warehouse_*.
+      If no values are found, the defaults are left to be the ones MongoDB uses. */
+  PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0);
   
   void addPlanningScene(const moveit_msgs::PlanningScene &scene);
   void addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
@@ -81,16 +86,27 @@ public:
   
   void removePlanningScene(const std::string &scene_name);
   void removePlanningSceneQueries(const std::string &scene_name);
+
+  const std::string& getDatabaseHost(void) const
+  {
+    return db_host_;    
+  }
+  
+  unsigned int getDatabasePort(void) const
+  {
+    return db_port_;
+  }
   
 private:
   
   std::string getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
   std::string addNewPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name);
   
-  PlanningSceneCollection	    planning_scene_collection_;
+  PlanningSceneCollection     planning_scene_collection_;
   MotionPlanRequestCollection motion_plan_request_collection_;
   RobotTrajectoryCollection   robot_trajectory_collection_;
-  
+  std::string                 db_host_;
+  unsigned int                db_port_;
 };
 }
 
