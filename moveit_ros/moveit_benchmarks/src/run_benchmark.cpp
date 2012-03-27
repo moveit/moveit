@@ -348,9 +348,8 @@ public:
     
     double duration = (ros::WallTime::now() - startTime).toSec();
     std::string host = getHostname();
-    
-    std::ofstream out(req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log").c_str() :
-                      req.filename.c_str());
+    res.filename = req.filename.empty() ? ("moveit_benchmarks_" + host + "_" + boost::posix_time::to_iso_extended_string(startTime.toBoost()) + ".log") : req.filename;
+    std::ofstream out(res.filename.c_str());
     out << "Experiment " << (cscene_->getName().empty() ? "NO_NAME" : cscene_->getName()) << std::endl;
     out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
@@ -393,7 +392,7 @@ public:
         out << '.' << std::endl;
       }
     out.close();
-    ROS_INFO("Results saved to '%s'", req.filename.c_str());
+    ROS_INFO("Results saved to '%s'", res.filename.c_str());
     res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return true;
   }
