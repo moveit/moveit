@@ -39,4 +39,4 @@ rosbuild_link_boost(broadcast program_options)
 
 rosbuild_add_executable(save_to_warehouse src/save_to_warehouse.cpp)
 target_link_libraries(save_to_warehouse ${PROJECT_NAME})
-rosbuild_link_boost(save_to_warehouse system)
+rosbuild_link_boost(save_to_warehouse program_options)
