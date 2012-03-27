@@ -197,7 +197,7 @@ bool ompl_interface::OMPLInterface::benchmark(const planning_scene::PlanningScen
   ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, res.error_code, attempts, timeout);
   if (!context)
     return false;
-  return context->benchmark(timeout, std::max(1u, req.average_count), req.filename);
+  return context->benchmark(timeout, attempts, req.filename);
 }
 
 ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
