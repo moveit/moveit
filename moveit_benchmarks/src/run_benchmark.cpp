@@ -224,6 +224,7 @@ public:
     res.planner_interfaces.clear();
     std::vector<planning_interface::Planner*> pi;
     std::vector<std::vector<std::string> > planner_ids;
+    std::vector<std::size_t> average_count;
     std::vector<planning_interface::PlannerCapability> pc;
     planning_interface::PlannerCapability capabilities;	
     moveit_msgs::GetMotionPlan::Request mp_req;
@@ -252,12 +253,15 @@ public:
         pi.push_back(it->second.get());
         pc.push_back(capabilities);
         planner_ids.resize(planner_ids.size() + 1);
+        average_count.resize(average_count.size() + 1, 1);
         std::vector<std::string> known;
         pi.back()->getPlanningAlgorithms(known);
         if (found < 0 || req.planner_interfaces[found].planner_ids.empty())
           planner_ids.back() = known;
         else
         {
+          if ((int)req.average_count.size() > found)
+            average_count.back() = std::max<std::size_t>(1, req.average_count[found]);
           for (std::size_t k = 0 ; k < req.planner_interfaces[found].planner_ids.size() ; ++k)
           {
             bool fnd = false;
@@ -284,7 +288,6 @@ public:
       return false;	    
     }
     
-    
     // output information about tested planners
     ROS_INFO("Benchmarking planning interfaces:");
     std::stringstream sst;
@@ -302,12 +305,16 @@ public:
     res.responses.resize(pi.size());
 
     std::size_t total_n_planners = 0;
+    std::size_t total_n_runs = 0;
     for (std::size_t i = 0 ; i < planner_ids.size() ; ++i)
+    {
       total_n_planners += planner_ids[i].size();
+      total_n_runs += planner_ids[i].size() * average_count[i];
+    }
     
     // benchmark all the planners
     ros::WallTime startTime = ros::WallTime::now();
-    boost::progress_display progress(total_n_planners * req.average_count, std::cout);
+    boost::progress_display progress(total_n_runs, std::cout);
     moveit_msgs::MotionPlanDetailedResponse mp_res;
     typedef std::vector<std::map<std::string, std::string> > RunData;
     std::vector<RunData> data;
@@ -317,8 +324,8 @@ public:
       for (std::size_t j = 0 ; j < planner_ids[i].size() ; ++j)
       {
         mp_req.motion_plan_request.planner_id = planner_ids[i][j];
-        RunData runs(req.average_count);
-        for (unsigned int c = 0 ; c < req.average_count ; ++c)
+        RunData runs(average_count[i]);
+        for (unsigned int c = 0 ; c < average_count[i] ; ++c)
         {
           ++progress;
           ros::WallTime start = ros::WallTime::now();
@@ -348,10 +355,7 @@ public:
     out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
     out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
-    out << "0 is the random seed" << std::endl; // we do not record random seeds
     out << req.motion_plan_request.allowed_planning_time.toSec() << " seconds per run" << std::endl;
-    out << "10240 MB per run" << std::endl; // we don't limit memory usage
-    out << req.average_count << " runs per planner" << std::endl;
     out << duration << " seconds spent to collect the data" << std::endl;
     out << total_n_planners << " planners" << std::endl;
     std::size_t ri = 0;
