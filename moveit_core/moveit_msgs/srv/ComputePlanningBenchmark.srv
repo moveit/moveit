@@ -11,7 +11,7 @@ MotionPlanRequest motion_plan_request
 PlannerInterfaceDescription[] planner_interfaces
 
 # Number of runs to execute for each planning interface (so that the information can be averaged later)
-uint32 average_count
+uint32[] average_count
 
 # The file where to store the results
 string filename
