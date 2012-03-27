@@ -145,6 +145,7 @@ std::string moveit_warehouse::PlanningSceneStorage::addNewPlanningRequest(const 
   mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene_name,
                                MOTION_PLAN_REQUEST_ID_NAME, id);
   motion_plan_request_collection_->insert(planning_query, metadata);
+  ROS_INFO("Saved planning query '%s' for scene '%s'", id.c_str(), scene_name.c_str());
   return id;
 }
 

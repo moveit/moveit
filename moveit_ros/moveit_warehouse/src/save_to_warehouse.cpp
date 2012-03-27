@@ -37,6 +37,8 @@
 #include <moveit_warehouse/warehouse.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/program_options/cmdline.hpp>
+#include <boost/program_options/variables_map.hpp>
 #include <ros/console.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
@@ -44,13 +46,12 @@ static const std::string ROBOT_DESCRIPTION="robot_description";
 void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_warehouse::PlanningSceneStorage *pss)
 {
   ROS_INFO("Received an update to the planning scene...");
-
+  
   if (!psm->getPlanningScene()->getName().empty())
   {
     moveit_msgs::PlanningScene psmsg;
     psm->getPlanningScene()->getPlanningSceneMsg(psmsg);
     pss->addPlanningScene(psmsg);
-    ROS_INFO_STREAM("Saved scene '" << psmsg.name << "'");
   }
   else
     ROS_INFO("Scene name is empty. Not saving.");
@@ -66,42 +67,58 @@ void onMotionPlanRequest(const moveit_msgs::MotionPlanRequestConstPtr &req,
     return;
   }
   pss->addPlanningRequest(*req, psm->getPlanningScene()->getName());
-  ROS_INFO("Saved a planning request for scene '%s'.", psm->getPlanningScene()->getName().c_str());
 }
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "demo", ros::init_options::AnonymousName);
-
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-    
-    ros::NodeHandle nh;
-    tf::TransformListener tf;
-    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
-    psm.startSceneMonitor();
-    psm.startWorldGeometryMonitor();
-    moveit_warehouse::PlanningSceneStorage pss;
-    std::vector<std::string> names;
-    std::vector<ros::Time> times;
-    pss.getPlanningSceneNamesAndTimes(names, times);
-    if (names.empty())
-      ROS_INFO("There are no previously stored scenes");
-    else
-    {
-      ROS_INFO("Previously stored scenes:");
-      for (std::size_t i = 0 ; i < names.size() ; ++i)
-        ROS_INFO(" * %s", names[i].c_str());
-    }
-        
-    psm.setUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
-    boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
-    ros::Subscriber mplan_req_sub = nh.subscribe("/motion_plan_request", 100, callback);
-    std::vector<std::string> topics;
-    psm.getMonitoredTopics(topics);
-    ROS_INFO_STREAM("Listening for scene updates on topics " << boost::algorithm::join(topics, ", "));
-    ROS_INFO_STREAM("Listening for planning requests on topic " << mplan_req_sub.getTopic());
-    
-    ros::waitForShutdown();
-    return 0;
+  ros::init(argc, argv, "save_to_warehouse", ros::init_options::AnonymousName);
+  
+  boost::program_options::options_description desc;
+  desc.add_options()
+    ("help", "Show help message")
+    ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
+    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
+  
+  boost::program_options::variables_map vm;
+  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+  boost::program_options::notify(vm);
+  
+  if (vm.count("help"))
+  {
+    std::cout << desc << std::endl;
+    return 1;
+  }
+  
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+  
+  ros::NodeHandle nh;
+  tf::TransformListener tf;
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
+  psm.startSceneMonitor();
+  psm.startWorldGeometryMonitor();
+  moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                             vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+  std::vector<std::string> names;
+  std::vector<ros::Time> times;
+  pss.getPlanningSceneNamesAndTimes(names, times);
+  if (names.empty())
+    ROS_INFO("There are no previously stored scenes");
+  else
+  {
+    ROS_INFO("Previously stored scenes:");
+    for (std::size_t i = 0 ; i < names.size() ; ++i)
+      ROS_INFO(" * %s", names[i].c_str());
+  }
+  
+  psm.setUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
+  boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
+  ros::Subscriber mplan_req_sub = nh.subscribe("/motion_plan_request", 100, callback);
+  std::vector<std::string> topics;
+  psm.getMonitoredTopics(topics);
+  ROS_INFO_STREAM("Listening for scene updates on topics " << boost::algorithm::join(topics, ", "));
+  ROS_INFO_STREAM("Listening for planning requests on topic " << mplan_req_sub.getTopic());
+  
+  ros::waitForShutdown();
+  return 0;
 }
