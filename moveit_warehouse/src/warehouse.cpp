@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "moveit_warehouse/warehouse.h"
+#include <ros/ros.h>
 
 static const std::string DATABASE_NAME = "moveit_planning_scenes";
 
@@ -42,11 +43,38 @@ static const std::string PLANNING_SCENE_ID_NAME = "planning_scene_id";
 static const std::string PLANNING_SCENE_TIME_NAME = "planning_scene_time";
 static const std::string MOTION_PLAN_REQUEST_ID_NAME = "motion_request_id";
 
-moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage()
+moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &host, const unsigned int port) : db_host_(host), db_port_(port)
 {
-  planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene"));
-  motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request"));
-  robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory"));
+  // if we are using default values for initialization, attempt to use ROS params for initialization
+  if (db_host_.empty() || db_port_ == 0)
+  {
+    static const std::string DEFAULT_CONFIG_NAMESPACE = "/moveit_warehouse";
+    ros::NodeHandle nh("~");
+    // search for the warehouse_port parameter in the local name space of the node, and up the tree of namespaces;
+    // if the desired param is not found, make a final attempt to look fro the param in the default namespace defined above
+    if (db_port_ == 0)
+    {
+      std::string paramName;
+      if (!nh.searchParam("warehouse_port", paramName))
+        paramName = DEFAULT_CONFIG_NAMESPACE + "/warehouse_port";
+      int param_port;
+      if (nh.getParam(paramName, param_port))
+        db_port_ = param_port;
+    }
+    if (db_host_.empty())
+    {
+      std::string paramName;
+      if (!nh.searchParam("warehouse_host", paramName))
+        paramName = DEFAULT_CONFIG_NAMESPACE + "/warehouse_host";
+      std::string param_host;
+      if (nh.getParam(paramName, param_host))
+        db_host_ = param_host;
+    }
+  }
+  ROS_INFO("Connecting to MongoDB on host '%s' port '%u'", db_host_.c_str(), db_port_);
+  planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene", db_host_, db_port_));
+  motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request", db_host_, db_port_));
+  robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory", db_host_, db_port_));
 }
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)
