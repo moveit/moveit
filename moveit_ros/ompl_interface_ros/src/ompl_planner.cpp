@@ -207,7 +207,7 @@ int main(int argc, char **argv)
     ros::waitForShutdown();
   }
   else
-    ROS_ERROR("Planning scene not configured");
+    ROS_ERROR("Planning scene not configured");  
   
   return 0;
 }

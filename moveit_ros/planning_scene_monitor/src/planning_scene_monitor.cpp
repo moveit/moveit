@@ -287,10 +287,10 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
       collision_map_subscriber_ || collision_map_filter_)
   {
     ROS_INFO("Stopping world geometry monitor");
-    delete collision_object_subscriber_;
     delete collision_object_filter_;
-    delete collision_map_subscriber_;
+    delete collision_object_subscriber_;
     delete collision_map_filter_;
+    delete collision_map_subscriber_;
     collision_object_subscriber_ = NULL;
     collision_object_filter_ = NULL;
     collision_map_subscriber_ = NULL;
@@ -302,7 +302,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
     {
       ROS_INFO("Stopping world geometry monitor");
       planning_scene_world_subscriber_.shutdown();
-    }  
+    }
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::string &joint_states_topic, const std::string &attached_objects_topic)
