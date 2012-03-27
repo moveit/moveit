@@ -109,6 +109,27 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
   }
 }
 
+void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vector<std::string> &topics) const
+{
+  topics.clear();
+  if (current_state_monitor_)
+  {
+    const std::string &t = current_state_monitor_->getMonitoredTopic();
+    if (!t.empty())
+      topics.push_back(t);
+  }
+  if (planning_scene_subscriber_)
+    topics.push_back(planning_scene_subscriber_.getTopic());
+  if (planning_scene_diff_subscriber_)
+    topics.push_back(planning_scene_diff_subscriber_.getTopic());
+  if (collision_object_subscriber_)
+    topics.push_back(collision_object_subscriber_->getTopic());
+  if (collision_map_subscriber_)
+    topics.push_back(collision_map_subscriber_->getTopic());
+  if (planning_scene_world_subscriber_)
+    topics.push_back(planning_scene_world_subscriber_.getTopic());
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
 {
   if (scene_)
@@ -220,9 +241,12 @@ void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::
 
 void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
 {
-  ROS_INFO("Stopping scene monitor");
-  planning_scene_diff_subscriber_.shutdown();
-  planning_scene_subscriber_.shutdown();
+  if (planning_scene_diff_subscriber_ || planning_scene_subscriber_)
+  {
+    ROS_INFO("Stopping scene monitor");
+    planning_scene_diff_subscriber_.shutdown();
+    planning_scene_subscriber_.shutdown();
+  }
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
@@ -259,10 +283,10 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
 
 void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void)
 {
-  ROS_INFO("Stopping world geometry monitor");
   if (collision_object_subscriber_ || collision_object_filter_ ||
       collision_map_subscriber_ || collision_map_filter_)
   {
+    ROS_INFO("Stopping world geometry monitor");
     delete collision_object_subscriber_;
     delete collision_object_filter_;
     delete collision_map_subscriber_;
@@ -271,8 +295,14 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
     collision_object_filter_ = NULL;
     collision_map_subscriber_ = NULL;
     collision_map_filter_ = NULL;
+    planning_scene_world_subscriber_.shutdown();
   }
-  planning_scene_world_subscriber_.shutdown();
+  else
+    if (planning_scene_world_subscriber_)
+    {
+      ROS_INFO("Stopping world geometry monitor");
+      planning_scene_world_subscriber_.shutdown();
+    }  
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::string &joint_states_topic, const std::string &attached_objects_topic)

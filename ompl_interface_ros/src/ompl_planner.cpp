@@ -55,24 +55,34 @@ class OMPLPlannerService
 {
 public:
   
-  OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor &psm) : nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getKinematicModel())
+  OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor &psm, bool debug = false) :
+    nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getKinematicModel()), debug_(debug)
   {
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
     benchmark_service_ = nh_.advertiseService(BENCHMARK_SERVICE_NAME, &OMPLPlannerService::computeBenchmark, this);
     construct_ca_service_ = nh_.advertiseService(CONSTRUCT_CONSTRAINT_APPROXIMATION_SERVICE_NAME, &OMPLPlannerService::constructConstraintApproximation, this);
-    pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 5);
-    pub_plan_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 100);
+    if (debug_)
+    {
+      pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 5);
+      pub_plan_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 100);
+      pub_request_ = nh_.advertise<moveit_msgs::MotionPlanRequest>("motion_plan_request", 100);
+    }
   }
   
   bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
   {
     ROS_INFO("Received new planning request...");
+    if (debug_)
+      pub_request_.publish(req.motion_plan_request);
     bool result = ompl_interface_.solve(psm_.getPlanningScene(), req, res);
-    if (result)
-      displaySolution(res);
-    std::stringstream ss;
-    ompl::tools::Profiler::Status(ss);
-    ROS_INFO("%s", ss.str().c_str());
+    if (debug_)
+    {
+      if (result)
+        displaySolution(res);
+      std::stringstream ss;
+      ompl::tools::Profiler::Status(ss);
+      ROS_INFO("%s", ss.str().c_str());
+    }
     return result;
   }
 
@@ -153,6 +163,8 @@ public:
   {
     ompl_interface_.printStatus();
     ROS_INFO("Responding to planning and bechmark requests");
+    if (debug_)
+      ROS_INFO("Publishing debug information");
   }
   
 private:
@@ -166,12 +178,18 @@ private:
   ros::ServiceServer                            display_states_service_;
   ros::Publisher                                pub_markers_;
   ros::Publisher                                pub_plan_;
+  ros::Publisher                                pub_request_;
+  bool                                          debug_;
 };
-
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, PLANNER_NODE_NAME);
+  
+  bool debug = false;
+  for (int i = 1 ; i < argc ; ++i)
+    if (strncmp(argv[i], "--debug", 7) == 0)
+      debug = true;
   
   ros::AsyncSpinner spinner(1);
   spinner.start();
@@ -184,7 +202,7 @@ int main(int argc, char **argv)
     psm.startSceneMonitor();
     psm.startStateMonitor();
     
-    OMPLPlannerService pservice(psm);
+    OMPLPlannerService pservice(psm, debug);
     pservice.status();
     ros::waitForShutdown();
   }
