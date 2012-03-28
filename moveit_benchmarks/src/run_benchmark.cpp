@@ -428,7 +428,7 @@ private:
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "planning_scene_benchmark", ros::init_options::AnonymousName);
+  ros::init(argc, argv, "planning_scene_benchmark");
   ros::AsyncSpinner spinner(1);
   spinner.start();
   

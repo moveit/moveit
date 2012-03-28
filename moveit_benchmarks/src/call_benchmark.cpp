@@ -53,7 +53,7 @@
 
 #include <fstream>
 
-static const std::string BENCHMARK_SERVICE = "/benchmark_service";
+static const std::string BENCHMARK_SERVICE = "benchmark_service";
 
 struct BenchmarkOptions
 {
