@@ -113,7 +113,7 @@ int main(int argc, char **argv)
   
   psm.setUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
   boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
-  ros::Subscriber mplan_req_sub = nh.subscribe("/motion_plan_request", 100, callback);
+  ros::Subscriber mplan_req_sub = nh.subscribe("motion_plan_request", 100, callback);
   std::vector<std::string> topics;
   psm.getMonitoredTopics(topics);
   ROS_INFO_STREAM("Listening for scene updates on topics " << boost::algorithm::join(topics, ", "));
