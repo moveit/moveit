@@ -13,6 +13,9 @@ PlannerInterfaceDescription[] planner_interfaces
 # Number of runs to execute for each planning interface (so that the information can be averaged later)
 uint32[] average_count
 
+# The value to be considered for elements missing from average_count
+uint32 default_average_count
+
 # The file where to store the results
 string filename
 
