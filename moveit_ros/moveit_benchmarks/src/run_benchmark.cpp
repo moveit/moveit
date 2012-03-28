@@ -253,7 +253,7 @@ public:
         pi.push_back(it->second.get());
         pc.push_back(capabilities);
         planner_ids.resize(planner_ids.size() + 1);
-        average_count.resize(average_count.size() + 1, 1);
+        average_count.resize(average_count.size() + 1, std::max<std::size_t>(1, req.default_average_count));
         std::vector<std::string> known;
         pi.back()->getPlanningAlgorithms(known);
         if (found < 0 || req.planner_interfaces[found].planner_ids.empty())
