@@ -446,6 +446,22 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   EXPECT_LT(fabs(first_check-second_check), .001);
 }
 
+TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
+{
+  std::vector<Eigen::Affine3d> poses;
+  std::vector<shapes::ShapePtr> shapes;
+  for(unsigned int i = 0; i < 1000; i++) {
+    poses.push_back(Eigen::Affine3d::Identity());
+    shapes.push_back(shapes::ShapePtr(new shapes::Box(.01, .01, .01)));
+  }
+  ros::WallTime start = ros::WallTime::now();
+  for(unsigned int i = 0; i < 1000; i++) {
+    cworld_->addToObject("map", shapes[i], poses[i]);
+  }
+  double t = (ros::WallTime::now()-start).toSec();
+  EXPECT_GE(.2, t);
+  ROS_INFO_STREAM("Took " << t);
+}
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
