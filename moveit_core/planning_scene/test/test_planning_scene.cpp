@@ -61,7 +61,7 @@ TEST(PlanningScene, LoadRestoreDiff)
 
     collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
     Eigen::Affine3d id = Eigen::Affine3d::Identity();
-    cw.addToObject("sphere", new shapes::Sphere(0.4), id);
+    cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
     
     moveit_msgs::PlanningScene ps_msg;
     ps->getPlanningSceneMsg(ps_msg);
@@ -71,7 +71,7 @@ TEST(PlanningScene, LoadRestoreDiff)
     planning_scene::PlanningScene next(ps);
     EXPECT_TRUE(next.isConfigured());
     EXPECT_TRUE(next.getCollisionWorld()->hasObject("sphere"));
-    next.getCollisionWorld()->addToObject("sphere2", new shapes::Sphere(0.5), id);
+    next.getCollisionWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
     EXPECT_EQ(next.getCollisionWorld()->getObjectIds().size(), 2);
     EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 1);
     next.getPlanningSceneDiffMsg(ps_msg);
@@ -83,6 +83,34 @@ TEST(PlanningScene, LoadRestoreDiff)
     EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
     ps->setPlanningSceneMsg(ps_msg);
     EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 2);
+}
+
+TEST(PlanningScene, MakeAttachedDiff)
+{
+  boost::shared_ptr<urdf::Model> urdf_model(new urdf::Model());
+  boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
+  urdf_model->initFile("../planning_models/test/urdf/robot.xml");
+  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
+  ps->configure(urdf_model, srdf_model);
+  EXPECT_TRUE(ps->isConfigured());
+  
+  collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
+  Eigen::Affine3d id = Eigen::Affine3d::Identity();
+  cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
+  
+  planning_scene::PlanningScenePtr attached_object_diff_scene(new planning_scene::PlanningScene(ps));
+  
+  moveit_msgs::AttachedCollisionObject att_obj;
+  att_obj.link_name = "r_wrist_roll_link";
+  att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
+  att_obj.object.id = "sphere";
+  
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+
+  attached_object_diff_scene->processAttachedCollisionObjectMsg(att_obj);
+  attached_object_diff_scene->checkCollision(req,res);
+  ps->checkCollision(req, res);
 }
 
 int main(int argc, char **argv)
