@@ -195,15 +195,9 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     att_obj.object.id = pickup_goal.collision_object_name;
     att_obj.touch_links = end_effector_links;
 
-
     execution_info[i].attached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
     execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
-    if(!execution_info.attached_body_properties_) {
-      execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
-      execution_info.attached_body_properties_ = execution_info[i].attached_object_diff_scene_->getCurrentState().getAttachedBody(pickup_goal.collision_object_name)->getProperties();
-    } else {
-      execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj, execution_info.attached_body_properties_);      
-    }
+    execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
     execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
 
     collision_detection::CollisionRequest req;
