@@ -79,6 +79,12 @@ public Q_SLOTS:
   void generateGraspList(const std::string&,
                          const std::string&);
 
+  void getMeshGivenModelId(int model_id);
+
+  void addHouseholdObjectToScene(std::string,
+                                 int,
+                                 geometry_msgs::Pose);
+
 Q_SIGNALS:
 
   void addCollisionObjectRequested(const moveit_msgs::CollisionObject& obj,
@@ -86,6 +92,8 @@ Q_SIGNALS:
   
   void graspListGenerated(bool, 
                           std::vector<moveit_manipulation_msgs::Grasp>);
+
+  void modelMeshFetched(moveit_msgs::Shape& mesh);
 
 protected:
 

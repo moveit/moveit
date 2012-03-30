@@ -37,7 +37,12 @@ namespace moveit_manipulation_visualization {
 MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
   MoveItVisualizer() 
 {
-  
+
+  ros::NodeHandle loc_nh("~");
+
+  bool do_object_recognition = false;
+  loc_nh.param("do_object_recognition", do_object_recognition, false);
+
   grasp_evaluation_visualization_dialog_ = new GraspEvaluationVisualizationDialog(main_window_,
                                                                                   planning_scene_monitor_->getPlanningScene(),
                                                                                   interactive_marker_server_,
@@ -54,6 +59,54 @@ MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
 
   QAction* show_household_objects_dialog = coll_object_menu_->addAction("Add Household Collision Object");
   QObject::connect(show_household_objects_dialog, SIGNAL(triggered()), household_object_dialog, SLOT(show()));
+
+  if(do_object_recognition) {
+    object_recognition_qt_service_wrapper_.reset(new ObjectRecognitionQtServiceWrapper);
+    ObjectRecognitionDialog* object_recognition_dialog = new ObjectRecognitionDialog(main_window_);
+    QObject::connect(object_recognition_dialog,
+                     SIGNAL(segmentationRequested()),
+                     object_recognition_qt_service_wrapper_.get(),
+                     SLOT(segmentAndCluster()));
+    QObject::connect(object_recognition_qt_service_wrapper_.get(),
+                     SIGNAL(tableAndClustersGenerated(moveit_manipulation_msgs::Table,
+                                                      std::vector<sensor_msgs::PointCloud>)),
+                     object_recognition_dialog,
+                     SLOT(gotTableAndClusters(moveit_manipulation_msgs::Table,
+                                              std::vector<sensor_msgs::PointCloud>)));
+    QObject::connect(object_recognition_dialog,
+                     SIGNAL(recognitionRequested(moveit_manipulation_msgs::Table,
+                                                 std::vector<sensor_msgs::PointCloud>)),
+                     object_recognition_qt_service_wrapper_.get(),
+                     SLOT(recognize(moveit_manipulation_msgs::Table,
+                                     std::vector<sensor_msgs::PointCloud>)));
+    QObject::connect(object_recognition_qt_service_wrapper_.get(),
+                     SIGNAL(objectsRecognized(std::vector<moveit_manipulation_msgs::DatabaseModelPoseList>,
+                                              std::vector<int>)),
+                     object_recognition_dialog,
+                     SLOT(gotObjectRecognition(std::vector<moveit_manipulation_msgs::DatabaseModelPoseList>,
+                                               std::vector<int>)));
+
+    QAction* show_object_recognition_dialog = coll_object_menu_->addAction("Segment Table And Clusters");
+    QObject::connect(show_object_recognition_dialog, SIGNAL(triggered()), object_recognition_dialog, SLOT(show()));
+    QObject::connect(object_recognition_dialog,
+                     SIGNAL(addCollisionObjectRequested(const moveit_msgs::CollisionObject&, const QColor&)), 
+                     iov_.get(), 
+                     SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
+
+    QObject::connect(object_recognition_dialog,
+                     SIGNAL(requestHouseholdObjectAddition(std::string,
+                                                           int,
+                                                           geometry_msgs::Pose)),
+                     household_object_dialog,
+                     SLOT(addHouseholdObjectToScene(std::string,
+                                                    int,
+                                                    geometry_msgs::Pose)));
+
+    QObject::connect(object_recognition_dialog,
+                     SIGNAL(requestObjectDelete(std::string)),
+                     iov_.get(),
+                     SLOT(deleteSignalled(std::string)));
+  }
  
   QObject::connect(planning_group_selection_menu_, SIGNAL(groupSelected(const QString&)),
                    grasp_evaluation_visualization_dialog_, SLOT(planningGroupChanged(const QString&)));
