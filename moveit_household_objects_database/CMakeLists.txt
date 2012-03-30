@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+set(ROS_BUILD_TYPE Debug)
 
 rosbuild_init()
 
@@ -23,6 +23,9 @@ rosbuild_add_library(${PROJECT_NAME} src/objects_database.cpp
 
 rosbuild_add_library(mesh_loader src/mesh_loader.cpp
                                  src/ply.c)
+
+rosbuild_add_executable(objects_database_node src/objects_database_node.cpp)
+target_link_libraries(objects_database_node ${PROJECT_NAME})
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()
