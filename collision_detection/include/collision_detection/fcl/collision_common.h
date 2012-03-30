@@ -43,6 +43,7 @@
 
 namespace collision_detection
 {
+
 struct CollisionGeometryData
 {
   CollisionGeometryData(const planning_models::KinematicModel::LinkModel *link) : type(BodyTypes::ROBOT_LINK)
@@ -106,15 +107,30 @@ struct FCLGeometry
   {
   }
   
-  FCLGeometry(const boost::shared_ptr<fcl::CollisionGeometry> &collision_geometry,
-              const boost::shared_ptr<CollisionGeometryData> &collision_geometry_data) :
-    collision_geometry_(collision_geometry), collision_geometry_data_(collision_geometry_data)
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const planning_models::KinematicModel::LinkModel *link) :
+    collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link))
   {
+    collision_geometry_->setUserData(collision_geometry_data_.get());
   }
+
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const planning_models::KinematicState::AttachedBody *ab) :
+    collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab))
+  {
+    collision_geometry_->setUserData(collision_geometry_data_.get());
+  }
+
+  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const CollisionWorld::Object *obj) :
+    collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj))
+  {
+    collision_geometry_->setUserData(collision_geometry_data_.get());
+  } 
   
   boost::shared_ptr<fcl::CollisionGeometry> collision_geometry_;
   boost::shared_ptr<CollisionGeometryData>  collision_geometry_data_;
 };
+
+typedef boost::shared_ptr<FCLGeometry> FCLGeometryPtr;
+typedef boost::shared_ptr<const FCLGeometry> FCLGeometryConstPtr;
 
 struct FCLObject
 {
@@ -122,8 +138,8 @@ struct FCLObject
   void unregisterFrom(fcl::BroadPhaseCollisionManager *manager);
   void clear(void);
   
-  std::vector<boost::shared_ptr<fcl::CollisionObject> >  collision_objects_;
-  std::vector<boost::shared_ptr<CollisionGeometryData> > collision_geometry_data_;
+  std::vector<boost::shared_ptr<fcl::CollisionObject> > collision_objects_;
+  std::vector<FCLGeometryConstPtr> collision_geometry_;
 };
 
 struct FCLManager
@@ -134,11 +150,26 @@ struct FCLManager
 
 bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data);
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShapeConstPtr &shape);
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::ShapeConstPtr &shape);
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::ShapeConstPtr &shape);
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::ShapeConstPtr &shape, double scale, double padding);
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::ShapeConstPtr &shape, double scale, double padding);
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+                                            const planning_models::KinematicModel::LinkModel *link);
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+                                            const planning_models::KinematicState::AttachedBody *ab);
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+                                            const CollisionWorld::Object *obj);
+
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+                                            const planning_models::KinematicModel::LinkModel *link);
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+                                            const planning_models::KinematicState::AttachedBody *ab);
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+                                            const CollisionWorld::Object *obj);
+
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+                                            const planning_models::KinematicModel::LinkModel *link);
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+                                            const planning_models::KinematicState::AttachedBody *ab);
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+                                            const CollisionWorld::Object *obj);
 
 inline void transform2fcl(const Eigen::Affine3d &b, fcl::SimpleTransform &f)
 {
