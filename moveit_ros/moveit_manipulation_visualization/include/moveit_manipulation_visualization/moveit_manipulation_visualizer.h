@@ -32,6 +32,8 @@
 
 #include <moveit_visualization_ros/moveit_visualizer.h>
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization_dialog.h>
+#include <moveit_manipulation_visualization/object_recognition_qt_service_wrapper.h>
+#include <moveit_manipulation_visualization/object_recognition_dialog.h>
 
 namespace moveit_manipulation_visualization {
 
@@ -51,7 +53,9 @@ protected:
 
   //void attemptToGraspThread(const std::string& object_name);
   
-  moveit_manipulation_visualization::GraspEvaluationVisualizationDialog* grasp_evaluation_visualization_dialog_;
+  GraspEvaluationVisualizationDialog* grasp_evaluation_visualization_dialog_;
+
+  boost::shared_ptr<ObjectRecognitionQtServiceWrapper> object_recognition_qt_service_wrapper_;
   
 };
 

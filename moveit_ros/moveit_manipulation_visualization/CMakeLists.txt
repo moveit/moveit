@@ -26,6 +26,8 @@ add_definitions(-DQT_NO_KEYWORDS)
 qt4_wrap_cpp(MOC_FILES
   include/moveit_manipulation_visualization/grasp_evaluation_visualization_dialog.h
   include/moveit_manipulation_visualization/household_object_addition_dialog.h
+  include/moveit_manipulation_visualization/object_recognition_qt_service_wrapper.h
+  include/moveit_manipulation_visualization/object_recognition_dialog.h
 )
 
 rosbuild_add_library(${PROJECT_NAME} 
@@ -38,6 +40,8 @@ rosbuild_add_library(${PROJECT_NAME}
   src/place_evaluation_visualization.cpp
   src/grasp_evaluation_visualization_dialog.cpp
   src/household_object_addition_dialog.cpp
+  src/object_recognition_qt_service_wrapper.cpp
+  src/object_recognition_dialog.cpp
   ${MOC_FILES}
 )
 
