@@ -1,0 +1,16 @@
+# service will run on last received cloud, no cloud is passed in
+
+# clustering is done as an intermediate step for model detection
+# but we can also return the clusters themselves if the caller wants them
+# this flag tells whether the computed clusters should be returned
+bool return_clusters
+
+# if only clusters are of interest, then model fitting can be skipped
+# this flag tells whether model fitting should be performed and the results returned
+bool return_models
+
+# The number of potential fit models which should be returned for each cluster 
+int32 num_models
+---
+# reply is message with table and models
+TabletopDetectionResult detection
