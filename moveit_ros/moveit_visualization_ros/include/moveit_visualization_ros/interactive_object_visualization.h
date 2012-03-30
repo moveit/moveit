@@ -105,13 +105,9 @@ protected:
   void shrinkObject(const std::string& name,
                    const geometry_msgs::Pose& new_pose_msg); 
   
-  void addObject(const std::string& name,
-                 const geometry_msgs::Pose& pose_msg,
-                 const moveit_msgs::Shape& shape_msg);
+  void addObject(const moveit_msgs::CollisionObject& coll);
 
-  void addObject(const std::string& name,
-                 const geometry_msgs::Pose& pose_msg,
-                 const moveit_msgs::Shape& shape_msg,
+  void addObject(const moveit_msgs::CollisionObject& coll,
                  const std_msgs::ColorRGBA& col);
 
   void deleteObject(const std::string& name);

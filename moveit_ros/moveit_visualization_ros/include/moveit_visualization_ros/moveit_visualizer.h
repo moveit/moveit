@@ -77,6 +77,9 @@ protected:
   QWidget* main_window_;
   PlanningGroupSelectionMenu* planning_group_selection_menu_;  
   QMenu* coll_object_menu_;
+  boost::shared_ptr<tf::TransformListener> transformer_;
+
+  bool allow_trajectory_execution_;
 
   planning_scene::PlanningSceneConstPtr current_diff_;
 

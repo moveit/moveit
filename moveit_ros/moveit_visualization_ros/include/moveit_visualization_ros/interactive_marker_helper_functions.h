@@ -435,6 +435,86 @@ inline visualization_msgs::InteractiveMarker makeButtonSphere(const std::string&
   return int_marker;
 }
 
+inline visualization_msgs::InteractiveMarker makeButtonPointMass(const std::string& name, 
+                                                                 const std::string& frame_id,
+                                                                 const std::vector<geometry_msgs::Pose>& points,
+                                                                 const std_msgs::ColorRGBA& color, 
+                                                                 float scale, 
+                                                                 bool fixed, 
+                                                                 bool view_facing)
+{
+  visualization_msgs::InteractiveMarker int_marker;
+  int_marker.header.frame_id = frame_id;
+  int_marker.name = name;
+  //int_marker.description = "This is the marker.";
+
+  double x = 0.0, y = 0.0, z = 0.0;
+  double xmin = DBL_MAX, ymin = DBL_MAX, zmin = DBL_MAX;
+  double xmax = -DBL_MAX, ymax = -DBL_MAX, zmax = -DBL_MAX;
+  for(unsigned int i = 0; i < points.size(); i++) {
+    double xval = points[i].position.x;
+    double yval = points[i].position.y;
+    double zval = points[i].position.z;
+    x += xval;
+    y += yval;
+    z += zval;
+    if(xval < xmin) {
+      xmin = xval; 
+    }
+    if(xval > xmax) {
+      xmax = xval; 
+    }
+    
+    if(yval < ymin) {
+      ymin = yval; 
+    }
+    if(yval > ymax) {
+      ymax = yval; 
+    }
+    
+    if(zval < zmin) {
+      zmin = zval; 
+    }
+    if(zval > zmax) {
+      zmax = zval; 
+    }
+  }
+
+  double xex = fabs(xmax-xmin);
+  double yex = fabs(ymax-ymin);
+  double zex = fabs(zmax-zmin);
+
+  int_marker.scale = fmax(xex, fmax(yex, zex))*1.05;
+  int_marker.pose.orientation.w = 1.0;
+
+  int_marker.pose.position.x = (x/(points.size()*1.0));
+  int_marker.pose.position.y = (y/(points.size()*1.0));
+  int_marker.pose.position.z = (z/(points.size()*1.0));
+
+  Eigen::Affine3d trans;
+  planning_models::poseFromMsg(int_marker.pose, trans);
+
+  visualization_msgs::InteractiveMarkerControl control;
+  visualization_msgs::Marker sphere_list;
+  sphere_list.type = visualization_msgs::Marker::SPHERE_LIST;
+  sphere_list.color = color;
+  sphere_list.scale.x = sphere_list.scale.y = sphere_list.scale.z = scale;
+  sphere_list.pose.orientation.w = 1.0;
+
+  for(unsigned int i = 0; i < points.size(); i++) {
+    Eigen::Affine3d point_pose(Eigen::Translation3d(points[i].position.x, points[i].position.y, points[i].position.z)*Eigen::Quaterniond::Identity());
+    Eigen::Affine3d trans_pose = trans.inverse()*point_pose;
+    geometry_msgs::Pose conv;
+    planning_models::msgFromPose(trans_pose, conv);
+    sphere_list.points.push_back(conv.position);
+  }
+  control.markers.push_back(sphere_list);
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+  control.always_visible = true;
+  int_marker.controls.push_back( control );
+  return int_marker;
+}
+
 inline visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name, 
                                                      const geometry_msgs::PoseStamped &stamped, 
                                                      float scale, 
@@ -511,7 +591,10 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
                                                                      Eigen::Affine3d& relative_transform) {
   
   visualization_msgs::InteractiveMarker int_marker;
-  if(links.size() == 0) return int_marker;
+  if(links.size() == 0) {
+    ROS_WARN_STREAM("No links for marker creation");
+    return int_marker;
+  }
 
   const planning_models::KinematicState::LinkState* parent_link_state = state.getLinkState(parent_link);
   Eigen::Affine3d parent_pose = parent_link_state->getGlobalCollisionBodyTransform();
@@ -519,7 +602,9 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
   const planning_models::KinematicState::LinkState* first_link_state = state.getLinkState(links[0]);
   Eigen::Affine3d first_pose = first_link_state->getGlobalCollisionBodyTransform();
   
-  Eigen::Affine3d init_transform = parent_pose.inverse()*first_pose;
+  Eigen::Affine3d init_transform; //= parent_pose.inverse()*first_pose;
+
+  init_transform.setIdentity();
 
   int_marker.header.frame_id = "/"+state.getKinematicModel()->getModelFrame();
   int_marker.name = marker_name;
@@ -589,41 +674,57 @@ inline visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::
     //body->setPose(ls->getGlobalCollisionBodyTransform());
     //bodies.push_back(body);
   }
-  Eigen::Translation3d trans(x/(count*1.0), y/(count*1.0), z/(count*1.0));
-  //ROS_INFO_STREAM("Min " << xmin << " " << ymin << " " << zmin);
-  //ROS_INFO_STREAM("Max " << xmax << " " << ymax << " " << zmax);
-  //bodies::BoundingSphere merged_sphere;
-  //bodies::computeBoundingSphere(bodies, merged_sphere);
-  double dia = fmax((xmax-xmin), fmax(ymax-ymin, zmax-zmin));
-  //TODO - better way to add padding?
-  int_marker.scale = dia+.05;
-  //int_marker.scale = merged_sphere.rad*2.0;
 
-  Eigen::Affine3d bound_pose = (trans*init_transform)*Eigen::Quaterniond(parent_pose.rotation());
-  planning_models::msgFromPose(bound_pose, int_marker.pose);
+  if(count == 0) {
+    ROS_WARN_STREAM("No end effector links have geometry");
 
-  relative_transform = bound_pose.inverse()*parent_pose;
-  
-  for(unsigned int i = 0; i < links.size(); i++) {
-    
-    const planning_models::KinematicState::LinkState* ls = state.getLinkState(links[i]);
-    if(ls == NULL) {
-      ROS_WARN_STREAM("No link state for requested link " << links[i]);
-      continue;
-    }
+    relative_transform.setIdentity();
+    int_marker.scale = .25;
 
-    if(ls->getLinkModel()->getVisualFilename().empty()) {
-      ROS_DEBUG_STREAM("No filename for " << links[i]);
-      continue;
-    }
-
-    mesh.mesh_resource = ls->getLinkModel()->getVisualFilename();
+    mesh.mesh_resource = parent_link_state->getLinkModel()->getVisualFilename();
     //getting pose relative to first pose
-    Eigen::Affine3d ret_pose = bound_pose.inverse()*ls->getGlobalCollisionBodyTransform();
 
-    planning_models::msgFromPose(ret_pose, mesh.pose);
+    planning_models::msgFromPose(parent_pose, int_marker.pose);
+    planning_models::msgFromPose(relative_transform, mesh.pose);
     control.markers.push_back(mesh);
 
+  } else {
+
+    Eigen::Translation3d trans(x/(count*1.0), y/(count*1.0), z/(count*1.0));
+    //ROS_INFO_STREAM("Min " << xmin << " " << ymin << " " << zmin);
+    //ROS_INFO_STREAM("Max " << xmax << " " << ymax << " " << zmax);
+    //bodies::BoundingSphere merged_sphere;
+    //bodies::computeBoundingSphere(bodies, merged_sphere);
+    double dia = fmax((xmax-xmin), fmax(ymax-ymin, zmax-zmin));
+    //TODO - better way to add padding?
+    int_marker.scale = dia+.05;
+    //int_marker.scale = merged_sphere.rad*2.0;
+    
+    Eigen::Affine3d bound_pose = (trans*init_transform)*Eigen::Quaterniond(parent_pose.rotation());
+    planning_models::msgFromPose(bound_pose, int_marker.pose);
+    
+    relative_transform = bound_pose.inverse()*parent_pose;
+    for(unsigned int i = 0; i < links.size(); i++) {
+      
+      const planning_models::KinematicState::LinkState* ls = state.getLinkState(links[i]);
+      if(ls == NULL) {
+        ROS_WARN_STREAM("No link state for requested link " << links[i]);
+        continue;
+      }
+      
+      if(ls->getLinkModel()->getVisualFilename().empty()) {
+        ROS_DEBUG_STREAM("No filename for " << links[i]);
+        
+        continue;
+      }
+      
+      mesh.mesh_resource = ls->getLinkModel()->getVisualFilename();
+      //getting pose relative to first pose
+      Eigen::Affine3d ret_pose = bound_pose.inverse()*ls->getGlobalCollisionBodyTransform();
+      
+      planning_models::msgFromPose(ret_pose, mesh.pose);
+      control.markers.push_back(mesh);
+    }
   }
 
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;

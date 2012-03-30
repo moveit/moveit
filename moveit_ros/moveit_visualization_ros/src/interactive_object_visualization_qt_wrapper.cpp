@@ -47,14 +47,16 @@ void InteractiveObjectVisualizationQtWrapper::callUpdateCallback() {
 void InteractiveObjectVisualizationQtWrapper::addCollisionObjectSignalled(const moveit_msgs::CollisionObject& obj,
                                                                           const QColor& color)
 {
-  addObject(obj.id, 
-            obj.poses[0],
-            obj.shapes[0],
+  addObject(obj,
             convertQColorToRGBA(color));
 }
 
 void InteractiveObjectVisualizationQtWrapper::loadPlanningSceneSignalled(moveit_msgs::PlanningScenePtr planning_scene) {
   updateOriginalPlanningScene(planning_scene);
+}
+
+void InteractiveObjectVisualizationQtWrapper::deleteSignalled(std::string name) {
+  deleteObject(name);
 }
 
 }
