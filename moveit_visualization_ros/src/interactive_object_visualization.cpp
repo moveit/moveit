@@ -66,9 +66,12 @@ void InteractiveObjectVisualization::addCube(const std::string& name) {
   shape.type = moveit_msgs::Shape::BOX;
   shape.dimensions.resize(3, DEFAULT_SCALE);
 
-  addObject(name_to_pass, 
-            pose,
-            shape);
+  moveit_msgs::CollisionObject coll;
+  coll.id = name_to_pass;
+  coll.poses.push_back(pose);
+  coll.shapes.push_back(shape);
+
+  addObject(coll);
 }
 
 void InteractiveObjectVisualization::addSphere(const std::string& name) {
@@ -86,9 +89,12 @@ void InteractiveObjectVisualization::addSphere(const std::string& name) {
   shape.type = moveit_msgs::Shape::SPHERE;
   shape.dimensions.resize(1, DEFAULT_SCALE);
 
-  addObject(name_to_pass, 
-            pose,
-            shape);
+  moveit_msgs::CollisionObject coll;
+  coll.id = name_to_pass;
+  coll.poses.push_back(pose);
+  coll.shapes.push_back(shape);
+
+  addObject(coll);
 }
 
 void InteractiveObjectVisualization::addCylinder(const std::string& name) {
@@ -106,26 +112,26 @@ void InteractiveObjectVisualization::addCylinder(const std::string& name) {
   shape.type = moveit_msgs::Shape::CYLINDER;
   shape.dimensions.resize(2, DEFAULT_SCALE);
 
-  addObject(name_to_pass, 
-            pose,
-            shape);               
+  moveit_msgs::CollisionObject coll;
+  coll.id = name_to_pass;
+  coll.poses.push_back(pose);
+  coll.shapes.push_back(shape);
+
+  addObject(coll);
 }
 
-void InteractiveObjectVisualization::addObject(const std::string& name,
-                                               const geometry_msgs::Pose& pose_msg,
-                                               const moveit_msgs::Shape& shape_msg)
+void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObject& coll)
 {
   std_msgs::ColorRGBA col;
   col.r = col.b = col.g = .75;
   col.a = 1.0;
-  addObject(name, pose_msg, shape_msg, col);
+  addObject(coll, col);
 }
-void InteractiveObjectVisualization::addObject(const std::string& name,
-                                               const geometry_msgs::Pose& pose_msg,
-                                               const moveit_msgs::Shape& shape_msg,
+
+void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObject& coll,
                                                const std_msgs::ColorRGBA& col) {
   visualization_msgs::InteractiveMarker tm;
-  bool already_have = interactive_marker_server_->get(name, tm);
+  bool already_have = interactive_marker_server_->get(coll.id, tm);
   
   interactive_markers::MenuHandler::CheckState off_state = interactive_markers::MenuHandler::CHECKED;
   interactive_markers::MenuHandler::CheckState grow_state, shrink_state;
@@ -135,7 +141,7 @@ void InteractiveObjectVisualization::addObject(const std::string& name,
 
   if(already_have) {
     moveit_msgs::CollisionObject rem;
-    rem.id = name;
+    rem.id = coll.id;
     rem.operation = moveit_msgs::CollisionObject::REMOVE;
 
     if(tm.controls.size() > 0 && tm.controls[0].markers.size() > 0) {
@@ -146,112 +152,128 @@ void InteractiveObjectVisualization::addObject(const std::string& name,
       }
     }
 
-    object_menu_handlers_[name].getCheckState(menu_name_to_handle_maps_[name]["Off"], off_state);
-    object_menu_handlers_[name].getCheckState(menu_name_to_handle_maps_[name]["Grow"], grow_state);
-    object_menu_handlers_[name].getCheckState(menu_name_to_handle_maps_[name]["Shrink"], shrink_state);
+    object_menu_handlers_[coll.id].getCheckState(menu_name_to_handle_maps_[coll.id]["Off"], off_state);
+    object_menu_handlers_[coll.id].getCheckState(menu_name_to_handle_maps_[coll.id]["Grow"], grow_state);
+    object_menu_handlers_[coll.id].getCheckState(menu_name_to_handle_maps_[coll.id]["Shrink"], shrink_state);
   
     planning_scene_diff_->processCollisionObjectMsg(rem);
   }
-
-  moveit_msgs::CollisionObject coll;
-  
-  coll.id = name;
-  coll.operation = moveit_msgs::CollisionObject::ADD;
-  coll.header.frame_id = planning_scene_->getPlanningFrame();
-  coll.poses.push_back(pose_msg);
-  coll.shapes.push_back(shape_msg);
-  
-  planning_scene_diff_->processCollisionObjectMsg(coll);
+  ros::WallTime first = ros::WallTime::now();
+  if(coll.header.frame_id.empty()) {
+    moveit_msgs::CollisionObject coll2 = coll;
+    coll2.header.frame_id = planning_scene_->getPlanningFrame();
+    planning_scene_diff_->processCollisionObjectMsg(coll2);
+  } else {
+    planning_scene_diff_->processCollisionObjectMsg(coll);
+  }
+  //ROS_INFO_STREAM("Insertion took " << (ros::WallTime::now()-first).toSec());
   
   geometry_msgs::PoseStamped pose_stamped;
   pose_stamped.header.frame_id = "/"+planning_scene_->getPlanningFrame();
   pose_stamped.pose = coll.poses[0];
   visualization_msgs::InteractiveMarker marker; 
-  if(shape_msg.type == moveit_msgs::Shape::BOX) {
-    marker = makeButtonBox(name,
-                           pose_stamped,
-                           shape_msg.dimensions[0],
-                           shape_msg.dimensions[1],
-                           shape_msg.dimensions[2],
-                           false, 
-                           false);
-  } else if(shape_msg.type == moveit_msgs::Shape::CYLINDER) { 
-    marker = makeButtonCylinder(name,
+  if(coll.shapes.size() == 0) {
+    ROS_WARN_STREAM("No shapes");
+    return;
+  }
+  if(coll.shapes.size() > 1) {
+    ROS_INFO_STREAM("Getting set for making button");
+    marker = makeButtonPointMass(coll.id,
+                                 "/"+planning_scene_->getPlanningFrame(),
+                                 coll.poses,
+                                 color_to_use,
+                                 coll.shapes[0].dimensions[0],
+                                 false,
+                                 false);
+    ROS_INFO_STREAM("Made button mass");
+  } else {
+    const moveit_msgs::Shape& shape_msg = coll.shapes[0];
+    if(shape_msg.type == moveit_msgs::Shape::BOX) {
+      marker = makeButtonBox(coll.id,
+                             pose_stamped,
+                             shape_msg.dimensions[0],
+                             shape_msg.dimensions[1],
+                             shape_msg.dimensions[2],
+                             false, 
+                             false);
+    } else if(shape_msg.type == moveit_msgs::Shape::CYLINDER) { 
+      marker = makeButtonCylinder(coll.id,
+                                  pose_stamped,
+                                  shape_msg.dimensions[0],
+                                  shape_msg.dimensions[1],
+                                  false, 
+                                  false);
+    } else if(shape_msg.type == moveit_msgs::Shape::SPHERE) {
+      marker = makeButtonSphere(coll.id,
                                 pose_stamped,
                                 shape_msg.dimensions[0],
-                                shape_msg.dimensions[1],
                                 false, 
                                 false);
-  } else if(shape_msg.type == moveit_msgs::Shape::SPHERE) {
-    marker = makeButtonSphere(name,
+    } else if(shape_msg.type == moveit_msgs::Shape::MESH) {
+      marker = makeButtonMesh(coll.id,
+                              shape_msg,
                               pose_stamped,
-                              shape_msg.dimensions[0],
-                              false, 
-                              false);
-  } else if(shape_msg.type == moveit_msgs::Shape::MESH) {
-    marker = makeButtonMesh(name,
-                            shape_msg,
-                            pose_stamped,
-                            color_to_use);
+                              color_to_use);
+    }
   }
-  if(dof_marker_enabled_.find(name) == dof_marker_enabled_.end()) {
-    dof_marker_enabled_[name] = true;
+  if(dof_marker_enabled_.find(coll.id) == dof_marker_enabled_.end()) {
+    dof_marker_enabled_[coll.id] = true;
   }
-  if(dof_marker_enabled_[name]) {
+  if(dof_marker_enabled_[coll.id]) {
     add6DofControl(marker, false);
   }
   recolorInteractiveMarker(marker, color_to_use);
   interactive_marker_server_->insert(marker);
-  interactive_marker_server_->setCallback(name, 
+  interactive_marker_server_->setCallback(coll.id, 
                                           boost::bind(&InteractiveObjectVisualization::processInteractiveMarkerFeedback, this, _1));
 
-  if(menu_name_to_handle_maps_[name].find("Delete object") == menu_name_to_handle_maps_[name].end()) {
+  if(menu_name_to_handle_maps_[coll.id].find("Delete object") == menu_name_to_handle_maps_[coll.id].end()) {
     interactive_markers::MenuHandler::EntryHandle del_entry
-      = object_menu_handlers_[name].insert("Delete object", 
+      = object_menu_handlers_[coll.id].insert("Delete object", 
                                            boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-    menu_handle_to_function_maps_[name][del_entry] = boost::bind(&InteractiveObjectVisualization::deleteObject, this, _1);
-    menu_name_to_handle_maps_[name]["Delete object"] = del_entry;
+    menu_handle_to_function_maps_[coll.id][del_entry] = boost::bind(&InteractiveObjectVisualization::deleteObject, this, _1);
+    menu_name_to_handle_maps_[coll.id]["Delete object"] = del_entry;
   }
-  if(menu_name_to_handle_maps_[name].find("Resize Mode") == menu_name_to_handle_maps_[name].end()) {
+  if(menu_name_to_handle_maps_[coll.id].find("Resize Mode") == menu_name_to_handle_maps_[coll.id].end()) {
     interactive_markers::MenuHandler::EntryHandle resize_entry
-      = object_menu_handlers_[name].insert("Resize Mode", 
+      = object_menu_handlers_[coll.id].insert("Resize Mode", 
                                            boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
     
-    menu_name_to_handle_maps_[name]["Resize Mode"] = resize_entry;
+    menu_name_to_handle_maps_[coll.id]["Resize Mode"] = resize_entry;
 
     interactive_markers::MenuHandler::EntryHandle off_entry = 
-      object_menu_handlers_[name].insert(resize_entry, "Off", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-    object_menu_handlers_[name].setCheckState(off_entry, off_state);
+      object_menu_handlers_[coll.id].insert(resize_entry, "Off", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    object_menu_handlers_[coll.id].setCheckState(off_entry, off_state);
     
-    menu_name_to_handle_maps_[name]["Off"] = off_entry;
-    menu_handle_to_function_maps_[name][off_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeOff, this, _1);
+    menu_name_to_handle_maps_[coll.id]["Off"] = off_entry;
+    menu_handle_to_function_maps_[coll.id][off_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeOff, this, _1);
     
     interactive_markers::MenuHandler::EntryHandle grow_entry = 
-      object_menu_handlers_[name].insert(resize_entry, "Grow", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-    object_menu_handlers_[name].setCheckState(grow_entry, grow_state);
+      object_menu_handlers_[coll.id].insert(resize_entry, "Grow", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    object_menu_handlers_[coll.id].setCheckState(grow_entry, grow_state);
     
-    menu_name_to_handle_maps_[name]["Grow"] = grow_entry;
-    menu_handle_to_function_maps_[name][grow_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeGrow, this, _1);
+    menu_name_to_handle_maps_[coll.id]["Grow"] = grow_entry;
+    menu_handle_to_function_maps_[coll.id][grow_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeGrow, this, _1);
     
     interactive_markers::MenuHandler::EntryHandle shrink_entry = 
-      object_menu_handlers_[name].insert(resize_entry, "Shrink", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-    object_menu_handlers_[name].setCheckState(shrink_entry, shrink_state);
+      object_menu_handlers_[coll.id].insert(resize_entry, "Shrink", boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    object_menu_handlers_[coll.id].setCheckState(shrink_entry, shrink_state);
     
-    menu_name_to_handle_maps_[name]["Shrink"] = shrink_entry;
-    menu_handle_to_function_maps_[name][shrink_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeShrink, this, _1);
+    menu_name_to_handle_maps_[coll.id]["Shrink"] = shrink_entry;
+    menu_handle_to_function_maps_[coll.id][shrink_entry] = boost::bind(&InteractiveObjectVisualization::setResizeModeShrink, this, _1);
   }
   for(std::map<std::string, boost::function<void(const std::string&)> >::iterator it = all_callback_map_.begin();
       it != all_callback_map_.end(); 
       it++) {
-    if(menu_name_to_handle_maps_[name].find(it->first) == menu_name_to_handle_maps_[name].end()) {
-      interactive_markers::MenuHandler::EntryHandle eh = object_menu_handlers_[name].insert(it->first,
+    if(menu_name_to_handle_maps_[coll.id].find(it->first) == menu_name_to_handle_maps_[coll.id].end()) {
+      interactive_markers::MenuHandler::EntryHandle eh = object_menu_handlers_[coll.id].insert(it->first,
                                                                                             boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
-      menu_name_to_handle_maps_[name][it->first] = eh;
-      menu_handle_to_function_maps_[name][eh] = it->second;
+      menu_name_to_handle_maps_[coll.id][it->first] = eh;
+      menu_handle_to_function_maps_[coll.id][eh] = it->second;
     }
   }
   
-  object_menu_handlers_[name].apply(*interactive_marker_server_, name);
+  object_menu_handlers_[coll.id].apply(*interactive_marker_server_, coll.id);
 
   interactive_marker_server_->applyChanges();
   callUpdateCallback();
@@ -314,11 +336,14 @@ void InteractiveObjectVisualization::growObject(const std::string& name,
   geometry_msgs::Pose diff_pose_msg;
   Eigen::Affine3d diff_pose_adj = diff;
   diff_pose_adj.translation() /= 2.0;
-  planning_models::msgFromPose(cur_pose*diff_pose_adj, diff_pose_msg),
+  planning_models::msgFromPose(cur_pose*diff_pose_adj, diff_pose_msg);
 
-  addObject(name,
-            diff_pose_msg,
-            shape);
+  moveit_msgs::CollisionObject coll;
+  coll.id = name;
+  coll.poses.push_back(diff_pose_msg);
+  coll.shapes.push_back(shape);
+
+  addObject(coll);
 
   callUpdateCallback();
 }
@@ -379,11 +404,14 @@ void InteractiveObjectVisualization::shrinkObject(const std::string& name,
   geometry_msgs::Pose diff_pose_msg;
   Eigen::Affine3d diff_pose_adj = diff;
   diff_pose_adj.translation() /= 2.0;
-  planning_models::msgFromPose(cur_pose*diff_pose_adj, diff_pose_msg),
+  planning_models::msgFromPose(cur_pose*diff_pose_adj, diff_pose_msg);
 
-  addObject(name,
-            diff_pose_msg,
-            shape);
+  moveit_msgs::CollisionObject coll;
+  coll.id = name;
+  coll.poses.push_back(diff_pose_msg);
+  coll.shapes.push_back(shape);
+
+  addObject(coll);
 
   callUpdateCallback();
 }
@@ -468,9 +496,11 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
       shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
       geometry_msgs::Pose cur_pose_msg;
       planning_models::msgFromPose(obj->shape_poses_[0], cur_pose_msg);
-      addObject(feedback->marker_name,
-                cur_pose_msg,
-                shape);
+      moveit_msgs::CollisionObject coll;
+      coll.id = feedback->marker_name;
+      coll.poses.push_back(cur_pose_msg);
+      coll.shapes.push_back(shape);
+      addObject(coll);
     }
     break;
   default:
@@ -513,9 +543,7 @@ void InteractiveObjectVisualization::updateOriginalPlanningScene(moveit_msgs::Pl
   planning_scene_diff_.reset(new planning_scene::PlanningScene(planning_scene_));
   planning_scene_diff_->setPlanningSceneMsg(*ptr);
   for(unsigned int i = 0; i < ptr->world.collision_objects.size(); i++) {
-    addObject(ptr->world.collision_objects[i].id,
-              ptr->world.collision_objects[i].poses[0],
-              ptr->world.collision_objects[i].shapes[0]);
+    addObject(ptr->world.collision_objects[i]);
   }
   callUpdateCallback();
 }

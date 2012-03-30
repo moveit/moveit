@@ -462,7 +462,8 @@ bool KinematicsGroupVisualization::validateEndEffectorState(const std::map<std::
 
     ROS_DEBUG_STREAM("Base " << base_frame_map.at(it->first) << " x y z " << base_in_world.translation().x() << " " 
                      << base_in_world.translation().y() << " " 
-                     << base_in_world.translation().z()); 
+                     << base_in_world.translation().z() << " " 
+                     << Eigen::Quaterniond(base_in_world.rotation()).w());
 
     Eigen::Affine3d tip_in_base = base_in_world.inverse()*cur;
 
