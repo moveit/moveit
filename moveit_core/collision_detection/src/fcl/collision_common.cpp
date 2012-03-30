@@ -230,16 +230,17 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   return cdata->done_;
 }
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::StaticShapeConstPtr &shape)
+template<typename BV, typename T>
+FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape, const T *data)
 { 
-  static std::map<boost::weak_ptr<const shapes::StaticShape>, boost::shared_ptr<fcl::CollisionGeometry> > CACHE;
+  static std::map<boost::weak_ptr<const shapes::StaticShape>, FCLGeometryConstPtr> CACHE;
   static unsigned int CACHE_CLEAN_COUNT = 0;
   static boost::mutex CACHE_LOCK;
 
   boost::weak_ptr<const shapes::StaticShape> wptr(shape);
   {
     boost::mutex::scoped_lock slock(CACHE_LOCK);
-    std::map<boost::weak_ptr<const shapes::StaticShape>, boost::shared_ptr<fcl::CollisionGeometry> >::const_iterator cache_it = CACHE.find(wptr);
+    std::map<boost::weak_ptr<const shapes::StaticShape>, FCLGeometryConstPtr>::const_iterator cache_it = CACHE.find(wptr);
     if (cache_it != CACHE.end())
       return cache_it->second;
   }
@@ -259,7 +260,7 @@ boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::
   if (g)
   {
     g->computeLocalAABB();
-    boost::shared_ptr<fcl::CollisionGeometry> res(g);
+    FCLGeometryConstPtr res(new FCLGeometry(g, data));
     boost::mutex::scoped_lock slock(CACHE_LOCK);
     CACHE[wptr] = res;
     CACHE_CLEAN_COUNT++;
@@ -269,9 +270,9 @@ boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::
     {
       CACHE_CLEAN_COUNT = 0;
       unsigned int from = CACHE.size();
-      for (std::map<boost::weak_ptr<const shapes::StaticShape>, boost::shared_ptr<fcl::CollisionGeometry> >::iterator it = CACHE.begin() ; it != CACHE.end() ; )
+      for (std::map<boost::weak_ptr<const shapes::StaticShape>, FCLGeometryConstPtr>::iterator it = CACHE.begin() ; it != CACHE.end() ; )
       {
-        std::map<boost::weak_ptr<const shapes::StaticShape>, boost::shared_ptr<fcl::CollisionGeometry> >::iterator nit = it; ++nit;
+        std::map<boost::weak_ptr<const shapes::StaticShape>, FCLGeometryConstPtr>::iterator nit = it; ++nit;
         if (it->first.expired())
           CACHE.erase(it);
         it = nit;
@@ -280,20 +281,20 @@ boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::
     }
     return res;
   }
-  return boost::shared_ptr<fcl::CollisionGeometry>();
+  return FCLGeometryConstPtr();
 }
 
-template<typename BV>
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::ShapeConstPtr &shape)
+template<typename BV, typename T>
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, const T *data)
 {
-  static std::map<boost::weak_ptr<const shapes::Shape>, boost::shared_ptr<fcl::CollisionGeometry> > CACHE;
+  static std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr > CACHE;
   static unsigned int CACHE_CLEAN_COUNT = 0;
   static boost::mutex CACHE_LOCK;
 
   boost::weak_ptr<const shapes::Shape> wptr(shape);
   {
     boost::mutex::scoped_lock slock(CACHE_LOCK);
-    std::map<boost::weak_ptr<const shapes::Shape>, boost::shared_ptr<fcl::CollisionGeometry> >::const_iterator cache_it = CACHE.find(wptr);
+    std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::const_iterator cache_it = CACHE.find(wptr);
     if (cache_it != CACHE.end())
       return cache_it->second;
   }
@@ -339,12 +340,12 @@ boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::
     }
     break;
   default:
-    ROS_FATAL("This shape type (%d) is not supported using FCL yet", (int)shape->type);
+    ROS_ERROR("This shape type (%d) is not supported using FCL yet", (int)shape->type);
   }
   if (g)
   {
     g->computeLocalAABB();
-    boost::shared_ptr<fcl::CollisionGeometry> res(g);
+    FCLGeometryConstPtr res(new FCLGeometry(g, data));
     boost::mutex::scoped_lock slock(CACHE_LOCK);
     CACHE[wptr] = res;
     CACHE_CLEAN_COUNT++;
@@ -354,9 +355,9 @@ boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::
     {
       CACHE_CLEAN_COUNT = 0;
       unsigned int from = CACHE.size();
-      for (std::map<boost::weak_ptr<const shapes::Shape>, boost::shared_ptr<fcl::CollisionGeometry> >::iterator it = CACHE.begin() ; it != CACHE.end() ; )
+      for (std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator it = CACHE.begin() ; it != CACHE.end() ; )
       {
-        std::map<boost::weak_ptr<const shapes::Shape>, boost::shared_ptr<fcl::CollisionGeometry> >::iterator nit = it; ++nit;
+        std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator nit = it; ++nit;
         if (it->first.expired())
         {
           it->second.reset();
@@ -368,40 +369,86 @@ boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::
     }
     return res;
   }
-  return boost::shared_ptr<fcl::CollisionGeometry>();
+  return FCLGeometryConstPtr();
 } 
 
-template<typename BV>
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding)
+
+
+/////////////////////////////////////////////////////
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+                                            const planning_models::KinematicModel::LinkModel *link)
+{
+  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, link) :
+    createCollisionGeometry<fcl::RSS, planning_models::KinematicModel::LinkModel>(shape, link);
+}
+
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+                                            const planning_models::KinematicState::AttachedBody *ab)
+{
+  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, ab) :
+    createCollisionGeometry<fcl::RSS, planning_models::KinematicState::AttachedBody>(shape, ab);
+}
+
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+                                            const CollisionWorld::Object *obj)
+{
+  return obb ? createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, obj) :
+    createCollisionGeometry<fcl::RSS, CollisionWorld::Object>(shape, obj);
+}
+
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+                                            const planning_models::KinematicModel::LinkModel *link)
+{
+  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, link) :
+    createCollisionGeometry<fcl::RSS, planning_models::KinematicModel::LinkModel>(shape, link);
+}
+
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+                                            const planning_models::KinematicState::AttachedBody *ab)
+{
+  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, ab) :
+    createCollisionGeometry<fcl::RSS, planning_models::KinematicState::AttachedBody>(shape, ab);
+}
+
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+                                            const CollisionWorld::Object *obj)
+{
+  return obb ? createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, obj) :
+    createCollisionGeometry<fcl::RSS, CollisionWorld::Object>(shape, obj);
+}
+
+template<typename BV, typename T>
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding, const T *data)
 {
   if (fabs(scale - 1.0) <= std::numeric_limits<double>::epsilon() && fabs(padding) <= std::numeric_limits<double>::epsilon())
-    return createCollisionGeometry<BV>(shape);
+    return createCollisionGeometry<BV, T>(shape, data);
   else
   {
     boost::shared_ptr<shapes::Shape> scaled_shape(shape->clone());
     scaled_shape->scaleAndPadd(scale, padding);
-    return createCollisionGeometry<BV>(scaled_shape);
+    return createCollisionGeometry<BV, T>(scaled_shape, data);
   }
 }
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::ShapeConstPtr &shape)
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+                                            const planning_models::KinematicModel::LinkModel *link)
 {
-  return createCollisionGeometry<fcl::OBB>(shape);
+  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, scale, padding, link) :
+    createCollisionGeometry<fcl::RSS, planning_models::KinematicModel::LinkModel>(shape, scale, padding, link);
 }
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::ShapeConstPtr &shape)
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+                                            const planning_models::KinematicState::AttachedBody *ab)
 {
-  return createCollisionGeometry<fcl::RSS>(shape);
+  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, scale, padding, ab) :
+    createCollisionGeometry<fcl::RSS, planning_models::KinematicState::AttachedBody>(shape, scale, padding, ab);
 }
 
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryOBB(const shapes::ShapeConstPtr &shape, double scale, double padding)
-{ 
-  return createCollisionGeometry<fcl::OBB>(shape, scale, padding);
-}
-
-boost::shared_ptr<fcl::CollisionGeometry> createCollisionGeometryRSS(const shapes::ShapeConstPtr &shape, double scale, double padding)
-{ 
-  return createCollisionGeometry<fcl::RSS>(shape, scale, padding);
+FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+                                            const CollisionWorld::Object *obj)
+{
+  return obb ? createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, scale, padding, obj) :
+    createCollisionGeometry<fcl::RSS, CollisionWorld::Object>(shape, scale, padding, obj);
 }
 
 }
@@ -421,5 +468,5 @@ void collision_detection::FCLObject::unregisterFrom(fcl::BroadPhaseCollisionMana
 void collision_detection::FCLObject::clear(void)
 {
   collision_objects_.clear();
-  collision_geometry_data_.clear();
+  collision_geometry_.clear();
 }

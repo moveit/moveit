@@ -78,7 +78,7 @@ namespace collision_detection
     virtual void updatedPaddingOrScaling(const std::vector<std::string> &links);
     void constructFCLObject(const planning_models::KinematicState &state, FCLObject &fcl_obj, bool obb) const;
     void allocSelfCollisionBroadPhase(const planning_models::KinematicState &state, FCLManager &manager) const;
-    void getAttachedBodyObjects(const planning_models::KinematicState::AttachedBody *ab, bool obb, std::vector<FCLGeometry> &geoms) const;
+    void getAttachedBodyObjects(const planning_models::KinematicState::AttachedBody *ab, bool obb, std::vector<FCLGeometryConstPtr> &geoms) const;
     
     void checkSelfCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
 				  const AllowedCollisionMatrix *acm) const;
@@ -90,8 +90,8 @@ namespace collision_detection
                                const planning_models::KinematicState &other_state, const AllowedCollisionMatrix *acm) const;
     
     std::vector<planning_models::KinematicModel::LinkModel*> links_;
-    std::vector<FCLGeometry>                                 geoms_obb_;
-    std::vector<FCLGeometry>                                 geoms_rss_;
+    std::vector<FCLGeometryConstPtr>                         geoms_obb_;
+    std::vector<FCLGeometryConstPtr>                         geoms_rss_;
     std::map<std::string, std::size_t>                       index_map_;
   };
 

@@ -128,26 +128,22 @@ void collision_detection::CollisionWorldFCL::constructFCLObject(const Object *ob
 {
   for (std::size_t i = 0 ; i < obj->static_shapes_.size() ; ++i)
   {
-    boost::shared_ptr<fcl::CollisionGeometry> cg = createCollisionGeometry(obj->static_shapes_[i]);
-    if (cg)
+    FCLGeometryConstPtr g = createCollisionGeometry(obb, obj->static_shapes_[i], obj);
+    if (g)
     {
-      CollisionGeometryData *cgd = new CollisionGeometryData(obj);
-      cg->setUserData(cgd);
-      fcl::CollisionObject *co = new fcl::CollisionObject(cg);
+      fcl::CollisionObject *co = new fcl::CollisionObject(g->collision_geometry_);
       fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(co));
-      fcl_obj.collision_geometry_data_.push_back(boost::shared_ptr<CollisionGeometryData>(cgd));
+      fcl_obj.collision_geometry_.push_back(g);
     }
   }
   for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
   {
-    boost::shared_ptr<fcl::CollisionGeometry> cg = obb ? createCollisionGeometryOBB(obj->shapes_[i]) : createCollisionGeometryRSS(obj->shapes_[i]);
-    if (cg)
+    FCLGeometryConstPtr g = createCollisionGeometry(obb, obj->shapes_[i], obj);
+    if (g)
     {
-      CollisionGeometryData *cgd = new CollisionGeometryData(obj);
-      cg->setUserData(cgd);
-      fcl::CollisionObject *co = new fcl::CollisionObject(cg,  transform2fcl(obj->shape_poses_[i]));
+      fcl::CollisionObject *co = new fcl::CollisionObject(g->collision_geometry_,  transform2fcl(obj->shape_poses_[i]));
       fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(co));
-      fcl_obj.collision_geometry_data_.push_back(boost::shared_ptr<CollisionGeometryData>(cgd));
+      fcl_obj.collision_geometry_.push_back(g);
     }
   }
 }
