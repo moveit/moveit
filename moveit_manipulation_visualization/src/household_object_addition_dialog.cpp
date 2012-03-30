@@ -180,6 +180,14 @@ void HouseholdObjectAdditionDialog::populateDatabaseInformation() {
   household_objects_table_->horizontalHeader()->resizeSections(QHeaderView::Stretch);
 }
 
+void HouseholdObjectAdditionDialog::getMeshGivenModelId(int model_id) {
+  if(loaded_meshes_.find(model_id) != loaded_meshes_.end()) {
+    Q_EMIT modelMeshFetched(loaded_meshes_.at(model_id));
+  } else if(loadDatabaseMesh(model_id)) {
+    Q_EMIT modelMeshFetched(loaded_meshes_.at(model_id));
+  }
+}
+
 bool HouseholdObjectAdditionDialog::loadDatabaseMesh(int model_id) {
   if(!database_->getScaledModelMesh(model_id, loaded_meshes_[model_id])) {
     ROS_WARN_STREAM("Unable to load mesh for " << model_id);
@@ -196,19 +204,18 @@ void HouseholdObjectAdditionDialog::generateGraspList(const std::string& obj_nam
   std::map<std::string, int>::const_iterator it = collision_object_name_to_model_id_map_.find(obj_name);
 
   if(it == collision_object_name_to_model_id_map_.end()) {
-    //emit
-    graspListGenerated(false, grasps);
+    Q_EMIT graspListGenerated(false, grasps);
   }
   if(loaded_meshes_.find(it->second) == loaded_meshes_.end()) {
     ROS_WARN_STREAM("Haven't loaded mesh for object " << obj_name << " model id " << it->second);
-    //emit
-    graspListGenerated(false, grasps);
+    Q_EMIT graspListGenerated(false, grasps);
+    return;
   }
   if(!loadDatabaseGrasps(it->second, arm_name, grasps)) {
-    //emit
-    graspListGenerated(false, grasps);
+    Q_EMIT graspListGenerated(false, grasps);
+    return;
   }
-  graspListGenerated(true, grasps);
+  Q_EMIT graspListGenerated(true, grasps);
 }                                                     
 
 bool HouseholdObjectAdditionDialog::loadDatabaseGrasps(const int model_id,
@@ -312,6 +319,30 @@ void HouseholdObjectAdditionDialog::createObjectConfirmedPressed() {
   coll.poses[0].orientation.w = 1;
   
   addCollisionObjectRequested(coll, selected_color_);
+}
+
+void HouseholdObjectAdditionDialog::addHouseholdObjectToScene(std::string name,
+                                                              int model_id,
+                                                              geometry_msgs::Pose pose)
+{
+  if(!database_) {
+    connectToDatabase();
+    populateDatabaseInformation();
+  }
+  moveit_msgs::CollisionObject coll;
+  coll.id = name;
+
+  if(loaded_meshes_.find(model_id) == loaded_meshes_.end()) {
+    if(!loadDatabaseMesh(model_id)) {
+      return;
+    }
+  } 
+  collision_object_name_to_model_id_map_[coll.id] = model_id;
+  coll.shapes.push_back(loaded_meshes_.at(model_id));
+  //coll.header.frame_id = 
+  coll.poses.push_back(pose);
+  QColor col(128, 128, 128, 255);
+  addCollisionObjectRequested(coll,col);
 }
 
 }

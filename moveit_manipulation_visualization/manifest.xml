@@ -11,6 +11,7 @@
   <depend package="moveit_visualization_ros"/>
   <depend package="grasp_place_evaluation"/>
   <depend package="moveit_household_objects_database"/>
+  <depend package="pcl"/>
 
 </package>
 

@@ -1,0 +1,38 @@
+/**
+\mainpage
+\htmlinclude manifest.html
+
+\b Given a point cloud, will attempt to identify and localize known objects.
+
+Works for detecting objects from the IKEA dataset, assuming they are sitting
+on a table, which is the dominant plane in a scan. It will first find the
+dominant plane, then cluster objects based on the projections of the points
+on the plane. For each cluster, it will then attempt to fit the models
+of the IKEA objects. Models are assumed to be upright on the table and
+rotationally symmetric.
+    
+Functionality is broken down into two main parts: clustering and model fitting.
+
+<!-- 
+In addition to providing an overview of your package,
+this is the section where the specification and design/architecture 
+should be detailed. While the original specification may be done on the
+wiki, it should be transferred here once your package starts to take shape.
+You can then link to this documentation page from the Wiki. 
+-->
+
+\section codeapi Code API
+
+<!--
+Provide links to specific auto-generated API documentation within your
+package that is of particular interest to a reader. Doxygen will
+document pretty much every part of your code, so do your best here to
+point the reader to the actual API.
+
+If your codebase is fairly large or has different sets of APIs, you
+should use the doxygen 'group' tag to keep these APIs together. For
+example, the roscpp documentation has 'libros' group.
+-->
+
+
+*/
