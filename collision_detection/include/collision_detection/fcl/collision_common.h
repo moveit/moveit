@@ -123,7 +123,14 @@ struct FCLGeometry
     collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
-  } 
+  }
+
+  template<typename T>
+  void updateCollisionGeometryData(const T* data)
+  {
+    collision_geometry_data_.reset(new CollisionGeometryData(data));
+    collision_geometry_->setUserData(collision_geometry_data_.get());
+  }
   
   boost::shared_ptr<fcl::CollisionGeometry> collision_geometry_;
   boost::shared_ptr<CollisionGeometryData>  collision_geometry_data_;
