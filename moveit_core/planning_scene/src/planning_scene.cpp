@@ -434,7 +434,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
     const std::vector<Eigen::Affine3d>& ab_tf = ab[i]->getFixedTransforms();
     for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
     {
-      moveit_msgs::Shape sm;
+      shape_msgs::Shape sm;
       if (constructMsgFromShape(ab_shapes[j].get(), sm))
       {
         aco.object.shapes.push_back(sm);
@@ -462,13 +462,13 @@ bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns,
   if (!obj) return false;
   for (std::size_t j = 0 ; j < obj->static_shapes_.size() ; ++j)
   {
-    moveit_msgs::StaticShape sm;
+    shape_msgs::StaticShape sm;
     if (constructMsgFromShape(obj->static_shapes_[j].get(), sm))
       co.static_shapes.push_back(sm);
   }
   for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
   {
-    moveit_msgs::Shape sm;
+    shape_msgs::Shape sm;
     if (constructMsgFromShape(obj->shapes_[j].get(), sm))
     {
       co.shapes.push_back(sm);

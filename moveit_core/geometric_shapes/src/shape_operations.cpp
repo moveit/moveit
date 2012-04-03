@@ -350,10 +350,10 @@ Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const E
   return mesh;
 }
 
-Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
+Shape* constructShapeFromMsg(const shape_msgs::Shape &shape_msg)
 {
   Shape *shape = NULL;
-  if (shape_msg.type == moveit_msgs::Shape::SPHERE)
+  if (shape_msg.type == shape_msgs::Shape::SPHERE)
   {
     if (shape_msg.dimensions.size() != 1)
       ROS_ERROR("Unexpected number of dimensions in sphere definition");
@@ -361,7 +361,7 @@ Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
       shape = new Sphere(shape_msg.dimensions[0]);
   }
   else
-    if (shape_msg.type == moveit_msgs::Shape::BOX)
+    if (shape_msg.type == shape_msgs::Shape::BOX)
     {
       if (shape_msg.dimensions.size() != 3)
         ROS_ERROR("Unexpected number of dimensions in box definition");
@@ -369,7 +369,7 @@ Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
         shape = new Box(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2]);
     }
     else
-      if (shape_msg.type == moveit_msgs::Shape::CYLINDER)
+      if (shape_msg.type == shape_msgs::Shape::CYLINDER)
       {
         if (shape_msg.dimensions.size() != 2)
           ROS_ERROR("Unexpected number of dimensions in cylinder definition");
@@ -377,7 +377,7 @@ Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
           shape = new Cylinder(shape_msg.dimensions[0], shape_msg.dimensions[1]);
       }
       else
-        if (shape_msg.type == moveit_msgs::Shape::MESH)
+        if (shape_msg.type == shape_msgs::Shape::MESH)
         {
           if (shape_msg.dimensions.size() != 0)
             ROS_ERROR("Unexpected number of dimensions in mesh definition");
@@ -411,18 +411,18 @@ Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg)
 
 bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list)
 {
-  moveit_msgs::Shape shape_msg;
+  shape_msgs::Shape shape_msg;
   if (constructMsgFromShape(shape, shape_msg))
     return constructMarkerFromShape(shape_msg, mk, use_mesh_triangle_list);
   else
     return false;
 }
 
-bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization_msgs::Marker &mk, bool use_mesh_triangle_list)
+bool constructMarkerFromShape(const shape_msgs::Shape &shape_msg, visualization_msgs::Marker &mk, bool use_mesh_triangle_list)
 {
   switch (shape_msg.type)
   {
-  case moveit_msgs::Shape::SPHERE:
+  case shape_msgs::Shape::SPHERE:
     mk.type = visualization_msgs::Marker::SPHERE;
     if (shape_msg.dimensions.size() != 1)
     {
@@ -432,7 +432,7 @@ bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization
     else
       mk.scale.x = mk.scale.y = mk.scale.z = shape_msg.dimensions[0] * 2.0;
     break;
-  case moveit_msgs::Shape::BOX:
+  case shape_msgs::Shape::BOX:
     mk.type = visualization_msgs::Marker::CUBE;
     if (shape_msg.dimensions.size() != 3)
     {
@@ -446,7 +446,7 @@ bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization
       mk.scale.z = shape_msg.dimensions[2];
     }
     break;
-  case moveit_msgs::Shape::CYLINDER:
+  case shape_msgs::Shape::CYLINDER:
     mk.type = visualization_msgs::Marker::CYLINDER;
     if (shape_msg.dimensions.size() != 2)
     {
@@ -461,7 +461,7 @@ bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization
     }
     break;
 
-  case moveit_msgs::Shape::MESH:
+  case shape_msgs::Shape::MESH:
     if (shape_msg.dimensions.size() != 0) {
       ROS_ERROR("Unexpected number of dimensions in mesh definition");
       return false;
@@ -505,20 +505,20 @@ bool constructMarkerFromShape(const moveit_msgs::Shape &shape_msg, visualization
   return true;
 }
 
-bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg)
+bool constructMsgFromShape(const Shape* shape, shape_msgs::Shape &shape_msg)
 {
   shape_msg.dimensions.clear();
   shape_msg.vertices.clear();
   shape_msg.triangles.clear();
   if (shape->type == SPHERE)
   {
-    shape_msg.type = moveit_msgs::Shape::SPHERE;
+    shape_msg.type = shape_msgs::Shape::SPHERE;
     shape_msg.dimensions.push_back(static_cast<const Sphere*>(shape)->radius);
   }
   else
     if (shape->type == BOX)
     {
-      shape_msg.type = moveit_msgs::Shape::BOX;
+      shape_msg.type = shape_msgs::Shape::BOX;
       const double* sz = static_cast<const Box*>(shape)->size;
       shape_msg.dimensions.push_back(sz[0]);
       shape_msg.dimensions.push_back(sz[1]);
@@ -527,14 +527,14 @@ bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg)
     else
       if (shape->type == CYLINDER)
       {
-        shape_msg.type = moveit_msgs::Shape::CYLINDER;
+        shape_msg.type = shape_msgs::Shape::CYLINDER;
         shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->radius);
         shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->length);
       }
       else
         if (shape->type == MESH)
         {
-          shape_msg.type = moveit_msgs::Shape::MESH;
+          shape_msg.type = shape_msgs::Shape::MESH;
 
           const Mesh *mesh = static_cast<const Mesh*>(shape);
           const unsigned int t3 = mesh->triangle_count * 3;
@@ -562,10 +562,10 @@ bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg)
   return true;
 }
 
-StaticShape* constructShapeFromMsg(const moveit_msgs::StaticShape &shape_msg)
+StaticShape* constructShapeFromMsg(const shape_msgs::StaticShape &shape_msg)
 {
   StaticShape *shape = NULL;
-  if (shape_msg.type == moveit_msgs::StaticShape::PLANE)
+  if (shape_msg.type == shape_msgs::StaticShape::PLANE)
   {
     if (shape_msg.dimensions.size() == 4)
       shape = new Plane(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2], shape_msg.dimensions[3]);
@@ -577,12 +577,12 @@ StaticShape* constructShapeFromMsg(const moveit_msgs::StaticShape &shape_msg)
   return shape;
 }
 
-bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &shape_msg)
+bool constructMsgFromShape(const StaticShape* shape, shape_msgs::StaticShape &shape_msg)
 {
   shape_msg.dimensions.clear();
   if (shape->type == PLANE)
   {
-    shape_msg.type = moveit_msgs::StaticShape::PLANE;
+    shape_msg.type = shape_msgs::StaticShape::PLANE;
     const Plane *p = static_cast<const Plane*>(shape);
     shape_msg.dimensions.push_back(p->a);
     shape_msg.dimensions.push_back(p->b);
@@ -597,25 +597,25 @@ bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &s
   return true;
 }
 
-bool getShapeExtents(const moveit_msgs::Shape& shape_msg,
+bool getShapeExtents(const shape_msgs::Shape& shape_msg,
                      double& x_extent,
                      double& y_extent,
                      double& z_extent)
 {
-  if(shape_msg.type == moveit_msgs::Shape::SPHERE) {
+  if(shape_msg.type == shape_msgs::Shape::SPHERE) {
     if(shape_msg.dimensions.size() != 1) return false;
     x_extent = y_extent = z_extent = shape_msg.dimensions[0];
-  } else if(shape_msg.type == moveit_msgs::Shape::BOX) {
+  } else if(shape_msg.type == shape_msgs::Shape::BOX) {
     if(shape_msg.dimensions.size() != 3) return false;
     x_extent = shape_msg.dimensions[0];
     y_extent = shape_msg.dimensions[1];
     z_extent = shape_msg.dimensions[2];
-  } else if(shape_msg.type == moveit_msgs::Shape::CYLINDER) {
+  } else if(shape_msg.type == shape_msgs::Shape::CYLINDER) {
     if(shape_msg.dimensions.size() != 2) return false;
     x_extent = shape_msg.dimensions[0];
     y_extent = shape_msg.dimensions[0];
     z_extent = shape_msg.dimensions[1];
-  } else if(shape_msg.type == moveit_msgs::Shape::MESH) {
+  } else if(shape_msg.type == shape_msgs::Shape::MESH) {
     if(shape_msg.vertices.size() == 0) return false;
     double xmin = DBL_MAX, ymin = DBL_MAX, zmin = DBL_MAX;
     double xmax = -DBL_MAX, ymax = -DBL_MAX, zmax = -DBL_MAX;
