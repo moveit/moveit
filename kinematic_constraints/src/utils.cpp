@@ -106,7 +106,7 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     pcm.target_point_offset.x = 0;
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = 0;
-    pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
+    pcm.constraint_region_shape.type = shape_msgs::Shape::SPHERE;
     pcm.constraint_region_shape.dimensions.push_back(tolerance_pos);
 
     pcm.constraint_region_pose.header = pose.header;
@@ -155,7 +155,7 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     pcm.target_point_offset.x = 0;
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = 0;
-    pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
+    pcm.constraint_region_shape.type = shape_msgs::Shape::SPHERE;
     pcm.constraint_region_shape.dimensions.push_back(tolerance);
 
     pcm.constraint_region_pose.header = point.header;

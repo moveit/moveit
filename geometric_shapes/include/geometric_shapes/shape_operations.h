@@ -38,8 +38,8 @@
 #define MOVEIT_GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
 
 #include "geometric_shapes/shapes.h"
-#include <moveit_msgs/Shape.h>
-#include <moveit_msgs/StaticShape.h>
+#include <shape_msgs/Shape.h>
+#include <shape_msgs/StaticShape.h>
 #include <visualization_msgs/Marker.h>
 #include <vector>
 #include <Eigen/Core>
@@ -67,25 +67,25 @@ shapes::Mesh* createMeshFromFilename(const std::string& filename, const Eigen::V
 shapes::Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const Eigen::Vector3d& scale);
 
 /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
-Shape* constructShapeFromMsg(const moveit_msgs::Shape &shape_msg);
+Shape* constructShapeFromMsg(const shape_msgs::Shape &shape_msg);
 
 /** \brief Construct the message that corresponds to the shape. Return false on failure. */
-bool constructMsgFromShape(const Shape* shape, moveit_msgs::Shape &shape_msg);
+bool constructMsgFromShape(const Shape* shape, shape_msgs::Shape &shape_msg);
 
 /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
-StaticShape* constructShapeFromMsg(const moveit_msgs::StaticShape &shape_msg);
+StaticShape* constructShapeFromMsg(const shape_msgs::StaticShape &shape_msg);
 
 /** \brief Construct the message that corresponds to the shape. Return false on failure. */
-bool constructMsgFromShape(const StaticShape* shape, moveit_msgs::StaticShape &shape_msg);
+bool constructMsgFromShape(const StaticShape* shape, shape_msgs::StaticShape &shape_msg);
 
 /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
 bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list=false);
 
 /** \brief Construct the marker that corresponds to the shape shape message.  Return false on failure. */
-bool constructMarkerFromShape(const moveit_msgs::Shape &shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list=false);
+bool constructMarkerFromShape(const shape_msgs::Shape &shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list=false);
 
 /** \brief Get the dimensions of an axis-aligned bounding box for the shape described by \e shape_msg */
-bool getShapeExtents(const moveit_msgs::Shape& shape_msg, double& x_extent, double& y_extent, double& z_extent);
+bool getShapeExtents(const shape_msgs::Shape& shape_msg, double& x_extent, double& y_extent, double& z_extent);
 }
 
 #endif

@@ -10,4 +10,5 @@
   <depend stack="ros" />
   <depend stack="ros_comm" /> <!-- rosconsole, std_msgs -->
 
+  <depend stack="shape_msgs" /> <!-- rosconsole, std_msgs -->
 </stack>
