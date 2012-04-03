@@ -142,18 +142,18 @@ void PrimitiveObjectAdditionDialog::createObjectConfirmedPressed() {
   coll.shapes.resize(1);
   std::string object_type = collision_object_type_box_->currentText().toStdString();
   if(object_type == "Box") {
-    coll.shapes[0].type = moveit_msgs::Shape::BOX;
+    coll.shapes[0].type = shape_msgs::Shape::BOX;
     coll.shapes[0].dimensions.resize(3);
     coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
     coll.shapes[0].dimensions[1] = (float)collision_object_scale_y_box_->value() / 100.0f;
     coll.shapes[0].dimensions[2] = (float)collision_object_scale_z_box_->value() / 100.0f;
   } else if (object_type == "Cylinder") {
-    coll.shapes[0].type = moveit_msgs::Shape::CYLINDER;
+    coll.shapes[0].type = shape_msgs::Shape::CYLINDER;
     coll.shapes[0].dimensions.resize(2);
     coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
     coll.shapes[0].dimensions[1] = (float)collision_object_scale_z_box_->value() / 100.0f;
   } else if (object_type == "Sphere") {
-    coll.shapes[0].type = moveit_msgs::Shape::SPHERE;
+    coll.shapes[0].type = shape_msgs::Shape::SPHERE;
     coll.shapes[0].dimensions.resize(1);
     coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
   }

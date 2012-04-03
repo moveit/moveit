@@ -62,8 +62,8 @@ void InteractiveObjectVisualization::addCube(const std::string& name) {
   pose.position.z = DEFAULT_Z;
   pose.orientation.w = 1.0;
 
-  moveit_msgs::Shape shape;
-  shape.type = moveit_msgs::Shape::BOX;
+  shape_msgs::Shape shape;
+  shape.type = shape_msgs::Shape::BOX;
   shape.dimensions.resize(3, DEFAULT_SCALE);
 
   moveit_msgs::CollisionObject coll;
@@ -85,8 +85,8 @@ void InteractiveObjectVisualization::addSphere(const std::string& name) {
   pose.position.z = DEFAULT_Z;
   pose.orientation.w = 1.0;
 
-  moveit_msgs::Shape shape;
-  shape.type = moveit_msgs::Shape::SPHERE;
+  shape_msgs::Shape shape;
+  shape.type = shape_msgs::Shape::SPHERE;
   shape.dimensions.resize(1, DEFAULT_SCALE);
 
   moveit_msgs::CollisionObject coll;
@@ -108,8 +108,8 @@ void InteractiveObjectVisualization::addCylinder(const std::string& name) {
   pose.position.z = DEFAULT_Z;
   pose.orientation.w = 1.0;
 
-  moveit_msgs::Shape shape;
-  shape.type = moveit_msgs::Shape::CYLINDER;
+  shape_msgs::Shape shape;
+  shape.type = shape_msgs::Shape::CYLINDER;
   shape.dimensions.resize(2, DEFAULT_SCALE);
 
   moveit_msgs::CollisionObject coll;
@@ -187,8 +187,8 @@ void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObjec
                                  false);
     ROS_INFO_STREAM("Made button mass");
   } else {
-    const moveit_msgs::Shape& shape_msg = coll.shapes[0];
-    if(shape_msg.type == moveit_msgs::Shape::BOX) {
+    const shape_msgs::Shape& shape_msg = coll.shapes[0];
+    if(shape_msg.type == shape_msgs::Shape::BOX) {
       marker = makeButtonBox(coll.id,
                              pose_stamped,
                              shape_msg.dimensions[0],
@@ -196,20 +196,20 @@ void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObjec
                              shape_msg.dimensions[2],
                              false, 
                              false);
-    } else if(shape_msg.type == moveit_msgs::Shape::CYLINDER) { 
+    } else if(shape_msg.type == shape_msgs::Shape::CYLINDER) { 
       marker = makeButtonCylinder(coll.id,
                                   pose_stamped,
                                   shape_msg.dimensions[0],
                                   shape_msg.dimensions[1],
                                   false, 
                                   false);
-    } else if(shape_msg.type == moveit_msgs::Shape::SPHERE) {
+    } else if(shape_msg.type == shape_msgs::Shape::SPHERE) {
       marker = makeButtonSphere(coll.id,
                                 pose_stamped,
                                 shape_msg.dimensions[0],
                                 false, 
                                 false);
-    } else if(shape_msg.type == moveit_msgs::Shape::MESH) {
+    } else if(shape_msg.type == shape_msgs::Shape::MESH) {
       marker = makeButtonMesh(coll.id,
                               shape_msg,
                               pose_stamped,
@@ -320,16 +320,16 @@ void InteractiveObjectVisualization::growObject(const std::string& name,
 
   Eigen::Affine3d diff = cur_pose.inverse()*new_pose;
 
-  moveit_msgs::Shape shape;
+  shape_msgs::Shape shape;
   shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
-  if(shape.type == moveit_msgs::Shape::BOX) {
+  if(shape.type == shape_msgs::Shape::BOX) {
     shape.dimensions[0] += fabs(diff.translation().x());
     shape.dimensions[1] += fabs(diff.translation().y());
     shape.dimensions[2] += fabs(diff.translation().z());
-  } else if(shape.type == moveit_msgs::Shape::CYLINDER) {
+  } else if(shape.type == shape_msgs::Shape::CYLINDER) {
     shape.dimensions[0] += fmax(fabs(diff.translation().x()), fabs(diff.translation().y()));
     shape.dimensions[1] += fabs(diff.translation().z());
-  } else if(shape.type == moveit_msgs::Shape::SPHERE) {
+  } else if(shape.type == shape_msgs::Shape::SPHERE) {
     shape.dimensions[0] += fmax(fmax(fabs(diff.translation().x()), fabs(diff.translation().y())), fabs(diff.translation().z()));
   }
   
@@ -379,22 +379,22 @@ void InteractiveObjectVisualization::shrinkObject(const std::string& name,
     diff.translation().z() *= -1.0;
   }
 
-  moveit_msgs::Shape shape;
+  shape_msgs::Shape shape;
   shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
-  if(shape.type == moveit_msgs::Shape::BOX) {
+  if(shape.type == shape_msgs::Shape::BOX) {
     diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
     diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[1]+MIN_DIMENSION);
     diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[2]+MIN_DIMENSION);
     shape.dimensions[0] += diff.translation().x();
     shape.dimensions[1] += diff.translation().y();
     shape.dimensions[2] += diff.translation().z();
-  } else if(shape.type == moveit_msgs::Shape::CYLINDER) {
+  } else if(shape.type == shape_msgs::Shape::CYLINDER) {
     diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
     diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[0]+MIN_DIMENSION);
     diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[1]+MIN_DIMENSION);
     shape.dimensions[0] += fmin(diff.translation().x(), diff.translation().y());
     shape.dimensions[1] += diff.translation().z();
-  } else if(shape.type == moveit_msgs::Shape::SPHERE) {
+  } else if(shape.type == shape_msgs::Shape::SPHERE) {
     diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
     diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[1]+MIN_DIMENSION);
     diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[2]+MIN_DIMENSION);
@@ -492,7 +492,7 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
     {
       dof_marker_enabled_[feedback->marker_name] = !dof_marker_enabled_[feedback->marker_name];
       collision_detection::CollisionWorld::ObjectConstPtr obj = planning_scene_diff_->getCollisionWorld()->getObject(feedback->marker_name);
-      moveit_msgs::Shape shape;
+      shape_msgs::Shape shape;
       shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
       geometry_msgs::Pose cur_pose_msg;
       planning_models::msgFromPose(obj->shape_poses_[0], cur_pose_msg);

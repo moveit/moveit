@@ -45,6 +45,7 @@
 #include <planning_models/transforms.h>
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
+#include <shape_msgs/Shape.h>
 
 static bool done_seed = false;
 
@@ -548,7 +549,7 @@ inline visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& n
 }
 
 inline visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& marker_name,
-                                                            const moveit_msgs::Shape& mesh_shape,
+                                                            const shape_msgs::Shape& mesh_shape,
                                                             const geometry_msgs::PoseStamped &stamped,                                                                                                                       const std_msgs::ColorRGBA& color)
 {
   visualization_msgs::InteractiveMarker int_marker;

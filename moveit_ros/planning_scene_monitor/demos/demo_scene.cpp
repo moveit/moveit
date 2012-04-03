@@ -105,7 +105,7 @@ void sendCollisionObject(void)
     co.header.frame_id = "odom";
     co.operation = moveit_msgs::CollisionObject::ADD;
     co.shapes.resize(1);
-    co.shapes[0].type = moveit_msgs::Shape::SPHERE;
+    co.shapes[0].type = shape_msgs::Shape::SPHERE;
     co.shapes[0].dimensions.push_back(0.1);
     co.poses.resize(1);
     co.poses[0].position.x = rng.uniformReal(-1.5, 1.5);
