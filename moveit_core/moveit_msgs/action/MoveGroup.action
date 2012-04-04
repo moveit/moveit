@@ -1,8 +1,5 @@
-# Description of goal to reach
-Constraints[] goal_constraints
-
-# Description of path constraints to impose
-Constraints   path_constraints
+# Motion planning request to pass to planner
+MotionPlanRequest request
 
 ---
 # An error code reflecting what went wrong
