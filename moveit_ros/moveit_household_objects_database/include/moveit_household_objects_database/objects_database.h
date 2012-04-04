@@ -46,7 +46,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 
-#include <moveit_msgs/Shape.h>
+#include <shape_msgs/Shape.h>
 
 //#include <moveit_household_objects_database_msgs/DatabaseScan.h>
 
@@ -232,9 +232,9 @@ namespace moveit_household_objects_database
       return true;
     }
 
-    //! Gets the mesh for a scaled model as a moveit_msgs::Shape
+    //! Gets the mesh for a scaled model as a shape_msgs::Shape
     bool
-    getScaledModelMesh (int scaled_model_id, moveit_msgs::Shape &shape) const
+    getScaledModelMesh (int scaled_model_id, shape_msgs::Shape &shape) const
     {
       DatabaseMesh mesh;
       if (!getScaledModelMesh (scaled_model_id, mesh))

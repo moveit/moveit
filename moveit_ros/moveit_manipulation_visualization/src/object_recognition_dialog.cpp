@@ -97,7 +97,7 @@ void ObjectRecognitionDialog::gotTableAndClusters(moveit_manipulation_msgs::Tabl
   coll.poses.resize(1);
   planning_models::msgFromPose(table_mat*table_trans, coll.poses[0]);
   coll.shapes.resize(1);
-  coll.shapes[0].type = moveit_msgs::Shape::BOX;
+  coll.shapes[0].type = shape_msgs::Shape::BOX;
   coll.shapes[0].dimensions.resize(3);
   coll.shapes[0].dimensions[0] = fabs(table.x_max-table.x_min);
   coll.shapes[0].dimensions[1] = fabs(table.y_max-table.y_min);
@@ -126,7 +126,7 @@ void ObjectRecognitionDialog::gotTableAndClusters(moveit_manipulation_msgs::Tabl
     cluster_obj.shapes.resize(clusters[i].points.size());
     cluster_obj.poses.resize(clusters[i].points.size());
     for(unsigned int j = 0; j < clusters[i].points.size(); j++) {
-      cluster_obj.shapes[j].type = moveit_msgs::Shape::BOX;
+      cluster_obj.shapes[j].type = shape_msgs::Shape::BOX;
       cluster_obj.shapes[j].dimensions.resize(3,.01);
       cluster_obj.poses[j].orientation.w = 1.0;
       cluster_obj.poses[j].position.x = clusters[i].points[j].x;
@@ -140,7 +140,7 @@ void ObjectRecognitionDialog::gotTableAndClusters(moveit_manipulation_msgs::Tabl
     //   double zval = clusters[i].points[j].z;
     
     // cluster_obj.shapes.resize(1);
-    // cluster_obj.shapes[0].type = moveit_msgs::Shape::BOX;
+    // cluster_obj.shapes[0].type = shape_msgs::Shape::BOX;
     // cluster_obj.shapes[0].dimensions.resize(3);
     // cluster_obj.poses.resize(1);
     // double x = 0.0, y = 0.0, z = 0.0;

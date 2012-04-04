@@ -41,7 +41,7 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 
 #include <visualization_msgs/Marker.h>
-#include <moveit_msgs/Shape.h>
+#include <shape_msgs/Shape.h>
 #include <geometry_msgs/Pose.h>
 
 namespace moveit_tabletop_object_detector {
@@ -60,9 +60,9 @@ class MarkerGenerator {
   template <class PointCloudType>
   static visualization_msgs::Marker getCloudMarker(const PointCloudType& cloud);
   //! A marker showing where a fit model is believed to be
-  static visualization_msgs::Marker getFitMarker(const moveit_msgs::Shape &mesh, double rank);  
+  static visualization_msgs::Marker getFitMarker(const shape_msgs::Shape &mesh, double rank);  
   //! A marker showing where a convex hull table is
-  static visualization_msgs::Marker getConvexHullTableMarker(const moveit_msgs::Shape &mesh);
+  static visualization_msgs::Marker getConvexHullTableMarker(const shape_msgs::Shape &mesh);
   //! Create a generic Marker
   static visualization_msgs::Marker createMarker(std::string frame_id, double duration, double xdim, double ydim, double zdim,
 					  double r, double g, double b, int type, int id, std::string ns, geometry_msgs::Pose pose);

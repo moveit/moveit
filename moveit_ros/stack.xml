@@ -10,5 +10,6 @@
   <depend stack="ros" />
   <depend stack="ros_comm" /> <!-- rosconsole, std_msgs -->
   <depend stack="moveit" />
+  <depend stack="sql_database" />
 
 </stack>

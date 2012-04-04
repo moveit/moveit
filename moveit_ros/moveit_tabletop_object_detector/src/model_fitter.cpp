@@ -169,7 +169,7 @@ std::vector<Eigen::Vector3d> interpolateTriangle(Eigen::Vector3d v0,
   return vectors;
 }
 
-void ModelToCloudFitter::sampleMesh(const moveit_msgs::Shape &mesh, 
+void ModelToCloudFitter::sampleMesh(const shape_msgs::Shape &mesh, 
 				    std::vector<Eigen::Vector3d> &points,
 				    double resolution)
 {
@@ -201,7 +201,7 @@ void ModelToCloudFitter::sampleMesh(const moveit_msgs::Shape &mesh,
 }
 
 
-void DistanceFieldFitter::initializeFromMesh(const moveit_msgs::Shape &mesh)
+void DistanceFieldFitter::initializeFromMesh(const shape_msgs::Shape &mesh)
 {
   std::vector<Eigen::Vector3d> points;
   //we use a slightly larger resolution than the distance field, in an attempt to bring

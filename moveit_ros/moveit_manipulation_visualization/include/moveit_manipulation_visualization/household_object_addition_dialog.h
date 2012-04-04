@@ -93,7 +93,7 @@ Q_SIGNALS:
   void graspListGenerated(bool, 
                           std::vector<moveit_manipulation_msgs::Grasp>);
 
-  void modelMeshFetched(moveit_msgs::Shape& mesh);
+  void modelMeshFetched(shape_msgs::Shape& mesh);
 
 protected:
 
@@ -108,7 +108,7 @@ protected:
   QTableWidget* household_objects_table_;
 
   std::map<std::string, int> collision_object_name_to_model_id_map_;
-  std::map<int, moveit_msgs::Shape> loaded_meshes_;
+  std::map<int, shape_msgs::Shape> loaded_meshes_;
 
   QLineEdit* collision_object_name_;
   QSpinBox* collision_object_pos_x_box_;

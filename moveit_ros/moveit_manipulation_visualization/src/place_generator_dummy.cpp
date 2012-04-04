@@ -55,7 +55,7 @@ bool PlaceGeneratorDummy::generatePlaceLocations(const planning_scene::PlanningS
     ROS_WARN_STREAM("No attached bodies associated with current state of planning scene.  Can't place");
     return false;
   }
-  moveit_msgs::Shape attached_shape;
+  shape_msgs::Shape attached_shape;
   bool found = false;
   for(unsigned int i = 0; i < ab.size(); i++) {
     if(ab[i]->getName() == object) {
