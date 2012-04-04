@@ -11,5 +11,6 @@
   <depend stack="ros_comm" /> <!-- rosconsole, std_msgs -->
   <depend stack="moveit" />
   <depend stack="sql_database" />
+  <depend stack="perception_pcl" />
 
 </stack>
