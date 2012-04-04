@@ -10,5 +10,6 @@
   <depend stack="ros_comm" /> <!-- roscpp -->
   <depend stack="warehousewg" />
   <depend stack="pr2_mechanism" />
+  <depend stack="visualization" /> <!-- interactive_markers, rviz -->
 
 </stack>
