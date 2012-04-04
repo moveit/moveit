@@ -117,6 +117,9 @@ struct TrajectoryExecutionDataVector : public std::vector<TrajectoryExecutionDat
   unsigned int last_attempted_trajectory_index_;
 };
 
+/// \brief The function signature for callbacks executed at the completion og a trajectory
+typedef boost::function<bool(TrajectoryExecutionDataVector)> ExecutionCompleteCallbackFn;
+
 /// \brief Executes and monitors a set of trajectories.
 class TrajectoryExecutionMonitor
 {
@@ -141,8 +144,16 @@ class TrajectoryExecutionMonitor
   /// \brief Execute a series of trajectories, in order.
   /// The callbacks will get called, in order, after each trajectory is finished executing.
   void executeTrajectories(const std::vector<TrajectoryExecutionRequest>& to_execute,
-                           const boost::function<bool(TrajectoryExecutionDataVector)>& done_callback);
+                           const ExecutionCompleteCallbackFn& done_callback = ExecutionCompleteCallbackFn());
 
+  /// \brief Execute one trajectory (calls executeTrajectories())
+  void executeTrajectory(const TrajectoryExecutionRequest& to_execute,
+                         const ExecutionCompleteCallbackFn& done_callback = ExecutionCompleteCallbackFn())
+  {
+    std::vector<TrajectoryExecutionRequest> to_execute_v(1, to_execute);
+    executeTrajectories(to_execute_v, done_callback);
+  }
+  
   void switchAssociatedStopStartControllers(const std::string& group_name,
                                             const std::string& desired_controller);
 
@@ -187,7 +198,7 @@ protected:
                                   const TrajectoryExecutionData& ted);
 
 
-  boost::function<bool(TrajectoryExecutionDataVector)> result_callback_;
+  ExecutionCompleteCallbackFn result_callback_;
   TrajectoryExecutionDataVector execution_result_vector_;
   std::vector<TrajectoryExecutionRequest> execution_data_;
   unsigned int current_trajectory_index_;
