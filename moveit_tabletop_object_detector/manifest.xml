@@ -22,6 +22,10 @@
   <depend package="moveit_manipulation_msgs" />
   <depend package="moveit_msgs" />
 
+  <!-- Temporary rosdep to work around missing dependency in PCL:
+       https://code.ros.org/trac/ros-pkg/ticket/5415 -->
+  <rosdep name="libmysqlclient-dev"/>
+
  <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/msg_gen/cpp -I${prefix}/srv_gen/cpp" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltabletop_model_fitter -lmarker_generator"/>
  </export>
