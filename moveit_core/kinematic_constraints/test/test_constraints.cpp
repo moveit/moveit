@@ -153,7 +153,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.target_point_offset.x = 0;
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = 0;
-    pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
+    pcm.constraint_region_shape.type = shape_msgs::Shape::SPHERE;
     pcm.constraint_region_shape.dimensions.push_back(0.1);
 
     pcm.constraint_region_pose.header.frame_id = kmodel->getModelFrame();
@@ -190,7 +190,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     pcm.target_point_offset.x = 0;
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = 0;
-    pcm.constraint_region_shape.type = moveit_msgs::Shape::SPHERE;
+    pcm.constraint_region_shape.type = shape_msgs::Shape::SPHERE;
     pcm.constraint_region_shape.dimensions.push_back(0.38);
 
     pcm.constraint_region_pose.header.frame_id = "r_wrist_roll_link";
@@ -209,7 +209,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     double dummy;
     EXPECT_TRUE(pc.decide(ks, dummy));
 
-    pcm.constraint_region_shape.type = moveit_msgs::Shape::BOX;
+    pcm.constraint_region_shape.type = shape_msgs::Shape::BOX;
     pcm.constraint_region_shape.dimensions.resize(3);
     pcm.constraint_region_shape.dimensions[0] = 0.2;
     pcm.constraint_region_shape.dimensions[1] = 1.25;
