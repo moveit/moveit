@@ -40,7 +40,6 @@
 #include <planning_interface/planning_interface.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
-  
 #include <moveit_msgs/DisplayTrajectory.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
@@ -50,8 +49,15 @@ class MoveGroupAction
 {
 public:
   
+  enum MoveGroupState
+    {
+      IDLE,
+      PLANNING,
+      MONITOR
+    };
+  
   MoveGroupAction(planning_scene_monitor::PlanningSceneMonitor &psm) : 
-    nh_("~"), psm_(psm), trajectory_execution_(psm_.getPlanningScene()->getKinematicModel())
+    nh_("~"), psm_(psm), trajectory_execution_(psm_.getPlanningScene()->getKinematicModel()), state_(IDLE)
   {
     // load the group name
     if (nh_.getParam("group", group_name_))
@@ -83,7 +89,7 @@ public:
     }
     try
     {
-      planner_instance_.reset(planner_plugin_loader_->createClassInstance(planning_plugin_name_));
+      planner_instance_.reset(planner_plugin_loader_->createUnmanagedInstance(planning_plugin_name_));
       planner_instance_->init(psm_.getPlanningScene()->getKinematicModel());
     }
     catch(pluginlib::PluginlibException& ex)
@@ -96,19 +102,101 @@ public:
     }
 
     display_path_publisher_ = root_nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_PUB_TOPIC, 1, true);
+
     // start the action server
-    action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_nh_, "move_" + group_name_, 
-                                                                                         boost::bind(&MoveGroupAction::execute, this, _1), false));
-    
+    action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_nh_, "move_" + group_name_, false));
+    action_server_->registerGoalCallback(boost::bind(&MoveGroupAction::goalCallback, this));
+    action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
     action_server_->start();
-
-
+    
     // output status message
     ROS_INFO("MoveGroup action for group '%s' running using planning plugin '%s'", group_name_.c_str(), planning_plugin_name_.c_str());
   }
   
-  void execute(const moveit_msgs::MoveGroupGoalConstPtr& goal)
+  void goalCallback(void)
   {
+    if (service_goal_thread_)
+    {
+      terminate_service_thread_ = true;
+      service_goal_thread_->join();
+      service_goal_thread_.reset();
+    }
+    goal_ = action_server_->acceptNewGoal();
+    service_goal_thread_.reset(new boost::thread(boost::bind(&MoveGroupAction::serviceGoalRequest, this)));
+  }
+  
+  void preemptCallback(void)
+  {
+    action_server_->setPreempted();
+    terminate_service_thread_ = true;
+  }
+
+  void serviceGoalRequest(void)
+  {
+    setState(PLANNING);
+    
+    bool solved = false;
+    moveit_msgs::GetMotionPlan::Request req;
+    req.motion_plan_request = goal_->request;
+    moveit_msgs::GetMotionPlan::Response res;
+    try
+    {
+      solved = planner_instance_->solve(psm_.getPlanningScene(), req, res);
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("Exception caught: '%s'", ex.what());
+    }
+    catch(...)
+    {
+      ROS_ERROR("Unknown exception thrown by planner");
+    }
+    
+    if (solved)
+    {
+      setState(MONITOR);
+      execution_complete_ = false;
+      trajectory_execution::TrajectoryExecutionRequest ter;
+      ter.group_name_ = group_name_;      
+      ter.trajectory_ = res.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
+      trajectory_execution_.executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1));
+      ros::WallDuration d(0.01);
+      while (nh_.ok() && !execution_complete_ && !terminate_service_thread_)
+      {
+        /// \TODO Check if the remainder of the path is still valid; If not, replan.
+        /// We need a callback in the trajectory monitor for this
+        d.sleep();
+      }      
+    }
+    
+    setState(IDLE);
+  }
+
+  bool doneWithTrajectoryExecution(trajectory_execution::TrajectoryExecutionDataVector data)
+  {
+    execution_complete_ = true;
+    return true;
+  }
+  
+  void setState(MoveGroupState state)
+  {
+    state_ = state;
+    switch (state_)
+    {
+    case IDLE:
+      feedback_.state = "IDLE";
+      feedback_.time_to_completion = ros::Duration(0.0);
+      break;
+    case PLANNING:
+      feedback_.state = "PLANNING";
+      feedback_.time_to_completion = ros::Duration(0.0);
+      break;
+    case MONITOR:
+      feedback_.state = "MONITOR";
+      feedback_.time_to_completion = ros::Duration(0.0);
+      break;
+    }
+    action_server_->publishFeedback(feedback_);
   }
   
   void status(void)
@@ -120,12 +208,24 @@ private:
   ros::NodeHandle                                         root_nh_;
   ros::NodeHandle                                         nh_;
   planning_scene_monitor::PlanningSceneMonitor           &psm_;
-  trajectory_execution_ros::TrajectoryExecutionMonitorRos trajectory_execution_;  
+
   std::string                                             planning_plugin_name_;
   boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
   boost::shared_ptr<planning_interface::Planner>                          planner_instance_;
   std::string                                                             group_name_;
+  
   boost::shared_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;
+  moveit_msgs::MoveGroupGoalConstPtr goal_;
+  moveit_msgs::MoveGroupFeedback feedback_;
+
+  boost::scoped_ptr<boost::thread> service_goal_thread_;
+  
+
+  trajectory_execution_ros::TrajectoryExecutionMonitorRos trajectory_execution_;  
+  bool terminate_service_thread_;
+  bool execution_complete_;
+  MoveGroupState state_;
+  
   ros::Publisher display_path_publisher_;
 };
 
