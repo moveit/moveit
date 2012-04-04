@@ -47,7 +47,7 @@
 #include <geometry_msgs/Pose.h>
 
 #include <sensor_msgs/PointCloud.h>
-#include <moveit_msgs/Shape.h>
+#include <shape_msgs/Shape.h>
 
 namespace distance_field {
   class PropagationDistanceField;
@@ -104,7 +104,7 @@ class ModelToCloudFitter
   //! The id of this model if loaded from the model database
   int model_id_;
 
-  void sampleMesh(const moveit_msgs::Shape &mesh, std::vector<Eigen::Vector3d> &btVectors, double resolution);
+  void sampleMesh(const shape_msgs::Shape &mesh, std::vector<Eigen::Vector3d> &btVectors, double resolution);
 
  public:
 
@@ -123,7 +123,7 @@ class ModelToCloudFitter
   //----------------------------------------------------------------
 
   //! Initialize this template from a mesh
-  // void initializeFromMesh(const moveit_msgs::Shape &mesh) {}
+  // void initializeFromMesh(const shape_msgs::Shape &mesh) {}
 
   //! The main fitting function
   // template <class PointCloudType>
@@ -155,7 +155,7 @@ class DistanceFieldFitter : public ModelToCloudFitter
   ~DistanceFieldFitter();
   
   //! Calls initialize from points on the vertices of the mesh
-  void initializeFromMesh(const moveit_msgs::Shape &mesh);
+  void initializeFromMesh(const shape_msgs::Shape &mesh);
 };
 
 } //namespace tabletop_object_detector

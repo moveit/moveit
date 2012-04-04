@@ -51,7 +51,7 @@ namespace tabletop_object_detector
   {
     public:
 
-    void initializeFromMesh(const moveit_msgs::Shape &mesh) 
+    void initializeFromMesh(const shape_msgs::Shape &mesh) 
     {
       std::vector<tf::Vector3> btVectors;
       sampleMesh(mesh, btVectors, 0.002 );
