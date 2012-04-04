@@ -130,7 +130,7 @@ namespace trajectory_execution_ros
 	  ROS_INFO_STREAM("Loading group " << it->first << " controller " << cname << " ns " << ns 
 			  << " type " << type << " load " << load << " default " << is_default);
 	  boost::shared_ptr<trajectory_execution::TrajectoryControllerHandler> handler;
-	  handler.reset(controller_handler_loader_.createClassInstance(type));
+	  handler.reset(controller_handler_loader_.createUnmanagedInstance(type));
 	  if(!handler) {
 	    ROS_WARN_STREAM("Couldn't create plugin instance of type " << type);
 	    continue;
@@ -149,7 +149,7 @@ namespace trajectory_execution_ros
   }
   for(unsigned int i = 0; i < recorders.size(); i++) {
     boost::shared_ptr<trajectory_execution::TrajectoryRecorder> rec;
-    rec.reset(recorder_loader_.createClassInstance(recorders[i]));
+    rec.reset(recorder_loader_.createUnmanagedInstance(recorders[i]));
     addTrajectoryRecorder(rec);
   }
   
