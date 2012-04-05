@@ -66,7 +66,7 @@ void TrajectoryExecutionMonitor::addTrajectoryControllerHandler(boost::shared_pt
 }
 
 void TrajectoryExecutionMonitor::executeTrajectories(const std::vector<TrajectoryExecutionRequest>& to_execute,
-                                                     const boost::function<bool(TrajectoryExecutionDataVector)>& done_callback) {
+                                                     const ExecutionCompleteCallbackFn& done_callback) {
   
   execution_data_ = to_execute;
   execution_result_vector_.reset();

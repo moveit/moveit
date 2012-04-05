@@ -278,6 +278,7 @@ public:
 
 protected:
 
+  bool fixInvalidInputStates(const ompl::time::point &end_time);
   virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const;
   virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
   virtual void useConfig(void);
