@@ -171,12 +171,14 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     {
       res.trajectory_start = prefix_state;
       context->getSolutionPath(res.trajectory);
-      res.trajectory.joint_trajectory.points.insert(res.trajectory.joint_trajectory.points.begin(),
-                                                    prefix_trajectory.joint_trajectory.points.begin(),
-                                                    prefix_trajectory.joint_trajectory.points.end());
-      res.trajectory.multi_dof_joint_trajectory.points.insert(res.trajectory.multi_dof_joint_trajectory.points.begin(),
-                                                              prefix_trajectory.multi_dof_joint_trajectory.points.begin(),
-                                                              prefix_trajectory.multi_dof_joint_trajectory.points.end());
+      if (!prefix_trajectory.joint_trajectory.points.empty())
+        res.trajectory.joint_trajectory.points.insert(res.trajectory.joint_trajectory.points.begin(),
+                                                      ++prefix_trajectory.joint_trajectory.points.begin(),
+                                                      prefix_trajectory.joint_trajectory.points.end());
+      if (!prefix_trajectory.multi_dof_joint_trajectory.points.empty())
+        res.trajectory.multi_dof_joint_trajectory.points.insert(res.trajectory.multi_dof_joint_trajectory.points.begin(),
+                                                                ++prefix_trajectory.multi_dof_joint_trajectory.points.begin(),
+                                                                prefix_trajectory.multi_dof_joint_trajectory.points.end());
     }
     else
     {
@@ -211,41 +213,58 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (!context)
     return false;
   
+  res.trajectory.reserve(3);
+
   bool have_prefix = false;
+  // if we have a prefix path, we add it as the first part of the detailed response
   if (prefix_trajectory.joint_trajectory.points.size() > 0 ||  prefix_trajectory.multi_dof_joint_trajectory.points.size() > 0)
   {
     have_prefix = true;
-    
+    res.trajectory_start = prefix_state;
+    res.description.push_back("prefix");
+    res.processing_time.push_back(ros::Duration(prefix_plan_time));
+    res.trajectory.push_back(prefix_trajectory);
   }
   else
+    // if there is no prefix, we just set the trajectory start
     pm::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
   
   if (context->solve(timeout, attempts))
-  {   
-    res.trajectory.reserve(3);
-    res.trajectory.resize(1);
-
-    pm::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
-    
-    res.processing_time.push_back(ros::Duration(context->getLastPlanTime()));
-    res.description.push_back("plan");
-    context->getSolutionPath(res.trajectory[0]);
-    
+  {
+    // add info about planned solution
     double ptime = context->getLastPlanTime();
+    res.processing_time.push_back(ros::Duration(ptime));
+    res.description.push_back("plan");
+    res.trajectory.resize(res.trajectory.size() + 1);
+    context->getSolutionPath(res.trajectory.back());
+    if (have_prefix)
+    {
+      // add the prefix
+      if (!prefix_trajectory.joint_trajectory.points.empty())
+        res.trajectory.back().joint_trajectory.points.insert(res.trajectory.back().joint_trajectory.points.begin(),
+                                                             ++prefix_trajectory.joint_trajectory.points.begin(),
+                                                             prefix_trajectory.joint_trajectory.points.end());
+      if (!prefix_trajectory.multi_dof_joint_trajectory.points.empty())
+        res.trajectory.back().multi_dof_joint_trajectory.points.insert(res.trajectory.back().multi_dof_joint_trajectory.points.begin(),
+                                                                       ++prefix_trajectory.multi_dof_joint_trajectory.points.begin(),
+                                                                       prefix_trajectory.multi_dof_joint_trajectory.points.end());
+    }
+    
+    // simplify solution if time remains
     if (ptime < timeout)
     {
       context->simplifySolution(timeout - ptime);
-      res.trajectory.resize(2);
       res.processing_time.push_back(ros::Duration(context->getLastSimplifyTime()));
       res.description.push_back("simplify");
-      context->getSolutionPath(res.trajectory[1]);
+      res.trajectory.resize(res.trajectory.size() + 1);
+      context->getSolutionPath(res.trajectory.back());
     }
 
     ros::WallTime start_interpolate = ros::WallTime::now();
-    res.trajectory.resize(res.trajectory.size() + 1);
     context->interpolateSolution();
     res.processing_time.push_back(ros::Duration((ros::WallTime::now() - start_interpolate).toSec()));
     res.description.push_back("interpolate");
+    res.trajectory.resize(res.trajectory.size() + 1);
     context->getSolutionPath(res.trajectory.back());
 
     // fill the response
