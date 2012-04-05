@@ -27,6 +27,8 @@
   <depend package="trajectory_execution"/>
   <depend package="trajectory_execution_ros"/>
   <depend package="shape_msgs"/>
+  <depend package="shape_conversions"/>
+  <depend package="shape_utils"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_visualization_ros"/>
