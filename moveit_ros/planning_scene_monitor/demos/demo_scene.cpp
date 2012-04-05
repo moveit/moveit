@@ -58,7 +58,7 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
     co.header.frame_id = aco.link_name;
     co.operation = moveit_msgs::CollisionObject::ADD;
     co.shapes.resize(1);
-    co.shapes[0].type = moveit_msgs::Shape::BOX;
+    co.shapes[0].type = shape_msgs::Shape::BOX;
     co.shapes[0].dimensions.push_back(0.3);
     co.shapes[0].dimensions.push_back(0.01);
     co.shapes[0].dimensions.push_back(0.3);
