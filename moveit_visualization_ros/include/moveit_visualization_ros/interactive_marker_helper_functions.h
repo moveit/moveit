@@ -45,6 +45,8 @@
 #include <planning_models/transforms.h>
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
+#include <shape_utils/shape_extents.h>
+#include <shape_conversions/shape_to_marker.h>
 #include <shape_msgs/Shape.h>
 
 static bool done_seed = false;
@@ -561,12 +563,12 @@ inline visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& m
 
   visualization_msgs::Marker mesh_mark;
   mesh_mark.mesh_use_embedded_materials = false;
-  if(!shapes::constructMarkerFromShape(mesh_shape, mesh_mark, true)) {
+  if(!shape_conversions::constructMarkerFromShape(mesh_shape, mesh_mark, true)) {
     ROS_WARN_STREAM("Some problem constructing mesh marker " << marker_name);
     return int_marker;
   }
   double x, y, z;
-  if(!shapes::getShapeExtents(mesh_shape, x, y, z)) {
+  if(!shape_utils::getShapeExtents(mesh_shape, x, y, z)) {
     ROS_WARN_STREAM("Some problem with marker extents");
     int_marker.scale = 1.0;
   } else {
