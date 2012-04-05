@@ -587,6 +587,16 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   
   if (ompl_simple_setup_.getGoal()->isApproximate())
     ROS_WARN("Computed solution is approximate");
+
+  // check to see if we need to prepend the start state (if a 'fixed' start state was used instead)
+  if (result)
+  {
+    og::PathGeometric &sol = ompl_simple_setup_.getSolutionPath();
+    ompl::base::ScopedState<> ompl_start_state(ompl_state_space_);
+    ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
+    if (!ompl_state_space_->equalStates(ompl_start_state.get(), sol.getStates().front()))
+      sol.getStates().insert(sol.getStates().begin(), ompl_simple_setup_.getSpaceInformation()->cloneState(ompl_start_state.get()));
+  }
   
   return result;
 }
