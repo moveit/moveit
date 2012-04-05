@@ -1014,20 +1014,24 @@ void planning_scene::PlanningScene::removeColor(const std::string &id)
     colors_->erase(id);
 }
 
-bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, bool verbose) const
+bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, bool verbose) const
 {
-  moveit_msgs::Constraints emp_constraints;
+  static const moveit_msgs::Constraints emp_constraints;
   return isStateValid(state, emp_constraints, verbose);
 }
 
-bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
+bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, bool verbose) const
 {
-  planning_models::KinematicState s(getCurrentState());
-  planning_models::robotStateToKinematicState(*getTransforms(), state, s);
+  static const moveit_msgs::Constraints emp_constraints;
+  return isStateValid(state, emp_constraints, verbose);
+}
+
+bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, const moveit_msgs::Constraints &constr, bool verbose) const
+{
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
   collision_detection::CollisionResult  res;
-  checkCollision(req, res, s);
+  checkCollision(req, res, state);
   if (res.collision)
     return false;
   kinematic_constraints::KinematicConstraintSet ks(getKinematicModel(), getTransforms());
@@ -1035,7 +1039,14 @@ bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &
   if (ks.empty())
     return true;
   double dist;
-  return ks.decide(s, dist, verbose);
+  return ks.decide(state, dist, verbose);  
+}
+
+bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
+{
+  planning_models::KinematicState s(getCurrentState());
+  planning_models::robotStateToKinematicState(*getTransforms(), state, s);
+  return isStateValid(s, constr, verbose);
 }
 
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, 
