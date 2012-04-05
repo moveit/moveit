@@ -466,10 +466,37 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
   return filename.empty() ? ompl_benchmark_.saveResultsToFile() : ompl_benchmark_.saveResultsToFile(filename.c_str());
 }
 
+bool ompl_interface::ModelBasedPlanningContext::fixInvalidInputStates(const ompl::time::point &end_time)
+{
+  // try to fix invalid input states, if any
+  static const double INITIAL_DISTANCE_DIVISOR = 1000.0;
+  static const double DISTANCE_INCREASE_FACTOR = 5.0;
+  static const unsigned int MAX_INCREASE_STEPS = (unsigned int)(log(INITIAL_DISTANCE_DIVISOR) / log(DISTANCE_INCREASE_FACTOR));
+  static const unsigned int FIX_ATTEMPTS = 100;
+  
+  double d = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / INITIAL_DISTANCE_DIVISOR;
+  bool fixed = false;
+  unsigned int steps = 0;
+  do
+  {
+    steps++;
+    if (ompl_simple_setup_.getProblemDefinition()->fixInvalidInputStates(d, d, FIX_ATTEMPTS))
+      fixed = true;
+    else
+      d *= DISTANCE_INCREASE_FACTOR;
+  } while (!fixed && steps < MAX_INCREASE_STEPS && ompl::time::now() < end_time);
+  
+  return fixed;
+}
+
 bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned int count)
 {
   ot::Profiler::ScopedBlock sblock("PlanningContextSolve");
+
+  ompl::time::point start = ompl::time::now();
+  ompl::time::point end_time = start + ompl::time::seconds(timeout);
   
+  // clear previously computed solutions
   ompl_simple_setup_.getGoal()->clearSolutionPaths();
   const ob::PlannerPtr planner = ompl_simple_setup_.getPlanner();
   if (planner)
@@ -478,20 +505,17 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   // just in case sampling is not started
   if (gls)
     static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
-
-  // try to fix invalid input states, if any
-  double d = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / 1000.0;
-  if (!ompl_simple_setup_.getProblemDefinition()->fixInvalidInputStates(d, d, 100))
-    ompl_simple_setup_.getProblemDefinition()->fixInvalidInputStates(d * 10.0, d * 10.0, 100);
   
-  // \todo Fix above code to do interpolation of prefix & suffix paths for fixed states;
+  // try to fix invalid input states, if any
+  fixInvalidInputStates(end_time);
   
   ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+  
   bool result = false;
   if (count <= 1)
   {
     ROS_DEBUG("%s: Solving the planning problem once...", name_.c_str());
-    ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout);
+    ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
     registerTerminationCondition(ptc);
     result = ompl_simple_setup_.solve(ptc);
     last_plan_time_ = ompl_simple_setup_.getLastPlanComputationTime();
@@ -511,18 +535,16 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 	for (unsigned int i = 0 ; i < count ; ++i)
 	  ompl_parallel_plan_.addPlanner(ompl::geometric::getDefaultPlanner(ompl_simple_setup_.getGoal())); 
 
-      ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout);    
+      ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
       registerTerminationCondition(ptc);
-      ompl::time::point start = ompl::time::now();
       result = ompl_parallel_plan_.solve(ptc, 1, count, true);
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
       unregisterTerminationCondition();
     }
     else
     {
-      ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout);    
+      ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
       registerTerminationCondition(ptc);
-      ompl::time::point start = ompl::time::now();
       int n = count / max_planning_threads_;
       result = true;
       for (int i = 0 ; i < n && ptc() == false ; ++i)

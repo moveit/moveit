@@ -321,7 +321,13 @@ public:
   bool isStateValid(const moveit_msgs::RobotState &state, bool verbose = false) const;
 
   /** \brief Check if a given state is valid */
+  bool isStateValid(const planning_models::KinematicState &state, bool verbose = false) const;
+
+  /** \brief Check if a given state is valid */
   bool isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
+
+  /** \brief Check if a given state is valid */
+  bool isStateValid(const planning_models::KinematicState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
 
   /** \brief Check if a given path is valid */
   bool isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
