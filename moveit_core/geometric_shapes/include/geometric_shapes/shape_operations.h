@@ -81,11 +81,6 @@ bool constructMsgFromShape(const StaticShape* shape, shape_msgs::StaticShape &sh
 /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
 bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list=false);
 
-/** \brief Construct the marker that corresponds to the shape shape message.  Return false on failure. */
-bool constructMarkerFromShape(const shape_msgs::Shape &shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list=false);
-
-/** \brief Get the dimensions of an axis-aligned bounding box for the shape described by \e shape_msg */
-bool getShapeExtents(const shape_msgs::Shape& shape_msg, double& x_extent, double& y_extent, double& z_extent);
 }
 
 #endif

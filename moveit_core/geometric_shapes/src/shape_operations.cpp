@@ -51,6 +51,8 @@
 
 #include <Eigen/Geometry>
 
+#include <shape_conversions/shape_to_marker.h>
+
 namespace shapes
 {
 
@@ -413,96 +415,9 @@ bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk
 {
   shape_msgs::Shape shape_msg;
   if (constructMsgFromShape(shape, shape_msg))
-    return constructMarkerFromShape(shape_msg, mk, use_mesh_triangle_list);
+    return shape_conversions::constructMarkerFromShape(shape_msg, mk, use_mesh_triangle_list);
   else
     return false;
-}
-
-bool constructMarkerFromShape(const shape_msgs::Shape &shape_msg, visualization_msgs::Marker &mk, bool use_mesh_triangle_list)
-{
-  switch (shape_msg.type)
-  {
-  case shape_msgs::Shape::SPHERE:
-    mk.type = visualization_msgs::Marker::SPHERE;
-    if (shape_msg.dimensions.size() != 1)
-    {
-      ROS_ERROR("Unexpected number of dimensions in sphere definition");
-      return false;
-    }
-    else
-      mk.scale.x = mk.scale.y = mk.scale.z = shape_msg.dimensions[0] * 2.0;
-    break;
-  case shape_msgs::Shape::BOX:
-    mk.type = visualization_msgs::Marker::CUBE;
-    if (shape_msg.dimensions.size() != 3)
-    {
-      ROS_ERROR("Unexpected number of dimensions in box definition");
-      return false;
-    }
-    else
-    {
-      mk.scale.x = shape_msg.dimensions[0];
-      mk.scale.y = shape_msg.dimensions[1];
-      mk.scale.z = shape_msg.dimensions[2];
-    }
-    break;
-  case shape_msgs::Shape::CYLINDER:
-    mk.type = visualization_msgs::Marker::CYLINDER;
-    if (shape_msg.dimensions.size() != 2)
-    {
-      ROS_ERROR("Unexpected number of dimensions in cylinder definition");
-      return false;
-    }
-    else
-    {
-      mk.scale.x = shape_msg.dimensions[0] * 2.0;
-      mk.scale.y = shape_msg.dimensions[0] * 2.0;
-      mk.scale.z = shape_msg.dimensions[1];
-    }
-    break;
-
-  case shape_msgs::Shape::MESH:
-    if (shape_msg.dimensions.size() != 0) {
-      ROS_ERROR("Unexpected number of dimensions in mesh definition");
-      return false;
-    } 
-    if (shape_msg.triangles.size() % 3 != 0) {
-      ROS_ERROR("Number of triangle indices is not divisible by 3");
-      return false;
-    }
-    if (shape_msg.triangles.empty() || shape_msg.vertices.empty()) {
-      ROS_ERROR("Mesh definition is empty");
-      return false;
-    }
-    if(!use_mesh_triangle_list) {
-      mk.type = visualization_msgs::Marker::LINE_LIST;
-      mk.scale.x = mk.scale.y = mk.scale.z = 0.01;
-      std::size_t nt = shape_msg.triangles.size() / 3;
-      for (std::size_t i = 0 ; i < nt ; ++i)
-      {
-        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
-        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
-        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i]]);
-        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
-        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+1]]);
-        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[3*i+2]]);
-      }
-    } else {
-      mk.type = visualization_msgs::Marker::TRIANGLE_LIST;
-      mk.scale.x = mk.scale.y = mk.scale.z = 1.0;
-      for (std::size_t i = 0 ; i < shape_msg.triangles.size(); i+=3)
-      {
-        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[i]]);
-        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[i+1]]);
-        mk.points.push_back(shape_msg.vertices[shape_msg.triangles[i+2]]);
-      }
-    }
-    return true;
-  default:
-    ROS_ERROR("Unknown shape type: %d", (int)shape_msg.type);
-    return false;
-  }
-  return true;
 }
 
 bool constructMsgFromShape(const Shape* shape, shape_msgs::Shape &shape_msg)
@@ -596,57 +511,5 @@ bool constructMsgFromShape(const StaticShape* shape, shape_msgs::StaticShape &sh
   }
   return true;
 }
-
-bool getShapeExtents(const shape_msgs::Shape& shape_msg,
-                     double& x_extent,
-                     double& y_extent,
-                     double& z_extent)
-{
-  if(shape_msg.type == shape_msgs::Shape::SPHERE) {
-    if(shape_msg.dimensions.size() != 1) return false;
-    x_extent = y_extent = z_extent = shape_msg.dimensions[0];
-  } else if(shape_msg.type == shape_msgs::Shape::BOX) {
-    if(shape_msg.dimensions.size() != 3) return false;
-    x_extent = shape_msg.dimensions[0];
-    y_extent = shape_msg.dimensions[1];
-    z_extent = shape_msg.dimensions[2];
-  } else if(shape_msg.type == shape_msgs::Shape::CYLINDER) {
-    if(shape_msg.dimensions.size() != 2) return false;
-    x_extent = shape_msg.dimensions[0];
-    y_extent = shape_msg.dimensions[0];
-    z_extent = shape_msg.dimensions[1];
-  } else if(shape_msg.type == shape_msgs::Shape::MESH) {
-    if(shape_msg.vertices.size() == 0) return false;
-    double xmin = DBL_MAX, ymin = DBL_MAX, zmin = DBL_MAX;
-    double xmax = -DBL_MAX, ymax = -DBL_MAX, zmax = -DBL_MAX;
-    for(unsigned int i = 0; i < shape_msg.vertices.size(); i++) {
-      if(shape_msg.vertices[i].x > xmax) {
-        xmax = shape_msg.vertices[i].x;
-      }
-      if(shape_msg.vertices[i].x < xmin) {
-        xmin = shape_msg.vertices[i].x;
-      }
-      if(shape_msg.vertices[i].y > ymax) {
-        ymax = shape_msg.vertices[i].y;
-      }
-      if(shape_msg.vertices[i].y < ymin) {
-        ymin = shape_msg.vertices[i].y;
-      }
-      if(shape_msg.vertices[i].z > zmax) {
-        zmax = shape_msg.vertices[i].z;
-      }
-      if(shape_msg.vertices[i].z < zmin) {
-        zmin = shape_msg.vertices[i].z;
-      }
-    }
-    x_extent = xmax-xmin;
-    y_extent = ymax-ymin;
-    z_extent = zmax-zmin;
-  } else {
-    return false;
-  }  
-  return true;
-}
-
 
 }
