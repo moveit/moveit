@@ -31,6 +31,7 @@
 
 #include <moveit_manipulation_visualization/grasp_generator_dummy.h>
 #include <geometric_shapes/shape_operations.h>
+#include <shape_utils/shape_extents.h>
 
 namespace moveit_manipulation_visualization {
 
@@ -58,7 +59,7 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
   grasps.resize(4);
   
   double xex, yex, zex;
-  shapes::getShapeExtents(co.shapes[0], xex, yex, zex);
+  shape_utils::getShapeExtents(co.shapes[0], xex, yex, zex);
   
   //FRONT
   planning_models::msgFromPose(ident, grasps[0].grasp_pose);
