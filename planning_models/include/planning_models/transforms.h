@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_MODELS_TRANSFORMS_
-#define PLANNING_MODELS_TRANSFORMS_
+#ifndef MOVEIT_PLANNING_MODELS_TRANSFORMS_
+#define MOVEIT_PLANNING_MODELS_TRANSFORMS_
 
 #include <planning_models/kinematic_state.h>
 #include <geometry_msgs/TransformStamped.h>

@@ -305,6 +305,21 @@ bool planning_models::KinematicState::satisfiesBounds(const std::vector<std::str
   return true;
 }
 
+bool planning_models::KinematicState::satisfiesBounds(void) const
+{
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
+    if (!joint_state_vector_[i]->satisfiesBounds())
+      return false;
+  return true;
+}
+
+void planning_models::KinematicState::enforceBounds(void)
+{
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
+    joint_state_vector_[i]->enforceBounds();
+  updateLinkTransforms();
+}
+
 const planning_models::KinematicState::JointStateGroup* planning_models::KinematicState::getJointStateGroup(const std::string &name) const
 {
   if(joint_state_group_map_.find(name) == joint_state_group_map_.end()) return NULL;
@@ -521,15 +536,6 @@ bool planning_models::KinematicState::JointState::allVariablesAreDefined(const s
   const std::map<std::string, unsigned int> &vim = getVariableIndexMap();
   for (std::map<std::string, unsigned int>::const_iterator it = vim.begin() ; it != vim.end() ; ++it)
     if (joint_value_map.find(it->first) == joint_value_map.end())
-      return false;
-  return true;
-}
-
-bool planning_models::KinematicState::JointState::satisfiesBounds(void) const
-{
-  const std::vector<std::string> &vn = getVariableNames();
-  for (std::size_t i = 0 ; i < vn.size() ; ++i)
-    if (!joint_model_->isVariableWithinBounds(vn[i], joint_state_values_[i]))
       return false;
   return true;
 }

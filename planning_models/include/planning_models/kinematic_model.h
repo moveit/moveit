@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#ifndef PLANNING_MODELS_KINEMATIC_MODEL_
-#define PLANNING_MODELS_KINEMATIC_MODEL_
+#ifndef MOVEIT_PLANNING_MODELS_KINEMATIC_MODEL_
+#define MOVEIT_PLANNING_MODELS_KINEMATIC_MODEL_
 
 #include <urdf/model.h>
 #include <srdf/model.h>
@@ -148,6 +148,12 @@ public:
     /** \brief Check if a particular variable satisfies the specified bounds */
     virtual bool isVariableWithinBounds(const std::string& variable, double value) const;
     
+    /** \brief Check if the set of values for the variables of this joint are within bounds. */
+    virtual bool satisfiesBounds(const std::vector<double> &values) const;
+
+    /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
+    virtual void enforceBounds(std::vector<double> &values) const;
+
     /** \brief Get the names of the variables that make up this joint, in the order they appear in corresponding states.
         For single DOF joints, this will be just the joint name. */
     const std::vector<std::string>& getVariableNames(void) const
@@ -159,6 +165,12 @@ public:
     const std::vector<std::string>& getLocalVariableNames(void) const
     {
       return local_names_;
+    }
+    
+    /** \brief Get the variable bounds for this joint, in the same order as the names returned by getVariableNames() */
+    const std::vector<std::pair<double, double> > &getVariableBounds(void) const
+    {
+      return variable_bounds_;
     }
     
     /** \brief Check if a particular variable is known to this joint */
@@ -289,6 +301,12 @@ public:
     
     PlanarJointModel(const std::string& name);
     
+    virtual bool isVariableWithinBounds(const std::string& variable, double value) const;
+    virtual void enforceBounds(std::vector<double> &values) const;
+
+    /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this function
+    void normalizeRotation(std::vector<double> &values) const;
+    
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double>& joint_values) const;
     virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
@@ -301,7 +319,11 @@ public:
   public:
     
     FloatingJointModel(const std::string& name);
+    virtual void enforceBounds(std::vector<double> &values) const;
     
+    /// Normalize the quaternion (warn if norm is 0, and set to identity)
+    void normalizeRotation(std::vector<double> &values) const;
+
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double>& joint_values) const;
     virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
@@ -342,8 +364,10 @@ public:
 
     RevoluteJointModel(const std::string& name);
 
-    virtual std::vector<moveit_msgs::JointLimits> getJointLimits() const;
-    
+    virtual std::vector<moveit_msgs::JointLimits> getJointLimits(void) const;
+    virtual bool isVariableWithinBounds(const std::string& variable, double value) const;
+    virtual void enforceBounds(std::vector<double> &values) const;
+
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const;
     virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;

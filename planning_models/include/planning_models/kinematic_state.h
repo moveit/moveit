@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#ifndef PLANNING_MODELS_KINEMATIC_STATE_
-#define PLANNING_MODELS_KINEMATIC_STATE_
+#ifndef MOVEIT_PLANNING_MODELS_KINEMATIC_STATE_
+#define MOVEIT_PLANNING_MODELS_KINEMATIC_STATE_
 
 #include "planning_models/kinematic_model.h"
 #include <boost/scoped_ptr.hpp>
@@ -66,9 +66,9 @@ public:
   
   /** \brief Forward definition of a joint group state */
   class JointStateGroup;
-
+  
   friend class LinkState;
-
+  
   /** @brief Definition of a joint state - representation of state for a single joint */
   class JointState
   {
@@ -112,7 +112,16 @@ public:
     bool allVariablesAreDefined(const std::map<std::string, double>& value_map) const;
     
     /** \brief Checks if the current joint state values are all within the bounds set in the model */
-    bool satisfiesBounds(void) const;
+    bool satisfiesBounds(void) const
+    {
+      return joint_model_->satisfiesBounds(joint_state_values_);
+    }
+    
+    /** \brief Force the joint to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
+    void enforceBounds(void)
+    {
+      joint_model_->enforceBounds(joint_state_values_);
+    }
     
     /** \brief Get the name of the model associated with this state */
     const std::string& getName(void) const
@@ -137,6 +146,12 @@ public:
     {
       return joint_state_values_;
     }
+
+    /** \brief Get the joint state values stored in the required order */
+    std::vector<double>& getVariableValues(void)
+    {
+      return joint_state_values_;
+    }
     
     /** \brief Get the required name order for the joint state values */
     const std::vector<std::string>& getVariableNames(void) const
@@ -144,18 +159,24 @@ public:
       return joint_model_->getVariableNames();
     }
     
+    /** \brief Get the variable bounds for this joint, in the same order as the names returned by getVariableNames() */
+    const std::vector<std::pair<double, double> > &getVariableBounds(void) const
+    {
+      return joint_model_->getVariableBounds();
+    }
+    
     /** \brief Get the current variable transform */
     const Eigen::Affine3d& getVariableTransform(void) const
     {
       return variable_transform_;
     }
-    
+  
     /** \brief Get the joint model corresponding to this state*/
     const KinematicModel::JointModel* getJointModel(void) const
     {
       return joint_model_;
     }
-    
+  
     /** \brief The set of variables that make up the state value of a joint are stored in some order. This map
         gives the position of each variable in that order, for each variable name */
     const std::map<std::string, unsigned int>& getVariableIndexMap(void) const
@@ -576,8 +597,14 @@ public:
   /** \brief Check if a particular set of joints satisifes its bounds.*/
   bool satisfiesBounds(const std::vector<std::string>& joints) const;
   
-  /** \brief Check if a joint satisifes its bounds.*/
+  /** \brief Check if a joint satisfies its bounds.*/
   bool satisfiesBounds(const std::string& joint) const;
+
+  /** \brief Check if all joints satisfy their bounds.*/
+  bool satisfiesBounds(void) const;
+
+  /** \brief Make sure all state variables are within bounds and normalized.*/
+  void enforceBounds(void);
   
   /** \brief Get a group by its name */
   const JointStateGroup* getJointStateGroup(const std::string &name) const;

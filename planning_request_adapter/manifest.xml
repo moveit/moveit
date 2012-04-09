@@ -1,0 +1,19 @@
+<package>
+  <description brief="planning_request_adapter">
+
+     planning_request_adapter
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planning_request_adapter</url>
+  <depend package="planning_models"/>
+  <depend package="planning_scene"/>
+  <depend package="planning_interface"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_request_adapter"/>
+  </export>
+
+</package>
