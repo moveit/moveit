@@ -36,9 +36,10 @@
 
 #include "planning_scene_monitor/current_state_monitor.h"
 #include <tf_conversions/tf_eigen.h>
+#include <limits>
 
 planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf) :
-  tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(1e-3)
+  tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(std::numeric_limits<double>::epsilon())
 {
 }
 
@@ -191,7 +192,16 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
   std::map<std::string, double> joint_state_map;
   const std::map<std::string, std::pair<double, double> > &bounds = kmodel_->getAllVariableBounds();
   for (std::size_t i = 0 ; i < n ; ++i)
-  {
+  {    
+    joint_state_map[joint_state->name[i]] = joint_state->position[i];
+    joint_time_[joint_state->name[i]] = joint_state->header.stamp;
+    
+    // continuous joints wrap, so we don't modify them
+    const planning_models::KinematicModel::JointModel* jm = kmodel_->getJointModel(joint_state->name[i]);
+    if (jm && jm->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
+      if (static_cast<const planning_models::KinematicModel::RevoluteJointModel*>(jm)->isContinuous())
+        continue;
+    
     std::map<std::string, std::pair<double, double> >::const_iterator bi = bounds.find(joint_state->name[i]);
     // if the read variable is 'almost' within bounds (up to error_ difference), then consider it to be within bounds
     if (bi != bounds.end())
@@ -201,12 +211,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       else
         if (joint_state->position[i] > bi->second.second && joint_state->position[i] <= bi->second.second + error_)
           joint_state_map[joint_state->name[i]] = bi->second.second;
-        else
-          joint_state_map[joint_state->name[i]] = joint_state->position[i];
     }
-    else
-      joint_state_map[joint_state->name[i]] = joint_state->position[i];
-    joint_time_[joint_state->name[i]] = joint_state->header.stamp;
   }
   bool set_map_values = true;
   

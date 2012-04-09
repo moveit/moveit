@@ -1,0 +1,21 @@
+<package>
+  <description brief="planning_request_adapter_plugins">
+
+     planning_request_adapter_plugins
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planning_request_adapter_plugins</url>
+  <depend package="planning_request_adapter"/>
+  <depend package="planning_scene"/>
+  <depend package="pluginlib"/>
+  <depend package="roscpp"/>
+
+  <export>
+    <planning_request_adapter plugin="${prefix}/lib/plugin_description.xml"/>
+  </export>
+
+
+</package>
