@@ -63,7 +63,8 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description)
-{
+{ 
+  bounds_error_ = std::numeric_limits<double>::epsilon();
   collision_object_subscriber_ = NULL;
   collision_object_filter_ = NULL;
   attached_collision_object_subscriber_ = NULL;
@@ -311,7 +312,8 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
   if (scene_)
   {
     if (!current_state_monitor_)
-      current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
+      current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));  
+    current_state_monitor_->setBoundsError(bounds_error_);
     current_state_monitor_->setOnStateUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
     current_state_monitor_->startStateMonitor(joint_states_topic);
     
@@ -356,6 +358,13 @@ void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateFrequency(doubl
   else
     dt_state_update_ = 0.0;
   ROS_INFO("Updating internal planning scene state at most every %lf seconds", dt_state_update_);
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateBoundsError(double error)
+{
+  bounds_error_ = error;
+  if (current_state_monitor_)
+    current_state_monitor_->setBoundsError(error);
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(void)

@@ -121,6 +121,17 @@ public:
       @param hz the update frequency */
   void setStateUpdateFrequency(double hz);
 
+  /** @brief Sometimes the state reported by the robot is outside bounds (outside safety limits). This parameter specifies the accepted error in bounds.
+      If the read value is within \e error distance to the accepted safety limit bounds, the value is actually assumed to be the value of the bound itself,
+      instead of being slightly outside bounds. By default this value is machine epsilon. */
+  void setStateUpdateBoundsError(double error);
+
+  /** @brief Get the error that is considered acceptable for a state to be outside bounds. */
+  double getStateUpdateBoundsError(void) const
+  {
+    return bounds_error_;
+  }  
+  
   /** @brief Start the scene monitor
    *  @param scene_topic The name of the planning scene topic
    *  @param planning_scene_diff The name of the planning scene diff topic
@@ -254,7 +265,10 @@ protected:
 
   /// the amount of time to wait in between updates to the robot state (in seconds)
   double                                dt_state_update_;
-
+  
+  /// the error accepted when the state is reported as outside of bounds;
+  double                                bounds_error_;
+  
   std::map<std::string, std::vector<moveit_msgs::JointLimits > > individual_joint_limits_map_;
   std::map<std::string, std::vector<moveit_msgs::JointLimits> >  group_joint_limits_map_;
 
