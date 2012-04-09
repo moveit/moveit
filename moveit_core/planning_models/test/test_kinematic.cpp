@@ -533,6 +533,22 @@ TEST(FK, OneRobot)
 
     jn.push_back("monkey");
     EXPECT_FALSE(state.satisfiesBounds(jn));
+
+    std::map<std::string, double> upd_a;
+    upd_a["joint_a"] = 0.2;
+    state.setStateValues(upd_a);
+    EXPECT_TRUE(state.satisfiesBounds("joint_a"));
+    EXPECT_NEAR(state.getJointState("joint_a")->getVariableValues()[0], 0.2, 1e-3);
+    state.enforceBounds();
+    EXPECT_NEAR(state.getJointState("joint_a")->getVariableValues()[0], 0.2, 1e-3);
+    
+    upd_a["joint_a"] = 3.2;
+    state.setStateValues(upd_a);
+    EXPECT_TRUE(state.satisfiesBounds("joint_a"));
+    EXPECT_NEAR(state.getJointState("joint_a")->getVariableValues()[0], 3.2, 1e-3);
+    state.enforceBounds();
+    EXPECT_NEAR(state.getJointState("joint_a")->getVariableValues()[0], -3.083185, 1e-3);
+    EXPECT_TRUE(state.satisfiesBounds("joint_a"));
 }
 
 int main(int argc, char **argv)

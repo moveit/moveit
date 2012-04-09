@@ -36,10 +36,8 @@
 #define PLANNING_INTERFACE_PLANNING_INTERFACE_H
 
 #include <planning_scene/planning_scene.h>
-#include <planning_models/kinematic_model.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <moveit_msgs/MotionPlanDetailedResponse.h>
-#include <string>
 
 namespace planning_interface
 {
@@ -94,6 +92,9 @@ class Planner
     virtual void terminate(void) const = 0;
   
 };
+
+typedef boost::shared_ptr<Planner> PlannerPtr;
+typedef boost::shared_ptr<const Planner> PlannerConstPtr;
 
 } // planning_interface
 

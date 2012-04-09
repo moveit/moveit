@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_MODELS_CONVERSIONS_
-#define PLANNING_MODELS_CONVERSIONS_
+#ifndef MOVEIT_PLANNING_MODELS_CONVERSIONS_
+#define MOVEIT_PLANNING_MODELS_CONVERSIONS_
 
 #include <planning_models/transforms.h>
 #include <moveit_msgs/RobotState.h>
