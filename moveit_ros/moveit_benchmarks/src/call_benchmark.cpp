@@ -166,7 +166,6 @@ bool readOptions(const char *filename, BenchmarkOptions &opt)
       if (bpo)
       {
         boost::tokenizer<> tok(val);
-        std::stringstream ss(val);
         for(boost::tokenizer<>::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
           bpo->planners.push_back(*beg);
       }

@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+/* Author: Ioan Sucan */
+
 #include <planning_request_adapter/planning_request_adapter.h>
 #include <planning_models/conversions.h>
 #include <pluginlib/class_list_macros.h>
@@ -66,7 +68,7 @@ public:
       ROS_INFO_STREAM("Param '" << DT_PARAM_NAME << "' was set to " << max_dt_offset_);
   }
   
-  virtual std::string getDescription(void) const { return "Fix Start State"; }
+  virtual std::string getDescription(void) const { return "Fix Start State Bounds"; }
   
   
   virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
@@ -74,6 +76,8 @@ public:
                             const moveit_msgs::GetMotionPlan::Request &req, 
                             moveit_msgs::GetMotionPlan::Response &res) const
   {
+    ROS_DEBUG("Running '%s'", getDescription().c_str());
+    
     // get the specified start state
     planning_models::KinematicState start_state = planning_scene->getCurrentState();
     planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
@@ -159,8 +163,20 @@ public:
     
     // re-add the prefix state, if it was constructed
     if (solved && prefix)
-      addPrefixState(*prefix, res, max_dt_offset_, planning_scene->getTransforms());
-
+    {
+      // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
+      double d = max_dt_offset_;
+      if (res.trajectory.joint_trajectory.points.size() > 1 || res.trajectory.multi_dof_joint_trajectory.points.size() > 1)
+      {
+        double temp = (res.trajectory.joint_trajectory.points.size() > res.trajectory.multi_dof_joint_trajectory.points.size()) ? 
+          res.trajectory.joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.joint_trajectory.points.size() - 1) :
+          res.trajectory.multi_dof_joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.multi_dof_joint_trajectory.points.size() - 1);
+        if (temp < d)
+          d = temp;
+      }
+      addPrefixState(*prefix, res, d, planning_scene->getTransforms());
+    }
+    
     // re-add continuous joint offsets
     for (std::map<std::string, double>::const_iterator it = continuous_joints_offset.begin() ; it != continuous_joints_offset.end() ; ++it)
       for (std::size_t i = 0 ; i < res.trajectory.joint_trajectory.joint_names.size() ; ++i)
