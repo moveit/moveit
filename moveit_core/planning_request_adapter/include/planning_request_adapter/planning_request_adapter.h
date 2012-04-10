@@ -72,11 +72,11 @@ public:
                             moveit_msgs::GetMotionPlan::Response &res) const = 0;
 protected:
   
-  /// Add the state \e prefix as the first state to the trajectory result in \e res. The maximum duration to
-  /// heuristically assign to the new motion segment to be created is \e max_dt_offset seconds. Use \e transforms for
+  /// Add the state \e prefix as the first state to the trajectory result in \e res. The duration to
+  /// assign to the new motion segment to be created is \e dt_offset seconds. Use \e transforms for
   /// and frame transformations that need to be done.
   void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::GetMotionPlan::Response &res,
-                      double max_dt_offset, const planning_models::TransformsConstPtr &transforms) const;
+                      double dt_offset, const planning_models::TransformsConstPtr &transforms) const;
   
 };
 
