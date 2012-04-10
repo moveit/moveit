@@ -38,9 +38,12 @@
 
 #include <tf/transform_listener.h>
 #include <planning_interface/planning_interface.h>
+#include <planning_request_adapter/planning_request_adapter.h>
+
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <boost/tokenizer.hpp>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
 static const std::string DISPLAY_PATH_PUB_TOPIC = "display_trajectory";
@@ -101,6 +104,46 @@ public:
                        << "Available plugins: " << ss.str());
     }
 
+    // load the planner request adapters
+    std::string adapters;
+    if (nh_.getParam("request_adapters", adapters))
+    { 
+      try
+      {
+        adapter_plugin_loader_.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>("planning_request_adapter", "planning_request_adapter::PlanningRequestAdapter"));
+      }
+      catch(pluginlib::PluginlibException& ex)
+      {
+        ROS_ERROR_STREAM("Exception while creating planning plugin loader " << ex.what());
+      }
+      
+      boost::tokenizer<> tok(adapters);
+      std::vector<planning_request_adapter::PlanningRequestAdapterConstPtr> ads;
+      for(boost::tokenizer<>::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+      {
+        planning_request_adapter::PlanningRequestAdapterConstPtr ad;
+        try
+        {
+          ad.reset(adapter_plugin_loader_->createUnmanagedInstance(*beg));
+        }
+        catch (pluginlib::PluginlibException& ex)
+        {
+          ROS_ERROR_STREAM("Exception while planning adapter plugin '" << *beg << "': " << ex.what());
+        }
+        if (ad)
+          ads.push_back(ad);
+      }
+      if (!ads.empty())
+      {
+        adapter_chain_.reset(new planning_request_adapter::PlanningRequestAdapterChain());
+        for (std::size_t i = 0 ; i < ads.size() ; ++i)
+        {
+          ROS_INFO_STREAM("Using planning request adapter '" << ads[i]->getDescription() << "'");
+          adapter_chain_->addAdapter(ads[i]);
+        }
+      }
+    }
+    
     display_path_publisher_ = root_nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_PUB_TOPIC, 1, true);
 
     // start the action server
@@ -210,9 +253,12 @@ private:
   planning_scene_monitor::PlanningSceneMonitor           &psm_;
 
   std::string                                             planning_plugin_name_;
-  boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
-  boost::shared_ptr<planning_interface::Planner>                          planner_instance_;
+  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
+  planning_interface::PlannerPtr                                          planner_instance_;
   std::string                                                             group_name_;
+
+  boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
+  boost::scoped_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
   
   boost::shared_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;
   moveit_msgs::MoveGroupGoalConstPtr goal_;

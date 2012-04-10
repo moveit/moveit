@@ -21,7 +21,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 set(SOURCE_FILES
   src/empty_planning_request_adapter.cpp
-  src/fix_start_state_bounds_planning_request_adapter.cpp)
+  src/fix_start_state_bounds_planning_request_adapter.cpp
+  src/fix_start_state_path_constraints_planning_request_adapter.cpp)
 
 set(LIBRARY_NAME default_planning_request_adapters)
 include(CMakeDetermineSystem)
@@ -30,3 +31,5 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 else(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   rosbuild_add_library(${LIBRARY_NAME} ${SOURCE_FILES})
 endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+
+rosbuild_add_executable(list_plugins src/list.cpp)
