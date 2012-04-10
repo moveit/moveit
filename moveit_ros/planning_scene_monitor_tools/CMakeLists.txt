@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE Release)
+set(ROS_BUILD_TYPE Debug)
 
 rosbuild_init()
 
@@ -16,16 +16,6 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-rosbuild_add_boost_directories()
-
 rosbuild_add_executable(environment_server src/environment_server.cpp)
-target_link_libraries(environment_server ${PROJECT_NAME})
-
-#common commands for building c++ executables and libraries
-rosbuild_add_library(${PROJECT_NAME}
-  src/planning_scene_monitor.cpp
-  src/current_state_monitor.cpp)
-rosbuild_link_boost(${PROJECT_NAME} signals)
-
-rosbuild_add_executable(demo_scene demos/demo_scene.cpp)
-target_link_libraries(demo_scene ${PROJECT_NAME})
+rosbuild_add_executable(print_planning_model_info src/print_planning_model_info.cpp)
+rosbuild_add_executable(display_random_state src/display_random_state.cpp)
