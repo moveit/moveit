@@ -1,0 +1,7 @@
+/**
+\page planning_scene_monitor_tools Planning Scene Monitor Tools
+
+The planning_scene_monitor_tools package contains tools that operate with a planning scene monitor.
+ - \b print_planning_model_info This is a simple tool that allows viewing the information from the current URDF/SRDF represented by the known kinematic model (planning_models::KinematicModel). This is usually useful for debugging.
+ - \b display_random_state This is tools that publishes a scene message that is in fact an empty scene and the robot is at a random configuration. This is useful to test that forward kinematics works for example, and that the display works as expected.
+*/

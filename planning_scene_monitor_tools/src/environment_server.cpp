@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#include "planning_scene_monitor/planning_scene_monitor.h"
+#include <planning_scene_monitor/planning_scene_monitor.h>
 #include <tf/transform_listener.h>
 
 class EnvironmentServer

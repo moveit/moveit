@@ -1,0 +1,16 @@
+<package>
+  <description brief="planning_scene_monitor_tools">
+
+     planning_scene_monitor_tools
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planning_scene_monitor_tools</url>
+  <depend package="planning_scene_monitor"/>
+  <depend package="tf"/>
+
+</package>
+
+
