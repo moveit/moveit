@@ -57,21 +57,10 @@ bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planni
 }
 
 void planning_request_adapter::PlanningRequestAdapter::addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::GetMotionPlan::Response &res,
-                                                                      double max_dt_offset, const planning_models::TransformsConstPtr &transforms) const
+                                                                      double dt_offset, const planning_models::TransformsConstPtr &transforms) const
 {
   planning_models::kinematicStateToRobotState(prefix, res.trajectory_start);
-  
-  // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
-  double d = max_dt_offset;
-  if (res.trajectory.joint_trajectory.points.size() > 1 || res.trajectory.multi_dof_joint_trajectory.points.size() > 1)
-  {
-    double temp = (res.trajectory.joint_trajectory.points.size() > res.trajectory.multi_dof_joint_trajectory.points.size()) ? 
-      res.trajectory.joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.joint_trajectory.points.size() - 1) :
-      res.trajectory.multi_dof_joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.multi_dof_joint_trajectory.points.size() - 1);
-    if (temp < d)
-      d = temp;
-  }
-  ros::Duration dt(d);
+  ros::Duration dt(dt_offset);
   
   if (!res.trajectory.joint_trajectory.points.empty() && !res.trajectory.joint_trajectory.joint_names.empty())
   {
