@@ -494,7 +494,6 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   ot::Profiler::ScopedBlock sblock("PlanningContextSolve");
 
   ompl::time::point start = ompl::time::now();
-  ompl::time::point end_time = start + ompl::time::seconds(timeout);
   
   // clear previously computed solutions
   ompl_simple_setup_.getGoal()->clearSolutionPaths();
@@ -506,8 +505,8 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   if (gls)
     static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
   
-  // try to fix invalid input states, if any
-  fixInvalidInputStates(end_time);
+  // don't fix invalid states on purpose; this should be handled by planning request adapters
+  //  fixInvalidInputStates(end_time);
   
   ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
   
@@ -588,16 +587,6 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   if (ompl_simple_setup_.getGoal()->isApproximate())
     ROS_WARN("Computed solution is approximate");
 
-  // check to see if we need to prepend the start state (if a 'fixed' start state was used instead)
-  if (result)
-  {
-    og::PathGeometric &sol = ompl_simple_setup_.getSolutionPath();
-    ompl::base::ScopedState<> ompl_start_state(ompl_state_space_);
-    ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
-    if (!ompl_state_space_->equalStates(ompl_start_state.get(), sol.getStates().front()))
-      sol.getStates().insert(sol.getStates().begin(), ompl_simple_setup_.getSpaceInformation()->cloneState(ompl_start_state.get()));
-  }
-  
   return result;
 }
 

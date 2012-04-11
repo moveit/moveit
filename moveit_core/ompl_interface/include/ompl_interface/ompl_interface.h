@@ -182,10 +182,7 @@ protected:
   ModelBasedPlanningContextPtr prepareForSolve(const moveit_msgs::MotionPlanRequest &req,
                                                const planning_scene::PlanningSceneConstPtr& planning_scene, 
                                                moveit_msgs::MoveItErrorCodes *error_code,
-                                               unsigned int *attempts, double *timeout,
-                                               moveit_msgs::RobotState *prefix_state,
-                                               moveit_msgs::RobotTrajectory *prefix_trajectory,
-                                               double *prefix_plan_time) const;
+                                               unsigned int *attempts, double *timeout) const;
   
   /** \brief The kinematic model for which motion plans are computed */
   planning_models::KinematicModelConstPtr kmodel_;
