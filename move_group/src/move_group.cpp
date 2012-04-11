@@ -32,7 +32,6 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include <actionlib/client/action_client.h>
 #include <actionlib/server/simple_action_server.h>
 #include <moveit_msgs/MoveGroupAction.h>
 
@@ -45,7 +44,7 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <boost/tokenizer.hpp>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
+static const std::string ROBOT_DESCRIPTION = "robot_description";      // name of the robot description (a param name, so it can be changed externally)
 static const std::string DISPLAY_PATH_PUB_TOPIC = "display_trajectory";
 
 class MoveGroupAction
@@ -93,7 +92,8 @@ public:
     try
     {
       planner_instance_.reset(planner_plugin_loader_->createUnmanagedInstance(planning_plugin_name_));
-      planner_instance_->init(psm_.getPlanningScene()->getKinematicModel());
+      planner_instance_->init(psm_.getPlanningScene()->getKinematicModel());      
+      ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
     }
     catch(pluginlib::PluginlibException& ex)
     {
@@ -116,10 +116,10 @@ public:
       {
         ROS_ERROR_STREAM("Exception while creating planning plugin loader " << ex.what());
       }
-      
-      boost::tokenizer<> tok(adapters);
+      boost::char_separator<char> sep(" ");
+      boost::tokenizer<boost::char_separator<char> > tok(adapters, sep);
       std::vector<planning_request_adapter::PlanningRequestAdapterConstPtr> ads;
-      for(boost::tokenizer<>::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+      for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
       {
         planning_request_adapter::PlanningRequestAdapterConstPtr ad;
         try
@@ -144,16 +144,13 @@ public:
       }
     }
     
-    display_path_publisher_ = root_nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_PUB_TOPIC, 1, true);
+    display_path_publisher_ = root_nh_.advertise<moveit_msgs::DisplayTrajectory>("move_" + group_name_ + "/" + DISPLAY_PATH_PUB_TOPIC, 1, true);
 
     // start the action server
     action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_nh_, "move_" + group_name_, false));
     action_server_->registerGoalCallback(boost::bind(&MoveGroupAction::goalCallback, this));
     action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
     action_server_->start();
-    
-    // output status message
-    ROS_INFO("MoveGroup action for group '%s' running using planning plugin '%s'", group_name_.c_str(), planning_plugin_name_.c_str());
   }
   
   void goalCallback(void)
@@ -165,7 +162,22 @@ public:
       service_goal_thread_.reset();
     }
     goal_ = action_server_->acceptNewGoal();
-    service_goal_thread_.reset(new boost::thread(boost::bind(&MoveGroupAction::serviceGoalRequest, this)));
+    if (!goal_)
+    {
+      ROS_ERROR("Something unexpected happened. No goal found in callback for goal...");
+      return;
+    }
+    
+    if (!goal_->request.group_name.empty() && goal_->request.group_name != group_name_)
+    {
+      moveit_msgs::MoveGroupResult res;
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+      action_server_->setAborted(res, "Cannot accept requests for group '" + 
+                                 goal_->request.group_name  + "' when the move_group action is loaded for group '" +
+                                 group_name_ +  "'");
+    }
+    else
+      service_goal_thread_.reset(new boost::thread(boost::bind(&MoveGroupAction::serviceGoalRequest, this)));
   }
   
   void preemptCallback(void)
@@ -181,6 +193,8 @@ public:
     bool solved = false;
     moveit_msgs::GetMotionPlan::Request req;
     req.motion_plan_request = goal_->request;
+    if (req.motion_plan_request.group_name.empty())
+      req.motion_plan_request.group_name = group_name_;
     moveit_msgs::GetMotionPlan::Response res;
     try
     {
@@ -202,14 +216,31 @@ public:
       trajectory_execution::TrajectoryExecutionRequest ter;
       ter.group_name_ = group_name_;      
       ter.trajectory_ = res.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
-      trajectory_execution_.executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1));
-      ros::WallDuration d(0.01);
-      while (nh_.ok() && !execution_complete_ && !terminate_service_thread_)
+      if (trajectory_execution_.executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
       {
-        /// \TODO Check if the remainder of the path is still valid; If not, replan.
-        /// We need a callback in the trajectory monitor for this
-        d.sleep();
-      }      
+        ros::WallDuration d(0.01);
+        while (nh_.ok() && !execution_complete_ && !terminate_service_thread_)
+        {
+          /// \TODO Check if the remainder of the path is still valid; If not, replan.
+          /// We need a callback in the trajectory monitor for this
+          d.sleep();
+        }     
+        moveit_msgs::MoveGroupResult res;
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+        action_server_->setSucceeded(res, "Solution was found and executed.");
+      }
+      else
+      {
+        moveit_msgs::MoveGroupResult res;
+        //        res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+        action_server_->setAborted(res, "Solution was found but the controller failed to execute it.");
+      }
+    }
+    else
+    {
+      moveit_msgs::MoveGroupResult res;
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+      action_server_->setAborted(res, "No motion plan found. No execution attempted.");
     }
     
     setState(IDLE);
@@ -244,18 +275,19 @@ public:
   
   void status(void)
   {
+    ROS_INFO("MoveGroup action for group '%s' running using planning plugin '%s'", group_name_.c_str(), planning_plugin_name_.c_str());
   }
   
 private:
   
-  ros::NodeHandle                                         root_nh_;
-  ros::NodeHandle                                         nh_;
-  planning_scene_monitor::PlanningSceneMonitor           &psm_;
+  ros::NodeHandle root_nh_;
+  ros::NodeHandle nh_;
+  planning_scene_monitor::PlanningSceneMonitor &psm_;
 
-  std::string                                             planning_plugin_name_;
+  std::string planning_plugin_name_;
   boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
-  planning_interface::PlannerPtr                                          planner_instance_;
-  std::string                                                             group_name_;
+  planning_interface::PlannerPtr planner_instance_;
+  std::string group_name_;
 
   boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
   boost::scoped_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
@@ -278,7 +310,7 @@ private:
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "move_group", ros::init_options::AnonymousName); // this needs to be fixed so we can have multiple nodes named move_group_<group_name>
+  ros::init(argc, argv, "move_group", ros::init_options::AnonymousName);
   
   ros::AsyncSpinner spinner(1);
   spinner.start();
