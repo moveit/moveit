@@ -143,15 +143,15 @@ class TrajectoryExecutionMonitor
 
   /// \brief Execute a series of trajectories, in order.
   /// The callbacks will get called, in order, after each trajectory is finished executing.
-  void executeTrajectories(const std::vector<TrajectoryExecutionRequest>& to_execute,
+  bool executeTrajectories(const std::vector<TrajectoryExecutionRequest>& to_execute,
                            const ExecutionCompleteCallbackFn& done_callback = ExecutionCompleteCallbackFn());
 
   /// \brief Execute one trajectory (calls executeTrajectories())
-  void executeTrajectory(const TrajectoryExecutionRequest& to_execute,
+  bool executeTrajectory(const TrajectoryExecutionRequest& to_execute,
                          const ExecutionCompleteCallbackFn& done_callback = ExecutionCompleteCallbackFn())
   {
     std::vector<TrajectoryExecutionRequest> to_execute_v(1, to_execute);
-    executeTrajectories(to_execute_v, done_callback);
+    return executeTrajectories(to_execute_v, done_callback);
   }
   
   void switchAssociatedStopStartControllers(const std::string& group_name,
@@ -160,10 +160,12 @@ class TrajectoryExecutionMonitor
   std::string getCurrentController(const std::string& group_name) const;
 
   std::string getDefaultControllerName(const std::string& group_name) const {
-    if(default_trajectory_controller_handler_map_.find(group_name) == default_trajectory_controller_handler_map_.end()) {
-      return std::string("");
-    }
-    return default_trajectory_controller_handler_map_.at(group_name)->getControllerName();
+    std::map<std::string, boost::shared_ptr<TrajectoryControllerHandler> >::const_iterator it =
+      default_trajectory_controller_handler_map_.find(group_name);    
+    if(it != default_trajectory_controller_handler_map_.end())
+      if (it->second)
+        return it->second->getControllerName();
+    return std::string("");
   }
 
   const std::map<std::string, bool>& getOriginalControllerConfiguration() const {

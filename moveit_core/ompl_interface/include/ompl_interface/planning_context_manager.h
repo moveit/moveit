@@ -70,16 +70,28 @@ public:
       @param kinematics_allocators Allocate the inverse kinematics solvers*/
   void specifyIKSolvers(const std::map<std::string, kc::KinematicsAllocator> &kinematics_allocators);
 
-  /* \brief Get the maximum number of sampling attempts allowed */
-  unsigned int getMaximumSamplingAttempts(void) const
+  /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
+  unsigned int getMaximumStateSamplingAttempts(void) const
   {
-    return max_sampling_attempts_;
+    return max_state_sampling_attempts_;
   }
   
-  /* \brief Set the maximum number of sampling attempts allowed */
-  void setMaximumSamplingAttempts(unsigned int max_sampling_attempts)
+  /* \brief Set the maximum number of sampling attempts allowed when sampling states is needed */
+  void setMaximumStateSamplingAttempts(unsigned int max_state_sampling_attempts)
   {
-    max_sampling_attempts_ = max_sampling_attempts;
+    max_state_sampling_attempts_ = max_state_sampling_attempts;
+  }
+
+  /* \brief Get the maximum number of sampling attempts allowed when sampling goals is needed */
+  unsigned int getMaximumGoalSamplingAttempts(void) const
+  {
+    return max_goal_sampling_attempts_;
+  }
+  
+  /* \brief Set the maximum number of sampling attempts allowed when sampling goals is needed */
+  void setMaximumGoalSamplingAttempts(unsigned int max_goal_sampling_attempts)
+  {
+    max_goal_sampling_attempts_ = max_goal_sampling_attempts;
   }
   
   /* \brief Get the maximum number of goal samples */
@@ -195,7 +207,10 @@ protected:
   unsigned int                                          max_goal_samples_;
   
   /// maximum number of attempts to be made at sampling a state when attempting to find valid states that satisfy some set of constraints
-  unsigned int                                          max_sampling_attempts_;
+  unsigned int                                          max_state_sampling_attempts_;
+
+  /// maximum number of attempts to be made at sampling goals
+  unsigned int                                          max_goal_sampling_attempts_;
   
   /// when planning in parallel, this is the maximum number of threads to use at one time
   unsigned int                                          max_planning_threads_;

@@ -66,7 +66,6 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   *timeout = req.allowed_planning_time.toSec();
   if (*timeout <= 0.0)
   {
-    error_code->val = moveit_msgs::MoveItErrorCodes::INVALID_ALLOWED_PLANNING_TIME;
     ROS_INFO("The timeout for planning must be positive (%lf specified). Assuming one second instead.", *timeout);
     *timeout = 1.0;
   }

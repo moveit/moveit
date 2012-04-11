@@ -53,8 +53,8 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
                                                                      const ModelBasedPlanningContextSpecification &spec) :
   spec_(spec), name_(name), ompl_state_space_(state_space), complete_initial_robot_state_(ompl_state_space_->getKinematicModel()),
   ompl_simple_setup_(ompl_state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
-  last_plan_time_(0.0), last_simplify_time_(0.0), max_goal_samples_(0), max_sampling_attempts_(0), max_planning_threads_(0),
-  max_velocity_(0), max_acceleration_(0.0), max_solution_segment_length_(0.0)
+  last_plan_time_(0.0), last_simplify_time_(0.0), max_goal_samples_(0), max_state_sampling_attempts_(0), max_goal_sampling_attempts_(0), 
+  max_planning_threads_(0), max_velocity_(0), max_acceleration_(0.0), max_solution_segment_length_(0.0)
 {
   ompl_simple_setup_.getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));

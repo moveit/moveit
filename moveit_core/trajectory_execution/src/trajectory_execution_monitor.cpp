@@ -65,7 +65,7 @@ void TrajectoryExecutionMonitor::addTrajectoryControllerHandler(boost::shared_pt
   }
 }
 
-void TrajectoryExecutionMonitor::executeTrajectories(const std::vector<TrajectoryExecutionRequest>& to_execute,
+bool TrajectoryExecutionMonitor::executeTrajectories(const std::vector<TrajectoryExecutionRequest>& to_execute,
                                                      const ExecutionCompleteCallbackFn& done_callback) {
   
   execution_data_ = to_execute;
@@ -74,9 +74,10 @@ void TrajectoryExecutionMonitor::executeTrajectories(const std::vector<Trajector
   
   current_trajectory_index_ = 0;
   
-  if(!sendTrajectory(execution_data_[current_trajectory_index_])) {
+  bool res = sendTrajectory(execution_data_[current_trajectory_index_]);
+  if(!res)
     result_callback_(execution_result_vector_);
-  }
+  return res;
 };
 
 bool TrajectoryExecutionMonitor::sendTrajectory(const TrajectoryExecutionRequest& ter) {
@@ -116,6 +117,9 @@ bool TrajectoryExecutionMonitor::sendTrajectory(const TrajectoryExecutionRequest
   } else {
     last_requested_handler_ = default_trajectory_controller_handler_map_[ter.group_name_];
   }
+  if (!last_requested_handler_)
+    return false;
+  
   // Enable overshoot, if required
   if(ter.monitor_overshoot_)
   {
