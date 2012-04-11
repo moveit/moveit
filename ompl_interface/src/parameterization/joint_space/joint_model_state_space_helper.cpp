@@ -210,6 +210,7 @@ void ompl_interface::JointModelStateSpaceHelper::copyToKinematicState(const std:
 
 void ompl_interface::JointModelStateSpaceHelper::copyToOMPLState(ob::State *state, const std::vector<double> &values) const
 {
+  state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
   ob::CompoundState *cstate = state->as<ob::CompoundState>();
   unsigned int j = 0;
   for (unsigned int i = 0 ; i < components_.size() ; ++i)
@@ -245,7 +246,8 @@ void ompl_interface::JointModelStateSpaceHelper::copyToOMPLState(ob::State *stat
 }
 
 void ompl_interface::JointModelStateSpaceHelper::copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const
-{
+{  
+  state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
   ob::CompoundState *cstate = state->as<ob::CompoundState>();
   unsigned int j = 0;
   for (unsigned int i = 0 ; i < components_.size() ; ++i)

@@ -62,15 +62,15 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
-          ROS_DEBUG("Collision between '%s' and '%s' is always allowed. No contacts are computed.",
-                   cd1->getID().c_str(), cd2->getID().c_str());
+          ROS_DEBUG_NAMED("allowed_collisions", "Collision between '%s' and '%s' is always allowed. No contacts are computed.",
+                          cd1->getID().c_str(), cd2->getID().c_str());
       }
       else
         if (type == AllowedCollision::CONDITIONAL)
         {
           cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), dcf);
           if (cdata->req_->verbose)
-            ROS_DEBUG("Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(), cd2->getID().c_str());
+            ROS_DEBUG_NAMED("allowed_collisions", "Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(), cd2->getID().c_str());
         }
     }
   }
@@ -83,8 +83,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     {
       always_allow_collision = true;
       if (cdata->req_->verbose)
-        ROS_INFO("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
-                 cd1->getID().c_str(), cd2->getID().c_str());
+        ROS_DEBUG_NAMED("allowed_collisions", "Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                        cd1->getID().c_str(), cd2->getID().c_str());
     }
   }
   else
@@ -95,8 +95,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
-          ROS_INFO("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
-                   cd2->getID().c_str(), cd1->getID().c_str());
+          ROS_DEBUG_NAMED("allowed_collisions", "Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                          cd2->getID().c_str(), cd1->getID().c_str());
       }
     }
   
@@ -105,7 +105,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     return false;
 
   if (cdata->req_->verbose)
-    ROS_INFO_STREAM("Actually checking collisions between " << cd1->getID() << " and " << cd2->getID());
+    ROS_DEBUG_STREAM_NAMED("allowed_collisions", "Actually checking collisions between " << cd1->getID() << " and " << cd2->getID());
   
   // see if we need to compute a contact
   std::size_t want_contact_count = 0;
@@ -137,8 +137,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     if (num_contacts > 0)
     {
       if (cdata->req_->verbose)
-        ROS_INFO("Found %d contacts between '%s' and '%s'. These contacts will be evaluated to check if they are accepted or not",
-                 num_contacts, cd1->getID().c_str(), cd2->getID().c_str());       
+        ROS_INFO_NAMED("contact_information", "Found %d contacts between '%s' and '%s'. These contacts will be evaluated to check if they are accepted or not",
+                       num_contacts, cd1->getID().c_str(), cd2->getID().c_str());       
       Contact c;
       const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
@@ -155,11 +155,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
             cdata->res_->contacts[pc].push_back(c);
             cdata->res_->contact_count++;
             if (cdata->req_->verbose)
-              ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was stored.", cd1->getID().c_str(), cd2->getID().c_str());
+              ROS_INFO_NAMED("contact_information", "Found unacceptable contact between '%s' and '%s'. Contact was stored.",
+                             cd1->getID().c_str(), cd2->getID().c_str());
           }
           else
             if (cdata->req_->verbose)
-              ROS_INFO("Found unacceptable contact between '%s' and '%s'. Contact was not stored.", cd1->getID().c_str(), cd2->getID().c_str());
+              ROS_INFO_NAMED("contact_information", "Found unacceptable contact between '%s' and '%s'. Contact was not stored.",
+                             cd1->getID().c_str(), cd2->getID().c_str());
           cdata->res_->collision = true;
           if (want_contact_count == 0)
             break;
@@ -213,7 +215,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         cdata->res_->collision = true;
         if (cdata->req_->verbose)
           ROS_INFO_NAMED("contact_information", "Found a contact between '%s' and '%s', which constitutes a collision. Contact information is not stored.",
-                   cd1->getID().c_str(), cd2->getID().c_str());
+                         cd1->getID().c_str(), cd2->getID().c_str());
       }
     }
   }
