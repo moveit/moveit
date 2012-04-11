@@ -18,9 +18,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_boost_directories()
 
-rosbuild_add_executable(environment_server src/environment_server.cpp)
-target_link_libraries(environment_server ${PROJECT_NAME})
-
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME}
   src/planning_scene_monitor.cpp
