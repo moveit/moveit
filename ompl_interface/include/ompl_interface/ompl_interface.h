@@ -117,14 +117,16 @@ public:
   ModelBasedPlanningContextPtr getPlanningContext(const moveit_msgs::MotionPlanRequest &req) const
   {
     ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(req);
-    configureConstraints(ctx);
+    if (ctx)
+      configureConstraints(ctx);
     return ctx;
   }
   
   ModelBasedPlanningContextPtr getPlanningContext(const std::string &config, const std::string &factory_type = "") const
   {
     ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(config, factory_type);
-    configureConstraints(ctx);
+    if (ctx)
+      configureConstraints(ctx);
     return ctx;
   }
     

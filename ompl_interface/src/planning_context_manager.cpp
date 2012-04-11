@@ -98,7 +98,7 @@ struct PlanningContextManager::CachedContexts
 }
 
 ompl_interface::PlanningContextManager::PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel) :
-  kmodel_(kmodel), max_goal_samples_(20), max_sampling_attempts_(10), max_planning_threads_(4),
+  kmodel_(kmodel), max_goal_samples_(10), max_state_sampling_attempts_(10), max_goal_sampling_attempts_(1000), max_planning_threads_(4),
   max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
   last_planning_context_.reset(new LastPlanningContext());
@@ -299,7 +299,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 
   context->setMaximumPlanningThreads(max_planning_threads_);
   context->setMaximumGoalSamples(max_goal_samples_);
-  context->setMaximumSamplingAttempts(max_sampling_attempts_);
+  context->setMaximumStateSamplingAttempts(max_state_sampling_attempts_);
+  context->setMaximumGoalSamplingAttempts(max_goal_sampling_attempts_);
   context->setMaximumVelocity(max_velocity_);
   context->setMaximumAcceleration(max_acceleration_);
   if (max_solution_segment_length_ <= std::numeric_limits<double>::epsilon())

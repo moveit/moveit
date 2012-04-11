@@ -143,25 +143,37 @@ public:
     return path_constraints_;
   }
   
-  /* \brief Get the maximum number of sampling attempts allowed */
-  unsigned int getMaximumSamplingAttempts(void) const
+  /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
+  unsigned int getMaximumStateSamplingAttempts(void) const
   {
-    return max_sampling_attempts_;
+    return max_state_sampling_attempts_;
   }
   
-  /* \brief Set the maximum number of sampling attempts allowed */
-  void setMaximumSamplingAttempts(unsigned int max_sampling_attempts)
+  /* \brief Set the maximum number of sampling attempts allowed when sampling states is needed */
+  void setMaximumStateSamplingAttempts(unsigned int max_state_sampling_attempts)
   {
-    max_sampling_attempts_ = max_sampling_attempts;
+    max_state_sampling_attempts_ = max_state_sampling_attempts;
+  }
+
+  /* \brief Get the maximum number of sampling attempts allowed when sampling goals is needed */
+  unsigned int getMaximumGoalSamplingAttempts(void) const
+  {
+    return max_goal_sampling_attempts_;
   }
   
-  /* \brief Get the maximum number of goal samples */
+  /* \brief Set the maximum number of sampling attempts allowed when sampling goals is needed */
+  void setMaximumGoalSamplingAttempts(unsigned int max_goal_sampling_attempts)
+  {
+    max_goal_sampling_attempts_ = max_goal_sampling_attempts;
+  }
+  
+  /* \brief Get the maximum number of valid goal samples to store */
   unsigned int getMaximumGoalSamples(void) const
   {
     return max_goal_samples_;
   }
   
-  /* \brief Set the maximum number of goal samples */
+  /* \brief Set the maximum number of valid goal samples to store */
   void setMaximumGoalSamples(unsigned int max_goal_samples)
   {
     max_goal_samples_ = max_goal_samples;
@@ -319,11 +331,14 @@ protected:
   /// the time spent simplifying the last plan
   double                                                  last_simplify_time_;  
 
-  /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
+  /// maximum number of valid states to store in the goal region for any planning request (when such sampling is possible)
   unsigned int                                            max_goal_samples_;
 
-    /// maximum number of attempts to be made at sampling a state when attempting to find valid states that satisfy some set of constraints
-  unsigned int                                            max_sampling_attempts_;
+  /// maximum number of attempts to be made at sampling a state when attempting to find valid states that satisfy some set of constraints
+  unsigned int                                            max_state_sampling_attempts_;
+
+  /// maximum number of attempts to be made at sampling a goal states
+  unsigned int                                            max_goal_sampling_attempts_;
   
   /// when planning in parallel, this is the maximum number of threads to use at one time
   unsigned int                                            max_planning_threads_;

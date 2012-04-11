@@ -52,7 +52,7 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedP
   
 bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ob::GoalLazySamples *gls, ob::State *newGoal)
 {
-  unsigned int ma = planning_context_->getMaximumSamplingAttempts();
+  unsigned int ma = planning_context_->getMaximumGoalSamplingAttempts();
 
   // terminate after too many attempts
   if (gls->samplingAttemptsCount() >= ma)
@@ -113,7 +113,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ob::GoalLazyS
 
 bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples *gls, ob::State *newGoal)
 {
-  unsigned int ma = planning_context_->getMaximumSamplingAttempts();
+  unsigned int ma = planning_context_->getMaximumGoalSamplingAttempts();
 
   // terminate after too many attempts
   if (gls->samplingAttemptsCount() >= ma)
@@ -128,7 +128,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
 
   std::vector<double> values;
   for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
-    if (constraint_sampler_->sample(values, planning_context_->getCompleteInitialRobotState(), ma))
+    if (constraint_sampler_->sample(values, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
     {
       state_.getJointStateGroup(planning_context_->getJointModelGroupName())->setStateValues(values);
       double distance = 0.0;
