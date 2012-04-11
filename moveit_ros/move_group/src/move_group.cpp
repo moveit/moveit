@@ -198,7 +198,10 @@ public:
     moveit_msgs::GetMotionPlan::Response res;
     try
     {
-      solved = planner_instance_->solve(psm_.getPlanningScene(), req, res);
+      if (adapter_chain_)
+        solved = adapter_chain_->adaptAndPlan(planner_instance_, psm_.getPlanningScene(), req, res);
+      else
+        solved = planner_instance_->solve(psm_.getPlanningScene(), req, res);
     }
     catch(std::runtime_error &ex)
     {

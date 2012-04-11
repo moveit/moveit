@@ -128,7 +128,7 @@ public:
           if (vb[j].first - vv[j] < bounds_dist_)
           {
             ROS_INFO("Starting state is just outside bounds (variable '%s'). Assuming within bounds.", vn[j].c_str());
-            update[vn[j]] = vb[j].first;
+            update[vn[j]] = std::min(vb[j].first + std::numeric_limits<double>::epsilon(),  vb[j].second);
           }
           else
             ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf < %lf (by more than %lf). "
@@ -140,7 +140,7 @@ public:
           if (vv[j] - vb[j].second < bounds_dist_)
           {
             ROS_INFO("Starting state is just outside bounds (variable '%s'). Assuming within bounds.", vn[j].c_str());
-            update[vn[j]] = vb[j].first;
+            update[vn[j]] = std::max(vb[j].first, vb[j].second - std::numeric_limits<double>::epsilon());
           }
           else
             ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf < %lf (by more than %lf). "
