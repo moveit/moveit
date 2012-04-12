@@ -361,7 +361,7 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const std::map
 
   if(do_initial_pose_check) {
     if(!multiGroupInitialPoseCheck(seed_state, poses)) {
-      error_code.val = error_code.IK_LINK_IN_COLLISION;
+      error_code.val = error_code.START_STATE_IN_COLLISION;
       delete state_;
       return false;
     }
@@ -683,7 +683,7 @@ void KinematicsSolverConstraintAware::collisionCheck(const geometry_msgs::Pose &
   }
   if(res.collision) {
     ROS_DEBUG_STREAM_NAMED("kinematics_collision", getCollisionDetectedString(res));
-    error_code.val = error_code.COLLISION_CONSTRAINTS_VIOLATED;
+    error_code.val = error_code.GOAL_IN_COLLISION;
     ROS_DEBUG_STREAM("Collision constraints violated");
   } else if(!kinematic_constraints::doesKinematicStateObeyConstraints(*state_, 
                                                                       planning_scene_->getTransforms(),
@@ -729,7 +729,7 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
     //planning_scene_->checkCollision(req, res, *state_, acm);
     //ROS_INFO_STREAM("Contacts size is " << res.contacts.size());
     //ROS_INFO_STREAM_NAMED("kinematics_collisions", getCollisionDetectedString(last_initial_pose_check_collision_result_));
-    error_code.val = error_code.IK_LINK_IN_COLLISION;
+    error_code.val = error_code.START_STATE_IN_COLLISION;
     ROS_DEBUG_STREAM("Initial pose check failing");
   } else {
     error_code.val = error_code.SUCCESS;
