@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef PLANNING_SCENE_PLANNING_SCENE_
-#define PLANNING_SCENE_PLANNING_SCENE_
+#ifndef MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
+#define MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
 
 #include <planning_models/kinematic_model.h>
 #include <planning_models/semantic_model.h>
@@ -46,6 +46,8 @@
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
 #include <boost/noncopyable.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/function.hpp>
 
 namespace planning_scene
 {
@@ -54,8 +56,8 @@ class PlanningScene;
 typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
 typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
 
-/** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
-PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
+/** \brief This is the function signature for additional feasibility checks to be imposed on states (in addition to respecting constraints and collision avoidance) */
+typedef boost::function<bool(const planning_models::KinematicState&, bool)> StateFeasibilityFn;
 
 /** \brief This class maintains the representation of the
     environment as seen by a planning instance. The environment
@@ -98,6 +100,9 @@ public:
       depend on the kinematic model (e.g., collision world/robot classes) */
   bool configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model);
+
+  /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
+  static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
 
   /** \brief Get the parent scene (whith respect to which the diffs are maintained). This may be empty */
   const PlanningSceneConstPtr& getParent(void) const
@@ -316,31 +321,56 @@ public:
       scene is local. All unmodified data is copied from the
       parent and the pointer to the parent is discarded. */
   void decoupleParent(void);
+  
+  /** \brief Specify a predicate that decides whether states are considered valid or invalid for reasons beyond ones covered by collision checking and contraint evaluation.
+      This is useful for setting up problem specific constraints (e.g., stability) */
+  void setStateFeasibilityPredicate(const StateFeasibilityFn &fn)
+  {
+    state_feasibility_ = fn;
+  }
 
-  /** \brief Check if a given state is valid */
+  /** \brief Get the predicate that decides whether states are considered valid or invalid for reasons beyond ones covered by collision checking and contraint evaluation. */
+  const StateFeasibilityFn& getStateFeasibilityPredicate(void) const
+  {
+    return state_feasibility_;
+  }
+  
+  /** \brief Check if a given state is in collision (with the environment or self collision) */
+  bool isStateColliding(const moveit_msgs::RobotState &state, bool verbose = false) const;
+
+  /** \brief Check if a given state is in collision (with the environment or self collision) */
+  bool isStateColliding(const planning_models::KinematicState &state, bool verbose = false) const;
+
+  /** \brief Check if a given state feasible, in accordance to the feasibility predicate specified by setStateFeasibilityPredicate(). Returns true if no feasibility predicate was specified. */
+  bool isStateFeasible(const moveit_msgs::RobotState &state, bool verbose = false) const;
+
+  /** \brief Check if a given state feasible, in accordance to the feasibility predicate specified by setStateFeasibilityPredicate(). Returns true if no feasibility predicate was specified. */
+  bool isStateFeasible(const planning_models::KinematicState &state, bool verbose = false) const;
+
+  /** \brief Check if a given state is valid. This means checking for collisions and feasibility */
   bool isStateValid(const moveit_msgs::RobotState &state, bool verbose = false) const;
 
-  /** \brief Check if a given state is valid */
+  /** \brief Check if a given state is valid. This means checking for collisions and feasibility */
   bool isStateValid(const planning_models::KinematicState &state, bool verbose = false) const;
 
-  /** \brief Check if a given state is valid */
+  /** \brief Check if a given state is valid. This means checking for collisions, feasibility  and whether the user specified validity conditions hold as well */
   bool isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
 
-  /** \brief Check if a given state is valid */
+  /** \brief Check if a given state is valid. This means checking for collisions, feasibility  and whether the user specified validity conditions hold as well */
   bool isStateValid(const planning_models::KinematicState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
 
-  /** \brief Check if a given path is valid */
+  /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
   bool isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
                    bool verbose = false, std::size_t *first_invalid_index = NULL) const;
 
-  /** \brief Check if a given path is valid */
+  /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
   bool isPathValid(const moveit_msgs::RobotState &start_state,
                    const moveit_msgs::Constraints& path_constraints,
                    const moveit_msgs::Constraints& goal_constraints,
                    const moveit_msgs::RobotTrajectory &trajectory,
                    bool verbose = false, std::size_t *first_invalid_index = NULL) const;
 
-  /** \brief Check if a given path is valid */
+  /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
   bool isPathValid(const planning_models::KinematicState &start_state,
                    const moveit_msgs::Constraints& path_constraints,
                    const moveit_msgs::Constraints& goal_constraints,
@@ -388,6 +418,8 @@ protected:
   collision_detection::CollisionWorldPtr         cworld_;
   collision_detection::CollisionWorldConstPtr    cworld_const_;
 
+  StateFeasibilityFn                             state_feasibility_;
+  
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
   boost::shared_ptr< std::map<std::string, std_msgs::ColorRGBA> >
