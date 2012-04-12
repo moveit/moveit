@@ -63,6 +63,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
   
+  // check path constraints
   double distance = 0.0;
   const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
   if (kset && !kset->decide(*kstate, distance, verbose_))
@@ -70,7 +71,15 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
-  
+
+  // check feasibility
+  if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate))
+  {
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    return false;
+  }  
+
+  // check collision avoidance
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(collision_request_simple_, res, *kstate);
   if (res.collision == false)
@@ -98,7 +107,8 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   planning_models::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
-  
+
+  // check path constraints
   double distance = 0.0;  
   const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
   if (kset && !kset->decide(*kstate, distance, verbose_))
@@ -107,7 +117,15 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
     return false;
   }
-  
+
+  // check feasibility
+  if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate))
+  {
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    return false;
+  }  
+
+  // check collision avoidance
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(collision_request_with_distance_, res, *kstate);
   dist = res.distance;

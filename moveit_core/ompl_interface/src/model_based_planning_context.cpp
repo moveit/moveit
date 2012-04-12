@@ -158,6 +158,7 @@ void ompl_interface::ModelBasedPlanningContext::configure(void)
   // convert the input state to the corresponding OMPL state
   ompl::base::ScopedState<> ompl_start_state(ompl_state_space_);
   ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
+  ompl_start_state->as<ModelBasedStateSpace::StateType>()->markStartState();
   ompl_simple_setup_.setStartState(ompl_start_state);
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
     

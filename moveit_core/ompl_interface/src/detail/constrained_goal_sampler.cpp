@@ -107,7 +107,11 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ob::GoalLazyS
   ompl::geometric::GAIK g(si_);
   while (gls->isSampling())
     if (g.solve(0.1, reg, newGoal))
+    {
+      newGoal->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
+      newGoal->as<ModelBasedStateSpace::StateType>()->markGoalState();
       return true;
+    }
   return false;
 }
 
@@ -134,9 +138,10 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
       double distance = 0.0;
       if (kinematic_constraint_set_->decide(state_, distance))
       {
-        planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, values);
+        planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, values);   
+        newGoal->as<ModelBasedStateSpace::StateType>()->markGoalState();
         return true;
-      }  
+      }
     }
   return false;
 }

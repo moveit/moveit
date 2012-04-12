@@ -88,6 +88,8 @@ public:
         VALIDITY_KNOWN = 1,
         GOAL_DISTANCE_KNOWN = 2,
         VALIDITY_TRUE = 4,
+        IS_START_STATE = 8,
+        IS_GOAL_STATE = 16
       };
     
     StateType(void) : ob::CompoundStateSpace::StateType(), flags(0), distance(0.0), tag(-1)
@@ -126,7 +128,7 @@ public:
     
     void clearKnownInformation(void)
     {
-      flags &= ~(VALIDITY_KNOWN | VALIDITY_TRUE | GOAL_DISTANCE_KNOWN);
+      flags &= ~(VALIDITY_KNOWN | VALIDITY_TRUE | GOAL_DISTANCE_KNOWN | IS_START_STATE | IS_GOAL_STATE);
     }
     
     bool isMarkedValid(void) const
@@ -139,11 +141,26 @@ public:
       return flags & GOAL_DISTANCE_KNOWN;
     }
     
-    void resetKnownValues(void)
+    bool isStartState(void) const
     {
-      flags &= ~(VALIDITY_KNOWN | GOAL_DISTANCE_KNOWN);
+      return flags & IS_START_STATE;
     }
 
+    bool isGoalState(void) const
+    {
+      return flags & IS_GOAL_STATE;
+    }
+    
+    void markStartState(void)
+    {
+      flags |= IS_START_STATE;
+    }
+
+    void markGoalState(void)
+    {
+      flags |= IS_GOAL_STATE;
+    }
+    
     int    flags;
     double distance;
     int    tag;

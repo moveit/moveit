@@ -49,7 +49,7 @@ static const std::string COLLISION_MAP_NS = "__map";
 static const std::string DEFAULT_SCENE_NAME = "(noname)";
 }
 
-planning_scene::PlanningScenePtr planning_scene::clone(const PlanningSceneConstPtr &scene)
+planning_scene::PlanningScenePtr planning_scene::PlanningScene::clone(const PlanningSceneConstPtr &scene)
 {
   PlanningScenePtr result(new PlanningScene(scene));
   result->decoupleParent();
@@ -1014,6 +1014,40 @@ void planning_scene::PlanningScene::removeColor(const std::string &id)
     colors_->erase(id);
 }
 
+bool planning_scene::PlanningScene::isStateColliding(const moveit_msgs::RobotState &state, bool verbose) const
+{
+  planning_models::KinematicState s(getCurrentState());
+  planning_models::robotStateToKinematicState(*getTransforms(), state, s);
+  return isStateColliding(s, verbose);
+}
+
+bool planning_scene::PlanningScene::isStateColliding(const planning_models::KinematicState &state, bool verbose) const
+{ 
+  collision_detection::CollisionRequest req;
+  req.verbose = verbose;
+  collision_detection::CollisionResult  res;
+  checkCollision(req, res, state);
+  return res.collision;
+}
+
+bool planning_scene::PlanningScene::isStateFeasible(const moveit_msgs::RobotState &state, bool verbose) const
+{
+  if (state_feasibility_)
+  {
+    planning_models::KinematicState s(getCurrentState());
+    planning_models::robotStateToKinematicState(*getTransforms(), state, s);
+    return state_feasibility_(s, verbose);
+  }
+  return true;
+}
+
+bool planning_scene::PlanningScene::isStateFeasible(const planning_models::KinematicState &state, bool verbose) const
+{
+  if (state_feasibility_)
+    return state_feasibility_(state, verbose);
+  return true;
+}
+
 bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, bool verbose) const
 {
   static const moveit_msgs::Constraints emp_constraints;
@@ -1026,13 +1060,18 @@ bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &
   return isStateValid(state, emp_constraints, verbose);
 }
 
+bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
+{
+  planning_models::KinematicState s(getCurrentState());
+  planning_models::robotStateToKinematicState(*getTransforms(), state, s);
+  return isStateValid(s, constr, verbose);
+}
+
 bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, const moveit_msgs::Constraints &constr, bool verbose) const
 {
-  collision_detection::CollisionRequest req;
-  req.verbose = verbose;
-  collision_detection::CollisionResult  res;
-  checkCollision(req, res, state);
-  if (res.collision)
+  if (isStateColliding(state, verbose))
+    return false;
+  if (!isStateFeasible(state, verbose))
     return false;
   kinematic_constraints::KinematicConstraintSet ks(getKinematicModel(), getTransforms());
   ks.add(constr);
@@ -1042,19 +1081,12 @@ bool planning_scene::PlanningScene::isStateValid(const planning_models::Kinemati
   return ks.decide(state, dist, verbose);  
 }
 
-bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
-{
-  planning_models::KinematicState s(getCurrentState());
-  planning_models::robotStateToKinematicState(*getTransforms(), state, s);
-  return isStateValid(s, constr, verbose);
-}
-
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, 
                                                 const moveit_msgs::RobotTrajectory &trajectory,
                                                 bool verbose,
                                                 std::size_t *first_invalid_index) const
 {
-  moveit_msgs::Constraints emp_constraints;
+  static const moveit_msgs::Constraints emp_constraints;
   return isPathValid(start_state, emp_constraints, emp_constraints, trajectory, verbose, first_invalid_index);
 }
 
@@ -1087,16 +1119,18 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
     planning_models::robotTrajectoryPointToRobotState(trajectory, i, rs);
     planning_models::KinematicStatePtr st(new planning_models::KinematicState(start));
     planning_models::robotStateToKinematicState(*getTransforms(), rs, *st);
-    collision_detection::CollisionRequest req;
-    req.verbose = verbose;
-    collision_detection::CollisionResult  res;
-    checkCollision(req, res, *st);
-    if (res.collision)
+    if (isStateColliding(*st, verbose))
     {
       if (first_invalid_index)
         *first_invalid_index = i;
       return false;
     }
+    if (!isStateFeasible(*st, verbose))
+    {
+      if (first_invalid_index)
+        *first_invalid_index = i;
+      return false;
+    }    
     double dist;
     if (!ks_p.empty() && !ks_p.decide(*st, dist, verbose))
     {
