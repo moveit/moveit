@@ -306,14 +306,46 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
     const LinkModel* tip_link = getLinkModel(gc.chains_[i].second);
     if (base_link && tip_link)
     {
+      // go from tip, up the chain, until we hit the root or we find the base_link
       const LinkModel* lm = tip_link;
+      std::vector<const JointModel*> cj;
       while (lm)
       {
         if (lm == base_link)
           break;
-        jset.insert(lm->getParentJointModel());
+        cj.push_back(lm->getParentJointModel());
         lm = lm->getParentJointModel()->getParentLinkModel();
       }
+      // if we did not find the base_link, we could have a chain like e.g.,
+      // from one end-effector to another end-effector, so the root is in between
+      if (lm != base_link)
+      {
+        // we go up the chain from the base this time, and see where we intersect the other chain
+        lm = base_link;
+        std::size_t index = 0;
+        std::vector<const JointModel*> cj2;
+        while (lm)
+        {
+          for (std::size_t j = 0 ; j < cj.size() ; ++j)
+            if (cj[j] == lm->getParentJointModel())
+            {
+              index = j + 1;
+              break;
+            }
+          if (index > 0)
+            break;
+          cj2.push_back(lm->getParentJointModel());
+          lm = lm->getParentJointModel()->getParentLinkModel();  
+        }
+        if (index > 0)
+        {
+          jset.insert(cj.begin(), cj.begin() + index);
+          jset.insert(cj2.begin(), cj2.end());
+        }
+      }
+      else
+        // if we have a simple chain, just add the joints
+        jset.insert(cj.begin(), cj.end());
     }
   }
 
