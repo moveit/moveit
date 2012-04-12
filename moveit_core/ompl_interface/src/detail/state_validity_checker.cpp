@@ -69,13 +69,21 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   if (kset && !kset->decide(*kstate, distance, verbose_))
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    
+    if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
+      kset->decide(*kstate, distance, true);
+    
     return false;
   }
 
   // check feasibility
-  if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate))
+  if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose_))
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    
+    if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
+      planning_context_->getPlanningScene()->isStateFeasible(*kstate, true);
+    
     return false;
   }  
 
@@ -90,6 +98,14 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   else
   {   
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+
+    if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
+    {
+      collision_detection::CollisionRequest temp = collision_request_simple_;
+      temp.verbose = true;
+      planning_context_->getPlanningScene()->checkCollision(temp, res, *kstate);
+    }
+    
     return false;
   }
 }
@@ -114,14 +130,22 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   if (kset && !kset->decide(*kstate, distance, verbose_))
   {
     dist = distance;
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist); 
+
+    if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
+      kset->decide(*kstate, distance, true);
+    
     return false;
   }
 
   // check feasibility
-  if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate))
+  if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose_))
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+
+    if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
+      planning_context_->getPlanningScene()->isStateFeasible(*kstate, true);
+    
     return false;
   }  
 
@@ -137,6 +161,14 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   else
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
+
+    if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
+    {
+      collision_detection::CollisionRequest temp = collision_request_with_distance_;
+      temp.verbose = true;
+      planning_context_->getPlanningScene()->checkCollision(temp, res, *kstate);
+    }
+
     return false;
   }
 }

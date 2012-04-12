@@ -151,6 +151,11 @@ public:
       return flags & IS_GOAL_STATE;
     }
     
+    bool isInputState(void) const
+    {   
+      return flags & (IS_START_STATE | IS_GOAL_STATE);
+    }
+    
     void markStartState(void)
     {
       flags |= IS_START_STATE;
