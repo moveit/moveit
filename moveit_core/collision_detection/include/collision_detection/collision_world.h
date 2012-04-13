@@ -41,6 +41,7 @@
 #include "collision_detection/collision_robot.h"
 #include <boost/thread/mutex.hpp>
 
+/** \brief Generic interface to collision detection */
 namespace collision_detection
 {
   

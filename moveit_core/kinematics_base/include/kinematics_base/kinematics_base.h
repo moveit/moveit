@@ -41,6 +41,7 @@
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <boost/function.hpp>
 
+/** @brief API for forward and inverse kinematics */
 namespace kinematics {
 
 /**
