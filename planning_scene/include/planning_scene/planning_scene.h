@@ -42,6 +42,7 @@
 #include <planning_models/kinematic_state.h>
 #include <planning_models/transforms.h>
 #include <collision_detection/collision_world.h>
+#include <kinematic_constraints/kinematic_constraint.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
@@ -358,6 +359,9 @@ public:
 
   /** \brief Check if a given state is valid. This means checking for collisions, feasibility  and whether the user specified validity conditions hold as well */
   bool isStateValid(const planning_models::KinematicState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
+
+  /** \brief Check if a given state is valid. This means checking for collisions, feasibility  and whether the user specified validity conditions hold as well */
+  bool isStateValid(const planning_models::KinematicState &state, const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose = false) const;
 
   /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
   bool isPathValid(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,

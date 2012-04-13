@@ -39,7 +39,6 @@
 #include <collision_detection/fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
-#include <kinematic_constraints/kinematic_constraint.h>
 
 namespace planning_scene
 {
@@ -1079,6 +1078,18 @@ bool planning_scene::PlanningScene::isStateValid(const planning_models::Kinemati
     return true;
   double dist;
   return ks.decide(state, dist, verbose);  
+}
+
+bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose) const
+{
+  if (isStateColliding(state, verbose))
+    return false;
+  if (!isStateFeasible(state, verbose))
+    return false;
+  if (constr->empty())
+    return true;
+  double dist;
+  return constr->decide(state, dist, verbose);
 }
 
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, 
