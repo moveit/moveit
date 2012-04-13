@@ -44,6 +44,7 @@
 #include <string>
 #include <map>
 
+/** \brief The MoveIt interface to OMPL */
 namespace ompl_interface
 {
 

@@ -50,6 +50,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 
+/** \brief This namespace includes the central class for representing planning contexts */
 namespace planning_scene
 {
 

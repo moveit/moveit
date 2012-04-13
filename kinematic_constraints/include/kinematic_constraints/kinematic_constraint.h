@@ -50,6 +50,7 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
+/** \brief Representation and evaluation of kinematic constraints */
 namespace kinematic_constraints
 {
 

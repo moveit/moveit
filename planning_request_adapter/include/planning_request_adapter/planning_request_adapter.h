@@ -39,6 +39,7 @@
 #include <planning_scene/planning_scene.h>
 #include <boost/function.hpp>
 
+/** \brief Generic interface to adapting motion planning requests */
 namespace planning_request_adapter
 {
 
