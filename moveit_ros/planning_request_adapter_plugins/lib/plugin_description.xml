@@ -1,14 +1,23 @@
 <library path="lib/libdefault_planning_request_adapters">
+
   <class name="default_planner_request_adapters/EmptyPlanningRequestAdapter" type="default_planner_request_adapters::EmptyPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
   </class>
+
   <class name="default_planner_request_adapters/FixStartStateBoundsPlanningRequestAdapter" type="default_planner_request_adapters::FixStartStateBoundsPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
   </class>
+
   <class name="default_planner_request_adapters/FixStartStatePathConstraintsPlanningRequestAdapter" type="default_planner_request_adapters::FixStartStatePathConstraintsPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
   </class>
+
+  <class name="default_planner_request_adapters/FixStartStateWorkspaceBoundsPlanningRequestAdapter" type="default_planner_request_adapters::FixStartStateWorkspaceBoundsPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
 </library>
