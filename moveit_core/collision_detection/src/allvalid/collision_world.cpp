@@ -58,6 +58,20 @@ void collision_detection::CollisionWorldAllValid::checkRobotCollision(const Coll
     ROS_INFO("Using AllValid collision detection. No collision checking is performed.");
 }
 
+void collision_detection::CollisionWorldAllValid::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const
+{  
+  res.collision = false;
+  if (req.verbose)
+    ROS_INFO("Using AllValid collision detection. No collision checking is performed.");
+}
+
+void collision_detection::CollisionWorldAllValid::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const
+{
+  res.collision = false;
+  if (req.verbose)
+    ROS_INFO("Using AllValid collision detection. No collision checking is performed.");
+}
+
 void collision_detection::CollisionWorldAllValid::checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world) const
 {
   res.collision = false;

@@ -52,24 +52,26 @@ namespace collision_detection
     
     CollisionRobotFCL(const CollisionRobotFCL &other);
     
-    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const;
-    
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state) const;    
     virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-    
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const;
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const;
+
     virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
 				     const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const;
-    
     virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
 				     const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
 				     const AllowedCollisionMatrix &acm) const;
-   
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2,
+                                     const CollisionRobot &other_robot, const planning_models::KinematicState &other_state1, const planning_models::KinematicState &other_state2) const;
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2,
+                                     const CollisionRobot &other_robot, const planning_models::KinematicState &other_state1, const planning_models::KinematicState &other_state2,
+                                     const AllowedCollisionMatrix &acm) const;
+
     virtual double distanceSelf(const planning_models::KinematicState &state) const;
-    
     virtual double distanceSelf(const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const;
-    
     virtual double distanceOther(const planning_models::KinematicState &state,
                                  const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const;
-    
     virtual double distanceOther(const planning_models::KinematicState &state, const CollisionRobot &other_robot,
                                  const planning_models::KinematicState &other_state, const AllowedCollisionMatrix &acm) const;
  

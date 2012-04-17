@@ -135,6 +135,16 @@ void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionR
   checkSelfCollisionHelper(req, res, state, &acm);
 }
 
+void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const
+{
+  ROS_ERROR("FCL continuous collision checkin not yet implemented");
+}
+
+void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const
+{
+  ROS_ERROR("FCL continuous collision checkin not yet implemented");
+}
+
 void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
                                                                       const AllowedCollisionMatrix *acm) const
 {
@@ -157,6 +167,19 @@ void collision_detection::CollisionRobotFCL::checkOtherCollision(const Collision
                                                                  const AllowedCollisionMatrix &acm) const
 {
   checkOtherCollisionHelper(req, res, state, other_robot, other_state, &acm);
+}
+
+void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2,
+                                                                 const CollisionRobot &other_robot, const planning_models::KinematicState &other_state1, const planning_models::KinematicState &other_state2) const
+{ 
+  ROS_ERROR("FCL continuous collision checkin not yet implemented");
+}
+
+void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2,
+                                                                 const CollisionRobot &other_robot, const planning_models::KinematicState &other_state1, const planning_models::KinematicState &other_state2,
+                                                                 const AllowedCollisionMatrix &acm) const
+{  
+  ROS_ERROR("FCL continuous collision checkin not yet implemented");
 }
 
 void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,

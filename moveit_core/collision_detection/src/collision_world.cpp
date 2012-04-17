@@ -55,12 +55,27 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
     checkRobotCollision(req, res, robot, state);
 }
 
-/** \brief Check whether the model is in collision with itself or the world. Allowed collisions are ignored. */
 void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const
 {
   robot.checkSelfCollision(req, res, state, acm);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
     checkRobotCollision(req, res, robot, state, acm);
+}
+
+void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
+                                                         const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const
+{
+  robot.checkSelfCollision(req, res, state1, state2);
+  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+    checkRobotCollision(req, res, robot, state1, state2);
+}
+
+void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
+                                                         const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const
+{
+  robot.checkSelfCollision(req, res, state1, state2, acm);
+  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+    checkRobotCollision(req, res, robot, state1, state2, acm);
 }
 
 void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses)

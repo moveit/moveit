@@ -66,7 +66,7 @@ namespace collision_detection
     /* Collision Checking Routines                                        */
     /**********************************************************************/
     
-    /** @brief Check whether the robot model is in collision with itself or the world.
+    /** @brief Check whether the robot model is in collision with itself or the world at a particular state.
      *  Any collision between any pair of links is checked for, NO collisions are ignored.
      *  @param req A CollisionRequest object that encapsulates the collision request
      *  @param res A CollisionResult object that encapsulates the collision result
@@ -76,7 +76,7 @@ namespace collision_detection
 			const CollisionRobot &robot,
 			const planning_models::KinematicState &state) const;
     
-    /** @brief Check whether the robot model is in collision with itself or the world.
+    /** @brief Check whether the robot model is in collision with itself or the world at a particular state.
      *  Allowed collisions specified by the allowed collision matrix are taken into account.
      *  @param req A CollisionRequest object that encapsulates the collision request
      *  @param res A CollisionResult object that encapsulates the collision result
@@ -86,6 +86,34 @@ namespace collision_detection
 			CollisionResult &res,
 			const CollisionRobot &robot,
 			const planning_models::KinematicState &state,
+			const AllowedCollisionMatrix &acm) const;
+
+    /** @brief Check whether the robot model is in collision with itself or the world in a continuous manner
+     *  (between two robot states)
+     *  Any collision between any pair of links is checked for, NO collisions are ignored.
+     *  @param req A CollisionRequest object that encapsulates the collision request
+     *  @param res A CollisionResult object that encapsulates the collision result
+     *  @param state1 The kinematic state at the start of the segment for which checks are being made
+     *  @param state2 The kinematic state at the end of the segment for which checks are being made */
+    void checkCollision(const CollisionRequest &req,
+			CollisionResult &res,
+			const CollisionRobot &robot,
+			const planning_models::KinematicState &state1,
+                        const planning_models::KinematicState &state2) const;
+    
+    /** @brief Check whether the robot model is in collision with itself or the world in a continuous manner
+     *  (between two robot states).
+     *  Allowed collisions specified by the allowed collision matrix are taken into account.
+     *  @param req A CollisionRequest object that encapsulates the collision request
+     *  @param res A CollisionResult object that encapsulates the collision result
+     *  @param state1 The kinematic state at the start of the segment for which checks are being made
+     *  @param state2 The kinematic state at the end of the segment for which checks are being made
+     *  @param acm The allowed collision matrix. */
+    void checkCollision(const CollisionRequest &req,
+			CollisionResult &res,
+			const CollisionRobot &robot,
+			const planning_models::KinematicState &state1,
+			const planning_models::KinematicState &state2,
 			const AllowedCollisionMatrix &acm) const;
     
     /** \brief Check whether the robot model is in collision with the world. Any collisions between a robot link
@@ -100,8 +128,8 @@ namespace collision_detection
 				     const CollisionRobot &robot,
 				     const planning_models::KinematicState &state) const = 0;
     
-    /** \brief Check whether the robot model is in collision with the world. Allowed collisions are ignored.
-     *  Self collisions are not checked.
+    /** \brief Check whether the robot model is in collision with the world.
+     *  Allowed collisions are ignored. Self collisions are not checked.
      *  @param req A CollisionRequest object that encapsulates the collision request
      *  @param res A CollisionResult object that encapsulates the collision result
      *  @robot robot The collision model for the robot
@@ -113,6 +141,34 @@ namespace collision_detection
 				     const planning_models::KinematicState &state,
 				     const AllowedCollisionMatrix &acm) const = 0;
     
+    /** \brief Check whether the robot model is in collision with the world in a continuous manner (between two robot states).
+     *  Any collisions between a robot link and the world are considered. Self collisions are not checked.
+     *  @param req A CollisionRequest object that encapsulates the collision request
+     *  @param res A CollisionResult object that encapsulates the collision result
+     *  @robot robot The collision model for the robot
+     *  @param state1 The kinematic state at the start of the segment for which checks are being made
+     *  @param state2 The kinematic state at the end of the segment for which checks are being made */
+    virtual void checkRobotCollision(const CollisionRequest &req,
+				     CollisionResult &res,
+				     const CollisionRobot &robot,
+				     const planning_models::KinematicState &state1,
+                                     const planning_models::KinematicState &state2) const = 0;
+    
+    /** \brief Check whether the robot model is in collision with the world in a continuous manner (between two robot states).
+     *  Allowed collisions are ignored. Self collisions are not checked.
+     *  @param req A CollisionRequest object that encapsulates the collision request
+     *  @param res A CollisionResult object that encapsulates the collision result
+     *  @robot robot The collision model for the robot
+     *  @param state1 The kinematic state at the start of the segment for which checks are being made
+     *  @param state2 The kinematic state at the end of the segment for which checks are being made 
+     *  @param acm The allowed collision matrix.*/
+    virtual void checkRobotCollision(const CollisionRequest &req,
+				     CollisionResult &res,
+				     const CollisionRobot &robot,
+				     const planning_models::KinematicState &state1,
+				     const planning_models::KinematicState &state2,
+				     const AllowedCollisionMatrix &acm) const = 0;
+
     /** \brief Check whether a given set of objects is in collision with objects from another world.
      *  Any contacts are considered.
      *  @param req A CollisionRequest object that encapsulates the collision request

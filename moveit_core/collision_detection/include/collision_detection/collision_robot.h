@@ -81,14 +81,30 @@ namespace collision_detection
      *  @param acm The allowed collision matrix. */
     virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state, const AllowedCollisionMatrix &acm) const = 0;
     
+    /** @brief Check for self collision in a continuous manner. Any collision between any pair of links is checked for,
+     *  NO collisions are ignored.
+     *  @param req A CollisionRequest object that encapsulates the collision request
+     *  @param res A CollisionResult object that encapsulates the collision result
+     *  @param state1 The kinematic state at the start of the segment for which checks are being made
+     *  @param state2 The kinematic state at the end of the segment for which checks are being made */
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const = 0;
+    
+    /** \brief Check for self collision. Allowed collisions specified by the allowed collision matrix are
+     *   taken into account.
+     *  @param req A CollisionRequest object that encapsulates the collision request
+     *  @param res A CollisionResult object that encapsulates the collision result
+     *  @param state1 The kinematic state at the start of the segment for which checks are being made
+     *  @param state2 The kinematic state at the end of the segment for which checks are being made
+     *  @param acm The allowed collision matrix. */
+    virtual void checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const = 0;
+    
     /** \brief Check for collision with a different robot (possibly a different kinematic model as well).
      *  Any collision between any pair of links is checked for, NO collisions are ignored.
      *  @param req A CollisionRequest object that encapsulates the collision request
      *  @param res A CollisionResult object that encapsulates the collision result
      *  @param state The kinematic state for which checks are being made.
      *  @param other_robot The collision representation for the other robot
-     *  @param other_state The kinematic state corresponding to the other robot
-     */
+     *  @param other_state The kinematic state corresponding to the other robot */
     virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res,
 				     const planning_models::KinematicState &state,
 				     const CollisionRobot &other_robot,
@@ -106,6 +122,40 @@ namespace collision_detection
 				     const planning_models::KinematicState &state,
 				     const CollisionRobot &other_robot,
 				     const planning_models::KinematicState &other_state,
+				     const AllowedCollisionMatrix &acm) const = 0;
+
+    /** \brief Check for collision with a different robot (possibly a different kinematic model as well), in a continuous fashion.
+     *  Any collision between any pair of links is checked for, NO collisions are ignored.
+     *  @param req A CollisionRequest object that encapsulates the collision request
+     *  @param res A CollisionResult object that encapsulates the collision result
+     *  @param state1 The kinematic state at the start of the segment for which checks are being made (this robot)
+     *  @param state2 The kinematic state at the end of the segment for which checks are being made (this robot)
+     *  @param other_robot The collision representation for the other robot
+     *  @param other_state1 The kinematic state at the start of the segment for which checks are being made (other robot)
+     *  @param other_state2 The kinematic state at the end of the segment for which checks are being made (other robot) */
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res,
+				     const planning_models::KinematicState &state1,
+				     const planning_models::KinematicState &state2,
+				     const CollisionRobot &other_robot,
+				     const planning_models::KinematicState &other_state1,
+                                     const planning_models::KinematicState &other_state2) const = 0;
+    
+    /** \brief Check for collision with a different robot (possibly a different kinematic model as well), in a continuous fashion.
+     *  Allowed collisions specified by the allowed collision matrix are taken into account.
+     *  @param req A CollisionRequest object that encapsulates the collision request
+     *  @param res A CollisionResult object that encapsulates the collision result
+     *  @param state1 The kinematic state at the start of the segment for which checks are being made (this robot)
+     *  @param state2 The kinematic state at the end of the segment for which checks are being made (this robot)
+     *  @param other_robot The collision representation for the other robot
+     *  @param other_state1 The kinematic state at the start of the segment for which checks are being made (other robot)
+     *  @param other_state2 The kinematic state at the end of the segment for which checks are being made (other robot) 
+     *  @param acm The allowed collision matrix. */
+    virtual void checkOtherCollision(const CollisionRequest &req, CollisionResult &res,
+				     const planning_models::KinematicState &state1,
+				     const planning_models::KinematicState &state2,
+				     const CollisionRobot &other_robot,
+				     const planning_models::KinematicState &other_state1,
+				     const planning_models::KinematicState &other_state2,
 				     const AllowedCollisionMatrix &acm) const = 0;
 
     /** \brief The distance to self-collision given the robot is at state \e state. */
