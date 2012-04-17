@@ -69,6 +69,16 @@ void collision_detection::CollisionWorldFCL::checkRobotCollision(const Collision
   checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
+void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const
+{
+  ROS_ERROR("FCL continuous collision checkin not yet implemented");
+}
+
+void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const
+{
+  ROS_ERROR("FCL continuous collision checkin not yet implemented");
+}
+
 void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const
 {
   const CollisionRobotFCL &robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);

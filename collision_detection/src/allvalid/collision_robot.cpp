@@ -58,6 +58,19 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
     ROS_INFO("Using AllValid collision detection. No collision checking is performed.");
 }
 
+void collision_detection::CollisionRobotAllValid::checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const
+{ 
+  res.collision = false;
+  if (req.verbose)
+    ROS_INFO("Using AllValid collision detection. No collision checking is performed.");
+}
+
+void collision_detection::CollisionRobotAllValid::checkSelfCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const
+{ 
+  res.collision = false;
+  if (req.verbose)
+    ROS_INFO("Using AllValid collision detection. No collision checking is performed.");}
+
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
                                                                       const CollisionRobot &other_robot, const planning_models::KinematicState &other_state) const
 {
@@ -68,6 +81,23 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state,
                                                                       const CollisionRobot &other_robot, const planning_models::KinematicState &other_state,
+                                                                      const AllowedCollisionMatrix &acm) const
+{
+  res.collision = false;
+  if (req.verbose)
+    ROS_INFO("Using AllValid collision detection. No collision checking is performed.");
+}
+
+void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2,
+                                                                      const CollisionRobot &other_robot, const planning_models::KinematicState &other_state1, const planning_models::KinematicState &other_state2) const
+{ 
+  res.collision = false;
+  if (req.verbose)
+    ROS_INFO("Using AllValid collision detection. No collision checking is performed.");
+}
+
+void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2,
+                                                                      const CollisionRobot &other_robot, const planning_models::KinematicState &other_state1, const planning_models::KinematicState &other_state2,
                                                                       const AllowedCollisionMatrix &acm) const
 {
   res.collision = false;
