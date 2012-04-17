@@ -118,12 +118,13 @@ MoveItVisualizer::MoveItVisualizer() :
   }
   pv_->hideAllGroups();
 
-  //must go before
-  Ogre::LogManager* log_manager = new Ogre::LogManager();
-  log_manager->createLog( "Ogre.log", false, false, false );
+  //EGJ: no longer necessary as of visualization 1.8.3
+  //but kept as reference
+  //Ogre::LogManager* log_manager = new Ogre::LogManager();
+  //log_manager->createLog( "Ogre.log", false, false, false );
 
   rviz_frame_ = new rviz::VisualizationPanel;
-  
+
   QList<int> sizes;
   sizes.push_back(0);
   sizes.push_back(1000);
