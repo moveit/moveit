@@ -38,33 +38,68 @@
 
 moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second)
 {
-    moveit_msgs::Constraints r = first;
-
-    // merge joint constraints
-    for (std::size_t i = 0 ; i < second.joint_constraints.size() ; ++i)
-    {
-        bool keep = true;
-        for (std::size_t j = 0 ; j < first.joint_constraints.size() ; ++j)
-            if (second.joint_constraints[i].joint_name == first.joint_constraints[j].joint_name)
-            {
-                keep = false;
-                break;
-            }
-        if (keep)
-            r.joint_constraints.push_back(second.joint_constraints[i]);
-    }
-
-    // merge rest of constraints
-    for (std::size_t i = 0 ; i < second.position_constraints.size() ; ++i)
-        r.position_constraints.push_back(second.position_constraints[i]);
-
-    for (std::size_t i = 0 ; i < second.orientation_constraints.size() ; ++i)
-        r.orientation_constraints.push_back(second.orientation_constraints[i]);
-
-    for (std::size_t i = 0 ; i < second.visibility_constraints.size() ; ++i)
-        r.visibility_constraints.push_back(second.visibility_constraints[i]);
-
-    return r;
+  moveit_msgs::Constraints r;
+  
+  // add all joint constraints that are in first but not in second
+  // and merge joint constraints that are for the same joint
+  for (std::size_t i = 0 ; i < first.joint_constraints.size() ; ++i)
+  {
+    bool add = true;
+    for (std::size_t j = 0 ; j < second.joint_constraints.size() ; ++j)
+      if (second.joint_constraints[j].joint_name == first.joint_constraints[i].joint_name)
+      {
+        add = false;
+        // now we merge
+        moveit_msgs::JointConstraint m;
+        const moveit_msgs::JointConstraint &a = first.joint_constraints[i];
+        const moveit_msgs::JointConstraint &b = second.joint_constraints[j];
+        double low = std::max(a.position - a.tolerance_below, b.position - b.tolerance_below);
+        double high = std::min(a.position + a.tolerance_above, b.position + b.tolerance_above);
+        if (low > high)
+          ROS_ERROR("Attempted to merge incompatible constraints for joint '%s'. Discarding constraint.", a.joint_name.c_str());
+        else
+        {
+          m.joint_name = a.joint_name;
+          m.position = std::max(low, std::min((a.position * a.weight + b.position * b.weight) / (a.weight + b.weight), high));
+          m.weight = (a.weight + b.weight) / 2.0;
+          m.tolerance_above = std::max(0.0, high - m.position);
+          m.tolerance_below = std::max(0.0, m.position - low);
+          r.joint_constraints.push_back(m);
+        }
+        break;
+      }
+    if (add)
+      r.joint_constraints.push_back(first.joint_constraints[i]);
+  }
+  
+  // add all joint constraints that are in second but not in first
+  for (std::size_t i = 0 ; i < second.joint_constraints.size() ; ++i)
+  {
+    bool add = true;
+    for (std::size_t j = 0 ; j < first.joint_constraints.size() ; ++j)
+      if (second.joint_constraints[i].joint_name == first.joint_constraints[j].joint_name)
+      {
+        add = false;
+        break;
+      }
+    if (add)
+      r.joint_constraints.push_back(second.joint_constraints[i]);
+  }
+  
+  // merge rest of constraints
+  r.position_constraints = first.position_constraints;
+  for (std::size_t i = 0 ; i < second.position_constraints.size() ; ++i)
+    r.position_constraints.push_back(second.position_constraints[i]);
+  
+  r.orientation_constraints = first.orientation_constraints;
+  for (std::size_t i = 0 ; i < second.orientation_constraints.size() ; ++i)
+    r.orientation_constraints.push_back(second.orientation_constraints[i]);
+  
+  r.visibility_constraints = first.visibility_constraints;
+  for (std::size_t i = 0 ; i < second.visibility_constraints.size() ; ++i)
+    r.visibility_constraints.push_back(second.visibility_constraints[i]);
+  
+  return r;
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const planning_models::KinematicState::JointStateGroup *jsg,
