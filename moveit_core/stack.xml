@@ -4,11 +4,13 @@
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/moveit</url>
+
   <depend stack="common_msgs" /> <!-- geometry_msgs, actionlib_msgs, trajectory_msgs, sensor_msgs, visualization_msgs -->
   <depend stack="common_rosdeps" /> <!-- common_rosdeps -->
   <depend stack="robot_model" /> <!-- urdf, srdf, resource_retriever -->
   <depend stack="ros" />
   <depend stack="ros_comm" /> <!-- rosconsole, std_msgs -->
-
   <depend stack="shape_msgs" /> <!-- rosconsole, std_msgs -->
+
+  <depend stack="moveit_msgs" /> 
 </stack>

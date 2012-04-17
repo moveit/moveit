@@ -1,3 +1,0 @@
-# A service call to get more information about the solver used by a node performing kinematics
----
-kinematics_msgs/KinematicSolverInfo kinematic_solver_info
