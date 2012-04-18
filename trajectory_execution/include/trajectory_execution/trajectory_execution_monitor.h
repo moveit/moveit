@@ -118,7 +118,7 @@ struct TrajectoryExecutionDataVector : public std::vector<TrajectoryExecutionDat
 };
 
 /// \brief The function signature for callbacks executed at the completion og a trajectory
-typedef boost::function<bool(TrajectoryExecutionDataVector)> ExecutionCompleteCallbackFn;
+typedef boost::function<void(const TrajectoryExecutionDataVector&)> ExecutionCompleteCallbackFn;
 
 /// \brief Executes and monitors a set of trajectories.
 class TrajectoryExecutionMonitor
