@@ -48,7 +48,11 @@ KinematicsSolverConstraintAware::KinematicsSolverConstraintAware(const kinematic
     ROS_INFO_STREAM("Must have non-empty group");
     return;
   }
-
+  if (!solver) {
+    ROS_ERROR("A kinematics solver is needed");
+    return;
+  }
+  
   solver_map_[group_name_] = solver;
   state_ = new planning_models::KinematicState(kmodel_);
   
