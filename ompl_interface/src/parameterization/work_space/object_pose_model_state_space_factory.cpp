@@ -38,6 +38,11 @@
 
 int ompl_interface::ObjectPoseModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const
 {
+  // this representation is only used when k arms are used to hold one object such that
+  // performing IK determines the joint state almost fully (i.e., 6DOF are constrained, and 6DOF or 7DOF are available)
+  if (!req.path_constraints.joint_constraints.empty() || !req.path_constraints.visibility_constraints.empty())
+    return -1;
+  
   const pm::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req.group_name);
   if (jmg)
   {
