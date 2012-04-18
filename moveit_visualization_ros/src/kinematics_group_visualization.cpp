@@ -99,7 +99,9 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
         continue;
       }
       const planning_models::KinematicModel::JointModelGroup* jmg = planning_scene_->getKinematicModel()->getJointModelGroup(subgroup.name_); 
-      solver_map[subgroup.name_] = kinematics_allocator(jmg);
+      kinematics::KinematicsBasePtr slv = kinematics_allocator(jmg);
+      if (slv)
+        solver_map[subgroup.name_] = slv;
       group_to_interactive_marker_names_[srdf_group.subgroups_[i]] = makeInteractiveMarkerName(srdf_group.subgroups_[i]);
       interactive_marker_to_group_names_[makeInteractiveMarkerName(srdf_group.subgroups_[i])] = srdf_group.subgroups_[i];
     }
@@ -110,8 +112,10 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
 
     for(unsigned int i = 0; i < subgroup_chain_names_.size(); i++) {
       //TODO - deal with non-chain groups
-      
-      kinematics::KinematicsBasePtr& solver = solver_map.at(subgroup_chain_names_[i]);
+      std::map<std::string, kinematics::KinematicsBasePtr>::iterator sit = solver_map.find(subgroup_chain_names_[i]);
+      if (sit == solver_map.end())
+        continue;
+      kinematics::KinematicsBasePtr& solver = sit->second;
       const planning_models::KinematicModel::LinkModel* lm = state_.getKinematicModel()->getLinkModel(solver->getTipFrame());
       if(lm == NULL) {
         ROS_ERROR_STREAM("No link for tip frame " << solver->getTipFrame());
@@ -133,7 +137,8 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
                        << cur_pose.position.z); 
     }
     last_poses_ = poses;
-    updateEndEffectorState(poses.begin()->first, poses.begin()->second);
+    if (!poses.empty())
+      updateEndEffectorState(poses.begin()->first, poses.begin()->second);
   } else {
     if(!kinematics_plugin_loader->isGroupKnown(group_name)) {
       ROS_WARN_STREAM("No loader for group " << group_name);
@@ -141,7 +146,9 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
     }
     const planning_models::KinematicModel::JointModelGroup* jmg = planning_scene_->getKinematicModel()->getJointModelGroup(group_name); 
     kinematics::KinematicsBasePtr result = kinematics_allocator(jmg);
-
+    if (!result)
+      return;
+    
     ik_solver_.reset(new kinematics_constraint_aware::KinematicsSolverConstraintAware(result,
                                                                                       planning_scene_->getKinematicModel(),
                                                                                       group_name));
@@ -285,7 +292,7 @@ void KinematicsGroupVisualization::addMenuEntry(const std::string& name,
 
 void KinematicsGroupVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
   planning_scene_ = planning_scene;
-  if(!all_markers_hidden_) {
+  if(!all_markers_hidden_ && !last_poses_.empty()) {
     updateEndEffectorState(last_poses_.begin()->first, last_poses_.begin()->second);
   }
 }
@@ -358,6 +365,8 @@ void KinematicsGroupVisualization::setState(const planning_models::KinematicStat
 void KinematicsGroupVisualization::updateEndEffectorInteractiveMarker(void) {
   // Compute the new pose of the end-effector and force the associated
   // interactive marker there.
+  if (!ik_solver_)
+    return;
   const std::map<std::string, std::string>& tip_frame_map = ik_solver_->getTipFrames();
   for(std::map<std::string, std::string>::const_iterator it = tip_frame_map.begin();
       it != tip_frame_map.end();
