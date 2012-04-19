@@ -91,20 +91,24 @@ public:
             result.reset(kinematics_loader_->createUnmanagedInstance(it->second[i]));
             if (result)
             {
-              /// \todo What is the search discretization? any reasonable way to determine this?
-              const std::vector<const planning_models::KinematicModel::JointModel*> &jnts = jmg->getJointModels();
-              const std::string &base = jnts.front()->getParentLinkModel() ? jnts.front()->getParentLinkModel()->getName() :
-                jmg->getParentModel()->getModelFrame();
-              const std::string &tip = jnts.back()->getChildLinkModel()->getName();
-              double search_res = search_res_.find(jmg->getName())->second[i]; // we know this exists, by construction
-              if (!result->initialize(jmg->getName(), base, tip, search_res))
+              const std::vector<const planning_models::KinematicModel::LinkModel*> &links = jmg->getLinkModels();
+              if (!links.empty())
               {
-                ROS_ERROR("Kinematics solver of type '%s' could not be initialized for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
-                result.reset();
+                const std::string &base = links.front()->getParentJointModel()->getParentLinkModel() ?
+                  links.front()->getParentJointModel()->getParentLinkModel()->getName() : jmg->getParentModel()->getModelFrame();
+                const std::string &tip = links.back()->getName();
+                double search_res = search_res_.find(jmg->getName())->second[i]; // we know this exists, by construction
+                if (!result->initialize(jmg->getName(), base, tip, search_res))
+                {
+                  ROS_ERROR("Kinematics solver of type '%s' could not be initialized for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
+                  result.reset();
+                }
+                else
+                  ROS_DEBUG("Successfully allocated and initialized a kinematics solver of type '%s' with search resolution %lf for group '%s' at address %p",
+                            it->second[i].c_str(), search_res, jmg->getName().c_str(), result.get());
               }
               else
-                ROS_DEBUG("Successfully allocated and initialized a kinematics solver of type '%s' with search resolution %lf for group '%s' at address %p",
-                          it->second[i].c_str(), search_res, jmg->getName().c_str(), result.get());
+                ROS_ERROR("No links specified for group '%s'", jmg->getName().c_str());
             }
           }
           catch (pluginlib::PluginlibException& e)
