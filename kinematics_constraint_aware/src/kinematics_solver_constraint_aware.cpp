@@ -272,6 +272,8 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
     return false;
   }
 
+  ROS_DEBUG_STREAM("Find constraint aware solution for pose " << pose);
+
   do_initial_pose_check_ = do_initial_pose_check;
   constraints_ = constraints;
   planning_scene_ = scene;
@@ -301,9 +303,11 @@ bool KinematicsSolverConstraintAware::findConstraintAwareSolution(const geometry
                                                  boost::bind(&KinematicsSolverConstraintAware::collisionCheck, this, _1, _2, _3),
                                                  error_code);
   if(ik_valid) {
+    ROS_DEBUG_STREAM("Found IK solution");
     solution.name = solver_map_[group_name_]->getJointNames();
     solution.position = sol;
   } else {
+    ROS_DEBUG_STREAM("No IK solution");
     solution.name.clear();
     solution.position.clear();
   }
