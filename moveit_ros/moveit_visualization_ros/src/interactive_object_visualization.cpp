@@ -296,9 +296,13 @@ void InteractiveObjectVisualization::updateObjectPose(const std::string& name,
     ROS_WARN_STREAM("No object with name " << name);
     return;
   }
+  // we discard the obj (we don't need it) and this allows more efficient caching in the collision checking library
+  shapes::ShapeConstPtr shape = obj->shapes_[0];
+  obj.reset();
+  
   Eigen::Affine3d aff;
   planning_models::poseFromMsg(pose, aff);
-  planning_scene_diff_->getCollisionWorld()->moveShapeInObject(name, obj->shapes_[0], aff);
+  planning_scene_diff_->getCollisionWorld()->moveShapeInObject(name, shape, aff);
   
   callUpdateCallback();
 }
@@ -332,6 +336,9 @@ void InteractiveObjectVisualization::growObject(const std::string& name,
   } else if(shape.type == shape_msgs::Shape::SPHERE) {
     shape.dimensions[0] += fmax(fmax(fabs(diff.translation().x()), fabs(diff.translation().y())), fabs(diff.translation().z()));
   }
+  
+  // we no longer need this instance, so we reset so that potential caching operations can avoid cloning the object
+  obj.reset();
   
   geometry_msgs::Pose diff_pose_msg;
   Eigen::Affine3d diff_pose_adj = diff;
@@ -400,6 +407,9 @@ void InteractiveObjectVisualization::shrinkObject(const std::string& name,
     diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[2]+MIN_DIMENSION);
     shape.dimensions[0] += fmin(fmin(diff.translation().x(), diff.translation().y()), diff.translation().z());
   }
+
+  // we no longer need this instance, so we reset so that potential caching operations can avoid cloning the object
+  obj.reset();
   
   geometry_msgs::Pose diff_pose_msg;
   Eigen::Affine3d diff_pose_adj = diff;
@@ -496,6 +506,10 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
       shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
       geometry_msgs::Pose cur_pose_msg;
       planning_models::msgFromPose(obj->shape_poses_[0], cur_pose_msg);
+
+      // we no longer need this instance, so we reset so that potential caching operations can avoid cloning the object
+      obj.reset();
+  
       moveit_msgs::CollisionObject coll;
       coll.id = feedback->marker_name;
       coll.poses.push_back(cur_pose_msg);
