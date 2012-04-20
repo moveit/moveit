@@ -81,6 +81,7 @@ struct CollisionGeometryData
     const planning_models::KinematicModel::LinkModel    *link;
     const planning_models::KinematicState::AttachedBody *ab;
     const CollisionWorld::Object                        *obj;
+    const void                                          *raw;
   } ptr;
 };
 
@@ -126,8 +127,11 @@ struct FCLGeometry
   }
 
   template<typename T>
-  void updateCollisionGeometryData(const T* data)
-  {
+  void updateCollisionGeometryData(const T* data, bool newType)
+  { 
+    if (!newType && collision_geometry_data_)
+      if (collision_geometry_data_->ptr.raw == reinterpret_cast<const void*>(data))
+        return;
     collision_geometry_data_.reset(new CollisionGeometryData(data));
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }

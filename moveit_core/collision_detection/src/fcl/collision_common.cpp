@@ -286,8 +286,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &s
   {
     boost::mutex::scoped_lock slock(cache.lock_);
     std::map<boost::weak_ptr<const shapes::StaticShape>, FCLGeometryConstPtr>::const_iterator cache_it = cache.map_.find(wptr);
-    if (cache_it != cache.map_.end())
+    if (cache_it != cache.map_.end()) 
+    {
+      const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, false);
       return cache_it->second;
+    }
   }
   
   fcl::CollisionGeometry* g = NULL;
@@ -339,7 +342,10 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     boost::mutex::scoped_lock slock(cache.lock_);
     std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::const_iterator cache_it = cache.map_.find(wptr);
     if (cache_it != cache.map_.end())
+    {
+      const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, false);
       return cache_it->second;
+    }
   }
   
   // attached objects could have previously been CollisionWorld::Object; we try to move them
@@ -365,7 +371,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
         othercache.lock_.unlock();
 
         // update the CollisionGeometryData
-        const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data);
+        const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
         
         // add to the new cache
         boost::mutex::scoped_lock slock(cache.lock_);
@@ -400,7 +406,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
         othercache.lock_.unlock();
 
         // update the CollisionGeometryData
-        const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data);
+        const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
 
         // add to the new cache
         boost::mutex::scoped_lock slock(cache.lock_);
