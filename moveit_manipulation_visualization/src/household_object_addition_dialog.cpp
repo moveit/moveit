@@ -32,6 +32,7 @@
 #include <moveit_manipulation_visualization/household_object_addition_dialog.h>
 #include <moveit_visualization_ros/qt_helper_functions.h>
 #include <geometric_shapes/shape_operations.h>
+#include <planning_models/transforms.h>
 
 #include <QColorDialog>
 #include <QObject>
@@ -222,19 +223,35 @@ bool HouseholdObjectAdditionDialog::loadDatabaseGrasps(const int model_id,
                                                        const std::string& arm_name,
                                                        std::vector<moveit_manipulation_msgs::Grasp>& grasps) 
 {
-  if(semantic_model_->getModelName() != "pr2" &&
-     semantic_model_->getModelName() != "pr2_test") {
-    ROS_INFO_STREAM("Not generating grasps for non-pr2 robot " << semantic_model_->getModelName());
+  bool is_pr2 = false;
+  bool is_armadillo = false;
+  if(semantic_model_->getModelName() == "pr2" ||
+     semantic_model_->getModelName() == "pr2_test") {
+    is_pr2 = true;
+  } else if(semantic_model_->getModelName() == "armadillo") {
+    is_armadillo = true;
+  }
+  if(!is_pr2 && !is_armadillo) {
+    ROS_INFO_STREAM("Not generating grasps for non-pr2, non-armadillo robot " << semantic_model_->getModelName());
     return false;
   }
   grasps.clear();
   std::vector< boost::shared_ptr<moveit_household_objects_database::DatabaseGrasp> > db_grasps;
-  if(!database_->getClusterRepGrasps(model_id, 
-                                     "WILLOW_GRIPPER_2010",
-                                     db_grasps)) {
+  if(is_pr2 && !database_->getClusterRepGrasps(model_id, 
+                                               "WILLOW_GRIPPER_2010",
+                                               db_grasps)) {
+    ROS_WARN_STREAM("Unable to load grasps for " << model_id);
+    return false;
+  } else if(is_armadillo && !database_->getGrasps(model_id, 
+                                                  "RobotIQ",
+                                                  db_grasps)) {
     ROS_WARN_STREAM("Unable to load grasps for " << model_id);
     return false;
   }
+  if(is_armadillo) {
+    ROS_ERROR_STREAM("Definitely armadillo " << db_grasps.size());
+  }
+
   std::string end_effector_group = semantic_model_->getEndEffector(arm_name);
   std::vector<std::string> end_effector_joints = semantic_model_->getGroupJoints(end_effector_group);
 
@@ -244,20 +261,53 @@ bool HouseholdObjectAdditionDialog::loadDatabaseGrasps(const int model_id,
     moveit_manipulation_msgs::Grasp grasp;
     grasp.pre_grasp_posture.name = end_effector_joints;
     grasp.grasp_posture.name = end_effector_joints;
-    grasp.pre_grasp_posture.position.resize(end_effector_joints.size(),
-                                            (*it)->pre_grasp_posture_.get().joint_angles_.at(0));
-    grasp.grasp_posture.position.resize(end_effector_joints.size(),
-                                        (*it)->final_grasp_posture_.get().joint_angles_.at(0));
+    if(is_pr2) {
+      grasp.pre_grasp_posture.position.resize(end_effector_joints.size(),
+                                              (*it)->pre_grasp_posture_.get().joint_angles_.at(0));
+      grasp.grasp_posture.position.resize(end_effector_joints.size(),
+                                          (*it)->final_grasp_posture_.get().joint_angles_.at(0));
+    } else {
+      
+      if((*it)->pre_grasp_posture_.get().joint_angles_.size() != end_effector_joints.size()) {
+        ROS_WARN_STREAM("Size mismatch for pre-grasp between end effector joints num " << end_effector_joints.size() 
+                        << " and number of joint angles from database " << (*it)->pre_grasp_posture_.get().joint_angles_.size());
+      } 
+      if((*it)->final_grasp_posture_.get().joint_angles_.size() != end_effector_joints.size()) {
+        ROS_WARN_STREAM("Size mismatch for pre-grasp between end effector joints num " << end_effector_joints.size() 
+                        << " and number of joint angles from database " << (*it)->final_grasp_posture_.get().joint_angles_.size());
+      } 
+      grasp.pre_grasp_posture.position.resize(end_effector_joints.size());
+      grasp.grasp_posture.position.resize(end_effector_joints.size());
+      
+      for(unsigned int i = 0; i < (*it)->pre_grasp_posture_.get().joint_angles_.size(); i++) {
+        grasp.pre_grasp_posture.position[i] = (*it)->pre_grasp_posture_.get().joint_angles_.at(i);
+      }
+      for(unsigned int i = 0; i < (*it)->final_grasp_posture_.get().joint_angles_.size(); i++) {
+        grasp.grasp_posture.position[i] = (*it)->final_grasp_posture_.get().joint_angles_.at(i);
+      }
+    }
     if(grasp.grasp_posture.position.size() != end_effector_joints.size()) {
       ROS_WARN_STREAM("Have " << end_effector_joints.size() << " but only " << grasp.grasp_posture.position.size() << " positions");
     } else {
       for(unsigned int i = 0; i < grasp.grasp_posture.position.size(); i++) {
-        ROS_DEBUG_STREAM("Joint " << end_effector_joints[i] << " position " << grasp.grasp_posture.position[i]);
+        ROS_INFO_STREAM("Joint " << end_effector_joints[i] << " position " << grasp.grasp_posture.position[i]);
       }
     }	
     grasp.desired_approach_distance = 0.10;
     grasp.min_approach_distance = 0.05;
     grasp.grasp_pose = (*it)->final_grasp_pose_.get().pose_;
+    // Eigen::Affine3d orig;
+    // planning_models::poseFromMsg(grasp.grasp_pose, orig);
+    // Eigen::Affine3d rot(Eigen::Translation3d(.10,0.0,0.0)*Eigen::AngleAxisd(-90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
+    // Eigen::Affine3d np = orig*rot;
+    // planning_models::msgFromPose(np, grasp.grasp_pose);
+    // geometry_msgs::Pose p;
+    // p = grasp.grasp_pose;
+    // p.orientation.x = grasp.grasp_pose.orientation.w;
+    // p.orientation.y = grasp.grasp_pose.orientation.x;
+    // p.orientation.z = grasp.grasp_pose.orientation.y;
+    // p.orientation.w = grasp.grasp_pose.orientation.z;
+    // grasp.grasp_pose = p;
     grasps.push_back(grasp);
   }
   return true;

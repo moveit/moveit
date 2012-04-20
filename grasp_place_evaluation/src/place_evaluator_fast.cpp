@@ -110,7 +110,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
   Eigen::Translation3d distance_approach_dir(approach_dir*fabs(place_goal.approach.desired_distance));
   Eigen::Affine3d approach_trans(distance_approach_dir*Eigen::Quaterniond::Identity());
 
-  Eigen::Vector3d retreat_dir(-1.0,0.0,0.0);
+  Eigen::Vector3d retreat_dir(0.0,-1.0,0.0);
   retreat_dir.normalize();
   Eigen::Translation3d distance_retreat_dir(retreat_dir*fabs(place_goal.desired_retreat_distance));
   Eigen::Affine3d retreat_trans(distance_retreat_dir*Eigen::Quaterniond::Identity());

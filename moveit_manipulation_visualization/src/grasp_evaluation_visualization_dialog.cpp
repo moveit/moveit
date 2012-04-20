@@ -324,7 +324,8 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
   goal.lift.desired_distance = .1;
 
   if(!current_support_.empty()) {
-    goal.allow_gripper_support_collision = true;
+    //DON'T actually want this
+    //goal.allow_gripper_support_collision = true;
     goal.collision_support_surface_name = current_support_;
   }
   unsigned int cur_size = grasp_evaluation_visualization_->getEvaluationInfoSize();

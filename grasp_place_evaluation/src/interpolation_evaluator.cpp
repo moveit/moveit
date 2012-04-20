@@ -48,7 +48,7 @@ InterpolationEvaluator::InterpolationEvaluator(const planning_models::KinematicM
     num_points_(num_points), 
     redundancy_(redundancy)
 {  
-  ROS_INFO_STREAM("Consistent angle is " << consistent_angle_);
+  ROS_DEBUG_STREAM("Consistent angle is " << consistent_angle_);
 
   for(std::map<std::string, kinematics::KinematicsBasePtr>::const_iterator it = solver_map.begin(); 
       it != solver_map.end();
