@@ -45,6 +45,7 @@ qt4_wrap_cpp(MOC_FILES
 
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME} 
+  src/interactive_marker_helper_functions.cpp
   src/kinematics_group_visualization.cpp
   src/kinematics_start_goal_visualization.cpp 
   src/joint_trajectory_visualization.cpp 
