@@ -229,7 +229,7 @@ bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string
 }
 
 bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape)
-{
+{    
   if (CollisionWorld::removeShapeFromObject(id, shape))
   {
     updateFCLObject(id);
@@ -251,7 +251,7 @@ bool collision_detection::CollisionWorldFCL::removeStaticShapeFromObject(const s
 }
 
 void collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
-{
+{  
   CollisionWorld::removeObject(id);
   std::map<std::string, FCLObject>::iterator it = fcl_objs_obb_.find(id);
   if (it != fcl_objs_obb_.end())
