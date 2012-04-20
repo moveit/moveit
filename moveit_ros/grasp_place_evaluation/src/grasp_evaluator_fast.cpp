@@ -77,17 +77,19 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   collision_detection::AllowedCollisionMatrix object_disable_acm = group_disable_acm;
   object_disable_acm.setEntry(pickup_goal.collision_object_name, end_effector_links, true); 
   collision_detection::AllowedCollisionMatrix object_support_disable_acm = object_disable_acm;
-  if(pickup_goal.allow_gripper_support_collision)
-  {
-    if(pickup_goal.collision_support_surface_name == "\"all\"")
+  if(!pickup_goal.collision_support_surface_name.empty()) {
+    //will come into play when object is attached
+    object_support_disable_acm.setEntry(pickup_goal.collision_support_surface_name, pickup_goal.collision_object_name, true); 
+    if(pickup_goal.allow_gripper_support_collision)
     {
-      for(unsigned int i = 0; i < end_effector_links.size(); i++){
-	object_support_disable_acm.setDefaultEntry(end_effector_links[i], true);
+      if(pickup_goal.collision_support_surface_name == "\"all\"")
+      {
+        for(unsigned int i = 0; i < end_effector_links.size(); i++){
+          object_support_disable_acm.setDefaultEntry(end_effector_links[i], true);
+        }
+      } else {
+        object_support_disable_acm.setEntry(pickup_goal.collision_support_surface_name, end_effector_links, true); 
       }
-    } else {
-      object_support_disable_acm.setEntry(pickup_goal.collision_support_surface_name, end_effector_links, true); 
-      //will come into play when object is attached
-      object_support_disable_acm.setEntry(pickup_goal.collision_support_surface_name, pickup_goal.collision_object_name, true); 
     }
   }
   collision_detection::AllowedCollisionMatrix object_all_arm_disable_acm = object_disable_acm;
@@ -139,7 +141,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     execution_info[i].result_.result_code = 0;
   }
 
-  Eigen::Vector3d pregrasp_dir(-1.0,0.0,0.0);
+  Eigen::Vector3d pregrasp_dir(-0.0,-1.0,0.0);
   //tf::vector3MsgToTF(doNegate(handDescription().approachDirection(pickup_goal.arm_name)), pregrasp_dir);
   pregrasp_dir.normalize();
 
@@ -169,12 +171,16 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
 
     // ------------- CHECKING GRASP POSE ------------------
 
-    //check whether the grasp pose is ok (only checking hand, not arms)
-    //using pre-grasp posture, cause grasp_posture only matters for closing the gripper
     std::map<std::string, double> pre_grasp_joint_vals;    
     for(unsigned int j = 0; j < grasps[i].pre_grasp_posture.name.size(); j++) {
       pre_grasp_joint_vals[grasps[i].pre_grasp_posture.name[j]] = grasps[i].pre_grasp_posture.position[j];
     }
+    std::map<std::string, double> grasp_joint_vals;    
+    for(unsigned int j = 0; j < grasps[i].grasp_posture.name.size(); j++) {
+      grasp_joint_vals[grasps[i].grasp_posture.name[j]] = grasps[i].grasp_posture.position[j];
+    }
+    //check whether the grasp pose is ok (only checking hand, not arms)
+    //using pre-grasp posture, cause grasp_posture only matters for closing the gripper
     state.setStateValues(pre_grasp_joint_vals);
 
     if(!in_object_frame) {
@@ -196,6 +202,8 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     att_obj.touch_links = end_effector_links;
 
     execution_info[i].attached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
+    //need to make sure that the fingers are in the grasped pose in order to do the attach
+    execution_info[i].attached_object_diff_scene_->getCurrentState().setStateValues(grasp_joint_vals);
     execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
     execution_info[i].attached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
     execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
@@ -245,10 +253,6 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
 
     // ------------- CHECKING LIFT POSE ------------------    
 
-    std::map<std::string, double> grasp_joint_vals;    
-    for(unsigned int j = 0; j < grasps[i].grasp_posture.name.size(); j++) {
-      grasp_joint_vals[grasps[i].grasp_posture.name[j]] = grasps[i].grasp_posture.position[j];
-    }
     execution_info[i].attached_object_diff_scene_->getCurrentState().setStateValues(grasp_joint_vals);
     
     Eigen::Affine3d lift_pose = lift_trans*grasp_poses[i];
