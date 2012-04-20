@@ -187,19 +187,19 @@ public:
     int numsol = ik_solver_->solve(frame,vfree);
 		
     if(numsol){
-      for(int s = 0; s < numsol; ++s){
-        std::vector<double> sol;
-        ik_solver_->getSolution(s,sol);
+      std::vector<std::vector<double> > solutions;
+      ik_solver_->getOrderedSolutions(ik_seed_state, numsol, solutions);
+      for(int i = 0; i < numsol; ++i){
         bool obeys_limits = true;
-        for(unsigned int i = 0; i < sol.size(); i++) {
-          if(joint_has_limits_vector_[i] && (sol[i] < joint_min_vector_[i] || sol[i] > joint_max_vector_[i])) {
+        for(unsigned int j = 0; j < solutions[i].size(); j++) {
+          if(joint_has_limits_vector_[j] && (solutions[i][j] < joint_min_vector_[j] || solutions[i][j] > joint_max_vector_[j])) {
             obeys_limits = false;
             break;
           }
           //ROS_INFO_STREAM("Num " << i << " value " << sol[i] << " has limits " << joint_has_limits_vector_[i] << " " << joint_min_vector_[i] << " " << joint_max_vector_[i]);
         }
         if(obeys_limits) {
-          ik_solver_->getSolution(s,solution);
+          solution = solutions[i];
           error_code.val = error_code.SUCCESS;
           return true;
         }
@@ -241,21 +241,22 @@ public:
       //ROS_INFO_STREAM("Solutions number is " << numsol);
 
       //ROS_INFO("%f",vfree[0]);
-	    
+      
+      std::vector<std::vector<double> > solutions;
+
       if(numsol > 0){
-        for(int s = 0; s < numsol; ++s){
-          std::vector<double> sol;
-          ik_solver_->getSolution(s,sol);
+        ik_solver_->getOrderedSolutions(ik_seed_state, numsol, solutions);
+        for(int i = 0; i < numsol; ++i){
           bool obeys_limits = true;
-          for(unsigned int i = 0; i < sol.size(); i++) {
-            if(joint_has_limits_vector_[i] && (sol[i] < joint_min_vector_[i] || sol[i] > joint_max_vector_[i])) {
+          for(unsigned int j = 0; j < solutions[i].size(); j++) {
+            if(joint_has_limits_vector_[j] && (solutions[i][j] < joint_min_vector_[j] || solutions[i][j] > joint_max_vector_[j])) {
               obeys_limits = false;
               break;
             }
             //ROS_INFO_STREAM("Num " << i << " value " << sol[i] << " has limits " << joint_has_limits_vector_[i] << " " << joint_min_vector_[i] << " " << joint_max_vector_[i]);
           }
           if(obeys_limits) {
-            ik_solver_->getSolution(s,solution);
+            solution = solutions[i];
             error_code.val = error_code.SUCCESS;
             return true;
           }
@@ -342,19 +343,19 @@ public:
       //ROS_INFO("%f",vfree[0]);
 	    
       if(numsol > 0){
-        for(int s = 0; s < numsol; ++s){
-          std::vector<double> sol;
-          ik_solver_->getSolution(s,sol);
+        std::vector<std::vector<double> > solutions;
+        ik_solver_->getOrderedSolutions(ik_seed_state, numsol, solutions);
+        for(int i = 0; i < numsol; ++i){
           bool obeys_limits = true;
-          for(unsigned int i = 0; i < sol.size(); i++) {
-            if(joint_has_limits_vector_[i] && (sol[i] < joint_min_vector_[i] || sol[i] > joint_max_vector_[i])) {
+          for(unsigned int j = 0; j < solutions[i].size(); j++) {
+            if(joint_has_limits_vector_[j] && (solutions[i][j] < joint_min_vector_[j] || solutions[i][j] > joint_max_vector_[j])) {
               obeys_limits = false;
               break;
             }
             //ROS_INFO_STREAM("Num " << i << " value " << sol[i] << " has limits " << joint_has_limits_vector_[i] << " " << joint_min_vector_[i] << " " << joint_max_vector_[i]);
           }
           if(obeys_limits) {
-            ik_solver_->getSolution(s,solution);
+            solution = solutions[i];
             error_code.val = error_code.SUCCESS;
             return true;
           }
@@ -448,9 +449,9 @@ public:
 
     ros::WallTime start = ros::WallTime::now();
 
-    std::vector<double> sol;
     while(1) {
       int numsol = ik_solver_->solve(frame,vfree);
+      ROS_DEBUG_STREAM("IKFAST reports " << numsol << " solutions");
       if(solvecount == 0) {
         if(numsol == 0) {
           ROS_DEBUG_STREAM("Bad solve time is " << ros::WallTime::now()-start);
@@ -460,26 +461,27 @@ public:
       }
       solvecount++;
       if(numsol > 0){
+        std::vector<std::vector<double> > solutions;
+        ik_solver_->getOrderedSolutions(ik_seed_state, numsol, solutions);
         if(solution_callback.empty()){
-          ik_solver_->getClosestSolution(ik_seed_state,solution);
+          solution = solutions[0];
           error_code.val = error_code.SUCCESS;
           return true;
         }
         
-        for(int s = 0; s < numsol; ++s){
-          ik_solver_->getSolution(s,sol);
+        for(int i = 0; i < numsol; ++i){
           countsol++;
           bool obeys_limits = true;
-          for(unsigned int i = 0; i < sol.size(); i++) {
-            if(joint_has_limits_vector_[i] && (sol[i] < joint_min_vector_[i] || sol[i] > joint_max_vector_[i])) {
+          for(unsigned int j = 0; j < solutions[i].size(); j++) {
+            if(joint_has_limits_vector_[j] && (solutions[i][j] < joint_min_vector_[j] || solutions[i][j] > joint_max_vector_[j])) {
               obeys_limits = false;
               break;
             }
           }
           if(obeys_limits) {
-            solution_callback(ik_pose,sol,error_code);
+            solution_callback(ik_pose,solutions[i],error_code);
             if(error_code.val == error_code.SUCCESS){
-              solution = sol;
+              solution = solutions[i];
               ROS_DEBUG_STREAM("Took " << (ros::WallTime::now() - start) << " to return true " << countsol << " " << solvecount);
               return true;
             }
@@ -561,7 +563,6 @@ public:
 
     ros::WallTime start = ros::WallTime::now();
 
-    std::vector<double> sol;
     while(1) {
       int numsol = ik_solver_->solve(frame,vfree);
       if(solvecount == 0) {
@@ -573,26 +574,26 @@ public:
       }
       solvecount++;
       if(numsol > 0){
+        std::vector<std::vector<double> > solutions;
+        ik_solver_->getOrderedSolutions(ik_seed_state, numsol, solutions);
         if(solution_callback.empty()){
-          ik_solver_->getClosestSolution(ik_seed_state,solution);
+          solution = solutions[0];
           error_code.val = error_code.SUCCESS;
           return true;
         }
-        
-        for(int s = 0; s < numsol; ++s){
-          ik_solver_->getSolution(s,sol);
+        for(int i = 0; i < numsol; ++i){
           countsol++;
           bool obeys_limits = true;
-          for(unsigned int i = 0; i < sol.size(); i++) {
-            if(joint_has_limits_vector_[i] && (sol[i] < joint_min_vector_[i] || sol[i] > joint_max_vector_[i])) {
+          for(unsigned int j = 0; j < solutions[i].size(); j++) {
+            if(joint_has_limits_vector_[j] && (solutions[i][j] < joint_min_vector_[j] || solutions[i][j] > joint_max_vector_[j])) {
               obeys_limits = false;
               break;
             }
           }
           if(obeys_limits) {
-            solution_callback(ik_pose,sol,error_code);
+            solution_callback(ik_pose,solutions[i],error_code);
             if(error_code.val == error_code.SUCCESS){
-              solution = sol;
+              solution = solutions[i];
               ROS_DEBUG_STREAM("Took " << (ros::WallTime::now() - start) << " to return true " << countsol << " " << solvecount);
               return true;
             }

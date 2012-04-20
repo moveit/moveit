@@ -1,7 +1,14 @@
 #include <Eigen/Geometry>
 #include <float.h>
-
+#include <algorithm>
+#include <vector>
+ 
 typedef double IKReal;
+
+inline bool distance_op(std::pair<unsigned int, double> i, 
+                        std::pair<unsigned int, double> j) {
+  return i.second < j.second;
+}
 
 namespace moveit_configuration_tools {
 class ik_solver_base {
@@ -9,6 +16,10 @@ public:
   virtual int solve(Eigen::Affine3d &pose, const std::vector<double> &ik_seed_state) = 0;
   virtual void getSolution(int i, std::vector<double> &solution) = 0;
   virtual void getClosestSolution(const std::vector<double> &ik_seed_state, std::vector<double> &solution) = 0;
+  virtual void getOrderedSolutions(const std::vector<double> &ik_seed_state, 
+                                   int num_solutions,
+                                   std::vector<std::vector<double> >& solutions) = 0;
+
 };
 template <class  T> class ikfast_solver: public ik_solver_base{
 public:
@@ -57,24 +68,31 @@ public:
     //ROS_ERROR("%f %d",solution[2],vsolfree.size());
   }
   double harmonize(const std::vector<double> &ik_seed_state, std::vector<double> &solution){
-    double dist_sqr = 0;
+    if(ik_seed_state.size() != solution.size()) {
+      ROS_WARN_STREAM("Different number of values in seed and solution!");
+    } 
+    for(unsigned int i = 0; i < ik_seed_state.size(); i++) {
+      ROS_DEBUG_STREAM(i << " " << ik_seed_state[i] << " " << solution[i]);
+    }
+    double dist = 0;
     std::vector<double> ss = ik_seed_state;
     for(size_t i=0; i< ik_seed_state.size(); ++i){
       while(ss[i] > 2*M_PI) {
         ss[i] -= 2*M_PI;
       }
-      while(ss[i] < 2*M_PI) {
+      while(ss[i] < -2*M_PI) {
         ss[i] += 2*M_PI;
       }
       while(solution[i] > 2*M_PI) {
         solution[i] -= 2*M_PI;
       }
-      while(solution[i] < 2*M_PI) {
+      while(solution[i] < -2*M_PI) {
         solution[i] += 2*M_PI;
       }
-      dist_sqr += fabs(ik_seed_state[i] - solution[i]);
+      dist += fabs(ik_seed_state[i] - solution[i]);
     }
-    return dist_sqr;
+    ROS_DEBUG_STREAM("Dist " << dist);
+    return dist;
   }
 
   double harmonize_old(const std::vector<double> &ik_seed_state, std::vector<double> &solution){
@@ -88,29 +106,26 @@ public:
     }
     return dist_sqr;
   }
-  
-  // virtual void getOrderedSolutions(const std::vector<double> &ik_seed_state, 
-  //                                  std::vector<std::vector<double> >& solutions){
-  //   std::vector<double> 
-  //   double mindist = 0;
-  //   int minindex = -1;
-  //   std::vector<double> sol;
-  //   for(size_t i=0;i<solutions.size();++i){
-  //     getSolution(i,sol);
-  //     double dist = harmonize(ik_seed_state, sol);
-  //     //std::cout << "dist[" << i << "]= " << dist << std::endl;
-  //     if(minindex == -1 || dist<mindist){
-  //       minindex = i;
-  //       mindist = dist;
-  //     }
-  //   }
-  //   if(minindex >= 0){
-  //     getSolution(minindex,solution);
-  //     harmonize(ik_seed_state, solution);
-  //     index = minindex;
-  //   }
-    
-  // }
+
+  virtual void getOrderedSolutions(const std::vector<double> &ik_seed_state, 
+                                   int num_solutions,
+                                   std::vector<std::vector<double> >& solutions){
+    solutions.resize(num_solutions);
+    std::vector<std::pair<unsigned int, double> > distances;
+    std::vector<double> sol;
+    for(unsigned int i = 0; i < (unsigned int)num_solutions; i++){
+      getSolution(i,sol);
+      double dist = harmonize(ik_seed_state, sol);
+      solutions[i] = sol;
+      distances.push_back(std::pair<unsigned int, double>(i, dist));
+    };
+    std::sort(distances.begin(), distances.end(), distance_op);
+    std::vector<std::vector<double> > solutions_ret(solutions.size());
+    for(unsigned int i = 0; i < distances.size(); i++) {
+      solutions_ret[i] = solutions[distances[i].first]; 
+    }
+    solutions = solutions_ret;
+  }
 
   virtual void getClosestSolution(const std::vector<double> &ik_seed_state, std::vector<double> &solution){
     double mindist = DBL_MAX;
