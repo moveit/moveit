@@ -91,8 +91,8 @@ protected:
   planning_models::TransformsPtr                 ftf_;
   planning_models::TransformsConstPtr            ftf_const_;
   
-  boost::shared_ptr<DefaultCRobotType>        crobot_;
-  boost::shared_ptr<DefaultCWorldType>        cworld_;
+  boost::shared_ptr<collision_detection::CollisionRobot>        crobot_;
+  boost::shared_ptr<collision_detection::CollisionWorld>        cworld_;
   
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
@@ -327,7 +327,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
 
-  collision_detection::CollisionRobotFCL new_crobot(*crobot_.get());
+  collision_detection::CollisionRobotFCL new_crobot(*(dynamic_cast<collision_detection::CollisionRobotFCL*>(crobot_.get())));
 
   ros::WallTime before = ros::WallTime::now();
   new_crobot.checkSelfCollision(req,res,kstate);
@@ -365,7 +365,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
 
   ROS_INFO_STREAM("Attached diff " << first_check-second_check << " first " << first_check << " second " << second_check);
   
-  collision_detection::CollisionRobotFCL other_new_crobot(*crobot_.get());
+  collision_detection::CollisionRobotFCL other_new_crobot(*(dynamic_cast<collision_detection::CollisionRobotFCL*>(crobot_.get())));
   before = ros::WallTime::now();
   new_crobot.checkSelfCollision(req,res,kstate);
   first_check = (ros::WallTime::now()-before).toSec();
@@ -464,6 +464,78 @@ TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
   // looking into doing collision checking with a voxel grid.
   ROS_INFO_STREAM("Took " << t);
 }
+
+TEST_F(FclCollisionDetectionTester, MoveMesh) 
+{
+  planning_models::KinematicState kstate1(kmodel_);
+  kstate1.setToDefaultValues();
+
+  Eigen::Affine3d kinect_pose;
+  shapes::ShapePtr kinect_shape;
+  boost::filesystem::path path(boost::filesystem::current_path());  
+  kinect_shape.reset(shapes::createMeshFromFilename("file://"+path.string()+"/../planning_models/test/kinect.dae"));
+  cworld_->addToObject("kinect", kinect_shape, kinect_pose);
+
+  Eigen::Affine3d np;
+  for(unsigned int i = 0; i < 1000; i++) {
+    np = Eigen::Translation3d(i*.001, i*.001, i*.001)*Eigen::Quaterniond::Identity();
+    cworld_->moveShapeInObject("kinect", kinect_shape, np);
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+    cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
+  }
+}
+
+TEST_F(FclCollisionDetectionTester, TestChangingShapeSize) 
+{
+  planning_models::KinematicState kstate1(kmodel_);
+  kstate1.setToDefaultValues();
+
+  collision_detection::CollisionRequest req1;
+  collision_detection::CollisionResult res1;
+
+  cworld_->checkCollision(req1, res1, *crobot_, kstate1, *acm_);
+  ASSERT_FALSE(res1.collision);
+
+  std::vector<Eigen::Affine3d> poses;
+  std::vector<shapes::ShapeConstPtr> shapes;
+  poses.push_back(Eigen::Affine3d::Identity());
+  for(unsigned int i = 0; i < 1000; i++) {
+    cworld_->removeObject("shape");
+    shapes.clear();
+    shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(1+i*.0001, 1+i*.0001, 1+i*.0001)));
+    cworld_->addToObject("shape", shapes, poses);
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+    cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
+    ASSERT_TRUE(res.collision);
+  }
+
+  Eigen::Affine3d kinect_pose;
+  shapes::ShapePtr kinect_shape;
+  boost::filesystem::path path(boost::filesystem::current_path());  
+  kinect_shape.reset(shapes::createMeshFromFilename("file://"+path.string()+"/../planning_models/test/kinect.dae"));
+  cworld_->addToObject("kinect", kinect_shape, kinect_pose);
+
+  collision_detection::CollisionRequest req2;
+  collision_detection::CollisionResult res2;
+
+  cworld_->checkCollision(req2, res2, *crobot_, kstate1, *acm_);
+  ASSERT_TRUE(res2.collision);
+
+  for(unsigned int i = 0; i < 1000; i++) {
+    cworld_->removeObject("shape");
+    shapes.clear();
+    shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(1+i*.0001, 1+i*.0001, 1+i*.0001)));
+    cworld_->addToObject("shape", shapes, poses);
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+    cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
+    ASSERT_TRUE(res.collision);
+  }
+
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
