@@ -465,6 +465,8 @@ bool KinematicsGroupVisualization::validateEndEffectorState(const std::map<std::
     planning_models::poseFromMsg(poses.at(it->first), cur);
     
     state_.updateStateWithLinkAt(it->second, cur);
+
+    ROS_DEBUG_STREAM("Cur pose of " << it->second << " in planning frame " << poses.at(it->first));
   
     //now need to get in base_frame
     Eigen::Affine3d base_in_world = state_.getLinkState(base_frame_map.at(it->first))->getGlobalLinkTransform();
