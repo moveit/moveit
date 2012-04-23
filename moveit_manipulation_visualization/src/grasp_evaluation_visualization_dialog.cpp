@@ -196,6 +196,43 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   connect(play_grasp_and_place_execution_button_, SIGNAL(clicked()), this, SLOT(playFullGraspAndPlaceExecution()));
 
   populateObjectComboBox(planning_scene);
+  loadEndEffectorParameters();
+}
+
+void GraspEvaluationVisualizationDialog::loadEndEffectorParameters() 
+{
+  ros::NodeHandle nh;
+  const std::vector<srdf::Model::EndEffector>& end_effectors = planning_scene_->getSrdfModel()->getEndEffectors();
+  for(unsigned int i = 0; i < end_effectors.size(); i++) {
+    std::string database_id;
+    if(!nh.getParam(end_effectors[i].name_+"/database_id", database_id)) {
+      ROS_WARN_STREAM("End effector " << end_effectors[i].name_ << " has no database id");
+    }
+    end_effector_database_id_map_[end_effectors[i].name_] = database_id;
+    XmlRpc::XmlRpcValue approach;
+    if(!nh.getParam(end_effectors[i].name_+"/approach_direction", approach)) {
+      ROS_WARN_STREAM("End effector " << end_effectors[i].name_ << " has no approach direction");
+      continue;
+    }
+    if(approach.getType() != XmlRpc::XmlRpcValue::TypeArray) {
+      ROS_WARN_STREAM("End effector " << end_effectors[i].name_ << " approach direction not a vector");
+      continue;
+    }
+    std::vector<double> direction;
+    if(approach.size() != 3) {
+      ROS_WARN_STREAM("End effector " << end_effectors[i].name_ << " approach direction should have three values");
+      continue;
+    }
+    for(int j = 0; j < approach.size(); j++) {
+      direction.push_back(static_cast<double>(approach[j]));
+    }
+    geometry_msgs::Vector3 v;
+    v.x = direction[0];
+    v.y = direction[1];
+    v.z = direction[2];
+    ROS_DEBUG_STREAM("End effector " << end_effectors[i].name_ << " approach " << v.x << " " << v.y << " " << v.z);
+    end_effector_approach_direction_map_[end_effectors[i].name_] = v;
+  }
 }
 
 void GraspEvaluationVisualizationDialog::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
@@ -265,9 +302,11 @@ void GraspEvaluationVisualizationDialog::generateGraspsForObject() {
   ROS_INFO_STREAM("Attempting to grasp " << current_object_);
   current_generated_grasps_.clear();
 
-  //emit
-  requestGraspListGeneration(current_object_,
-                             current_arm_);
+  std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
+
+  Q_EMIT requestGraspListGeneration(end_effector_database_id_map_[end_effector_name],
+                                    current_object_,
+                                    current_arm_);
 }
 
 void GraspEvaluationVisualizationDialog::gotGeneratedGraspList(bool ok,
@@ -335,8 +374,11 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
     grasp_evaluation_visualization_->resetGraspExecutionInfo();
   }
 
+  std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
+
   grasp_evaluation_visualization_->evaluateGrasps(current_arm_,
                                                   goal,
+                                                  end_effector_approach_direction_map_[end_effector_name],
                                                   &planning_scene_->getCurrentState(),
                                                   current_generated_grasps_);
 
@@ -591,8 +633,10 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedPlaceLocations() {
   ev.attached_object_diff_scene_->getCurrentState().setStateValues(ev.lift_trajectory_.joint_names,
                                                                    ev.lift_trajectory_.points.back().positions);
   place_evaluation_visualization_->updatePlanningScene(ev.attached_object_diff_scene_);
+  std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
   place_evaluation_visualization_->evaluatePlaceLocations(current_arm_,
                                                           goal,
+                                                          end_effector_approach_direction_map_[end_effector_name],
                                                           &ev.attached_object_diff_scene_->getCurrentState(),
                                                           current_generated_place_locations_);
   if(place_evaluation_visualization_->getEvaluationInfoSize() > 0) {

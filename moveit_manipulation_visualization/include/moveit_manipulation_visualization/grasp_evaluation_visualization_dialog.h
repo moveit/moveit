@@ -108,6 +108,7 @@ Q_SIGNALS:
                                       const planning_scene::PlanningSceneConstPtr&,
                                       const planning_models::KinematicState*);
   void requestGraspListGeneration(const std::string&,
+                                  const std::string&,
                                   const std::string&);
 
 protected:
@@ -119,6 +120,11 @@ protected:
 
   void playFullGraspExecutionThread();
   void playFullGraspAndPlaceExecutionThread();
+
+  void loadEndEffectorParameters();
+
+  std::map<std::string, std::string> end_effector_database_id_map_;
+  std::map<std::string, geometry_msgs::Vector3> end_effector_approach_direction_map_;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
 

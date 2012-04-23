@@ -143,9 +143,11 @@ MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
 
   QObject::connect(grasp_evaluation_visualization_dialog_,
                    SIGNAL(requestGraspListGeneration(const std::string&,
+                                                     const std::string&,
                                                      const std::string&)),
                    household_object_dialog,
                    SLOT(generateGraspList(const std::string&,
+                                          const std::string&,
                                           const std::string&)));
 
   QObject::connect(household_object_dialog,
@@ -163,8 +165,6 @@ void MoveItManipulationVisualizer::updatePlanningScene(planning_scene::PlanningS
   MoveItVisualizer::updatePlanningScene(planning_scene);
   grasp_evaluation_visualization_dialog_->updatePlanningScene(planning_scene);
 }
-
-
 
 void MoveItManipulationVisualizer::attemptToGrasp(const std::string& obj) {
   grasp_evaluation_visualization_dialog_->show();

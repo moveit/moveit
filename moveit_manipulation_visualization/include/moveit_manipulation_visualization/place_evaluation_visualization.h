@@ -60,6 +60,7 @@ public:
 
   void evaluatePlaceLocations(const std::string& group_name,
                               const moveit_manipulation_msgs::PlaceGoal& goal,
+                              const geometry_msgs::Vector3& retreat_direction,
                               const planning_models::KinematicState* seed_state,
                               const std::vector<geometry_msgs::PoseStamped>& place_locations);
 

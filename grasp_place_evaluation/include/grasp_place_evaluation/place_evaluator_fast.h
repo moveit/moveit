@@ -54,6 +54,7 @@ public:
   virtual void testPlaceLocations(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                   const planning_models::KinematicState* seed_state,
                                   const moveit_manipulation_msgs::PlaceGoal &place_goal, 
+                                  const geometry_msgs::Vector3& retreat_direction,
                                   const std::vector<geometry_msgs::PoseStamped>& place_locations,
                                   PlaceExecutionInfoVector &execution_info_vector,
                                   bool return_on_first_hit);

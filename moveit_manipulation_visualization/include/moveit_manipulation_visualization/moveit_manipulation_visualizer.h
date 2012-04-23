@@ -56,7 +56,6 @@ protected:
   GraspEvaluationVisualizationDialog* grasp_evaluation_visualization_dialog_;
 
   boost::shared_ptr<ObjectRecognitionQtServiceWrapper> object_recognition_qt_service_wrapper_;
-  
 };
 
 }

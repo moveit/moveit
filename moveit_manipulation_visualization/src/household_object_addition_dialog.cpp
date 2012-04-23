@@ -198,7 +198,8 @@ bool HouseholdObjectAdditionDialog::loadDatabaseMesh(int model_id) {
   return true;
 }
 
-void HouseholdObjectAdditionDialog::generateGraspList(const std::string& obj_name,
+void HouseholdObjectAdditionDialog::generateGraspList(const std::string& database_name,
+                                                      const std::string& obj_name,
                                                       const std::string& arm_name)
 {
   std::vector<moveit_manipulation_msgs::Grasp> grasps;
@@ -212,44 +213,39 @@ void HouseholdObjectAdditionDialog::generateGraspList(const std::string& obj_nam
     Q_EMIT graspListGenerated(false, grasps);
     return;
   }
-  if(!loadDatabaseGrasps(it->second, arm_name, grasps)) {
+  if(!loadDatabaseGrasps(database_name, it->second, arm_name, grasps)) {
     Q_EMIT graspListGenerated(false, grasps);
     return;
   }
   Q_EMIT graspListGenerated(true, grasps);
 }                                                     
 
-bool HouseholdObjectAdditionDialog::loadDatabaseGrasps(const int model_id,
+bool HouseholdObjectAdditionDialog::loadDatabaseGrasps(const std::string& database_name,
+                                                       const int model_id,
                                                        const std::string& arm_name,
                                                        std::vector<moveit_manipulation_msgs::Grasp>& grasps) 
 {
+  if(database_name.empty()) {
+    ROS_INFO_STREAM("Not generating grasps as database name is empty ");
+    return false;
+  }
   bool is_pr2 = false;
-  bool is_armadillo = false;
   if(semantic_model_->getModelName() == "pr2" ||
      semantic_model_->getModelName() == "pr2_test") {
     is_pr2 = true;
-  } else if(semantic_model_->getModelName() == "armadillo") {
-    is_armadillo = true;
-  }
-  if(!is_pr2 && !is_armadillo) {
-    ROS_INFO_STREAM("Not generating grasps for non-pr2, non-armadillo robot " << semantic_model_->getModelName());
-    return false;
-  }
+  } 
   grasps.clear();
   std::vector< boost::shared_ptr<moveit_household_objects_database::DatabaseGrasp> > db_grasps;
   if(is_pr2 && !database_->getClusterRepGrasps(model_id, 
-                                               "WILLOW_GRIPPER_2010",
+                                               database_name,
                                                db_grasps)) {
     ROS_WARN_STREAM("Unable to load grasps for " << model_id);
     return false;
-  } else if(is_armadillo && !database_->getGrasps(model_id, 
-                                                  "RobotIQ",
-                                                  db_grasps)) {
-    ROS_WARN_STREAM("Unable to load grasps for " << model_id);
+  } else if(!database_->getGrasps(model_id, 
+                                  database_name,
+                                  db_grasps)) {
+    ROS_WARN_STREAM("Unable to load grasps for " << model_id << " database " << database_name);
     return false;
-  }
-  if(is_armadillo) {
-    ROS_ERROR_STREAM("Definitely armadillo " << db_grasps.size());
   }
 
   std::string end_effector_group = semantic_model_->getEndEffector(arm_name);
@@ -290,7 +286,7 @@ bool HouseholdObjectAdditionDialog::loadDatabaseGrasps(const int model_id,
       ROS_WARN_STREAM("Have " << end_effector_joints.size() << " but only " << grasp.grasp_posture.position.size() << " positions");
     } else {
       for(unsigned int i = 0; i < grasp.grasp_posture.position.size(); i++) {
-        ROS_INFO_STREAM("Joint " << end_effector_joints[i] << " position " << grasp.grasp_posture.position[i]);
+        ROS_DEBUG_STREAM("Joint " << end_effector_joints[i] << " position " << grasp.grasp_posture.position[i]);
       }
     }	
     grasp.desired_approach_distance = 0.10;

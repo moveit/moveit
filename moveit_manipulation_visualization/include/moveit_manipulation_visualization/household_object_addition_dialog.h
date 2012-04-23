@@ -76,7 +76,8 @@ public Q_SLOTS:
   void collisionNameEdited(const QString&);
   void tableSelectionChanged();
 
-  void generateGraspList(const std::string&,
+  void generateGraspList(const std::string& database_name,
+                         const std::string&,
                          const std::string&);
 
   void getMeshGivenModelId(int model_id);
@@ -99,7 +100,8 @@ protected:
 
   void populateDatabaseInformation();
   bool loadDatabaseMesh(int model_id);
-  bool loadDatabaseGrasps(const int model_id,
+  bool loadDatabaseGrasps(const std::string& database_name,
+                          const int model_id,
                           const std::string& arm_name,
                           std::vector<moveit_manipulation_msgs::Grasp>& grasps);
 
