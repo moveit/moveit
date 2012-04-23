@@ -101,7 +101,8 @@ public:
       The information passed in for this function allows the construction of a kinematic model and of all the classed that
       depend on the kinematic model (e.g., collision world/robot classes) */
   bool configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
-                 const boost::shared_ptr<const srdf::Model> &srdf_model);
+                 const boost::shared_ptr<const srdf::Model> &srdf_model,
+                 const std::string &root_link = "");
 
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);

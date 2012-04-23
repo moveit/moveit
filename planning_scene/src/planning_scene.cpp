@@ -77,14 +77,18 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
 }
 
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
-                                              const boost::shared_ptr<const srdf::Model> &srdf_model)
+                                              const boost::shared_ptr<const srdf::Model> &srdf_model,
+                                              const std::string &root_link)
 {
   if (!parent_)
   {
     urdf_model_ = urdf_model;
     srdf_model_ = srdf_model;
 
-    kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
+    if (root_link.empty())
+      kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
+    else
+      kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model, root_link));
     kmodel_const_ = kmodel_;
     smodel_.reset(new planning_models::SemanticModel(kmodel_, srdf_model));
     smodel_const_ = smodel_;    

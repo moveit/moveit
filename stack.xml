@@ -12,5 +12,6 @@
   <depend stack="ros_comm" /> <!-- rosconsole, std_msgs -->
   <depend stack="shape_msgs" /> <!-- rosconsole, std_msgs -->
 
+  <depend stack="octomap_msgs" /> 
   <depend stack="moveit_msgs" /> 
 </stack>
