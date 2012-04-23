@@ -49,7 +49,20 @@
 planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
                                                 const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
-  buildModel(urdf_model, srdf_model);
+  if (urdf_model->getRoot())
+  {
+    const urdf::Link *root = urdf_model->getRoot().get();
+    buildModel(urdf_model, srdf_model, root->name);
+  }
+  else
+    ROS_WARN("No root link found");
+}
+
+planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                                                const boost::shared_ptr<const srdf::Model> &srdf_model,
+                                                const std::string &root_link)
+{ 
+  buildModel(urdf_model, srdf_model, root_link);
 }
 
 planning_models::KinematicModel::~KinematicModel(void)
@@ -81,94 +94,155 @@ const std::string& planning_models::KinematicModel::getName(void) const
 }
 
 void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
-                                                 const boost::shared_ptr<const srdf::Model> &srdf_model)
-{
-  model_name_ = urdf_model->getName();
+                                                 const boost::shared_ptr<const srdf::Model> &srdf_model,
+                                                 const std::string &root_link)
+{ 
+  root_joint_ = NULL;
+  model_name_ = urdf_model->getName(); 
   if (urdf_model->getRoot())
-  {
-    // build all joints & links
-    const urdf::Link *root = urdf_model->getRoot().get();
-    model_frame_ = root->name;
-    root_joint_ = buildRecursive(NULL, root, srdf_model->getVirtualJoints());
-    root_link_ = link_model_map_[root->name];
-    buildMimic(urdf_model);
+  {  
 
-    // construct additional additional maps for easy access by name
-    variable_count_ = 0;
-    std::vector<JointModel*> later;
-    for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
+    // construct a bidirectional graph that represents the URDF tree
+    std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > graph;
+    std::queue<const urdf::Link*> q;
+    q.push(urdf_model->getRoot().get());
+    while (!q.empty())
     {
-      const std::vector<std::string> &name_order = joint_model_vector_[i]->getVariableNames();
-      for (std::size_t j = 0 ; j < name_order.size() ; ++j)
-        joint_model_vector_[i]->getVariableBounds(name_order[j], variable_bounds_[name_order[j]]);
-      if (joint_model_vector_[i]->mimic_ == NULL)
+      const urdf::Link *l = q.front();
+      q.pop();
+      for (unsigned int i = 0 ; i < l->child_links.size() ; ++i)
       {
-        // compute index map
-        if (name_order.size() > 0)
-        {
-          for (std::size_t j = 0; j < name_order.size(); ++j)
-          {
-            joint_variables_index_map_[name_order[j]] = variable_count_ + j;
-            active_dof_names_.push_back(name_order[j]);
-          }
-          joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
-
-          // compute variable count
-          variable_count_ += joint_model_vector_[i]->getVariableCount();
-        }
+        graph[l][l->child_links[i].get()] = graph[l->child_links[i].get()][l] = l->child_links[i]->parent_joint.get();
+        q.push(l->child_links[i].get());
       }
-      else
-        later.push_back(joint_model_vector_[i]);
     }
 
-    for (std::size_t i = 0 ; i < later.size() ; ++i)
+    // construct a tree from the graph such that the root is root_link
+    class NewParentTree
     {
-      const std::vector<std::string>& name_order = later[i]->getVariableNames();
-      const std::vector<std::string>& mim_name_order = later[i]->mimic_->getVariableNames();
-      for (std::size_t j = 0; j < name_order.size(); ++j)
-        joint_variables_index_map_[name_order[j]] = joint_variables_index_map_[mim_name_order[j]];
-      joint_variables_index_map_[later[i]->getName()] = joint_variables_index_map_[later[i]->mimic_->getName()];
-    }
-
-    // build groups
-    buildGroups(srdf_model->getGroups());
-
-    // copy the default states to the groups
-    const std::vector<srdf::Model::GroupState> &ds = srdf_model->getGroupStates();
-    for (std::size_t i = 0 ; i < ds.size() ; ++i)
-    {
-      std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(ds[i].group_);
-      if (it != joint_model_group_map_.end())
-        for (std::map<std::string, std::vector<double> >::const_iterator jt = ds[i].joint_values_.begin() ; jt != ds[i].joint_values_.end() ; ++jt)
-        {
-          const JointModel* jm = it->second->getJointModel(jt->first);
-          if (jm)
+    public:
+      NewParentTree(const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph) : graph_(graph)
+      {
+      }
+      
+      void constructTree(const urdf::Link *current, const urdf::Link *parent)
+      {
+        if (graph_->find(current) == graph_->end())
+          return;
+        const std::map<const urdf::Link*, const urdf::Joint*> &child = graph_->at(current);
+        for (std::map<const urdf::Link*, const urdf::Joint*>::const_iterator it = child.begin() ; it != child.end() ; ++it)
+          if (it->first != parent)
           {
-            const std::vector<std::string> &vn = jm->getVariableNames();
-            if (vn.size() == jt->second.size())
-              for (std::size_t j = 0 ; j < vn.size() ; ++j)
-                it->second->default_states_[ds[i].name_][vn[j]] = jt->second[j];
-            else
-              ROS_ERROR("The model for joint '%s' requires %d variable values, but only %d variable values were supplied in default state '%s' for group '%s'",
-                        jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(), it->first.c_str());
+            constructTree(it->first, current);
+            parent_map_[it->first] = std::make_pair(current, it->second);
+            child_map_[current].push_back(it->first);
           }
-          else
-            ROS_ERROR("Group state '%s' specifies value for joint '%s', but that joint is not part of group '%s'", ds[i].name_.c_str(),
-                      jt->first.c_str(), it->first.c_str());
-        }
-      else
-        ROS_ERROR("Group state '%s' specified for group '%s', but that group does not exist", ds[i].name_.c_str(), ds[i].group_.c_str());
-    }
+      }
 
-    std::stringstream ss;
-    printModelInfo(ss);
-    ROS_DEBUG_STREAM(ss.str());
+      const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& getParentMap(void) const
+      {
+        return parent_map_;
+      }
+      
+      const std::map<const urdf::Link*, std::vector<const urdf::Link*> >& getChildMap(void) const
+      {
+        return child_map_;
+      }
+      
+    private:
+      const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph_;
+      std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > parent_map_;
+      std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map_;
+    };
+    
+    NewParentTree npt(&graph);
+    const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
+    if (root_link_ptr)
+    {
+      npt.constructTree(root_link_ptr, NULL);
+      model_frame_ = root_link;
+      root_joint_ = buildRecursive(NULL, root_link_ptr, npt.getParentMap(), npt.getChildMap(), srdf_model->getVirtualJoints());    
+
+      root_link_ = link_model_map_[root_link];
+      buildMimic(urdf_model);      
+      
+      // construct additional additional maps for easy access by name
+      variable_count_ = 0;
+      std::vector<JointModel*> later;
+      for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
+      {
+        const std::vector<std::string> &name_order = joint_model_vector_[i]->getVariableNames();
+        for (std::size_t j = 0 ; j < name_order.size() ; ++j)
+          joint_model_vector_[i]->getVariableBounds(name_order[j], variable_bounds_[name_order[j]]);
+        if (joint_model_vector_[i]->mimic_ == NULL)
+        {
+          // compute index map
+          if (name_order.size() > 0)
+          {
+            for (std::size_t j = 0; j < name_order.size(); ++j)
+            {
+              joint_variables_index_map_[name_order[j]] = variable_count_ + j;
+              active_dof_names_.push_back(name_order[j]);
+            }
+            joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
+            
+            // compute variable count
+            variable_count_ += joint_model_vector_[i]->getVariableCount();
+          }
+        }
+        else
+          later.push_back(joint_model_vector_[i]);
+      }
+      
+      for (std::size_t i = 0 ; i < later.size() ; ++i)
+      {
+        const std::vector<std::string>& name_order = later[i]->getVariableNames();
+        const std::vector<std::string>& mim_name_order = later[i]->mimic_->getVariableNames();
+        for (std::size_t j = 0; j < name_order.size(); ++j)
+          joint_variables_index_map_[name_order[j]] = joint_variables_index_map_[mim_name_order[j]];
+        joint_variables_index_map_[later[i]->getName()] = joint_variables_index_map_[later[i]->mimic_->getName()];
+      }
+      
+      // build groups
+      buildGroups(srdf_model->getGroups());
+      
+      // copy the default states to the groups
+      const std::vector<srdf::Model::GroupState> &ds = srdf_model->getGroupStates();
+      for (std::size_t i = 0 ; i < ds.size() ; ++i)
+      {
+        std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(ds[i].group_);
+        if (it != joint_model_group_map_.end())
+          for (std::map<std::string, std::vector<double> >::const_iterator jt = ds[i].joint_values_.begin() ; jt != ds[i].joint_values_.end() ; ++jt)
+          {
+            const JointModel* jm = it->second->getJointModel(jt->first);
+            if (jm)
+            {
+              const std::vector<std::string> &vn = jm->getVariableNames();
+              if (vn.size() == jt->second.size())
+                for (std::size_t j = 0 ; j < vn.size() ; ++j)
+                  it->second->default_states_[ds[i].name_][vn[j]] = jt->second[j];
+              else
+                ROS_ERROR("The model for joint '%s' requires %d variable values, but only %d variable values were supplied in default state '%s' for group '%s'",
+                          jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(), it->first.c_str());
+            }
+            else
+              ROS_ERROR("Group state '%s' specifies value for joint '%s', but that joint is not part of group '%s'", ds[i].name_.c_str(),
+                        jt->first.c_str(), it->first.c_str());
+          }
+        else
+          ROS_ERROR("Group state '%s' specified for group '%s', but that group does not exist", ds[i].name_.c_str(), ds[i].group_.c_str());
+      }
+
+      std::stringstream ss;
+      printModelInfo(ss);
+
+      ROS_DEBUG("%s", ss.str().c_str());
+    }
+    else
+      ROS_ERROR("Link '%s' (to be used as root) was not found in model '%s'. Cannot construct model", root_link.c_str(), model_name_.c_str());
   }
   else
-  {
-    root_joint_ = NULL;
     ROS_WARN("No root link found");
-  }
 }
 
 void planning_models::KinematicModel::buildMimic(const boost::shared_ptr<const urdf::Model> &urdf_model)
@@ -420,9 +494,12 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
 }
 
 planning_models::KinematicModel::JointModel* planning_models::KinematicModel::buildRecursive(LinkModel *parent, const urdf::Link *link,
+                                                                                             const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
+                                                                                             const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
                                                                                              const std::vector<srdf::Model::VirtualJoint> &vjoints)
-{
-  JointModel *joint = constructJointModel(link->parent_joint.get(), link, vjoints);
+{      
+  std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >::const_iterator pmi = parent_map.find(link);
+  JointModel *joint = (pmi != parent_map.end()) ? constructJointModel(pmi->second.second, link, vjoints) : constructJointModel(NULL, link, vjoints);
   if (joint == NULL)
     return NULL;
   joint_model_map_[joint->name_] = joint;
@@ -443,13 +520,14 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::bu
     link_model_names_with_collision_geometry_vector_.push_back(link_models_with_collision_geometry_vector_.back()->getName());
   }
   joint->child_link_model_->parent_joint_model_ = joint;
-
-  for (unsigned int i = 0 ; i < link->child_links.size() ; ++i)
-  {
-    JointModel* jm = buildRecursive(joint->child_link_model_, link->child_links[i].get(), vjoints);
-    if (jm)
-      joint->child_link_model_->child_joint_models_.push_back(jm);
-  }
+  std::map<const urdf::Link*, std::vector<const urdf::Link*> >::const_iterator cmi = child_map.find(link);
+  if (cmi != child_map.end())
+    for (unsigned int i = 0 ; i < cmi->second.size() ; ++i)
+    {
+      JointModel* jm = buildRecursive(joint->child_link_model_, cmi->second[i], parent_map, child_map, vjoints);
+      if (jm)
+        joint->child_link_model_->child_joint_models_.push_back(jm);
+    }
   return joint;
 }
 
@@ -589,14 +667,13 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
     result->shape_.reset();
   }
 
-  if(urdf_link->visual && urdf_link->visual->geometry) {
+  if(urdf_link->visual && urdf_link->visual->geometry)
+  {
     const urdf::Mesh *mesh = dynamic_cast<const urdf::Mesh*>(urdf_link->visual->geometry.get());
     if (mesh && !mesh->filename.empty())
-    {
       result->visual_filename_ = mesh->filename;
-    }
   }
-  if (urdf_link->parent_joint.get())
+  if (urdf_link->parent_joint.get()) /// \todo this is an issue when we reparent the model
     result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
   else
     result->joint_origin_transform_.setIdentity();
@@ -1273,13 +1350,12 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
 
   // now we need to make another pass for group links (we include the fixed joints here)
   std::set<const LinkModel*> group_links_set;
-  for (std::size_t i = 0 ; i < group_joints.size() ; ++i) {
+  for (std::size_t i = 0 ; i < group_joints.size() ; ++i)
     group_links_set.insert(group_joints[i]->getChildLinkModel());
-  }
+  
   for (std::set<const LinkModel*>::iterator it = group_links_set.begin(); it != group_links_set.end(); ++it)
-  {
     link_model_vector_.push_back(*it);
-  }
+  
   std::sort(link_model_vector_.begin(), link_model_vector_.end(), &orderLinksByIndex);
   for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
     link_model_name_vector_.push_back(link_model_vector_[i]->getName());

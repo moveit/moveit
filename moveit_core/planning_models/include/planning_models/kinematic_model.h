@@ -690,6 +690,11 @@ public:
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
   KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model);
+
+  /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
+  KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                 const boost::shared_ptr<const srdf::Model> &srdf_model,
+                 const std::string &root_link);
   
   /** \brief Destructor. Clear all memory. */
   virtual ~KinematicModel(void);
@@ -776,17 +781,20 @@ public:
       joint is assumed, if no specification is given.  */
   const JointModel* getRoot(void) const;
   
-  const std::string& getRootJointName() const {
+  const std::string& getRootJointName(void) const
+  {
     return getRoot()->getName();
   }
   
   /** \brief Get the physical root link of the robot. */
   
-  const LinkModel* getRootLink(void) const {
+  const LinkModel* getRootLink(void) const
+  {
     return root_link_;
   }
   
-  const std::string& getRootLinkName() const {
+  const std::string& getRootLinkName(void) const
+  {
     return getRootLink()->getName();
   }
   
@@ -928,7 +936,8 @@ protected:
   
   /** \brief Given an URDF model and a SRDF model, build a full kinematic model */
   void buildModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
-                  const boost::shared_ptr<const srdf::Model> &srdf_model);
+                  const boost::shared_ptr<const srdf::Model> &srdf_model,
+                  const std::string &root_link);
   
   /** \brief Given a SRDF model describing the groups, build up the groups in this kinematic model */
   void buildGroups(const std::vector<srdf::Model::Group> &group_config);
@@ -937,7 +946,10 @@ protected:
   void buildMimic(const boost::shared_ptr<const urdf::Model> &urdf_model);
   
   /** \brief (This function is mostly intended for internal use). Given a parent link, build up (recursively), the kinematic model by walking  down the tree*/
-  JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link, const std::vector<srdf::Model::VirtualJoint> &vjoints);
+  JointModel* buildRecursive(LinkModel *parent, const urdf::Link *link,
+                             const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map,
+                             const std::map<const urdf::Link*, std::vector<const urdf::Link*> > &child_map,
+                             const std::vector<srdf::Model::VirtualJoint> &vjoints);
   
   /** \brief Given a urdf joint model, a child link and a set of virtual joints,
       build up the corresponding JointModel object*/
