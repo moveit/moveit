@@ -48,6 +48,7 @@ PlaceEvaluatorFast::PlaceEvaluatorFast(const planning_models::KinematicModelCons
 void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                             const planning_models::KinematicState* seed_state,
                                             const moveit_manipulation_msgs::PlaceGoal &place_goal, 
+                                            const geometry_msgs::Vector3& retreat_direction,
                                             const std::vector<geometry_msgs::PoseStamped>& place_locations,
                                             PlaceExecutionInfoVector &execution_info,
                                             bool return_on_first_hit)
@@ -110,7 +111,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
   Eigen::Translation3d distance_approach_dir(approach_dir*fabs(place_goal.approach.desired_distance));
   Eigen::Affine3d approach_trans(distance_approach_dir*Eigen::Quaterniond::Identity());
 
-  Eigen::Vector3d retreat_dir(0.0,-1.0,0.0);
+  Eigen::Vector3d retreat_dir(retreat_direction.x,retreat_direction.y, retreat_direction.z);
   retreat_dir.normalize();
   Eigen::Translation3d distance_retreat_dir(retreat_dir*fabs(place_goal.desired_retreat_distance));
   Eigen::Affine3d retreat_trans(distance_retreat_dir*Eigen::Quaterniond::Identity());

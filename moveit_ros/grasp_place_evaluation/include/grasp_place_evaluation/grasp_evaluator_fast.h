@@ -71,9 +71,10 @@ public:
 
   virtual void testGrasps(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const planning_models::KinematicState* seed_state,
-                          const moveit_manipulation_msgs::PickupGoal &pickup_goal,
-                          const std::vector<moveit_manipulation_msgs::Grasp> &grasps,
-                          GraspExecutionInfoVector &execution_info_vector,
+                          const moveit_manipulation_msgs::PickupGoal& pickup_goal,
+                          const geometry_msgs::Vector3& approach_direction,
+                          const std::vector<moveit_manipulation_msgs::Grasp>& grasps,
+                          GraspExecutionInfoVector& execution_info_vector,
                           bool return_on_first_hit);
     
 };

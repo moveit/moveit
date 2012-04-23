@@ -49,8 +49,9 @@ GraspEvaluatorFast::GraspEvaluatorFast(const planning_models::KinematicModelCons
 
 void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                     const planning_models::KinematicState* seed_state,
-                                    const moveit_manipulation_msgs::PickupGoal &pickup_goal,
-                                    const std::vector<moveit_manipulation_msgs::Grasp> &grasps,
+                                    const moveit_manipulation_msgs::PickupGoal& pickup_goal,
+                                    const geometry_msgs::Vector3& approach_direction,
+                                    const std::vector<moveit_manipulation_msgs::Grasp>& grasps,
                                     GraspExecutionInfoVector &execution_info,
                                     bool return_on_first_hit) 
   
@@ -141,7 +142,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     execution_info[i].result_.result_code = 0;
   }
 
-  Eigen::Vector3d pregrasp_dir(-0.0,-1.0,0.0);
+  Eigen::Vector3d pregrasp_dir(approach_direction.x,approach_direction.y,approach_direction.z);
   //tf::vector3MsgToTF(doNegate(handDescription().approachDirection(pickup_goal.arm_name)), pregrasp_dir);
   pregrasp_dir.normalize();
 

@@ -60,6 +60,7 @@ public:
 
   void evaluateGrasps(const std::string& group_name,
                       const moveit_manipulation_msgs::PickupGoal& goal,
+                      const geometry_msgs::Vector3& approach_direction,
                       const planning_models::KinematicState* seed_state,
                       const std::vector<moveit_manipulation_msgs::Grasp>& grasps);
 

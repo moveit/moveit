@@ -75,12 +75,14 @@ void PlaceEvaluationVisualization::resetPlaceExecutionInfo() {
 
 void PlaceEvaluationVisualization::evaluatePlaceLocations(const std::string& group_name,
                                                           const moveit_manipulation_msgs::PlaceGoal& goal,
+                                                          const geometry_msgs::Vector3& retreat_direction,
                                                           const planning_models::KinematicState* seed_state,
                                                           const std::vector<geometry_msgs::PoseStamped>& place_locations)
 {
   place_evaluator_fast_->testPlaceLocations(planning_scene_,
                                             seed_state,
                                             goal, 
+                                            retreat_direction,
                                             place_locations,
                                             last_place_evaluation_info_,
                                             true);
