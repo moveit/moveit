@@ -36,6 +36,7 @@
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization.h>
 #include <moveit_manipulation_visualization/place_generator_visualization.h>
 #include <moveit_manipulation_visualization/place_evaluation_visualization.h>
+#include <trajectory_execution/trajectory_execution_monitor.h>
 
 #include <QDialog>
 #include <QComboBox>
@@ -54,6 +55,7 @@ class GraspEvaluationVisualizationDialog: public QDialog {
                                      const planning_scene::PlanningSceneConstPtr& planning_scene,
                                      boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                      boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                                     boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor,
                                      ros::Publisher& marker_publisher);
   
   virtual ~GraspEvaluationVisualizationDialog() {};
@@ -94,6 +96,8 @@ public Q_SLOTS:
 
   void gotGeneratedGraspList(bool,
                              std::vector<moveit_manipulation_msgs::Grasp>);                             
+  
+  void executeFullGraspAndPlace();
 
 Q_SIGNALS:
 
@@ -113,6 +117,10 @@ Q_SIGNALS:
 
 protected:
 
+  bool doneWithExecution() {
+    ROS_INFO_STREAM("Done");
+    return true;
+  } 
   void disableGeneration();
   void disableEvaluation();
   void disablePlaceGeneration();
@@ -123,10 +131,15 @@ protected:
 
   void loadEndEffectorParameters();
 
+  void generateTrajectoryFromJointState(const sensor_msgs::JointState& js,
+                                        trajectory_msgs::JointTrajectory& traj);
+
+
   std::map<std::string, std::string> end_effector_database_id_map_;
   std::map<std::string, geometry_msgs::Vector3> end_effector_approach_direction_map_;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
+  boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor_;
 
   std::string current_object_;
   std::string current_arm_;
@@ -164,6 +177,7 @@ protected:
   QPushButton* plan_for_place_execution_button_;
   QLabel* plan_place_execution_indicator_;
   QPushButton* play_grasp_and_place_execution_button_;
+  QPushButton* execute_grasp_and_place_button_;
 
   boost::shared_ptr<GraspGeneratorVisualization> grasp_generator_visualization_;
   boost::shared_ptr<GraspEvaluationVisualization> grasp_evaluation_visualization_;

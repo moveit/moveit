@@ -44,9 +44,11 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
                                    const planning_scene::PlanningSceneConstPtr& planning_scene,
                                    boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                    boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                                   boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor,
                                    ros::Publisher& marker_publisher) :
   QDialog(parent),
   planning_scene_(planning_scene),
+  trajectory_execution_monitor_(trajectory_execution_monitor),
   grasp_generator_visualization_(new GraspGeneratorVisualization(marker_publisher)),
   grasp_evaluation_visualization_(new GraspEvaluationVisualization(planning_scene, 
                                                                    interactive_marker_server, 
@@ -168,6 +170,15 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   layout->addLayout(place_location_execution_layout);
   play_grasp_and_place_execution_button_ = new QPushButton("Play full grasp and place execution");
   layout->addWidget(play_grasp_and_place_execution_button_);
+
+  if(trajectory_execution_monitor) {
+    execute_grasp_and_place_button_ = new QPushButton("Execute full grasp and place");
+    layout->addWidget(execute_grasp_and_place_button_);
+    connect(execute_grasp_and_place_button_,
+            SIGNAL(clicked()),
+            this, 
+            SLOT(executeFullGraspAndPlace()));
+  }
 
   connect(get_grasps_button, SIGNAL(clicked()), this, SLOT(generateGraspsForObject()));
   connect(generated_grasps_browser_, SIGNAL(valueChanged(int)), this, SLOT(generatedGraspBrowserNumberChanged(int)));
@@ -514,6 +525,9 @@ void GraspEvaluationVisualizationDialog::planGenerationFinished(const std::strin
       last_return_from_place_planned_trajectory_ = traj;
       plan_place_execution_indicator_->setText("Success");
       play_grasp_and_place_execution_button_->setEnabled(true);
+      if(execute_grasp_and_place_button_) {
+        execute_grasp_and_place_button_->setEnabled(true);
+      }
     }
   } else {
     ROS_INFO_STREAM("Setting grasp");
@@ -765,6 +779,108 @@ void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecutionThread() 
   place_evaluation_visualization_->getJointTrajectoryVisualization()->playCurrentTrajectory(true);
 }
 
+void GraspEvaluationVisualizationDialog::generateTrajectoryFromJointState(const sensor_msgs::JointState& js,
+                                                                          trajectory_msgs::JointTrajectory& traj) 
+{
+  traj.joint_names = js.name;
+  traj.points.resize(1);
+  traj.points[0].positions = js.position;
+  traj.points[0].velocities.resize(js.name.size(), 0.0);
+  traj.points[0].time_from_start = ros::Duration(2.5);
+}
+
+void GraspEvaluationVisualizationDialog::executeFullGraspAndPlace() {
+  std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
+
+  std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
+  
+  grasp_place_evaluation::GraspExecutionInfo ev_grasp;
+  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev_grasp);
+
+  grasp_place_evaluation::PlaceExecutionInfo ev_place;
+  place_evaluation_visualization_->getEvaluatedPlace(evaluated_place_locations_browser_->value()-1, ev_place);
+
+  trajectory_execution::TrajectoryExecutionRequest ter;
+
+  //first we need to open the gripper
+  ter.group_name_ = end_effector_name;
+  generateTrajectoryFromJointState(current_generated_grasps_[evaluated_grasp_browser_->value()-1].pre_grasp_posture,
+                                   ter.trajectory_);
+  ROS_INFO_STREAM("Open joint is " << ter.trajectory_.points[0].positions[0]);
+  ter.failure_ok_ = true;
+  ter.failure_time_factor_ = 2.0;
+  ter_reqs.push_back(ter);
+
+  //next we go to pregrasp
+  ter.group_name_ = current_arm_;
+  ter.trajectory_ = last_planned_trajectory_;
+  ter.failure_ok_ = false;
+  ter.failure_time_factor_ = 100.0;
+  ter_reqs.push_back(ter);
+  
+  //approach interpolation
+  ter.group_name_ = current_arm_;
+  ter.trajectory_ = ev_grasp.approach_trajectory_;
+  ter.failure_ok_ = false;
+  ter.failure_time_factor_ = 100.0;
+  ter_reqs.push_back(ter);
+
+  //close gripper
+  ter.group_name_ = end_effector_name;
+  generateTrajectoryFromJointState(current_generated_grasps_[evaluated_grasp_browser_->value()-1].grasp_posture,
+                                   ter.trajectory_);
+  ROS_INFO_STREAM("Close joint is " << ter.trajectory_.points[0].positions[0]);
+  ter.failure_ok_ = true;
+  ter.failure_time_factor_ = 2.0;
+  ter_reqs.push_back(ter);
+
+  //lift interpolation
+  ter.group_name_ = current_arm_;
+  ter.trajectory_ = ev_grasp.lift_trajectory_;
+  ter.failure_ok_ = false;
+  ter.failure_time_factor_ = 100.0;
+  ter_reqs.push_back(ter);
+
+  //plan to pre-place
+  ter.group_name_ = current_arm_;
+  ter.trajectory_ = last_place_planned_trajectory_;
+  ter.failure_ok_ = false;
+  ter.failure_time_factor_ = 100.0;
+  ter_reqs.push_back(ter);
+
+  //place interpolation
+  ter.group_name_ = current_arm_;
+  ter.trajectory_ = ev_place.approach_trajectory_;
+  ter.failure_ok_ = false;
+  ter.failure_time_factor_ = 100.0;
+  ter_reqs.push_back(ter);
+
+  //open gripper
+  ter.group_name_ = end_effector_name;
+  generateTrajectoryFromJointState(current_generated_grasps_[evaluated_grasp_browser_->value()-1].pre_grasp_posture,
+                                   ter.trajectory_);
+  ter.failure_time_factor_ = 2.0;
+  ter.failure_ok_ = true;
+  ter_reqs.push_back(ter);
+
+  //retreat interpolation
+  ter.group_name_ = current_arm_;
+  ter.trajectory_ = ev_place.retreat_trajectory_;
+  ter.failure_ok_ = false;
+  ter.failure_time_factor_ = 100.0;
+  ter_reqs.push_back(ter);
+  
+  //plan to return
+  ter.group_name_ = current_arm_;
+  ter.trajectory_ = last_return_from_place_planned_trajectory_;
+  ter.failure_ok_ = false;
+  ter.failure_time_factor_ = 100.0;
+  ter_reqs.push_back(ter);
+
+  trajectory_execution_monitor_->executeTrajectories(ter_reqs,
+                                                     boost::bind(&GraspEvaluationVisualizationDialog::doneWithExecution, this));
+}
+
 void GraspEvaluationVisualizationDialog::disableGeneration() {
   generated_grasps_browser_->setDisabled(true);
   generated_grasps_browser_->setRange(0, 0);
@@ -811,6 +927,9 @@ void GraspEvaluationVisualizationDialog::disablePlaceEvaluation() {
   plan_place_execution_indicator_->setText("None");
   plan_place_execution_indicator_->setDisabled(true);
   play_grasp_and_place_execution_button_->setDisabled(true);
+  if(execute_grasp_and_place_button_) {
+    execute_grasp_and_place_button_->setDisabled(true);
+  }
   place_evaluation_visualization_->removeAllMarkers();
 }
 
