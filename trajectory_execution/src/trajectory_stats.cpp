@@ -49,11 +49,8 @@ ros::Duration TrajectoryStats::getDuration(const trajectory_msgs::JointTrajector
   if( tsize < 1 )
   {
     return ros::Duration(0,0);
-  }
-
-  const trajectory_msgs::JointTrajectoryPoint& point1 = trajectory.points[0];
-  const trajectory_msgs::JointTrajectoryPoint& point2 = trajectory.points[tsize-1];
-  return point2.time_from_start - point1.time_from_start;
+  } 
+  return trajectory.points.back().time_from_start;
 }
 
 double TrajectoryStats::getAngularDistance(const trajectory_msgs::JointTrajectory& trajectory, unsigned int start_index )
