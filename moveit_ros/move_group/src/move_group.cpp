@@ -44,6 +44,8 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <boost/tokenizer.hpp>
 
+#include <trajectory_processing/iterative_smoother.h>
+
 static const std::string ROBOT_DESCRIPTION = "robot_description";      // name of the robot description (a param name, so it can be changed externally)
 static const std::string DISPLAY_PATH_PUB_TOPIC = "display_trajectory";
 
@@ -144,6 +146,7 @@ public:
       }
     }
     
+    
     display_path_publisher_ = root_nh_.advertise<moveit_msgs::DisplayTrajectory>("move_" + group_name_ + "/" + DISPLAY_PATH_PUB_TOPIC, 1, true);
 
     // start the action server
@@ -214,6 +217,10 @@ public:
     
     if (solved)
     {
+      trajectory_msgs::JointTrajectory trajectory_out;
+      smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, psm_.getGroupJointLimitsMap().at(group_name_));
+      res.trajectory.joint_trajectory = trajectory_out;
+      
       setState(MONITOR);
       execution_complete_ = false;
       
@@ -314,6 +321,7 @@ private:
   bool terminate_service_thread_;
   bool execution_complete_;
   MoveGroupState state_;
+  trajectory_processing::IterativeParabolicSmoother smoother_;
   
   ros::Publisher display_path_publisher_;
 };
