@@ -18,6 +18,7 @@
   <depend package="planning_scene_monitor"/>
   <depend package="kinematics_plugin_loader"/>
   <depend package="planning_request_adapter"/>
+  <depend package="trajectory_processing"/>
 
 </package>
 
