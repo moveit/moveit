@@ -216,6 +216,14 @@ public:
     {
       setState(MONITOR);
       execution_complete_ = false;
+      
+      // display the trajectory
+      moveit_msgs::DisplayTrajectory disp;
+      disp.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
+      disp.trajectory_start = res.trajectory_start;
+      disp.trajectory = res.trajectory;
+      display_path_publisher_.publish(disp);      
+
       trajectory_execution::TrajectoryExecutionRequest ter;
       ter.group_name_ = group_name_;      
       ter.trajectory_ = res.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
