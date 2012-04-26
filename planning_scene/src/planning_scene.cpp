@@ -82,34 +82,61 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
 {
   if (!parent_)
   {
-    urdf_model_ = urdf_model;
-    srdf_model_ = srdf_model;
-
-    if (root_link.empty())
-      kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
-    else
-      kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model, root_link));
-    kmodel_const_ = kmodel_;
-    smodel_.reset(new planning_models::SemanticModel(kmodel_, srdf_model));
-    smodel_const_ = smodel_;    
-    ftf_.reset(new planning_models::Transforms(kmodel_->getModelFrame()));
-    ftf_const_ = ftf_;
-
-    kstate_.reset(new planning_models::KinematicState(kmodel_));
-    kstate_->setToDefaultValues();
-    acm_.reset(new collision_detection::AllowedCollisionMatrix());
-
-    crobot_.reset(new DefaultCRobotType(kmodel_));
-    crobot_unpadded_.reset(new DefaultCRobotType(kmodel_));
-    crobot_const_ = crobot_;
-    crobot_unpadded_const_ = crobot_unpadded_;
-
-    cworld_.reset(new DefaultCWorldType());
-    cworld_const_ = cworld_;
-
-    colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
-    
-    configured_ = true;
+    // nothing other than perhaps the root link has changed since the last call to configure()
+    bool same = configured_ && urdf_model_ == urdf_model && srdf_model_ == srdf_model;
+    if (!same || kmodel_->getModelFrame() != root_link)
+    {
+      if (!same)
+      {
+        urdf_model_ = urdf_model;
+        srdf_model_ = srdf_model;
+      }
+      if (root_link.empty())
+        kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
+      else
+        kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model, root_link));
+      kmodel_const_ = kmodel_;
+      smodel_.reset(new planning_models::SemanticModel(kmodel_, srdf_model));
+      smodel_const_ = smodel_;    
+      ftf_.reset(new planning_models::Transforms(kmodel_->getModelFrame()));
+      ftf_const_ = ftf_;
+      
+      if (same)
+      {
+        // keep the same joint values, update the transforms if needed
+        std::map<std::string, double> jsv;
+        kstate_->getStateValues(jsv);
+        kstate_.reset(new planning_models::KinematicState(kmodel_));
+        kstate_->setStateValues(jsv);
+      }
+      else
+      {
+        kstate_.reset(new planning_models::KinematicState(kmodel_));
+        kstate_->setToDefaultValues();
+      }
+      
+      // no need to reset this if the scene was previously configured
+      if (!configured_)
+        acm_.reset(new collision_detection::AllowedCollisionMatrix());
+      
+      crobot_.reset(new DefaultCRobotType(kmodel_));
+      crobot_unpadded_.reset(new DefaultCRobotType(kmodel_));
+      crobot_const_ = crobot_;
+      crobot_unpadded_const_ = crobot_unpadded_;
+      
+      // no need to change the world if it was previously configured;
+      // there is a catch though: the frame for planning may have changed, if a different root link was specified;
+      // however, this is direcly requested by the user
+      if (!configured_)
+      {
+        cworld_.reset(new DefaultCWorldType());
+        cworld_const_ = cworld_;
+        
+        colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
+      }
+      
+      configured_ = true;
+    }
   }
   else
   {
