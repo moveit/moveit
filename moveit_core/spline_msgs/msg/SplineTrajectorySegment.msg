@@ -1,2 +1,0 @@
-duration duration
-SplineCoefficients[] joints

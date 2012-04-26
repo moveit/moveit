@@ -1,3 +1,0 @@
-float64[] coefficients
-float64 linear_segment_duration
-float64 quadratic_segment_duration
