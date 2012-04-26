@@ -58,8 +58,14 @@ class PlanningScene;
 typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
 typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
 
-/** \brief This is the function signature for additional feasibility checks to be imposed on states (in addition to respecting constraints and collision avoidance) */
+/** \brief This is the function signature for additional feasibility checks to be imposed on states (in addition to respecting constraints and collision avoidance).
+    The first argument is the state to check the feasibility for, the second one is whether the check should be verbose or not. */
 typedef boost::function<bool(const planning_models::KinematicState&, bool)> StateFeasibilityFn;
+
+/** \brief This is the function signature for additional feasibility checks to be imposed on motions segments between states (in addition to respecting constraints and collision avoidance). 
+    The order of the arguments matters: the notion of feasibility is to be checked for motion segments that start at the first state and end at the second state. The third argument indicates
+    whether the check should be verbose or not. */
+typedef boost::function<bool(const planning_models::KinematicState&, const planning_models::KinematicState&, bool)> MotionFeasibilityFn;
 
 /** \brief This class maintains the representation of the
     environment as seen by a planning instance. The environment
@@ -278,6 +284,7 @@ public:
   bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
 
   void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
+  void processOctomapMsg(const octomap_msgs::OctomapBinary &map);
   bool getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& obj) const;
   
   /** \brief Set the current robot state to be \e state. If not
@@ -338,6 +345,18 @@ public:
     return state_feasibility_;
   }
   
+  /** \brief Specify a predicate that decides whether motion segments are considered valid or invalid for reasons beyond ones covered by collision checking and contraint evaluation.  */
+  void setMotionFeasibilityPredicate(const MotionFeasibilityFn &fn)
+  {
+    motion_feasibility_ = fn;
+  }
+
+  /** \brief Get the predicate that decides whether motion segments are considered valid or invalid for reasons beyond ones covered by collision checking and contraint evaluation. */
+  const MotionFeasibilityFn& getMotionFeasibilityPredicate(void) const
+  {
+    return motion_feasibility_;
+  }
+  
   /** \brief Check if a given state is in collision (with the environment or self collision) */
   bool isStateColliding(const moveit_msgs::RobotState &state, bool verbose = false) const;
 
@@ -387,9 +406,10 @@ public:
   void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
 				std::vector<planning_models::KinematicStatePtr> &states) const;
 
+  // \TODO This does not appear to be used; disabling for now (needs refactor if we re-enable it anyway)
   //takes current matrix and disables all collisions for links that are not
   //part of the indicated group, returning the matrix
-  collision_detection::AllowedCollisionMatrix disableCollisionsForNonUpdatedLinks(const std::string& group) const;
+  //  collision_detection::AllowedCollisionMatrix disableCollisionsForNonUpdatedLinks(const std::string& group) const;
 
 protected:
 
@@ -397,6 +417,7 @@ protected:
   void addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
+  void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
 
   std::string                                    name_;
 	
@@ -425,6 +446,7 @@ protected:
   collision_detection::CollisionWorldConstPtr    cworld_const_;
 
   StateFeasibilityFn                             state_feasibility_;
+  MotionFeasibilityFn                            motion_feasibility_;
   
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
