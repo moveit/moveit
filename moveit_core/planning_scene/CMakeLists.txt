@@ -18,8 +18,13 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(OCTOMAP REQUIRED octomap)
+include_directories(${OCTOMAP_INCLUDE_DIRS})
+link_directories(${OCTOMAP_LIBRARY_DIRS})
 
 rosbuild_add_library(${PROJECT_NAME} src/planning_scene.cpp)
+target_link_libraries(${PROJECT_NAME} ${OCTOMAP_LIBRARIES})
 
 rosbuild_add_gtest(test_planning_scene test/test_planning_scene.cpp)
 target_link_libraries(test_planning_scene ${PROJECT_NAME})

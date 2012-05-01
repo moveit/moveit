@@ -64,8 +64,10 @@ TEST(PlanningScene, LoadRestoreDiff)
     cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
     
     moveit_msgs::PlanningScene ps_msg;
+    EXPECT_TRUE(planning_scene::PlanningScene::isEmpty(ps_msg));
     ps->getPlanningSceneMsg(ps_msg);
     ps->setPlanningSceneMsg(ps_msg);
+    EXPECT_FALSE(planning_scene::PlanningScene::isEmpty(ps_msg));
     EXPECT_TRUE(ps->getCollisionWorld()->hasObject("sphere"));
     
     planning_scene::PlanningScene next(ps);
@@ -77,8 +79,9 @@ TEST(PlanningScene, LoadRestoreDiff)
     next.getPlanningSceneDiffMsg(ps_msg);
     EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
     next.decoupleParent();
-    next.getPlanningSceneDiffMsg(ps_msg);	
-    EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
+    moveit_msgs::PlanningScene ps_msg2;
+    next.getPlanningSceneDiffMsg(ps_msg2);	
+    EXPECT_EQ(ps_msg2.world.collision_objects.size(), 0);
     next.getPlanningSceneMsg(ps_msg);	
     EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
     ps->setPlanningSceneMsg(ps_msg);

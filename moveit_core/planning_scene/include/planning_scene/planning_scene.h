@@ -113,6 +113,12 @@ public:
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
 
+  /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message. */
+  static bool isEmpty(const moveit_msgs::PlanningScene &msg);
+
+  /** \brief Return a new planning scene that uses \e scene as parent and has the diffs specified by \e msg applied. */
+  static PlanningScenePtr diff(const PlanningSceneConstPtr &scene, const moveit_msgs::PlanningScene &msg);
+    
   /** \brief Get the parent scene (whith respect to which the diffs are maintained). This may be empty */
   const PlanningSceneConstPtr& getParent(void) const
   {
