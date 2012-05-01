@@ -292,6 +292,11 @@ public:
   void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
   void processOctomapMsg(const octomap_msgs::OctomapBinary &map);
   bool getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& obj) const;
+
+  void getCollisionObjectMarkers(visualization_msgs::MarkerArray& arr,
+                                 const std_msgs::ColorRGBA& default_color,
+                                 const std::string& ns=std::string(""),
+                                 const ros::Duration& lifetime = ros::Duration(0.0)) const;
   
   /** \brief Set the current robot state to be \e state. If not
       all joint values are specified, the previously maintained
