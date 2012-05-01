@@ -61,14 +61,19 @@ public:
     };
   
   MoveGroupAction(planning_scene_monitor::PlanningSceneMonitor &psm) : 
-    nh_("~"), psm_(psm), trajectory_execution_(psm_.getPlanningScene()->getKinematicModel()), state_(IDLE)
+    nh_("~"), psm_(psm), state_(IDLE)
   {
     // load the group name
     if (nh_.getParam("group", group_name_))
       ROS_INFO("Starting move_group for group '%s'", group_name_.c_str());
     else
       ROS_FATAL("Group name not specified. Cannot start move_group");
+    bool manage_controllers= false;
+    nh_.param("manage_controllers", manage_controllers, true);
     
+    trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(psm_.getPlanningScene()->getKinematicModel(),
+                                                                                            manage_controllers));
+
     // load the planning plugin
     try
     {
@@ -234,7 +239,7 @@ public:
       trajectory_execution::TrajectoryExecutionRequest ter;
       ter.group_name_ = group_name_;      
       ter.trajectory_ = res.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
-      if (trajectory_execution_.executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
+      if (trajectory_execution_->executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
       {
         ros::WallDuration d(0.01);
         while (nh_.ok() && !execution_complete_ && !terminate_service_thread_)
@@ -316,8 +321,7 @@ private:
 
   boost::scoped_ptr<boost::thread> service_goal_thread_;
   
-
-  trajectory_execution_ros::TrajectoryExecutionMonitorRos trajectory_execution_;  
+  boost::shared_ptr<trajectory_execution_ros::TrajectoryExecutionMonitorRos> trajectory_execution_;  
   bool terminate_service_thread_;
   bool execution_complete_;
   MoveGroupState state_;
