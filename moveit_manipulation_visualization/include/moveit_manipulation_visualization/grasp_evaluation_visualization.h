@@ -32,9 +32,8 @@
 #ifndef _GRASP_EVALUATION_VISUALIZATION_H_
 #define _GRASP_EVALUATION_VISUALIZATION_H_
 
-#include <grasp_place_evaluation/grasp_evaluator_fast.h>
-#include <interactive_markers/interactive_marker_server.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <planning_scene/planning_scene.h>
+#include <grasp_place_evaluation/grasp_evaluator.h>
 #include <moveit_visualization_ros/joint_trajectory_visualization.h>
 
 namespace moveit_manipulation_visualization {
@@ -43,63 +42,38 @@ class GraspEvaluationVisualization {
   
 public:
 
-  GraspEvaluationVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                               boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                               boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
-                               ros::Publisher& marker_publisher);
+  GraspEvaluationVisualization(ros::Publisher& marker_publisher);
 
   ~GraspEvaluationVisualization() {};
 
-  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
-    planning_scene_ = planning_scene;
-  }
-
   void removeAllMarkers();
 
-  void resetGraspExecutionInfo();
-
-  void evaluateGrasps(const std::string& group_name,
-                      const moveit_manipulation_msgs::PickupGoal& goal,
-                      const geometry_msgs::Vector3& approach_direction,
-                      const planning_models::KinematicState* seed_state,
-                      const std::vector<moveit_manipulation_msgs::Grasp>& grasps);
-
-  void showGraspPose(unsigned int num,
+  void showGraspPose(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                     const grasp_place_evaluation::GraspExecutionInfoVector& grasp_info,
+                     unsigned int num,
                      bool show_grasp,
                      bool show_pregrasp,
                      bool show_lift);
   
-  void playInterpolatedTrajectories(unsigned int num,
+  void playInterpolatedTrajectories(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                    const grasp_place_evaluation::GraspExecutionInfoVector& grasp_info,
+                                    boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
+                                    unsigned int num,
                                     bool play_approach,
                                     bool play_lift,
                                     bool in_thread = true);
   
-
-  unsigned int getEvaluationInfoSize() const {
-    return last_grasp_evaluation_info_.size();
-  }
-  
-  bool getEvaluatedGrasp(unsigned int num,
-                         grasp_place_evaluation::GraspExecutionInfo& grasp) const;
-  
-  boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization>& getJointTrajectoryVisualization() {
-    return joint_trajectory_visualization_;
-  }
-
 protected:
 
-  void playInterpolatedTrajectoriesThread(unsigned int num,
+  void playInterpolatedTrajectoriesThread(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                          const grasp_place_evaluation::GraspExecutionInfoVector& grasp_info,
+                                          boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
+                                          unsigned int num,
                                           bool play_approach,
                                           bool play_lift);
 
-  planning_scene::PlanningSceneConstPtr planning_scene_;
   ros::Publisher marker_publisher_;
   visualization_msgs::MarkerArray last_marker_array_;
-  
-  grasp_place_evaluation::GraspExecutionInfoVector last_grasp_evaluation_info_;
-  boost::shared_ptr<grasp_place_evaluation::GraspEvaluatorFast> grasp_evaluator_fast_;
-
-  boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization_;
 };
 
 }

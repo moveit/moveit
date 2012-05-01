@@ -32,9 +32,8 @@
 #ifndef _PLACE_EVALUATION_VISUALIZATION_H_
 #define _PLACE_EVALUATION_VISUALIZATION_H_
 
-#include <grasp_place_evaluation/place_evaluator_fast.h>
-#include <interactive_markers/interactive_marker_server.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <planning_scene/planning_scene.h>
+#include <grasp_place_evaluation/place_evaluator.h>
 #include <moveit_visualization_ros/joint_trajectory_visualization.h>
 
 namespace moveit_manipulation_visualization {
@@ -43,63 +42,38 @@ class PlaceEvaluationVisualization {
   
 public:
 
-  PlaceEvaluationVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                               boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                               boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
-                               ros::Publisher& marker_publisher);
+  PlaceEvaluationVisualization(ros::Publisher& marker_publisher);
   
   ~PlaceEvaluationVisualization() {};
   
-  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
-    planning_scene_ = planning_scene;
-  }
-  
   void removeAllMarkers();
 
-  void resetPlaceExecutionInfo();
-
-  void evaluatePlaceLocations(const std::string& group_name,
-                              const moveit_manipulation_msgs::PlaceGoal& goal,
-                              const geometry_msgs::Vector3& retreat_direction,
-                              const planning_models::KinematicState* seed_state,
-                              const std::vector<geometry_msgs::PoseStamped>& place_locations);
-
-  void showPlacePose(unsigned int num,
+  void showPlacePose(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                     const grasp_place_evaluation::PlaceExecutionInfoVector& place_info,
+                     unsigned int num,
                      bool show_place,
                      bool show_preplace,
                      bool show_retreat);
   
-  void playInterpolatedTrajectories(unsigned int num,
+  void playInterpolatedTrajectories(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                    const grasp_place_evaluation::PlaceExecutionInfoVector& place_info,
+                                    boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
+                                    unsigned int num,
                                     bool play_approach,
                                     bool play_retreat,
                                     bool in_thread = true);
   
-
-  unsigned int getEvaluationInfoSize() const {
-    return last_place_evaluation_info_.size();
-  }
-  
-  bool getEvaluatedPlace(unsigned int num,
-                         grasp_place_evaluation::PlaceExecutionInfo& grasp) const;
-  
-  boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization>& getJointTrajectoryVisualization() {
-    return joint_trajectory_visualization_;
-  }
-
 protected:
 
-  void playInterpolatedTrajectoriesThread(unsigned int num,
+  void playInterpolatedTrajectoriesThread(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                          const grasp_place_evaluation::PlaceExecutionInfoVector& place_info,
+                                          boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
+                                          unsigned int num,
                                           bool play_approach,
                                           bool play_retreat);
 
-  planning_scene::PlanningSceneConstPtr planning_scene_;
   ros::Publisher marker_publisher_;
-  visualization_msgs::MarkerArray last_marker_array_;
-  
-  grasp_place_evaluation::PlaceExecutionInfoVector last_place_evaluation_info_;
-  boost::shared_ptr<grasp_place_evaluation::PlaceEvaluatorFast> place_evaluator_fast_;
-
-  boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization_;
+  visualization_msgs::MarkerArray last_marker_array_;  
 };
 
 }

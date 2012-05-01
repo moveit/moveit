@@ -80,6 +80,10 @@ bool PlaceGeneratorDummy::generatePlaceLocations(const planning_scene::PlanningS
   double xex, yex, zex;
   shape_utils::getShapeExtents(attached_shape, xex, yex, zex);
 
+  if(object.find("drive") != std::string::npos) {
+    
+  } 
+
   double l = sup.shapes[0].dimensions[0]-xex;
   double w = sup.shapes[0].dimensions[1]-yex;
   double d = sup.shapes[0].dimensions[2]/2.0;//+zex/2.0;
