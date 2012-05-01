@@ -57,6 +57,21 @@ planning_scene::PlanningScenePtr planning_scene::PlanningScene::clone(const Plan
   return result;
 }
 
+bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningScene &msg)
+{
+  return msg.name.empty() && msg.fixed_frame_transforms.empty() && msg.robot_state.multi_dof_joint_state.joint_names.empty() &&
+      msg.robot_state.joint_state.name.empty() && msg.attached_collision_objects.empty() && msg.allowed_collision_matrix.entry_names.empty() &&
+      msg.link_padding.empty() && msg.link_scale.empty() && msg.world.collision_objects.empty() && msg.world.octomap.data.empty() &&
+      msg.world.collision_map.boxes.empty();
+}
+
+planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff(const PlanningSceneConstPtr &scene, const moveit_msgs::PlanningScene &msg)
+{
+  PlanningScenePtr result(new PlanningScene(scene));
+  result->setPlanningSceneDiffMsg(msg);
+  return result;
+}
+
 planning_scene::PlanningScene::PlanningScene(void) : configured_(false)
 {
   name_ = DEFAULT_SCENE_NAME;
@@ -690,7 +705,8 @@ void planning_scene::PlanningScene::decoupleParent(void)
 void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene)
 {
   ROS_DEBUG("Adding planning scene diff");
-  name_ = scene.name;
+  if (!scene.name.empty())
+      name_ = scene.name;
 
   // there is at least one transform in the list of fixed transform: from model frame to itself;
   // if the list is empty, then nothing has been set
