@@ -93,6 +93,11 @@ namespace moveit_visualization_ros
 
 std_msgs::ColorRGBA makeRandomColor(float brightness, float alpha);
 
+geometry_msgs::Pose determinePoseCentroidAndExtents(const std::vector<geometry_msgs::Pose>& poses,
+                                                    double& xex,
+                                                    double& yex,
+                                                    double& zex);
+
 visualization_msgs::Marker makeBox( float x, float y, float z);
 
 visualization_msgs::Marker makeCylinder( float x, float z);
@@ -175,6 +180,15 @@ visualization_msgs::InteractiveMarker makeButtonPointMass(const std::string& nam
                                                           bool fixed, 
                                                           bool view_facing);
 
+visualization_msgs::InteractiveMarker makeButtonCompoundShape(const std::string& name, 
+                                                              const std::string& frame_id,
+                                                              const std::vector<shape_msgs::Shape>& shapes,
+                                                              const std::vector<geometry_msgs::Pose>& poses,
+                                                              const std_msgs::ColorRGBA& color, 
+                                                              float scale, 
+                                                              bool fixed, 
+                                                              bool view_facing);
+
 visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name, 
                                                      const geometry_msgs::PoseStamped &stamped, 
                                                      float scale, 
@@ -183,7 +197,8 @@ visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
 
 visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& marker_name,
                                                      const shape_msgs::Shape& mesh_shape,
-                                                     const geometry_msgs::PoseStamped &stamped,                                                                                                                  const std_msgs::ColorRGBA& color);
+                                                     const geometry_msgs::PoseStamped &stamped,
+                                                     const std_msgs::ColorRGBA& color);
 
 visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::string& marker_name,
                                                               const planning_models::KinematicState& state,
