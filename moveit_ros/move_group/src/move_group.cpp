@@ -199,12 +199,18 @@ public:
     if (req.motion_plan_request.group_name.empty())
       req.motion_plan_request.group_name = group_name_;
     moveit_msgs::GetMotionPlan::Response res;
+
+    planning_scene::PlanningScenePtr diff(new planning_scene::PlanningScene(psm_.getPlanningScene()));
+    diff->setPlanningSceneDiffMsg(goal_->planning_scene_diff);
+    
+    const planning_scene::PlanningScenePtr &the_scene = diff;
+
     try
     {
       if (adapter_chain_)
-        solved = adapter_chain_->adaptAndPlan(planner_instance_, psm_.getPlanningScene(), req, res);
+        solved = adapter_chain_->adaptAndPlan(planner_instance_, the_scene, req, res);
       else
-        solved = planner_instance_->solve(psm_.getPlanningScene(), req, res);
+        solved = planner_instance_->solve(the_scene, req, res);
     }
     catch(std::runtime_error &ex)
     {
