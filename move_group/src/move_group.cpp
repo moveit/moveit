@@ -205,10 +205,8 @@ public:
       req.motion_plan_request.group_name = group_name_;
     moveit_msgs::GetMotionPlan::Response res;
 
-    planning_scene::PlanningScenePtr diff(new planning_scene::PlanningScene(psm_.getPlanningScene()));
-    diff->setPlanningSceneDiffMsg(goal_->planning_scene_diff);
-    
-    const planning_scene::PlanningScenePtr &the_scene = diff;
+    const planning_scene::PlanningScenePtr &the_scene = 
+      planning_scene::PlanningScene::isEmpty(goal_->planning_scene_diff) ? psm_.getPlanningScene() : planning_scene::PlanningScene::diff(psm_.getPlanningScene(), goal_->planning_scene_diff);
 
     try
     {
