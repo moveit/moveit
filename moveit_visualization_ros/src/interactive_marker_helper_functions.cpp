@@ -33,6 +33,7 @@
 #include <float.h>
 
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
+#include <shape_conversions/shape_to_marker.h>
 
 static bool done_seed = false;
 
@@ -58,6 +59,57 @@ std_msgs::ColorRGBA makeRandomColor(float brightness, float alpha)
   toReturn.b = fmin(toReturn.b, 1.0f);
 
   return toReturn;
+}
+
+geometry_msgs::Pose determinePoseCentroidAndExtents(const std::vector<geometry_msgs::Pose>& poses,
+                                                    double& xex,
+                                                    double& yex,
+                                                    double& zex)
+{
+  double x = 0.0, y = 0.0, z = 0.0;
+  double xmin = DBL_MAX, ymin = DBL_MAX, zmin = DBL_MAX;
+  double xmax = -DBL_MAX, ymax = -DBL_MAX, zmax = -DBL_MAX;
+  for(unsigned int i = 0; i < poses.size(); i++) {
+    double xval = poses[i].position.x;
+    double yval = poses[i].position.y;
+    double zval = poses[i].position.z;
+    x += xval;
+    y += yval;
+    z += zval;
+    if(xval < xmin) {
+      xmin = xval; 
+    }
+    if(xval > xmax) {
+      xmax = xval; 
+    }
+    
+    if(yval < ymin) {
+      ymin = yval; 
+    }
+    if(yval > ymax) {
+      ymax = yval; 
+    }
+    
+    if(zval < zmin) {
+      zmin = zval; 
+    }
+    if(zval > zmax) {
+      zmax = zval; 
+    }
+  }
+
+  xex = fabs(xmax-xmin);
+  yex = fabs(ymax-ymin);
+  zex = fabs(zmax-zmin);
+
+  geometry_msgs::Pose ret_pose;
+  ret_pose.orientation.w = 1.0;
+
+  ret_pose.position.x = (x/(poses.size()*1.0));
+  ret_pose.position.y = (y/(poses.size()*1.0));
+  ret_pose.position.z = (z/(poses.size()*1.0));
+
+  return ret_pose;
 }
 
 visualization_msgs::Marker makeBox( float x, float y, float z)
@@ -382,63 +434,17 @@ visualization_msgs::InteractiveMarker makeButtonSphere(const std::string& name,
 }
 
 visualization_msgs::InteractiveMarker makeButtonPointMass(const std::string& name, 
-                                                                 const std::string& frame_id,
-                                                                 const std::vector<geometry_msgs::Pose>& points,
-                                                                 const std_msgs::ColorRGBA& color, 
-                                                                 float scale, 
-                                                                 bool fixed, 
-                                                                 bool view_facing)
+                                                          const std::string& frame_id,
+                                                          const std::vector<geometry_msgs::Pose>& points,
+                                                          const std_msgs::ColorRGBA& color, 
+                                                          float scale, 
+                                                          bool fixed, 
+                                                          bool view_facing)
 {
   visualization_msgs::InteractiveMarker int_marker;
   int_marker.header.frame_id = frame_id;
   int_marker.name = name;
   //int_marker.description = "This is the marker.";
-
-  double x = 0.0, y = 0.0, z = 0.0;
-  double xmin = DBL_MAX, ymin = DBL_MAX, zmin = DBL_MAX;
-  double xmax = -DBL_MAX, ymax = -DBL_MAX, zmax = -DBL_MAX;
-  for(unsigned int i = 0; i < points.size(); i++) {
-    double xval = points[i].position.x;
-    double yval = points[i].position.y;
-    double zval = points[i].position.z;
-    x += xval;
-    y += yval;
-    z += zval;
-    if(xval < xmin) {
-      xmin = xval; 
-    }
-    if(xval > xmax) {
-      xmax = xval; 
-    }
-    
-    if(yval < ymin) {
-      ymin = yval; 
-    }
-    if(yval > ymax) {
-      ymax = yval; 
-    }
-    
-    if(zval < zmin) {
-      zmin = zval; 
-    }
-    if(zval > zmax) {
-      zmax = zval; 
-    }
-  }
-
-  double xex = fabs(xmax-xmin);
-  double yex = fabs(ymax-ymin);
-  double zex = fabs(zmax-zmin);
-
-  int_marker.scale = fmax(xex, fmax(yex, zex))*1.05;
-  int_marker.pose.orientation.w = 1.0;
-
-  int_marker.pose.position.x = (x/(points.size()*1.0));
-  int_marker.pose.position.y = (y/(points.size()*1.0));
-  int_marker.pose.position.z = (z/(points.size()*1.0));
-
-  Eigen::Affine3d trans;
-  planning_models::poseFromMsg(int_marker.pose, trans);
 
   visualization_msgs::InteractiveMarkerControl control;
   visualization_msgs::Marker sphere_list;
@@ -446,6 +452,14 @@ visualization_msgs::InteractiveMarker makeButtonPointMass(const std::string& nam
   sphere_list.color = color;
   sphere_list.scale.x = sphere_list.scale.y = sphere_list.scale.z = scale;
   sphere_list.pose.orientation.w = 1.0;
+
+  double xex, yex, zex;
+  int_marker.pose = determinePoseCentroidAndExtents(points,
+                                                    xex, yex, zex);
+  int_marker.scale = fmax(xex, fmax(yex, zex))*1.05;
+
+  Eigen::Affine3d trans;
+  planning_models::poseFromMsg(int_marker.pose, trans);
 
   for(unsigned int i = 0; i < points.size(); i++) {
     Eigen::Affine3d point_pose(Eigen::Translation3d(points[i].position.x, points[i].position.y, points[i].position.z)*Eigen::Quaterniond::Identity());
@@ -455,6 +469,47 @@ visualization_msgs::InteractiveMarker makeButtonPointMass(const std::string& nam
     sphere_list.points.push_back(conv.position);
   }
   control.markers.push_back(sphere_list);
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+  control.always_visible = true;
+  int_marker.controls.push_back( control );
+  return int_marker;
+}
+
+visualization_msgs::InteractiveMarker makeButtonCompoundShape(const std::string& name, 
+                                                              const std::string& frame_id,
+                                                              const std::vector<shape_msgs::Shape>& shapes,
+                                                              const std::vector<geometry_msgs::Pose>& poses,
+                                                              const std_msgs::ColorRGBA& color, 
+                                                              float scale, 
+                                                              bool fixed, 
+                                                              bool view_facing)
+{
+  visualization_msgs::InteractiveMarker int_marker;
+  int_marker.header.frame_id = frame_id;
+  int_marker.name = name;
+  //int_marker.description = "This is the marker.";
+  
+  visualization_msgs::InteractiveMarkerControl control;
+  double xex, yex, zex;
+  int_marker.pose = determinePoseCentroidAndExtents(poses,
+                                                    xex, yex, zex);
+  int_marker.scale = fmax(xex, fmax(yex, zex))*1.05;
+  Eigen::Affine3d trans;
+  planning_models::poseFromMsg(int_marker.pose, trans);
+
+  for(unsigned int i = 0; i < shapes.size(); i++) {
+    visualization_msgs::Marker mk;
+    if(!shape_conversions::constructMarkerFromShape(shapes[i],
+                                                    mk, false)) {
+      ROS_WARN_STREAM("Problem with shape index " << i);
+      continue;
+    }
+    Eigen::Affine3d shape_pose;
+    planning_models::poseFromMsg(poses[i], shape_pose);
+    Eigen::Affine3d trans_pose = trans.inverse()*shape_pose;
+    planning_models::msgFromPose(trans_pose, mk.pose);
+    control.markers.push_back(mk);
+  }
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
   control.always_visible = true;
   int_marker.controls.push_back( control );
@@ -494,8 +549,9 @@ visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
 }
 
 visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& marker_name,
-                                                            const shape_msgs::Shape& mesh_shape,
-                                                            const geometry_msgs::PoseStamped &stamped,                                                                                                                       const std_msgs::ColorRGBA& color)
+                                                     const shape_msgs::Shape& mesh_shape,
+                                                     const geometry_msgs::PoseStamped &stamped,
+                                                     const std_msgs::ColorRGBA& color)
 {
   visualization_msgs::InteractiveMarker int_marker;
   int_marker.header = stamped.header;
@@ -528,13 +584,13 @@ visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& marker_n
 }
 
 visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::string& marker_name,
-                                                                     const planning_models::KinematicState& state,
-                                                                     const std::string& parent_link,
-                                                                     const std::vector<std::string>& links,
-                                                                     const std_msgs::ColorRGBA& color, 
-                                                                     const double scale, 
-                                                                     bool use_color, 
-                                                                     Eigen::Affine3d& relative_transform) {
+                                                              const planning_models::KinematicState& state,
+                                                              const std::string& parent_link,
+                                                              const std::vector<std::string>& links,
+                                                              const std_msgs::ColorRGBA& color, 
+                                                              const double scale, 
+                                                              bool use_color, 
+                                                              Eigen::Affine3d& relative_transform) {
   
   visualization_msgs::InteractiveMarker int_marker;
   if(links.size() == 0) {
@@ -547,10 +603,11 @@ visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::string&
 
   const planning_models::KinematicState::LinkState* first_link_state = state.getLinkState(links[0]);
   Eigen::Affine3d first_pose = first_link_state->getGlobalCollisionBodyTransform();
-  
-  Eigen::Affine3d init_transform;//parent_pose.inverse()*first_pose;
 
-  init_transform.setIdentity();
+  //ROS_INFO_STREAM("Parent link " << parent_link << " first link " << links[0]);
+  
+  //Eigen::Affine3d init_transform = parent_pose.inverse()*first_pose;
+  Eigen::Affine3d init_transform = Eigen::Affine3d::Identity();
 
   int_marker.header.frame_id = "/"+state.getKinematicModel()->getModelFrame();
   int_marker.name = marker_name;

@@ -176,8 +176,8 @@ void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObjec
     ROS_WARN_STREAM("No shapes");
     return;
   }
-  if(coll.shapes.size() > 1) {
-    ROS_INFO_STREAM("Getting set for making button");
+  if(coll.poses.size() > 1 &&
+     coll.shapes.size() == 1) {
     marker = makeButtonPointMass(coll.id,
                                  "/"+planning_scene_->getPlanningFrame(),
                                  coll.poses,
@@ -186,6 +186,16 @@ void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObjec
                                  false,
                                  false);
     ROS_INFO_STREAM("Made button mass");
+  } else if(coll.shapes.size() > 1) {
+    marker = makeButtonCompoundShape(coll.id,
+                                     "/"+planning_scene_->getPlanningFrame(),
+                                     coll.shapes,
+                                     coll.poses,
+                                     color_to_use,
+                                     1.0,
+                                     false,
+                                     false);
+    ROS_INFO_STREAM("Made compound object");
   } else {
     const shape_msgs::Shape& shape_msg = coll.shapes[0];
     if(shape_msg.type == shape_msgs::Shape::BOX) {
