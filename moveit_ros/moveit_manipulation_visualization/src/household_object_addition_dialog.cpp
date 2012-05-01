@@ -364,7 +364,7 @@ void HouseholdObjectAdditionDialog::createObjectConfirmedPressed() {
   coll.poses[0].orientation.z = 0;
   coll.poses[0].orientation.w = 1;
   
-  addCollisionObjectRequested(coll, selected_color_);
+  Q_EMIT addCollisionObjectRequested(coll, selected_color_);
 }
 
 void HouseholdObjectAdditionDialog::addHouseholdObjectToScene(std::string name,
@@ -388,7 +388,7 @@ void HouseholdObjectAdditionDialog::addHouseholdObjectToScene(std::string name,
   //coll.header.frame_id = 
   coll.poses.push_back(pose);
   QColor col(128, 128, 128, 255);
-  addCollisionObjectRequested(coll,col);
+  Q_EMIT addCollisionObjectRequested(coll,col);
 }
 
 }

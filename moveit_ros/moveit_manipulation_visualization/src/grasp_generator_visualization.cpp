@@ -87,6 +87,8 @@ void GraspGeneratorVisualization::showGrasp(const planning_scene::PlanningSceneC
   }
   planning_models::KinematicState state(planning_scene->getCurrentState());
   state.setStateValues(grasp.grasp_posture);
+  ROS_DEBUG_STREAM("Grasp posture " << grasp.grasp_posture);
+  ROS_DEBUG_STREAM("Pre-grasp posture " << grasp.pre_grasp_posture);
   state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(arm_name), scene_pose);
   std_msgs::ColorRGBA col;
   col.g = col.a = 1.0;

@@ -30,71 +30,14 @@
 // Author: E. Gil Jones
 
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization.h>
+#include <kinematics_plugin_loader/kinematics_plugin_loader_helpers.h>
 
 namespace moveit_manipulation_visualization {
 
 GraspEvaluationVisualization::
-GraspEvaluationVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                             boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                             boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
-                             ros::Publisher& marker_publisher) :
-  planning_scene_(planning_scene),
+GraspEvaluationVisualization(ros::Publisher& marker_publisher) :
   marker_publisher_(marker_publisher)
-{
-  const boost::shared_ptr<const srdf::Model>& srdf = planning_scene->getSrdfModel();
-  const std::vector<srdf::Model::Group>& srdf_groups = srdf->getGroups();
-
-  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_plugin_loader->getLoaderFunction();
-  
-  std::map<std::string, kinematics::KinematicsBasePtr> solver_map;
-  for(unsigned int i = 0; i < srdf_groups.size(); i++) {
-    if(srdf_groups[i].subgroups_.size() == 0 &&
-       srdf_groups[i].chains_.size() == 1) {
-      if(!kinematics_plugin_loader->isGroupKnown(srdf_groups[i].name_)) {
-        ROS_WARN_STREAM("Really should have loader for " << srdf_groups[i].name_);
-        continue;
-      }
-      const planning_models::KinematicModel::JointModelGroup* jmg
-        = planning_scene_->getKinematicModel()->getJointModelGroup(srdf_groups[i].name_); 
-
-      solver_map[srdf_groups[i].name_] = kinematics_allocator(jmg);
-    }
-  }
-
-  grasp_evaluator_fast_.reset(new grasp_place_evaluation::GraspEvaluatorFast(planning_scene_->getKinematicModel(),
-                                                                             solver_map));
-
-  joint_trajectory_visualization_.reset(new moveit_visualization_ros::JointTrajectoryVisualization(planning_scene,
-                                                                                                   marker_publisher));
-  
-}
-
-void GraspEvaluationVisualization::resetGraspExecutionInfo() {
-  last_grasp_evaluation_info_.clear();
-}
-
-void GraspEvaluationVisualization::evaluateGrasps(const std::string& group_name,
-                                                  const moveit_manipulation_msgs::PickupGoal& goal,
-                                                  const geometry_msgs::Vector3& approach_direction,
-                                                  const planning_models::KinematicState* seed_state,
-                                                  const std::vector<moveit_manipulation_msgs::Grasp>& grasps)
-{
-  grasp_evaluator_fast_->testGrasps(planning_scene_,
-                                    seed_state,
-                                    goal, 
-                                    approach_direction,
-                                    grasps,
-                                    last_grasp_evaluation_info_,
-                                    true);
-}
-
-bool GraspEvaluationVisualization::getEvaluatedGrasp(unsigned int num,
-                                                     grasp_place_evaluation::GraspExecutionInfo& grasp) const {
-  if(num >= last_grasp_evaluation_info_.size()) {
-    return false;
-  }
-  grasp = last_grasp_evaluation_info_[num];
-  return true;
+{  
 }
 
 void GraspEvaluationVisualization::removeAllMarkers() {
@@ -105,25 +48,27 @@ void GraspEvaluationVisualization::removeAllMarkers() {
   last_marker_array_.markers.clear();
 }
 
-void GraspEvaluationVisualization::showGraspPose(unsigned int num,
+void GraspEvaluationVisualization::showGraspPose(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                 const grasp_place_evaluation::GraspExecutionInfoVector& grasp_info,
+                                                 unsigned int num,
                                                  bool show_grasp,
                                                  bool show_pregrasp,
                                                  bool show_lift) {
-  if(num >= last_grasp_evaluation_info_.size()) {
+  if(num >= grasp_info.size()) {
     return;
   }
 
   removeAllMarkers();
 
   std::vector<std::string> end_effector_links = 
-    planning_scene_->getSemanticModel()->getGroupLinks(planning_scene_->getSemanticModel()->getEndEffector(last_grasp_evaluation_info_.pickup_goal_.arm_name));
+    planning_scene->getSemanticModel()->getGroupLinks(planning_scene->getSemanticModel()->getEndEffector(grasp_info.pickup_goal_.arm_name));
   
-  planning_models::KinematicState state(planning_scene_->getCurrentState());
+  planning_models::KinematicState state(planning_scene->getCurrentState());
 
   if(show_grasp) {
-    state.setStateValues(last_grasp_evaluation_info_.grasps_[num].grasp_posture);
-    state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
-                                last_grasp_evaluation_info_[num].grasp_pose_);
+    state.setStateValues(grasp_info.grasps_[num].grasp_posture);
+    state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(grasp_info.pickup_goal_.arm_name),
+                                grasp_info[num].grasp_pose_);
 
     std_msgs::ColorRGBA col;
     col.g = col.a = 1.0;
@@ -135,9 +80,9 @@ void GraspEvaluationVisualization::showGraspPose(unsigned int num,
                           end_effector_links);
   }
   if(show_pregrasp) {
-    state.setStateValues(last_grasp_evaluation_info_.grasps_[num].pre_grasp_posture);
-    state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
-                                last_grasp_evaluation_info_[num].pregrasp_pose_);
+    state.setStateValues(grasp_info.grasps_[num].pre_grasp_posture);
+    state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(grasp_info.pickup_goal_.arm_name),
+                                grasp_info[num].pregrasp_pose_);
 
     std_msgs::ColorRGBA col;
     col.b = col.a = 1.0;
@@ -151,12 +96,12 @@ void GraspEvaluationVisualization::showGraspPose(unsigned int num,
 
   if(show_lift) {
 
-    planning_models::KinematicState diff_state(last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState());    
+    planning_models::KinematicState diff_state(grasp_info[num].attached_object_diff_scene_->getCurrentState());    
 
-    diff_state.setStateValues(last_grasp_evaluation_info_.grasps_[num].grasp_posture);
+    diff_state.setStateValues(grasp_info.grasps_[num].grasp_posture);
 
-    diff_state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_grasp_evaluation_info_.pickup_goal_.arm_name),
-                                     last_grasp_evaluation_info_[num].lift_pose_);
+    diff_state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(grasp_info.pickup_goal_.arm_name),
+                                     grasp_info[num].lift_pose_);
 
     std_msgs::ColorRGBA col;
     col.b = col.g = col.a = 1.0;
@@ -171,28 +116,35 @@ void GraspEvaluationVisualization::showGraspPose(unsigned int num,
   marker_publisher_.publish(last_marker_array_);
 }
 
-void GraspEvaluationVisualization::playInterpolatedTrajectories(unsigned int num,
+void GraspEvaluationVisualization::playInterpolatedTrajectories(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                                const grasp_place_evaluation::GraspExecutionInfoVector& grasp_info,
+                                                                boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
+                                                                unsigned int num,
                                                                 bool play_approach,
                                                                 bool play_lift,
                                                                 bool in_thread) {
-  if(num >= last_grasp_evaluation_info_.size()) {
+  if(num >= grasp_info.size()) {
     return;
   }
 
-  if(last_grasp_evaluation_info_[num].result_.result_code != moveit_manipulation_msgs::GraspResult::SUCCESS) {
+  if(grasp_info[num].result_.result_code != moveit_manipulation_msgs::GraspResult::SUCCESS) {
     return;
   }
   
   if(in_thread) {
-    boost::thread(boost::bind(&GraspEvaluationVisualization::playInterpolatedTrajectoriesThread, this, num, play_approach, play_lift));
+    boost::thread(boost::bind(&GraspEvaluationVisualization::playInterpolatedTrajectoriesThread, this, planning_scene, grasp_info, 
+                              joint_trajectory_visualization, num, play_approach, play_lift));
   } else {
     removeAllMarkers();
-    playInterpolatedTrajectoriesThread(num, play_approach, play_lift);
-    showGraspPose(num, true, true, true);
+    playInterpolatedTrajectoriesThread(planning_scene, grasp_info, joint_trajectory_visualization, num, play_approach, play_lift);
+    //showGraspPose(planning_scene, grasp_info, num, true, true, true);
   }
 }
 
-void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(unsigned int num,
+void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                                      const grasp_place_evaluation::GraspExecutionInfoVector& grasp_info,
+                                                                      boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
+                                                                      unsigned int num,
                                                                       bool play_approach,
                                                                       bool play_lift)
 {
@@ -201,36 +153,36 @@ void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(unsigned i
   col.b = col.r = col.a = 1.0;
 
   if(play_approach) {
-    joint_trajectory_visualization_->updatePlanningScene(planning_scene_);
-    planning_models::KinematicState state(planning_scene_->getCurrentState());
-    state.setStateValues(last_grasp_evaluation_info_.grasps_[num].pre_grasp_posture);
-    if(last_grasp_evaluation_info_[num].approach_trajectory_.points.size() == 0) {
+    joint_trajectory_visualization->updatePlanningScene(planning_scene);
+    planning_models::KinematicState state(planning_scene->getCurrentState());
+    state.setStateValues(grasp_info.grasps_[num].pre_grasp_posture);
+    if(grasp_info[num].approach_trajectory_.points.size() == 0) {
       ROS_WARN_STREAM("No points in approach trajectory");
     } else {
-      joint_trajectory_visualization_->setTrajectory(state,
-                                                     last_grasp_evaluation_info_.pickup_goal_.arm_name,
-                                                     last_grasp_evaluation_info_[num].approach_trajectory_,
+      joint_trajectory_visualization->setTrajectory(state,
+                                                     grasp_info.pickup_goal_.arm_name,
+                                                     grasp_info[num].approach_trajectory_,
                                                      col);
       if(play_lift) {
-        joint_trajectory_visualization_->playCurrentTrajectory(true);
+        joint_trajectory_visualization->playCurrentTrajectory(true);
       } else {
-        joint_trajectory_visualization_->playCurrentTrajectory();
+        joint_trajectory_visualization->playCurrentTrajectory();
       }
     }
   } 
   if(play_lift) {
-    last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState().setStateValues(last_grasp_evaluation_info_.grasps_[num].grasp_posture);
+    grasp_info[num].attached_object_diff_scene_->getCurrentState().setStateValues(grasp_info.grasps_[num].grasp_posture);
 
-    if(last_grasp_evaluation_info_[num].lift_trajectory_.points.size() == 0) {
+    if(grasp_info[num].lift_trajectory_.points.size() == 0) {
       ROS_WARN_STREAM("No points in lift trajectory");
     } else {
       
-      joint_trajectory_visualization_->updatePlanningScene(last_grasp_evaluation_info_[num].attached_object_diff_scene_);
-      joint_trajectory_visualization_->setTrajectory(last_grasp_evaluation_info_[num].attached_object_diff_scene_->getCurrentState(),
-                                                     last_grasp_evaluation_info_.pickup_goal_.arm_name,
-                                                     last_grasp_evaluation_info_[num].lift_trajectory_,
+      joint_trajectory_visualization->updatePlanningScene(grasp_info[num].attached_object_diff_scene_);
+      joint_trajectory_visualization->setTrajectory(grasp_info[num].attached_object_diff_scene_->getCurrentState(),
+                                                     grasp_info.pickup_goal_.arm_name,
+                                                     grasp_info[num].lift_trajectory_,
                                                      col);
-      joint_trajectory_visualization_->playCurrentTrajectory(true);
+      joint_trajectory_visualization->playCurrentTrajectory(true);
     }
   }
 }

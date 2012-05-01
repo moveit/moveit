@@ -34,67 +34,9 @@
 namespace moveit_manipulation_visualization {
 
 PlaceEvaluationVisualization::
-PlaceEvaluationVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                             boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                             boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
-                             ros::Publisher& marker_publisher) :
-  planning_scene_(planning_scene),
+PlaceEvaluationVisualization(ros::Publisher& marker_publisher) :
   marker_publisher_(marker_publisher)
 {
-  const boost::shared_ptr<const srdf::Model>& srdf = planning_scene->getSrdfModel();
-  const std::vector<srdf::Model::Group>& srdf_groups = srdf->getGroups();
-
-  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_plugin_loader->getLoaderFunction();
-  
-  std::map<std::string, kinematics::KinematicsBasePtr> solver_map;
-  for(unsigned int i = 0; i < srdf_groups.size(); i++) {
-    if(srdf_groups[i].subgroups_.size() == 0 &&
-       srdf_groups[i].chains_.size() == 1) {
-      if(!kinematics_plugin_loader->isGroupKnown(srdf_groups[i].name_)) {
-        ROS_WARN_STREAM("Really should have loader for " << srdf_groups[i].name_);
-        continue;
-      }
-      const planning_models::KinematicModel::JointModelGroup* jmg
-        = planning_scene_->getKinematicModel()->getJointModelGroup(srdf_groups[i].name_); 
-
-      solver_map[srdf_groups[i].name_] = kinematics_allocator(jmg);
-    }
-  }
-
-  place_evaluator_fast_.reset(new grasp_place_evaluation::PlaceEvaluatorFast(planning_scene_->getKinematicModel(),
-                                                                             solver_map));
-  
-  joint_trajectory_visualization_.reset(new moveit_visualization_ros::JointTrajectoryVisualization(planning_scene,
-                                                                                                   marker_publisher));
-  
-}
-
-void PlaceEvaluationVisualization::resetPlaceExecutionInfo() {
-  last_place_evaluation_info_.clear();
-}
-
-void PlaceEvaluationVisualization::evaluatePlaceLocations(const std::string& group_name,
-                                                          const moveit_manipulation_msgs::PlaceGoal& goal,
-                                                          const geometry_msgs::Vector3& retreat_direction,
-                                                          const planning_models::KinematicState* seed_state,
-                                                          const std::vector<geometry_msgs::PoseStamped>& place_locations)
-{
-  place_evaluator_fast_->testPlaceLocations(planning_scene_,
-                                            seed_state,
-                                            goal, 
-                                            retreat_direction,
-                                            place_locations,
-                                            last_place_evaluation_info_,
-                                            true);
-}
-
-bool PlaceEvaluationVisualization::getEvaluatedPlace(unsigned int num,
-                                                     grasp_place_evaluation::PlaceExecutionInfo& place) const {
-  if(num >= last_place_evaluation_info_.size()) {
-    return false;
-  }
-  place = last_place_evaluation_info_[num];
-  return true;
 }
 
 void PlaceEvaluationVisualization::removeAllMarkers() {
@@ -105,25 +47,27 @@ void PlaceEvaluationVisualization::removeAllMarkers() {
   last_marker_array_.markers.clear();
 }
 
-void PlaceEvaluationVisualization::showPlacePose(unsigned int num,
+void PlaceEvaluationVisualization::showPlacePose(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                 const grasp_place_evaluation::PlaceExecutionInfoVector& place_info,
+                                                 unsigned int num,
                                                  bool show_place,
                                                  bool show_preplace,
                                                  bool show_retreat) {
-  if(num >= last_place_evaluation_info_.size()) {
+  if(num >= place_info.size()) {
     return;
   }
 
   removeAllMarkers();
   
   std::vector<std::string> end_effector_links = 
-    planning_scene_->getSemanticModel()->getGroupLinks(planning_scene_->getSemanticModel()->getEndEffector(last_place_evaluation_info_.place_goal_.arm_name));
+    planning_scene->getSemanticModel()->getGroupLinks(planning_scene->getSemanticModel()->getEndEffector(place_info.place_goal_.arm_name));
   
-  planning_models::KinematicState state(planning_scene_->getCurrentState());
+  planning_models::KinematicState state(planning_scene->getCurrentState());
   
   if(show_place) {
-    state.setStateValues(last_place_evaluation_info_.place_goal_.grasp.grasp_posture);
-    state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_place_evaluation_info_.place_goal_.arm_name),
-                                last_place_evaluation_info_[num].place_pose_);
+    state.setStateValues(place_info.place_goal_.grasp.grasp_posture);
+    state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(place_info.place_goal_.arm_name),
+                                place_info[num].place_pose_);
 
     std_msgs::ColorRGBA col;
     col.g = col.a = 1.0;
@@ -135,9 +79,9 @@ void PlaceEvaluationVisualization::showPlacePose(unsigned int num,
                           end_effector_links);
   }
   if(show_preplace) {
-    state.setStateValues(last_place_evaluation_info_.place_goal_.grasp.pre_grasp_posture);
-    state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_place_evaluation_info_.place_goal_.arm_name),
-                                last_place_evaluation_info_[num].preplace_pose_);
+    state.setStateValues(place_info.place_goal_.grasp.pre_grasp_posture);
+    state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(place_info.place_goal_.arm_name),
+                                place_info[num].preplace_pose_);
 
     std_msgs::ColorRGBA col;
     col.b = col.a = 1.0;
@@ -151,12 +95,12 @@ void PlaceEvaluationVisualization::showPlacePose(unsigned int num,
 
   if(show_retreat) {
     
-    planning_models::KinematicState diff_state(last_place_evaluation_info_[num].detached_object_diff_scene_->getCurrentState());    
+    planning_models::KinematicState diff_state(place_info[num].detached_object_diff_scene_->getCurrentState());    
 
-    diff_state.setStateValues(last_place_evaluation_info_.place_goal_.grasp.grasp_posture);
+    diff_state.setStateValues(place_info.place_goal_.grasp.grasp_posture);
 
-    diff_state.updateStateWithLinkAt(planning_scene_->getSemanticModel()->getTipLink(last_place_evaluation_info_.place_goal_.arm_name),
-                                     last_place_evaluation_info_[num].retreat_pose_);
+    diff_state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(place_info.place_goal_.arm_name),
+                                     place_info[num].retreat_pose_);
 
     std_msgs::ColorRGBA col;
     col.b = col.g = col.a = 1.0;
@@ -171,29 +115,35 @@ void PlaceEvaluationVisualization::showPlacePose(unsigned int num,
   marker_publisher_.publish(last_marker_array_);
 }
 
-void PlaceEvaluationVisualization::playInterpolatedTrajectories(unsigned int num,
+void PlaceEvaluationVisualization::playInterpolatedTrajectories(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                                const grasp_place_evaluation::PlaceExecutionInfoVector& place_info,
+                                                                boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
+                                                                unsigned int num,
                                                                 bool play_approach,
                                                                 bool play_retreat,
                                                                 bool in_thread)
 {
-  if(num >= last_place_evaluation_info_.size()) {
+  if(num >= place_info.size()) {
     return;
   }
 
-  if(last_place_evaluation_info_[num].result_.result_code != moveit_manipulation_msgs::PlaceLocationResult::SUCCESS) {
+  if(place_info[num].result_.result_code != moveit_manipulation_msgs::PlaceLocationResult::SUCCESS) {
     return;
   }
   
   if(in_thread) {
-    boost::thread(boost::bind(&PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread, this, num, play_approach, play_retreat));
+    boost::thread(boost::bind(&PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread, this, planning_scene, place_info, joint_trajectory_visualization, num, play_approach, play_retreat));
   } else {
     removeAllMarkers();
-    playInterpolatedTrajectoriesThread(num, play_approach, play_retreat);
-    showPlacePose(num, true, true, true);
+    playInterpolatedTrajectoriesThread(planning_scene, place_info, joint_trajectory_visualization, num, play_approach, play_retreat);
+    //showPlacePose(planning_scene, place_info, num, true, true, true);
   }
 }
 
-void PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread(unsigned int num,
+void PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                                      const grasp_place_evaluation::PlaceExecutionInfoVector& place_info,
+                                                                      boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
+                                                                      unsigned int num,
                                                                       bool play_approach,
                                                                       bool play_retreat)
 {
@@ -202,28 +152,28 @@ void PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread(unsigned i
   col.b = col.r = col.a = 1.0;
 
   if(play_approach) {
-    joint_trajectory_visualization_->updatePlanningScene(planning_scene_);
-    planning_models::KinematicState state(planning_scene_->getCurrentState());
-    state.setStateValues(last_place_evaluation_info_.place_goal_.grasp.grasp_posture);
-    joint_trajectory_visualization_->setTrajectory(state,
-                                                   last_place_evaluation_info_.place_goal_.arm_name,
-                                                   last_place_evaluation_info_[num].approach_trajectory_,
+    joint_trajectory_visualization->updatePlanningScene(planning_scene);
+    planning_models::KinematicState state(planning_scene->getCurrentState());
+    state.setStateValues(place_info.place_goal_.grasp.grasp_posture);
+    joint_trajectory_visualization->setTrajectory(state,
+                                                   place_info.place_goal_.arm_name,
+                                                   place_info[num].approach_trajectory_,
                                                    col);
     if(play_retreat) {
-      joint_trajectory_visualization_->playCurrentTrajectory(true);
+      joint_trajectory_visualization->playCurrentTrajectory(true);
     } else {
-      joint_trajectory_visualization_->playCurrentTrajectory();
+      joint_trajectory_visualization->playCurrentTrajectory();
     }
   } 
   if(play_retreat) {
-    last_place_evaluation_info_[num].detached_object_diff_scene_->getCurrentState().setStateValues(last_place_evaluation_info_.place_goal_.grasp.pre_grasp_posture);
+    place_info[num].detached_object_diff_scene_->getCurrentState().setStateValues(place_info.place_goal_.grasp.pre_grasp_posture);
 
-    joint_trajectory_visualization_->updatePlanningScene(last_place_evaluation_info_[num].detached_object_diff_scene_);
-    joint_trajectory_visualization_->setTrajectory(last_place_evaluation_info_[num].detached_object_diff_scene_->getCurrentState(),
-                                                   last_place_evaluation_info_.place_goal_.arm_name,
-                                                   last_place_evaluation_info_[num].retreat_trajectory_,
-                                                   col);
-    joint_trajectory_visualization_->playCurrentTrajectory(true);
+    joint_trajectory_visualization->updatePlanningScene(place_info[num].detached_object_diff_scene_);
+    joint_trajectory_visualization->setTrajectory(place_info[num].detached_object_diff_scene_->getCurrentState(),
+                                                  place_info.place_goal_.arm_name,
+                                                  place_info[num].retreat_trajectory_,
+                                                  col);
+    joint_trajectory_visualization->playCurrentTrajectory(true);
   }
 }
 

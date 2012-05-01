@@ -54,47 +54,71 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
   //Eigen::Affine3d obj_pose;
   //planning_models::poseFromMsg(co.poses[0], obj_pose);
 
-  Eigen::Affine3d ident(Eigen::Affine3d::Identity());
-
-  grasps.resize(4);
-  
   double xex, yex, zex;
   shape_utils::getShapeExtents(co.shapes[0], xex, yex, zex);
-  
-  //FRONT
-  planning_models::msgFromPose(ident, grasps[0].grasp_pose);
-  grasps[0].grasp_pose.position.x -= (xex/2.0+.15); 
-  grasps[0].desired_approach_distance = .12;
-  grasps[0].min_approach_distance = .12;
+  ROS_INFO_STREAM("Extents are " << xex << " " << yex << " " << zex);
+  if(obj.find("drive") != std::string::npos) {
+    double xtrans = -(xex/2.0+.15);
+    Eigen::Affine3d rot(Eigen::Translation3d(xtrans, 0, 0)*(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitX())));
+    moveit_manipulation_msgs::Grasp grasp;
+    planning_models::msgFromPose(rot,grasp.grasp_pose);
+    grasp.desired_approach_distance = .12;
+    grasp.min_approach_distance = .12;
+    grasps.push_back(grasp);
+  } else if(xex > .3 && yex > .3 && zex > .3) {
 
-  {
-    //TOP
-    Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitY()));
-    Eigen::Affine3d np = ident*rot;
-    planning_models::msgFromPose(np, grasps[1].grasp_pose);
-    grasps[1].grasp_pose.position.z += (zex/2.0+.15); 
-    grasps[1].desired_approach_distance = .12;
-    grasps[1].min_approach_distance = .12;
-  }
-  {
-    //LEFT
-    Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
-    Eigen::Affine3d np = ident*rot;
-    planning_models::msgFromPose(np, grasps[2].grasp_pose);
-    grasps[2].grasp_pose.position.y -= (yex/2.0+.15); 
-    grasps[2].desired_approach_distance = .12;
-    grasps[2].min_approach_distance = .12;
-  }
-  {
-    //RIGHT
-    Eigen::Affine3d rot(Eigen::AngleAxisd(-90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
-    Eigen::Affine3d np = ident*rot;
-    planning_models::msgFromPose(np, grasps[3].grasp_pose);
-    grasps[3].grasp_pose.position.y += (yex/2.0+.15); 
-    grasps[3].desired_approach_distance = .12;
-    grasps[3].min_approach_distance = .12;
-  }
+    double spacing = .1;
+    unsigned int znum = floor(zex/spacing);    
+    double xtrans = -(xex/2.0+.12+.10);
+    for(unsigned int i = 0; i < znum; i++) { 
+      double ztrans = -(zex/2.0)+((i*1.0)*spacing);
+      ROS_INFO_STREAM("Xtrans " << xtrans << " z trans " << ztrans);
+      Eigen::Affine3d rot(Eigen::Translation3d(xtrans, 0, ztrans)*(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitX())));
+      moveit_manipulation_msgs::Grasp grasp;
+      planning_models::msgFromPose(rot,grasp.grasp_pose);
+      grasp.desired_approach_distance = .12;
+      grasp.min_approach_distance = .12;
+      grasps.push_back(grasp);
+    }
+  } else {
 
+    Eigen::Affine3d ident(Eigen::Affine3d::Identity());
+    grasps.resize(4);
+
+    //FRONT
+    planning_models::msgFromPose(ident, grasps[0].grasp_pose);
+    grasps[0].grasp_pose.position.x -= (xex/2.0+.15); 
+    grasps[0].desired_approach_distance = .12;
+    grasps[0].min_approach_distance = .12;
+    
+    {
+      //TOP
+      Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitY()));
+      Eigen::Affine3d np = ident*rot;
+      planning_models::msgFromPose(np, grasps[1].grasp_pose);
+      grasps[1].grasp_pose.position.z += (zex/2.0+.15); 
+      grasps[1].desired_approach_distance = .12;
+      grasps[1].min_approach_distance = .12;
+    }
+    {
+      //LEFT
+      Eigen::Affine3d rot(Eigen::AngleAxisd(90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
+      Eigen::Affine3d np = ident*rot;
+      planning_models::msgFromPose(np, grasps[2].grasp_pose);
+      grasps[2].grasp_pose.position.y -= (yex/2.0+.15); 
+      grasps[2].desired_approach_distance = .12;
+      grasps[2].min_approach_distance = .12;
+    }
+    {
+      //RIGHT
+      Eigen::Affine3d rot(Eigen::AngleAxisd(-90.f * (M_PI/180.f), Eigen::Vector3d::UnitZ()));
+      Eigen::Affine3d np = ident*rot;
+      planning_models::msgFromPose(np, grasps[3].grasp_pose);
+      grasps[3].grasp_pose.position.y += (yex/2.0+.15); 
+      grasps[3].desired_approach_distance = .12;
+      grasps[3].min_approach_distance = .12;
+    }
+  }
 
   for(unsigned int i = 0; i < grasps.size(); i++) {
     if(arm_name == "right_arm") {
@@ -108,15 +132,15 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
       grasps[i].pre_grasp_posture.name.push_back("l_gripper_r_finger_tip_joint");
       grasps[i].pre_grasp_posture.name.push_back("l_gripper_l_finger_tip_joint");
     }
-    grasps[i].pre_grasp_posture.position.push_back(.35);
-    grasps[i].pre_grasp_posture.position.push_back(.35);
-    grasps[i].pre_grasp_posture.position.push_back(.35);
-    grasps[i].pre_grasp_posture.position.push_back(.35);
+    grasps[i].pre_grasp_posture.position.push_back(.4);
+    grasps[i].pre_grasp_posture.position.push_back(.4);
+    grasps[i].pre_grasp_posture.position.push_back(.4);
+    grasps[i].pre_grasp_posture.position.push_back(.4);
     grasps[i].grasp_posture.name = grasps[i].pre_grasp_posture.name;
-    grasps[i].grasp_posture.position.push_back(.25);
-    grasps[i].grasp_posture.position.push_back(.25);
-    grasps[i].grasp_posture.position.push_back(.25);
-    grasps[i].grasp_posture.position.push_back(.25);
+    grasps[i].grasp_posture.position.push_back(.15);
+    grasps[i].grasp_posture.position.push_back(.15);
+    grasps[i].grasp_posture.position.push_back(.15);
+    grasps[i].grasp_posture.position.push_back(.15);
   }
   return true;
 }

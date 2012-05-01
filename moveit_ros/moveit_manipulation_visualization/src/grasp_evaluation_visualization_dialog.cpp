@@ -30,6 +30,7 @@
 // Author: E. Gil Jones
 
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization_dialog.h>
+#include <kinematics_plugin_loader/kinematics_plugin_loader_helpers.h>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -48,18 +49,24 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
                                    ros::Publisher& marker_publisher) :
   QDialog(parent),
   planning_scene_(planning_scene),
+  joint_trajectory_visualization_(new moveit_visualization_ros::JointTrajectoryVisualization(planning_scene,
+                                                                                             marker_publisher)),
   trajectory_execution_monitor_(trajectory_execution_monitor),
   grasp_generator_visualization_(new GraspGeneratorVisualization(marker_publisher)),
-  grasp_evaluation_visualization_(new GraspEvaluationVisualization(planning_scene, 
-                                                                   interactive_marker_server, 
-                                                                   kinematics_plugin_loader, 
-                                                                   marker_publisher)),
-  place_generator_visualization_(new PlaceGeneratorVisualization(marker_publisher)),
-  place_evaluation_visualization_(new PlaceEvaluationVisualization(planning_scene, 
-                                                                   interactive_marker_server, 
-                                                                   kinematics_plugin_loader, 
-                                                                   marker_publisher))
+  place_generator_visualization_(new PlaceGeneratorVisualization(marker_publisher))
 {
+  std::map<std::string, kinematics::KinematicsBasePtr> solver_map;
+  kinematics_plugin_loader::generateKinematicsLoaderMap(planning_scene_->getKinematicModel(),
+                                                        planning_scene_->getSrdfModel(),
+                                                        kinematics_plugin_loader,
+                                                        solver_map);
+  grasp_evaluator_fast_.reset(new grasp_place_evaluation::GraspEvaluatorFast(planning_scene_->getKinematicModel(),
+                                                                             solver_map));
+  grasp_evaluation_visualization_.reset(new GraspEvaluationVisualization(marker_publisher));
+  place_evaluator_fast_.reset(new grasp_place_evaluation::PlaceEvaluatorFast(planning_scene_->getKinematicModel(),
+                                                                             solver_map));
+  place_evaluation_visualization_.reset(new PlaceEvaluationVisualization(marker_publisher));
+
   qRegisterMetaType<planning_scene::PlanningSceneConstPtr>("planning_scene::PlanningSceneConstPtr");
 
   QVBoxLayout* layout = new QVBoxLayout(this);
@@ -178,6 +185,8 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
             SIGNAL(clicked()),
             this, 
             SLOT(executeFullGraspAndPlace()));
+  } else {
+    execute_grasp_and_place_button_ = NULL;
   }
 
   connect(get_grasps_button, SIGNAL(clicked()), this, SLOT(generateGraspsForObject()));
@@ -248,7 +257,6 @@ void GraspEvaluationVisualizationDialog::loadEndEffectorParameters()
 
 void GraspEvaluationVisualizationDialog::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
   planning_scene_ = planning_scene;
-  grasp_evaluation_visualization_->updatePlanningScene(planning_scene);
   //signalling so that result is processed in GUI thread
   newPlanningSceneUpdated(planning_scene);
 }
@@ -370,7 +378,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
   if(generated_grasp_frame_ == current_object_) {
   }
 
-  goal.lift.direction.vector.z = 1;
+  goal.lift.direction.vector.x = -1;
   goal.lift.desired_distance = .1;
 
   if(!current_support_.empty()) {
@@ -378,34 +386,35 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
     //goal.allow_gripper_support_collision = true;
     goal.collision_support_surface_name = current_support_;
   }
-  unsigned int cur_size = grasp_evaluation_visualization_->getEvaluationInfoSize();
+  unsigned int cur_size = last_grasp_evaluation_info_.size();
 
   if(cur_size == current_generated_grasps_.size()) {
     ROS_INFO_STREAM("Starting from scratch");
-    grasp_evaluation_visualization_->resetGraspExecutionInfo();
+    last_grasp_evaluation_info_.clear();
   }
 
   std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
 
-  grasp_evaluation_visualization_->evaluateGrasps(current_arm_,
-                                                  goal,
-                                                  end_effector_approach_direction_map_[end_effector_name],
-                                                  &planning_scene_->getCurrentState(),
-                                                  current_generated_grasps_);
+  grasp_evaluator_fast_->testGrasps(planning_scene_,
+                                    &planning_scene_->getCurrentState(),
+                                    goal,
+                                    end_effector_approach_direction_map_[end_effector_name],
+                                    current_generated_grasps_,
+                                    last_grasp_evaluation_info_,
+                                    true);
 
-  if(grasp_evaluation_visualization_->getEvaluationInfoSize() > 0) {
-    evaluated_grasp_browser_->setRange(0, grasp_evaluation_visualization_->getEvaluationInfoSize());
+  if(last_grasp_evaluation_info_.size() > 0) {
+    evaluated_grasp_browser_->setRange(0, last_grasp_evaluation_info_.size());
     evaluated_grasp_browser_->setEnabled(true);
     bool success = false;
-    for(unsigned int i = cur_size; i < grasp_evaluation_visualization_->getEvaluationInfoSize(); i++) {
-      grasp_place_evaluation::GraspExecutionInfo ev;
-      grasp_evaluation_visualization_->getEvaluatedGrasp(i, ev);
+    for(unsigned int i = cur_size; i < last_grasp_evaluation_info_.size(); i++) {
+      grasp_place_evaluation::GraspExecutionInfo ev = last_grasp_evaluation_info_[i];
       if(ev.result_.result_code == moveit_manipulation_msgs::GraspResult::SUCCESS) {
         evaluated_grasp_browser_->setValue(i+1);
         evaluation_result_indicator_->setEnabled(true);
         evaluatedGraspBrowserNumberChanged(i+1);
         success = true;
-        if(grasp_evaluation_visualization_->getEvaluationInfoSize() < current_generated_grasps_.size()) {
+        if(last_grasp_evaluation_info_.size() < current_generated_grasps_.size()) {
           evaluate_grasp_button_->setText("Continue Grasp Evaluation"); 
         }
         break;
@@ -429,13 +438,14 @@ void GraspEvaluationVisualizationDialog::evaluatedGraspBrowserNumberChanged(int 
     plan_execution_indicator_->setDisabled(true);
   } else {
     plan_execution_indicator_->setText("None");
-    grasp_place_evaluation::GraspExecutionInfo ev;
-    grasp_evaluation_visualization_->getEvaluatedGrasp(i-1, ev);
+    grasp_place_evaluation::GraspExecutionInfo& ev = last_grasp_evaluation_info_[i-1];
     evaluation_result_indicator_->setText(grasp_place_evaluation::convertGraspResultToStringStatus(ev.result_).c_str());
-    grasp_evaluation_visualization_->showGraspPose(i-1,
-                                                  true,
-                                                  true,
-                                                  true);
+    grasp_evaluation_visualization_->showGraspPose(planning_scene_,
+                                                   last_grasp_evaluation_info_,
+                                                   i-1,
+                                                   true,
+                                                   true,
+                                                   true);
     if(ev.result_.result_code == moveit_manipulation_msgs::GraspResult::SUCCESS) {
       play_interpolated_trajectory_button_->setEnabled(true);
       plan_for_grasp_execution_button_->setEnabled(true);
@@ -473,15 +483,17 @@ void GraspEvaluationVisualizationDialog::selectedPlaceChanged(const QString &tex
 }
 
 void GraspEvaluationVisualizationDialog::playInterpolatedTrajectory() {
-  grasp_evaluation_visualization_->playInterpolatedTrajectories(evaluated_grasp_browser_->value()-1,
+  grasp_evaluation_visualization_->playInterpolatedTrajectories(planning_scene_,
+                                                                last_grasp_evaluation_info_,
+                                                                joint_trajectory_visualization_,
+                                                                evaluated_grasp_browser_->value()-1,
                                                                 true, 
                                                                 true,
                                                                 true);
 }
 
 void GraspEvaluationVisualizationDialog::planForGraspExecution() {
-  grasp_place_evaluation::GraspExecutionInfo ev;
-  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev);
+  grasp_place_evaluation::GraspExecutionInfo& ev = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
   if(ev.approach_trajectory_.points.size() == 0) {
     ROS_WARN_STREAM("Asked to plan, but no approach trajectory");
     return;
@@ -492,10 +504,9 @@ void GraspEvaluationVisualizationDialog::planForGraspExecution() {
 
   plan_execution_indicator_->setText("Planning");
 
-  //emit
-  requestDiffScenePlanGeneration(current_arm_,
-                                 planning_scene_,
-                                 &goal_state);
+  Q_EMIT requestDiffScenePlanGeneration(current_arm_,
+                                        planning_scene_,
+                                        &goal_state);
 }
 
 void GraspEvaluationVisualizationDialog::planGenerationFinished(const std::string& group_name,
@@ -504,8 +515,7 @@ void GraspEvaluationVisualizationDialog::planGenerationFinished(const std::strin
     if(last_place_planned_trajectory_.points.size() == 0) {
       last_place_planned_trajectory_ = traj;
       ROS_INFO_STREAM("Setting place");
-      grasp_place_evaluation::PlaceExecutionInfo ev;
-      place_evaluation_visualization_->getEvaluatedPlace(evaluated_place_locations_browser_->value()-1, ev);
+      grasp_place_evaluation::PlaceExecutionInfo& ev = last_place_evaluation_info_[evaluated_place_locations_browser_->value()-1];
       if(ev.retreat_trajectory_.points.size() == 0) {
         ROS_WARN_STREAM("Asked to plan, but no approach trajectory");
         return;
@@ -515,10 +525,9 @@ void GraspEvaluationVisualizationDialog::planGenerationFinished(const std::strin
 
       plan_execution_indicator_->setText("Planning back to start");
       
-      //emit
-      requestDiffScenePlanGeneration(current_arm_,
-                                     ev.detached_object_diff_scene_,
-                                     &planning_scene_->getCurrentState());
+      Q_EMIT requestDiffScenePlanGeneration(current_arm_,
+                                            ev.detached_object_diff_scene_,
+                                            &planning_scene_->getCurrentState());
       
     } else {
       ROS_INFO_STREAM("Return from place traj has " << traj.points.size() << " points");
@@ -562,12 +571,15 @@ void GraspEvaluationVisualizationDialog::playFullGraspExecutionThread() {
   col.b = col.r = col.a = 1.0;
   planning_models::KinematicState state(planning_scene_->getCurrentState());
   state.setStateValues(current_generated_grasps_[evaluated_grasp_browser_->value()-1].pre_grasp_posture);
-  grasp_evaluation_visualization_->getJointTrajectoryVisualization()->setTrajectory(state,
-                                                                                    current_arm_,
-                                                                                    last_planned_trajectory_,
-                                                                                    col);
-  grasp_evaluation_visualization_->getJointTrajectoryVisualization()->playCurrentTrajectory(true);
-  grasp_evaluation_visualization_->playInterpolatedTrajectories(evaluated_grasp_browser_->value()-1,
+  joint_trajectory_visualization_->setTrajectory(state,
+                                                 current_arm_,
+                                                 last_planned_trajectory_,
+                                                 col);
+  joint_trajectory_visualization_->playCurrentTrajectory(true);
+  grasp_evaluation_visualization_->playInterpolatedTrajectories(planning_scene_,
+                                                                last_grasp_evaluation_info_,
+                                                                joint_trajectory_visualization_,
+                                                                evaluated_grasp_browser_->value()-1,
                                                                 true,
                                                                 true, 
                                                                 false);
@@ -578,8 +590,7 @@ void GraspEvaluationVisualizationDialog::generatePlaceLocations() {
   generated_place_locations_browser_->setDisabled(true);
   current_generated_place_locations_.clear();
 
-  grasp_place_evaluation::GraspExecutionInfo ev;
-  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev);
+  grasp_place_evaluation::GraspExecutionInfo& ev = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
   if(ev.result_.result_code != moveit_manipulation_msgs::GraspResult::SUCCESS) {
     ROS_WARN_STREAM("Can't call place for unsuccessful grasp");
     return;
@@ -613,8 +624,7 @@ void GraspEvaluationVisualizationDialog::generatedPlaceLocationsBrowserNumberCha
   if(i == 0) {
     place_generator_visualization_->removeAllMarkers();
   } else {
-    grasp_place_evaluation::GraspExecutionInfo ev;
-    grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev);
+    grasp_place_evaluation::GraspExecutionInfo& ev = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
     place_generator_visualization_->showPlace(ev.attached_object_diff_scene_,
                                               current_arm_,
                                               current_generated_grasps_[evaluated_grasp_browser_->value()-1],
@@ -623,8 +633,7 @@ void GraspEvaluationVisualizationDialog::generatedPlaceLocationsBrowserNumberCha
 }
 
 void GraspEvaluationVisualizationDialog::evaluateGeneratedPlaceLocations() {
-  grasp_place_evaluation::GraspExecutionInfo ev;
-  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev);
+  grasp_place_evaluation::GraspExecutionInfo& ev = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
   
   moveit_manipulation_msgs::PlaceGoal goal;
   goal.arm_name = current_arm_;
@@ -638,34 +647,34 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedPlaceLocations() {
   goal.collision_object_name = object_name_combo_->currentText().toStdString();
   goal.collision_support_surface_name = place_name_combo_->currentText().toStdString();
   
-  unsigned int cur_size = place_evaluation_visualization_->getEvaluationInfoSize();
+  unsigned int cur_size = last_place_evaluation_info_.size();
   
   if(cur_size == current_generated_place_locations_.size()) {
     ROS_INFO_STREAM("Starting from scratch");
-    place_evaluation_visualization_->resetPlaceExecutionInfo();
+    last_place_evaluation_info_.clear();
   }
   ev.attached_object_diff_scene_->getCurrentState().setStateValues(ev.lift_trajectory_.joint_names,
                                                                    ev.lift_trajectory_.points.back().positions);
-  place_evaluation_visualization_->updatePlanningScene(ev.attached_object_diff_scene_);
   std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
-  place_evaluation_visualization_->evaluatePlaceLocations(current_arm_,
-                                                          goal,
-                                                          end_effector_approach_direction_map_[end_effector_name],
-                                                          &ev.attached_object_diff_scene_->getCurrentState(),
-                                                          current_generated_place_locations_);
-  if(place_evaluation_visualization_->getEvaluationInfoSize() > 0) {
-    evaluated_place_locations_browser_->setRange(0, place_evaluation_visualization_->getEvaluationInfoSize());
+  place_evaluator_fast_->testPlaceLocations(planning_scene_,
+                                            &ev.attached_object_diff_scene_->getCurrentState(),
+                                            goal,
+                                            end_effector_approach_direction_map_[end_effector_name],                                            
+                                            current_generated_place_locations_,
+                                            last_place_evaluation_info_,
+                                            true);
+  if(last_place_evaluation_info_.size() > 0) {
+    evaluated_place_locations_browser_->setRange(0, last_place_evaluation_info_.size());
     evaluated_place_locations_browser_->setEnabled(true);
     bool success = false;
-    for(unsigned int i = cur_size; i < place_evaluation_visualization_->getEvaluationInfoSize(); i++) {
-      grasp_place_evaluation::PlaceExecutionInfo ev;
-      place_evaluation_visualization_->getEvaluatedPlace(i, ev);
+    for(unsigned int i = cur_size; i < last_place_evaluation_info_.size(); i++) {
+      grasp_place_evaluation::PlaceExecutionInfo& ev = last_place_evaluation_info_[i];
       if(ev.result_.result_code == moveit_manipulation_msgs::PlaceLocationResult::SUCCESS) {
         evaluated_place_locations_browser_->setValue(i+1);
         evaluation_place_locations_result_indicator_->setEnabled(true);
         evaluatedPlaceLocationsBrowserNumberChanged(i+1);
         success = true;
-        if(place_evaluation_visualization_->getEvaluationInfoSize() < current_generated_place_locations_.size()) {
+        if(last_place_evaluation_info_.size() < current_generated_place_locations_.size()) {
           evaluate_place_locations_button_->setText("Continue Place Evaluation");
         }
         break;
@@ -688,10 +697,11 @@ void GraspEvaluationVisualizationDialog::evaluatedPlaceLocationsBrowserNumberCha
     plan_place_execution_indicator_->setDisabled(true);
   } else {
     plan_place_execution_indicator_->setText("None");
-    grasp_place_evaluation::PlaceExecutionInfo ev;
-    place_evaluation_visualization_->getEvaluatedPlace(i-1, ev);
+    grasp_place_evaluation::PlaceExecutionInfo& ev = last_place_evaluation_info_[i-1];
     evaluation_place_locations_result_indicator_->setText(grasp_place_evaluation::convertPlaceResultToStringStatus(ev.result_).c_str());
-    place_evaluation_visualization_->showPlacePose(i-1,
+    place_evaluation_visualization_->showPlacePose(planning_scene_,
+                                                   last_place_evaluation_info_,
+                                                   i-1,
                                                    true,
                                                    true,
                                                    true);
@@ -708,21 +718,22 @@ void GraspEvaluationVisualizationDialog::evaluatedPlaceLocationsBrowserNumberCha
 }
 
 void GraspEvaluationVisualizationDialog::playPlacingInterpolatedTrajectory() {
-  place_evaluation_visualization_->playInterpolatedTrajectories(evaluated_place_locations_browser_->value()-1,
+  place_evaluation_visualization_->playInterpolatedTrajectories(planning_scene_,
+                                                                last_place_evaluation_info_,
+                                                                joint_trajectory_visualization_,
+                                                                evaluated_place_locations_browser_->value()-1,
                                                                 true,
                                                                 true);
 }
 
 void GraspEvaluationVisualizationDialog::planForPlaceExecution() {
-  grasp_place_evaluation::GraspExecutionInfo ev_grasp;
-  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev_grasp);
+  grasp_place_evaluation::GraspExecutionInfo& ev_grasp = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
   if(ev_grasp.lift_trajectory_.points.size() == 0) {
     ROS_WARN_STREAM("Asked to plan, but no lift trajectory for grasp");
     return;
   }
 
-  grasp_place_evaluation::PlaceExecutionInfo ev_place;
-  place_evaluation_visualization_->getEvaluatedPlace(evaluated_place_locations_browser_->value()-1, ev_place);
+  grasp_place_evaluation::PlaceExecutionInfo& ev_place = last_place_evaluation_info_[evaluated_place_locations_browser_->value()-1];
   if(ev_place.approach_trajectory_.points.size() == 0) {
     ROS_WARN_STREAM("Asked to plan, but no approach trajectory");
     return;
@@ -738,10 +749,9 @@ void GraspEvaluationVisualizationDialog::planForPlaceExecution() {
 
   plan_place_execution_indicator_->setText("Planning to place");
 
-  //emit
-  requestDiffScenePlanGeneration(current_arm_,
-                                 ev_grasp.attached_object_diff_scene_,
-                                 &goal_state);
+  Q_EMIT requestDiffScenePlanGeneration(current_arm_,
+                                        ev_grasp.attached_object_diff_scene_,
+                                        &goal_state);
 
 }
 
@@ -755,28 +765,29 @@ void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecutionThread() 
 
   ROS_INFO_STREAM("Done with grasp execution thread");
 
-  grasp_place_evaluation::GraspExecutionInfo ev_grasp;
-  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev_grasp);
+  grasp_place_evaluation::GraspExecutionInfo& ev_grasp = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
 
-  grasp_place_evaluation::PlaceExecutionInfo ev_place;
-  place_evaluation_visualization_->getEvaluatedPlace(evaluated_place_locations_browser_->value()-1, ev_place);
+  grasp_place_evaluation::PlaceExecutionInfo& ev_place = last_place_evaluation_info_[evaluated_place_locations_browser_->value()-1];
   
   std_msgs::ColorRGBA col;
   col.b = col.r = col.a = 1.0;
-  place_evaluation_visualization_->getJointTrajectoryVisualization()->setTrajectory(ev_grasp.attached_object_diff_scene_->getCurrentState(),
-                                                                                    current_arm_,
-                                                                                    last_place_planned_trajectory_,
-                                                                                    col);
-  place_evaluation_visualization_->getJointTrajectoryVisualization()->playCurrentTrajectory(true);
-  place_evaluation_visualization_->playInterpolatedTrajectories(evaluated_place_locations_browser_->value()-1,
+  joint_trajectory_visualization_->setTrajectory(ev_grasp.attached_object_diff_scene_->getCurrentState(),
+                                                 current_arm_,
+                                                 last_place_planned_trajectory_,
+                                                 col);
+  joint_trajectory_visualization_->playCurrentTrajectory(true);
+  place_evaluation_visualization_->playInterpolatedTrajectories(planning_scene_,
+                                                                last_place_evaluation_info_,
+                                                                joint_trajectory_visualization_,
+                                                                evaluated_place_locations_browser_->value()-1,
                                                                 true,
                                                                 true, 
                                                                 false);
-  place_evaluation_visualization_->getJointTrajectoryVisualization()->setTrajectory(ev_place.detached_object_diff_scene_->getCurrentState(),
-                                                                                    current_arm_,
-                                                                                    last_return_from_place_planned_trajectory_,
-                                                                                    col);
-  place_evaluation_visualization_->getJointTrajectoryVisualization()->playCurrentTrajectory(true);
+  joint_trajectory_visualization_->setTrajectory(ev_place.detached_object_diff_scene_->getCurrentState(),
+                                                 current_arm_,
+                                                 last_return_from_place_planned_trajectory_,
+                                                 col);
+  joint_trajectory_visualization_->playCurrentTrajectory(true);
 }
 
 void GraspEvaluationVisualizationDialog::generateTrajectoryFromJointState(const sensor_msgs::JointState& js,
@@ -794,11 +805,9 @@ void GraspEvaluationVisualizationDialog::executeFullGraspAndPlace() {
 
   std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
   
-  grasp_place_evaluation::GraspExecutionInfo ev_grasp;
-  grasp_evaluation_visualization_->getEvaluatedGrasp(evaluated_grasp_browser_->value()-1, ev_grasp);
+  grasp_place_evaluation::GraspExecutionInfo& ev_grasp = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
 
-  grasp_place_evaluation::PlaceExecutionInfo ev_place;
-  place_evaluation_visualization_->getEvaluatedPlace(evaluated_place_locations_browser_->value()-1, ev_place);
+  grasp_place_evaluation::PlaceExecutionInfo& ev_place = last_place_evaluation_info_[evaluated_place_locations_browser_->value()-1];
 
   trajectory_execution::TrajectoryExecutionRequest ter;
 
@@ -891,7 +900,7 @@ void GraspEvaluationVisualizationDialog::disableGeneration() {
 void GraspEvaluationVisualizationDialog::disableEvaluation() {
   evaluate_grasp_button_->setText("Start Grasp Evaluation"); 
   evaluate_grasp_button_->setDisabled(true);
-  grasp_evaluation_visualization_->resetGraspExecutionInfo();
+  last_grasp_evaluation_info_.clear();
   evaluated_grasp_browser_->setDisabled(true);
   evaluated_grasp_browser_->setRange(0,0);
   evaluation_result_indicator_->setText("None");
@@ -917,7 +926,7 @@ void GraspEvaluationVisualizationDialog::disablePlaceGeneration() {
 void GraspEvaluationVisualizationDialog::disablePlaceEvaluation() {
   evaluate_place_locations_button_->setText("Start Place Location Evaluation"); 
   evaluate_place_locations_button_->setDisabled(true);
-  place_evaluation_visualization_->resetPlaceExecutionInfo();
+  last_place_evaluation_info_.clear();
   evaluated_place_locations_browser_->setDisabled(true);
   evaluated_place_locations_browser_->setRange(0,0);
   evaluation_place_locations_result_indicator_->setText("None");

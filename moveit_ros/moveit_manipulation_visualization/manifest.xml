@@ -14,6 +14,10 @@
   <depend package="moveit_tabletop_object_detector"/>
   <depend package="pcl"/>
 
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_manipulation_visualization"/>
+  </export>
+
 </package>
 
 

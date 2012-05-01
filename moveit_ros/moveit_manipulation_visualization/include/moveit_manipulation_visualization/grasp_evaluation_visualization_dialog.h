@@ -32,11 +32,15 @@
 #ifndef _GRASP_EVALUATION_VISUALIZATION_DIALOG_H_
 #define _GRASP_EVALUATION_VISUALIZATION_DIALOG_H_
 
+#include <grasp_place_evaluation/grasp_evaluator_fast.h>
+#include <grasp_place_evaluation/place_evaluator_fast.h>
 #include <moveit_manipulation_visualization/grasp_generator_visualization.h>
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization.h>
 #include <moveit_manipulation_visualization/place_generator_visualization.h>
 #include <moveit_manipulation_visualization/place_evaluation_visualization.h>
 #include <trajectory_execution/trajectory_execution_monitor.h>
+#include <interactive_markers/interactive_marker_server.h>
+#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
 
 #include <QDialog>
 #include <QComboBox>
@@ -139,6 +143,7 @@ protected:
   std::map<std::string, geometry_msgs::Vector3> end_effector_approach_direction_map_;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
+  boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization_;
   boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor_;
 
   std::string current_object_;
@@ -178,6 +183,12 @@ protected:
   QLabel* plan_place_execution_indicator_;
   QPushButton* play_grasp_and_place_execution_button_;
   QPushButton* execute_grasp_and_place_button_;
+
+  grasp_place_evaluation::GraspExecutionInfoVector last_grasp_evaluation_info_;
+  boost::shared_ptr<grasp_place_evaluation::GraspEvaluatorFast> grasp_evaluator_fast_;
+
+  grasp_place_evaluation::PlaceExecutionInfoVector last_place_evaluation_info_;
+  boost::shared_ptr<grasp_place_evaluation::PlaceEvaluatorFast> place_evaluator_fast_;
 
   boost::shared_ptr<GraspGeneratorVisualization> grasp_generator_visualization_;
   boost::shared_ptr<GraspEvaluationVisualization> grasp_evaluation_visualization_;

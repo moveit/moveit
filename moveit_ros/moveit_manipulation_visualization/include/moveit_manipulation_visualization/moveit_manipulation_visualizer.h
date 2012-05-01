@@ -30,6 +30,8 @@
 #ifndef _MOVEIT_MANIPULATION_VISUALIZER_H_
 #define _MOVEIT_MANIPULATION_VISUALIZER_H_
 
+#include <QObject>
+
 #include <moveit_visualization_ros/moveit_visualizer.h>
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization_dialog.h>
 #include <moveit_manipulation_visualization/object_recognition_qt_service_wrapper.h>
@@ -37,7 +39,9 @@
 
 namespace moveit_manipulation_visualization {
 
-class MoveItManipulationVisualizer : public moveit_visualization_ros::MoveItVisualizer {
+class MoveItManipulationVisualizer : public QObject, public moveit_visualization_ros::MoveItVisualizer {
+
+  Q_OBJECT
   
 public:
   
@@ -48,7 +52,17 @@ public:
   virtual void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene);
 
   void attemptToGrasp(const std::string& object_name);
+
+public Q_SLOTS:
+
+  void addCabinet();
   
+Q_SIGNALS:
+ 
+  void addCollisionObjectRequested(const moveit_msgs::CollisionObject& obj,
+                                   const QColor& color);
+ 
+
 protected:
 
   //void attemptToGraspThread(const std::string& object_name);
