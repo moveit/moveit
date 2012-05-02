@@ -33,7 +33,6 @@ qt4_wrap_cpp(MOC_FILES
   include/moveit_manipulation_visualization/household_object_addition_dialog.h
   include/moveit_manipulation_visualization/object_recognition_qt_service_wrapper.h
   include/moveit_manipulation_visualization/object_recognition_dialog.h
-  include/moveit_manipulation_visualization/moveit_manipulation_visualizer.h
 )
 
 rosbuild_add_library(${PROJECT_NAME} 

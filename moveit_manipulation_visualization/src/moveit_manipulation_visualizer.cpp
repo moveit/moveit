@@ -31,7 +31,6 @@
 
 #include <moveit_manipulation_visualization/moveit_manipulation_visualizer.h>
 #include <moveit_manipulation_visualization/household_object_addition_dialog.h>
-#include <moveit_manipulation_visualization/cabinet_creator.h>
 
 namespace moveit_manipulation_visualization {
 
@@ -63,15 +62,6 @@ MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
   QAction* show_household_objects_dialog = coll_object_menu_->addAction("Add Household Collision Object");
   QObject::connect(show_household_objects_dialog, SIGNAL(triggered()), household_object_dialog, SLOT(show()));
 
-  {
-    QAction* add_cabinet_action = coll_object_menu_->addAction("Add Cabinet");
-    QObject::connect(add_cabinet_action, SIGNAL(triggered()), this, SLOT(addCabinet()));
-
-    QObject::connect(this,
-                     SIGNAL(addCollisionObjectRequested(const moveit_msgs::CollisionObject&, const QColor&)), 
-                     iov_.get(), 
-                     SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
-  }
   if(do_object_recognition) {
     object_recognition_qt_service_wrapper_.reset(new ObjectRecognitionQtServiceWrapper);
     ObjectRecognitionDialog* object_recognition_dialog = new ObjectRecognitionDialog(main_window_);
@@ -181,32 +171,6 @@ void MoveItManipulationVisualizer::updatePlanningScene(planning_scene::PlanningS
 void MoveItManipulationVisualizer::attemptToGrasp(const std::string& obj) {
   grasp_evaluation_visualization_dialog_->show();
   //boost::thread(boost::bind(&MoveItManipulationVisualizer::attemptToGraspThread, this, obj));
-}
-
-void MoveItManipulationVisualizer::addCabinet() {
-
-  Cabinet cb;
-  cb.num_rows_ = 6;
-  cb.num_cols_ = 2;
-  cb.slot_height_ = .1;
-  cb.slot_vertical_spacing_ = .05;
-  cb.slot_width_ = .2;
-  cb.slot_horizontal_spacing_ = .05;
-  cb.slot_depth_ = .3;
-  cb.vertical_buffer_ = .1;
-  cb.horizontal_buffer_ = .1;
-  cb.depth_buffer_ = .1;
-
-  moveit_msgs::CollisionObject cabinet_obj;
-  geometry_msgs::Pose p;
-  p.orientation.w = 1.0;
-  p.position.z = 1.0;
-  p.position.x = 2.0;
-  cb.generateCabinetCollisionObject(p,
-                                    cabinet_obj);
-  QColor col(128, 128, 128, 255);
-  Q_EMIT addCollisionObjectRequested(cabinet_obj,
-                                     col);
 }
 
 // void MoveItManipulationVisualizer::attemptToGraspThread(const std::string& obj) {
