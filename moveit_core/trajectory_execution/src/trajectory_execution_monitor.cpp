@@ -75,8 +75,10 @@ bool TrajectoryExecutionMonitor::executeTrajectories(const std::vector<Trajector
   current_trajectory_index_ = 0;
   
   bool res = sendTrajectory(execution_data_[current_trajectory_index_]);
-  if(!res)
-    result_callback_(execution_result_vector_);
+  if(res)
+  {
+    if(!result_callback_.empty()) result_callback_(execution_result_vector_);
+  }
   return res;
 };
 
@@ -185,7 +187,7 @@ void TrajectoryExecutionMonitor::trajectoryFinishedCallbackFunction(TrajectoryCo
 
     current_trajectory_index_++;
     if(current_trajectory_index_ >= execution_data_.size()) {
-      result_callback_(execution_result_vector_);
+      if(!result_callback_.empty()) result_callback_(execution_result_vector_);
       return;
     }
     for(int i = (int)current_trajectory_index_-1; i >= 0; i--) {
@@ -200,13 +202,13 @@ void TrajectoryExecutionMonitor::trajectoryFinishedCallbackFunction(TrajectoryCo
 
     // Start next trajectory
     if(!sendTrajectory(execution_data_[current_trajectory_index_])) {
-      result_callback_(execution_result_vector_);
+      if(!result_callback_.empty()) result_callback_(execution_result_vector_);
     }
   } else {
     ROS_ERROR_STREAM( "Trajectory finished with failure.  controller_state=" << controller_state <<
                       ". Stopping the remaining trajectories" << std::endl );
     execution_result_vector_.back().result_ = HANDLER_REPORTS_FAILURE;
-    result_callback_(execution_result_vector_);
+    if(!result_callback_.empty()) result_callback_(execution_result_vector_);
   }
 };
 
