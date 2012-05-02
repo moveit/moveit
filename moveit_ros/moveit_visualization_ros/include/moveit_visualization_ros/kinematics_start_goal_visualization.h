@@ -105,14 +105,17 @@ public:
     }
   }
 
+  /** brief Activate the controls for the start chain. */
+  void startOn();
+
+  /** brief Activate the controls for the end chain. */
+  void goalOn();
+
 protected:
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
 
   bool start_chained_;
-
-  void startOn();
-  void goalOn();
 
   boost::shared_ptr<KinematicsGroupVisualization> start_;
   boost::shared_ptr<KinematicsGroupVisualization> goal_;
