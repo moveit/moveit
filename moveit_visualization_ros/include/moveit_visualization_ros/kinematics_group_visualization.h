@@ -43,13 +43,28 @@
 
 namespace moveit_visualization_ros
 {
-
+/** @class KinematicsGroupVisualization
+ *
+ * The class encapsulates visualization and interaction with a kinematic group.
+ * It uses InteractiveMarkers to enable user-specified 6-DOF control of the group's end-effector pose.
+ * ...
+ */
 class KinematicsGroupVisualization {
 public:
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
-  KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene_monitor,
+  /** @brief Constructor
+   *  @param planning_scene_monitor     A shared pointer to a PlanningScene
+   *  @param interactive_marker_server  A shared pointer to a InteractiveMarkerServer
+   *  @param kinematics_plugin_loader   A shared pointer to a KinematicsPluginLoader
+   *  @param group_name                 The group to load from the PlanningScene's KinematicModel
+   *  @param suffix_name                A name to distniguish multiple instances of this class for the same kinematic group.
+   *  @param good_color                 A color to use for drawing this group in a valid kinematic configuration.
+   *  @param bad_color                  A color to use for drawing this group when the kinematic configuration is invalid.
+   *  @param marker_publisher           A ros::Publisher to be used for publishing (regular) markers.
+   */
+  KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                const std::string& group_name, 
@@ -62,14 +77,18 @@ public:
     removeLastMarkers();
   }
 
+  /** @brief  Returns the KinematicState of this group. */
   const planning_models::KinematicState& getState() const {
     return state_;
   }
 
+  /** @brief  Returns the name of this group. */
   const std::string& getGroupName() const {
     return group_name_;
   }
   
+  /** @brief  A convenience function for creating a unique name for this group's interactive markers.
+   *  @param  subgroup_name Optional name for the subgroup of the group. */
   std::string makeInteractiveMarkerName(const std::string& subgroup_name="") const {
     if(subgroup_name.empty()) {
       return group_name_+"_interactive_kinematics_"+suffix_name_;
