@@ -477,7 +477,7 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
   cworld_->addToObject("kinect", kinect_shape, kinect_pose);
 
   Eigen::Affine3d np;
-  for(unsigned int i = 0; i < 1000; i++) {
+  for(unsigned int i = 0; i < 10 ; i++) {
     np = Eigen::Translation3d(i*.001, i*.001, i*.001)*Eigen::Quaterniond::Identity();
     cworld_->moveShapeInObject("kinect", kinect_shape, np);
     collision_detection::CollisionRequest req;
@@ -500,7 +500,7 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
   std::vector<Eigen::Affine3d> poses;
   std::vector<shapes::ShapeConstPtr> shapes;
   poses.push_back(Eigen::Affine3d::Identity());
-  for(unsigned int i = 0; i < 1000; i++) {
+  for(unsigned int i = 0; i < 10; i++) {
     cworld_->removeObject("shape");
     shapes.clear();
     shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(1+i*.0001, 1+i*.0001, 1+i*.0001)));
