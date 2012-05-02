@@ -700,7 +700,7 @@ visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::string&
     //bodies::computeBoundingSphere(bodies, merged_sphere);
     double dia = fmax((xmax-xmin), fmax(ymax-ymin, zmax-zmin));
     //TODO - better way to add padding?
-    int_marker.scale = dia+.05;
+    int_marker.scale = fmax(.3, dia+.05);
     //int_marker.scale = merged_sphere.rad*2.0;
     
     Eigen::Affine3d bound_pose = (trans*init_transform)*Eigen::Quaterniond(parent_pose.rotation());
