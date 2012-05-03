@@ -140,6 +140,8 @@ MoveItVisualizer::MoveItVisualizer() :
   
   //frame->loadGeneralConfig(config_name);
   rviz_frame_->loadDisplayConfig(display_config_name);
+  rviz_frame_->getManager()->setFixedFrame(planning_scene_monitor_->getPlanningScene()->getPlanningFrame());
+  
 
   main_window_ = new QWidget;
   main_window_->resize(1500,1000);
@@ -249,6 +251,7 @@ void MoveItVisualizer::executeLastTrajectory() {
     ter.group_name_ = group_name;
     
     ter.trajectory_ = traj;
+    ter.failure_time_factor_ = 10000.0;
     ROS_DEBUG_STREAM("Attempting to execute trajectory for group name " << group_name); 
 
     std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
