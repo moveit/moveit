@@ -213,8 +213,8 @@ ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const pm::Kine
   state_space_.reset(cspace);
   se3_component_ = new ob::SE3StateSpace();    
   se3_component_->setName(subgroup_->getName() + "_Workspace");
-  cspace->addSubSpace(joint_model_.getStateSpace(), 0.0);
-  cspace->addSubSpace(ob::StateSpacePtr(se3_component_), 1.0);
+  cspace->addSubspace(joint_model_.getStateSpace(), 0.0);
+  cspace->addSubspace(ob::StateSpacePtr(se3_component_), 1.0);
   cspace->lock();
   fk_link_.resize(1, kinematics_solver_->getTipFrame());      
   joint_names_ = kinematics_solver_->getJointNames();
@@ -312,7 +312,7 @@ void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses(void)
 {
   std::sort(poses_.begin(), poses_.end());
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
-    addSubSpace(poses_[i].state_space_, 1.0);  
+    addSubspace(poses_[i].state_space_, 1.0);  
   setName(getJointModelGroupName() + "_PoseModel");
   lock();
 }

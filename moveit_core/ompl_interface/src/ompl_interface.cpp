@@ -37,6 +37,7 @@
 #include "ompl_interface/ompl_interface.h"
 #include <planning_models/conversions.h>
 #include <ompl/tools/debug/Profiler.h>
+#include <fstream>
 
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
   kmodel_(kmodel), context_manager_(kmodel), constraints_library_(context_manager_), use_constraints_approximations_(true)
@@ -106,6 +107,9 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &res.error_code, &attempts, &timeout);
   if (!context)
     return false;
+  std::ofstream fout(("/u/isucan/" + context->getOMPLStateSpace()->getName() + ".dot").c_str());
+  context->getOMPLStateSpace()->diagram(fout);
+  fout.close();
   
   if (context->solve(timeout, attempts))
   {

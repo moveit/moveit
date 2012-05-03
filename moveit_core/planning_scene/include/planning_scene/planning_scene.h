@@ -43,6 +43,7 @@
 #include <planning_models/transforms.h>
 #include <collision_detection/collision_world.h>
 #include <kinematic_constraints/kinematic_constraint.h>
+#include <kinematics_base/kinematics_base.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
@@ -66,6 +67,18 @@ typedef boost::function<bool(const planning_models::KinematicState&, bool)> Stat
     The order of the arguments matters: the notion of feasibility is to be checked for motion segments that start at the first state and end at the second state. The third argument indicates
     whether the check should be verbose or not. */
 typedef boost::function<bool(const planning_models::KinematicState&, const planning_models::KinematicState&, bool)> MotionFeasibilityFn;
+
+/// function type that allocates a kinematics solver for a particular group
+typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> KinematicsAllocatorFn;
+
+/// A map of known kinematics solvers, (associated to their group ptr)
+typedef std::map<const planning_models::KinematicModel::JointModelGroup*, 
+                 std::pair<KinematicsAllocatorFn, std::map<const planning_models::KinematicModel::JointModelGroup*, KinematicsAllocatorFn> > > KinematicsAllocators;
+
+/// A map of known kinematics solvers (associated to their group name)
+typedef std::map<std::string, KinematicsAllocatorFn> KinematicsAllocatorsByName;
+
+typedef std::map<std::string, std_msgs::ColorRGBA> ColorMap;
 
 /** \brief This class maintains the representation of the
     environment as seen by a planning instance. The environment
@@ -319,7 +332,7 @@ public:
   }
   
   /** \brief Get the colors associated to the various objects in the scene */
-  const std::map<std::string, std_msgs::ColorRGBA>& getObjectColors(void) const
+  const ColorMap& getObjectColors(void) const
   {
     return colors_ ? *colors_ : parent_->getObjectColors();
   }
@@ -329,7 +342,7 @@ public:
   const std_msgs::ColorRGBA& getColor(const std::string &id) const;
   void setColor(const std::string &id, const std_msgs::ColorRGBA &color);
   void removeColor(const std::string &id);
-  void getKnownColors(std::map<std::string, std_msgs::ColorRGBA> &kc) const;
+  void getKnownColors(ColorMap &kc) const;
   
   /** \brief Clear the diffs accumulated for this planning scene, with respect to the parent. This function is a no-op if there is no parent specified. */
   void clearDiffs(void);
@@ -366,6 +379,13 @@ public:
   const MotionFeasibilityFn& getMotionFeasibilityPredicate(void) const
   {
     return motion_feasibility_;
+  }
+
+  void setKinematicsAllocators(const KinematicsAllocatorsByName &allocators);
+  
+  const KinematicsAllocators& getKinematicsAllocators(void) const
+  {
+    return kinematics_allocators_ ? *kinematics_allocators_ : parent_->getKinematicsAllocators();
   }
   
   /** \brief Check if a given state is in collision (with the environment or self collision) */
@@ -417,11 +437,6 @@ public:
   void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
 				std::vector<planning_models::KinematicStatePtr> &states) const;
 
-  // \TODO This does not appear to be used; disabling for now (needs refactor if we re-enable it anyway)
-  //takes current matrix and disables all collisions for links that are not
-  //part of the indicated group, returning the matrix
-  //  collision_detection::AllowedCollisionMatrix disableCollisionsForNonUpdatedLinks(const std::string& group) const;
-
 protected:
 
   void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
@@ -456,13 +471,14 @@ protected:
   collision_detection::CollisionWorldPtr         cworld_;
   collision_detection::CollisionWorldConstPtr    cworld_const_;
 
-  StateFeasibilityFn                             state_feasibility_;
-  MotionFeasibilityFn                            motion_feasibility_;
-  
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
-  boost::shared_ptr< std::map<std::string, std_msgs::ColorRGBA> >
-                                                 colors_;
+  StateFeasibilityFn                             state_feasibility_;
+  MotionFeasibilityFn                            motion_feasibility_;
+
+  boost::scoped_ptr<KinematicsAllocators>        kinematics_allocators_;
+
+  boost::scoped_ptr<ColorMap>                    colors_;
   
   bool                                           configured_;
 

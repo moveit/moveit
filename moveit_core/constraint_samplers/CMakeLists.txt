@@ -8,22 +8,21 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 #set(ROS_BUILD_TYPE RelWithDebInfo)
-set(ROS_BUILD_TYPE Release)
 
 rosbuild_init()
-
-rosbuild_add_boost_directories()
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-#common commands for building c++ executables and libraries
-rosbuild_add_library(${PROJECT_NAME}
-  src/kinematic_constraint.cpp
-  src/utils.cpp)
+#uncomment if you have defined messages
+#rosbuild_genmsg()
+#uncomment if you have defined services
+#rosbuild_gensrv()
 
-# Unit tests
-rosbuild_add_gtest(test_constraints test/test_constraints.cpp)
-target_link_libraries(test_constraints ${PROJECT_NAME})
+rosbuild_add_library(${PROJECT_NAME}
+  src/constraint_sampler.cpp
+  src/default_constraint_samplers.cpp
+  src/union_constraint_sampler.cpp
+)

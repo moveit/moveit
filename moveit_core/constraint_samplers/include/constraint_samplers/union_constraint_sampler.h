@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,47 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
+#ifndef MOVEIT_CONSTRAINT_SAMPLERS_DEFAULT_UNION_CONSTRAINT_SAMPLER_
+#define MOVEIT_CONSTRAINT_SAMPLERS_DEFAULT_UNION_CONSTRAINT_SAMPLER_
 
-ompl_interface::JointModelStateSpace::JointModelStateSpace(const ModelBasedStateSpaceSpecification &spec) :
-  ModelBasedStateSpace(spec), helper_(spec.joint_model_group_->getJointModels())
+#include "constraint_samplers/constraint_sampler.h"
+#include <random_numbers/random_numbers.h>
+
+namespace constraint_samplers
 {
-  const ob::StateSpacePtr &space = helper_.getStateSpace();
-  unsigned int ns = space->as<ob::CompoundStateSpace>()->getSubspaceCount();
-  for (unsigned int i = 0 ; i < ns ; ++i)
+
+class UnionConstraintSampler : public ConstraintSampler
+{
+public:
+  
+  UnionConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, std::vector<ConstraintSamplerPtr> &samplers);
+  
+  const std::vector<ConstraintSamplerPtr>& getSamplers(void) const
   {
-    const ob::StateSpacePtr &c = space->as<ob::CompoundStateSpace>()->getSubspace(i);
-    double w = space->as<ob::CompoundStateSpace>()->getSubspaceWeight(i);
-    addSubspace(c, w);
+    return samplers_;
   }
   
-  setName(getJointModelGroupName() + "_JointModel");
-  lock();
+  virtual bool configure(const moveit_msgs::Constraints &constr)
+  {
+    return true;
+  }
+  
+  virtual bool canService(const moveit_msgs::Constraints &constr) const
+  {
+    return true;
+  }
+  
+  virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts = 100);
+  
+protected:
+
+  random_numbers::RandomNumberGenerator   random_number_generator_;
+  std::vector<ConstraintSamplerPtr>       samplers_;
+  std::vector<std::vector<unsigned int> > bijection_;
+};
+
 }
+
+#endif
