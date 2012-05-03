@@ -336,7 +336,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
   new_crobot.checkSelfCollision(req,res,kstate);
   double second_check = (ros::WallTime::now()-before).toSec();
 
-  EXPECT_LT(fabs(first_check-second_check), .001);
+  EXPECT_LT(fabs(first_check-second_check), .05);
   
   ROS_INFO_STREAM("Diff " << first_check-second_check << " first " << first_check << " second " << second_check);
 
@@ -361,7 +361,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
   second_check = (ros::WallTime::now()-before).toSec();
 
   //the first check is going to take a while, as data must be constructed
-  EXPECT_LT(second_check, .01);
+  EXPECT_LT(second_check, .1);
 
   ROS_INFO_STREAM("Attached diff " << first_check-second_check << " first " << first_check << " second " << second_check);
   
@@ -373,7 +373,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester) {
   new_crobot.checkSelfCollision(req,res,kstate);
   second_check = (ros::WallTime::now()-before).toSec();
 
-  EXPECT_LT(fabs(first_check-second_check), .001);
+  EXPECT_LT(fabs(first_check-second_check), .05);
 
   ROS_INFO_STREAM("Attached robot second diff " << first_check-second_check << " first " << first_check << " second " << second_check);
 
@@ -402,7 +402,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
   cworld_->checkRobotCollision(req, res, *crobot_, kstate);
   double second_check = (ros::WallTime::now()-before).toSec();
 
-  EXPECT_LT(second_check, .01);
+  EXPECT_LT(second_check, .05);
 
   ROS_INFO_STREAM("Check diff " << first_check-second_check << " first " << first_check << " second " << second_check);
   
@@ -442,8 +442,8 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached) {
 
   ROS_INFO_STREAM("Check diff " << first_check-second_check << " first " << first_check << " second " << second_check);
   
-  EXPECT_LT(first_check, .01);
-  EXPECT_LT(fabs(first_check-second_check), .001);
+  EXPECT_LT(first_check, .05);
+  EXPECT_LT(fabs(first_check-second_check), .1);
 }
 
 TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
