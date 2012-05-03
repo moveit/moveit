@@ -378,7 +378,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
   if(generated_grasp_frame_ == current_object_) {
   }
 
-  goal.lift.direction.vector.x = -1;
+  goal.lift.direction.vector.z = 1;
   goal.lift.desired_distance = .1;
 
   if(!current_support_.empty()) {

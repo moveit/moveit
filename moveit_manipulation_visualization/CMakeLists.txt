@@ -47,7 +47,6 @@ rosbuild_add_library(${PROJECT_NAME}
   src/household_object_addition_dialog.cpp
   src/object_recognition_qt_service_wrapper.cpp
   src/object_recognition_dialog.cpp
-  src/cabinet_creator.cpp
   ${MOC_FILES}
 )
 
