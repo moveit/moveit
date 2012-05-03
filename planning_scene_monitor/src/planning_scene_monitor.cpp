@@ -371,8 +371,12 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(v
 {
   if (current_state_monitor_)
   {
-    if (!current_state_monitor_->haveCompleteState())
-      ROS_WARN("The complete state of the robot is not yet known");
+    std::vector<std::string> missing;
+    if (!current_state_monitor_->haveCompleteState(missing)) {
+      std::string missing_str = boost::algorithm::join(missing, ", ");
+      ROS_WARN("The complete state of the robot is not yet known.  Missing %s", missing_str.c_str());
+    }
+    
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);
       const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
