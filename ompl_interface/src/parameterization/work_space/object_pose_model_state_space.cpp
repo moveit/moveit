@@ -325,8 +325,8 @@ void ompl_interface::ObjectPoseModelStateSpace::constructSpaceFromPoses(void)
 {
   std::sort(poses_.begin(), poses_.end());
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
-    addSubSpace(poses_[i].state_space_, 0.0);
-  addSubSpace(ob::StateSpacePtr(new ob::SE3StateSpace()), 1.0);
+    addSubspace(poses_[i].state_space_, 0.0);
+  addSubspace(ob::StateSpacePtr(new ob::SE3StateSpace()), 1.0);
   setName(getJointModelGroupName() + "_ObjectPoseModel");
   lock();
 }

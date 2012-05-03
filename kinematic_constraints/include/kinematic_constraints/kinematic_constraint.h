@@ -54,6 +54,16 @@
 namespace kinematic_constraints
 {
 
+struct ConstraintEvaluationResult
+{
+  ConstraintEvaluationResult(bool result = false, double dist = 0.0) : satisfied(result), distance(dist)
+  {
+  }
+  
+  bool   satisfied;
+  double distance;
+};
+
 class KinematicConstraint
 {
 public:
@@ -70,7 +80,7 @@ public:
   virtual void clear(void) = 0;
   
   /** \brief Decide whether the constraint is satisfied in the indicated state */
-  virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const = 0;
+  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const = 0;
   
   /** \brief This function returns true if this constraint is
       configured and able to decide whether states do meet the
@@ -132,7 +142,7 @@ public:
   
   bool configure(const moveit_msgs::JointConstraint &jc);
   virtual bool equal(const KinematicConstraint &other, double margin) const;
-  virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
+  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
   virtual bool enabled(void) const;
   virtual void clear(void);
   virtual void print(std::ostream &out = std::cout) const;
@@ -181,7 +191,7 @@ public:
   bool configure(const moveit_msgs::OrientationConstraint &pc);
   virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
-  virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
+  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
   virtual bool enabled(void) const;
   void print(std::ostream &out = std::cout) const;
   
@@ -245,7 +255,7 @@ public:
   bool configure(const moveit_msgs::PositionConstraint &pc);
   virtual bool equal(const KinematicConstraint &other, double margin) const;
   virtual void clear(void);
-  virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
+  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
   virtual bool enabled(void) const;
   void print(std::ostream &out = std::cout) const;
   
@@ -303,11 +313,12 @@ public:
   shapes::Mesh* getVisibilityCone(const planning_models::KinematicState &state) const;
   void getMarkers(const planning_models::KinematicState &state, visualization_msgs::MarkerArray &markers) const;
 
-  virtual bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
+  virtual ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
   virtual bool enabled(void) const;
   void print(std::ostream &out = std::cout) const;
   
 protected:
+
   bool decideContact(collision_detection::Contact &contact) const;
 
   collision_detection::CollisionRobotPtr collision_robot_;
@@ -358,12 +369,10 @@ public:
   bool add(const std::vector<moveit_msgs::VisibilityConstraint> &pc);
   
   /** \brief Decide whether the set of constraints is satisfied  */
-  bool decide(const planning_models::KinematicState &state, double &distance, bool verbose = false) const;
-  
-  /// \todo document this
-  bool decide(const planning_models::KinematicState &state,
-              moveit_msgs::ConstraintEvalResults& results,
-              bool verbose) const;
+  ConstraintEvaluationResult decide(const planning_models::KinematicState &state, bool verbose = false) const;
+
+  /** \brief Decide whether the set of constraints is satisfied but return the constraint evaluation results for each contained constraint too */
+  ConstraintEvaluationResult decide(const planning_models::KinematicState &state, std::vector<ConstraintEvaluationResult> &results, bool verbose = false) const;
   
   bool equal(const KinematicConstraintSet &other, double margin) const;
   
@@ -423,11 +432,13 @@ protected:
 typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr;
 typedef boost::shared_ptr<const KinematicConstraintSet> KinematicConstraintSetConstPtr;
 
+/// \todo this function should be in PlanningScene, perhaps with a better name
 bool doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
                                        const planning_models::TransformsConstPtr& tf,
                                        const moveit_msgs::Constraints& constraints,
                                        bool verbose);
 
+/// \todo this function should be in PlanningScene, perhaps with a better name
 bool doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
                                        const planning_models::TransformsConstPtr& tf,
                                        const moveit_msgs::Constraints& constraints,
