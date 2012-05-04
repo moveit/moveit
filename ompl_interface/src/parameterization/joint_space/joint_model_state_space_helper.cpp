@@ -142,19 +142,19 @@ void ompl_interface::JointModelStateSpaceHelper::constructSpace(const std::vecto
   if (!space->isCompound() || (space->isCompound() && space->as<ob::CompoundStateSpace>()->isLocked()))
   {
     ob::CompoundStateSpace *csm = new ob::CompoundStateSpace();
-    csm->addSubSpace(space, 1.0);
+    csm->addSubspace(space, 1.0);
     space.reset(csm);
   }
   
   ob::CompoundStateSpace *state_space = new ob::CompoundStateSpace();
   
   // heuristically set some weights for the subspaces, based on dimension
-  unsigned int ns = space->as<ob::CompoundStateSpace>()->getSubSpaceCount();
+  unsigned int ns = space->as<ob::CompoundStateSpace>()->getSubspaceCount();
   std::string name;
   for (unsigned int i = 0 ; i < ns ; ++i)
   {
-    const ob::StateSpacePtr &c = space->as<ob::CompoundStateSpace>()->getSubSpace(i);
-    state_space->addSubSpace(c, (double)c->getDimension());
+    const ob::StateSpacePtr &c = space->as<ob::CompoundStateSpace>()->getSubspace(i);
+    state_space->addSubspace(c, (double)c->getDimension());
     if (i == 0)
       name = c->getName();
     else
@@ -162,7 +162,7 @@ void ompl_interface::JointModelStateSpaceHelper::constructSpace(const std::vecto
   }
   state_space->setName("J(" + name + ")");
   state_space->lock();
-  components_ = state_space->getSubSpaces();
+  components_ = state_space->getSubspaces();
   
   state_space_.reset(state_space);
 }

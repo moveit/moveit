@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,32 +32,37 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_OBJECT_POSE_MODEL_STATE_SPACE_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_OBJECT_POSE_MODEL_STATE_SPACE_FACTORY_
+#ifndef MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_MANAGER_
+#define MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_MANAGER_
 
-#include "ompl_interface/parameterization/model_based_state_space_factory.h"
-#include "ompl_interface/parameterization/work_space/object_pose_model_state_space.h"
+#include "constraint_samplers/constraint_sampler_allocator.h"
 
-namespace ompl_interface
+namespace constraint_samplers
 {
-class ObjectPoseModelStateSpaceFactory : public ModelBasedStateSpaceFactory
+
+class ConstraintSamplerManager
 {
 public:
-  
-  ObjectPoseModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
+  ConstraintSamplerManager(void)
   {
-    type_ = "ObjectPoseModel";
+  }
+
+  void registerSamplerAllocator(const ConstraintSamplerAllocatorPtr &sa)
+  {
+    sampler_alloc_.push_back(sa);
   }
   
-  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const planning_scene::KinematicsAllocators &aks) const;
+  ConstraintSamplerPtr selectSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr) const;
+  static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr);
   
-protected:
-  
-  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
-  
+private:
+
+  std::vector<ConstraintSamplerAllocatorPtr> sampler_alloc_;
 };
+
 }
+
 
 #endif

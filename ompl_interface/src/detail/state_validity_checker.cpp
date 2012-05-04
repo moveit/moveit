@@ -64,14 +64,13 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
   
   // check path constraints
-  double distance = 0.0;
   const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
-  if (kset && !kset->decide(*kstate, distance, verbose_))
+  if (kset && !kset->decide(*kstate, verbose_).satisfied)
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     
     if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
-      kset->decide(*kstate, distance, true);
+      kset->decide(*kstate, true);
     
     return false;
   }
@@ -125,17 +124,20 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
 
   // check path constraints
-  double distance = 0.0;  
   const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
-  if (kset && !kset->decide(*kstate, distance, verbose_))
+  if (kset)
   {
-    dist = distance;
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist); 
-
-    if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
-      kset->decide(*kstate, distance, true);
-    
-    return false;
+    kinematic_constraints::ConstraintEvaluationResult cer = kset->decide(*kstate, verbose_);
+    if (!cer.satisfied)
+    {
+      dist = cer.distance;
+      const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist); 
+      
+      if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
+        kset->decide(*kstate, true);
+      
+      return false;
+    }
   }
 
   // check feasibility

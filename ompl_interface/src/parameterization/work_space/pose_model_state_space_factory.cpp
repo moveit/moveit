@@ -37,12 +37,12 @@
 #include "ompl_interface/parameterization/work_space/pose_model_state_space_factory.h"
 #include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
 
-int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const AvailableKinematicsSolvers &aks) const
+int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const planning_scene::KinematicsAllocators &aks) const
 {
     const pm::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req.group_name);
     if (jmg)
     {
-      AvailableKinematicsSolvers::const_iterator it = aks.find(jmg);
+      planning_scene::KinematicsAllocators::const_iterator it = aks.find(jmg);
       if (it != aks.end())
       {
         bool ik = false;
@@ -54,7 +54,7 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const moveit
           {
             // or an IK solver for each of the subgroups
             unsigned int vc = 0;
-            for (kc::KinematicsSubgroupAllocator::const_iterator jt = it->second.second.begin() ; jt != it->second.second.end() ; ++jt)
+            for (planning_scene::KinematicsAllocatorMapFn::const_iterator jt = it->second.second.begin() ; jt != it->second.second.end() ; ++jt)
               vc += jt->first->getVariableCount();
             if (vc == jmg->getVariableCount())
               ik = true;
