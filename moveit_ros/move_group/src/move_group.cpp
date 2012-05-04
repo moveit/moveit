@@ -342,8 +342,8 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
   
-  tf::TransformListener tf;
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
+  boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
   if (psm.getPlanningScene()->isConfigured())
   {
     psm.startWorldGeometryMonitor();
