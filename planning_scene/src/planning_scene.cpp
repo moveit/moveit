@@ -1327,7 +1327,7 @@ void planning_scene::PlanningScene::setKinematicsAllocators(const KinematicsAllo
   for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
   {
     const planning_models::KinematicModel::JointModelGroup *jmg = it->second;
-    std::pair<KinematicsAllocatorFn, std::map<const planning_models::KinematicModel::JointModelGroup*, KinematicsAllocatorFn> > result;
+    std::pair<KinematicsAllocatorFn, KinematicsAllocatorMapFn> result;
     
     std::map<std::string, KinematicsAllocatorFn>::const_iterator jt = allocators.find(jmg->getName());
     if (jt == allocators.end())

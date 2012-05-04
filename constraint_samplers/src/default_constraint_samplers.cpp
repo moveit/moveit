@@ -96,11 +96,6 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
   return true;
 }
 
-bool constraint_samplers::JointConstraintSampler::canService(const moveit_msgs::Constraints &constr) const
-{
-  return !constr.joint_constraints.empty() && constr.position_constraints.empty() && constr.orientation_constraints.empty() && constr.visibility_constraints.empty();
-}
-
 bool constraint_samplers::JointConstraintSampler::sample(std::vector<double> &values, const planning_models::KinematicState & /* ks */,
                                                          unsigned int /* max_attempts */)
 {
@@ -149,11 +144,6 @@ constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kine
 
 constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc) : pc_(pc), oc_(oc)
 {
-}
-
-bool constraint_samplers::IKConstraintSampler::canService(const moveit_msgs::Constraints &constr) const
-{
-  return constr.joint_constraints.empty() && constr.visibility_constraints.empty() && (!constr.position_constraints.empty() || !constr.orientation_constraints.empty());
 }
 
 bool constraint_samplers::IKConstraintSampler::setup(const IKSamplingPose &sp)

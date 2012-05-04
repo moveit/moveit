@@ -14,12 +14,13 @@
 
   <depend package="rosconsole" />
   <depend package="planning_models"/>
+  <depend package="planning_scene"/> 
   <depend package="kinematic_constraints"/>
+  <depend package="constraint_samplers"/>
   <depend package="kinematics_base"/>
   <depend package="moveit_msgs"/>
   <depend package="visualization_msgs"/>
   <depend package="collision_detection"/> 
-  <depend package="planning_scene"/> 
 
   <export>
     <cpp cflags="`pkg-config --cflags ompl` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lompl_interface `pkg-config --libs ompl` `rosboost-cfg --lflags thread,date_time`"/>

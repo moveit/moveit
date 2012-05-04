@@ -46,14 +46,10 @@ namespace constraint_samplers
 class JointConstraintSampler : public ConstraintSampler
 {
 public:
-  JointConstraintSampler(void) : ConstraintSampler()
+
+  JointConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const std::vector<kinematic_constraints::JointConstraint> &jc) :
+    ConstraintSampler(scene, group_name)
   {
-  }
-  
-  JointConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const planning_models::KinematicModel::JointModelGroup *jmg, const std::vector<kinematic_constraints::JointConstraint> &jc) : ConstraintSampler()
-  {
-    scene_ = scene;
-    jmg_ = jmg;
     setup(jc);
   }
   
@@ -61,8 +57,6 @@ public:
   
   bool setup(const std::vector<kinematic_constraints::JointConstraint> &jc);
 
-  virtual bool canService(const moveit_msgs::Constraints &constr) const;
-  
   virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks,  unsigned int max_attempts = 100);
   
   std::size_t getConstrainedJointCount(void) const
@@ -105,20 +99,13 @@ class IKConstraintSampler : public ConstraintSampler
 {
 public:
   
-  IKConstraintSampler(void) : ConstraintSampler()
+  IKConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const IKSamplingPose &sp) :
+    ConstraintSampler(scene, group_name)
   {
-  }
-  
-  IKConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const planning_models::KinematicModel::JointModelGroup *jmg, const IKSamplingPose &sp) : ConstraintSampler()
-  {
-    jmg_ = jmg;
-    scene_ = scene;
     setup(sp);
   }
   
   virtual bool configure(const moveit_msgs::Constraints &constr);
-
-  virtual bool canService(const moveit_msgs::Constraints &constr) const;
 
   bool setup(const IKSamplingPose &sp);
   

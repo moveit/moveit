@@ -47,7 +47,8 @@ class UnionConstraintSampler : public ConstraintSampler
 {
 public:
   
-  UnionConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, std::vector<ConstraintSamplerPtr> &samplers);
+  UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, 
+                         const std::vector<ConstraintSamplerPtr> &samplers);
   
   const std::vector<ConstraintSamplerPtr>& getSamplers(void) const
   {

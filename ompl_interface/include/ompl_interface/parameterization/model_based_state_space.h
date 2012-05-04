@@ -41,7 +41,7 @@
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
 #include <kinematic_constraints/kinematic_constraint.h>
-#include <kinematic_constraints/constraint_samplers.h>
+#include <constraint_samplers/constraint_sampler.h>
 
 namespace ompl_interface
 {
@@ -71,8 +71,8 @@ struct ModelBasedStateSpaceSpecification
   
   pm::KinematicModelConstPtr                 kmodel_;
   const pm::KinematicModel::JointModelGroup *joint_model_group_;
-  kc::KinematicsAllocator                    kinematics_allocator_;
-  kc::KinematicsSubgroupAllocator            kinematics_subgroup_allocators_;
+  planning_scene::KinematicsAllocatorFn      kinematics_allocator_;
+  planning_scene::KinematicsAllocatorMapFn   kinematics_subgroup_allocators_;
 };
 
 class ModelBasedStateSpace : public ob::CompoundStateSpace
@@ -231,12 +231,12 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
 
-  const kc::KinematicsAllocator& getKinematicsAllocator(void) const
+  const planning_scene::KinematicsAllocatorFn& getKinematicsAllocator(void) const
   {
     return spec_.kinematics_allocator_;
   }
 
-  const kc::KinematicsSubgroupAllocator& getKinematicsSubgroupAllocators(void) const
+  const planning_scene::KinematicsAllocatorMapFn& getKinematicsSubgroupAllocators(void) const
   {
     return spec_.kinematics_subgroup_allocators_;
   }

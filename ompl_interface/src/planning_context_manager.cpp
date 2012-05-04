@@ -99,8 +99,8 @@ struct PlanningContextManager::CachedContexts
 }
 
 ompl_interface::PlanningContextManager::PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel) :
-  kmodel_(kmodel), max_goal_samples_(10), max_state_sampling_attempts_(10), max_goal_sampling_attempts_(1000), max_planning_threads_(4),
-  max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
+  kmodel_(kmodel), constraint_sampler_manager_(NULL), max_goal_samples_(10), max_state_sampling_attempts_(10), max_goal_sampling_attempts_(1000),
+  max_planning_threads_(4), max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
   last_planning_context_.reset(new LastPlanningContext());
   cached_contexts_.reset(new CachedContexts());
@@ -123,7 +123,7 @@ static ob::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si)
 }
 
 ompl::base::PlannerPtr ompl_interface::PlanningContextManager::plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
-                                                                       const std::string &name, const std::map<std::string, std::string> &config) const
+                                                                                const std::string &name, const std::map<std::string, std::string> &config) const
 {
   std::map<std::string, ob::PlannerAllocator>::const_iterator it = known_planners_.find(planner);
   if (it != known_planners_.end())
@@ -140,62 +140,6 @@ ompl::base::PlannerPtr ompl_interface::PlanningContextManager::plannerAllocator(
     ROS_ERROR("Unknown planner: '%s'", planner.c_str());
     return ob::PlannerPtr();
   }
-}
-
-void ompl_interface::PlanningContextManager::specifyIKSolvers(const std::map<std::string, kc::KinematicsAllocator> &kinematics_allocators)
-{
-  kinematics_allocators_.clear();
-  const std::map<std::string, pm::KinematicModel::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
-  for (std::map<std::string, pm::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
-  {
-    const pm::KinematicModel::JointModelGroup *jmg = it->second;
-    std::pair<kc::KinematicsAllocator, kc::KinematicsSubgroupAllocator> result;
-    
-    std::map<std::string, kc::KinematicsAllocator>::const_iterator jt = kinematics_allocators.find(jmg->getName());
-    if (jt == kinematics_allocators.end())
-    {
-      // if an IK allocator is NOT available for this group, we try to see if we can use subgroups for IK
-      std::set<const pm::KinematicModel::JointModel*> joints;
-      joints.insert(jmg->getJointModels().begin(), jmg->getJointModels().end());
-      
-      std::vector<const pm::KinematicModel::JointModelGroup*> subs;
-      
-      // go through the groups that we know have IK allocators and see if they are included in the group that does not; fi so, put that group in sub
-      for (std::map<std::string, kc::KinematicsAllocator>::const_iterator kt = kinematics_allocators.begin() ;
-           kt != kinematics_allocators.end() ; ++kt)
-      {
-        const pm::KinematicModel::JointModelGroup *sub = jmg->getParentModel()->getJointModelGroup(kt->first);
-        std::set<const pm::KinematicModel::JointModel*> sub_joints;
-        sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
-        
-        if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
-        {
-          std::set<const pm::KinematicModel::JointModel*> result;
-          std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
-                              std::inserter(result, result.end()));
-          subs.push_back(sub);
-          joints = result;
-        }
-      }
-      
-      // if we found subgroups, pass that information to the planning group
-      if (!subs.empty())
-      {
-        std::stringstream ss;
-        for (std::size_t i = 0 ; i < subs.size() ; ++i)
-        {
-          ss << subs[i]->getName() << " ";
-          result.second[subs[i]] = kinematics_allocators.find(subs[i]->getName())->second;
-        }
-        ROS_DEBUG("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
-      }
-    }
-    else
-      // if the IK allocator is for this group, we use it
-      result.first = jt->second;
-
-    kinematics_allocators_[jmg] = result;
-  }  
 }
   
 ompl_interface::ConfiguredPlannerAllocator ompl_interface::PlanningContextManager::getPlannerAllocator(void) const
@@ -281,7 +225,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   if (!context)
   {
     ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
-    AvailableKinematicsSolvers::const_iterator it = kinematics_allocators_.find(space_spec.joint_model_group_);
+    planning_scene::KinematicsAllocators::const_iterator it = kinematics_allocators_.find(space_spec.joint_model_group_);
     if (it != kinematics_allocators_.end())
     {
       space_spec.kinematics_allocator_ = it->second.first;
@@ -291,6 +235,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     ModelBasedPlanningContextSpecification context_spec;
     context_spec.config_ = config.config;
     context_spec.planner_allocator_ = getPlannerAllocator();
+    context_spec.constraint_sampler_manager_ = constraint_sampler_manager_;
     ROS_DEBUG("Creating new planning context");
     context.reset(new ModelBasedPlanningContext(config.name, factory->getNewStateSpace(space_spec), context_spec));
     {

@@ -50,22 +50,22 @@ class ConstraintSampler
 {
 public:
   
-  ConstraintSampler(void)
-  {
-  }
+  ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name);
+
   virtual ~ConstraintSampler(void)
   {
   }
   
-  virtual bool init(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr);
-
   virtual bool configure(const moveit_msgs::Constraints &constr) = 0;
-  
-  virtual bool canService(const moveit_msgs::Constraints &constr) const = 0;
 
   const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void) const
   {
     return jmg_;
+  }
+  
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
+  {
+    return scene_;
   }
   
   /// Return the names of the mobile frames (correspond to robot links) whose pose is needed when sample() is called.
@@ -89,28 +89,6 @@ protected:
 typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
 typedef boost::shared_ptr<const ConstraintSampler> ConstraintSamplerConstPtr;
 
-class ConstraintSamplerManager
-{
-public:
-  ConstraintSamplerManager(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name) : scene_(scene)
-  {
-    jmg_ = scene_->getKinematicModel()->getJointModelGroup(group_name);
-  }
-
-  void registerSampler(const ConstraintSamplerPtr &sampler)
-  {
-    samplers_.push_back(sampler);
-  }
-  
-  ConstraintSamplerPtr selectSampler(const moveit_msgs::Constraints &constr) const;
-  static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr &scene, const planning_models::KinematicModel::JointModelGroup *jmg, const moveit_msgs::Constraints &constr);
-  
-private:
-
-  planning_scene::PlanningSceneConstPtr                   scene_; 
-  const planning_models::KinematicModel::JointModelGroup *jmg_;
-  std::vector<ConstraintSamplerPtr>                       samplers_;
-};
 
 }
 

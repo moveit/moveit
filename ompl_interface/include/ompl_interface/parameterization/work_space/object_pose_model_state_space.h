@@ -129,7 +129,7 @@ private:
   struct PoseComponent
   {
     PoseComponent(const pm::KinematicModel::JointModelGroup *subgroup, 
-                  const kc::KinematicsAllocator &kinematics_allocator);
+                  const planning_scene::KinematicsAllocatorFn &kinematics_allocator);
     
     bool computeStateFK(const ob::State *state, ob::SE3StateSpace::StateType *se3_state) const;
     bool computeStateIK(ob::State *state, const ob::SE3StateSpace::StateType *se3_state) const;
@@ -149,9 +149,9 @@ private:
   };
   
   void constructSpace(const pm::KinematicModel::JointModelGroup *group, 
-                      const kc::KinematicsAllocator &ik_allocator);
+                      const planning_scene::KinematicsAllocatorFn &ik_allocator);
   void constructSpace(const pm::KinematicModel::JointModelGroup *group, 
-                      const kc::KinematicsSubgroupAllocator &ik_allocator);
+                      const planning_scene::KinematicsAllocatorMapFn &ik_allocator);
   void constructSpaceFromPoses(void);
 
   
