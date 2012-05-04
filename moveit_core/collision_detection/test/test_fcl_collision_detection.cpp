@@ -450,12 +450,12 @@ TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
 {
   std::vector<Eigen::Affine3d> poses;
   std::vector<shapes::ShapePtr> shapes;
-  for(unsigned int i = 0; i < 1000; i++) {
+  for(unsigned int i = 0; i < 5; i++) {
     poses.push_back(Eigen::Affine3d::Identity());
     shapes.push_back(shapes::ShapePtr(new shapes::Box(.01, .01, .01)));
   }
   ros::WallTime start = ros::WallTime::now();
-  for(unsigned int i = 0; i < 1000; i++) {
+  for(unsigned int i = 0; i < 5; i++) {
     cworld_->addToObject("map", shapes[i], poses[i]);
   }
   double t = (ros::WallTime::now()-start).toSec();
@@ -477,7 +477,7 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
   cworld_->addToObject("kinect", kinect_shape, kinect_pose);
 
   Eigen::Affine3d np;
-  for(unsigned int i = 0; i < 10 ; i++) {
+  for(unsigned int i = 0; i < 5 ; i++) {
     np = Eigen::Translation3d(i*.001, i*.001, i*.001)*Eigen::Quaterniond::Identity();
     cworld_->moveShapeInObject("kinect", kinect_shape, np);
     collision_detection::CollisionRequest req;
@@ -500,7 +500,7 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
   std::vector<Eigen::Affine3d> poses;
   std::vector<shapes::ShapeConstPtr> shapes;
   poses.push_back(Eigen::Affine3d::Identity());
-  for(unsigned int i = 0; i < 10; i++) {
+  for(unsigned int i = 0; i < 5; i++) {
     cworld_->removeObject("shape");
     shapes.clear();
     shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(1+i*.0001, 1+i*.0001, 1+i*.0001)));
@@ -523,7 +523,7 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
   cworld_->checkCollision(req2, res2, *crobot_, kstate1, *acm_);
   ASSERT_TRUE(res2.collision);
 
-  for(unsigned int i = 0; i < 1000; i++) {
+  for(unsigned int i = 0; i < 5; i++) {
     cworld_->removeObject("shape");
     shapes.clear();
     shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(1+i*.0001, 1+i*.0001, 1+i*.0001)));
