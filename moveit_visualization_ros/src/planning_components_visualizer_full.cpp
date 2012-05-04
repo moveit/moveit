@@ -150,15 +150,18 @@ int main(int argc, char **argv)
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
   interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
 
+  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> 
+    kinematics_plugin_loader(new kinematics_plugin_loader::KinematicsPluginLoader());
+
   boost::shared_ptr<tf::TransformListener> transformer;
   if(!monitor_robot_state) {
     ROS_INFO_STREAM("Starting publisher thread");
     joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", kinematics_plugin_loader));
     boost::thread publisher_thread(boost::bind(&publisher_function));
   } else {
     transformer.reset(new tf::TransformListener());
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", transformer.get()));
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", transformer, kinematics_plugin_loader));
     planning_scene_monitor_->startStateMonitor();
   }
 
@@ -188,8 +191,6 @@ int main(int argc, char **argv)
   bad_color.a = 1.0;    
   bad_color.r = 1.0;    
 
-  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> 
-    kinematics_plugin_loader(new kinematics_plugin_loader::KinematicsPluginLoader());
 
   pv_.reset(new PlanningVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
                                                planning_scene_monitor_->getGroupJointLimitsMap(),

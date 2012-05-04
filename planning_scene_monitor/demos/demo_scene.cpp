@@ -78,8 +78,8 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
 void sendScene(void)
 {  
     ros::NodeHandle nh;
-    tf::TransformListener tf;
-    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
+    boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
     ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
     
     constructScene(psm.getPlanningScene());

@@ -42,6 +42,7 @@
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 #include <planning_scene/planning_scene.h>
+#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
 #include "planning_scene_monitor/current_state_monitor.h"
 
 namespace planning_scene_monitor
@@ -52,6 +53,7 @@ namespace planning_scene_monitor
 class PlanningSceneMonitor
 {
 public:
+
   /** @brief Constructor
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    */
@@ -59,16 +61,39 @@ public:
 
   /** @brief Constructor
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
+   *  @param kpl The kinematic plugin loader to use (one will be constructed automatically if this is not provided)
+   */
+  PlanningSceneMonitor(const std::string &robot_description, const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl);
+
+
+  /** @brief Constructor
+   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    *  @param tf A pointer to a tf::Transformer
    */
-  PlanningSceneMonitor(const std::string &robot_description, tf::Transformer *tf);
+  PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf);
+
+  /** @brief Constructor
+   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
+   *  @param tf A pointer to a tf::Transformer
+   *  @param kpl The kinematic plugin loader to use (one will be constructed automatically if this is not provided)
+   */
+  PlanningSceneMonitor(const std::string &robot_description,  const boost::shared_ptr<tf::Transformer> &tf, const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl);
 
   /** @brief Constructor
    *  @param parent The parent planning scene with respect to which the diffs are to be maintained
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    *  @param tf A pointer to a tf::Transformer
    */
-  PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, tf::Transformer *tf);
+  PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf);
+
+  /** @brief Constructor
+   *  @param parent The parent planning scene with respect to which the diffs are to be maintained
+   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
+   *  @param tf A pointer to a tf::Transformer
+   *  @param kpl The kinematic plugin loader to use (one will be constructed automatically if this is not provided)
+   */
+  PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl);
+
   ~PlanningSceneMonitor(void);
 
   /** @brief Get the planning scene
@@ -235,7 +260,7 @@ protected:
 
   ros::NodeHandle                       nh_;
   ros::NodeHandle                       root_nh_;
-  tf::Transformer                      *tf_;
+  boost::shared_ptr<tf::Transformer>    tf_;
   std::string                           robot_description_;
   double                                default_robot_padd_; /// default robot padding
   double                                default_robot_scale_; /// default robot scaling
@@ -272,6 +297,8 @@ protected:
   std::map<std::string, std::vector<moveit_msgs::JointLimits > > individual_joint_limits_map_;
   std::map<std::string, std::vector<moveit_msgs::JointLimits> >  group_joint_limits_map_;
 
+  kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
+  
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;

@@ -74,6 +74,10 @@ private:
   boost::shared_ptr<KinematicsLoaderImpl> loader_;
   std::vector<std::string> groups_;
 };
+
+typedef boost::shared_ptr<KinematicsPluginLoader> KinematicsPluginLoaderPtr;
+typedef boost::shared_ptr<const KinematicsPluginLoader> KinematicsPluginLoaderConstPtr;
+
 }
 
 #endif

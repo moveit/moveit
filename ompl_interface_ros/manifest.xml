@@ -17,7 +17,6 @@
   <depend package="kinematics_msgs"/>
   <depend package="pluginlib"/>
   <depend package="kinematics_base"/>
-  <depend package="kinematics_plugin_loader"/>
   <depend package="planning_interface"/>
 
   <export>

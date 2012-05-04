@@ -93,8 +93,8 @@ int main(int argc, char **argv)
   spinner.start();
   
   ros::NodeHandle nh;
-  tf::TransformListener tf;
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
+  boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
   psm.startSceneMonitor();
   psm.startWorldGeometryMonitor();
   moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",

@@ -42,6 +42,7 @@
 #include <planning_models/kinematic_state.h>
 #include <sensor_msgs/JointState.h>
 #include <boost/function.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/thread/mutex.hpp>
 
 namespace planning_scene_monitor
@@ -59,7 +60,7 @@ public:
    *  @param kmodel The current kinematic model to build on
    *  @param tf A pointer to the tf transformer to use
    */
-  CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf);
+  CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
   
   /** @brief Start monitoring joint states on a particular topic
    *  @param joint_states_topic The topic name for joint states (defaults to "joint_states")
@@ -131,7 +132,7 @@ private:
   void jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state);
   
   ros::NodeHandle                              nh_;
-  tf::Transformer                             *tf_;
+  boost::shared_ptr<tf::Transformer>           tf_;
   planning_models::KinematicModelConstPtr      kmodel_;
   planning_models::KinematicState              kstate_;
   planning_models::KinematicState::JointState *root_;
