@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include <ompl_interface/ompl_interface.h>
+#include <pluginlib/class_loader.h>
 #include <ros/ros.h>
 
 namespace ompl_interface_ros
@@ -63,9 +64,15 @@ namespace ompl_interface_ros
 
       /** @brief Configure the planners*/
       void loadPlannerConfigurations(void);
-
+      
+      /** @brief Load the additional plugins for sampling constraints */
+      void loadConstraintSamplers(void);
+      
       ros::NodeHandle nh_; /// The ROS node handle
 
+    private:
+
+      boost::scoped_ptr<pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator> > constraint_sampler_plugin_loader_;
     };
 
 }

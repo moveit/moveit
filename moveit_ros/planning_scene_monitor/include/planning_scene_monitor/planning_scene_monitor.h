@@ -258,47 +258,52 @@ protected:
   planning_scene::PlanningSceneConstPtr scene_const_; /// internally stored
   boost::mutex                          scene_update_mutex_; /// mutex for stored scene
 
+
   ros::NodeHandle                       nh_;
   ros::NodeHandle                       root_nh_;
   boost::shared_ptr<tf::Transformer>    tf_;
   std::string                           robot_description_;
-  double                                default_robot_padd_; /// default robot padding
-  double                                default_robot_scale_; /// default robot scaling
-  double                                default_object_padd_; /// default object padding
-  double                                default_attached_padd_; /// default attached padding
+
+  
+  /// default robot padding
+  double                                default_robot_padd_;
+  /// default robot scaling
+  double                                default_robot_scale_;
+  /// default object padding
+  double                                default_object_padd_;
+  /// default attached padding
+  double                                default_attached_padd_;
+  
 
   ros::Subscriber                       planning_scene_subscriber_;
   ros::Subscriber                       planning_scene_diff_subscriber_;
-
   ros::Subscriber                       planning_scene_world_subscriber_;
-
   message_filters::Subscriber<moveit_msgs::CollisionObject> *collision_object_subscriber_;
   tf::MessageFilter<moveit_msgs::CollisionObject> *collision_object_filter_;
   message_filters::Subscriber<moveit_msgs::CollisionMap> *collision_map_subscriber_;
   tf::MessageFilter<moveit_msgs::CollisionMap> *collision_map_filter_;
-
   message_filters::Subscriber<moveit_msgs::AttachedCollisionObject> *attached_collision_object_subscriber_;
+  
 
+  
   CurrentStateMonitorPtr                current_state_monitor_;
   ros::Time                             last_update_time_; /// Last time the state was updated
-
   boost::function<void()>               update_callback_;
-
   /// the planning scene state is updated at a maximum specified frequency,
   /// and this timestamp is used to implement that functionality
   ros::WallTime                         last_state_update_;
-
   /// the amount of time to wait in between updates to the robot state (in seconds)
-  double                                dt_state_update_;
-  
+  double                                dt_state_update_; 
   /// the error accepted when the state is reported as outside of bounds;
   double                                bounds_error_;
-  
+
+  /// additional joint constraints read from the param server 
   std::map<std::string, std::vector<moveit_msgs::JointLimits > > individual_joint_limits_map_;
+
+  /// additional joint constraints read from the param server 
   std::map<std::string, std::vector<moveit_msgs::JointLimits> >  group_joint_limits_map_;
 
   kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
-  
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
