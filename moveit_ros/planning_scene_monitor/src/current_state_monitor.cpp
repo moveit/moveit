@@ -38,7 +38,7 @@
 #include <tf_conversions/tf_eigen.h>
 #include <limits>
 
-planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, tf::Transformer *tf) :
+planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf) :
   tf_(tf), kmodel_(kmodel), kstate_(kmodel), root_(kstate_.getJointState(kmodel->getRoot()->getName())), state_monitor_started_(false), error_(std::numeric_limits<double>::epsilon())
 {
 }

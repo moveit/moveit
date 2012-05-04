@@ -37,20 +37,41 @@
 #include "planning_scene_monitor/planning_scene_monitor.h"
 #include <robot_model_loader/robot_model_loader.h>
 
+
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description) :
-  nh_("~"), tf_(NULL)
+  nh_("~")
 {
   initialize(planning_scene::PlanningSceneConstPtr(), robot_description);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, tf::Transformer *tf) :
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf)
 {
   initialize(planning_scene::PlanningSceneConstPtr(), robot_description);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, tf::Transformer *tf) :
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf)
+{
+  initialize(parent, robot_description);
+}
+
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl) :
+  nh_("~"), kinematics_loader_(kpl)
+{
+  initialize(planning_scene::PlanningSceneConstPtr(), robot_description);
+}
+
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf,
+                                                                   const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl) :
+  nh_("~"), tf_(tf), kinematics_loader_(kpl)
+{
+  initialize(planning_scene::PlanningSceneConstPtr(), robot_description);
+}
+
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf,
+                                                                   const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl) :
+  nh_("~"), tf_(tf), kinematics_loader_(kpl)
 {
   initialize(parent, robot_description);
 }
@@ -94,6 +115,17 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
       scene_.reset();
     }
   }
+  
+  // load the kinematics solvers
+  if (!kinematics_loader_)
+    kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader());
+  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction();
+  const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
+  planning_scene::KinematicsAllocatorsByName imap;
+  for (std::size_t i = 0 ; i < groups.size() ; ++i)
+    imap[groups[i]] =  kinematics_allocator;
+  scene_->setKinematicsAllocators(imap);
+  
   last_update_time_ = ros::Time::now();
   last_state_update_ = ros::WallTime::now();
   dt_state_update_ = 0.2;
@@ -516,7 +548,8 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding(void)
 
 void planning_scene_monitor::PlanningSceneMonitor::configureDefaultJointLimits(void)
 {
-  for(unsigned int i = 0; i < scene_->getKinematicModel()->getJointModels().size(); i++) {
+  for(unsigned int i = 0; i < scene_->getKinematicModel()->getJointModels().size(); ++i) 
+  {
     std::vector<moveit_msgs::JointLimits> jlim = scene_->getKinematicModel()->getJointModels()[i]->getJointLimits();
     for(unsigned int j = 0; j < jlim.size(); j++) {
       std::string prefix = robot_description_+"_planning/joint_limits/"+jlim[j].joint_name+"/";
@@ -535,10 +568,10 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultJointLimits(v
     individual_joint_limits_map_[scene_->getKinematicModel()->getJointModels()[i]->getName()] = jlim;
   }
   const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& jmgm = scene_->getKinematicModel()->getJointModelGroupMap();
-  for(std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin();
-      it != jmgm.end();
-      it++) {
-    for(unsigned int i = 0; i < it->second->getJointModelNames().size(); i++) {
+  for(std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin(); it != jmgm.end(); ++it) 
+  {
+    for(unsigned int i = 0; i < it->second->getJointModelNames().size(); i++)
+    {
       group_joint_limits_map_[it->first].insert(group_joint_limits_map_[it->first].end(),
                                                 individual_joint_limits_map_[it->second->getJointModelNames()[i]].begin(),
                                                 individual_joint_limits_map_[it->second->getJointModelNames()[i]].end());

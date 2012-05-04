@@ -39,14 +39,7 @@
 #include <sstream>
 
 ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel) :
-  ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(new kinematics_plugin_loader::KinematicsPluginLoader())
-{
-  loadParams();
-}
-
-ompl_interface_ros::OMPLInterfaceROS::OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel,
-                                                       boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& loader) :
-  ompl_interface::OMPLInterface(kmodel), nh_("~"), kinematics_loader_(loader)
+  ompl_interface::OMPLInterface(kmodel), nh_("~")
 {
   loadParams();
 }
@@ -78,20 +71,7 @@ void ompl_interface_ros::OMPLInterfaceROS::loadParams(void)
 { 
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
-  loadKinematicsSolvers();
   loadConstraintApproximations();
-}
-
-void ompl_interface_ros::OMPLInterfaceROS::loadKinematicsSolvers(void)
-{
-  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction();
-  const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
-  
-  std::map<std::string, kinematic_constraints::KinematicsAllocator> imap;
-  for (std::size_t i = 0 ; i < groups.size() ; ++i)
-    imap[groups[i]] =  kinematics_allocator;
-  
-  specifyIKSolvers(imap);
 }
 
 void ompl_interface_ros::OMPLInterfaceROS::loadPlannerConfigurations(void)

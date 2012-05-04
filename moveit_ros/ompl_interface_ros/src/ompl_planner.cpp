@@ -100,7 +100,8 @@ public:
     const ompl_interface::ModelBasedPlanningContextPtr &pc = ompl_interface_.getLastPlanningContext();
     if (pc)
     {
-      const ompl::base::PlannerData &pd = pc->getOMPLSimpleSetup().getPlannerData();
+      ompl::base::PlannerData pd;
+      pc->getOMPLSimpleSetup().getPlannerData(pd);
       planning_models::KinematicState kstate = psm_.getPlanningScene()->getCurrentState();  
       visualization_msgs::MarkerArray arr; 
       std_msgs::ColorRGBA color;
@@ -108,9 +109,10 @@ public:
       color.g = 0.0f;
       color.b = 0.0f;
       color.a = 1.0f;
-      for (std::size_t i = 0 ; i < pd.states.size() ; ++i)
+      unsigned int nv = pd.numVertices();
+      for (unsigned int i = 0 ; i < nv ; ++i)
       {
-        pc->getOMPLStateSpace()->copyToKinematicState(kstate, pd.states[i]);
+	pc->getOMPLStateSpace()->copyToKinematicState(kstate, pd.getVertex(i).getState());
         kstate.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
         const Eigen::Vector3d &pos = kstate.getLinkState(link_name)->getGlobalLinkTransform().translation();
         
@@ -194,8 +196,8 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
   
-  tf::TransformListener tf;
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, &tf);
+  boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
   if (psm.getPlanningScene()->isConfigured())
   {
     psm.startWorldGeometryMonitor();

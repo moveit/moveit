@@ -53,15 +53,16 @@ MoveItVisualizer::MoveItVisualizer() :
   loc_nh.param("monitor_robot_state", monitor_robot_state, false);
 
   interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
+  kinematics_plugin_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader());
 
   if(!monitor_robot_state) {
     ROS_INFO_STREAM("Starting publisher thread");
     joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", kinematics_plugin_loader_));
     boost::thread publisher_thread(boost::bind(&MoveItVisualizer::publisherFunction, this, true));
   } else {
     transformer_.reset(new tf::TransformListener());
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", transformer_.get()));
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", transformer_, kinematics_plugin_loader_));
     joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
     bool publish_root_transform = false;
     loc_nh.param("publish_root_transform", publish_root_transform, false);
@@ -95,7 +96,6 @@ MoveItVisualizer::MoveItVisualizer() :
   bad_color.a = 1.0;    
   bad_color.r = 1.0;    
 
-  kinematics_plugin_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader());
 
   pv_.reset(new PlanningVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
                                                planning_scene_monitor_->getGroupJointLimitsMap(),

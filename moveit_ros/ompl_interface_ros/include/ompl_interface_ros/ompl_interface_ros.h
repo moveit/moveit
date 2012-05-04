@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include <ompl_interface/ompl_interface.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
 #include <ros/ros.h>
 
 namespace ompl_interface_ros
@@ -48,16 +47,6 @@ namespace ompl_interface_ros
        *  @param scene A pointer to the planning scene*/
       OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel);
 
-      /** @brief Constructor
-       *  @param scene A pointer to the planning scene*/
-      OMPLInterfaceROS(const planning_models::KinematicModelConstPtr &kmodel,
-                       boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& loader);
-
-      const boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& getKinematicsPluginLoader(void) const
-      {
-        return kinematics_loader_;
-      }
-      
       /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint approximations to */
       bool saveConstraintApproximations(void);
       
@@ -72,16 +61,11 @@ namespace ompl_interface_ros
       /** @brief Configure everything using the param server */
       void loadParams(void);
 
-      /** @brief Configure the IK solvers from the ROS param server*/
-      void loadKinematicsSolvers(void);
-
       /** @brief Configure the planners*/
       void loadPlannerConfigurations(void);
 
       ros::NodeHandle nh_; /// The ROS node handle
 
-    private:
-      boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> kinematics_loader_;
     };
 
 }
