@@ -304,7 +304,7 @@ void PlanningDisplay::load()
   robot_->load(doc.RootElement(), descr);
   scene_robot_->load(doc.RootElement(), descr);
   
-  scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(description_param_, vis_manager_->getTFClient()));
+  scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(description_param_));
   
   if (scene_monitor_->getPlanningScene())
   {

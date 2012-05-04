@@ -37,7 +37,6 @@
 #include "planning_scene_monitor/planning_scene_monitor.h"
 #include <robot_model_loader/robot_model_loader.h>
 
-
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description) :
   nh_("~")
 {
