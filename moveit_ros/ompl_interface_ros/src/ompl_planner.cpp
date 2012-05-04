@@ -100,7 +100,7 @@ public:
     const ompl_interface::ModelBasedPlanningContextPtr &pc = ompl_interface_.getLastPlanningContext();
     if (pc)
     {
-      ompl::base::PlannerData pd;
+      ompl::base::PlannerData pd(pc->getOMPLSimpleSetup().getSpaceInformation());
       pc->getOMPLSimpleSetup().getPlannerData(pd);
       planning_models::KinematicState kstate = psm_.getPlanningScene()->getCurrentState();  
       visualization_msgs::MarkerArray arr; 
