@@ -461,12 +461,14 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     }
     
     pm::KinematicState kstate(default_state);
-    
-    kc::ConstraintSamplerPtr cs = kc::ConstraintSampler::constructFromMessage(pcontext->getJointModelGroup(), constr_sampling, pcontext->getKinematicModel(),
-									      pm::TransformsConstPtr(new pm::Transforms(pcontext->getKinematicModel()->getModelFrame())),
-									      pcontext->getOMPLStateSpace()->getKinematicsAllocator(),
-									      pcontext->getOMPLStateSpace()->getKinematicsSubgroupAllocators());
-    ConstrainedSampler *csmp = cs ? new ConstrainedSampler(pcontext.get(), cs) : NULL;
+    constraint_samplers::ConstraintSamplerManager *csmng = pcontext->getConstraintSamplerManager();
+    ConstrainedSampler *csmp = NULL;
+    if (csmng)
+    {
+      constraint_samplers::ConstraintSamplerPtr cs = csmng->selectSampler(pcontext->getPlanningScene(), pcontext->getJointModelGroup()->getName(), constr_sampling);
+      if (cs)
+        csmp = new ConstrainedSampler(pcontext.get(), cs);
+    }
     ob::StateSamplerPtr ss(csmp ? ob::StateSamplerPtr(csmp) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
     
     ompl::base::ScopedState<> temp(pcontext->getOMPLStateSpace());
@@ -501,8 +503,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       ss->sampleUniform(temp.get());
       pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp.get());
       kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName())->updateLinkTransforms();
-      double distance = 0.0;
-      if (kset.decide(kstate, distance))
+      if (kset.decide(kstate).satisfied)
       {
 #pragma omp critical
 	{
@@ -556,7 +557,6 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       pm::KinematicState &kstate = kstates[threadid];
       pm::KinematicState::JointStateGroup *jsg = kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName());
       ompl::base::State *temp = temps[threadid].get();
-      double distance = 0.0;
       int done_now = 100 * j / sstor->size();
       if (done != done_now)
       {
@@ -574,17 +574,17 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
         space->interpolate(states[j], states[i], 0.5, temp);
         pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp);
         jsg->updateLinkTransforms();
-        if (kset.decide(kstate, distance))
+        if (kset.decide(kstate).satisfied)
         {
 	  space->interpolate(states[j], states[i], 0.25, temp);
 	  pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp);
 	  jsg->updateLinkTransforms();
-	  if (kset.decide(kstate, distance))
+	  if (kset.decide(kstate).satisfied)
 	  {
             space->interpolate(states[j], states[i], 0.75, temp);
             pcontext->getOMPLStateSpace()->copyToKinematicState(kstate, temp);
             jsg->updateLinkTransforms();
-            if (kset.decide(kstate, distance))
+            if (kset.decide(kstate).satisfied)
             {
 #pragma omp critical
               {

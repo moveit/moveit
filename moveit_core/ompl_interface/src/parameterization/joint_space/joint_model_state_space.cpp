@@ -40,12 +40,12 @@ ompl_interface::JointModelStateSpace::JointModelStateSpace(const ModelBasedState
   ModelBasedStateSpace(spec), helper_(spec.joint_model_group_->getJointModels())
 {
   const ob::StateSpacePtr &space = helper_.getStateSpace();
-  unsigned int ns = space->as<ob::CompoundStateSpace>()->getSubSpaceCount();
+  unsigned int ns = space->as<ob::CompoundStateSpace>()->getSubspaceCount();
   for (unsigned int i = 0 ; i < ns ; ++i)
   {
-    const ob::StateSpacePtr &c = space->as<ob::CompoundStateSpace>()->getSubSpace(i);
-    double w = space->as<ob::CompoundStateSpace>()->getSubSpaceWeight(i);
-    addSubSpace(c, w);
+    const ob::StateSpacePtr &c = space->as<ob::CompoundStateSpace>()->getSubspace(i);
+    double w = space->as<ob::CompoundStateSpace>()->getSubspaceWeight(i);
+    addSubspace(c, w);
   }
   
   setName(getJointModelGroupName() + "_JointModel");

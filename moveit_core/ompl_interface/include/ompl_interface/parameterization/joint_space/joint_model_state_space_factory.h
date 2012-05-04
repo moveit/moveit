@@ -52,7 +52,7 @@ public:
   
   virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
 				  const pm::KinematicModelConstPtr &kmodel,
-				  const AvailableKinematicsSolvers &aks) const;
+				  const planning_scene::KinematicsAllocators &aks) const;
 
 protected:
   

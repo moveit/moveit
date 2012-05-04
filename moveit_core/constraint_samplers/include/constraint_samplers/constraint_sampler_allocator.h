@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,32 +32,38 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_OBJECT_POSE_MODEL_STATE_SPACE_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_OBJECT_POSE_MODEL_STATE_SPACE_FACTORY_
+#ifndef MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_ALLOCATOR_
+#define MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_ALLOCATOR_
 
-#include "ompl_interface/parameterization/model_based_state_space_factory.h"
-#include "ompl_interface/parameterization/work_space/object_pose_model_state_space.h"
+#include "constraint_samplers/constraint_sampler.h"
 
-namespace ompl_interface
+namespace constraint_samplers
 {
-class ObjectPoseModelStateSpaceFactory : public ModelBasedStateSpaceFactory
+
+class ConstraintSamplerAllocator
 {
 public:
   
-  ObjectPoseModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
+  ConstraintSamplerAllocator(void)
   {
-    type_ = "ObjectPoseModel";
+  }
+
+  virtual ~ConstraintSamplerAllocator(void)
+  {
   }
   
-  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const planning_scene::KinematicsAllocators &aks) const;
-  
-protected:
-  
-  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
-  
+  virtual ConstraintSamplerPtr alloc(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr) = 0;
+  virtual bool canService(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr) const = 0;
+
 };
+
+typedef boost::shared_ptr<ConstraintSamplerAllocator> ConstraintSamplerAllocatorPtr;
+typedef boost::shared_ptr<const ConstraintSamplerAllocator> ConstraintSamplerAllocatorConstPtr;
+
+
 }
+
 
 #endif

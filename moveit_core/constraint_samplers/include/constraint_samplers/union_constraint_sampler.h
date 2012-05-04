@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2011, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,32 +32,48 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_OBJECT_POSE_MODEL_STATE_SPACE_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_OBJECT_POSE_MODEL_STATE_SPACE_FACTORY_
+#ifndef MOVEIT_CONSTRAINT_SAMPLERS_DEFAULT_UNION_CONSTRAINT_SAMPLER_
+#define MOVEIT_CONSTRAINT_SAMPLERS_DEFAULT_UNION_CONSTRAINT_SAMPLER_
 
-#include "ompl_interface/parameterization/model_based_state_space_factory.h"
-#include "ompl_interface/parameterization/work_space/object_pose_model_state_space.h"
+#include "constraint_samplers/constraint_sampler.h"
+#include <random_numbers/random_numbers.h>
 
-namespace ompl_interface
+namespace constraint_samplers
 {
-class ObjectPoseModelStateSpaceFactory : public ModelBasedStateSpaceFactory
+
+class UnionConstraintSampler : public ConstraintSampler
 {
 public:
   
-  ObjectPoseModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
+  UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, 
+                         const std::vector<ConstraintSamplerPtr> &samplers);
+  
+  const std::vector<ConstraintSamplerPtr>& getSamplers(void) const
   {
-    type_ = "ObjectPoseModel";
+    return samplers_;
   }
   
-  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const planning_scene::KinematicsAllocators &aks) const;
+  virtual bool configure(const moveit_msgs::Constraints &constr)
+  {
+    return true;
+  }
+  
+  virtual bool canService(const moveit_msgs::Constraints &constr) const
+  {
+    return true;
+  }
+  
+  virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts = 100);
   
 protected:
-  
-  virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
-  
+
+  random_numbers::RandomNumberGenerator   random_number_generator_;
+  std::vector<ConstraintSamplerPtr>       samplers_;
+  std::vector<std::vector<unsigned int> > bijection_;
 };
+
 }
 
 #endif

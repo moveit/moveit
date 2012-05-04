@@ -38,7 +38,7 @@
 #define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_SAMPLER_
 
 #include <ompl/base/StateSampler.h>
-#include <kinematic_constraints/constraint_samplers.h>
+#include <constraint_samplers/constraint_sampler.h>
 
 namespace ompl_interface
 {
@@ -54,7 +54,7 @@ public:
    *  @param pg The planning group
    *  @param cs A pointer to a kinematic constraint sampler
    */
-  ConstrainedSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::ConstraintSamplerPtr &cs);
+  ConstrainedSampler(const ModelBasedPlanningContext *pc, const constraint_samplers::ConstraintSamplerPtr &cs);
   
   /** @brief Sample a state (uniformly)*/
   virtual void sampleUniform(ompl::base::State *state);
@@ -79,7 +79,7 @@ private:
   
   const ModelBasedPlanningContext            *planning_context_;
   ompl::base::StateSamplerPtr                 default_;
-  kinematic_constraints::ConstraintSamplerPtr constraint_sampler_;
+  constraint_samplers::ConstraintSamplerPtr   constraint_sampler_;
   unsigned int                                constrained_success_;
   unsigned int                                constrained_failure_;
 

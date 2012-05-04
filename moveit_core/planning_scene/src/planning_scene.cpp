@@ -40,6 +40,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
 #include <octomap_msgs/conversions.h>
+#include <set>
 
 namespace planning_scene
 {
@@ -150,6 +151,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
         cworld_const_ = cworld_;
         
         colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
+        kinematics_allocators_.reset(new KinematicsAllocators());
       }
       
       configured_ = true;
@@ -199,6 +201,7 @@ void planning_scene::PlanningScene::clearDiffs(void)
   crobot_unpadded_.reset();
   crobot_unpadded_const_.reset();
   colors_.reset();
+  kinematics_allocators_.reset();
 }
 
 void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
@@ -732,6 +735,12 @@ void planning_scene::PlanningScene::decoupleParent(void)
           (*colors_)[it->first] = it->second;
     }
     
+    if (!kinematics_allocators_)
+    {
+      KinematicsAllocators ka = parent_->getKinematicsAllocators();
+      kinematics_allocators_.reset(new KinematicsAllocators(ka));
+    }
+    
     configured_ = true;
   }
 
@@ -1203,8 +1212,7 @@ bool planning_scene::PlanningScene::isStateValid(const planning_models::Kinemati
   ks.add(constr);
   if (ks.empty())
     return true;
-  double dist;
-  return ks.decide(state, dist, verbose);  
+  return ks.decide(state, verbose).satisfied;
 }
 
 bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose) const
@@ -1215,8 +1223,7 @@ bool planning_scene::PlanningScene::isStateValid(const planning_models::Kinemati
     return false;
   if (constr->empty())
     return true;
-  double dist;
-  return constr->decide(state, dist, verbose);
+  return constr->decide(state, verbose).satisfied;
 }
 
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, 
@@ -1269,8 +1276,7 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
         *first_invalid_index = i;
       return false;
     }    
-    double dist;
-    if (!ks_p.empty() && !ks_p.decide(*st, dist, verbose))
+    if (!ks_p.empty() && !ks_p.decide(*st, verbose).satisfied)
     {
       if (first_invalid_index)
         *first_invalid_index = i;
@@ -1281,7 +1287,7 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
     {
       kinematic_constraints::KinematicConstraintSet ks_g(getKinematicModel(), getTransforms());
       ks_g.add(goal_constraints);
-      if (!ks_g.empty() && !ks_g.decide(*st, dist, verbose))
+      if (!ks_g.empty() && !ks_g.decide(*st, verbose).satisfied)
       {
         if (first_invalid_index)
           *first_invalid_index = i;
@@ -1309,31 +1315,62 @@ void planning_scene::PlanningScene::convertToKinematicStates(const moveit_msgs::
     planning_models::robotStateToKinematicState(*getTransforms(), rs, *st);
     states[i] = st;
   }
-}
+} 
 
-/*
-collision_detection::AllowedCollisionMatrix planning_scene::PlanningScene::disableCollisionsForNonUpdatedLinks(const std::string& group) const 
+void planning_scene::PlanningScene::setKinematicsAllocators(const KinematicsAllocatorsByName &allocators)
 {
-  collision_detection::AllowedCollisionMatrix acm = getAllowedCollisionMatrix();
-  const planning_models::KinematicModel::JointModelGroup* jmg = getKinematicModel()->getJointModelGroup(group);
-  if(jmg == NULL) {
-    ROS_WARN_STREAM("Can't disable collisions for non-existent group " << group);
-    return acm;
-  }
-  const std::vector<std::string> all_links = getKinematicModel()->getLinkModelNames();
-  const std::vector<std::string> updated_links = jmg->getUpdatedLinkModelNames();
-  std::map<std::string, bool> updated_link_map;
-
-  for(unsigned int i = 0; i < updated_links.size(); i++) {
-    updated_link_map[updated_links[i]] = true;
-  }
-  //anything not in the map gets set to allowed
-  for(unsigned int i = 0; i < all_links.size(); i++) {
-    if(updated_link_map.find(all_links[i]) == updated_link_map.end()) {
-      acm.setDefaultEntry(all_links[i], true);
+  if (!kinematics_allocators_)
+    kinematics_allocators_.reset(new KinematicsAllocators());
+  else
+    kinematics_allocators_->clear();
+  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& groups = kmodel_->getJointModelGroupMap();
+  for (std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = groups.begin() ; it != groups.end() ; ++it)
+  {
+    const planning_models::KinematicModel::JointModelGroup *jmg = it->second;
+    std::pair<KinematicsAllocatorFn, KinematicsAllocatorMapFn> result;
+    
+    std::map<std::string, KinematicsAllocatorFn>::const_iterator jt = allocators.find(jmg->getName());
+    if (jt == allocators.end())
+    {
+      // if an kinematics allocator is NOT available for this group, we try to see if we can use subgroups for IK
+      std::set<const planning_models::KinematicModel::JointModel*> joints;
+      joints.insert(jmg->getJointModels().begin(), jmg->getJointModels().end());
+      
+      std::vector<const planning_models::KinematicModel::JointModelGroup*> subs;
+      
+      // go through the groups that we know have IK allocators and see if they are included in the group that does not; if so, put that group in sub
+      for (std::map<std::string, KinematicsAllocatorFn>::const_iterator kt = allocators.begin() ; kt != allocators.end() ; ++kt)
+      {
+        const planning_models::KinematicModel::JointModelGroup *sub = jmg->getParentModel()->getJointModelGroup(kt->first);
+        std::set<const planning_models::KinematicModel::JointModel*> sub_joints;
+        sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
+        
+        if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
+        {
+          std::set<const planning_models::KinematicModel::JointModel*> resultj;
+          std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
+                              std::inserter(resultj, resultj.end()));
+          subs.push_back(sub);
+          joints = resultj;
+        }
+      }
+      
+      // if we found subgroups, pass that information to the planning group
+      if (!subs.empty())
+      {
+        std::stringstream ss;
+        for (std::size_t i = 0 ; i < subs.size() ; ++i)
+        {
+          ss << subs[i]->getName() << " ";
+          result.second[subs[i]] = allocators.find(subs[i]->getName())->second;
+        }
+        ROS_DEBUG("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
+      }
     }
+    else
+      // if the IK allocator is for this group, we use it
+      result.first = jt->second;
+    
+    (*kinematics_allocators_)[jmg] = result;
   }
-
-  return acm;
 }
-*/
