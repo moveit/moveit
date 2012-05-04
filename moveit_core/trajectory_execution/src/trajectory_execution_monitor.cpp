@@ -75,7 +75,7 @@ bool TrajectoryExecutionMonitor::executeTrajectories(const std::vector<Trajector
   current_trajectory_index_ = 0;
   
   bool res = sendTrajectory(execution_data_[current_trajectory_index_]);
-  if(res)
+  if(!res)
   {
     if(!result_callback_.empty()) result_callback_(execution_result_vector_);
   }
