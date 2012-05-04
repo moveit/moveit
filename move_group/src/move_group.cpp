@@ -184,8 +184,10 @@ public:
                                  goal_->request.group_name  + "' when the move_group action is loaded for group '" +
                                  group_name_ +  "'");
     }
-    else
+    else {
+      terminate_service_thread_ = false;
       service_goal_thread_.reset(new boost::thread(boost::bind(&MoveGroupAction::serviceGoalRequest, this)));
+    }
   }
   
   void preemptCallback(void)
