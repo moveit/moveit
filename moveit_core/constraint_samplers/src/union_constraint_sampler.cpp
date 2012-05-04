@@ -72,13 +72,13 @@ struct OrderSamplersByFrameDependency
 };
 }
 
-constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_models::KinematicModel::JointModelGroup *jmg, std::vector<ConstraintSamplerPtr> &samplers) :
-  ConstraintSampler(), samplers_(samplers)
+constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, 
+                                                                    const std::vector<ConstraintSamplerPtr> &samplers) :
+  ConstraintSampler(scene, group_name), samplers_(samplers)
 {
-  jmg_ = jmg;  
   std::sort(samplers_.begin(), samplers_.end(), OrderSamplersByFrameDependency());
 
-  const std::map<std::string, unsigned int> &gi = jmg->getJointVariablesIndexMap();
+  const std::map<std::string, unsigned int> &gi = jmg_->getJointVariablesIndexMap();
   bijection_.resize(samplers_.size());
   for (std::size_t i = 0 ; i < samplers_.size() ; ++i)
   { 
@@ -86,7 +86,7 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
     for (std::size_t j = 0 ; j < fd.size() ; ++j)
       frame_depends_.push_back(fd[j]);
     
-    ROS_DEBUG_STREAM("Union sampler for group '" << jmg->getName() << "' includes sampler for group '" << samplers_[i]->getJointModelGroup()->getName() << "'");
+    ROS_DEBUG_STREAM("Union sampler for group '" << jmg_->getName() << "' includes sampler for group '" << samplers_[i]->getJointModelGroup()->getName() << "'");
     bijection_[i].resize(gi.size(), -1);
     const std::map<std::string, unsigned int> &sgi = samplers_[i]->getJointModelGroup()->getJointVariablesIndexMap();
     for (std::map<std::string, unsigned int>::const_iterator it = sgi.begin() ; it != sgi.end() ; ++it)

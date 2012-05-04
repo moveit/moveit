@@ -39,7 +39,7 @@
 
 #include <ompl/base/GoalLazySamples.h>
 #include <kinematic_constraints/kinematic_constraint.h>
-#include <kinematic_constraints/constraint_samplers.h>
+#include <constraint_samplers/constraint_sampler.h>
 
 namespace ompl_interface
 {
@@ -53,7 +53,7 @@ class ConstrainedGoalSampler : public ompl::base::GoalLazySamples
 public:
   
   ConstrainedGoalSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
-                         const kinematic_constraints::ConstraintSamplerPtr &cs = kinematic_constraints::ConstraintSamplerPtr());
+                         const constraint_samplers::ConstraintSamplerPtr &cs = constraint_samplers::ConstraintSamplerPtr());
   
 private:
   
@@ -62,7 +62,7 @@ private:
   
   const ModelBasedPlanningContext                 *planning_context_;
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
-  kinematic_constraints::ConstraintSamplerPtr      constraint_sampler_;
+  constraint_samplers::ConstraintSamplerPtr        constraint_sampler_;
   planning_models::KinematicState                  state_;
 };
 }

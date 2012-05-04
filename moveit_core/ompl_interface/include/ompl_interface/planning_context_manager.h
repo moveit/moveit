@@ -39,6 +39,7 @@
 
 #include "ompl_interface/model_based_planning_context.h"
 #include "ompl_interface/parameterization/model_based_state_space_factory.h"
+#include <constraint_samplers/constraint_sampler_manager.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <boost/shared_ptr.hpp>
 #include <vector>
@@ -66,10 +67,16 @@ public:
       @param pconfig Configurations for the different planners */
   void setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig);
 
-  /** @brief Specify the available inverse kinematics solvers
-      @param kinematics_allocators Allocate the inverse kinematics solvers*/
-  void specifyIKSolvers(const std::map<std::string, kc::KinematicsAllocator> &kinematics_allocators);
-
+  void setKinematicsAllocators(const planning_scene::KinematicsAllocators &kinematics_allocators)
+  {
+    kinematics_allocators_ = kinematics_allocators;
+  }
+  
+  void setConstraintSamplerManager(constraint_samplers::ConstraintSamplerManager &csm)
+  {
+    constraint_sampler_manager_ = &csm;
+  }
+  
   /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
   unsigned int getMaximumStateSamplingAttempts(void) const
   {
@@ -192,7 +199,10 @@ protected:
   planning_models::KinematicModelConstPtr               kmodel_;
   
   /** \brief A map from group names to IK allocators; these are the available IK solvers */
-  AvailableKinematicsSolvers                            kinematics_allocators_;
+  planning_scene::KinematicsAllocators                  kinematics_allocators_;
+  
+  constraint_samplers::ConstraintSamplerManager        *constraint_sampler_manager_;
+  
   std::map<std::string, ob::PlannerAllocator>           known_planners_;
   std::map<std::string, ModelBasedStateSpaceFactoryPtr> state_space_factories_; 
 

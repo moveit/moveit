@@ -71,9 +71,11 @@ typedef boost::function<bool(const planning_models::KinematicState&, const plann
 /// function type that allocates a kinematics solver for a particular group
 typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> KinematicsAllocatorFn;
 
+/// function type that allocates a kinematics solvers for subgroups of a group
+typedef std::map<const planning_models::KinematicModel::JointModelGroup*, KinematicsAllocatorFn> KinematicsAllocatorMapFn;
+
 /// A map of known kinematics solvers, (associated to their group ptr)
-typedef std::map<const planning_models::KinematicModel::JointModelGroup*, 
-                 std::pair<KinematicsAllocatorFn, std::map<const planning_models::KinematicModel::JointModelGroup*, KinematicsAllocatorFn> > > KinematicsAllocators;
+typedef std::map<const planning_models::KinematicModel::JointModelGroup*, std::pair<KinematicsAllocatorFn, KinematicsAllocatorMapFn> > KinematicsAllocators;
 
 /// A map of known kinematics solvers (associated to their group name)
 typedef std::map<std::string, KinematicsAllocatorFn> KinematicsAllocatorsByName;
