@@ -105,7 +105,7 @@ std::map<std::string, std::vector<std::string> > moveit_configuration_tools::com
     done = true;
     collision_detection::CollisionResult res;
     scene.getCurrentState().setToRandomValues();
-    scene.checkCollision(req, res);
+    scene.checkSelfCollision(req, res);
     unsigned int nc = 0;
     for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
       nc += it->second.size();
