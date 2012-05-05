@@ -287,19 +287,21 @@ bool kinematic_constraints::IKConstraintSampler::samplePose(Eigen::Vector3d &pos
   if (sp_.oc_)
   {
     // sample a rotation matrix within the allowed bounds
-    float angle_x = 2.0 * (random_number_generator_.uniform01() - 0.5) * sp_.oc_->getXAxisTolerance();
-    float angle_y = 2.0 * (random_number_generator_.uniform01() - 0.5) * sp_.oc_->getYAxisTolerance();
-    float angle_z = 2.0 * (random_number_generator_.uniform01() - 0.5) * sp_.oc_->getZAxisTolerance();
+    double angle_x = 2.0 * (random_number_generator_.uniform01() - 0.5) * sp_.oc_->getXAxisTolerance();
+    double angle_y = 2.0 * (random_number_generator_.uniform01() - 0.5) * sp_.oc_->getYAxisTolerance();
+    double angle_z = 2.0 * (random_number_generator_.uniform01() - 0.5) * sp_.oc_->getZAxisTolerance();
     Eigen::Affine3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX())
                          * Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY())
                          * Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
-    quat = Eigen::Quaterniond(sp_.oc_->getDesiredRotationMatrix() * diff.rotation()); // \todo Is this the correct order of multiplication? Add a test!
+    Eigen::Affine3d reqr(sp_.oc_->getDesiredRotationMatrix() * diff.rotation());
+    quat = Eigen::Quaterniond(reqr.rotation());
 
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the model
     if (sp_.oc_->mobileReferenceFrame())
     {
       const planning_models::KinematicState::LinkState *ls = ks.getLinkState(sp_.oc_->getReferenceFrame());
-      quat = Eigen::Quaterniond(ls->getGlobalLinkTransform().rotation() * quat.toRotationMatrix());
+      Eigen::Affine3d rt(ls->getGlobalLinkTransform().rotation() * quat.toRotationMatrix());
+      quat = Eigen::Quaterniond(rt.rotation());
     }
   }
   else
