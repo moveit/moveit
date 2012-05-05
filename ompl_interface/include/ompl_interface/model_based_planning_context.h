@@ -38,6 +38,7 @@
 #define MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
+#include <constraint_samplers/constraint_sampler_manager.h>
 #include <planning_scene/planning_scene.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <ompl/geometric/SimpleSetup.h>
@@ -59,13 +60,14 @@ typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si
 class ConstraintsLibrary;
 struct ModelBasedPlanningContextSpecification
 {
-  ModelBasedPlanningContextSpecification(void) : constraints_library_(NULL)
+  ModelBasedPlanningContextSpecification(void) : constraints_library_(NULL), constraint_sampler_manager_(NULL)
   {
   }
   
   std::map<std::string, std::string> config_;
   ConfiguredPlannerAllocator planner_allocator_; 
-  const ConstraintsLibrary* constraints_library_;
+  const ConstraintsLibrary *constraints_library_;
+  constraint_samplers::ConstraintSamplerManager *constraint_sampler_manager_;
 };
   
 class ModelBasedPlanningContext
@@ -221,6 +223,16 @@ public:
   void setMaximumAcceleration(double ma)
   {
     max_acceleration_ = ma;
+  }
+  
+  constraint_samplers::ConstraintSamplerManager* getConstraintSamplerManager(void)
+  {
+    return spec_.constraint_sampler_manager_;
+  }
+  
+  void setConstraintSamplerManager(constraint_samplers::ConstraintSamplerManager *csm)
+  {
+    spec_.constraint_sampler_manager_ = csm;
   }
   
   void setVerboseStateValidityChecks(bool flag);

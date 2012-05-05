@@ -40,7 +40,7 @@
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,
                                                                const kc::KinematicConstraintSetPtr &ks,
-                                                               const kc::ConstraintSamplerPtr &cs) :
+                                                               const constraint_samplers::ConstraintSamplerPtr &cs) :
   ob::GoalLazySamples(pc->getOMPLSimpleSetup().getSpaceInformation(),
                       cs ? boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2) :
                       boost::bind(&ConstrainedGoalSampler::sampleUsingGAIK, this, _1, _2), false),
@@ -79,20 +79,17 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ob::GoalLazyS
     {
       planning_context_->getOMPLStateSpace()->copyToKinematicState(*state_, st);
       joint_state_group_->updateLinkTransforms();
-      double dist;
-      kinematic_constraint_set_->decide(*state_, dist);
-      return dist;
+      return kinematic_constraint_set_->decide(*state_).distance;
     }
     
     virtual bool isSatisfied(const ob::State *st, double *distance) const
     {
       planning_context_->getOMPLStateSpace()->copyToKinematicState(*state_, st);
       joint_state_group_->updateLinkTransforms();
-      double dist;
-      bool r = kinematic_constraint_set_->decide(*state_, dist);
+      kinematic_constraints::ConstraintEvaluationResult cer = kinematic_constraint_set_->decide(*state_);
       if (distance)
-        *distance = dist;
-      return r;
+        *distance = cer.distance;
+      return cer.satisfied;
     }
     
   protected:
@@ -135,8 +132,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     if (constraint_sampler_->sample(values, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
     {
       state_.getJointStateGroup(planning_context_->getJointModelGroupName())->setStateValues(values);
-      double distance = 0.0;
-      if (kinematic_constraint_set_->decide(state_, distance))
+      if (kinematic_constraint_set_->decide(state_).satisfied)
       {
         planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, values);   
         newGoal->as<ModelBasedStateSpace::StateType>()->markGoalState();

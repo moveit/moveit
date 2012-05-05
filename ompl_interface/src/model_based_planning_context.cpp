@@ -138,11 +138,12 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
           }
         }
       }
-    }
+    }  
+
+    constraint_samplers::ConstraintSamplerPtr cs;
+    if (spec_.constraint_sampler_manager_)
+      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getJointModelGroup()->getName(), path_constraints_->getAllConstraints());
     
-    kc::ConstraintSamplerPtr cs = kc::ConstraintSampler::constructFromMessage(getJointModelGroup(), path_constraints_->getAllConstraints(), getKinematicModel(),
-									      getPlanningScene()->getTransforms(), ompl_state_space_->getKinematicsAllocator(), 
-									      ompl_state_space_->getKinematicsSubgroupAllocators());
     if (cs)
     {
       ROS_DEBUG("%s: Allocating specialized state sampler for state space", name_.c_str());
@@ -349,9 +350,9 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(voi
   std::vector<ob::GoalPtr> goals;
   for (std::size_t i = 0 ; i < goal_constraints_.size() ; ++i)
   {
-    kc::ConstraintSamplerPtr cs = kc::ConstraintSampler::constructFromMessage(getJointModelGroup(), goal_constraints_[i]->getAllConstraints(), getKinematicModel(),
-									      getPlanningScene()->getTransforms(), ompl_state_space_->getKinematicsAllocator(),
-									      ompl_state_space_->getKinematicsSubgroupAllocators());
+    constraint_samplers::ConstraintSamplerPtr cs;
+    if (spec_.constraint_sampler_manager_)
+      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getJointModelGroup()->getName(), goal_constraints_[i]->getAllConstraints());
     ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));
     goals.push_back(g);
   }

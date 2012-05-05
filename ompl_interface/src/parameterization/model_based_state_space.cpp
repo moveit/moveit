@@ -60,7 +60,7 @@ static void setPlanningVolumeAux(ob::StateSpace *space, double minX, double maxX
     }
   if (space->isCompound())
   {
-    const std::vector<ob::StateSpacePtr> &c = space->as<ob::CompoundStateSpace>()->getSubSpaces();
+    const std::vector<ob::StateSpacePtr> &c = space->as<ob::CompoundStateSpace>()->getSubspaces();
     for (std::size_t i = 0 ; i < c.size() ; ++i)
       setPlanningVolumeAux(c[i].get(), minX, maxX, minY, maxY, minZ, maxZ);
   }

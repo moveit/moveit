@@ -39,6 +39,7 @@
 
 #include "ompl_interface/planning_context_manager.h"
 #include "ompl_interface/constraints_library.h"
+#include <constraint_samplers/constraint_sampler_manager.h>
 #include <moveit_msgs/ComputePlanningBenchmark.h>
 #include <moveit_msgs/GetMotionPlan.h>
 #include <string>
@@ -66,9 +67,9 @@ public:
   
   /** @brief Specify the available inverse kinematics solvers
       @param kinematics_allocators Allocate the inverse kinematics solvers*/
-  void specifyIKSolvers(const std::map<std::string, kc::KinematicsAllocator> &kinematics_allocators)
+  void setKinematicsAllocators(const planning_scene::KinematicsAllocators &kinematics_allocators)
   {
-    context_manager_.specifyIKSolvers(kinematics_allocators);
+    context_manager_.setKinematicsAllocators(kinematics_allocators);
   }
   
   /** @brief Solve the planning problem */
@@ -150,6 +151,11 @@ public:
   {
     return constraints_library_;
   }
+
+  constraint_samplers::ConstraintSamplerManager& getConstraintSamplerManager(void)
+  {
+    return constraint_sampler_manager_;
+  }
   
   void useConstraintsApproximations(bool flag)
   {
@@ -188,13 +194,15 @@ protected:
                                                unsigned int *attempts, double *timeout) const;
   
   /** \brief The kinematic model for which motion plans are computed */
-  planning_models::KinematicModelConstPtr kmodel_;
+  planning_models::KinematicModelConstPtr       kmodel_;
   
-  PlanningContextManager                  context_manager_;
+  constraint_samplers::ConstraintSamplerManager constraint_sampler_manager_;
   
-  ConstraintsLibrary                      constraints_library_;
+  PlanningContextManager                        context_manager_;
+
+  ConstraintsLibrary                            constraints_library_;
   
-  bool                                    use_constraints_approximations_;
+  bool                                          use_constraints_approximations_;
   
 };
 

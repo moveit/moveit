@@ -75,34 +75,33 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     jcm.weight = 1.0;
 
     EXPECT_TRUE(jc.configure(jcm));
-    double p1_d;
-    EXPECT_FALSE(jc.decide(ks, p1_d));
-    EXPECT_NEAR(p1_d, jcm.position, 1e-6);
+    kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(ks);
+    EXPECT_FALSE(p1.satisfied);
+    EXPECT_NEAR(p1.distance, jcm.position, 1e-6);
 
     std::map<std::string, double> jvals;
     jvals[jcm.joint_name] = 0.41;
     ks.setStateValues(jvals);
 
-    double p2_d;
-    EXPECT_TRUE(jc.decide(ks, p2_d));
-    EXPECT_NEAR(p2_d, 0.01, 1e-6);
+    kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
+    EXPECT_TRUE(p2.satisfied);
+    EXPECT_NEAR(p2.distance, 0.01, 1e-6);
 
-    double dummy;
     jvals[jcm.joint_name] = 0.46;
     ks.setStateValues(jvals);
-    EXPECT_TRUE(jc.decide(ks, dummy));
+    EXPECT_TRUE(jc.decide(ks).satisfied);
 
     jvals[jcm.joint_name] = 0.501;
     ks.setStateValues(jvals);
-    EXPECT_FALSE(jc.decide(ks, dummy));
+    EXPECT_FALSE(jc.decide(ks).satisfied);
 
     jvals[jcm.joint_name] = 0.39;
     ks.setStateValues(jvals);
-    EXPECT_TRUE(jc.decide(ks, dummy));
+    EXPECT_TRUE(jc.decide(ks).satisfied);
 
     jvals[jcm.joint_name] = 0.34;
     ks.setStateValues(jvals);
-    EXPECT_FALSE(jc.decide(ks, dummy));
+    EXPECT_FALSE(jc.decide(ks).satisfied);
     EXPECT_TRUE(jc.equal(jc, 1e-12));
 }
 
@@ -127,17 +126,17 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
     jvals[jcm.joint_name] = 3.17;
     ks.setStateValues(jvals);
 
-    double p1_d;
-    EXPECT_TRUE(jc.decide(ks, p1_d));
-    EXPECT_NEAR(p1_d, 0.03, 1e-6);
+    kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(ks);
+    EXPECT_TRUE(p1.satisfied);
+    EXPECT_NEAR(p1.distance, 0.03, 1e-6);
 
 
     jvals[jcm.joint_name] = -3.14;
     ks.setStateValues(jvals);
 
-    double p2_d;
-    EXPECT_TRUE(jc.decide(ks, p2_d));
-    EXPECT_NEAR(p2_d, 0.003185, 1e-4);
+    kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
+    EXPECT_TRUE(p2.satisfied);
+    EXPECT_NEAR(p2.distance, 0.003185, 1e-4);
 }
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
@@ -167,13 +166,13 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.weight = 1.0;
 
     EXPECT_TRUE(pc.configure(pcm));
-    double dummy;
-    EXPECT_TRUE(pc.decide(ks, dummy));
+
+    EXPECT_TRUE(pc.decide(ks).satisfied);
 
     std::map<std::string, double> jvals;
     jvals["torso_lift_joint"] = 0.4;
     ks.setStateValues(jvals);
-    EXPECT_FALSE(pc.decide(ks, dummy)); 
+    EXPECT_FALSE(pc.decide(ks).satisfied); 
     EXPECT_TRUE(pc.equal(pc, 1e-12));
 }
 
@@ -206,8 +205,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     EXPECT_FALSE(tf->isFixedFrame(pcm.link_name));
     EXPECT_TRUE(pc.configure(pcm));
 
-    double dummy;
-    EXPECT_TRUE(pc.decide(ks, dummy));
+    EXPECT_TRUE(pc.decide(ks).satisfied);
 
     pcm.constraint_region_shape.type = shape_msgs::Shape::BOX;
     pcm.constraint_region_shape.dimensions.resize(3);
@@ -219,7 +217,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     std::map<std::string, double> jvals;
     jvals["l_shoulder_pan_joint"] = 0.4;
     ks.setStateValues(jvals);
-    EXPECT_TRUE(pc.decide(ks, dummy));
+    EXPECT_TRUE(pc.decide(ks).satisfied);
     EXPECT_TRUE(pc.equal(pc, 1e-12));
 }
 
@@ -246,12 +244,11 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 
     EXPECT_TRUE(oc.configure(ocm));
     
-    double dummy;
-    EXPECT_FALSE(oc.decide(ks, dummy));
+    EXPECT_FALSE(oc.decide(ks).satisfied);
 
     ocm.orientation.header.frame_id = ocm.link_name;
     EXPECT_TRUE(oc.configure(ocm));
-    EXPECT_TRUE(oc.decide(ks, dummy));  
+    EXPECT_TRUE(oc.decide(ks).satisfied);  
     EXPECT_TRUE(oc.equal(oc, 1e-12));
 }
 

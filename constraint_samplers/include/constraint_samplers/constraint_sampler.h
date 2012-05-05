@@ -34,37 +34,63 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
+#ifndef MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_
+#define MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_
 
-#include <ompl/base/GoalLazySamples.h>
+#include <planning_scene/planning_scene.h>
 #include <kinematic_constraints/kinematic_constraint.h>
-#include <constraint_samplers/constraint_sampler.h>
+#include <boost/shared_ptr.hpp>
+#include <visualization_msgs/MarkerArray.h>
+#include <vector>
 
-namespace ompl_interface
+namespace constraint_samplers
 {
 
-class ModelBasedPlanningContext;
-
-/** @class ConstrainedGoalSampler
- *  An interface to the OMPL goal lazy sampler*/
-class ConstrainedGoalSampler : public ompl::base::GoalLazySamples
+class ConstraintSampler
 {
 public:
   
-  ConstrainedGoalSampler(const ModelBasedPlanningContext *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
-                         const constraint_samplers::ConstraintSamplerPtr &cs = constraint_samplers::ConstraintSamplerPtr());
+  ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name);
+
+  virtual ~ConstraintSampler(void)
+  {
+  }
   
-private:
+  virtual bool configure(const moveit_msgs::Constraints &constr) = 0;
+
+  const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void) const
+  {
+    return jmg_;
+  }
   
-  bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
-  bool sampleUsingGAIK(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
+  {
+    return scene_;
+  }
   
-  const ModelBasedPlanningContext                 *planning_context_;
-  kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
-  constraint_samplers::ConstraintSamplerPtr        constraint_sampler_;
-  planning_models::KinematicState                  state_;
+  /// Return the names of the mobile frames (correspond to robot links) whose pose is needed when sample() is called.
+  const std::vector<std::string>& getFrameDependency(void) const
+  {
+    return frame_depends_;
+  }
+  
+  virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &reference_state, unsigned int max_attempts = 100) = 0;
+  
+  virtual void visualizeDistribution(const planning_models::KinematicState &reference_state, const std::string &link_name, unsigned int attempts,
+                                     unsigned int sample_count, visualization_msgs::MarkerArray &markers);
+  
+protected:
+
+  planning_scene::PlanningSceneConstPtr                   scene_;
+  const planning_models::KinematicModel::JointModelGroup *jmg_;
+  std::vector<std::string>                                frame_depends_;
 };
+
+typedef boost::shared_ptr<ConstraintSampler> ConstraintSamplerPtr;
+typedef boost::shared_ptr<const ConstraintSampler> ConstraintSamplerConstPtr;
+
+
 }
+
 
 #endif
