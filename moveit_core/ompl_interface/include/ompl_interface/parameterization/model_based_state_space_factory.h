@@ -46,8 +46,6 @@ namespace ompl_interface
 class ModelBasedStateSpaceFactory;
 typedef boost::shared_ptr<ModelBasedStateSpaceFactory> ModelBasedStateSpaceFactoryPtr;
 
-typedef std::map<const pm::KinematicModel::JointModelGroup*, std::pair<kc::KinematicsAllocator, kc::KinematicsSubgroupAllocator> > AvailableKinematicsSolvers;
-
 class ModelBasedStateSpaceFactory
 {
 public:
@@ -69,7 +67,7 @@ public:
 
   virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
 				  const pm::KinematicModelConstPtr &kmodel,
-				  const AvailableKinematicsSolvers &aks) const = 0;
+				  const planning_scene::KinematicsAllocators &aks) const = 0;
 
 protected:
   
