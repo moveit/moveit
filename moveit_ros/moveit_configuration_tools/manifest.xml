@@ -10,9 +10,11 @@
   <url>http://ros.org/wiki/moveit_configuration_tools</url>
   <depend package="planning_models"/>
   <depend package="kinematics_constraint_aware"/>
+  <depend package="planning_scene"/>
+  <depend package="planning_scene_monitor"/>
 
   <export>
-    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`"/>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_configuration_tools `rosboost-cfg --lflags thread`"/>
   </export>
 
 </package>
