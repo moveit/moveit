@@ -123,6 +123,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       return;
     }
     in_object_frame = true;
+    ROS_DEBUG_STREAM("In object frame is true " << co.poses[0]);
     //TODO - Use potential pose?
     //Eigen::Affine3d potential_pose;
     //planning_models::poseFromMsg(pickup_goal.target.potential_models[0].pose.pose, potential_pose);
@@ -195,6 +196,9 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       Eigen::Affine3d gp;
       planning_models::poseFromMsg(grasps[i].grasp_pose, gp);
       grasp_poses[i] = obj_pose*gp;
+      geometry_msgs::Pose pp;
+      planning_models::msgFromPose(grasp_poses[i], pp);
+      ROS_DEBUG_STREAM("Grasp pose is " << pp);
     }
     moveit_msgs::AttachedCollisionObject att_obj;
     att_obj.link_name = planning_scene->getSemanticModel()->getAttachLink(end_effector_group);
@@ -350,14 +354,12 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       continue;
     }
     
-    ROS_INFO_STREAM("Last approach point is " <<
-                    execution_info[i].approach_trajectory_.points.back().positions[0] << " " << 
-                    execution_info[i].approach_trajectory_.points.back().positions[1] << " " <<
-                    execution_info[i].approach_trajectory_.points.back().positions[2] << " " <<
-                    execution_info[i].approach_trajectory_.points.back().positions[3] << " " <<
-                    execution_info[i].approach_trajectory_.points.back().positions[4] << " " <<
-                    execution_info[i].approach_trajectory_.points.back().positions[5] << " " <<
-                    execution_info[i].approach_trajectory_.points.back().positions[6]);
+    std::stringstream s;
+    s << "Last approach point is ";
+    for(unsigned int k = 0; k < execution_info[i].approach_trajectory_.points.back().positions.size(); k++) {
+      s << execution_info[i].approach_trajectory_.points.back().positions[k] << " "; 
+    }
+    ROS_DEBUG_STREAM(s.str());
     
     // ------------- CHECKING INTERPOLATED IK FROM GRASP TO LIFT ------------------        o
 
@@ -381,14 +383,12 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       continue;
     }
 
-    ROS_INFO_STREAM("First lift point is " <<
-                    execution_info[i].lift_trajectory_.points.front().positions[0] << " " << 
-                    execution_info[i].lift_trajectory_.points.front().positions[1] << " " << 
-                    execution_info[i].lift_trajectory_.points.front().positions[2] << " " <<
-                    execution_info[i].lift_trajectory_.points.front().positions[3] << " " <<
-                    execution_info[i].lift_trajectory_.points.front().positions[4] << " " <<
-                    execution_info[i].lift_trajectory_.points.front().positions[5] << " " <<
-                    execution_info[i].lift_trajectory_.points.front().positions[6]);
+    std::stringstream s2;
+    s2 << "First lift point is ";
+    for(unsigned int k = 0; k < execution_info[i].lift_trajectory_.points.front().positions.size(); k++) {
+      s2 << execution_info[i].lift_trajectory_.points.front().positions[k] << " "; 
+    }
+    ROS_DEBUG_STREAM(s2.str());
     
     // ------------- CHECKING PREGRASP OK FOR PLANNING ------------------            
     if(execution_info[i].approach_trajectory_.points.empty()) {
