@@ -545,7 +545,16 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
       {
         RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
         if (urdf_joint->safety)
+        {
           j->variable_bounds_[0] = std::make_pair(urdf_joint->safety->soft_lower_limit, urdf_joint->safety->soft_upper_limit);
+          if (urdf_joint->limits)
+          {
+            if (urdf_joint->limits->lower > j->variable_bounds_[0].first)
+              j->variable_bounds_[0].first = urdf_joint->limits->lower;
+            if (urdf_joint->limits->upper < j->variable_bounds_[0].second)
+              j->variable_bounds_[0].second = urdf_joint->limits->upper;
+          }
+        }
         else
         {
           if (urdf_joint->limits)
@@ -575,7 +584,16 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
       {
         PrismaticJointModel *j = new PrismaticJointModel(urdf_joint->name);
         if(urdf_joint->safety)
+        {
           j->variable_bounds_[0] = std::make_pair(urdf_joint->safety->soft_lower_limit, urdf_joint->safety->soft_upper_limit);
+          if (urdf_joint->limits)
+          {
+            if (urdf_joint->limits->lower > j->variable_bounds_[0].first)
+              j->variable_bounds_[0].first = urdf_joint->limits->lower;
+            if (urdf_joint->limits->upper < j->variable_bounds_[0].second)
+              j->variable_bounds_[0].second = urdf_joint->limits->upper;
+          }
+        }
         else
         {
           if (urdf_joint->limits)
