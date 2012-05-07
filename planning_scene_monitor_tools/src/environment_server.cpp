@@ -40,8 +40,10 @@
 class EnvironmentServer
 {
 public:
-    EnvironmentServer(void) : planning_scene_monitor_("robot_description", &tf_)
-    {
+    EnvironmentServer(void) : 
+      tf_(new tf::TransformListener()),
+      planning_scene_monitor_("robot_description", tf_)
+  {
       pub_diff_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene_diff", 128);
       parent_scene_ = planning_scene_monitor_.getPlanningScene();
       // this will create a new planning scene whose parent is the current planning scene
@@ -53,7 +55,7 @@ public:
 
 private:
     ros::NodeHandle nh_;
-    tf::TransformListener tf_;
+  boost::shared_ptr<tf::TransformListener> tf_;
     planning_scene_monitor::PlanningSceneMonitor planning_scene_monitor_;
     planning_scene::PlanningScenePtr parent_scene_;
     ros::Publisher pub_diff_;
