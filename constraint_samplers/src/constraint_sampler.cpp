@@ -57,10 +57,8 @@ void constraint_samplers::ConstraintSampler::visualizeDistribution(const plannin
   color.a = 1.0f;
   for (unsigned int i = 0 ; i < count ; ++i)
   {
-    std::vector<double> vals;
-    if (!sample(vals, ks, attempts))
+    if (!sample(ks.getJointStateGroup(getJointModelGroup()->getName()), ks, attempts))
       continue;
-    ks.getJointStateGroup(getJointModelGroup()->getName())->setStateValues(vals);
     const planning_models::KinematicState::LinkState *ls = ks.getLinkState(link_name);
     if (ls)
     {

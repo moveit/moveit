@@ -793,6 +793,14 @@ void planning_models::KinematicState::JointStateGroup::updateLinkTransforms(void
     updated_links_[i]->computeTransform();
 }
 
+void planning_models::KinematicState::JointStateGroup::copyFrom(const JointStateGroup *other_jsg)
+{
+  const std::vector<JointState*> &ojsv = other_jsg->getJointStateVector();
+  for (std::size_t i = 0 ; i < ojsv.size() ; ++i)
+    joint_state_vector_[i]->setVariableValues(ojsv[i]->getVariableValues());
+  updateLinkTransforms();
+}
+
 void planning_models::KinematicState::JointStateGroup::setToDefaultValues(void)
 {
   std::map<std::string, double> default_joint_values;

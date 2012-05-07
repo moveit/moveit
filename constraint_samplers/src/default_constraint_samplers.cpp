@@ -92,17 +92,17 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
     {
       unbounded_.push_back(joints[i]);
       uindex_.push_back(vim.find(joints[i]->getName())->second);
-    }
+    } 
+  values_.resize(jmg_->getVariableCount());
   return true;
 }
 
-bool constraint_samplers::JointConstraintSampler::sample(std::vector<double> &values, const planning_models::KinematicState & /* ks */,
+bool constraint_samplers::JointConstraintSampler::sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState & /* ks */,
                                                          unsigned int /* max_attempts */)
 {
-  values.resize(jmg_->getVariableCount());    
   // enforce the constraints for the constrained components (could be all of them)
   for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
-    values[index_[i]] = random_number_generator_.uniformReal(bounds_[i].first, bounds_[i].second);
+    values_[index_[i]] = random_number_generator_.uniformReal(bounds_[i].first, bounds_[i].second);
   
   // sample the rest of the components
   for (std::size_t i = 0 ; i < unbounded_.size() ; ++i)
@@ -110,14 +110,15 @@ bool constraint_samplers::JointConstraintSampler::sample(std::vector<double> &va
     std::vector<double> v;
     unbounded_[i]->getRandomValues(random_number_generator_, v);
     for (std::size_t j = 0 ; j < v.size() ; ++j)
-      values[uindex_[i] + j] = v[j];
+      values_[uindex_[i] + j] = v[j];
   }
+  jsg->setStateValues(values_);
   
   // we are always successful
   return true;
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose()
+constraint_samplers::IKSamplingPose::IKSamplingPose(void)
 {
 }
 
@@ -376,8 +377,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
   return true;
 }
 
-bool constraint_samplers::IKConstraintSampler::sample(std::vector<double> &values, const planning_models::KinematicState &ks,
-                                                      unsigned int max_attempts)
+bool constraint_samplers::IKConstraintSampler::sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks, unsigned int max_attempts)
 {
   // make sure we at least have a chance of sampling using IK; we need at least some kind of constraint
   if (!sp_.pc_ && !sp_.oc_)
@@ -407,13 +407,13 @@ bool constraint_samplers::IKConstraintSampler::sample(std::vector<double> &value
     ik_query.orientation.z = quat.z();
     ik_query.orientation.w = quat.w();        
     
-    if (callIK(ik_query, ik_timeout_, values))
+    if (callIK(ik_query, ik_timeout_, jsg))
       return true;
   }
   return false;
 }
 
-bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, std::vector<double> &solution)
+bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, double timeout, planning_models::KinematicState::JointStateGroup *jsg)
 {
   // sample a seed value
   std::vector<double> vals;
@@ -429,9 +429,10 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
   if (kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
   {
     ROS_ASSERT(ik_sol.size() == ik_joint_bijection_.size());
-    solution.resize(ik_joint_bijection_.size());
+    std::vector<double> solution(ik_joint_bijection_.size());
     for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
       solution[i] = ik_sol[ik_joint_bijection_[i]];
+    jsg->setStateValues(solution);
     return true;
   }
   else

@@ -57,7 +57,7 @@ public:
   
   bool setup(const std::vector<kinematic_constraints::JointConstraint> &jc);
 
-  virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks,  unsigned int max_attempts = 100);
+  virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks,  unsigned int max_attempts);
   
   std::size_t getConstrainedJointCount(void) const
   {
@@ -77,6 +77,7 @@ protected:
   
   std::vector<const planning_models::KinematicModel::JointModel*> unbounded_;
   std::vector<unsigned int>                                       uindex_;
+  std::vector<double>                                             values_;
 };
 
 
@@ -134,12 +135,12 @@ public:
   double getSamplingVolume(void) const;
   const std::string& getLinkName(void) const;
   
-  bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const planning_models::KinematicState &ks, unsigned int max_attempts = 100);
-  virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts = 100);
+  bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const planning_models::KinematicState &ks, unsigned int max_attempts);
+  virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks, unsigned int max_attempts);
   
 protected:
   
-  bool callIK(const geometry_msgs::Pose &ik_query, double timeout, std::vector<double> &solution);
+  bool callIK(const geometry_msgs::Pose &ik_query, double timeout, planning_models::KinematicState::JointStateGroup *jsg);
 
   random_numbers::RandomNumberGenerator         random_number_generator_;
   planning_scene::KinematicsAllocatorFn         ik_alloc_;

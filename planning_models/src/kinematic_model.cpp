@@ -348,9 +348,89 @@ void planning_models::KinematicModel::buildGroups(const std::vector<srdf::Model:
       }
   }
 
-  for (unsigned int i = 0 ; i < processed.size() ; ++i)
+  for (unsigned int i = 0 ; i < processed.size() ; ++i)      
     if (!processed[i])
       ROS_WARN_STREAM("Could not process group '" << group_configs[i].name_ << "' due to unmet subgroup dependencies");
+  
+  // compute subgroups  
+  JointModelGroup *largest_dim_group = NULL;
+  for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
+  {
+    JointModelGroup *jmg = it->second;
+    if (!largest_dim_group || largest_dim_group->getVariableCount() < jmg->getVariableCount())
+      largest_dim_group = jmg;
+    
+    jmg->subgroup_names_.clear();   
+    jmg->disjoint_subgroup_names_.clear();
+    std::set<const JointModel*> joints(jmg->getJointModels().begin(), jmg->getJointModels().end());
+    for (std::map<std::string, JointModelGroup*>::const_iterator jt = joint_model_group_map_.begin() ; jt != joint_model_group_map_.end(); ++jt)
+      if (jt->first != it->first)
+      {
+        bool ok = true;
+        JointModelGroup *sub_jmg = jt->second;
+        const std::vector<const JointModel*> &sub_joints = sub_jmg->getJointModels();
+        for (std::size_t k = 0 ; k < sub_joints.size() ; ++k)
+          if (joints.find(sub_joints[k]) == joints.end())
+          {
+            ok = false;
+            break;
+          }
+        if (ok)
+          jmg->subgroup_names_.push_back(sub_jmg->getName());
+      }
+  }
+  
+  if (largest_dim_group)
+  {
+    // add the first vertex to the MST
+    std::set<JointModelGroup*> connected;
+    connected.insert(largest_dim_group);
+    bool done = false;
+    while (!done)
+    {
+      JointModelGroup *from = NULL;
+      JointModelGroup *to = NULL;
+      unsigned int ft_weight = 0;
+      for (std::set<JointModelGroup*>::iterator it = connected.begin() ; it != connected.end() ; ++it)
+      {
+        const std::vector<std::string> &sg = (*it)->subgroup_names_;
+        const std::vector<std::string> &dsg = (*it)->disjoint_subgroup_names_;
+        for (std::size_t i = 0 ; i < sg.size() ; ++i)
+        {
+          JointModelGroup *child = joint_model_group_map_.at(sg[i]);
+          if (connected.find(child) != connected.end())
+            continue;
+          unsigned int weight = abs(child->getVariableCount() - (*it)->getVariableCount());
+          if (to == NULL || weight < ft_weight)
+          {
+            // check if this new potential group is disjoint from the rest of the added groups
+            bool ok = true;
+            std::set<const JointModel*> cj(child->getJointModels().begin(), child->getJointModels().end());
+            for (std::size_t k = 0 ; ok && k < dsg.size() ; ++k)
+            {      
+              const std::vector<const JointModel*> &nbh = joint_model_group_map_.at(dsg[k])->getJointModels();
+              for (std::size_t nj = 0 ; ok && nj < nbh.size() ; ++nj)
+                if (cj.find(nbh[nj]) != cj.end())
+                  ok = false;
+            }
+            if (ok) // add only disjoint groups
+            {
+              from = *it;
+              to = child;
+              ft_weight = weight;
+            }
+          }
+        }
+      }
+      if (to)
+      {
+        from->disjoint_subgroup_names_.push_back(to->getName());
+        connected.insert(to);
+      }
+      else
+        done = true;
+    }
+  }
 }
 
 void planning_models::KinematicModel::removeJointModelGroup(const std::string& group)
@@ -440,7 +520,6 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
   }
 
   // add joints from subgroups
-  std::set<std::string> subgroup_set;
   for (std::size_t i = 0 ; i < gc.subgroups_.size() ; ++i)
   {
     const JointModelGroup *sg = getJointModelGroup(gc.subgroups_[i]);
@@ -460,11 +539,6 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
       const std::vector<const JointModel*> &ms = sg->getMimicJointModels();
       for (std::size_t j = 0 ; j < ms.size() ; ++j)
         jset.insert(ms[j]);
-      
-      subgroup_set.insert(gc.subgroups_[i]);
-      for(unsigned int j = 0; j < sg->getSubgroupNames().size(); j++) {
-        subgroup_set.insert(sg->getSubgroupNames()[j]);
-      }
     }
   }
 
@@ -480,16 +554,11 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
 
   std::sort(joints.begin(), joints.end(), &orderJointsByIndex);
 
-  std::vector<std::string> subgroup_names;
-  for(std::set<std::string>::iterator it = subgroup_set.begin(); it != subgroup_set.end(); it++)
-    subgroup_names.push_back(*it);
-
   JointModelGroup *jmg = new JointModelGroup(gc.name_, joints, this);
-  jmg->subgroup_names_ = subgroup_names;
   joint_model_group_map_[gc.name_] = jmg;
   joint_model_group_config_map_[gc.name_] = gc;
   joint_model_group_names_.push_back(gc.name_);
-
+  
   return true;
 }
 
@@ -1377,6 +1446,22 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
 
 planning_models::KinematicModel::JointModelGroup::~JointModelGroup(void)
 {
+}
+
+bool planning_models::KinematicModel::JointModelGroup::isSubgroup(const std::string& group) const
+{
+  for (std::size_t i = 0; i < subgroup_names_.size(); ++i)
+    if (group == subgroup_names_[i])
+      return true;
+  return false;
+}
+
+bool planning_models::KinematicModel::JointModelGroup::isDisjointSubgroup(const std::string& group) const
+{
+  for (std::size_t i = 0; i < disjoint_subgroup_names_.size(); ++i)
+    if (group == disjoint_subgroup_names_[i])
+      return true;
+  return false;
 }
 
 bool planning_models::KinematicModel::JointModelGroup::hasJointModel(const std::string &joint) const

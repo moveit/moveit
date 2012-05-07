@@ -613,21 +613,28 @@ public:
     {
       return variable_count_;
     }
-
-    const std::vector<std::string>& getSubgroupNames() const {
+    
+    /** \brief Get the names of the groups that are subsets of this one (in terms of joints set) */
+    const std::vector<std::string>& getSubgroupNames(void) const
+    {
       return subgroup_names_;
     }
 
-    bool isSubgroup(const std::string& group) const {
-      for(unsigned int i = 0; i < subgroup_names_.size(); i++) {
-        if(group == subgroup_names_[i]) return true;
-      }
-      return false;
+    /** \brief Get the names of the disjoint groups that are subsets of this one (in terms of joints set) */
+    const std::vector<std::string>& getDisjointSubgroupNames(void) const
+    {
+      return disjoint_subgroup_names_;
     }
+    
+    /** \brief Check if the joints of group \e group are a subset of the joints in this group */
+    bool isSubgroup(const std::string& group) const;
 
-    virtual std::vector<moveit_msgs::JointLimits> getJointLimits() const;
-    
-    
+    /** \brief Check if the group named \e group is a subgroup and that it can be included in a disjoint set of subgroups that is maximal (in terms of dimensionality).
+        This set is obtained by computing a MST over the graph determined by the isSubgroup() property using the difference in dimensionality between groups as weight and the */
+    bool isDisjointSubgroup(const std::string& group) const;
+
+    virtual std::vector<moveit_msgs::JointLimits> getJointLimits(void) const;
+        
   protected:
     
     /** \brief Owner model */
@@ -680,7 +687,10 @@ public:
     unsigned int                                variable_count_;
 
     /** \brief The set of labelled subgroups that are included in this group */
-    std::vector<std::string> subgroup_names_;
+    std::vector<std::string>                    subgroup_names_;
+
+    /** \brief The set of labelled disjoint subgroups that are included in this group */
+    std::vector<std::string>                    disjoint_subgroup_names_;
     
     /** \brief The set of default states specified for this group in the SRDF */
     std::map<std::string, std::map<std::string,

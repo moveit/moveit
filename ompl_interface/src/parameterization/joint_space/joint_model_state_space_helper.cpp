@@ -41,8 +41,8 @@
 
 void ompl_interface::JointModelStateSpaceHelper::constructSpace(const std::vector<const pm::KinematicModel::JointModel*> &joints)
 {
-  ob::StateSpacePtr space;
-  
+  state_space_.reset();
+  components_.clear();
   joint_mapping_.clear();
   variable_mapping_.clear();
   
@@ -112,7 +112,7 @@ void ompl_interface::JointModelStateSpaceHelper::constructSpace(const std::vecto
     }
     // if any space was created, remember it
     if (to_add)
-      space = space + to_add;
+      state_space_ = state_space_ + to_add;
   }
   
   // add real vector components on last position
@@ -129,42 +129,37 @@ void ompl_interface::JointModelStateSpaceHelper::constructSpace(const std::vecto
       variable_mapping_.push_back(rv_var[i]);
     }
     rv->setName("J(" + rv_name + ")");
-    space = space + ob::StateSpacePtr(rv);
+    state_space_ = state_space_ + ob::StateSpacePtr(rv);
   }
   
-  if (!space)
+  if (!state_space_)
   {
     ROS_WARN("Empty OMPL state space");
     return;
   }
   
   // we make the assumption later on this is a compound space, so ensure this is always the case:
-  if (!space->isCompound() || (space->isCompound() && space->as<ob::CompoundStateSpace>()->isLocked()))
+  if (!state_space_->isCompound() || (state_space_->isCompound() && sate_space_->as<ob::CompoundStateSpace>()->isLocked()))
   {
     ob::CompoundStateSpace *csm = new ob::CompoundStateSpace();
-    csm->addSubspace(space, 1.0);
-    space.reset(csm);
+    csm->addSubspace(state_space_, 1.0);
+    state_space_.reset(csm);
   }
   
-  ob::CompoundStateSpace *state_space = new ob::CompoundStateSpace();
-  
   // heuristically set some weights for the subspaces, based on dimension
-  unsigned int ns = space->as<ob::CompoundStateSpace>()->getSubspaceCount();
+  unsigned int ns = state_space_->as<ob::CompoundStateSpace>()->getSubspaceCount();
   std::string name;
   for (unsigned int i = 0 ; i < ns ; ++i)
   {
-    const ob::StateSpacePtr &c = space->as<ob::CompoundStateSpace>()->getSubspace(i);
-    state_space->addSubspace(c, (double)c->getDimension());
+    const ob::StateSpacePtr &c = state_space_->as<ob::CompoundStateSpace>()->getSubspace(i);
+    state_space_->as<ob::CompoundStateSpace>()->setSubspaceWeight(i, (double)c->getDimension());
     if (i == 0)
       name = c->getName();
     else
       name = name + "," + c->getName();
   }
-  state_space->setName("J(" + name + ")");
-  state_space->lock();
-  components_ = state_space->getSubspaces();
-  
-  state_space_.reset(state_space);
+  state_space_->setName("J(" + name + ")");
+  components_ = state_space_->getSubspaces();
 }
 
 void ompl_interface::JointModelStateSpaceHelper::copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const
@@ -207,7 +202,7 @@ void ompl_interface::JointModelStateSpaceHelper::copyToKinematicState(const std:
 	  else
 	    ROS_ERROR("Cannot convert OMPL state to kinematic state");
 }
-
+/*
 void ompl_interface::JointModelStateSpaceHelper::copyToOMPLState(ob::State *state, const std::vector<double> &values) const
 {
   state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
@@ -244,7 +239,7 @@ void ompl_interface::JointModelStateSpaceHelper::copyToOMPLState(ob::State *stat
 	  else
 	    ROS_ERROR("Cannot convert vector of doubles to OMPL state");
 }
-
+*/
 void ompl_interface::JointModelStateSpaceHelper::copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const
 {  
   state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
@@ -283,4 +278,3 @@ void ompl_interface::JointModelStateSpaceHelper::copyToOMPLState(ob::State *stat
 	  else
 	    ROS_ERROR("Cannot convert kinematic state to OMPL state");
 }
-

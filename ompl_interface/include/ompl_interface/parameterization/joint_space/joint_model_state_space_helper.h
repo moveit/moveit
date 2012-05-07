@@ -42,6 +42,8 @@
 namespace ompl_interface
 {
 
+// Construct an OMPL state space that corresponds to an array of joints. It is assumed that the copy* functions will be called
+// with joints passed in the same order as for the constructor. This ensures efficient copy operations.
 class JointModelStateSpaceHelper
 {     
 public:
@@ -53,7 +55,8 @@ public:
   
   void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const;
   void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const;
-  void copyToOMPLState(ob::State *state, const std::vector<double> &values) const;
+  //  void copyToOMPLState(ob::State *state, const std::vector<double> &values) const;
+  
   const ob::StateSpacePtr& getStateSpace(void) const
   {
     return state_space_;
@@ -72,6 +75,7 @@ private:
   ob::StateSpacePtr state_space_;
   
   void constructSpace(const std::vector<const pm::KinematicModel::JointModel*> &joints);
+  
 };
 
 

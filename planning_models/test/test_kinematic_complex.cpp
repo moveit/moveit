@@ -210,8 +210,8 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     EXPECT_TRUE(tq.w() == 1.0);
 }
 
-TEST_F(LoadPlanningModelsPr2, SubgroupInit) {
-
+TEST_F(LoadPlanningModelsPr2, SubgroupInit)
+{
   planning_models::KinematicModel kmodel(urdf_model_, srdf_model_);  
   const planning_models::KinematicModel::JointModelGroup* jmg = kmodel.getJointModelGroup("arms");
   ASSERT_TRUE(jmg);
@@ -222,10 +222,11 @@ TEST_F(LoadPlanningModelsPr2, SubgroupInit) {
   EXPECT_EQ(jmg2->getSubgroupNames().size(), 4);
   EXPECT_TRUE(jmg2->isSubgroup("arms"));
   EXPECT_TRUE(jmg2->isSubgroup("right_arm"));
+  EXPECT_EQ(jmg2->getDisjointSubgroupNames().size(), 2);
 }
 
-TEST_F(LoadPlanningModelsPr2, SemanticInit) {
-
+TEST_F(LoadPlanningModelsPr2, SemanticInit)
+{
   boost::shared_ptr<planning_models::KinematicModel> kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));  
   planning_models::SemanticModel smodel(kmodel, srdf_model_);
   
