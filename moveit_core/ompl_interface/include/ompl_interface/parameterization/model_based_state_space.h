@@ -214,20 +214,20 @@ public:
   }
   
   /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const = 0;
+  virtual void copyToKinematicState(pm::KinematicState::JointStateGroup* &jsg, const ob::State *state) const = 0;
   
   /// Copy the data from an OMPL state to a kinematic state. The join states \b must be specified in the same order as the joint models in the constructor. This function is implemented in terms of the previous definition with the same name.
   void copyToKinematicState(pm::KinematicState &kstate, const ob::State *state) const;
 
   /// Copy the data from a value vector that corresponds to the state of the considered joint model group (or array of joints)
-  virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const = 0;
-    
-  /// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const = 0;
-  
+  //  virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const = 0;
+
   /// Copy the data from a kinematic state to an OMPL state. Only needed joint states are copied. This function is implemented in terms of the previous definition with the same name.
   void copyToOMPLState(ob::State *state, const pm::KinematicState &kstate) const;
-    
+        
+  /// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
+  virtual void copyToOMPLState(ob::State *state, const pm::KinematicState::JointStateGroup* jsg) const = 0;
+  
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
 

@@ -50,6 +50,8 @@ class ConstraintSampler
 {
 public:
   
+  static const unsigned int DEFAULT_MAX_SAMPLING_ATTEMPTS = 100;
+  
   ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name);
 
   virtual ~ConstraintSampler(void)
@@ -74,7 +76,12 @@ public:
     return frame_depends_;
   }
   
-  virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &reference_state, unsigned int max_attempts = 100) = 0;
+  bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &reference_state)
+  {
+    return sample(jsg, reference_state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
+  }
+  
+  virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &reference_state, unsigned int max_attempts) = 0;
   
   virtual void visualizeDistribution(const planning_models::KinematicState &reference_state, const std::string &link_name, unsigned int attempts,
                                      unsigned int sample_count, visualization_msgs::MarkerArray &markers);

@@ -38,7 +38,6 @@
 #define MOVEIT_CONSTRAINT_SAMPLERS_DEFAULT_UNION_CONSTRAINT_SAMPLER_
 
 #include "constraint_samplers/constraint_sampler.h"
-#include <random_numbers/random_numbers.h>
 
 namespace constraint_samplers
 {
@@ -64,14 +63,12 @@ public:
   {
     return true;
   }
-  
-  virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts = 100);
+
+  virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks, unsigned int max_attempts);
   
 protected:
 
-  random_numbers::RandomNumberGenerator   random_number_generator_;
   std::vector<ConstraintSamplerPtr>       samplers_;
-  std::vector<std::vector<unsigned int> > bijection_;
 };
 
 }

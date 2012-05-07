@@ -308,6 +308,12 @@ public:
     {
       return kinematic_state_;
     }
+
+    /** @brief Get the kinematic state that this link state is part of*/
+    KinematicState* getKinematicState(void)
+    {
+      return kinematic_state_;
+    }
     
     /** @brief Set the link state to the input transform */
     void updateGivenGlobalLinkTransform(const Eigen::Affine3d& transform);
@@ -420,6 +426,12 @@ public:
     {
       return kinematic_state_;
     }
+
+    /** \brief Get the kinematic state this link is part of */
+    KinematicState* getKinematicState(void)
+    {
+      return kinematic_state_;
+    }
     
     /** \brief Get the joint model corresponding to this joint state group */
     const KinematicModel::JointModelGroup* getJointModelGroup(void)
@@ -474,6 +486,9 @@ public:
     
     /** \brief Get a map between variable names and joint state values */
     void getGroupStateValues(std::map<std::string, double>& joint_state_values) const;
+    
+    /** \brief Copy the values from another joint state group */
+    void copyFrom(const JointStateGroup *other_jsg);
     
     /** \brief Bring the group to a default state. All joints are
         at 0. If 0 is not within the bounds of the joint, the

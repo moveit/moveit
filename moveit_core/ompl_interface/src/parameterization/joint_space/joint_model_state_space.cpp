@@ -51,3 +51,9 @@ ompl_interface::JointModelStateSpace::JointModelStateSpace(const ModelBasedState
   setName(getJointModelGroupName() + "_JointModel");
   lock();
 }
+
+ompl::base::StateSpacePtr ompl_interface::JointModelStateSpace::constructSpaceG(const pm::KinematicModel::JointModelGroup *jmg)
+{
+
+  return result;
+}

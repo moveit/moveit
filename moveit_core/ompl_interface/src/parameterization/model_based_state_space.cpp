@@ -199,11 +199,11 @@ void ompl_interface::ModelBasedStateSpace::printState(const ob::State *state, st
 
 void ompl_interface::ModelBasedStateSpace::copyToKinematicState(pm::KinematicState &kstate, const ob::State *state) const
 {
-  copyToKinematicState(kstate.getJointStateGroup(getJointModelGroupName())->getJointStateVector(), state);
+  copyToKinematicState(kstate.getJointStateGroup(getJointModelGroupName()), state);
 }
 
 void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ob::State *state, const pm::KinematicState &kstate) const
 {
-  copyToOMPLState(state, kstate.getJointStateGroup(getJointModelGroupName())->getJointStateVector());
+  copyToOMPLState(state, kstate.getJointStateGroup(getJointModelGroupName()));
 }
 
