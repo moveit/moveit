@@ -61,6 +61,7 @@ InterpolationEvaluator::InterpolationEvaluator(const planning_models::KinematicM
 bool InterpolationEvaluator::getInterpolatedIK(const std::string& arm_name,
                                                const planning_scene::PlanningSceneConstPtr& scene,
                                                const collision_detection::AllowedCollisionMatrix& acm,
+                                               const moveit_msgs::Constraints& path_constraints,
                                                const geometry_msgs::Pose& first_pose,
                                                const Eigen::Vector3d& direction,
                                                const double& distance,
@@ -70,12 +71,11 @@ bool InterpolationEvaluator::getInterpolatedIK(const std::string& arm_name,
                                                const planning_models::KinematicState* seed_state,
                                                trajectory_msgs::JointTrajectory& traj) 
 {
-  moveit_msgs::Constraints emp;
   moveit_msgs::MoveItErrorCodes error_code;
   return constraint_aware_solver_map_[arm_name]->interpolateIKDirectional(first_pose,
                                                                           direction,
                                                                           distance,
-                                                                          emp,
+                                                                          path_constraints,
                                                                           seed_state,
                                                                           scene,
                                                                           acm,
