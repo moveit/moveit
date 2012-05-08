@@ -43,7 +43,7 @@
 #include <visualization_msgs/Marker.h>
 #include <vector>
 #include <Eigen/Core>
-#include <assimp/aiMesh.h>
+#include <assimp/aiScene.h>
 
 namespace shapes
 {
@@ -60,11 +60,11 @@ shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &vertice
     each triangle is also computed */
 shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &source);
 
-/** \brief Load a mesh from a file that contains a mesh that can be loaded by assimp */
-shapes::Mesh* createMeshFromFilename(const std::string& filename, const Eigen::Vector3d &scale = Eigen::Vector3d(1.0, 1.0, 1.0));
+/** \brief Load a mesh from a resource that contains a mesh that can be loaded by assimp */
+shapes::Mesh* createMeshFromResource(const std::string& resource, const Eigen::Vector3d &scale = Eigen::Vector3d(1.0, 1.0, 1.0));
 
 /** \brief Load a mesh from an assimp datastructure */
-shapes::Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const Eigen::Vector3d& scale);
+shapes::Mesh* createMeshFromAsset(const aiScene* scene, const Eigen::Vector3d &scale = Eigen::Vector3d(1.0, 1.0, 1.0), const std::string &resource_name = std::string());
 
 /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
 Shape* constructShapeFromMsg(const shape_msgs::Shape &shape_msg);

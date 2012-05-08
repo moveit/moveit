@@ -46,7 +46,6 @@
 #include <resource_retriever/retriever.h>
 
 #include <assimp/assimp.hpp>
-#include <assimp/aiScene.h>
 #include <assimp/aiPostProcess.h>
 
 #include <Eigen/Geometry>
@@ -202,154 +201,104 @@ Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &source)
   return mesh;
 }
 
-Mesh* createMeshFromFilename(const std::string& filename, const Eigen::Vector3d &scale)
+Mesh* createMeshFromResource(const std::string& resource, const Eigen::Vector3d &scale)
 {
   resource_retriever::Retriever retriever;
   resource_retriever::MemoryResource res;
-  try {
-    res = retriever.get(filename);
-  } catch (resource_retriever::Exception& e) {
+  try
+  {
+    res = retriever.get(resource);
+  } 
+  catch (resource_retriever::Exception& e)
+  {
     ROS_ERROR("%s", e.what());
     return NULL;
   }
 
-  if (res.size == 0) {
-    ROS_WARN("Retrieved empty mesh for resource '%s'", filename.c_str());
+  if (res.size == 0)
+  {
+    ROS_WARN("Retrieved empty mesh for resource '%s'", resource.c_str());
     return NULL;
   }
-
-
+  
   // Create an instance of the Importer class
   Assimp::Importer importer;
-
+  
   // try to get a file extension
   std::string hint;
-  std::size_t pos = filename.find_last_of(".");
+  std::size_t pos = resource.find_last_of(".");
   if (pos != std::string::npos)
   {
-    hint = filename.substr(pos + 1);
-
+    hint = resource.substr(pos + 1);
+    std::transform(hint.begin(), hint.end(), hint.begin(), ::tolower);
+    
     // temp hack until everything is stl not stlb
     if (hint.find("stl") != std::string::npos)
       hint = "stl";
   }
-
+  
   // And have it read the given file with some postprocessing
   const aiScene* scene = importer.ReadFileFromMemory(reinterpret_cast<void*>(res.data.get()), res.size,
                                                      aiProcess_Triangulate            |
                                                      aiProcess_JoinIdenticalVertices  |
-                                                     aiProcess_SortByPType, hint.c_str());
-  if(!scene) {
-    ROS_WARN_STREAM("Assimp reports no scene in " << filename);
-    return NULL;
-  }
-  if(!scene->HasMeshes()) {
-    ROS_WARN_STREAM("Assimp reports scene in " << filename << " has no meshes");
-    return NULL;
-  }
-  if(scene->mNumMeshes > 1) {
-    ROS_WARN_STREAM("Mesh loaded from " << filename << " has " << scene->mNumMeshes << " but only the first one will be used");
-  }
-
-  aiNode *node = scene->mRootNode;
-
-  bool found = false;
-  if(node->mNumMeshes > 0 && node->mMeshes != NULL)
+                                                     aiProcess_SortByPType            |
+                                                     aiProcess_OptimizeGraph          |
+                                                     aiProcess_OptimizeMeshes, hint.c_str());
+  if (!scene)
   {
-    ROS_DEBUG_STREAM("Root node has " << node->mMeshes << " meshes in " << filename);
-    found = true;
-  }
-  else
-  {
-    for (uint32_t i = 0; i < node->mNumChildren; ++i)
-    {
-      if(node->mChildren[i]->mNumMeshes > 0 && node->mChildren[i]->mMeshes != NULL)
-      {
-        ROS_DEBUG_STREAM("Child " << i << " has meshes in " << filename);
-        node = node->mChildren[i];
-        found = true;
-        break;
-      }
-    }
-  }
-  if(found == false) {
-    ROS_WARN_STREAM("Can't find meshes in " << filename);
+    ROS_WARN_STREAM("Assimp reports no scene in " << resource);
     return NULL;
   }
-  return createMeshFromAsset(scene->mMeshes[node->mMeshes[0]], node->mTransformation, scale);
+  return createMeshFromAsset(scene, scale, resource);
 }
 
-Mesh* createMeshFromAsset(const aiMesh* a, const aiMatrix4x4& transform, const Eigen::Vector3d& scale)
+static void extractMeshData(const aiScene *scene, const aiNode *node, aiMatrix4x4 transform, const Eigen::Vector3d &scale,
+                            std::vector<Eigen::Vector3d> &vertices, std::vector<unsigned int> &triangles)
 {
-  if (!a->HasFaces())
+  transform *= node->mTransformation;
+  for (unsigned int j = 0 ; j < node->mNumMeshes; ++j)
   {
-    ROS_ERROR("Mesh asset has no faces");
-    return NULL;
-  }
-
-  if (!a->HasPositions())
-  {
-    ROS_ERROR("Mesh asset has no positions");
-    return NULL;
-  }
-
-  for (unsigned int i = 0 ; i < a->mNumFaces ; ++i)
-    if (a->mFaces[i].mNumIndices != 3)
+    const aiMesh* a = scene->mMeshes[node->mMeshes[j]];
+    for (unsigned int i = 0 ; i < a->mNumVertices ; ++i)
     {
-      ROS_ERROR("Asset is not a triangle mesh");
-      return NULL;
+      const aiVector3D &v = transform * a->mVertices[i];
+      vertices.push_back(Eigen::Vector3d(v.x * scale.x(), v.y * scale.y(), v.z * scale.z()));
     }
-
-  Mesh *mesh = new Mesh(a->mNumVertices, a->mNumFaces);
-
-  // copy vertices
-  for (unsigned int i = 0 ; i < a->mNumVertices ; ++i)
-  {
-    aiVector3D p;
-    p.x = a->mVertices[i].x;
-    p.y = a->mVertices[i].y;
-    p.z = a->mVertices[i].z;
-    p *= transform;
-    mesh->vertices[3 * i    ] = p.x*scale.x();
-    mesh->vertices[3 * i + 1] = p.y*scale.y();
-    mesh->vertices[3 * i + 2] = p.z*scale.z();
+    for (unsigned int i = 0 ; i < a->mNumFaces ; ++i)
+      if (a->mFaces[i].mNumIndices == 3)
+      {
+        triangles.push_back(a->mFaces[i].mIndices[0]);
+        triangles.push_back(a->mFaces[i].mIndices[1]);
+        triangles.push_back(a->mFaces[i].mIndices[2]);
+      }
   }
+  
+  for (unsigned int n = 0; n < node->mNumChildren; ++n)
+    extractMeshData(scene, node->mChildren[n], transform, scale, vertices, triangles);
+}
 
-  // copy triangles
-  for (unsigned int i = 0 ; i < a->mNumFaces ; ++i)
+Mesh* createMeshFromAsset(const aiScene* scene, const Eigen::Vector3d &scale, const std::string &resource_name)
+{
+  if (!scene->HasMeshes())
   {
-    mesh->triangles[3 * i    ] = a->mFaces[i].mIndices[0];
-    mesh->triangles[3 * i + 1] = a->mFaces[i].mIndices[1];
-    mesh->triangles[3 * i + 2] = a->mFaces[i].mIndices[2];
+    ROS_WARN_STREAM("Assimp reports scene in " << resource_name << " has no meshes");
+    return NULL;
   }
-
-  // compute normals
-  for (unsigned int i = 0 ; i < a->mNumFaces ; ++i)
+  std::vector<Eigen::Vector3d> vertices;
+  std::vector<unsigned int> triangles;
+  extractMeshData(scene, scene->mRootNode, aiMatrix4x4(), scale, vertices, triangles);
+  if (vertices.empty())
   {
-    aiVector3D f1 = a->mVertices[a->mFaces[i].mIndices[0]];
-    f1.x *= scale.x();
-    f1.y *= scale.y();
-    f1.z *= scale.z();
-    aiVector3D f2 = a->mVertices[a->mFaces[i].mIndices[1]];
-    f2.x *= scale.x();
-    f2.y *= scale.y();
-    f2.z *= scale.z();
-    aiVector3D f3 = a->mVertices[a->mFaces[i].mIndices[2]];
-    f3.x *= scale.x();
-    f3.y *= scale.y();
-    f3.z *= scale.z();
-    aiVector3D as1 = f1-f2;
-    aiVector3D as2 = f2-f3;
-    Eigen::Vector3d s1(as1.x, as1.y, as1.z);
-    Eigen::Vector3d s2(as2.x, as2.y, as2.z);
-    Eigen::Vector3d normal = s1.cross(s2);
-    normal.normalize();
-    mesh->normals[3 * i    ] = normal.x();
-    mesh->normals[3 * i + 1] = normal.y();
-    mesh->normals[3 * i + 2] = normal.z();
+    ROS_WARN_STREAM("There are no vertices in the scene " << resource_name);
+    return NULL;
   }
-
-  return mesh;
+  if (triangles.empty())
+  {
+    ROS_WARN_STREAM("There are no triangles in the scene " << resource_name);
+    return NULL;
+  }
+  
+  return createMeshFromVertices(vertices, triangles);
 }
 
 Shape* constructShapeFromMsg(const shape_msgs::Shape &shape_msg)

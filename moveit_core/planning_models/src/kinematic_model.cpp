@@ -724,7 +724,7 @@ shapes::ShapePtr planning_models::KinematicModel::constructShape(const urdf::Geo
       if (!mesh->filename.empty())
       {
         Eigen::Vector3d scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
-        result = shapes::createMeshFromFilename(mesh->filename, scale);
+        result = shapes::createMeshFromResource(mesh->filename, scale);
         filename = mesh->filename;
       }
     }
