@@ -242,27 +242,36 @@ public:
       disp.trajectory = res.trajectory;
       display_path_publisher_.publish(disp);      
 
-      trajectory_execution::TrajectoryExecutionRequest ter;
-      ter.group_name_ = group_name_;      
-      ter.trajectory_ = res.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
-      if (trajectory_execution_->executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
+      if (psm_.getPlanningScene()->isPathValid(res.trajectory_start, res.trajectory))
       {
-        ros::WallDuration d(0.01);
-        while (nh_.ok() && !execution_complete_ && !terminate_service_thread_)
+        trajectory_execution::TrajectoryExecutionRequest ter;
+        ter.group_name_ = group_name_;      
+        ter.trajectory_ = res.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
+        if (trajectory_execution_->executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
         {
-          /// \TODO Check if the remainder of the path is still valid; If not, replan.
-          /// We need a callback in the trajectory monitor for this
-          d.sleep();
-        }     
-        moveit_msgs::MoveGroupResult res;
-        res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-        action_server_->setSucceeded(res, "Solution was found and executed.");
+          ros::WallDuration d(0.01);
+          while (nh_.ok() && !execution_complete_ && !terminate_service_thread_)
+          {
+            /// \TODO Check if the remainder of the path is still valid; If not, replan.
+            /// We need a callback in the trajectory monitor for this
+            d.sleep();
+          }     
+          moveit_msgs::MoveGroupResult res;
+          res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+          action_server_->setSucceeded(res, "Solution was found and executed.");
+        }
+        else
+        {
+          moveit_msgs::MoveGroupResult res;
+          //        res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+          action_server_->setAborted(res, "Solution was found but the controller failed to execute it.");
+        }
       }
       else
       {
         moveit_msgs::MoveGroupResult res;
-        //        res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
-        action_server_->setAborted(res, "Solution was found but the controller failed to execute it.");
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+        action_server_->setAborted(res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). No execution attempted.");
       }
     }
     else
