@@ -198,7 +198,7 @@ int main(int argc, char **argv)
   
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
-  if (psm.getPlanningScene()->isConfigured())
+  if (psm.getPlanningScene() && psm.getPlanningScene()->isConfigured())
   {
     psm.startWorldGeometryMonitor();
     psm.startSceneMonitor();

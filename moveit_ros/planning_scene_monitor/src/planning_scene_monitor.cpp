@@ -115,15 +115,18 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
     }
   }
   
-  // load the kinematics solvers
-  if (!kinematics_loader_)
-    kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader());
-  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction();
-  const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
-  planning_scene::KinematicsAllocatorsByName imap;
-  for (std::size_t i = 0 ; i < groups.size() ; ++i)
-    imap[groups[i]] =  kinematics_allocator;
-  scene_->setKinematicsAllocators(imap);
+  if (scene_)
+  {
+    // load the kinematics solvers
+    if (!kinematics_loader_)
+      kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader());
+    kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction();
+    const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
+    planning_scene::KinematicsAllocatorsByName imap;
+    for (std::size_t i = 0 ; i < groups.size() ; ++i)
+      imap[groups[i]] =  kinematics_allocator;
+    scene_->setKinematicsAllocators(imap);
+  }
   
   last_update_time_ = ros::Time::now();
   last_state_update_ = ros::WallTime::now();

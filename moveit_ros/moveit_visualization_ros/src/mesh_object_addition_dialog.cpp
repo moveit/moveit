@@ -174,7 +174,7 @@ void MeshObjectAdditionDialog::createObjectConfirmedPressed() {
                         (double)collision_object_scale_y_box_->value() / 100.0f,
                         (double)collision_object_scale_z_box_->value() / 100.0f);
   
-  shapes::Mesh* mesh = shapes::createMeshFromFilename("file://"+mesh_file_full_name_.toStdString(), 
+  shapes::Mesh* mesh = shapes::createMeshFromResource("file://"+mesh_file_full_name_.toStdString(), 
                                                       scale);
 
   if(!mesh) {
