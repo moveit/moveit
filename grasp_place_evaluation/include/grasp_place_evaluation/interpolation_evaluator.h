@@ -69,6 +69,7 @@ protected:
   bool getInterpolatedIK(const std::string& arm_name,
                          const planning_scene::PlanningSceneConstPtr& scene,
                          const collision_detection::AllowedCollisionMatrix& acm,
+                         const moveit_msgs::Constraints& path_constraints,
                          const geometry_msgs::Pose& first_pose,
                          const Eigen::Vector3d& direction,
                          const double& distance,
