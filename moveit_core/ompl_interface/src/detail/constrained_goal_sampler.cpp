@@ -60,9 +60,6 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ob::GoalLazyS
   // terminate after a maximum number of samples
   if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
     return false;
-  // terminate the sampling thread when a solution has been found
-  if (gls->isAchieved())
-    return false;
   
   // this class is NOT a valid goal region from a thread safety point of view;
   // HOWEVER, it is only used with GAIK, which is single-threaded, so this is safe
@@ -122,10 +119,6 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
   // terminate after a maximum number of samples
   if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
     return false;  
-
-  // terminate the sampling thread when a solution has been found
-  if (gls->isAchieved())
-    return false;
 
   std::vector<double> values;
   for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
