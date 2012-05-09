@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <planning_request_adapter/planning_request_adapter.h>
+#include <boost/math/constants/constants.hpp>
 #include <planning_models/conversions.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
@@ -84,8 +85,8 @@ public:
     
     const std::vector<planning_models::KinematicState::JointState*> &jstates = start_state.getJointStateVector(); 
     std::map<std::string, double> update;
-    std::map<std::string, double> continuous_joints_offset;
-    
+    std::map<std::string, double> continuous_joints;
+
     for (std::size_t i = 0 ; i < jstates.size() ; ++i)
     { 
       const std::vector<double> &vv = jstates[i]->getVariableValues();
@@ -102,9 +103,7 @@ public:
         {
           double initial = vv[0];
           jstates[i]->enforceBounds();
-          double diff = initial - vv[0];
-          if (fabs(diff) > std::numeric_limits<double>::epsilon())
-            continuous_joints_offset[jstates[i]->getName()] = diff;
+          continuous_joints[jstates[i]->getName()] = initial - vv[0];
           continue;
         } 
       
@@ -132,7 +131,7 @@ public:
           }
           else
             ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf < %lf (by more than %lf). "
-                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].first, bounds_dist_, BOUNDS_PARAM_NAME.c_str());
+                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].first, bounds_dist_, BOUNDS_PARAM_NAME.c_str()); 
         }
         
         if (vb[j].second < vv[j])
@@ -162,28 +161,59 @@ public:
     bool solved = planner(planning_scene, req2, res);
     
     // re-add the prefix state, if it was constructed
-    if (solved && prefix)
+    if (prefix)
     {
-      // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
-      double d = max_dt_offset_;
-      if (res.trajectory.joint_trajectory.points.size() > 1 || res.trajectory.multi_dof_joint_trajectory.points.size() > 1)
+      if (solved)
       {
-        double temp = (res.trajectory.joint_trajectory.points.size() > res.trajectory.multi_dof_joint_trajectory.points.size()) ? 
-          res.trajectory.joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.joint_trajectory.points.size() - 1) :
-          res.trajectory.multi_dof_joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.multi_dof_joint_trajectory.points.size() - 1);
-        if (temp < d)
-          d = temp;
+        // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
+        double d = max_dt_offset_;
+        if (res.trajectory.joint_trajectory.points.size() > 1 || res.trajectory.multi_dof_joint_trajectory.points.size() > 1)
+        {
+          double temp = (res.trajectory.joint_trajectory.points.size() > res.trajectory.multi_dof_joint_trajectory.points.size()) ? 
+            res.trajectory.joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.joint_trajectory.points.size() - 1) :
+            res.trajectory.multi_dof_joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.multi_dof_joint_trajectory.points.size() - 1);
+          if (temp < d)
+            d = temp;
+        }
+        addPrefixState(*prefix, res, d, planning_scene->getTransforms());
       }
-      addPrefixState(*prefix, res, d, planning_scene->getTransforms());
+      else
+        planning_models::kinematicStateToRobotState(*prefix, res.trajectory_start);
     }
     
     // re-add continuous joint offsets
-    for (std::map<std::string, double>::const_iterator it = continuous_joints_offset.begin() ; it != continuous_joints_offset.end() ; ++it)
+    for (std::map<std::string, double>::const_iterator it = continuous_joints.begin() ; it != continuous_joints.end() ; ++it)
+    {
+      // update the start state with the original request value
+      for (std::size_t i = 0 ; i < res.trajectory_start.joint_state.name.size() ; ++i)
+        if (res.trajectory_start.joint_state.name[i] == it->first)
+        {
+          res.trajectory_start.joint_state.position[i] += it->second;
+          break;
+        }
+      
       for (std::size_t i = 0 ; i < res.trajectory.joint_trajectory.joint_names.size() ; ++i)
         if (res.trajectory.joint_trajectory.joint_names[i] == it->first)
+        {
+          // unwrap continuous joints
+          double running_offset = 0.0;
+          for (std::size_t j = 1 ; j < res.trajectory.joint_trajectory.points.size() ; ++j)
+          {
+            if (res.trajectory.joint_trajectory.points[j - 1].positions[i] > 
+                res.trajectory.joint_trajectory.points[j].positions[i] + boost::math::constants::pi<double>())
+              running_offset += 2.0 * boost::math::constants::pi<double>();
+            else
+              if (res.trajectory.joint_trajectory.points[j].positions[i] > 
+                  res.trajectory.joint_trajectory.points[j - 1].positions[i] + boost::math::constants::pi<double>())
+                running_offset -= 2.0 * boost::math::constants::pi<double>();
+            res.trajectory.joint_trajectory.points[j].positions[i] += running_offset;
+          }
+          // undo wrapping due to start state
           for (std::size_t j = 0 ; j < res.trajectory.joint_trajectory.points.size() ; ++j)
             res.trajectory.joint_trajectory.points[j].positions[i] += it->second;
-    
+          break;
+        }
+    }
     return solved;
   }
   
