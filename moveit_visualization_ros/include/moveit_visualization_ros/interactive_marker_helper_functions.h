@@ -104,6 +104,8 @@ visualization_msgs::Marker makeCylinder( float x, float z);
 
 visualization_msgs::Marker makeSphere( float scale );
 
+visualization_msgs::Marker makeArrow( const geometry_msgs::Point& base, const geometry_msgs::Point& tip );
+
 void add6DofControl( visualization_msgs::InteractiveMarker &msg, bool fixed );
 
 void removeAxisControls(visualization_msgs::InteractiveMarker &msg);
