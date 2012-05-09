@@ -952,7 +952,7 @@ void planning_models::KinematicModel::getDefaultValues(std::vector<double> &valu
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :
   name_(name), type_(UNKNOWN), max_velocity_(0.0), parent_link_model_(NULL), child_link_model_(NULL),
-  mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), tree_index_(-1)
+  mimic_(NULL), mimic_factor_(1.0), mimic_offset_(0.0), distance_factor_(1.0), tree_index_(-1)
 {
 }
 
@@ -1011,7 +1011,7 @@ void planning_models::KinematicModel::JointModel::getRandomValues(random_numbers
       values.push_back(0.0);
 }
 
-bool planning_models::KinematicModel::JointModel::isVariableWithinBounds(const std::string& variable, double value) const
+bool planning_models::KinematicModel::JointModel::satisfiesBounds(const std::string& variable, double value) const
 {
   std::pair<double, double> bounds;
   if (!getVariableBounds(variable, bounds))
@@ -1024,7 +1024,7 @@ bool planning_models::KinematicModel::JointModel::isVariableWithinBounds(const s
 bool planning_models::KinematicModel::JointModel::satisfiesBounds(const std::vector<double> &values) const
 {
   for (std::size_t i = 0 ; i < values.size() ; ++i)
-    if (!isVariableWithinBounds(variable_names_[i], values[i]))
+    if (!satisfiesBounds(variable_names_[i], values[i]))
       return false;
   return true;
 }
@@ -1042,7 +1042,7 @@ void planning_models::KinematicModel::JointModel::enforceBounds(std::vector<doub
   }
 }
 
-std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointModel::getJointLimits(void) const 
+std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointModel::getVariableLimits(void) const 
 {
   std::vector<moveit_msgs::JointLimits> ret_vec;
   for (std::size_t i = 0; i < variable_names_.size(); ++i)
@@ -1069,6 +1069,25 @@ planning_models::KinematicModel::FixedJointModel::FixedJointModel(const std::str
   type_ = FIXED;
 }
 
+unsigned int planning_models::KinematicModel::FixedJointModel::getStateSpaceDimension(void) const
+{
+  return 0;
+}
+
+double planning_models::KinematicModel::FixedJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+{
+  return 0.0;  
+}
+
+double planning_models::KinematicModel::FixedJointModel::getMaximumExtent(void) const
+{
+  return 0.0;
+}
+
+void planning_models::KinematicModel::FixedJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+{
+}
+
 void planning_models::KinematicModel::FixedJointModel::computeTransform(const std::vector<double>& /* joint_values */, Eigen::Affine3d &transf) const
 {
   transf.setIdentity();
@@ -1083,7 +1102,7 @@ void planning_models::KinematicModel::FixedJointModel::computeJointStateValues(c
   joint_values.clear();
 }
 
-planning_models::KinematicModel::PlanarJointModel::PlanarJointModel(const std::string& name) : JointModel(name)
+planning_models::KinematicModel::PlanarJointModel::PlanarJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
 {
   local_names_.push_back("x");
   local_names_.push_back("y");
@@ -1097,14 +1116,64 @@ planning_models::KinematicModel::PlanarJointModel::PlanarJointModel(const std::s
   type_ = PLANAR;
 }
 
-bool planning_models::KinematicModel::PlanarJointModel::isVariableWithinBounds(const std::string& variable, double value) const
+unsigned int planning_models::KinematicModel::PlanarJointModel::getStateSpaceDimension(void) const
+{
+  return 3;
+}
+
+double planning_models::KinematicModel::PlanarJointModel::getMaximumExtent(void) const
+{
+  double dx = variable_bounds_[0].first - variable_bounds_[0].second;
+  double dy = variable_bounds_[1].first - variable_bounds_[1].second;
+  return sqrt(dx*dx + dy*dy) + boost::math::constants::pi<double>() * angular_distance_weight_;
+}
+
+void planning_models::KinematicModel::PlanarJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+{
+  // interpolate position
+  state[0] = from[0] + (to[0] - from[0]) * t;
+  state[1] = from[1] + (to[1] - from[1]) * t;
+  
+  // interpolate angle
+  double diff = to[2] - from[2];
+  if (fabs(diff) <= boost::math::constants::pi<double>())
+    state[2] = from[2] + diff * t;
+  else
+  {
+    if (diff > 0.0)
+      diff = 2.0 * boost::math::constants::pi<double>() - diff;
+    else
+      diff = -2.0 * boost::math::constants::pi<double>() - diff;
+    state[2] = from[2] - diff * t;
+    // input states are within bounds, so the following check is sufficient
+    if (state[2] > boost::math::constants::pi<double>())
+      state[2] -= 2.0 * boost::math::constants::pi<double>();
+    else
+      if (state[2] < -boost::math::constants::pi<double>())
+        state[2] += 2.0 * boost::math::constants::pi<double>();
+  }
+}
+
+double planning_models::KinematicModel::PlanarJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+{
+  assert(values1.size() == 3);
+  assert(values2.size() == 3);
+  double dx = values1[0] - values2[0];
+  double dy = values1[1] - values2[1];
+  
+  double d = fabs(values1[2] - values2[2]);
+  d = (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
+  return sqrt(dx*dx + dy*dy) + angular_distance_weight_ * d;
+}
+
+bool planning_models::KinematicModel::PlanarJointModel::satisfiesBounds(const std::string& variable, double value) const
 {
   std::map<std::string, unsigned int>::const_iterator it = variable_index_.find(variable);
   if (it != variable_index_.end() && it->second == 2)
     // if we are inquiring about the yaw of the robot, that is essentially a continuous joint, so there are no bounds (angle wraps)
     return true;
   else
-    return JointModel::isVariableWithinBounds(variable, value);
+    return JointModel::satisfiesBounds(variable, value);
 }
 
 void planning_models::KinematicModel::PlanarJointModel::normalizeRotation(std::vector<double> &values) const
@@ -1152,7 +1221,7 @@ void planning_models::KinematicModel::PlanarJointModel::computeJointStateValues(
   }
 }
 
-planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name)
+planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
 {
   local_names_.push_back("trans_x");
   local_names_.push_back("trans_y");
@@ -1172,6 +1241,58 @@ planning_models::KinematicModel::FloatingJointModel::FloatingJointModel(const st
   variable_bounds_[5] = std::make_pair(-1.0, 1.0);
   variable_bounds_[6] = std::make_pair(-1.0, 1.0);
   type_ = FLOATING;
+}
+
+double planning_models::KinematicModel::FloatingJointModel::getMaximumExtent(void) const
+{  
+  double dx = variable_bounds_[0].first - variable_bounds_[0].second;
+  double dy = variable_bounds_[1].first - variable_bounds_[1].second;
+  double dz = variable_bounds_[2].first - variable_bounds_[2].second;
+  return sqrt(dx*dx + dy*dy + dz*dz) + boost::math::constants::pi<double>() * 0.5 * angular_distance_weight_;
+}
+
+double planning_models::KinematicModel::FloatingJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+{
+  assert(values1.size() == 7);
+  assert(values2.size() == 7);
+  double dx = values1[0] - values2[0];
+  double dy = values1[1] - values2[1];
+  double dz = values1[2] - values2[2]; 
+  double dq = fabs(values1[3] * values2[3] + values1[4] * values2[4] + values1[5] * values2[5] + values1[6] * values2[6]);
+  if (dq + std::numeric_limits<double>::epsilon() >= 1.0)
+    return sqrt(dx*dx + dy*dy + dz * dz);
+  else
+    return angular_distance_weight_ * acos(dq) + sqrt(dx*dx + dy*dy + dz * dz);
+}
+
+void planning_models::KinematicModel::FloatingJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+{
+  // interpolate position
+  state[0] = from[0] + (to[0] - from[0]) * t;
+  state[1] = from[1] + (to[1] - from[1]) * t;
+  state[2] = from[2] + (to[2] - from[2]) * t;
+
+  double dq = fabs(from[3] * to[3] + from[4] * to[4] + from[5] * to[5] + from[6] * to[6]);
+  double theta = (dq + std::numeric_limits<double>::epsilon() >= 1.0) ? 0.0 : acos(dq);
+  if (theta > std::numeric_limits<double>::epsilon())
+  {
+    double d = 1.0 / sin(theta);
+    double s0 = sin((1.0 - t) * theta);
+    double s1 = sin(t * theta);
+    if (dq < 0)  // Take care of long angle case see http://en.wikipedia.org/wiki/Slerp
+      s1 = -s1;
+    state[3] = (from[3] * s0 + to[3] * s1) * d;
+    state[4] = (from[4] * s0 + to[4] * s1) * d;
+    state[5] = (from[5] * s0 + to[5] * s1) * d;
+    state[6] = (from[6] * s0 + to[6] * s1) * d;
+  }
+  else
+  {
+    state[3] = from[3];
+    state[4] = from[4];
+    state[5] = from[5];
+    state[6] = from[6];
+  }
 }
 
 void planning_models::KinematicModel::FloatingJointModel::normalizeRotation(std::vector<double> &values) const
@@ -1197,6 +1318,11 @@ void planning_models::KinematicModel::FloatingJointModel::normalizeRotation(std:
       values[6] /= norm;
     }
   }
+}
+
+unsigned int planning_models::KinematicModel::FloatingJointModel::getStateSpaceDimension(void) const
+{
+  return 6;
 }
 
 void planning_models::KinematicModel::FloatingJointModel::enforceBounds(std::vector<double> &values) const
@@ -1260,6 +1386,28 @@ planning_models::KinematicModel::PrismaticJointModel::PrismaticJointModel(const 
   type_ = PRISMATIC;
 }
 
+unsigned int planning_models::KinematicModel::PrismaticJointModel::getStateSpaceDimension(void) const
+{
+  return 1;
+}
+
+double planning_models::KinematicModel::PrismaticJointModel::getMaximumExtent(void) const
+{  
+  return variable_bounds_[0].second - variable_bounds_[0].first;
+}
+
+double planning_models::KinematicModel::PrismaticJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+{
+  assert(values1.size() == 1);
+  assert(values2.size() == 1);
+  return fabs(values1[0] - values2[0]);
+}
+
+void planning_models::KinematicModel::PrismaticJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+{
+  state[0] = from[0] + (to[0] - from[0]) * t;
+}
+
 void planning_models::KinematicModel::PrismaticJointModel::computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
   transf.setIdentity();
@@ -1285,12 +1433,61 @@ planning_models::KinematicModel::RevoluteJointModel::RevoluteJointModel(const st
   type_ = REVOLUTE;
 }
 
-bool planning_models::KinematicModel::RevoluteJointModel::isVariableWithinBounds(const std::string& variable, double value) const
+unsigned int planning_models::KinematicModel::RevoluteJointModel::getStateSpaceDimension(void) const
+{
+  return 1;
+}
+
+double planning_models::KinematicModel::RevoluteJointModel::getMaximumExtent(void) const
+{  
+  return variable_bounds_[0].second - variable_bounds_[0].first;
+}
+
+void planning_models::KinematicModel::RevoluteJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
+{
+  if (continuous_)
+  {
+    double diff = to[0] - from[0];
+    if (fabs(diff) <= boost::math::constants::pi<double>())
+      state[0] = from[0] + diff * t;
+    else
+    {
+      if (diff > 0.0)
+        diff = 2.0 * boost::math::constants::pi<double>() - diff;
+      else
+        diff = -2.0 * boost::math::constants::pi<double>() - diff;
+      state[0] = from[0] - diff * t;
+      // input states are within bounds, so the following check is sufficient
+      if (state[0] > boost::math::constants::pi<double>())
+        state[0] -= 2.0 * boost::math::constants::pi<double>();
+      else
+        if (state[0] < -boost::math::constants::pi<double>())
+          state[0] += 2.0 * boost::math::constants::pi<double>();
+    }
+  }
+  else
+    state[0] = from[0] + (to[0] - from[0]) * t;
+}
+
+double planning_models::KinematicModel::RevoluteJointModel::distance(const std::vector<double> &values1, const std::vector<double> &values2) const
+{
+  assert(values1.size() == 1);
+  assert(values2.size() == 1);
+  if (continuous_)
+  {
+    double d = fabs(values1[0] - values2[0]);
+    return (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
+  }
+  else
+    return fabs(values1[0] - values2[0]);
+}
+
+bool planning_models::KinematicModel::RevoluteJointModel::satisfiesBounds(const std::string& variable, double value) const
 {
   if (continuous_)
     return true;
   else
-    return JointModel::isVariableWithinBounds(variable, value);
+    return JointModel::satisfiesBounds(variable, value);
 }
 
 void planning_models::KinematicModel::RevoluteJointModel::enforceBounds(std::vector<double> &values) const
@@ -1309,9 +1506,9 @@ void planning_models::KinematicModel::RevoluteJointModel::enforceBounds(std::vec
     JointModel::enforceBounds(values);
 }
 
-std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::RevoluteJointModel::getJointLimits(void) const
+std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::RevoluteJointModel::getVariableLimits(void) const
 {
-  std::vector<moveit_msgs::JointLimits> ret_vec = JointModel::getJointLimits();
+  std::vector<moveit_msgs::JointLimits> ret_vec = JointModel::getVariableLimits();
   if (continuous_)
     ret_vec[0].has_position_limits = false;
   return ret_vec;
@@ -1501,15 +1698,43 @@ bool planning_models::KinematicModel::JointModelGroup::getDefaultValues(const st
   return true;
 }
 
-std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointModelGroup::getJointLimits(void) const
+std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointModelGroup::getVariableLimits(void) const
 {
   std::vector<moveit_msgs::JointLimits> ret_vec;
   for(unsigned int i = 0; i < joint_model_vector_.size(); i++)
   {
-    std::vector<moveit_msgs::JointLimits> jvec = joint_model_vector_[i]->getJointLimits();
+    std::vector<moveit_msgs::JointLimits> jvec = joint_model_vector_[i]->getVariableLimits();
     ret_vec.insert(ret_vec.end(), jvec.begin(), jvec.end());
   }
   return ret_vec;
+}
+
+void planning_models::KinematicModel::JointModelGroup::printGroupInfo(std::ostream &out) const
+{
+  out << "Group '" << name_ << "':" << std::endl;
+  for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
+  {
+    const std::vector<std::string> &vn = joint_model_vector_[i]->getVariableNames();
+    for (std::vector<std::string>::const_iterator it = vn.begin() ; it != vn.end() ; ++it)
+    {
+      out << "   " << *it << " [";
+      std::pair<double, double> b;
+      joint_model_vector_[i]->getVariableBounds(*it, b);
+      if (b.first <= -std::numeric_limits<double>::max())
+        out << "DBL_MIN";
+      else
+        out << b.first;
+      out << ", ";
+      if (b.second >= std::numeric_limits<double>::max())
+        out << "DBL_MAX";
+      else
+        out << b.second;
+      out << "]";
+      if (joint_model_vector_[i]->mimic_)
+        out << " *";
+      out << std::endl;
+    }
+  }
 }
 
 void planning_models::KinematicModel::printModelInfo(std::ostream &out) const

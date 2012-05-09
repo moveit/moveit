@@ -76,10 +76,18 @@ public:
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
-    /** brief Constructs the joint state from the model */
+    /** \brief Constructs the joint state from the model */
     JointState(const KinematicModel::JointModel* jm);
+
+    /** \brief Copy constructor */
+    JointState(const JointState &other);
+
+    /** \brief Destructor */
     ~JointState(void);
-    
+
+    /** \brief Copy the data from one joint state to the other */
+    JointState& operator=(const JointState &other);
+
     /** \brief Set the value of a particular variable for this joint */
     bool setVariableValue(const std::string &variable, double value);
     
@@ -121,6 +129,16 @@ public:
     void enforceBounds(void)
     {
       joint_model_->enforceBounds(joint_state_values_);
+    }
+    
+    double distance(const JointState *other) const
+    {
+      return joint_model_->distance(joint_state_values_, other->joint_state_values_);
+    }
+    
+    void interpolate(const JointState *to, const double t, JointState *dest) const
+    {
+      return joint_model_->interpolate(joint_state_values_, to->joint_state_values_, t, dest->joint_state_values_);
     }
     
     /** \brief Get the name of the model associated with this state */

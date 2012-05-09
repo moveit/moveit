@@ -16,7 +16,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(${PROJECT_NAME}
   src/kinematic_model.cpp
-  src/semantic_model.cpp
   src/kinematic_state.cpp
   src/transforms.cpp
   src/conversions.cpp)

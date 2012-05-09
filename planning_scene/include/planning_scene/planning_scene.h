@@ -38,7 +38,6 @@
 #define MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
 
 #include <planning_models/kinematic_model.h>
-#include <planning_models/semantic_model.h>
 #include <planning_models/kinematic_state.h>
 #include <planning_models/transforms.h>
 #include <collision_detection/collision_world.h>
@@ -152,13 +151,6 @@ public:
   {
     // the kinematic model does not change
     return parent_ ? parent_->getKinematicModel() : kmodel_const_;
-  }
-
-  /** \brief Get the semantic model for which the planning scene is maintained */
-  const planning_models::SemanticModelConstPtr& getSemanticModel(void) const
-  {
-    // the kinematic model does not change
-    return parent_ ? parent_->getSemanticModel() : smodel_const_;
   }
 
   /** \brief Get the state at which the robot is assumed to be */
@@ -456,9 +448,6 @@ protected:
 
   planning_models::KinematicModelPtr             kmodel_;
   planning_models::KinematicModelConstPtr        kmodel_const_;
-
-  planning_models::SemanticModelPtr              smodel_;
-  planning_models::SemanticModelConstPtr         smodel_const_;
 
   planning_models::KinematicStatePtr             kstate_;
 
