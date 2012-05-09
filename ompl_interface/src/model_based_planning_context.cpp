@@ -498,7 +498,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   ompl::time::point start = ompl::time::now();
   
   // clear previously computed solutions
-  ompl_simple_setup_.getGoal()->clearSolutionPaths();
+  ompl_simple_setup_.getProblemDefinition()->clearSolutionPaths();
   const ob::PlannerPtr planner = ompl_simple_setup_.getPlanner();
   if (planner)
     planner->clear();
@@ -586,7 +586,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   int iv = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
   ROS_DEBUG("There were %d valid motions and %d invalid motions.", v, iv);
   
-  if (ompl_simple_setup_.getGoal()->isApproximate())
+  if (ompl_simple_setup_.getProblemDefinition()->hasApproximateSolution())
     ROS_WARN("Computed solution is approximate");
 
   return result;
