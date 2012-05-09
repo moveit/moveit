@@ -417,15 +417,31 @@ void planning_models::KinematicState::clearAttachedBodies(void)
 planning_models::KinematicState::JointState::JointState(const planning_models::KinematicModel::JointModel *jm) : joint_model_(jm)
 {
   joint_state_values_.resize(getVariableCount());
-  
   variable_transform_.setIdentity();
   std::vector<double> values;
   joint_model_->getDefaultValues(values);
   setVariableValues(values);
 }
 
+planning_models::KinematicState::JointState::JointState(const JointState &other) :
+  joint_model_(other.joint_model_), variable_transform_(other.variable_transform_), joint_state_values_(other.joint_state_values_), mimic_requests_(other.mimic_requests_)
+{
+}
+
 planning_models::KinematicState::JointState::~JointState(void)
 {
+}
+
+planning_models::KinematicState::JointState& planning_models::KinematicState::JointState::operator=(const planning_models::KinematicState::JointState &other)
+{
+  if (this != &other)
+  {
+    assert(joint_state_values_.size() == other.joint_state_values_.size());
+    joint_state_values_ = other.joint_state_values_;
+    variable_transform_ = other.variable_transform_;
+    mimic_requests_ = other.mimic_requests_;
+  }
+  return *this;
 }
 
 bool planning_models::KinematicState::JointState::setVariableValue(const std::string &variable, double value)
@@ -863,15 +879,10 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::Jo
 double planning_models::KinematicState::distance(const KinematicState &state) const
 {
   double d = 0.0;
-  std::vector<double> j1, j2;
-  getStateValues(j1);
-  state.getStateValues(j2);
-  for (std::size_t i = 0 ; i < j1.size() ; ++i)
-  {
-    double di = j1[i] - j2[i];
-    d += di * di;
-  }
-  return sqrt(d);
+  const std::vector<JointState*> &other = state.getJointStateVector();
+  for (std::size_t i = 0; i < joint_state_vector_.size(); ++i)
+    d += joint_state_vector_[i]->distance(other[i]);
+  return d;
 }
 
 const Eigen::Affine3d* planning_models::KinematicState::getFrameTransform(const std::string &id) const

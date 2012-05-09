@@ -51,12 +51,12 @@ public:
   
   virtual void copyToKinematicState(pm::KinematicState::JointStateGroup *jsg, const ob::State *state) const
   {
-
+    state_space_tree_constr_->state_space_tree_->copyToKinematicState(jsg, state);
   }
   
   virtual void copyToOMPLState(ob::State *state, const pm::KinematicState::JointStateGroup* jsg) const
   { 
-
+    state_space_tree_constr_->state_space_tree_->copyToOMPLState(state, jsg);
   }
   
 private:
@@ -122,7 +122,7 @@ private:
         for (std::size_t i = 0 ; i < sg.size() ; ++i)
         {
           const pm::KinematicModel::JointModelGroup *jmg_i = kmodel_->getJointModelGroup(sg[i]);
-          StateSpaceTree *sst = constr->constructStateSpaceTree(constr, jmg_i);
+          StateSpaceTree *sst = constr->constructStateSpaceTree(constr, jmg_i;)
           children_.push_back(sst);
           if (sst->state_space_)
             result->addSubspace(sst->state_space_, (double)sst->state_space_->getDimension());

@@ -32,21 +32,50 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/** Author Ioan Sucan */
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
+#include <planning_models/conversions.h>
+#include <gtest/gtest.h>
 
-
-ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedStateSpaceSpecification &spec) : ompl::base::StateSpace(), spec_(spec)
+class LoadPlanningModelsPr2 : public testing::Test
 {
-  setName(spec_.joint_model_group_->getName());  
+protected:
+  
+  virtual void SetUp()
+  {
+    urdf_model_.reset(new urdf::Model());
+    srdf_model_.reset(new srdf::Model());
+    urdf_ok_ = urdf_model_->initFile("../planning_models/test/urdf/robot.xml");
+    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../planning_models/test/srdf/robot.xml");
+    if (urdf_ok_ && srdf_ok_)
+      kmodel_.reset(new planning_models::KinematicModel(urdf_model_, srdf_model_));
+  };
+  
+  virtual void TearDown()
+  {
+  }
+  
+protected:
+  planning_models::KinematicModelPtr kmodel_;
+  boost::shared_ptr<urdf::Model>     urdf_model_;
+  boost::shared_ptr<srdf::Model>     srdf_model_;
+  bool                               urdf_ok_;
+  bool                               srdf_ok_;
+  
+};
+
+TEST_F(LoadPlanningModelsPr2, StateSpace)
+{
+
+  ompl_interface::ModelBasedStateSpaceSpecification spec(kmodel_, "right_arm");
+  ompl_interface::ModelBasedStateSpace ss(spec);
+  ss.setup();
+  
 }
 
-ompl_interface::ModelBasedStateSpace::~ModelBasedStateSpace(void)
+int main(int argc, char **argv)
 {
-}
-  
-ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultStateSampler(void) const
-{
-  
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

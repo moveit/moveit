@@ -125,10 +125,7 @@ public:
     {
       return child_link_model_;
     }
-    
-    /** \brief Get the lower and upper bounds for a variable. Return false if the variable was not found */
-    bool getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const;
-    
+        
     /** \brief Provide a default value for the joint given the joint bounds.
         Most joints will use the default implementation provided in this base class, but the quaternion
         for example needs a different implementation. The map is NOT cleared; elements are only added (or overwritten). */
@@ -146,7 +143,7 @@ public:
     virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
     
     /** \brief Check if a particular variable satisfies the specified bounds */
-    virtual bool isVariableWithinBounds(const std::string& variable, double value) const;
+    virtual bool satisfiesBounds(const std::string& variable, double value) const;
     
     /** \brief Check if the set of values for the variables of this joint are within bounds. */
     virtual bool satisfiesBounds(const std::vector<double> &values) const;
@@ -154,6 +151,9 @@ public:
     /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
     virtual void enforceBounds(std::vector<double> &values) const;
 
+    /** \brief Compute the distance between two joint states of the same model (represented by the variable values) */
+    virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const = 0;
+    
     /** \brief Get the names of the variables that make up this joint, in the order they appear in corresponding states.
         For single DOF joints, this will be just the joint name. */
     const std::vector<std::string>& getVariableNames(void) const
@@ -167,12 +167,18 @@ public:
       return local_names_;
     }
     
+    /** \brief Get the lower and upper bounds for a variable. Return false if the variable was not found */
+    bool getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const;
+
     /** \brief Get the variable bounds for this joint, in the same order as the names returned by getVariableNames() */
     const std::vector<std::pair<double, double> > &getVariableBounds(void) const
     {
       return variable_bounds_;
     }
     
+    /** \brief Get variable limits as a message type */
+    virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
+
     /** \brief Check if a particular variable is known to this joint */
     bool hasVariable(const std::string &variable) const
     {
@@ -184,6 +190,9 @@ public:
     {
       return variable_names_.size();
     }
+    
+    /** \brief Get the dimension of the state space that corresponds to this joint */
+    virtual unsigned int getStateSpaceDimension(void) const = 0;
     
     /** \brief The set of variables that make up the state value of a joint are stored in some order. This map
         gives the position of each variable in that order, for each variable name */
@@ -222,7 +231,25 @@ public:
       return max_velocity_;
     }
 
-    virtual std::vector<moveit_msgs::JointLimits> getJointLimits(void) const;
+    /** \brief Get the factor that should be applied to the value returned by distance() when that value is used in compound distances */
+    double getDistanceFactor(void) const
+    {
+      return distance_factor_;
+    }
+    
+    /** \brief Set the factor that should be applied to the value returned by distance() when that value is used in compound distances */
+    void setDistanceFactor(double factor)
+    {
+      distance_factor_ = factor;
+    }
+
+    /** \brief Computes the state that lies at time @e t in [0, 1] on the segment that connects @e from state to @e to state.
+        The memory location of @e state is not required to be different from the memory of either
+        @e from or @e to. */
+    virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const = 0;
+
+    /** \brief Get the extent of the state space (the maximum value distance() can ever report) */
+    virtual double getMaximumExtent(void) const = 0;
     
     /** \brief Given the joint values for a joint, compute the corresponding transform */
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const = 0;
@@ -276,6 +303,9 @@ public:
     /** \brief The set of joints that should get a value copied to them when this joint changes */
     std::vector<const JointModel*>                    mimic_requests_;
     
+    /** \brief The factor applied to the distance between two joint states */
+    double                                            distance_factor_;
+    
     /** \brief The index assigned to this joint when traversing the kinematic tree in depth first fashion */
     int                                               tree_index_;
   };
@@ -285,9 +315,14 @@ public:
   {
     friend class KinematicModel;
   public:
-    
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     FixedJointModel(const std::string &name);
     
+    virtual unsigned int getStateSpaceDimension(void) const;   
+    virtual double getMaximumExtent(void) const;
+    virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;    
+    virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& trans, std::vector<double>& joint_values) const;
     virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
@@ -298,18 +333,36 @@ public:
   {
     friend class KinematicModel;
   public:
-    
-    PlanarJointModel(const std::string& name);
-    
-    virtual bool isVariableWithinBounds(const std::string& variable, double value) const;
-    virtual void enforceBounds(std::vector<double> &values) const;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this function
-    void normalizeRotation(std::vector<double> &values) const;
-    
+    PlanarJointModel(const std::string& name);
+
+    virtual unsigned int getStateSpaceDimension(void) const;
+    virtual double getMaximumExtent(void) const;
+    virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
+    virtual bool satisfiesBounds(const std::string& variable, double value) const;
+    virtual void enforceBounds(std::vector<double> &values) const;
+    virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
+
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double>& joint_values) const;
     virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
+
+    double getAngularDistanceWeight(void) const
+    {
+      return angular_distance_weight_;
+    }
+    
+    void setAngularDistanceWeight(double weight)
+    {
+      angular_distance_weight_ = weight;
+    }
+  private:
+
+    /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this function
+    void normalizeRotation(std::vector<double> &values) const;  
+    
+    double angular_distance_weight_;
   };
   
   /** \brief A floating joint */
@@ -317,18 +370,35 @@ public:
   {
     friend class KinematicModel;
   public:
-    
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     FloatingJointModel(const std::string& name);
     virtual void enforceBounds(std::vector<double> &values) const;
-    
-    /// Normalize the quaternion (warn if norm is 0, and set to identity)
-    void normalizeRotation(std::vector<double> &values) const;
-
+    virtual double getMaximumExtent(void) const;
+    virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
+    virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
+    virtual unsigned int getStateSpaceDimension(void) const;
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double>& joint_values) const;
     virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
     virtual void getDefaultValues(std::vector<double>& values) const;
+
+    double getAngularDistanceWeight(void) const
+    {
+      return angular_distance_weight_;
+    }
+    
+    void setAngularDistanceWeight(double weight)
+    {
+      angular_distance_weight_ = weight;
+    }
+    
+  private:
+    /// Normalize the quaternion (warn if norm is 0, and set to identity)
+    void normalizeRotation(std::vector<double> &values) const;
+
+    double angular_distance_weight_;
   };
   
   /** \brief A prismatic joint */
@@ -339,7 +409,10 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     PrismaticJointModel(const std::string& name);
-    
+    virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
+    virtual unsigned int getStateSpaceDimension(void) const;
+    virtual double getMaximumExtent(void) const;
+    virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const;
     virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
@@ -363,9 +436,12 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     RevoluteJointModel(const std::string& name);
-
-    virtual std::vector<moveit_msgs::JointLimits> getJointLimits(void) const;
-    virtual bool isVariableWithinBounds(const std::string& variable, double value) const;
+    virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
+    virtual unsigned int getStateSpaceDimension(void) const;
+    virtual double getMaximumExtent(void) const;
+    virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
+    virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
+    virtual bool satisfiesBounds(const std::string& variable, double value) const;
     virtual void enforceBounds(std::vector<double> &values) const;
 
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
@@ -389,7 +465,7 @@ public:
     Eigen::Vector3d axis_;
     
     /** \brief Flag indicating whether this joint wraps around */
-    bool      continuous_;
+    bool continuous_;
   };
   
   /** \brief A link from the robot. Contains the constant transform applied to the link and its geometry */
@@ -633,7 +709,10 @@ public:
         This set is obtained by computing a MST over the graph determined by the isSubgroup() property using the difference in dimensionality between groups as weight and the */
     bool isDisjointSubgroup(const std::string& group) const;
 
-    virtual std::vector<moveit_msgs::JointLimits> getJointLimits(void) const;
+    virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
+
+    /** \brief Print information about the constructed model */
+    void printGroupInfo(std::ostream &out = std::cout) const;
         
   protected:
     
