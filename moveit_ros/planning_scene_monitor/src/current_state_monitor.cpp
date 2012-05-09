@@ -196,7 +196,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
     joint_state_map[joint_state->name[i]] = joint_state->position[i];
     joint_time_[joint_state->name[i]] = joint_state->header.stamp;
     
-    // continuous joints wrap, so we don't modify them
+    // continuous joints wrap, so we don't modify them (even if they are outside bounds!)
     const planning_models::KinematicModel::JointModel* jm = kmodel_->getJointModel(joint_state->name[i]);
     if (jm && jm->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
       if (static_cast<const planning_models::KinematicModel::RevoluteJointModel*>(jm)->isContinuous())
