@@ -157,8 +157,21 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointCo
   if (verbose)
     ROS_INFO("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: %f, tolerance_below: %f",
              result ? "satisfied" : "violated", joint->getName().c_str(), current_joint_position, joint_position_, joint_tolerance_above_, joint_tolerance_below_);
-  
+  else if(!result) {
+    ROS_DEBUG_STREAM_NAMED("constraint_violation",getConstraintPrintString(joint->getName(),
+                                                                           current_joint_position,
+                                                                           result));
+  }
   return ConstraintEvaluationResult(result, constraint_weight_ * fabs(dif));
+}
+
+std::string kinematic_constraints::JointConstraint::getConstraintPrintString(const std::string& joint_name,
+                                                                             double current_joint_position,
+                                                                             bool result) const
+{
+  std::stringstream s;
+  s << "Constraint " << (result ? " satisfied " : " violated ") << " :: Joint name: " << joint_name << ", actual value: " << current_joint_position << ", desired value: " << joint_position_ << ", tolerance_above: " << joint_tolerance_above_ << ", tolerance_below: " << joint_tolerance_below_;
+  return s.str();
 }
 
 bool kinematic_constraints::JointConstraint::enabled(void) const
