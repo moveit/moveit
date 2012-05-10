@@ -11,6 +11,8 @@
 
   <depend package="planning_models"/>  
   <depend package="rosconsole" />
+  <depend package="kdl" />
+  <depend package="kdl_parser" />
 
   <export>
     <cpp cflags="`pkg-config --cflags eigen3` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ljacobian_solver"/>

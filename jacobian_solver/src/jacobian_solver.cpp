@@ -131,7 +131,7 @@ bool JacobianSolver::getJacobian(const std::string &link_name,
   Eigen::Affine3d link_transform = reference_transform_*link_state->getGlobalLinkTransform();
   Eigen::Vector3d point_transform = link_transform*reference_point_position;
 
-  ROS_DEBUG("Point transform: %f %f %f",
+  ROS_DEBUG("Point from reference origin expressed in world coordinates: %f %f %f",
             point_transform.x(),
             point_transform.y(),
             point_transform.z());
