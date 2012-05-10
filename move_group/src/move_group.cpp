@@ -36,15 +36,11 @@
 #include <moveit_msgs/MoveGroupAction.h>
 
 #include <tf/transform_listener.h>
-#include <planning_interface/planning_interface.h>
-#include <planning_request_adapter/planning_request_adapter.h>
-
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
 #include <moveit_msgs/DisplayTrajectory.h>
-#include <boost/tokenizer.hpp>
-
-#include <trajectory_processing/iterative_smoother.h>
+#include <move_group/move_group_pipeline.h>
+#include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";      // name of the robot description (a param name, so it can be changed externally)
 static const std::string DISPLAY_PATH_PUB_TOPIC = "display_trajectory";
@@ -60,102 +56,22 @@ public:
       MONITOR
     };
   
-  MoveGroupAction(planning_scene_monitor::PlanningSceneMonitor &psm) : 
-    nh_("~"), psm_(psm), state_(IDLE)
+  MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorConstPtr& psm) : 
+    nh_("~"), psm_(psm), move_group_pipeline_(psm), state_(IDLE)
   {
-    // load the group name
-    if (nh_.getParam("group", group_name_))
-      ROS_INFO("Starting move_group for group '%s'", group_name_.c_str());
-    else
-      ROS_FATAL("Group name not specified. Cannot start move_group");
-    bool manage_controllers= false;
-    nh_.param("manage_controllers", manage_controllers, true);
+    bool allow_trajectory_execution = true;
+    nh_.param("allow_trajectory_execution", allow_trajectory_execution, true);
     
-    trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(psm_.getPlanningScene()->getKinematicModel(),
-                                                                                            manage_controllers));
-
-    // load the planning plugin
-    try
-    {
-      planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::Planner>("planning_interface", "planning_interface::Planner"));
+    if(allow_trajectory_execution) {
+      bool manage_controllers= false;
+      nh_.param("manage_controllers", manage_controllers, true);
+      trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(psm_->getPlanningScene()->getKinematicModel(),
+                                                                                              manage_controllers));
     }
-    catch(pluginlib::PluginlibException& ex)
-    {
-      ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
-    }
-    
-    nh_.getParam("planning_plugin", planning_plugin_name_);
-    const std::vector<std::string> &classes = planner_plugin_loader_->getDeclaredClasses();
-    if (planning_plugin_name_.empty() && classes.size() == 1)
-    {
-      planning_plugin_name_ = classes[0];
-      ROS_INFO("No 'planning_plugin' parameter specified, but only '%s' planning plugin is available. Using that one.", planning_plugin_name_.c_str());
-    }
-    if (planning_plugin_name_.empty() && classes.size() > 1)
-    {      
-      planning_plugin_name_ = classes[0];   
-      ROS_INFO("Multiple planning plugins available. You shuold specify the 'planning_plugin' parameter. Using '%s' for now.", planning_plugin_name_.c_str());
-    }
-    try
-    {
-      planner_instance_.reset(planner_plugin_loader_->createUnmanagedInstance(planning_plugin_name_));
-      planner_instance_->init(psm_.getPlanningScene()->getKinematicModel());      
-      ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
-    }
-    catch(pluginlib::PluginlibException& ex)
-    {
-      std::stringstream ss;
-      for (std::size_t i = 0 ; i < classes.size() ; ++i)
-        ss << classes[i] << " ";
-      ROS_FATAL_STREAM("Exception while loading planner '" << planning_plugin_name_ << "': " << ex.what() << std::endl
-                       << "Available plugins: " << ss.str());
-    }
-
-    // load the planner request adapters
-    std::string adapters;
-    if (nh_.getParam("request_adapters", adapters))
-    { 
-      try
-      {
-        adapter_plugin_loader_.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>("planning_request_adapter", "planning_request_adapter::PlanningRequestAdapter"));
-      }
-      catch(pluginlib::PluginlibException& ex)
-      {
-        ROS_ERROR_STREAM("Exception while creating planning plugin loader " << ex.what());
-      }
-      boost::char_separator<char> sep(" ");
-      boost::tokenizer<boost::char_separator<char> > tok(adapters, sep);
-      std::vector<planning_request_adapter::PlanningRequestAdapterConstPtr> ads;
-      for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
-      {
-        planning_request_adapter::PlanningRequestAdapterConstPtr ad;
-        try
-        {
-          ad.reset(adapter_plugin_loader_->createUnmanagedInstance(*beg));
-        }
-        catch (pluginlib::PluginlibException& ex)
-        {
-          ROS_ERROR_STREAM("Exception while planning adapter plugin '" << *beg << "': " << ex.what());
-        }
-        if (ad)
-          ads.push_back(ad);
-      }
-      if (!ads.empty())
-      {
-        adapter_chain_.reset(new planning_request_adapter::PlanningRequestAdapterChain());
-        for (std::size_t i = 0 ; i < ads.size() ; ++i)
-        {
-          ROS_INFO_STREAM("Using planning request adapter '" << ads[i]->getDescription() << "'");
-          adapter_chain_->addAdapter(ads[i]);
-        }
-      }
-    }
-    
-    
-    display_path_publisher_ = root_nh_.advertise<moveit_msgs::DisplayTrajectory>("move_" + group_name_ + "/" + DISPLAY_PATH_PUB_TOPIC, 1, true);
+    display_path_publisher_ = root_nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/" + DISPLAY_PATH_PUB_TOPIC, 1, true);
 
     // start the action server
-    action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_nh_, "move_" + group_name_, false));
+    action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_nh_, "move_group", false));
     action_server_->registerGoalCallback(boost::bind(&MoveGroupAction::goalCallback, this));
     action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
     action_server_->start();
@@ -175,19 +91,8 @@ public:
       ROS_ERROR("Something unexpected happened. No goal found in callback for goal...");
       return;
     }
-    
-    if (!goal_->request.group_name.empty() && goal_->request.group_name != group_name_)
-    {
-      moveit_msgs::MoveGroupResult res;
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
-      action_server_->setAborted(res, "Cannot accept requests for group '" + 
-                                 goal_->request.group_name  + "' when the move_group action is loaded for group '" +
-                                 group_name_ +  "'");
-    }
-    else {
-      terminate_service_thread_ = false;
-      service_goal_thread_.reset(new boost::thread(boost::bind(&MoveGroupAction::serviceGoalRequest, this)));
-    }
+    terminate_service_thread_ = false;
+    service_goal_thread_.reset(new boost::thread(boost::bind(&MoveGroupAction::serviceGoalRequest, this)));
   }
   
   void preemptCallback(void)
@@ -198,94 +103,95 @@ public:
 
   void serviceGoalRequest(void)
   {
+    moveit_msgs::MoveGroupResult action_res;
+    moveit_msgs::GetMotionPlan::Request mreq;
+    mreq.motion_plan_request = goal_->request;
+    if (mreq.motion_plan_request.group_name.empty()) {
+      ROS_WARN_STREAM("Must specify group in motion plan request");
+      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+      action_server_->setAborted(action_res, "Must specify group in motion plan request");
+      setState(IDLE);
+      return;    
+    }
     setState(PLANNING);
+    moveit_msgs::GetMotionPlan::Response mres;
+    const planning_scene::PlanningSceneConstPtr &the_scene = 
+      planning_scene::PlanningScene::isEmpty(goal_->planning_scene_diff) ? psm_->getPlanningScene() : planning_scene::PlanningScene::diff(psm_->getPlanningScene(), goal_->planning_scene_diff);
+
+
+    bool solved = move_group_pipeline_.generatePlan(the_scene,
+                                                    mreq,
+                                                    mres);
+        
+    if(!solved) {
+      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+      action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
+      setState(IDLE);
+      return;
+    }
+    if(!psm_->getPlanningScene()->isPathValid(mres.trajectory_start, mres.trajectory)) {
+      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+      action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). No execum");
+      setState(IDLE);
+      return;
+    }
+    // display the trajectory
+    moveit_msgs::DisplayTrajectory disp;
+    disp.model_id = psm_->getPlanningScene()->getKinematicModel()->getName();
+    disp.trajectory_start = mres.trajectory_start;
+    disp.trajectory = mres.trajectory;
+    display_path_publisher_.publish(disp);      
+
+    action_res.planned_trajectory = mres.trajectory;
+    if(!goal_->plan_only && !trajectory_execution_) {
+      ROS_WARN_STREAM("Move group asked for execution and was not configured to allow execution");
+    }
+    if(goal_->plan_only || !trajectory_execution_) {
+      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      action_server_->setSucceeded(action_res, "Solution was found and returned but not executed.");
+      setState(IDLE);
+      return;
+    }
     
-    bool solved = false;
-    moveit_msgs::GetMotionPlan::Request req;
-    req.motion_plan_request = goal_->request;
-    if (req.motion_plan_request.group_name.empty())
-      req.motion_plan_request.group_name = group_name_;
-    moveit_msgs::GetMotionPlan::Response res;
-
-    const planning_scene::PlanningScenePtr &the_scene = 
-      planning_scene::PlanningScene::isEmpty(goal_->planning_scene_diff) ? psm_.getPlanningScene() : planning_scene::PlanningScene::diff(psm_.getPlanningScene(), goal_->planning_scene_diff);
-
-    try
-    {
-      if (adapter_chain_)
-        solved = adapter_chain_->adaptAndPlan(planner_instance_, the_scene, req, res);
-      else
-        solved = planner_instance_->solve(the_scene, req, res);
-    }
-    catch(std::runtime_error &ex)
-    {
-      ROS_ERROR("Exception caught: '%s'", ex.what());
-    }
-    catch(...)
-    {
-      ROS_ERROR("Unknown exception thrown by planner");
-    }
+    setState(MONITOR);
+    execution_complete_ = false;
     
-    if (solved)
-    {
-      trajectory_msgs::JointTrajectory trajectory_out;
-      smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, psm_.getGroupJointLimitsMap().at(group_name_));
-      res.trajectory.joint_trajectory = trajectory_out;
-      
-      setState(MONITOR);
-      execution_complete_ = false;
-      
-      // display the trajectory
-      moveit_msgs::DisplayTrajectory disp;
-      disp.model_id = psm_.getPlanningScene()->getKinematicModel()->getName();
-      disp.trajectory_start = res.trajectory_start;
-      disp.trajectory = res.trajectory;
-      display_path_publisher_.publish(disp);      
+    ROS_INFO_STREAM("Sending joint trajectory");
 
-      if (psm_.getPlanningScene()->isPathValid(res.trajectory_start, res.trajectory))
-      {
-        trajectory_execution::TrajectoryExecutionRequest ter;
-        ter.group_name_ = group_name_;      
-        ter.trajectory_ = res.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
-        if (trajectory_execution_->executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
-        {
-          ros::WallDuration d(0.01);
-          while (nh_.ok() && !execution_complete_ && !terminate_service_thread_)
-          {
-            /// \TODO Check if the remainder of the path is still valid; If not, replan.
-            /// We need a callback in the trajectory monitor for this
-            d.sleep();
-          }     
-          moveit_msgs::MoveGroupResult res;
-          res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-          action_server_->setSucceeded(res, "Solution was found and executed.");
-        }
-        else
-        {
-          moveit_msgs::MoveGroupResult res;
-          //        res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
-          action_server_->setAborted(res, "Solution was found but the controller failed to execute it.");
+    trajectory_execution::TrajectoryExecutionRequest ter;
+    ter.group_name_ = mreq.motion_plan_request.group_name;      
+    ter.trajectory_ = mres.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
+    if (trajectory_execution_->executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
+    {
+      ros::WallDuration d(0.01);
+      while (nh_.ok() && !execution_complete_ && !terminate_service_thread_) {
+        /// \TODO Check if the remainder of the path is still valid; If not, replan.
+        /// We need a callback in the trajectory monitor for this
+        d.sleep();
+      } 
+      if(last_trajectory_execution_data_vector_.size() == 0) {
+        ROS_WARN_STREAM("No recorded trajectory for execution");
+      } else {
+        action_res.executed_trajectory.joint_trajectory = last_trajectory_execution_data_vector_[0].recorded_trajectory_;
+        if(last_trajectory_execution_data_vector_[0].result_ == trajectory_execution::SUCCEEDED) {
+          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+          action_server_->setSucceeded(action_res, "Solution was found and executed.");
+        } else {
+          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+          action_server_->setAborted(action_res, "Solution found but controller failed during execution");
         }
       }
-      else
-      {
-        moveit_msgs::MoveGroupResult res;
-        res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
-        action_server_->setAborted(res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). No execution attempted.");
-      }
+    } else {
+      ROS_INFO_STREAM("Apparently trajectory initialization failed");
+      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+      action_server_->setAborted(action_res, "Solution found but could not initiate trajectory execution");
     }
-    else
-    {
-      moveit_msgs::MoveGroupResult res;
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
-      action_server_->setAborted(res, "No motion plan found. No execution attempted.");
-    }
-    
     setState(IDLE);
   }
 
   bool doneWithTrajectoryExecution(trajectory_execution::TrajectoryExecutionDataVector data)
   {
+    last_trajectory_execution_data_vector_ = data;
     execution_complete_ = true;
     return true;
   }
@@ -313,23 +219,17 @@ public:
   
   void status(void)
   {
-    ROS_INFO("MoveGroup action for group '%s' running using planning plugin '%s'", group_name_.c_str(), planning_plugin_name_.c_str());
+    ROS_INFO_STREAM("MoveGroup action running using planning plugin " << move_group_pipeline_.getPlanningPluginName());
   }
   
 private:
   
   ros::NodeHandle root_nh_;
   ros::NodeHandle nh_;
-  planning_scene_monitor::PlanningSceneMonitor &psm_;
+  planning_scene_monitor::PlanningSceneMonitorConstPtr psm_;
 
-  std::string planning_plugin_name_;
-  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
-  planning_interface::PlannerPtr planner_instance_;
-  std::string group_name_;
+  move_group::MoveGroupPipeline move_group_pipeline_;
 
-  boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
-  boost::scoped_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
-  
   boost::shared_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;
   moveit_msgs::MoveGroupGoalConstPtr goal_;
   moveit_msgs::MoveGroupFeedback feedback_;
@@ -340,11 +240,25 @@ private:
   bool terminate_service_thread_;
   bool execution_complete_;
   MoveGroupState state_;
-  trajectory_processing::IterativeParabolicSmoother smoother_;
-  
+  trajectory_execution::TrajectoryExecutionDataVector last_trajectory_execution_data_vector_;
+
   ros::Publisher display_path_publisher_;
 };
 
+planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+boost::shared_ptr<tf::TransformListener> tf_;
+boost::shared_ptr<KinematicStateJointStatePublisher> joint_state_publisher_;
+
+void publisherFunction() { 
+  ros::WallRate r(10.0);
+
+  while(ros::ok())
+  {
+    joint_state_publisher_->broadcastRootTransform(planning_scene_monitor_->getPlanningScene()->getCurrentState());
+    joint_state_publisher_->publishKinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState());
+    r.sleep();
+  }
+}
 
 int main(int argc, char **argv)
 {
@@ -352,16 +266,34 @@ int main(int argc, char **argv)
   
   ros::AsyncSpinner spinner(1);
   spinner.start();
+
+  ros::NodeHandle nh("~");
   
-  boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
-  if (psm.getPlanningScene()->isConfigured())
+  bool monitor_robot_state = true;
+  nh.param("monitor_robot_state", monitor_robot_state, true);
+
+  if(monitor_robot_state) {
+    tf_.reset(new tf::TransformListener());
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(ROBOT_DESCRIPTION, tf_));
+  } else {
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(ROBOT_DESCRIPTION));    
+  }
+  
+  if (planning_scene_monitor_->getPlanningScene()->isConfigured())
   {
-    psm.startWorldGeometryMonitor();
-    psm.startSceneMonitor();
-    psm.startStateMonitor();
-    
-    MoveGroupAction mga(psm);
+    if(monitor_robot_state) {
+      planning_scene_monitor_->startWorldGeometryMonitor();
+      planning_scene_monitor_->startSceneMonitor();
+      planning_scene_monitor_->startStateMonitor();
+    } else {
+      bool publish_joint_states = true;
+      nh.param("publish_joint_states", publish_joint_states, true);
+      if(publish_joint_states) {  
+        joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
+        boost::thread publisher_thread(boost::bind(&publisherFunction));
+      }
+    }
+    MoveGroupAction mga(planning_scene_monitor_);
     mga.status();
     ros::waitForShutdown();
   }
