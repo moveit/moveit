@@ -965,8 +965,10 @@ bool planning_models::KinematicModel::JointModel::isVariableWithinBounds(const s
   std::pair<double, double> bounds;
   if (!getVariableBounds(variable, bounds))
     return false;
-  if (value < bounds.first || value > bounds.second)
+  if (value < bounds.first || value > bounds.second) {
+    ROS_DEBUG_STREAM_NAMED("Joint limit violation", "Joint " << name_ << " value " << value << " out of bounds " << bounds.first << " " << bounds.second);
     return false;
+  }
   return true;
 }
 
@@ -1000,7 +1002,7 @@ std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointMode
     lim.joint_name = variable_names_[i];
     lim.has_position_limits = true;
     lim.min_position = variable_bounds_[i].first;
-    lim.min_position = variable_bounds_[i].second;
+    lim.max_position = variable_bounds_[i].second;
     if (max_velocity_ != 0.0)
       lim.has_velocity_limits = true;
     else
@@ -1322,6 +1324,7 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     else
       fixed_joints_.push_back(group_joints[i]);
   }
+  ROS_DEBUG_STREAM("Joint model group " << group_name << " has " << group_joints.size() << " joints and " << variable_count_ << " variables");
 
   //now we need to find all the set of joints within this group
   //that root distinct subtrees

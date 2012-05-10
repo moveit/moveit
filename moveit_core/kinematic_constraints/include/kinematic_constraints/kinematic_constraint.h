@@ -167,6 +167,10 @@ public:
   {
     return joint_tolerance_below_;
   }
+
+  std::string getConstraintPrintString(const std::string& joint_name,
+                                       double current_joint_position,
+                                       bool result) const;
   
 protected:
   
