@@ -180,7 +180,9 @@ public:
       else
         planning_models::kinematicStateToRobotState(*prefix, res.trajectory_start);
     }
-    
+
+    trajectory_msgs::JointTrajectory orig_trajectory = res.trajectory.joint_trajectory;
+
     // re-add continuous joint offsets
     for (std::map<std::string, double>::const_iterator it = continuous_joints.begin() ; it != continuous_joints.end() ; ++it)
     {
@@ -199,12 +201,12 @@ public:
           double running_offset = 0.0;
           for (std::size_t j = 1 ; j < res.trajectory.joint_trajectory.points.size() ; ++j)
           {
-            if (res.trajectory.joint_trajectory.points[j - 1].positions[i] > 
-                res.trajectory.joint_trajectory.points[j].positions[i] + boost::math::constants::pi<double>())
+            if (orig_trajectory.points[j - 1].positions[i] > 
+                orig_trajectory.points[j].positions[i] + boost::math::constants::pi<double>())
               running_offset += 2.0 * boost::math::constants::pi<double>();
             else
-              if (res.trajectory.joint_trajectory.points[j].positions[i] > 
-                  res.trajectory.joint_trajectory.points[j - 1].positions[i] + boost::math::constants::pi<double>())
+              if (orig_trajectory.points[j].positions[i] > 
+                  orig_trajectory.points[j - 1].positions[i] + boost::math::constants::pi<double>())
                 running_offset -= 2.0 * boost::math::constants::pi<double>();
             res.trajectory.joint_trajectory.points[j].positions[i] += running_offset;
           }
