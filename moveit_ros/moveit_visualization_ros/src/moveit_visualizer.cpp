@@ -234,9 +234,11 @@ void MoveItVisualizer::updatePlanningScene(planning_scene::PlanningSceneConstPtr
 
 void MoveItVisualizer::updateSceneCallback() {
   if(first_update_) {
-    ROS_INFO_STREAM("Got update scene callback");
     pv_->resetAllStartAndGoalStates();
     first_update_ = false;
+  }
+  if(allow_trajectory_execution_) {
+    updateToCurrentState();
   }
 }
 
