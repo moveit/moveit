@@ -42,7 +42,7 @@ static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 namespace moveit_visualization_ros {
 
 MoveItVisualizer::MoveItVisualizer() : 
-  first_update_(false),
+  first_update_(true),
   allow_trajectory_execution_(false)
 {
 
@@ -96,9 +96,10 @@ MoveItVisualizer::MoveItVisualizer() :
   bad_color.a = 1.0;    
   bad_color.r = 1.0;    
 
+  boost::shared_ptr<move_group::MoveGroupPipeline> move_group_pipeline(new move_group::MoveGroupPipeline(planning_scene_monitor_));
 
   pv_.reset(new PlanningVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
-                                               planning_scene_monitor_->getGroupJointLimitsMap(),
+                                               move_group_pipeline,
                                                interactive_marker_server_,
                                                kinematics_plugin_loader_,
                                                vis_marker_array_publisher_));

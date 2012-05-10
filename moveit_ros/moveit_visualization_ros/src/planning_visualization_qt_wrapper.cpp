@@ -36,12 +36,12 @@
 namespace moveit_visualization_ros {
 
 PlanningVisualizationQtWrapper::
-PlanningVisualizationQtWrapper(planning_scene::PlanningSceneConstPtr planning_scene,
-                               const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limits_map,
-                               boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
+PlanningVisualizationQtWrapper(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                               const boost::shared_ptr<move_group::MoveGroupPipeline>& move_group_pipeline,
+                               boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                ros::Publisher& marker_publisher) :
-  PlanningVisualization(planning_scene, group_joint_limits_map, interactive_marker_server, kinematics_plugin_loader, marker_publisher)
+  PlanningVisualization(planning_scene, move_group_pipeline, interactive_marker_server, kinematics_plugin_loader, marker_publisher)
 {
   qRegisterMetaType<planning_models::KinematicState*>("KinematicState");
   qRegisterMetaType<trajectory_msgs::JointTrajectory>("trajectory_msgs::JointTrajectory");

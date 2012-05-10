@@ -31,7 +31,7 @@
 
 #include <ros/ros.h>
 #include <distance_field/propagation_distance_field.h>
-#include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
+#include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <collision_distance_field/collision_distance_field_types.h>
 #include <interactive_markers/interactive_marker_server.h>

@@ -40,6 +40,7 @@
 #include <trajectory_processing/trajectory_smoother.h>
 #include <trajectory_processing/trajectory_shortcutter.h>
 #include <kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <move_group/move_group_pipeline.h>
 
 namespace moveit_visualization_ros
 {
@@ -49,7 +50,7 @@ class PlanningVisualization
 public:
 
   PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                        const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limit_map,
+                        const boost::shared_ptr<move_group::MoveGroupPipeline>& move_group_pipeline,
                         boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                         boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                         ros::Publisher& marker_publisher);
@@ -101,10 +102,8 @@ protected:
   void resetStartGoal(const std::string& name);
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
-  ompl_interface_ros::OMPLInterfaceROS ompl_interface_;
-  boost::shared_ptr<trajectory_processing::TrajectorySmoother> trajectory_smoother_;
-  boost::shared_ptr<trajectory_processing::TrajectoryShortcutter> unnormalize_shortcutter_;
-  std::map<std::string, std::vector<moveit_msgs::JointLimits> > group_joint_limit_map_;
+  boost::shared_ptr<move_group::MoveGroupPipeline> move_group_pipeline_;
+
   std::string current_group_;
   std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> > group_visualization_map_;
   boost::shared_ptr<JointTrajectoryVisualization> joint_trajectory_visualization_;

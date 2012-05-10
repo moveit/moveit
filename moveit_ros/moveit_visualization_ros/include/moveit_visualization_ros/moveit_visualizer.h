@@ -36,7 +36,7 @@
 #include <moveit_visualization_ros/planning_group_selection_menu.h>
 #include <moveit_visualization_ros/planning_scene_file_menu.h>
 #include <moveit_visualization_ros/planning_visualization_qt_wrapper.h>
-#include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
+#include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
 #include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
 
 #include <OGRE/OgreLogManager.h>

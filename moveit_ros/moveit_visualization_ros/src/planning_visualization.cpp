@@ -34,22 +34,19 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <kinematic_constraints/utils.h>
 #include <planning_models/conversions.h>
-#include <trajectory_processing/iterative_smoother.h>
-#include <trajectory_processing/unnormalize_shortcutter.h>
 
 namespace moveit_visualization_ros {
 
 PlanningVisualization::PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                             const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& group_joint_limit_map,
+                                             const boost::shared_ptr<move_group::MoveGroupPipeline>& move_group_pipeline,
                                              boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                              boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                              ros::Publisher& marker_publisher)
   : planning_scene_(planning_scene), 
-    ompl_interface_(planning_scene->getKinematicModel()),
-    group_joint_limit_map_(group_joint_limit_map),
+    move_group_pipeline_(move_group_pipeline),
     last_trajectory_ok_(false)
 {
-  ompl_interface_.getPlanningContextManager().setMaximumSolutionSegmentLength(.1);
+  //ompl_interface_.getPlanningContextManager().setMaximumSolutionSegmentLength(.1);
 
   const std::vector<srdf::Model::Group>& groups = planning_scene_->getSrdfModel()->getGroups();
 
@@ -69,9 +66,6 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
     }
   }
 
-  unnormalize_shortcutter_.reset(new trajectory_processing::UnnormalizeShortcutter(planning_scene->getKinematicModel()));
-  trajectory_smoother_.reset(new trajectory_processing::IterativeParabolicSmoother());
- 
   joint_trajectory_visualization_.reset(new JointTrajectoryVisualization(planning_scene,
                                                                          marker_publisher));
 
@@ -178,11 +172,11 @@ void PlanningVisualization::generatePlan(const std::string& name, bool play) {
   moveit_msgs::MoveItErrorCodes error_code;
   trajectory_msgs::JointTrajectory traj;
   if(generatePlanForScene(planning_scene_,
-                  name,
-                  &start_state,
-                  &goal_state,
-                  traj,
-                  error_code)) {
+                          name,
+                          &start_state,
+                          &goal_state,
+                          traj,
+                          error_code)) {
     std_msgs::ColorRGBA col;
     col.a = .8;
     col.b = 1.0;
@@ -226,30 +220,12 @@ bool PlanningVisualization::generatePlanForScene(const planning_scene::PlanningS
   req.motion_plan_request.num_planning_attempts = 1;
   req.motion_plan_request.allowed_planning_time = ros::Duration(3.0);
   
-  if(ompl_interface_.solve(scene, req, res)) {
-    ROS_INFO_STREAM("Got " << res.trajectory.joint_trajectory.points.size());
-    ROS_INFO_STREAM("Original last time " << res.trajectory.joint_trajectory.points.back().time_from_start);
-    trajectory_msgs::JointTrajectory traj;
-    moveit_msgs::MoveItErrorCodes error_code;
-    moveit_msgs::Constraints emp_constraints;
-    unnormalize_shortcutter_->shortcut(scene,
-                                       group_name,
-                                       start_state,
-                                       group_joint_limit_map_.at(group_name),
-                                       emp_constraints,
-                                       emp_constraints,
-                                       res.trajectory.joint_trajectory,
-                                       ros::Duration(0.0),
-                                       traj,
-                                       error_code);
-    trajectory_smoother_->smooth(traj,
-                                 ret_traj,
-                                 group_joint_limit_map_.at(group_name));
-    ROS_INFO_STREAM("Smoothed last time " << ret_traj.points.back().time_from_start);
-    return true;
-  } else {
+  if(!move_group_pipeline_->generatePlan(scene, req, res)) {
+    ROS_WARN_STREAM("Response traj " << res.trajectory.joint_trajectory);
     return false;
   } 
+  ret_traj = res.trajectory.joint_trajectory;
+  return true;
 }                                         
                                          
 

@@ -30,7 +30,7 @@
 // Author: E. Gil Jones
 
 #include <ros/ros.h>
-#include <moveit_visualization_ros/kinematic_state_joint_state_publisher.h>
+#include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
 #include <moveit_visualization_ros/joint_trajectory_visualization.h>
 
 using namespace moveit_visualization_ros;
