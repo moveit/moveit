@@ -122,12 +122,13 @@ bool MoveGroupPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr
                                      const moveit_msgs::GetMotionPlan::Request& req,
                                      moveit_msgs::GetMotionPlan::Response& res) const
 {
+  bool solved;
   try
   {
     if (adapter_chain_)
-      return adapter_chain_->adaptAndPlan(planner_instance_, planning_scene, req, res);
+      solved = adapter_chain_->adaptAndPlan(planner_instance_, planning_scene, req, res);
     else
-      return planner_instance_->solve(planning_scene, req, res);
+      solved = planner_instance_->solve(planning_scene, req, res);
   }
   catch(std::runtime_error &ex)
   {
@@ -140,9 +141,15 @@ bool MoveGroupPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr
     return false;
   }
 
+  if(!solved) {
+    res.trajectory.joint_trajectory = trajectory_msgs::JointTrajectory();
+    return false;
+  }
+
   trajectory_msgs::JointTrajectory trajectory_out;
   smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, psm_->getGroupJointLimitsMap().at(req.motion_plan_request.group_name));
   res.trajectory.joint_trajectory = trajectory_out;
+  return true;
 }
 
 }
