@@ -150,12 +150,14 @@ void PrimitiveObjectAdditionDialog::createObjectConfirmedPressed() {
   } else if (object_type == "Cylinder") {
     coll.shapes[0].type = shape_msgs::Shape::CYLINDER;
     coll.shapes[0].dimensions.resize(2);
-    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
+    // aleeper: Division by 2 since user seems to specify diameter but collision objects expect radius.
+    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f / 2.0f;
     coll.shapes[0].dimensions[1] = (float)collision_object_scale_z_box_->value() / 100.0f;
   } else if (object_type == "Sphere") {
     coll.shapes[0].type = shape_msgs::Shape::SPHERE;
     coll.shapes[0].dimensions.resize(1);
-    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
+    // aleeper: Division by 2 since user seems to specify diameter but collision objects expect radius.
+    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f / 2.0f;
   }
 
   coll.poses.resize(1);

@@ -160,6 +160,26 @@ visualization_msgs::Marker makeSphere( float scale )
   return marker;
 }
 
+visualization_msgs::Marker makeArrow( const geometry_msgs::Point &base, const geometry_msgs::Point &tip )
+{
+  visualization_msgs::Marker marker;
+
+  marker.type = visualization_msgs::Marker::ARROW;
+  float length = sqrt( pow(tip.x-base.x,2) + pow(tip.y-base.y,2) + pow(tip.z-base.z,2));
+  marker.scale.x = length/12.0;  //shaft radius
+  marker.scale.y = length/7.0;  // head radius  // what about head length?
+  //marker.scale.z = scale;
+  marker.color.r = 1.0;
+  marker.color.g = 1.0;
+  marker.color.b = 1.0;
+  marker.color.a = 1.0;
+
+  marker.points.push_back(base);
+  marker.points.push_back(tip);
+
+  return marker;
+}
+
 void add6DofControl( visualization_msgs::InteractiveMarker &msg, bool fixed )
 {
   visualization_msgs::InteractiveMarkerControl control;
