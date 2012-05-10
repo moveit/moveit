@@ -207,16 +207,18 @@ void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObjec
                              false, 
                              false);
     } else if(shape_msg.type == shape_msgs::Shape::CYLINDER) { 
+      // TODO aleeper: I added this factor of 2 to make the marker have the same radius as the collision object.
       marker = makeButtonCylinder(coll.id,
                                   pose_stamped,
-                                  shape_msg.dimensions[0],
+                                  2*shape_msg.dimensions[0],
                                   shape_msg.dimensions[1],
                                   false, 
                                   false);
     } else if(shape_msg.type == shape_msgs::Shape::SPHERE) {
+      // TODO aleeper: I added this factor of 2 to make the marker have the same radius as the collision object.
       marker = makeButtonSphere(coll.id,
                                 pose_stamped,
-                                shape_msg.dimensions[0],
+                                2*shape_msg.dimensions[0],
                                 false, 
                                 false);
     } else if(shape_msg.type == shape_msgs::Shape::MESH) {
