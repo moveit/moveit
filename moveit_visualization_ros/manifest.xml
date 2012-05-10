@@ -29,6 +29,7 @@
   <depend package="shape_msgs"/>
   <depend package="shape_conversions"/>
   <depend package="shape_utils"/>
+  <depend package="move_group"/>
   <depend package="conversion_utilities"/>
 
   <export>
