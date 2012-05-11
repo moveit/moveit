@@ -45,7 +45,9 @@ public:
                                  const planning_models::KinematicModelConstPtr& kmodel);
   
   void runTest(const std::string& group,
-               unsigned int samples = 10000) const;
+               std::vector<std::pair<std::vector<double>, std::vector<double> > >& wrong_solutions,
+               unsigned int samples = 10000,
+               bool normalize_between_pi = false) const;
 
   std::vector<double> sampleJointValues(const std::vector<moveit_msgs::JointLimits>& limits) const;
 
