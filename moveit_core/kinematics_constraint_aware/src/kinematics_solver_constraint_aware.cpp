@@ -697,7 +697,16 @@ void KinematicsSolverConstraintAware::collisionCheck(const geometry_msgs::Pose &
                                                                       planning_scene_->getTransforms(),
                                                                       constraints_, 
                                                                       false)) {
-    error_code.val = error_code.GOAL_CONSTRAINTS_VIOLATED;
+    std::stringstream s;
+    for(unsigned int i = 0; i < ik_solution.size(); i++) {
+      s << " " << ik_solution[i];
+    }
+    ROS_DEBUG_STREAM("Sol " << s.str());
+    kinematic_constraints::doesKinematicStateObeyConstraints(*state_, 
+                                                             planning_scene_->getTransforms(),
+                                                             constraints_, 
+                                                             true);
+    error_code.val = error_code.GOAL_VIOLATES_PATH_CONSTRAINTS;
   }
 }
 
@@ -847,6 +856,7 @@ bool KinematicsSolverConstraintAware::interpolateIKDirectional(const geometry_ms
     } else {
       ROS_DEBUG_STREAM("Point " << i << " of " << num_points << " infeasible " << temp_error_code.val);
       ROS_DEBUG_STREAM("Point x y z " << trans_pose.position.x << " " << trans_pose.position.y << " " << trans_pose.position.z);
+      ROS_DEBUG_STREAM("Ret traj " << ret_traj);
       return false;
     }
   }

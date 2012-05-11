@@ -36,6 +36,8 @@
 #include <float.h>
 #include <planning_models/transforms.h>
 
+static const double JOINT_STATE_EPSILON = 1e-2;
+
 InverseKinematicsSanityChecker::InverseKinematicsSanityChecker(const std::map<std::string, kinematics::KinematicsBasePtr>& solver_map,
                                                                const planning_models::KinematicModelConstPtr& kmodel):
   solver_map_(solver_map),
@@ -45,7 +47,10 @@ InverseKinematicsSanityChecker::InverseKinematicsSanityChecker(const std::map<st
 
 
 void InverseKinematicsSanityChecker::runTest(const std::string& group,
-                                             unsigned int samples) const {
+                                             std::vector<std::pair<std::vector<double>, std::vector<double> > >& wrong_solutions,
+                                             unsigned int samples,
+                                             bool normalize) const 
+{
   const planning_models::KinematicModel::JointModelGroup* joint_model_group = kmodel_->getJointModelGroup(group);
   if(!joint_model_group) {
     ROS_ERROR_STREAM("Group " << group << "not found");
@@ -59,11 +64,20 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
   planning_models::KinematicState::JointStateGroup* jsg = state.getJointStateGroup(group);
   std::vector<moveit_msgs::JointLimits> limits = joint_model_group->getJointLimits();
   unsigned int num_success = 0;
+  unsigned int num_wrong_solution = 0;
   double xmax = -DBL_MAX;
   double ymax = -DBL_MAX;
   double zmax = -DBL_MAX;
   for(unsigned int i = 0; i < samples; i++) {
     std::vector<double> joint_sample = sampleJointValues(limits);
+    if(normalize) {
+      for(unsigned int j = 0; j < joint_sample.size(); j++) {
+        while(joint_sample[j] > M_PI) 
+          joint_sample[j] -= 2*M_PI;
+        while(joint_sample[j] < -M_PI) 
+          joint_sample[j] += 2*M_PI;
+      }
+    }
     jsg->setStateValues(joint_sample);
     Eigen::Affine3d base_pose_in_world = state.getLinkState(solver->getBaseFrame())->getGlobalLinkTransform();
     Eigen::Affine3d tip_pose_in_world = state.getLinkState(solver->getTipFrame())->getGlobalLinkTransform();
@@ -78,7 +92,17 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
                               err)) {
       continue;
     }
-    num_success++;
+    double diff = 0.0;
+    for(unsigned int j = 0; j < solution.size(); j++) {
+      diff += fabs(joint_sample[j]-solution[j]);
+    }
+    if(diff > JOINT_STATE_EPSILON) {
+      //ROS_INFO_STREAM("Diff " << diff);
+      num_wrong_solution++;
+      wrong_solutions.push_back(std::pair<std::vector<double>, std::vector<double> >(joint_sample, solution));
+    } else {
+      num_success++;
+    }
     jsg->setStateValues(solution);
     Eigen::Affine3d sol_tip_pose_in_world = state.getLinkState(solver->getTipFrame())->getGlobalLinkTransform();
     double xdiff = fabs(tip_pose_in_world.translation().x() - sol_tip_pose_in_world.translation().x());
@@ -95,6 +119,7 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
     }
   }
   ROS_INFO_STREAM("Success " << (num_success*1.0)/(samples*1.0) << " diff max " << xmax << " " << ymax << " " << zmax);
+  ROS_INFO_STREAM("Wrong solution " << (num_wrong_solution*1.0)/(samples*1.0));
 }
 
 std::vector<double> 
