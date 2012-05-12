@@ -574,7 +574,7 @@ public:
   void updateLinkTransforms(void);
   
   /** \brief Update the state after setting a particular link to the input global transform pose.*/
-  bool updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform);
+  bool updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform, bool set_associated_fixed_transforms=false);
   
   /** \brief Get the kinematic model corresponding to this state.*/
   const KinematicModelConstPtr& getKinematicModel(void) const

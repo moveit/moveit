@@ -237,6 +237,19 @@ TEST_F(LoadPlanningModelsPr2, SemanticInit) {
   EXPECT_EQ(smodel.getBaseLink("right_arm"), "torso_lift_link");
 }
 
+TEST_F(LoadPlanningModelsPr2, AssociatedFixedLinks) {
+  boost::shared_ptr<planning_models::KinematicModel> kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));
+  std::vector<std::string> associated_links;
+  kmodel->getAllAssociatedFixedLinks("r_gripper_palm_link", associated_links);
+  EXPECT_TRUE(associated_links.size() > 1);
+  
+  Eigen::Affine3d trans;
+  ASSERT_TRUE(kmodel->determineFixedTransform("r_gripper_palm_link",
+                                              "r_wrist_roll_link",
+                                              trans));
+  ROS_INFO_STREAM(trans.translation());
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
