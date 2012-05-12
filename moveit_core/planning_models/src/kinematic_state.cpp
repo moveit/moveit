@@ -245,7 +245,7 @@ void planning_models::KinematicState::updateLinkTransforms(void)
     link_state_vector_[i]->computeTransform();
 }
 
-bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform)
+bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform, bool set_associated_fixed_transforms)
 {
   if (!hasLinkState(link_name))
     return false;
@@ -255,6 +255,15 @@ bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& l
   // the zeroith link will be the link itself, which shouldn't be getting updated, so we start at 1
   for(unsigned int i = 1 ; i < child_link_models.size() ; ++i)
     link_state_map_[child_link_models[i]->getName()]->computeTransform();
+  if(set_associated_fixed_transforms) {
+    std::vector<std::string> associated_fixed_links;
+    kinematic_model_->getAllAssociatedFixedLinks(link_name, associated_fixed_links);
+    for(unsigned int i = 0; i < associated_fixed_links.size(); i++) {
+      Eigen::Affine3d t;
+      kinematic_model_->determineFixedTransform(link_name, associated_fixed_links[i], t);
+      link_state_map_[associated_fixed_links[i]]->updateGivenGlobalLinkTransform(transform*t);
+    }
+  }
   return true;
 }
 

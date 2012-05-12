@@ -1503,3 +1503,113 @@ void planning_models::KinematicModel::printModelInfo(std::ostream &out) const
 
   }
 }
+
+void planning_models::KinematicModel::getAllAssociatedFixedLinks(const std::string& link_name,
+                                                                 std::vector<std::string>& associated_fixed_links) const {
+  associated_fixed_links.clear();
+  const LinkModel* lm = getLinkModel(link_name);
+  if(!lm) {
+    ROS_WARN_STREAM("No link named " << link_name);
+    return;
+  }
+  std::set<std::string> associated_fixed_links_set;
+  getAllAssociatedFixedLinks(lm,associated_fixed_links_set);
+  for(std::set<std::string>::iterator it = associated_fixed_links_set.begin();
+      it != associated_fixed_links_set.end();
+      it++) {
+    associated_fixed_links.push_back(*it);
+  }
+}
+
+void planning_models::KinematicModel::getAllAssociatedFixedLinks(const planning_models::KinematicModel::LinkModel* lm,
+                                                                 std::set<std::string>& associated_fixed_links) const
+{
+  if(associated_fixed_links.find(lm->getName()) != associated_fixed_links.end()) {
+    return;
+  } else {
+    associated_fixed_links.insert(lm->getName());
+  }
+  const JointModel* parent_jm = lm->getParentJointModel();
+  if(parent_jm) {
+    const FixedJointModel* fixed_parent_jm = dynamic_cast<const FixedJointModel*>(parent_jm);
+    if(fixed_parent_jm) {
+      if(fixed_parent_jm->getParentLinkModel()) {
+        getAllAssociatedFixedLinks(fixed_parent_jm->getParentLinkModel(),
+                                   associated_fixed_links);
+      }
+    }
+  }
+  for(unsigned int i = 0; i < lm->getChildJointModels().size(); i++) {
+    const JointModel* child_jm = lm->getChildJointModels()[i];
+    if(child_jm) {
+      const FixedJointModel* fixed_child_jm = dynamic_cast<const FixedJointModel*>(child_jm);
+      if(fixed_child_jm && fixed_child_jm->getChildLinkModel()) {
+        getAllAssociatedFixedLinks(fixed_child_jm->getChildLinkModel(), associated_fixed_links);
+      }
+    }
+  }
+}
+
+bool planning_models::KinematicModel::determineFixedTransform(const std::string& link1,
+                                                              const std::string& link2,
+                                                              Eigen::Affine3d& trans) const
+{
+  const LinkModel* lm = getLinkModel(link1);
+  if(!lm) {
+    ROS_WARN_STREAM("No link named " << link1);
+    return false;
+  }
+  std::set<std::string> associated_fixed_links_set;
+  getAllAssociatedFixedLinks(lm,associated_fixed_links_set);
+
+  if(associated_fixed_links_set.find(link2) == associated_fixed_links_set.end()) {
+    ROS_WARN_STREAM("Links " << link1 << " and " << link2 << " are not connected on a linked tree");
+    return false;
+  }
+  std::vector<std::pair<std::string, Eigen::Affine3d> > fixed_tree_one = determineFixedAncestorTree(link1);
+  std::vector<std::pair<std::string, Eigen::Affine3d> > fixed_tree_two = determineFixedAncestorTree(link2);
+
+  bool found_common_ancestor = false;
+  Eigen::Affine3d one_anc_trans;
+  Eigen::Affine3d two_anc_trans;
+
+  for(unsigned int i = 0; i < fixed_tree_one.size(); i++) {
+    for(unsigned int j = 0; j < fixed_tree_two.size(); j++) {
+      if(fixed_tree_one[i].first == fixed_tree_two[j].first) {
+        found_common_ancestor = true;
+        one_anc_trans = fixed_tree_one[i].second;
+        two_anc_trans = fixed_tree_two[j].second;
+      }
+    }
+  }
+  if(!found_common_ancestor) {
+    ROS_WARN_STREAM("No common ancestor");
+    return false;
+  }
+  trans = one_anc_trans*two_anc_trans.inverse();
+  return true;
+}
+
+std::vector<std::pair<std::string, Eigen::Affine3d>  >
+planning_models::KinematicModel::determineFixedAncestorTree(const std::string& link) const
+{
+  std::vector<std::pair<std::string, Eigen::Affine3d> > ret;
+  const LinkModel* lm = getLinkModel(link);
+  if(!lm) {
+    ROS_WARN_STREAM("No link named " << link);
+    return ret;
+  }
+  ret.push_back(std::pair<std::string, Eigen::Affine3d>(link, Eigen::Affine3d::Identity()));
+  while(true) {
+    const JointModel* parent_jm = lm->getParentJointModel();
+    if(!parent_jm) break;
+    const FixedJointModel* fixed_parent_jm = dynamic_cast<const FixedJointModel*>(parent_jm);
+    if(!fixed_parent_jm) break;
+    if(!fixed_parent_jm->getParentLinkModel()) break;
+    lm = fixed_parent_jm->getParentLinkModel();
+    Eigen::Affine3d aff = ret.back().second*lm->getJointOriginTransform().inverse();
+    ret.push_back(std::pair<std::string, Eigen::Affine3d>(lm->getName(), aff));
+    ROS_INFO_STREAM("link " << link << " pushing back parent " << lm->getName());
+  }
+  return ret;
+}

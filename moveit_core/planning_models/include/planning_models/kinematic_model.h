@@ -47,6 +47,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
 #include <moveit_msgs/JointLimits.h>
 
 #include <Eigen/Geometry>
@@ -871,9 +872,22 @@ public:
   {
     return joint_variables_index_map_;
   }
-  
+
+  void getAllAssociatedFixedLinks(const std::string& link_name,
+                                  std::vector<std::string>& associated_fixed_links) const;
+
+  void getAllAssociatedFixedLinks(const LinkModel* lm,
+                                  std::set<std::string>& associated_fixed_links) const;
+
+
+  bool determineFixedTransform(const std::string& link1,
+                               const std::string& link2,
+                               Eigen::Affine3d& trans) const; 
+
 protected:
   
+  std::vector<std::pair<std::string, Eigen::Affine3d> > determineFixedAncestorTree(const std::string& link) const;
+
   /** \brief The name of the model */
   std::string                               model_name_;
   
