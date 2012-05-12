@@ -89,3 +89,6 @@ target_link_libraries(moveit_visualizer ${QT_LIBRARIES} ${PROJECT_NAME})
 
 rosbuild_add_executable(interactive_distance_field src/interactive_distance_field.cpp)
 target_link_libraries(interactive_distance_field ${QT_LIBRARIES} ${PROJECT_NAME})
+
+rosbuild_add_executable(joint_trajectory_visualization_server src/joint_trajectory_visualization_server.cpp)
+target_link_libraries(joint_trajectory_visualization_server ${PROJECT_NAME})
