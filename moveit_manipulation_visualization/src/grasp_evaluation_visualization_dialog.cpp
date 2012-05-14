@@ -408,7 +408,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
     evaluated_grasp_browser_->setEnabled(true);
     bool success = false;
     for(unsigned int i = cur_size; i < last_grasp_evaluation_info_.size(); i++) {
-      grasp_place_evaluation::GraspExecutionInfo ev = last_grasp_evaluation_info_[i];
+      grasp_place_evaluation::GraspExecutionInfo& ev = last_grasp_evaluation_info_[i];
       if(ev.result_.result_code == moveit_manipulation_msgs::GraspResult::SUCCESS) {
         evaluated_grasp_browser_->setValue(i+1);
         evaluation_result_indicator_->setEnabled(true);
@@ -656,7 +656,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedPlaceLocations() {
   ev.attached_object_diff_scene_->getCurrentState().setStateValues(ev.lift_trajectory_.joint_names,
                                                                    ev.lift_trajectory_.points.back().positions);
   std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
-  place_evaluator_fast_->testPlaceLocations(planning_scene_,
+  place_evaluator_fast_->testPlaceLocations(ev.attached_object_diff_scene_,
                                             &ev.attached_object_diff_scene_->getCurrentState(),
                                             goal,
                                             end_effector_approach_direction_map_[end_effector_name],                                            
@@ -687,6 +687,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedPlaceLocations() {
 }
 
 void GraspEvaluationVisualizationDialog::evaluatedPlaceLocationsBrowserNumberChanged(int i) {
+  place_generator_visualization_->removeAllMarkers();
   play_grasp_and_place_execution_button_->setDisabled(true);
   if(i == 0) {
     place_evaluation_visualization_->removeAllMarkers();
@@ -697,15 +698,16 @@ void GraspEvaluationVisualizationDialog::evaluatedPlaceLocationsBrowserNumberCha
     plan_place_execution_indicator_->setDisabled(true);
   } else {
     plan_place_execution_indicator_->setText("None");
-    grasp_place_evaluation::PlaceExecutionInfo& ev = last_place_evaluation_info_[i-1];
-    evaluation_place_locations_result_indicator_->setText(grasp_place_evaluation::convertPlaceResultToStringStatus(ev.result_).c_str());
-    place_evaluation_visualization_->showPlacePose(planning_scene_,
+    grasp_place_evaluation::GraspExecutionInfo& gev = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
+    grasp_place_evaluation::PlaceExecutionInfo& pev = last_place_evaluation_info_[i-1];
+    evaluation_place_locations_result_indicator_->setText(grasp_place_evaluation::convertPlaceResultToStringStatus(pev.result_).c_str());
+    place_evaluation_visualization_->showPlacePose(gev.attached_object_diff_scene_,
                                                    last_place_evaluation_info_,
                                                    i-1,
                                                    true,
                                                    true,
                                                    true);
-    if(ev.result_.result_code == moveit_manipulation_msgs::PlaceLocationResult::SUCCESS) {
+    if(pev.result_.result_code == moveit_manipulation_msgs::PlaceLocationResult::SUCCESS) {
       play_placing_interpolated_trajectory_button_->setEnabled(true);
       plan_for_place_execution_button_->setEnabled(true);
       plan_place_execution_indicator_->setEnabled(true);
@@ -718,7 +720,8 @@ void GraspEvaluationVisualizationDialog::evaluatedPlaceLocationsBrowserNumberCha
 }
 
 void GraspEvaluationVisualizationDialog::playPlacingInterpolatedTrajectory() {
-  place_evaluation_visualization_->playInterpolatedTrajectories(planning_scene_,
+  grasp_place_evaluation::GraspExecutionInfo& gev = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
+  place_evaluation_visualization_->playInterpolatedTrajectories(gev.attached_object_diff_scene_,
                                                                 last_place_evaluation_info_,
                                                                 joint_trajectory_visualization_,
                                                                 evaluated_place_locations_browser_->value()-1,
@@ -776,7 +779,7 @@ void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecutionThread() 
                                                  last_place_planned_trajectory_,
                                                  col);
   joint_trajectory_visualization_->playCurrentTrajectory(true);
-  place_evaluation_visualization_->playInterpolatedTrajectories(planning_scene_,
+  place_evaluation_visualization_->playInterpolatedTrajectories(ev_grasp.attached_object_diff_scene_,
                                                                 last_place_evaluation_info_,
                                                                 joint_trajectory_visualization_,
                                                                 evaluated_place_locations_browser_->value()-1,

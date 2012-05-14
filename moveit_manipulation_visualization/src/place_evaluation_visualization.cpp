@@ -79,7 +79,7 @@ void PlaceEvaluationVisualization::showPlacePose(const planning_scene::PlanningS
                           end_effector_links);
   }
   if(show_preplace) {
-    state.setStateValues(place_info.place_goal_.grasp.pre_grasp_posture);
+    state.setStateValues(place_info.place_goal_.grasp.grasp_posture);
     state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(place_info.place_goal_.arm_name),
                                 place_info[num].preplace_pose_);
 
@@ -93,11 +93,10 @@ void PlaceEvaluationVisualization::showPlacePose(const planning_scene::PlanningS
                           end_effector_links);
   }
 
-  if(show_retreat) {
+  if(show_retreat && place_info[num].detached_object_diff_scene_) {
     
     planning_models::KinematicState diff_state(place_info[num].detached_object_diff_scene_->getCurrentState());    
-
-    diff_state.setStateValues(place_info.place_goal_.grasp.grasp_posture);
+    diff_state.setStateValues(place_info.place_goal_.grasp.pre_grasp_posture);
 
     diff_state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(place_info.place_goal_.arm_name),
                                      place_info[num].retreat_pose_);
@@ -148,6 +147,8 @@ void PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread(const plan
                                                                       bool play_retreat)
 {
 
+  removeAllMarkers();
+
   std_msgs::ColorRGBA col;
   col.b = col.r = col.a = 1.0;
 
@@ -165,8 +166,13 @@ void PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread(const plan
       joint_trajectory_visualization->playCurrentTrajectory();
     }
   } 
-  if(play_retreat) {
+  if(play_retreat && place_info[num].detached_object_diff_scene_) {
     place_info[num].detached_object_diff_scene_->getCurrentState().setStateValues(place_info.place_goal_.grasp.pre_grasp_posture);
+
+    place_info[num].detached_object_diff_scene_->getCollisionObjectMarkers(last_marker_array_,
+                                                                           col,
+                                                                           "detached_object",
+                                                                           ros::Duration(0.0));
 
     joint_trajectory_visualization->updatePlanningScene(place_info[num].detached_object_diff_scene_);
     joint_trajectory_visualization->setTrajectory(place_info[num].detached_object_diff_scene_->getCurrentState(),

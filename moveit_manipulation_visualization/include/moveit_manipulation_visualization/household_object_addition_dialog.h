@@ -61,7 +61,7 @@ class HouseholdObjectAdditionDialog: public QDialog
   HouseholdObjectAdditionDialog(QWidget* parent,
                                 const planning_models::SemanticModelConstPtr& semantic_model);
 
-  bool connectToDatabase(const std::string& database_host = "wgs36",
+  bool connectToDatabase(const std::string& database_host = "wgs36.willowgarage.com",
                          const int& database_port = 5432,
                          const std::string& database_user = "willow",
                          const std::string& database_pass = "willow",

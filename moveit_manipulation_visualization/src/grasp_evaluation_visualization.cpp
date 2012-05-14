@@ -94,10 +94,9 @@ void GraspEvaluationVisualization::showGraspPose(const planning_scene::PlanningS
                           end_effector_links);
   }
 
-  if(show_lift) {
+  if(show_lift && grasp_info[num].attached_object_diff_scene_) {
 
     planning_models::KinematicState diff_state(grasp_info[num].attached_object_diff_scene_->getCurrentState());    
-
     diff_state.setStateValues(grasp_info.grasps_[num].grasp_posture);
 
     diff_state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(grasp_info.pickup_goal_.arm_name),
@@ -130,6 +129,8 @@ void GraspEvaluationVisualization::playInterpolatedTrajectories(const planning_s
   if(grasp_info[num].result_.result_code != moveit_manipulation_msgs::GraspResult::SUCCESS) {
     return;
   }
+
+  removeAllMarkers();
   
   if(in_thread) {
     boost::thread(boost::bind(&GraspEvaluationVisualization::playInterpolatedTrajectoriesThread, this, planning_scene, grasp_info, 
@@ -170,7 +171,7 @@ void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(const plan
       }
     }
   } 
-  if(play_lift) {
+  if(play_lift && grasp_info[num].attached_object_diff_scene_) {
     grasp_info[num].attached_object_diff_scene_->getCurrentState().setStateValues(grasp_info.grasps_[num].grasp_posture);
 
     if(grasp_info[num].lift_trajectory_.points.size() == 0) {

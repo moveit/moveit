@@ -194,7 +194,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
     execution_info[i].detached_object_diff_scene_->getCurrentState().setStateValues(planning_scene_state_values_post_place);
     execution_info[i].retreat_pose_ = execution_info[i].place_pose_*retreat_trans;
     execution_info[i].detached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link, execution_info[i].retreat_pose_);
-    
+
     res = collision_detection::CollisionResult();
     planning_scene->checkCollision(req, res, execution_info[i].detached_object_diff_scene_->getCurrentState(), group_all_arm_disable_acm);
     if(res.collision) {
