@@ -57,6 +57,9 @@ void PlaceGeneratorVisualization::showPlace(const planning_scene::PlanningSceneC
                                             const geometry_msgs::PoseStamped& place_location)
 {
   planning_models::KinematicState state(planning_scene->getCurrentState());
+
+  state.setStateValues(grasp.grasp_posture);
+
   Eigen::Affine3d place_pose;
   planning_models::poseFromMsg(place_location.pose, place_pose);
 
