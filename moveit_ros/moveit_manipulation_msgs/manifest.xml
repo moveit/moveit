@@ -11,6 +11,7 @@
   <depend package="geometry_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="moveit_msgs"/>
+  <depend package="shape_msgs"/>
 
 </package>
 
