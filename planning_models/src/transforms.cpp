@@ -43,7 +43,8 @@ bool planning_models::quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::
   double error = fabs(q.squaredNorm() - 1.0);
   if (error > 0.1)
   {
-    ROS_ERROR("Quaternion is NOWHERE CLOSE TO NORMALIZED. Can't do much, returning identity.");
+    ROS_ERROR("Quaternion is NOWHERE CLOSE TO NORMALIZED [x,y,z,w], [%.2f, %.2f, %.2f, %.2f]. Can't do much, returning identity.",
+        qmsg.x, qmsg.y, qmsg.z, qmsg.w);
     q = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
     return false;
   }
