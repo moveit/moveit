@@ -55,6 +55,13 @@ HouseholdObjectAdditionDialog::HouseholdObjectAdditionDialog(QWidget* parent,
   selected_color_(128,128,128),
   current_id_(-1)
 {
+  ros::NodeHandle nh;
+  nh.param("grasp_database_host", grasp_database_host_, std::string("wgs36.willowgarage.com"));
+  nh.param("grasp_database_port", grasp_database_port_, 5432);
+  nh.param("grasp_database_user", grasp_database_user_, std::string("willow"));
+  nh.param("grasp_database_pass", grasp_database_pass_, std::string("willow"));
+  nh.param("grasp_database_name", grasp_database_name_, std::string("household_objects"));
+
   qRegisterMetaType<moveit_msgs::CollisionObject>("CollisionObject");
   qRegisterMetaType<moveit_manipulation_msgs::Grasp>("GraspMsg");
 
@@ -111,7 +118,11 @@ HouseholdObjectAdditionDialog::HouseholdObjectAdditionDialog(QWidget* parent,
 }
 
 void HouseholdObjectAdditionDialog::showEvent(QShowEvent* event) {
-  if(connectToDatabase()) {
+  if(connectToDatabase(grasp_database_host_,
+                       grasp_database_port_,
+                       grasp_database_user_,
+                       grasp_database_pass_,
+                       grasp_database_name_)) {
     populateDatabaseInformation();
     QDialog::showEvent(event);
     household_objects_table_->horizontalHeader()->resizeSections(QHeaderView::Stretch);

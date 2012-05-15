@@ -47,6 +47,22 @@ void PlaceEvaluationVisualization::removeAllMarkers() {
   last_marker_array_.markers.clear();
 }
 
+void PlaceEvaluationVisualization::hideAllMarkers() {
+  if(!last_marker_array_.markers.empty()) {
+    saved_marker_array_ = last_marker_array_;
+    removeAllMarkers();
+  }
+  //otherwise there's nothing to save or we'd previously hidden
+}
+
+void PlaceEvaluationVisualization::showHiddenMarkers() {
+  last_marker_array_ = saved_marker_array_;
+  for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
+    last_marker_array_.markers[i].header.stamp = ros::Time::now();
+  }
+  marker_publisher_.publish(last_marker_array_);
+}
+
 void PlaceEvaluationVisualization::showPlacePose(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                  const grasp_place_evaluation::PlaceExecutionInfoVector& place_info,
                                                  unsigned int num,
@@ -120,7 +136,8 @@ void PlaceEvaluationVisualization::playInterpolatedTrajectories(const planning_s
                                                                 unsigned int num,
                                                                 bool play_approach,
                                                                 bool play_retreat,
-                                                                bool in_thread)
+                                                                bool in_thread,
+                                                                bool hide_markers)
 {
   if(num >= place_info.size()) {
     return;
@@ -131,11 +148,9 @@ void PlaceEvaluationVisualization::playInterpolatedTrajectories(const planning_s
   }
   
   if(in_thread) {
-    boost::thread(boost::bind(&PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread, this, planning_scene, place_info, joint_trajectory_visualization, num, play_approach, play_retreat));
+    boost::thread(boost::bind(&PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread, this, planning_scene, place_info, joint_trajectory_visualization, num, play_approach, play_retreat, hide_markers));
   } else {
-    removeAllMarkers();
-    playInterpolatedTrajectoriesThread(planning_scene, place_info, joint_trajectory_visualization, num, play_approach, play_retreat);
-    //showPlacePose(planning_scene, place_info, num, true, true, true);
+    playInterpolatedTrajectoriesThread(planning_scene, place_info, joint_trajectory_visualization, num, play_approach, play_retreat, hide_markers);
   }
 }
 
@@ -144,13 +159,15 @@ void PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread(const plan
                                                                       boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
                                                                       unsigned int num,
                                                                       bool play_approach,
-                                                                      bool play_retreat)
+                                                                      bool play_retreat,
+                                                                      bool hide_markers)
 {
-
-  removeAllMarkers();
-
   std_msgs::ColorRGBA col;
   col.b = col.r = col.a = 1.0;
+
+  if(hide_markers) {
+    hideAllMarkers();
+  }
 
   if(play_approach) {
     joint_trajectory_visualization->updatePlanningScene(planning_scene);
@@ -160,26 +177,32 @@ void PlaceEvaluationVisualization::playInterpolatedTrajectoriesThread(const plan
                                                    place_info.place_goal_.arm_name,
                                                    place_info[num].approach_trajectory_,
                                                    col);
-    if(play_retreat) {
-      joint_trajectory_visualization->playCurrentTrajectory(true);
-    } else {
-      joint_trajectory_visualization->playCurrentTrajectory();
-    }
+    joint_trajectory_visualization->playCurrentTrajectory(true);
   } 
   if(play_retreat && place_info[num].detached_object_diff_scene_) {
     place_info[num].detached_object_diff_scene_->getCurrentState().setStateValues(place_info.place_goal_.grasp.pre_grasp_posture);
 
-    place_info[num].detached_object_diff_scene_->getCollisionObjectMarkers(last_marker_array_,
-                                                                           col,
-                                                                           "detached_object",
-                                                                           ros::Duration(0.0));
-
+    
+    // visualization_msgs::MarkerArray obj_array;
+    // place_info[num].detached_object_diff_scene_->getCollisionObjectMarkers(obj_array,
+    //                                                                        col,
+    //                                                                        "detached_object",
+    //                                                                        ros::Duration(0.0));
+    // if(obj_array.markers.size() == 0) {
+    //   ROS_WARN_STREAM("No collision object markers");
+    // } else {
+    //   vis_marker_array_publisher_.publish(obj_array);
+    //   last_marker_array_.push_back(obj_array.markers[0]);
+    // }
     joint_trajectory_visualization->updatePlanningScene(place_info[num].detached_object_diff_scene_);
     joint_trajectory_visualization->setTrajectory(place_info[num].detached_object_diff_scene_->getCurrentState(),
                                                   place_info.place_goal_.arm_name,
                                                   place_info[num].retreat_trajectory_,
                                                   col);
     joint_trajectory_visualization->playCurrentTrajectory(true);
+  }
+  if(hide_markers) {
+    showHiddenMarkers();
   }
 }
 

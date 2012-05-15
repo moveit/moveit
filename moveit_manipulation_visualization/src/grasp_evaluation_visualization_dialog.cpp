@@ -489,6 +489,7 @@ void GraspEvaluationVisualizationDialog::playInterpolatedTrajectory() {
                                                                 evaluated_grasp_browser_->value()-1,
                                                                 true, 
                                                                 true,
+                                                                true,
                                                                 true);
 }
 
@@ -557,10 +558,10 @@ void GraspEvaluationVisualizationDialog::planGenerationFailed(moveit_msgs::MoveI
 }
 
 void GraspEvaluationVisualizationDialog::playFullGraspExecution() {
-  boost::thread(boost::bind(&GraspEvaluationVisualizationDialog::playFullGraspExecutionThread, this));
+  boost::thread(boost::bind(&GraspEvaluationVisualizationDialog::playFullGraspExecutionThread, this, true));
 }
 
-void GraspEvaluationVisualizationDialog::playFullGraspExecutionThread() {
+void GraspEvaluationVisualizationDialog::playFullGraspExecutionThread(bool show_at_end) {
 
   if(last_planned_trajectory_.points.size() == 0) {
     ROS_WARN_STREAM("Last planned trajectory is size 0");
@@ -575,6 +576,7 @@ void GraspEvaluationVisualizationDialog::playFullGraspExecutionThread() {
                                                  current_arm_,
                                                  last_planned_trajectory_,
                                                  col);
+  grasp_evaluation_visualization_->hideAllMarkers();
   joint_trajectory_visualization_->playCurrentTrajectory(true);
   grasp_evaluation_visualization_->playInterpolatedTrajectories(planning_scene_,
                                                                 last_grasp_evaluation_info_,
@@ -582,7 +584,8 @@ void GraspEvaluationVisualizationDialog::playFullGraspExecutionThread() {
                                                                 evaluated_grasp_browser_->value()-1,
                                                                 true,
                                                                 true, 
-                                                                false);
+                                                                false,
+                                                                show_at_end);
 }
 
 void GraspEvaluationVisualizationDialog::generatePlaceLocations() {
@@ -726,6 +729,8 @@ void GraspEvaluationVisualizationDialog::playPlacingInterpolatedTrajectory() {
                                                                 joint_trajectory_visualization_,
                                                                 evaluated_place_locations_browser_->value()-1,
                                                                 true,
+                                                                true,
+                                                                true, 
                                                                 true);
 }
 
@@ -764,7 +769,8 @@ void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecution() {
 
 void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecutionThread() {
   //this plays until lift
-  playFullGraspExecutionThread();
+  place_evaluation_visualization_->hideAllMarkers();
+  playFullGraspExecutionThread(false);
 
   ROS_INFO_STREAM("Done with grasp execution thread");
 
@@ -785,12 +791,15 @@ void GraspEvaluationVisualizationDialog::playFullGraspAndPlaceExecutionThread() 
                                                                 evaluated_place_locations_browser_->value()-1,
                                                                 true,
                                                                 true, 
+                                                                false,
                                                                 false);
   joint_trajectory_visualization_->setTrajectory(ev_place.detached_object_diff_scene_->getCurrentState(),
                                                  current_arm_,
                                                  last_return_from_place_planned_trajectory_,
                                                  col);
   joint_trajectory_visualization_->playCurrentTrajectory(true);
+  grasp_evaluation_visualization_->showHiddenMarkers();
+  place_evaluation_visualization_->showHiddenMarkers();
 }
 
 void GraspEvaluationVisualizationDialog::generateTrajectoryFromJointState(const sensor_msgs::JointState& js,

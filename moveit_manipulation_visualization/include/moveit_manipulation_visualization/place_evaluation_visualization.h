@@ -48,6 +48,10 @@ public:
   
   void removeAllMarkers();
 
+  void hideAllMarkers();
+
+  void showHiddenMarkers();
+
   void showPlacePose(const planning_scene::PlanningSceneConstPtr& planning_scene,
                      const grasp_place_evaluation::PlaceExecutionInfoVector& place_info,
                      unsigned int num,
@@ -61,7 +65,8 @@ public:
                                     unsigned int num,
                                     bool play_approach,
                                     bool play_retreat,
-                                    bool in_thread = true);
+                                    bool in_thread = true,
+                                    bool hide_markers = true);
   
 protected:
 
@@ -70,10 +75,12 @@ protected:
                                           boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
                                           unsigned int num,
                                           bool play_approach,
-                                          bool play_retreat);
+                                          bool play_retreat,
+                                          bool hide_markers = true);
 
   ros::Publisher marker_publisher_;
   visualization_msgs::MarkerArray last_marker_array_;  
+  visualization_msgs::MarkerArray saved_marker_array_;
 };
 
 }
