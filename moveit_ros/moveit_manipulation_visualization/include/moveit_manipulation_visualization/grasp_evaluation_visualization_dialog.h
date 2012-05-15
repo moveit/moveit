@@ -130,7 +130,7 @@ protected:
   void disablePlaceGeneration();
   void disablePlaceEvaluation();
 
-  void playFullGraspExecutionThread();
+  void playFullGraspExecutionThread(bool show_at_end);
   void playFullGraspAndPlaceExecutionThread();
 
   void loadEndEffectorParameters();

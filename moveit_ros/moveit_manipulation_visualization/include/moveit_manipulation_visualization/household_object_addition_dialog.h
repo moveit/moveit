@@ -109,6 +109,12 @@ protected:
   moveit_household_objects_database::ObjectsDatabase *database_;
   QTableWidget* household_objects_table_;
 
+  std::string grasp_database_host_;
+  int grasp_database_port_;
+  std::string grasp_database_user_;
+  std::string grasp_database_pass_;
+  std::string grasp_database_name_;  
+
   std::map<std::string, int> collision_object_name_to_model_id_map_;
   std::map<int, shape_msgs::Shape> loaded_meshes_;
 

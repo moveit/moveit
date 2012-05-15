@@ -48,6 +48,22 @@ void GraspEvaluationVisualization::removeAllMarkers() {
   last_marker_array_.markers.clear();
 }
 
+void GraspEvaluationVisualization::hideAllMarkers() {
+  if(!last_marker_array_.markers.empty()) {
+    saved_marker_array_ = last_marker_array_;
+    removeAllMarkers();
+  }
+  //otherwise there's nothing to save or we'd previously hidden
+}
+
+void GraspEvaluationVisualization::showHiddenMarkers() {
+  last_marker_array_ = saved_marker_array_;
+  for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
+    last_marker_array_.markers[i].header.stamp = ros::Time::now();
+  }
+  marker_publisher_.publish(last_marker_array_);
+}
+
 void GraspEvaluationVisualization::showGraspPose(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                  const grasp_place_evaluation::GraspExecutionInfoVector& grasp_info,
                                                  unsigned int num,
@@ -121,7 +137,9 @@ void GraspEvaluationVisualization::playInterpolatedTrajectories(const planning_s
                                                                 unsigned int num,
                                                                 bool play_approach,
                                                                 bool play_lift,
-                                                                bool in_thread) {
+                                                                bool in_thread,
+                                                                bool hide_grasp_markers) 
+{
   if(num >= grasp_info.size()) {
     return;
   }
@@ -130,14 +148,11 @@ void GraspEvaluationVisualization::playInterpolatedTrajectories(const planning_s
     return;
   }
 
-  removeAllMarkers();
-  
   if(in_thread) {
     boost::thread(boost::bind(&GraspEvaluationVisualization::playInterpolatedTrajectoriesThread, this, planning_scene, grasp_info, 
-                              joint_trajectory_visualization, num, play_approach, play_lift));
+                              joint_trajectory_visualization, num, play_approach, play_lift, hide_grasp_markers));
   } else {
-    removeAllMarkers();
-    playInterpolatedTrajectoriesThread(planning_scene, grasp_info, joint_trajectory_visualization, num, play_approach, play_lift);
+    playInterpolatedTrajectoriesThread(planning_scene, grasp_info, joint_trajectory_visualization, num, play_approach, play_lift, hide_grasp_markers);
     //showGraspPose(planning_scene, grasp_info, num, true, true, true);
   }
 }
@@ -147,8 +162,13 @@ void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(const plan
                                                                       boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization,
                                                                       unsigned int num,
                                                                       bool play_approach,
-                                                                      bool play_lift)
+                                                                      bool play_lift,
+                                                                      bool hide_grasp_markers)
 {
+
+  if(hide_grasp_markers) {
+    hideAllMarkers();
+  }
 
   std_msgs::ColorRGBA col;
   col.b = col.r = col.a = 1.0;
@@ -164,11 +184,7 @@ void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(const plan
                                                      grasp_info.pickup_goal_.arm_name,
                                                      grasp_info[num].approach_trajectory_,
                                                      col);
-      if(play_lift) {
-        joint_trajectory_visualization->playCurrentTrajectory(true);
-      } else {
-        joint_trajectory_visualization->playCurrentTrajectory();
-      }
+      joint_trajectory_visualization->playCurrentTrajectory(true);
     }
   } 
   if(play_lift && grasp_info[num].attached_object_diff_scene_) {
@@ -185,6 +201,9 @@ void GraspEvaluationVisualization::playInterpolatedTrajectoriesThread(const plan
                                                      col);
       joint_trajectory_visualization->playCurrentTrajectory(true);
     }
+  }
+  if(hide_grasp_markers) {
+    showHiddenMarkers();
   }
 }
 
