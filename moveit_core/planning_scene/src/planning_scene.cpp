@@ -993,7 +993,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(object.object.poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3f");
+              ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.object.id.c_str());
               return false;
             }
 
@@ -1099,7 +1099,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         Eigen::Affine3d p; 
         if(!planning_models::poseFromMsg(object.poses[i], p))
         {
-          ROS_ERROR("Failed to convert from pose message to Eigen Affine3f");
+          ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
           return false;
         }
 
