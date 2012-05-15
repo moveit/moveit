@@ -881,7 +881,12 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
   const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
   for (std::size_t i = 0 ; i < map.boxes.size() ; ++i)
   {
-    Eigen::Affine3d p; planning_models::poseFromMsg(map.boxes[i].pose, p);
+    Eigen::Affine3d p;
+    if(!planning_models::poseFromMsg(map.boxes[i].pose, p))
+    {
+      ROS_ERROR("Failed to convert from pose message to Eigen Affine3f");
+    }
+
     shapes::Shape *s = new shapes::Box(map.boxes[i].extents.x, map.boxes[i].extents.y, map.boxes[i].extents.z);
     cworld_->addToObject(COLLISION_MAP_NS, shapes::ShapeConstPtr(s), t * p);
   }
@@ -985,7 +990,13 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           shapes::Shape *s = shapes::constructShapeFromMsg(object.object.shapes[i]);
           if (s)
           {
-            Eigen::Affine3d p; planning_models::poseFromMsg(object.object.poses[i], p);
+            Eigen::Affine3d p;
+            if(!planning_models::poseFromMsg(object.object.poses[i], p))
+            {
+              ROS_ERROR("Failed to convert from pose message to Eigen Affine3f");
+              return false;
+            }
+
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -1085,7 +1096,13 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
       shapes::Shape *s = shapes::constructShapeFromMsg(object.shapes[i]);
       if (s)
       {
-        Eigen::Affine3d p; planning_models::poseFromMsg(object.poses[i], p);
+        Eigen::Affine3d p; 
+        if(!planning_models::poseFromMsg(object.poses[i], p))
+        {
+          ROS_ERROR("Failed to convert from pose message to Eigen Affine3f");
+          return false;
+        }
+
         cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
       }
     }
