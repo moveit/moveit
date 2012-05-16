@@ -108,7 +108,7 @@ public:
 
   /// \brief Sets a maximum exection time, otherwise the default max execution time will be used
   void setMaximumExecutionTime( ros::Duration max_execution_time ) {
-    timeout_ = max_execution_time;
+    timeout_ = max_execution_time + ros::Duration(1.0);
   }
 
   /// \brief Execute the trajectory while recording using recorder.
