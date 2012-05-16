@@ -71,41 +71,21 @@ public:
     display_path_publisher_ = root_nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/" + DISPLAY_PATH_PUB_TOPIC, 1, true);
 
     // start the action server
-    action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_nh_, "move_group", false));
-    action_server_->registerGoalCallback(boost::bind(&MoveGroupAction::goalCallback, this));
+    action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_nh_, "move_group", boost::bind(&MoveGroupAction::executeCallback, this, _1), false));
     action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
     action_server_->start();
   }
   
-  void goalCallback(void)
-  {
-    if (service_goal_thread_)
-    {
-      terminate_service_thread_ = true;
-      service_goal_thread_->join();
-      service_goal_thread_.reset();
-    }
-    goal_ = action_server_->acceptNewGoal();
-    if (!goal_)
-    {
-      ROS_ERROR("Something unexpected happened. No goal found in callback for goal...");
-      return;
-    }
-    terminate_service_thread_ = false;
-    service_goal_thread_.reset(new boost::thread(boost::bind(&MoveGroupAction::serviceGoalRequest, this)));
-  }
-  
   void preemptCallback(void)
   {
-    action_server_->setPreempted();
-    terminate_service_thread_ = true;
+    preempt_requested_ = true;
   }
 
-  void serviceGoalRequest(void)
+  void executeCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
   {
     moveit_msgs::MoveGroupResult action_res;
     moveit_msgs::GetMotionPlan::Request mreq;
-    mreq.motion_plan_request = goal_->request;
+    mreq.motion_plan_request = goal->request;
     if (mreq.motion_plan_request.group_name.empty()) {
       ROS_WARN_STREAM("Must specify group in motion plan request");
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
@@ -116,7 +96,7 @@ public:
     setState(PLANNING);
     moveit_msgs::GetMotionPlan::Response mres;
     const planning_scene::PlanningSceneConstPtr &the_scene = 
-      planning_scene::PlanningScene::isEmpty(goal_->planning_scene_diff) ? psm_->getPlanningScene() : planning_scene::PlanningScene::diff(psm_->getPlanningScene(), goal_->planning_scene_diff);
+      planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff) ? psm_->getPlanningScene() : planning_scene::PlanningScene::diff(psm_->getPlanningScene(), goal->planning_scene_diff);
 
 
     bool solved = move_group_pipeline_.generatePlan(the_scene,
@@ -143,10 +123,10 @@ public:
     display_path_publisher_.publish(disp);      
 
     action_res.planned_trajectory = mres.trajectory;
-    if(!goal_->plan_only && !trajectory_execution_) {
+    if(!goal->plan_only && !trajectory_execution_) {
       ROS_WARN_STREAM("Move group asked for execution and was not configured to allow execution");
     }
-    if(goal_->plan_only || !trajectory_execution_) {
+    if(goal->plan_only || !trajectory_execution_) {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
       action_server_->setSucceeded(action_res, "Solution was found and returned but not executed.");
       setState(IDLE);
@@ -164,7 +144,7 @@ public:
     if (trajectory_execution_->executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
     {
       ros::WallDuration d(0.01);
-      while (nh_.ok() && !execution_complete_ && !terminate_service_thread_) {
+      while (nh_.ok() && !execution_complete_ && !preempt_requested_) {
         /// \TODO Check if the remainder of the path is still valid; If not, replan.
         /// We need a callback in the trajectory monitor for this
         d.sleep();
@@ -231,13 +211,10 @@ private:
   move_group::MoveGroupPipeline move_group_pipeline_;
 
   boost::shared_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;
-  moveit_msgs::MoveGroupGoalConstPtr goal_;
   moveit_msgs::MoveGroupFeedback feedback_;
 
-  boost::scoped_ptr<boost::thread> service_goal_thread_;
-  
   boost::shared_ptr<trajectory_execution_ros::TrajectoryExecutionMonitorRos> trajectory_execution_;  
-  bool terminate_service_thread_;
+  bool preempt_requested_;
   bool execution_complete_;
   MoveGroupState state_;
   trajectory_execution::TrajectoryExecutionDataVector last_trajectory_execution_data_vector_;
