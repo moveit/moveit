@@ -58,7 +58,7 @@ public:
 
   void updateToCurrentState();
 
-  bool doneWithExecution();
+  bool doneWithExecution(const trajectory_execution::TrajectoryExecutionDataVector& tedv);
 
   void executeLastTrajectory();
 
@@ -67,6 +67,10 @@ protected:
   void updateSceneCallback();
 
   void publisherFunction(bool joint_states);
+
+  void startCycle();
+  void cycleLastTrajectory();
+  void stopCycle();
 
   bool first_update_;
 
@@ -91,7 +95,11 @@ protected:
   boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor_;
   boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> kinematics_plugin_loader_;
 
-
+  bool execution_succeeded_;
+  boost::shared_ptr<boost::thread> cycle_thread_;
+  boost::condition_variable trajectory_execution_finished_;
+  boost::mutex trajectory_execution_mutex_;
+  bool stop_cycle_requested_;
 };
 
 }
