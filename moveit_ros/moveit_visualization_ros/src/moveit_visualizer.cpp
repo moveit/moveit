@@ -43,7 +43,9 @@ namespace moveit_visualization_ros {
 
 MoveItVisualizer::MoveItVisualizer() : 
   first_update_(true),
-  allow_trajectory_execution_(false)
+  allow_trajectory_execution_(false),
+  execution_succeeded_(false),
+  stop_cycle_requested_(false)
 {
 
   ros::NodeHandle nh;
@@ -115,6 +117,8 @@ MoveItVisualizer::MoveItVisualizer() :
     if(allow_trajectory_execution_) {
       pv_->setAllStartChainModes(true);
       pv_->addMenuEntry("Execute last trajectory", boost::bind(&MoveItVisualizer::executeLastTrajectory, this));
+      pv_->addMenuEntry("Cycle last trajectory", boost::bind(&MoveItVisualizer::startCycle, this));
+      pv_->addMenuEntry("Stop cycle", boost::bind(&MoveItVisualizer::stopCycle, this));
     }
   }
   pv_->hideAllGroups();
@@ -242,8 +246,13 @@ void MoveItVisualizer::updateSceneCallback() {
   }
 }
 
-bool MoveItVisualizer::doneWithExecution() {
+bool MoveItVisualizer::doneWithExecution(const trajectory_execution::TrajectoryExecutionDataVector& tedv) {
   ROS_INFO_STREAM("Done");
+  boost::lock_guard<boost::mutex> lock(trajectory_execution_mutex_);
+  execution_succeeded_ = (tedv.back().result_ == trajectory_execution::SUCCEEDED 
+                          || tedv.back().result_ == trajectory_execution::HANDLER_REPORTS_FAILURE_BUT_OK 
+                          || tedv.back().result_ == trajectory_execution::HANDLER_REPORTS_FAILURE_BUT_CLOSE_ENOUGH); 
+  trajectory_execution_finished_.notify_all();
   return true;
 } 
 void MoveItVisualizer::executeLastTrajectory() {
@@ -261,8 +270,57 @@ void MoveItVisualizer::executeLastTrajectory() {
     ter_reqs.push_back(ter);
 
     trajectory_execution_monitor_->executeTrajectories(ter_reqs,
-                                                       boost::bind(&MoveItVisualizer::doneWithExecution, this));
+                                                       boost::bind(&MoveItVisualizer::doneWithExecution, this, _1));
   }
+}
+
+void MoveItVisualizer::startCycle() {
+  std::string group_name;
+  trajectory_msgs::JointTrajectory traj;
+  if(pv_->getLastTrajectory(group_name, traj) &&
+     pv_->cycleOk()) {
+    ROS_INFO_STREAM("Just before cycle");
+    cycle_thread_.reset(new boost::thread(boost::bind(&MoveItVisualizer::cycleLastTrajectory, this)));
+    ROS_INFO_STREAM("Just after cycle");
+  }
+  ROS_INFO_STREAM("Starting cycle");
+}
+
+void MoveItVisualizer::cycleLastTrajectory() {
+  std::string group_name;
+  trajectory_msgs::JointTrajectory traj;
+  if(pv_->getLastTrajectory(group_name, traj)) {
+    while(ros::ok()) {
+      trajectory_execution::TrajectoryExecutionRequest ter;
+      ter.group_name_ = group_name;
+      
+      ter.trajectory_ = traj;
+      ter.trajectory_.header.stamp = ros::Time::now();
+      ter.failure_time_factor_ = 10000.0;
+      ROS_DEBUG_STREAM("Attempting to execute trajectory for group name " << group_name); 
+      
+      std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
+      ter_reqs.push_back(ter);
+
+      trajectory_execution_monitor_->executeTrajectories(ter_reqs,
+                                                         boost::bind(&MoveItVisualizer::doneWithExecution, this, _1));
+      boost::unique_lock<boost::mutex> lock(trajectory_execution_mutex_);
+      trajectory_execution_finished_.wait(lock);
+      if(!execution_succeeded_) {
+        ROS_WARN_STREAM("Stopping cycle due to failure");
+        break;
+      } else if(stop_cycle_requested_) {
+        stop_cycle_requested_ = false;
+        ROS_WARN_STREAM("Stopping cycle due to request");
+        break;
+      } 
+    }
+  }
+}
+
+
+void MoveItVisualizer::stopCycle() {
+  stop_cycle_requested_ = true;
 }
 
 void MoveItVisualizer::updateToCurrentState() {

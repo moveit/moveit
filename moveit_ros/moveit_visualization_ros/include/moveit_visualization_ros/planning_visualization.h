@@ -76,6 +76,10 @@ public:
     return true;
   }
 
+  bool cycleOk() const {
+    return cycle_ok_;
+  }
+
   void setAllStartChainModes(bool chain);
 
   std::string getCurrentGroup() const {
@@ -91,6 +95,7 @@ public:
 protected:
 
   void generatePlan(const std::string& name, bool play=true);
+  void generateOutAndBackPlan(const std::string& name, bool play=true);
   bool generatePlanForScene(const planning_scene::PlanningSceneConstPtr& scene,
                             const std::string& arm_name,
                             const planning_models::KinematicState* start_state,
@@ -100,6 +105,7 @@ protected:
 
   void generateRandomStartEnd(const std::string& name);
   void resetStartGoal(const std::string& name);
+  void playLastTrajectory();
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<move_group::MoveGroupPipeline> move_group_pipeline_;
@@ -111,7 +117,9 @@ protected:
   
   std::string last_group_name_;
   trajectory_msgs::JointTrajectory last_trajectory_;
+  planning_models::KinematicState last_start_state_;
   bool last_trajectory_ok_;
+  bool cycle_ok_;
 
 };
 

@@ -44,7 +44,9 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
                                              ros::Publisher& marker_publisher)
   : planning_scene_(planning_scene), 
     move_group_pipeline_(move_group_pipeline),
-    last_trajectory_ok_(false)
+    last_start_state_(planning_scene->getCurrentState()),
+    last_trajectory_ok_(false), 
+    cycle_ok_(false)
 {
   //ompl_interface_.getPlanningContextManager().setMaximumSolutionSegmentLength(.1);
 
@@ -60,6 +62,8 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
                                                                                            marker_publisher,
                                                                                            false));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this, _1, true));
+      group_visualization_map_[groups[i].name_]->addMenuEntry("Plan out and back", boost::bind(&PlanningVisualization::generateOutAndBackPlan, this, _1, true));
+      group_visualization_map_[groups[i].name_]->addMenuEntry("Play last trajectory", boost::bind(&PlanningVisualization::playLastTrajectory, this));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Random start / goal", boost::bind(&PlanningVisualization::generateRandomStartEnd, this, _1));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Reset start and goal", boost::bind(&PlanningVisualization::resetStartGoal, this, _1));
       group_visualization_map_[groups[i].name_]->setGoodBadMode(true);
@@ -177,27 +181,61 @@ void PlanningVisualization::generatePlan(const std::string& name, bool play) {
                           &goal_state,
                           traj,
                           error_code)) {
-    std_msgs::ColorRGBA col;
-    col.a = .8;
-    col.b = 1.0;
-
-    joint_trajectory_visualization_->setTrajectory(start_state,
-                                                   name,
-                                                   traj,
-                                                   col);
-    if(play) {
-      joint_trajectory_visualization_->playCurrentTrajectory();
-    }
-    moveit_msgs::DisplayTrajectory d;
-    d.model_id = planning_scene_->getKinematicModel()->getName();
-    planning_models::kinematicStateToRobotState(start_state, d.trajectory_start);
-    d.trajectory.joint_trajectory = traj;
-    display_traj_publisher_.publish(d);
+    last_start_state_ = start_state;
     last_trajectory_ = traj;
     last_group_name_ = name;
     last_trajectory_ok_ = true;
+    cycle_ok_ = true;
+    if(play) {
+      playLastTrajectory();
+    }
   } else {
     last_trajectory_ok_ = false;
+    ROS_INFO_STREAM("Planning failed");
+  }
+}
+
+void PlanningVisualization::generateOutAndBackPlan(const std::string& name, bool play) {
+  ROS_INFO_STREAM("Planning out and back for " << name);
+  if(group_visualization_map_.find(name) == group_visualization_map_.end()) {
+    ROS_INFO_STREAM("No group " << name << " so can't plan");
+  }
+
+  const planning_models::KinematicState& start_state = group_visualization_map_[name]->getStartState();
+  const planning_models::KinematicState& goal_state = group_visualization_map_[name]->getGoalState();
+
+  moveit_msgs::MoveItErrorCodes error_code;
+  trajectory_msgs::JointTrajectory out_traj;
+  trajectory_msgs::JointTrajectory back_traj;
+  if(generatePlanForScene(planning_scene_,
+                          name,
+                          &start_state,
+                          &goal_state,
+                          out_traj,
+                          error_code)) {
+    if(generatePlanForScene(planning_scene_,
+                            name,
+                            &goal_state,
+                            &start_state,
+                            back_traj,
+                            error_code)) {
+      ros::Duration last_dur = out_traj.points.back().time_from_start;
+      for(unsigned int i = 0; i < back_traj.points.size(); i++) {
+        out_traj.points.push_back(back_traj.points[i]);
+        out_traj.points.back().time_from_start += last_dur;
+      }
+      last_trajectory_ = out_traj;
+      last_start_state_ = start_state;
+      last_trajectory_ = out_traj;
+      last_group_name_ = name;
+      last_trajectory_ok_ = true;
+      playLastTrajectory();
+      cycle_ok_ = true;
+    }
+  } else {
+    ROS_WARN_STREAM("Out portion of out and back failed");
+    last_trajectory_ok_ = false;
+    cycle_ok_ = false;
     ROS_INFO_STREAM("Planning failed");
   }
 }
@@ -228,6 +266,25 @@ bool PlanningVisualization::generatePlanForScene(const planning_scene::PlanningS
   return true;
 }                                         
                                          
+void PlanningVisualization::playLastTrajectory() {
+  if(!last_trajectory_ok_) return;
+  
+  std_msgs::ColorRGBA col;
+  col.a = .8;
+  col.b = 1.0;
+  
+  joint_trajectory_visualization_->setTrajectory(last_start_state_,
+                                                 last_group_name_,
+                                                 last_trajectory_,
+                                                 col);
+  joint_trajectory_visualization_->playCurrentTrajectory();
+  moveit_msgs::DisplayTrajectory d;
+  d.model_id = planning_scene_->getKinematicModel()->getName();
+  planning_models::kinematicStateToRobotState(last_start_state_, d.trajectory_start);
+  d.trajectory.joint_trajectory = last_trajectory_;
+  display_traj_publisher_.publish(d);
+}
+
 
 void PlanningVisualization::generateRandomStartEnd(const std::string& name) {
 
