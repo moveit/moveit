@@ -41,6 +41,8 @@
 namespace moveit_visualization_ros
 {
 
+static const ros::Duration NO_SOLUTION_UPDATE_TIMEOUT = ros::Duration(.25);
+
 KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene, 
                                                            boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
                                                            boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
@@ -524,6 +526,11 @@ void KinematicsGroupVisualization::updateEndEffectorState(const std::string& gro
   sensor_msgs::JointState sol;
   moveit_msgs::MoveItErrorCodes err;
   
+  if(!last_solution_good_ && (ros::Time::now()-last_bad_validation_time_) < NO_SOLUTION_UPDATE_TIMEOUT) {
+    ROS_DEBUG_STREAM("No update due to last bad validation");
+    return;
+  }
+
   if(validateEndEffectorState(last_poses_, sol, err)) {
     if(last_solution_good_ == false) {
       last_solution_changed_ = true;
@@ -533,6 +540,7 @@ void KinematicsGroupVisualization::updateEndEffectorState(const std::string& gro
     last_solution_good_ = true;
     state_.setStateValues(sol);
   } else {
+    last_bad_validation_time_ = ros::Time::now();
     if(last_solution_good_ == true) {
       last_solution_changed_ = true;
     } else {
