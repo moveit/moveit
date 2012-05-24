@@ -175,6 +175,7 @@ protected:
   bool all_markers_hidden_;
   bool last_solution_good_;
   bool last_solution_changed_;
+  ros::Time last_bad_validation_time_;
 
   std_msgs::ColorRGBA good_color_;
   std_msgs::ColorRGBA bad_color_;

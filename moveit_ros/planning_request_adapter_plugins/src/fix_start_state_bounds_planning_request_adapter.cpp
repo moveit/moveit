@@ -143,7 +143,7 @@ public:
           }
           else
             ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf < %lf (by more than %lf). "
-                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].first, bounds_dist_, BOUNDS_PARAM_NAME.c_str());
+                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].second, bounds_dist_, BOUNDS_PARAM_NAME.c_str());
         }
       }
     }
