@@ -1579,7 +1579,16 @@ bool planning_models::KinematicModel::determineFixedTransform(const std::string&
         found_common_ancestor = true;
         one_anc_trans = fixed_tree_one[i].second;
         two_anc_trans = fixed_tree_two[j].second;
+        // ROS_INFO_STREAM("Common ancestor of " << link1 << " and " << link2 << " is " << fixed_tree_one[i].first);
+        // ROS_INFO_STREAM("Trans one is \n" << one_anc_trans.translation());
+        // ROS_INFO_STREAM("Rot \n" << one_anc_trans.rotation());
+        // ROS_INFO_STREAM("Trans two is \n" << two_anc_trans.translation());
+        // ROS_INFO_STREAM("Rot \n" << two_anc_trans.rotation());
+        break;
       }
+    }
+    if(found_common_ancestor) {
+      break;
     }
   }
   if(!found_common_ancestor) {
@@ -1606,10 +1615,13 @@ planning_models::KinematicModel::determineFixedAncestorTree(const std::string& l
     const FixedJointModel* fixed_parent_jm = dynamic_cast<const FixedJointModel*>(parent_jm);
     if(!fixed_parent_jm) break;
     if(!fixed_parent_jm->getParentLinkModel()) break;
-    lm = fixed_parent_jm->getParentLinkModel();
     Eigen::Affine3d aff = ret.back().second*lm->getJointOriginTransform().inverse();
+    lm = fixed_parent_jm->getParentLinkModel();
     ret.push_back(std::pair<std::string, Eigen::Affine3d>(lm->getName(), aff));
-    ROS_INFO_STREAM("link " << link << " pushing back parent " << lm->getName());
+    // ROS_INFO_STREAM("Joint origin trans for parent " << lm->getName() << " is " <<
+    //                 lm->getJointOriginTransform().translation());
+    // ROS_INFO_STREAM("Rot \n" << lm->getJointOriginTransform().rotation());
+    // ROS_INFO_STREAM("link " << link << " pushing back parent " << lm->getName());
   }
   return ret;
 }
