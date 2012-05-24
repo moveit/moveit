@@ -619,10 +619,10 @@ visualization_msgs::InteractiveMarker makeMeshButtonFromLinks(const std::string&
   }
 
   const planning_models::KinematicState::LinkState* parent_link_state = state.getLinkState(parent_link);
-  Eigen::Affine3d parent_pose = parent_link_state->getGlobalCollisionBodyTransform();
+  Eigen::Affine3d parent_pose = parent_link_state->getGlobalLinkTransform();
 
   const planning_models::KinematicState::LinkState* first_link_state = state.getLinkState(links[0]);
-  Eigen::Affine3d first_pose = first_link_state->getGlobalCollisionBodyTransform();
+  Eigen::Affine3d first_pose = first_link_state->getGlobalLinkTransform();
 
   //ROS_INFO_STREAM("Parent link " << parent_link << " first link " << links[0]);
   
