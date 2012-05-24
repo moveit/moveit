@@ -17,7 +17,10 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(${PROJECT_NAME}
-  src/compute_default_collision_matrix.cpp)
+  src/compute_default_collision_matrix.cpp
+  src/benchmark_timer.cpp
+)
 
 rosbuild_add_executable(compute_default_collision_matrix src/compute_default_collision_matrix_main.cpp)
+
 target_link_libraries(compute_default_collision_matrix ${PROJECT_NAME})
