@@ -50,12 +50,12 @@ int main(int argc, char **argv)
 
   // Setup benchmark timer
   BTimer = BenchmarkTimer();
-  BTimer.start("Total"); // Timer
+  BTimer.start("Total"); 
    
   // Load robot description
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
 
-  // Find the default collision matrix
+  // Find the default collision matrix - all links that are allowed to collide
   const std::map<std::string, std::vector<std::string> > &result = moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene());
 
   // Output the yaml file
@@ -65,13 +65,13 @@ int main(int argc, char **argv)
   {    
     for (std::size_t i = 0 ; i < it->second.size() ; ++i)
     {
-      std::cout << "   <disable_collisions link1=\"" << it->first << "\" link2=\"" << it->second[i] << "\" />" << std::endl;
+      std::cout << "   b<disable_collisions link1=\"" << it->first << "\" link2=\"" << it->second[i] << "\" />" << std::endl;
       n++;
     }
   }
   
-  // Results
-  BTimer.end("Total"); // Timer
+  // Benchmarking Results
+  BTimer.end("Total"); 
   BTimer.printTimes(); // output results   
   // number of links disabled from collision checking
   std::cout << n << std::endl << std::endl;  

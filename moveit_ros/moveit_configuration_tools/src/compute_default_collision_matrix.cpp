@@ -40,12 +40,11 @@
 
 extern BenchmarkTimer BTimer;
 
-// *********************************************************************
+// ******************************************************************************
 // Main call for computing default collision matrix
-// *********************************************************************
-std::map<std::string, std::vector<std::string> > 
-moveit_configuration_tools::computeDefaultCollisionMatrix(
-                                                          const planning_scene::PlanningSceneConstPtr &parent_scene, 
+// ******************************************************************************
+std::map<std::string, std::vector<std::string> >  // an adj list
+moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, 
                                                           bool include_never_colliding)
 {
   // Trial count variables
@@ -56,42 +55,51 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(
   // Create new instance of planning scene using pointer
   planning_scene::PlanningScene scene(parent_scene);
 
-  // Create collision detection object
+  // Create collision detection request object
   collision_detection::CollisionRequest req;
   req.contacts = true;
-  req.max_contacts = 2;
+  req.max_contacts = 2; // max number of contacts to compute. 2 is just a guess? TODO: change to number of links^2?
   req.max_contacts_per_pair = 1;
   req.verbose = false;
 
-  // Create collision matrix
+  // Create structure for tracking which collisions are allowed
+  // 
+  // AllowedCollisionMatrix: Definition of a structure for the allowed collision matrix. 
+  // All elements in the collision world are referred to by their names.
+  // This class represents which collisions are allowed to happen and which are not. */
   collision_detection::AllowedCollisionMatrix &acm = scene.getAllowedCollisionMatrix();
 
-  // Create result vars
-  std::map<std::string, std::vector<std::string> > result;
-  std::set<std::pair<std::string, std::string> > seen_colliding;
-  
-  // For each link, compute the set of other links it connects to via a single joint (adjacent links) 
-  // or via a chain of joints and links with no geometry
+  // Create 'resultAdjList' to that contains a link as a key and an ordered list of links that are connected. An edgelist
+  std::map<std::string, std::vector<std::string> > resultAdjList;
 
-  LinkGraph lg; // LinkGraph is a custom type defined at top
+  // Track unique edges that have been found to be in collision in some state
+  std::set<std::pair<std::string, std::string> > links_seen_colliding;
+  
+
+  // FIND CONNECTING LINKS ------------------------------------------------------------------------
+  // For each link, compute the set of other links it connects to via a single joint (adjacent links) 
+  // or via a chain of joints with intermediate links with no geometry (like a socket joint)
+
+  LinkGraph lg; // LinkGraph is a custom type of a map with a LinkModel as key and a set of LinkModels as second
 
   // Create Connection Graph
   BTimer.start("GenConnG"); // Benchmarking Timer - temporary
   moveit_configuration_tools::computeConnectionGraph(scene.getKinematicModel()->getRootLink(), lg);
   BTimer.end("GenConnG"); // Benchmarking Timer - temporary
 
+  ROS_INFO("Generated connection graph with %d links", int(lg.size()));
+
   // UPDATE NUMBER OF CONTACTS TO CONSIDER ----------------------------------------------------------
+  // update the number of contacts we should consider in collision detection:
   ROS_INFO("Computing the number of contacts we should consider...");
+  BTimer.start("ContactConsider"); // Benchmarking Timer - temporary  
 
   bool done = false; 
-
-  BTimer.start("ContactConsider"); // Benchmarking Timer - temporary  
-  // update the number of contacts we should consider in collision detection:
   while (!done)
   {
     done = true;
 
-    // Check for SELF collisions
+    // Check for collisions in a random state
     collision_detection::CollisionResult res;
     scene.getCurrentState().setToRandomValues();
     scene.checkSelfCollision(req, res);
@@ -106,7 +114,9 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(
     // Check if the number of contacts is greater than the max count
     if (nc >= req.max_contacts)
     {
-      req.max_contacts *= 2; // double the max contacts
+      req.max_contacts *= 2; // double the max contacts that the CollisionRequest checks for
+      std::cout << "Doubling max_contacts to " << req.max_contacts << std::endl;
+
       done = false;
     }
   }
@@ -122,6 +132,7 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(
   {
     std::map<std::pair<std::string, std::string>, unsigned int> count;    
 
+    // Do a large number of tests
     for (unsigned int i = 0 ; i < small_trial_count ; ++i)
     {
       // Check for collisions
@@ -134,13 +145,16 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(
       for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
       {
         count[it->first]++;
-        seen_colliding.insert(it->first);
+        links_seen_colliding.insert(it->first);
         nc += it->second.size();
       }
       
       // Check if the number of contacts is greater than the max count
       if (nc >= req.max_contacts)
-        req.max_contacts *= 2; // double the max contacts
+      {
+        req.max_contacts *= 2; // double the max contacts that the CollisionRequest checks for
+        std::cout << "Doubling max_contacts to " << req.max_contacts << std::endl;
+      }
     }
 
     // ADD QUALIFYING LINKS TO COLLISION MATRIX -----------------------------------------------
@@ -165,9 +179,9 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(
         if (ok)
         {
           if (it->first.first < it->first.second)
-            result[it->first.first].push_back(it->first.second);
+            resultAdjList[it->first.first].push_back(it->first.second);
           else
-            result[it->first.second].push_back(it->first.first);
+            resultAdjList[it->first.second].push_back(it->first.first);
           acm.setEntry(it->first.first, it->first.second, true);
           found++;
         }
@@ -196,6 +210,8 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(
       {
         update = false;
         ROS_INFO("Still seeing updates on possibly colliding links ...");
+
+        // Do a large number of tests
         for (unsigned int i = 0 ; i < small_trial_count ; ++i)
         {
           collision_detection::CollisionResult res;
@@ -203,7 +219,7 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(
           scene.checkSelfCollision(req, res);
           for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
           {
-            if (seen_colliding.insert(it->first).second)
+            if (links_seen_colliding.insert(it->first).second) // the second is a bool determining if it was already in 
               update = true;
           }
         }
@@ -214,33 +230,94 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(
     for (std::size_t i = 0 ; i < names.size() ; ++i)
     {
       for (std::size_t j = i + 1 ; j < names.size() ; ++j)
-        if (seen_colliding.find(std::make_pair(names[i], names[j])) == seen_colliding.end())
+        if (links_seen_colliding.find(std::make_pair(names[i], names[j])) == links_seen_colliding.end())
         {
           if (names[i] < names[j])
-            result[names[i]].push_back(names[j]);
+            resultAdjList[names[i]].push_back(names[j]);
           else
-            result[names[j]].push_back(names[i]);
+            resultAdjList[names[j]].push_back(names[i]);
         }
     }
   }
   BTimer.end("NeverColl"); // Benchmarking Timer - temporary  
   
-  return result;
+  return resultAdjList;
 }
 
-// *********************************************************************
-// Recursively build the edge list of graph connections
-// *********************************************************************
-void moveit_configuration_tools::computeConnectionGraphRec(const planning_models::KinematicModel::LinkModel *link, moveit_configuration_tools::LinkGraph &edges)
+// ******************************************************************************
+// Build the robot links connection graph and then check for links with no geomotry
+// ******************************************************************************
+void 
+moveit_configuration_tools::computeConnectionGraph(const planning_models::KinematicModel::LinkModel *start_link, 
+                                                   moveit_configuration_tools::LinkGraph &edges)
 {
-  if (link)
+  edges.clear(); // make sure the edges structure is clear
+
+  // Recurively build adj list of link connections
+  moveit_configuration_tools::computeConnectionGraphRec(start_link, edges);
+
+  // Repeatidly check for links with no geometry and remove them, then re-check until no more removals are detected
+  bool update = true; // track if a no geometry link was found
+  while (update)
   {
-    for (std::size_t i = 0 ; i < link->getChildJointModels().size() ; ++i)
+    update = false; // default
+
+    // Check if each edge has a shape
+    for (moveit_configuration_tools::LinkGraph::const_iterator edge_it = edges.begin() ; edge_it != edges.end() ; ++edge_it)
     {
-      const planning_models::KinematicModel::LinkModel *next = link->getChildJointModels()[i]->getChildLinkModel();
+      if (!edge_it->first->getShape()) // link in adjList "edges" does not have shape, remove!
+      {        
+        // Temporary list for connected links
+        std::vector<const planning_models::KinematicModel::LinkModel*> temp_list;
+
+        // Copy link's parent and child links to temp_list
+        for (std::set<const planning_models::KinematicModel::LinkModel*>::const_iterator adj_it = edge_it->second.begin(); 
+             adj_it != edge_it->second.end(); 
+             ++adj_it)
+        {
+          temp_list.push_back(*adj_it);
+        }
+
+        // Make all preceeding and succeeding links to the no-shape link fully connected
+        // so that they don't collision check with themselves
+        for (std::size_t i = 0 ; i < temp_list.size() ; ++i)
+        {
+          for (std::size_t j = i + 1 ; j < temp_list.size() ; ++j)
+          {
+            // for each LinkModel in temp_list, find its location in the edges structure and insert the rest 
+            // of the links into its unique set.
+            // if the LinkModel is not already in the set, update is set to true so that we keep searching
+            if (edges[temp_list[i]].insert(temp_list[j]).second) 
+              update = true;
+            if (edges[temp_list[j]].insert(temp_list[i]).second)
+              update = true;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+// ******************************************************************************
+// Recursively build the adj list of link connections
+// ******************************************************************************
+void 
+moveit_configuration_tools::computeConnectionGraphRec(const planning_models::KinematicModel::LinkModel *start_link, 
+                                                      moveit_configuration_tools::LinkGraph &edges)
+{
+  if (start_link) // check that the link is a valid pointer
+  {
+    // Loop through every link attached to start_link
+    for (std::size_t i = 0 ; i < start_link->getChildJointModels().size() ; ++i)
+    {
+      const planning_models::KinematicModel::LinkModel *next = start_link->getChildJointModels()[i]->getChildLinkModel();
       
-      edges[next].insert(link);
-      edges[link].insert(next);
+      // Bi-directional connection
+      edges[next].insert(start_link);
+      edges[start_link].insert(next);
+      
+      // Iterate with subsequent link
       moveit_configuration_tools::computeConnectionGraphRec(next, edges);      
     }
   }
@@ -249,40 +326,4 @@ void moveit_configuration_tools::computeConnectionGraphRec(const planning_models
     ROS_ERROR("Joint exists in URDF with no link!");
   }  
 }
-
-// *********************************************************************
-// Build the connection graph and then check 
-// *********************************************************************
-void moveit_configuration_tools::computeConnectionGraph(const planning_models::KinematicModel::LinkModel *link, moveit_configuration_tools::LinkGraph &edges)
-{
-  edges.clear();
-  moveit_configuration_tools::computeConnectionGraphRec(link, edges);
-  bool update = true;
-  while (update)
-  {
-    update = false;
-    // Check if each edge has a shape
-    for (moveit_configuration_tools::LinkGraph::const_iterator it = edges.begin() ; it != edges.end() ; ++it)
-      if (!it->first->getShape())
-      {        
-        // Create new link
-        std::vector<const planning_models::KinematicModel::LinkModel*> v;
-
-        // Take second link in edge and add to new link
-        for (std::set<const planning_models::KinematicModel::LinkModel*>::const_iterator jt = it->second.begin() ; jt != it->second.end() ; ++jt)
-          v.push_back(*jt);
-
-        // Check if we need to keep looping?
-        for (std::size_t i = 0 ; i < v.size() ; ++i)
-          for (std::size_t j = i + 1 ; j < v.size() ; ++j)
-          {
-            if (edges[v[i]].insert(v[j]).second)
-              update = true;
-            if (edges[v[j]].insert(v[i]).second)
-              update = true;
-          }
-      }
-  }
-}
-
 
