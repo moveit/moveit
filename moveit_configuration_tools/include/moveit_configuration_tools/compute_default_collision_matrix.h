@@ -45,18 +45,20 @@
 namespace moveit_configuration_tools
 {
 
-// Create custom type for link graph
+// LinkGraph defines a Link's model and a set of unique links it connects
 typedef std::map<const planning_models::KinematicModel::LinkModel*, std::set<const planning_models::KinematicModel::LinkModel*> > LinkGraph;
 
+// Main call for computing default collision matrix
 std::map<std::string, std::vector<std::string> > 
 computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, bool include_never_colliding = false);
 
-void
-computeConnectionGraphRec(const planning_models::KinematicModel::LinkModel *link, LinkGraph &edges);
-
+// Build the robot links connection graph and then check for links with no geomotry
 void
 computeConnectionGraph(const planning_models::KinematicModel::LinkModel *link, LinkGraph &edges);
 
+// Recursively build the adj list of link connections
+void
+computeConnectionGraphRec(const planning_models::KinematicModel::LinkModel *link, LinkGraph &edges);
 
 }
 
