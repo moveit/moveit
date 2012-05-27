@@ -108,11 +108,6 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &res.error_code, &attempts, &timeout);
   if (!context)
     return false;
-
-  /// \todo debug
-  std::ofstream fout(("/u/isucan/" + context->getOMPLStateSpace()->getName() + ".dot").c_str());
-  context->getOMPLStateSpace()->diagram(fout);
-  fout.close();
   
   if (context->solve(timeout, attempts))
   {
@@ -127,7 +122,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
     // fill the response
     ROS_DEBUG("%s: Returning successful solution with %lu states", context->getName().c_str(),
 	      context->getOMPLSimpleSetup().getSolutionPath().getStateCount());
-    pm::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
+    planning_models::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
     context->getSolutionPath(res.trajectory);
     res.planning_time = ros::Duration(ptime);
     return true;
@@ -155,7 +150,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   if (context->solve(timeout, attempts))
   {
     res.trajectory.reserve(3);
-    pm::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
+    planning_models::kinematicStateToRobotState(context->getCompleteInitialRobotState(), res.trajectory_start);
     
     // add info about planned solution
     double ptime = context->getLastPlanTime();

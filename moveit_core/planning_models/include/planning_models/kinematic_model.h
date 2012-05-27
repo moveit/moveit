@@ -84,11 +84,16 @@ public:
     friend class KinematicModel;
   public:
     
+    /** \brief The different types of joints we support */
     enum JointType
       {
         UNKNOWN, REVOLUTE, PRISMATIC, PLANAR, FLOATING, FIXED
       };
+
+    /** \brief The datatype for the joint bounds */
+    typedef std::vector<std::pair<double, double> > Bounds;
     
+
     /** \brief Construct a joint named \e name */
     JointModel(const std::string& name);
     
@@ -125,35 +130,10 @@ public:
     {
       return child_link_model_;
     }
-        
-    /** \brief Provide a default value for the joint given the joint bounds.
-        Most joints will use the default implementation provided in this base class, but the quaternion
-        for example needs a different implementation. The map is NOT cleared; elements are only added (or overwritten). */
-    void getDefaultValues(std::map<std::string, double> &values) const;
-    
-    /** \brief Provide random values for the joint variables (within bounds). The map is NOT cleared; elements are only added (or overwritten). */
-    void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const;
-    
-    /** \brief Provide a default value for the joint given the joint variable bounds.
-        Most joints will use the default implementation provided in this base class, but the quaternion
-        for example needs a different implementation. The vector is NOT cleared; elements are only added with push_back */
-    virtual void getDefaultValues(std::vector<double> &values) const;
-    
-    /** \brief Provide random values for the joint variables (within bounds). The vector is NOT cleared; elements are only added with push_back */
-    virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
-    
-    /** \brief Check if a particular variable satisfies the specified bounds */
-    virtual bool satisfiesBounds(const std::string& variable, double value) const;
-    
-    /** \brief Check if the set of values for the variables of this joint are within bounds. */
-    virtual bool satisfiesBounds(const std::vector<double> &values) const;
 
-    /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
-    virtual void enforceBounds(std::vector<double> &values) const;
+    /** @name Reason about the variables that make up this joint
+        @{ */
 
-    /** \brief Compute the distance between two joint states of the same model (represented by the variable values) */
-    virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const = 0;
-    
     /** \brief Get the names of the variables that make up this joint, in the order they appear in corresponding states.
         For single DOF joints, this will be just the joint name. */
     const std::vector<std::string>& getVariableNames(void) const
@@ -167,18 +147,6 @@ public:
       return local_names_;
     }
     
-    /** \brief Get the lower and upper bounds for a variable. Return false if the variable was not found */
-    bool getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const;
-
-    /** \brief Get the variable bounds for this joint, in the same order as the names returned by getVariableNames() */
-    const std::vector<std::pair<double, double> > &getVariableBounds(void) const
-    {
-      return variable_bounds_;
-    }
-    
-    /** \brief Get variable limits as a message type */
-    virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
-
     /** \brief Check if a particular variable is known to this joint */
     bool hasVariable(const std::string &variable) const
     {
@@ -191,16 +159,106 @@ public:
       return variable_names_.size();
     }
     
-    /** \brief Get the dimension of the state space that corresponds to this joint */
-    virtual unsigned int getStateSpaceDimension(void) const = 0;
-    
     /** \brief The set of variables that make up the state value of a joint are stored in some order. This map
         gives the position of each variable in that order, for each variable name */
     const std::map<std::string, unsigned int>& getVariableIndexMap(void) const
     {
       return variable_index_;
     }
+    /** @} */
+
+    /** @name Functionality specific to computing state values
+        @{ */
     
+    /** \brief Provide a default value for the joint given the default joint variable bounds (maintained internally).
+        Most joints will use the default implementation provided in this base class, but the quaternion
+        for example needs a different implementation. The map is NOT cleared; elements are only added (or overwritten). */
+    void getDefaultValues(std::map<std::string, double> &values) const
+    {
+      getDefaultValues(values, variable_bounds_);
+    }
+    
+    /** \brief Provide a default value for the joint given the joint bounds.
+        Most joints will use the default implementation provided in this base class, but the quaternion
+        for example needs a different implementation. The map is NOT cleared; elements are only added (or overwritten). */
+    void getDefaultValues(std::map<std::string, double> &values, const Bounds &other_bounds) const;
+    
+    /** \brief Provide a default value for the joint given the default joint variable bounds (maintained internally).
+        Most joints will use the default implementation provided in this base class, but the quaternion
+        for example needs a different implementation. The vector is NOT cleared; elements are only added with push_back */
+    void getDefaultValues(std::vector<double> &values) const
+    {
+      getDefaultValues(values, variable_bounds_);
+    }
+    
+    /** \brief Provide a default value for the joint given the joint variable bounds.
+        Most joints will use the default implementation provided in this base class, but the quaternion
+        for example needs a different implementation. The vector is NOT cleared; elements are only added with push_back */
+    virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const = 0;
+        
+    /** \brief Provide random values for the joint variables (within default bounds). The map is NOT cleared; elements are only added (or overwritten). */
+    void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
+    {
+      getRandomValues(rng, values, variable_bounds_);
+    }
+    
+    /** \brief Provide random values for the joint variables (within specified bounds). The map is NOT cleared; elements are only added (or overwritten). */
+    void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values, const Bounds &other_bounds) const;
+
+    /** \brief Provide random values for the joint variables (within default bounds). The vector is NOT cleared; elements are only added with push_back */
+    void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
+    {
+      getRandomValues(rng, values, variable_bounds_);
+    }
+    
+    /** \brief Provide random values for the joint variables (within specified bounds). The vector is NOT cleared; elements are only added with push_back */
+    virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const = 0;
+        
+    /** @} */
+    
+    /** @name Functionality specific to verifying bounds
+        @{ */
+
+    /** \brief Check if the set of values for the variables of this joint are within bounds. */
+    bool satisfiesBounds(const std::vector<double> &values) const
+    {
+      return satisfiesBounds(values, variable_bounds_);
+    }
+    
+    /** \brief Check if the set of values for the variables of this joint are within bounds. */
+    virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const = 0;
+    
+    /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
+    void enforceBounds(std::vector<double> &values) const
+    {
+      enforceBounds(values, variable_bounds_);
+    }
+    
+    /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
+    virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const = 0;
+    
+    /** \brief Get the lower and upper bounds for a variable. Return false if the variable was not found */
+    bool getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const;
+
+    /** \brief Get the variable bounds for this joint, in the same order as the names returned by getVariableNames() */
+    const Bounds& getVariableBounds(void) const
+    {
+      return variable_bounds_;
+    }
+    
+    /** \brief Get variable limits as a message type */
+    virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
+    
+    /** @} */
+
+    /** \brief Compute the distance between two joint states of the same model (represented by the variable values) */
+    virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const = 0;
+    
+
+    /** \brief Get the dimension of the state space that corresponds to this joint */
+    virtual unsigned int getStateSpaceDimension(void) const = 0;
+    
+
     /** \brief Get the joint this one is mimicking */
     const JointModel* getMimic(void) const
     {
@@ -251,6 +309,9 @@ public:
     /** \brief Get the extent of the state space (the maximum value distance() can ever report) */
     virtual double getMaximumExtent(void) const = 0;
     
+    /** @name Computing transforms 
+        @{ */
+    
     /** \brief Given the joint values for a joint, compute the corresponding transform */
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const = 0;
     
@@ -262,6 +323,8 @@ public:
         previously set to identity and that only calls to updateTransform() were issued afterwards */
     virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const = 0;
     
+    /** @} */
+
   protected:
     
     /** \brief Name of the joint */
@@ -277,7 +340,7 @@ public:
     std::vector<std::string>                          variable_names_;
     
     /** \brief The bounds for each variable (low, high) in the same order as variable_names_ */
-    std::vector<std::pair<double, double> >           variable_bounds_;
+    Bounds                                            variable_bounds_;
     
     /** \brief The maximum velocity of this joint. If zero, the value is considered not to be specified. */
     double                                            max_velocity_;
@@ -318,7 +381,12 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     FixedJointModel(const std::string &name);
-    
+
+    virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;    
+    virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const;
+
     virtual unsigned int getStateSpaceDimension(void) const;   
     virtual double getMaximumExtent(void) const;
     virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;    
@@ -337,11 +405,14 @@ public:
 
     PlanarJointModel(const std::string& name);
 
+    virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const;
+
     virtual unsigned int getStateSpaceDimension(void) const;
     virtual double getMaximumExtent(void) const;
     virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
-    virtual bool satisfiesBounds(const std::string& variable, double value) const;
-    virtual void enforceBounds(std::vector<double> &values) const;
     virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
 
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
@@ -357,10 +428,12 @@ public:
     {
       angular_distance_weight_ = weight;
     }
-  private:
 
     /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this function
     void normalizeRotation(std::vector<double> &values) const;  
+
+  private:
+
     
     double angular_distance_weight_;
   };
@@ -373,7 +446,11 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     FloatingJointModel(const std::string& name);
-    virtual void enforceBounds(std::vector<double> &values) const;
+    virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const; 
+    virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const;
+
     virtual double getMaximumExtent(void) const;
     virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
     virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
@@ -381,8 +458,6 @@ public:
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double>& joint_values) const;
     virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
-    virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
-    virtual void getDefaultValues(std::vector<double>& values) const;
 
     double getAngularDistanceWeight(void) const
     {
@@ -393,10 +468,11 @@ public:
     {
       angular_distance_weight_ = weight;
     }
-    
-  private:
+
     /// Normalize the quaternion (warn if norm is 0, and set to identity)
     void normalizeRotation(std::vector<double> &values) const;
+    
+  private:
 
     double angular_distance_weight_;
   };
@@ -408,7 +484,12 @@ public:
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    PrismaticJointModel(const std::string& name);
+    PrismaticJointModel(const std::string& name);  
+    virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;   
+    virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const;
+
     virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
     virtual unsigned int getStateSpaceDimension(void) const;
     virtual double getMaximumExtent(void) const;
@@ -435,14 +516,17 @@ public:
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    RevoluteJointModel(const std::string& name);
+    RevoluteJointModel(const std::string& name); 
+    virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;    
+    virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
+    virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const;
+
     virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
     virtual unsigned int getStateSpaceDimension(void) const;
     virtual double getMaximumExtent(void) const;
     virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
     virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
-    virtual bool satisfiesBounds(const std::string& variable, double value) const;
-    virtual void enforceBounds(std::vector<double> &values) const;
 
     virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
     virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const;
@@ -680,6 +764,12 @@ public:
     
     /** \brief Get the values that correspond to a named state as read from the URDF. Return false on failure. */
     bool getDefaultValues(const std::string &name, std::map<std::string, double> &values) const;
+
+    /** \brief Compute the default values for the joint group */
+    void getDefaultValues(std::vector<double> &values) const;
+    
+    /** \brief Compute the default values for the joint group */
+    void getDefaultValues(std::map<std::string, double> &values) const;
     
     /** \brief Compute random values for the state of the joint group */
     void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
@@ -898,9 +988,15 @@ public:
   
   /** \brief Compute the random values for a KinematicState */
   void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const;
+
+  /** \brief Compute the random values for a KinematicState */
+  void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const;
   
   /** \brief Compute the default values for a KinematicState */
   void getDefaultValues(std::vector<double> &values) const;
+
+  /** \brief Compute the default values for a KinematicState */
+  void getDefaultValues(std::map<std::string, double> &values) const;
   
   /** \brief Print information about the constructed model */
   void printModelInfo(std::ostream &out = std::cout) const;

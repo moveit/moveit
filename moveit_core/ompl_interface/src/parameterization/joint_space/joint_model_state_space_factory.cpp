@@ -37,13 +37,18 @@
 #include "ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h"
 #include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
 
+ompl_interface::JointModelStateSpaceFactory::JointModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
+{
+  type_ = JointModelStateSpace::PARAMETERIZATION_TYPE;
+}  
+
 int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
-								     const pm::KinematicModelConstPtr &kmodel,
+								     const planning_models::KinematicModelConstPtr &kmodel,
 								     const planning_scene::KinematicsAllocators &aks) const
 {
   return 100;
 }
-  
+
 ompl_interface::ModelBasedStateSpacePtr ompl_interface::JointModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const
 {
   return ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec));

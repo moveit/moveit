@@ -64,7 +64,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
   
   // check path constraints
-  const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
+  const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
   if (kset && !kset->decide(*kstate, verbose_).satisfied)
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
@@ -124,7 +124,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
 
   // check path constraints
-  const kc::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
+  const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
   if (kset)
   {
     kinematic_constraints::ConstraintEvaluationResult cer = kset->decide(*kstate, verbose_);

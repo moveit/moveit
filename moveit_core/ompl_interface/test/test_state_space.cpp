@@ -35,8 +35,10 @@
 /** Author Ioan Sucan */
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
+#include <ompl/util/Exception.h>
 #include <planning_models/conversions.h>
 #include <gtest/gtest.h>
+#include <fstream>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -67,11 +69,45 @@ protected:
 
 TEST_F(LoadPlanningModelsPr2, StateSpace)
 {
-
-  ompl_interface::ModelBasedStateSpaceSpecification spec(kmodel_, "right_arm");
+  ompl_interface::ModelBasedStateSpaceSpecification spec(kmodel_, "whole_body");
   ompl_interface::ModelBasedStateSpace ss(spec);
+  ss.setBounds(-1, 1, -1, 1, -1, 1);
   ss.setup();
+  std::ofstream fout("ompl_interface_test_state_space_diagram1.dot");
+  ss.diagram(fout);
+  bool passed = false;
+  try
+  {
+    ss.sanityChecks();
+    passed = true;
+  }
+  catch(ompl::Exception &ex)
+  {
+    ROS_ERROR_STREAM("Sanity checks did not pass: " << ex.what());
+  }
+  EXPECT_TRUE(passed);
+}
+
+TEST_F(LoadPlanningModelsPr2, StateSpaces)
+{
+  ompl_interface::ModelBasedStateSpaceSpecification spec1(kmodel_, "right_arm");
+  ompl_interface::ModelBasedStateSpace ss1(spec1);
+  ss1.setup();
+
+  ompl_interface::ModelBasedStateSpaceSpecification spec2(kmodel_, "left_arm");
+  ompl_interface::ModelBasedStateSpace ss2(spec2);
+  ss2.setup();
+
+  ompl_interface::ModelBasedStateSpaceSpecification spec3(kmodel_, "whole_body");
+  ompl_interface::ModelBasedStateSpace ss3(spec3);
+  ss3.setup();
+
+  ompl_interface::ModelBasedStateSpaceSpecification spec4(kmodel_, "arms");
+  ompl_interface::ModelBasedStateSpace ss4(spec4);
+  ss4.setup();
   
+  std::ofstream fout("ompl_interface_test_state_space_diagram2.dot");
+  ompl::base::StateSpace::Diagram(fout);
 }
 
 int main(int argc, char **argv)

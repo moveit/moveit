@@ -45,12 +45,11 @@ class PoseModelStateSpaceFactory : public ModelBasedStateSpaceFactory
 {
 public:
   
-  PoseModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
-  {
-    type_ = "PoseModel";
-  }  
+  PoseModelStateSpaceFactory(void);
   
-  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const planning_scene::KinematicsAllocators &aks) const;
+  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
+                                  const planning_models::KinematicModelConstPtr &kmodel,
+                                  const planning_scene::KinematicsAllocators &aks) const;
     
 protected:
   

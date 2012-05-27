@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
 #ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
@@ -66,7 +66,7 @@ public:
   }
 
   virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
-				  const pm::KinematicModelConstPtr &kmodel,
+				  const planning_models::KinematicModelConstPtr &kmodel,
 				  const planning_scene::KinematicsAllocators &aks) const = 0;
 
 protected:
