@@ -193,13 +193,13 @@ public:
   ConstraintApproximationConstructionResults
   addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
                              const std::string &group, const std::string &state_space_parameterization,
-                             const pm::KinematicState &kstate, 
+                             const planning_models::KinematicState &kstate, 
                              unsigned int samples, unsigned int edges_per_sample);
   
   ConstraintApproximationConstructionResults
   addConstraintApproximation(const moveit_msgs::Constraints &constr,
                              const std::string &group, const std::string &state_space_parameterization,
-                             const pm::KinematicState &kstate,
+                             const planning_models::KinematicState &kstate,
                              unsigned int samples, unsigned int edges_per_sample);
   
   void printConstraintApproximations(std::ostream &out = std::cout) const;
@@ -223,7 +223,7 @@ private:
   ompl::base::StateStoragePtr constructConstraintApproximation(const ModelBasedPlanningContextPtr &pcontext,
                                                                const moveit_msgs::Constraints &constr_sampling,
                                                                const moveit_msgs::Constraints &constr_hard,
-                                                               const pm::KinematicState &default_state,
+                                                               const planning_models::KinematicState &default_state,
                                                                const ConstraintStateStorageOrderFn &order,
                                                                unsigned int samples, unsigned int edges_per_sample,
                                                                ConstraintApproximationConstructionResults &result);

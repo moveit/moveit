@@ -37,6 +37,11 @@
 #include "ompl_interface/parameterization/work_space/pose_model_state_space_factory.h"
 #include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
 
+ompl_interface::PoseModelStateSpaceFactory::PoseModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
+{  
+  type_ = PoseModelStateSpace::PARAMETERIZATION_TYPE;
+}  
+
 int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const planning_scene::KinematicsAllocators &aks) const
 {
     const pm::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req.group_name);

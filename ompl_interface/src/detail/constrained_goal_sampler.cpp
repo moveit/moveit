@@ -36,105 +36,39 @@
 
 #include "ompl_interface/detail/constrained_goal_sampler.h"
 #include "ompl_interface/model_based_planning_context.h"
-#include <ompl/geometric/ik/GAIK.h>
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,
-                                                               const kc::KinematicConstraintSetPtr &ks,
+                                                               const kinematic_constraints::KinematicConstraintSetPtr &ks,
                                                                const constraint_samplers::ConstraintSamplerPtr &cs) :
-  ob::GoalLazySamples(pc->getOMPLSimpleSetup().getSpaceInformation(),
-                      cs ? boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2) :
-                      boost::bind(&ConstrainedGoalSampler::sampleUsingGAIK, this, _1, _2), false),
-  planning_context_(pc), kinematic_constraint_set_(ks), constraint_sampler_(cs), state_(pc->getCompleteInitialRobotState())
+  ob::GoalLazySamples(pc->getOMPLSimpleSetup().getSpaceInformation(), boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false),
+  planning_context_(pc), kinematic_constraint_set_(ks), constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()),
+  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getJointModelGroupName()))
 {
   ROS_DEBUG("Constructed a ConstrainedGoalSampler instance at address %p", this);
   startSampling();
-}
-  
-bool ompl_interface::ConstrainedGoalSampler::sampleUsingGAIK(const ob::GoalLazySamples *gls, ob::State *newGoal)
-{
-  unsigned int ma = planning_context_->getMaximumGoalSamplingAttempts();
-
-  // terminate after too many attempts
-  if (gls->samplingAttemptsCount() >= ma)
-    return false;
-  // terminate after a maximum number of samples
-  if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
-    return false;
-  // terminate the sampling thread when a solution has been found
-  if (gls->isAchieved())
-    return false;
-  
-  // this class is NOT a valid goal region from a thread safety point of view;
-  // HOWEVER, it is only used with GAIK, which is single-threaded, so this is safe
-  class ConstrainedGoalRegion : public ob::GoalRegion
-  {
-  public:
-    ConstrainedGoalRegion(const ModelBasedPlanningContext *pc, const kc::KinematicConstraintSet *ks, pm::KinematicState *state) :
-      ob::GoalRegion(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc), kinematic_constraint_set_(ks),
-      state_(state), joint_state_group_(state_->getJointStateGroup(pc->getJointModelGroupName()))
-    {
-    }
-    
-    virtual double distanceGoal(const ob::State *st) const
-    {
-      planning_context_->getOMPLStateSpace()->copyToKinematicState(*state_, st);
-      joint_state_group_->updateLinkTransforms();
-      return kinematic_constraint_set_->decide(*state_).distance;
-    }
-    
-    virtual bool isSatisfied(const ob::State *st, double *distance) const
-    {
-      planning_context_->getOMPLStateSpace()->copyToKinematicState(*state_, st);
-      joint_state_group_->updateLinkTransforms();
-      kinematic_constraints::ConstraintEvaluationResult cer = kinematic_constraint_set_->decide(*state_);
-      if (distance)
-        *distance = cer.distance;
-      return cer.satisfied;
-    }
-    
-  protected:
-    
-    const ModelBasedPlanningContext     *planning_context_;
-    const kc::KinematicConstraintSet    *kinematic_constraint_set_;
-    pm::KinematicState                  *state_;
-    pm::KinematicState::JointStateGroup *joint_state_group_;
-  };
-  
-  ConstrainedGoalRegion reg(planning_context_, kinematic_constraint_set_.get(), &state_);
-  ompl::geometric::GAIK g(si_);
-  while (gls->isSampling())
-    if (g.solve(0.1, reg, newGoal))
-    {
-      newGoal->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
-      newGoal->as<ModelBasedStateSpace::StateType>()->markGoalState();
-      return true;
-    }
-  return false;
 }
 
 bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples *gls, ob::State *newGoal)
 {
   unsigned int ma = planning_context_->getMaximumGoalSamplingAttempts();
-
+  
   // terminate after too many attempts
   if (gls->samplingAttemptsCount() >= ma)
     return false;
   // terminate after a maximum number of samples
   if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
     return false;  
-
+  
   // terminate the sampling thread when a solution has been found
-  if (gls->isAchieved())
+  if (planning_context_->getOMPLSimpleSetup().getProblemDefinition()->hasSolution())
     return false;
-
-  std::vector<double> values;
+  
   for (unsigned int a = 0 ; a < ma && gls->isSampling() ; ++a)
-    if (constraint_sampler_->sample(values, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
+    if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
     {
-      state_.getJointStateGroup(planning_context_->getJointModelGroupName())->setStateValues(values);
-      if (kinematic_constraint_set_->decide(state_).satisfied)
+      if (kinematic_constraint_set_->decide(work_state_).satisfied)
       {
-        planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, values);   
+        planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, work_joint_group_state_);
         newGoal->as<ModelBasedStateSpace::StateType>()->markGoalState();
         return true;
       }

@@ -377,7 +377,7 @@ const ompl_interface::ConstraintApproximationPtr& ompl_interface::ConstraintsLib
 
 ompl_interface::ConstraintApproximationConstructionResults
 ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &state_space_parameterization,
-                                                               const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
+                                                               const planning_models::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
 {
   return addConstraintApproximation(constr, constr, group, state_space_parameterization, kstate, samples, edges_per_sample);
 }
@@ -385,7 +385,7 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
 ompl_interface::ConstraintApproximationConstructionResults
 ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
                                                                const std::string &group, const std::string &state_space_parameterization,
-                                                               const pm::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
+                                                               const planning_models::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
 { 
   ConstraintApproximationConstructionResults res;
   const ModelBasedPlanningContextPtr &pc = context_manager_.getPlanningContext(group, state_space_parameterization);
@@ -429,7 +429,7 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
 ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstraintApproximation(const ModelBasedPlanningContextPtr &pcontext,
                                                                                                  const moveit_msgs::Constraints &constr_sampling,
                                                                                                  const moveit_msgs::Constraints &constr_hard,
-                                                                                                 const pm::KinematicState &default_state,
+                                                                                                 const planning_models::KinematicState &default_state,
                                                                                                  const ConstraintStateStorageOrderFn &order,
                                                                                                  unsigned int samples, unsigned int edges_per_sample,
                                                                                                  ConstraintApproximationConstructionResults &result)
@@ -439,7 +439,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   ob::StateStoragePtr sstor(cass);
   
   // construct a sampler for the sampling constraints
-  kc::KinematicConstraintSet kset(pcontext->getKinematicModel(), pm::TransformsConstPtr(new pm::Transforms(pcontext->getKinematicModel()->getModelFrame())));
+  kinematic_constraints::KinematicConstraintSet kset(pcontext->getKinematicModel(), planning_models::TransformsConstPtr(new planning_models::Transforms(pcontext->getKinematicModel()->getModelFrame())));
   kset.add(constr_hard);
   
   // default state
@@ -449,8 +449,8 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   int nthreads = 0;
   unsigned int attempts = 0;
   
-  double large_val = 1000000;
-  pcontext->getOMPLStateSpace()->setPlanningVolume(-large_val, large_val, -large_val, large_val, -large_val, large_val);
+  double bounds_val = 0.0;
+  pcontext->getOMPLStateSpace()->setBounds(-bounds_val, bounds_val, -bounds_val, bounds_val, -bounds_val, bounds_val);
   
   // construct the constrained states
 #pragma omp parallel
@@ -460,7 +460,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 	nthreads = omp_get_num_threads();    
     }
     
-    pm::KinematicState kstate(default_state);
+    planning_models::KinematicState kstate(default_state);
     constraint_samplers::ConstraintSamplerManager *csmng = pcontext->getConstraintSamplerManager();
     ConstrainedSampler *csmp = NULL;
     if (csmng)
@@ -554,8 +554,8 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     for (std::size_t j = 0 ; j < sstor->size() ; ++j)
     {
       int threadid = omp_get_thread_num();
-      pm::KinematicState &kstate = kstates[threadid];
-      pm::KinematicState::JointStateGroup *jsg = kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName());
+      planning_models::KinematicState &kstate = kstates[threadid];
+      planning_models::KinematicState::JointStateGroup *jsg = kstate.getJointStateGroup(pcontext->getJointModelGroup()->getName());
       ompl::base::State *temp = temps[threadid].get();
       int done_now = 100 * j / sstor->size();
       if (done != done_now)

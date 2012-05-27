@@ -54,7 +54,7 @@ ompl_interface::TSStateStorage::~TSStateStorage(void)
 planning_models::KinematicState* ompl_interface::TSStateStorage::getStateStorage(void) const
 {
   planning_models::KinematicState *st = NULL;
-  boost::mutex::scoped_lock slock(lock_);
+  boost::mutex::scoped_lock slock(lock_);/// \todo use Thread Local Storage?
   std::map<boost::thread::id, planning_models::KinematicState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
   if (it == thread_states_.end())
   {

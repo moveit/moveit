@@ -45,13 +45,10 @@ class JointModelStateSpaceFactory : public ModelBasedStateSpaceFactory
 {
 public:
 
-  JointModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
-  {
-    type_ = "JointModel";
-  }  
+  JointModelStateSpaceFactory(void);
   
   virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
-				  const pm::KinematicModelConstPtr &kmodel,
+				  const planning_models::KinematicModelConstPtr &kmodel,
 				  const planning_scene::KinematicsAllocators &aks) const;
 
 protected:
