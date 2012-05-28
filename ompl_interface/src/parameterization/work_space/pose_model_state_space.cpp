@@ -123,6 +123,16 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   computeStateIK(state);
 }
 
+void ompl_interface::PoseModelStateSpace::setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
+{
+  ModelBasedStateSpace::setBounds(minX, maxX, minY, maxY, minZ, maxZ);
+  ompl::base::RealVectorBounds b(3);
+  b.low[0] = minX; b.low[1] = minY; b.low[2] = minZ;
+  b.high[0] = maxX; b.high[1] = maxY; b.high[2] = maxZ;
+  for (std::size_t i = 0 ; i < poses_.size() ; ++i)
+    components_[componentCount_ - i - 1]->as<ompl::base::SE3StateSpace>()->setBounds(b);
+}
+
 ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const planning_models::KinematicModel::JointModelGroup *subgroup) :
   subgroup_(subgroup), kinematics_solver_(subgroup->getSolverAllocators().first(subgroup))
 {
