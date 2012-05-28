@@ -42,4 +42,5 @@ ompl_interface::JointModelStateSpace::JointModelStateSpace(const ModelBasedState
   ModelBasedStateSpace(spec)
 {
   setName(getName() + "_" + PARAMETERIZATION_TYPE);
+  lock();
 }

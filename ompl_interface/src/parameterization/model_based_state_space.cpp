@@ -57,7 +57,6 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
   // construct the state space components, subspace by subspace
   for (std::size_t i = 0 ; i < joint_model_vector.size() ; ++i)
     addSubspace(ompl::base::StateSpacePtr(new ModelBasedJointStateSpace(joint_model_vector[i], spec_.joints_bounds_[i])), joint_model_vector[i]->getDistanceFactor());
-  lock();
   
   // default settings
   setTagSnapToSegment(0.95);
