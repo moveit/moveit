@@ -92,8 +92,8 @@ struct IKSamplingPose
   IKSamplingPose(const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
   IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
   
-  boost::shared_ptr<kinematic_constraints::PositionConstraint>    pc_;
-  boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc_;
+  boost::shared_ptr<kinematic_constraints::PositionConstraint>    position_constraint_;
+  boost::shared_ptr<kinematic_constraints::OrientationConstraint> orientation_constraint_;
 };
 
 class IKConstraintSampler : public ConstraintSampler
@@ -122,12 +122,12 @@ public:
   
   const boost::shared_ptr<kinematic_constraints::PositionConstraint>& getPositionConstraint(void) const
   {
-    return sp_.pc_;
+    return sampling_pose_.position_constraint_;
   }
   
   const boost::shared_ptr<kinematic_constraints::OrientationConstraint>& getOrientationConstraint(void) const
   {
-    return sp_.oc_;
+    return sampling_pose_.orientation_constraint_;
   }
 
   bool loadIKSolver(void);
@@ -142,14 +142,14 @@ protected:
   
   bool callIK(const geometry_msgs::Pose &ik_query, double timeout, planning_models::KinematicState::JointStateGroup *jsg);
 
-  random_numbers::RandomNumberGenerator         random_number_generator_;
-  planning_scene::KinematicsAllocatorFn         ik_alloc_;
-  IKSamplingPose                                sp_;
-  boost::shared_ptr<kinematics::KinematicsBase> kb_;
-  double                                        ik_timeout_;
-  std::vector<unsigned int>                     ik_joint_bijection_;
-  std::string                                   ik_frame_;
-  bool                                          transform_ik_;
+  random_numbers::RandomNumberGenerator              random_number_generator_;
+  planning_models::KinematicModel::SolverAllocatorFn ik_alloc_;
+  IKSamplingPose                                     sampling_pose_;
+  kinematics::KinematicsBasePtr                      kb_;
+  double                                             ik_timeout_;
+  std::vector<unsigned int>                          ik_joint_bijection_;
+  std::string                                        ik_frame_;
+  bool                                               transform_ik_;
 };
 
 
