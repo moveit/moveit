@@ -66,8 +66,7 @@ public:
   }
 
   virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
-				  const planning_models::KinematicModelConstPtr &kmodel,
-				  const planning_scene::KinematicsAllocators &aks) const = 0;
+				  const planning_models::KinematicModelConstPtr &kmodel) const = 0;
 
 protected:
   

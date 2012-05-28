@@ -43,13 +43,18 @@ const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec) : 
   ModelBasedStateSpace(spec)
 {
-  if (spec.kinematics_allocator_)
-    constructSpace(spec.joint_model_group_, spec.kinematics_allocator_);
+  const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn>& slv = spec.joint_model_group_->getSolverAllocators();
+  if (slv.first)
+    poses_.push_back(PoseComponent(spec.joint_model_group_));
   else
-    if (!spec.kinematics_subgroup_allocators_.empty())
-      constructSpace(spec.joint_model_group_, spec.kinematics_subgroup_allocators_);
-    else
-      ROS_FATAL("No kinematics solvers specified. Unable to construct a PoseModelStateSpace");
+    if (!slv.second.empty())
+    {
+      for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn>::const_iterator it = slv.second.begin() ; it != slv.second.end() ; ++it)
+        poses_.push_back(PoseComponent(it->first));
+    }
+  if (poses_.empty())
+    ROS_FATAL("No kinematics solvers specified. Unable to construct a PoseModelStateSpace");
+  constructSpaceFromPoses();
 }
 
 ompl::base::State* ompl_interface::PoseModelStateSpace::allocState(void) const
@@ -118,9 +123,8 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   computeStateIK(state);
 }
 
-ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const planning_models::KinematicModel::JointModelGroup *subgroup, 
-                                                                  const planning_scene::KinematicsAllocatorFn &kinematics_allocator) :
-  subgroup_(subgroup), kinematics_solver_(kinematics_allocator(subgroup))
+ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const planning_models::KinematicModel::JointModelGroup *subgroup) :
+  subgroup_(subgroup), kinematics_solver_(subgroup->getSolverAllocators().first(subgroup))
 {
   state_space_.reset(new ompl::base::SE3StateSpace());
   state_space_->setName(subgroup_->getName() + "_Workspace");
@@ -199,21 +203,6 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateIK(const om
       jaddr[i][j] = solution[vindex++];
   
   return true;      
-}
-
-void ompl_interface::PoseModelStateSpace::constructSpace(const planning_models::KinematicModel::JointModelGroup *group, 
-                                                         const planning_scene::KinematicsAllocatorFn &ik_allocator)
-{
-  poses_.push_back(PoseComponent(group, ik_allocator));
-  constructSpaceFromPoses();
-}
-
-void ompl_interface::PoseModelStateSpace::constructSpace(const planning_models::KinematicModel::JointModelGroup *group, 
-                                                         const planning_scene::KinematicsAllocatorMapFn &ik_allocator)
-{
-  for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_scene::KinematicsAllocatorFn>::const_iterator it = ik_allocator.begin() ; it != ik_allocator.end() ; ++it)
-    poses_.push_back(PoseComponent(it->first, it->second));
-  constructSpaceFromPoses();
 }
 
 void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses(void)

@@ -67,18 +67,6 @@ typedef boost::function<bool(const planning_models::KinematicState&, bool)> Stat
     whether the check should be verbose or not. */
 typedef boost::function<bool(const planning_models::KinematicState&, const planning_models::KinematicState&, bool)> MotionFeasibilityFn;
 
-/// function type that allocates a kinematics solver for a particular group
-typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> KinematicsAllocatorFn;
-
-/// function type that allocates a kinematics solvers for subgroups of a group
-typedef std::map<const planning_models::KinematicModel::JointModelGroup*, KinematicsAllocatorFn> KinematicsAllocatorMapFn;
-
-/// A map of known kinematics solvers, (associated to their group ptr)
-typedef std::map<const planning_models::KinematicModel::JointModelGroup*, std::pair<KinematicsAllocatorFn, KinematicsAllocatorMapFn> > KinematicsAllocators;
-
-/// A map of known kinematics solvers (associated to their group name)
-typedef std::map<std::string, KinematicsAllocatorFn> KinematicsAllocatorsByName;
-
 typedef std::map<std::string, std_msgs::ColorRGBA> ColorMap;
 
 /** \brief This class maintains the representation of the
@@ -144,6 +132,12 @@ public:
   {
     // if we have an updated set of transforms, return it; otherwise, return the parent one
     return ftf_ ? ftf_->getTargetFrame() : parent_->getPlanningFrame();
+  }
+
+  /** \brief Get the kinematic model for which the planning scene is maintained. WARNING: This is not NULL only for scenes that do not depend on a parent */
+  const planning_models::KinematicModelPtr& getKinematicModel(void)
+  {
+    return kmodel_;
   }
 
   /** \brief Get the kinematic model for which the planning scene is maintained */
@@ -374,13 +368,6 @@ public:
   {
     return motion_feasibility_;
   }
-
-  void setKinematicsAllocators(const KinematicsAllocatorsByName &allocators);
-  
-  const KinematicsAllocators& getKinematicsAllocators(void) const
-  {
-    return kinematics_allocators_ ? *kinematics_allocators_ : parent_->getKinematicsAllocators();
-  }
   
   /** \brief Check if a given state is in collision (with the environment or self collision) */
   bool isStateColliding(const moveit_msgs::RobotState &state, bool verbose = false) const;
@@ -466,8 +453,6 @@ protected:
 
   StateFeasibilityFn                             state_feasibility_;
   MotionFeasibilityFn                            motion_feasibility_;
-
-  boost::scoped_ptr<KinematicsAllocators>        kinematics_allocators_;
 
   boost::scoped_ptr<ColorMap>                    colors_;
   

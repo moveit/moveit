@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,23 +32,16 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#include "ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h"
-#include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
+#include <planning_models/kinematic_model.h>
 
-ompl_interface::JointModelStateSpaceFactory::JointModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
+planning_models::KinematicModel::LinkModel::LinkModel(void) : parent_joint_model_(NULL), tree_index_(-1)
 {
-  type_ = JointModelStateSpace::PARAMETERIZATION_TYPE;
-}  
-
-int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
-								     const planning_models::KinematicModelConstPtr &kmodel) const
-{
-  return 100;
+  joint_origin_transform_.setIdentity();
+  collision_origin_transform_.setIdentity();
 }
 
-ompl_interface::ModelBasedStateSpacePtr ompl_interface::JointModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const
+planning_models::KinematicModel::LinkModel::~LinkModel(void)
 {
-  return ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec));
 }
