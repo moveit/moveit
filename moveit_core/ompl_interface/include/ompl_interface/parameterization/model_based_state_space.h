@@ -116,7 +116,7 @@ public:
       return flags & VALIDITY_KNOWN;
     }
     
-    void clearKnownInformation(void)
+    virtual void clearKnownInformation(void)
     {
       flags = 0;
     }
@@ -168,6 +168,7 @@ public:
   virtual void freeState(ompl::base::State *state) const;
   virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
   virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
+  virtual ompl::base::StateSamplerPtr allocDefaultStateSampler(void) const;  
 
   const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
   {
@@ -190,7 +191,7 @@ public:
   }
   
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
-  void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
+  virtual void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
   const std::vector<planning_models::KinematicModel::JointModel::Bounds>& getJointsBounds(void) const
   {
@@ -198,12 +199,7 @@ public:
   }
   
   /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
-  void copyToKinematicState(planning_models::KinematicState::JointStateGroup* jsg, const ompl::base::State *state) const
-  {
-    const std::vector<planning_models::KinematicState::JointState*> &dest = jsg->getJointStateVector();
-    for (std::size_t i = 0 ; i < componentCount_ ; ++i)
-      *dest[i] = *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state;
-  }
+  void copyToKinematicState(planning_models::KinematicState::JointStateGroup* jsg, const ompl::base::State *state) const;
   
   /// Copy the data from an OMPL state to a kinematic state. The join states \b must be specified in the same order as the joint models in the constructor. This function is implemented in terms of the previous definition with the same name.
   void copyToKinematicState(planning_models::KinematicState &kstate, const ompl::base::State *state) const
@@ -221,12 +217,7 @@ public:
   }  
         
   /// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
-  void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const
-  {
-    const std::vector<planning_models::KinematicState::JointState*> &src = jsg->getJointStateVector();
-    for (std::size_t i = 0 ; i < src.size() ; ++i)
-      *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state = *src[i];    
-  }
+  void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const;
   
   double getTagSnapToSegment(void) const;
   void setTagSnapToSegment(double snap);

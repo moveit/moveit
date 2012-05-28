@@ -121,8 +121,59 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *
       state->as<StateType>()->tag = -1;
 }
 
+ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultStateSampler(void) const
+{
+  class WrappedStateSampler : public ompl::base::StateSampler
+  {
+  public:
+    
+    WrappedStateSampler(const ompl::base::StateSpace *space, const ompl::base::StateSamplerPtr &wrapped) : ompl::base::StateSampler(space), wrapped_(wrapped)
+    {
+    }
+    
+    virtual void sampleUniform(ompl::base::State *state)
+    {
+      wrapped_->sampleUniform(state);
+      state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
+    }
+    
+    virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
+    {    
+      wrapped_->sampleGaussian(state, near, distance);
+      state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
+    }
+    
+    virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
+    {
+      wrapped_->sampleGaussian(state, mean, stdDev);
+      state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
+    }
+    
+  protected:
+    
+    ompl::base::StateSamplerPtr wrapped_;
+  };
+  
+  return ompl::base::StateSamplerPtr(static_cast<ompl::base::StateSampler*>(new WrappedStateSampler(this, ompl::base::CompoundStateSpace::allocDefaultStateSampler())));
+}
+
 void ompl_interface::ModelBasedStateSpace::setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
   for (std::size_t i = 0 ; i < componentCount_ ; ++i)
     components_[i]->as<ModelBasedJointStateSpace>()->setBounds(minX, maxX, minY, maxY, minZ, maxZ);
+}
+
+void ompl_interface::ModelBasedStateSpace::copyToKinematicState(planning_models::KinematicState::JointStateGroup* jsg, const ompl::base::State *state) const
+{
+  const std::vector<planning_models::KinematicState::JointState*> &dest = jsg->getJointStateVector();
+  for (std::size_t i = 0 ; i < dest.size() ; ++i)
+    *dest[i] = *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state;
+}
+
+void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const
+{
+  const std::vector<planning_models::KinematicState::JointState*> &src = jsg->getJointStateVector();
+  for (std::size_t i = 0 ; i < src.size() ; ++i)
+    *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state = *src[i];    
+  state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
 }
