@@ -48,8 +48,7 @@ public:
   JointModelStateSpaceFactory(void);
   
   virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
-				  const planning_models::KinematicModelConstPtr &kmodel,
-				  const planning_scene::KinematicsAllocators &aks) const;
+				  const planning_models::KinematicModelConstPtr &kmodel) const;
 
 protected:
   

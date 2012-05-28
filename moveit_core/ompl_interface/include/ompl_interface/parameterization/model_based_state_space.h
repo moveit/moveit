@@ -63,8 +63,6 @@ struct ModelBasedStateSpaceSpecification
   planning_models::KinematicModelConstPtr kmodel_;
   const planning_models::KinematicModel::JointModelGroup *joint_model_group_;
   std::vector<planning_models::KinematicModel::JointModel::Bounds> joints_bounds_;
-  planning_scene::KinematicsAllocatorFn kinematics_allocator_;
-  planning_scene::KinematicsAllocatorMapFn kinematics_subgroup_allocators_;
 };
 
 class ModelBasedStateSpace : public ompl::base::CompoundStateSpace
@@ -194,21 +192,10 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
   
-  const planning_scene::KinematicsAllocatorFn& getKinematicsAllocator(void) const
-  {
-    return spec_.kinematics_allocator_;
-  }
-  
-  const planning_scene::KinematicsAllocatorMapFn& getKinematicsSubgroupAllocators(void) const
-  {
-    return spec_.kinematics_subgroup_allocators_;
-  }
-
   const std::vector<planning_models::KinematicModel::JointModel::Bounds>& getJointsBounds(void) const
   {
     return spec_.joints_bounds_;
   }
-
   
   /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
   void copyToKinematicState(planning_models::KinematicState::JointStateGroup* jsg, const ompl::base::State *state) const

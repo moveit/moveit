@@ -105,8 +105,7 @@ private:
 
   struct PoseComponent
   {
-    PoseComponent(const planning_models::KinematicModel::JointModelGroup *subgroup, 
-                  const planning_scene::KinematicsAllocatorFn &kinematics_allocator);
+    PoseComponent(const planning_models::KinematicModel::JointModelGroup *subgroup);
     
     bool computeStateFK(const ompl::base::StateSpace *full_state_space, ompl::base::State *full_state, ompl::base::State *state) const;
     bool computeStateIK(const ompl::base::StateSpace *full_state_space, ompl::base::State *full_state, ompl::base::State *state) const;
@@ -125,10 +124,6 @@ private:
     unsigned int variable_count_;
   };
   
-  void constructSpace(const planning_models::KinematicModel::JointModelGroup *group, 
-                      const planning_scene::KinematicsAllocatorFn &ik_allocator);
-  void constructSpace(const planning_models::KinematicModel::JointModelGroup *group, 
-                      const planning_scene::KinematicsAllocatorMapFn &ik_allocator);
   void constructSpaceFromPoses(void);
   
   std::vector<PoseComponent> poses_;

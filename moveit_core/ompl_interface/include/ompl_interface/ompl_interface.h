@@ -65,13 +65,6 @@ public:
     context_manager_.setPlanningConfigurations(pconfig);
   }
   
-  /** @brief Specify the available inverse kinematics solvers
-      @param kinematics_allocators Allocate the inverse kinematics solvers*/
-  void setKinematicsAllocators(const planning_scene::KinematicsAllocators &kinematics_allocators)
-  {
-    context_manager_.setKinematicsAllocators(kinematics_allocators);
-  }
-  
   /** @brief Solve the planning problem */
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
              const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const;
