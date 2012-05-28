@@ -122,50 +122,46 @@ constraint_samplers::IKSamplingPose::IKSamplingPose(void)
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraint &pc) : pc_(new kinematic_constraints::PositionConstraint(pc))
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraint &pc) : position_constraint_(new kinematic_constraints::PositionConstraint(pc))
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraint &oc) : oc_(new kinematic_constraints::OrientationConstraint(oc))
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraint &oc) : orientation_constraint_(new kinematic_constraints::OrientationConstraint(oc))
 {
 }
 
 constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraint &pc, const kinematic_constraints::OrientationConstraint &oc) : 
-  pc_(new kinematic_constraints::PositionConstraint(pc)), oc_(new kinematic_constraints::OrientationConstraint(oc))
+  position_constraint_(new kinematic_constraints::PositionConstraint(pc)), orientation_constraint_(new kinematic_constraints::OrientationConstraint(oc))
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc) : pc_(pc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc) : position_constraint_(pc)
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc) : oc_(oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc) : orientation_constraint_(oc)
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc) : pc_(pc), oc_(oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc) : position_constraint_(pc), orientation_constraint_(oc)
 {
 }
 
 bool constraint_samplers::IKConstraintSampler::setup(const IKSamplingPose &sp)
 {
-  sp_ = sp;
+  sampling_pose_ = sp;
   ik_timeout_ = 0.5;
-  if (sp_.pc_ && sp_.oc_)
-    if (sp_.pc_->getLinkModel()->getName() != sp_.oc_->getLinkModel()->getName())
+  if (sampling_pose_.position_constraint_ && sampling_pose_.orientation_constraint_)
+    if (sampling_pose_.position_constraint_->getLinkModel()->getName() != sampling_pose_.orientation_constraint_->getLinkModel()->getName())
     {
       ROS_FATAL("Position and orientation constraints need to be specified for the same link in order to use IK-based sampling");
       return false;
     }
-  if (sp_.pc_ && sp_.pc_->mobileReferenceFrame())
-    frame_depends_.push_back(sp_.pc_->getReferenceFrame());
-  if (sp_.oc_ && sp_.oc_->mobileReferenceFrame())
-    frame_depends_.push_back(sp_.oc_->getReferenceFrame());
-  
-  planning_scene::KinematicsAllocators::const_iterator it = scene_->getKinematicsAllocators().find(jmg_);
-  if (it != scene_->getKinematicsAllocators().end())
-    ik_alloc_ = it->second.first;
-
+  if (sampling_pose_.position_constraint_ && sampling_pose_.position_constraint_->mobileReferenceFrame())
+    frame_depends_.push_back(sampling_pose_.position_constraint_->getReferenceFrame());
+  if (sampling_pose_.orientation_constraint_ && sampling_pose_.orientation_constraint_->mobileReferenceFrame())
+    frame_depends_.push_back(sampling_pose_.orientation_constraint_->getReferenceFrame());
+  ik_alloc_ = jmg_->getSolverAllocators().first;
   return true;
 }
 
@@ -200,19 +196,19 @@ bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Cons
 double constraint_samplers::IKConstraintSampler::getSamplingVolume(void) const
 {
   double v = 1.0;
-  if (sp_.pc_)
-    if (sp_.pc_->getConstraintRegion())
-      v *= sp_.pc_->getConstraintRegion()->computeVolume();
-  if (sp_.oc_)
-    v *= sp_.oc_->getXAxisTolerance() * sp_.oc_->getYAxisTolerance() * sp_.oc_->getZAxisTolerance();
+  if (sampling_pose_.position_constraint_)
+    if (sampling_pose_.position_constraint_->getConstraintRegion())
+      v *= sampling_pose_.position_constraint_->getConstraintRegion()->computeVolume();
+  if (sampling_pose_.orientation_constraint_)
+    v *= sampling_pose_.orientation_constraint_->getXAxisTolerance() * sampling_pose_.orientation_constraint_->getYAxisTolerance() * sampling_pose_.orientation_constraint_->getZAxisTolerance();
   return v;
 }
 
 const std::string& constraint_samplers::IKConstraintSampler::getLinkName(void) const
 {
-  if (sp_.oc_)
-    return sp_.oc_->getLinkModel()->getName();
-  return sp_.pc_->getLinkModel()->getName();    
+  if (sampling_pose_.orientation_constraint_)
+    return sampling_pose_.orientation_constraint_->getLinkModel()->getName();
+  return sampling_pose_.position_constraint_->getLinkModel()->getName();    
 }
 
 bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
@@ -273,18 +269,18 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
   
   // check if IK is performed for the desired link
   bool wrong_link = false;
-  if (sp_.pc_)
+  if (sampling_pose_.position_constraint_)
   {
-    if (kb_->getTipFrame() != sp_.pc_->getLinkModel()->getName())
+    if (kb_->getTipFrame() != sampling_pose_.position_constraint_->getLinkModel()->getName())
       wrong_link = true;
   }
   else
-    if (kb_->getTipFrame() != sp_.oc_->getLinkModel()->getName())
+    if (kb_->getTipFrame() != sampling_pose_.orientation_constraint_->getLinkModel()->getName())
       wrong_link = true;
   if (wrong_link)
   {
     ROS_ERROR("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.", 
-              sp_.pc_ ? sp_.pc_->getLinkModel()->getName().c_str() : sp_.oc_->getLinkModel()->getName().c_str(), kb_->getTipFrame().c_str());
+              sampling_pose_.position_constraint_ ? sampling_pose_.position_constraint_->getLinkModel()->getName().c_str() : sampling_pose_.orientation_constraint_->getLinkModel()->getName().c_str(), kb_->getTipFrame().c_str());
     return false;
   }
   
@@ -295,17 +291,17 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
                                                           const planning_models::KinematicState &ks,
                                                           unsigned int max_attempts)
 {  
-  if (sp_.pc_)
+  if (sampling_pose_.position_constraint_)
   {
-    if (!sp_.pc_->getConstraintRegion()->samplePointInside(random_number_generator_, max_attempts, pos))
+    if (!sampling_pose_.position_constraint_->getConstraintRegion()->samplePointInside(random_number_generator_, max_attempts, pos))
     {
       ROS_ERROR("Unable to sample a point inside the constraint region");
       return false;
     }
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the model
-    if (sp_.pc_->mobileReferenceFrame())
+    if (sampling_pose_.position_constraint_->mobileReferenceFrame())
     {
-      const planning_models::KinematicState::LinkState *ls = ks.getLinkState(sp_.pc_->getReferenceFrame());
+      const planning_models::KinematicState::LinkState *ls = ks.getLinkState(sampling_pose_.position_constraint_->getReferenceFrame());
       pos = ls->getGlobalLinkTransform() * pos;
     }
   }
@@ -317,7 +313,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     if (tmp)
     {
       tmp->setToRandomValues();
-      pos = tempState.getLinkState(sp_.oc_->getLinkModel()->getName())->getGlobalLinkTransform().translation();
+      pos = tempState.getLinkState(sampling_pose_.orientation_constraint_->getLinkModel()->getName())->getGlobalLinkTransform().translation();
     }
     else
     {
@@ -326,22 +322,22 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     }
   }
   
-  if (sp_.oc_)
+  if (sampling_pose_.orientation_constraint_)
   {
     // sample a rotation matrix within the allowed bounds
-    double angle_x = 2.0 * (random_number_generator_.uniform01() - 0.5) * sp_.oc_->getXAxisTolerance();
-    double angle_y = 2.0 * (random_number_generator_.uniform01() - 0.5) * sp_.oc_->getYAxisTolerance();
-    double angle_z = 2.0 * (random_number_generator_.uniform01() - 0.5) * sp_.oc_->getZAxisTolerance();
+    double angle_x = 2.0 * (random_number_generator_.uniform01() - 0.5) * sampling_pose_.orientation_constraint_->getXAxisTolerance();
+    double angle_y = 2.0 * (random_number_generator_.uniform01() - 0.5) * sampling_pose_.orientation_constraint_->getYAxisTolerance();
+    double angle_z = 2.0 * (random_number_generator_.uniform01() - 0.5) * sampling_pose_.orientation_constraint_->getZAxisTolerance();
     Eigen::Affine3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX())
                          * Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY())
                          * Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
-    Eigen::Affine3d reqr(sp_.oc_->getDesiredRotationMatrix() * diff.rotation());
+    Eigen::Affine3d reqr(sampling_pose_.orientation_constraint_->getDesiredRotationMatrix() * diff.rotation());
     quat = Eigen::Quaterniond(reqr.rotation());
 
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the model
-    if (sp_.oc_->mobileReferenceFrame())
+    if (sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     {
-      const planning_models::KinematicState::LinkState *ls = ks.getLinkState(sp_.oc_->getReferenceFrame());
+      const planning_models::KinematicState::LinkState *ls = ks.getLinkState(sampling_pose_.orientation_constraint_->getReferenceFrame());
       Eigen::Affine3d rt(ls->getGlobalLinkTransform().rotation() * quat.toRotationMatrix());
       quat = Eigen::Quaterniond(rt.rotation());
     }
@@ -355,9 +351,9 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
   }
   
   // if there is an offset, we need to undo the induced rotation in the sampled transform origin (point)
-  if (sp_.pc_ && sp_.pc_->hasLinkOffset())
+  if (sampling_pose_.position_constraint_ && sampling_pose_.position_constraint_->hasLinkOffset())
     // the rotation matrix that corresponds to the desired orientation
-    pos = pos - quat.toRotationMatrix() * sp_.pc_->getLinkOffset();
+    pos = pos - quat.toRotationMatrix() * sampling_pose_.position_constraint_->getLinkOffset();
   
   // we now have the transform we wish to perform IK for, in the planning frame
   
@@ -380,7 +376,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
 bool constraint_samplers::IKConstraintSampler::sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks, unsigned int max_attempts)
 {
   // make sure we at least have a chance of sampling using IK; we need at least some kind of constraint
-  if (!sp_.pc_ && !sp_.oc_)
+  if (!sampling_pose_.position_constraint_ && !sampling_pose_.orientation_constraint_)
     return false;
   
   // load an IK solver if we need to 
