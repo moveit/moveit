@@ -99,7 +99,7 @@ struct IKSamplingPose
 class IKConstraintSampler : public ConstraintSampler
 {
 public:
-  
+
   IKConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const IKSamplingPose &sp) :
     ConstraintSampler(scene, group_name)
   {

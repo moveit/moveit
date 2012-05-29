@@ -102,10 +102,12 @@ public:
   virtual void freeState(ompl::base::State *state) const;  
   virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
   virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
+
   bool computeStateFK(ompl::base::State *state) const;
   bool computeStateIK(ompl::base::State *state) const;
   bool computeStateK(ompl::base::State *state) const;
   virtual void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
+  virtual void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const;
 
 private:
 
