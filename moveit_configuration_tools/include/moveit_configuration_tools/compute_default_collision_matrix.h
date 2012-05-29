@@ -46,7 +46,7 @@ namespace moveit_configuration_tools
 {
 
 // Main call for computing default collision matrix
-std::map<std::string, std::vector<std::string> > 
+std::map<std::string, std::set<std::string> > 
 computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, bool include_never_colliding = false, int trials = 1000);
 
 }
