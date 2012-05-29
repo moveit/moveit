@@ -57,6 +57,15 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
   constructSpaceFromPoses();
 }
 
+void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses(void)
+{
+  std::sort(poses_.begin(), poses_.end());
+  for (std::size_t i = 0 ; i < poses_.size() ; ++i)
+    addSubspace(poses_[i].state_space_, 1.0);  
+  setName(getJointModelGroupName() + "_" + PARAMETERIZATION_TYPE);
+  lock();
+}
+
 ompl::base::State* ompl_interface::PoseModelStateSpace::allocState(void) const
 {
   StateType *state = new StateType();
@@ -82,51 +91,20 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
 {    
   // we want to interpolate in Cartesian space; we do not have a guarantee that from and to
   // have their poses computed, but this is very unlikely to happen (depends how the planner gets its input states)
-  // we cover the worst case scenario by copying the state to a temp location, since the copy operation also computes 
-  // all the kinematics stuff
-  
-  if (!from->as<StateType>()->poseComputed())
-  {
-    ompl::base::State *temp = allocState();
-    copyState(temp, from);
-    if (temp->as<StateType>()->poseComputed())
-      interpolate(temp, to, t, state);
-    else
-    {  
-      ModelBasedStateSpace::interpolate(from, to, t, state);
-      state->as<StateType>()->markInvalid();
-    }
-    freeState(temp);
-    return;
-  }
-  
-  if (!to->as<StateType>()->poseComputed())
-  {
-    ompl::base::State *temp = allocState();
-    copyState(temp, to);   
-    if (temp->as<StateType>()->poseComputed())
-      interpolate(from, temp, t, state);
-    else
-    {   
-      ModelBasedStateSpace::interpolate(from, to, t, state);
-      state->as<StateType>()->markInvalid();
-    }
-    freeState(temp);
-    return;
-  }
-  
   ModelBasedStateSpace::interpolate(from, to, t, state);
 
+  for (std::size_t i = 0 ; i < poses_.size() ; ++i)
+  {
+    std::size_t c = componentCount_ - i - 1;
+    components_[c]->interpolate(from->as<ompl::base::CompoundState>()->components[c],
+                                to->as<ompl::base::CompoundState>()->components[c], t, 
+                                state->as<ompl::base::CompoundState>()->components[c]);
+  }
+  
   // after interpolation we cannot be sure about the joint values (we use them as seed only)
   // so we recompute IK
   state->as<StateType>()->setJointsComputed(false);
   computeStateIK(state);
-}
-
-void ompl_interface::PoseModelStateSpace::copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const
-{
-  ModelBasedStateSpace::copyToOMPLState(state, jsg);
-  computeStateK(state);
 }
 
 void ompl_interface::PoseModelStateSpace::setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
@@ -221,15 +199,6 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateIK(const om
   return true;      
 }
 
-void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses(void)
-{
-  std::sort(poses_.begin(), poses_.end());
-  for (std::size_t i = 0 ; i < poses_.size() ; ++i)
-    addSubspace(poses_[i].state_space_, 1.0);  
-  setName(getJointModelGroupName() + "_" + PARAMETERIZATION_TYPE);
-  lock();
-}
-
 bool ompl_interface::PoseModelStateSpace::computeStateFK(ompl::base::State *state) const
 {
   if (state->as<StateType>()->poseComputed())
@@ -268,4 +237,18 @@ bool ompl_interface::PoseModelStateSpace::computeStateK(ompl::base::State *state
     return true;
   state->as<StateType>()->markInvalid();
   return false;
+}
+
+void ompl_interface::PoseModelStateSpace::afterStateSample(ompl::base::State *sample) const
+{
+  ModelBasedStateSpace::afterStateSample(sample); 
+  sample->as<StateType>()->setJointsComputed(true);
+  computeStateFK(sample);
+}
+
+void ompl_interface::PoseModelStateSpace::copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const
+{
+  ModelBasedStateSpace::copyToOMPLState(state, jsg);
+  state->as<StateType>()->setJointsComputed(true);
+  computeStateFK(state);
 }

@@ -116,7 +116,7 @@ public:
       return flags & VALIDITY_KNOWN;
     }
     
-    virtual void clearKnownInformation(void)
+    void clearKnownInformation(void)
     {
       flags = 0;
     }
@@ -223,6 +223,8 @@ public:
   void setTagSnapToSegment(double snap);
   
 protected:
+  
+  virtual void afterStateSample(ompl::base::State *sample) const;
   
   ModelBasedStateSpaceSpecification spec_; 
   
