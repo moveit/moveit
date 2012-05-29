@@ -378,14 +378,14 @@ bool constraint_samplers::IKConstraintSampler::sample(planning_models::Kinematic
   // make sure we at least have a chance of sampling using IK; we need at least some kind of constraint
   if (!sampling_pose_.position_constraint_ && !sampling_pose_.orientation_constraint_)
     return false;
-  
+
   // load an IK solver if we need to 
   if (!loadIKSolver())
   {
     kb_.reset();
     return false;
   }
-  
+
   for (unsigned int a = 0 ; a < max_attempts ; ++a)
   {
     // sample a point in the constraint region
@@ -393,7 +393,7 @@ bool constraint_samplers::IKConstraintSampler::sample(planning_models::Kinematic
     Eigen::Quaterniond quat;
     if (!samplePose(point, quat, ks, max_attempts))
       return false;
-    
+
     geometry_msgs::Pose ik_query;
     ik_query.position.x = point.x();
     ik_query.position.y = point.y();
@@ -421,7 +421,7 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
   
   std::vector<double> ik_sol;
   moveit_msgs::MoveItErrorCodes error;
-  
+ 
   if (kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
   {
     ROS_ASSERT(ik_sol.size() == ik_joint_bijection_.size());

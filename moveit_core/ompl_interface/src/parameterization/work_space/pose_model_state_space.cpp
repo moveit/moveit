@@ -123,6 +123,12 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   computeStateIK(state);
 }
 
+void ompl_interface::PoseModelStateSpace::copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const
+{
+  ModelBasedStateSpace::copyToOMPLState(state, jsg);
+  computeStateK(state);
+}
+
 void ompl_interface::PoseModelStateSpace::setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
   ModelBasedStateSpace::setBounds(minX, maxX, minY, maxY, minZ, maxZ);

@@ -199,7 +199,7 @@ public:
   }
   
   /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
-  void copyToKinematicState(planning_models::KinematicState::JointStateGroup* jsg, const ompl::base::State *state) const;
+  virtual void copyToKinematicState(planning_models::KinematicState::JointStateGroup* jsg, const ompl::base::State *state) const;
   
   /// Copy the data from an OMPL state to a kinematic state. The join states \b must be specified in the same order as the joint models in the constructor. This function is implemented in terms of the previous definition with the same name.
   void copyToKinematicState(planning_models::KinematicState &kstate, const ompl::base::State *state) const
@@ -217,7 +217,7 @@ public:
   }  
         
   /// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
-  void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const;
+  virtual void copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const;
   
   double getTagSnapToSegment(void) const;
   void setTagSnapToSegment(double snap);

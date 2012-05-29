@@ -202,6 +202,9 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     if (!planning_models::poseFromMsg(pc.constraint_region_pose.pose, constraint_region_pose_))
       ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());
     
+    if (pc.constraint_region_pose.header.frame_id.empty())
+      ROS_WARN("No frame specified for position constraint on link '%s'!", pc.link_name.c_str());
+    
     if (tf_->isFixedFrame(pc.constraint_region_pose.header.frame_id))
     {
       tf_->transformPose(pc.constraint_region_pose.header.frame_id, constraint_region_pose_, constraint_region_pose_);
@@ -335,6 +338,9 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
   if (!planning_models::quatFromMsg(oc.orientation.quaternion, q))
     ROS_WARN("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc.link_name.c_str(),
              oc.orientation.quaternion.x, oc.orientation.quaternion.y, oc.orientation.quaternion.z, oc.orientation.quaternion.w);
+  
+  if (oc.orientation.header.frame_id.empty())
+    ROS_WARN("No frame specified for position constraint on link '%s'!", oc.link_name.c_str());
   
   if (tf_->isFixedFrame(oc.orientation.header.frame_id))
   {
