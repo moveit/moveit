@@ -248,8 +248,8 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
   {
     ROS_DEBUG("It looks like the planning volume was not specified. Using default values.");
     moveit_msgs::WorkspaceParameters default_wp;
-    default_wp.min_corner.x = default_wp.min_corner.y = default_wp.min_corner.z = -1.0;
-    default_wp.max_corner.x = default_wp.max_corner.y = default_wp.max_corner.z = 1.0;
+    default_wp.min_corner.x = default_wp.min_corner.y = default_wp.min_corner.z = -10.0;
+    default_wp.max_corner.x = default_wp.max_corner.y = default_wp.max_corner.z = 10.0;
     setPlanningVolume(default_wp);    
     return;
   }

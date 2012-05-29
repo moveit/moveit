@@ -121,6 +121,11 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *
       state->as<StateType>()->tag = -1;
 }
 
+void ompl_interface::ModelBasedStateSpace::afterStateSample(ompl::base::State *sample) const
+{
+  sample->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
+}
+
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultStateSampler(void) const
 {
   class WrappedStateSampler : public ompl::base::StateSampler
@@ -134,19 +139,19 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultSt
     virtual void sampleUniform(ompl::base::State *state)
     {
       wrapped_->sampleUniform(state);
-      state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
+      space_->as<ModelBasedStateSpace>()->afterStateSample(state);
     }
     
     virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
     {    
       wrapped_->sampleGaussian(state, near, distance);
-      state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
+      space_->as<ModelBasedStateSpace>()->afterStateSample(state);
     }
     
     virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
     {
       wrapped_->sampleGaussian(state, mean, stdDev);
-      state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
+      space_->as<ModelBasedStateSpace>()->afterStateSample(state);
     }
     
   protected:
