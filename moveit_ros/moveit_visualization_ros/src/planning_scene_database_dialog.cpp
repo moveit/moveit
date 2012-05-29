@@ -86,7 +86,7 @@ void PlanningSceneDatabaseDialog::populateDatabaseDialog(boost::shared_ptr<movei
 
     QDateTime time;
     time.setTime_t((unsigned int)(times[i].toSec()));
-    stringstream timestamp_stream;
+    std::stringstream timestamp_stream;
     timestamp_stream << time.toString().toStdString();
 
     PlanningSceneDateTableItem* time_item = new PlanningSceneDateTableItem(QString::fromStdString(timestamp_stream.str()));
