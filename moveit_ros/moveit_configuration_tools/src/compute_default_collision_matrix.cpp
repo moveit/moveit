@@ -57,14 +57,14 @@ void computeConnectionGraphRec(const planning_models::KinematicModel::LinkModel 
 // ******************************************************************************
 // Main call for computing default collision matrix
 // ******************************************************************************
-std::map<std::string, std::vector<std::string> >  // an adj list
+std::map<std::string, std::set<std::string> >  // an adj list
 moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, 
                                                           bool include_never_colliding, int trials)
 {
   // Trial count variables
   static const unsigned int small_trial_count = trials;
   static const unsigned int small_trial_limit = (unsigned int)((double)small_trial_count * 0.95);
-  static const unsigned int small_trial_connected_limit = (unsigned int)((double)small_trial_count * 0.75);
+  //static const unsigned int small_trial_connected_limit = (unsigned int)((double)small_trial_count * 0.75);
   
   // Create new instance of planning scene using pointer
   planning_scene::PlanningScene scene(parent_scene);
@@ -78,7 +78,7 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   std::cout << "Intial ACM size " << acm.getSize() << std::endl;
 
   // Map of disabled collisions that contains a link as a key and an ordered list of links that are connected. An adjaceny list.
-  std::map<std::string, std::vector<std::string> > disabled_links;
+  std::map<std::string, std::set<std::string> > disabled_links;
 
   // Track unique edges that have been found to be in collision in some state
   std::set<std::pair<std::string, std::string> > links_seen_colliding;
@@ -88,52 +88,50 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   // For each link, compute the set of other links it connects to via a single joint (adjacent links) 
   // or via a chain of joints with intermediate links with no geometry (like a socket joint)
 
-  LinkGraph lg; // LinkGraph is a custom type of a map with a LinkModel as key and a set of LinkModels as second
+  LinkGraph link_graph; // LinkGraph is a custom type of a map with a LinkModel as key and a set of LinkModels as second
 
   // Create Connection Graph
   BTimer.start("GenConnG"); // Benchmarking Timer - temporary
-  computeConnectionGraph(scene.getKinematicModel()->getRootLink(), lg);
+  computeConnectionGraph(scene.getKinematicModel()->getRootLink(), link_graph);
   BTimer.end("GenConnG"); // Benchmarking Timer - temporary
 
-  ROS_INFO("Generated connection graph with %d links", int(lg.size()));
+  ROS_INFO("Generated connection graph with %d links", int(link_graph.size()));
 
 
   // DISABLE ALL ADJACENT LINK COLLISIONS ---------------------------------------------------------
+  // if 2 links are adjacent, or adjacent with a zero-shape between them, disable collision checking for them
   int number_disabled = 0;
-  for (LinkGraph::const_iterator lg_it = lg.begin() ; lg_it != lg.end() ; ++lg_it)
+  for (LinkGraph::const_iterator link_graph_it = link_graph.begin() ; link_graph_it != link_graph.end() ; ++link_graph_it)
   {
     // disable all connected links to current link by looping through them
-    for (std::set<const planning_models::KinematicModel::LinkModel*>::const_iterator adj_it = lg_it->second.begin(); 
-         adj_it != lg_it->second.end(); 
+    for (std::set<const planning_models::KinematicModel::LinkModel*>::const_iterator adj_it = link_graph_it->second.begin(); 
+         adj_it != link_graph_it->second.end(); 
          ++adj_it)
     {
-      //std::cout << "LinkModel " << lg_it->first->getName() << " to " << (*adj_it)->getName() << std::endl;
+      std::cout << "LinkModel " << link_graph_it->first->getName() << " to " << (*adj_it)->getName() << std::endl;
 
       // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
       //if( LinkModel < LinkModel )
-
-      
-      if (lg_it->first->getName() < (*adj_it)->getName() )
-        disabled_links[ lg_it->first->getName() ].push_back( (*adj_it)->getName() );
+      if (link_graph_it->first->getName() < (*adj_it)->getName() )
+        disabled_links[ link_graph_it->first->getName() ].insert( (*adj_it)->getName() );
       else
-        disabled_links[ (*adj_it)->getName() ].push_back( lg_it->first->getName() );
-      acm.setEntry( lg_it->first->getName(), (*adj_it)->getName(), true); // disable link checking in the collision matrix
+        disabled_links[ (*adj_it)->getName() ].insert( link_graph_it->first->getName() );
+      acm.setEntry( link_graph_it->first->getName(), (*adj_it)->getName(), true); // disable link checking in the collision matrix
       
-      //std::cout << "ACM size is now " << acm.getSize() << std::endl;
+      std::cout << "ACM size is now " << acm.getSize() << std::endl;
 
       ++number_disabled;
     }
-    //std::cout << "\n\n\n";
+    std::cout << "\n\n\n";
   }
-  ROS_INFO("Attempted to disable %d adjancent links from collision checking", number_disabled);
+  ROS_INFO("Disabled %d adjancent links from collision checking", number_disabled);
 
-  return disabled_links;
 
   // INITIAL CONTACTS TO CONSIDER GUESS -----------------------------------------------------------
   // Create collision detection request object
   collision_detection::CollisionRequest req;
   req.contacts = true;
-  req.max_contacts = int(lg.size()); // max number of contacts to compute. initial guess is number of links on robot
+  req.max_contacts = int(link_graph.size()); // max number of contacts to compute. initial guess is number of links on robot
   req.max_contacts_per_pair = 1;
   req.verbose = false;
 
@@ -143,9 +141,10 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   ROS_INFO("Computing the number of contacts we should consider...");
   BTimer.start("ContactConsider"); // Benchmarking Timer - temporary  
 
-  bool done = false; 
-  while (!done)
-  {
+  /*
+    bool done = false; 
+    while (!done)
+    {
     done = true;
 
     // Check for collisions in a random state
@@ -157,18 +156,19 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
     unsigned int nc = 0;
     for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
     {
-      nc += it->second.size();
+    nc += it->second.size();
     }
     
     // Check if the number of contacts is greater than the max count
     if (nc >= req.max_contacts)
     {
-      req.max_contacts *= 2; // double the max contacts that the CollisionRequest checks for
-      std::cout << "Doubling max_contacts to " << req.max_contacts << std::endl;
+    req.max_contacts *= 2; // double the max contacts that the CollisionRequest checks for
+    std::cout << "Doubling max_contacts to " << req.max_contacts << std::endl;
 
-      done = false;
+    done = false;
     }
-  }
+    }
+  */
   BTimer.end("ContactConsider"); // Benchmarking Timer - temporary  
 
 
@@ -180,6 +180,8 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   BTimer.start("AlwaysColl"); // Benchmarking Timer - temporary  
   while (!done)
   {
+
+    // DO 100 COLLISION CHECKS AND RECORD STATISTICS ---------------------------------------
     std::map<std::pair<std::string, std::string>, unsigned int> collision_count;    
 
     // Do a large number of tests
@@ -207,50 +209,51 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
       }
     }
 
-    // ADD QUALIFYING LINKS TO COLLISION MATRIX -----------------------------------------------
-    // if a pair of links is almost always in collision (small_trial_limit) or they are adjacent 
-    // and very often in collision (small_trial_connected_limit)
-    // add those links to the collision matrix
+    // >= 95% OF TIME IN COLLISION DISABLE -----------------------------------------------------
+    // Disable collision checking for links that are >= 95% of the time in collision
 
     unsigned int found = 0;
     
     // Loop through every pair of link collisions and disable if it meets the threshold
     for (std::map<std::pair<std::string, std::string>, unsigned int>::const_iterator it = collision_count.begin() ; it != collision_count.end() ; ++it)
     {      
-      if (it->second > small_trial_connected_limit)
+      std::cout << it->first.first;
+      std::cout << std::setw(50) << it->first.second;
+      std::cout << std::setw(50) << it->second << "\n";
+
+      // Disable these two links permanently      
+      if (it->second > small_trial_limit)
       {
-        bool ok = it->second > small_trial_limit;
-        if (!ok)
-        {
-          // check if links are connected by a joint or a chain of joints & links with no geometry
-          const std::set<const planning_models::KinematicModel::LinkModel*> &nbh = lg.at(scene.getKinematicModel()->getLinkModel(it->first.first));
-          ok = nbh.find(scene.getKinematicModel()->getLinkModel(it->first.second)) != nbh.end();
-        }
-        if (ok)
-        {
-          // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
-          if (it->first.first < it->first.second) 
-            disabled_links[it->first.first].push_back(it->first.second);
-          else
-            disabled_links[it->first.second].push_back(it->first.first);
+        std::cout << "\t DISABLED AT 95% CHECK !!!!!!!!!!!!!!!!!!!!!!!!!! \n";
 
-          acm.setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
-          std::cout << "ACM size is now " << acm.getSize() << std::endl;
+        // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
+        if (it->first.first < it->first.second) 
+          disabled_links[it->first.first].insert(it->first.second);
+        else
+          disabled_links[it->first.second].insert(it->first.first);
 
-          found++;
-        }
+        acm.setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
+        std::cout << "ACM size is now " << acm.getSize() << std::endl;
+
+        found++;
       }
+
     }
     
     // if no updates were made to the collision matrix, we stop
     if (found == 0)
       done = true;
 
-    ROS_INFO("Found %u allowed collisions", found);
+    ROS_INFO("Disabled %u collision checks", found);
+    std::cout << "LOOPING ALWAYS COLLISION CHECKER ------------------------------------ \n\n";
   }
   BTimer.end("AlwaysColl"); // Benchmarking Timer - temporary  
   
 
+  // DISABLE "DEFAULT" COLLISIONS --------------------------------------------------------
+  // Disable all collision checks that occur when the robot is started in its default state
+
+  
 
   // NEVER IN COLLISION -------------------------------------------------------------------
   
@@ -289,9 +292,9 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
     if (links_seen_colliding.find(std::make_pair(names[i], names[j])) == links_seen_colliding.end())
     {
     if (names[i] < names[j])
-    disabled_links[names[i]].push_back(names[j]);
+    disabled_links[names[i]].insert(names[j]);
     else
-    disabled_links[names[j]].push_back(names[i]);
+    disabled_links[names[j]].insert(names[i]);
     }
     }
     }

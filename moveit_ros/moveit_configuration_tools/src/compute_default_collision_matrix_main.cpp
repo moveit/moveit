@@ -38,7 +38,7 @@
 #include "moveit_configuration_tools/compute_default_collision_matrix.h"
 #include "moveit_configuration_tools/benchmark_timer.h"
 //Temporary:
-#include <iostream>b
+#include <iostream>
 #include <fstream>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();  
 
-  int trials = 1000;
+  int trials = 100;
   if( argc > 1 )
   {
     trials = atoi(argv[1]);
@@ -79,18 +79,21 @@ int main(int argc, char **argv)
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
 
   // Find the default collision matrix - all links that are allowed to collide
-  const std::map<std::string, std::vector<std::string> > &disabled_links = 
+  const std::map<std::string, std::set<std::string> > &disabled_links = 
     moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), false, trials);
 
   // Output the yaml file
   // TODO: convert to proper yaml file output method
   unsigned int n = 0;
-  for (std::map<std::string, std::vector<std::string> >::const_iterator it = disabled_links.begin() ; it != disabled_links.end() ; ++it)
+  for (std::map<std::string, std::set<std::string> >::const_iterator it = disabled_links.begin() ; it != disabled_links.end() ; ++it)
   {    
-    for (std::size_t i = 0 ; i < it->second.size() ; ++i)
+    // disable all connected links to current link by looping through them
+    for (std::set<std::string>::const_iterator link2_it = it->second.begin(); 
+         link2_it != it->second.end(); 
+         ++link2_it)
     {
-      std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << it->second[i] << "\" />" << std::endl;
-      n++;
+      std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << (*link2_it) << "\" />" << std::endl;
+      ++n;
     }
   }
   
