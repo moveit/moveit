@@ -81,7 +81,7 @@ public:
   
   /** \brief Update the joints that mimic this one. This function is called automatically by the setVariable* functions */
   void updateMimicJoints(void);
-  
+
   /** \brief Specifies whether or not all values associated with a joint are defined in the
       supplied joint value map */
   bool allVariablesAreDefined(const std::map<std::string, double>& value_map) const;
@@ -152,6 +152,12 @@ public:
   
   /** \brief Get the current variable transform */
   const Eigen::Affine3d& getVariableTransform(void) const
+  {
+    return variable_transform_;
+  }
+
+  /** \brief Get the current variable transform */
+  Eigen::Affine3d& getVariableTransform(void)
   {
     return variable_transform_;
   }

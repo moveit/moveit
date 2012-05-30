@@ -34,7 +34,8 @@
 
 /** Author Ioan Sucan */
 
-#include "ompl_interface/parameterization/model_based_state_space.h"
+#include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
+#include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
 #include <ompl/util/Exception.h>
 #include <planning_models/conversions.h>
 #include <gtest/gtest.h>
@@ -70,7 +71,7 @@ protected:
 TEST_F(LoadPlanningModelsPr2, StateSpace)
 {
   ompl_interface::ModelBasedStateSpaceSpecification spec(kmodel_, "whole_body");
-  ompl_interface::ModelBasedStateSpace ss(spec);
+  ompl_interface::JointModelStateSpace ss(spec);
   ss.setBounds(-1, 1, -1, 1, -1, 1);
   ss.setup();
   std::ofstream fout("ompl_interface_test_state_space_diagram1.dot");
@@ -108,6 +109,48 @@ TEST_F(LoadPlanningModelsPr2, StateSpaces)
   
   std::ofstream fout("ompl_interface_test_state_space_diagram2.dot");
   ompl::base::StateSpace::Diagram(fout);
+}
+
+TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
+{
+  ompl_interface::ModelBasedStateSpaceSpecification spec(kmodel_, "right_arm");
+  ompl_interface::JointModelStateSpace ss(spec);
+  ss.setBounds(-1, 1, -1, 1, -1, 1);
+  ss.setup();
+  std::ofstream fout("ompl_interface_test_state_space_diagram1.dot");
+  ss.diagram(fout);
+  bool passed = false;
+  try
+  {
+    ss.sanityChecks();
+    passed = true;
+  }
+  catch(ompl::Exception &ex)
+  {
+    ROS_ERROR_STREAM("Sanity checks did not pass: " << ex.what());
+  }
+  EXPECT_TRUE(passed);
+
+  planning_models::KinematicState kstate(kmodel_);
+  kstate.setToRandomValues();
+  EXPECT_TRUE(kstate.distance(kstate) < 1e-12);
+  ompl::base::State *state = ss.allocState();
+  for (int i = 0 ; i < 10 ; ++i)
+  {
+    planning_models::KinematicState kstate2(kstate);
+    EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
+    ss.copyToOMPLState(state, kstate);
+    kstate.getJointStateGroup(ss.getJointModelGroupName())->setToRandomValues();
+    std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() - 
+                  kstate2.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation()) << std::endl;
+    EXPECT_TRUE(kstate.distance(kstate2) > 1e-12);
+    ss.copyToKinematicState(kstate, state);
+    std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() - 
+                  kstate2.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation()) << std::endl;
+    EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
+  }
+  
+  ss.freeState(state);
 }
 
 int main(int argc, char **argv)

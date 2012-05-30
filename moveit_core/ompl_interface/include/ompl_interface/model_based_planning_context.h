@@ -245,7 +245,6 @@ public:
 
   void setStartState(const planning_models::KinematicState &complete_initial_robot_state);
   
-  bool setRandomStartGoal(void);
   bool setGoalConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
 			  const moveit_msgs::Constraints &path_constraints,
 			  moveit_msgs::MoveItErrorCodes *error);
