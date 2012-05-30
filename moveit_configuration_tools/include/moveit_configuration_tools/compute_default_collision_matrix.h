@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman, Ioan Sucan */
+/* Author: Dave Coleman */
 
 #ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
 #define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
@@ -52,7 +52,8 @@ namespace moveit_configuration_tools
  * \param trials Optional ability to set the number random collision checks that are made. Increase the probability of correctness
  */
 std::map<std::string, std::set<std::string> > 
-computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, bool include_never_colliding = false, int trials = 1000);
+computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, bool include_never_colliding = true, 
+                              int trials = 1000, bool verbose = false);
 
 }
 

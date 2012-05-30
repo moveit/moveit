@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman, Ioan Sucan */
+/* Author: Dave Coleman */
 
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include "moveit_configuration_tools/compute_default_collision_matrix.h"
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 
   // Find the default collision matrix - all links that are allowed to collide
   const std::map<std::string, std::set<std::string> > &disabled_links = 
-    moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), false, trials);
+    moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), true, trials, true);
 
   // Output the yaml file
   // TODO: convert to proper yaml file output method
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
          link2_it != it->second.end(); 
          ++link2_it)
     {
-      std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << (*link2_it) << "\" />" << std::endl;
+      //std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << (*link2_it) << "\" />" << std::endl;
       ++n;
     }
   }
