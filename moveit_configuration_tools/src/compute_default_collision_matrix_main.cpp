@@ -32,11 +32,14 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Dave Coleman, Ioan Sucan */
 
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include "moveit_configuration_tools/compute_default_collision_matrix.h"
 #include "moveit_configuration_tools/benchmark_timer.h"
+//Temporary:
+#include <iostream>
+#include <fstream>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
 BenchmarkTimer BTimer; // used for analyzing results
@@ -48,6 +51,26 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();  
 
+  int trials = 100;
+  if( argc > 1 )
+  {
+    trials = atoi(argv[1]);
+    ROS_INFO("Number of trials %d", trials);
+  }
+
+  // Write reslts to file
+  //std::ofstream results;
+  //results.open("/u/dcoleman/collision_data.csv");  
+
+  //int trials = 1000; //for(int trials = 10; trials <= 1000; trials += 50)
+  //{
+  //int disabled_links_count = 0;
+
+  std::cout << "TRIALS " << trials << " --------------------------- \n\n\n";
+
+  // Do 10 tests
+  //for(int ii = 0; ii < 10; ++ii)
+  //{
   // Setup benchmark timer
   BTimer = BenchmarkTimer();
   BTimer.start("Total"); 
@@ -56,17 +79,21 @@ int main(int argc, char **argv)
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
 
   // Find the default collision matrix - all links that are allowed to collide
-  const std::map<std::string, std::vector<std::string> > &result = moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene());
+  const std::map<std::string, std::set<std::string> > &disabled_links = 
+    moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), false, trials);
 
   // Output the yaml file
   // TODO: convert to proper yaml file output method
   unsigned int n = 0;
-  for (std::map<std::string, std::vector<std::string> >::const_iterator it = result.begin() ; it != result.end() ; ++it)
+  for (std::map<std::string, std::set<std::string> >::const_iterator it = disabled_links.begin() ; it != disabled_links.end() ; ++it)
   {    
-    for (std::size_t i = 0 ; i < it->second.size() ; ++i)
+    // disable all connected links to current link by looping through them
+    for (std::set<std::string>::const_iterator link2_it = it->second.begin(); 
+         link2_it != it->second.end(); 
+         ++link2_it)
     {
-      std::cout << "   b<disable_collisions link1=\"" << it->first << "\" link2=\"" << it->second[i] << "\" />" << std::endl;
-      n++;
+      std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << (*link2_it) << "\" />" << std::endl;
+      ++n;
     }
   }
   
@@ -75,6 +102,13 @@ int main(int argc, char **argv)
   BTimer.printTimes(); // output results   
   // number of links disabled from collision checking
   std::cout << n << std::endl << std::endl;  
+
+  /*disabled_links_cout += n;
+    }
+    results << trials << " " << disabled_links_count;
+    }
+    results.close();
+  */
 
   ros::shutdown();    
   return 0;
