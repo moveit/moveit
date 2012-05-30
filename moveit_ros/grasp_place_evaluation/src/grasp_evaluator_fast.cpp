@@ -65,12 +65,12 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
   std::map<std::string, double> planning_scene_state_values;
   state.getStateValues(planning_scene_state_values);
 
-  std::string tip_link = planning_scene->getSemanticModel()->getTipLink(pickup_goal.arm_name);
+  std::string end_effector_group = planning_scene->getKinematicModel()->getJointModelGroup(pickup_goal.arm_name)->getAttachedEndEffectorGroupName();
+  // links are ordered by the order seen by depth-first. This means that for a chain the last link is the tip of the chain
+  std::string tip_link = planning_scene->getKinematicModel()->getJointModelGroup(pickup_goal.arm_name)->getLinkModelNames().back();
   
-  std::string end_effector_group = planning_scene->getSemanticModel()->getEndEffector(pickup_goal.arm_name);
-  
-  std::vector<std::string> end_effector_links = planning_scene->getSemanticModel()->getGroupLinks(end_effector_group);
-  std::vector<std::string> arm_links = planning_scene->getSemanticModel()->getGroupLinks(pickup_goal.arm_name);
+  std::vector<std::string> end_effector_links = planning_scene->getKinematicModel()->getJointModelGroup(end_effector_group)->getLinkModelNames();
+  std::vector<std::string> arm_links = planning_scene->getKinematicModel()->getJointModelGroup(pickup_goal.arm_name)->getLinkModelNames();
   
   collision_detection::AllowedCollisionMatrix original_acm = planning_scene->getAllowedCollisionMatrix();
   collision_detection::AllowedCollisionMatrix group_disable_acm = original_acm;//planning_scene->disableCollisionsForNonUpdatedLinks(pickup_goal.arm_name);
@@ -157,13 +157,12 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
 
   std_msgs::Header world_header;
   world_header.frame_id = planning_scene->getPlanningFrame();
-  std::vector<std::string> joint_names = planning_scene->getSemanticModel()->getGroupJoints(pickup_goal.arm_name);
+  std::vector<std::string> joint_names = planning_scene->getKinematicModel()->getJointModelGroup(pickup_goal.arm_name)->getJointModelNames();
 
   std::vector<Eigen::Affine3d> grasp_poses(grasps.size());
 
   //now this is grasp specific
   for(unsigned int i = 0; i < grasps.size(); i++) {
-
     ros::WallTime now = ros::WallTime::now();
 
     if(execution_info[i].result_.result_code != 0) {
@@ -201,7 +200,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       ROS_DEBUG_STREAM("Grasp pose is " << pp);
     }
     moveit_msgs::AttachedCollisionObject att_obj;
-    att_obj.link_name = planning_scene->getSemanticModel()->getAttachLink(end_effector_group);
+    att_obj.link_name = planning_scene->getKinematicModel()->getJointModelGroup(end_effector_group)->getEndEffectorParentGroup().second;
     att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
     att_obj.object.id = pickup_goal.collision_object_name;
     att_obj.touch_links = end_effector_links;
@@ -288,8 +287,9 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     
     //now call ik for grasp
     
+    // links in the groups are ordered by how depth-first visits them. For a chain this means the first link is the base & the last link is the tip
     Eigen::Affine3d base_link_world_pose = 
-      state.getLinkState(planning_scene->getSemanticModel()->getBaseLink(pickup_goal.arm_name))->getGlobalLinkTransform();
+      state.getLinkState(planning_scene->getKinematicModel()->getJointModelGroup(pickup_goal.arm_name)->getLinkModelNames().front())->getGlobalLinkTransform();
 
     Eigen::Affine3d base_link_grasp_pose_e = base_link_world_pose.inverse()*grasp_poses[i];
     geometry_msgs::Pose base_link_grasp_pose;

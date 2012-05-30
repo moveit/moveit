@@ -74,15 +74,14 @@ void PlaceEvaluationVisualization::showPlacePose(const planning_scene::PlanningS
   }
 
   removeAllMarkers();
-  
-  std::vector<std::string> end_effector_links = 
-    planning_scene->getSemanticModel()->getGroupLinks(planning_scene->getSemanticModel()->getEndEffector(place_info.place_goal_.arm_name));
+
+  std::vector<std::string> end_effector_links = planning_scene->getKinematicModel()->getJointModelGroup(planning_scene->getKinematicModel()->getJointModelGroup(place_info.place_goal_.arm_name)->getAttachedEndEffectorGroupName())->getLinkModelNames();
   
   planning_models::KinematicState state(planning_scene->getCurrentState());
   
   if(show_place) {
     state.setStateValues(place_info.place_goal_.grasp.grasp_posture);
-    state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(place_info.place_goal_.arm_name),
+    state.updateStateWithLinkAt(planning_scene->getKinematicModel()->getJointModelGroup(place_info.place_goal_.arm_name)->getLinkModelNames().back(),
                                 place_info[num].place_pose_);
 
     std_msgs::ColorRGBA col;
@@ -96,7 +95,7 @@ void PlaceEvaluationVisualization::showPlacePose(const planning_scene::PlanningS
   }
   if(show_preplace) {
     state.setStateValues(place_info.place_goal_.grasp.grasp_posture);
-    state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(place_info.place_goal_.arm_name),
+    state.updateStateWithLinkAt(planning_scene->getKinematicModel()->getJointModelGroup(place_info.place_goal_.arm_name)->getLinkModelNames().back(),
                                 place_info[num].preplace_pose_);
 
     std_msgs::ColorRGBA col;
@@ -114,7 +113,7 @@ void PlaceEvaluationVisualization::showPlacePose(const planning_scene::PlanningS
     planning_models::KinematicState diff_state(place_info[num].detached_object_diff_scene_->getCurrentState());    
     diff_state.setStateValues(place_info.place_goal_.grasp.pre_grasp_posture);
 
-    diff_state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(place_info.place_goal_.arm_name),
+    diff_state.updateStateWithLinkAt(planning_scene->getKinematicModel()->getJointModelGroup(place_info.place_goal_.arm_name)->getLinkModelNames().back(),
                                      place_info[num].retreat_pose_);
 
     std_msgs::ColorRGBA col;

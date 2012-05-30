@@ -69,12 +69,11 @@ void PlaceGeneratorVisualization::showPlace(const planning_scene::PlanningSceneC
 
   Eigen::Affine3d tip_pose = place_pose*grasp_pose;
 
-  state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(arm_name), tip_pose);
+  state.updateStateWithLinkAt(planning_scene->getKinematicModel()->getJointModelGroup(arm_name)->getLinkModelNames().back(), tip_pose);
   std_msgs::ColorRGBA col;
   col.r = col.g = col.a = 1.0;
 
-  std::vector<std::string> end_effector_links = 
-    planning_scene->getSemanticModel()->getGroupLinks(planning_scene->getSemanticModel()->getEndEffector(arm_name));
+  std::vector<std::string> end_effector_links = planning_scene->getKinematicModel()->getJointModelGroup(planning_scene->getKinematicModel()->getJointModelGroup(arm_name)->getAttachedEndEffectorGroupName())->getLinkModelNames();
 
   state.getRobotMarkers(col,
                         "place",

@@ -321,7 +321,7 @@ void GraspEvaluationVisualizationDialog::generateGraspsForObject() {
   ROS_INFO_STREAM("Attempting to grasp " << current_object_);
   current_generated_grasps_.clear();
 
-  std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
+  std::string end_effector_name = planning_scene_->getKinematicModel()->getJointModelGroup(current_arm_)->getAttachedEndEffectorGroupName();
 
   Q_EMIT requestGraspListGeneration(end_effector_database_id_map_[end_effector_name],
                                     current_object_,
@@ -393,7 +393,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedGrasps() {
     last_grasp_evaluation_info_.clear();
   }
 
-  std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
+  std::string end_effector_name = planning_scene_->getKinematicModel()->getJointModelGroup(current_arm_)->getAttachedEndEffectorGroupName();
 
   grasp_evaluator_fast_->testGrasps(planning_scene_,
                                     &planning_scene_->getCurrentState(),
@@ -658,7 +658,7 @@ void GraspEvaluationVisualizationDialog::evaluateGeneratedPlaceLocations() {
   }
   ev.attached_object_diff_scene_->getCurrentState().setStateValues(ev.lift_trajectory_.joint_names,
                                                                    ev.lift_trajectory_.points.back().positions);
-  std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
+  std::string end_effector_name = planning_scene_->getKinematicModel()->getJointModelGroup(current_arm_)->getAttachedEndEffectorGroupName();
   place_evaluator_fast_->testPlaceLocations(ev.attached_object_diff_scene_,
                                             &ev.attached_object_diff_scene_->getCurrentState(),
                                             goal,
@@ -815,8 +815,7 @@ void GraspEvaluationVisualizationDialog::generateTrajectoryFromJointState(const 
 void GraspEvaluationVisualizationDialog::executeFullGraspAndPlace() {
   std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
 
-  std::string end_effector_name = planning_scene_->getSemanticModel()->getEndEffector(current_arm_);
-  
+  std::string end_effector_name = planning_scene_->getKinematicModel()->getJointModelGroup(current_arm_)->getAttachedEndEffectorGroupName();  
   grasp_place_evaluation::GraspExecutionInfo& ev_grasp = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
 
   grasp_place_evaluation::PlaceExecutionInfo& ev_place = last_place_evaluation_info_[evaluated_place_locations_browser_->value()-1];

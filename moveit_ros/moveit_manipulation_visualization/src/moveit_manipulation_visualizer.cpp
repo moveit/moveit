@@ -57,7 +57,7 @@ MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
 
 
   HouseholdObjectAdditionDialog* household_object_dialog = new HouseholdObjectAdditionDialog(main_window_,
-                                                                                             planning_scene_monitor_->getPlanningScene()->getSemanticModel());
+                                                                                             planning_scene_monitor_->getPlanningScene()->getKinematicModel());
 
   QAction* show_household_objects_dialog = coll_object_menu_->addAction("Add Household Collision Object");
   QObject::connect(show_household_objects_dialog, SIGNAL(triggered()), household_object_dialog, SLOT(show()));

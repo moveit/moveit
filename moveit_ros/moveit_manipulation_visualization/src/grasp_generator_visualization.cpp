@@ -89,13 +89,11 @@ void GraspGeneratorVisualization::showGrasp(const planning_scene::PlanningSceneC
   state.setStateValues(grasp.grasp_posture);
   ROS_DEBUG_STREAM("Grasp posture " << grasp.grasp_posture);
   ROS_DEBUG_STREAM("Pre-grasp posture " << grasp.pre_grasp_posture);
-  state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(arm_name), scene_pose);
+  state.updateStateWithLinkAt(planning_scene->getKinematicModel()->getJointModelGroup(arm_name)->getLinkModelNames().back(), scene_pose);
   std_msgs::ColorRGBA col;
   col.g = col.a = 1.0;
 
-  std::vector<std::string> end_effector_links = 
-    planning_scene->getSemanticModel()->getGroupLinks(planning_scene->getSemanticModel()->getEndEffector(arm_name));
-
+  std::vector<std::string> end_effector_links = planning_scene->getKinematicModel()->getJointModelGroup(planning_scene->getKinematicModel()->getJointModelGroup(arm_name)->getAttachedEndEffectorGroupName())->getLinkModelNames();
   state.getRobotMarkers(col,
                         "grasp",
                         ros::Duration(0.0),
