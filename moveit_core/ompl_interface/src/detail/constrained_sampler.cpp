@@ -40,20 +40,21 @@
 
 ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc, const constraint_samplers::ConstraintSamplerPtr &cs) :
   ob::StateSampler(pc->getOMPLStateSpace().get()), planning_context_(pc), default_(space_->allocDefaultStateSampler()),
-  constraint_sampler_(cs), constrained_success_(0), constrained_failure_(0)
+  constraint_sampler_(cs), work_state_(pc->getCompleteInitialRobotState()), 
+  work_joint_group_state_(work_state_.getJointStateGroup(planning_context_->getJointModelGroupName())),
+  constrained_success_(0), constrained_failure_(0)
 {
 }
 
 bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
-{
-  std::vector<double> values;
-  if (constraint_sampler_->sample(values, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
+{  
+  if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
   {
-    planning_context_->getOMPLStateSpace()->copyToOMPLState(state, values);
+    planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_joint_group_state_);
     if (space_->satisfiesBounds(state))
     {
-	++constrained_success_;
-	return true;
+      ++constrained_success_;
+      return true;
     }
   }
   ++constrained_failure_;

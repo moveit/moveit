@@ -32,50 +32,38 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/*------------------------------------------------------*/
+/*   DO NOT INCLUDE THIS FILE DIRECTLY                  */
+/*------------------------------------------------------*/
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_HELPER_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_HELPER_
-
-#include "ompl_interface/parameterization/model_based_state_space.h"
-
-namespace ompl_interface
+/** \brief A prismatic joint */
+class PrismaticJointModel : public JointModel
 {
-
-class JointModelStateSpaceHelper
-{     
+  friend class KinematicModel;
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
-  JointModelStateSpaceHelper(const std::vector<const pm::KinematicModel::JointModel*> &joints)
+  PrismaticJointModel(const std::string& name);  
+  virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;   
+  virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
+  virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
+  virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const;
+  
+  virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
+  virtual unsigned int getStateSpaceDimension(void) const;
+  virtual double getMaximumExtent(void) const;
+  virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;
+  virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
+  virtual void computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const;
+  virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const;
+  
+  /** \brief Get the axis of translation */
+  const Eigen::Vector3d& getAxis(void) const
   {
-    constructSpace(joints);
+    return axis_;
   }
   
-  void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const;
-  void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const;
-  void copyToOMPLState(ob::State *state, const std::vector<double> &values) const;
-  const ob::StateSpacePtr& getStateSpace(void) const
-  {
-    return state_space_;
-  }
-  
-private:
-  
-  /// The order in which the joints were used to construct the OMPL state space
-  std::vector<std::size_t> joint_mapping_;
-  
-  /// The order in which the joint variables were used to construct the OMPL state space
-  std::vector<std::size_t> variable_mapping_;
-  
-  std::vector<ob::StateSpacePtr> components_;
-  
-  ob::StateSpacePtr state_space_;
-  
-  void constructSpace(const std::vector<const pm::KinematicModel::JointModel*> &joints);
+protected:
+  /** \brief The axis of the joint */
+  Eigen::Vector3d axis_;
 };
-
-
-
-}
-
-#endif

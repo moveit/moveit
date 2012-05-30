@@ -32,13 +32,12 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
 #ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
-#include "ompl_interface/parameterization/joint_space/joint_model_state_space_helper.h"
 
 namespace ompl_interface
 {
@@ -46,27 +45,10 @@ namespace ompl_interface
 class JointModelStateSpace : public ModelBasedStateSpace
 {
 public:
+
+  static const std::string PARAMETERIZATION_TYPE;
   
   JointModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
-  
-  virtual void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const
-  {
-    helper_.copyToKinematicState(js, state);
-  }
-  
-  virtual void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const
-  { 
-    helper_.copyToOMPLState(state, js);
-  }
-  
-  virtual void copyToOMPLState(ob::State *state, const std::vector<double> &values) const
-  {    
-    helper_.copyToOMPLState(state, values);
-  }
-  
-private:
-
-  JointModelStateSpaceHelper helper_;
   
 };
 

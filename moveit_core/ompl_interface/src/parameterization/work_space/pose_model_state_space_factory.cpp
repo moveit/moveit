@@ -37,42 +37,44 @@
 #include "ompl_interface/parameterization/work_space/pose_model_state_space_factory.h"
 #include "ompl_interface/parameterization/work_space/pose_model_state_space.h"
 
-int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const pm::KinematicModelConstPtr &kmodel, const planning_scene::KinematicsAllocators &aks) const
+ompl_interface::PoseModelStateSpaceFactory::PoseModelStateSpaceFactory(void) : ModelBasedStateSpaceFactory()
+{  
+  type_ = PoseModelStateSpace::PARAMETERIZATION_TYPE;
+}  
+
+int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req, const planning_models::KinematicModelConstPtr &kmodel) const
 {
-    const pm::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req.group_name);
-    if (jmg)
-    {
-      planning_scene::KinematicsAllocators::const_iterator it = aks.find(jmg);
-      if (it != aks.end())
+  const planning_models::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req.group_name);
+  if (jmg)
+  {
+    const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn>& slv = jmg->getSolverAllocators();
+    bool ik = false;
+    // check that we have a direct means to compute IK
+    if (slv.first)
+      ik = true;
+    else
+      if (!slv.second.empty())
       {
-        bool ik = false;
-        // check that we have a direct means to compute IK
-        if (it->second.first)
+        // or an IK solver for each of the subgroups
+        unsigned int vc = 0;
+        for (planning_models::KinematicModel::SolverAllocatorMapFn::const_iterator jt = slv.second.begin() ; jt != slv.second.end() ; ++jt)
+          if (jt->first)
+            vc += jt->first->getVariableCount();
+        if (vc == jmg->getVariableCount())
           ik = true;
-        else
-          if (!it->second.second.empty())
-          {
-            // or an IK solver for each of the subgroups
-            unsigned int vc = 0;
-            for (planning_scene::KinematicsAllocatorMapFn::const_iterator jt = it->second.second.begin() ; jt != it->second.second.end() ; ++jt)
-              vc += jt->first->getVariableCount();
-            if (vc == jmg->getVariableCount())
-              ik = true;
-          }
-        
-        if (ik)
-        {
-          // if we have path constraints, we prefer interpolating in pose space
-          if ((!req.path_constraints.position_constraints.empty() || !req.path_constraints.orientation_constraints.empty()) &&
-              req.path_constraints.joint_constraints.empty() && req.path_constraints.visibility_constraints.empty())
-            return 150;
-          else
-            return 50;
-        }
       }
-    }
     
-    return -1;
+    if (ik)
+    {
+      // if we have path constraints, we prefer interpolating in pose space
+      if ((!req.path_constraints.position_constraints.empty() || !req.path_constraints.orientation_constraints.empty()) &&
+          req.path_constraints.joint_constraints.empty() && req.path_constraints.visibility_constraints.empty())
+        return 150;
+      else
+        return 50;
+    }
+  }
+  return -1;
 }
 
 ompl_interface::ModelBasedStateSpacePtr ompl_interface::PoseModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const

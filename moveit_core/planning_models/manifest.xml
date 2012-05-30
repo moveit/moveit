@@ -12,6 +12,7 @@
   <depend package="rosconsole" />
   <depend package="geometric_shapes"/>
   <depend package="resource_retriever"/>
+  <depend package="kinematics_base"/>
   <depend package="random_numbers"/>
   <depend package="moveit_msgs"/>
   <depend package="geometry_msgs"/>

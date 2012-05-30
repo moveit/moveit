@@ -248,8 +248,8 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
   {
     ROS_DEBUG("It looks like the planning volume was not specified. Using default values.");
     moveit_msgs::WorkspaceParameters default_wp;
-    default_wp.min_corner.x = default_wp.min_corner.y = default_wp.min_corner.z = -1.0;
-    default_wp.max_corner.x = default_wp.max_corner.y = default_wp.max_corner.z = 1.0;
+    default_wp.min_corner.x = default_wp.min_corner.y = default_wp.min_corner.z = -10.0;
+    default_wp.max_corner.x = default_wp.max_corner.y = default_wp.max_corner.z = 10.0;
     setPlanningVolume(default_wp);    
     return;
   }
@@ -257,9 +257,9 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
   ROS_DEBUG("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]", name_.c_str(),
 	    wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
   
-  ompl_state_space_->setPlanningVolume(wparams.min_corner.x, wparams.max_corner.x,
-                                       wparams.min_corner.y, wparams.max_corner.y,
-                                       wparams.min_corner.z, wparams.max_corner.z);
+  ompl_state_space_->setBounds(wparams.min_corner.x, wparams.max_corner.x,
+                               wparams.min_corner.y, wparams.max_corner.y,
+                               wparams.min_corner.z, wparams.max_corner.z);
 }
 
 void ompl_interface::ModelBasedPlanningContext::simplifySolution(double timeout)
@@ -370,7 +370,7 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningScene(const planning_
   planning_scene_ = planning_scene;
 }
 
-void ompl_interface::ModelBasedPlanningContext::setStartState(const pm::KinematicState &complete_initial_robot_state)
+void ompl_interface::ModelBasedPlanningContext::setStartState(const planning_models::KinematicState &complete_initial_robot_state)
 {
   complete_initial_robot_state_ = complete_initial_robot_state;
 }
@@ -385,34 +385,11 @@ void ompl_interface::ModelBasedPlanningContext::clear(void)
   goal_constraints_.clear();
 }
 
-bool ompl_interface::ModelBasedPlanningContext::setRandomStartGoal(void)
-{
-  ob::ValidStateSamplerPtr vss(new ob::UniformValidStateSampler(ompl_simple_setup_.getSpaceInformation().get()));
-  vss->setNrAttempts(10000);
-  ob::ScopedState<> ss(ompl_state_space_);
-  if (vss->sample(ss.get()))
-  {
-    ompl_state_space_->copyToKinematicState(complete_initial_robot_state_, ss.get());
-    ROS_INFO("Selected a random valid start state");
-    if (vss->sample(ss.get()))
-    {
-      ompl_simple_setup_.setGoalState(ss);
-      ROS_INFO("Selected a random valid goal state");
-      return true;
-    }
-    else
-      ROS_WARN("Unable to select random valid goals state");
-  }
-  else
-    ROS_WARN("Unable to select random valid start/goal states");
-  return false;
-}
-
 bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_msgs::Constraints &path_constraints,
 								   moveit_msgs::MoveItErrorCodes *error)
 {
   // ******************* set the path constraints to use
-  path_constraints_.reset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
+  path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
   path_constraints_->add(path_constraints);
   path_constraints_msg_ = path_constraints;
   
@@ -428,8 +405,8 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
   goal_constraints_.clear();
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
   {
-    moveit_msgs::Constraints constr = kc::mergeConstraints(goal_constraints[i], path_constraints);
-    kc::KinematicConstraintSetPtr kset(new kc::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
+    moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
+    kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
     kset->add(constr);
     if (!kset->empty())
       goal_constraints_.push_back(kset);
@@ -581,14 +558,14 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   if (gls)
     // just in case we need to stop sampling
     static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->stopSampling();
-
+  
   int v = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getValidMotionCount();
   int iv = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
   ROS_DEBUG("There were %d valid motions and %d invalid motions.", v, iv);
   
   if (ompl_simple_setup_.getProblemDefinition()->hasApproximateSolution())
     ROS_WARN("Computed solution is approximate");
-
+  
   return result;
 }
 
