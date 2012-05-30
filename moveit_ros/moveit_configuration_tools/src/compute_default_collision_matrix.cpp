@@ -62,15 +62,13 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
                                                           bool include_never_colliding, int trials)
 {
   // Trial count variables
-  static const unsigned int small_trial_count = trials;
+  static const unsigned int small_trial_count = trials; // TODO: hardcode
   static const unsigned int small_trial_limit = (unsigned int)((double)small_trial_count * 0.95);
-  //static const unsigned int small_trial_connected_limit = (unsigned int)((double)small_trial_count * 0.75);
   
   // Create new instance of planning scene using pointer
   planning_scene::PlanningScene scene(parent_scene);
 
   // Create structure for tracking which collisions are allowed
-  // 
   // AllowedCollisionMatrix: Definition of a structure for the allowed collision matrix. 
   // All elements in the collision world are referred to by their names.
   // This class represents which collisions are allowed to happen and which are not. */
@@ -96,7 +94,6 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   BTimer.end("GenConnG"); // Benchmarking Timer - temporary
 
   ROS_INFO("Generated connection graph with %d links", int(link_graph.size()));
-
 
   // DISABLE ALL ADJACENT LINK COLLISIONS ---------------------------------------------------------
   // if 2 links are adjacent, or adjacent with a zero-shape between them, disable collision checking for them
@@ -140,42 +137,14 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   // update the number of contacts we should consider in collision detection:
   ROS_INFO("Computing the number of contacts we should consider...");
   BTimer.start("ContactConsider"); // Benchmarking Timer - temporary  
-
-  /*
-    bool done = false; 
-    while (!done)
-    {
-    done = true;
-
-    // Check for collisions in a random state
-    collision_detection::CollisionResult res;
-    scene.getCurrentState().setToRandomValues();
-    scene.checkSelfCollision(req, res);
-
-    // Sum the number of collisions
-    unsigned int nc = 0;
-    for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
-    {
-    nc += it->second.size();
-    }
-    
-    // Check if the number of contacts is greater than the max count
-    if (nc >= req.max_contacts)
-    {
-    req.max_contacts *= 2; // double the max contacts that the CollisionRequest checks for
-    std::cout << "Doubling max_contacts to " << req.max_contacts << std::endl;
-
-    done = false;
-    }
-    }
-  */
+  // TODO: remove this area
   BTimer.end("ContactConsider"); // Benchmarking Timer - temporary  
 
 
   // ALWAYS IN COLLISION --------------------------------------------------------------------
   // compute the links that are always in collision
   ROS_INFO("Computing pairs of links that are always in collision...");
-  done = false;
+  bool done = false;
 
   BTimer.start("AlwaysColl"); // Benchmarking Timer - temporary  
   while (!done)
@@ -253,7 +222,31 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   // DISABLE "DEFAULT" COLLISIONS --------------------------------------------------------
   // Disable all collision checks that occur when the robot is started in its default state
 
-  
+  // Setup environment
+  collision_detection::CollisionResult res;
+  scene.getCurrentState().setToDefaultValues();
+  scene.checkSelfCollision(req, res);
+
+  // For each collision in default state, always add to disabled links set
+  int found = 0;
+  for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
+  {
+    // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
+    if (it->first.first < it->first.second) 
+      disabled_links[it->first.first].insert(it->first.second);
+    else
+      disabled_links[it->first.second].insert(it->first.first);
+
+    acm.setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
+
+    ROS_INFO("Disabled %s to %s", it->first.first.c_str(), it->first.second.c_str());
+    std::cout << "ACM size is now " << acm.getSize() << std::endl;
+
+    ++found;
+  }
+      
+  ROS_INFO("Disabled %d links that are in collision in default state", found);  
+
 
   // NEVER IN COLLISION -------------------------------------------------------------------
   
