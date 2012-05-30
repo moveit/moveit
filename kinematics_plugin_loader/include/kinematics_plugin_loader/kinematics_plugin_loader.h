@@ -46,7 +46,7 @@ namespace kinematics_plugin_loader
 {
 
 /// function type that allocates an Kinematics solver for a particular group
-typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const planning_models::KinematicModel::JointModelGroup*)> KinematicsLoaderFn;
+typedef planning_models::KinematicModel::SolverAllocatorFn KinematicsLoaderFn;
 
 class KinematicsPluginLoader
 {
