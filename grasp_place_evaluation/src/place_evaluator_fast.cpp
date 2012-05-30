@@ -62,12 +62,12 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
   std::map<std::string, double> planning_scene_state_values;
   state.getStateValues(planning_scene_state_values);
 
-  std::string tip_link = planning_scene->getSemanticModel()->getTipLink(place_goal.arm_name);
+  std::string end_effector_group = planning_scene->getKinematicModel()->getJointModelGroup(place_goal.arm_name)->getAttachedEndEffectorGroupName();
+  // links are ordered by the order seen by depth-first. This means that for a chain the last link is the tip of the chain
+  std::string tip_link = planning_scene->getKinematicModel()->getJointModelGroup(place_goal.arm_name)->getLinkModelNames().back();
   
-  std::string end_effector_group = planning_scene->getSemanticModel()->getEndEffector(place_goal.arm_name);
-  
-  std::vector<std::string> end_effector_links = planning_scene->getSemanticModel()->getGroupLinks(end_effector_group);
-  std::vector<std::string> arm_links = planning_scene->getSemanticModel()->getGroupLinks(place_goal.arm_name);
+  std::vector<std::string> end_effector_links = planning_scene->getKinematicModel()->getJointModelGroup(end_effector_group)->getLinkModelNames();
+  std::vector<std::string> arm_links = planning_scene->getKinematicModel()->getJointModelGroup(place_goal.arm_name)->getLinkModelNames();
 
   collision_detection::AllowedCollisionMatrix original_acm = planning_scene->getAllowedCollisionMatrix();
   collision_detection::AllowedCollisionMatrix group_disable_acm = original_acm;//planning_scene->disableCollisionsForNonUpdatedLinks(place_goal.arm_name);
@@ -127,7 +127,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
 
   std_msgs::Header world_header;
   world_header.frame_id = planning_scene->getPlanningFrame();
-  std::vector<std::string> joint_names = planning_scene->getSemanticModel()->getGroupJoints(place_goal.arm_name);
+  std::vector<std::string> joint_names = planning_scene->getKinematicModel()->getJointModelGroup(place_goal.arm_name)->getJointModelNames();
 
   //now this is place specific
   for(unsigned int i = 0; i < place_locations.size(); i++) {
@@ -183,7 +183,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
     // --------------- CHECKING RELEASE POSE -------------------
     
     moveit_msgs::AttachedCollisionObject att_obj;
-    att_obj.link_name = planning_scene->getSemanticModel()->getAttachLink(end_effector_group);
+    att_obj.link_name = planning_scene->getKinematicModel()->getJointModelGroup(end_effector_group)->getEndEffectorParentGroup().second;
     att_obj.object.operation = moveit_msgs::CollisionObject::REMOVE;
     att_obj.object.id = place_goal.collision_object_name;
 
@@ -207,8 +207,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
     state.setStateValues(planning_scene_state_values_post_place);
     
     Eigen::Affine3d base_link_world_pose =
-      state.getLinkState(planning_scene->getSemanticModel()->getBaseLink(place_goal.arm_name))->getGlobalLinkTransform();
-    
+      state.getLinkState(planning_scene->getKinematicModel()->getJointModelGroup(place_goal.arm_name)->getLinkModelNames().front())->getGlobalLinkTransform();
     Eigen::Affine3d base_link_place_pose_e = base_link_world_pose.inverse()*execution_info[i].place_pose_;
     geometry_msgs::Pose base_link_place_pose;
     planning_models::msgFromPose(base_link_place_pose_e, base_link_place_pose);

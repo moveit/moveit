@@ -46,8 +46,9 @@
 #include <std_msgs/ColorRGBA.h>
 
 #include <moveit_household_objects_database/objects_database.h>
-#include <planning_models/semantic_model.h>
 #include <moveit_manipulation_msgs/Grasp.h>
+
+#include <planning_models/kinematic_model.h>
 
 namespace moveit_manipulation_visualization
 {
@@ -59,7 +60,7 @@ class HouseholdObjectAdditionDialog: public QDialog
   public:
   
   HouseholdObjectAdditionDialog(QWidget* parent,
-                                const planning_models::SemanticModelConstPtr& semantic_model);
+                                const planning_models::KinematicModelConstPtr& kinematic_model);
 
   bool connectToDatabase(const std::string& database_host = "wgs36.willowgarage.com",
                          const int& database_port = 5432,
@@ -105,7 +106,7 @@ protected:
                           const std::string& arm_name,
                           std::vector<moveit_manipulation_msgs::Grasp>& grasps);
 
-  planning_models::SemanticModelConstPtr semantic_model_;
+  planning_models::KinematicModelConstPtr kinematic_model_;
   moveit_household_objects_database::ObjectsDatabase *database_;
   QTableWidget* household_objects_table_;
 

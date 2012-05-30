@@ -77,13 +77,12 @@ void GraspEvaluationVisualization::showGraspPose(const planning_scene::PlanningS
   removeAllMarkers();
 
   std::vector<std::string> end_effector_links = 
-    planning_scene->getSemanticModel()->getGroupLinks(planning_scene->getSemanticModel()->getEndEffector(grasp_info.pickup_goal_.arm_name));
-  
+    planning_scene->getKinematicModel()->getJointModelGroup(planning_scene->getKinematicModel()->getJointModelGroup(grasp_info.pickup_goal_.arm_name)->getAttachedEndEffectorGroupName())->getLinkModelNames();
   planning_models::KinematicState state(planning_scene->getCurrentState());
 
   if(show_grasp) {
     state.setStateValues(grasp_info.grasps_[num].grasp_posture);
-    state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(grasp_info.pickup_goal_.arm_name),
+    state.updateStateWithLinkAt(planning_scene->getKinematicModel()->getJointModelGroup(grasp_info.pickup_goal_.arm_name)->getLinkModelNames().back(), // tip link
                                 grasp_info[num].grasp_pose_);
 
     std_msgs::ColorRGBA col;
@@ -97,7 +96,7 @@ void GraspEvaluationVisualization::showGraspPose(const planning_scene::PlanningS
   }
   if(show_pregrasp) {
     state.setStateValues(grasp_info.grasps_[num].pre_grasp_posture);
-    state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(grasp_info.pickup_goal_.arm_name),
+    state.updateStateWithLinkAt(planning_scene->getKinematicModel()->getJointModelGroup(grasp_info.pickup_goal_.arm_name)->getLinkModelNames().back(), // tip link
                                 grasp_info[num].pregrasp_pose_);
 
     std_msgs::ColorRGBA col;
@@ -115,7 +114,7 @@ void GraspEvaluationVisualization::showGraspPose(const planning_scene::PlanningS
     planning_models::KinematicState diff_state(grasp_info[num].attached_object_diff_scene_->getCurrentState());    
     diff_state.setStateValues(grasp_info.grasps_[num].grasp_posture);
 
-    diff_state.updateStateWithLinkAt(planning_scene->getSemanticModel()->getTipLink(grasp_info.pickup_goal_.arm_name),
+    diff_state.updateStateWithLinkAt(planning_scene->getKinematicModel()->getJointModelGroup(grasp_info.pickup_goal_.arm_name)->getLinkModelNames().back(), // tip link
                                      grasp_info[num].lift_pose_);
 
     std_msgs::ColorRGBA col;

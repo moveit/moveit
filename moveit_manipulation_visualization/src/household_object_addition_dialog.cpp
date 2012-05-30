@@ -48,9 +48,9 @@ namespace moveit_manipulation_visualization
 {
 
 HouseholdObjectAdditionDialog::HouseholdObjectAdditionDialog(QWidget* parent,
-                                                             const planning_models::SemanticModelConstPtr& semantic_model) :
+                                                             const planning_models::KinematicModelConstPtr& kinematic_model) :
   QDialog(parent),
-  semantic_model_(semantic_model),
+  kinematic_model_(kinematic_model),
   database_(NULL),
   selected_color_(128,128,128),
   current_id_(-1)
@@ -241,8 +241,8 @@ bool HouseholdObjectAdditionDialog::loadDatabaseGrasps(const std::string& databa
     return false;
   }
   bool is_pr2 = false;
-  if(semantic_model_->getModelName() == "pr2" ||
-     semantic_model_->getModelName() == "pr2_test") {
+  if(kinematic_model_->getName() == "pr2" ||
+     kinematic_model_->getName() == "pr2_test") {
     is_pr2 = true;
   } 
   grasps.clear();
@@ -259,8 +259,8 @@ bool HouseholdObjectAdditionDialog::loadDatabaseGrasps(const std::string& databa
     return false;
   }
 
-  std::string end_effector_group = semantic_model_->getEndEffector(arm_name);
-  std::vector<std::string> end_effector_joints = semantic_model_->getGroupJoints(end_effector_group);
+  std::string end_effector_group = kinematic_model_->getJointModelGroup(arm_name)->getAttachedEndEffectorGroupName();
+  std::vector<std::string> end_effector_joints = kinematic_model_->getJointModelGroup(end_effector_group)->getJointModelNames();
 
   std::vector< boost::shared_ptr<moveit_household_objects_database::DatabaseGrasp> >::iterator it;
   for (it = db_grasps.begin(); it != db_grasps.end(); it++)
