@@ -82,6 +82,13 @@ int main(int argc, char **argv)
   const std::map<std::string, std::set<std::string> > &disabled_links = 
     moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), true, trials, true);
 
+  // Benchmarking Results
+  BTimer.end("Total"); 
+  BTimer.printTimes(); // output results   
+  // number of links disabled from collision checking
+  //std::cout << n << std::endl << std::endl;  
+  std::cout << "\n";
+
   // Output the yaml file
   // TODO: convert to proper yaml file output method
   unsigned int n = 0;
@@ -97,12 +104,6 @@ int main(int argc, char **argv)
     }
   }
   
-  // Benchmarking Results
-  BTimer.end("Total"); 
-  BTimer.printTimes(); // output results   
-  // number of links disabled from collision checking
-  std::cout << n << std::endl << std::endl;  
-
   /*disabled_links_cout += n;
     }
     results << trials << " " << disabled_links_count;
