@@ -92,14 +92,6 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   // we want to interpolate in Cartesian space; we do not have a guarantee that from and to
   // have their poses computed, but this is very unlikely to happen (depends how the planner gets its input states)
   ModelBasedStateSpace::interpolate(from, to, t, state);
-
-  for (std::size_t i = 0 ; i < poses_.size() ; ++i)
-  {
-    std::size_t c = componentCount_ - i - 1;
-    components_[c]->interpolate(from->as<ompl::base::CompoundState>()->components[c],
-                                to->as<ompl::base::CompoundState>()->components[c], t, 
-                                state->as<ompl::base::CompoundState>()->components[c]);
-  }
   
   // after interpolation we cannot be sure about the joint values (we use them as seed only)
   // so we recompute IK
@@ -113,8 +105,8 @@ void ompl_interface::PoseModelStateSpace::setBounds(double minX, double maxX, do
   ompl::base::RealVectorBounds b(3);
   b.low[0] = minX; b.low[1] = minY; b.low[2] = minZ;
   b.high[0] = maxX; b.high[1] = maxY; b.high[2] = maxZ;
-  for (std::size_t i = 0 ; i < poses_.size() ; ++i)
-    components_[componentCount_ - i - 1]->as<ompl::base::SE3StateSpace>()->setBounds(b);
+  for (unsigned int i = jointSubspaceCount_ ; i < componentCount_ ; ++i)
+    components_[i]->as<ompl::base::SE3StateSpace>()->setBounds(b);
 }
 
 ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const planning_models::KinematicModel::JointModelGroup *subgroup) :

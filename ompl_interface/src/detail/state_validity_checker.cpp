@@ -61,22 +61,17 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   
   planning_models::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
-  kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
-  
+
   // check path constraints
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
-  if (kset && !kset->decide(*kstate, 1||verbose_).satisfied)
+  if (kset && !kset->decide(*kstate, verbose_).satisfied)
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     
     if (state->as<ModelBasedStateSpace::StateType>()->isInputState() && !verbose_)
       kset->decide(*kstate, true);
-    ompl::tools::Profiler::Average("fail_kset", 1.0);
-    
     return false;
   }
-  else
-    ompl::tools::Profiler::Average("fail_kset", 0.0);
 
   // check feasibility
   if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose_))
@@ -93,7 +88,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(collision_request_simple_, res, *kstate);
   if (res.collision == false)
-  {
+  {   
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
     return true;
   }
@@ -124,7 +119,6 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   
   planning_models::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
-  kstate->getJointStateGroup(group_name_)->updateLinkTransforms();
   
   // check path constraints
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();

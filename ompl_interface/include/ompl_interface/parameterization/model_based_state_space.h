@@ -184,11 +184,13 @@ public:
   {
     return getJointModelGroup()->getName();
   }
-  
+
   const ModelBasedStateSpaceSpecification& getSpecification(void) const
   {
     return spec_;
   }
+
+  virtual void printState(const ompl::base::State *state, std::ostream &out) const;
   
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
@@ -227,6 +229,7 @@ protected:
   virtual void afterStateSample(ompl::base::State *sample) const;
   
   ModelBasedStateSpaceSpecification spec_; 
+  unsigned int jointSubspaceCount_;
   
   double tag_snap_to_segment_;
   double tag_snap_to_segment_complement_;

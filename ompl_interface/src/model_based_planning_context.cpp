@@ -385,29 +385,6 @@ void ompl_interface::ModelBasedPlanningContext::clear(void)
   goal_constraints_.clear();
 }
 
-bool ompl_interface::ModelBasedPlanningContext::setRandomStartGoal(void)
-{
-  ob::ValidStateSamplerPtr vss(new ob::UniformValidStateSampler(ompl_simple_setup_.getSpaceInformation().get()));
-  vss->setNrAttempts(10000);
-  ob::ScopedState<> ss(ompl_state_space_);
-  if (vss->sample(ss.get()))
-  {
-    ompl_state_space_->copyToKinematicState(complete_initial_robot_state_, ss.get());
-    ROS_INFO("Selected a random valid start state");
-    if (vss->sample(ss.get()))
-    {
-      ompl_simple_setup_.setGoalState(ss);
-      ROS_INFO("Selected a random valid goal state");
-      return true;
-    }
-    else
-      ROS_WARN("Unable to select random valid goals state");
-  }
-  else
-    ROS_WARN("Unable to select random valid start/goal states");
-  return false;
-}
-
 bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_msgs::Constraints &path_constraints,
 								   moveit_msgs::MoveItErrorCodes *error)
 {

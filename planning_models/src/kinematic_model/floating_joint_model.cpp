@@ -218,9 +218,20 @@ void planning_models::KinematicModel::FloatingJointModel::getRandomValues(random
 {
   std::size_t s = values.size();
   values.resize(s + 7);
-  values[s] = rng.uniformReal(bounds[0].first, bounds[0].second);
-  values[s + 1] = rng.uniformReal(bounds[1].first, bounds[1].second);
-  values[s + 2] = rng.uniformReal(bounds[2].first, bounds[2].second);
+  
+  if (bounds[0].second >= std::numeric_limits<double>::max() || bounds[0].first <= -std::numeric_limits<double>::max())
+    values[s] = 0.0;
+  else
+    values[s] = rng.uniformReal(bounds[0].first, bounds[0].second);
+  if (bounds[1].second >= std::numeric_limits<double>::max() || bounds[1].first <= -std::numeric_limits<double>::max())
+    values[s + 1] = 0.0;
+  else
+    values[s + 1] = rng.uniformReal(bounds[1].first, bounds[1].second);
+  if (bounds[2].second >= std::numeric_limits<double>::max() || bounds[2].first <= -std::numeric_limits<double>::max())
+    values[s + 2] = 0.0;
+  else
+    values[s + 2] = rng.uniformReal(bounds[2].first, bounds[2].second);
+
   double q[4]; rng.quaternion(q);
   values[s + 3] = q[0];
   values[s + 4] = q[1];

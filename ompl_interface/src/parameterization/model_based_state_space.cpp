@@ -57,6 +57,7 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
   // construct the state space components, subspace by subspace
   for (std::size_t i = 0 ; i < joint_model_vector.size() ; ++i)
     addSubspace(ompl::base::StateSpacePtr(new ModelBasedJointStateSpace(joint_model_vector[i], spec_.joints_bounds_[i])), joint_model_vector[i]->getDistanceFactor());
+  jointSubspaceCount_ = joint_model_vector.size();
   
   // default settings
   setTagSnapToSegment(0.95);
@@ -109,9 +110,13 @@ void ompl_interface::ModelBasedStateSpace::copyState(ompl::base::State *destinat
 
 void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const
 { 
+  // clear any cached info (such as validity known or not)
   state->as<StateType>()->clearKnownInformation();
+  
+  // perform the actual interpolation
   CompoundStateSpace::interpolate(from, to, t, state);
   
+  // compute tag
   if (from->as<StateType>()->tag >= 0 && t < 1.0 - tag_snap_to_segment_)
     state->as<StateType>()->tag = from->as<StateType>()->tag;
   else
@@ -162,9 +167,26 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultSt
   return ompl::base::StateSamplerPtr(static_cast<ompl::base::StateSampler*>(new WrappedStateSampler(this, ompl::base::CompoundStateSpace::allocDefaultStateSampler())));
 }
 
+void ompl_interface::ModelBasedStateSpace::printState(const ompl::base::State *state, std::ostream &out) const
+{
+  ompl::base::CompoundStateSpace::printState(state, out);
+  if (state->as<StateType>()->isStartState())
+    out << "* start state"  << std::endl;
+  if (state->as<StateType>()->isGoalState())
+    out << "* goal state"  << std::endl;
+  if (state->as<StateType>()->isValidityKnown())
+  {
+    if (state->as<StateType>()->isMarkedValid())
+      out << "* valid state"  << std::endl;
+    else
+      out << "* invalid state"  << std::endl;
+  }
+  out << "Tag: " << state->as<StateType>()->tag << std::endl;
+}
+
 void ompl_interface::ModelBasedStateSpace::setBounds(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
 {
-  for (std::size_t i = 0 ; i < componentCount_ ; ++i)
+  for (std::size_t i = 0 ; i < jointSubspaceCount_ ; ++i)
     components_[i]->as<ModelBasedJointStateSpace>()->setBounds(minX, maxX, minY, maxY, minZ, maxZ);
 }
 
@@ -173,6 +195,7 @@ void ompl_interface::ModelBasedStateSpace::copyToKinematicState(planning_models:
   const std::vector<planning_models::KinematicState::JointState*> &dest = jsg->getJointStateVector();
   for (std::size_t i = 0 ; i < dest.size() ; ++i)
     *dest[i] = *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state;
+  jsg->updateLinkTransforms();
 }
 
 void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *state, const planning_models::KinematicState::JointStateGroup* jsg) const
