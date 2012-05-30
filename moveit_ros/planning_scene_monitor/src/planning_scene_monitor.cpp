@@ -115,17 +115,17 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
     }
   }
   
-  if (scene_)
+  if (scene_ && scene_->getKinematicModel())
   {
     // load the kinematics solvers
     if (!kinematics_loader_)
       kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader());
     kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction();
     const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
-    planning_scene::KinematicsAllocatorsByName imap;
+    std::map<std::string, planning_models::KinematicModel::SolverAllocatorFn> imap;
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
       imap[groups[i]] =  kinematics_allocator;
-    scene_->setKinematicsAllocators(imap);
+    scene_->getKinematicModel()->setKinematicsAllocators(imap);
   }
   
   last_update_time_ = ros::Time::now();
@@ -552,7 +552,7 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultJointLimits(v
 {
   for(unsigned int i = 0; i < scene_->getKinematicModel()->getJointModels().size(); ++i) 
   {
-    std::vector<moveit_msgs::JointLimits> jlim = scene_->getKinematicModel()->getJointModels()[i]->getJointLimits();
+    std::vector<moveit_msgs::JointLimits> jlim = scene_->getKinematicModel()->getJointModels()[i]->getVariableLimits();
     for(unsigned int j = 0; j < jlim.size(); j++) {
       std::string prefix = robot_description_+"_planning/joint_limits/"+jlim[j].joint_name+"/";
       ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " before vel " << jlim[j].max_velocity);

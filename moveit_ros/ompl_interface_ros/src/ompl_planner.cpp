@@ -79,6 +79,7 @@ public:
     {
       if (result)
         displaySolution(res);
+      displayPlannerData("r_wrist_roll_link");
       std::stringstream ss;
       ompl::tools::Profiler::Status(ss);
       ROS_INFO("%s", ss.str().c_str());
