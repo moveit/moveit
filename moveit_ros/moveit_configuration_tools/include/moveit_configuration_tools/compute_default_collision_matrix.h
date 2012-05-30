@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Dave Coleman, Ioan Sucan */
 
 #ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
 #define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
@@ -45,20 +45,9 @@
 namespace moveit_configuration_tools
 {
 
-// LinkGraph defines a Link's model and a set of unique links it connects
-typedef std::map<const planning_models::KinematicModel::LinkModel*, std::set<const planning_models::KinematicModel::LinkModel*> > LinkGraph;
-
 // Main call for computing default collision matrix
-std::map<std::string, std::vector<std::string> > 
-computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, bool include_never_colliding = false);
-
-// Build the robot links connection graph and then check for links with no geomotry
-void
-computeConnectionGraph(const planning_models::KinematicModel::LinkModel *link, LinkGraph &edges);
-
-// Recursively build the adj list of link connections
-void
-computeConnectionGraphRec(const planning_models::KinematicModel::LinkModel *link, LinkGraph &edges);
+std::map<std::string, std::set<std::string> > 
+computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, bool include_never_colliding = false, int trials = 1000);
 
 }
 

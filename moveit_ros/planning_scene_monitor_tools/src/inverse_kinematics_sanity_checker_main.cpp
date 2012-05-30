@@ -90,13 +90,13 @@ int main(int argc, char **argv) {
                         "sample",
                         ros::Duration(0.0),
                         mark,
-                        planning_scene_monitor_->getPlanningScene()->getSemanticModel()->getGroupLinks(group_name));
+                        planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name)->getLinkModelNames());
   jsg->setStateValues(wrong_solutions[0].second);
   state.getRobotMarkers(colb,
                         "solution",
                         ros::Duration(0.0),
                         mark,
-                        planning_scene_monitor_->getPlanningScene()->getSemanticModel()->getGroupLinks(group_name));
+                        planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name)->getLinkModelNames());
 
   while(ros::ok()) {
     vis_marker_array_publisher_.publish(mark);
