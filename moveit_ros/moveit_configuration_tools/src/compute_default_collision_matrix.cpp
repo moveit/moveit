@@ -105,21 +105,20 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
          adj_it != link_graph_it->second.end(); 
          ++adj_it)
     {
-      std::cout << "LinkModel " << link_graph_it->first->getName() << " to " << (*adj_it)->getName() << std::endl;
+      //  ROS_INFO("Disabled std::cout << "LinkModel " << 
+      ROS_INFO("Disabled %s to %s", link_graph_it->first->getName().c_str(), (*adj_it)->getName().c_str() );
 
       // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
-      //if( LinkModel < LinkModel )
       if (link_graph_it->first->getName() < (*adj_it)->getName() )
         disabled_links[ link_graph_it->first->getName() ].insert( (*adj_it)->getName() );
       else
         disabled_links[ (*adj_it)->getName() ].insert( link_graph_it->first->getName() );
       acm.setEntry( link_graph_it->first->getName(), (*adj_it)->getName(), true); // disable link checking in the collision matrix
       
-      std::cout << "ACM size is now " << acm.getSize() << std::endl;
+      //std::cout << "ACM size is now " << acm.getSize() << std::endl;
 
       ++number_disabled;
     }
-    std::cout << "\n\n\n";
   }
   ROS_INFO("Disabled %d adjancent links from collision checking", number_disabled);
 
@@ -135,10 +134,38 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
 
   // UPDATE NUMBER OF CONTACTS TO CONSIDER --------------------------------------------------------
   // update the number of contacts we should consider in collision detection:
-  ROS_INFO("Computing the number of contacts we should consider...");
+  //ROS_INFO("Computing the number of contacts we should consider...");
   BTimer.start("ContactConsider"); // Benchmarking Timer - temporary  
   // TODO: remove this area
   BTimer.end("ContactConsider"); // Benchmarking Timer - temporary  
+
+  // DISABLE "DEFAULT" COLLISIONS --------------------------------------------------------
+  // Disable all collision checks that occur when the robot is started in its default state
+
+  // Setup environment
+  collision_detection::CollisionResult res;
+  scene.getCurrentState().setToDefaultValues();
+  scene.checkSelfCollision(req, res);
+
+  // For each collision in default state, always add to disabled links set
+  int found = 0;
+  for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
+  {
+    // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
+    if (it->first.first < it->first.second) 
+      disabled_links[it->first.first].insert(it->first.second);
+    else
+      disabled_links[it->first.second].insert(it->first.first);
+
+    acm.setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
+
+    ROS_INFO("Disabled %s to %s", it->first.first.c_str(), it->first.second.c_str());
+    //std::cout << "ACM size is now " << acm.getSize() << std::endl;
+
+    ++found;
+  }
+
+  ROS_INFO("Disabled %d links that are in collision in default state", found);  
 
 
   // ALWAYS IN COLLISION --------------------------------------------------------------------
@@ -149,7 +176,6 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   BTimer.start("AlwaysColl"); // Benchmarking Timer - temporary  
   while (!done)
   {
-
     // DO 100 COLLISION CHECKS AND RECORD STATISTICS ---------------------------------------
     std::map<std::pair<std::string, std::string>, unsigned int> collision_count;    
 
@@ -174,7 +200,7 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
       if (nc >= req.max_contacts)
       {
         req.max_contacts *= 2; // double the max contacts that the CollisionRequest checks for
-        std::cout << "Doubling max_contacts to " << req.max_contacts << std::endl;
+        ROS_INFO("Doubling max_contacts to %d", req.max_contacts);
       }
     }
 
@@ -202,7 +228,7 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
           disabled_links[it->first.second].insert(it->first.first);
 
         acm.setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
-        std::cout << "ACM size is now " << acm.getSize() << std::endl;
+        //std::cout << "ACM size is now " << acm.getSize() << std::endl;
 
         found++;
       }
@@ -214,39 +240,10 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
       done = true;
 
     ROS_INFO("Disabled %u collision checks", found);
-    std::cout << "LOOPING ALWAYS COLLISION CHECKER ------------------------------------ \n\n";
+    //std::cout << "LOOPING ALWAYS COLLISION CHECKER ------------------------------------ \n\n";
   }
   BTimer.end("AlwaysColl"); // Benchmarking Timer - temporary  
   
-
-  // DISABLE "DEFAULT" COLLISIONS --------------------------------------------------------
-  // Disable all collision checks that occur when the robot is started in its default state
-
-  // Setup environment
-  collision_detection::CollisionResult res;
-  scene.getCurrentState().setToDefaultValues();
-  scene.checkSelfCollision(req, res);
-
-  // For each collision in default state, always add to disabled links set
-  int found = 0;
-  for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
-  {
-    // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
-    if (it->first.first < it->first.second) 
-      disabled_links[it->first.first].insert(it->first.second);
-    else
-      disabled_links[it->first.second].insert(it->first.first);
-
-    acm.setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
-
-    ROS_INFO("Disabled %s to %s", it->first.first.c_str(), it->first.second.c_str());
-    std::cout << "ACM size is now " << acm.getSize() << std::endl;
-
-    ++found;
-  }
-      
-  ROS_INFO("Disabled %d links that are in collision in default state", found);  
-
 
   // NEVER IN COLLISION -------------------------------------------------------------------
   
