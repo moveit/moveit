@@ -63,7 +63,9 @@ private:
   const ModelBasedPlanningContext                 *planning_context_;
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
   constraint_samplers::ConstraintSamplerPtr        constraint_sampler_;
-  planning_models::KinematicState                  state_;
+  planning_models::KinematicState                   work_state_;
+  planning_models::KinematicState::JointStateGroup *work_joint_group_state_;
+
 };
 }
 

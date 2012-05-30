@@ -57,7 +57,7 @@ public:
   
   bool setup(const std::vector<kinematic_constraints::JointConstraint> &jc);
 
-  virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks,  unsigned int max_attempts = 100);
+  virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks,  unsigned int max_attempts);
   
   std::size_t getConstrainedJointCount(void) const
   {
@@ -77,6 +77,7 @@ protected:
   
   std::vector<const planning_models::KinematicModel::JointModel*> unbounded_;
   std::vector<unsigned int>                                       uindex_;
+  std::vector<double>                                             values_;
 };
 
 
@@ -91,14 +92,14 @@ struct IKSamplingPose
   IKSamplingPose(const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
   IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
   
-  boost::shared_ptr<kinematic_constraints::PositionConstraint>    pc_;
-  boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc_;
+  boost::shared_ptr<kinematic_constraints::PositionConstraint>    position_constraint_;
+  boost::shared_ptr<kinematic_constraints::OrientationConstraint> orientation_constraint_;
 };
 
 class IKConstraintSampler : public ConstraintSampler
 {
 public:
-  
+
   IKConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const IKSamplingPose &sp) :
     ConstraintSampler(scene, group_name)
   {
@@ -121,12 +122,12 @@ public:
   
   const boost::shared_ptr<kinematic_constraints::PositionConstraint>& getPositionConstraint(void) const
   {
-    return sp_.pc_;
+    return sampling_pose_.position_constraint_;
   }
   
   const boost::shared_ptr<kinematic_constraints::OrientationConstraint>& getOrientationConstraint(void) const
   {
-    return sp_.oc_;
+    return sampling_pose_.orientation_constraint_;
   }
 
   bool loadIKSolver(void);
@@ -134,21 +135,21 @@ public:
   double getSamplingVolume(void) const;
   const std::string& getLinkName(void) const;
   
-  bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const planning_models::KinematicState &ks, unsigned int max_attempts = 100);
-  virtual bool sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts = 100);
+  bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const planning_models::KinematicState &ks, unsigned int max_attempts);
+  virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks, unsigned int max_attempts);
   
 protected:
   
-  bool callIK(const geometry_msgs::Pose &ik_query, double timeout, std::vector<double> &solution);
+  bool callIK(const geometry_msgs::Pose &ik_query, double timeout, planning_models::KinematicState::JointStateGroup *jsg);
 
-  random_numbers::RandomNumberGenerator         random_number_generator_;
-  planning_scene::KinematicsAllocatorFn         ik_alloc_;
-  IKSamplingPose                                sp_;
-  boost::shared_ptr<kinematics::KinematicsBase> kb_;
-  double                                        ik_timeout_;
-  std::vector<unsigned int>                     ik_joint_bijection_;
-  std::string                                   ik_frame_;
-  bool                                          transform_ik_;
+  random_numbers::RandomNumberGenerator              random_number_generator_;
+  planning_models::KinematicModel::SolverAllocatorFn ik_alloc_;
+  IKSamplingPose                                     sampling_pose_;
+  kinematics::KinematicsBasePtr                      kb_;
+  double                                             ik_timeout_;
+  std::vector<unsigned int>                          ik_joint_bijection_;
+  std::string                                        ik_frame_;
+  bool                                               transform_ik_;
 };
 
 

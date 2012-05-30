@@ -36,18 +36,11 @@
 
 #include "ompl_interface/parameterization/joint_space/joint_model_state_space.h"
 
+const std::string ompl_interface::JointModelStateSpace::PARAMETERIZATION_TYPE = "JointModel";
+
 ompl_interface::JointModelStateSpace::JointModelStateSpace(const ModelBasedStateSpaceSpecification &spec) :
-  ModelBasedStateSpace(spec), helper_(spec.joint_model_group_->getJointModels())
+  ModelBasedStateSpace(spec)
 {
-  const ob::StateSpacePtr &space = helper_.getStateSpace();
-  unsigned int ns = space->as<ob::CompoundStateSpace>()->getSubspaceCount();
-  for (unsigned int i = 0 ; i < ns ; ++i)
-  {
-    const ob::StateSpacePtr &c = space->as<ob::CompoundStateSpace>()->getSubspace(i);
-    double w = space->as<ob::CompoundStateSpace>()->getSubspaceWeight(i);
-    addSubspace(c, w);
-  }
-  
-  setName(getJointModelGroupName() + "_JointModel");
+  setName(getName() + "_" + PARAMETERIZATION_TYPE);
   lock();
 }

@@ -62,7 +62,7 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
   planning_models::KinematicState state(kmodel_);
   state.setToDefaultValues();
   planning_models::KinematicState::JointStateGroup* jsg = state.getJointStateGroup(group);
-  std::vector<moveit_msgs::JointLimits> limits = joint_model_group->getJointLimits();
+  std::vector<moveit_msgs::JointLimits> limits = joint_model_group->getVariableLimits();
   unsigned int num_success = 0;
   unsigned int num_wrong_solution = 0;
   double xmax = -DBL_MAX;

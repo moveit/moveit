@@ -98,8 +98,8 @@ struct PlanningContextManager::CachedContexts
 
 }
 
-ompl_interface::PlanningContextManager::PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel) :
-  kmodel_(kmodel), constraint_sampler_manager_(NULL), max_goal_samples_(10), max_state_sampling_attempts_(10), max_goal_sampling_attempts_(1000),
+ompl_interface::PlanningContextManager::PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel, constraint_samplers::ConstraintSamplerManager &csm) :
+  kmodel_(kmodel), constraint_sampler_manager_(&csm), max_goal_samples_(10), max_state_sampling_attempts_(10), max_goal_sampling_attempts_(1000),
   max_planning_threads_(4), max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
   last_planning_context_.reset(new LastPlanningContext());
@@ -225,13 +225,6 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   if (!context)
   {
     ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
-    planning_scene::KinematicsAllocators::const_iterator it = kinematics_allocators_.find(space_spec.joint_model_group_);
-    if (it != kinematics_allocators_.end())
-    {
-      space_spec.kinematics_allocator_ = it->second.first;
-      space_spec.kinematics_subgroup_allocators_ = it->second.second;
-    }
-    
     ModelBasedPlanningContextSpecification context_spec;
     context_spec.config_ = config.config;
     context_spec.planner_allocator_ = getPlannerAllocator();
@@ -272,7 +265,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   int prev_priority = -1;
   for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin() ; it != state_space_factories_.end() ; ++it)
   {
-    int priority = it->second->canRepresentProblem(req, kmodel_, kinematics_allocators_);
+    int priority = it->second->canRepresentProblem(req, kmodel_);
     if (priority >= 0)
       if (!factory || priority > prev_priority)
       {

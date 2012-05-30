@@ -87,14 +87,9 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   }
   
   // read the ik allocators, if any
-  planning_scene::KinematicsAllocators::const_iterator ik_it = scene->getKinematicsAllocators().find(jmg);
-  std::map<const planning_models::KinematicModel::JointModelGroup*, planning_scene::KinematicsAllocatorFn> ik_subgroup_alloc;
-  planning_scene::KinematicsAllocatorFn ik_alloc;
-  if (ik_it != scene->getKinematicsAllocators().end())
-  {
-    ik_alloc = ik_it->second.first;
-    ik_subgroup_alloc = ik_it->second.second;
-  }
+  planning_models::KinematicModel::SolverAllocatorFn ik_alloc = jmg->getSolverAllocators().first;
+  std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn> ik_subgroup_alloc = 
+    jmg->getSolverAllocators().second;
   
   // if we have a means of computing complete states for the group using IK, then we try to see if any IK constraints should be used
   if (ik_alloc)
@@ -218,7 +213,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     
     std::vector<ConstraintSamplerPtr> samplers;
     std::set<std::size_t> usedP, usedO;
-    for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_scene::KinematicsAllocatorFn>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
+    for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn>::const_iterator it = ik_subgroup_alloc.begin() ; it != ik_subgroup_alloc.end() ; ++it)
     {
       // construct a sub-set of constraints that uperate on the sub-group for which we have an IK allocator
       moveit_msgs::Constraints sub_constr;
