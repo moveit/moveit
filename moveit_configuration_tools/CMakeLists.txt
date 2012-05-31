@@ -22,6 +22,5 @@ rosbuild_add_library(${PROJECT_NAME}
 )
 
 rosbuild_add_executable(compute_default_collision_matrix src/compute_default_collision_matrix_main.cpp)
-rosbuild_add_openmp_flags(compute_default_collision_matrix);
 
 target_link_libraries(compute_default_collision_matrix ${PROJECT_NAME})
