@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman, Ioan Sucan */
+/* Author: Dave Coleman */
 
 #ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
 #define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
@@ -45,9 +45,15 @@
 namespace moveit_configuration_tools
 {
 
-// Main call for computing default collision matrix
+/**
+ * \brief Generates an adjacency list of links that are always and never in collision, to speed up collision detection
+ * \param parent_scene A reference to the robot in the planning scene
+ * \param include_never_colliding Optional flag to disable the check for links that are never in collision
+ * \param trials Optional ability to set the number random collision checks that are made. Increase the probability of correctness
+ */
 std::map<std::string, std::set<std::string> > 
-computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, bool include_never_colliding = false, int trials = 1000);
+computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, bool include_never_colliding = true, 
+                              int trials = 1000, bool verbose = false);
 
 }
 
