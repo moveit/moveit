@@ -20,7 +20,9 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(${PROJECT_NAME}
-	src/collision_distance_field_types.cpp
+  src/collision_distance_field_types.cpp
+  src/collision_common_distance_field.cpp
+  src/collision_robot_distance_field.cpp
 )
 
 #uncomment if you have defined messages

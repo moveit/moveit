@@ -37,7 +37,8 @@
 #include <collision_distance_field/collision_distance_field_types.h>
 #include <geometric_shapes/body_operations.h>
 
-std::vector<collision_distance_field::CollisionSphere> collision_distance_field::determineCollisionSpheres(const bodies::Body* body, Eigen::Affine3d& relativeTransform)
+std::vector<collision_distance_field::CollisionSphere> collision_distance_field::determineCollisionSpheres(const bodies::Body* body, 
+                                                                                                           Eigen::Affine3d& relative_transform)
 {
   std::vector<collision_distance_field::CollisionSphere> css;
   
@@ -52,7 +53,7 @@ std::vector<collision_distance_field::CollisionSphere> collision_distance_field:
     collision_distance_field::CollisionSphere cs(vec,cyl.radius);
     css.push_back(cs);
   }
-  relativeTransform = body->getPose().inverse() * cyl.pose;
+  relative_transform = body->getPose().inverse() * cyl.pose;
   return css; 
 }
 
@@ -77,16 +78,17 @@ std::vector<Eigen::Vector3d> collision_distance_field::determineCollisionPoints(
 }
 
 bool collision_distance_field::getCollisionSphereGradients(const distance_field::DistanceField<distance_field::PropDistanceFieldVoxel>* distance_field,
-                                                      const std::vector<CollisionSphere>& sphere_list,
-                                                      GradientInfo& gradient, 
-                                                      double tolerance, 
-                                                      bool subtract_radii, 
-                                                      double maximum_value,
-                                                      bool stop_at_first_collision) {
+                                                           const std::vector<CollisionSphere>& sphere_list,
+                                                           const std::vector<Eigen::Vector3d>& sphere_centers,
+                                                           GradientInfo& gradient, 
+                                                           double tolerance, 
+                                                           bool subtract_radii, 
+                                                           double maximum_value,
+                                                           bool stop_at_first_collision) {
   //assumes gradient is properly initialized
   bool in_collision = false;
   for(unsigned int i = 0; i < sphere_list.size(); i++) {
-    Eigen::Vector3d p = sphere_list[i].center_;
+    Eigen::Vector3d p = sphere_centers[i];
     double gx, gy, gz;
     double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz);
     if(dist < maximum_value && subtract_radii) {
@@ -108,11 +110,12 @@ bool collision_distance_field::getCollisionSphereGradients(const distance_field:
 }
 
 bool collision_distance_field::getCollisionSphereCollision(const distance_field::DistanceField<distance_field::PropDistanceFieldVoxel>* distance_field,
-                                                      const std::vector<CollisionSphere>& sphere_list,
-                                                      double tolerance)
+                                                           const std::vector<CollisionSphere>& sphere_list,
+                                                           const std::vector<Eigen::Vector3d>& sphere_centers,
+                                                           double tolerance)
 {
   for(unsigned int i = 0; i < sphere_list.size(); i++) {
-    Eigen::Vector3d p = sphere_list[i].center_;
+    Eigen::Vector3d p = sphere_centers[i];
     double gx, gy, gz;
     double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz);
     if(dist - sphere_list[i].radius_ < tolerance) {
@@ -127,18 +130,15 @@ bool collision_distance_field::getCollisionSphereCollision(const distance_field:
 /// BodyDecomposition
 ///
 
-collision_distance_field::BodyDecomposition::BodyDecomposition(const std::string& object_name, const shapes::Shape* shape, double resolution, double padding) :
-  object_name_(object_name)
+collision_distance_field::BodyDecomposition::BodyDecomposition(const shapes::ShapeConstPtr& shape, double resolution, double padding)
 {
-  body_ = bodies::createBodyFromShape(shape); //unpadded
+  body_ = bodies::createBodyFromShape(shape.get()); //unpadded
   Eigen::Affine3d ident;
   ident.setIdentity();
   body_->setPose(ident);
   body_->setPadding(padding);
   collision_spheres_ = determineCollisionSpheres(body_, relative_cylinder_pose_);
   relative_collision_points_ = determineCollisionPoints(body_, resolution);
-  posed_collision_points_ = relative_collision_points_;
-  ROS_DEBUG_STREAM("Object " << object_name << " has " << relative_collision_points_.size() << " collision points");
 }
 
 collision_distance_field::BodyDecomposition::~BodyDecomposition()
@@ -146,27 +146,30 @@ collision_distance_field::BodyDecomposition::~BodyDecomposition()
   delete body_;
 }
 
-void collision_distance_field::BodyDecomposition::updateSpheresPose(const Eigen::Affine3d& trans) 
+collision_distance_field::PosedBodyDecomposition::PosedBodyDecomposition(const BodyDecompositionConstPtr& body_decomposition) 
+  : body_decomposition_(body_decomposition)
 {
- //body_->setPose(trans);
-  Eigen::Affine3d cylTransform = trans * relative_cylinder_pose_;
-  for(unsigned int i = 0; i < collision_spheres_.size(); i++) {
-    collision_spheres_[i].center_ = cylTransform*collision_spheres_[i].relative_vec_;
+  posed_collision_points_ = body_decomposition_->getCollisionPoints();
+}
+
+void collision_distance_field::PosedBodyDecomposition::updateSpheresPose(const Eigen::Affine3d& trans) 
+{
+  Eigen::Affine3d cyl_transform = trans * body_decomposition_->getRelativeCylinderPose();
+  for(unsigned int i = 0; i < body_decomposition_->getCollisionSpheres().size(); i++) {
+    sphere_centers_[i] = cyl_transform*body_decomposition_->getCollisionSpheres()[i].relative_vec_;
   }
 }
 
-void collision_distance_field::BodyDecomposition::updatePointsPose(const Eigen::Affine3d& trans) {
-  //body_->setPose(trans);
-  posed_collision_points_.clear();
-  posed_collision_points_.resize(relative_collision_points_.size());
-  for(unsigned int i = 0; i < relative_collision_points_.size(); i++) {
-    posed_collision_points_[i] = trans*relative_collision_points_[i];
+void collision_distance_field::PosedBodyDecomposition::updatePointsPose(const Eigen::Affine3d& trans) {
+  posed_collision_points_.resize(body_decomposition_->getCollisionPoints().size());
+  for(unsigned int i = 0; i < body_decomposition_->getCollisionPoints().size(); i++) {
+    posed_collision_points_[i] = trans*body_decomposition_->getCollisionPoints()[i];
   }
 }
 
-
-void collision_distance_field::BodyDecomposition::updatePose(const Eigen::Affine3d& trans)
+void collision_distance_field::PosedBodyDecomposition::updatePose(const Eigen::Affine3d& trans)
 {
   updateSpheresPose(trans);
   updatePointsPose(trans);
 }
+
