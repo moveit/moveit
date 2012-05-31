@@ -11,6 +11,7 @@
   <depend package="pluginlib"/>
   <depend package="visualization_msgs"/>
   <depend package="planning_scene_monitor"/>
+  <depend package="planning_scene_monitor_tools"/>
   <depend package="kinematics_base"/>
   <depend package="kinematics_constraint_aware"/>
   <depend package="interactive_markers"/>
@@ -29,7 +30,7 @@
   <depend package="shape_msgs"/>
   <depend package="shape_conversions"/>
   <depend package="shape_utils"/>
-  <depend package="move_group"/>
+  <depend package="planning_pipeline"/>
   <depend package="conversion_utilities"/>
 
   <export>

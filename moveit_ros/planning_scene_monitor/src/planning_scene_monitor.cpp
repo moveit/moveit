@@ -569,6 +569,7 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultJointLimits(v
     }
     individual_joint_limits_map_[scene_->getKinematicModel()->getJointModels()[i]->getName()] = jlim;
   }
+  planning_models::KinematicModelPtr kmodel = scene_->getKinematicModel();
   const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& jmgm = scene_->getKinematicModel()->getJointModelGroupMap();
   for(std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin(); it != jmgm.end(); ++it) 
   {
@@ -578,5 +579,8 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultJointLimits(v
                                                 individual_joint_limits_map_[it->second->getJointModelNames()[i]].begin(),
                                                 individual_joint_limits_map_[it->second->getJointModelNames()[i]].end());
     }
+    // forward this information to the planning group
+    if (kmodel)
+      kmodel->getJointModelGroup(it->first)->setAdditionalLimits(group_joint_limits_map_[it->first]);
   }
 }

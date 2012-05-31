@@ -34,38 +34,54 @@
 
 #include <planning_interface/planning_interface.h>
 #include <planning_request_adapter/planning_request_adapter.h>
-#include <trajectory_processing/iterative_smoother.h>
 #include <pluginlib/class_loader.h>
-#include <planning_scene_monitor/planning_scene_monitor.h>
+#include <trajectory_processing/iterative_smoother.h>
+#include <boost/scoped_ptr.hpp>
 
-namespace move_group {
+namespace planning_pipeline
+{
 
-class MoveGroupPipeline {
+class PlanningPipeline
+{
 
 public:
   
-  MoveGroupPipeline(const planning_scene_monitor::PlanningSceneMonitorConstPtr& psm);
-
+  PlanningPipeline(const planning_models::KinematicModelConstPtr& model, 
+                   const std::string &planning_plugin_param_name = "planning_plugin",
+                   const std::string &adapter_plugins_param_name = "request_adapters");
+  
+  PlanningPipeline(const planning_models::KinematicModelConstPtr& model, 
+                   const std::string &planning_plugin_name,
+                   const std::vector<std::string> &adapter_plugin_names);
+  
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                     const moveit_msgs::GetMotionPlan::Request& req,
                     moveit_msgs::GetMotionPlan::Response& res) const;
-
-  const std::string& getPlanningPluginName() {
-    return planning_plugin_name_;
+  
+  const std::string& getPlannerPluginName(void) const
+  {
+    return planner_plugin_name_;
   }
-
-protected:
-
-  planning_scene_monitor::PlanningSceneMonitorConstPtr psm_;
-
-  std::string planning_plugin_name_;
+  
+  const std::vector<std::string>& getAdapterPluginNames(void) const
+  {
+    return adapter_plugin_names_;
+  }
+  
+private:
+  
+  void configure(const planning_models::KinematicModelConstPtr& model);
+  
   boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
   planning_interface::PlannerPtr planner_instance_;
-
-  trajectory_processing::IterativeParabolicSmoother smoother_;
-
+  std::string planner_plugin_name_;
+  
+  
   boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
   boost::scoped_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
+  std::vector<std::string> adapter_plugin_names_;
+
+  trajectory_processing::IterativeParabolicSmoother smoother_;
 
 };
 
