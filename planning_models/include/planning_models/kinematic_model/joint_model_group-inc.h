@@ -136,6 +136,20 @@ public:
   {
     return updated_link_model_name_vector_;
   }
+
+  /** \brief Get the names of the links that are to be updated when the state of this group changes. This
+      includes links that are in the kinematic model but outside this group, if those links are descendants of
+      joints in this group that have their values updated. */
+  const std::vector<const LinkModel*>& getUpdatedLinkModelsWithGeometry(void) const
+  {
+    return updated_link_model_with_geometry_vector_;
+  }
+  
+  /** \brief Get the names of the links returned by getUpdatedLinkModels() */
+  const std::vector<std::string>& getUpdatedLinkModelsWithGeometryNames(void) const
+  {
+    return updated_link_model_with_geometry_name_vector_;
+  }
   
   /** \brief A joint group consists of an array of joints. Each joint has a specific ordering of its variables.
       Given the ordering of joints the group maintains, an ordering of all the variables of the group can be then constructed.
@@ -253,6 +267,12 @@ protected:
   
   /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
   std::vector<std::string>                              updated_link_model_name_vector_;
+
+  /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
+  std::vector<const LinkModel*>                         updated_link_model_with_geometry_vector_;
+  
+  /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
+  std::vector<std::string>                              updated_link_model_with_geometry_name_vector_;
   
   /** \brief The number of variables necessary to describe this group of joints */
   unsigned int                                          variable_count_;
