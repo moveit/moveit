@@ -349,6 +349,17 @@ const planning_models::KinematicModel::JointModelGroup* planning_models::Kinemat
   return it->second;
 }
 
+planning_models::KinematicModel::JointModelGroup* planning_models::KinematicModel::getJointModelGroup(const std::string& name)
+{
+  std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(name);
+  if (it == joint_model_group_map_.end())
+  {
+    ROS_ERROR_STREAM("Group '" << name << "' not found in model " << model_name_);
+    return NULL;
+  }
+  return it->second;
+}
+
 void planning_models::KinematicModel::buildGroups(const std::vector<srdf::Model::Group>& group_configs)
 {
   //the only thing tricky is dealing with subgroups
