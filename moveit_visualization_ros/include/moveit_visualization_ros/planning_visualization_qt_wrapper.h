@@ -46,7 +46,7 @@ class PlanningVisualizationQtWrapper : public QObject, public PlanningVisualizat
 public:
 
   PlanningVisualizationQtWrapper(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                 const boost::shared_ptr<move_group::MoveGroupPipeline>& move_group_pipeline,
+                                 const boost::shared_ptr<planning_pipeline::PlanningPipeline>& move_group_pipeline,
                                  boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                                  ros::Publisher& marker_publisher);

@@ -40,7 +40,7 @@
 #include <trajectory_processing/trajectory_smoother.h>
 #include <trajectory_processing/trajectory_shortcutter.h>
 #include <kinematics_plugin_loader/kinematics_plugin_loader.h>
-#include <move_group/move_group_pipeline.h>
+#include <planning_pipeline/planning_pipeline.h>
 
 namespace moveit_visualization_ros
 {
@@ -50,7 +50,7 @@ class PlanningVisualization
 public:
 
   PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                        const boost::shared_ptr<move_group::MoveGroupPipeline>& move_group_pipeline,
+                        const boost::shared_ptr<planning_pipeline::PlanningPipeline>& move_group_pipeline,
                         boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                         boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
                         ros::Publisher& marker_publisher);
@@ -108,7 +108,7 @@ protected:
   void playLastTrajectory();
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
-  boost::shared_ptr<move_group::MoveGroupPipeline> move_group_pipeline_;
+  boost::shared_ptr<planning_pipeline::PlanningPipeline> move_group_pipeline_;
 
   std::string current_group_;
   std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> > group_visualization_map_;
