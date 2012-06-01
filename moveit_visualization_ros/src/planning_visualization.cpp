@@ -40,7 +40,7 @@ namespace moveit_visualization_ros {
 PlanningVisualization::PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                              const boost::shared_ptr<planning_pipeline::PlanningPipeline>& move_group_pipeline,
                                              boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                                             boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                                             boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                              ros::Publisher& marker_publisher)
   : planning_scene_(planning_scene), 
     move_group_pipeline_(move_group_pipeline),
@@ -57,7 +57,7 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
     if(groups[i].chains_.size() > 0 || groups[i].name_ == "arms") {
       group_visualization_map_[groups[i].name_].reset(new KinematicsStartGoalVisualization(planning_scene,
                                                                                            interactive_marker_server,
-                                                                                           kinematics_plugin_loader,
+                                                                                           kinematic_model_loader,
                                                                                            groups[i].name_,
                                                                                            marker_publisher,
                                                                                            false));

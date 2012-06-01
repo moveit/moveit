@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -34,53 +34,74 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_ROBOT_MODEL_LOADER_ROBOT_MODEL_LOADER_
-#define MOVEIT_ROBOT_MODEL_LOADER_ROBOT_MODEL_LOADER_
+#ifndef MOVEIT_PLANNING_MODELS_LOADER_KINEMATIC_MODEL_LOADER_
+#define MOVEIT_PLANNING_MODELS_LOADER_KINEMATIC_MODEL_LOADER_
 
-#include <urdf/model.h>
-#include <srdf/model.h>
-#include <boost/shared_ptr.hpp>
+#include <planning_models/kinematic_model.h>
+#include <robot_model_loader/robot_model_loader.h>
+#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
 
-namespace robot_model_loader
+namespace planning_models_loader
 {
-/** @class RobotModelLoader
- *  @brief Default constructor
- *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded*/
-class RobotModelLoader
-{ 
+
+/** @class KinematicModelLoader */
+class KinematicModelLoader
+{
 public:
+  
   /** @brief Default constructor
-   *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded; the SRDF is assumed to be at the same param name + the "_semantic" suffix */
-  RobotModelLoader(const std::string &robot_description = "robot_description");
+   *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded; Using the same parameter name plus the "_planning" suffix, additional configuration can be specified (e.g., additional joint limits)
+   *  @param root_link The name of the link to consider as root of the model. By default (\e root_link is empty) the root will be the one specified in the URDF. However, it is possible to re-parent the tree using this argument. */
+  KinematicModelLoader(const std::string &robot_description = "robot_description", const std::string &root_link = "");
+  
+  /** @brief Get the constructed planning_models::KinematicModel */
+  const planning_models::KinematicModelPtr& getModel(void) const
+  {
+    return model_;
+  }
   
   /** @brief Get the resolved parameter name for the robot description */
   const std::string& getRobotDescription(void) const
   {
-    return robot_description_;
+    return robot_model_loader_->getRobotDescription();
   }
   
   /** @brief Get the parsed URDF model*/
   const boost::shared_ptr<urdf::Model>& getURDF(void) const
   {
-    return urdf_;
+    return robot_model_loader_->getURDF();
   }
   
   /** @brief Get the parsed SRDF model*/
   const boost::shared_ptr<srdf::Model>& getSRDF(void) const
   {
-    return srdf_;
+    return robot_model_loader_->getSRDF();
   }
+
+  const robot_model_loader::RobotModelLoaderPtr& getRobotModelLoader(void) const
+  {
+    return robot_model_loader_;
+  }
+
+  /** \brief Get the kinematics solvers plugin loader. 
+      \note This instance needs to be kept in scope, otherwise kinematics solver plugins may get unloaded. */
+  const kinematics_plugin_loader::KinematicsPluginLoaderPtr& getKinematicsPluginLoader(void) const
+  {
+    return kinematics_loader_;
+  }
+
+  std::map<std::string, kinematics::KinematicsBasePtr> generateKinematicsSolversMap(void) const;
   
 private:
   
-  std::string                    robot_description_;
-  boost::shared_ptr<srdf::Model> srdf_;
-  boost::shared_ptr<urdf::Model> urdf_;
-  
+  planning_models::KinematicModelPtr model_;
+  robot_model_loader::RobotModelLoaderPtr robot_model_loader_; 
+  kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
+
 };
 
-typedef boost::shared_ptr<RobotModelLoader> RobotModelLoaderPtr;
-typedef boost::shared_ptr<const RobotModelLoader> RobotModelLoaderConstPtr;
+typedef boost::shared_ptr<KinematicModelLoader> KinematicModelLoaderPtr;
+typedef boost::shared_ptr<const KinematicModelLoader> KinematicModelLoaderConstPtr;
 
 }
 #endif

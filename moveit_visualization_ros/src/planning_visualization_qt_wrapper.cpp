@@ -39,9 +39,9 @@ PlanningVisualizationQtWrapper::
 PlanningVisualizationQtWrapper(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                const boost::shared_ptr<planning_pipeline::PlanningPipeline>& move_group_pipeline,
                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                               boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                               boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                ros::Publisher& marker_publisher) :
-  PlanningVisualization(planning_scene, move_group_pipeline, interactive_marker_server, kinematics_plugin_loader, marker_publisher)
+  PlanningVisualization(planning_scene, move_group_pipeline, interactive_marker_server, kinematic_model_loader, marker_publisher)
 {
   qRegisterMetaType<planning_models::KinematicState*>("KinematicState");
   qRegisterMetaType<trajectory_msgs::JointTrajectory>("trajectory_msgs::JointTrajectory");

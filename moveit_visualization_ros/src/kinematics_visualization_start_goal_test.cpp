@@ -72,12 +72,12 @@ int main(int argc, char** argv)
   vis_marker_publisher = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
-  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> 
-    kinematics_plugin_loader(new kinematics_plugin_loader::KinematicsPluginLoader());
+  boost::shared_ptr<planning_models_loader::KinematicModelLoader> 
+    kinematic_model_loader = planning_scene_monitor_->getKinematicModelLoader();
 
   KinematicsStartGoalVisualization kv(planning_scene_monitor_->getPlanningScene(),
                                                                         interactive_marker_server,
-                                                                        kinematics_plugin_loader,
+                                                                        kinematic_model_loader,
                                                                         "right_arm",
                                                                         vis_marker_array_publisher);
 

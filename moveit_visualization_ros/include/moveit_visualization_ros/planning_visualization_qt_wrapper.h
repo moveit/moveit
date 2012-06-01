@@ -48,7 +48,7 @@ public:
   PlanningVisualizationQtWrapper(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                  const boost::shared_ptr<planning_pipeline::PlanningPipeline>& move_group_pipeline,
                                  boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                                 boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                                 boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                  ros::Publisher& marker_publisher);
 
   ~PlanningVisualizationQtWrapper() {

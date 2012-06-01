@@ -33,7 +33,7 @@
 #define _KINEMATICS_START_GOAL_VISUALIZATION_H_
 
 #include <moveit_visualization_ros/kinematics_group_visualization.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <planning_models_loader/kinematic_model_loader.h>
 
 namespace moveit_visualization_ros
 {
@@ -43,7 +43,7 @@ public:
   
   KinematicsStartGoalVisualization(planning_scene::PlanningSceneConstPtr planning_scene,
                                    boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
-                                   boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                                   boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                    const std::string& group_name, 
                                    ros::Publisher& marker_publisher,
                                    bool show = true); 

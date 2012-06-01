@@ -1,6 +1,5 @@
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <kinematics_constraint_aware/inverse_kinematics_sanity_checker.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader_helpers.h>
 #include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
 
 static const std::string VIS_TOPIC_NAME = "inverse_kinematics_sanity_checker";
@@ -31,19 +30,15 @@ int main(int argc, char **argv) {
   ros::Publisher vis_marker_publisher_ = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   ros::Publisher vis_marker_array_publisher_ = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
-  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> kinematics_plugin_loader_(new kinematics_plugin_loader::KinematicsPluginLoader());
+  boost::shared_ptr<planning_models_loader::KinematicModelLoader> kinematics_model_loader_(new planning_models_loader::KinematicModelLoader("robot_description"));
   
-  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", kinematics_plugin_loader_));
+  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(kinematics_model_loader_));
 
   joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
 
   boost::thread publisher_thread(boost::bind(&publisherFunction, true));
 
-  std::map<std::string, kinematics::KinematicsBasePtr> solver_map;
-  kinematics_plugin_loader::generateKinematicsLoaderMap(planning_scene_monitor_->getPlanningScene()->getKinematicModel(),
-                                                        planning_scene_monitor_->getPlanningScene()->getSrdfModel(),
-                                                        kinematics_plugin_loader_,
-                                                        solver_map);
+  std::map<std::string, kinematics::KinematicsBasePtr> solver_map = kinematics_model_loader_->generateKinematicsSolversMap();
 
   InverseKinematicsSanityChecker sanity(solver_map,
                                         planning_scene_monitor_->getPlanningScene()->getKinematicModel());

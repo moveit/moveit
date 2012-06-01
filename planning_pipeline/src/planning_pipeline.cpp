@@ -169,7 +169,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   if (solved)
   {
     trajectory_msgs::JointTrajectory trajectory_out;
-    const std::vector<moveit_msgs::JointLimits> &jlim = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name)->getAdditionalLimits();
+    const std::vector<moveit_msgs::JointLimits> &jlim = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name)->getJointLimits();
     smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim);
     res.trajectory.joint_trajectory = trajectory_out; /// \todo apply this for the RobotTrajectory; is this the right place for this operation?
   }

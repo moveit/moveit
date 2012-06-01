@@ -176,6 +176,12 @@ void kinematics_plugin_loader::KinematicsPluginLoader::status(void) const
 }
 
 kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(void)
+{  
+  robot_model_loader::RobotModelLoader rml(robot_description_);
+  return getLoaderFunction(rml.getSRDF());
+}
+
+kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const boost::shared_ptr<srdf::Model> &srdf_model)
 {
   if (!loader_)
   {
@@ -185,10 +191,9 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
     ros::NodeHandle nh("~");
     std::map<std::string, std::vector<std::string> > possible_kinematics_solvers;
     std::map<std::string, std::vector<double> > search_res;
-    robot_model_loader::RobotModelLoader rml(robot_description_);
-    if (rml.getSRDF())
+    if (srdf_model)
     {      
-      const std::vector<srdf::Model::Group> &known_groups = rml.getSRDF()->getGroups();
+      const std::vector<srdf::Model::Group> &known_groups = srdf_model->getGroups();
       
       // read the list of plugin names for possible kinematics solvers
       for (std::size_t i = 0 ; i < known_groups.size() ; ++i)

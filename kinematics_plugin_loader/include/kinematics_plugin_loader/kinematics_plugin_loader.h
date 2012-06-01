@@ -58,6 +58,7 @@ public:
   }
   
   KinematicsLoaderFn getLoaderFunction(void);
+  KinematicsLoaderFn getLoaderFunction(const boost::shared_ptr<srdf::Model> &srdf_model);
 
   const std::vector<std::string>& getKnownGroups(void) const
   {

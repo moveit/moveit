@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan, E. Gil Jones */
 
 #include "planning_scene_monitor/planning_scene_monitor.h"
-#include <robot_model_loader/robot_model_loader.h>
+#include <planning_models_loader/kinematic_model_loader.h>
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description) :
   nh_("~")
@@ -55,24 +55,22 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const plannin
   initialize(parent, robot_description);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl) :
-  nh_("~"), kinematics_loader_(kpl)
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml) :
+  nh_("~"), kinematics_loader_(kml)
 {
-  initialize(planning_scene::PlanningSceneConstPtr(), robot_description);
+  initialize(planning_scene::PlanningSceneConstPtr());
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf,
-                                                                   const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl) :
-  nh_("~"), tf_(tf), kinematics_loader_(kpl)
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
+  nh_("~"), tf_(tf), kinematics_loader_(kml)
 {
-  initialize(planning_scene::PlanningSceneConstPtr(), robot_description);
+  initialize(planning_scene::PlanningSceneConstPtr());
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf,
-                                                                   const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl) :
-  nh_("~"), tf_(tf), kinematics_loader_(kpl)
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
+  nh_("~"), tf_(tf), kinematics_loader_(kml)
 {
-  initialize(parent, robot_description);
+  initialize(parent);
 }
 
 planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
@@ -83,6 +81,12 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description)
+{
+  kinematics_loader_.reset(new planning_models_loader::KinematicModelLoader(robot_description));
+  initialize(parent);
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningSceneConstPtr &parent)
 { 
   bounds_error_ = std::numeric_limits<double>::epsilon();
   collision_object_subscriber_ = NULL;
@@ -91,20 +95,18 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   collision_map_subscriber_ = NULL;
   collision_map_filter_ = NULL;
   
-  robot_model_loader::RobotModelLoader rml(robot_description);
-  robot_description_ = rml.getRobotDescription();
-  if (rml.getURDF())
+  robot_description_ = kinematics_loader_->getRobotDescription();
+  if (kinematics_loader_->getModel())
   {
     if (parent)
       scene_.reset(new planning_scene::PlanningScene(parent));
     else
       scene_.reset(new planning_scene::PlanningScene());
-    if (scene_->configure(rml.getURDF(), rml.getSRDF() ? rml.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model())))
+    if (scene_->configure(kinematics_loader_->getURDF(), kinematics_loader_->getSRDF() ? kinematics_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()), kinematics_loader_->getModel()))
     {
       scene_const_ = scene_;
       configureDefaultCollisionMatrix();
       configureDefaultPadding();
-      configureDefaultJointLimits();
       scene_->getCollisionRobot()->setPadding(default_robot_padd_);
       scene_->getCollisionRobot()->setScale(default_robot_scale_);
     }
@@ -113,19 +115,6 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
       ROS_ERROR("Configuration of planning scene failed");
       scene_.reset();
     }
-  }
-  
-  if (scene_ && scene_->getKinematicModel())
-  {
-    // load the kinematics solvers
-    if (!kinematics_loader_)
-      kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader());
-    kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction();
-    const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
-    std::map<std::string, planning_models::KinematicModel::SolverAllocatorFn> imap;
-    for (std::size_t i = 0 ; i < groups.size() ; ++i)
-      imap[groups[i]] =  kinematics_allocator;
-    scene_->getKinematicModel()->setKinematicsAllocators(imap);
   }
   
   last_update_time_ = ros::Time::now();
@@ -546,41 +535,4 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding(void)
   nh_.param(robot_description_ + "_planning/default_robot_scale", default_robot_scale_, 1.0);
   nh_.param(robot_description_ + "_planning/default_object_padding", default_object_padd_, 0.0);
   nh_.param(robot_description_ + "_planning/default_attached_padding", default_attached_padd_, 0.0);
-}
-
-void planning_scene_monitor::PlanningSceneMonitor::configureDefaultJointLimits(void)
-{
-  for(unsigned int i = 0; i < scene_->getKinematicModel()->getJointModels().size(); ++i) 
-  {
-    std::vector<moveit_msgs::JointLimits> jlim = scene_->getKinematicModel()->getJointModels()[i]->getVariableLimits();
-    for(unsigned int j = 0; j < jlim.size(); j++) {
-      std::string prefix = robot_description_+"_planning/joint_limits/"+jlim[j].joint_name+"/";
-      ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " before vel " << jlim[j].max_velocity);
-      bool has_vel = jlim[j].has_velocity_limits;
-      nh_.param(prefix+"has_velocity_limits", has_vel, has_vel);
-      jlim[j].has_velocity_limits = has_vel;
-      nh_.param(prefix+"max_velocity", jlim[j].max_velocity, jlim[j].max_velocity);
-      bool has_accel = jlim[j].has_acceleration_limits;
-      nh_.param(prefix+"has_acceleration_limits", has_accel, has_accel); 
-      jlim[j].has_acceleration_limits = has_accel;
-      nh_.param(prefix+"max_acceleration", jlim[j].max_acceleration, jlim[j].max_acceleration);
-      ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " after vel " << jlim[j].max_velocity);
-      ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " accel " << jlim[j].max_acceleration);
-    }
-    individual_joint_limits_map_[scene_->getKinematicModel()->getJointModels()[i]->getName()] = jlim;
-  }
-  planning_models::KinematicModelPtr kmodel = scene_->getKinematicModel();
-  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& jmgm = scene_->getKinematicModel()->getJointModelGroupMap();
-  for(std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin(); it != jmgm.end(); ++it) 
-  {
-    for(unsigned int i = 0; i < it->second->getJointModelNames().size(); i++)
-    {
-      group_joint_limits_map_[it->first].insert(group_joint_limits_map_[it->first].end(),
-                                                individual_joint_limits_map_[it->second->getJointModelNames()[i]].begin(),
-                                                individual_joint_limits_map_[it->second->getJointModelNames()[i]].end());
-    }
-    // forward this information to the planning group
-    if (kmodel)
-      kmodel->getJointModelGroup(it->first)->setAdditionalLimits(group_joint_limits_map_[it->first]);
-  }
 }
