@@ -94,7 +94,6 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   }
 }
 
-
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
                                               const boost::shared_ptr<const srdf::Model> &srdf_model,
                                               const std::string &root_link)

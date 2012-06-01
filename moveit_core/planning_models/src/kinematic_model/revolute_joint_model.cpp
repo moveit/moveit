@@ -71,6 +71,19 @@ void planning_models::KinematicModel::RevoluteJointModel::getRandomValues(random
   values.push_back(rng.uniformReal(bounds[0].first, bounds[0].second));
 }
 
+void planning_models::KinematicModel::RevoluteJointModel::getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+                                                                                const std::vector<double> &near, const double distance) const
+{  
+  if (continuous_)
+  {
+    values.push_back(rng.uniformReal(near[values.size()] - distance, near[values.size()] + distance));
+    enforceBounds(values, bounds);
+  }
+  else
+    values.push_back(rng.uniformReal(std::max(bounds[0].first, near[values.size()] - distance),
+                                     std::min(bounds[0].second, near[values.size()] + distance)));
+}
+
 void planning_models::KinematicModel::RevoluteJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
 {
   if (continuous_)

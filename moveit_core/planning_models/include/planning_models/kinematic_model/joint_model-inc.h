@@ -183,6 +183,10 @@ public:
   /** \brief Provide random values for the joint variables (within specified bounds). The vector is NOT cleared; elements are only added with push_back */
   virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const = 0;
   
+  /** \brief Provide random values for the joint variables (within specified bounds). The vector is NOT cleared; elements are only added with push_back */
+  virtual void getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
+                                     const std::vector<double> &near, const double distance) const = 0;
+  
   /** @} */
   
   /** @name Functionality specific to verifying bounds
