@@ -99,7 +99,7 @@ int main(int argc, char **argv)
          link2_it != it->second.end(); 
          ++link2_it)
     {
-      //std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << (*link2_it) << "\" />" << std::endl;
+      std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << (*link2_it) << "\" />" << std::endl;
       ++n;
     }
   }
