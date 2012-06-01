@@ -99,7 +99,9 @@ MoveItVisualizer::MoveItVisualizer() :
   bad_color.r = 1.0;    
 
   boost::shared_ptr<planning_pipeline::PlanningPipeline> move_group_pipeline(new planning_pipeline::PlanningPipeline(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
-
+  move_group_pipeline->displayComputedMotionPlans(false);
+  move_group_pipeline->publishReceivedRequests(false);
+  
   pv_.reset(new PlanningVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
                                                move_group_pipeline,
                                                interactive_marker_server_,
