@@ -76,6 +76,13 @@ void planning_models::KinematicModel::PrismaticJointModel::getRandomValues(rando
   values.push_back(rng.uniformReal(bounds[0].first, bounds[0].second));
 }
 
+void planning_models::KinematicModel::PrismaticJointModel::getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+                                                                                 const std::vector<double> &near, const double distance) const
+{ 
+  values.push_back(rng.uniformReal(std::max(bounds[0].first, near[values.size()] - distance),
+                                   std::min(bounds[0].second, near[values.size()] + distance)));
+}
+
 void planning_models::KinematicModel::PrismaticJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
 {
   const std::pair<double, double> &b = bounds[0];

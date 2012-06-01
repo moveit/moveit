@@ -54,6 +54,11 @@ void planning_models::KinematicModel::FixedJointModel::getRandomValues(random_nu
 {
 }
 
+void planning_models::KinematicModel::FixedJointModel::getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+                                                                             const std::vector<double> &near, const double distance) const
+{
+}
+
 void planning_models::KinematicModel::FixedJointModel::enforceBounds(std::vector<double> &values, const Bounds &bounds) const
 {
 }

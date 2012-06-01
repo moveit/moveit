@@ -47,6 +47,8 @@ public:
   
   virtual void getDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const;    
   virtual void getRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const;
+  virtual void getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
+                                     const std::vector<double> &near, const double distance) const;
   virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
   virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const;
   

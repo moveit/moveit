@@ -238,3 +238,66 @@ void planning_models::KinematicModel::FloatingJointModel::getRandomValues(random
   values[s + 5] = q[2];
   values[s + 6] = q[3];
 }
+
+void planning_models::KinematicModel::FloatingJointModel::getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+                                                                                const std::vector<double> &near, const double distance) const
+{   
+  std::size_t s = values.size();
+  values.resize(s + 7);
+  
+  if (bounds[0].second >= std::numeric_limits<double>::max() || bounds[0].first <= -std::numeric_limits<double>::max())
+    values[s] = 0.0;
+  else
+    values[s] = rng.uniformReal(std::max(bounds[0].first, near[s] - distance),
+                                std::min(bounds[0].second, near[s] + distance));
+  if (bounds[1].second >= std::numeric_limits<double>::max() || bounds[1].first <= -std::numeric_limits<double>::max())
+    values[s + 1] = 0.0;
+  else
+    values[s + 1] = rng.uniformReal(std::max(bounds[1].first, near[s + 1] - distance),
+                                    std::min(bounds[1].second, near[s + 1] + distance));
+  if (bounds[2].second >= std::numeric_limits<double>::max() || bounds[2].first <= -std::numeric_limits<double>::max())
+    values[s + 2] = 0.0;
+  else
+    values[s + 2] = rng.uniformReal(std::max(bounds[2].first, near[s + 2] - distance),
+                                    std::min(bounds[2].second, near[s + 2] + distance));
+
+  double da = angular_distance_weight_ * distance;  
+  if (da >= .25 * boost::math::constants::pi<double>())
+  {
+    double q[4]; rng.quaternion(q);
+    values[s + 3] = q[0];
+    values[s + 4] = q[1];
+    values[s + 5] = q[2];
+    values[s + 6] = q[3];
+  }
+  else
+  { 
+    //taken from OMPL
+    // sample angle & axis
+    double ax = rng.gaussian01();
+    double ay = rng.gaussian01();
+    double az = rng.gaussian01();
+    double angle = 2.0 * pow(rng.uniform01(), 1.0/3.0) * da;
+    // convert to quaternion
+    double q[4];
+    double norm = sqrt(ax * ax + ay * ay + az * az);
+    if (norm < 1e-6)
+    {
+      q[0] = q[1] = q[2] = 0.0;
+      q[3] = 1.0;
+    }
+    else
+    {
+      double s = sin(angle / 2.0);
+      q[0] = s * ax / norm;
+      q[1] = s * ay / norm;
+      q[2] = s * az / norm;
+      q[3] = cos(angle / 2.0);
+    }
+    // multiply quaternions: near * q
+    values[s + 3] = near[s + 6]*q[0] + near[s + 3]*q[3] + near[s + 4]*q[2] - near[s + 5]*q[1];
+    values[s + 4] = near[s + 6]*q[1] + near[s + 4]*q[3] + near[s + 5]*q[0] - near[s + 3]*q[2];
+    values[s + 5] = near[s + 6]*q[2] + near[s + 5]*q[3] + near[s + 3]*q[1] - near[s + 4]*q[0];
+    values[s + 6] = near[s + 6]*q[3] - near[s + 3]*q[0] - near[s + 4]*q[1] - near[s + 5]*q[2];
+  }
+}

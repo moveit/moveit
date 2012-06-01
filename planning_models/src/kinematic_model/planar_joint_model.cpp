@@ -95,6 +95,27 @@ void planning_models::KinematicModel::PlanarJointModel::getRandomValues(random_n
   values[s + 2] = rng.uniformReal(bounds[2].first, bounds[2].second);
 }
 
+void planning_models::KinematicModel::PlanarJointModel::getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &bounds,
+                                                                              const std::vector<double> &near, const double distance) const
+{
+  std::size_t s = values.size();
+  values.resize(s + 3);
+  if (bounds[0].second >= std::numeric_limits<double>::max() || bounds[0].first <= -std::numeric_limits<double>::max())
+    values[s] = 0.0;
+  else
+    values[s] = rng.uniformReal(std::max(bounds[0].first, near[s] - distance),
+                                std::min(bounds[0].second, near[s] + distance));
+  if (bounds[1].second >= std::numeric_limits<double>::max() || bounds[1].first <= -std::numeric_limits<double>::max())
+    values[s + 1] = 0.0;
+  else
+    values[s + 1] = rng.uniformReal(std::max(bounds[1].first, near[s + 1] - distance),
+                                    std::min(bounds[1].second, near[s + 1] + distance));
+
+  double da = angular_distance_weight_ * distance;
+  values[s + 2] = rng.uniformReal(near[s + 2] - da, near[s + 2] + da);
+  normalizeRotation(values);
+}
+
 void planning_models::KinematicModel::PlanarJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
 {
   // interpolate position
@@ -174,7 +195,7 @@ void planning_models::KinematicModel::PlanarJointModel::computeTransform(const s
 
 void planning_models::KinematicModel::PlanarJointModel::updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const
 {
-  transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], 0.0)*Eigen::AngleAxisd(joint_values[2], Eigen::Vector3d::UnitZ()));
+  transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], 0.0) * Eigen::AngleAxisd(joint_values[2], Eigen::Vector3d::UnitZ()));
 }
 
 void planning_models::KinematicModel::PlanarJointModel::computeJointStateValues(const Eigen::Affine3d& transf, std::vector<double> &joint_values) const
