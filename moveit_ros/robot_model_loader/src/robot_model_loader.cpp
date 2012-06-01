@@ -35,41 +35,39 @@
 /* Author: Ioan Sucan */
 
 #include "robot_model_loader/robot_model_loader.h"
+#include <ros/ros.h>
 
-robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description) : nh_("~")
+robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description)
 {
-    if (nh_.searchParam(robot_description, robot_description_))
-        loadRobotFromParamServer();
-}
-
-bool robot_model_loader::RobotModelLoader::loadRobotFromParamServer(void)
-{
+  ros::NodeHandle nh("~");
+  if (nh.searchParam(robot_description, robot_description_))
+  {
     std::string content;
-    if (nh_.getParam(robot_description_, content))
+    if (nh.getParam(robot_description_, content))
     {
-        urdf_.reset(new urdf::Model);
-        if (urdf_->initString(content))
+      urdf_.reset(new urdf::Model);
+      if (urdf_->initString(content))
+      {
+        std::string scontent;
+        if (nh.getParam(robot_description_ + "_semantic", scontent))
         {
-            std::string scontent;
-            if (nh_.getParam(robot_description_ + "_semantic", scontent))
-            {
-                srdf_.reset(new srdf::Model);
-                if (!srdf_->initString(*urdf_, scontent))
-                {
-                    ROS_ERROR("Unable to parse SRDF");
-                    srdf_.reset();
-                }
-            }
-            else
-                ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
+          srdf_.reset(new srdf::Model);
+          if (!srdf_->initString(*urdf_, scontent))
+          {
+            ROS_ERROR("Unable to parse SRDF");
+            srdf_.reset();
+          }
         }
         else
-        {
-            ROS_ERROR("Unable to parse URDF");
-            urdf_.reset();
-        }
+          ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
+      }
+      else
+      {
+        ROS_ERROR("Unable to parse URDF");
+        urdf_.reset();
+      }
     }
     else
-        ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
-    return false;
+      ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
+  }
 }

@@ -39,7 +39,7 @@
 #include <boost/function.hpp>
 #include <trajectory_processing/trajectory_smoother.h>
 #include <trajectory_processing/trajectory_shortcutter.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <planning_models_loader/kinematic_model_loader.h>
 #include <planning_pipeline/planning_pipeline.h>
 
 namespace moveit_visualization_ros
@@ -52,7 +52,7 @@ public:
   PlanningVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                         const boost::shared_ptr<planning_pipeline::PlanningPipeline>& move_group_pipeline,
                         boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                        boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                        boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematics_plugin_loader,
                         ros::Publisher& marker_publisher);
   
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);

@@ -116,12 +116,13 @@ int main(int argc, char** argv)
   //   ros::WallDuration(0.2).sleep();
   // }
 
-  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> 
-    kinematics_plugin_loader(new kinematics_plugin_loader::KinematicsPluginLoader());
+  boost::shared_ptr<planning_models_loader::KinematicModelLoader> 
+    kinematic_model_loader = planning_scene_monitor_->getKinematicModelLoader();
+  
 
   KinematicsGroupVisualization kv(planning_scene_monitor_->getPlanningScene(),
                                                                 interactive_marker_server,
-                                                                kinematics_plugin_loader,
+                                                                kinematic_model_loader,
                                                                 "arms",
                                                                 "state",
                                                                 good_color,

@@ -42,7 +42,7 @@
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 #include <planning_scene/planning_scene.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <planning_models_loader/kinematic_model_loader.h>
 #include "planning_scene_monitor/current_state_monitor.h"
 
 namespace planning_scene_monitor
@@ -63,7 +63,7 @@ public:
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    *  @param kpl The kinematic plugin loader to use (one will be constructed automatically if this is not provided)
    */
-  PlanningSceneMonitor(const std::string &robot_description, const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl);
+  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml);
 
 
   /** @brief Constructor
@@ -77,7 +77,7 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param kpl The kinematic plugin loader to use (one will be constructed automatically if this is not provided)
    */
-  PlanningSceneMonitor(const std::string &robot_description,  const boost::shared_ptr<tf::Transformer> &tf, const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl);
+  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf);
 
   /** @brief Constructor
    *  @param parent The parent planning scene with respect to which the diffs are to be maintained
@@ -92,10 +92,16 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param kpl The kinematic plugin loader to use (one will be constructed automatically if this is not provided)
    */
-  PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kpl);
+  PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf);
 
   ~PlanningSceneMonitor(void);
 
+  /** \brief Get the user kinematic model loader */
+  const planning_models_loader::KinematicModelLoaderPtr& getKinematicModelLoader(void) const
+  {
+    return kinematics_loader_;
+  }
+  
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
   const planning_scene::PlanningScenePtr& getPlanningScene(void)
@@ -196,42 +202,22 @@ public:
   /** \brief Unlock the scene */
   void unlockScene(void);
 
-  std::vector<moveit_msgs::JointLimits> getJointLimits(const std::string& joint) const
-  {
-    if (individual_joint_limits_map_.find(joint) == individual_joint_limits_map_.end())
-      return std::vector<moveit_msgs::JointLimits>();
-    else
-      return individual_joint_limits_map_.at(joint);
-  }
-
-  std::vector<moveit_msgs::JointLimits> getGroupJointLimits(const std::string& group) const
-  {
-    if (group_joint_limits_map_.find(group) == group_joint_limits_map_.end())
-      return std::vector<moveit_msgs::JointLimits>();
-    else
-      return group_joint_limits_map_.at(group);
-  }
-
-  const std::map<std::string, std::vector<moveit_msgs::JointLimits> >& getGroupJointLimitsMap(void) const
-  {
-    return group_joint_limits_map_;
-  }
-
 protected:
 
   /** @brief Initialize the planning scene monitor
    *  @param parent The parent planning scene with respect to which the diffs are to be maintained
-   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)*/
+   *  @param robot_description The name of the ROS parameter that contains the URDF */
   void initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description);
+
+  /** @brief Initialize the planning scene monitor
+   *  @param parent The parent planning scene with respect to which the diffs are to be maintained */
+  void initialize(const planning_scene::PlanningSceneConstPtr &parent);
 
   /** @brief Configure the default collision matrix*/
   void configureDefaultCollisionMatrix(void);
 
   /** @brief Configure the default padding*/
   void configureDefaultPadding(void);
-
-  /** @brief Configure the default joint limits*/
-  void configureDefaultJointLimits(void);
 
   /** @brief Callback for a new planning scene msg*/
   void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
@@ -297,13 +283,7 @@ protected:
   /// the error accepted when the state is reported as outside of bounds;
   double                                bounds_error_;
 
-  /// additional joint constraints read from the param server 
-  std::map<std::string, std::vector<moveit_msgs::JointLimits > > individual_joint_limits_map_;
-
-  /// additional joint constraints read from the param server 
-  std::map<std::string, std::vector<moveit_msgs::JointLimits> >  group_joint_limits_map_;
-
-  kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
+  planning_models_loader::KinematicModelLoaderPtr kinematics_loader_;
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;

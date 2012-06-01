@@ -39,7 +39,7 @@
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <planning_models_loader/kinematic_model_loader.h>
 
 namespace moveit_visualization_ros
 {
@@ -57,7 +57,7 @@ public:
   /** @brief Constructor
    *  @param planning_scene_monitor     A shared pointer to a PlanningScene
    *  @param interactive_marker_server  A shared pointer to a InteractiveMarkerServer
-   *  @param kinematics_plugin_loader   A shared pointer to a KinematicsPluginLoader
+   *  @param kinematic_model_loader     A shared pointer to a KinematicModelLoader
    *  @param group_name                 The group to load from the PlanningScene's KinematicModel
    *  @param suffix_name                A name to distniguish multiple instances of this class for the same kinematic group.
    *  @param good_color                 A color to use for drawing this group in a valid kinematic configuration.
@@ -66,7 +66,7 @@ public:
    */
   KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
-                               boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                               boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                const std::string& group_name, 
                                const std::string& suffix_name, 
                                const std_msgs::ColorRGBA& good_color,

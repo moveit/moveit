@@ -55,16 +55,16 @@ MoveItVisualizer::MoveItVisualizer() :
   loc_nh.param("monitor_robot_state", monitor_robot_state, false);
 
   interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
-  kinematics_plugin_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader());
+  kinematic_model_loader_.reset(new planning_models_loader::KinematicModelLoader("robot_description"));
 
   if(!monitor_robot_state) {
     ROS_INFO_STREAM("Starting publisher thread");
     joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", kinematics_plugin_loader_));
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(kinematic_model_loader_));
     boost::thread publisher_thread(boost::bind(&MoveItVisualizer::publisherFunction, this, true));
   } else {
     transformer_.reset(new tf::TransformListener());
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", transformer_, kinematics_plugin_loader_));
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(kinematic_model_loader_, transformer_));
     joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
     bool publish_root_transform = false;
     loc_nh.param("publish_root_transform", publish_root_transform, false);
@@ -103,7 +103,7 @@ MoveItVisualizer::MoveItVisualizer() :
   pv_.reset(new PlanningVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
                                                move_group_pipeline,
                                                interactive_marker_server_,
-                                               kinematics_plugin_loader_,
+                                               kinematic_model_loader_,
                                                vis_marker_array_publisher_));
   
   iov_.reset(new InteractiveObjectVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),

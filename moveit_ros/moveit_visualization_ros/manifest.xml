@@ -24,7 +24,7 @@
   <depend package="distance_field"/>
   <depend package="trajectory_processing"/>
   <depend package="moveit_warehouse"/>
-  <depend package="kinematics_plugin_loader"/>
+  <depend package="planning_models_loader"/>
   <depend package="trajectory_execution"/>
   <depend package="trajectory_execution_ros"/>
   <depend package="shape_msgs"/>

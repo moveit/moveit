@@ -1,0 +1,22 @@
+<package>
+  <description brief="planning_models_loader">
+
+     planning_models_loader
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planning_models_loader</url>
+  <depend package="robot_model_loader"/>
+  <depend package="kinematics_plugin_loader"/>
+  <depend package="planning_models"/>
+  <depend package="roscpp"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_models_loader"/>
+  </export>
+
+</package>
+
+

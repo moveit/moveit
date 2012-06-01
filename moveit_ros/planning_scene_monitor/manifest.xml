@@ -11,13 +11,12 @@
 
   <depend package="roscpp"/>
   <depend package="planning_scene"/>
-  <depend package="robot_model_loader"/>
+  <depend package="planning_models_loader"/>
   <depend package="moveit_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="message_filters"/>
   <depend package="tf"/>
   <depend package="tf_conversions"/>
-  <depend package="kinematics_plugin_loader"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_scene_monitor `rosboost-cfg --lflags thread`"/>

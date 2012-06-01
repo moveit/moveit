@@ -45,7 +45,7 @@ static const ros::Duration NO_SOLUTION_UPDATE_TIMEOUT = ros::Duration(.25);
 
 KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene, 
                                                            boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
-                                                           boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                                                           boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                                            const std::string& group_name, 
                                                            const std::string& suffix_name,
                                                            const std_msgs::ColorRGBA& good_color,
@@ -86,7 +86,7 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
     return;
   }
 
-  kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_plugin_loader->getLoaderFunction();
+  planning_models::KinematicModel::SolverAllocatorFn kinematics_allocator = kinematic_model_loader->getKinematicsPluginLoader()->getLoaderFunction(kinematic_model_loader->getSRDF());
 
   if(subgroups) {
     std::map<std::string, kinematics::KinematicsBasePtr> solver_map;
@@ -96,7 +96,7 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
       if(subgroup.chains_.size() > 0) {
         subgroup_chain_names_.push_back(subgroup.name_);
       }
-      if(!kinematics_plugin_loader->isGroupKnown(subgroup.name_)) {
+      if(!kinematic_model_loader->getKinematicsPluginLoader()->isGroupKnown(subgroup.name_)) {
         ROS_WARN_STREAM("No loader for group " << subgroup.name_);
         continue;
       }
@@ -142,7 +142,7 @@ KinematicsGroupVisualization::KinematicsGroupVisualization(const planning_scene:
     if (!poses.empty())
       updateEndEffectorState(poses.begin()->first, poses.begin()->second);
   } else {
-    if(!kinematics_plugin_loader->isGroupKnown(group_name)) {
+    if(!kinematic_model_loader->getKinematicsPluginLoader()->isGroupKnown(group_name)) {
       ROS_WARN_STREAM("No loader for group " << group_name);
       return;
     }

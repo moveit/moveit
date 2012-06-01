@@ -95,12 +95,12 @@ int main(int argc, char** argv)
   bad_color.a = 1.0;    
   bad_color.r = 1.0;    
 
-  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> 
-    kinematics_plugin_loader(new kinematics_plugin_loader::KinematicsPluginLoader());
+  boost::shared_ptr<planning_models_loader::KinematicModelLoader> 
+    kinematic_model_loader = planning_scene_monitor_->getKinematicModelLoader();
 
   kv_.reset(new KinematicsGroupVisualization(planning_scene_monitor_->getPlanningScene(),
                                              interactive_marker_server_,
-                                             kinematics_plugin_loader,
+                                             kinematic_model_loader,
                                              "right_arm",
                                              "state",
                                              good_color,

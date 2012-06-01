@@ -93,7 +93,7 @@ protected:
   boost::shared_ptr<PlanningVisualizationQtWrapper> pv_;
   boost::shared_ptr<InteractiveObjectVisualizationQtWrapper> iov_;
   boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor_;
-  boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader> kinematics_plugin_loader_;
+  boost::shared_ptr<planning_models_loader::KinematicModelLoader> kinematic_model_loader_;
 
   bool execution_succeeded_;
   boost::shared_ptr<boost::thread> cycle_thread_;
