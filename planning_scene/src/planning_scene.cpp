@@ -94,30 +94,47 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   }
 }
 
+
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
                                               const boost::shared_ptr<const srdf::Model> &srdf_model,
                                               const std::string &root_link)
 {
   if (!parent_)
   {
-    // nothing other than perhaps the root link has changed since the last call to configure()
     bool same = configured_ && urdf_model_ == urdf_model && srdf_model_ == srdf_model;
-    if (!same || kmodel_->getRootLinkName() != root_link)
+    if (!same || !kmodel_ || kmodel_->getRootLinkName() != root_link)
     {
-      if (!same)
-      {
-        urdf_model_ = urdf_model;
-        srdf_model_ = srdf_model;
-      }
+      planning_models::KinematicModelPtr newModel;
       if (root_link.empty())
-        kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
+        newModel.reset(new planning_models::KinematicModel(urdf_model, srdf_model));
       else
-        kmodel_.reset(new planning_models::KinematicModel(urdf_model, srdf_model, root_link));
+        newModel.reset(new planning_models::KinematicModel(urdf_model, srdf_model, root_link));
+      return configure(urdf_model, srdf_model, newModel);
+    }
+  }
+  else
+    return configure(urdf_model, srdf_model, planning_models::KinematicModelPtr());
+  return configured_;
+}
+
+bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                                              const boost::shared_ptr<const srdf::Model> &srdf_model,
+                                              const planning_models::KinematicModelPtr &kmodel)
+{
+  if (!parent_)
+  {
+    // nothing other than perhaps the root link has changed since the last call to configure()
+    bool same = configured_ && kmodel_ == kmodel;
+    if (!same)
+    {
+      urdf_model_ = urdf_model;
+      srdf_model_ = srdf_model;
+      kmodel_ = kmodel;
       kmodel_const_ = kmodel_;
       ftf_.reset(new planning_models::Transforms(kmodel_->getModelFrame()));
       ftf_const_ = ftf_;
       
-      if (same)
+      if (kstate_)
       {
         // keep the same joint values, update the transforms if needed
         std::map<std::string, double> jsv;
@@ -132,7 +149,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
       }
       
       // no need to reset this if the scene was previously configured
-      if (!configured_)
+      if (!acm_)
         acm_.reset(new collision_detection::AllowedCollisionMatrix());
       
       crobot_.reset(new DefaultCRobotType(kmodel_));
@@ -143,7 +160,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
       // no need to change the world if it was previously configured;
       // there is a catch though: the frame for planning may have changed, if a different root link was specified;
       // however, this is direcly requested by the user
-      if (!configured_)
+      if (!cworld_)
       {
         cworld_.reset(new DefaultCWorldType());
         cworld_const_ = cworld_;
@@ -159,7 +176,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
     if (parent_->isConfigured())
     {
       if (srdf_model != parent_->getSrdfModel() || urdf_model != parent_->getUrdfModel())
-        ROS_ERROR("Parent of planning scene is not constructed from the same robot models");
+        ROS_ERROR("Parent of planning scene is not constructed from the same robot model");
 
       // even if we have a parent, we do maintain a separate world representation, one that records changes
       // this is cheap however, because the worlds share the world representation

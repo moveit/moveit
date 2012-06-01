@@ -112,6 +112,12 @@ public:
                  const boost::shared_ptr<const srdf::Model> &srdf_model,
                  const std::string &root_link = "");
 
+  /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
+      The kinematic model constructed from the parsed descriptions is also passed in. */
+  bool configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                 const boost::shared_ptr<const srdf::Model> &srdf_model,
+                 const planning_models::KinematicModelPtr &kmodel);
+  
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
 

@@ -78,12 +78,11 @@ namespace collision_detection
     double distanceRobotHelper(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
     double distanceWorldHelper(const CollisionWorld &world, const AllowedCollisionMatrix *acm) const;
     
-    void constructFCLObject(const Object *obj, FCLObject &fcl_obj, bool obb) const;
+    void constructFCLObject(const Object *obj, FCLObject &fcl_obj) const;
     void updateFCLObject(const std::string &id);
     
     boost::scoped_ptr<fcl::BroadPhaseCollisionManager> manager_;
-    std::map<std::string, FCLObject >                  fcl_objs_obb_;
-    std::map<std::string, FCLObject >                  fcl_objs_rss_;
+    std::map<std::string, FCLObject >                  fcl_objs_;
     
   };
   

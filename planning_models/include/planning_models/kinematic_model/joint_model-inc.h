@@ -217,7 +217,19 @@ public:
   
   /** \brief Get variable limits as a message type */
   virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
+
+  /** \brief Override joint limits */
+  void setLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
+  {
+    user_specified_limits_ = jlim;
+  }
   
+  /** \brief Get the joint limits specified by the user with setLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
+  std::vector<moveit_msgs::JointLimits> getLimits(void) const
+  {
+    return user_specified_limits_.empty() ? getVariableLimits() : user_specified_limits_;
+  }
+
   /** @} */
   
   /** \brief Compute the distance between two joint states of the same model (represented by the variable values) */
@@ -337,7 +349,10 @@ protected:
   
   /** \brief The factor applied to the distance between two joint states */
   double                                            distance_factor_;
-  
+
+  /** \brief User specified limits for this joint */
+  std::vector<moveit_msgs::JointLimits>             user_specified_limits_;
+
   /** \brief The index assigned to this joint when traversing the kinematic tree in depth first fashion */
   int                                               tree_index_;
 };
