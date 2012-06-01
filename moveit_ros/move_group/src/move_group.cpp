@@ -40,7 +40,6 @@
 #include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_pipeline/planning_pipeline.h>
-#include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";      // name of the robot description (a param name, so it can be changed externally)
 static const std::string DISPLAY_PATH_PUB_TOPIC = "display_trajectory";
