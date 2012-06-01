@@ -200,15 +200,15 @@ public:
   virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
   
   /** \brief Override joint limits */
-  void setAdditionalLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
+  void setJointLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
   {
-    additional_joint_limits_ = jlim;
+    user_specified_joint_limits_ = jlim;
   }
   
-  /** \brief Get the joint limits specified by the user with setAdditionalLimits() */
-  const std::vector<moveit_msgs::JointLimits>& getAdditionalLimits(void) const
+  /** \brief Get the joint limits specified by the user with setJointLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
+  std::vector<moveit_msgs::JointLimits> getJointLimits(void) const
   {
-    return additional_joint_limits_;
+    return user_specified_joint_limits_.empty() ? getVariableLimits() : user_specified_joint_limits_;
   }
   
   const std::pair<SolverAllocatorFn, SolverAllocatorMapFn>& getSolverAllocators(void) const
@@ -284,7 +284,7 @@ protected:
   
   bool                                                  is_chain_;
 
-  std::vector<moveit_msgs::JointLimits>                 additional_joint_limits_;
+  std::vector<moveit_msgs::JointLimits>                 user_specified_joint_limits_;
   
   std::pair<SolverAllocatorFn, SolverAllocatorMapFn>    solver_allocators_;
   
