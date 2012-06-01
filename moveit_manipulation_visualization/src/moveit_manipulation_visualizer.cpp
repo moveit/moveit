@@ -46,7 +46,7 @@ MoveItManipulationVisualizer::MoveItManipulationVisualizer() :
   grasp_evaluation_visualization_dialog_ = new GraspEvaluationVisualizationDialog(main_window_,
                                                                                   planning_scene_monitor_->getPlanningScene(),
                                                                                   interactive_marker_server_,
-                                                                                  kinematics_plugin_loader_,
+                                                                                  kinematic_model_loader_,
                                                                                   trajectory_execution_monitor_,
                                                                                   vis_marker_array_publisher_);
   grasp_evaluation_visualization_dialog_->planningGroupChanged(QString(pv_->getCurrentGroup().c_str()));

@@ -30,7 +30,6 @@
 // Author: E. Gil Jones
 
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization_dialog.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader_helpers.h>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -44,7 +43,7 @@ GraspEvaluationVisualizationDialog::
 GraspEvaluationVisualizationDialog(QWidget* parent, 
                                    const planning_scene::PlanningSceneConstPtr& planning_scene,
                                    boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                                   boost::shared_ptr<kinematics_plugin_loader::KinematicsPluginLoader>& kinematics_plugin_loader,
+                                   boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                    boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor,
                                    ros::Publisher& marker_publisher) :
   QDialog(parent),
@@ -55,11 +54,8 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   grasp_generator_visualization_(new GraspGeneratorVisualization(marker_publisher)),
   place_generator_visualization_(new PlaceGeneratorVisualization(marker_publisher))
 {
-  std::map<std::string, kinematics::KinematicsBasePtr> solver_map;
-  kinematics_plugin_loader::generateKinematicsLoaderMap(planning_scene_->getKinematicModel(),
-                                                        planning_scene_->getSrdfModel(),
-                                                        kinematics_plugin_loader,
-                                                        solver_map);
+  std::map<std::string, kinematics::KinematicsBasePtr> solver_map = kinematic_model_loader->generateKinematicsSolversMap();
+
   grasp_evaluator_fast_.reset(new grasp_place_evaluation::GraspEvaluatorFast(planning_scene_->getKinematicModel(),
                                                                              solver_map));
   grasp_evaluation_visualization_.reset(new GraspEvaluationVisualization(marker_publisher));

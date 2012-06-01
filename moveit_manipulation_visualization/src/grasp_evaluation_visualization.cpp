@@ -30,7 +30,6 @@
 // Author: E. Gil Jones
 
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader_helpers.h>
 
 namespace moveit_manipulation_visualization {
 
