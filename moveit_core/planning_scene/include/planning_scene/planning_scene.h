@@ -140,12 +140,6 @@ public:
     return ftf_ ? ftf_->getTargetFrame() : parent_->getPlanningFrame();
   }
 
-  /** \brief Get the kinematic model for which the planning scene is maintained. WARNING: This is not NULL only for scenes that do not depend on a parent */
-  const planning_models::KinematicModelPtr& getKinematicModel(void)
-  {
-    return kmodel_;
-  }
-
   /** \brief Get the kinematic model for which the planning scene is maintained */
   const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
   {

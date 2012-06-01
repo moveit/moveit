@@ -98,7 +98,7 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
                                               const boost::shared_ptr<const srdf::Model> &srdf_model,
                                               const std::string &root_link)
-{
+{ 
   if (!parent_)
   {
     bool same = configured_ && urdf_model_ == urdf_model && srdf_model_ == srdf_model;
@@ -114,7 +114,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
   }
   else
     return configure(urdf_model, srdf_model, planning_models::KinematicModelPtr());
-  return configured_;
+  return isConfigured();
 }
 
 bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
@@ -189,7 +189,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
       ROS_ERROR("Parent is not configured yet");
   }
 
-  return configured_;
+  return isConfigured();
 }
 
 void planning_scene::PlanningScene::clearDiffs(void)
