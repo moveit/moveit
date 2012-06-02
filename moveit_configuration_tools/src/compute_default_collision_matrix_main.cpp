@@ -66,7 +66,7 @@ int main(int argc, char **argv)
   //{
   //int disabled_links_count = 0;
 
-  std::cout << "TRIALS " << trials << " --------------------------- \n\n\n";
+  //std::cout << "TRIALS " << trials << " --------------------------- \n\n\n";
 
   // Do 10 tests
   //for(int ii = 0; ii < 10; ++ii)
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
          link2_it != it->second.end(); 
          ++link2_it)
     {
-      std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << (*link2_it) << "\" />" << std::endl;
+      //std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << (*link2_it) << "\" />" << std::endl;
       ++n;
     }
   }
