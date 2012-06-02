@@ -38,11 +38,9 @@
 #include <tf/transform_listener.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
-#include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_pipeline/planning_pipeline.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";      // name of the robot description (a param name, so it can be changed externally)
-static const std::string DISPLAY_PATH_PUB_TOPIC = "display_trajectory";
 static const std::string NODE_NAME = "move_group";
 
 class MoveGroupAction
@@ -69,7 +67,7 @@ public:
       trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(psm_->getPlanningScene()->getKinematicModel(),
                                                                                               manage_controllers));
     }
-    display_path_publisher_ = root_nh_.advertise<moveit_msgs::DisplayTrajectory>(NODE_NAME + "/" + DISPLAY_PATH_PUB_TOPIC, 1, true);
+    move_group_pipeline_.displayComputedMotionPlans(true);
     
     // start the action server
     action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_nh_, NODE_NAME, boost::bind(&MoveGroupAction::executeCallback, this, _1), false));
@@ -116,13 +114,6 @@ public:
       setState(IDLE);
       return;
     }
-    
-    // display the trajectory
-    moveit_msgs::DisplayTrajectory disp;
-    disp.model_id = psm_->getPlanningScene()->getKinematicModel()->getName();
-    disp.trajectory_start = mres.trajectory_start;
-    disp.trajectory = mres.trajectory;
-    display_path_publisher_.publish(disp);      
     
     action_res.planned_trajectory = mres.trajectory;
     if (!goal->plan_only && !trajectory_execution_)
@@ -230,9 +221,7 @@ private:
   bool preempt_requested_;
   bool execution_complete_;
   MoveGroupState state_;
-  trajectory_execution::TrajectoryExecutionDataVector last_trajectory_execution_data_vector_;
-  
-  ros::Publisher display_path_publisher_;
+  trajectory_execution::TrajectoryExecutionDataVector last_trajectory_execution_data_vector_;  
 };
 
 
