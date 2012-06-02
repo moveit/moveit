@@ -33,21 +33,21 @@
 *********************************************************************/
 
 #include "planning_pipeline/planning_pipeline.h"
+#include <moveit_msgs/DisplayTrajectory.h>
 #include <boost/tokenizer.hpp>
 #include <sstream>
-#include <ros/ros.h>
 
 planning_pipeline::PlanningPipeline::PlanningPipeline(const planning_models::KinematicModelConstPtr& model, 
                                                       const std::string &planner_plugin_param_name,
-                                                      const std::string &adapter_plugins_param_name)
+                                                      const std::string &adapter_plugins_param_name) :
+  nh_("~")
 {
-  ros::NodeHandle nh("~");
   std::string planner;
-  if (nh.getParam(planner_plugin_param_name, planner))
+  if (nh_.getParam(planner_plugin_param_name, planner))
     planner_plugin_name_ = planner;
   
   std::string adapters;
-  if (nh.getParam("request_adapters", adapters))
+  if (nh_.getParam(adapter_plugins_param_name, adapters))
   { 
     boost::char_separator<char> sep(" ");
     boost::tokenizer<boost::char_separator<char> > tok(adapters, sep);
@@ -61,13 +61,16 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const planning_models::Kin
 planning_pipeline::PlanningPipeline::PlanningPipeline(const planning_models::KinematicModelConstPtr& model, 
                                                       const std::string &planner_plugin_name,
                                                       const std::vector<std::string> &adapter_plugin_names) :
-  planner_plugin_name_(planner_plugin_name), adapter_plugin_names_(adapter_plugin_names)
+  nh_("~"), planner_plugin_name_(planner_plugin_name), adapter_plugin_names_(adapter_plugin_names)
 {
   configure(model);
 }
 
 void planning_pipeline::PlanningPipeline::configure(const planning_models::KinematicModelConstPtr& model)
 {
+  publish_received_requests_ = false;
+  display_computed_motion_plans_ = false;
+  
   // load the planning plugin
   try
   {
@@ -141,12 +144,37 @@ void planning_pipeline::PlanningPipeline::configure(const planning_models::Kinem
       }
     }
   }
+  displayComputedMotionPlans(true);
+}
+
+void planning_pipeline::PlanningPipeline::displayComputedMotionPlans(bool flag)
+{
+  if (display_computed_motion_plans_ && !flag)
+    display_path_publisher_.shutdown();
+  else
+    if (!display_computed_motion_plans_ && flag)
+      display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_trajectory", 10, true);
+  display_computed_motion_plans_ = flag;
+}
+
+void planning_pipeline::PlanningPipeline::publishReceivedRequests(bool flag)
+{
+  if (publish_received_requests_ && !flag)
+    received_request_publisher_.shutdown();
+  else
+    if (!publish_received_requests_ && flag)
+      received_request_publisher_ = nh_.advertise<moveit_msgs::MotionPlanRequest>("motion_plan_request", 10, true);
+  publish_received_requests_ = flag;
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                        const moveit_msgs::GetMotionPlan::Request& req,
                                                        moveit_msgs::GetMotionPlan::Response& res) const
 {
+  // broadcast the request we are about to work on, if needed
+  if (publish_received_requests_)
+    received_request_publisher_.publish(req.motion_plan_request);
+  
   bool solved = false;
   try
   {
@@ -167,11 +195,21 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   }
   
   if (solved)
-  {
+  {// is this the right place to do this computation?
     trajectory_msgs::JointTrajectory trajectory_out;
     const std::vector<moveit_msgs::JointLimits> &jlim = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name)->getJointLimits();
     smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim);
     res.trajectory.joint_trajectory = trajectory_out; /// \todo apply this for the RobotTrajectory; is this the right place for this operation?
+  }
+
+  // display solution path if needed
+  if (display_computed_motion_plans_ && solved)
+  { 
+    moveit_msgs::DisplayTrajectory disp;
+    disp.model_id = planning_scene->getKinematicModel()->getName();
+    disp.trajectory_start = res.trajectory_start;
+    disp.trajectory = res.trajectory;
+    display_path_publisher_.publish(disp);      
   }
   
   return solved;

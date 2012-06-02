@@ -37,6 +37,7 @@
 #include <pluginlib/class_loader.h>
 #include <trajectory_processing/iterative_smoother.h>
 #include <boost/scoped_ptr.hpp>
+#include <ros/ros.h>
 
 namespace planning_pipeline
 {
@@ -53,6 +54,20 @@ public:
   PlanningPipeline(const planning_models::KinematicModelConstPtr& model, 
                    const std::string &planning_plugin_name,
                    const std::vector<std::string> &adapter_plugin_names);
+  
+  void displayComputedMotionPlans(bool flag);
+  
+  void publishReceivedRequests(bool flag);
+  
+  bool getDisplayComputedMotionPlansFlag(void) const
+  {
+    return display_computed_motion_plans_;
+  }
+  
+  bool getPublishReceivedRequests(void) const
+  {
+    return publish_received_requests_;
+  }
   
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                     const moveit_msgs::GetMotionPlan::Request& req,
@@ -72,6 +87,16 @@ private:
   
   void configure(const planning_models::KinematicModelConstPtr& model);
   
+  ros::NodeHandle nh_;
+
+  /// Flag indicating whether motion plans should be published as a moveit_msgs::DisplayTrajectory
+  bool display_computed_motion_plans_;
+  ros::Publisher display_path_publisher_;
+
+  /// Flag indicating whether received requests should be published just before beginning processing (useful for debugging)
+  bool publish_received_requests_;
+  ros::Publisher received_request_publisher_;
+
   boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
   planning_interface::PlannerPtr planner_instance_;
   std::string planner_plugin_name_;
