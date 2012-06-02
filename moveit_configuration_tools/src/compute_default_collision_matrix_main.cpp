@@ -51,11 +51,11 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();  
 
-  int trials = 100;
+  unsigned int num_trials = 10000;
   if( argc > 1 )
   {
-    trials = atoi(argv[1]);
-    ROS_INFO("Number of trials %d", trials);
+    num_trials = atoi(argv[1]);
+    ROS_INFO("Number of trials %d", num_trials);
   }
 
   // Write reslts to file
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 
   // Find the default collision matrix - all links that are allowed to collide
   const std::map<std::string, std::set<std::string> > &disabled_links = 
-    moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), true, trials, true);
+    moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), true, num_trials, true);
 
   // Benchmarking Results
   BTimer.end("Total"); 

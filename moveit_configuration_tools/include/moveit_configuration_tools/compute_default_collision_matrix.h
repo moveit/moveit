@@ -52,8 +52,8 @@ namespace moveit_configuration_tools
  * \param trials Optional ability to set the number random collision checks that are made. Increase the probability of correctness
  */
 std::map<std::string, std::set<std::string> > 
-computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, bool include_never_colliding = true, 
-                              int trials = 1000, bool verbose = false);
+computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, const bool include_never_colliding = true, 
+                              const unsigned int trials = 10000, const bool verbose = false);
 
 }
 
