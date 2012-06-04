@@ -70,12 +70,12 @@ void collision_detection::CollisionWorldFCL::checkRobotCollision(const Collision
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const
 {
-  ROS_ERROR("FCL continuous collision checkin not yet implemented");
+  ROS_ERROR("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const
 {
-  ROS_ERROR("FCL continuous collision checkin not yet implemented");
+  ROS_ERROR("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const
