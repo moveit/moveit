@@ -51,8 +51,8 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();  
 
-  unsigned int num_trials = 200000;
-  const bool verbose = true;
+  unsigned int num_trials = 10000;
+  const bool verbose = false; // Output benchmarking and statistics
 
   if( argc > 1 )
   {
