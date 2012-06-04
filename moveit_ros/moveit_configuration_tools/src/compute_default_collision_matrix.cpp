@@ -162,7 +162,7 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   // LinkGraph is a custom type of a map with a LinkModel as key and a set of LinkModels as second
   LinkGraph link_graph; 
 
-  ROS_INFO_STREAM("Allowed Collision Matrix Size = " << scene.getAllowedCollisionMatrix().getSize() );
+  //ROS_INFO_STREAM("Initial allowed Collision Matrix Size = " << scene.getAllowedCollisionMatrix().getSize() );
 
   // 1. FIND CONNECTING LINKS ------------------------------------------------------------------------
   // For each link, compute the set of other links it connects to via a single joint (adjacent links) 
@@ -213,12 +213,12 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   }
   BTimer.end("Never in Collision"); // Benchmarking Timer - temporary  
 
-  ROS_INFO("Links seen colliding total = %d", int(links_seen_colliding.size()));
+  ROS_INFO("Link pairs seen colliding ever: %d", int(links_seen_colliding.size()));
 
   if(verbose)
   {
     //scene.getAllowedCollisionMatrix().print(std::cout);
-    ROS_INFO_STREAM("Allowed Collision Matrix Size = " << scene.getAllowedCollisionMatrix().getSize() );
+    ROS_INFO_STREAM("Allowed Collision Matrix Size: " << scene.getAllowedCollisionMatrix().getSize() );
 
     // Calculate number of disabled links:
     unsigned int num_disabled = 0;
@@ -360,7 +360,7 @@ unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGrap
 
     }
   }
-  ROS_INFO("Disabled %d adjancent links from collision checking", num_disabled);
+  ROS_INFO("Disabled %d adjancent link pairs from collision checking", num_disabled);
   
   return num_disabled;
 }
@@ -390,7 +390,7 @@ unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, Stri
 
   }
 
-  ROS_INFO("Disabled %d links that are in collision in default state", num_disabled);  
+  ROS_INFO("Disabled %d link pairs that are in collision in default state from collision checking", num_disabled);  
 
   return num_disabled;
 }
@@ -405,7 +405,6 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Stri
   static const unsigned int small_trial_count = 200;
   static const unsigned int small_trial_limit = (unsigned int)((double)small_trial_count * 0.95);
   
-  ROS_INFO("Computing pairs of links that are always in collision...");
   bool done = false;
   unsigned int num_disabled = 0;
     
@@ -474,7 +473,7 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Stri
     if (found == 0)
       done = true;
 
-    ROS_INFO("Disabled %u collision checks", found);
+    ROS_INFO("Disabled %u link pairs that are always in collision from collision checking", found);
   }
 
   return num_disabled;
@@ -561,7 +560,7 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
   boost::mutex lock; // used for sharing the same data structures
 
   int use_threads = boost::thread::hardware_concurrency(); // how many cores does this computer have?
-  ROS_INFO_STREAM("Performing " << num_trials << " trials for 'always in collision' checking on " << use_threads << " threads.");
+  ROS_INFO_STREAM("Performing " << num_trials << " trials for 'always in collision' checking on " << use_threads << " threads...");
 
   for(int i = 0; i < use_threads; ++i)
   {
@@ -578,7 +577,7 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
   // Note: getLinkModelNamesWithCollisionGeometry only returns links with shapes
   const std::vector<std::string> &names = scene.getKinematicModel()->getLinkModelNamesWithCollisionGeometry();
 
-  ROS_INFO("Link models with geometry: %d", int(names.size()));
+  //ROS_INFO("Link models with geometry: %d", int(names.size()));
     
   std::pair<std::string,std::string> temp_pair;
 
@@ -601,7 +600,7 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
       }
     }
   }
-  ROS_INFO("Found %d links that are never in collision", num_never);
+  ROS_INFO("Disabled %d link pairs that are never in collision", num_never);
 
   return num_never;
 }
@@ -611,6 +610,8 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
 // ******************************************************************************************
 void moveit_configuration_tools::outputDisabledCollisionsXML(const std::map<std::string, std::set<std::string> > & disabled_links)
 {
+  unsigned int num_disabled = 0;
+
   // TODO: integrate this into SRDF system
   TiXmlDocument doc;
   TiXmlElement* robot_root = new TiXmlElement("robot");
@@ -628,8 +629,12 @@ void moveit_configuration_tools::outputDisabledCollisionsXML(const std::map<std:
       robot_root->LinkEndChild(dc);
       dc->SetAttribute("link1", it->first);
       dc->SetAttribute("link2", (*link2_it));
-      
+
+      ++num_disabled;
     }
   }
-  doc.SaveFile("default_collision_matrix.xml");
+  doc.SaveFile("default_collision_matrix.xml"); // TODO: change location
+
+  ROS_INFO("TOTAL DISABLED LINKS: %d", num_disabled);
+
 }

@@ -31,7 +31,7 @@
 
 #include <moveit_visualization_ros/planning_group_selection_menu.h>
 #include <moveit_visualization_ros/qt_helper_functions.h>
-
+#include <ros/console.h>
 #include <QAction>
 
 namespace moveit_visualization_ros 
