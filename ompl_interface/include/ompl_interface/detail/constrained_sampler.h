@@ -77,11 +77,13 @@ private:
   
   bool sampleC(ompl::base::State *state);
   
-  const ModelBasedPlanningContext            *planning_context_;
-  ompl::base::StateSamplerPtr                 default_;
-  constraint_samplers::ConstraintSamplerPtr   constraint_sampler_;
-  unsigned int                                constrained_success_;
-  unsigned int                                constrained_failure_;
+  const ModelBasedPlanningContext                  *planning_context_;  
+  ompl::base::StateSamplerPtr                       default_;
+  constraint_samplers::ConstraintSamplerPtr         constraint_sampler_;
+  planning_models::KinematicState                   work_state_;
+  planning_models::KinematicState::JointStateGroup *work_joint_group_state_;
+  unsigned int                                      constrained_success_;
+  unsigned int                                      constrained_failure_;
 
 };
 

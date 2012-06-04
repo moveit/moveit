@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2012, Willow Garage, Inc.
+*  Copyright (c) 2008, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -32,50 +32,16 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_HELPER_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_HELPER_
+#include <planning_models/kinematic_model.h>
 
-#include "ompl_interface/parameterization/model_based_state_space.h"
-
-namespace ompl_interface
+planning_models::KinematicModel::LinkModel::LinkModel(void) : parent_joint_model_(NULL), tree_index_(-1)
 {
-
-class JointModelStateSpaceHelper
-{     
-public:
-  
-  JointModelStateSpaceHelper(const std::vector<const pm::KinematicModel::JointModel*> &joints)
-  {
-    constructSpace(joints);
-  }
-  
-  void copyToKinematicState(const std::vector<pm::KinematicState::JointState*> &js, const ob::State *state) const;
-  void copyToOMPLState(ob::State *state, const std::vector<pm::KinematicState::JointState*> &js) const;
-  void copyToOMPLState(ob::State *state, const std::vector<double> &values) const;
-  const ob::StateSpacePtr& getStateSpace(void) const
-  {
-    return state_space_;
-  }
-  
-private:
-  
-  /// The order in which the joints were used to construct the OMPL state space
-  std::vector<std::size_t> joint_mapping_;
-  
-  /// The order in which the joint variables were used to construct the OMPL state space
-  std::vector<std::size_t> variable_mapping_;
-  
-  std::vector<ob::StateSpacePtr> components_;
-  
-  ob::StateSpacePtr state_space_;
-  
-  void constructSpace(const std::vector<const pm::KinematicModel::JointModel*> &joints);
-};
-
-
-
+  joint_origin_transform_.setIdentity();
+  collision_origin_transform_.setIdentity();
 }
 
-#endif
+planning_models::KinematicModel::LinkModel::~LinkModel(void)
+{
+}

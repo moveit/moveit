@@ -37,7 +37,7 @@
 #ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
 #define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
 
-#include <ompl/base/GoalLazySamples.h>
+#include <ompl/base/goals/GoalLazySamples.h>
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <constraint_samplers/constraint_sampler.h>
 
@@ -63,7 +63,9 @@ private:
   const ModelBasedPlanningContext                 *planning_context_;
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
   constraint_samplers::ConstraintSamplerPtr        constraint_sampler_;
-  planning_models::KinematicState                  state_;
+  planning_models::KinematicState                   work_state_;
+  planning_models::KinematicState::JointStateGroup *work_joint_group_state_;
+
 };
 }
 

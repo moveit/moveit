@@ -128,6 +128,9 @@ namespace collision_detection
     {
     }
     
+    /** \brief The group name to check collisions for (optional; if empty, assume the complete robot) */
+    std::string group_name;
+    
     /** \brief If true, compute proximity distance */
     bool        distance;
     
