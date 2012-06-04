@@ -49,6 +49,7 @@
 
 namespace ompl_interface
 {
+namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace ot = ompl::tools;
 
@@ -90,12 +91,12 @@ public:
     return spec_;
   }
 
-  const pm::KinematicModelConstPtr& getKinematicModel(void) const
+  const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
   {
     return ompl_state_space_->getKinematicModel();
   }
   
-  const pm::KinematicModel::JointModelGroup* getJointModelGroup(void) const
+  const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void) const
   {
     return ompl_state_space_->getJointModelGroup();
   }  
@@ -110,7 +111,7 @@ public:
     return planning_scene_;
   }
   
-  const pm::KinematicState& getCompleteInitialRobotState(void) const
+  const planning_models::KinematicState& getCompleteInitialRobotState(void) const
   {
     return complete_initial_robot_state_;
   }
@@ -140,7 +141,7 @@ public:
     return ompl_benchmark_;
   }
 
-  const kc::KinematicConstraintSetPtr& getPathConstraints(void) const
+  const kinematic_constraints::KinematicConstraintSetPtr& getPathConstraints(void) const
   {
     return path_constraints_;
   }
@@ -242,9 +243,8 @@ public:
   void setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene);
   void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
 
-  void setStartState(const pm::KinematicState &complete_initial_robot_state);
+  void setStartState(const planning_models::KinematicState &complete_initial_robot_state);
   
-  bool setRandomStartGoal(void);
   bool setGoalConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
 			  const moveit_msgs::Constraints &path_constraints,
 			  moveit_msgs::MoveItErrorCodes *error);
@@ -316,7 +316,7 @@ protected:
   std::string name_;
   
   ModelBasedStateSpacePtr ompl_state_space_;
-  pm::KinematicState complete_initial_robot_state_;
+  planning_models::KinematicState complete_initial_robot_state_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
 
   /// the OMPL planning context; this contains the problem definition and the planner used
@@ -330,9 +330,9 @@ protected:
 
   std::vector<int> space_signature_;
 
-  kc::KinematicConstraintSetPtr              path_constraints_;
-  moveit_msgs::Constraints                   path_constraints_msg_;
-  std::vector<kc::KinematicConstraintSetPtr> goal_constraints_;
+  kinematic_constraints::KinematicConstraintSetPtr              path_constraints_;
+  moveit_msgs::Constraints                                      path_constraints_msg_;
+  std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
   
   const ob::PlannerTerminationCondition *ptc_;
   boost::mutex ptc_lock_;

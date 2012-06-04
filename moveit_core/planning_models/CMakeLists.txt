@@ -16,8 +16,19 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(${PROJECT_NAME}
   src/kinematic_model.cpp
-  src/semantic_model.cpp
+  src/kinematic_model/joint_model.cpp
+  src/kinematic_model/fixed_joint_model.cpp
+  src/kinematic_model/planar_joint_model.cpp
+  src/kinematic_model/floating_joint_model.cpp
+  src/kinematic_model/prismatic_joint_model.cpp
+  src/kinematic_model/revolute_joint_model.cpp
+  src/kinematic_model/link_model.cpp
+  src/kinematic_model/joint_model_group.cpp
   src/kinematic_state.cpp
+  src/kinematic_state/joint_state.cpp
+  src/kinematic_state/link_state.cpp
+  src/kinematic_state/attached_body.cpp
+  src/kinematic_state/joint_state_group.cpp
   src/transforms.cpp
   src/conversions.cpp)
 

@@ -77,9 +77,7 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
   ConstraintSampler(scene, group_name), samplers_(samplers)
 {
   std::sort(samplers_.begin(), samplers_.end(), OrderSamplersByFrameDependency());
-
-  const std::map<std::string, unsigned int> &gi = jmg_->getJointVariablesIndexMap();
-  bijection_.resize(samplers_.size());
+  
   for (std::size_t i = 0 ; i < samplers_.size() ; ++i)
   { 
     const std::vector<std::string> &fd = samplers_[i]->getFrameDependency();
@@ -87,42 +85,34 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
       frame_depends_.push_back(fd[j]);
     
     ROS_DEBUG_STREAM("Union sampler for group '" << jmg_->getName() << "' includes sampler for group '" << samplers_[i]->getJointModelGroup()->getName() << "'");
-    bijection_[i].resize(gi.size(), -1);
-    const std::map<std::string, unsigned int> &sgi = samplers_[i]->getJointModelGroup()->getJointVariablesIndexMap();
-    for (std::map<std::string, unsigned int>::const_iterator it = sgi.begin() ; it != sgi.end() ; ++it)
-    {
-      std::map<std::string, unsigned int>::const_iterator jt = gi.find(it->first);
-      if (jt == gi.end())
-        ROS_FATAL("Subgroups do not match group");
-      bijection_[i][it->second] = jt->second;
-    }
   }
 }
 
-bool constraint_samplers::UnionConstraintSampler::sample(std::vector<double> &values, const planning_models::KinematicState &ks, unsigned int max_attempts)
+bool constraint_samplers::UnionConstraintSampler::sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &ks, unsigned int max_attempts)
 {
-  values.clear();
-  jmg_->getRandomValues(random_number_generator_, values);
-
-  std::vector<double> v;
+  jsg->setToRandomValues(); 
+  
   if (samplers_.size() >= 1)
-  {
-    if (!samplers_[0]->sample(v, ks, max_attempts))
+    if (!samplers_[0]->sample(jsg->getKinematicState()->getJointStateGroup(samplers_[0]->getJointModelGroup()->getName()), ks, max_attempts))
       return false;
-    for (std::size_t j = 0 ; j < v.size() ; ++j)
-      values[bijection_[0][j]] = v[j];
-  }
-  if (samplers_.size() > 1)
+  
+  if (samplers_.size() >1)
   {
-    planning_models::KinematicState temp = ks;  
+    planning_models::KinematicState temp = ks;
+    temp.getJointStateGroup(jsg->getName())->copyFrom(jsg);
+    
     for (std::size_t i = 1 ; i < samplers_.size() ; ++i)
     {
-      temp.getJointStateGroup(samplers_[i-1]->getJointModelGroup()->getName())->setStateValues(v);
-      if (!samplers_[i]->sample(v, temp, max_attempts))
+      planning_models::KinematicState::JointStateGroup *x = jsg->getKinematicState()->getJointStateGroup(samplers_[i]->getJointModelGroup()->getName());
+      if (samplers_[i]->sample(x, temp, max_attempts))
+      {
+        if (i + 1 < samplers_.size())
+          temp.getJointStateGroup(samplers_[i]->getJointModelGroup()->getName())->copyFrom(x);
+      }
+      else
         return false;
-      for (std::size_t j = 0 ; j < v.size() ; ++j)
-        values[bijection_[i][j]] = v[j];
     }
   }
+  
   return true;
 }

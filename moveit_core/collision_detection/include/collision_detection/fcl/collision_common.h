@@ -161,25 +161,25 @@ struct FCLManager
 
 bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data);
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
                                             const planning_models::KinematicModel::LinkModel *link);
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
                                             const planning_models::KinematicState::AttachedBody *ab);
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
                                             const CollisionWorld::Object *obj);
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const planning_models::KinematicModel::LinkModel *link);
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const planning_models::KinematicState::AttachedBody *ab);
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const CollisionWorld::Object *obj);
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const planning_models::KinematicModel::LinkModel *link);
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const planning_models::KinematicState::AttachedBody *ab);
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const CollisionWorld::Object *obj);
 
 inline void transform2fcl(const Eigen::Affine3d &b, fcl::SimpleTransform &f)

@@ -60,23 +60,13 @@ class PlanningContextManager
 {
 public: 
   
-  PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel);
+  PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel, constraint_samplers::ConstraintSamplerManager &csm);
   ~PlanningContextManager(void);
   
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
   void setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig);
 
-  void setKinematicsAllocators(const planning_scene::KinematicsAllocators &kinematics_allocators)
-  {
-    kinematics_allocators_ = kinematics_allocators;
-  }
-  
-  void setConstraintSamplerManager(constraint_samplers::ConstraintSamplerManager &csm)
-  {
-    constraint_sampler_manager_ = &csm;
-  }
-  
   /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
   unsigned int getMaximumStateSamplingAttempts(void) const
   {
@@ -197,9 +187,6 @@ protected:
   
   /** \brief The kinematic model for which motion plans are computed */
   planning_models::KinematicModelConstPtr               kmodel_;
-  
-  /** \brief A map from group names to IK allocators; these are the available IK solvers */
-  planning_scene::KinematicsAllocators                  kinematics_allocators_;
   
   constraint_samplers::ConstraintSamplerManager        *constraint_sampler_manager_;
   
