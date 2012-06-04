@@ -235,6 +235,9 @@ public:
     
   /** \brief Get a joint group from this model (by name) */
   const JointModelGroup* getJointModelGroup(const std::string& name) const;
+
+  /** \brief Get a joint group from this model (by name) */
+  JointModelGroup* getJointModelGroup(const std::string& name);
   
   /** \brief Get the map between joint group names and the groups */
   const std::map<std::string, JointModelGroup*>& getJointModelGroupMap(void) const

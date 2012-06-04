@@ -515,46 +515,40 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 
 
 /////////////////////////////////////////////////////
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
                                             const planning_models::KinematicModel::LinkModel *link)
 {
-  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, link) :
-    createCollisionGeometry<fcl::RSS, planning_models::KinematicModel::LinkModel>(shape, link);
+  return createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, link);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
                                             const planning_models::KinematicState::AttachedBody *ab)
 {
-  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, ab) :
-    createCollisionGeometry<fcl::RSS, planning_models::KinematicState::AttachedBody>(shape, ab);
+  return createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, ab);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::StaticShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
                                             const CollisionWorld::Object *obj)
 {
-  return obb ? createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, obj) :
-    createCollisionGeometry<fcl::RSS, CollisionWorld::Object>(shape, obj);
+  return createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, obj);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const planning_models::KinematicModel::LinkModel *link)
 {
-  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, link) :
-    createCollisionGeometry<fcl::RSS, planning_models::KinematicModel::LinkModel>(shape, link);
+  return createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, link);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const planning_models::KinematicState::AttachedBody *ab)
 {
-  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, ab) :
-    createCollisionGeometry<fcl::RSS, planning_models::KinematicState::AttachedBody>(shape, ab);
+  return createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, ab);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const CollisionWorld::Object *obj)
 {
-  return obb ? createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, obj) :
-    createCollisionGeometry<fcl::RSS, CollisionWorld::Object>(shape, obj);
+  return createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, obj);
 }
 
 template<typename BV, typename T>
@@ -570,25 +564,22 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
   }
 }
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const planning_models::KinematicModel::LinkModel *link)
 {
-  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, scale, padding, link) :
-    createCollisionGeometry<fcl::RSS, planning_models::KinematicModel::LinkModel>(shape, scale, padding, link);
+  return createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, scale, padding, link);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const planning_models::KinematicState::AttachedBody *ab)
 {
-  return obb ? createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, scale, padding, ab) :
-    createCollisionGeometry<fcl::RSS, planning_models::KinematicState::AttachedBody>(shape, scale, padding, ab);
+  return createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, scale, padding, ab);
 }
 
-FCLGeometryConstPtr createCollisionGeometry(bool obb, const shapes::ShapeConstPtr &shape, double scale, double padding,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const CollisionWorld::Object *obj)
 {
-  return obb ? createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, scale, padding, obj) :
-    createCollisionGeometry<fcl::RSS, CollisionWorld::Object>(shape, scale, padding, obj);
+  return createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, scale, padding, obj);
 }
 
 }

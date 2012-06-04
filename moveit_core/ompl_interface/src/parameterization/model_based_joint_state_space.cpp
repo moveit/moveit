@@ -205,9 +205,16 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedJointStateSpace::allocDefa
     }
     
     virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
-    {    
-      sampleUniform(state);
-      /// \todo FIX THIS
+    {     
+      std::vector<double> &values = state->as<ModelBasedJointStateSpace::StateType>()->joint_state->getVariableValues();
+      values.clear(); // clear first since getRandomValues() does .push_back()
+      
+      // generate random values accorrding to JointModel
+      space_->as<ModelBasedJointStateSpace>()->getJointModel()->getRandomValuesNearBy(moveit_rng_, values, space_->as<ModelBasedJointStateSpace>()->getJointBounds(),
+                                                                                      near->as<ModelBasedJointStateSpace::StateType>()->joint_state->getVariableValues(),
+                                                                                      distance);
+      // propagate transforms
+      space_->as<ModelBasedJointStateSpace>()->propagateJointStateUpdate(state);
     }
     
     virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)

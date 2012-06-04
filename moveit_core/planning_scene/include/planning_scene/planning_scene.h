@@ -112,6 +112,12 @@ public:
                  const boost::shared_ptr<const srdf::Model> &srdf_model,
                  const std::string &root_link = "");
 
+  /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
+      The kinematic model constructed from the parsed descriptions is also passed in. */
+  bool configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
+                 const boost::shared_ptr<const srdf::Model> &srdf_model,
+                 const planning_models::KinematicModelPtr &kmodel);
+  
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
 
@@ -132,12 +138,6 @@ public:
   {
     // if we have an updated set of transforms, return it; otherwise, return the parent one
     return ftf_ ? ftf_->getTargetFrame() : parent_->getPlanningFrame();
-  }
-
-  /** \brief Get the kinematic model for which the planning scene is maintained. WARNING: This is not NULL only for scenes that do not depend on a parent */
-  const planning_models::KinematicModelPtr& getKinematicModel(void)
-  {
-    return kmodel_;
   }
 
   /** \brief Get the kinematic model for which the planning scene is maintained */

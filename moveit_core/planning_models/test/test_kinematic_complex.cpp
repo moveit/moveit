@@ -221,7 +221,6 @@ TEST_F(LoadPlanningModelsPr2, SubgroupInit)
   EXPECT_EQ(jmg2->getSubgroupNames().size(), 4);
   EXPECT_TRUE(jmg2->isSubgroup("arms"));
   EXPECT_TRUE(jmg2->isSubgroup("right_arm"));
-  EXPECT_EQ(jmg2->getDisjointSubgroupNames().size(), 2);
 }
 
 TEST_F(LoadPlanningModelsPr2, AssociatedFixedLinks) {
