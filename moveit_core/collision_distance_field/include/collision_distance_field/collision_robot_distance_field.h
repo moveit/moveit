@@ -48,12 +48,25 @@ namespace collision_distance_field
 class CollisionRobotDistanceField : public collision_detection::CollisionRobot
 {
 public:
+
+  struct DistanceFieldCacheEntry {
+    std::string group_name_;
+    boost::shared_ptr<planning_models::KinematicState> state_;
+    collision_detection::AllowedCollisionMatrix acm_;
+    distance_field::DistanceField* distance_field_;
+    std::vector<std::string> link_names_;
+    std::vector<unsigned int> link_state_indices_;
+    std::vector<std::string> attached_body_names_;
+    std::vector<unsigned int> attached_body_link_state_indices_;
+    std::vector<PosedBodyDecompositionPtr> link_body_decompositions_;
+    std::vector<PosedBodyDecompositionVectorPtr> attached_body_decompositions_;
+  };
   
   CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel, 
                               double size_x = 3.0, 
                               double size_y = 3.0,
                               double size_z = 4.0,
-                              bool use_signed_distance_field = true,
+                              bool use_signed_distance_field = false,
                               double resolution = .02,
                               double collision_tolerance = 0.0,
                               double max_propogation_distance = .25,
@@ -136,21 +149,12 @@ public:
   {
     return 0.0;
   };
+
+  boost::shared_ptr<const DistanceFieldCacheEntry> getLastDistanceFieldEntry() const {
+    return distance_field_cache_entry_;
+  } 
   
 protected:
-
-  struct DistanceFieldCacheEntry {
-    std::string group_name_;
-    boost::shared_ptr<planning_models::KinematicState> state_;
-    collision_detection::AllowedCollisionMatrix acm_;
-    distance_field::DistanceField<distance_field::PropDistanceFieldVoxel>* distance_field_;
-    std::vector<std::string> link_names_;
-    std::vector<unsigned int> link_state_indices_;
-    std::vector<std::string> attached_body_names_;
-    std::vector<unsigned int> attached_body_link_state_indices_;
-    std::vector<PosedBodyDecompositionPtr> link_body_decompositions_;
-    std::vector<PosedBodyDecompositionVectorPtr> attached_body_decompositions_;
-  };
 
   void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
                                 collision_detection::CollisionResult& res,

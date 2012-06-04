@@ -36,6 +36,7 @@
 
 #include <collision_distance_field/collision_robot_distance_field.h>
 #include <collision_distance_field/collision_common_distance_field.h>
+#include <distance_field/propagation_distance_field.h>
 
 namespace collision_distance_field
 {
@@ -54,7 +55,7 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const planning_models::
     size_x_(size_x),
     size_y_(size_y),
     size_z_(size_z),
-    use_signed_distance_field_(true),
+    use_signed_distance_field_(use_signed_distance_field),
     resolution_(resolution),
     collision_tolerance_(collision_tolerance),
     max_propogation_distance_(max_propogation_distance)
@@ -84,6 +85,10 @@ CollisionRobotDistanceField::getDistanceFieldCacheEntry(const std::string& group
                                                         const collision_detection::AllowedCollisionMatrix *acm) const
 { 
   boost::shared_ptr<const DistanceFieldCacheEntry> ret;
+  if(!distance_field_cache_entry_) {
+    ROS_WARN_STREAM("No current dfce");
+    return ret;
+  }
   boost::shared_ptr<const DistanceFieldCacheEntry> cur = distance_field_cache_entry_;
   if(group_name != cur->group_name_) {
     ROS_INFO_STREAM("No cache entry as group name changed from " << cur->group_name_ << " to " << group_name);
@@ -110,6 +115,7 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
                                                              const planning_models::KinematicState& state,
                                                              const collision_detection::AllowedCollisionMatrix *acm) const
 { 
+  ros::WallTime n = ros::WallTime::now();
   boost::shared_ptr<DistanceFieldCacheEntry> dfce(new DistanceFieldCacheEntry());
   if(kmodel_->getJointModelGroup(group_name) == NULL) {
     ROS_WARN_STREAM("No group " << group_name);
@@ -124,9 +130,10 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
   const std::vector<planning_models::KinematicState::LinkState*>& lsv = state.getLinkStateVector();
   //need to do with with all link models for attached objects, not just those with geometry
   for(unsigned int i = 0; i < kmodel_->getJointModelGroup(group_name)->getUpdatedLinkModelNames().size(); i++) {
+    std::string link_name = kmodel_->getJointModelGroup(group_name)->getUpdatedLinkModelNames()[i];
     bool found = false;
     for(unsigned int j = 0; j < lsv.size(); j++) {
-      if(lsv[j]->getName() == kmodel_->getJointModelGroup(group_name)->getUpdatedLinkModelNames()[i]) {
+      if(lsv[j]->getName() == link_name) {
         dfce->link_state_indices_.push_back(j);
         found = true;
         break;
@@ -136,14 +143,39 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
       ROS_INFO_STREAM("No link state found for link " << dfce->link_names_[i]);
       return dfce;
     }
-    dfce->link_body_decompositions_.push_back(getLinkBodyDecomposition(dfce->state_->getLinkState(dfce->link_names_[i]), resolution_));
+    if(dfce->state_->getLinkState(link_name)->getLinkModel()->getShape()) {
+      dfce->link_body_decompositions_.push_back(getLinkBodyDecomposition(dfce->state_->getLinkState(link_name), resolution_));
+    }
     std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
-    dfce->state_->getLinkState(dfce->link_names_[i])->getAttachedBodies(attached_bodies);
+    dfce->state_->getLinkState(link_name)->getAttachedBodies(attached_bodies);
     for(unsigned int i = 0; i < attached_bodies.size(); i++) {
       dfce->attached_body_decompositions_.push_back(getAttachedBodyDecomposition(attached_bodies[i], resolution_));
       dfce->attached_body_names_.push_back(attached_bodies[i]->getName());
       dfce->attached_body_link_state_indices_.push_back(dfce->link_state_indices_[i]);
     }
+  }
+  if(use_signed_distance_field_)
+  {
+    dfce->distance_field_ = new distance_field::SignedPropagationDistanceField(size_x_,
+                                                                               size_y_, 
+                                                                               size_z_, 
+                                                                               resolution_, 
+                                                                               -(size_x_/2.0), 
+                                                                               -(size_y_/2.0), 
+                                                                               -(size_z_/2.0), 
+                                                                               max_propogation_distance_);
+  }
+  else
+  {
+    ROS_INFO_STREAM("This one");
+    dfce->distance_field_ = new distance_field::PropagationDistanceField(size_x_,
+                                                                         size_y_, 
+                                                                         size_z_, 
+                                                                         resolution_, 
+                                                                         -(size_x_/2.0), 
+                                                                         -(size_y_/2.0), 
+                                                                         -(size_z_/2.0), 
+                                                                         max_propogation_distance_);
   }
   //TODO - deal with AllowedCollisionMatrix
   //now we need to actually set the points
@@ -159,7 +191,10 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
                       dfce->attached_body_decompositions_[i]->getCollisionPoints().begin(),
                       dfce->attached_body_decompositions_[i]->getCollisionPoints().end());
   }
+  //ROS_INFO_STREAM("Pre-dim " << dfce->distance_field_->getNumCells(distance_field::VoxelGrid<distance_field::PropDistanceFieldVoxel>::DIM_X));
   dfce->distance_field_->addPointsToField(all_points);
+  //ROS_INFO_STREAM("Pre-dim " << dfce->distance_field_->getNumCells(distance_field::VoxelGrid<distance_field::PropDistanceFieldVoxel>::DIM_X));
+  //ROS_INFO_STREAM("Creation took " << (ros::WallTime::now()-n));
   return dfce;
 }
 
