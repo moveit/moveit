@@ -35,7 +35,6 @@
 #include <ros/ros.h>
 #include <moveit_visualization_ros/kinematics_start_goal_visualization.h>
 #include <moveit_visualization_ros/joint_trajectory_visualization.h>
-#include <ompl_interface_ros/ompl_interface_ros.h>
 #include <boost/function.hpp>
 #include <trajectory_processing/trajectory_smoother.h>
 #include <trajectory_processing/trajectory_shortcutter.h>
