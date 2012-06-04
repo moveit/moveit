@@ -47,8 +47,6 @@
 #include <geometric_shapes/bodies.h>
 
 #include <distance_field/distance_field.h>
-#include <distance_field/propagation_distance_field.h>
-#include <distance_field/pf_distance_field.h>
 
 namespace collision_distance_field
 {
@@ -112,7 +110,7 @@ std::vector<CollisionSphere> determineCollisionSpheres(const bodies::Body* body,
 std::vector<Eigen::Vector3d> determineCollisionPoints(const bodies::Body* body, double resolution);
 
 //determines a set of gradients of the given collision spheres in the distance field
-bool getCollisionSphereGradients(const distance_field::DistanceField<distance_field::PropDistanceFieldVoxel>* distance_field,
+bool getCollisionSphereGradients(const distance_field::DistanceField* distance_field,
                                  const std::vector<CollisionSphere>& sphere_list, 
                                  const std::vector<Eigen::Vector3d>& sphere_centers,
                                  GradientInfo& gradient, 
@@ -121,7 +119,7 @@ bool getCollisionSphereGradients(const distance_field::DistanceField<distance_fi
                                  double maximum_value, 
                                  bool stop_at_first_collision);
 
-bool getCollisionSphereCollision(const distance_field::DistanceField<distance_field::PropDistanceFieldVoxel>* distance_field,
+bool getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
                                  const std::vector<CollisionSphere>& sphere_list,
                                  const std::vector<Eigen::Vector3d>& sphere_centers,
                                  double tolerance);

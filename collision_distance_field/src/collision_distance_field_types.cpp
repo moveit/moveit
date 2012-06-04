@@ -77,7 +77,7 @@ std::vector<Eigen::Vector3d> collision_distance_field::determineCollisionPoints(
   return ret_vec;
 }
 
-bool collision_distance_field::getCollisionSphereGradients(const distance_field::DistanceField<distance_field::PropDistanceFieldVoxel>* distance_field,
+bool collision_distance_field::getCollisionSphereGradients(const distance_field::DistanceField* distance_field,
                                                            const std::vector<CollisionSphere>& sphere_list,
                                                            const std::vector<Eigen::Vector3d>& sphere_centers,
                                                            GradientInfo& gradient, 
@@ -109,7 +109,7 @@ bool collision_distance_field::getCollisionSphereGradients(const distance_field:
   return in_collision;
 }
 
-bool collision_distance_field::getCollisionSphereCollision(const distance_field::DistanceField<distance_field::PropDistanceFieldVoxel>* distance_field,
+bool collision_distance_field::getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
                                                            const std::vector<CollisionSphere>& sphere_list,
                                                            const std::vector<Eigen::Vector3d>& sphere_centers,
                                                            double tolerance)
@@ -149,6 +149,7 @@ collision_distance_field::BodyDecomposition::~BodyDecomposition()
 collision_distance_field::PosedBodyDecomposition::PosedBodyDecomposition(const BodyDecompositionConstPtr& body_decomposition) 
   : body_decomposition_(body_decomposition)
 {
+  sphere_centers_.resize(body_decomposition_->getCollisionSpheres().size());
   posed_collision_points_ = body_decomposition_->getCollisionPoints();
 }
 
