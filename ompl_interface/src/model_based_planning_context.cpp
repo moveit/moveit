@@ -44,7 +44,7 @@
 #include <kinematic_constraints/utils.h>
 
 #include <ompl/base/samplers/UniformValidStateSampler.h>
-#include <ompl/base/GoalLazySamples.h>
+#include <ompl/base/goals/GoalLazySamples.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <ompl/base/spaces/SE3StateSpace.h>

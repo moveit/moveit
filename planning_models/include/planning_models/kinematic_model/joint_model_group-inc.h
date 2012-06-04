@@ -210,8 +210,21 @@ public:
     return is_chain_;
   }
   
+  /** \brief Get the joint limits as read from the URDF */
   virtual std::vector<moveit_msgs::JointLimits> getVariableLimits(void) const;
-
+  
+  /** \brief Override joint limits */
+  void setJointLimits(const std::vector<moveit_msgs::JointLimits>& jlim)
+  {
+    user_specified_joint_limits_ = jlim;
+  }
+  
+  /** \brief Get the joint limits specified by the user with setJointLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
+  std::vector<moveit_msgs::JointLimits> getJointLimits(void) const
+  {
+    return user_specified_joint_limits_.empty() ? getVariableLimits() : user_specified_joint_limits_;
+  }
+  
   const std::pair<SolverAllocatorFn, SolverAllocatorMapFn>& getSolverAllocators(void) const
   {
     return solver_allocators_;
@@ -290,6 +303,8 @@ protected:
   std::pair<std::string, std::string>                   end_effector_parent_;
   
   bool                                                  is_chain_;
+
+  std::vector<moveit_msgs::JointLimits>                 user_specified_joint_limits_;
   
   std::pair<SolverAllocatorFn, SolverAllocatorMapFn>    solver_allocators_;
   
