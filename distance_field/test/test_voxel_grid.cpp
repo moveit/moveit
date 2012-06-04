@@ -42,9 +42,9 @@ TEST(TestVoxelGrid, TestReadWrite)
   int def=-100;
   VoxelGrid<int> vg(0.02,0.02,0.02,0.01,0,0,0, def);
 
-  int numX = vg.getNumCells(VoxelGrid<int>::DIM_X);
-  int numY = vg.getNumCells(VoxelGrid<int>::DIM_Y);
-  int numZ = vg.getNumCells(VoxelGrid<int>::DIM_Z);
+  int numX = vg.getNumCells(DIM_X);
+  int numY = vg.getNumCells(DIM_Y);
+  int numZ = vg.getNumCells(DIM_Z);
 
   // Check dimensions
   EXPECT_EQ(numX,2);
