@@ -98,7 +98,7 @@ struct SignedPropDistanceFieldVoxel : public PropDistanceFieldVoxel
  * and the gradient of the field at a point. Expansion of obstacles is performed upto a given
  * radius.
  */
-class PropagationDistanceField: public DistanceField<PropDistanceFieldVoxel>
+class PropagationDistanceField: public DistanceField
 {
 public:
 
@@ -107,10 +107,10 @@ public:
    * \brief Constructor for the DistanceField.
    */
   PropagationDistanceField(double size_x, double size_y, double size_z, double resolution,
-      double origin_x, double origin_y, double origin_z, double max_distance);
-
+                           double origin_x, double origin_y, double origin_z, double max_distance);
+  
   virtual ~PropagationDistanceField();
-
+  
   /**
    * \brief Change the set of obstacle points and recalculate the distance field (if there are any changes).
    * \param iterative Calculate the changes in the object voxels, and propogate the changes outward.
@@ -133,7 +133,31 @@ public:
    */
   virtual void reset();
 
+  /**
+   * \brief Gets the distance to the closest obstacle at the given location.
+   */
+  virtual double getDistance(double x, double y, double z) const;
+
+  /**
+   * \brief Gets the distance to the closest obstacle at the given integer cell location.
+   */
+  virtual double getDistanceFromCell(int x, int y, int z) const;
+
+  //pass-throughs to voxel grid
+  virtual bool isCellValid(int x, int y, int z) const;
+  virtual int getXNumCells() const;
+  virtual int getYNumCells() const;
+  virtual int getZNumCells() const;
+  virtual bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
+  virtual bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
+
+  const PropDistanceFieldVoxel& getCell(int x, int y, int z) const {
+    return voxel_grid_.getCell(x, y, z);
+  }
+
 private:
+
+  VoxelGrid<PropDistanceFieldVoxel> voxel_grid_;
 
   /// \brief The set of all the obstacle voxels
   typedef std::set<int3, compareInt3> VoxelSet;
@@ -188,38 +212,59 @@ inline double PropagationDistanceField::getDistance(const PropDistanceFieldVoxel
 }
 
 
-class SignedPropagationDistanceField : public DistanceField<SignedPropDistanceFieldVoxel>
+class SignedPropagationDistanceField : public DistanceField
 {
   public:
-
-    SignedPropagationDistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x,
-                                   double origin_y, double origin_z, double max_distance);
-    virtual ~SignedPropagationDistanceField();
-
+  
+  SignedPropagationDistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x,
+                                 double origin_y, double origin_z, double max_distance);
+  virtual ~SignedPropagationDistanceField();
+  
   virtual void addPointsToField(const std::vector<Eigen::Vector3d> &points);
   
-    virtual void reset();
+  virtual void reset();
 
-  private:
-    std::vector<std::vector<int3> > positive_bucket_queue_;
-    std::vector<std::vector<int3> > negative_bucket_queue_;
-    double max_distance_;
-    int max_distance_sq_;
+  /**
+   * \brief Gets the distance to the closest obstacle at the given location.
+   */
+  virtual double getDistance(double x, double y, double z) const;
 
-    std::vector<double> sqrt_table_;
+  /**
+   * \brief Gets the distance to the closest obstacle at the given integer cell location.
+   */
+  virtual double getDistanceFromCell(int x, int y, int z) const;
 
-    // [0] - for expansion of d=0
-     // [1] - for expansion of d>=1
-     // Under this, we have the 27 directions
-     // Then, a list of neighborhoods for each direction
-     std::vector<std::vector<std::vector<int3 > > > neighborhoods_;
+  //pass-throughs to voxel grid
+  virtual bool isCellValid(int x, int y, int z) const;
+  virtual int getXNumCells() const;
+  virtual int getYNumCells() const;
+  virtual int getZNumCells() const;
+  virtual bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const;
+  virtual bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
 
-     std::vector<int3 > direction_number_to_direction_;
+private:
 
-     virtual double getDistance(const SignedPropDistanceFieldVoxel& object) const;
-     int getDirectionNumber(int dx, int dy, int dz) const;
-     void initNeighborhoods();
-     static int eucDistSq(int3 point1, int3 point2);
+  VoxelGrid<SignedPropDistanceFieldVoxel> voxel_grid_;
+
+  std::vector<std::vector<int3> > positive_bucket_queue_;
+  std::vector<std::vector<int3> > negative_bucket_queue_;
+  double max_distance_;
+  int max_distance_sq_;
+  
+  std::vector<double> sqrt_table_;
+  
+  // [0] - for expansion of d=0
+  // [1] - for expansion of d>=1
+  // Under this, we have the 27 directions
+  // Then, a list of neighborhoods for each direction
+  std::vector<std::vector<std::vector<int3 > > > neighborhoods_;
+  
+  std::vector<int3 > direction_number_to_direction_;
+  
+  virtual double getDistance(const SignedPropDistanceFieldVoxel& object) const;
+  int getDirectionNumber(int dx, int dy, int dz) const;
+  void initNeighborhoods();
+  static int eucDistSq(int3 point1, int3 point2);
 };
 
 

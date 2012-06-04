@@ -93,7 +93,7 @@ void check_distance_field(const PropagationDistanceField & df, const std::vector
           int dist_square = dist_sq(dx,dy,dz);
           min_dist_square = std::min(dist_square, min_dist_square);
         }
-        ASSERT_EQ(df.getCell(x,y,z).distance_square_, min_dist_square);
+        ASSERT_EQ(df.getCell(x, y, z).distance_square_, min_dist_square);
       }
     }
   }
@@ -106,10 +106,10 @@ TEST(TestPropagationDistanceField, TestAddPoints)
   PropagationDistanceField df( width, height, depth, resolution, origin_x, origin_y, origin_z, max_dist);
 
   // Check size
-  int numX = df.getNumCells(PropagationDistanceField::DIM_X);
-  int numY = df.getNumCells(PropagationDistanceField::DIM_Y);
-  int numZ = df.getNumCells(PropagationDistanceField::DIM_Z);
-
+  int numX = df.getXNumCells();
+  int numY = df.getYNumCells();
+  int numZ = df.getZNumCells();
+  
   EXPECT_EQ( numX, (int)(width/resolution+0.5) );
   EXPECT_EQ( numY, (int)(height/resolution+0.5) );
   EXPECT_EQ( numZ, (int)(depth/resolution+0.5) );
@@ -125,7 +125,9 @@ TEST(TestPropagationDistanceField, TestAddPoints)
   points.push_back(point1);
   points.push_back(point2);
   df.reset();
+  ROS_INFO_STREAM("Adding " << points.size() << " points");
   df.addPointsToField(points);
+  print(df, numX, numY, numZ);
 
   // Error checking
   //print(df, numX, numY, numZ);

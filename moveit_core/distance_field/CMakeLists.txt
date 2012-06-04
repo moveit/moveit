@@ -9,7 +9,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 #set(ROS_BUILD_TYPE Debug)
-set(ROS_BUILD_TYPE Release)
+set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
 
@@ -35,8 +35,8 @@ include_directories(${EIGEN_INCLUDE_DIRS})
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_library(distance_field
-	src/pf_distance_field.cpp
-	src/propagation_distance_field.cpp
+  src/distance_field.cpp
+  src/propagation_distance_field.cpp
 )
 
 rosbuild_add_gtest(test/test_voxel_grid test/test_voxel_grid.cpp)

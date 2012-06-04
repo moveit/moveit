@@ -37,10 +37,17 @@
 #ifndef DF_VOXEL_GRID_H_
 #define DF_VOXEL_GRID_H_
 
+#include <ros/ros.h>
 #include <algorithm>
 
 namespace distance_field
 {
+
+enum Dimension {
+  DIM_X = 0,
+  DIM_Y = 1,
+  DIM_Z = 2
+};
 
 /**
  * \brief Generic container for a discretized 3D voxel grid for any class/structure
@@ -90,13 +97,6 @@ public:
    */
   void reset(T initial);
 
-  enum Dimension
-  {
-    DIM_X = 0,
-    DIM_Y = 1,
-    DIM_Z = 2
-  };
-
   /**
    * \brief Gets the size of the given dimension.
    */
@@ -127,6 +127,16 @@ public:
    */
   bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const;
 
+  /**
+   * \brief Checks if the given cell is within the voxel grid
+   */
+  bool isCellValid(int x, int y, int z) const;
+
+  /**
+   * \brief Checks validity of the given cell for a particular dimension
+   */
+  bool isCellValid(Dimension dim, int cell) const;
+
 protected:
   T* data_;			/**< Storage for data elements */
   T default_object_;		/**< The default object to return in case of out-of-bounds query */
@@ -154,15 +164,6 @@ protected:
    */
   double getLocationFromCell(Dimension dim, int cell) const;
 
-  /**
-   * \brief Checks if the given cell is within the voxel grid
-   */
-  bool isCellValid(int x, int y, int z) const;
-
-  /**
-   * \brief Checks validity of the given cell for a particular dimension
-   */
-  bool isCellValid(Dimension dim, int cell) const;
 };
 
 //////////////////////////// template function definitions follow //////////////////
