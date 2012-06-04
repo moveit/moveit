@@ -51,26 +51,15 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();  
 
-  unsigned int num_trials = 10000;
+  unsigned int num_trials = 200000;
+  const bool verbose = true;
+
   if( argc > 1 )
   {
     num_trials = atoi(argv[1]);
     ROS_INFO("Number of trials %d", num_trials);
   }
 
-  // Write reslts to file
-  //std::ofstream results;
-  //results.open("/u/dcoleman/collision_data.csv");  
-
-  //int trials = 1000; //for(int trials = 10; trials <= 1000; trials += 50)
-  //{
-  //int disabled_links_count = 0;
-
-  //std::cout << "TRIALS " << trials << " --------------------------- \n\n\n";
-
-  // Do 10 tests
-  //for(int ii = 0; ii < 10; ++ii)
-  //{
   // Setup benchmark timer
   BTimer = BenchmarkTimer();
   BTimer.start("Total"); 
@@ -80,36 +69,18 @@ int main(int argc, char **argv)
 
   // Find the default collision matrix - all links that are allowed to collide
   const std::map<std::string, std::set<std::string> > &disabled_links = 
-    moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), true, num_trials, true);
+    moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), true, num_trials, verbose);
 
   // Benchmarking Results
-  BTimer.end("Total"); 
-  BTimer.printTimes(); // output results   
-  // number of links disabled from collision checking
-  //std::cout << n << std::endl << std::endl;  
-  std::cout << "\n";
-
-  // Output the yaml file
-  // TODO: convert to proper yaml file output method
-  unsigned int n = 0;
-  for (std::map<std::string, std::set<std::string> >::const_iterator it = disabled_links.begin() ; it != disabled_links.end() ; ++it)
-  {    
-    // disable all connected links to current link by looping through them
-    for (std::set<std::string>::const_iterator link2_it = it->second.begin(); 
-         link2_it != it->second.end(); 
-         ++link2_it)
-    {
-      //std::cout << "\t<disable_collisions link1=\"" << it->first << "\" link2=\"" << (*link2_it) << "\" />" << std::endl;
-      ++n;
-    }
+  if(verbose)
+  {
+    BTimer.end("Total"); 
+    BTimer.printTimes(); // output results   
+    std::cout << "\n";
   }
-  
-  /*disabled_links_cout += n;
-    }
-    results << trials << " " << disabled_links_count;
-    }
-    results.close();
-  */
+
+  // Output results to an XML file
+  moveit_configuration_tools::outputDisabledCollisionsXML( disabled_links );
 
   ros::shutdown();    
   return 0;

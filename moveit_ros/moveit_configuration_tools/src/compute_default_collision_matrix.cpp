@@ -38,6 +38,7 @@
 #include "moveit_configuration_tools/benchmark_timer.h"
 #include <boost/math/special_functions/binomial.hpp> // for statistics at end
 #include <boost/thread.hpp>
+#include <tinyxml.h>
 #include <boost/lexical_cast.hpp>
 
 extern BenchmarkTimer BTimer;
@@ -212,9 +213,8 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   }
   BTimer.end("Never in Collision"); // Benchmarking Timer - temporary  
 
-
-
   ROS_INFO("Links seen colliding total = %d", int(links_seen_colliding.size()));
+
   if(verbose)
   {
     //scene.getAllowedCollisionMatrix().print(std::cout);
@@ -350,14 +350,12 @@ unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGrap
       {
         // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
         if (link_graph_it->first->getName() < (*adj_it)->getName() )
-          disabled_links[ link_graph_it->first->getName() ].insert( (*adj_it)->getName() );
+          num_disabled += disabled_links[ link_graph_it->first->getName() ].insert( (*adj_it)->getName() ).second;
         else
-          disabled_links[ (*adj_it)->getName() ].insert( link_graph_it->first->getName() );
+          num_disabled += disabled_links[ (*adj_it)->getName() ].insert( link_graph_it->first->getName() ).second;
 
         // disable link checking in the collision matrix
         scene.getAllowedCollisionMatrix().setEntry( link_graph_it->first->getName(), (*adj_it)->getName(), true);
-      
-        ++num_disabled;
       }
 
     }
@@ -384,15 +382,12 @@ unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, Stri
   {
     // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
     if (it->first.first < it->first.second) 
-      disabled_links[it->first.first].insert(it->first.second);
+      num_disabled += disabled_links[it->first.first].insert(it->first.second).second;
     else
-      disabled_links[it->first.second].insert(it->first.first);
+      num_disabled += disabled_links[it->first.second].insert(it->first.first).second;
 
     scene.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
 
-    //ROS_INFO("Disabled %s to %s", it->first.first.c_str(), it->first.second.c_str());
-
-    ++num_disabled;
   }
 
   ROS_INFO("Disabled %d links that are in collision in default state", num_disabled);  
@@ -463,13 +458,13 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Stri
 
         // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
         if (it->first.first < it->first.second) 
-          disabled_links[it->first.first].insert(it->first.second);
+          num_disabled += disabled_links[it->first.first].insert(it->first.second).second;
         else
-          disabled_links[it->first.second].insert(it->first.first);
+          num_disabled += disabled_links[it->first.second].insert(it->first.first).second;
 
         scene.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
 
-        num_disabled++;
+        //num_disabled++;
         found ++;
       }
 
@@ -585,26 +580,56 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
 
   ROS_INFO("Link models with geometry: %d", int(names.size()));
     
-  // Loop through every combination of name pairs n^2
+  std::pair<std::string,std::string> temp_pair;
+
+  // Loop through every combination of name pairs, AB and BA, n^2
   for (std::size_t i = 0 ; i < names.size() ; ++i)
   {
-    for (std::size_t j = i + 1 ; j < names.size() ; ++j)
+    for (std::size_t j = i+1 ; j < names.size() ; ++j)
     {
+      // Which order of the two strings is correct (alphabetical)
+      if (names[i] < names[j])
+        temp_pair = std::make_pair(names[i], names[j]);
+      else
+        temp_pair = std::make_pair(names[j], names[i]);
+
       // Check if current pair has been seen colliding ever. If it has never been seen colliding, add it to disabled list
-      if (links_seen_colliding.find(std::make_pair(names[i], names[j])) == links_seen_colliding.end())
+      if (links_seen_colliding.find( temp_pair ) == links_seen_colliding.end())
       {
-        ++num_never;
-
-        // Add to disabled list
-        if (names[i] < names[j])
-          disabled_links[names[i]].insert(names[j]);
-        else
-          disabled_links[names[j]].insert(names[i]);
-
+        // Add to disabled list using pair ordering
+        num_never += disabled_links[ temp_pair.first ].insert( temp_pair.second ).second;
       }
     }
   }
   ROS_INFO("Found %d links that are never in collision", num_never);
 
   return num_never;
+}
+
+// ******************************************************************************************
+// Output XML String of Saved Results
+// ******************************************************************************************
+void moveit_configuration_tools::outputDisabledCollisionsXML(const std::map<std::string, std::set<std::string> > & disabled_links)
+{
+  // TODO: integrate this into SRDF system
+  TiXmlDocument doc;
+  TiXmlElement* robot_root = new TiXmlElement("robot");
+  doc.LinkEndChild(robot_root);
+
+  for (std::map<std::string, std::set<std::string> >::const_iterator it = disabled_links.begin() ; it != disabled_links.end() ; ++it)
+  {    
+    // disable all connected links to current link by looping through them
+    for (std::set<std::string>::const_iterator link2_it = it->second.begin(); 
+         link2_it != it->second.end(); 
+         ++link2_it)
+    {
+      // Create new element for each link pair
+      TiXmlElement *dc = new TiXmlElement("disabled_collisions");
+      robot_root->LinkEndChild(dc);
+      dc->SetAttribute("link1", it->first);
+      dc->SetAttribute("link2", (*link2_it));
+      
+    }
+  }
+  doc.SaveFile("default_collision_matrix.xml");
 }
