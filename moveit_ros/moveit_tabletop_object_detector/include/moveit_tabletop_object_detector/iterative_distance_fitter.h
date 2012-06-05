@@ -118,7 +118,7 @@ double IterativeTranslationFitter::getFitScoreAndGradient(const PointCloudType& 
     double val = truncate_value_;
     if (distance_voxel_grid_->worldToGrid(wx,wy,wz,x,y,z)) 
     {
-      distance_field::PropDistanceFieldVoxel& voxel = distance_voxel_grid_->getCell(x,y,z);
+      const distance_field::PropDistanceFieldVoxel& voxel = distance_voxel_grid_->getCell(x,y,z);
       double cx, cy, cz;
       if (voxel.closest_point_[0] != distance_field::PropDistanceFieldVoxel::UNINITIALIZED) 
       {
