@@ -63,6 +63,9 @@ namespace collision_detection
     virtual double distanceWorld(const CollisionWorld &world) const;
     virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const;
     
+    virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses);
+    virtual void addToObject(const std::string &id, const std::vector<shapes::StaticShapeConstPtr> &shapes);
+
     virtual void addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape);
     virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
     virtual bool moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
@@ -72,7 +75,7 @@ namespace collision_detection
     virtual void clearObjects(void);
     
   protected:
-    
+
     void checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const;
     void checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;
     double distanceRobotHelper(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const;

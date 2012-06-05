@@ -44,7 +44,6 @@ collision_detection::CollisionWorld::CollisionWorld(void) : record_changes_(fals
 
 collision_detection::CollisionWorld::CollisionWorld(const CollisionWorld &other) : record_changes_(false)
 {
-  boost::mutex::scoped_lock slock(other.objects_lock_);
   objects_ = other.objects_;
 }
 
@@ -83,14 +82,46 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
   if (shapes.size() != poses.size())
     ROS_ERROR("Number of shapes and number of poses do not match. Not adding this object to collision world.");
   else
+  {
+    // make sure that if a new object is created, it knows its name
+    std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
+    if (it == objects_.end())
+    {  
+      objects_[id].reset(new Object(id));
+      it = objects_.find(id);
+    }
+    else
+      if (record_changes_)
+        changeRemoveObj(id);
+    
+    ensureUnique(it->second);
     for (std::size_t i = 0 ; i < shapes.size() ; ++i)
-      addToObject(id, shapes[i], poses[i]);
+      addToObjectInternal(it->second, shapes[i], poses[i]);
+    
+    if (record_changes_)
+      changeAddObj(it->second.get());
+  }
 }
 
 void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::StaticShapeConstPtr> &shapes)
-{
+{ 
+  // make sure that if a new object is created, it knows its name
+  std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
+  if (it == objects_.end())
+  {   
+    objects_[id].reset(new Object(id));
+    it = objects_.find(id);
+  }
+  else
+    if (record_changes_)
+      changeRemoveObj(id);
+  
+  ensureUnique(it->second);
   for (std::size_t i = 0 ; i < shapes.size() ; ++i)
-    addToObject(id, shapes[i]);
+    addToObjectInternal(it->second, shapes[i]);
+  
+  if (record_changes_)
+    changeAddObj(it->second.get());
 }
 
 std::vector<std::string> collision_detection::CollisionWorld::getObjectIds(void) const
@@ -127,21 +158,24 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
   // make sure that if a new object is created, it knows its name
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it == objects_.end())
-  {
+  {   
     objects_[id].reset(new Object(id));
     it = objects_.find(id);
   }
   else
     if (record_changes_)
       changeRemoveObj(id);
-  {
-    boost::mutex::scoped_lock slock(objects_lock_);
-    ensureUnique(it->second);
-    it->second->static_shapes_.push_back(shape);
-  }
+
+  ensureUnique(it->second);
+  addToObjectInternal(it->second, shape);
   
   if (record_changes_)
     changeAddObj(it->second.get());
+}
+
+void collision_detection::CollisionWorld::addToObjectInternal(const ObjectPtr &obj, const shapes::StaticShapeConstPtr &shape)
+{
+  obj->static_shapes_.push_back(shape);
 }
 
 void collision_detection::CollisionWorld::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
@@ -149,22 +183,25 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
   // make sure that if a new object is created, it knows its name
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it == objects_.end())
-  {
+  {  
     objects_[id].reset(new Object(id));
     it = objects_.find(id);
   }
   else
     if (record_changes_)
       changeRemoveObj(id);
-  {
-    boost::mutex::scoped_lock slock(objects_lock_);
-    ensureUnique(it->second);
-    it->second->shapes_.push_back(shape);
-    it->second->shape_poses_.push_back(pose);
-  }
+
+  ensureUnique(it->second);
+  addToObjectInternal(it->second, shape, pose);
   
   if (record_changes_)
     changeAddObj(it->second.get());
+}
+
+void collision_detection::CollisionWorld::addToObjectInternal(const ObjectPtr &obj, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
+{
+  obj->shapes_.push_back(shape);  
+  obj->shape_poses_.push_back(pose);
 }
 
 bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
@@ -176,11 +213,9 @@ bool collision_detection::CollisionWorld::moveShapeInObject(const std::string &i
     for (unsigned int i = 0 ; i < n ; ++i)
       if (it->second->shapes_[i] == shape)
       {
-	{
-	  boost::mutex::scoped_lock slock(objects_lock_);
-	  ensureUnique(it->second);
-	  it->second->shape_poses_[i] = pose;
-	}
+        ensureUnique(it->second);
+        it->second->shape_poses_[i] = pose;
+	
 	if (record_changes_)
 	{
 	  changeRemoveObj(id);
@@ -201,7 +236,6 @@ bool collision_detection::CollisionWorld::removeShapeFromObject(const std::strin
     for (unsigned int i = 0 ; i < n ; ++i)
       if (it->second->shapes_[i] == shape)
       {
-	boost::mutex::scoped_lock slock(objects_lock_);
 	ensureUnique(it->second);
 	it->second->shapes_.erase(it->second->shapes_.begin() + i);
 	it->second->shape_poses_.erase(it->second->shape_poses_.begin() + i);
@@ -232,7 +266,6 @@ bool collision_detection::CollisionWorld::removeStaticShapeFromObject(const std:
     for (unsigned int i = 0 ; i < n ; ++i)
       if (it->second->static_shapes_[i] == shape)
       {
-	boost::mutex::scoped_lock slock(objects_lock_);
 	ensureUnique(it->second);
 	it->second->static_shapes_.erase(it->second->static_shapes_.begin() + i);
 	if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
@@ -255,7 +288,6 @@ bool collision_detection::CollisionWorld::removeStaticShapeFromObject(const std:
 
 void collision_detection::CollisionWorld::removeObject(const std::string &id)
 {
-  boost::mutex::scoped_lock slock(objects_lock_);
   if (objects_.erase(id) == 1)
     if (record_changes_)
       changeRemoveObj(id);
@@ -266,7 +298,6 @@ void collision_detection::CollisionWorld::clearObjects(void)
   if (record_changes_)
     for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
       changeRemoveObj(it->first);
-  boost::mutex::scoped_lock slock(objects_lock_);
   objects_.clear();
 }
 
