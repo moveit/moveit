@@ -34,33 +34,31 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
-#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
+#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_COMPUTE_DEFAULT_COLLISIONS_
+#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_COMPUTE_DEFAULT_COLLISIONS_
 
-#include <planning_scene/planning_scene.h>
-#include <map>
-#include <vector>
-#include <string>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QMessageBox>
+#include <QPushButton>
+//#include <QTextEdit>
+#include <QTableWidget>
 
-namespace moveit_configuration_tools
+class ComputeDefaultCollisionsWidget : public QWidget
 {
+  Q_OBJECT
 
-/**
- * \brief Generate an adjacency list of links that are always and never in collision, to speed up collision detection
- * \param parent_scene A reference to the robot in the planning scene
- * \param include_never_colliding Optional flag to disable the check for links that are never in collision
- * \param trials Optional ability to set the number random collision checks that are made. Increase the probability of correctness
- * \return Adj List of unique set of pairs of links in string-based form
- */
-std::map<std::string, std::set<std::string> > 
-computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, const bool include_never_colliding = true, 
-                              const unsigned int trials = 10000, const bool verbose = false);
+public:
+  ComputeDefaultCollisionsWidget();
 
-/**
- * \brief Generate xml format of disabled links for use in an SRDF
- * \param Adj List of unique set of pairs of links in string-based form 
- */
-void outputDisabledCollisionsXML(const std::map<std::string, std::set<std::string> > &disabled_links);
-}
+private slots:
+  void quit();
+
+private:
+  QPushButton *generateButton_;
+  QTableWidget *collision_table_;
+  QPushButton *quitButton_;
+  QVBoxLayout *layout_;
+};
 
 #endif

@@ -34,14 +34,15 @@
 
 /* Author: Dave Coleman */
 
-#include "moveit_configuration_tools/compute_default_collision_matrix.h"
+#include "moveit_configuration_tools/tools/compute_default_collisions.h"
 #include "moveit_configuration_tools/benchmark_timer.h"
 #include <boost/math/special_functions/binomial.hpp> // for statistics at end
 #include <boost/thread.hpp>
 #include <tinyxml.h>
 #include <boost/lexical_cast.hpp>
 
-extern BenchmarkTimer BTimer;
+//extern BenchmarkTimer BTimer;
+BenchmarkTimer BTimer; // used for analyzing results
 
 // ******************************************************************************************
 // Custom Types and Structs
@@ -147,9 +148,13 @@ static unsigned int disableNeverInCollision(const unsigned int num_trials, plann
 // Generates an adjacency list of links that are always and never in collision, to speed up collision detection
 // ******************************************************************************************
 std::map<std::string, std::set<std::string> >  // an adj list
-moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, 
-                                                          const bool include_never_colliding, const unsigned int num_trials, const bool verbose)
+moveit_configuration_tools::computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, 
+                                                     const bool include_never_colliding, const unsigned int num_trials, const bool verbose)
 {
+  // Setup benchmark timer
+  BTimer = BenchmarkTimer();
+  BTimer.start("Total"); 
+   
   // Create new instance of planning scene using pointer
   planning_scene::PlanningScene scene(parent_scene);
 
@@ -162,7 +167,7 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
   // LinkGraph is a custom type of a map with a LinkModel as key and a set of LinkModels as second
   LinkGraph link_graph; 
 
-  //ROS_INFO_STREAM("Initial allowed Collision Matrix Size = " << scene.getAllowedCollisionMatrix().getSize() );
+  //ROS_INFO_STREAM("Initial allowed Collision Matrix Size = " << scene.getAllowedCollisions().getSize() );
 
   // 1. FIND CONNECTING LINKS ------------------------------------------------------------------------
   // For each link, compute the set of other links it connects to via a single joint (adjacent links) 
@@ -217,7 +222,7 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
 
   if(verbose)
   {
-    //scene.getAllowedCollisionMatrix().print(std::cout);
+    //scene.getAllowedCollisions().print(std::cout);
     ROS_INFO_STREAM("Allowed Collision Matrix Size: " << scene.getAllowedCollisionMatrix().getSize() );
 
     // Calculate number of disabled links:
@@ -245,6 +250,12 @@ moveit_configuration_tools::computeDefaultCollisionMatrix(const planning_scene::
     std::cout << num_links << "\t" << num_possible << "\t" << num_always << "\t" << num_never 
               << "\t" << num_default << "\t" << num_adjacent << "\t" << num_sometimes 
               << "\t" << num_disabled << std::endl;
+
+    // Benchmarking Results
+    BTimer.end("Total"); 
+    BTimer.printTimes(); // output results   
+    std::cout << std::endl;
+
   }
 
   return disabled_links;
@@ -517,7 +528,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
     if (tc.links_seen_colliding_->insert(it->first).second) // the second is a bool determining if it was already in 
     {
     // Collision Matrix is modified only if needed, based on above if statement
-    tc.scene_.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
+    tc.scene_.getAllowedCollisions().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
     //std::cout << "New link pair found " << std::endl;
     }
     }
@@ -633,7 +644,7 @@ void moveit_configuration_tools::outputDisabledCollisionsXML(const std::map<std:
       ++num_disabled;
     }
   }
-  doc.SaveFile("default_collision_matrix.xml"); // TODO: change location
+  doc.SaveFile("default_collisions.xml"); // TODO: change location
 
   ROS_INFO("TOTAL DISABLED LINKS: %d", num_disabled);
 
