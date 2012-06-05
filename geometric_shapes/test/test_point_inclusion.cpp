@@ -169,7 +169,7 @@ TEST(BoxPointContainment, ComplexInside)
 
     random_numbers::RandomNumberGenerator r;
     Eigen::Vector3d p;
-    for (int i = 0 ; i < 2 ; ++i)
+    for (int i = 0 ; i < 100 ; ++i)
     {
         EXPECT_TRUE(box->samplePointInside(r, 100, p));
 	EXPECT_TRUE(box->containsPoint(p));

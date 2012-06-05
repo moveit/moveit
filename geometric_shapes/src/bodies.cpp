@@ -436,9 +436,9 @@ bool bodies::Cylinder::intersectsRay(const Eigen::Vector3d& origin, const Eigen:
 
 bool bodies::Box::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int /* max_attempts */, Eigen::Vector3d &result)
 {
-  result = center_ + Eigen::Vector3d(rng.uniformReal(-length2_, length2_),
-				     rng.uniformReal(-width2_, width2_),
-				     rng.uniformReal(-height2_, height2_));
+  result = pose_ * Eigen::Vector3d(rng.uniformReal(-length2_, length2_),
+                                   rng.uniformReal(-width2_, width2_),
+                                   rng.uniformReal(-height2_, height2_));
   return true;
 }
 
