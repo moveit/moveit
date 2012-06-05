@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
-#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_COMPUTE_DEFAULT_COLLISION_MATRIX_
+#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
+#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
 
 #include <planning_scene/planning_scene.h>
 #include <map>
@@ -53,7 +53,7 @@ namespace moveit_configuration_tools
  * \return Adj List of unique set of pairs of links in string-based form
  */
 std::map<std::string, std::set<std::string> > 
-computeDefaultCollisionMatrix(const planning_scene::PlanningSceneConstPtr &parent_scene, const bool include_never_colliding = true, 
+computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, const bool include_never_colliding = true, 
                               const unsigned int trials = 10000, const bool verbose = false);
 
 /**
