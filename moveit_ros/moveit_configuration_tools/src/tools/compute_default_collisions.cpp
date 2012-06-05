@@ -149,7 +149,7 @@ static unsigned int disableNeverInCollision(const unsigned int num_trials, plann
 // ******************************************************************************************
 std::map<std::string, std::set<std::string> >  // an adj list
 moveit_configuration_tools::computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, 
-                                                          const bool include_never_colliding, const unsigned int num_trials, const bool verbose)
+                                                     const bool include_never_colliding, const unsigned int num_trials, const bool verbose)
 {
   // Setup benchmark timer
   BTimer = BenchmarkTimer();
@@ -223,7 +223,7 @@ moveit_configuration_tools::computeDefaultCollisions(const planning_scene::Plann
   if(verbose)
   {
     //scene.getAllowedCollisions().print(std::cout);
-    ROS_INFO_STREAM("Allowed Collision Matrix Size: " << scene.getAllowedCollisions().getSize() );
+    ROS_INFO_STREAM("Allowed Collision Matrix Size: " << scene.getAllowedCollisionMatrix().getSize() );
 
     // Calculate number of disabled links:
     unsigned int num_disabled = 0;
@@ -366,7 +366,7 @@ unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGrap
           num_disabled += disabled_links[ (*adj_it)->getName() ].insert( link_graph_it->first->getName() ).second;
 
         // disable link checking in the collision matrix
-        scene.getAllowedCollisions().setEntry( link_graph_it->first->getName(), (*adj_it)->getName(), true);
+        scene.getAllowedCollisionMatrix().setEntry( link_graph_it->first->getName(), (*adj_it)->getName(), true);
       }
 
     }
@@ -397,7 +397,7 @@ unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, Stri
     else
       num_disabled += disabled_links[it->first.second].insert(it->first.first).second;
 
-    scene.getAllowedCollisions().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
+    scene.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
 
   }
 
@@ -472,7 +472,7 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Stri
         else
           num_disabled += disabled_links[it->first.second].insert(it->first.first).second;
 
-        scene.getAllowedCollisions().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
+        scene.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
 
         //num_disabled++;
         found ++;
@@ -549,7 +549,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
         boost::mutex::scoped_lock slock(*tc.lock_);
         tc.links_seen_colliding_->insert(it->first);
 
-        tc.scene_.getAllowedCollisions().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix        
+        tc.scene_.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix        
         //BTimer.end("Never: Serial"); // Benchmarking Timer - temporary
       }
 
