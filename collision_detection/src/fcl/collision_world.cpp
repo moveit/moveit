@@ -177,6 +177,18 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
   manager_->update();
 }
 
+void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses)
+{
+  CollisionWorld::addToObject(id, shapes, poses);
+  updateFCLObject(id);
+}
+
+void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const std::vector<shapes::StaticShapeConstPtr> &shapes)
+{
+  CollisionWorld::addToObject(id, shapes);
+  updateFCLObject(id);
+}
+
 void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape)
 {
   CollisionWorld::addToObject(id, shape);

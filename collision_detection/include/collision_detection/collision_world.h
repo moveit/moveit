@@ -39,7 +39,6 @@
 
 #include "collision_detection/collision_matrix.h"
 #include "collision_detection/collision_robot.h"
-#include <boost/thread/mutex.hpp>
 
 /** \brief Generic interface to collision detection */
 namespace collision_detection
@@ -55,7 +54,7 @@ namespace collision_detection
     /** @brief Constructor */
     CollisionWorld(void);
     
-    /** @brief A copy constructor*/
+    /** @brief A copy constructor. \e other should not be changed while the copy constructor is running */
     CollisionWorld(const CollisionWorld &other);
     
     virtual ~CollisionWorld(void)
@@ -262,19 +261,21 @@ namespace collision_detection
     /** \brief Check if a particular object exists in the collision world*/
     bool hasObject(const std::string &id) const;
     
-    /** \brief Add shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
-    void addToObject(const std::string &id,
-		     const std::vector<shapes::ShapeConstPtr> &shapes,
-		     const std::vector<Eigen::Affine3d> &poses);
+    /** \brief Add shapes to an object in the map. This function makes repeated calls to addToObjectInternal() to add the shapes one by one. 
+        \note This function does NOT call the addToObject() variant that takes a single shape and a single pose as input. */
+    virtual void addToObject(const std::string &id,
+                             const std::vector<shapes::ShapeConstPtr> &shapes,
+                             const std::vector<Eigen::Affine3d> &poses);
     
-    /** \brief Add static shapes to an object in the map. The user releases ownership of the passed shapes. Memory allocated for the shapes is freed by the collision environment.*/
-    void addToObject(const std::string &id,
-		     const std::vector<shapes::StaticShapeConstPtr> &shapes);
+    /** \brief Add static shapes to an object in the map. This function makes repeated calls to addToObjectInternal() to add the shapes one by one.
+        \note This function does NOT call the addToObject() variant that takes a single shape and a single pose as input. */
+    virtual void addToObject(const std::string &id,
+                             const std::vector<shapes::StaticShapeConstPtr> &shapes);
     
-    /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
+    /** \brief Add a shape to an object. If the object already exists, this call will add the shape to the object at the specified pose. Otherwise, the object is created and the specified shape is added. This calls addToObjectInternal(). */
     virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
     
-    /** \brief Add an object. The user releases ownership of the shape. If object already exists, this will add the shape to the object at the specified pose.*/
+    /** \brief Add a static shape to an object. If the object already exists, this call will add the shape to the object. Otherwise, the object is created and the specified shape is added. This calls addToObjectInternal(). */
     virtual void addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape);
     
     /** \brief Update the pose of a shape in an object. Shape equality is verified by comparing pointers. Returns true on success. */
@@ -308,12 +309,17 @@ namespace collision_detection
     
     /** \brief The objects maintained in the collision world */
     std::map<std::string, ObjectPtr> objects_;
-    
-    /** \brief A lock to prevent multiple access to the set of objects */
-    mutable boost::mutex             objects_lock_;
-    
+
+    /** \brief Make sure that the object named \e id is known only to this instance of the CollisionWorld. If the object is known outside of it, a clone is made so that it can be safely modified later on. */
     void ensureUnique(ObjectPtr &id);
+
+    /** \brief Add a shape to a specified object. All the sanity checks are done at the call site; this function should be efficient and not perform work that can be done only once (e.g., in the addToObject() call) */
+    virtual void addToObjectInternal(const ObjectPtr &obj, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
+
+    /** \brief Add a static shape to a specified object. All the sanity checks are done at the call site; this function should be efficient and not perform work that can be done only once (e.g., in the addToObject() call) */
+    virtual void addToObjectInternal(const ObjectPtr &obj, const shapes::StaticShapeConstPtr &shape);
     
+
   private:
     
     void changeRemoveObj(const std::string &id);
