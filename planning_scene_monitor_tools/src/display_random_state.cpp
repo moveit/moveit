@@ -38,32 +38,98 @@
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "display_random_state");
+  ros::init(argc, argv, "display_random_state");
 
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-    
-    ros::NodeHandle nh;
-    planning_scene_monitor::PlanningSceneMonitor psm("robot_description");
-    ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
-
-    ros::Duration(0.5).sleep();
-    
-    do 
+  bool valid = false;
+  bool invalid = false;
+  for (int i = 0 ; i < argc ; ++i)
+  {
+    if (strcmp(argv[i], "--valid") == 0)
     {
-      std::cout << "Type a number and hit Enter. That number of states will be randomly generated at an interval of one second and published as a planning scene." << std::endl;
-      std::size_t n;
-      std::cin >> n;
-      for (std::size_t i = 0 ; i < n ; ++i)
+      valid = true;
+      break;
+    }
+    if (strcmp(argv[i], "--invalid") == 0)
+    {
+      invalid = true;
+      break;
+    }
+  }
+  
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+  
+  ros::NodeHandle nh;
+  planning_scene_monitor::PlanningSceneMonitor psm("robot_description");
+  psm.startWorldGeometryMonitor();
+  psm.startSceneMonitor();
+  ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+  
+  ros::Duration(0.5).sleep();
+  
+  do 
+  {
+    std::cout << "Type a number and hit Enter. That number of ";
+    if (valid)
+      std::cout << "valid ";
+    else
+      if (invalid)
+        std::cout << "invalid ";
+    std::cout << "states will be randomly generated at an interval of one second and published as a planning scene." << std::endl;
+    std::size_t n;
+    std::cin >> n;
+
+    for (std::size_t i = 0 ; i < n ; ++i)
+    {
+      if (valid)
       {
-        psm.getPlanningScene()->getCurrentState().setToRandomValues();
-        moveit_msgs::PlanningScene psmsg;
-        psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
-        pub_scene.publish(psmsg);
-        sleep(1);        
+        bool found = false;
+        unsigned int attempts = 0;
+        do 
+        {
+          attempts++;
+          psm.getPlanningScene()->getCurrentState().setToRandomValues();
+          collision_detection::CollisionRequest req;
+          collision_detection::CollisionResult res;
+          psm.getPlanningScene()->checkCollision(req, res);
+          found = !res.collision;
+        } while (!found && attempts < 100);
+        if (!found)
+        {
+          std::cout << "Unable to find valid state" << std::cout;
+          continue;
+        }
       }
-    } while (nh.ok());    
-    
-    ros::shutdown();
-    return 0;
+      else
+        if (invalid)
+        {
+          bool found = false;
+          unsigned int attempts = 0;
+          do 
+          {
+            attempts++;
+            psm.getPlanningScene()->getCurrentState().setToRandomValues();
+            collision_detection::CollisionRequest req;
+            collision_detection::CollisionResult res;
+            psm.getPlanningScene()->checkCollision(req, res);
+            found = res.collision;
+          } while (!found && attempts < 100);
+          if (!found)
+          {
+            std::cout << "Unable to find invalid state" << std::cout;
+            continue;
+          }
+        }
+        else
+          psm.getPlanningScene()->getCurrentState().setToRandomValues();
+
+      moveit_msgs::PlanningScene psmsg;
+      psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
+      pub_scene.publish(psmsg);
+      sleep(1);        
+    }
+  } while (nh.ok());    
+  
+  ros::shutdown();
+  return 0;
 }

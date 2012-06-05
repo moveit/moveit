@@ -91,7 +91,6 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   bounds_error_ = std::numeric_limits<double>::epsilon();
   collision_object_subscriber_ = NULL;
   collision_object_filter_ = NULL;
-  attached_collision_object_subscriber_ = NULL;
   collision_map_subscriber_ = NULL;
   collision_map_filter_ = NULL;
   
@@ -284,18 +283,34 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
   if (!collision_objects_topic.empty())
   {
     collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, collision_objects_topic, 1024);
-    collision_object_filter_ = new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024);
-    collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
-    ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
+    if (tf_)
+    {
+      collision_object_filter_ = new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024);
+      collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
+      ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
+    }
+    else
+    {
+      collision_object_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
+      ROS_INFO("Listening to '%s'", collision_objects_topic.c_str());
+    }
   }
   
   if (!collision_map_topic.empty())
   {
     // listen to collision map using filters
     collision_map_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionMap>(root_nh_, collision_map_topic, 2);
-    collision_map_filter_ = new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2);
-    collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
-    ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_map_topic.c_str(), collision_map_filter_->getTargetFramesString().c_str());
+    if (tf_)
+    {
+      collision_map_filter_ = new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2);
+      collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
+      ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_map_topic.c_str(), collision_map_filter_->getTargetFramesString().c_str());
+    }
+    else
+    {
+      collision_map_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1)); 
+      ROS_INFO("Listening to '%s'", collision_map_topic.c_str());
+    }
   }
   
   if (!planning_scene_world_topic.empty())
@@ -343,8 +358,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
     if (!attached_objects_topic.empty())
     {
       // using regular message filter as there's no header
-      attached_collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::AttachedCollisionObject>(root_nh_, attached_objects_topic, 1024);
-      attached_collision_object_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::attachObjectCallback, this, _1));
+      attached_collision_object_subscriber_ = root_nh_.subscribe(attached_objects_topic, 1024, &PlanningSceneMonitor::attachObjectCallback, this);
       ROS_INFO("Listening to '%s' for attached collision objects", attached_objects_topic.c_str());
     }
   }
@@ -357,10 +371,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor(void)
   if (current_state_monitor_)
     current_state_monitor_->stopStateMonitor();
   if (attached_collision_object_subscriber_)
-  {
-    delete attached_collision_object_subscriber_;
-    attached_collision_object_subscriber_ = NULL;
-  }
+    attached_collision_object_subscriber_.shutdown();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr & /* joint_state */ )
