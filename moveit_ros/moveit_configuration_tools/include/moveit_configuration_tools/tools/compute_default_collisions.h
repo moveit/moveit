@@ -34,54 +34,33 @@
 
 /* Author: Dave Coleman */
 
-#include <planning_scene_monitor/planning_scene_monitor.h>
-#include "moveit_configuration_tools/compute_default_collision_matrix.h"
-#include "moveit_configuration_tools/benchmark_timer.h"
-//Temporary:
-#include <iostream>
-#include <fstream>
+#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
+#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
-BenchmarkTimer BTimer; // used for analyzing results
+#include <planning_scene/planning_scene.h>
+#include <map>
+#include <vector>
+#include <string>
 
-int main(int argc, char **argv)
+namespace moveit_configuration_tools
 {
-  ros::init(argc, argv, "compute_default_collision_matrix", ros::init_options::AnonymousName);
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();  
+/**
+ * \brief Generate an adjacency list of links that are always and never in collision, to speed up collision detection
+ * \param parent_scene A reference to the robot in the planning scene
+ * \param include_never_colliding Optional flag to disable the check for links that are never in collision
+ * \param trials Optional ability to set the number random collision checks that are made. Increase the probability of correctness
+ * \return Adj List of unique set of pairs of links in string-based form
+ */
+std::map<std::string, std::set<std::string> > 
+computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, const bool include_never_colliding = true, 
+                              const unsigned int trials = 10000, const bool verbose = false);
 
-  unsigned int num_trials = 10000;
-  const bool verbose = false; // Output benchmarking and statistics
-
-  if( argc > 1 )
-  {
-    num_trials = atoi(argv[1]);
-    ROS_INFO("Number of trials %d", num_trials);
-  }
-
-  // Setup benchmark timer
-  BTimer = BenchmarkTimer();
-  BTimer.start("Total"); 
-   
-  // Load robot description
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
-
-  // Find the default collision matrix - all links that are allowed to collide
-  const std::map<std::string, std::set<std::string> > &disabled_links = 
-    moveit_configuration_tools::computeDefaultCollisionMatrix(psm.getPlanningScene(), true, num_trials, verbose);
-
-  // Benchmarking Results
-  if(verbose)
-  {
-    BTimer.end("Total"); 
-    BTimer.printTimes(); // output results   
-    std::cout << "\n";
-  }
-
-  // Output results to an XML file
-  moveit_configuration_tools::outputDisabledCollisionsXML( disabled_links );
-
-  ros::shutdown();    
-  return 0;
+/**
+ * \brief Generate xml format of disabled links for use in an SRDF
+ * \param Adj List of unique set of pairs of links in string-based form 
+ */
+void outputDisabledCollisionsXML(const std::map<std::string, std::set<std::string> > &disabled_links);
 }
+
+#endif
