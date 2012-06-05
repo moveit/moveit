@@ -161,6 +161,9 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
 
       root_link_ = link_model_map_[root_link];
       buildMimic(urdf_model);      
+
+      if (link_models_with_collision_geometry_vector_.empty())
+        ROS_WARN("No geometry is associated to any robot links");
       
       // construct additional additional maps for easy access by name
       variable_count_ = 0;
@@ -720,7 +723,6 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
 
   LinkModel *result = new LinkModel();
   result->name_ = urdf_link->name;
-
   if (urdf_link->collision && urdf_link->collision->geometry)
   {
     result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->collision->origin);
@@ -737,13 +739,16 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
     result->shape_.reset();
   }
 
-  if(urdf_link->visual && urdf_link->visual->geometry)
+  if (urdf_link->visual && urdf_link->visual->geometry)
   {
-    const urdf::Mesh *mesh = dynamic_cast<const urdf::Mesh*>(urdf_link->visual->geometry.get());
-    if (mesh && !mesh->filename.empty())
-      result->visual_filename_ = mesh->filename;
+    if (urdf_link->visual->geometry->type == urdf::Geometry::MESH)
+    {
+      const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(urdf_link->visual->geometry.get());
+      if (!mesh->filename.empty())
+        result->visual_filename_ = mesh->filename;
+    }
   }
-  if (urdf_link->parent_joint.get()) /// \todo this is an issue when we reparent the model
+  if (urdf_link->parent_joint.get()) /// \todo this is an issue when we reparent the model (joint origin transform should be transfered over)
     result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
   else
     result->joint_origin_transform_.setIdentity();
@@ -753,26 +758,26 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
 shapes::ShapePtr planning_models::KinematicModel::constructShape(const urdf::Geometry *geom, std::string& filename)
 {
   ROS_ASSERT(geom);
-
+  
   shapes::Shape *result = NULL;
   switch (geom->type)
   {
   case urdf::Geometry::SPHERE:
-    result = new shapes::Sphere(dynamic_cast<const urdf::Sphere*>(geom)->radius);
+    result = new shapes::Sphere(static_cast<const urdf::Sphere*>(geom)->radius);
     break;
   case urdf::Geometry::BOX:
     {
-      urdf::Vector3 dim = dynamic_cast<const urdf::Box*>(geom)->dim;
+      urdf::Vector3 dim = static_cast<const urdf::Box*>(geom)->dim;
       result = new shapes::Box(dim.x, dim.y, dim.z);
     }
     break;
   case urdf::Geometry::CYLINDER:
-    result = new shapes::Cylinder(dynamic_cast<const urdf::Cylinder*>(geom)->radius,
-                                  dynamic_cast<const urdf::Cylinder*>(geom)->length);
+    result = new shapes::Cylinder(static_cast<const urdf::Cylinder*>(geom)->radius,
+                                  static_cast<const urdf::Cylinder*>(geom)->length);
     break;
   case urdf::Geometry::MESH:
     {
-      const urdf::Mesh *mesh = dynamic_cast<const urdf::Mesh*>(geom);
+      const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(geom);
       if (!mesh->filename.empty())
       {
         Eigen::Vector3d scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
@@ -1095,20 +1100,19 @@ void planning_models::KinematicModel::getAllAssociatedFixedLinks(const planning_
     associated_fixed_links.insert(lm->getName());
   }
   const JointModel* parent_jm = lm->getParentJointModel();
-  if(parent_jm) {
-    const FixedJointModel* fixed_parent_jm = dynamic_cast<const FixedJointModel*>(parent_jm);
-    if(fixed_parent_jm) {
-      if(fixed_parent_jm->getParentLinkModel()) {
-        getAllAssociatedFixedLinks(fixed_parent_jm->getParentLinkModel(),
-                                   associated_fixed_links);
-      }
+  if(parent_jm && parent_jm->getType() == JointModel::FIXED)
+  {
+    const FixedJointModel* fixed_parent_jm = static_cast<const FixedJointModel*>(parent_jm);
+    if(fixed_parent_jm->getParentLinkModel()) {
+      getAllAssociatedFixedLinks(fixed_parent_jm->getParentLinkModel(),
+                                 associated_fixed_links);
     }
   }
   for(unsigned int i = 0; i < lm->getChildJointModels().size(); i++) {
     const JointModel* child_jm = lm->getChildJointModels()[i];
-    if(child_jm) {
-      const FixedJointModel* fixed_child_jm = dynamic_cast<const FixedJointModel*>(child_jm);
-      if(fixed_child_jm && fixed_child_jm->getChildLinkModel()) {
+    if(child_jm && child_jm->getType() == JointModel::FIXED) {
+      const FixedJointModel* fixed_child_jm = static_cast<const FixedJointModel*>(child_jm);
+      if(fixed_child_jm->getChildLinkModel()) {
         getAllAssociatedFixedLinks(fixed_child_jm->getChildLinkModel(), associated_fixed_links);
       }
     }
@@ -1177,8 +1181,8 @@ planning_models::KinematicModel::determineFixedAncestorTree(const std::string& l
   while(true) {
     const JointModel* parent_jm = lm->getParentJointModel();
     if(!parent_jm) break;
-    const FixedJointModel* fixed_parent_jm = dynamic_cast<const FixedJointModel*>(parent_jm);
-    if(!fixed_parent_jm) break;
+    if(parent_jm->getType() != JointModel::FIXED) break;
+    const FixedJointModel* fixed_parent_jm = static_cast<const FixedJointModel*>(parent_jm);
     if(!fixed_parent_jm->getParentLinkModel()) break;
     Eigen::Affine3d aff = ret.back().second*lm->getJointOriginTransform().inverse();
     lm = fixed_parent_jm->getParentLinkModel();
