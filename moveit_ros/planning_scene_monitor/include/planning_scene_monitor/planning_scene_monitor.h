@@ -264,13 +264,14 @@ protected:
   ros::Subscriber                       planning_scene_subscriber_;
   ros::Subscriber                       planning_scene_diff_subscriber_;
   ros::Subscriber                       planning_scene_world_subscriber_;
-  message_filters::Subscriber<moveit_msgs::CollisionObject> *collision_object_subscriber_;
-  tf::MessageFilter<moveit_msgs::CollisionObject> *collision_object_filter_;
-  message_filters::Subscriber<moveit_msgs::CollisionMap> *collision_map_subscriber_;
-  tf::MessageFilter<moveit_msgs::CollisionMap> *collision_map_filter_;
-  message_filters::Subscriber<moveit_msgs::AttachedCollisionObject> *attached_collision_object_subscriber_;
-  
 
+  message_filters::Subscriber<moveit_msgs::CollisionObject> *collision_object_subscriber_;
+  tf::MessageFilter<moveit_msgs::CollisionObject>           *collision_object_filter_;
+
+  message_filters::Subscriber<moveit_msgs::CollisionMap> *collision_map_subscriber_;
+  tf::MessageFilter<moveit_msgs::CollisionMap>           *collision_map_filter_;
+
+  ros::Subscriber                       attached_collision_object_subscriber_;
   
   CurrentStateMonitorPtr                current_state_monitor_;
   ros::Time                             last_update_time_; /// Last time the state was updated
