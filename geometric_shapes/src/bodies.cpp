@@ -436,9 +436,9 @@ bool bodies::Cylinder::intersectsRay(const Eigen::Vector3d& origin, const Eigen:
 
 bool bodies::Box::samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int /* max_attempts */, Eigen::Vector3d &result)
 {
-  result = pose_ * Eigen::Vector3d(rng.uniformReal(-length2_, length2_),
-                                   rng.uniformReal(-width2_, width2_),
-                                   rng.uniformReal(-height2_, height2_));
+  result = center_ + Eigen::Vector3d(rng.uniformReal(-length2_, length2_),
+				     rng.uniformReal(-width2_, width2_),
+				     rng.uniformReal(-height2_, height2_));
   return true;
 }
 
@@ -751,7 +751,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
 
   FILE* null = fopen ("/dev/null","w");
 
-  char flags[] = "qhull Tc FA";
+  char flags[] = "qhull Tv";
   int exitcode = qh_new_qhull(3, mesh->vertex_count, points, true, flags, null, null);
   
   if(exitcode != 0) {
@@ -765,6 +765,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   int num_facets = qh num_facets;
   
   int num_vertices = qh num_vertices;
+  //ROS_INFO_STREAM("Facets " << num_facets << " vertices " << num_vertices);
   mesh_data_->vertices_.reserve(num_vertices);
   Eigen::Vector3d sum(0, 0, 0);
 
@@ -774,7 +775,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   {
     Eigen::Vector3d vert(vertex->point[0],
                          vertex->point[1],
-                         vertex->point[2]);
+                         vertex->point[2]); 
     sum += vert;
     mesh_data_->vertices_.push_back(vert);
   }
@@ -794,50 +795,8 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   facetT * facet;
   FORALLfacets
   {
-    std::vector<Eigen::Vector3d> facet_vec;
-    std::vector<unsigned int> facet_vertex_indices;
-    
-    // Needed by FOREACHvertex_i_
-    int vertex_n, vertex_i;
-    FOREACHvertex_i_((*facet).vertices)
-    {
-      facet_vertex_indices.push_back(vertex_i);
-      facet_vec.push_back(mesh_data_->vertices_[vertex_i]);
-    }
-    Eigen::Vector3d edge1 = facet_vec[1]-facet_vec[0];
-    Eigen::Vector3d edge2 = facet_vec[2]-facet_vec[0];
-    
-    edge1.normalize();
-    edge2.normalize();
-
-    Eigen::Vector3d planeNormal = edge1.cross(edge2);
-    
-    if (planeNormal.squaredNorm() > 1e-6)
-    {
-      planeNormal.normalize();
-      Eigen::Vector4f planeEquation(planeNormal.x(), planeNormal.y(), planeNormal.z(), -planeNormal.dot(facet_vec[0]));
-      
-      unsigned int behindPlane = countVerticesBehindPlane(planeEquation);
-      if (behindPlane > 0)
-      {
-        Eigen::Vector4f planeEquation2 = -planeEquation;
-        unsigned int behindPlane2 = countVerticesBehindPlane(planeEquation2);
-        if (behindPlane2 < behindPlane)
-        {
-          planeEquation = planeEquation2;
-          behindPlane = behindPlane2;
-        }
-      }
-      
-      if (behindPlane > 0)
-        ROS_DEBUG("Approximate plane: %d of %d points are behind the plane", behindPlane, (int)mesh_data_->vertices_.size());
-      
-      mesh_data_->planes_.push_back(planeEquation);
-      
-      mesh_data_->triangles_.push_back(facet_vertex_indices[0]);
-      mesh_data_->triangles_.push_back(facet_vertex_indices[1]);
-      mesh_data_->triangles_.push_back(facet_vertex_indices[2]);
-    }
+    Eigen::Vector4f planeEquation(facet->normal[0], facet->normal[1], facet->normal[2], facet->offset);
+    mesh_data_->planes_.push_back(planeEquation);
   }
   qh_freeqhull(!qh_ALL);
   int curlong, totlong;
