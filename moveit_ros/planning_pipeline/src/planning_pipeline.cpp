@@ -68,6 +68,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const planning_models::Kin
 
 void planning_pipeline::PlanningPipeline::configure(const planning_models::KinematicModelConstPtr& model)
 {
+  check_solution_paths_ = true;
   publish_received_requests_ = false;
   display_computed_motion_plans_ = false;
   
@@ -167,6 +168,11 @@ void planning_pipeline::PlanningPipeline::publishReceivedRequests(bool flag)
   publish_received_requests_ = flag;
 }
 
+void planning_pipeline::PlanningPipeline::checkSolutionPaths(bool flag)
+{                                               
+  check_solution_paths_ = flag;
+}
+
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                        const moveit_msgs::GetMotionPlan::Request& req,
                                                        moveit_msgs::GetMotionPlan::Response& res) const
@@ -195,11 +201,29 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   }
   
   if (solved)
-  {// is this the right place to do this computation?
+  {
+    // is this the right place to do this computation?
     trajectory_msgs::JointTrajectory trajectory_out;
     const std::vector<moveit_msgs::JointLimits> &jlim = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name)->getJointLimits();
     smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim);
     res.trajectory.joint_trajectory = trajectory_out; /// \todo apply this for the RobotTrajectory; is this the right place for this operation?
+    
+    if (check_solution_paths_)
+    {
+      std::vector<std::size_t> index;
+      if (!planning_scene->isPathValid(res.trajectory_start, res.trajectory, req.motion_plan_request.path_constraints, false, &index))
+      {
+        if (index.size() == 1 && index[0] == 0) // ignore cases when the robot starts at invalid location
+          ROS_DEBUG("It appears the robot is starting at an invalid state, but that is ok.");
+        else
+        {
+          std::stringstream ss;
+          for (std::size_t i = 0 ; i < index.size() ; ++i)
+            ss << index[i] << " ";
+          ROS_ERROR("Computed path is not valid. Invalid states at index locations: [ %s]", ss.str().c_str());
+        }
+      }
+    }
   }
 
   // display solution path if needed
