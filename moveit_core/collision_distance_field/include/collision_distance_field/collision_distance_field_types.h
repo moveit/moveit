@@ -47,6 +47,7 @@
 #include <geometric_shapes/bodies.h>
 
 #include <distance_field/distance_field.h>
+#include <visualization_msgs/MarkerArray.h>
 
 namespace collision_distance_field
 {
@@ -160,9 +161,14 @@ public:
     return relative_cylinder_pose_;
   }
 
+  const bodies::BoundingSphere& getRelativeBoundingSphere() const {
+    return relative_bounding_sphere_;
+  }
+
 private:
   bodies::Body* body_;
 
+  bodies::BoundingSphere relative_bounding_sphere_;
   std::vector<CollisionSphere> collision_spheres_;
   std::vector<Eigen::Vector3d> relative_collision_points_;
 };
@@ -170,12 +176,12 @@ private:
 typedef boost::shared_ptr<BodyDecomposition> BodyDecompositionPtr;
 typedef boost::shared_ptr<const BodyDecomposition> BodyDecompositionConstPtr;
 
-class PosedBodyDecomposition {
+class PosedBodySphereDecomposition {
 
 public:
   
-  PosedBodyDecomposition(const BodyDecompositionConstPtr& body_decomposition);
-
+  PosedBodySphereDecomposition(const BodyDecompositionConstPtr& body_decomposition);
+  
   const std::vector<CollisionSphere>& getCollisionSpheres() const 
   {
     return body_decomposition_->getCollisionSpheres();
@@ -186,114 +192,163 @@ public:
     return sphere_centers_;
   }
     
-  const std::vector<Eigen::Vector3d>& getCollisionPoints() const
-  {
-    return posed_collision_points_;
+  const Eigen::Vector3d& getBoundingSphereCenter() const {
+    return posed_bounding_sphere_center_;
   }
+
   //assumed to be in reference frame, updates the pose of the body,
   //the collision spheres, and the posed collision points
   void updatePose(const Eigen::Affine3d& linkTransform);
 
   void updateSpheresPose(const Eigen::Affine3d& linkTransform);
-  void updatePointsPose(const Eigen::Affine3d& linkTransform);
 
 protected:
-  
+
   BodyDecompositionConstPtr body_decomposition_;
+  Eigen::Vector3d posed_bounding_sphere_center_;
   std::vector<Eigen::Vector3d> sphere_centers_;
-  std::vector<Eigen::Vector3d> posed_collision_points_;
 };
 
-typedef boost::shared_ptr<PosedBodyDecomposition> PosedBodyDecompositionPtr;
-typedef boost::shared_ptr<const PosedBodyDecomposition> PosedBodyDecompositionConstPtr;
+class PosedBodyPointDecomposition {
 
-class PosedBodyDecompositionVector
-{
 public:
-  PosedBodyDecompositionVector()
-  {}
-
-  ~PosedBodyDecompositionVector(){
-    for(unsigned int i = 0; i < decomp_vector_.size(); i++) {
-      delete decomp_vector_[i];
-    }
-    decomp_vector_.clear();
-  }
+  
+  PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition);
 
   const std::vector<Eigen::Vector3d>& getCollisionPoints() const
   {
-    return collision_points_;
+    return posed_collision_points_;
   }
 
-  const std::vector<CollisionSphere>& getCollisionSpheres() const
+  //the collision spheres, and the posed collision points
+  void updatePose(const Eigen::Affine3d& linkTransform);
+
+protected:
+
+  BodyDecompositionConstPtr body_decomposition_;
+  std::vector<Eigen::Vector3d> posed_collision_points_;
+};
+
+typedef boost::shared_ptr<PosedBodyPointDecomposition> PosedBodyPointDecompositionPtr;
+typedef boost::shared_ptr<const PosedBodyPointDecomposition> PosedBodyPointDecompositionConstPtr;
+typedef boost::shared_ptr<PosedBodySphereDecomposition> PosedBodySphereDecompositionPtr;
+typedef boost::shared_ptr<const PosedBodySphereDecomposition> PosedBodySphereDecompositionConstPtr;
+
+class PosedBodySphereDecompositionVector
+{
+public:
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  PosedBodySphereDecompositionVector()
+  {}
+
+  std::vector<CollisionSphere> getCollisionSpheres() const
   {
-    return collision_spheres_;
+    std::vector<CollisionSphere> ret_spheres;
+    for(unsigned int i = 0; i < decomp_vector_.size(); i++) {
+      ret_spheres.insert(ret_spheres.end(),
+                        decomp_vector_[i]->getCollisionSpheres().begin(),
+                        decomp_vector_[i]->getCollisionSpheres().end());
+    }
+    return ret_spheres;
   }
 
-  // the decomposition vector keeps its own copies of the points 
-  // for efficiency reasons
-  void addToVector(PosedBodyDecomposition* bd)
+  std::vector<Eigen::Vector3d> getSphereCenters() const {
+    std::vector<Eigen::Vector3d> ret_centers;
+    for(unsigned int i = 0; i < decomp_vector_.size(); i++) {
+      ret_centers.insert(ret_centers.end(),
+                         decomp_vector_[i]->getSphereCenters().begin(),
+                         decomp_vector_[i]->getSphereCenters().end());
+    }
+    return ret_centers;
+  }
+
+  void addToVector(PosedBodySphereDecompositionPtr& bd)
   {
-    sphere_index_map_[decomp_vector_.size()] = collision_spheres_.size();
-    point_index_map_[decomp_vector_.size()] = collision_points_.size();
     decomp_vector_.push_back(bd);
-    collision_spheres_.insert(collision_spheres_.end(), bd->getCollisionSpheres().begin(), bd->getCollisionSpheres().end());
-    collision_points_.insert(collision_points_.end(), bd->getCollisionPoints().begin(), bd->getCollisionPoints().end());
   }
 
   unsigned int getSize() const {
     return decomp_vector_.size();
   }
     
-  const PosedBodyDecomposition* getPosedBodyDecomposition(unsigned int i) const {
+  PosedBodySphereDecompositionConstPtr getPosedBodySphereDecomposition(unsigned int i) const {
     if(i >= decomp_vector_.size()) {
       ROS_INFO_STREAM("No body decomposition");
-      return NULL;
+      return empty_ptr_;
     }
     return decomp_vector_[i];
   }
 
-  void updateBodyPose(unsigned int ind, const Eigen::Affine3d& pose) {
+  void updatePose(unsigned int ind, const Eigen::Affine3d& pose) {
     if(ind < decomp_vector_.size()) {
       decomp_vector_[ind]->updatePose(pose);
     } else {
       ROS_WARN("Can't update pose");
       return;
     }
-    const std::vector<Eigen::Vector3d>& centers = decomp_vector_[ind]->getSphereCenters();
-    for(unsigned j = 0; j < centers.size(); j++) {
-      sphere_centers_[sphere_index_map_[ind]+j] = centers[j];
-    }
-    const std::vector<Eigen::Vector3d>& points = decomp_vector_[ind]->getCollisionPoints();
-    for(unsigned j = 0; j < points.size(); j++) {
-      collision_points_[point_index_map_[ind]+j] = points[j];
-    }
   }
 
-  void updateSpheresPose(unsigned int ind, const Eigen::Affine3d& pose) {
+private:
+  PosedBodySphereDecompositionConstPtr empty_ptr_;
+  std::vector<PosedBodySphereDecompositionPtr> decomp_vector_;
+};
+
+class PosedBodyPointDecompositionVector
+{
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  PosedBodyPointDecompositionVector()
+  {}
+  
+  std::vector<Eigen::Vector3d> getCollisionPoints() const
+  {
+    std::vector<Eigen::Vector3d> ret_points;
+    for(unsigned int i = 0; i < decomp_vector_.size(); i++) {
+      ret_points.insert(ret_points.end(),
+                        decomp_vector_[i]->getCollisionPoints().begin(),
+                        decomp_vector_[i]->getCollisionPoints().end());
+    }
+    return ret_points;
+  }
+
+  void addToVector(PosedBodyPointDecompositionPtr& bd)
+  {
+    decomp_vector_.push_back(bd);
+  }
+
+  unsigned int getSize() const {
+    return decomp_vector_.size();
+  }
+    
+  PosedBodyPointDecompositionConstPtr getPosedBodyDecomposition(unsigned int i) const {
+    if(i >= decomp_vector_.size()) {
+      ROS_INFO_STREAM("No body decomposition");
+      return empty_ptr_;
+    }
+    return decomp_vector_[i];
+  }
+
+  void updatePose(unsigned int ind, const Eigen::Affine3d& pose) {
     if(ind < decomp_vector_.size()) {
-      decomp_vector_[ind]->updateSpheresPose(pose);
+      decomp_vector_[ind]->updatePose(pose);
     } else {
       ROS_WARN("Can't update pose");
       return;
     }
-    const std::vector<Eigen::Vector3d>& centers = decomp_vector_[ind]->getSphereCenters();
-    for(unsigned j = 0; j < centers.size(); j++) {
-      sphere_centers_[sphere_index_map_[ind]+j] = centers[j];
-    }
   }
 
 private:
-  std::map<unsigned int, unsigned int> sphere_index_map_;
-  std::map<unsigned int, unsigned int> point_index_map_;
-  std::vector<PosedBodyDecomposition*> decomp_vector_;
-  std::vector<CollisionSphere> collision_spheres_;
-  std::vector<Eigen::Vector3d> sphere_centers_;
-  std::vector<Eigen::Vector3d> collision_points_;
+  PosedBodyPointDecompositionPtr empty_ptr_;
+  std::vector<PosedBodyPointDecompositionPtr> decomp_vector_;
 };
 
-typedef boost::shared_ptr<PosedBodyDecompositionVector> PosedBodyDecompositionVectorPtr;
-typedef boost::shared_ptr<const PosedBodyDecompositionVector> PosedBodyDecompositionVectorConstPtr;
+typedef boost::shared_ptr<PosedBodySphereDecompositionVector> PosedBodySphereDecompositionVectorPtr;
+typedef boost::shared_ptr<const PosedBodySphereDecompositionVector> PosedBodySphereDecompositionVectorConstPtr;
+typedef boost::shared_ptr<PosedBodyPointDecompositionVector> PosedBodyPointDecompositionVectorPtr;
+typedef boost::shared_ptr<const PosedBodyPointDecompositionVector> PosedBodyPointDecompositionVectorConstPtr;
 
 struct ProximityInfo 
 {
@@ -305,6 +360,13 @@ struct ProximityInfo
   Eigen::Vector3d closest_point;
   Eigen::Vector3d closest_gradient;
 };
+
+void getCollisionSphereMarkers(const std_msgs::ColorRGBA& color,
+                               const std::string& frame_id,
+                               const std::string& ns,
+                               const ros::Duration& dur,
+                               const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
+                               visualization_msgs::MarkerArray& arr);
 
 }
 

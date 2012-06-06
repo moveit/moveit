@@ -78,37 +78,38 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
   //TODO - clean cache
 }
 
-PosedBodyDecompositionPtr getLinkBodyDecomposition(const planning_models::KinematicState::LinkState* ls,
-                                                   double resolution) {
-  PosedBodyDecompositionPtr ret;
-  if(!ls->getLinkModel()->getShape()) {
-    return ret;
-  }
-  ret.reset(new PosedBodyDecomposition(getBodyDecompositionCacheEntry(ls->getLinkModel()->getShape(), resolution)));
-  ret->updatePose(ls->getGlobalCollisionBodyTransform());
-  return ret;
-}
-
-PosedBodyDecompositionVectorPtr getCollisionObjectDecomposition(const collision_detection::CollisionWorld::Object& obj,
-                                                                double resolution)
+PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::CollisionWorld::Object& obj,
+                                                                     double resolution)
 {
-  PosedBodyDecompositionVectorPtr ret(new PosedBodyDecompositionVector());
+  PosedBodyPointDecompositionVectorPtr ret(new PosedBodyPointDecompositionVector());
   for(unsigned int i = 0; i < obj.shapes_.size(); i++) {
-    PosedBodyDecomposition* pbd = new PosedBodyDecomposition(getBodyDecompositionCacheEntry(obj.shapes_[i], resolution));
+    PosedBodyPointDecompositionPtr pbd(new PosedBodyPointDecomposition(getBodyDecompositionCacheEntry(obj.shapes_[i], resolution)));
     ret->addToVector(pbd);
-    ret->updateBodyPose(ret->getSize()-1, obj.shape_poses_[i]);
+    ret->updatePose(ret->getSize()-1, obj.shape_poses_[i]);
   }
   return ret;
 }
 
-PosedBodyDecompositionVectorPtr getAttachedBodyDecomposition(const planning_models::KinematicState::AttachedBody* att,
-                                                             double resolution)
+PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const planning_models::KinematicState::AttachedBody* att,
+                                                                         double resolution)
 {
-  PosedBodyDecompositionVectorPtr ret(new PosedBodyDecompositionVector());
+  PosedBodySphereDecompositionVectorPtr ret(new PosedBodySphereDecompositionVector());
   for(unsigned int i = 0; i < att->getShapes().size(); i++) {
-    PosedBodyDecomposition* pbd = new PosedBodyDecomposition(getBodyDecompositionCacheEntry(att->getShapes()[i], resolution));
+    PosedBodySphereDecompositionPtr pbd(new PosedBodySphereDecomposition(getBodyDecompositionCacheEntry(att->getShapes()[i], resolution)));
     ret->addToVector(pbd);
-    ret->updateBodyPose(ret->getSize()-1, att->getGlobalCollisionBodyTransforms()[i]);
+    ret->updatePose(ret->getSize()-1, att->getGlobalCollisionBodyTransforms()[i]);
+  }
+  return ret;
+}
+
+PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const planning_models::KinematicState::AttachedBody* att,
+                                                                       double resolution)
+{
+  PosedBodyPointDecompositionVectorPtr ret(new PosedBodyPointDecompositionVector());
+  for(unsigned int i = 0; i < att->getShapes().size(); i++) {
+    PosedBodyPointDecompositionPtr pbd(new PosedBodyPointDecomposition(getBodyDecompositionCacheEntry(att->getShapes()[i], resolution)));
+    ret->addToVector(pbd);
+    ret->updatePose(ret->getSize()-1, att->getGlobalCollisionBodyTransforms()[i]);
   }
   return ret;
 }
