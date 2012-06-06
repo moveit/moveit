@@ -130,7 +130,17 @@ public:
   
   /** \brief Sample a random state in accordance with the type of joints employed */
   void setToRandomValues(void);
+
+  /** \brief Checks if the current joint state values are all within the bounds set in the model */
+  bool satisfiesBounds(void) const;
   
+  /** \brief Force the joint to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
+  void enforceBounds(void);
+  
+  double distance(const JointStateGroup *other) const;
+  
+  void interpolate(const JointStateGroup *to, const double t, JointStateGroup *dest) const;
+
   /** \brief Get the state corresponding to root joints in this group*/
   const std::vector<JointState*>& getJointRoots(void) const
   {

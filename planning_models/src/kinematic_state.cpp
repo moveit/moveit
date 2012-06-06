@@ -467,8 +467,15 @@ double planning_models::KinematicState::distance(const KinematicState &state) co
   double d = 0.0;
   const std::vector<JointState*> &other = state.getJointStateVector();
   for (std::size_t i = 0; i < joint_state_vector_.size(); ++i)
-    d += joint_state_vector_[i]->distance(other[i]);
+    d += joint_state_vector_[i]->distance(other[i]) * joint_state_vector_[i]->getJointModel()->getDistanceFactor();
   return d;
+}
+
+void planning_models::KinematicState::interpolate(const KinematicState &to, const double t, KinematicState &dest) const
+{
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
+    joint_state_vector_[i]->interpolate(to.joint_state_vector_[i], t, dest.joint_state_vector_[i]);
+  dest.updateLinkTransforms();
 }
 
 const Eigen::Affine3d* planning_models::KinematicState::getFrameTransform(const std::string &id) const

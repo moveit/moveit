@@ -176,6 +176,36 @@ void planning_models::KinematicState::JointStateGroup::getGroupStateValues(std::
   }
 }
 
+bool planning_models::KinematicState::JointStateGroup::satisfiesBounds(void) const
+{
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
+    if (!joint_state_vector_[i]->satisfiesBounds())
+      return false;
+  return true;
+}
+
+void planning_models::KinematicState::JointStateGroup::enforceBounds(void)
+{
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
+    joint_state_vector_[i]->enforceBounds();
+  updateLinkTransforms();
+}
+
+double planning_models::KinematicState::JointStateGroup::distance(const JointStateGroup *other) const
+{
+  double d = 0.0;
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
+    d += joint_state_vector_[i]->distance(other->joint_state_vector_[i]) * joint_state_vector_[i]->getJointModel()->getDistanceFactor();
+  return d;
+}
+
+void planning_models::KinematicState::JointStateGroup::interpolate(const JointStateGroup *to, const double t, JointStateGroup *dest) const
+{
+  for (std::size_t i = 0 ; i < joint_state_vector_.size() ; ++i)
+    joint_state_vector_[i]->interpolate(to->joint_state_vector_[i], t, dest->joint_state_vector_[i]);
+  dest->updateLinkTransforms();
+}
+
 void planning_models::KinematicState::JointStateGroup::getGroupStateValues(std::map<std::string,double>& joint_state_values) const
 {
   joint_state_values.clear();

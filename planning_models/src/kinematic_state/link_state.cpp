@@ -59,7 +59,7 @@ void planning_models::KinematicState::LinkState::computeTransform(void)
 {
   global_link_transform_ = (parent_link_state_ ? parent_link_state_->global_link_transform_ : kinematic_state_->getRootTransform()) * link_model_->getJointOriginTransform();
   global_link_transform_ = global_link_transform_ * parent_joint_state_->getVariableTransform();
-  global_collision_body_transform_ = global_link_transform_*link_model_->getCollisionOriginTransform();
+  global_collision_body_transform_ = global_link_transform_ * link_model_->getCollisionOriginTransform();
   
   updateAttachedBodies();
 }
