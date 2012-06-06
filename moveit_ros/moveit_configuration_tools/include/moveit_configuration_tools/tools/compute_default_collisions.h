@@ -38,9 +38,9 @@
 #define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
 
 #include <planning_scene/planning_scene.h>
-#include <map>
-#include <vector>
-#include <string>
+//#include <map>
+//#include <vector>
+//#include <string>
 
 namespace moveit_configuration_tools
 {
@@ -53,8 +53,8 @@ namespace moveit_configuration_tools
  * \return Adj List of unique set of pairs of links in string-based form
  */
 std::map<std::string, std::set<std::string> > 
-computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, const bool include_never_colliding = true, 
-                              const unsigned int trials = 10000, const bool verbose = false);
+computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress, 
+                         const bool include_never_colliding = true, const unsigned int trials = 10000, const bool verbose = false);
 
 /**
  * \brief Generate xml format of disabled links for use in an SRDF

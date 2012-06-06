@@ -61,21 +61,23 @@ typedef std::set<std::pair<std::string, std::string> > StringPairSet;
 struct ThreadComputation
 {
   ThreadComputation(planning_scene::PlanningScene &scene, const collision_detection::CollisionRequest &req,
-                    int thread_id, int num_trials, StringPairSet *links_seen_colliding, boost::mutex *lock) 
+                    int thread_id, int num_trials, StringPairSet *links_seen_colliding, boost::mutex *lock, unsigned int *progress) 
     : scene_(scene), 
       req_(req), 
       thread_id_(thread_id), 
       num_trials_(num_trials),
       links_seen_colliding_(links_seen_colliding),
-      lock_(lock)
+      lock_(lock),
+      progress_(progress)
   {
   }
   planning_scene::PlanningScene &scene_;
   const collision_detection::CollisionRequest &req_;
   int thread_id_;
-  unsigned int num_trials_;
+  unsigned int   num_trials_;
   StringPairSet *links_seen_colliding_;
   boost::mutex  *lock_;
+  unsigned int  *progress_; // only to be updated by thread 0
 };
 
 // ******************************************************************************************
@@ -128,12 +130,6 @@ static unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scen
                                              collision_detection::CollisionRequest &req, StringPairSet &links_seen_colliding);
 
 /**
- * \brief Thread for getting the pairs of links that are never in collision
- * \param tc Struct that encapsulates all the data each thread needs
- */
-void disableNeverInCollisionThread(ThreadComputation tc);
-
-/**
  * \brief Get the pairs of links that are never in collision
  * \param scene A reference to the robot in the planning scene
  * \param disabled_links An adjacency list of all links to be disabled, with pairs ordered alphabetically
@@ -141,14 +137,22 @@ void disableNeverInCollisionThread(ThreadComputation tc);
  * \param links_seen_colliding Set of links that have at some point been seen in collision
  * \return number of never in collision links found and disabled
  */
-static unsigned int disableNeverInCollision(const unsigned int num_trials, planning_scene::PlanningScene &scene, StringAdjList &disabled_links, 
-                                            const collision_detection::CollisionRequest &req, StringPairSet &links_seen_colliding);
+static unsigned int disableNeverInCollision(const unsigned int num_trials, planning_scene::PlanningScene &scene, 
+                                            StringAdjList &disabled_links, const collision_detection::CollisionRequest &req, 
+                                            StringPairSet &links_seen_colliding, unsigned int *progress);
+
+/**
+ * \brief Thread for getting the pairs of links that are never in collision
+ * \param tc Struct that encapsulates all the data each thread needs
+ */
+void disableNeverInCollisionThread(ThreadComputation tc);
+
 
 // ******************************************************************************************
 // Generates an adjacency list of links that are always and never in collision, to speed up collision detection
 // ******************************************************************************************
 std::map<std::string, std::set<std::string> >  // an adj list
-moveit_configuration_tools::computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, 
+moveit_configuration_tools::computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int * progress, 
                                                      const bool include_never_colliding, const unsigned int num_trials, const bool verbose)
 {
   // Setup benchmark timer
@@ -177,12 +181,14 @@ moveit_configuration_tools::computeDefaultCollisions(const planning_scene::Plann
   BTimer.start("Compute Connection Graph"); // Benchmarking Timer - temporary
   computeConnectionGraph(scene.getKinematicModel()->getRootLink(), link_graph);
   BTimer.end("Compute Connection Graph"); // Benchmarking Timer - temporary
+  *progress = 2; // Progress bar feedback
 
   // 2. DISABLE ALL ADJACENT LINK COLLISIONS ---------------------------------------------------------
   // if 2 links are adjacent, or adjacent with a zero-shape between them, disable collision checking for them
   BTimer.start("Disable Adjacent Links"); // Benchmarking Timer - temporary
   unsigned int num_adjacent = disableAdjacentLinks( scene, link_graph, disabled_links);
   BTimer.end("Disable Adjacent Links"); // Benchmarking Timer - temporary
+  *progress = 4; // Progress bar feedback
 
   // 3. INITIAL CONTACTS TO CONSIDER GUESS -----------------------------------------------------------
   // Create collision detection request object
@@ -192,13 +198,12 @@ moveit_configuration_tools::computeDefaultCollisions(const planning_scene::Plann
   req.max_contacts_per_pair = 1;
   req.verbose = false;
 
-
   // 4. DISABLE "DEFAULT" COLLISIONS --------------------------------------------------------
   // Disable all collision checks that occur when the robot is started in its default state
   BTimer.start("Default Collisions"); // Benchmarking Timer - temporary
   unsigned int num_default = disableDefaultCollisions(scene, disabled_links, req);
   BTimer.end("Default Collisions"); // Benchmarking Timer - temporary
-
+  *progress = 6; // Progress bar feedback
 
   // 5. ALWAYS IN COLLISION --------------------------------------------------------------------
   // Compute the links that are always in collision
@@ -206,7 +211,7 @@ moveit_configuration_tools::computeDefaultCollisions(const planning_scene::Plann
   unsigned int num_always = disableAlwaysInCollision(scene, disabled_links, req, links_seen_colliding);
   BTimer.end("Always in Collision"); // Benchmarking Timer - temporary  
   //ROS_INFO("Links seen colliding total = %d", int(links_seen_colliding.size()));
-
+  *progress = 8; // Progress bar feedback
 
   // 6. NEVER IN COLLISION -------------------------------------------------------------------
   // Get the pairs of links that are never in collision
@@ -214,7 +219,7 @@ moveit_configuration_tools::computeDefaultCollisions(const planning_scene::Plann
   unsigned int num_never = 0;
   if (include_never_colliding) // option of function
   {
-    num_never = disableNeverInCollision(num_trials, scene, disabled_links, req, links_seen_colliding);
+    num_never = disableNeverInCollision(num_trials, scene, disabled_links, req, links_seen_colliding, progress);
   }
   BTimer.end("Never in Collision"); // Benchmarking Timer - temporary  
 
@@ -491,91 +496,22 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Stri
 }
 
 // ******************************************************************************************
-// Thread for getting the pairs of links that are never in collision
-// ******************************************************************************************
-void disableNeverInCollisionThread(ThreadComputation tc)
-{
-  //ROS_INFO_STREAM("Thread " << tc.thread_id_ << " running " << tc.num_trials_ << " trials");
-
-  // User feedback vars
-  const unsigned int progress_interval = tc.num_trials_ / 10; // show progress update every 5%
-  
-  // Create a new kinematic state for this thread to work on
-  planning_models::KinematicState kstate(tc.scene_.getKinematicModel());
-
-  // Do a large number of tests
-  for (unsigned int i = 0 ; i < tc.num_trials_ ; ++i)
-  {
-    // Status update at intervals and only for 0 thread
-    if(i % progress_interval == 0 && tc.thread_id_ == 0) 
-      ROS_INFO("Collision checking %d%% complete", int(i * 100 / tc.num_trials_ ));
-    
-
-    collision_detection::CollisionResult res;
-    kstate.setToRandomValues();
-    tc.scene_.checkSelfCollision(tc.req_, res, kstate);
-
-    /* 
-    // IOAN'S METHOD ----------------------------------
-    // Lock the thread
-    {
-    boost::mutex::scoped_lock slock(*tc.lock_);
-    BTimer.start("Never: Serial"); // Benchmarking Timer - temporary      
-    //std::cout << "    Worker " << tc.thread_id_ << " LOCK" << std::endl;
-
-    for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
-    {
-    if (tc.links_seen_colliding_->insert(it->first).second) // the second is a bool determining if it was already in 
-    {
-    // Collision Matrix is modified only if needed, based on above if statement
-    tc.scene_.getAllowedCollisions().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
-    //std::cout << "New link pair found " << std::endl;
-    }
-    }
-    //std::cout << "    Worker " << tc.thread_id_ << " UNLOCK" << std::endl;
-    BTimer.end("Never: Serial"); // Benchmarking Timer - temporary
-    }
-    */
-
-    // SLIGHTLY FASTER DAVE METHOD ---------------------
-    for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
-    {
-      // Check if this collision pair is unique before doing a thread lock
-      if (tc.links_seen_colliding_->find( it->first ) == tc.links_seen_colliding_->end())
-      {
-        // Collision Matrix and links_seen_colliding is modified only if needed, based on above if statement
-
-        //BTimer.start("Never: Serial"); // Benchmarking Timer - temporary      
-        boost::mutex::scoped_lock slock(*tc.lock_);
-        tc.links_seen_colliding_->insert(it->first);
-
-        tc.scene_.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix        
-        //BTimer.end("Never: Serial"); // Benchmarking Timer - temporary
-      }
-
-    }
-  }
-  //  std::cout << std::cout << "Thread: " << tc.thread_id_ << " finished" << std::endl;
-
-}
-
-// ******************************************************************************************
 // Get the pairs of links that are never in collision
 // ******************************************************************************************
 unsigned int disableNeverInCollision(const unsigned int num_trials, planning_scene::PlanningScene &scene, StringAdjList &disabled_links, 
-                                     const collision_detection::CollisionRequest &req, StringPairSet &links_seen_colliding)
+                                     const collision_detection::CollisionRequest &req, StringPairSet &links_seen_colliding, unsigned int *progress)
 {
   unsigned int num_never = 0;
 
   boost::thread_group bgroup; // create a group of threads
   boost::mutex lock; // used for sharing the same data structures
 
-  int use_threads = boost::thread::hardware_concurrency(); // how many cores does this computer have?
-  ROS_INFO_STREAM("Performing " << num_trials << " trials for 'always in collision' checking on " << use_threads << " threads...");
+  int num_threads = boost::thread::hardware_concurrency(); // how many cores does this computer have?
+  ROS_INFO_STREAM("Performing " << num_trials << " trials for 'always in collision' checking on " << num_threads << " threads...");
 
-  for(int i = 0; i < use_threads; ++i)
+  for(int i = 0; i < num_threads; ++i)
   {
-    ThreadComputation tc(scene, req, i, num_trials/use_threads, &links_seen_colliding, &lock);
+    ThreadComputation tc(scene, req, i, num_trials/num_threads, &links_seen_colliding, &lock, progress);
     bgroup.create_thread( boost::bind( &disableNeverInCollisionThread, tc ) );
     //std::cout << "Created thread " << i << std::endl;
   }
@@ -612,8 +548,56 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
     }
   }
   ROS_INFO("Disabled %d link pairs that are never in collision", num_never);
+  *progress = 100; // end the status bar
 
   return num_never;
+}
+
+// ******************************************************************************************
+// Thread for getting the pairs of links that are never in collision
+// ******************************************************************************************
+void disableNeverInCollisionThread(ThreadComputation tc)
+{
+  //ROS_INFO_STREAM("Thread " << tc.thread_id_ << " running " << tc.num_trials_ << " trials");
+
+  // User feedback vars
+  const unsigned int progress_interval = tc.num_trials_ / 20; // show progress update every 5%
+  
+  // Create a new kinematic state for this thread to work on
+  planning_models::KinematicState kstate(tc.scene_.getKinematicModel());
+
+  // Do a large number of tests
+  for (unsigned int i = 0 ; i < tc.num_trials_ ; ++i)
+  {
+    // Status update at intervals and only for 0 thread
+    if(i % progress_interval == 0 && tc.thread_id_ == 0) 
+    {
+      ROS_INFO("Collision checking %d%% complete", int(i * 100 / tc.num_trials_ ));
+      (*tc.progress_) = i * 92 / tc.num_trials_ + 8; // 8 is the amount of progress already completed in prev steps
+    }
+
+    collision_detection::CollisionResult res;
+    kstate.setToRandomValues();
+    tc.scene_.checkSelfCollision(tc.req_, res, kstate);
+
+    // SLIGHTLY FASTER DAVE METHOD ---------------------
+    for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
+    {
+      // Check if this collision pair is unique before doing a thread lock
+      if (tc.links_seen_colliding_->find( it->first ) == tc.links_seen_colliding_->end())
+      {
+        // Collision Matrix and links_seen_colliding is modified only if needed, based on above if statement
+
+        boost::mutex::scoped_lock slock(*tc.lock_);
+        tc.links_seen_colliding_->insert(it->first);
+
+        tc.scene_.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix        
+      }
+
+    }
+  }
+  //  std::cout << std::cout << "Thread: " << tc.thread_id_ << " finished" << std::endl;
+
 }
 
 // ******************************************************************************************
