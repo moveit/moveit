@@ -114,6 +114,7 @@ private:
   
   /// Flag indicating whether the reported plans should be checked once again, by the planning pipeline itself
   bool check_solution_paths_;
+  ros::Publisher contacts_publisher_;
   
   trajectory_processing::IterativeParabolicSmoother smoother_;
 
