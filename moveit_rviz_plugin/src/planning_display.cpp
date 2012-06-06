@@ -44,7 +44,7 @@
 #include <tf/transform_listener.h>
 #include <planning_models/conversions.h>
 
-namespace motion_planning_rviz_plugin
+namespace moveit_rviz_plugin
 {
 
 class PlanningLinkUpdater : public rviz::LinkUpdater
@@ -794,4 +794,4 @@ void PlanningDisplay::createProperties()
   scene_robot_->setPropertyManager(property_manager_, scene_category_);
 }
 
-} // namespace motion_planning_rviz_plugin
+} // namespace moveit_rviz_plugin

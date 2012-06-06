@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_DISPLAY_H
-#define MOTION_PLANNING_RVIZ_PLUGIN_PLANNING_DISPLAY_H
+#ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_H
+#define MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_H
 
 #include "rviz/display.h"
 #include "rviz/selection/forwards.h"
@@ -57,7 +57,7 @@ class Robot;
 class Shape;
 }
 
-namespace motion_planning_rviz_plugin
+namespace moveit_rviz_plugin
 {
 
 /**
@@ -261,6 +261,6 @@ protected:
 
 };
 
-} // namespace motion_planning_rviz_plugin
+} // namespace moveit_rviz_plugin
 
  #endif
