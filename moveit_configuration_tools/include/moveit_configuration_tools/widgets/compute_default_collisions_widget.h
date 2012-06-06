@@ -41,8 +41,12 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QPushButton>
-//#include <QTextEdit>
+#include <QProgressDialog>
 #include <QTableWidget>
+#include <QCheckBox>
+#include <QApplication>
+#include <boost/thread.hpp>
+#include "ros/ros.h"
 
 class ComputeDefaultCollisionsWidget : public QWidget
 {
@@ -51,14 +55,20 @@ class ComputeDefaultCollisionsWidget : public QWidget
 public:
   ComputeDefaultCollisionsWidget();
 
-private slots:
+private Q_SLOTS:
   void quit();
+  void generateCollisionTable();
 
 private:
+  // Qt Components
   QPushButton *generateButton_;
   QTableWidget *collision_table_;
   QPushButton *quitButton_;
   QVBoxLayout *layout_;
+
+  // Functions
+  void generateCollisionTableThread( unsigned int *collision_progress, 
+                                     std::map<std::string, std::set<std::string> > *disabled_links );
 };
 
 #endif
