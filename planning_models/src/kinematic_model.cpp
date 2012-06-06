@@ -89,6 +89,78 @@ const std::string& planning_models::KinematicModel::getName(void) const
   return model_name_;
 }
 
+void planning_models::KinematicModel::computeTreeStructure(const boost::shared_ptr<const urdf::Model> &urdf_model, const std::string &root_link,
+                                                           std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& parent_map,
+                                                           std::map<const urdf::Link*, std::vector<const urdf::Link*> >& child_map)
+{
+  // construct a bidirectional graph that represents the URDF tree
+  std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > graph;
+  std::queue<const urdf::Link*> q;
+  q.push(urdf_model->getRoot().get());
+  while (!q.empty())
+  {
+    const urdf::Link *l = q.front();
+    q.pop();
+    for (unsigned int i = 0 ; i < l->child_links.size() ; ++i)
+    {
+      graph[l][l->child_links[i].get()] = graph[l->child_links[i].get()][l] = l->child_links[i]->parent_joint.get();
+      q.push(l->child_links[i].get());
+    }
+  }
+  
+  // construct a tree from the graph such that the root is root_link
+  class NewParentTree
+  {
+  public:
+    NewParentTree(const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph) : graph_(graph)
+    {
+    }
+    
+    void constructTree(const urdf::Link *current, const urdf::Link *parent)
+    {
+      if (graph_->find(current) == graph_->end())
+        return;
+      const std::map<const urdf::Link*, const urdf::Joint*> &child = graph_->at(current);
+      for (std::map<const urdf::Link*, const urdf::Joint*>::const_iterator it = child.begin() ; it != child.end() ; ++it)
+        if (it->first != parent)
+        {
+          constructTree(it->first, current);
+          parent_map_[it->first] = std::make_pair(current, it->second);
+          child_map_[current].push_back(it->first);
+        }
+    }
+    
+    const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& getParentMap(void) const
+    {
+      return parent_map_;
+    }
+    
+    const std::map<const urdf::Link*, std::vector<const urdf::Link*> >& getChildMap(void) const
+    {
+      return child_map_;
+    }
+    
+  private:
+    const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph_;
+    std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > parent_map_;
+    std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map_;
+  };
+  
+  NewParentTree npt(&graph);
+  const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
+  if (root_link_ptr)
+  {
+    npt.constructTree(root_link_ptr, NULL);
+    parent_map = npt.getParentMap();
+    child_map = npt.getChildMap();
+  }
+  else
+  {
+    parent_map.clear();
+    child_map.clear();
+  }  
+}
+
 void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
                                                  const boost::shared_ptr<const srdf::Model> &srdf_model,
                                                  const std::string &root_link)
@@ -96,153 +168,28 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
   root_joint_ = NULL;
   model_name_ = urdf_model->getName(); 
   if (urdf_model->getRoot())
-  {  
-
-    // construct a bidirectional graph that represents the URDF tree
-    std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > graph;
-    std::queue<const urdf::Link*> q;
-    q.push(urdf_model->getRoot().get());
-    while (!q.empty())
-    {
-      const urdf::Link *l = q.front();
-      q.pop();
-      for (unsigned int i = 0 ; i < l->child_links.size() ; ++i)
-      {
-        graph[l][l->child_links[i].get()] = graph[l->child_links[i].get()][l] = l->child_links[i]->parent_joint.get();
-        q.push(l->child_links[i].get());
-      }
-    }
-
-    // construct a tree from the graph such that the root is root_link
-    class NewParentTree
-    {
-    public:
-      NewParentTree(const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph) : graph_(graph)
-      {
-      }
-      
-      void constructTree(const urdf::Link *current, const urdf::Link *parent)
-      {
-        if (graph_->find(current) == graph_->end())
-          return;
-        const std::map<const urdf::Link*, const urdf::Joint*> &child = graph_->at(current);
-        for (std::map<const urdf::Link*, const urdf::Joint*>::const_iterator it = child.begin() ; it != child.end() ; ++it)
-          if (it->first != parent)
-          {
-            constructTree(it->first, current);
-            parent_map_[it->first] = std::make_pair(current, it->second);
-            child_map_[current].push_back(it->first);
-          }
-      }
-
-      const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& getParentMap(void) const
-      {
-        return parent_map_;
-      }
-      
-      const std::map<const urdf::Link*, std::vector<const urdf::Link*> >& getChildMap(void) const
-      {
-        return child_map_;
-      }
-      
-    private:
-      const std::map<const urdf::Link*, std::map<const urdf::Link*, const urdf::Joint*> > *graph_;
-      std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > parent_map_;
-      std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map_;
-    };
-    
-    NewParentTree npt(&graph);
+  { 
     const urdf::Link *root_link_ptr = urdf_model->getLink(root_link).get();
     if (root_link_ptr)
     {
-      npt.constructTree(root_link_ptr, NULL);
       model_frame_ = root_link;
-      root_joint_ = buildRecursive(NULL, root_link_ptr, npt.getParentMap(), npt.getChildMap(), srdf_model->getVirtualJoints());    
-
+      
+      std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > parent_map;
+      std::map<const urdf::Link*, std::vector<const urdf::Link*> > child_map;
+      computeTreeStructure(urdf_model, root_link, parent_map, child_map);
+      
+      root_joint_ = buildRecursive(NULL, root_link_ptr, parent_map, child_map, srdf_model->getVirtualJoints());    
       root_link_ = link_model_map_[root_link];
       buildMimic(urdf_model);      
-
+      buildJointInfo();
+      
       if (link_models_with_collision_geometry_vector_.empty())
         ROS_WARN("No geometry is associated to any robot links");
       
-      // construct additional additional maps for easy access by name
-      variable_count_ = 0;
-      std::vector<JointModel*> later;
-      for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
-      {
-        const std::vector<std::string> &name_order = joint_model_vector_[i]->getVariableNames();
-        for (std::size_t j = 0 ; j < name_order.size() ; ++j)
-          joint_model_vector_[i]->getVariableBounds(name_order[j], variable_bounds_[name_order[j]]);
-        if (joint_model_vector_[i]->mimic_ == NULL)
-        {
-          // compute index map
-          if (name_order.size() > 0)
-          {
-            for (std::size_t j = 0; j < name_order.size(); ++j)
-            {
-              joint_variables_index_map_[name_order[j]] = variable_count_ + j;
-              active_dof_names_.push_back(name_order[j]);
-            }
-            joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
-            
-            // compute variable count
-            variable_count_ += joint_model_vector_[i]->getVariableCount();
-          }
-        }
-        else
-          later.push_back(joint_model_vector_[i]);
-      }
-      
-      for (std::size_t i = 0 ; i < later.size() ; ++i)
-      {
-        const std::vector<std::string>& name_order = later[i]->getVariableNames();
-        const std::vector<std::string>& mim_name_order = later[i]->mimic_->getVariableNames();
-        for (std::size_t j = 0; j < name_order.size(); ++j)
-          joint_variables_index_map_[name_order[j]] = joint_variables_index_map_[mim_name_order[j]];
-        joint_variables_index_map_[later[i]->getName()] = joint_variables_index_map_[later[i]->mimic_->getName()];
-      }
-      
       // build groups
       buildGroups(srdf_model->getGroups());
+      buildGroupInfo(srdf_model);
       buildGroupStates(srdf_model);
-
-      // set the end-effector flags
-      const std::vector<srdf::Model::EndEffector> &eefs = srdf_model->getEndEffectors();
-      for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
-      {
-        // check if this group is a known end effector
-        for (std::size_t k = 0 ; k < eefs.size() ; ++k)
-          if (eefs[k].component_group_ == it->first)
-          {
-            // if it is, mark it as such
-            it->second->is_end_effector_ = true;
-
-            // check to see if there is one unique group that contains the parent link of this end effector.
-            // record this information if found
-            std::vector<JointModelGroup*> possible_parent_groups;
-            for (std::map<std::string, JointModelGroup*>::const_iterator jt = joint_model_group_map_.begin() ; jt != joint_model_group_map_.end(); ++jt)
-              if (jt->first != it->first)
-              {
-                if (jt->second->hasLinkModel(eefs[k].parent_link_))
-                  possible_parent_groups.push_back(jt->second);
-              }
-            if (possible_parent_groups.size() == 1)
-            {
-              possible_parent_groups[0]->attached_end_effector_group_name_ = it->first;
-              it->second->end_effector_parent_.first = possible_parent_groups[0]->getName();
-              it->second->end_effector_parent_.second = eefs[k].parent_link_;
-            }
-            break;
-          }
-        // check to see if the group is a chain
-        const std::vector<const LinkModel*> &lmods = it->second->getLinkModels();
-        bool chain = lmods.size() > 1;
-        for (std::size_t k = 1 ; chain && k < lmods.size() ; ++k)
-          if (lmods[k]->getTreeIndex() != lmods[k - 1]->getTreeIndex() + 1)
-            chain = false;
-        if (chain)
-          it->second->is_chain_ = true;
-      }
       
       std::stringstream ss;
       printModelInfo(ss);
@@ -253,6 +200,87 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
   }
   else
     ROS_WARN("No root link found");
+}
+
+void planning_models::KinematicModel::buildJointInfo(void)
+{    
+  // construct additional maps for easy access by name
+  variable_count_ = 0;
+  std::vector<JointModel*> later;
+  for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
+  {
+    const std::vector<std::string> &name_order = joint_model_vector_[i]->getVariableNames();
+    for (std::size_t j = 0 ; j < name_order.size() ; ++j)
+      joint_model_vector_[i]->getVariableBounds(name_order[j], variable_bounds_[name_order[j]]);
+    if (joint_model_vector_[i]->mimic_ == NULL)
+    {
+      // compute index map
+      if (name_order.size() > 0)
+      {
+        for (std::size_t j = 0; j < name_order.size(); ++j)
+        {
+          joint_variables_index_map_[name_order[j]] = variable_count_ + j;
+          active_dof_names_.push_back(name_order[j]);
+        }
+        joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
+        
+        // compute variable count
+        variable_count_ += joint_model_vector_[i]->getVariableCount();
+      }
+    }
+    else
+      later.push_back(joint_model_vector_[i]);
+  }
+  
+  for (std::size_t i = 0 ; i < later.size() ; ++i)
+  {
+    const std::vector<std::string>& name_order = later[i]->getVariableNames();
+    const std::vector<std::string>& mim_name_order = later[i]->mimic_->getVariableNames();
+    for (std::size_t j = 0; j < name_order.size(); ++j)
+      joint_variables_index_map_[name_order[j]] = joint_variables_index_map_[mim_name_order[j]];
+    joint_variables_index_map_[later[i]->getName()] = joint_variables_index_map_[later[i]->mimic_->getName()];
+  }  
+}
+
+void planning_models::KinematicModel::buildGroupInfo(const boost::shared_ptr<const srdf::Model> &srdf_model)
+{
+  // set the end-effector flags
+  const std::vector<srdf::Model::EndEffector> &eefs = srdf_model->getEndEffectors();
+  for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
+  {
+    // check if this group is a known end effector
+    for (std::size_t k = 0 ; k < eefs.size() ; ++k)
+      if (eefs[k].component_group_ == it->first)
+      {
+        // if it is, mark it as such
+        it->second->is_end_effector_ = true;
+        
+        // check to see if there is one unique group that contains the parent link of this end effector.
+        // record this information if found
+        std::vector<JointModelGroup*> possible_parent_groups;
+        for (std::map<std::string, JointModelGroup*>::const_iterator jt = joint_model_group_map_.begin() ; jt != joint_model_group_map_.end(); ++jt)
+          if (jt->first != it->first)
+          {
+            if (jt->second->hasLinkModel(eefs[k].parent_link_))
+              possible_parent_groups.push_back(jt->second);
+          }
+        if (possible_parent_groups.size() == 1)
+        {
+          possible_parent_groups[0]->attached_end_effector_group_name_ = it->first;
+          it->second->end_effector_parent_.first = possible_parent_groups[0]->getName();
+          it->second->end_effector_parent_.second = eefs[k].parent_link_;
+        }
+        break;
+      }
+    // check to see if the group is a chain
+    const std::vector<const LinkModel*> &lmods = it->second->getLinkModels();
+    bool chain = lmods.size() > 1;
+    for (std::size_t k = 1 ; chain && k < lmods.size() ; ++k)
+      if (lmods[k]->getTreeIndex() != lmods[k - 1]->getTreeIndex() + 1)
+        chain = false;
+    if (chain)
+      it->second->is_chain_ = true;
+  }
 }
 
 void planning_models::KinematicModel::buildGroupStates(const boost::shared_ptr<const srdf::Model> &srdf_model)
@@ -560,9 +588,7 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::bu
   joint_model_vector_.push_back(joint);
   joint_model_names_vector_.push_back(joint->getName());
   joint->parent_link_model_ = parent;
-  joint->child_link_model_ = constructLinkModel(link);
-  if (parent == NULL)
-    joint->child_link_model_->joint_origin_transform_.setIdentity();
+  joint->child_link_model_ = constructLinkModel(link, parent_map);
   link_model_map_[joint->child_link_model_->name_] = joint->child_link_model_;
   joint->child_link_model_->tree_index_ = link_model_vector_.size();
   link_model_vector_.push_back(joint->child_link_model_);
@@ -717,7 +743,8 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
 }
 }
 
-planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::constructLinkModel(const urdf::Link *urdf_link)
+planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::constructLinkModel(const urdf::Link *urdf_link,
+                                                                                                const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map)
 {
   ROS_ASSERT(urdf_link);
 
@@ -752,10 +779,24 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
         result->visual_filename_ = mesh->filename;
     }
   }
-  if (urdf_link->parent_joint.get()) /// \todo this is an issue when we reparent the model (joint origin transform should be transfered over)
-    result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
+
+  std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >::const_iterator pmi = parent_map.find(urdf_link);
+  if (pmi != parent_map.end())
+  {
+    // if we consider the kinematic tree as in the URDF, then we just take the transform as is
+    if (urdf_link->parent_joint.get() == pmi->second.second)
+      result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
+    else
+      // if not, it means we are viewing the transform in reverse, so we take the inverse:
+      result->joint_origin_transform_ = urdfPose2Affine3d(pmi->second.second->parent_to_joint_origin_transform).inverse();
+    
+    // normally, we have ChildLinkTF = ParentLinkTF * JOrigin
+    // when we reverse this, ParentLinkTF becomes the child of ChildLinkTF
+    // so ParentLinkTF = ChildLinkTF * inverse(JOrigin)
+  }
   else
     result->joint_origin_transform_.setIdentity();
+  
   return result;
 }
 
