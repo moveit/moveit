@@ -45,14 +45,15 @@
 namespace collision_distance_field
 {
 
-PosedBodyDecompositionPtr getLinkBodyDecomposition(const planning_models::KinematicState::LinkState* ls,
-                                                   double resolution);
+PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::CollisionWorld::Object& obj,
+                                                                          double resolution);
 
-PosedBodyDecompositionVectorPtr getCollisionObjectDecomposition(const collision_detection::CollisionWorld::Object& obj,
-                                                                double resolution);
+PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const planning_models::KinematicState::AttachedBody* att,
+                                                                         double resolution);
 
-PosedBodyDecompositionVectorPtr getAttachedBodyDecomposition(const planning_models::KinematicState::AttachedBody* att,
-                                                             double resolution);
+PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const planning_models::KinematicState::AttachedBody* att,
+                                                                       double resolution);
+
 
 }
 #endif

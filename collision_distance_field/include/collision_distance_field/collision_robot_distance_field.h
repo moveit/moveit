@@ -55,11 +55,18 @@ public:
     collision_detection::AllowedCollisionMatrix acm_;
     distance_field::DistanceField* distance_field_;
     std::vector<std::string> link_names_;
+    std::vector<bool> link_has_geometry_;
+    std::vector<unsigned int> link_body_indices_;
     std::vector<unsigned int> link_state_indices_;
     std::vector<std::string> attached_body_names_;
     std::vector<unsigned int> attached_body_link_state_indices_;
-    std::vector<PosedBodyDecompositionPtr> link_body_decompositions_;
-    std::vector<PosedBodyDecompositionVectorPtr> attached_body_decompositions_;
+    std::map<std::string, bool> enabled_self_collision_links_;
+  };
+
+  struct GroupStateRepresentation {
+    std::vector<PosedBodySphereDecompositionPtr> link_body_decompositions_;
+    std::vector<PosedBodySphereDecompositionVectorPtr> attached_body_decompositions_;
+    std::vector<GradientInfo> gradients_;
   };
   
   CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel, 
@@ -153,6 +160,10 @@ public:
   boost::shared_ptr<const DistanceFieldCacheEntry> getLastDistanceFieldEntry() const {
     return distance_field_cache_entry_;
   } 
+
+  boost::shared_ptr<const GroupStateRepresentation> getLastGroupStateRepresentation() const {
+    return last_gsr_;
+  }
   
 protected:
 
@@ -172,6 +183,17 @@ protected:
                                   const planning_models::KinematicState& state,
                                   const collision_detection::AllowedCollisionMatrix *acm) const;
     
+  void addLinkBodyDecompositions(double resolution);
+
+  PosedBodySphereDecompositionPtr 
+  getPosedLinkBodySphereDecomposition(const planning_models::KinematicState::LinkState* ls,
+                                      unsigned int ind) const;
+
+  PosedBodyPointDecompositionPtr getPosedLinkBodyPointDecomposition(const planning_models::KinematicState::LinkState* ls) const;
+
+  boost::shared_ptr<GroupStateRepresentation> 
+  getGroupStateRepresentation(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
+                              const planning_models::KinematicState& state) const;
 
   virtual void updatedPaddingOrScaling(const std::vector<std::string> &links)
   {};
@@ -184,8 +206,15 @@ protected:
   double collision_tolerance_;
   double max_propogation_distance_;
 
+  std::vector<BodyDecompositionConstPtr> link_body_decomposition_vector_;
+  std::map<std::string, unsigned int> link_body_decomposition_index_map_;
+
   mutable boost::mutex update_cache_lock_;
   boost::shared_ptr<DistanceFieldCacheEntry> distance_field_cache_entry_;
+  
+  boost::shared_ptr<GroupStateRepresentation> last_gsr_;
+  std::map<std::string, std::map<std::string, bool> > in_group_update_map_;
+
 };
 
 }
