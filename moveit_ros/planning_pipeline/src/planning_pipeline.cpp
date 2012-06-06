@@ -219,8 +219,10 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
         {
           std::stringstream ss;
           for (std::size_t i = 0 ; i < index.size() ; ++i)
-            ss << index[i] << " ";
-          ROS_ERROR("Computed path is not valid. Invalid states at index locations: [ %s]", ss.str().c_str());
+            ss << index[i] << " ";  
+          unsigned int state_count = std::max(res.trajectory.joint_trajectory.points.size(),
+                                              res.trajectory.multi_dof_joint_trajectory.points.size());
+          ROS_ERROR("Computed path is not valid. Invalid states at index locations: [ %s] out of %u", ss.str().c_str(), state_count);
         }
       }
       else
