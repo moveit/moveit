@@ -404,6 +404,8 @@ const planning_models::TransformsPtr& planning_scene::PlanningScene::getTransfor
 void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const
 {
   scene.name = name_;
+  scene.planning_frame = getPlanningFrame();
+  
   if (ftf_)
     ftf_->getTransforms(scene.fixed_frame_transforms);
   else
@@ -645,7 +647,8 @@ void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::Plan
 
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const
 {
-  scene.name = name_;
+  scene.name = name_; 
+  scene.planning_frame = getPlanningFrame();
   getTransforms()->getTransforms(scene.fixed_frame_transforms);
   planning_models::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
   getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
@@ -754,7 +757,10 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   ROS_DEBUG("Adding planning scene diff");
   if (!scene.name.empty())
       name_ = scene.name;
-
+  
+  if (!scene.planning_frame.empty() && scene.planning_frame != getPlanningFrame())
+    ROS_WARN("Setting scene with planning frame '%s' but the current planning scene is in frame '%s'.", scene.planning_frame.c_str(), getPlanningFrame().c_str());
+  
   // there is at least one transform in the list of fixed transform: from model frame to itself;
   // if the list is empty, then nothing has been set
   if (!scene.fixed_frame_transforms.empty())
@@ -846,6 +852,10 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
     configured_ = true;
     parent_.reset();
   }
+  // re-parent the robot model if needed
+  if (!scene.planning_frame.empty() && scene.planning_frame != getPlanningFrame())
+    configure(urdf_model_, srdf_model_, scene.planning_frame);
+  
   ftf_->setTransforms(scene.fixed_frame_transforms);
   setCurrentState(scene.robot_state);
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix));
@@ -886,7 +896,7 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
     {
       ROS_ERROR("Failed to convert from pose message to Eigen Affine3f");
     }
-
+ 
     shapes::Shape *s = new shapes::Box(map.boxes[i].extents.x, map.boxes[i].extents.y, map.boxes[i].extents.z);
     cworld_->addToObject(COLLISION_MAP_NS, shapes::ShapeConstPtr(s), t * p);
   }
