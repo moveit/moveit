@@ -223,6 +223,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
           ROS_ERROR("Computed path is not valid. Invalid states at index locations: [ %s]", ss.str().c_str());
         }
       }
+      else
+        ROS_DEBUG("Planned path was found to be valid when rechecked");
     }
   }
 
