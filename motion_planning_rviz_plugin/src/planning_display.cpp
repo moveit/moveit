@@ -541,9 +541,21 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     new_display_trajectory_ = false;
     current_state_ = -1;
     current_state_time_ = state_display_time_ + 1.0f;
-    robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->start_state_.get()));
+    PlanningLinkUpdater plu(displaying_trajectory_message_->start_state_.get());
+    robot_->update(plu);
+    
     offset = true;
     render = true;
+    
+    Ogre::Vector3 visual_position, collision_position;
+    Ogre::Quaternion visual_orientation, collision_orientation;
+    bool apply_offset_transforms;
+    plu.getLinkTransforms(scene_monitor_->getPlanningScene()->getPlanningFrame(), visual_position, visual_orientation, collision_position, collision_orientation, apply_offset_transforms);
+    //Compute the inverse transformation 
+    Ogre::Matrix4 ogre_pose;
+    ogre_pose.makeInverseTransform(visual_position, Ogre::Vector3(1.0, 1.0, 1.0), visual_orientation);
+    robot_->setPosition(ogre_pose.getTrans());
+    robot_->setOrientation(ogre_pose.extractQuaternion());
   }
   
   if (animating_path_)
@@ -553,8 +565,20 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
       ++current_state_;
       if ((std::size_t) current_state_ < displaying_trajectory_message_->trajectory_.size())
       {
-        robot_->update(PlanningLinkUpdater(displaying_trajectory_message_->trajectory_[current_state_].get()));
+	PlanningLinkUpdater plu(displaying_trajectory_message_->trajectory_[current_state_].get());
+        robot_->update(plu);
         render = true;
+	
+	Ogre::Vector3 visual_position, collision_position;
+	Ogre::Quaternion visual_orientation, collision_orientation;
+	bool apply_offset_transforms;
+	plu.getLinkTransforms(scene_monitor_->getPlanningScene()->getPlanningFrame(), visual_position, visual_orientation, collision_position, collision_orientation, apply_offset_transforms);
+	//Compute the inverse transformation 
+	Ogre::Matrix4 ogre_pose;
+	ogre_pose.makeInverseTransform(visual_position, Ogre::Vector3(1.0, 1.0, 1.0), visual_orientation);
+	robot_->setPosition(ogre_pose.getTrans());
+        robot_->setOrientation(ogre_pose.extractQuaternion());
+	
       }
       else
       {
@@ -575,6 +599,30 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     current_scene_time_ = 0.0f;
   }
   
+  // fix tf to planning root link:
+  if (render && scene_monitor_)
+  {
+      PlanningLinkUpdater plu(&scene_monitor_->getPlanningScene()->getCurrentState());
+    
+      //Compute the transformation torso to r_sole
+      Ogre::Vector3 visual_position, collision_position;
+      Ogre::Quaternion visual_orientation, collision_orientation;
+      bool apply_offset_transforms;
+      plu.getLinkTransforms(scene_monitor_->getPlanningScene()->getPlanningFrame(), visual_position, visual_orientation, collision_position, collision_orientation, apply_offset_transforms);
+      //Compute the inverse transformation -> i.e r_sole to torso 
+      Ogre::Matrix4 ogre_pose;
+      ogre_pose.makeInverseTransform(visual_position, Ogre::Vector3(1.0, 1.0, 1.0), visual_orientation);
+      
+      // Apply transformation to robot such that right foot is always on zero position
+      Ogre::Vector3 fixed_position = ogre_pose.getTrans();
+      Ogre::Quaternion fixed_orientation = ogre_pose.extractQuaternion();
+
+      scene_robot_->setPosition(fixed_position);
+      scene_robot_->setOrientation(fixed_orientation);
+      scene_node_->setPosition(fixed_position);
+      scene_node_->setOrientation(fixed_orientation);
+    }
+  
   if (offset)
     calculateOffsetPosition();
   if (render)
@@ -585,6 +633,7 @@ void PlanningDisplay::calculateOffsetPosition()
 {
   if (!scene_monitor_)
     return;
+  
   ros::Time stamp;
   std::string err_string;
   if (vis_manager_->getTFClient()->getLatestCommonTime(fixed_frame_, scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
