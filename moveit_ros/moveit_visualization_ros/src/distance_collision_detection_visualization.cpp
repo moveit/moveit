@@ -91,16 +91,54 @@ int main(int argc, char** argv)
     ROS_WARN_STREAM("no dfce");
     exit(-1);
   }
-  visualization_msgs::Marker inf_marker;
-  dfce->distance_field_->getIsoSurfaceMarkers(0.0,.001,
-                                              planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
-                                              ros::Time::now(),
-                                              Eigen::Affine3d::Identity(),
-                                              inf_marker);
+  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> gsr = coll.getLastGroupStateRepresentation();
+  visualization_msgs::MarkerArray sphere_markers;
+  std_msgs::ColorRGBA col;
+  col.g = 1.0;
+  col.a = .8;
+  collision_distance_field::getCollisionSphereMarkers(col,
+                                                      planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+                                                      "spheres",
+                                                      ros::Duration(0.0),
+                                                      gsr->link_body_decompositions_,
+                                                      sphere_markers);
+  //visualization_msgs::Marker inf_marker;
+  // dfce->distance_field_->getIsoSurfaceMarkers(0.0,.01,
+  //                                             planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+  //                                             ros::Time::now(),
+  //                                             Eigen::Affine3d::Identity(),
+  //                                             inf_marker);
+  // bodies::Body* b = bodies::createBodyFromShape(planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getLinkModel("base_link")->getShape().get());
+  // b->setPose(planning_scene_monitor_->getPlanningScene()->getCurrentState().getLinkState("base_link")->getGlobalLinkTransform());
+  // bodies::ConvexMesh* cm = dynamic_cast<bodies::ConvexMesh*>(b);
+  // inf_marker.type = visualization_msgs::Marker::TRIANGLE_LIST;
+  // inf_marker.scale.x = inf_marker.scale.y = inf_marker.scale.z = 1.0;
+  // inf_marker.color.a = inf_marker.color.b = 1.0;
+  // inf_marker.header.frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame(); 
+  // inf_marker.pose.orientation.w = 1.0;
+  // for(unsigned int i = 0; i < cm->getTriangles().size(); i+=3) {
+  //   // ROS_INFO_STREAM("Triangle " << i << " is " << cm->getTriangles()[i] << " " 
+  //   //                 << cm->getTriangles()[i+1] << " " 
+  //   //                 << cm->getTriangles()[i+2]); 
+  //   geometry_msgs::Point p;
+  //   p.x = cm->getVertices()[cm->getTriangles()[i]].x();
+  //   p.y = cm->getVertices()[cm->getTriangles()[i]].y();
+  //   p.z = cm->getVertices()[cm->getTriangles()[i]].z();
+  //   inf_marker.points.push_back(p);
+  //   p.x = cm->getVertices()[cm->getTriangles()[i+1]].x();
+  //   p.y = cm->getVertices()[cm->getTriangles()[i+1]].y();
+  //   p.z = cm->getVertices()[cm->getTriangles()[i+1]].z();
+  //   inf_marker.points.push_back(p);
+  //   p.x = cm->getVertices()[cm->getTriangles()[i+2]].x();
+  //   p.y = cm->getVertices()[cm->getTriangles()[i+2]].y();
+  //   p.z = cm->getVertices()[cm->getTriangles()[i+2]].z();
+  //   inf_marker.points.push_back(p);
+  // }
   ros::WallRate r(1.0);
   while(ros::ok()) {
     ROS_INFO_STREAM("Should be publishing");
-    vis_marker_publisher.publish(inf_marker);
+    //vis_marker_publisher.publish(inf_marker);
+    vis_marker_array_publisher.publish(sphere_markers);
     r.sleep();
   }
 
