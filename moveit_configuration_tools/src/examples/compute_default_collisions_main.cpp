@@ -30,43 +30,46 @@
 // Author: Dave Coleman
 
 #include <moveit_configuration_tools/widgets/compute_default_collisions_widget.h>
-//#include <moveit_configuration_tools/tools/compute_default_collisions.h>
-//#include <planning_scene_monitor/planning_scene_monitor.h>
 #include <QApplication>
 #include <QtGui>
+//#include <boost/thread.hpp>
 
 using namespace std;
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
+int collision_progress = 0;
 
-int main(int argv, char **args)
+int main(int argc, char **argv)
 {
-  /*
-  ros::init(argc, argv, "compute_default_collisions", ros::init_options::AnonymousName);
+  // Seed Random
+  srand(time(NULL));
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();  
-  */
+  // Start ROS Node
+  ros::init(argc, argv, "compute_default_collisions", ros::init_options::NoSigintHandler);
 
-  //unsigned int num_trials = 10000;
-  //const bool verbose = false; // Output benchmarking and statistics
+  //ros::AsyncSpinner spinner(1);
+  //spinner.start();  
+ 
+  // Create Qt Application
+  QApplication qtApp(argc, argv);
 
-  // Load robot description
-  //planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+  // Load Qt Widget
+  ComputeDefaultCollisionsWidget * cdcm = new ComputeDefaultCollisionsWidget();
+  qtApp.setActiveWindow(cdcm);
+  //cdcm->showMaximized();
+  cdcm->setMinimumWidth(1024);
+  cdcm->setMinimumHeight(768);
+  cdcm->show();
 
-  // Find the default collision matrix - all links that are allowed to collide
-  //const std::map<std::string, std::set<std::string> > &disabled_links = 
-  //  moveit_configuration_tools::computeDefaultCollisions(psm.getPlanningScene(), true, num_trials, verbose);
+  // Error check
+  /*if(!cdcm->isInited())
+  {
+    ROS_WARN_STREAM("Unable to initialize Qt Widget. Exiting");
+    exit(0);
+    }*/
 
-  // Output results to an XML file
-  //moveit_configuration_tools::outputDisabledCollisionsXML( disabled_links );
-
+  // For sending transforms and markers
+  //boost::thread spin_thread(boost::bind(&spin_function));
   //ros::shutdown();    
 
-  QApplication app(argv, args);
-
-  ComputeDefaultCollisionsWidget cdcm;
-  cdcm.show();
-
-  return app.exec();
+  return qtApp.exec();
 }
