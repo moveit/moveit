@@ -587,7 +587,8 @@ visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& marker_n
     return int_marker;
   }
   double x, y, z;
-  if(!shape_utils::getShapeExtents(mesh_shape, x, y, z)) {
+  shape_utils::getShapeExtents(mesh_shape, x, y, z);
+  if( x*y*z <= 0.0) {
     ROS_WARN_STREAM("Some problem with marker extents");
     int_marker.scale = 1.0;
   } else {

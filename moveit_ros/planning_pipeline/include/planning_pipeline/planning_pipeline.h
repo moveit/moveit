@@ -59,6 +59,8 @@ public:
   
   void publishReceivedRequests(bool flag);
   
+  void checkSolutionPaths(bool flag);
+  
   bool getDisplayComputedMotionPlansFlag(void) const
   {
     return display_computed_motion_plans_;
@@ -67,6 +69,11 @@ public:
   bool getPublishReceivedRequests(void) const
   {
     return publish_received_requests_;
+  }
+
+  bool getCheckSolutionPaths(void) const
+  {
+    return check_solution_paths_;
   }
   
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -101,11 +108,14 @@ private:
   planning_interface::PlannerPtr planner_instance_;
   std::string planner_plugin_name_;
   
-  
   boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
   boost::scoped_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
   std::vector<std::string> adapter_plugin_names_;
-
+  
+  /// Flag indicating whether the reported plans should be checked once again, by the planning pipeline itself
+  bool check_solution_paths_;
+  ros::Publisher contacts_publisher_;
+  
   trajectory_processing::IterativeParabolicSmoother smoother_;
 
 };

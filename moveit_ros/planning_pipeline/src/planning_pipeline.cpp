@@ -33,7 +33,10 @@
 *********************************************************************/
 
 #include "planning_pipeline/planning_pipeline.h"
+#include <planning_models/conversions.h>
+#include <collision_detection/collision_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <boost/tokenizer.hpp>
 #include <sstream>
 
@@ -68,6 +71,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const planning_models::Kin
 
 void planning_pipeline::PlanningPipeline::configure(const planning_models::KinematicModelConstPtr& model)
 {
+  check_solution_paths_ = false;
   publish_received_requests_ = false;
   display_computed_motion_plans_ = false;
   
@@ -145,6 +149,7 @@ void planning_pipeline::PlanningPipeline::configure(const planning_models::Kinem
     }
   }
   displayComputedMotionPlans(true);
+  checkSolutionPaths(true);
 }
 
 void planning_pipeline::PlanningPipeline::displayComputedMotionPlans(bool flag)
@@ -153,7 +158,7 @@ void planning_pipeline::PlanningPipeline::displayComputedMotionPlans(bool flag)
     display_path_publisher_.shutdown();
   else
     if (!display_computed_motion_plans_ && flag)
-      display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_trajectory", 10, true);
+      display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_planned_path", 10, true);
   display_computed_motion_plans_ = flag;
 }
 
@@ -165,6 +170,16 @@ void planning_pipeline::PlanningPipeline::publishReceivedRequests(bool flag)
     if (!publish_received_requests_ && flag)
       received_request_publisher_ = nh_.advertise<moveit_msgs::MotionPlanRequest>("motion_plan_request", 10, true);
   publish_received_requests_ = flag;
+}
+
+void planning_pipeline::PlanningPipeline::checkSolutionPaths(bool flag)
+{ 
+  if (check_solution_paths_ && !flag)
+    contacts_publisher_.shutdown();
+  else
+    if (!check_solution_paths_ && flag)
+      contacts_publisher_ = nh_.advertise<visualization_msgs::MarkerArray>("display_contacts", 100, true);
+  check_solution_paths_ = flag;
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -195,11 +210,65 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   }
   
   if (solved)
-  {// is this the right place to do this computation?
+  {
+    // is this the right place to do this computation?
     trajectory_msgs::JointTrajectory trajectory_out;
     const std::vector<moveit_msgs::JointLimits> &jlim = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name)->getJointLimits();
     smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim);
     res.trajectory.joint_trajectory = trajectory_out; /// \todo apply this for the RobotTrajectory; is this the right place for this operation?
+    
+    if (check_solution_paths_)
+    {
+      std::vector<std::size_t> index;
+      if (!planning_scene->isPathValid(res.trajectory_start, res.trajectory, req.motion_plan_request.path_constraints, false, &index))
+      {
+        if (index.size() == 1 && index[0] == 0) // ignore cases when the robot starts at invalid location
+          ROS_DEBUG("It appears the robot is starting at an invalid state, but that is ok.");
+        else
+        {
+          // display error messages
+          std::stringstream ss;
+          for (std::size_t i = 0 ; i < index.size() ; ++i)
+            ss << index[i] << " ";  
+          unsigned int state_count = std::max(res.trajectory.joint_trajectory.points.size(),
+                                              res.trajectory.multi_dof_joint_trajectory.points.size());
+          ROS_ERROR("Computed path is not valid. Invalid states at index locations: [ %s] out of %u", ss.str().c_str(), state_count);
+          
+          // call validity checks in verbose mode for the problematic states
+          planning_models::KinematicState kstate(planning_scene->getCurrentState());
+          planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), res.trajectory_start, kstate);
+          visualization_msgs::MarkerArray arr;
+          for (std::size_t i = 0 ; i < index.size() ; ++i)
+          {
+            // compute the full kinematic state
+            moveit_msgs::RobotState rs;
+            planning_models::robotTrajectoryPointToRobotState(res.trajectory, index[i], rs);
+            planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), rs, kstate);
+            // check validity with verbose on
+            planning_scene->isStateValid(kstate, true);
+            
+            // compute the contacts if any
+            collision_detection::CollisionRequest c_req;
+            collision_detection::CollisionResult c_res;
+            c_req.contacts = true;
+            c_req.max_contacts = 10;
+            c_req.max_contacts_per_pair = 3;
+            c_req.verbose = false;
+            planning_scene->checkCollision(c_req, c_res, kstate);
+            if (c_res.contact_count > 0)
+            {
+              visualization_msgs::MarkerArray arr_i;
+              collision_detection::getCollisionMarkersFromContacts(arr_i, planning_scene->getPlanningFrame(), c_res.contacts);
+              arr.markers.insert(arr.markers.end(), arr_i.markers.begin(), arr_i.markers.end());
+            }
+          }
+          if (!arr.markers.empty())
+            contacts_publisher_.publish(arr);
+        }
+      }
+      else
+        ROS_DEBUG("Planned path was found to be valid when rechecked");
+    }
   }
 
   // display solution path if needed
