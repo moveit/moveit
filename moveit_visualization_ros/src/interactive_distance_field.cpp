@@ -183,7 +183,7 @@ int main(int argc, char** argv)
   boost::shared_ptr<shapes::Box> box(new shapes::Box(2.5, 2.5, 0.4));
   collision_distance_field::BodyDecompositionPtr bd(new collision_distance_field::BodyDecomposition(box, resolution, 0.0));
   Eigen::Affine3d trans(Eigen::Translation3d(0.0,0.0,-1.0)*Eigen::Quaterniond::Identity());
-  collision_distance_field::PosedBodyDecomposition pbd_box(bd);
+  collision_distance_field::PosedBodyPointDecomposition pbd_box(bd);
   pbd_box.updatePose(trans);
   std::vector<Eigen::Vector3d> table_points = pbd_box.getCollisionPoints();
   std::vector<Eigen::Vector3d> sphere_points;
@@ -201,7 +201,7 @@ int main(int argc, char** argv)
 
   boost::shared_ptr<shapes::Sphere> sphere(new shapes::Sphere(sphere_radius));
   collision_distance_field::BodyDecompositionPtr sbd(new collision_distance_field::BodyDecomposition(sphere, 0.025, 0.0));
-  collision_distance_field::PosedBodyDecomposition pbd_sphere(sbd);
+  collision_distance_field::PosedBodyPointDecomposition pbd_sphere(sbd);
 
   int i = 0;
   while(1) {
