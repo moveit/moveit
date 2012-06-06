@@ -727,11 +727,15 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
   {
     result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->collision->origin);
     result->shape_ = constructShape(urdf_link->collision->geometry.get(), result->filename_);
+    if (result->shape_)
+      shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_);
   }
   else if (urdf_link->visual && urdf_link->visual->geometry)
   {
     result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->visual->origin);
     result->shape_ = constructShape(urdf_link->visual->geometry.get(), result->filename_);
+    if (result->shape_)
+      shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_);
   }
   else
   {

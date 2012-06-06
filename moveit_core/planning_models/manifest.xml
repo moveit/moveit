@@ -11,9 +11,11 @@
   <depend package="srdf"/>
   <depend package="rosconsole" />
   <depend package="geometric_shapes"/>
+  <depend package="shape_utils"/>
   <depend package="resource_retriever"/>
   <depend package="kinematics_base"/>
   <depend package="random_numbers"/>
+  <depend package="shape_msgs"/>
   <depend package="moveit_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="common_rosdeps"/>

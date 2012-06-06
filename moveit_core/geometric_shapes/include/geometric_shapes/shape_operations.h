@@ -79,7 +79,7 @@ StaticShape* constructShapeFromMsg(const shape_msgs::StaticShape &shape_msg);
 bool constructMsgFromShape(const StaticShape* shape, shape_msgs::StaticShape &shape_msg);
 
 /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
-bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list=false);
+bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list = false);
 
 }
 

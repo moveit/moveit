@@ -55,15 +55,15 @@ namespace bodies
 struct BoundingSphere
 {
   Eigen::Vector3d center;
-  double    radius;
+  double          radius;
 };
 
 /** \brief Definition of a cylinder */
 struct BoundingCylinder
 {
   Eigen::Affine3d pose;
-  double      radius;
-  double      length;
+  double          radius;
+  double          length;
 };
 
 class Body;
@@ -249,12 +249,12 @@ protected:
   virtual void updateInternalData(void);
   
   // shape-dependent data
-  double    radius_;
+  double          radius_;
   
   // pose/padding/scaling-dependent values & values computed for convenience and fast upcoming computations
   Eigen::Vector3d center_;
-  double    radiusU_;
-  double    radius2_;
+  double          radiusU_;
+  double          radius2_;
 };
 
 /** \brief Definition of a cylinder */
@@ -422,20 +422,20 @@ protected:
   {
     std::vector<Eigen::Vector4f>    planes_;
     std::vector<Eigen::Vector3d>    vertices_;
-    std::vector<unsigned int> triangles_;
+    std::vector<unsigned int>       triangles_;
     Eigen::Vector3d                 mesh_center_;
-    double                    mesh_radiusB_;
+    double                          mesh_radiusB_;
     Eigen::Vector3d                 box_offset_;
     Eigen::Vector3d                 box_size_;
-    BoundingCylinder          bounding_cylinder_;
+    BoundingCylinder                bounding_cylinder_;
   };
   
   // shape-dependent data; keep this in one struct so that a cheap pointer copy can be done in cloneAt()
   boost::shared_ptr<MeshData> mesh_data_;
   
   // pose/padding/scaling-dependent values & values computed for convenience and fast upcoming computations
-  Eigen::Affine3d                 i_pose_;
-  Eigen::Vector3d                   center_;
+  Eigen::Affine3d             i_pose_;
+  Eigen::Vector3d             center_;
   double                      radiusB_;
   double                      radiusBSqr_;
   Box                         bounding_box_;
