@@ -54,10 +54,9 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget()
 
   // Table
   collision_table_ = new QTableWidget();
-  collision_table_->clear();
   collision_table_->setColumnCount(4);
-  collision_table_->setColumnWidth(0, 300);
-  collision_table_->setColumnWidth(1, 300);
+  collision_table_->setColumnWidth(0, 340);
+  collision_table_->setColumnWidth(1, 340);
   collision_table_->setColumnWidth(2, 200);
   collision_table_->setColumnWidth(4, 50);
   //collision_table_->setResizeMode( QHeaderView::Interactive );
@@ -83,30 +82,24 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget()
 
 void ComputeDefaultCollisionsWidget::generateCollisionTable()
 {
-  ROS_INFO("Generating");
-
-  //QProgressDialog* progress = new QProgressDialog("Fetching data...", "Cancel", 0, 100);
-  //progress->setWindowModality(Qt::WindowModal);
-
-
-  //QApplication a(argc, argv);
-  //ProgressDialog w;
-  //w.showMaximized();
- 
- 
+  // Basic Layout
   QVBoxLayout* layout = new QVBoxLayout;
   QWidget*  win = new QWidget;
- 
-  //The minimum and maximum is the number of steps in the operation for which this progress dialog shows progress.
-  //for example here 0 and 100.
+  win->setWindowTitle("Computation Progress");
+
+  // The minimum and maximum is the number of steps in the operation for which this progress dialog shows progress.
   QProgressDialog* progress = new QProgressDialog("Generating Default Collision Matrix...", "", 0, 100);
   progress->setWindowModality(Qt::WindowModal);
   progress->setCancelButton(0);
-  progress->setWindowFlags(Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
-
+  win->setWindowFlags(Qt::WindowTitleHint); // | Qt::WindowMinimizeButtonHint);
   layout->addWidget(progress,Qt::AlignCenter);
-  win->setLayout(layout);
   
+  // Layout
+  win->setLayout(layout);
+  //win->setWindowFlags(Qt::FramelessWindowHint);
+  win->setWindowFlags( ( (win->windowFlags() | Qt::CustomizeWindowHint)
+                         & ~Qt::WindowCloseButtonHint) );
+
   unsigned int collision_progress = 0; // shared variable with thread
   progress->setValue(collision_progress);  
   win->show();
@@ -124,11 +117,10 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
 
   while( collision_progress < 100 )
   {
-    ROS_INFO_STREAM("CHECKING " << collision_progress << "%");
+    //ROS_INFO_STREAM("CHECKING " << collision_progress << "%");
 
     // Set updated progress value.
     progress->setValue(collision_progress);
-    //win->show();
 
     // Allow GUI thread to do its stuff
     QApplication::processEvents(); 
@@ -140,13 +132,15 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
   // Wait for thread to finish
   workerThread.join();
 
-  // Hide progress bar
-  win->hide();
+  // Update progress bar
+  progress->setLabelText("Loading table...");
+  QApplication::processEvents(); // allow the progress bar to be shown
 
-  ROS_INFO("Thread joined");
+  // Setup Collision Table
+  collision_table_->clear();
+  int row = 0;
 
-  // Insert disabled collisions into table
-  //collision_table_->setRowCount((int)collision_pairs_.size()+(int)not_in_collision.size());
+  // Check if there are no disabled collisions (unprobable?)
   if(disabled_links.size() == 0)
   {
     collision_table_->setRowCount(1);
@@ -155,8 +149,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
   }
 
 
-  int row;
-
+  // Insert disabled collisions into table
   for (std::map<std::string, std::set<std::string> >::const_iterator it = disabled_links.begin() ; it != disabled_links.end() ; ++it)
   {    
     // disable all connected links to current link by looping through them
@@ -164,8 +157,6 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
          link2_it != it->second.end(); 
          ++link2_it)
     {
-      // Increment the row count (is this necessary?)
-      row = collision_table_->rowCount();
       collision_table_->setRowCount( row + 1 ); 
 
       QTableWidgetItem* linkA = new QTableWidgetItem( it->first.c_str() ); 
@@ -191,10 +182,15 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
       collision_table_->setItem( row, 1, linkB);
       collision_table_->setItem( row, 2, reason);
       collision_table_->setCellWidget( row, 3, enable_box); 
-
+      
+      // Increment row count
+      ++row;
     }
   }
   //collision_table_->resizeSection();
+
+  // Hide the progress bar
+  win->hide();
 
 }
 
@@ -203,7 +199,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
 {
   ROS_INFO("Inner thread");
 
-  unsigned int num_trials = 1000;
+  unsigned int num_trials = 10000;
 
   const bool verbose = false; // Output benchmarking and statistics
   const bool include_never_colliding = true;
