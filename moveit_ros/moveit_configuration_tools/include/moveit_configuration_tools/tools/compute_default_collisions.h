@@ -38,12 +38,20 @@
 #define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
 
 #include <planning_scene/planning_scene.h>
-//#include <map>
-//#include <vector>
-//#include <string>
 
 namespace moveit_configuration_tools
 {
+
+// Struct for holding properties of a disabled link pair
+struct LinkPairData
+{
+  //  LinkPairData(std::string reason_, bool disable_check_): reason(reason_), disable_check(disable_check_) {}
+  std::string reason;
+  bool disable_check;
+};
+
+// StringAdjList is an adjacency list structure containing links in string-based form. Used for disabled links
+typedef std::map<std::string, std::map<std::string, LinkPairData> > StringAdjList; 
 
 /**
  * \brief Generate an adjacency list of links that are always and never in collision, to speed up collision detection
@@ -52,7 +60,7 @@ namespace moveit_configuration_tools
  * \param trials Optional ability to set the number random collision checks that are made. Increase the probability of correctness
  * \return Adj List of unique set of pairs of links in string-based form
  */
-std::map<std::string, std::set<std::string> > 
+StringAdjList
 computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress, 
                          const bool include_never_colliding = true, const unsigned int trials = 10000, const bool verbose = false);
 
@@ -60,7 +68,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
  * \brief Generate xml format of disabled links for use in an SRDF
  * \param Adj List of unique set of pairs of links in string-based form 
  */
-void outputDisabledCollisionsXML(const std::map<std::string, std::set<std::string> > &disabled_links);
+void outputDisabledCollisionsXML(const StringAdjList &disabled_links);
 }
 
 #endif

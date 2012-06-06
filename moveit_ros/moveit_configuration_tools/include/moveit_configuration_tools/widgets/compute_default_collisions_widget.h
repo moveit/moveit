@@ -39,14 +39,22 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
+#include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSlider>
 #include <QProgressDialog>
+#include <QProgressBar>
 #include <QTableWidget>
 #include <QCheckBox>
+#include <QString>
+#include <QFont>
 #include <QApplication>
 #include <boost/thread.hpp>
 #include "ros/ros.h"
+#include <moveit_configuration_tools/tools/compute_default_collisions.h>
 
 class ComputeDefaultCollisionsWidget : public QWidget
 {
@@ -58,17 +66,29 @@ public:
 private Q_SLOTS:
   void quit();
   void generateCollisionTable();
+  void changeDensityLabel(int value);
 
 private:
   // Qt Components
-  QPushButton *generateButton_;
   QTableWidget *collision_table_;
   QPushButton *quitButton_;
   QVBoxLayout *layout_;
+  QLabel *density_value_label_;
+  QSlider *density_slider_;
+  QPushButton *generate_button_;
+  QGroupBox *controls_box_;
+  QProgressBar *progress_bar_;
+  QLabel *progress_label_;
+
+  // Data 
+  moveit_configuration_tools::StringAdjList disabled_links;
 
   // Functions
-  void generateCollisionTableThread( unsigned int *collision_progress, 
-                                     std::map<std::string, std::set<std::string> > *disabled_links );
+  void generateCollisionTableThread( unsigned int *collision_progress );
+                                     
+  void loadCollisionTable();
+
+  void disableControls(bool disable);
 };
 
 #endif
