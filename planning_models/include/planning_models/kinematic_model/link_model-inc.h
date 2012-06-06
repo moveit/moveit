@@ -105,6 +105,12 @@ public:
   {
     return shape_;
   }
+
+  /** \brief Get shape associated to the collision geometry for this link */
+  const shape_msgs::Shape& getShapeMsg(void) const
+  {
+    return shape_msg_;
+  }
   
 private:
   
@@ -125,6 +131,9 @@ private:
   
   /** \brief The collision geometry of the link */
   shapes::ShapeConstPtr     shape_;
+  
+  /** \brief The collision geometry of the link as a message */
+  shape_msgs::Shape         shape_msg_;
   
   /** \brief Filename associated with the collision geometry mesh of this link (loaded in shape_). If empty, no mesh was used. */
   std::string               filename_;

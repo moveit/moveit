@@ -85,7 +85,6 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_m
   
   for (std::size_t i = 0 ; i < geoms_.size() ; ++i)
   {
-    
     if (geoms_[i] && geoms_[i]->collision_geometry_)
     {
       fcl::CollisionObject *collObj = new fcl::CollisionObject(geoms_[i]->collision_geometry_, transform2fcl(link_states[i]->getGlobalCollisionBodyTransform()));

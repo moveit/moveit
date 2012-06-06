@@ -259,6 +259,27 @@ template<typename ShapeType>
 struct FCLShapeCache
 {
   FCLShapeCache(void) : clean_count_(0) {}
+  
+  void bumpUseCount(void) 
+  { 
+    clean_count_++;
+    
+    // clean-up for cache (we don't want to keep infinitely large number of weak ptrs stored)
+    if (clean_count_ > MAX_CLEAN_COUNT)
+    {
+      clean_count_ = 0;
+      unsigned int from = map_.size();
+      for (typename std::map<boost::weak_ptr<const ShapeType>, FCLGeometryConstPtr>::iterator it = map_.begin() ; it != map_.end() ; )
+      {
+        typename std::map<boost::weak_ptr<const ShapeType>, FCLGeometryConstPtr>::iterator nit = it; ++nit;
+        if (it->first.expired())
+          map_.erase(it);
+        it = nit;
+      }
+      ROS_DEBUG("Cleaning up cache for FCL objects that correspond to static shapes. Cache size reduced from %u to %u", from, (unsigned int)map_.size());
+    }
+  }
+  
   static const unsigned int MAX_CLEAN_COUNT = 100; // every this many uses of the cache, a cleaning operation is executed (this is only removal of expired entries)
   std::map<boost::weak_ptr<const ShapeType>, FCLGeometryConstPtr> map_;
   unsigned int clean_count_;
@@ -309,8 +330,15 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &s
     boost::mutex::scoped_lock slock(cache.lock_);
     std::map<boost::weak_ptr<const shapes::StaticShape>, FCLGeometryConstPtr>::const_iterator cache_it = cache.map_.find(wptr);
     if (cache_it != cache.map_.end()) 
-    {
-      const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, false);
+    {  
+      if (cache_it->second->collision_geometry_data_->ptr.raw == (void*)data)
+        return cache_it->second;
+      else
+        if (cache_it->second.unique())
+        {
+          const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, false);
+          return cache_it->second;
+        }
       return cache_it->second;
     }
   }
@@ -333,22 +361,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &s
     FCLGeometryConstPtr res(new FCLGeometry(g, data));
     boost::mutex::scoped_lock slock(cache.lock_);
     cache.map_[wptr] = res;
-    cache.clean_count_++;
-    
-    // clean-up for cache (we don't want to keep infinitely large number of weak ptrs stored)
-    if (cache.clean_count_ > cache.MAX_CLEAN_COUNT)
-    {
-      cache.clean_count_ = 0;
-      unsigned int from = cache.map_.size();
-      for (std::map<boost::weak_ptr<const shapes::StaticShape>, FCLGeometryConstPtr>::iterator it = cache.map_.begin() ; it != cache.map_.end() ; )
-      {
-        std::map<boost::weak_ptr<const shapes::StaticShape>, FCLGeometryConstPtr>::iterator nit = it; ++nit;
-        if (it->first.expired())
-          cache.map_.erase(it);
-        it = nit;
-      }
-      ROS_DEBUG("Cleaning up cache for FCL objects that correspond to static shapes. Cache size reduced from %u to %u", from, (unsigned int)cache.map_.size());
-    }
+    cache.bumpUseCount();
     return res;
   }
   return FCLGeometryConstPtr();
@@ -365,8 +378,14 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::const_iterator cache_it = cache.map_.find(wptr);
     if (cache_it != cache.map_.end())
     {
-      const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, false);
-      return cache_it->second;
+      if (cache_it->second->collision_geometry_data_->ptr.raw == (void*)data)
+        return cache_it->second;
+      else
+        if (cache_it->second.unique())
+        {
+          const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, false);
+          return cache_it->second;
+        }
     }
   }
   
@@ -392,14 +411,14 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
         othercache.map_.erase(cache_it);
         othercache.lock_.unlock();
 
-        // update the CollisionGeometryData
+        // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
         
         // add to the new cache
         boost::mutex::scoped_lock slock(cache.lock_);
         cache.map_[wptr] = obj_cache;
-        cache.clean_count_++;
-        return obj_cache;        
+        cache.bumpUseCount();
+        return obj_cache;
       }
     }
     othercache.lock_.unlock();
@@ -427,13 +446,13 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
         othercache.map_.erase(cache_it);
         othercache.lock_.unlock();
 
-        // update the CollisionGeometryData
+        // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
 
         // add to the new cache
         boost::mutex::scoped_lock slock(cache.lock_);
         cache.map_[wptr] = obj_cache;
-        cache.clean_count_++;
+        cache.bumpUseCount();
         return obj_cache;        
       }
     }
@@ -488,68 +507,49 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     g->computeLocalAABB();
     FCLGeometryConstPtr res(new FCLGeometry(g, data));
     boost::mutex::scoped_lock slock(cache.lock_);
-    cache.map_[wptr] = res;
-    cache.clean_count_++;
-    
-    // clean-up for cache (we don't want to keep infinitely large number of weak ptrs stored)
-    if (cache.clean_count_ > cache.MAX_CLEAN_COUNT)
-    {
-      cache.clean_count_ = 0;
-      unsigned int from = cache.map_.size();
-      for (std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator it = cache.map_.begin() ; it != cache.map_.end() ; )
-      {
-        std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator nit = it; ++nit;
-        if (it->first.expired())
-        {
-          it->second.reset();
-          cache.map_.erase(it);
-        }
-        it = nit;
-      }
-      ROS_DEBUG("Cleaning up cache for FCL objects that correspond to shapes. Cache size reduced from %u to %u", from, (unsigned int)cache.map_.size());
-    }
+    cache.map_[wptr] = res;    
+    cache.bumpUseCount();
     return res;
   }
   return FCLGeometryConstPtr();
 } 
 
 
-
 /////////////////////////////////////////////////////
 FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
                                             const planning_models::KinematicModel::LinkModel *link)
 {
-  return createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, link);
+  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicModel::LinkModel>(shape, link);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
                                             const planning_models::KinematicState::AttachedBody *ab)
 {
-  return createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, ab);
+  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicState::AttachedBody>(shape, ab);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
                                             const CollisionWorld::Object *obj)
 {
-  return createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, obj);
+  return createCollisionGeometry<fcl::OBBRSS, CollisionWorld::Object>(shape, obj);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const planning_models::KinematicModel::LinkModel *link)
 {
-  return createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, link);
+  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicModel::LinkModel>(shape, link);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const planning_models::KinematicState::AttachedBody *ab)
 {
-  return createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, ab);
+  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicState::AttachedBody>(shape, ab);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const CollisionWorld::Object *obj)
 {
-  return createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, obj);
+  return createCollisionGeometry<fcl::OBBRSS, CollisionWorld::Object>(shape, obj);
 }
 
 template<typename BV, typename T>
@@ -568,19 +568,19 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const planning_models::KinematicModel::LinkModel *link)
 {
-  return createCollisionGeometry<fcl::OBB, planning_models::KinematicModel::LinkModel>(shape, scale, padding, link);
+  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicModel::LinkModel>(shape, scale, padding, link);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const planning_models::KinematicState::AttachedBody *ab)
 {
-  return createCollisionGeometry<fcl::OBB, planning_models::KinematicState::AttachedBody>(shape, scale, padding, ab);
+  return createCollisionGeometry<fcl::OBBRSS, planning_models::KinematicState::AttachedBody>(shape, scale, padding, ab);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const CollisionWorld::Object *obj)
 {
-  return createCollisionGeometry<fcl::OBB, CollisionWorld::Object>(shape, scale, padding, obj);
+  return createCollisionGeometry<fcl::OBBRSS, CollisionWorld::Object>(shape, scale, padding, obj);
 }
 
 }

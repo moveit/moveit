@@ -72,9 +72,9 @@ bool SplineShortcutter::shortcut(const planning_scene::PlanningSceneConstPtr& sc
   traj.joint_trajectory = trajectory_in;
 
   if(!scene->isPathValid(*start_state,
+                         traj,
                          path_constraints,
-                         goal_constraints,
-                         traj)) {
+                         goal_constraints)) {
     //TODO - get error codes
     ROS_INFO_STREAM("Original trajectory invalid");
     return false;
@@ -108,9 +108,9 @@ bool SplineShortcutter::shortcut(const planning_scene::PlanningSceneConstPtr& sc
 
   traj.joint_trajectory = trajectory_out;
   if(!scene->isPathValid(*start_state,
+                         traj,
                          path_constraints,
-                         goal_constraints,
-                         traj)) {
+                         goal_constraints)) {
     //TODO - get error codes
     ROS_INFO_STREAM("Sampled trajectory invalid");
     return false;
@@ -150,13 +150,10 @@ bool SplineShortcutter::shortcut(const planning_scene::PlanningSceneConstPtr& sc
     discretizeTrajectory(shortcut_spline,discretization_,discretized_trajectory);
     ROS_DEBUG("Succeeded in sampling trajectory with size: %d",(int)discretized_trajectory.points.size());
 
-    moveit_msgs::Constraints empty_goal_constraints;
-
     traj.joint_trajectory = discretized_trajectory;
     if(scene->isPathValid(*start_state,
-                          path_constraints,
-                          empty_goal_constraints,
-                          traj)) {
+                          traj,
+                          path_constraints)) {
       ros::Duration shortcut_duration = discretized_trajectory.points.back().time_from_start - discretized_trajectory.points.front().time_from_start;
       if(segment_end_time-segment_start_time <= shortcut_duration.toSec())
         continue;
