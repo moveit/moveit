@@ -42,12 +42,17 @@
 
 namespace collision_detection
 {
-  
-  void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
-				       const std::string& frame_id,
-				       const CollisionResult::ContactMap &con,
-				       const std_msgs::ColorRGBA& color,
-				       const ros::Duration& lifetime);
+
+void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
+                                     const std::string& frame_id,
+                                     const CollisionResult::ContactMap &con,
+                                     const std_msgs::ColorRGBA& color,
+                                     const ros::Duration& lifetime,
+                                     const double radius = 0.035);
+
+void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
+                                     const std::string& frame_id,
+                                     const CollisionResult::ContactMap &con);
 }
 
 #endif

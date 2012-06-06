@@ -38,9 +38,19 @@
 
 void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
                                                           const std::string& frame_id,
+                                                          const CollisionResult::ContactMap &con)
+{
+  std_msgs::ColorRGBA color;
+  color.r = 1.0f; color.g = 0.0f; color.b = 0.0f; color.a = 0.8f;
+  getCollisionMarkersFromContacts(arr, frame_id, con, color, ros::Duration(60.0));
+}
+
+void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
+                                                          const std::string& frame_id,
                                                           const CollisionResult::ContactMap& con,
                                                           const std_msgs::ColorRGBA& color,
-                                                          const ros::Duration& lifetime)
+                                                          const ros::Duration& lifetime,
+                                                          double radius)
   
 {
   std::map<std::string, unsigned> ns_counts;
@@ -65,7 +75,7 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
       mk.pose.position.y = it->second[i].pos.y();
       mk.pose.position.z = it->second[i].pos.z();
       mk.pose.orientation.w = 1.0;
-      mk.scale.x = mk.scale.y = mk.scale.z = 0.035;
+      mk.scale.x = mk.scale.y = mk.scale.z = radius;
       mk.color = color;
       if(mk.color.a == 0.0) {
         mk.color.a = 1.0;
