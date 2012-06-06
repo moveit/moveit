@@ -169,6 +169,20 @@ void planning_models::KinematicState::JointState::updateMimicJoints(void)
   }
 }
 
+void planning_models::KinematicState::JointState::enforceBounds(void)
+{
+  joint_model_->enforceBounds(joint_state_values_);  
+  joint_model_->updateTransform(joint_state_values_, variable_transform_);
+  updateMimicJoints();
+}
+
+void planning_models::KinematicState::JointState::interpolate(const JointState *to, const double t, JointState *dest) const
+{
+  joint_model_->interpolate(joint_state_values_, to->joint_state_values_, t, dest->joint_state_values_);
+  dest->joint_model_->updateTransform(dest->joint_state_values_, dest->variable_transform_);
+  dest->updateMimicJoints();
+}
+
 bool planning_models::KinematicState::JointState::allVariablesAreDefined(const std::map<std::string, double>& joint_value_map) const
 {
   const std::map<std::string, unsigned int> &vim = getVariableIndexMap();

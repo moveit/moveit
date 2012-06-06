@@ -93,20 +93,14 @@ public:
   }
   
   /** \brief Force the joint to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
-  void enforceBounds(void)
-  {
-    joint_model_->enforceBounds(joint_state_values_);
-  }
+  void enforceBounds(void);
   
   double distance(const JointState *other) const
   {
     return joint_model_->distance(joint_state_values_, other->joint_state_values_);
   }
   
-  void interpolate(const JointState *to, const double t, JointState *dest) const
-  {
-    return joint_model_->interpolate(joint_state_values_, to->joint_state_values_, t, dest->joint_state_values_);
-  }
+  void interpolate(const JointState *to, const double t, JointState *dest) const;
   
   /** \brief Get the name of the model associated with this state */
   const std::string& getName(void) const
