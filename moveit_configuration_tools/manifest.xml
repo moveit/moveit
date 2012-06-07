@@ -7,7 +7,10 @@
   <author>Gil Jones</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/moveit_configuration_tools</url>
+  <url>http://ros.org/wiki/moveit_configuration_tools</url> 
+
+  <rosdep name="tinyxml" />
+
   <depend package="planning_models"/>
   <depend package="kinematics_constraint_aware"/>
   <depend package="planning_scene"/>
