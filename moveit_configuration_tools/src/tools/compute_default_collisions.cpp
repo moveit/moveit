@@ -690,7 +690,7 @@ void outputDisabledCollisionsXML(const LinkPairMap & link_pairs)
       robot_root->LinkEndChild(dc);
       dc->SetAttribute("link1", pair_it->first.first);
       dc->SetAttribute("link2", pair_it->first.second);
-
+      dc->SetAttribute("reason", reasonsToString.at( pair_it->second.reason ));
       ++num_disabled;
     }
   }
@@ -699,15 +699,6 @@ void outputDisabledCollisionsXML(const LinkPairMap & link_pairs)
 
   ROS_INFO("TOTAL DISABLED LINKS: %d", num_disabled);
 
-}
-
-// ******************************************************************************************
-// Convert Disabled Reason to String
-// Note: this function was created to alleviate the need to include boost libraries in the header file
-// ******************************************************************************************
-std::string disabledReasonToString( DisabledReason reason )
-{
-  return reasonsToString.at( reason );
 }
 
 }
