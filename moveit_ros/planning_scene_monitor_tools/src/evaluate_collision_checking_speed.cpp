@@ -69,6 +69,7 @@ int main(int argc, char **argv)
   boost::program_options::variables_map vm;
   boost::program_options::parsed_options po = boost::program_options::parse_command_line(argc, argv, desc);
   boost::program_options::store(po, vm);
+  boost::program_options::notify(vm);
   
   if (vm.count("help"))
   {
