@@ -187,9 +187,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
   QApplication::processEvents(); // allow the progress bar to be shown
 
 
-  generateCollisionTableThread( &collision_progress );
-
-  /*
+  //generateCollisionTableThread( &collision_progress );
 
   // Create thread to do actual work
   boost::thread workerThread( boost::bind( &ComputeDefaultCollisionsWidget::generateCollisionTableThread, 
@@ -213,7 +211,6 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
 
   // Wait for thread to finish
   workerThread.join();
-  */
 
   // Load the results into the GUI
   loadCollisionTable();
