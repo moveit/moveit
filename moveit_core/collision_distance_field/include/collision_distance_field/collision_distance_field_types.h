@@ -89,16 +89,16 @@ struct GradientInfo
 
   double closest_distance;
   bool collision;
-  std::vector<Eigen::Vector3d> sphere_locations;
+  //std::vector<Eigen::Vector3d> sphere_locations;
   std::vector<double> distances;
   std::vector<Eigen::Vector3d> gradients;
-  std::vector<double> sphere_radii;
-  std::string joint_name;
+  //std::vector<double> sphere_radii;
+  //std::string joint_name;
 
   void clear() {
     closest_distance = DBL_MAX;
     collision = false;
-    sphere_locations.clear();
+    //sphere_locations.clear();
     distances.clear();
     gradients.clear();
   }
@@ -367,6 +367,15 @@ void getCollisionSphereMarkers(const std_msgs::ColorRGBA& color,
                                const ros::Duration& dur,
                                const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
                                visualization_msgs::MarkerArray& arr);
+
+void getProximityGradientMarkers(const std_msgs::ColorRGBA& color,
+                                 const std::string& frame_id,
+                                 const std::string& ns,
+                                 const ros::Duration& dur,
+                                 const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
+                                 const std::vector<GradientInfo>& gradients,
+                                 visualization_msgs::MarkerArray& arr);
+
 
 }
 
