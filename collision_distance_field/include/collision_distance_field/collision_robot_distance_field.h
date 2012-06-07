@@ -167,6 +167,10 @@ public:
   
 protected:
 
+  bool getSelfProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
+                                 boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+
   void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
                                 collision_detection::CollisionResult& res,
                                 const planning_models::KinematicState& state,
