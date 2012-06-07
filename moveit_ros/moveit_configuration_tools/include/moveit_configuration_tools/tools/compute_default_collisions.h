@@ -73,6 +73,10 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
  * \param Adj List of unique set of pairs of links in string-based form 
  */
 void outputDisabledCollisionsXML(const LinkPairMap &link_pairs);
+
+// TODO
+std::string disabledReasonToString( DisabledReason reason );
+
 }
 
 #endif

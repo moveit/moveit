@@ -300,6 +300,8 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
 
   }
 
+  *progress = 100; // end the status bar
+
   return link_pairs;
 }
 
@@ -595,39 +597,26 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
     //std::cout << "Created thread " << i << std::endl;
   }
 
-  //ROS_INFO("Waiting on threads to compelete");
-
   bgroup.join_all(); // wait for all threads to finish
 
-  // Get the names of the link models that have some collision geometry associated to themselves
-  // Note: getLinkModelNamesWithCollisionGeometry only returns links with shapes
-  const std::vector<std::string> &names = scene.getKinematicModel()->getLinkModelNamesWithCollisionGeometry();
-
-  //ROS_INFO("Link models with geometry: %d", int(names.size()));
-    
-  std::pair<std::string,std::string> temp_pair;
-
-  // Loop through every combination of name pairs, AB and BA, n^2
-  for (std::size_t i = 0 ; i < names.size() ; ++i)
+  // Loop through every possible link pair and check if it has ever been seen in collision
+  for ( LinkPairMap::iterator pair_it = link_pairs.begin() ; pair_it != link_pairs.end() ; ++pair_it)
   {
-    for (std::size_t j = i+1 ; j < names.size() ; ++j)
-    {
-      // Which order of the two strings is correct (alphabetical)
-      if (names[i] < names[j])
-        temp_pair = std::make_pair(names[i], names[j]);
-      else
-        temp_pair = std::make_pair(names[j], names[i]);
-
+    if( ! pair_it->second.disable_check ) // is not disabled yet
+    {          
       // Check if current pair has been seen colliding ever. If it has never been seen colliding, add it to disabled list
-      if (links_seen_colliding.find( temp_pair ) == links_seen_colliding.end())
+      if (links_seen_colliding.find( pair_it->first ) == links_seen_colliding.end())
       {
         // Add to disabled list using pair ordering
-        num_disabled += setLinkPair( temp_pair.first, temp_pair.second, NEVER, link_pairs );
+        pair_it->second.reason = NEVER;
+        pair_it->second.disable_check = true;
+
+        // Count it
+        ++num_disabled;
       }
     }
   }
   ROS_INFO("Disabled %d link pairs that are never in collision", num_disabled);
-  *progress = 100; // end the status bar
 
   return num_disabled;
 }
@@ -659,7 +648,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
     kstate.setToRandomValues();
     tc.scene_.checkSelfCollision(tc.req_, res, kstate);
 
-    // SLIGHTLY FASTER DAVE METHOD ---------------------
+    // Check all contacts
     for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
     {
       // Check if this collision pair is unique before doing a thread lock

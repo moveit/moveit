@@ -75,19 +75,19 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget()
   // Slider
   density_slider_ = new QSlider();
   density_slider_->setTickPosition(QSlider::TicksBelow);
-  density_slider_->setMinimum( 1000 ); 
-  density_slider_->setMaximum( 500000 );
-  density_slider_->setSingleStep( 5000 );
-  density_slider_->setPageStep( 10000 );
-  density_slider_->setSliderPosition( 10000 ); // 10,000 is default
-  density_slider_->setTickInterval( 5000 );
+  density_slider_->setMinimum( 0 ); 
+  density_slider_->setMaximum( 99 );
+  density_slider_->setSingleStep( 10 );
+  density_slider_->setPageStep( 50 );
+  density_slider_->setSliderPosition( 9 ); // 10,000 is default
+  density_slider_->setTickInterval( 10 );
   density_slider_->setOrientation( Qt::Horizontal );
   controls_box_layout->addWidget(density_slider_);
   connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
 
   // Slider Value Label
   density_value_label_ = new QLabel();
-  density_value_label_->setText( ( QString::number( density_slider_->value() ) ).rightJustified( 10, ' ', TRUE ) ) ;
+  density_value_label_->setText( ( QString::number( density_slider_->value() * 1000 + 1000) ).rightJustified( 10, ' ', TRUE ) ) ;
   density_value_label_->setMinimumWidth(100);
   controls_box_layout->addWidget(density_value_label_);
 
@@ -117,11 +117,11 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget()
   // Table
   collision_table_ = new QTableWidget();
   collision_table_->setColumnCount(4);
-  collision_table_->setColumnWidth(0, 340);
-  collision_table_->setColumnWidth(1, 340);
-  collision_table_->setColumnWidth(2, 160);
-  collision_table_->setColumnWidth(4, 50);
-  //collision_table_->setResizeMode( QHeaderView::Interactive );
+  collision_table_->setColumnWidth(0, 320);
+  collision_table_->setColumnWidth(1, 320);
+  collision_table_->setColumnWidth(2, 175);
+  collision_table_->setColumnWidth(4, 60);
+  collision_table_->setSortingEnabled(true);
   layout_->addWidget(collision_table_);
 
   // Table Headers
@@ -220,7 +220,7 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
       QTableWidgetItem* linkB = new QTableWidgetItem( pair_it->first.second.c_str() );
       linkB->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      QTableWidgetItem* reason = new QTableWidgetItem( "dunno" ); // TODO convert pair_it->second.reason.c_str() );
+      QTableWidgetItem* reason = new QTableWidgetItem( moveit_configuration_tools::disabledReasonToString(pair_it->second.reason).c_str() );
       reason->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
       QCheckBox* enable_box = new QCheckBox(collision_table_);
@@ -252,9 +252,9 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
 {
   ROS_INFO("Inner thread");
 
-  unsigned int num_trials = density_slider_->value();
+  unsigned int num_trials = density_slider_->value() * 1000 + 1000;
 
-  const bool verbose = false; // Output benchmarking and statistics
+  const bool verbose = true; // Output benchmarking and statistics
   const bool include_never_colliding = true;
 
   // Load robot description
@@ -262,7 +262,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
 
   // Find the default collision matrix - all links that are allowed to collide
   link_pairs = moveit_configuration_tools::computeDefaultCollisions(psm.getPlanningScene(), collision_progress, 
-                                                                        include_never_colliding, num_trials, verbose);
+                                                                    include_never_colliding, num_trials, verbose);
   
   // Output results to an XML file
   //moveit_configuration_tools::outputDisabledCollisionsXML( link_pairs );
@@ -286,7 +286,7 @@ void ComputeDefaultCollisionsWidget::quit()
 
 void ComputeDefaultCollisionsWidget::changeDensityLabel(int value)
 {
-  density_value_label_->setText( ( QString::number( value ) ).rightJustified( 10, ' ', TRUE ) ) ;
+  density_value_label_->setText( ( QString::number( value*1000 + 1000) ).rightJustified( 10, ' ', TRUE ) ) ;
 }
 
 void ComputeDefaultCollisionsWidget::disableControls(bool disable)
