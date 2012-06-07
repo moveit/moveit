@@ -35,6 +35,7 @@ qt4_wrap_cpp(moc_sources ${headers})
 
 rosbuild_add_library(${PROJECT_NAME}
   src/tools/compute_default_collisions.cpp
+  src/tools/compute_longest_valid_segment_fraction.cpp
   src/widgets/compute_default_collisions_widget.cpp
   src/benchmark_timer.cpp
 )
