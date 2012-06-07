@@ -201,3 +201,54 @@ void collision_distance_field::getCollisionSphereMarkers(const std_msgs::ColorRG
   }
 }
 
+void collision_distance_field::getProximityGradientMarkers(const std_msgs::ColorRGBA& color,
+                                                           const std::string& frame_id,
+                                                           const std::string& ns,
+                                                           const ros::Duration& dur,
+                                                           const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
+                                                           const std::vector<GradientInfo>& gradients,
+                                                           visualization_msgs::MarkerArray& arr)
+{
+  for(unsigned int i = 0; i < gradients.size(); i++) {
+    for(unsigned int j = 0; j < gradients[i].distances.size(); j++) {
+      visualization_msgs::Marker arrow_mark;
+      arrow_mark.header.frame_id = frame_id;
+      arrow_mark.header.stamp = ros::Time::now();
+      if(ns.empty()) {
+        arrow_mark.ns = "self_coll_gradients";
+      } else {
+        arrow_mark.ns = ns;
+      }
+      arrow_mark.id = i*1000+j;
+      double xscale = 0.0;
+      double yscale = 0.0;
+      double zscale = 0.0;
+      if(gradients[i].distances[j] > 0.0) {
+        if(gradients[i].gradients[j].norm() > 0.0) {
+          xscale = gradients[i].gradients[j].x()/gradients[i].gradients[j].norm();
+          yscale = gradients[i].gradients[j].y()/gradients[i].gradients[j].norm();
+          zscale = gradients[i].gradients[j].z()/gradients[i].gradients[j].norm();
+        } else {
+          ROS_DEBUG_STREAM("Negative length for " << i << " " << arrow_mark.id << " " << gradients[i].gradients[j].norm());
+        }
+      } else {
+        ROS_DEBUG_STREAM("Negative dist " << gradients[i].distances[j] << " for " << i << " " << arrow_mark.id);
+      }
+      arrow_mark.points.resize(2);
+      arrow_mark.points[1].x = posed_decompositions[i]->getSphereCenters()[j].x();
+      arrow_mark.points[1].y = posed_decompositions[i]->getSphereCenters()[j].y();
+      arrow_mark.points[1].z = posed_decompositions[i]->getSphereCenters()[j].z();
+      arrow_mark.points[0] = arrow_mark.points[1];
+      arrow_mark.points[0].x -= xscale*gradients[i].distances[j];
+      arrow_mark.points[0].y -= yscale*gradients[i].distances[j];
+      arrow_mark.points[0].z -= zscale*gradients[i].distances[j];
+      arrow_mark.scale.x = 0.01;
+      arrow_mark.scale.y = 0.03;
+      arrow_mark.color.r = 1.0;
+      arrow_mark.color.g = 0.2;
+      arrow_mark.color.b = .5;
+      arrow_mark.color.a = 1.0;
+      arr.markers.push_back(arrow_mark);
+    }
+  }
+}
