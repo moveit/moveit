@@ -193,7 +193,7 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
   int row = 0;
 
   // Check if there are no disabled collisions (unprobable?)
-  if(disabled_links.size() == 0)
+  if(link_pairs.size() == 0)
   {
     collision_table_->setRowCount(1);
     QTableWidgetItem* no_collide = new QTableWidgetItem("No Link Pairs Of This Kind");
@@ -205,37 +205,33 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
     generate_button_->setText("Regenerate Default Collision Matrix");
   }
 
-  // Insert disabled collisions into table
-  for (moveit_configuration_tools::StringAdjList::const_iterator linkA_it = disabled_links.begin(); 
-       linkA_it != disabled_links.end(); 
-       ++linkA_it)
-  {    
-    // disable all connected links to current link by looping through them
-    for (std::map<std::string, moveit_configuration_tools::LinkPairData>::const_iterator linkB_it = linkA_it->second.begin(); 
-         linkB_it != linkA_it->second.end(); 
-         ++linkB_it)
+  for ( moveit_configuration_tools::LinkPairMap::const_iterator pair_it = link_pairs.begin(); 
+        pair_it != link_pairs.end(); 
+        ++pair_it)
+  {
+    if( pair_it->second.disable_check ) // has a reason to be disabled
     {
       collision_table_->setRowCount( row + 1 ); 
       
       // Create row elements
-      QTableWidgetItem* linkA = new QTableWidgetItem( linkA_it->first.c_str() ); 
+      QTableWidgetItem* linkA = new QTableWidgetItem( pair_it->first.first.c_str() ); 
       linkA->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      QTableWidgetItem* linkB = new QTableWidgetItem( linkB_it->first.c_str() );
+      QTableWidgetItem* linkB = new QTableWidgetItem( pair_it->first.second.c_str() );
       linkB->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      QTableWidgetItem* reason = new QTableWidgetItem( linkB_it->second.reason.c_str() );
+      QTableWidgetItem* reason = new QTableWidgetItem( "dunno" ); // TODO convert pair_it->second.reason.c_str() );
       reason->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
       QCheckBox* enable_box = new QCheckBox(collision_table_);
-      if( linkB_it->second.disable_check ) // Checked means no collision checking
+      if( pair_it->second.disable_check ) // Checked means no collision checking
       {
         enable_box->setChecked(true);
       } else 
       {
         enable_box->setChecked(false);
       }
-      //connect(enable_box, SIGNAL(toggled(bool)), this, SLOT(tableChanged()));
+      //connect(enable_box, SIGNAL(toggled(bool)), this, SLOT(toggleCheckBox(bool)));
 
       // Insert row elements into collision table
       collision_table_->setItem( row, 0, linkA);
@@ -258,22 +254,23 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
 
   unsigned int num_trials = density_slider_->value();
 
-  const bool verbose = true; // Output benchmarking and statistics
+  const bool verbose = false; // Output benchmarking and statistics
   const bool include_never_colliding = true;
+
   // Load robot description
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
 
   // Find the default collision matrix - all links that are allowed to collide
-  disabled_links = moveit_configuration_tools::computeDefaultCollisions(psm.getPlanningScene(), collision_progress, 
+  link_pairs = moveit_configuration_tools::computeDefaultCollisions(psm.getPlanningScene(), collision_progress, 
                                                                         include_never_colliding, num_trials, verbose);
   
   // Output results to an XML file
-  //moveit_configuration_tools::outputDisabledCollisionsXML( disabled_links );
+  //moveit_configuration_tools::outputDisabledCollisionsXML( link_pairs );
   
   // End the progress bar loop
   *collision_progress = 100;
 
-  ROS_INFO_STREAM("Thread complete " << disabled_links.size());
+  ROS_INFO_STREAM("Thread complete " << link_pairs.size());
 }
 
 void ComputeDefaultCollisionsWidget::quit()

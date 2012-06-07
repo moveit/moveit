@@ -81,7 +81,7 @@ private:
   QLabel *progress_label_;
 
   // Data 
-  moveit_configuration_tools::StringAdjList disabled_links;
+  moveit_configuration_tools::LinkPairMap link_pairs;
 
   // Functions
   void generateCollisionTableThread( unsigned int *collision_progress );

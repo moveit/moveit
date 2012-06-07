@@ -52,16 +52,14 @@ namespace moveit_configuration_tools
 // Custom Types, Enums and Structs
 // ******************************************************************************************
 
-// Reasons for disabling link pairs. append "in collision" for understanding
-enum DisabledReasons { NEVER, DEFAULT, ADJACENT, ALWAYS, USER }; 
-
-// Boost mapping of reasons to strings
-const boost::unordered_map<DisabledReasons, const char*> reasonsToString = boost::assign::map_list_of
+// Boost mapping of reasons for disabling a link pair to strings
+const boost::unordered_map<DisabledReason, const char*> reasonsToString = boost::assign::map_list_of
   ( NEVER, "Never" )
   ( DEFAULT, "Default" )
   ( ADJACENT, "Adjacent" )
   ( ALWAYS, "Always" )
-  ( USER, "User" );
+  ( USER, "User" )
+  ( NOT_DISABLED, "Not Disabled");
 
 // Unique set of pairs of links in string-based form
 typedef std::set<std::pair<std::string, std::string> > StringPairSet;
@@ -97,6 +95,23 @@ typedef std::map<const planning_models::KinematicModel::LinkModel*, std::set<con
 // ******************************************************************************************
 
 /**
+ * \brief Helper function for adding two links to the disabled links data structure
+ * \param linkA Name of first link
+ * \param linkB Name of second link
+ * \param reason Enum reason of why the link pair is disabled from C.C., if it is
+ * \param link_pairs List of all unique link pairs and each pair's properties
+ * \return bool Was link pair already disabled from C.C.
+ */
+static bool setLinkPair(const std::string &linkA, const std::string &linkB, const DisabledReason reason, LinkPairMap &link_pairs);
+
+/**
+ * \brief Generate a list of unique link pairs for all links with geometry. Order pairs alphabetically. n choose 2 pairs
+ * \param scene A reference to the robot in the planning scene
+ * \param link_pairs List of all unique link pairs and each pair's properties
+ **/
+static void computeLinkPairs( planning_scene::PlanningScene &scene, LinkPairMap &link_pairs );
+
+/**
  * \brief Build the robot links connection graph and then check for links with no geomotry
  * \param link The root link to begin a breadth first search on
  * \param link_graph A representation of all bi-direcitonal joint connections between links in robot_description
@@ -114,56 +129,58 @@ static void computeConnectionGraphRec(const planning_models::KinematicModel::Lin
  * \brief Disable collision checking for adjacent links, or adjacent with no geometry links between them
  * \param link_graph A representation of all bi-direcitonal joint connections between links in robot_description
  * \param scene A reference to the robot in the planning scene
- * \param disabled_links An adjacency list of all links to be disabled, with pairs ordered alphabetically
+ * \param link_pairs List of all unique link pairs and each pair's properties
  * \return number of adjacent links found and disabled
  */
-static unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGraph &link_graph, StringAdjList &disabled_links);
+static unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGraph &link_graph, LinkPairMap &link_pairs);
 
 
 /**
  * \brief Disable all collision checks that occur when the robot is started in its default state
  * \param scene A reference to the robot in the planning scene
- * \param disabled_links An adjacency list of all links to be disabled, with pairs ordered alphabetically
+ * \param link_pairs List of all unique link pairs and each pair's properties
  * \param req A reference to a collision request that is already initialized
  * \return number of default collision links found and disabled
  */
-static unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, StringAdjList &disabled_links, 
+static unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, LinkPairMap &link_pairs, 
                                              collision_detection::CollisionRequest &req);
 
 /**
  * \brief Compute the links that are always in collision
  * \param scene A reference to the robot in the planning scene
- * \param disabled_links An adjacency list of all links to be disabled, with pairs ordered alphabetically
+ * \param link_pairs List of all unique link pairs and each pair's properties
  * \param req A reference to a collision request that is already initialized
  * \param links_seen_colliding Set of links that have at some point been seen in collision
  * \return number of always in collision links found and disabled
  */
-static unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, StringAdjList &disabled_links, 
+static unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, LinkPairMap &link_pairs, 
                                              collision_detection::CollisionRequest &req, StringPairSet &links_seen_colliding);
 
 /**
  * \brief Get the pairs of links that are never in collision
  * \param scene A reference to the robot in the planning scene
- * \param disabled_links An adjacency list of all links to be disabled, with pairs ordered alphabetically
+ * \param link_pairs List of all unique link pairs and each pair's properties
  * \param req A reference to a collision request that is already initialized
  * \param links_seen_colliding Set of links that have at some point been seen in collision
  * \return number of never in collision links found and disabled
  */
 static unsigned int disableNeverInCollision(const unsigned int num_trials, planning_scene::PlanningScene &scene, 
-                                            StringAdjList &disabled_links, const collision_detection::CollisionRequest &req, 
+                                            LinkPairMap &link_pairs, const collision_detection::CollisionRequest &req, 
                                             StringPairSet &links_seen_colliding, unsigned int *progress);
 
 /**
  * \brief Thread for getting the pairs of links that are never in collision
  * \param tc Struct that encapsulates all the data each thread needs
  */
-void disableNeverInCollisionThread(ThreadComputation tc);
+static void disableNeverInCollisionThread(ThreadComputation tc);
 
+//TODO
+std::string disabledReasonToString( DisabledReason reason );
 
 // ******************************************************************************************
 // Generates an adjacency list of links that are always and never in collision, to speed up collision detection
 // ******************************************************************************************
-StringAdjList
+LinkPairMap
 computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int * progress, 
                          const bool include_never_colliding, const unsigned int num_trials, const bool verbose)
 {
@@ -175,7 +192,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   planning_scene::PlanningScene scene(parent_scene);
 
   // Map of disabled collisions that contains a link as a key and an ordered list of links that are connected. An adjaceny list.
-  StringAdjList disabled_links;
+  LinkPairMap link_pairs;
 
   // Track unique edges that have been found to be in collision in some state
   StringPairSet links_seen_colliding;
@@ -184,6 +201,12 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   LinkGraph link_graph; 
 
   //ROS_INFO_STREAM("Initial allowed Collision Matrix Size = " << scene.getAllowedCollisions().getSize() );
+
+  // 0. GENERATE ALL POSSIBLE LINK PAIRS -------------------------------------------------------------
+  // Generate a list of unique link pairs for all links with geometry. Order pairs alphabetically.
+  // There should be n choose 2 pairs
+  computeLinkPairs( scene, link_pairs );
+  *progress = 1;
 
   // 1. FIND CONNECTING LINKS ------------------------------------------------------------------------
   // For each link, compute the set of other links it connects to via a single joint (adjacent links) 
@@ -198,7 +221,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   // 2. DISABLE ALL ADJACENT LINK COLLISIONS ---------------------------------------------------------
   // if 2 links are adjacent, or adjacent with a zero-shape between them, disable collision checking for them
   BTimer.start("Disable Adjacent Links"); // Benchmarking Timer - temporary
-  unsigned int num_adjacent = disableAdjacentLinks( scene, link_graph, disabled_links);
+  unsigned int num_adjacent = disableAdjacentLinks( scene, link_graph, link_pairs);
   BTimer.end("Disable Adjacent Links"); // Benchmarking Timer - temporary
   *progress = 4; // Progress bar feedback
 
@@ -213,14 +236,14 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   // 4. DISABLE "DEFAULT" COLLISIONS --------------------------------------------------------
   // Disable all collision checks that occur when the robot is started in its default state
   BTimer.start("Default Collisions"); // Benchmarking Timer - temporary
-  unsigned int num_default = disableDefaultCollisions(scene, disabled_links, req);
+  unsigned int num_default = disableDefaultCollisions(scene, link_pairs, req);
   BTimer.end("Default Collisions"); // Benchmarking Timer - temporary
   *progress = 6; // Progress bar feedback
 
   // 5. ALWAYS IN COLLISION --------------------------------------------------------------------
   // Compute the links that are always in collision
   BTimer.start("Always in Collision"); // Benchmarking Timer - temporary
-  unsigned int num_always = disableAlwaysInCollision(scene, disabled_links, req, links_seen_colliding);
+  unsigned int num_always = disableAlwaysInCollision(scene, link_pairs, req, links_seen_colliding);
   BTimer.end("Always in Collision"); // Benchmarking Timer - temporary  
   //ROS_INFO("Links seen colliding total = %d", int(links_seen_colliding.size()));
   *progress = 8; // Progress bar feedback
@@ -231,7 +254,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   unsigned int num_never = 0;
   if (include_never_colliding) // option of function
   {
-    num_never = disableNeverInCollision(num_trials, scene, disabled_links, req, links_seen_colliding, progress);
+    num_never = disableNeverInCollision(num_trials, scene, link_pairs, req, links_seen_colliding, progress);
   }
   BTimer.end("Never in Collision"); // Benchmarking Timer - temporary  
 
@@ -244,9 +267,11 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
 
     // Calculate number of disabled links:
     unsigned int num_disabled = 0;
-    for ( StringAdjList::const_iterator link1_it = disabled_links.begin() ; link1_it != disabled_links.end() ; ++link1_it)
-      for (std::map<std::string, LinkPairData>::const_iterator link2_it = link1_it->second.begin(); link2_it != link1_it->second.end();  ++link2_it)
+    for ( LinkPairMap::const_iterator pair_it = link_pairs.begin() ; pair_it != link_pairs.end() ; ++pair_it)
+    {
+      if( pair_it->second.disable_check ) // has a reason to be disabled
         ++num_disabled;
+    }
 
     std::cout << "-------------------------------------------------------------------------------\n";
     std::cout << "Statistics: \n";
@@ -275,9 +300,67 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
 
   }
 
-  return disabled_links;
+  return link_pairs;
 }
 
+// ******************************************************************************************
+// Helper function for adding two links to the disabled links data structure
+// ******************************************************************************************
+bool setLinkPair(const std::string &linkA, const std::string &linkB, const DisabledReason reason, LinkPairMap &link_pairs)
+{
+  bool isUnique = false; // determine if this link pair had already existsed in the link_pairs datastructure
+
+  // Determine order of the 2 links in the pair
+  std::pair<std::string, std::string> link_pair;
+    
+
+  // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
+  if ( linkA < linkB )
+  {
+    link_pair = std::pair<std::string, std::string>( linkA, linkB );
+  }
+  else
+  {
+    link_pair = std::pair<std::string, std::string>( linkB, linkA );
+  }
+  
+  // Check if link pair was already disabled. It also creates the entry if none existed
+  if( link_pairs[ link_pair ].disable_check )
+  {
+    isUnique = true;
+  }
+
+  //isUnique = link_pairs[ *link1 ].insert( std::pair<std::string, moveit_configuration_tools::LinkPairData>(*link2, link_pair)).second; 
+
+  // Update properties of this link pair
+  LinkPairData *link_pair_data = &link_pairs[ link_pair ];
+  link_pair_data->reason = reason;
+  // Only disable collision checking if there is a reason to disable it
+  link_pair_data->disable_check = (reason != NOT_DISABLED);
+
+  return isUnique;
+}
+
+// ******************************************************************************************
+// Generate a list of unique link pairs for all links with geometry. Order pairs alphabetically. n choose 2 pairs
+// ******************************************************************************************
+void computeLinkPairs( planning_scene::PlanningScene &scene, LinkPairMap &link_pairs )
+{
+  // Get the names of the link models that have some collision geometry associated to themselves
+  const std::vector<std::string> &names = scene.getKinematicModel()->getLinkModelNamesWithCollisionGeometry();
+
+  std::pair<std::string,std::string> temp_pair;
+
+  // Loop through every combination of name pairs, AB and BA, n^2
+  for (std::size_t i = 0 ; i < names.size() ; ++i)
+  {
+    for (std::size_t j = i+1 ; j < names.size() ; ++j)
+    {
+      // Add to link pairs list
+      setLinkPair( names[i], names[j], NOT_DISABLED, link_pairs );
+    }
+  }
+}
 // ******************************************************************************************
 // Build the robot links connection graph and then check for links with no geomotry
 // ******************************************************************************************
@@ -359,56 +442,9 @@ void computeConnectionGraphRec(const planning_models::KinematicModel::LinkModel 
 }
 
 // ******************************************************************************************
-// Helper function for adding two links to the disabled links data structure
-// ******************************************************************************************
-bool setDisabledLinks(const std::string &linkA, const std::string &linkB, const DisabledReasons reason, StringAdjList &disabled_links)
-{
-  bool isUnique = false; // determine if this link pair had already existsed in the disabled_links datastructure
-
-  // Create LinkPairData struct
-  //LinkPairData link_pair( reasonsToString.at( reason ), true );
-  LinkPairData link_pair;
-  link_pair.reason = reasonsToString.at( reason );
-  link_pair.disable_check = true;
-
-  // Determine order of the 2 links in the pair
-  const std::string *link1, *link2;
-
-  // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
-  if ( linkA < linkB )
-  {
-    link1 = &linkA;
-    link2 = &linkB;
-  }
-  else
-  {
-    link1 = &linkB;
-    link2 = &linkA;
-  }
-
-  // Version 1
-  /*
-  std::map<std::string, moveit_configuration_tools::LinkPairData>::iterator link2_it = 
-    disabled_links[ *link1 ].find( *link2 );
-  
-  if( link2_it == disabled_links[ *link1 ].end() ) // This new link pair does not exist
-  {
-    isUnique = true;
-    link2_it->second = link_pair;
-    //      disabled_links[ link1 ][ link2 ] = link_pair; //.insert( link_pair ).second;
-  }
-  */
-  
-  // Version 2
-  // Determine if this pair has already been inserted into the disabled_links data structure
-  isUnique = disabled_links[ *link1 ].insert( std::pair<std::string, moveit_configuration_tools::LinkPairData>(*link2, link_pair)).second; 
-
-  return isUnique;
-}
-// ******************************************************************************************
 // Disable collision checking for adjacent links, or adjacent with no geometry links between them
 // ******************************************************************************************
-unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGraph &link_graph, StringAdjList &disabled_links)
+unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGraph &link_graph, LinkPairMap &link_pairs)
 {
   int num_disabled = 0;
   for (LinkGraph::const_iterator link_graph_it = link_graph.begin() ; link_graph_it != link_graph.end() ; ++link_graph_it)
@@ -423,15 +459,7 @@ unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGrap
       // Check if either of the links have no geometry. If so, do not add (are we sure?)
       if ( link_graph_it->first->getShape() && (*adj_it)->getShape() ) // both links have geometry
       {
-
-        // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
-        /*if (link_graph_it->first->getName() < (*adj_it)->getName() )
-          num_disabled += disabled_links[ link_graph_it->first->getName() ].insert( (*adj_it)->getName() ).second;
-          else
-          num_disabled += disabled_links[ (*adj_it)->getName() ].insert( link_graph_it->first->getName() ).second; */
-        //typedef std::map<std::string, std::map<std::string, LinkPairData> > StringAdjList; 
-
-        num_disabled += setDisabledLinks( link_graph_it->first->getName(), (*adj_it)->getName(), ADJACENT, disabled_links );
+        num_disabled += setLinkPair( link_graph_it->first->getName(), (*adj_it)->getName(), ADJACENT, link_pairs );
 
         // disable link checking in the collision matrix
         scene.getAllowedCollisionMatrix().setEntry( link_graph_it->first->getName(), (*adj_it)->getName(), true);
@@ -447,7 +475,7 @@ unsigned int disableAdjacentLinks(planning_scene::PlanningScene &scene, LinkGrap
 // ******************************************************************************************
 // Disable all collision checks that occur when the robot is started in its default state
 // ******************************************************************************************
-unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, StringAdjList &disabled_links, 
+unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, LinkPairMap &link_pairs, 
                                       collision_detection::CollisionRequest &req)
 {
   // Setup environment
@@ -459,14 +487,7 @@ unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, Stri
   int num_disabled = 0;
   for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
   {
-    // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
-    /*
-      if (it->first.first < it->first.second) 
-      num_disabled += disabled_links[it->first.first].insert(it->first.second).second;
-      else
-      num_disabled += disabled_links[it->first.second].insert(it->first.first).second;
-    */
-    num_disabled += setDisabledLinks( it->first.first, it->first.second, DEFAULT, disabled_links );
+    num_disabled += setLinkPair( it->first.first, it->first.second, DEFAULT, link_pairs );
 
     scene.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
 
@@ -480,7 +501,7 @@ unsigned int disableDefaultCollisions(planning_scene::PlanningScene &scene, Stri
 // ******************************************************************************************
 // Compute the links that are always in collision
 // ******************************************************************************************
-unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, StringAdjList &disabled_links, 
+unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, LinkPairMap &link_pairs, 
                                       collision_detection::CollisionRequest &req, StringPairSet &links_seen_colliding)
 {
   // Trial count variables
@@ -534,21 +555,10 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Stri
       // Disable these two links permanently      
       if (it->second > small_trial_limit)
       {
-        //std::cout << "\t DISABLED AT 95% CHECK !!!!!!!!!!!!!!!!!!!!!!!!!! \n";
-
-
-        // compare the string names of the two links and add the lesser alphabetically, s.t. the pair is only added once
-        /*
-          if (it->first.first < it->first.second) 
-          num_disabled += disabled_links[it->first.first].insert(it->first.second).second;
-          else
-          num_disabled += disabled_links[it->first.second].insert(it->first.first).second;
-        */
-        num_disabled += setDisabledLinks( it->first.first, it->first.second, ALWAYS, disabled_links );
+        num_disabled += setLinkPair( it->first.first, it->first.second, ALWAYS, link_pairs );
 
         scene.getAllowedCollisionMatrix().setEntry(it->first.first, it->first.second, true); // disable link checking in the collision matrix
 
-        //num_disabled++;
         found ++;
       }
 
@@ -567,7 +577,7 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene &scene, Stri
 // ******************************************************************************************
 // Get the pairs of links that are never in collision
 // ******************************************************************************************
-unsigned int disableNeverInCollision(const unsigned int num_trials, planning_scene::PlanningScene &scene, StringAdjList &disabled_links, 
+unsigned int disableNeverInCollision(const unsigned int num_trials, planning_scene::PlanningScene &scene, LinkPairMap &link_pairs, 
                                      const collision_detection::CollisionRequest &req, StringPairSet &links_seen_colliding, unsigned int *progress)
 {
   unsigned int num_disabled = 0;
@@ -612,8 +622,7 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
       if (links_seen_colliding.find( temp_pair ) == links_seen_colliding.end())
       {
         // Add to disabled list using pair ordering
-        //num_disabled += disabled_links[ temp_pair.first ].insert( temp_pair.second ).second;
-        num_disabled += setDisabledLinks( temp_pair.first, temp_pair.second, NEVER, disabled_links );
+        num_disabled += setLinkPair( temp_pair.first, temp_pair.second, NEVER, link_pairs );
       }
     }
   }
@@ -673,7 +682,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
 // ******************************************************************************************
 // Output XML String of Saved Results
 // ******************************************************************************************
-void outputDisabledCollisionsXML(const StringAdjList & disabled_links)
+void outputDisabledCollisionsXML(const LinkPairMap & link_pairs)
 {
   unsigned int num_disabled = 0;
 
@@ -682,19 +691,16 @@ void outputDisabledCollisionsXML(const StringAdjList & disabled_links)
   TiXmlElement* robot_root = new TiXmlElement("robot");
   doc.LinkEndChild(robot_root);
 
-  
-  for (StringAdjList::const_iterator linkA_it = disabled_links.begin() ; linkA_it != disabled_links.end() ; ++linkA_it)
-  {    
-    // disable all connected links to current link by looping through them
-    for (std::map<std::string, LinkPairData>::const_iterator linkB_it = linkA_it->second.begin(); 
-         linkB_it != linkA_it->second.end(); 
-         ++linkB_it)
+  for ( LinkPairMap::const_iterator pair_it = link_pairs.begin() ; pair_it != link_pairs.end() ; ++pair_it)
+  {
+    if( pair_it->second.disable_check ) // has a reason to be disabled
     {
+  
       // Create new element for each link pair
       TiXmlElement *dc = new TiXmlElement("disabled_collisions");
       robot_root->LinkEndChild(dc);
-      dc->SetAttribute("link1", linkA_it->first);
-      dc->SetAttribute("link2", linkB_it->first);
+      dc->SetAttribute("link1", pair_it->first.first);
+      dc->SetAttribute("link2", pair_it->first.second);
 
       ++num_disabled;
     }
@@ -706,5 +712,13 @@ void outputDisabledCollisionsXML(const StringAdjList & disabled_links)
 
 }
 
+// ******************************************************************************************
+// Convert Disabled Reason to String
+// Note: this function was created to alleviate the need to include boost libraries in the header file
+// ******************************************************************************************
+std::string disabledReasonToString( DisabledReason reason )
+{
+  return reasonsToString.at( reason );
+}
 
 }

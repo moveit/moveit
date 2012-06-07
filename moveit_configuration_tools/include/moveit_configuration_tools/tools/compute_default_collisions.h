@@ -42,16 +42,20 @@
 namespace moveit_configuration_tools
 {
 
-// Struct for holding properties of a disabled link pair
+// Reasons for disabling link pairs. Append "in collision" for understanding.
+// NOT_DISABLED means the link pair DOES do self collision checking
+enum DisabledReason { NEVER, DEFAULT, ADJACENT, ALWAYS, USER, NOT_DISABLED }; 
+
 struct LinkPairData
 {
   //  LinkPairData(std::string reason_, bool disable_check_): reason(reason_), disable_check(disable_check_) {}
-  std::string reason;
+  LinkPairData() : reason( NOT_DISABLED ), disable_check( false ) {}; // by default all link pairs are NOT disabled for collision checking
+  DisabledReason reason;        
   bool disable_check;
 };
 
-// StringAdjList is an adjacency list structure containing links in string-based form. Used for disabled links
-typedef std::map<std::string, std::map<std::string, LinkPairData> > StringAdjList; 
+// LinkPairMap is an adjacency list structure containing links in string-based form. Used for disabled links
+typedef std::map<std::pair<std::string, std::string>, LinkPairData > LinkPairMap; 
 
 /**
  * \brief Generate an adjacency list of links that are always and never in collision, to speed up collision detection
@@ -60,7 +64,7 @@ typedef std::map<std::string, std::map<std::string, LinkPairData> > StringAdjLis
  * \param trials Optional ability to set the number random collision checks that are made. Increase the probability of correctness
  * \return Adj List of unique set of pairs of links in string-based form
  */
-StringAdjList
+LinkPairMap
 computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress, 
                          const bool include_never_colliding = true, const unsigned int trials = 10000, const bool verbose = false);
 
@@ -68,7 +72,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
  * \brief Generate xml format of disabled links for use in an SRDF
  * \param Adj List of unique set of pairs of links in string-based form 
  */
-void outputDisabledCollisionsXML(const StringAdjList &disabled_links);
+void outputDisabledCollisionsXML(const LinkPairMap &link_pairs);
 }
 
 #endif
