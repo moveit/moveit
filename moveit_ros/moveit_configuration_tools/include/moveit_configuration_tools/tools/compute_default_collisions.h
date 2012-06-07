@@ -74,9 +74,6 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
  */
 void outputDisabledCollisionsXML(const LinkPairMap &link_pairs);
 
-// TODO
-std::string disabledReasonToString( DisabledReason reason );
-
 }
 
 #endif

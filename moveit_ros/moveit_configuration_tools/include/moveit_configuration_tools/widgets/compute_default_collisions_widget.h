@@ -67,6 +67,9 @@ private Q_SLOTS:
   void quit();
   void generateCollisionTable();
   void changeDensityLabel(int value);
+  void saveToSRDF();
+  void loadCollisionTable();
+  void collisionCheckboxToggle();
 
 private:
   // Qt Components
@@ -79,6 +82,9 @@ private:
   QGroupBox *controls_box_;
   QProgressBar *progress_bar_;
   QLabel *progress_label_;
+  QCheckBox *collision_checkbox_;
+  QGroupBox *controls_box_bottom_;
+  QPushButton *save_button_;
 
   // Data 
   moveit_configuration_tools::LinkPairMap link_pairs;
@@ -86,9 +92,10 @@ private:
   // Functions
   void generateCollisionTableThread( unsigned int *collision_progress );
                                      
-  void loadCollisionTable();
-
   void disableControls(bool disable);
+
+  void copyTableChanges();
+
 };
 
 #endif
