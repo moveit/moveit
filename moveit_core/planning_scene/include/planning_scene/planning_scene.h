@@ -368,6 +368,9 @@ public:
   {
     return motion_feasibility_;
   }
+
+  /** \brief Check if the current state is in collision (with the environment or self collision) */
+  bool isStateColliding(bool verbose = false) const;
   
   /** \brief Check if a given state is in collision (with the environment or self collision) */
   bool isStateColliding(const moveit_msgs::RobotState &state, bool verbose = false) const;
