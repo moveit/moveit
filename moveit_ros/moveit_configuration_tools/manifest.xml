@@ -17,7 +17,7 @@
   <depend package="planning_scene_monitor"/>
 
   <export>
-    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_configuration_tools `rosboost-cfg --lflags thread`"/>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_configuration_tools -lmoveit_configuration_tools_widgets `rosboost-cfg --lflags thread`"/>
   </export>
 
 </package>

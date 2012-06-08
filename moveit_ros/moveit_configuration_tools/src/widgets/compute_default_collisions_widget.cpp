@@ -209,8 +209,10 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
     boost::this_thread::sleep(check_interval);  
   }
 
+  ROS_INFO("I am outputting");
   // Wait for thread to finish
   workerThread.join();
+  ROS_INFO("Now  I am not outputting");
 
   // Load the results into the GUI
   loadCollisionTable();
@@ -218,6 +220,32 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
   // Hide the progress bar
   disableControls(false); // enable everything else
 }
+
+void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collision_progress )
+{
+  ROS_INFO("Inner thread");
+
+  unsigned int num_trials = density_slider_->value() * 1000 + 1000; // scale to trials amount
+
+  const bool verbose = true; // Output benchmarking and statistics
+  const bool include_never_colliding = true;
+
+  // Load robot description
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+
+  // Find the default collision matrix - all links that are allowed to collide
+  link_pairs = moveit_configuration_tools::computeDefaultCollisions(psm.getPlanningScene(), collision_progress, 
+                                                                    include_never_colliding, num_trials, verbose);
+  
+  // Output results to an XML file
+  //moveit_configuration_tools::outputDisabledCollisionsXML( link_pairs );
+  
+  // End the progress bar loop
+  *collision_progress = 100;
+
+  ROS_INFO_STREAM("Thread complete " << link_pairs.size());
+}
+
 
 void ComputeDefaultCollisionsWidget::loadCollisionTable()
 {
@@ -297,31 +325,6 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
 
   }
 
-}
-
-void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collision_progress )
-{
-  ROS_INFO("Inner thread");
-
-  unsigned int num_trials = density_slider_->value() * 1000 + 1000; // scale to trials amount
-
-  const bool verbose = true; // Output benchmarking and statistics
-  const bool include_never_colliding = true;
-
-  // Load robot description
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
-
-  // Find the default collision matrix - all links that are allowed to collide
-  link_pairs = moveit_configuration_tools::computeDefaultCollisions(psm.getPlanningScene(), collision_progress, 
-                                                                    include_never_colliding, num_trials, verbose);
-  
-  // Output results to an XML file
-  //moveit_configuration_tools::outputDisabledCollisionsXML( link_pairs );
-  
-  // End the progress bar loop
-  *collision_progress = 100;
-
-  ROS_INFO_STREAM("Thread complete " << link_pairs.size());
 }
 
 void ComputeDefaultCollisionsWidget::quit()
