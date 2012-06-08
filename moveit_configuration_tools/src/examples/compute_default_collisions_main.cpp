@@ -47,8 +47,8 @@ int main(int argc, char **argv)
   //ros::init(argc, argv, "compute_default_collisions", ros::init_options::NoSigintHandler);
   ros::init(argc, argv, "compute_default_collisions");
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();  
+  //ros::AsyncSpinner spinner(1);
+  //spinner.start();  
  
   // Create Qt Application
   QApplication qtApp(argc, argv);

@@ -186,13 +186,14 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
 
   QApplication::processEvents(); // allow the progress bar to be shown
 
-
+  // No threads
   //generateCollisionTableThread( &collision_progress );
 
+  ROS_INFO("I am outputting 1");
   // Create thread to do actual work
   boost::thread workerThread( boost::bind( &ComputeDefaultCollisionsWidget::generateCollisionTableThread, 
                                            this, &collision_progress ));
-
+  ROS_INFO("I am outputting 2");
   // Check interval
   boost::posix_time::seconds check_interval(1);  
 
@@ -206,14 +207,15 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
     QApplication::processEvents(); 
 
     // 1 second sleep
-    boost::this_thread::sleep(check_interval);  
+    //boost::this_thread::sleep(check_interval);  
+    usleep(1000 * 1000);
   }
 
   ROS_INFO("I am outputting");
   // Wait for thread to finish
   workerThread.join();
   ROS_INFO("Now  I am not outputting");
-
+  std::cout << " DONE ZEBRAS" << std::endl;
   // Load the results into the GUI
   loadCollisionTable();
 
@@ -237,13 +239,11 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
   link_pairs = moveit_configuration_tools::computeDefaultCollisions(psm.getPlanningScene(), collision_progress, 
                                                                     include_never_colliding, num_trials, verbose);
   
-  // Output results to an XML file
-  //moveit_configuration_tools::outputDisabledCollisionsXML( link_pairs );
-  
   // End the progress bar loop
   *collision_progress = 100;
 
-  ROS_INFO_STREAM("Thread complete " << link_pairs.size());
+  //ROS_INFO_STREAM("Thread complete " << link_pairs.size());
+  ROS_INFO("Thread complete");
 }
 
 
