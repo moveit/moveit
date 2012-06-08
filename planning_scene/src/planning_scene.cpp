@@ -1183,6 +1183,11 @@ bool planning_scene::PlanningScene::isStateColliding(const moveit_msgs::RobotSta
   return isStateColliding(s, verbose);
 }
 
+bool planning_scene::PlanningScene::isStateColliding(bool verbose) const
+{
+  return isStateColliding(getCurrentState(), verbose);
+}
+
 bool planning_scene::PlanningScene::isStateColliding(const planning_models::KinematicState &state, bool verbose) const
 { 
   collision_detection::CollisionRequest req;
