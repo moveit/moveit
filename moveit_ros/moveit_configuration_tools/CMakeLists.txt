@@ -38,7 +38,9 @@ rosbuild_add_library(${PROJECT_NAME}
   src/tools/compute_longest_valid_segment_fraction.cpp
   src/widgets/compute_default_collisions_widget.cpp
   src/benchmark_timer.cpp
+  ${moc_sources}
 )
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
 
 # Source files for the exectuable (?)
 set( sources
@@ -47,5 +49,4 @@ set( sources
 
 
 rosbuild_add_executable(compute_default_collisions_main ${sources} ${headers} ${moc_sources})
-target_link_libraries(compute_default_collisions_main ${QT_LIBRARIES})
 target_link_libraries(compute_default_collisions_main ${PROJECT_NAME})
