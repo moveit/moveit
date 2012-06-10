@@ -39,32 +39,67 @@
 
 namespace ompl_inteface
 {
-    class OutputHandlerROS : public ompl::msg::OutputHandler
+class OutputHandlerROS : public ompl::msg::OutputHandler
+{
+public:
+  
+  OutputHandlerROS(void) : OutputHandler()
+  {
+  }
+  
+  virtual void log(const std::string &text, ompl::msg::LogLevel level, const char *filename, int line)
+  {
+    switch (level)
     {
-    public:
-
-        OutputHandlerROS(void) : OutputHandler()
+    case ompl::msg::LOG_INFO: 
+      {
+        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Info, std::string(ROSCONSOLE_NAME_PREFIX) + ".ompl");
+        if (ROS_UNLIKELY(enabled))
         {
-        }
-
-        virtual void error(const std::string &text) { ROS_ERROR("%s", text.c_str()); }
-
-        virtual void warn(const std::string &text) { ROS_WARN("%s", text.c_str()); }
-
-        virtual void inform(const std::string &text) { ROS_INFO("%s", text.c_str()); }
-
-        virtual void debug(const std::string &text) { ROS_DEBUG("%s", text.c_str()); }
-
-    };
-
-    struct RegisterOH
-    {
-        RegisterOH(void)
+          ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
+        }    
+      }
+      break;
+    case ompl::msg::LOG_WARN:
+      {
+        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Warn, std::string(ROSCONSOLE_NAME_PREFIX) + ".ompl");
+        if (ROS_UNLIKELY(enabled))
         {
-            static OutputHandlerROS oh_ros;
-            useOutputHandler(&oh_ros);
-        }
-    };
+          ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
+        }    
+      }
+      break;
+    case ompl::msg::LOG_ERROR:
+      {
+        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Error, std::string(ROSCONSOLE_NAME_PREFIX) + ".ompl");
+        if (ROS_UNLIKELY(enabled))
+        {
+          ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
+        }    
+      }
+      break;
+    default:
+      // debug
+      {
+        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Debug, std::string(ROSCONSOLE_NAME_PREFIX) + ".ompl");
+        if (ROS_UNLIKELY(enabled))
+        {
+          ::ros::console::print(NULL, loc.logger_, loc.level_, filename, line, "", "%s", text.c_str());
+        }    
+      }
+      break;
+    }
+  }
+};
 
-    static RegisterOH proxy;
+struct RegisterOH
+{
+  RegisterOH(void)
+  {
+    static OutputHandlerROS oh_ros;
+    useOutputHandler(&oh_ros);
+  }
+};
+
+static RegisterOH proxy;
 }
