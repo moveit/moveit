@@ -11,6 +11,7 @@
 
   <rosdep name="tinyxml" />
 
+  <depend package="random_numbers"/>
   <depend package="planning_models"/>
   <depend package="kinematics_constraint_aware"/>
   <depend package="planning_scene"/>
