@@ -52,19 +52,11 @@
 namespace collision_distance_field
 {
 
-struct CollisionType {
-
-  CollisionType() : 
-    none(true),
-    self(false),
-    intra(false),
-    environment(false)
-  {}
-  
-  bool none;
-  bool self;
-  bool intra;
-  bool environment;
+enum CollisionType {
+  NONE = 0,
+  SELF = 1,
+  INTRA = 2,
+  ENVIRONMENT = 3,
 };
 
 struct CollisionSphere {
@@ -92,6 +84,7 @@ struct GradientInfo
   //std::vector<Eigen::Vector3d> sphere_locations;
   std::vector<double> distances;
   std::vector<Eigen::Vector3d> gradients;
+  std::vector<CollisionType> types;
   //std::vector<double> sphere_radii;
   //std::string joint_name;
 
@@ -115,6 +108,7 @@ bool getCollisionSphereGradients(const distance_field::DistanceField* distance_f
                                  const std::vector<CollisionSphere>& sphere_list, 
                                  const std::vector<Eigen::Vector3d>& sphere_centers,
                                  GradientInfo& gradient, 
+                                 const collision_distance_field::CollisionType& type,
                                  double tolerance, 
                                  bool subtract_radii, 
                                  double maximum_value, 
@@ -194,6 +188,10 @@ public:
     
   const Eigen::Vector3d& getBoundingSphereCenter() const {
     return posed_bounding_sphere_center_;
+  }
+
+  double getBoundingSphereRadius() const {
+    return body_decomposition_->getRelativeBoundingSphere().radius;
   }
 
   //assumed to be in reference frame, updates the pose of the body,
@@ -360,6 +358,10 @@ struct ProximityInfo
   Eigen::Vector3d closest_point;
   Eigen::Vector3d closest_gradient;
 };
+
+bool doBoundingSpheresIntersect(const PosedBodySphereDecompositionConstPtr& p1,
+                                const PosedBodySphereDecompositionConstPtr& p2);
+
 
 void getCollisionSphereMarkers(const std_msgs::ColorRGBA& color,
                                const std::string& frame_id,

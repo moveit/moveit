@@ -60,7 +60,8 @@ public:
     std::vector<unsigned int> link_state_indices_;
     std::vector<std::string> attached_body_names_;
     std::vector<unsigned int> attached_body_link_state_indices_;
-    std::map<std::string, bool> enabled_self_collision_links_;
+    std::vector<bool> self_collision_enabled_;
+    std::vector<std::vector<bool> > intra_group_collision_enabled_;
   };
 
   struct GroupStateRepresentation {
@@ -89,8 +90,7 @@ public:
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
                                   const planning_models::KinematicState &state, 
-                                  const collision_detection::AllowedCollisionMatrix &acm) const
-  {};
+                                  const collision_detection::AllowedCollisionMatrix &acm) const;
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
@@ -170,6 +170,8 @@ protected:
   bool getSelfProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
                                  boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
+  bool getIntraGroupProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
+                                       boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
                                 collision_detection::CollisionResult& res,
