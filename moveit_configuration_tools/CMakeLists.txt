@@ -17,11 +17,10 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 
-# Compute Default Collision Matrix Tool
+# Qt Stuff
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(-DQT_NO_KEYWORDS)
-
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(${QT_INCLUDE_DIR})
 
@@ -30,23 +29,28 @@ set( headers
   include/moveit_configuration_tools/widgets/compute_default_collisions_widget.h
 )
 
+# Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(moc_sources ${headers})
 
-
+# Tools are compiled into a library
 rosbuild_add_library(${PROJECT_NAME}
   src/tools/compute_default_collisions.cpp
   src/tools/compute_longest_valid_segment_fraction.cpp
-  src/widgets/compute_default_collisions_widget.cpp
   src/benchmark_timer.cpp
-  ${moc_sources}
 )
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
 
-# Source files for the exectuable (?)
+# Include all widgets in their own library
+rosbuild_add_library(${PROJECT_NAME}_widgets
+  src/widgets/compute_default_collisions_widget.cpp
+)
+target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME})
+
+# Source files for the exectuable for testing
 set( sources
   src/examples/compute_default_collisions_main.cpp
 )
 
-
+# Create the executable
 rosbuild_add_executable(compute_default_collisions_main ${sources} ${headers} ${moc_sources})
-target_link_libraries(compute_default_collisions_main ${PROJECT_NAME})
+target_link_libraries(compute_default_collisions_main ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets)
+
