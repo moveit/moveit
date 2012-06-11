@@ -81,6 +81,7 @@ bool collision_distance_field::getCollisionSphereGradients(const distance_field:
                                                            const std::vector<CollisionSphere>& sphere_list,
                                                            const std::vector<Eigen::Vector3d>& sphere_centers,
                                                            GradientInfo& gradient, 
+                                                           const collision_distance_field::CollisionType& type,
                                                            double tolerance, 
                                                            bool subtract_radii, 
                                                            double maximum_value,
@@ -91,20 +92,25 @@ bool collision_distance_field::getCollisionSphereGradients(const distance_field:
     Eigen::Vector3d p = sphere_centers[i];
     double gx, gy, gz;
     double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz);
-    if(dist < maximum_value && subtract_radii) {
-      dist -= sphere_list[i].radius_;
+    if(dist < maximum_value) {
+      if(subtract_radii) {
+        dist -= sphere_list[i].radius_;
+      }
       if(dist <= tolerance) {
         if(stop_at_first_collision) {
           return true;
         } 
         in_collision = true;
-      } 
+      }
+      if(dist < gradient.closest_distance) {
+        gradient.closest_distance = dist;
+      }
+      if(dist < gradient.distances[i]) {
+        gradient.types[i] = type;
+        gradient.distances[i] = dist;
+        gradient.gradients[i] = Eigen::Vector3d(gx,gy,gz);
+      }
     }
-    if(dist < gradient.closest_distance) {
-      gradient.closest_distance = dist;
-    }
-    gradient.distances[i] = dist;
-    gradient.gradients[i] = Eigen::Vector3d(gx,gy,gz);
   }
   return in_collision;
 }
@@ -174,6 +180,21 @@ void collision_distance_field::PosedBodySphereDecomposition::updatePose(const Ei
   }
 }
 
+bool collision_distance_field::doBoundingSpheresIntersect(const PosedBodySphereDecompositionConstPtr& p1,
+                                                          const PosedBodySphereDecompositionConstPtr& p2)
+{
+  Eigen::Vector3d p1_sphere_center = p1->getBoundingSphereCenter();
+  Eigen::Vector3d p2_sphere_center = p2->getBoundingSphereCenter();
+  double p1_radius = p1->getBoundingSphereRadius();
+  double p2_radius = p2->getBoundingSphereRadius();
+
+  double dist = (p1_sphere_center-p2_sphere_center).squaredNorm();
+  if(dist < (p1_radius+p2_radius)) {
+    return true;
+  }
+  return false;
+}
+
 void collision_distance_field::getCollisionSphereMarkers(const std_msgs::ColorRGBA& color,
                                                          const std::string& frame_id,
                                                          const std::string& ns,
@@ -223,11 +244,11 @@ void collision_distance_field::getProximityGradientMarkers(const std_msgs::Color
       double xscale = 0.0;
       double yscale = 0.0;
       double zscale = 0.0;
-      if(gradients[i].distances[j] > 0.0) {
-        if(gradients[i].gradients[j].norm() > 0.0) {
-          xscale = gradients[i].gradients[j].x()/gradients[i].gradients[j].norm();
-          yscale = gradients[i].gradients[j].y()/gradients[i].gradients[j].norm();
-          zscale = gradients[i].gradients[j].z()/gradients[i].gradients[j].norm();
+      if(gradients[i].distances[j] > 0.0 && gradients[i].distances[j] != DBL_MAX) {
+        if(gradients[i].gradients[j].squaredNorm() > 0.0) {
+          xscale = gradients[i].gradients[j].x()/gradients[i].gradients[j].squaredNorm();
+          yscale = gradients[i].gradients[j].y()/gradients[i].gradients[j].squaredNorm();
+          zscale = gradients[i].gradients[j].z()/gradients[i].gradients[j].squaredNorm();
         } else {
           ROS_DEBUG_STREAM("Negative length for " << i << " " << arrow_mark.id << " " << gradients[i].gradients[j].norm());
         }
