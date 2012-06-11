@@ -364,9 +364,21 @@ bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk
 {
   shape_msgs::Shape shape_msg;
   if (constructMsgFromShape(shape, shape_msg))
-    return shape_conversions::constructMarkerFromShape(shape_msg, mk, use_mesh_triangle_list);
-  else
-    return false;
+  {
+    bool ok = false;
+    try
+    {
+      shape_conversions::constructMarkerFromShape(shape_msg, mk, use_mesh_triangle_list);
+      ok = true;
+    }
+    catch (std::runtime_error &ex)
+    {
+      ROS_ERROR("%s", ex.what());
+    }
+    if (ok)
+      return true;
+  }
+  return false;
 }
 
 bool constructMsgFromShape(const Shape* shape, shape_msgs::Shape &shape_msg)
