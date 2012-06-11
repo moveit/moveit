@@ -44,7 +44,8 @@ int main(int argc, char **argv)
   srand(time(NULL));
 
   // Start ROS Node
-  ros::init(argc, argv, "compute_default_collisions", ros::init_options::NoSigintHandler);
+  //ros::init(argc, argv, "compute_default_collisions", ros::init_options::NoSigintHandler);
+  ros::init(argc, argv, "compute_default_collisions");
 
   //ros::AsyncSpinner spinner(1);
   //spinner.start();  
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
     }*/
 
   // For sending transforms and markers
-  //boost::thread spin_thread(boost::bind(&spin_function));
+  //  boost::thread spin_thread(boost::bind(&spin_function));
   //ros::shutdown();    
 
   return qtApp.exec();

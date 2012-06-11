@@ -30,4 +30,4 @@
 #include <pluginlib/class_list_macros.h>
 #include "planning_display.h"
 
-PLUGINLIB_DECLARE_CLASS( motion_planning_rviz_plugin, MotionPlanning, motion_planning_rviz_plugin::PlanningDisplay, rviz::Display )
+PLUGINLIB_DECLARE_CLASS( moveit_rviz_plugin, MotionPlanning, moveit_rviz_plugin::PlanningDisplay, rviz::Display )
