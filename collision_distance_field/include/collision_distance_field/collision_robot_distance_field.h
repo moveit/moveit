@@ -47,13 +47,16 @@ namespace collision_distance_field
 
 class CollisionRobotDistanceField : public collision_detection::CollisionRobot
 {
+  
+  friend class CollisionWorldDistanceField;
+
 public:
 
   struct DistanceFieldCacheEntry {
     std::string group_name_;
     boost::shared_ptr<planning_models::KinematicState> state_;
     collision_detection::AllowedCollisionMatrix acm_;
-    distance_field::DistanceField* distance_field_;
+    boost::shared_ptr<distance_field::DistanceField> distance_field_;
     std::vector<std::string> link_names_;
     std::vector<bool> link_has_geometry_;
     std::vector<unsigned int> link_body_indices_;
@@ -164,14 +167,32 @@ public:
   boost::shared_ptr<const GroupStateRepresentation> getLastGroupStateRepresentation() const {
     return last_gsr_;
   }
-  
+
+  boost::shared_ptr<GroupStateRepresentation> generateCollisionCheckingStructures(const std::string& group_name,
+                                                                                  const planning_models::KinematicState& state,
+                                                                                  const collision_detection::AllowedCollisionMatrix *acm,
+                                                                                  boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
+                                                                                  bool generate_distance_field) const;
+
+  // void getSelfCollisionsGradients(const collision_detection::CollisionRequest &req, 
+  //                                 collision_detection::CollisionResult &res, 
+  //                                 const planning_models::KinematicState &state, 
+  //                                 const collision_detection::AllowedCollisionMatrix &acm) const;  
 protected:
 
-  bool getSelfProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
+  bool getSelfProximityGradients(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
                                  boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  bool getIntraGroupProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
+  bool getIntraGroupProximityGradients(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
                                        boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+  bool getSelfCollisions(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
+                         boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+  bool getIntraGroupCollisions(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
+                               boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+
 
   void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
                                 collision_detection::CollisionResult& res,
@@ -187,7 +208,8 @@ protected:
   boost::shared_ptr<DistanceFieldCacheEntry> 
   generateDistanceFieldCacheEntry(const std::string& group_name,
                                   const planning_models::KinematicState& state,
-                                  const collision_detection::AllowedCollisionMatrix *acm) const;
+                                  const collision_detection::AllowedCollisionMatrix *acm,
+                                  bool generate_distance_field) const;
     
   void addLinkBodyDecompositions(double resolution);
 

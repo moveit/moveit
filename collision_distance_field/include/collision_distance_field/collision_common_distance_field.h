@@ -45,6 +45,9 @@
 namespace collision_distance_field
 {
 
+BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr& shape,
+                                                         double resolution);
+
 PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::CollisionWorld::Object& obj,
                                                                           double resolution);
 
