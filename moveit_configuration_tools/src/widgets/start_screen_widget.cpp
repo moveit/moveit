@@ -36,57 +36,9 @@
 
 #include "moveit_configuration_tools/widgets/start_screen_widget.h"
 
+
 static const std::string ROBOT_DESCRIPTION="robot_description";
 static const std::string ROBOT_DESCRIPTION_SEMANTICS="robot_description_semantics";
-
-class LoadPathWidget : public QFrame
-{
-public:
-  LoadPathWidget( const std::string &title, const std::string &instructions )
-  {
-    // Set frame graphics
-    setFrameShape(QFrame::StyledPanel);
-    setFrameShadow(QFrame::Raised);
-    setLineWidth(1);
-    setMidLineWidth(0);
-
-    // Basic widget container
-    QVBoxLayout *layout = new QVBoxLayout();
-    this->setLayout(layout);
-
-    // Horizontal layout splitter
-    QHBoxLayout *hlayout = new QHBoxLayout();
-    
-    // Widget Title
-    QLabel *widget_title = new QLabel();
-    widget_title->setText( title.c_str() );
-    QFont widget_title_font( "Arial", 12, QFont::Bold);
-    widget_title->setFont(widget_title_font);
-    layout->addWidget( widget_title);
-    layout->setAlignment( widget_title, Qt::AlignTop);
-
-    // Widget Instructions
-    QLabel *widget_instructions = new QLabel();
-    widget_instructions->setText( instructions.c_str() );
-    widget_instructions->setWordWrap(true);
-    layout->addWidget( widget_instructions);
-    layout->setAlignment( widget_instructions, Qt::AlignTop);    
-
-    // Line Edit
-    QLineEdit *path_box = new QLineEdit();
-    hlayout->addWidget(path_box);
-
-    // Button
-    QPushButton *button = new QPushButton();
-    button->setText("Browse");
-    //button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    //connect(button, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
-    hlayout->addWidget(button);
-
-    // Add horizontal layer to verticle layer
-    layout->addLayout(hlayout);
-  }
-};
 
 // ******************************************************************************************
 // Start screen user interface for MoveIt Configuration Assistant
@@ -99,61 +51,59 @@ StartScreenWidget::StartScreenWidget()
   QHBoxLayout *hlayout = new QHBoxLayout( );
   // Left side of screen
   QVBoxLayout *left_layout = new QVBoxLayout( );
-  // Left side controls
-  QVBoxLayout *left_controls_layout = new QVBoxLayout( );
   // Right side of screen
   QVBoxLayout *right_layout = new QVBoxLayout( );
   
-  this->setLayout(layout);
-  layout->addLayout( hlayout );
-  hlayout->addLayout( left_layout );
-  hlayout->addLayout( right_layout );
-  left_layout->addStretch(3);
-
   // Top Label Area ------------------------------------------------
 
   // Page Title
   QLabel *page_title = new QLabel( );
-  page_title->setText("MoveIt Configuration Assistant");
+  page_title->setText("MoveIt Setup Assistant");
+  this->setWindowTitle("MoveIt Setup Assistant"); // title of window
   QFont page_title_font( "Arial", 18, QFont::Bold);
   page_title->setFont(page_title_font);
-  left_layout->addWidget( page_title);
-  left_layout->setAlignment( page_title, Qt::AlignTop);
+  layout->addWidget( page_title);
+  layout->setAlignment( page_title, Qt::AlignTop);
 
   // Page Instructions
   QLabel *page_instructions = new QLabel( );
-  page_instructions->setText("Welcome to the MoveIt Configuration Assistant! This tool will assist you in creating "
-                             "a planning configuration for your robot. Start by specifying the package and file of "
-                             "Unified Robot Description Format (URDF) file of your robot.");
+  page_instructions->setText("Welcome to the MoveIt Setup Assistant! (MIST) These tools will assist you in creating "
+                             "a planning configuration for your robot. Start by specifying the MoveIt configuration stack location, URDF file and SRDF file.");
   page_instructions->setWordWrap(true);
   page_instructions->setMargin(10);
-  left_layout->addWidget( page_instructions);
-  left_layout->setAlignment( page_instructions, Qt::AlignTop);
+  layout->addWidget( page_instructions);
+  layout->setAlignment( page_instructions, Qt::AlignTop);
 
-  // Left Controls Layout
-  left_layout->addLayout( left_controls_layout );
 
-  // Stack Path Box Area
-  LoadPathWidget *package_path = new LoadPathWidget("MoveIt Configuration Stack Path", 
-                                                    "Specify the location for a new or existing MoveIt configuration stack for your desired robot. Inside this stack the necessary packages will be added/edited to run MoveIt. Example stack name: 'moveit_pr2'");
-  left_controls_layout->addWidget( package_path );
-  left_controls_layout->setAlignment( package_path, Qt::AlignTop);
+  // Path Box Area ----------------------------------------------------
+
+  // Stack Path Dialog
+  stack_path_ = new LoadPathWidget("MoveIt Configuration Stack Path", 
+                                   "Specify the location for a new or existing MoveIt configuration stack for your desired robot. If you do not already have a stack created, this tool can create it for you - just provide the path to ROS workspace directory you would like the stack created. Inside this stack the necessary packages will be added/edited to run MoveIt. Example stack name: '~/ros/moveit_pr2'",
+                                   true); // is directory
+  left_layout->addWidget( stack_path_ );
 
   // URDF File Dialog
-  LoadPathWidget *urdf_file = new LoadPathWidget("URDF File",
-                                                 "Specify the location for an existing Unified Robot Description Format (URDF) file for your robot. This configuration assistant will not make changes to a URDF.");
-  left_controls_layout->addWidget( urdf_file );
-  left_controls_layout->setAlignment( urdf_file, Qt::AlignTop);
+  urdf_file_ = new LoadPathWidget("URDF File",
+                                  "Specify the location for an existing Unified Robot Description Format (URDF) file for your robot. This configuration assistant will not make changes to a URDF.", 
+                                  false, true); // no directory, load only
+  left_layout->addWidget( urdf_file_ );
 
   // SRDF File Dialog
-  LoadPathWidget *srdf_file = new LoadPathWidget("SRDF File",
-                                                 "Specify the location for a new or existing Semantic Robot Description Format (SRDF) file for your robot. This configuration assistant can create this file for you.");
-  left_controls_layout->addWidget( srdf_file );
-  left_controls_layout->setAlignment( srdf_file, Qt::AlignTop);
+  srdf_file_ = new LoadPathWidget("SRDF File",
+                                  "Specify the location for a new or existing Semantic Robot Description Format (SRDF) file for your robot. This configuration assistant can create this file for you.",
+                                  false, false); // no directory, save
+  left_layout->addWidget( srdf_file_ );
 
-  // Filler Layer
-  //QSpacerItem *blank_stretch = new QSpacerItem(100,500);
-  //left_controls_layout->addSpacerItem( blank_stretch );
+
+  // Load settings box ---------------------------------------------
+
+  btn_load_ = new QPushButton("Load Files");
+  btn_load_->setMinimumWidth(200);
+  btn_load_->setMinimumHeight(40);
+  left_layout->addWidget( btn_load_ );  
+  left_layout->setAlignment( btn_load_, Qt::AlignRight );
+  connect( btn_load_, SIGNAL( clicked() ), this, SLOT( loadFiles() ) );
 
   // Right Image Area ----------------------------------------------
   QImage* image = new QImage( );
@@ -171,114 +121,141 @@ StartScreenWidget::StartScreenWidget()
   imageLabel->setMinimumHeight(10);  
   imageLabel->setMinimumWidth(10);  // TODO
   right_layout->addWidget(imageLabel);
-  right_layout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignTop);
+  right_layout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignCenter);
 
+
+
+  // Final Layout Setup ---------------------------------------------
+  // Alignment
+  layout->setAlignment( Qt::AlignTop );
+  hlayout->setAlignment( Qt::AlignTop );
+  left_layout->setAlignment( Qt::AlignCenter );
+  right_layout->setAlignment( Qt::AlignCenter );
+
+  // Stretch
+  left_layout->setSpacing( 30 );
+
+  // Attach Layouts
+  hlayout->addLayout( left_layout );
+  hlayout->addLayout( right_layout );
+  layout->addLayout( hlayout );
+  this->setLayout(layout);
   
-  /*
-  // Top Button Area -----------------------------------------------
-  controls_box_ = new QGroupBox();
-  layout_->addWidget( controls_box_ );
-  QHBoxLayout *controls_box_layout = new QHBoxLayout( controls_box_ );
-  controls_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-
-  // Slider Label
-  QLabel *density_label = new QLabel();
-  density_label->setText("Self Collision Sampling Density:");
-  controls_box_layout->addWidget(density_label);
-
-  // Slider
-  density_slider_ = new QSlider();
-  density_slider_->setTickPosition(QSlider::TicksBelow);
-  density_slider_->setMinimum( 0 ); 
-  density_slider_->setMaximum( 99 );
-  density_slider_->setSingleStep( 10 );
-  density_slider_->setPageStep( 50 );
-  density_slider_->setSliderPosition( 9 ); // 10,000 is default
-  density_slider_->setTickInterval( 10 );
-  density_slider_->setOrientation( Qt::Horizontal );
-  controls_box_layout->addWidget(density_slider_);
-  connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
-
-  // Slider Value Label
-  density_value_label_ = new QLabel();
-  density_value_label_->setMinimumWidth(100);
-  controls_box_layout->addWidget(density_value_label_);
-  changeDensityLabel( density_slider_->value() ); // initialize label with value
-
-  // Generate Button
-  generate_button_ = new QPushButton();
-  generate_button_->setText("Generate Default Collision Matrix");
-  generate_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  connect(generate_button_, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
-  controls_box_layout->addWidget(generate_button_);
-
-  // Progress Bar Area ---------------------------------------------
-
-  // Progress Label
-  progress_label_ = new QLabel();
-  progress_label_->setText("Generating Default Collision Matrix");
-  progress_label_->hide();
-  layout_->addWidget(progress_label_);
-
-  // Progress Bar
-  progress_bar_ = new QProgressBar();
-  progress_bar_->setMaximum(100);
-  progress_bar_->setMinimum(0);
-  progress_bar_->hide(); // only show when computation begins
-  layout_->addWidget(progress_bar_); //,Qt::AlignCenter);
-
-  // Table Area --------------------------------------------  
-
-  // Table
-  collision_table_ = new QTableWidget();
-  collision_table_->setColumnCount(4);
-  collision_table_->setColumnWidth(0, 330);
-  collision_table_->setColumnWidth(1, 330);
-  collision_table_->setColumnWidth(2, 85);
-  collision_table_->setColumnWidth(3, 180);
-  collision_table_->setSortingEnabled(true);
-  connect(collision_table_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
-  layout_->addWidget(collision_table_);
-
-  // Table Headers
-  header_list_ = new QStringList();
-  header_list_->append("Link A");
-  header_list_->append("Link B");
-  header_list_->append("Disabled");
-  header_list_->append("Reason To Disable");
-  collision_table_->setHorizontalHeaderLabels(*header_list_);
-
-  // Bottom Area ----------------------------------------
-  controls_box_bottom_ = new QGroupBox();
-  layout_->addWidget( controls_box_bottom_ );
-  QHBoxLayout *controls_box_bottom_layout = new QHBoxLayout( controls_box_bottom_ );
-
-  // Checkbox
-  collision_checkbox_ = new QCheckBox();
-  collision_checkbox_->setText("Show Non-Disabled Link Pairs");
-  connect(collision_checkbox_, SIGNAL(toggled(bool)), this, SLOT(collisionCheckboxToggle()));
-  controls_box_bottom_layout->addWidget(collision_checkbox_);
-  controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
-
-  // Save Button
-  save_button_ = new QPushButton();
-  save_button_->setText("Save to SRDF");
-  save_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  save_button_->setMinimumWidth(300);
-  connect(save_button_, SIGNAL(clicked()), this, SLOT(saveToSRDF()));
-  controls_box_bottom_layout->addWidget(save_button_);
-  controls_box_bottom_layout->setAlignment(save_button_, Qt::AlignRight);
-
-  // Quit
-  //quitButton_ = new QPushButton("Quit");
-  //connect(quitButton_, SIGNAL(clicked()), this, SLOT(quit()));
-  //layout_->addWidget(quitButton_);
-
-  // Does user need to save before exiting?
-  unsaved_changes_ = false;
-
-  */
-
-  setWindowTitle("Start Screen");
 }
+
+// ******************************************************************************************
+// Load files to parameter server
+// ******************************************************************************************
+void StartScreenWidget::loadFiles()
+{
+  // check that URDF can be loaded
+  std::cout << "LOADING FILE" << std::endl;
+
+}
+
+// ******************************************************************************************
+// ******************************************************************************************
+// Class for selecting files
+// ******************************************************************************************
+// ******************************************************************************************
+
+// ******************************************************************************************
+// Load the file dialog
+// ******************************************************************************************
+void LoadPathWidget::btn_file_dialog()
+{
+  QString path;
+  if( dir_only_ ) // only allow user to select a directory
+  {
+    path = QFileDialog::getExistingDirectory(this, "Open Stack Directory", path_box_->text(),
+                                             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+  }
+  else // only allow user to select file
+  {
+    QString start_path;
+    // smart load: open file dialog in location of stack directory
+    if( path_box_->text() != "" )
+    {
+      start_path = path_box_->text();
+    }
+    else
+    {
+      // Temp pointers used for casting and accessing parent widget elements
+      StartScreenWidget *my_parent = qobject_cast< StartScreenWidget* >( this->parentWidget() );
+      LoadPathWidget *my_stack_path = qobject_cast< LoadPathWidget* >( my_parent->stack_path_ );
+      LoadPathWidget *my_urdf_path = qobject_cast< LoadPathWidget* >( my_parent->urdf_file_ );
+
+      // Check if the urdf file was already loaded
+      if( my_urdf_path->path_box_->text() != "" ) // it has text
+      {
+        start_path = my_urdf_path->path_box_->text();
+      }
+      else
+      {
+        start_path = my_stack_path->path_box_->text();	
+      }
+    }
+    if( load_only_ )
+    {
+      path = QFileDialog::getOpenFileName(this, "Open File", start_path, "");
+    }
+    else
+    {
+      path = QFileDialog::getSaveFileName(this, "Create/Load File", start_path, "" );
+    }
+  }
+  
+  // check they did not press cancel
+  if (path != NULL)
+    path_box_->setText( path );
+}
+
+// ******************************************************************************************
+// Create the widget
+// ******************************************************************************************
+LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &instructions, const bool dir_only, const bool load_only )
+  : dir_only_(dir_only), load_only_(load_only)
+{
+  // Set frame graphics
+  setFrameShape(QFrame::StyledPanel);
+  setFrameShadow(QFrame::Raised);
+  setLineWidth(1);
+  setMidLineWidth(0);
+
+  // Basic widget container
+  QVBoxLayout *layout = new QVBoxLayout();
+  this->setLayout(layout);
+
+  // Horizontal layout splitter
+  QHBoxLayout *hlayout = new QHBoxLayout();
+    
+  // Widget Title
+  QLabel *widget_title = new QLabel();
+  widget_title->setText( title.c_str() );
+  QFont widget_title_font( "Arial", 12, QFont::Bold);
+  widget_title->setFont(widget_title_font);
+  layout->addWidget( widget_title);
+  layout->setAlignment( widget_title, Qt::AlignTop);
+
+  // Widget Instructions
+  QLabel *widget_instructions = new QLabel();
+  widget_instructions->setText( instructions.c_str() );
+  widget_instructions->setWordWrap(true);
+  layout->addWidget( widget_instructions);
+  layout->setAlignment( widget_instructions, Qt::AlignTop);    
+
+  // Line Edit
+  path_box_ = new QLineEdit();
+  hlayout->addWidget(path_box_);
+
+  // Button
+  button_ = new QPushButton();
+  button_->setText("Browse");
+  connect( button_, SIGNAL( clicked() ), this, SLOT( btn_file_dialog() ) );
+  hlayout->addWidget(button_);
+
+  // Add horizontal layer to verticle layer
+  layout->addLayout(hlayout);
+}
+
 
