@@ -48,8 +48,8 @@ enum DisabledReason { NEVER, DEFAULT, ADJACENT, ALWAYS, USER, NOT_DISABLED };
 
 struct LinkPairData
 {
-  //  LinkPairData(std::string reason_, bool disable_check_): reason(reason_), disable_check(disable_check_) {}
-  LinkPairData() : reason( NOT_DISABLED ), disable_check( false ) {}; // by default all link pairs are NOT disabled for collision checking
+  // by default all link pairs are NOT disabled for collision checking
+  LinkPairData() : reason( NOT_DISABLED ), disable_check( false ) {}; 
   DisabledReason reason;        
   bool disable_check;
 };
@@ -61,12 +61,13 @@ typedef std::map<std::pair<std::string, std::string>, LinkPairData > LinkPairMap
  * \brief Generate an adjacency list of links that are always and never in collision, to speed up collision detection
  * \param parent_scene A reference to the robot in the planning scene
  * \param include_never_colliding Optional flag to disable the check for links that are never in collision
- * \param trials Optional ability to set the number random collision checks that are made. Increase the probability of correctness
+ * \param trials Set the number random collision checks that are made. Increase the probability of correctness
  * \return Adj List of unique set of pairs of links in string-based form
  */
 LinkPairMap
 computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress, 
-                         const bool include_never_colliding = true, const unsigned int trials = 10000, const bool verbose = false);
+                         const bool include_never_colliding = true, const unsigned int trials = 10000, 
+                         const bool verbose = false);
 
 /**
  * \brief Generate xml format of disabled links for use in an SRDF
