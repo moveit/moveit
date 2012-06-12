@@ -48,28 +48,55 @@ const boost::unordered_map<moveit_configuration_tools::DisabledReason, const cha
   ( moveit_configuration_tools::DEFAULT, "Collision by Default" )
   ( moveit_configuration_tools::ADJACENT, "Adjacent Links" )
   ( moveit_configuration_tools::ALWAYS, "Always in Collision" )
-  ( moveit_configuration_tools::USER, "User Chosen" )
+  ( moveit_configuration_tools::USER, "User Disabled" )
   ( moveit_configuration_tools::NOT_DISABLED, "");
 
+/**
+ * \brief Subclass QTableWidgetItem for checkboxes to allow custom sorting by implementing the < operator
+ */
+class CheckboxSortWidgetItem : public QTableWidgetItem {
+public:
+  //  CheckboxSortWidgetItem():QTableWidgetItem() {}
+  // Override the standard comparision operator
+  bool operator <(const QTableWidgetItem &other) const
+  {
+    return checkState() < other.checkState();
+  }
+};
+
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget()
 {
+  // Create a Qt-ROS update spinner
+  // TODO: not sure how this will integrate with whole GUI Tools combined
+  // TODO: remove this?
+  update_timer_ = new QTimer();
+  connect( update_timer_, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
+  update_timer_->start( 1000 );
+
   // Basic widget container
   layout_ = new QVBoxLayout;
 
   // Top Label Area ------------------------------------------------
 
   // Page Title
-  QLabel *page_title = new QLabel();
-  page_title->setText("Optimize Self-Collision Checking");
-  QFont page_title_font( "Arial", 18, QFont::Bold);
-  page_title->setFont(page_title_font);
-  layout_->addWidget( page_title);
+  page_title_ = new QLabel();
+  page_title_->setText("Optimize Self-Collision Checking");
+  QFont page_title__font( "Arial", 18, QFont::Bold);
+  page_title_->setFont(page_title__font);
+  layout_->addWidget( page_title_);
 
   // Page Instructions
   QLabel *page_instructions = new QLabel();
   page_instructions->setText("The Default Self-Collision Matrix Generator will search for pairs of links "
-                             "on the robot that can safely be disabled from collision checking, decreasing motion planning processing time. "
-                             "These pairs of links are disabled they are always in collision, never in collision, collision in the robot's default position and when the links are adjacent to each other on the kinematic chain. Sampling density specifies how many random robot positions to check for self collision. Higher densities require more computation time.");
+                             "on the robot that can safely be disabled from collision checking, decreasing motion "
+                             "planning processing time. These pairs of links are disabled they are always in collision,"
+                             " never in collision, collision in the robot's default position and when the links are "
+                             "adjacent to each other on the kinematic chain. Sampling density specifies how many "
+                             "random robot positions to check for self collision. Higher densities require more "
+                             "computation time.");
   page_instructions->setWordWrap(true);
   layout_->addWidget( page_instructions);
 
@@ -130,20 +157,21 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget()
   // Table
   collision_table_ = new QTableWidget();
   collision_table_->setColumnCount(4);
-  collision_table_->setColumnWidth(0, 320);
-  collision_table_->setColumnWidth(1, 320);
-  collision_table_->setColumnWidth(2, 175);
-  collision_table_->setColumnWidth(4, 60);
+  collision_table_->setColumnWidth(0, 330);
+  collision_table_->setColumnWidth(1, 330);
+  collision_table_->setColumnWidth(2, 85);
+  collision_table_->setColumnWidth(3, 180);
   collision_table_->setSortingEnabled(true);
+  connect(collision_table_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
   layout_->addWidget(collision_table_);
 
   // Table Headers
-  QStringList titleList;
-  titleList.append("Link A");
-  titleList.append("Link B");
-  titleList.append("Reason Disabled");
-  titleList.append("CC Disabled");
-  collision_table_->setHorizontalHeaderLabels(titleList);
+  header_list_ = new QStringList();
+  header_list_->append("Link A");
+  header_list_->append("Link B");
+  header_list_->append("Disabled");
+  header_list_->append("Reason To Disable");
+  collision_table_->setHorizontalHeaderLabels(*header_list_);
 
   // Bottom Area ----------------------------------------
   controls_box_bottom_ = new QGroupBox();
@@ -171,29 +199,59 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget()
   //connect(quitButton_, SIGNAL(clicked()), this, SLOT(quit()));
   //layout_->addWidget(quitButton_);
 
+  // Does user need to save before exiting?
+  unsaved_changes = false;
+
   setLayout(layout_);
 
   setWindowTitle("Default Collision Matrix");
 }
 
+// ******************************************************************************************
+// 
+// ******************************************************************************************
+void ComputeDefaultCollisionsWidget::closeEvent( QCloseEvent * event )
+{
+  std::cout << "CLOSING" << std::endl;
+
+
+  if( unsaved_changes )
+  {
+    QMessageBox messageBox;
+    messageBox.setWindowTitle("Default Collision Matrix");
+    messageBox.setText("There are unsaved changes to the default collision matrix. Do you really want to quit?");
+    messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    messageBox.setDefaultButton(QMessageBox::No);
+    if(messageBox.exec() == QMessageBox::No)
+    {
+      event->ignore();
+      return;
+    }
+  }
+
+  event->accept();
+}
+
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 void ComputeDefaultCollisionsWidget::generateCollisionTable()
 {
   // Disable controls on form
   disableControls(true);
 
-  unsigned int collision_progress = 0; // shared variable with thread
+  // Create a progress variable that will be shared with the compute_default_collisions tool and its threads
+  // NOTE: be sure not to delete this variable until the subprograms have finished using it. Because of the simple
+  // use case of this variable (1 thread writes to it, the parent process reads it) it was decided a boost shared
+  // pointer is not necessary.
+  unsigned int collision_progress = 0; 
   progress_bar_->setValue(collision_progress);  
 
   QApplication::processEvents(); // allow the progress bar to be shown
 
-  // No threads
-  //generateCollisionTableThread( &collision_progress );
-
-  ROS_INFO("I am outputting 1");
   // Create thread to do actual work
   boost::thread workerThread( boost::bind( &ComputeDefaultCollisionsWidget::generateCollisionTableThread, 
                                            this, &collision_progress ));
-  ROS_INFO("I am outputting 2");
   // Check interval
   boost::posix_time::seconds check_interval(1);  
 
@@ -207,17 +265,19 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
     QApplication::processEvents(); 
 
     // 1 second sleep
-    //boost::this_thread::sleep(check_interval);  
-    usleep(1000 * 1000);
+    boost::this_thread::sleep(check_interval);  
+    //usleep(1000 * 1000);
   }
 
-  ROS_INFO("I am outputting");
   // Wait for thread to finish
   workerThread.join();
-  ROS_INFO("Now  I am not outputting");
-  std::cout << " DONE ZEBRAS" << std::endl;
+  std::cout << "\nThreads joined.\n";
+
   // Load the results into the GUI
   loadCollisionTable();
+
+  // For exiting application
+  unsaved_changes = true;
 
   // Hide the progress bar
   disableControls(false); // enable everything else
@@ -225,7 +285,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
 
 void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collision_progress )
 {
-  ROS_INFO("Inner thread");
+  //ROS_INFO("Inner thread");
 
   unsigned int num_trials = density_slider_->value() * 1000 + 1000; // scale to trials amount
 
@@ -243,12 +303,17 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
   *collision_progress = 100;
 
   //ROS_INFO_STREAM("Thread complete " << link_pairs.size());
-  ROS_INFO("Thread complete");
+  //ROS_INFO("Thread complete");
 }
 
-
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 void ComputeDefaultCollisionsWidget::loadCollisionTable()
 {
+  int row = 0;
+  int progress_counter = 0;
+  
   // Show Progress Bar
   progress_bar_->setValue(0);  
 
@@ -256,8 +321,9 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
   progress_label_->setText("Loading table...");
 
   // Setup Collision Table
+  collision_table_->setUpdatesEnabled(false); // prevent table from updating until we are completely done
+  collision_table_->setDisabled(true); // make sure we disable it so that the cellChanged event is not called
   collision_table_->clearContents();
-  int row = 0;
 
   // Check if there are no disabled collisions (unprobable?)
   if(link_pairs.size() == 0)
@@ -272,7 +338,9 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
     generate_button_->setText("Regenerate Default Collision Matrix");
   }
 
-  int progress_counter = 0;
+
+  // Intially set the table to be worst-case scenario of every possible element pair
+  collision_table_->setRowCount( link_pairs.size() ); 
 
   for ( moveit_configuration_tools::LinkPairMap::const_iterator pair_it = link_pairs.begin(); 
         pair_it != link_pairs.end(); 
@@ -281,7 +349,6 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
     // Add link pair row if 1) it is disabled from collision checking or 2) the SHOW ALL LINK PAIRS checkbox is checked
     if( pair_it->second.disable_check || collision_checkbox_->isChecked() ) 
     {
-      collision_table_->setRowCount( row + 1 ); 
       
       // Create row elements
       QTableWidgetItem* linkA = new QTableWidgetItem( pair_it->first.first.c_str() ); 
@@ -290,26 +357,33 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
       QTableWidgetItem* linkB = new QTableWidgetItem( pair_it->first.second.c_str() );
       linkB->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      QTableWidgetItem* reason = new QTableWidgetItem( longReasonsToString.at( pair_it->second.reason ) );
-
-      reason->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-
-      QCheckBox* enable_box = new QCheckBox(collision_table_);
+      CheckboxSortWidgetItem* disable_check = new CheckboxSortWidgetItem;
+      disable_check->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
       if( pair_it->second.disable_check ) // Checked means no collision checking
-      {
+        disable_check->setCheckState(Qt::Checked);
+      else
+        disable_check->setCheckState(Qt::Unchecked);
+
+      /*QCheckBox* enable_box = new QCheckBox(collision_table_);
+        if( pair_it->second.disable_check ) // Checked means no collision checking
+        {
         enable_box->setChecked(true);
-      } else 
-      {
+        } 
+        else 
+        {
         enable_box->setChecked(false);
-      }
-      //connect(enable_box, SIGNAL(toggled(bool)), this, SLOT(toggleCheckBox(bool)));
+        }*/
+      //collision_table_->setCellWidget( row, 2, enable_box); 
+
+      QTableWidgetItem* reason = new QTableWidgetItem( longReasonsToString.at( pair_it->second.reason ) );
+      reason->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
       // Insert row elements into collision table
       collision_table_->setItem( row, 0, linkA);
       collision_table_->setItem( row, 1, linkB);
-      collision_table_->setItem( row, 2, reason);
-      collision_table_->setCellWidget( row, 3, enable_box); 
-      
+      collision_table_->setItem( row, 2, disable_check);
+      collision_table_->setItem( row, 3, reason);
+            
       // Increment row count
       ++row;
     }
@@ -324,25 +398,26 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
     }
 
   }
+  
+  // Reduce the table size to only the number of used rows
+  collision_table_->setRowCount( row ); 
 
+      
+
+  collision_table_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
 }
 
-void ComputeDefaultCollisionsWidget::quit()
-{
-  QMessageBox messageBox;
-  messageBox.setWindowTitle("Default Collision Matrix");
-  messageBox.setText("Do you really want to quit?");
-  messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-  messageBox.setDefaultButton(QMessageBox::No);
-  if(messageBox.exec() == QMessageBox::Yes)
-    QApplication::quit();
-}
-
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 void ComputeDefaultCollisionsWidget::changeDensityLabel(int value)
 {
   density_value_label_->setText( QString::number( value*1000 + 1000).append(" samples") );
 }
 
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 void ComputeDefaultCollisionsWidget::disableControls(bool disable)
 {
   controls_box_->setDisabled( disable );
@@ -364,13 +439,16 @@ void ComputeDefaultCollisionsWidget::disableControls(bool disable)
   QApplication::processEvents(); // allow the progress bar to be shown
 }
 
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 void ComputeDefaultCollisionsWidget::collisionCheckboxToggle()
 {
   // Show Progress bar
   disableControls( true );
 
   // Update link_pairs data structure
-  copyTableChanges();
+  //copyTableChanges();
 
   // Now update collision table with updates
   loadCollisionTable();
@@ -379,8 +457,68 @@ void ComputeDefaultCollisionsWidget::collisionCheckboxToggle()
   disableControls( false );
 }
 
-void ComputeDefaultCollisionsWidget::copyTableChanges()
+// ******************************************************************************************
+// 
+// ******************************************************************************************
+void ComputeDefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are flipped on purpose
 {
+  // Only accept cell changes if table is enabled, otherwise it is this program making changes
+  if( collision_table_->isEnabled() )
+  {
+    std::cout << "CLICK " << i << " " << j << std::endl;
+    // Make sure change is the checkbox column
+    if( i == 2 ) 
+    {
+      std::cout << "ROW " << j << std::endl;
+
+      // Convert row to pair
+      std::pair<std::string, std::string> link_pair;
+      link_pair.first = collision_table_->item(j, 0)->text().toStdString();
+      link_pair.second = collision_table_->item(j, 1)->text().toStdString();
+
+      // Get the state of checkbox
+      bool check_state = collision_table_->item(j, 2)->checkState();
+
+      std::cout << link_pair.first << " " << link_pair.second << "checked? " << check_state << "\n";
+
+      // Check if the checkbox state has changed from original value
+      if( link_pairs[ link_pair ].disable_check != check_state )
+      {
+        std::cout << link_pair.first << " to " << link_pair.second << " has changed " << check_state << "\n";
+        
+        // Save the change
+        link_pairs[ link_pair ].disable_check = check_state;
+
+        // Handle USER Reasons: 1) pair is disabled by user
+        if( link_pairs[ link_pair ].disable_check == true && 
+            link_pairs[ link_pair ].reason == moveit_configuration_tools::NOT_DISABLED )
+        {
+          link_pairs[ link_pair ].reason = moveit_configuration_tools::USER;
+          std::cout << link_pair.first << " is now USER \n";
+          
+          // Change Reason in Table
+          collision_table_->item(j, 3)->setText( longReasonsToString.at( link_pairs[ link_pair ].reason ) );
+        }
+        // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
+        else if( link_pairs[ link_pair ].disable_check == false && 
+                 link_pairs[ link_pair ].reason == moveit_configuration_tools::USER )
+        {
+          link_pairs[ link_pair ].reason = moveit_configuration_tools::NOT_DISABLED;
+          std::cout << link_pair.first << " is now NOT DISABLED \n";
+          
+          // Change Reason in Table
+          collision_table_->item(j, 3)->setText( "" );
+        }
+
+        unsaved_changes = true;
+      }    
+    }
+  }
+}
+
+/*
+  void ComputeDefaultCollisionsWidget::copyTableChanges()
+  {
   progress_label_->setText("Scanning table...");
 
   int progress_counter = 0;
@@ -388,61 +526,77 @@ void ComputeDefaultCollisionsWidget::copyTableChanges()
   // Scan the table for all checkbox changes and save to data structure
   for(int i = 0; i < collision_table_->rowCount(); i++)
   {
-    QCheckBox* box = dynamic_cast<QCheckBox*> (collision_table_->cellWidget(i, 3));
-    if(box != NULL)
-    {
-      std::pair<std::string, std::string> link_pair;
-      link_pair.first = collision_table_->item(i, 0)->text().toStdString();
-      link_pair.second = collision_table_->item(i, 1)->text().toStdString();
+  //QCheckBox* box = dynamic_cast<QCheckBox*> (collision_table_->cellWidget(i, 2));
 
-      ROS_INFO_STREAM( link_pair.first << " " << link_pair.second );
+  std::pair<std::string, std::string> link_pair;
+  link_pair.first = collision_table_->item(i, 0)->text().toStdString();
+  link_pair.second = collision_table_->item(i, 1)->text().toStdString();
 
-      // Check if the checbox state has changed from original value
-      if( link_pairs[ link_pair ].disable_check != box->isChecked() )
-      {
-        ROS_INFO_STREAM( link_pair.first << " has changed " );
+  bool check_state = collision_table_->item(i, 2)->checkState();
+
+  //std::cout << link_pair.first << " " << link_pair.second << "checked? " << check_state << "\n";
+
+  // Check if the checkbox state has changed from original value
+  if( link_pairs[ link_pair ].disable_check != check_state )
+  {
+  std::cout << link_pair.first << " to " << link_pair.second << " has changed " << check_state << "\n";
         
-        // Save the change
-        link_pairs[ link_pair ].disable_check = box->isChecked();
+  // Save the change
+  link_pairs[ link_pair ].disable_check = check_state;
 
-        // Set to USER if its disabled but originally it was enabled
-        if( link_pairs[ link_pair ].disable_check == true && 
-            link_pairs[ link_pair ].reason != moveit_configuration_tools::NOT_DISABLED )
-        {
-          link_pairs[ link_pair ].reason = moveit_configuration_tools::USER;
-          ROS_INFO_STREAM( link_pair.first << " is now USER " );
-        }
-      }
-    }
-    else
-    {
-      ROS_INFO(" NOTHING ");
-    }
+  // Set to USER if its disabled but originally it was enabled
+  if( link_pairs[ link_pair ].disable_check == true && 
+  link_pairs[ link_pair ].reason == moveit_configuration_tools::NOT_DISABLED )
+  {
+  link_pairs[ link_pair ].reason = moveit_configuration_tools::USER;
+  std::cout << link_pair.first << " is now USER \n";
+  }
+  }
 
-    ++progress_counter; // for calculating progress bar
+  ++progress_counter; // for calculating progress bar
 
-    if( progress_counter % 200 == 0 )
-    {
-      // Update Progress Bar
-      progress_bar_->setValue( progress_counter * 100 / link_pairs.size() );  
-      QApplication::processEvents(); // allow the progress bar to be shown
-    }
+  if( progress_counter % 200 == 0 )
+  {
+  // Update Progress Bar
+  progress_bar_->setValue( progress_counter * 100 / link_pairs.size() );  
+  QApplication::processEvents(); // allow the progress bar to be shown
+  }
 
   }
 
-}
+  }
+*/
 
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 void ComputeDefaultCollisionsWidget::saveToSRDF()
 {
   // Show Progress bar
   disableControls( true );
 
   // Update link_pairs data structure
-  copyTableChanges();
+  //copyTableChanges();
 
   // Do the save
   moveit_configuration_tools::outputDisabledCollisionsXML( link_pairs );
 
+  // Update the table to reflect changes in data
+  loadCollisionTable();
+
+  // Remove exit application warning
+  unsaved_changes = false;
+
   // Hide Progress bar
   disableControls( false );
 }
+
+// ******************************************************************************************
+// 
+// ******************************************************************************************
+void ComputeDefaultCollisionsWidget::updateTimer()
+{
+  ros::spinOnce(); // keep ROS alive
+}
+
+
