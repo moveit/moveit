@@ -117,6 +117,7 @@ bool getCollisionSphereGradients(const distance_field::DistanceField* distance_f
 bool getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
                                  const std::vector<CollisionSphere>& sphere_list,
                                  const std::vector<Eigen::Vector3d>& sphere_centers,
+                                 double maximum_value,                          
                                  double tolerance);
 
 //forward declaration required for friending apparently
@@ -370,8 +371,7 @@ void getCollisionSphereMarkers(const std_msgs::ColorRGBA& color,
                                const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
                                visualization_msgs::MarkerArray& arr);
 
-void getProximityGradientMarkers(const std_msgs::ColorRGBA& color,
-                                 const std::string& frame_id,
+void getProximityGradientMarkers(const std::string& frame_id,
                                  const std::string& ns,
                                  const ros::Duration& dur,
                                  const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,

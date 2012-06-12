@@ -73,18 +73,21 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const planning_models::
   addLinkBodyDecompositions(resolution_);
 }
 
-void CollisionRobotDistanceField::checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
-                                                           collision_detection::CollisionResult& res,
-                                                           const planning_models::KinematicState& state,
-                                                           const collision_detection::AllowedCollisionMatrix *acm) const
+boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> 
+CollisionRobotDistanceField::generateCollisionCheckingStructures(const std::string& group_name,
+                                                                 const planning_models::KinematicState& state,
+                                                                 const collision_detection::AllowedCollisionMatrix *acm,
+                                                                 boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
+                                                                 bool generate_distance_field) const
 {
-  boost::shared_ptr<const DistanceFieldCacheEntry> dfce = getDistanceFieldCacheEntry(req.group_name,
-                                                                                     state,
-                                                                                     acm);
-  if(!dfce) {
-    boost::shared_ptr<DistanceFieldCacheEntry> new_dfce = generateDistanceFieldCacheEntry(req.group_name,
+  dfce = getDistanceFieldCacheEntry(group_name,
+                                    state,
+                                    acm);
+  if(!dfce || (generate_distance_field && !dfce->distance_field_)) {
+    boost::shared_ptr<DistanceFieldCacheEntry> new_dfce = generateDistanceFieldCacheEntry(group_name,
                                                                                           state,
-                                                                                          acm);
+                                                                                          acm,
+                                                                                          generate_distance_field);
     boost::mutex::scoped_lock slock(update_cache_lock_);
     (const_cast<CollisionRobotDistanceField*>(this))->distance_field_cache_entry_ = new_dfce;
     dfce = new_dfce;
@@ -92,10 +95,32 @@ void CollisionRobotDistanceField::checkSelfCollisionHelper(const collision_detec
   ros::WallTime n = ros::WallTime::now();
   boost::shared_ptr<GroupStateRepresentation> gsr = getGroupStateRepresentation(dfce,state);
   ROS_INFO_STREAM("Gsr creation " << (ros::WallTime::now()-n).toSec());
-  n = ros::WallTime::now();
-  getSelfProximityGradients(dfce, gsr);
-  getIntraGroupProximityGradients(dfce, gsr);
-  //ROS_INFO_STREAM("Getting self proximity took " << (ros::WallTime::now()-n).toSec());
+  return gsr;
+}
+
+void CollisionRobotDistanceField::checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
+                                                           collision_detection::CollisionResult& res,
+                                                           const planning_models::KinematicState& state,
+                                                           const collision_detection::AllowedCollisionMatrix *acm) const
+{
+  boost::shared_ptr<const DistanceFieldCacheEntry> dfce;
+  boost::shared_ptr<GroupStateRepresentation> gsr = generateCollisionCheckingStructures(req.group_name,
+                                                                                        state,
+                                                                                        acm,
+                                                                                        dfce,
+                                                                                        true);
+  ros::WallTime n = ros::WallTime::now();
+  if(req.contacts) {
+    bool in_self = getSelfProximityGradients(dfce, gsr);
+    bool in_intra = getIntraGroupProximityGradients(dfce, gsr);
+    res.collision = in_self || in_intra;
+  } else {
+    res.collision = getSelfCollisions(dfce, gsr);
+    if(!res.collision) {
+      res.collision = getIntraGroupCollisions(dfce, gsr);
+    }
+  }
+  ROS_INFO_STREAM("Getting self proximity took " << (ros::WallTime::now()-n).toSec());
   (const_cast<CollisionRobotDistanceField*>(this))->last_gsr_ = gsr;
 }
 
@@ -139,12 +164,34 @@ void CollisionRobotDistanceField::checkSelfCollision(const collision_detection::
   return checkSelfCollisionHelper(req, res, state, &acm);
 }
 
+bool CollisionRobotDistanceField::getSelfCollisions(//const collision_detection::CollisionRequest& req,
+                                                    //collision_detection::CollisionResult& res,
+                                                    const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
+                                                    boost::shared_ptr<GroupStateRepresentation>& gsr) const {
+  bool in_collision = false;
+  for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
+    if(!dfce->link_has_geometry_[i] || !dfce->self_collision_enabled_[i]) continue;
+    bool coll = getCollisionSphereCollision(dfce->distance_field_.get(),
+                                            gsr->link_body_decompositions_[i]->getCollisionSpheres(),
+                                            gsr->link_body_decompositions_[i]->getSphereCenters(),
+                                            max_propogation_distance_,
+                                            0.0);
+    if(coll) {
+      ROS_INFO_STREAM("Link " << dfce->link_names_[i] << " in self collision");
+      in_collision = true;
+      //return true;
+    }
+  }
+  return in_collision;
+  //return false;
+}  
+
 bool CollisionRobotDistanceField::getSelfProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
                                                             boost::shared_ptr<GroupStateRepresentation>& gsr) const {
   bool in_collision = false;
   for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
     if(!dfce->link_has_geometry_[i] || !dfce->self_collision_enabled_[i]) continue;
-    bool coll = getCollisionSphereGradients(dfce->distance_field_,
+    bool coll = getCollisionSphereGradients(dfce->distance_field_.get(),
                                             gsr->link_body_decompositions_[i]->getCollisionSpheres(),
                                             gsr->link_body_decompositions_[i]->getSphereCenters(),
                                             gsr->gradients_[i],
@@ -160,6 +207,56 @@ bool CollisionRobotDistanceField::getSelfProximityGradients(const boost::shared_
   return in_collision;
 } 
 
+bool CollisionRobotDistanceField::getIntraGroupCollisions(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
+                                                          boost::shared_ptr<GroupStateRepresentation>& gsr) const {
+
+  unsigned int num_links = dfce->link_names_.size();
+  unsigned int num_attached_bodies = dfce->attached_body_names_.size();
+  //TODO - deal with attached bodies
+  for(unsigned int i = 0; i < num_links; i++) {
+    for(unsigned int j = i+1; j < num_links; j++) {    
+      if(i == j) continue;
+      if(!dfce->link_has_geometry_[i] || !dfce->link_has_geometry_[j]) continue;
+      if(!dfce->intra_group_collision_enabled_[i][j]) continue;
+      if(!doBoundingSpheresIntersect(gsr->link_body_decompositions_[i],
+                                     gsr->link_body_decompositions_[j])) {
+        ROS_INFO_STREAM("Bounding spheres for " << dfce->link_names_[i] << " and " << dfce->link_names_[j]
+                        << " don't intersect");
+        continue;
+      } else {
+        ROS_INFO_STREAM("Bounding spheres for " << dfce->link_names_[i] << " and " << dfce->link_names_[j]
+                        << " intersect");
+      }
+      const std::vector<CollisionSphere>* collision_spheres_1;
+      const std::vector<CollisionSphere>* collision_spheres_2;
+      const std::vector<Eigen::Vector3d>* sphere_centers_1;
+      const std::vector<Eigen::Vector3d>* sphere_centers_2;
+      collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
+      sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
+      collision_spheres_2 = &(gsr->link_body_decompositions_[j]->getCollisionSpheres());
+      sphere_centers_2 = &(gsr->link_body_decompositions_[j]->getSphereCenters());
+      for(unsigned int k = 0; k < collision_spheres_1->size(); k++) {
+        for(unsigned int l = 0; l < collision_spheres_2->size(); l++) {
+          Eigen::Vector3d gradient = (*sphere_centers_1)[k] - (*sphere_centers_2)[l];
+          double dist = gradient.norm();
+          if(dist < (*collision_spheres_1)[k].radius_+(*collision_spheres_2)[l].radius_) {
+            ROS_INFO_STREAM("Sphere 1 " << (*sphere_centers_1)[k]);
+            ROS_INFO_STREAM("Sphere 2 " << (*sphere_centers_2)[l]);
+            ROS_INFO_STREAM("Norm " << gradient.norm());
+            ROS_INFO_STREAM("Dist is " << dist 
+                            << " radius 1 " << (*collision_spheres_1)[k].radius_ 
+                            << " radius 2 " << (*collision_spheres_2)[l].radius_);
+            ROS_INFO_STREAM("Gradient " << gradient);
+            ROS_INFO_STREAM("Spheres intersect for " << dfce->link_names_[i] << " and " << dfce->link_names_[j]);
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
 bool CollisionRobotDistanceField::getIntraGroupProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
                                                                   boost::shared_ptr<GroupStateRepresentation>& gsr) const {
   bool in_collision = false;
@@ -167,7 +264,7 @@ bool CollisionRobotDistanceField::getIntraGroupProximityGradients(const boost::s
   unsigned int num_attached_bodies = dfce->attached_body_names_.size();
   //TODO - deal with attached bodies
   for(unsigned int i = 0; i < num_links; i++) {
-    for(unsigned int j = 0; j < num_links; j++) {    
+    for(unsigned int j = i+1; j < num_links; j++) {    
       if(i == j) continue;
       if(!dfce->link_has_geometry_[i] || !dfce->link_has_geometry_[j]) continue;
       if(!dfce->intra_group_collision_enabled_[i][j]) continue;
@@ -179,22 +276,23 @@ bool CollisionRobotDistanceField::getIntraGroupProximityGradients(const boost::s
       sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
       collision_spheres_2 = &(gsr->link_body_decompositions_[j]->getCollisionSpheres());
       sphere_centers_2 = &(gsr->link_body_decompositions_[j]->getSphereCenters());
-      ROS_INFO_STREAM("Links " << dfce->link_names_[i] << " and " << dfce->link_names_[j]);
       for(unsigned int k = 0; k < collision_spheres_1->size(); k++) {
         for(unsigned int l = 0; l < collision_spheres_2->size(); l++) {
           Eigen::Vector3d gradient = (*sphere_centers_1)[k] - (*sphere_centers_2)[l];
-          double dist = gradient.squaredNorm();
+          double dist = gradient.norm();
           if(dist < gsr->gradients_[i].distances[k]) {
             //ROS_INFO_STREAM("Gradient " << gradient);
             //ROS_INFO_STREAM("Dist " << dist);
             gsr->gradients_[i].distances[k] = dist;
             gsr->gradients_[i].gradients[k] = gradient;
+            gsr->gradients_[i].types[k] = INTRA;
           }
           if(dist < gsr->gradients_[j].distances[l]) {
             //ROS_INFO_STREAM("Gradient sec " << gradient);
             //ROS_INFO_STREAM("Dist sec " << dist);
             gsr->gradients_[j].distances[l] = dist;
             gsr->gradients_[j].gradients[l] = -gradient;
+            gsr->gradients_[j].types[l] = INTRA;
           }
         }
       }
@@ -205,7 +303,8 @@ bool CollisionRobotDistanceField::getIntraGroupProximityGradients(const boost::s
 boost::shared_ptr<CollisionRobotDistanceField::DistanceFieldCacheEntry> 
 CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& group_name,
                                                              const planning_models::KinematicState& state,
-                                                             const collision_detection::AllowedCollisionMatrix *acm) const
+                                                             const collision_detection::AllowedCollisionMatrix *acm,
+                                                             bool generate_distance_field) const
 { 
   ros::WallTime n = ros::WallTime::now();
   boost::shared_ptr<DistanceFieldCacheEntry> dfce(new DistanceFieldCacheEntry());
@@ -280,68 +379,69 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
       dfce->attached_body_link_state_indices_.push_back(dfce->link_state_indices_[i]);
     }
   }
-
-  std::vector<PosedBodyPointDecompositionPtr> non_group_link_decompositions;
-  std::vector<PosedBodyPointDecompositionVectorPtr> non_group_attached_body_decompositions;
-  const std::map<std::string, bool>& updated_group_map = in_group_update_map_.find(group_name)->second;
-  for(unsigned int i = 0; i < kmodel_->getLinkModelsWithCollisionGeometry().size(); i++) {
-    std::string link_name = kmodel_->getLinkModelsWithCollisionGeometry()[i]->getName();
-    const planning_models::KinematicState::LinkState* link_state = dfce->state_->getLinkState(link_name);
-    if(updated_group_map.find(link_name) != updated_group_map.end()) continue;
-    non_group_link_decompositions.push_back(getPosedLinkBodyPointDecomposition(link_state));
-    //ROS_INFO_STREAM("Adding link " << link_name << " with " << non_group_link_decompositions.back()->getCollisionPoints().size() << " points");
-    std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
-    link_state->getAttachedBodies(attached_bodies);
-    for(unsigned int i = 0; i < attached_bodies.size(); i++) {
-      non_group_attached_body_decompositions.push_back(getAttachedBodyPointDecomposition(attached_bodies[i], resolution_));
+  if(generate_distance_field) {
+    std::vector<PosedBodyPointDecompositionPtr> non_group_link_decompositions;
+    std::vector<PosedBodyPointDecompositionVectorPtr> non_group_attached_body_decompositions;
+    const std::map<std::string, bool>& updated_group_map = in_group_update_map_.find(group_name)->second;
+    for(unsigned int i = 0; i < kmodel_->getLinkModelsWithCollisionGeometry().size(); i++) {
+      std::string link_name = kmodel_->getLinkModelsWithCollisionGeometry()[i]->getName();
+      const planning_models::KinematicState::LinkState* link_state = dfce->state_->getLinkState(link_name);
+      if(updated_group_map.find(link_name) != updated_group_map.end()) continue;
+      non_group_link_decompositions.push_back(getPosedLinkBodyPointDecomposition(link_state));
+      //ROS_INFO_STREAM("Adding link " << link_name << " with " << non_group_link_decompositions.back()->getCollisionPoints().size() << " points");
+      std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
+      link_state->getAttachedBodies(attached_bodies);
+      for(unsigned int i = 0; i < attached_bodies.size(); i++) {
+        non_group_attached_body_decompositions.push_back(getAttachedBodyPointDecomposition(attached_bodies[i], resolution_));
+      }
     }
-  }
-  ros::WallTime before_create = ros::WallTime::now();
-  if(use_signed_distance_field_)
-  {
-    dfce->distance_field_ = new distance_field::SignedPropagationDistanceField(size_x_,
+    ros::WallTime before_create = ros::WallTime::now();
+    if(use_signed_distance_field_)
+    {
+      dfce->distance_field_.reset(new distance_field::SignedPropagationDistanceField(size_x_,
+                                                                                     size_y_, 
+                                                                                     size_z_, 
+                                                                                     resolution_, 
+                                                                                     -(size_x_/2.0), 
+                                                                                     -(size_y_/2.0), 
+                                                                                     -(size_z_/2.0), 
+                                                                                     max_propogation_distance_));
+    }
+    else
+    {
+      ROS_INFO_STREAM("This one");
+      dfce->distance_field_.reset(new distance_field::PropagationDistanceField(size_x_,
                                                                                size_y_, 
                                                                                size_z_, 
                                                                                resolution_, 
                                                                                -(size_x_/2.0), 
                                                                                -(size_y_/2.0), 
                                                                                -(size_z_/2.0), 
-                                                                               max_propogation_distance_);
+                                                                               max_propogation_distance_));
+    }
+    ROS_INFO_STREAM("Creation took " << (ros::WallTime::now()-before_create).toSec());
+    //TODO - deal with AllowedCollisionMatrix
+    //now we need to actually set the points
+    //TODO - deal with shifted robot
+    std::vector<Eigen::Vector3d> all_points;
+    for(unsigned int i = 0; i < non_group_link_decompositions.size(); i++) {
+      all_points.insert(all_points.end(),
+                        non_group_link_decompositions[i]->getCollisionPoints().begin(),
+                        non_group_link_decompositions[i]->getCollisionPoints().end());
+    }
+    for(unsigned int i = 0; i < non_group_attached_body_decompositions.size(); i++) {
+      all_points.insert(all_points.end(),
+                        non_group_attached_body_decompositions[i]->getCollisionPoints().begin(),
+                        non_group_attached_body_decompositions[i]->getCollisionPoints().end());
+    }
+    //ROS_INFO_STREAM("Pre-dim " << dfce->distance_field_->getNumCells(distance_field::VoxelGrid<distance_field::PropDistanceFieldVoxel>::DIM_X));
+    ros::WallTime before_add = ros::WallTime::now();  
+    dfce->distance_field_->addPointsToField(all_points);
+    ROS_INFO_STREAM("Adding points took " << (ros::WallTime::now()-before_add).toSec());
+    ROS_INFO_STREAM("Total is " << (ros::WallTime::now()-n).toSec());
+    //ROS_INFO_STREAM("Pre-dim " << dfce->distance_field_->getNumCells(distance_field::VoxelGrid<distance_field::PropDistanceFieldVoxel>::DIM_X));
+    //ROS_INFO_STREAM("Creation took " << (ros::WallTime::now()-n));
   }
-  else
-  {
-    ROS_INFO_STREAM("This one");
-    dfce->distance_field_ = new distance_field::PropagationDistanceField(size_x_,
-                                                                         size_y_, 
-                                                                         size_z_, 
-                                                                         resolution_, 
-                                                                         -(size_x_/2.0), 
-                                                                         -(size_y_/2.0), 
-                                                                         -(size_z_/2.0), 
-                                                                         max_propogation_distance_);
-  }
-  ROS_INFO_STREAM("Creation took " << (ros::WallTime::now()-before_create).toSec());
-  //TODO - deal with AllowedCollisionMatrix
-  //now we need to actually set the points
-  //TODO - deal with shifted robot
-  std::vector<Eigen::Vector3d> all_points;
-  for(unsigned int i = 0; i < non_group_link_decompositions.size(); i++) {
-    all_points.insert(all_points.end(),
-                      non_group_link_decompositions[i]->getCollisionPoints().begin(),
-                      non_group_link_decompositions[i]->getCollisionPoints().end());
-  }
-  for(unsigned int i = 0; i < non_group_attached_body_decompositions.size(); i++) {
-    all_points.insert(all_points.end(),
-                      non_group_attached_body_decompositions[i]->getCollisionPoints().begin(),
-                      non_group_attached_body_decompositions[i]->getCollisionPoints().end());
-  }
-  //ROS_INFO_STREAM("Pre-dim " << dfce->distance_field_->getNumCells(distance_field::VoxelGrid<distance_field::PropDistanceFieldVoxel>::DIM_X));
-  ros::WallTime before_add = ros::WallTime::now();  
-  dfce->distance_field_->addPointsToField(all_points);
-  ROS_INFO_STREAM("Adding points took " << (ros::WallTime::now()-before_add).toSec());
-  ROS_INFO_STREAM("Total is " << (ros::WallTime::now()-n).toSec());
-  //ROS_INFO_STREAM("Pre-dim " << dfce->distance_field_->getNumCells(distance_field::VoxelGrid<distance_field::PropDistanceFieldVoxel>::DIM_X));
-  //ROS_INFO_STREAM("Creation took " << (ros::WallTime::now()-n));
   return dfce;
 }
 
