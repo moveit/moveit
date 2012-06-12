@@ -51,6 +51,7 @@
 #include <QTimer>
 #include <QLineEdit>
 #include <QSpacerItem>
+#include <QFileDialog>
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loading images
 
@@ -61,7 +62,7 @@ class StartScreenWidget : public QWidget
 {
   Q_OBJECT
 
-public:
+  public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -71,24 +72,28 @@ public:
    */
   StartScreenWidget();
 
-private Q_SLOTS:
+
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+  QFrame *stack_path_;
+  QFrame *urdf_file_;
+  QFrame *srdf_file_;
+  QPushButton *btn_load_;
+
+  private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
 
   /**
-   * \brief Called when user changes data in table, really just the checkbox
-   * \param i,j Check coordinates, aka y,x (weird)
+   * \brief Button click event for loading all fiels
    */
-  //void toggleCheckBox(int j, int i);
+  void loadFiles();
 
 private:
 
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-  
 
   // ******************************************************************************************
   // Variables
@@ -102,6 +107,43 @@ private:
   // ******************************************************************************************
 
 
+};
+
+
+/**
+ * \brief Re-usable file selection widget with instructions and box
+ */
+class LoadPathWidget : public QFrame
+{
+Q_OBJECT
+
+private:
+  // Load file button
+  QPushButton *button_;
+  // Only allow user to select folders
+  bool dir_only_;
+  // Only allow user to load files (not save)
+  bool load_only_;
+
+private Q_SLOTS:
+  /// Load the file dialog
+  void btn_file_dialog();
+
+public:
+  QLineEdit *path_box_;
+
+  /** 
+   * Create sub-widet
+   * 
+   * @param title Title of frame
+   * @param instructions User advice
+   * @param dir_only Only allow user to load a folder
+   * @param load_only Only allow user to select an existing file
+   * 
+   * @return 
+   */  
+  LoadPathWidget( const std::string &title, const std::string &instructions, 
+                  const bool dir_only = false, const bool load_only = false );
 };
 
 #endif
