@@ -16,7 +16,6 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-
 # Qt Stuff
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
@@ -28,7 +27,6 @@ include_directories(${QT_INCLUDE_DIR})
 set( headers
   include/moveit_configuration_tools/widgets/compute_default_collisions_widget.h
 )
-
 # Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(moc_sources ${headers})
 
@@ -36,7 +34,7 @@ qt4_wrap_cpp(moc_sources ${headers})
 rosbuild_add_library(${PROJECT_NAME}
   src/tools/compute_default_collisions.cpp
   src/tools/compute_longest_valid_segment_fraction.cpp
-  src/benchmark_timer.cpp
+  src/tools/benchmark_timer.cpp
 )
 
 # Include all widgets in their own library

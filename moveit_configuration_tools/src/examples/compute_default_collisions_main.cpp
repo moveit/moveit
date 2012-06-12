@@ -31,12 +31,7 @@
 
 #include <moveit_configuration_tools/widgets/compute_default_collisions_widget.h>
 #include <QApplication>
-#include <QtGui>
-//#include <boost/thread.hpp>
-
-using namespace std;
-
-int collision_progress = 0;
+#include "ros/ros.h"
 
 int main(int argc, char **argv)
 {
@@ -55,22 +50,15 @@ int main(int argc, char **argv)
 
   // Load Qt Widget
   ComputeDefaultCollisionsWidget * cdcm = new ComputeDefaultCollisionsWidget();
-  qtApp.setActiveWindow(cdcm);
-  //cdcm->showMaximized();
   cdcm->setMinimumWidth(1024);
   cdcm->setMinimumHeight(768);
   cdcm->show();
 
-  // Error check
-  /*if(!cdcm->isInited())
-  {
-    ROS_WARN_STREAM("Unable to initialize Qt Widget. Exiting");
-    exit(0);
-    }*/
+  // Wait here until Qt App is finished
+  const int result = qtApp.exec();
 
-  // For sending transforms and markers
-  //  boost::thread spin_thread(boost::bind(&spin_function));
-  //ros::shutdown();    
+  // Shutdown ROS
+  ros::shutdown();    
 
-  return qtApp.exec();
+  return result;
 }
