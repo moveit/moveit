@@ -52,6 +52,8 @@
 #include <QString>
 #include <QFont>
 #include <QApplication>
+#include <QTimer>
+#include <QCloseEvent>
 #include <boost/thread.hpp>
 #include "ros/ros.h"
 #include <moveit_configuration_tools/tools/compute_default_collisions.h>
@@ -61,18 +63,21 @@ class ComputeDefaultCollisionsWidget : public QWidget
   Q_OBJECT
 
 public:
-  ComputeDefaultCollisionsWidget();
+  ComputeDefaultCollisionsWidget(); //std::string urdf_file);
+  void closeEvent( QCloseEvent * event );
 
 private Q_SLOTS:
-  void quit();
   void generateCollisionTable();
   void changeDensityLabel(int value);
   void saveToSRDF();
   void loadCollisionTable();
   void collisionCheckboxToggle();
+  void updateTimer();
+  void toggleCheckBox(int i, int j);
 
 private:
   // Qt Components
+  QLabel *page_title_;
   QTableWidget *collision_table_;
   QPushButton *quitButton_;
   QVBoxLayout *layout_;
@@ -85,16 +90,19 @@ private:
   QCheckBox *collision_checkbox_;
   QGroupBox *controls_box_bottom_;
   QPushButton *save_button_;
+  QTimer *update_timer_;
+  QStringList *header_list_;
 
   // Data 
   moveit_configuration_tools::LinkPairMap link_pairs;
+  bool unsaved_changes; // does the user need to save before exiting?
 
   // Functions
   void generateCollisionTableThread( unsigned int *collision_progress );
                                      
   void disableControls(bool disable);
 
-  void copyTableChanges();
+  //void copyTableChanges();
 
 };
 
