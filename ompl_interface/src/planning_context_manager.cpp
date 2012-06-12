@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan  */
+/* Author: Ioan Sucan */
 
 #include "ompl_interface/planning_context_manager.h"
 
@@ -43,7 +43,7 @@
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/pRRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
-//#include <ompl/geometric/planners/rrt/msRRTConnect.h>
+#include <ompl/geometric/planners/rrt/msRRTConnect.h>
 #include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/sbl/SBL.h>
@@ -98,8 +98,9 @@ struct PlanningContextManager::CachedContexts
 
 }
 
-ompl_interface::PlanningContextManager::PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel, constraint_samplers::ConstraintSamplerManager &csm) :
-  kmodel_(kmodel), constraint_sampler_manager_(&csm), max_goal_samples_(10), max_state_sampling_attempts_(10), max_goal_sampling_attempts_(1000),
+ompl_interface::PlanningContextManager::PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
+  kmodel_(kmodel), constraint_sampler_manager_(csm),
+  max_goal_samples_(10), max_state_sampling_attempts_(10), max_goal_sampling_attempts_(1000),
   max_planning_threads_(4), max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
   last_planning_context_.reset(new LastPlanningContext());
@@ -116,56 +117,55 @@ namespace ompl_interface
 {
 
 template<typename T>
-static ob::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si)
+static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si, const std::string &new_name, const ModelBasedPlanningContextSpecification &spec)
 {
-  return ob::PlannerPtr(new T(si));
-}
+  ompl::base::PlannerPtr planner(new T(si));
+  if (!new_name.empty())
+    planner->setName(new_name);
+  planner->params().setParams(spec.config_, true);
+  planner->setup();
+  return planner;
 }
 
-ompl::base::PlannerPtr ompl_interface::PlanningContextManager::plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
-                                                                                const std::string &name, const std::map<std::string, std::string> &config) const
+}
+
+ompl_interface::ConfiguredPlannerAllocator ompl_interface::PlanningContextManager::plannerSelector(const std::string &planner) const
 {
-  std::map<std::string, ob::PlannerAllocator>::const_iterator it = known_planners_.find(planner);
+  std::map<std::string, ConfiguredPlannerAllocator>::const_iterator it = known_planners_.find(planner);
   if (it != known_planners_.end())
-  {
-    ob::PlannerPtr p = it->second(si);
-    if (!name.empty())
-      p->setName(name);
-    p->params().setParams(config, true);
-    p->setup();
-    return p;
-  }
+    return it->second;
   else
   {
     ROS_ERROR("Unknown planner: '%s'", planner.c_str());
-    return ob::PlannerPtr();
+    return ConfiguredPlannerAllocator();
   }
 }
   
-ompl_interface::ConfiguredPlannerAllocator ompl_interface::PlanningContextManager::getPlannerAllocator(void) const
-{
-  return boost::bind(&PlanningContextManager::plannerAllocator, this, _1, _2, _3, _4);
-}
 
 void ompl_interface::PlanningContextManager::registerDefaultPlanners(void)
 {
-  registerPlannerAllocator("geometric::RRT", boost::bind(&allocatePlanner<og::RRT>, _1));
-  registerPlannerAllocator("geometric::RRTConnect", boost::bind(&allocatePlanner<og::RRTConnect>, _1));
-  //  registerPlannerAllocator("geometric::msRRTConnect", boost::bind(&allocatePlanner<og::msRRTConnect>, _1));
-  registerPlannerAllocator("geometric::LazyRRT", boost::bind(&allocatePlanner<og::LazyRRT>, _1));
-  registerPlannerAllocator("geometric::EST", boost::bind(&allocatePlanner<og::EST>, _1));
-  registerPlannerAllocator("geometric::SBL", boost::bind(&allocatePlanner<og::SBL>, _1));
-  registerPlannerAllocator("geometric::KPIECE", boost::bind(&allocatePlanner<og::KPIECE1>, _1));
-  registerPlannerAllocator("geometric::BKPIECE", boost::bind(&allocatePlanner<og::BKPIECE1>, _1));
-  registerPlannerAllocator("geometric::LBKPIECE", boost::bind(&allocatePlanner<og::LBKPIECE1>, _1));
-  registerPlannerAllocator("geometric::RRTstar", boost::bind(&allocatePlanner<og::RRTstar>, _1));
-  registerPlannerAllocator("geometric::PRM", boost::bind(&allocatePlanner<og::PRM>, _1));
+  registerPlannerAllocator("geometric::RRT", boost::bind(&allocatePlanner<og::RRT>, _1, _2, _3));
+  registerPlannerAllocator("geometric::RRTConnect", boost::bind(&allocatePlanner<og::RRTConnect>, _1, _2, _3));
+  registerPlannerAllocator("geometric::msRRTConnect", boost::bind(&allocatePlanner<og::msRRTConnect>, _1, _2, _3));
+  registerPlannerAllocator("geometric::LazyRRT", boost::bind(&allocatePlanner<og::LazyRRT>, _1, _2, _3));
+  registerPlannerAllocator("geometric::EST", boost::bind(&allocatePlanner<og::EST>, _1, _2, _3));
+  registerPlannerAllocator("geometric::SBL", boost::bind(&allocatePlanner<og::SBL>, _1, _2, _3));
+  registerPlannerAllocator("geometric::KPIECE", boost::bind(&allocatePlanner<og::KPIECE1>, _1, _2, _3));
+  registerPlannerAllocator("geometric::BKPIECE", boost::bind(&allocatePlanner<og::BKPIECE1>, _1, _2, _3));
+  registerPlannerAllocator("geometric::LBKPIECE", boost::bind(&allocatePlanner<og::LBKPIECE1>, _1, _2, _3));
+  registerPlannerAllocator("geometric::RRTstar", boost::bind(&allocatePlanner<og::RRTstar>, _1, _2, _3));
+  registerPlannerAllocator("geometric::PRM", boost::bind(&allocatePlanner<og::PRM>, _1, _2, _3));
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces(void)
 {
   registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new JointModelStateSpaceFactory()));
   registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new PoseModelStateSpaceFactory()));
+}
+
+ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager::getPlannerSelector(void) const
+{
+  return boost::bind(&PlanningContextManager::plannerSelector, this, _1);
 }
 
 void ompl_interface::PlanningContextManager::setPlanningConfigurations(const std::vector<PlanningConfigurationSettings> &pconfig)
@@ -189,22 +189,19 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 {
   std::map<std::string, PlanningConfigurationSettings>::const_iterator pc = planner_configs_.find(config);
   if (pc != planner_configs_.end())
-  {
-    std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator f = 
-      factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
-    if (f != state_space_factories_.end())
-      return getPlanningContext(pc->second, f->second.get());
-    else
-      ROS_ERROR("Factory of type '%s' was not found", factory_type.c_str());    
-  }
+    return getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1, factory_type));
   else
+  {
     ROS_ERROR("Planning configuration '%s' was not found", config.c_str());
-  return ModelBasedPlanningContextPtr();
+    return ModelBasedPlanningContextPtr();
+  }
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const PlanningConfigurationSettings &config,
-                                                                                                        const ModelBasedStateSpaceFactory *factory) const
+                                                                                                        const FactoryTypeSelector &factory_selector) const
 {
+  const ompl_interface::ModelBasedStateSpaceFactoryPtr &factory = factory_selector(config.group);
+  
   ModelBasedPlanningContextPtr context;
   {
     boost::mutex::scoped_lock slock(cached_contexts_->lock_);
@@ -227,10 +224,27 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
     ModelBasedPlanningContextSpecification context_spec;
     context_spec.config_ = config.config;
-    context_spec.planner_allocator_ = getPlannerAllocator();
+    context_spec.planner_selector_ = getPlannerSelector();
     context_spec.constraint_sampler_manager_ = constraint_sampler_manager_;
+    context_spec.state_space_ = factory->getNewStateSpace(space_spec);
+    if (config.config.find("subspaces") != config.config.end())
+    {
+      context_spec.config_.erase("subspaces");
+      boost::char_separator<char> sep(" ");
+      boost::tokenizer<boost::char_separator<char> > tok(config.config.at("subspaces"), sep);
+      for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+      {
+        const ompl_interface::ModelBasedStateSpaceFactoryPtr &sub_fact = factory_selector(*beg);
+        if (sub_fact)
+        {
+          ModelBasedStateSpaceSpecification sub_space_spec(kmodel_, *beg);
+          context_spec.subspaces_.push_back(sub_fact->getNewStateSpace(sub_space_spec));
+        }
+      }
+    }
+    
     ROS_DEBUG("Creating new planning context");
-    context.reset(new ModelBasedPlanningContext(config.name, factory->getNewStateSpace(space_spec), context_spec));
+    context.reset(new ModelBasedPlanningContext(config.name, context_spec));
     {
       boost::mutex::scoped_lock slock(cached_contexts_->lock_);
       cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
@@ -252,6 +266,49 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   return context;  
 }
 
+const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string & /* dummy */, const std::string &factory_type) const
+{
+  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator f = 
+    factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
+  if (f != state_space_factories_.end())
+    return f->second;
+  else
+  {
+    ROS_ERROR("Factory of type '%s' was not found", factory_type.c_str());
+    static const ModelBasedStateSpaceFactoryPtr empty;
+    return empty;
+  }
+}
+
+const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory2(const std::string &group, const moveit_msgs::MotionPlanRequest &req) const
+{
+  // find the problem representation to use
+  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator best = state_space_factories_.end();
+  int prev_priority = -1;
+  for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin() ; it != state_space_factories_.end() ; ++it)
+  {
+    int priority = it->second->canRepresentProblem(group, req, kmodel_);
+    if (priority > 0)
+      if (best == state_space_factories_.end() || priority > prev_priority)
+      {
+        best = it;
+        prev_priority = priority;
+      }
+  }
+  
+  if (best == state_space_factories_.end())
+  {
+    ROS_ERROR("There are no known state spaces that can represent the given planning problem");
+    static const ModelBasedStateSpaceFactoryPtr empty;
+    return empty;
+  }
+  else
+  {
+    ROS_DEBUG("Using '%s' parameterization for solving problem", best->first.c_str());
+    return best->second;
+  }
+}
+
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const moveit_msgs::MotionPlanRequest &req) const
 {
   if (req.group_name.empty())
@@ -259,28 +316,6 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     ROS_ERROR("No group specified to plan for");
     return ModelBasedPlanningContextPtr();
   }
-  
-  // find the problem representation to use
-  const ModelBasedStateSpaceFactory *factory = NULL;
-  int prev_priority = -1;
-  for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin() ; it != state_space_factories_.end() ; ++it)
-  {
-    int priority = it->second->canRepresentProblem(req, kmodel_);
-    if (priority >= 0)
-      if (!factory || priority > prev_priority)
-      {
-        factory = it->second.get();
-        prev_priority = priority;
-      }
-  }
-  
-  if (!factory)
-  {
-    ROS_ERROR("There are no known state spaces that can represent the given planning problem");
-    return ModelBasedPlanningContextPtr();
-  }
-  else
-    ROS_DEBUG("Using '%s' parameterization for solving problem", factory->getType().c_str());
   
   // identify the correct planning configuration
   std::map<std::string, PlanningConfigurationSettings>::const_iterator pc = planner_configs_.end();
@@ -301,7 +336,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     }
   }
   
-  return getPlanningContext(pc->second, factory);
+  return getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req));
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext(void) const

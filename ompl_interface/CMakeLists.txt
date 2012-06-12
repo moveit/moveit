@@ -16,10 +16,10 @@ rosbuild_add_boost_directories()
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(OMPL REQUIRED ompl)
-include_directories(${OMPL_INCLUDE_DIRS})
-link_directories(${OMPL_LIBRARY_DIRS})
+#find_package(PkgConfig REQUIRED)
+#pkg_check_modules(OMPL REQUIRED ompl)
+#include_directories(${OMPL_INCLUDE_DIRS})
+#link_directories(${OMPL_LIBRARY_DIRS})
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -48,7 +48,7 @@ rosbuild_add_library(${PROJECT_NAME}
 )
 
 rosbuild_add_openmp_flags(${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME} ${OMPL_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME} ${OMPL_LIBRARIES})
 rosbuild_link_boost(${PROJECT_NAME} thread date_time serialization system filesystem)
 
 rosbuild_add_gtest(test_state_space test/test_state_space.cpp) 
