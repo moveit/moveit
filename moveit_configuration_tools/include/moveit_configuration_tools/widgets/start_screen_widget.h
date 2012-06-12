@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_COMPUTE_DEFAULT_COLLISIONS_WIDGET__
-#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_COMPUTE_DEFAULT_COLLISIONS_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_START_SCREEN_WIDGET_
+#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_START_SCREEN_WIDGET_
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -44,24 +44,20 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QSlider>
-#include <QProgressDialog>
-#include <QProgressBar>
-#include <QTableWidget>
 #include <QCheckBox>
 #include <QString>
 #include <QFont>
 #include <QApplication>
 #include <QTimer>
-#include <QCloseEvent>
-#include <boost/thread.hpp>
-#include "ros/ros.h"
-#include <moveit_configuration_tools/tools/compute_default_collisions.h>
+#include <QLineEdit>
+#include <QSpacerItem>
+#include <ros/ros.h>
+#include <ros/package.h> // for getting file path for loading images
 
 /**
- * \brief User interface for editing the default collision matrix list in an SRDF
+ * \brief Start screen user interface for MoveIt Configuration Assistant
  */
-class ComputeDefaultCollisionsWidget : public QWidget
+class StartScreenWidget : public QWidget
 {
   Q_OBJECT
 
@@ -71,16 +67,9 @@ public:
   // ******************************************************************************************
 
   /**
-   * \brief User interface for editing the default collision matrix list in an SRDF
-   * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
+   * \brief Start screen user interface for MoveIt Configuration Assistant
    */
-  ComputeDefaultCollisionsWidget( std::string srdf_file );
-
-  /**
-   * \brief Qt close event function for reminding user to save
-   * \param event A Qt paramenter
-   */
-  void closeEvent( QCloseEvent * event );
+  StartScreenWidget();
 
 private Q_SLOTS:
 
@@ -89,92 +78,29 @@ private Q_SLOTS:
   // ******************************************************************************************
 
   /**
-   * \brief
-   Qt close event function for reminding user to saveCreates a thread and updates the GUI progress bar
-   */
-  void generateCollisionTable();
-
-  /**
-   * \brief GUI func for showing sampling density amount
-   * \param value Sampling density
-   */
-  void changeDensityLabel(int value);
-
-  /**
-   * \brief Calls the tool's SRDF saving functionality
-   */
-  void saveToSRDF();
-
-  /**
-   * \brief Displays data in the link_pairs data structure into a QtTableWidget
-   */
-  void loadCollisionTable();
- 
-  /**
-   * \brief Changes the table to show or hide collisions that are not disabled (that have collision checking enabled
-   */
-  void collisionCheckboxToggle();
-
-  /**
-   * \brief Timer call for letting ROS spin
-   */
-  void updateTimer();
-
-  /**
    * \brief Called when user changes data in table, really just the checkbox
    * \param i,j Check coordinates, aka y,x (weird)
    */
-  void toggleCheckBox(int j, int i);
+  //void toggleCheckBox(int j, int i);
 
 private:
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-  QLabel *page_title_;
-  QTableWidget *collision_table_;
-  QVBoxLayout *layout_;
-  QLabel *density_value_label_;
-  QSlider *density_slider_;
-  QPushButton *generate_button_;
-  QGroupBox *controls_box_;
-  QProgressBar *progress_bar_;
-  QLabel *progress_label_;
-  QCheckBox *collision_checkbox_;
-  QGroupBox *controls_box_bottom_;
-  QPushButton *save_button_;
-  QTimer *update_timer_;
-  QStringList *header_list_;
+  
 
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
 
-  /// main storage of link pair data
-  moveit_configuration_tools::LinkPairMap link_pairs_; 
-
-  /// does the user need to save before exiting?
-  bool unsaved_changes_; 
-
   /// location to save/load SRDF
-  std::string srdf_file_;
+  //std::string srdf_file_;
 
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
 
-  /**
-   * \brief The thread that is called to allow the GUI to update. Calls an external function to do calcs
-   * \param collision_progress A shared pointer between 3 threads to allow progress bar to update. See declaration 
-   * location for more details and warning.
-   */
-  void generateCollisionTableThread( unsigned int *collision_progress );
-
-  /**
-   * \brief Helper function to disable parts of GUI during computation
-   * \param disable A command
-   */                                
-  void disableControls(bool disable);
 
 };
 
