@@ -26,29 +26,37 @@ include_directories(${QT_INCLUDE_DIR})
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set( headers
   include/moveit_configuration_tools/widgets/compute_default_collisions_widget.h
+  include/moveit_configuration_tools/widgets/start_screen_widget.h
 )
+
 # Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(moc_sources ${headers})
 
 # Tools are compiled into a library
 rosbuild_add_library(${PROJECT_NAME}
   src/tools/compute_default_collisions.cpp
-  src/tools/compute_longest_valid_segment_fraction.cpp
+  #src/tools/compute_longest_valid_segment_fraction.cpp
+  #src/tools/write_srdf.cpp
   src/tools/benchmark_timer.cpp
 )
 
 # Include all widgets in their own library
 rosbuild_add_library(${PROJECT_NAME}_widgets
   src/widgets/compute_default_collisions_widget.cpp
+  src/widgets/start_screen_widget.cpp
 )
 target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME})
 
 # Source files for the exectuable for testing
 set( sources
-  src/examples/compute_default_collisions_main.cpp
+  #src/examples/compute_default_collisions_main.cpp
+  src/examples/configuration_assistant.cpp
 )
 
 # Create the executable
-rosbuild_add_executable(compute_default_collisions_main ${sources} ${headers} ${moc_sources})
-target_link_libraries(compute_default_collisions_main ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets)
+#rosbuild_add_executable(compute_default_collisions_main ${sources} ${headers} ${moc_sources})
+#target_link_libraries(compute_default_collisions_main ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets)
+
+rosbuild_add_executable(configuration_assistant ${sources} ${headers} ${moc_sources})
+target_link_libraries(configuration_assistant ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets)
 
