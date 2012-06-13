@@ -34,7 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#include "moveit_configuration_tools/widgets/start_screen_widget.h"
+#include "start_screen_widget.h"
 
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
@@ -67,7 +67,7 @@ StartScreenWidget::StartScreenWidget()
 
   // Page Instructions
   QLabel *page_instructions = new QLabel( );
-  page_instructions->setText("Welcome to the MoveIt Setup Assistant! (MIST) These tools will assist you in creating "
+  page_instructions->setText("Welcome to the MoveIt Setup Assistant! These tools will assist you in creating "
                              "a planning configuration for your robot. Start by specifying the MoveIt configuration stack location, URDF file and SRDF file.");
   page_instructions->setWordWrap(true);
   page_instructions->setMargin(10);
