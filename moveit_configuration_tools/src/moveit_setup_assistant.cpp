@@ -29,7 +29,7 @@
 
 // Author: Dave Coleman
 
-#include <moveit_configuration_tools/widgets/start_screen_widget.h>
+#include "widgets/setup_assistant_widget.h"
 #include <QApplication>
 //#include "ros/ros.h"
 
@@ -43,10 +43,10 @@ int main(int argc, char **argv)
   QApplication qtApp(argc, argv);
 
   // Load Qt Widget
-  StartScreenWidget *sc = new StartScreenWidget();
-  sc->setMinimumWidth(1024);
-  sc->setMinimumHeight(768);
-  sc->show();
+  SetupAssistantWidget *saw = new SetupAssistantWidget();
+  saw->setMinimumWidth(1024);
+  saw->setMinimumHeight(768);
+  saw->show();
 
   // Wait here until Qt App is finished
   const int result = qtApp.exec();

@@ -34,7 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#include "moveit_configuration_tools/widgets/compute_default_collisions_widget.h"
+#include "compute_default_collisions_widget.h"
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <boost/unordered_map.hpp>
 #include <boost/assign.hpp>
