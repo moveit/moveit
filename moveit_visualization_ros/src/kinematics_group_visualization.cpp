@@ -539,6 +539,9 @@ void KinematicsGroupVisualization::updateEndEffectorState(const std::string& gro
     }
     last_solution_good_ = true;
     state_.setStateValues(sol);
+    if(state_changed_callback_) {
+      state_changed_callback_(group_name_, state_);
+    }
   } else {
     last_bad_validation_time_ = ros::Time::now();
     if(last_solution_good_ == true) {

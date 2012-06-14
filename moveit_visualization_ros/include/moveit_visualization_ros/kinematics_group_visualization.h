@@ -137,6 +137,12 @@ public:
 
   void setState(const planning_models::KinematicState& state);
 
+  void addStateChangedCallback(const boost::function<void(const std::string&,
+                                                          const planning_models::KinematicState&)>& callback)
+  {
+    state_changed_callback_ = callback;
+  }
+
 protected:
 
   void sendCurrentMarkers();
@@ -195,6 +201,9 @@ protected:
   
   boost::function<void(void)> button_click_callback_;
   bool dof_marker_enabled_;
+
+  boost::function<void(const std::string&,
+                       const planning_models::KinematicState&)> state_changed_callback_;
 
   std::map<std::string, Eigen::Affine3d,
            std::less<std::string>,

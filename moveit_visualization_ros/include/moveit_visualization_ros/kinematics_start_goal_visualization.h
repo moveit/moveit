@@ -111,6 +111,13 @@ public:
   /** brief Activate the controls for the end chain. */
   void goalOn();
 
+  void addStateChangedCallback(const boost::function<void(const std::string&,
+                                                          const planning_models::KinematicState&)>& callback)
+  {
+    start_->addStateChangedCallback(callback);
+    goal_->addStateChangedCallback(callback);
+  }
+
 protected:
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
