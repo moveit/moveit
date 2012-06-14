@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_SETUP_ASSISTANT_WIDGET_
-#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_SETUP_ASSISTANT_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_ROBOT_POSES_WIDGET_
+#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_ROBOT_POSES_WIDGET_
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -44,27 +44,9 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QString>
-#include <QFont>
-#include <QApplication>
-#include <QListView>
-#include <QTimer>
-#include <QSplitter>
-#include <QAbstractListModel>
-#include <QObject>
-#include <QStringList>
-#include <QItemSelectionModel>
-#include <QModelIndex>
-#include <QItemSelection>
-#include <QDebug>
-#include <ros/ros.h>
-#include "navigation_widget.h"
-#include "start_screen_widget.h"
-#include "compute_default_collisions_widget.h"
-#include "planning_groups_widget.h"
-#include "robot_poses_widget.h"
-#include "configuration_files_widget.h"
+#include "header_widget.h"
 
-class SetupAssistantWidget : public QWidget
+class RobotPosesWidget : public QWidget
 {
   Q_OBJECT
 
@@ -73,19 +55,19 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  SetupAssistantWidget( QWidget *parent );
+  RobotPosesWidget( QWidget *parent );
+
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-
 
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-  void navigation_clicked( const QModelIndex& index );
+
 
 private:
 
@@ -93,10 +75,7 @@ private:
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
-  QList<NavItem> navs_;
-  NavigationWidget *navs_view_;
-  QWidget *right_frame_;
-  QSplitter *splitter_;
+
 
   // ******************************************************************************************
   // Private Functions
@@ -104,6 +83,5 @@ private:
 
 
 };
-
 
 #endif

@@ -83,25 +83,17 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
 
   // Top Label Area ------------------------------------------------
 
-  // Page Title
-  page_title_ = new QLabel( this );
-  page_title_->setText("Optimize Self-Collision Checking");
-  QFont page_title__font( "Arial", 18, QFont::Bold);
-  page_title_->setFont(page_title__font);
-  layout_->addWidget( page_title_);
-
-  // Page Instructions
-  QLabel *page_instructions = new QLabel( this );
-  page_instructions->setText("The Default Self-Collision Matrix Generator will search for pairs of links "
+  HeaderWidget *header = new HeaderWidget( "Optimize Self-Collision Checking",
+                                           "The Default Self-Collision Matrix Generator will search for pairs of links "
                              "on the robot that can safely be disabled from collision checking, decreasing motion "
                              "planning processing time. These pairs of links are disabled they are always in collision,"
                              " never in collision, collision in the robot's default position and when the links are "
                              "adjacent to each other on the kinematic chain. Sampling density specifies how many "
                              "random robot positions to check for self collision. Higher densities require more "
-                             "computation time.");
-  page_instructions->setWordWrap(true);
-  layout_->addWidget( page_instructions);
-
+                             "computation time.",
+                                           this);
+  layout_->addWidget( header );
+   
   // Top Button Area -----------------------------------------------
   controls_box_ = new QGroupBox( this );
   layout_->addWidget( controls_box_ );
@@ -134,7 +126,7 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
 
   // Generate Button
   generate_button_ = new QPushButton( this );
-  generate_button_->setText("Generate Default Collision Matrix");
+  generate_button_->setText("&Generate Default Collision Matrix");
   generate_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   connect(generate_button_, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
   controls_box_layout->addWidget(generate_button_);
@@ -195,13 +187,13 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
 
   // Save Button
-  save_button_ = new QPushButton( this );
-  save_button_->setText("Save to SRDF");
+  /*save_button_ = new QPushButton( this );
+  save_button_->setText("&Save to SRDF");
   save_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   save_button_->setMinimumWidth(300);
   connect(save_button_, SIGNAL(clicked()), this, SLOT(saveToSRDF()));
   controls_box_bottom_layout->addWidget(save_button_);
-  controls_box_bottom_layout->setAlignment(save_button_, Qt::AlignRight);
+  controls_box_bottom_layout->setAlignment(save_button_, Qt::AlignRight);*/
 
   // Does user need to save before exiting?
   unsaved_changes_ = false;

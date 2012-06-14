@@ -34,70 +34,24 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_PLANNING_GROUPS_WIDGET_
-#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_PLANNING_GROUPS_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_HEADER_WIDGET_
+#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_HEADER_WIDGET_
 
 #include <QWidget>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
 #include <QLabel>
-#include <QMessageBox>
-#include <QPushButton>
-#include <QSlider>
-#include <QProgressDialog>
-#include <QProgressBar>
-#include <QTableWidget>
-#include <QCheckBox>
-#include <QString>
 #include <QFont>
-#include <QApplication>
-#include <QTimer>
-#include <QCloseEvent>
-#include <QSplitter>
-#include <boost/thread.hpp>
-#include "ros/ros.h"
-#include <moveit_configuration_tools/tools/compute_default_collisions.h>
-#include "header_widget.h"
 
-class PlanningGroupsWidget : public QWidget
+
+class HeaderWidget : public QWidget
 {
   Q_OBJECT
 
 public:
-  // ******************************************************************************************
-  // Public Functions
-  // ******************************************************************************************
 
-  PlanningGroupsWidget( QWidget *parent );
-
-private Q_SLOTS:
-
-  // ******************************************************************************************
-  // Slot Event Functions
-  // ******************************************************************************************
-
-  void loadCollisionTable();
-  void addKinematicChainGroup();
-  void addJointCollectionGroup();
-
-private:
-
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-  QTableWidget *groups_table_;
-
-  // ******************************************************************************************
-  // Variables
-  // ******************************************************************************************
-
-
-  // ******************************************************************************************
-  // Private Functions
-  // ******************************************************************************************
-
-
+  HeaderWidget( const std::string &title, const std::string &instructions, QWidget *parent );
 };
+
+
 
 #endif
