@@ -65,7 +65,10 @@ public:
     return type_;
   }
 
-  virtual int canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
+  /** \brief Decide whether the type of state space constructed by this factory could represent problems specified by the user
+      request \e req for group \e group. The group \e group must always be specified and takes precedence over \e req.group_name, which may be different */
+  virtual int canRepresentProblem(const std::string &group,
+                                  const moveit_msgs::MotionPlanRequest &req,
 				  const planning_models::KinematicModelConstPtr &kmodel) const = 0;
 
 protected:

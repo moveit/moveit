@@ -461,7 +461,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     }
     
     planning_models::KinematicState kstate(default_state);
-    constraint_samplers::ConstraintSamplerManager *csmng = pcontext->getConstraintSamplerManager();
+    const constraint_samplers::ConstraintSamplerManagerPtr &csmng = pcontext->getConstraintSamplerManager();
     ConstrainedSampler *csmp = NULL;
     if (csmng)
     {

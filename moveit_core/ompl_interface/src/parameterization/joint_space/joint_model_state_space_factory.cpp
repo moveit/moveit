@@ -42,7 +42,8 @@ ompl_interface::JointModelStateSpaceFactory::JointModelStateSpaceFactory(void) :
   type_ = JointModelStateSpace::PARAMETERIZATION_TYPE;
 }  
 
-int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(const moveit_msgs::MotionPlanRequest &req,
+int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(const std::string &group,
+                                                                     const moveit_msgs::MotionPlanRequest &req,
 								     const planning_models::KinematicModelConstPtr &kmodel) const
 {
   return 100;
