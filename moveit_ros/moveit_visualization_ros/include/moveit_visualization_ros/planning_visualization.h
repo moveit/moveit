@@ -91,6 +91,9 @@ public:
   void setStartState(const std::string& group_name,
                      const planning_models::KinematicState& state);
 
+  void addStateChangedCallback(const boost::function<void(const std::string&,
+                                                          const planning_models::KinematicState&)>& callback);
+
 protected:
 
   void generatePlan(const std::string& name, bool play=true);

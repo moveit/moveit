@@ -36,6 +36,7 @@ qt4_wrap_cpp(MOC_FILES
   include/moveit_visualization_ros/planning_scene_file_menu.h
   include/moveit_visualization_ros/planning_scene_database_dialog.h
   include/moveit_visualization_ros/planning_visualization_qt_wrapper.h
+  include/moveit_visualization_ros/proximity_visualization_qt_wrapper.h
 )
 
 #uncomment if you have defined messages
@@ -60,7 +61,10 @@ rosbuild_add_library(${PROJECT_NAME}
   src/planning_visualization_qt_wrapper.cpp
   src/planning_scene_file_menu.cpp
   src/planning_scene_database_dialog.cpp
+  src/proximity_visualization.cpp
+  src/proximity_visualization_qt_wrapper.cpp
   src/moveit_visualizer.cpp
+  src/moveit_proximity_visualizer.cpp
   ${MOC_FILES}
   )
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
@@ -86,6 +90,10 @@ target_link_libraries(interactive_object_visualization_test ${PROJECT_NAME})
 
 rosbuild_add_executable(moveit_visualizer src/moveit_visualizer_main.cpp)
 target_link_libraries(moveit_visualizer ${QT_LIBRARIES} ${PROJECT_NAME})
+
+rosbuild_add_executable(moveit_proximity_visualizer src/moveit_proximity_visualizer_main.cpp)
+target_link_libraries(moveit_proximity_visualizer ${QT_LIBRARIES} ${PROJECT_NAME})
+
 
 rosbuild_add_executable(interactive_distance_field src/interactive_distance_field.cpp)
 target_link_libraries(interactive_distance_field ${QT_LIBRARIES} ${PROJECT_NAME})

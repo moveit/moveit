@@ -143,6 +143,16 @@ void PlanningVisualization::setStartState(const std::string& group_name,
   group_visualization_map_.at(group_name)->setStartState(state);
 }
 
+void PlanningVisualization::addStateChangedCallback(const boost::function<void(const std::string&,
+                                                                               const planning_models::KinematicState&)>& callback)
+{
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end(); 
+      it++) {
+    it->second->addStateChangedCallback(callback);
+  }
+}
+
 void PlanningVisualization::setAllStartChainModes(bool chain) {
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
       it != group_visualization_map_.end(); 
