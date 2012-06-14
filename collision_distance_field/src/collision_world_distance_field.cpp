@@ -57,7 +57,7 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(double size_x,
     collision_tolerance_(collision_tolerance),
     max_propogation_distance_(max_propogation_distance)
 {  
-  
+  generateEnvironmentDistanceField();
 }
 
 void CollisionWorldDistanceField::checkRobotCollision(const collision_detection::CollisionRequest &req, 
