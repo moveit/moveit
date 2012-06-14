@@ -25,30 +25,51 @@ include_directories(${QT_INCLUDE_DIR})
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set( headers
-  include/moveit_configuration_tools/widgets/compute_default_collisions_widget.h
+  src/widgets/navigation_widget.h
+  src/widgets/header_widget.h
+  src/widgets/setup_assistant_widget.h
+  src/widgets/start_screen_widget.h
+  src/widgets/planning_groups_widget.h
+  src/widgets/compute_default_collisions_widget.h
+  src/widgets/robot_poses_widget.h
+  src/widgets/configuration_files_widget.h
 )
+
 # Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(moc_sources ${headers})
 
-# Tools are compiled into a library
+# Tools Library
 rosbuild_add_library(${PROJECT_NAME}
   src/tools/compute_default_collisions.cpp
-  src/tools/compute_longest_valid_segment_fraction.cpp
+  #src/tools/compute_longest_valid_segment_fraction.cpp
+  #src/tools/write_srdf.cpp
   src/tools/benchmark_timer.cpp
 )
 
-# Include all widgets in their own library
+# Widgets Library
 rosbuild_add_library(${PROJECT_NAME}_widgets
+  src/widgets/navigation_widget.cpp
+  src/widgets/header_widget.cpp
+  src/widgets/setup_assistant_widget.cpp
+  src/widgets/start_screen_widget.cpp
+  src/widgets/planning_groups_widget.cpp
   src/widgets/compute_default_collisions_widget.cpp
+  src/widgets/robot_poses_widget.cpp
+  src/widgets/configuration_files_widget.cpp
 )
 target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME})
 
 # Source files for the exectuable for testing
 set( sources
-  src/examples/compute_default_collisions_main.cpp
+  #src/examples/compute_default_collisions_main.cpp
+  src/moveit_setup_assistant.cpp
 )
 
 # Create the executable
-rosbuild_add_executable(compute_default_collisions_main ${sources} ${headers} ${moc_sources})
-target_link_libraries(compute_default_collisions_main ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets)
+#rosbuild_add_executable(compute_default_collisions_main ${sources} ${headers} ${moc_sources})
+#target_link_libraries(compute_default_collisions_main ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets)
+
+rosbuild_add_executable(moveit_setup_assistant ${sources} ${headers} ${moc_sources})
+target_link_libraries(moveit_setup_assistant ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets)
+
 

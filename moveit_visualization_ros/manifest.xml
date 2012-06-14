@@ -27,8 +27,7 @@
   <depend package="trajectory_execution"/>
   <depend package="trajectory_execution_ros"/>
   <depend package="shape_msgs"/>
-  <depend package="shape_conversions"/>
-  <depend package="shape_utils"/>
+  <depend package="shape_tools"/>
   <depend package="planning_pipeline"/>
   <depend package="conversion_utilities"/>
 

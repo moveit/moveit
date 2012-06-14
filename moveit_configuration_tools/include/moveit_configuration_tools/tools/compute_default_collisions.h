@@ -42,10 +42,15 @@
 namespace moveit_configuration_tools
 {
 
-// Reasons for disabling link pairs. Append "in collision" for understanding.
-// NOT_DISABLED means the link pair DOES do self collision checking
+/**
+ * \brief Reasons for disabling link pairs. Append "in collision" for understanding.
+ * NOT_DISABLED means the link pair DOES do self collision checking
+ */
 enum DisabledReason { NEVER, DEFAULT, ADJACENT, ALWAYS, USER, NOT_DISABLED }; 
 
+/**
+ * \brief Store details on a pair of links
+ */
 struct LinkPairData
 {
   // by default all link pairs are NOT disabled for collision checking
@@ -54,7 +59,9 @@ struct LinkPairData
   bool disable_check;
 };
 
-// LinkPairMap is an adjacency list structure containing links in string-based form. Used for disabled links
+/**
+ * \brief LinkPairMap is an adjacency list structure containing links in string-based form. Used for disabled links
+ */
 typedef std::map<std::pair<std::string, std::string>, LinkPairData > LinkPairMap; 
 
 /**
@@ -64,10 +71,9 @@ typedef std::map<std::pair<std::string, std::string>, LinkPairData > LinkPairMap
  * \param trials Set the number random collision checks that are made. Increase the probability of correctness
  * \return Adj List of unique set of pairs of links in string-based form
  */
-LinkPairMap
-computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress, 
-                         const bool include_never_colliding = true, const unsigned int trials = 10000, 
-                         const bool verbose = false);
+LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress, 
+                                     const bool include_never_colliding = true, const unsigned int trials = 10000, 
+                                     const bool verbose = false);
 
 /**
  * \brief Generate xml format of disabled links for use in an SRDF

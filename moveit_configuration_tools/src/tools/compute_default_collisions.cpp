@@ -250,7 +250,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   // 5. ALWAYS IN COLLISION --------------------------------------------------------------------
   // Compute the links that are always in collision
   g_btimer.start("Always in Collision"); // Benchmarking Timer - temporary
-  unsigned int num_always = 0; //disableAlwaysInCollision(scene, link_pairs, req, links_seen_colliding);
+  unsigned int num_always = disableAlwaysInCollision(scene, link_pairs, req, links_seen_colliding);
   g_btimer.end("Always in Collision"); // Benchmarking Timer - temporary  
   //ROS_INFO("Links seen colliding total = %d", int(links_seen_colliding.size()));
   *progress = 8; // Progress bar feedback
@@ -259,7 +259,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   // Get the pairs of links that are never in collision
   g_btimer.start("Never in Collision"); // Benchmarking Timer - temporary  
   unsigned int num_never = 0;
-  if (false && include_never_colliding) // option of function
+  if (include_never_colliding) // option of function
   {
     num_never = disableNeverInCollision(num_trials, scene, link_pairs, req, links_seen_colliding, progress);
   }
