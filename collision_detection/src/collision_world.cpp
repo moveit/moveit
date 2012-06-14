@@ -103,27 +103,6 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
   }
 }
 
-void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::StaticShapeConstPtr> &shapes)
-{ 
-  // make sure that if a new object is created, it knows its name
-  std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
-  if (it == objects_.end())
-  {   
-    objects_[id].reset(new Object(id));
-    it = objects_.find(id);
-  }
-  else
-    if (record_changes_)
-      changeRemoveObj(id);
-  
-  ensureUnique(it->second);
-  for (std::size_t i = 0 ; i < shapes.size() ; ++i)
-    addToObjectInternal(it->second, shapes[i]);
-  
-  if (record_changes_)
-    changeAddObj(it->second.get());
-}
-
 std::vector<std::string> collision_detection::CollisionWorld::getObjectIds(void) const
 {
   std::vector<std::string> id;
@@ -151,31 +130,6 @@ void collision_detection::CollisionWorld::ensureUnique(ObjectPtr &id)
 {
   if (id && !id.unique())
     id.reset(new Object(*id));
-}
-
-void collision_detection::CollisionWorld::addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape)
-{
-  // make sure that if a new object is created, it knows its name
-  std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
-  if (it == objects_.end())
-  {   
-    objects_[id].reset(new Object(id));
-    it = objects_.find(id);
-  }
-  else
-    if (record_changes_)
-      changeRemoveObj(id);
-
-  ensureUnique(it->second);
-  addToObjectInternal(it->second, shape);
-  
-  if (record_changes_)
-    changeAddObj(it->second.get());
-}
-
-void collision_detection::CollisionWorld::addToObjectInternal(const ObjectPtr &obj, const shapes::StaticShapeConstPtr &shape)
-{
-  obj->static_shapes_.push_back(shape);
 }
 
 void collision_detection::CollisionWorld::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
@@ -239,36 +193,7 @@ bool collision_detection::CollisionWorld::removeShapeFromObject(const std::strin
 	ensureUnique(it->second);
 	it->second->shapes_.erase(it->second->shapes_.begin() + i);
 	it->second->shape_poses_.erase(it->second->shape_poses_.begin() + i);
-	if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
-	{
-	  objects_.erase(it);
-	  if (record_changes_)
-	    changeRemoveObj(id);
-	}
-	else
-	  if (record_changes_)
-	  {
-	    changeRemoveObj(id);
-	    changeAddObj(it->second.get());
-	  }
-	return true;
-      }
-  }
-  return false;
-}
-
-bool collision_detection::CollisionWorld::removeStaticShapeFromObject(const std::string &id, const shapes::StaticShapeConstPtr &shape)
-{
-  std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
-  if (it != objects_.end())
-  {
-    unsigned int n = it->second->static_shapes_.size();
-    for (unsigned int i = 0 ; i < n ; ++i)
-      if (it->second->static_shapes_[i] == shape)
-      {
-	ensureUnique(it->second);
-	it->second->static_shapes_.erase(it->second->static_shapes_.begin() + i);
-	if (it->second->shapes_.empty() && it->second->static_shapes_.empty())
+	if (it->second->shapes_.empty())
 	{
 	  objects_.erase(it);
 	  if (record_changes_)

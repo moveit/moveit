@@ -225,9 +225,6 @@ namespace collision_detection
       /** \brief The id for this object */
       std::string                               id_;
       
-      /** \brief An array of static shapes */
-      std::vector< shapes::StaticShapeConstPtr> static_shapes_;
-      
       /** \brief An array of shapes */
       std::vector< shapes::ShapeConstPtr>       shapes_;
       
@@ -267,25 +264,14 @@ namespace collision_detection
                              const std::vector<shapes::ShapeConstPtr> &shapes,
                              const std::vector<Eigen::Affine3d> &poses);
     
-    /** \brief Add static shapes to an object in the map. This function makes repeated calls to addToObjectInternal() to add the shapes one by one.
-        \note This function does NOT call the addToObject() variant that takes a single shape and a single pose as input. */
-    virtual void addToObject(const std::string &id,
-                             const std::vector<shapes::StaticShapeConstPtr> &shapes);
-    
     /** \brief Add a shape to an object. If the object already exists, this call will add the shape to the object at the specified pose. Otherwise, the object is created and the specified shape is added. This calls addToObjectInternal(). */
     virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-    
-    /** \brief Add a static shape to an object. If the object already exists, this call will add the shape to the object. Otherwise, the object is created and the specified shape is added. This calls addToObjectInternal(). */
-    virtual void addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape);
     
     /** \brief Update the pose of a shape in an object. Shape equality is verified by comparing pointers. Returns true on success. */
     virtual bool moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
     
     /** \brief Remove shape from object. Shape equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
     virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
-    
-    /** \brief Remove shape from object. Object equality is verified by comparing pointers. Ownership of the object is renounced upon (no memory freed). Returns true on success. */
-    virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShapeConstPtr &shape);
     
     /** \brief Remove a particular object. If there are no other pointers to the corresponding instance of Object, the memory is freed. */
     virtual void removeObject(const std::string &id);
@@ -315,10 +301,6 @@ namespace collision_detection
 
     /** \brief Add a shape to a specified object. All the sanity checks are done at the call site; this function should be efficient and not perform work that can be done only once (e.g., in the addToObject() call) */
     virtual void addToObjectInternal(const ObjectPtr &obj, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-
-    /** \brief Add a static shape to a specified object. All the sanity checks are done at the call site; this function should be efficient and not perform work that can be done only once (e.g., in the addToObject() call) */
-    virtual void addToObjectInternal(const ObjectPtr &obj, const shapes::StaticShapeConstPtr &shape);
-    
 
   private:
     

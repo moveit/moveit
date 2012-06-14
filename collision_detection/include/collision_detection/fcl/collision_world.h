@@ -64,13 +64,9 @@ namespace collision_detection
     virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const;
     
     virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses);
-    virtual void addToObject(const std::string &id, const std::vector<shapes::StaticShapeConstPtr> &shapes);
-
-    virtual void addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape);
     virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
     virtual bool moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
     virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape);
-    virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShapeConstPtr &shape);
     virtual void removeObject(const std::string &id);
     virtual void clearObjects(void);
     

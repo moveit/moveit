@@ -121,16 +121,6 @@ void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const Col
 
 void collision_detection::CollisionWorldFCL::constructFCLObject(const Object *obj, FCLObject &fcl_obj) const
 {
-  for (std::size_t i = 0 ; i < obj->static_shapes_.size() ; ++i)
-  {
-    FCLGeometryConstPtr g = createCollisionGeometry(obj->static_shapes_[i], obj);
-    if (g)
-    {
-      fcl::CollisionObject *co = new fcl::CollisionObject(g->collision_geometry_);
-      fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(co));
-      fcl_obj.collision_geometry_.push_back(g);
-    }
-  }
   for (std::size_t i = 0 ; i < obj->shapes_.size() ; ++i)
   {
     FCLGeometryConstPtr g = createCollisionGeometry(obj->shapes_[i], obj);
@@ -183,18 +173,6 @@ void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, 
   updateFCLObject(id);
 }
 
-void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const std::vector<shapes::StaticShapeConstPtr> &shapes)
-{
-  CollisionWorld::addToObject(id, shapes);
-  updateFCLObject(id);
-}
-
-void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape)
-{
-  CollisionWorld::addToObject(id, shape);
-  updateFCLObject(id);
-}
-
 void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
   CollisionWorld::addToObject(id, shape, pose);
@@ -215,17 +193,6 @@ bool collision_detection::CollisionWorldFCL::moveShapeInObject(const std::string
 bool collision_detection::CollisionWorldFCL::removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape)
 {    
   if (CollisionWorld::removeShapeFromObject(id, shape))
-  {
-    updateFCLObject(id);
-    return true;
-  }
-  else
-    return false;
-}
-
-bool collision_detection::CollisionWorldFCL::removeStaticShapeFromObject(const std::string &id, const shapes::StaticShapeConstPtr &shape)
-{
-  if (CollisionWorld::removeStaticShapeFromObject(id, shape))
   {
     updateFCLObject(id);
     return true;

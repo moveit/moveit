@@ -84,13 +84,10 @@ public:
   virtual double distanceWorld(const CollisionWorld &world, const collision_detection::AllowedCollisionMatrix &acm) const {return 0.0;}
   
   virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses){};
-  virtual void addToObject(const std::string &id, const std::vector<shapes::StaticShapeConstPtr> &shapes){}
   
-  virtual void addToObject(const std::string &id, const shapes::StaticShapeConstPtr &shape){}
   virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
   virtual bool moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose){return true;}
   virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape){return true;}
-  virtual bool removeStaticShapeFromObject(const std::string &id, const shapes::StaticShapeConstPtr &shape){return true;}
   virtual void removeObject(const std::string &id){}
   virtual void clearObjects(void){}
 
