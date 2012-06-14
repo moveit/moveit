@@ -137,17 +137,17 @@ public:
 
   ConstraintsLibrary& getConstraintsLibrary(void)
   {
-    return constraints_library_;
+    return *constraints_library_;
   }
 
   const ConstraintsLibrary& getConstraintsLibrary(void) const
   {
-    return constraints_library_;
+    return *constraints_library_;
   }
 
   constraint_samplers::ConstraintSamplerManager& getConstraintSamplerManager(void)
   {
-    return constraint_sampler_manager_;
+    return *constraint_sampler_manager_;
   }
   
   void useConstraintsApproximations(bool flag)
@@ -162,12 +162,12 @@ public:
 
   void loadConstraintApproximations(const std::string &path)
   {
-    constraints_library_.loadConstraintApproximations(path);
+    constraints_library_->loadConstraintApproximations(path);
   }
 
   void saveConstraintApproximations(const std::string &path)
   {
-    constraints_library_.saveConstraintApproximations(path);
+    constraints_library_->saveConstraintApproximations(path);
   }
   
 protected:
@@ -175,9 +175,9 @@ protected:
   void configureConstraints(const ModelBasedPlanningContextPtr &context) const
   {
     if (use_constraints_approximations_)
-      context->setConstraintsApproximations(&constraints_library_);
+      context->setConstraintsApproximations(constraints_library_);
     else
-      context->setConstraintsApproximations(NULL);
+      context->setConstraintsApproximations(ConstraintsLibraryPtr());
   }
   
   /** \brief Configure the OMPL planning context for a new planning request */
@@ -187,15 +187,15 @@ protected:
                                                unsigned int *attempts, double *timeout) const;
   
   /** \brief The kinematic model for which motion plans are computed */
-  planning_models::KinematicModelConstPtr       kmodel_;
+  planning_models::KinematicModelConstPtr kmodel_;
   
-  constraint_samplers::ConstraintSamplerManager constraint_sampler_manager_;
+  constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
   
-  PlanningContextManager                        context_manager_;
+  PlanningContextManager context_manager_;
 
-  ConstraintsLibrary                            constraints_library_;
+  ConstraintsLibraryPtr constraints_library_;
   
-  bool                                          use_constraints_approximations_;
+  bool use_constraints_approximations_;
   
 };
 

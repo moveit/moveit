@@ -233,6 +233,10 @@ private:
   std::map<std::string, ConstraintApproximationFactoryPtr> constraint_factories_;
 
 };
+
+typedef boost::shared_ptr<ConstraintsLibrary> ConstraintsLibraryPtr;
+typedef boost::shared_ptr<const ConstraintsLibrary> ConstraintsLibraryConstPtr;
+
 }
 
 #endif
