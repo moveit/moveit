@@ -36,7 +36,7 @@
 
 #include <planning_models/kinematic_state.h>
 #include <geometric_shapes/shape_operations.h>
-#include <shape_utils/shape_extents.h>
+#include <shape_tools/shape_extents.h>
 #include <planning_models/transforms.h>
 
 planning_models::KinematicState::KinematicState(const KinematicModelConstPtr &kinematic_model) : kinematic_model_(kinematic_model)
@@ -430,7 +430,7 @@ void planning_models::KinematicState::computeAABB(std::vector<double> &aabb) con
   {
     const Eigen::Affine3d &t = link_state_vector_[i]->getGlobalCollisionBodyTransform();
     double x_extent, y_extent, z_extent;
-    shape_utils::getShapeExtents(link_state_vector_[i]->getLinkModel()->getShapeMsg(), x_extent, y_extent, z_extent);
+    shape_tools::getShapeExtents(link_state_vector_[i]->getLinkModel()->getShapeMsg(), x_extent, y_extent, z_extent);
     Eigen::Vector3d v(x_extent / 2.0, y_extent / 2.0, z_extent / 2.0);
     Eigen::Vector3d c2 = t * v;
     v = -v;
