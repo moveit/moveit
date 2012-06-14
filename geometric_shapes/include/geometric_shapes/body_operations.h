@@ -34,8 +34,8 @@
 
 /** \author Ioan Sucan, E. Gil Jones */
 
-#ifndef GEOMETRIC_SHAPES_BODY_OPERATIONS_
-#define GEOMETRIC_SHAPES_BODY_OPERATIONS_
+#ifndef MOVEIT_GEOMETRIC_SHAPES_BODY_OPERATIONS_
+#define MOVEIT_GEOMETRIC_SHAPES_BODY_OPERATIONS_
 
 #include "geometric_shapes/shapes.h"
 #include "geometric_shapes/bodies.h"

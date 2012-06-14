@@ -247,7 +247,6 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
           if (hasColor(changes[i].id_))
             scene->setColor(changes[i].id_, getColor(changes[i].id_));
           w->addToObject(obj->id_, obj->shapes_, obj->shape_poses_);
-          w->addToObject(obj->id_, obj->static_shapes_);
         }
         else
           if (changes[i].type_ == collision_detection::CollisionWorld::Change::REMOVE)
@@ -524,12 +523,6 @@ bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns,
   co.operation = moveit_msgs::CollisionObject::ADD;
   collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns);
   if (!obj) return false;
-  for (std::size_t j = 0 ; j < obj->static_shapes_.size() ; ++j)
-  {
-    shape_msgs::StaticShape sm;
-    if (constructMsgFromShape(obj->static_shapes_[j].get(), sm))
-      co.static_shapes.push_back(sm);
-  }
   for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
   {
     shape_msgs::Shape sm;
@@ -585,7 +578,7 @@ void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_ms
   moveit_msgs::CollisionObject co;
   if (getCollisionObjectMsg(ns, co))
   {
-    if (!co.shapes.empty() || !co.static_shapes.empty())
+    if (!co.shapes.empty())
     {
       scene.world.collision_objects.push_back(co);
       if (hasColor(co.id))
@@ -610,8 +603,6 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
   if (getCollisionWorld()->hasObject(COLLISION_MAP_NS))
   {
     collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(COLLISION_MAP_NS);
-    if (!map->static_shapes_.empty())
-      ROS_ERROR("Static shapes are not supported in the collision map.");
     for (std::size_t i = 0 ; i < map->shapes_.size() ; ++i)
     {
       const shapes::Box *b = static_cast<const shapes::Box*>(map->shapes_[i].get());
@@ -630,8 +621,6 @@ void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::Plan
   if (getCollisionWorld()->hasObject(OCTOMAP_NS))
   {
     collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(OCTOMAP_NS);
-    if (!map->static_shapes_.empty())
-      ROS_ERROR("Static shapes are not supported in the octomap.");
     for (std::size_t i = 0 ; i < map->shapes_.size() ; ++i)
     {
       const shapes::Box *b = static_cast<const shapes::Box*>(map->shapes_[i].get());
@@ -969,9 +958,6 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           // remove the pointer to the objects from the collision world
           cworld_->removeObject(object.object.id);
           
-          if (!obj->static_shapes_.empty())
-            ROS_WARN("Static shapes from object '%s' are lost when the object is attached to the robot", object.object.id.c_str());
-
           // need to transform poses to the link frame
           const Eigen::Affine3d &i_t = ls->getGlobalLinkTransform().inverse();
           for (std::size_t i = 0 ; i < poses.size() ; ++i)
@@ -992,8 +978,6 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           ROS_DEBUG("Removing wold object with the same name as newly attached object: '%s'", object.object.id.c_str());
           cworld_->removeObject(object.object.id);
         }
-        if (!object.object.static_shapes.empty())
-          ROS_ERROR("Static shapes are ignored for attached object '%s'", object.object.id.c_str());
 
         for (std::size_t i = 0 ; i < object.object.shapes.size() ; ++i)
         {
@@ -1082,7 +1066,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
 
   if (object.operation == moveit_msgs::CollisionObject::ADD)
   {
-    if (object.shapes.empty() && object.static_shapes.empty())
+    if (object.shapes.empty())
     {
       ROS_ERROR("There are no shapes specified in the collision object message");
       return false;
@@ -1091,13 +1075,6 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     {
       ROS_ERROR("Number of shapes does not match number of poses in collision object message");
       return false;
-    }
-
-    for (std::size_t i = 0 ; i < object.static_shapes.size() ; ++i)
-    {
-      shapes::StaticShape *s = shapes::constructShapeFromMsg(object.static_shapes[i]);
-      if (s)
-        cworld_->addToObject(object.id, shapes::StaticShapeConstPtr(s));
     }
 
     const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), object.header.frame_id);
