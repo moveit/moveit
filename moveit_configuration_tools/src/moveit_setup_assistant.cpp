@@ -44,8 +44,8 @@ int main(int argc, char **argv)
 
   // Load Qt Widget
   SetupAssistantWidget *saw = new SetupAssistantWidget();
-  /*  saw->setMinimumWidth(1024);
-      saw->setMinimumHeight(768);*/
+  saw->setMinimumWidth(1024);
+  saw->setMinimumHeight(768);
   saw->show();
 
   // Wait here until Qt App is finished
