@@ -64,3 +64,4 @@ set( sources
 rosbuild_add_executable(moveit_setup_assistant ${sources} ${headers} ${moc_sources})
 target_link_libraries(moveit_setup_assistant ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets)
 
+

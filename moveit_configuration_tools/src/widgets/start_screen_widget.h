@@ -70,7 +70,9 @@ class StartScreenWidget : public QWidget
   /**
    * \brief Start screen user interface for MoveIt Configuration Assistant
    */
-  StartScreenWidget();
+  StartScreenWidget( QWidget* parent );
+
+  ~StartScreenWidget();
 
 
   // ******************************************************************************************
@@ -81,7 +83,7 @@ class StartScreenWidget : public QWidget
   QFrame *srdf_file_;
   QPushButton *btn_load_;
 
-  private Q_SLOTS:
+private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
@@ -115,9 +117,9 @@ private:
  */
 class LoadPathWidget : public QFrame
 {
-Q_OBJECT
+  Q_OBJECT
 
-private:
+  private:
   // Load file button
   QPushButton *button_;
   // Only allow user to select folders
@@ -143,7 +145,7 @@ public:
    * @return 
    */  
   LoadPathWidget( const std::string &title, const std::string &instructions, 
-                  const bool dir_only = false, const bool load_only = false );
+                  const bool dir_only = false, const bool load_only = false, QWidget * parent=0 );
 };
 
 #endif

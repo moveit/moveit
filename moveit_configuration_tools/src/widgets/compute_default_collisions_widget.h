@@ -74,7 +74,7 @@ public:
    * \brief User interface for editing the default collision matrix list in an SRDF
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
-  ComputeDefaultCollisionsWidget( std::string srdf_file );
+  ComputeDefaultCollisionsWidget( QWidget *parent, std::string srdf_file );
 
   /**
    * \brief Qt close event function for reminding user to save

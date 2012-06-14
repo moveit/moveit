@@ -40,37 +40,38 @@
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-SetupAssistantWidget::SetupAssistantWidget()
+SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
+  : QWidget( parent )
 {
   // Basic widget container
-  QHBoxLayout *layout = new QHBoxLayout();
+  QHBoxLayout *layout = new QHBoxLayout( this );
   layout->setAlignment( Qt::AlignTop );
   //layout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   // Screens --------------------------------------------------------
 
   // Start Screen
-  StartScreenWidget *ssw = new StartScreenWidget();
+  StartScreenWidget *ssw = new StartScreenWidget(this);
   ssw->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   navs_ << NavItem("Start", ssw);
   
   // Planning Groups
-  QWidget *blank = new QWidget();
+  QWidget *blank = new QWidget( this );
   navs_ << NavItem("Planning Groups", blank);
 
   // Self-Collisions
-  ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget("TODO");
+  ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget( this, "TODO");
   navs_ << NavItem("Self-Collisions", cdcw);
 
   // Robot Poses
-  QWidget *blank2 = new QWidget();
+  QWidget *blank2 = new QWidget( this );
   navs_ << NavItem("Robot Poses", blank2);
 
   // Configuration Files
-  QWidget *blank3 = new QWidget();
+  QWidget *blank3 = new QWidget( this );
   navs_ << NavItem("Configuration Files", blank3);
 
   // Left side navigation -------------------------------------------
-  navs_view_ = new NavigationWidget();
+  navs_view_ = new NavigationWidget( this );
   navs_view_->setNavs(navs_);
   connect( navs_view_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(navigation_clicked(const QModelIndex&)) );
 
@@ -111,3 +112,4 @@ void SetupAssistantWidget::navigation_clicked( const QModelIndex& index )
   splitter_->addWidget( right_frame_ );
   right_frame_->show();
 }
+
