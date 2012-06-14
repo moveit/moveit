@@ -28,11 +28,7 @@ set( headers
   src/widgets/setup_assistant_widget.h
   src/widgets/start_screen_widget.h
   src/widgets/compute_default_collisions_widget.h
-
-  # navigation - TODO remove?
-  src/widgets/navigation/navs_view.h
-  src/widgets/navigation/nav_item.h
-  src/widgets/navigation/nav_delegate.h
+  src/widgets/navigation_widget.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
@@ -51,11 +47,7 @@ rosbuild_add_library(${PROJECT_NAME}_widgets
   src/widgets/setup_assistant_widget.cpp
   src/widgets/start_screen_widget.cpp
   src/widgets/compute_default_collisions_widget.cpp
-
-  # navigation
-  src/widgets/navigation/navs_view.cpp
-  src/widgets/navigation/nav_item.cpp
-  src/widgets/navigation/nav_delegate.cpp
+  src/widgets/navigation_widget.cpp
 )
 target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME})
 

@@ -43,38 +43,46 @@
 SetupAssistantWidget::SetupAssistantWidget()
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
+  QHBoxLayout *layout = new QHBoxLayout();
   layout->setAlignment( Qt::AlignTop );
+  //layout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  // Screens --------------------------------------------------------
 
-  // Left side navigation
-  /*QListView *list_view = new QListView();
-    list_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    list_view->setEditTriggers(QAbstractItemView::NoEditTriggers);*/
-
-  QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-  QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-  QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-
-  QList<NavItem> navs;
-  navs << NavItem("Start")
-         << NavItem("Planning Groups")
-         << NavItem("Self-Collisions")
-         << NavItem("Robot Poses")
-         << NavItem("Configuration Files");
-
-  NavsView *navs_view = new NavsView();
-  navs_view->setNavs(navs);
-
-
-  // Right side - Load the first screen
+  // Start Screen
   StartScreenWidget *ssw = new StartScreenWidget();
-  //layout->addWidget(ssw);
-  
+  ssw->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  navs_ << NavItem("Start", ssw);
+
+  // Planning Groups
+  QWidget *blank = new QWidget();
+  navs_ << NavItem("Planning Groups", blank);
+
+  // Self-Collisions
+  ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget("TODO");
+  navs_ << NavItem("Self-Collisions", cdcw);
+
+  // Robot Poses
+  QWidget *blank2 = new QWidget();
+  navs_ << NavItem("Robot Poses", blank2);
+
+  // Configuration Files
+  QWidget *blank3 = new QWidget();
+  navs_ << NavItem("Configuration Files", blank3);
+
+  // Left side navigation -------------------------------------------
+  navs_view_ = new NavigationWidget();
+  navs_view_->setNavs(navs_);
+  connect( navs_view_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(navigation_clicked(const QModelIndex&)) );
+
+  // Initial right frame widget holder. Change these 2 lines if you want diff default screen
+  right_frame_ = ssw;
+  navs_view_->setSelected(0); // Select first item in list
+
   // Split screen
-  QSplitter *splitter = new QSplitter( Qt::Horizontal, this );
-  splitter->addWidget( navs_view );
-  splitter->addWidget( ssw );  
-  layout->addWidget( splitter);
+  splitter_ = new QSplitter( Qt::Horizontal, this );
+  splitter_->addWidget( navs_view_ );
+  splitter_->addWidget( right_frame_ );  
+  layout->addWidget( splitter_ );
 
   // Final Layout Setup ---------------------------------------------
   this->setLayout(layout);
@@ -83,3 +91,19 @@ SetupAssistantWidget::SetupAssistantWidget()
   this->setWindowTitle("MoveIt Setup Assistant"); // title of window
 }
 
+
+void SetupAssistantWidget::navigation_clicked( const QModelIndex& index )
+{
+  NavItem this_nav = navs_.at( index.row() ); //(NavItem*) index.model();
+  //qDebug() << this_nav.name();
+
+  // Hide the widget currently in the right frame
+  right_frame_->hide();  
+
+  // Change widgets
+  right_frame_ = this_nav.screen();
+
+  // Insert widget into splitter
+  splitter_->addWidget( right_frame_ );
+  right_frame_->show();
+}
