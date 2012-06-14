@@ -116,10 +116,10 @@ StartScreenWidget::StartScreenWidget()
   {
     ROS_ERROR("FAILED TO LOAD ./resources/wizard.png");
   }
-  QLabel* imageLabel = new QLabel( ); //start_page_);
+  QLabel* imageLabel = new QLabel( );
   imageLabel->setPixmap(QPixmap::fromImage(*image));
-  imageLabel->setMinimumHeight(10);  
-  imageLabel->setMinimumWidth(10);  // TODO
+  imageLabel->setMinimumHeight(493);  // size of image
+  imageLabel->setMinimumWidth(450);
   right_layout->addWidget(imageLabel);
   right_layout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignCenter);
 
@@ -128,7 +128,7 @@ StartScreenWidget::StartScreenWidget()
   // Final Layout Setup ---------------------------------------------
   // Alignment
   layout->setAlignment( Qt::AlignTop );
-  hlayout->setAlignment( Qt::AlignTop );
+  //hlayout->setAlignment( Qt::AlignTop );
   left_layout->setAlignment( Qt::AlignCenter );
   right_layout->setAlignment( Qt::AlignCenter );
 
@@ -158,6 +158,54 @@ void StartScreenWidget::loadFiles()
 // Class for selecting files
 // ******************************************************************************************
 // ******************************************************************************************
+
+// ******************************************************************************************
+// Create the widget
+// ******************************************************************************************
+LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &instructions, const bool dir_only, const bool load_only )
+  : dir_only_(dir_only), load_only_(load_only)
+{
+  // Set frame graphics
+  setFrameShape(QFrame::StyledPanel);
+  setFrameShadow(QFrame::Raised);
+  setLineWidth(1);
+  setMidLineWidth(0);
+
+  // Basic widget container
+  QVBoxLayout *layout = new QVBoxLayout();
+  this->setLayout(layout);
+
+  // Horizontal layout splitter
+  QHBoxLayout *hlayout = new QHBoxLayout();
+    
+  // Widget Title
+  QLabel *widget_title = new QLabel();
+  widget_title->setText( title.c_str() );
+  QFont widget_title_font( "Arial", 12, QFont::Bold);
+  widget_title->setFont(widget_title_font);
+  layout->addWidget( widget_title);
+  layout->setAlignment( widget_title, Qt::AlignTop);
+
+  // Widget Instructions
+  QLabel *widget_instructions = new QLabel();
+  widget_instructions->setText( instructions.c_str() );
+  widget_instructions->setWordWrap(true);
+  layout->addWidget( widget_instructions);
+  layout->setAlignment( widget_instructions, Qt::AlignTop);    
+
+  // Line Edit
+  path_box_ = new QLineEdit();
+  hlayout->addWidget(path_box_);
+
+  // Button
+  button_ = new QPushButton();
+  button_->setText("Browse");
+  connect( button_, SIGNAL( clicked() ), this, SLOT( btn_file_dialog() ) );
+  hlayout->addWidget(button_);
+
+  // Add horizontal layer to verticle layer
+  layout->addLayout(hlayout);
+}
 
 // ******************************************************************************************
 // Load the file dialog
@@ -209,53 +257,4 @@ void LoadPathWidget::btn_file_dialog()
   if (path != NULL)
     path_box_->setText( path );
 }
-
-// ******************************************************************************************
-// Create the widget
-// ******************************************************************************************
-LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &instructions, const bool dir_only, const bool load_only )
-  : dir_only_(dir_only), load_only_(load_only)
-{
-  // Set frame graphics
-  setFrameShape(QFrame::StyledPanel);
-  setFrameShadow(QFrame::Raised);
-  setLineWidth(1);
-  setMidLineWidth(0);
-
-  // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
-  this->setLayout(layout);
-
-  // Horizontal layout splitter
-  QHBoxLayout *hlayout = new QHBoxLayout();
-    
-  // Widget Title
-  QLabel *widget_title = new QLabel();
-  widget_title->setText( title.c_str() );
-  QFont widget_title_font( "Arial", 12, QFont::Bold);
-  widget_title->setFont(widget_title_font);
-  layout->addWidget( widget_title);
-  layout->setAlignment( widget_title, Qt::AlignTop);
-
-  // Widget Instructions
-  QLabel *widget_instructions = new QLabel();
-  widget_instructions->setText( instructions.c_str() );
-  widget_instructions->setWordWrap(true);
-  layout->addWidget( widget_instructions);
-  layout->setAlignment( widget_instructions, Qt::AlignTop);    
-
-  // Line Edit
-  path_box_ = new QLineEdit();
-  hlayout->addWidget(path_box_);
-
-  // Button
-  button_ = new QPushButton();
-  button_->setText("Browse");
-  connect( button_, SIGNAL( clicked() ), this, SLOT( btn_file_dialog() ) );
-  hlayout->addWidget(button_);
-
-  // Add horizontal layer to verticle layer
-  layout->addLayout(hlayout);
-}
-
 

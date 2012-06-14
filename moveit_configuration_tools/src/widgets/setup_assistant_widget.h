@@ -52,11 +52,15 @@
 #include <QAbstractListModel>
 #include <QObject>
 #include <QStringList>
-#include <QTextCodec>
+#include <QItemSelectionModel>
+#include <QModelIndex>
+#include <QItemSelection>
+#include <QDebug>
 #include <ros/ros.h>
-// Other setup_configuration_tool widgets
+#include "navigation_widget.h"
 #include "start_screen_widget.h"
-#include "navigation/navs_view.h"
+#include "compute_default_collisions_widget.h"
+
 
 class SetupAssistantWidget : public QWidget
 {
@@ -79,7 +83,7 @@ private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-
+  void navigation_clicked( const QModelIndex& index );
 
 private:
 
@@ -87,7 +91,10 @@ private:
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
-
+  QList<NavItem> navs_;
+  NavigationWidget *navs_view_;
+  QWidget *right_frame_;
+  QSplitter *splitter_;
 
   // ******************************************************************************************
   // Private Functions

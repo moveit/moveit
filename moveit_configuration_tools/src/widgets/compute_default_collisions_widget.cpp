@@ -71,11 +71,12 @@ public:
 ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( std::string srdf_file )
   : srdf_file_(srdf_file)
 {
+  // TODO
   // Create a Qt-ROS update spinner
   // TODO: not sure how this will integrate with whole GUI Tools combined
-  update_timer_ = new QTimer();
+  /*  update_timer_ = new QTimer();
   connect( update_timer_, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
-  update_timer_->start( 1000 );
+  update_timer_->start( 1000 );*/
 
   // Basic widget container
   layout_ = new QVBoxLayout;
@@ -194,11 +195,6 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( std::string srdf
   connect(save_button_, SIGNAL(clicked()), this, SLOT(saveToSRDF()));
   controls_box_bottom_layout->addWidget(save_button_);
   controls_box_bottom_layout->setAlignment(save_button_, Qt::AlignRight);
-
-  // Quit
-  //quitButton_ = new QPushButton("Quit");
-  //connect(quitButton_, SIGNAL(clicked()), this, SLOT(quit()));
-  //layout_->addWidget(quitButton_);
 
   // Does user need to save before exiting?
   unsaved_changes_ = false;
