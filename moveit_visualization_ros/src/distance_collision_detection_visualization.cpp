@@ -35,6 +35,7 @@
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <collision_distance_field/collision_distance_field_types.h>
 #include <collision_distance_field/collision_robot_distance_field.h>
+#include <collision_distance_field/collision_world_distance_field.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
@@ -70,6 +71,10 @@ int main(int argc, char** argv)
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description"));
   joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
 
+  std::map<std::string, double> joint_vals;
+  joint_vals["r_shoulder_pan_joint"] = -.5;
+  planning_scene_monitor_->getPlanningScene()->getCurrentState().setStateValues(joint_vals);
+
   boost::thread publisher_thread(boost::bind(&publisher_function));
 
   ros::NodeHandle nh;
@@ -81,48 +86,90 @@ int main(int argc, char** argv)
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
   collision_distance_field::CollisionRobotDistanceField coll(planning_scene_monitor_->getPlanningScene()->getKinematicModel());
+  collision_distance_field::CollisionWorldDistanceField world;
+  shapes::Shape* shape = new shapes::Box(.1,.1,.5);
+  Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
+  pos1.translation().x() = .4;
+  pos1.translation().z() = 1.0;
+  world.addToObject("box", shapes::ShapeConstPtr(shape), pos1);
+
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = "right_arm";
   collision_detection::AllowedCollisionMatrix acm = planning_scene_monitor_->getPlanningScene()->getAllowedCollisionMatrix();
   acm.setEntry("r_shoulder_pan_link", "r_shoulder_pan_link", true);
-  coll.checkSelfCollision(req, res, planning_scene_monitor_->getPlanningScene()->getCurrentState(), acm);
-  
-  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::DistanceFieldCacheEntry> dfce = coll.getLastDistanceFieldEntry();
-  if(!dfce) {
-    ROS_WARN_STREAM("no dfce");
-    exit(-1);
-  }
-  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> gsr = coll.getLastGroupStateRepresentation();
-  // visualization_msgs::MarkerArray sphere_markers;
-  // std_msgs::ColorRGBA col;
-  // col.g = 1.0;
-  // col.a = .8;
-  // collision_distance_field::getCollisionSphereMarkers(col,
-  //                                                     planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
-  //                                                     "spheres",
-  //                                                     ros::Duration(0.0),
-  //                                                     gsr->link_body_decompositions_,
-  //                                                     sphere_markers);
+  acm.setEntry("r_shoulder_lift_link", "r_shoulder_lift_link", true);
+  acm.setEntry("r_upper_arm_link", "r_upper_arm_link", true);
+
+  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_gsr =
+    world.getCollisionGradients(req, 
+                                res, 
+                                coll, 
+                                planning_scene_monitor_->getPlanningScene()->getCurrentState(), 
+                                acm);
+
+  // world.checkRobotCollision(req,
+  //                           res,
+  //                           coll,
+  //                           planning_scene_monitor_->getPlanningScene()->getCurrentState(), 
+  //                           acm);
+                            
+  visualization_msgs::Marker inf_marker;
+  world.getDistanceField()->getIsoSurfaceMarkers(0.0,.01,
+                                                  planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+                                                  ros::Time::now(),
+                                                  Eigen::Affine3d::Identity(),
+                                                  inf_marker);
+  //boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_gsr = world.getLastGroupStateRepresentation();
 
   visualization_msgs::MarkerArray arrow_markers;
   std_msgs::ColorRGBA col;
   col.b = 1.0;
   col.a = .8;
-  collision_distance_field::getProximityGradientMarkers(col,
-                                                       planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
-                                                       "arrows",
-                                                       ros::Duration(0.0),
-                                                       gsr->link_body_decompositions_,
-                                                       gsr->gradients_,
-                                                       arrow_markers);
+  collision_distance_field::getProximityGradientMarkers(planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+                                                        "arrows",
+                                                        ros::Duration(0.0),
+                                                        world_gsr->link_body_decompositions_,
+                                                        world_gsr->gradients_,
+                                                        arrow_markers);
 
-  visualization_msgs::Marker inf_marker;
-  dfce->distance_field_->getIsoSurfaceMarkers(0.0,.01,
-                                              planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
-                                              ros::Time::now(),
-                                              Eigen::Affine3d::Identity(),
-                                              inf_marker);
+  // //req.contacts = true;
+  // coll.checkSelfCollision(req, res, planning_scene_monitor_->getPlanningScene()->getCurrentState(), acm);
+  // boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::DistanceFieldCacheEntry> dfce = coll.getLastDistanceFieldEntry();
+  // if(!dfce) {
+  //   ROS_WARN_STREAM("no dfce");
+  //   exit(-1);
+  // }
+  // boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> gsr = coll.getLastGroupStateRepresentation();
+  // // visualization_msgs::MarkerArray sphere_markers;
+  // // std_msgs::ColorRGBA col;
+  // // col.g = 1.0;
+  // // col.a = .8;
+  // // collision_distance_field::getCollisionSphereMarkers(col,
+  // //                                                     planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+  // //                                                     "spheres",
+  // //                                                     ros::Duration(0.0),
+  // //                                                     gsr->link_body_decompositions_,
+  // //                                                     sphere_markers);
+
+  // visualization_msgs::MarkerArray arrow_markers;
+  // // std_msgs::ColorRGBA col;
+  // // col.b = 1.0;
+  // // col.a = .8;
+  // // collision_distance_field::getProximityGradientMarkers(col,
+  // //                                                      planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+  // //                                                      "arrows",
+  // //                                                      ros::Duration(0.0),
+  // //                                                      gsr->link_body_decompositions_,
+  // //                                                      gsr->gradients_,
+  // //                                                      arrow_markers);
+
+  // visualization_msgs::Marker inf_marker;
+  // dfce->distance_field_->getIsoSurfaceMarkers(0.0,.01,
+  //                                             planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+  //                                             ros::Time::now(),
+  //                                             Eigen::Affine3d::Identity(),
+  //                                             inf_marker);
   // bodies::Body* b = bodies::createBodyFromShape(planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getLinkModel("base_link")->getShape().get());
   // b->setPose(planning_scene_monitor_->getPlanningScene()->getCurrentState().getLinkState("base_link")->getGlobalLinkTransform());
   // bodies::ConvexMesh* cm = dynamic_cast<bodies::ConvexMesh*>(b);
