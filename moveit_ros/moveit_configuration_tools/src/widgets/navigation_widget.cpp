@@ -80,8 +80,10 @@ NavigationWidget::NavigationWidget(QWidget *parent) :
   setLineWidth(1);
   setMidLineWidth(0);
 
-  // Hard code width
+  // Hard code width and height
   setMaximumWidth(160);
+  setMinimumWidth(160);
+  setMinimumHeight(300);
 
   verticalScrollBar()->setPageStep(3);
   verticalScrollBar()->setSingleStep(1);

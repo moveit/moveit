@@ -52,7 +52,7 @@ SetupAssistantWidget::SetupAssistantWidget()
   StartScreenWidget *ssw = new StartScreenWidget();
   ssw->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   navs_ << NavItem("Start", ssw);
-
+  
   // Planning Groups
   QWidget *blank = new QWidget();
   navs_ << NavItem("Planning Groups", blank);
@@ -80,9 +80,13 @@ SetupAssistantWidget::SetupAssistantWidget()
 
   // Split screen
   splitter_ = new QSplitter( Qt::Horizontal, this );
+  splitter_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   splitter_->addWidget( navs_view_ );
   splitter_->addWidget( right_frame_ );  
   layout->addWidget( splitter_ );
+
+  //layout->addWidget( right_frame_ );
+  //layout->addWidget( navs_view_ );
 
   // Final Layout Setup ---------------------------------------------
   this->setLayout(layout);
