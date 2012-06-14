@@ -49,10 +49,7 @@ namespace shapes
 {
 
 /** \brief A list of known shape types */
-enum ShapeType { UNKNOWN_SHAPE, SPHERE, CYLINDER, BOX, MESH };
-
-/** \brief A list of known static shape types */
-enum StaticShapeType { UNKNOWN_STATIC_SHAPE, PLANE };
+enum ShapeType { UNKNOWN_SHAPE, SPHERE, CYLINDER, CONE, BOX, PLANE, MESH };
 
 
 /** \brief A basic definition of a shape. Shapes are considered centered at origin */
@@ -85,29 +82,6 @@ public:
   
   /** \brief The type of the shape */
   ShapeType type;
-};
-
-/** \brief A basic definition of a static shape. Static shapes do not have a pose */
-class StaticShape
-{
-public:
-  StaticShape(void)
-  {
-    type = UNKNOWN_STATIC_SHAPE;
-  }
-  
-  virtual ~StaticShape(void)
-  {
-  }
-  
-  /** \brief Create a copy of this shape */
-  virtual StaticShape* clone(void) const = 0;
-  
-  /** \brief Print information about this shape */
-  virtual void print(std::ostream &out = std::cout) const;
-
-  /** \brief The type of the shape */
-  StaticShapeType type;
 };
 
 /** \brief Definition of a sphere */
@@ -159,6 +133,34 @@ public:
   double length;
 
   /** \brief The radius of the cylinder */
+  double radius;
+};
+
+/** \brief Definition of a cone */
+class Cone : public Shape
+{
+public:
+  Cone(void) : Shape()
+  {
+    type   = CONE;
+    length = radius = 0.0;
+  }
+  
+  Cone(double r, double l) : Shape()
+  {
+    type   = CONE;
+    length = l;
+    radius = r;
+  }
+  
+  virtual void scaleAndPadd(double scale, double padd);
+  virtual Shape* clone(void) const;
+  virtual void print(std::ostream &out = std::cout) const;
+  
+  /** \brief The length (height) of the cone */
+  double length;
+
+  /** \brief The radius of the cone */
   double radius;
 };
 
@@ -246,25 +248,26 @@ public:
 };
 
 /** \brief Definition of a plane with equation ax + by + cz + d = 0 */
-class Plane : public StaticShape
+class Plane : public Shape
 {
 public:
   
-  Plane(void) : StaticShape()
+  Plane(void) : Shape()
   {
     type = PLANE;
     a = b = c = d = 0.0;
   }
   
-  Plane(double pa, double pb, double pc, double pd) : StaticShape()
+  Plane(double pa, double pb, double pc, double pd) : Shape()
   {
     type = PLANE;
     a = pa; b = pb; c = pc; d = pd;
   }
   
-  virtual StaticShape* clone(void) const;
+  virtual Shape* clone(void) const;
   virtual void print(std::ostream &out = std::cout) const;
-  
+  virtual void scaleAndPadd(double scale, double padd);
+
   /** \brief The plane equation is ax + by + cz + d = 0 */
   double a, b, c, d;
 };
@@ -275,11 +278,6 @@ typedef boost::shared_ptr<Shape> ShapePtr;
 /** \brief Shared pointer to a const Shape */
 typedef boost::shared_ptr<const Shape> ShapeConstPtr;
 
-/** \brief Shared pointer to a StaticShape */
-typedef boost::shared_ptr<StaticShape> StaticShapePtr;
-
-/** \brief Shared pointer to a const StaticShape */
-typedef boost::shared_ptr<const StaticShape> StaticShapeConstPtr;
 }
 
 #endif

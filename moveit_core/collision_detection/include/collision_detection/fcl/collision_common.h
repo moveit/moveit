@@ -161,13 +161,6 @@ struct FCLManager
 
 bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data);
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
-                                            const planning_models::KinematicModel::LinkModel *link);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
-                                            const planning_models::KinematicState::AttachedBody *ab);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::StaticShapeConstPtr &shape,
-                                            const CollisionWorld::Object *obj);
-
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const planning_models::KinematicModel::LinkModel *link);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,

@@ -39,7 +39,6 @@
 
 #include "geometric_shapes/shapes.h"
 #include <shape_msgs/Shape.h>
-#include <shape_msgs/StaticShape.h>
 #include <visualization_msgs/Marker.h>
 #include <vector>
 #include <Eigen/Core>
@@ -71,12 +70,6 @@ Shape* constructShapeFromMsg(const shape_msgs::Shape &shape_msg);
 
 /** \brief Construct the message that corresponds to the shape. Return false on failure. */
 bool constructMsgFromShape(const Shape* shape, shape_msgs::Shape &shape_msg);
-
-/** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
-StaticShape* constructShapeFromMsg(const shape_msgs::StaticShape &shape_msg);
-
-/** \brief Construct the message that corresponds to the shape. Return false on failure. */
-bool constructMsgFromShape(const StaticShape* shape, shape_msgs::StaticShape &shape_msg);
 
 /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
 bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list = false);
