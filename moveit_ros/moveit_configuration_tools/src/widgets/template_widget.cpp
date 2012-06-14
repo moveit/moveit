@@ -40,7 +40,8 @@
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-SetupAssistantWidget::SetupAssistantWidget()
+SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
+  : QWidget( parent )
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout( );

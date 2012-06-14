@@ -43,10 +43,10 @@ int main(int argc, char **argv)
   QApplication qtApp(argc, argv);
 
   // Load Qt Widget
-  SetupAssistantWidget *saw = new SetupAssistantWidget();
-  saw->setMinimumWidth(1024);
-  saw->setMinimumHeight(768);
-  saw->show();
+  SetupAssistantWidget saw(0);
+  saw.setMinimumWidth(1024);
+  saw.setMinimumHeight(768);
+  saw.show();
 
   // Wait here until Qt App is finished
   const int result = qtApp.exec();

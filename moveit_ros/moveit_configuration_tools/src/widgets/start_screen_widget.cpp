@@ -43,92 +43,91 @@ static const std::string ROBOT_DESCRIPTION_SEMANTICS="robot_description_semantic
 // ******************************************************************************************
 // Start screen user interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-StartScreenWidget::StartScreenWidget()
+StartScreenWidget::StartScreenWidget( QWidget* parent )
+  :  QWidget( parent )
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout( );
-  // Horizontal layout splitter
+  QVBoxLayout *layout = new QVBoxLayout( this );
+  // Horizontal layout splitter 
   QHBoxLayout *hlayout = new QHBoxLayout( );
   // Left side of screen
   QVBoxLayout *left_layout = new QVBoxLayout( );
   // Right side of screen
   QVBoxLayout *right_layout = new QVBoxLayout( );
-  
+
   // Top Label Area ------------------------------------------------
 
   // Page Title
-  QLabel *page_title = new QLabel( );
+  QLabel *page_title = new QLabel( this );
   page_title->setText("MoveIt Setup Assistant");
   this->setWindowTitle("MoveIt Setup Assistant"); // title of window
-  QFont page_title_font( "Arial", 18, QFont::Bold);
+  QFont page_title_font( "Arial", 18, QFont::Bold );
   page_title->setFont(page_title_font);
   layout->addWidget( page_title);
   layout->setAlignment( page_title, Qt::AlignTop);
-
+  
   // Page Instructions
-  QLabel *page_instructions = new QLabel( );
+  QLabel *page_instructions = new QLabel( this );
   page_instructions->setText("Welcome to the MoveIt Setup Assistant! These tools will assist you in creating "
                              "a planning configuration for your robot. Start by specifying the MoveIt configuration stack location, URDF file and SRDF file.");
   page_instructions->setWordWrap(true);
   page_instructions->setMargin(10);
-  layout->addWidget( page_instructions);
+  layout->addWidget( page_instructions );
   layout->setAlignment( page_instructions, Qt::AlignTop);
-
+  
 
   // Path Box Area ----------------------------------------------------
-
+  
   // Stack Path Dialog
   stack_path_ = new LoadPathWidget("MoveIt Configuration Stack Path", 
                                    "Specify the location for a new or existing MoveIt configuration stack for your desired robot. If you do not already have a stack created, this tool can create it for you - just provide the path to ROS workspace directory you would like the stack created. Inside this stack the necessary packages will be added/edited to run MoveIt. Example stack name: '~/ros/moveit_pr2'",
-                                   true); // is directory
+                                   true, this); // is directory
   left_layout->addWidget( stack_path_ );
 
   // URDF File Dialog
   urdf_file_ = new LoadPathWidget("URDF File",
                                   "Specify the location for an existing Unified Robot Description Format (URDF) file for your robot. This configuration assistant will not make changes to a URDF.", 
-                                  false, true); // no directory, load only
+                                  false, true, this); // no directory, load only
   left_layout->addWidget( urdf_file_ );
 
   // SRDF File Dialog
   srdf_file_ = new LoadPathWidget("SRDF File",
                                   "Specify the location for a new or existing Semantic Robot Description Format (SRDF) file for your robot. This configuration assistant can create this file for you.",
-                                  false, false); // no directory, save
+                                  false, false, this); // no directory, save
   left_layout->addWidget( srdf_file_ );
-
-
+  
   // Load settings box ---------------------------------------------
 
-  btn_load_ = new QPushButton("Load Files");
+  btn_load_ = new QPushButton("Load Files", this);
   btn_load_->setMinimumWidth(200);
   btn_load_->setMinimumHeight(40);
   left_layout->addWidget( btn_load_ );  
   left_layout->setAlignment( btn_load_, Qt::AlignRight );
   connect( btn_load_, SIGNAL( clicked() ), this, SLOT( loadFiles() ) );
-
+  
   // Right Image Area ----------------------------------------------
-  QImage* image = new QImage( );
+  QImage image;
 
   if(chdir(ros::package::getPath("moveit_configuration_tools").c_str()) != 0)
   {
     ROS_ERROR("FAILED TO CHANGE PACKAGE TO moveit_configuration_tools");
   }
-  if(!image->load("./resources/MoveIt_Setup_Asst_Sm.png"))
+  if(!image.load("./resources/MoveIt_Setup_Asst_Sm.png"))
   {
     ROS_ERROR("FAILED TO LOAD ./resources/wizard.png");
   }
-  QLabel* imageLabel = new QLabel( );
-  imageLabel->setPixmap(QPixmap::fromImage(*image));
+  QLabel* imageLabel = new QLabel( this );
+  imageLabel->setPixmap(QPixmap::fromImage(image));
   imageLabel->setMinimumHeight(493);  // size of image
   imageLabel->setMinimumWidth(450);
   right_layout->addWidget(imageLabel);
   right_layout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignCenter);
 
 
-
   // Final Layout Setup ---------------------------------------------
   // Alignment
   layout->setAlignment( Qt::AlignTop );
-  //hlayout->setAlignment( Qt::AlignTop );
+  hlayout->setAlignment( Qt::AlignTop );
   left_layout->setAlignment( Qt::AlignCenter );
   right_layout->setAlignment( Qt::AlignCenter );
 
@@ -139,8 +138,14 @@ StartScreenWidget::StartScreenWidget()
   hlayout->addLayout( left_layout );
   hlayout->addLayout( right_layout );
   layout->addLayout( hlayout );
+
   this->setLayout(layout);
   
+}
+
+StartScreenWidget::~StartScreenWidget()
+{
+
 }
 
 // ******************************************************************************************
@@ -162,8 +167,9 @@ void StartScreenWidget::loadFiles()
 // ******************************************************************************************
 // Create the widget
 // ******************************************************************************************
-LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &instructions, const bool dir_only, const bool load_only )
-  : dir_only_(dir_only), load_only_(load_only)
+LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &instructions, 
+                                const bool dir_only, const bool load_only, QWidget* parent )
+  : QFrame(parent), dir_only_(dir_only), load_only_(load_only)
 {
   // Set frame graphics
   setFrameShape(QFrame::StyledPanel);
@@ -172,14 +178,14 @@ LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &ins
   setMidLineWidth(0);
 
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
-  this->setLayout(layout);
+  QVBoxLayout *layout = new QVBoxLayout(this);
+  setLayout(layout);
 
   // Horizontal layout splitter
   QHBoxLayout *hlayout = new QHBoxLayout();
     
   // Widget Title
-  QLabel *widget_title = new QLabel();
+  QLabel * widget_title = new QLabel(this);
   widget_title->setText( title.c_str() );
   QFont widget_title_font( "Arial", 12, QFont::Bold);
   widget_title->setFont(widget_title_font);
@@ -187,18 +193,18 @@ LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &ins
   layout->setAlignment( widget_title, Qt::AlignTop);
 
   // Widget Instructions
-  QLabel *widget_instructions = new QLabel();
+  QLabel * widget_instructions = new QLabel(this);
   widget_instructions->setText( instructions.c_str() );
   widget_instructions->setWordWrap(true);
   layout->addWidget( widget_instructions);
   layout->setAlignment( widget_instructions, Qt::AlignTop);    
 
   // Line Edit
-  path_box_ = new QLineEdit();
+  path_box_ = new QLineEdit(this);
   hlayout->addWidget(path_box_);
 
   // Button
-  button_ = new QPushButton();
+  button_ = new QPushButton(this);
   button_->setText("Browse");
   connect( button_, SIGNAL( clicked() ), this, SLOT( btn_file_dialog() ) );
   hlayout->addWidget(button_);

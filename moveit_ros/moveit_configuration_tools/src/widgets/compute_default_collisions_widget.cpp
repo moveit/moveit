@@ -68,8 +68,8 @@ public:
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
-ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( std::string srdf_file )
-  : srdf_file_(srdf_file)
+ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent, std::string srdf_file )
+  : QWidget( parent ), srdf_file_( srdf_file )
 {
   // TODO
   // Create a Qt-ROS update spinner
@@ -79,19 +79,19 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( std::string srdf
   update_timer_->start( 1000 );*/
 
   // Basic widget container
-  layout_ = new QVBoxLayout;
+  layout_ = new QVBoxLayout( this );
 
   // Top Label Area ------------------------------------------------
 
   // Page Title
-  page_title_ = new QLabel();
+  page_title_ = new QLabel( this );
   page_title_->setText("Optimize Self-Collision Checking");
   QFont page_title__font( "Arial", 18, QFont::Bold);
   page_title_->setFont(page_title__font);
   layout_->addWidget( page_title_);
 
   // Page Instructions
-  QLabel *page_instructions = new QLabel();
+  QLabel *page_instructions = new QLabel( this );
   page_instructions->setText("The Default Self-Collision Matrix Generator will search for pairs of links "
                              "on the robot that can safely be disabled from collision checking, decreasing motion "
                              "planning processing time. These pairs of links are disabled they are always in collision,"
@@ -103,18 +103,18 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( std::string srdf
   layout_->addWidget( page_instructions);
 
   // Top Button Area -----------------------------------------------
-  controls_box_ = new QGroupBox();
+  controls_box_ = new QGroupBox( this );
   layout_->addWidget( controls_box_ );
   QHBoxLayout *controls_box_layout = new QHBoxLayout( controls_box_ );
   controls_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
   // Slider Label
-  QLabel *density_label = new QLabel();
+  QLabel *density_label = new QLabel( this );
   density_label->setText("Self Collision Sampling Density:");
   controls_box_layout->addWidget(density_label);
 
   // Slider
-  density_slider_ = new QSlider();
+  density_slider_ = new QSlider( this );
   density_slider_->setTickPosition(QSlider::TicksBelow);
   density_slider_->setMinimum( 0 ); 
   density_slider_->setMaximum( 99 );
@@ -127,13 +127,13 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( std::string srdf
   connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
 
   // Slider Value Label
-  density_value_label_ = new QLabel();
+  density_value_label_ = new QLabel( this );
   density_value_label_->setMinimumWidth(100);
   controls_box_layout->addWidget(density_value_label_);
   changeDensityLabel( density_slider_->value() ); // initialize label with value
 
   // Generate Button
-  generate_button_ = new QPushButton();
+  generate_button_ = new QPushButton( this );
   generate_button_->setText("Generate Default Collision Matrix");
   generate_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   connect(generate_button_, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
@@ -142,13 +142,13 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( std::string srdf
   // Progress Bar Area ---------------------------------------------
 
   // Progress Label
-  progress_label_ = new QLabel();
+  progress_label_ = new QLabel( this );
   progress_label_->setText("Generating Default Collision Matrix");
   progress_label_->hide();
   layout_->addWidget(progress_label_);
 
   // Progress Bar
-  progress_bar_ = new QProgressBar();
+  progress_bar_ = new QProgressBar( this );
   progress_bar_->setMaximum(100);
   progress_bar_->setMinimum(0);
   progress_bar_->hide(); // only show when computation begins
@@ -157,7 +157,7 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( std::string srdf
   // Table Area --------------------------------------------  
 
   // Table
-  collision_table_ = new QTableWidget();
+  collision_table_ = new QTableWidget( this );
   collision_table_->setColumnCount(4);
   collision_table_->setColumnWidth(0, 330);
   collision_table_->setColumnWidth(1, 330);
@@ -168,27 +168,34 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( std::string srdf
   layout_->addWidget(collision_table_);
 
   // Table Headers
-  header_list_ = new QStringList();
+  /*  header_list_ = new QStringList();
   header_list_->append("Link A");
   header_list_->append("Link B");
   header_list_->append("Disabled");
   header_list_->append("Reason To Disable");
-  collision_table_->setHorizontalHeaderLabels(*header_list_);
+  collision_table_->setHorizontalHeaderLabels(*header_list_);*/
+
+  QStringList header_list;
+  header_list.append("Link A");
+  header_list.append("Link B");
+  header_list.append("Disabled");
+  header_list.append("Reason To Disable");
+  collision_table_->setHorizontalHeaderLabels(header_list);
 
   // Bottom Area ----------------------------------------
-  controls_box_bottom_ = new QGroupBox();
+  controls_box_bottom_ = new QGroupBox( this );
   layout_->addWidget( controls_box_bottom_ );
   QHBoxLayout *controls_box_bottom_layout = new QHBoxLayout( controls_box_bottom_ );
 
   // Checkbox
-  collision_checkbox_ = new QCheckBox();
+  collision_checkbox_ = new QCheckBox( this );
   collision_checkbox_->setText("Show Non-Disabled Link Pairs");
   connect(collision_checkbox_, SIGNAL(toggled(bool)), this, SLOT(collisionCheckboxToggle()));
   controls_box_bottom_layout->addWidget(collision_checkbox_);
   controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
 
   // Save Button
-  save_button_ = new QPushButton();
+  save_button_ = new QPushButton( this );
   save_button_->setText("Save to SRDF");
   save_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   save_button_->setMinimumWidth(300);
@@ -354,7 +361,7 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
       QTableWidgetItem* linkB = new QTableWidgetItem( pair_it->first.second.c_str() );
       linkB->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      CheckboxSortWidgetItem* disable_check = new CheckboxSortWidgetItem;
+      CheckboxSortWidgetItem* disable_check = new CheckboxSortWidgetItem( );
       disable_check->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
       if( pair_it->second.disable_check ) // Checked means no collision checking
         disable_check->setCheckState(Qt::Checked);
