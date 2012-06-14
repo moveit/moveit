@@ -54,6 +54,7 @@
 #include <QFileDialog>
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loading images
+#include "header_widget.h"
 
 /**
  * \brief Start screen user interface for MoveIt Configuration Assistant
@@ -107,7 +108,6 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
-
 
 };
 

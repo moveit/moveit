@@ -34,27 +34,32 @@
 
 /* Author: Dave Coleman */
 
-#include "template_widget.h"
+#include "header_widget.h"
 
-
-// ******************************************************************************************
-// Outer User Interface for MoveIt Configuration Assistant
-// ******************************************************************************************
-TemplateWidget::TemplateWidget( QWidget *parent )
-  : QWidget( parent )
+HeaderWidget::HeaderWidget( const std::string &title, const std::string &instructions, QWidget *parent )
+  : QWidget(parent)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout( );
+  QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setAlignment( Qt::AlignTop);    
 
-  // Top Header Area ------------------------------------------------
+  // Page Title
+  QLabel *page_title = new QLabel( this );
+  page_title->setText( title.c_str() );
+  QFont page_title_font( "Arial", 18, QFont::Bold );
+  page_title->setFont(page_title_font);
+  layout->addWidget( page_title);
+  layout->setAlignment( page_title, Qt::AlignTop);
+  
+  // Page Instructions
+  QLabel *page_instructions = new QLabel( this );
+  page_instructions->setText( instructions.c_str() );
+  page_instructions->setWordWrap(true);
+  layout->addWidget( page_instructions );
+  layout->setAlignment( page_instructions, Qt::AlignTop);    
+  
+  // Margin on bottom
+  layout->setContentsMargins( 0, 0, 0, 15);
 
-  HeaderWidget *header = new HeaderWidget( "Robot Poses",
-                                           "Save sets of robot joint state groups",
-                                           this);
-  layout->addWidget( header );
-
-  // Finish Layout --------------------------------------------------
-
-  this->setLayout(layout);
+  setLayout(layout);
 }
-

@@ -57,6 +57,7 @@
 #include <boost/thread.hpp>
 #include "ros/ros.h"
 #include <moveit_configuration_tools/tools/compute_default_collisions.h>
+#include "header_widget.h"
 
 /**
  * \brief User interface for editing the default collision matrix list in an SRDF
@@ -144,7 +145,7 @@ private:
   QGroupBox *controls_box_bottom_;
   QPushButton *save_button_;
   QTimer *update_timer_;
-  QStringList *header_list_;
+  //  QStringList *header_list_;
 
   // ******************************************************************************************
   // Variables

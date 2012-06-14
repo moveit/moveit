@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_SETUP_ASSISTANT_WIDGET_
-#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_SETUP_ASSISTANT_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_TEMPLATE_WIDGET_
+#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_TEMPLATE_WIDGET_
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -44,12 +44,9 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QString>
-#include <QFont>
-#include <QApplication>
-#include <QTimer>
-#include <ros/ros.h>
+#include "header_widget.h"
 
-class SetupAssistantWidget : public QWidget
+class TemplateWidget : public QWidget
 {
   Q_OBJECT
 
@@ -58,7 +55,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  SetupAssistantWidget( QObject *parent );
+  TemplateWidget( QWidget *parent );
 
 
   // ******************************************************************************************

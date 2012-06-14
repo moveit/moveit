@@ -34,13 +34,13 @@
 
 /* Author: Dave Coleman */
 
-#include "template_widget.h"
+#include "robot_poses_widget.h"
 
 
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-TemplateWidget::TemplateWidget( QWidget *parent )
+RobotPosesWidget::RobotPosesWidget( QWidget *parent )
   : QWidget( parent )
 {
   // Basic widget container

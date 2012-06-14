@@ -34,13 +34,13 @@
 
 /* Author: Dave Coleman */
 
-#include "template_widget.h"
+#include "configuration_files_widget.h"
 
 
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-TemplateWidget::TemplateWidget( QWidget *parent )
+ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent )
   : QWidget( parent )
 {
   // Basic widget container
@@ -48,8 +48,8 @@ TemplateWidget::TemplateWidget( QWidget *parent )
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget *header = new HeaderWidget( "Robot Poses",
-                                           "Save sets of robot joint state groups",
+  HeaderWidget *header = new HeaderWidget( "Generate Configuration Files",
+                                           "Create the unary stack of configuration files needed to run your robot with MoveIt.",
                                            this);
   layout->addWidget( header );
 

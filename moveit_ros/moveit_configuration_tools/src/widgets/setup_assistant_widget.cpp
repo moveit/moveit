@@ -46,29 +46,30 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   // Basic widget container
   QHBoxLayout *layout = new QHBoxLayout( this );
   layout->setAlignment( Qt::AlignTop );
-  //layout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+
   // Screens --------------------------------------------------------
 
   // Start Screen
-  StartScreenWidget *ssw = new StartScreenWidget(this);
+  StartScreenWidget *ssw = new StartScreenWidget( this );
   ssw->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   navs_ << NavItem("Start", ssw);
   
   // Planning Groups
-  QWidget *blank = new QWidget( this );
-  navs_ << NavItem("Planning Groups", blank);
+  PlanningGroupsWidget *pgw = new PlanningGroupsWidget( this );
+  navs_ << NavItem("Planning Groups", pgw);
 
   // Self-Collisions
   ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget( this, "TODO");
   navs_ << NavItem("Self-Collisions", cdcw);
 
   // Robot Poses
-  QWidget *blank2 = new QWidget( this );
-  navs_ << NavItem("Robot Poses", blank2);
+  RobotPosesWidget *rpw = new RobotPosesWidget( this );
+  navs_ << NavItem("Robot Poses", rpw);
 
   // Configuration Files
-  QWidget *blank3 = new QWidget( this );
-  navs_ << NavItem("Configuration Files", blank3);
+  ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this );
+  navs_ << NavItem("Configuration Files", cfw);
 
   // Left side navigation -------------------------------------------
   navs_view_ = new NavigationWidget( this );

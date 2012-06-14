@@ -25,10 +25,14 @@ include_directories(${QT_INCLUDE_DIR})
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set( headers
+  src/widgets/navigation_widget.h
+  src/widgets/header_widget.h
   src/widgets/setup_assistant_widget.h
   src/widgets/start_screen_widget.h
+  src/widgets/planning_groups_widget.h
   src/widgets/compute_default_collisions_widget.h
-  src/widgets/navigation_widget.h
+  src/widgets/robot_poses_widget.h
+  src/widgets/configuration_files_widget.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
@@ -44,10 +48,14 @@ rosbuild_add_library(${PROJECT_NAME}
 
 # Widgets Library
 rosbuild_add_library(${PROJECT_NAME}_widgets
+  src/widgets/navigation_widget.cpp
+  src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
   src/widgets/start_screen_widget.cpp
+  src/widgets/planning_groups_widget.cpp
   src/widgets/compute_default_collisions_widget.cpp
-  src/widgets/navigation_widget.cpp
+  src/widgets/robot_poses_widget.cpp
+  src/widgets/configuration_files_widget.cpp
 )
 target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME})
 

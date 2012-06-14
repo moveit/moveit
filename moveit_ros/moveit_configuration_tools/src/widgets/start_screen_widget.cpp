@@ -54,28 +54,16 @@ StartScreenWidget::StartScreenWidget( QWidget* parent )
   QVBoxLayout *left_layout = new QVBoxLayout( );
   // Right side of screen
   QVBoxLayout *right_layout = new QVBoxLayout( );
+  right_layout->setContentsMargins( 20, 0, 0, 0);
 
   // Top Label Area ------------------------------------------------
 
-  // Page Title
-  QLabel *page_title = new QLabel( this );
-  page_title->setText("MoveIt Setup Assistant");
-  this->setWindowTitle("MoveIt Setup Assistant"); // title of window
-  QFont page_title_font( "Arial", 18, QFont::Bold );
-  page_title->setFont(page_title_font);
-  layout->addWidget( page_title);
-  layout->setAlignment( page_title, Qt::AlignTop);
+  HeaderWidget *header = new HeaderWidget( "MoveIt Setup Assistant",
+                                           "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating "
+                                           "a planning configuration for your robot. Start by specifying the MoveIt configuration stack location, URDF file and SRDF file.",
+                                           this);
+  layout->addWidget( header );
   
-  // Page Instructions
-  QLabel *page_instructions = new QLabel( this );
-  page_instructions->setText("Welcome to the MoveIt Setup Assistant! These tools will assist you in creating "
-                             "a planning configuration for your robot. Start by specifying the MoveIt configuration stack location, URDF file and SRDF file.");
-  page_instructions->setWordWrap(true);
-  page_instructions->setMargin(10);
-  layout->addWidget( page_instructions );
-  layout->setAlignment( page_instructions, Qt::AlignTop);
-  
-
   // Path Box Area ----------------------------------------------------
   
   // Stack Path Dialog
@@ -98,7 +86,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent )
   
   // Load settings box ---------------------------------------------
 
-  btn_load_ = new QPushButton("Load Files", this);
+  btn_load_ = new QPushButton("&Load Files", this);
   btn_load_->setMinimumWidth(200);
   btn_load_->setMinimumHeight(40);
   left_layout->addWidget( btn_load_ );  
@@ -133,6 +121,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent )
 
   // Stretch
   left_layout->setSpacing( 30 );
+  hlayout->setContentsMargins( 0, 20, 0, 0);
 
   // Attach Layouts
   hlayout->addLayout( left_layout );
@@ -187,7 +176,7 @@ LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &ins
   // Widget Title
   QLabel * widget_title = new QLabel(this);
   widget_title->setText( title.c_str() );
-  QFont widget_title_font( "Arial", 12, QFont::Bold);
+  QFont widget_title_font( "Arial", 12, QFont::Bold );
   widget_title->setFont(widget_title_font);
   layout->addWidget( widget_title);
   layout->setAlignment( widget_title, Qt::AlignTop);
