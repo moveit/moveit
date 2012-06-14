@@ -16,6 +16,7 @@
   <depend package="kinematics_constraint_aware"/>
   <depend package="planning_scene"/>
   <depend package="planning_scene_monitor"/>
+  <depend package="srdf"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_configuration_tools -lmoveit_configuration_tools_widgets `rosboost-cfg --lflags thread`"/>

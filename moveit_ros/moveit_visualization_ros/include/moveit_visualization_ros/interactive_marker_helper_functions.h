@@ -42,8 +42,8 @@
 #include <planning_models/transforms.h>
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
-#include <shape_utils/shape_extents.h>
-#include <shape_conversions/shape_to_marker.h>
+#include <shape_tools/shape_extents.h>
+#include <shape_tools/shape_to_marker.h>
 #include <shape_msgs/Shape.h>
 
 namespace moveit_visualization_ros

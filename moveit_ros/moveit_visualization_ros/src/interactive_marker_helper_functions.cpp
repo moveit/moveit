@@ -33,7 +33,6 @@
 #include <float.h>
 
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
-#include <shape_conversions/shape_to_marker.h>
 
 static bool done_seed = false;
 
@@ -519,11 +518,15 @@ visualization_msgs::InteractiveMarker makeButtonCompoundShape(const std::string&
 
   for(unsigned int i = 0; i < shapes.size(); i++) {
     visualization_msgs::Marker mk;
-    if(!shape_conversions::constructMarkerFromShape(shapes[i],
-                                                    mk, false)) {
-      ROS_WARN_STREAM("Problem with shape index " << i);
-      continue;
+    try
+    {
+      shape_tools::constructMarkerFromShape(shapes[i], mk, false);
     }
+    catch(std::runtime_error &ex)
+    {
+      ROS_WARN_STREAM("Problem with shape index " << i << ": " << ex.what());
+      continue;
+    }    
     Eigen::Affine3d shape_pose;
     planning_models::poseFromMsg(poses[i], shape_pose);
     Eigen::Affine3d trans_pose = trans.inverse()*shape_pose;
@@ -582,12 +585,18 @@ visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& marker_n
 
   visualization_msgs::Marker mesh_mark;
   mesh_mark.mesh_use_embedded_materials = false;
-  if(!shape_conversions::constructMarkerFromShape(mesh_shape, mesh_mark, true)) {
-    ROS_WARN_STREAM("Some problem constructing mesh marker " << marker_name);
+  
+  try
+  {
+    shape_tools::constructMarkerFromShape(mesh_shape, mesh_mark, true);
+  }
+  catch(std::runtime_error &ex)
+  {
+    ROS_WARN_STREAM("Some problem constructing mesh marker " << marker_name << ": " << ex.what());
     return int_marker;
   }
   double x, y, z;
-  shape_utils::getShapeExtents(mesh_shape, x, y, z);
+  shape_tools::getShapeExtents(mesh_shape, x, y, z);
   if( x*y*z <= 0.0) {
     ROS_WARN_STREAM("Some problem with marker extents");
     int_marker.scale = 1.0;
