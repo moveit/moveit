@@ -158,6 +158,13 @@ collision_distance_field::PosedBodyPointDecomposition::PosedBodyPointDecompositi
   posed_collision_points_ = body_decomposition_->getCollisionPoints();
 }
 
+collision_distance_field::PosedBodyPointDecomposition::PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition,
+                                                                                   const Eigen::Affine3d& trans)
+  : body_decomposition_(body_decomposition)
+{
+  updatePose(trans);
+}
+
 void collision_distance_field::PosedBodyPointDecomposition::updatePose(const Eigen::Affine3d& trans) {
   posed_collision_points_.resize(body_decomposition_->getCollisionPoints().size());
   for(unsigned int i = 0; i < body_decomposition_->getCollisionPoints().size(); i++) {
