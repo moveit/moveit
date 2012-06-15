@@ -85,7 +85,8 @@ private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-  void navigation_clicked( const QModelIndex& index );
+  void navigationClicked( const QModelIndex& index );
+  void updateTimer();
 
 private:
 

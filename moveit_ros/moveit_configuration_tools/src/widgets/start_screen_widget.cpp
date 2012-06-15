@@ -54,43 +54,52 @@ StartScreenWidget::StartScreenWidget( QWidget* parent )
   QVBoxLayout *left_layout = new QVBoxLayout( );
   // Right side of screen
   QVBoxLayout *right_layout = new QVBoxLayout( );
-  right_layout->setContentsMargins( 20, 0, 0, 0);
+  //right_layout->setContentsMargins( 20, 0, 0, 0);
 
-  // Top Label Area ------------------------------------------------
+  // Top Label Area ---------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "MoveIt Setup Assistant",
-                                           "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating "
-                                           "a planning configuration for your robot. Start by specifying the MoveIt configuration stack location, URDF file and SRDF file.",
+                                           "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating a planning configuration for your robot. This includes generating a Semantic Robot Description Format (SRDF) file, kinematics configuration file and OMPL planning configuration file. It also involves creating launch files for move groups, OMPL planner, planning contexts and the planning warehouse.",
                                            this);
   layout->addWidget( header );
-  
+
+  // Select Mode Area -------------------------------------------------
+  select_mode_ = new SelectModeWidget( this );
+  connect( select_mode_->btn_new_, SIGNAL( clicked() ), this, SLOT( showNewOptions() ) );
+  connect( select_mode_->btn_exist_, SIGNAL( clicked() ), this, SLOT( showExistingOptions() ) );
+  left_layout->addWidget( select_mode_ );
+
   // Path Box Area ----------------------------------------------------
   
   // Stack Path Dialog
-  stack_path_ = new LoadPathWidget("MoveIt Configuration Stack Path", 
-                                   "Specify the location for a new or existing MoveIt configuration stack for your desired robot. If you do not already have a stack created, this tool can create it for you - just provide the path to ROS workspace directory you would like the stack created. Inside this stack the necessary packages will be added/edited to run MoveIt. Example stack name: '~/ros/moveit_pr2'",
+  stack_path_ = new LoadPathWidget("Load MoveIt Configuration Package Path", 
+                                   "Specify the location for an existing MoveIt configuration package to be edited for your robot. Example package name: '~/ros/pr2_moveit_config'",
                                    true, this); // is directory
+  stack_path_->hide(); // user needs to select option before this is shown
   left_layout->addWidget( stack_path_ );
 
   // URDF File Dialog
-  urdf_file_ = new LoadPathWidget("URDF File",
-                                  "Specify the location for an existing Unified Robot Description Format (URDF) file for your robot. This configuration assistant will not make changes to a URDF.", 
+  urdf_file_ = new LoadPathWidget("Load a URDF or COLLADA Robot Model",
+                                  "Specify the location of an existing Unified Robot Description Format or COLLADA file for your robot. It will load the robot model to the parameter server for you. \nNote: an XACRO URDF must first be converted to a regular XML URDF before opening here. To convert a file run the following command: 'rosrun xacro xacro.py model.xacro > model.urdf'.", 
                                   false, true, this); // no directory, load only
+  urdf_file_->hide(); // user needs to select option before this is shown
   left_layout->addWidget( urdf_file_ );
 
   // SRDF File Dialog
-  srdf_file_ = new LoadPathWidget("SRDF File",
-                                  "Specify the location for a new or existing Semantic Robot Description Format (SRDF) file for your robot. This configuration assistant can create this file for you.",
+  srdf_file_ = new LoadPathWidget("Load a SRDF File (optional)",
+                                  "Specify the location for an existing Semantic Robot Description Format (SRDF) file for your robot, if one exists. It will be copied into the generated MoveIt configuration package. If left blank this setup assistant will create the file for you.",
                                   false, false, this); // no directory, save
+  srdf_file_->hide(); // user needs to select option before this is shown
   left_layout->addWidget( srdf_file_ );
   
   // Load settings box ---------------------------------------------
 
   btn_load_ = new QPushButton("&Load Files", this);
-  btn_load_->setMinimumWidth(200);
+  btn_load_->setMinimumWidth(180);
   btn_load_->setMinimumHeight(40);
+  btn_load_->hide();
   left_layout->addWidget( btn_load_ );  
-  left_layout->setAlignment( btn_load_, Qt::AlignRight );
+  left_layout->setAlignment( btn_load_, Qt::AlignRight );  
   connect( btn_load_, SIGNAL( clicked() ), this, SLOT( loadFiles() ) );
   
   // Right Image Area ----------------------------------------------
@@ -106,22 +115,22 @@ StartScreenWidget::StartScreenWidget( QWidget* parent )
   }
   QLabel* imageLabel = new QLabel( this );
   imageLabel->setPixmap(QPixmap::fromImage(image));
-  imageLabel->setMinimumHeight(493);  // size of image
+  imageLabel->setMinimumHeight(493);  // size of imageLabel
   imageLabel->setMinimumWidth(450);
   right_layout->addWidget(imageLabel);
-  right_layout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignCenter);
+  right_layout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignTop);
 
 
   // Final Layout Setup ---------------------------------------------
   // Alignment
   layout->setAlignment( Qt::AlignTop );
   hlayout->setAlignment( Qt::AlignTop );
-  left_layout->setAlignment( Qt::AlignCenter );
-  right_layout->setAlignment( Qt::AlignCenter );
+  left_layout->setAlignment( Qt::AlignTop );
+  right_layout->setAlignment( Qt::AlignTop );
 
   // Stretch
   left_layout->setSpacing( 30 );
-  hlayout->setContentsMargins( 0, 20, 0, 0);
+  //hlayout->setContentsMargins( 0, 20, 0, 0);
 
   // Attach Layouts
   hlayout->addLayout( left_layout );
@@ -129,7 +138,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent )
   layout->addLayout( hlayout );
 
   this->setLayout(layout);
-  
+  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
 }
 
 StartScreenWidget::~StartScreenWidget()
@@ -138,13 +147,124 @@ StartScreenWidget::~StartScreenWidget()
 }
 
 // ******************************************************************************************
+// Show options for creating a new configuration package
+// ******************************************************************************************
+void StartScreenWidget::showNewOptions()
+{
+  // Do GUI stuff  
+  select_mode_->btn_exist_->setFlat( false );
+  select_mode_->btn_new_->setFlat( true );
+  urdf_file_->show();
+  srdf_file_->show();
+  stack_path_->hide();
+  btn_load_->show();
+}
+
+// ******************************************************************************************
+// Show options for editing an existing configuration package
+// ******************************************************************************************
+void StartScreenWidget::showExistingOptions()
+{
+  // Do GUI stuff
+  select_mode_->btn_exist_->setFlat( true );
+  select_mode_->btn_new_->setFlat( false );
+  urdf_file_->hide();
+  srdf_file_->hide();
+  stack_path_->show();
+  btn_load_->show();
+}
+
+// ******************************************************************************************
 // Load files to parameter server
 // ******************************************************************************************
 void StartScreenWidget::loadFiles()
 {
-  // check that URDF can be loaded
-  std::cout << "LOADING FILE" << std::endl;
+  try {
+    std::string path = urdf_file_->getPath();
 
+    // check that URDF can be loaded
+    std::ifstream urdf_stream( path.c_str() );
+
+    if( !urdf_stream.good() ) // File not found
+      throw "URDF file not found";
+
+    std::string urdf_string;
+
+    urdf_stream.seekg(0, std::ios::end);   
+    urdf_string.reserve(urdf_stream.tellg());
+    urdf_stream.seekg(0, std::ios::beg);
+
+    urdf_string.assign((std::istreambuf_iterator<char>(urdf_stream)),
+                       std::istreambuf_iterator<char>());  
+
+
+    ros::NodeHandle nh;
+    nh.setParam("/robot_description", urdf_string);
+
+  }
+  catch( std::string )
+  {
+    QMessageBox messageBox;
+    messageBox.setWindowTitle("Error Loading Files");
+    messageBox.setText("ERROR!");
+    messageBox.setStandardButtons(QMessageBox::Ok);
+    messageBox.exec();
+  }
+}
+
+// ******************************************************************************************
+// ******************************************************************************************
+// Class for selecting which mode
+// ******************************************************************************************
+// ******************************************************************************************
+
+// ******************************************************************************************
+// Create the widget
+// ******************************************************************************************
+SelectModeWidget::SelectModeWidget( QWidget* parent )
+  : QFrame(parent)
+{
+  // Set frame graphics
+  setFrameShape(QFrame::StyledPanel);
+  setFrameShadow(QFrame::Raised);
+  setLineWidth(1);
+  setMidLineWidth(0);
+
+  // Basic widget container
+  QVBoxLayout *layout = new QVBoxLayout(this);
+
+  // Horizontal layout splitter
+  QHBoxLayout *hlayout = new QHBoxLayout();
+    
+  // Widget Title
+  QLabel * widget_title = new QLabel(this);
+  widget_title->setText( "Choose mode:" );
+  QFont widget_title_font( "Arial", 12, QFont::Bold );
+  widget_title->setFont(widget_title_font);
+  layout->addWidget( widget_title);
+  layout->setAlignment( widget_title, Qt::AlignTop);
+
+  // Widget Instructions
+  QLabel * widget_instructions = new QLabel(this);
+  widget_instructions->setText( "All settings for MoveIt are stored in a Moveit configuration package. Here you have the option to create a new configuration package from scractch, or load an existing one. Note: any changes to a MoveIt configuration package outside this setup assistant will likely be overwritten by this tool." );
+  widget_instructions->setWordWrap(true);
+  widget_instructions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
+  layout->addWidget( widget_instructions);
+  layout->setAlignment( widget_instructions, Qt::AlignTop);    
+
+  // New Button
+  btn_new_ = new QPushButton(this);
+  btn_new_->setText("Create &New MoveIt\nConfiguration Package");
+  hlayout->addWidget( btn_new_ );
+
+  // Exist Button
+  btn_exist_ = new QPushButton(this);
+  btn_exist_->setText("&Edit Existing MoveIt\nConfiguration Package");
+  hlayout->addWidget( btn_exist_ );
+
+  // Add horizontal layer to verticle layer
+  layout->addLayout(hlayout);
+  setLayout(layout);
 }
 
 // ******************************************************************************************
@@ -168,7 +288,6 @@ LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &ins
 
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout(this);
-  setLayout(layout);
 
   // Horizontal layout splitter
   QHBoxLayout *hlayout = new QHBoxLayout();
@@ -200,6 +319,8 @@ LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &ins
 
   // Add horizontal layer to verticle layer
   layout->addLayout(hlayout);
+
+  setLayout(layout);
 }
 
 // ******************************************************************************************
@@ -210,7 +331,7 @@ void LoadPathWidget::btn_file_dialog()
   QString path;
   if( dir_only_ ) // only allow user to select a directory
   {
-    path = QFileDialog::getExistingDirectory(this, "Open Stack Directory", path_box_->text(),
+    path = QFileDialog::getExistingDirectory(this, "Open Package Directory", path_box_->text(),
                                              QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
   }
   else // only allow user to select file
@@ -253,3 +374,12 @@ void LoadPathWidget::btn_file_dialog()
     path_box_->setText( path );
 }
 
+const QString LoadPathWidget::getQPath()
+{
+  return path_box_->text();
+}
+
+const std::string LoadPathWidget::getPath()
+{
+  return getQPath().toStdString();
+}
