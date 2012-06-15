@@ -128,8 +128,10 @@ bool collision_detection::CollisionWorld::hasObject(const std::string &id) const
 
 void collision_detection::CollisionWorld::ensureUnique(ObjectPtr &id)
 {
-  if (id && !id.unique())
+  if (id && !id.unique()) {
+    ROS_INFO_STREAM("New obj");
     id.reset(new Object(*id));
+  }
 }
 
 void collision_detection::CollisionWorld::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
