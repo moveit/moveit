@@ -55,6 +55,13 @@
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loading images
 #include "header_widget.h"
+#include <string>
+#include <fstream>  // for reading in urdf
+#include <streambuf>
+
+// Class Prototypes
+class SelectModeWidget;
+class LoadPathWidget;
 
 /**
  * \brief Start screen user interface for MoveIt Configuration Assistant
@@ -79,9 +86,10 @@ class StartScreenWidget : public QWidget
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-  QFrame *stack_path_;
-  QFrame *urdf_file_;
-  QFrame *srdf_file_;
+  SelectModeWidget *select_mode_;
+  LoadPathWidget *stack_path_;
+  LoadPathWidget *urdf_file_;
+  LoadPathWidget *srdf_file_;
   QPushButton *btn_load_;
 
 private Q_SLOTS:
@@ -90,9 +98,13 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
-  /**
-   * \brief Button click event for loading all fiels
-   */
+  /// User has chosen to show new options
+  void showNewOptions();
+
+  /// User has chosen to show edit options
+  void showExistingOptions();
+
+  /// Button event for loading user chosen files
   void loadFiles();
 
 private:
@@ -111,10 +123,36 @@ private:
 
 };
 
+// ******************************************************************************************
+// ******************************************************************************************
+// Class for selecting which mode
+// ******************************************************************************************
+// ******************************************************************************************
 
-/**
- * \brief Re-usable file selection widget with instructions and box
- */
+class SelectModeWidget : public QFrame
+{
+  Q_OBJECT
+
+  private:
+
+    private Q_SLOTS:
+
+  public:
+
+  SelectModeWidget( QWidget * parent );
+
+  // Load file button
+  QPushButton *btn_new_;
+  QPushButton *btn_exist_;
+
+};
+
+// ******************************************************************************************
+// ******************************************************************************************
+// Class for selecting files
+// ******************************************************************************************
+// ******************************************************************************************
+
 class LoadPathWidget : public QFrame
 {
   Q_OBJECT
@@ -126,26 +164,25 @@ class LoadPathWidget : public QFrame
   bool dir_only_;
   // Only allow user to load files (not save)
   bool load_only_;
+  // Stores the path qstring
+  QLineEdit *path_box_;
 
 private Q_SLOTS:
   /// Load the file dialog
   void btn_file_dialog();
 
 public:
-  QLineEdit *path_box_;
 
-  /** 
-   * Create sub-widet
-   * 
-   * @param title Title of frame
-   * @param instructions User advice
-   * @param dir_only Only allow user to load a folder
-   * @param load_only Only allow user to select an existing file
-   * 
-   * @return 
-   */  
   LoadPathWidget( const std::string &title, const std::string &instructions, 
                   const bool dir_only = false, const bool load_only = false, QWidget * parent=0 );
+
+  /// Returns the file path in QString format
+  const QString getQPath();
+
+  /// Returns the file path in std::string format
+  const std::string getPath();
 };
+
+
 
 #endif

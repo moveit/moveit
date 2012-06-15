@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 {
   // Start ROS Node
   //ros::init(argc, argv, "compute_default_collisions", ros::init_options::NoSigintHandler);
-  //ros::init(argc, argv, "compute_default_collisions");
+  ros::init(argc, argv, "moveit_setup_assistant");
 
   // Create Qt Application
   QApplication qtApp(argc, argv);
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   const int result = qtApp.exec();
 
   // Shutdown ROS
-  //ros::shutdown();    
+  ros::shutdown();    
 
   return result;
 }

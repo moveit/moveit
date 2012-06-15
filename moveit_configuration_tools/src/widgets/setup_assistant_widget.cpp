@@ -43,7 +43,13 @@
 SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   : QWidget( parent )
 {
-  // Basic widget container
+  // Create timer to ping ROS ----------------------------------------
+  QTimer *update_timer = new QTimer( this );
+  connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
+  update_timer->start( 1000 );
+  
+
+  // Basic widget container -----------------------------------------
   QHBoxLayout *layout = new QHBoxLayout( this );
   layout->setAlignment( Qt::AlignTop );
 
@@ -52,7 +58,7 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
 
   // Start Screen
   StartScreenWidget *ssw = new StartScreenWidget( this );
-  ssw->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  //ssw->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   navs_ << NavItem("Start", ssw);
   
   // Planning Groups
@@ -71,10 +77,13 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this );
   navs_ << NavItem("Configuration Files", cfw);
 
+
+
   // Left side navigation -------------------------------------------
   navs_view_ = new NavigationWidget( this );
   navs_view_->setNavs(navs_);
-  connect( navs_view_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(navigation_clicked(const QModelIndex&)) );
+  navs_view_->setDisabled( true );
+  connect( navs_view_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(navigationClicked(const QModelIndex&)) );
 
   // Initial right frame widget holder. Change these 2 lines if you want diff default screen
   right_frame_ = ssw;
@@ -97,11 +106,12 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   this->setWindowTitle("MoveIt Setup Assistant"); // title of window
 }
 
-
-void SetupAssistantWidget::navigation_clicked( const QModelIndex& index )
+// ******************************************************************************************
+// Change screens of Setup Assistant
+// ******************************************************************************************
+void SetupAssistantWidget::navigationClicked( const QModelIndex& index )
 {
   NavItem this_nav = navs_.at( index.row() ); //(NavItem*) index.model();
-  //qDebug() << this_nav.name();
 
   // Hide the widget currently in the right frame
   right_frame_->hide();  
@@ -114,3 +124,11 @@ void SetupAssistantWidget::navigation_clicked( const QModelIndex& index )
   right_frame_->show();
 }
 
+// ******************************************************************************************
+// Ping ROS on internval
+// ******************************************************************************************
+void SetupAssistantWidget::updateTimer()
+{
+  ros::spinOnce(); // keep ROS alive
+
+}
