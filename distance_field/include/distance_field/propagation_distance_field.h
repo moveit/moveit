@@ -221,6 +221,11 @@ class SignedPropagationDistanceField : public DistanceField
   virtual ~SignedPropagationDistanceField();
   
   virtual void addPointsToField(const std::vector<Eigen::Vector3d> &points);
+
+  virtual void removePointsFromField(const std::vector<Eigen::Vector3d> &points)
+  {
+    reset();
+  }
   
   virtual void reset();
 
