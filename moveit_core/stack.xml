@@ -10,7 +10,6 @@
   <depend stack="robot_model" /> <!-- urdf, srdf, resource_retriever -->
   <depend stack="ros" />
   <depend stack="ros_comm" /> <!-- rosconsole, std_msgs -->
-  <depend stack="shape_msgs" /> <!-- rosconsole, std_msgs -->
 
   <depend stack="octomap_msgs" /> 
   <depend stack="moveit_msgs" /> 
