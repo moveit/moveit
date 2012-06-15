@@ -46,7 +46,13 @@ namespace collision_distance_field {
 class CollisionWorldDistanceField : public collision_detection::CollisionWorld
 {
 public:
-    
+
+  struct DistanceFieldCacheEntry {
+    std::map<std::string, 
+             std::vector<PosedBodyPointDecompositionPtr> > posed_body_point_decompositions_;
+    boost::shared_ptr<distance_field::DistanceField> distance_field_;
+  };
+  
   CollisionWorldDistanceField(double size_x = 3.0, 
                               double size_y = 3.0,
                               double size_z = 4.0,
@@ -85,16 +91,20 @@ public:
   
   virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses){};
   
-  virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-  virtual bool moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose){return true;}
+  virtual void addToObject(const std::string &id, 
+                           const shapes::ShapeConstPtr &shape, 
+                           const Eigen::Affine3d &pose);
+  virtual bool moveShapeInObject(const std::string &id, 
+                                 const shapes::ShapeConstPtr &shape, 
+                                 const Eigen::Affine3d &pose);
   virtual bool removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape){return true;}
   virtual void removeObject(const std::string &id){}
   virtual void clearObjects(void){}
 
-  void generateEnvironmentDistanceField();
+  void generateEnvironmentDistanceField(bool redo = true);
 
-  boost::shared_ptr<distance_field::DistanceField> getDistanceField() {
-    return distance_field_;
+  boost::shared_ptr<const distance_field::DistanceField> getDistanceField() {
+    return distance_field_cache_entry_->distance_field_;
   }
 
   boost::shared_ptr<const CollisionRobotDistanceField::GroupStateRepresentation> getLastGroupStateRepresentation() const {
@@ -110,8 +120,18 @@ public:
 
 protected:
 
+  boost::shared_ptr<DistanceFieldCacheEntry> generateDistanceFieldCacheEntry();
+
+
+  void updateDistanceObject(const std::string& id,
+                            boost::shared_ptr<CollisionWorldDistanceField::DistanceFieldCacheEntry>& dfce,
+                            std::vector<Eigen::Vector3d>& add_points,
+                            std::vector<Eigen::Vector3d>& subtract_points);
+
+
   bool getEnvironmentProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
-                                        boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>& gsr) const;
+                                        boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>& gsr,
+                                        const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field) const;
 
   double size_x_;
   double size_y_;
@@ -121,7 +141,8 @@ protected:
   double collision_tolerance_;
   double max_propogation_distance_;
 
-  boost::shared_ptr<distance_field::DistanceField> distance_field_;
+  mutable boost::mutex update_cache_lock_;
+  boost::shared_ptr<DistanceFieldCacheEntry> distance_field_cache_entry_;
   boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> last_gsr_;  
 };
 

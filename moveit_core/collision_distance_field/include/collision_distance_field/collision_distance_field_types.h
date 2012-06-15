@@ -214,6 +214,9 @@ public:
   
   PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition);
 
+  PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition,
+                              const Eigen::Affine3d& pose);
+
   const std::vector<Eigen::Vector3d>& getCollisionPoints() const
   {
     return posed_collision_points_;
