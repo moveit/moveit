@@ -94,6 +94,8 @@ public:
    */
   virtual void addPointsToField(const std::vector<Eigen::Vector3d> &points)=0;
 
+  virtual void removePointsFromField(const std::vector<Eigen::Vector3d> &points)=0;
+
   /**
    * \brief Adds the points in a collision map to the distance field.
    */
