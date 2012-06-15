@@ -48,4 +48,10 @@ MoveItProximityVisualizer::MoveItProximityVisualizer() :
   pv_->addStateChangedCallback(boost::bind(&ProximityVisualization::stateChanged, proximity_visualization_, _1, _2));
 }
 
+void MoveItProximityVisualizer::updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene)
+{
+  MoveItVisualizer::updatePlanningScene(planning_scene);
+  proximity_visualization_->updatePlanningScene(planning_scene);
+}
+
 }

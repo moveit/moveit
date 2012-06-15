@@ -44,7 +44,7 @@ public:
   
   virtual ~MoveItProximityVisualizer() {};
 
-  virtual void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene){};
+  virtual void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene);
   
 protected:
 
