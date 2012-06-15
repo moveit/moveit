@@ -36,6 +36,7 @@
 
 #include "ompl_interface/detail/constrained_goal_sampler.h"
 #include "ompl_interface/model_based_planning_context.h"
+#include <ros/console.h>
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,
                                                                const kinematic_constraints::KinematicConstraintSetPtr &ks,
@@ -69,7 +70,6 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
       if (kinematic_constraint_set_->decide(work_state_).satisfied)
       {
         planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, work_joint_group_state_);
-        newGoal->as<ModelBasedStateSpace::StateType>()->markGoalState();
         return true;
       }
     }

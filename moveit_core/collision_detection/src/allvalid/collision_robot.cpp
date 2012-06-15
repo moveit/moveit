@@ -35,6 +35,7 @@
 /* Author Ioan Sucan, Jia Pan */
 
 #include "collision_detection/allvalid/collision_robot.h"
+#include <ros/console.h>
 
 collision_detection::CollisionRobotAllValid::CollisionRobotAllValid(const planning_models::KinematicModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)
 {

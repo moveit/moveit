@@ -39,6 +39,7 @@
 #include <fcl/traversal_node_bvhs.h>
 #include <fcl/simple_setup.h>
 #include <fcl/collision_node.h>
+#include <ros/console.h>
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(void) : CollisionWorld()
 {

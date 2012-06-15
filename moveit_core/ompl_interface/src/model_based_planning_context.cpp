@@ -48,6 +48,7 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
+#include <ros/console.h>
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec) :
   spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getKinematicModel()),
@@ -158,7 +159,6 @@ void ompl_interface::ModelBasedPlanningContext::configure(void)
   // convert the input state to the corresponding OMPL state
   ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
   spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
-  ompl_start_state->as<ModelBasedStateSpace::StateType>()->markStartState();
   ompl_simple_setup_.setStartState(ompl_start_state);
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
     
