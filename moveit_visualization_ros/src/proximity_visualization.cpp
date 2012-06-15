@@ -49,6 +49,26 @@ ProximityVisualization::ProximityVisualization(const planning_scene::PlanningSce
   distance_acm_.setEntry("l_upper_arm_link", "l_upper_arm_link", true);  
 }
 
+void ProximityVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
+{
+  planning_scene_ = planning_scene;
+  std::vector<std::string> object_ids = planning_scene_->getCollisionWorld()->getObjectIds();
+  for(unsigned int i = 0; i < object_ids.size(); i++) {
+    collision_detection::CollisionWorld::ObjectConstPtr other_obj = planning_scene_->getCollisionWorld()->getObject(object_ids[i]);
+    if(!world_.hasObject(object_ids[i])) {
+      world_.addToObject(object_ids[i], other_obj->shapes_[0], other_obj->shape_poses_[0]);
+    } else {
+      collision_detection::CollisionWorld::ObjectConstPtr our_obj = world_.getObject(object_ids[i]);
+      if((our_obj->shape_poses_[0].translation()-other_obj->shape_poses_[0].translation()).norm() > .01) {
+        world_.moveShapeInObject(our_obj->id_,
+                                 our_obj->shapes_[0],
+                                 other_obj->shape_poses_[0]);
+      }
+    }
+  }
+  groupChanged(current_group_);
+}
+
 void ProximityVisualization::groupChanged(const std::string& group) 
 {
   current_group_ = group;
@@ -56,7 +76,7 @@ void ProximityVisualization::groupChanged(const std::string& group)
 }
 
 void ProximityVisualization::stateChanged(const std::string& group,
-                                                     const planning_models::KinematicState& state)
+                                          const planning_models::KinematicState& state)
 {
   if(group != current_group_) return;
   collision_detection::CollisionRequest req;
