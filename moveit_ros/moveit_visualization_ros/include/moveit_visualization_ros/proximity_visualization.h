@@ -48,7 +48,7 @@ public:
                          //boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                          ros::Publisher& marker_publisher);
 
-  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene){}
+  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
   
   void groupChanged(const std::string& group_name);
 
