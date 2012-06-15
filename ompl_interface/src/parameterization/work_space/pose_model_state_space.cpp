@@ -40,8 +40,7 @@
 
 const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "PoseModel";
 
-ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec) : 
-  ModelBasedStateSpace(spec)
+ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec) : ModelBasedStateSpace(spec)
 {
   const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn>& slv = spec.joint_model_group_->getSolverAllocators();
   if (slv.first)
@@ -55,6 +54,21 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
   if (poses_.empty())
     ROS_FATAL("No kinematics solvers specified. Unable to construct a PoseModelStateSpace");
   constructSpaceFromPoses();
+
+  // construct a state that is invalid (outside bounds)
+  unsigned int index = 0;
+  bad_state_ = allocState();
+  for (std::size_t i = 0 ; i < spec_.joints_bounds_.size() ; ++i)
+    for (std::size_t k = 0 ; k < spec_.joints_bounds_[i].size() ; ++k)
+    {
+      double *va = getValueAddressAtIndex(bad_state_, index++);
+      *va = spec_.joints_bounds_[i][k].first - 1.0;
+    }
+}
+
+ompl_interface::PoseModelStateSpace::~PoseModelStateSpace(void)
+{
+  freeState(bad_state_);
 }
 
 void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses(void)
@@ -198,7 +212,7 @@ bool ompl_interface::PoseModelStateSpace::computeStateFK(ompl::base::State *stat
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     if (!poses_[i].computeStateFK(this, state, state->as<StateType>()->components[componentCount_ - i - 1]))
     {
-      state->as<StateType>()->markInvalid();
+      copyState(state, bad_state_);
       return false;
     }
   state->as<StateType>()->setPoseComputed(true);
@@ -212,7 +226,7 @@ bool ompl_interface::PoseModelStateSpace::computeStateIK(ompl::base::State *stat
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     if (!poses_[i].computeStateIK(this, state, state->as<StateType>()->components[componentCount_ - i - 1]))
     {
-      state->as<StateType>()->markInvalid();
+      copyState(state, bad_state_);
       return false;
     }
   state->as<StateType>()->setJointsComputed(true);
@@ -227,7 +241,7 @@ bool ompl_interface::PoseModelStateSpace::computeStateK(ompl::base::State *state
     return computeStateIK(state);
   if (state->as<StateType>()->jointsComputed() && state->as<StateType>()->poseComputed())
     return true;
-  state->as<StateType>()->markInvalid();
+  copyState(state, bad_state_);
   return false;
 }
 

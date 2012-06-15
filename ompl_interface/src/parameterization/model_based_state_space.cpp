@@ -36,6 +36,7 @@
 
 #include "ompl_interface/parameterization/model_based_state_space.h"
 #include <boost/bind.hpp>
+#include <ros/console.h>
 
 ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedStateSpaceSpecification &spec) : ompl::base::CompoundStateSpace(), spec_(spec)
 {
@@ -104,15 +105,10 @@ void ompl_interface::ModelBasedStateSpace::copyState(ompl::base::State *destinat
 {
   CompoundStateSpace::copyState(destination, source);
   destination->as<StateType>()->tag = source->as<StateType>()->tag;
-  destination->as<StateType>()->flags = source->as<StateType>()->flags;
-  destination->as<StateType>()->distance = source->as<StateType>()->distance;
 }
 
 void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const
 { 
-  // clear any cached info (such as validity known or not)
-  state->as<StateType>()->clearKnownInformation();
-  
   // perform the actual interpolation
   CompoundStateSpace::interpolate(from, to, t, state);
   
@@ -128,59 +124,55 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *
 
 void ompl_interface::ModelBasedStateSpace::afterStateSample(ompl::base::State *sample) const
 {
-  sample->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
+}
+
+namespace ompl_interface
+{
+class WrappedStateSampler : public ompl::base::StateSampler
+{
+public:
+  
+  WrappedStateSampler(const ompl::base::StateSpace *space, const ompl::base::StateSamplerPtr &wrapped) : ompl::base::StateSampler(space), wrapped_(wrapped)
+  {
+  }
+  
+  virtual void sampleUniform(ompl::base::State *state)
+  {
+    wrapped_->sampleUniform(state);
+    space_->as<ModelBasedStateSpace>()->afterStateSample(state);
+  }
+  
+  virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
+  {    
+    wrapped_->sampleGaussian(state, near, distance);
+    space_->as<ModelBasedStateSpace>()->afterStateSample(state);
+  }
+  
+  virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
+  {
+    wrapped_->sampleGaussian(state, mean, stdDev);
+    space_->as<ModelBasedStateSpace>()->afterStateSample(state);
+  }
+  
+protected:
+  
+  ompl::base::StateSamplerPtr wrapped_;
+};
+}
+
+ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocSubspaceStateSampler(const ompl::base::StateSpace *subspace) const
+{
+  return ompl::base::StateSamplerPtr(new WrappedStateSampler(this, ompl::base::CompoundStateSpace::allocSubspaceStateSampler(subspace)));
 }
 
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultStateSampler(void) const
 {
-  class WrappedStateSampler : public ompl::base::StateSampler
-  {
-  public:
-    
-    WrappedStateSampler(const ompl::base::StateSpace *space, const ompl::base::StateSamplerPtr &wrapped) : ompl::base::StateSampler(space), wrapped_(wrapped)
-    {
-    }
-    
-    virtual void sampleUniform(ompl::base::State *state)
-    {
-      wrapped_->sampleUniform(state);
-      space_->as<ModelBasedStateSpace>()->afterStateSample(state);
-    }
-    
-    virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
-    {    
-      wrapped_->sampleGaussian(state, near, distance);
-      space_->as<ModelBasedStateSpace>()->afterStateSample(state);
-    }
-    
-    virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
-    {
-      wrapped_->sampleGaussian(state, mean, stdDev);
-      space_->as<ModelBasedStateSpace>()->afterStateSample(state);
-    }
-    
-  protected:
-    
-    ompl::base::StateSamplerPtr wrapped_;
-  };
-  
-  return ompl::base::StateSamplerPtr(static_cast<ompl::base::StateSampler*>(new WrappedStateSampler(this, ompl::base::CompoundStateSpace::allocDefaultStateSampler())));
+  return ompl::base::StateSamplerPtr(new WrappedStateSampler(this, ompl::base::CompoundStateSpace::allocDefaultStateSampler()));
 }
 
 void ompl_interface::ModelBasedStateSpace::printState(const ompl::base::State *state, std::ostream &out) const
 {
   ompl::base::CompoundStateSpace::printState(state, out);
-  if (state->as<StateType>()->isStartState())
-    out << "* start state"  << std::endl;
-  if (state->as<StateType>()->isGoalState())
-    out << "* goal state"  << std::endl;
-  if (state->as<StateType>()->isValidityKnown())
-  {
-    if (state->as<StateType>()->isMarkedValid())
-      out << "* valid state"  << std::endl;
-    else
-      out << "* invalid state"  << std::endl;
-  }
   out << "Tag: " << state->as<StateType>()->tag << std::endl;
 }
 
@@ -203,5 +195,4 @@ void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *st
   const std::vector<planning_models::KinematicState::JointState*> &src = jsg->getJointStateVector();
   for (std::size_t i = 0 ; i < src.size() ; ++i)
     *state->as<ompl::base::CompoundState>()->as<ModelBasedJointStateSpace::StateType>(i)->joint_state = *src[i];    
-  state->as<ModelBasedStateSpace::StateType>()->clearKnownInformation();
 }

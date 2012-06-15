@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "collision_detection/allvalid/collision_world.h"
+#include <ros/console.h>
 
 collision_detection::CollisionWorldAllValid::CollisionWorldAllValid(void) : CollisionWorld()
 {

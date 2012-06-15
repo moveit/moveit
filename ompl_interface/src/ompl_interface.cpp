@@ -38,6 +38,7 @@
 #include <planning_models/conversions.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <fstream>
+#include <ros/console.h>
 
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
   kmodel_(kmodel),

@@ -53,6 +53,7 @@
 #include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/contrib/rrt_star/RRTstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
+#include <ros/console.h>
 
 #include <ompl/tools/debug/Profiler.h>
 
@@ -117,12 +118,25 @@ namespace ompl_interface
 {
 
 template<typename T>
+inline void auxPlannerConfig(const ob::PlannerPtr &planner, const ModelBasedPlanningContextSpecification &spec)
+{
+}
+
+template<>
+inline void auxPlannerConfig<og::msRRTConnect>(const ob::PlannerPtr &planner, const ModelBasedPlanningContextSpecification &spec)
+{
+  for (std::size_t i = 0 ; i < spec.subspaces_.size() ; ++i)
+    planner->as<og::msRRTConnect>()->addExplorationSubspace(spec.subspaces_[i]);
+}
+
+template<typename T>
 static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si, const std::string &new_name, const ModelBasedPlanningContextSpecification &spec)
 {
   ompl::base::PlannerPtr planner(new T(si));
   if (!new_name.empty())
     planner->setName(new_name);
-  planner->params().setParams(spec.config_, true);
+  planner->params().setParams(spec.config_, true);  
+  auxPlannerConfig<T>(planner, spec);
   planner->setup();
   return planner;
 }

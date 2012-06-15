@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, E. Gil Jones */
 
 #include "planning_models/kinematic_state.h"
+#include <ros/console.h>
 
 planning_models::KinematicState::LinkState::LinkState(KinematicState *state, const planning_models::KinematicModel::LinkModel* lm) :
   kinematic_state_(state), link_model_(lm), parent_joint_state_(NULL), parent_link_state_(NULL)
