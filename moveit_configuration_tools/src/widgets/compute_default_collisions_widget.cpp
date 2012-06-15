@@ -75,8 +75,8 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   // Create a Qt-ROS update spinner
   // TODO: not sure how this will integrate with whole GUI Tools combined
   /*  update_timer_ = new QTimer();
-  connect( update_timer_, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
-  update_timer_->start( 1000 );*/
+      connect( update_timer_, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
+      update_timer_->start( 1000 );*/
 
   // Basic widget container
   layout_ = new QVBoxLayout( this );
@@ -85,12 +85,12 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
 
   HeaderWidget *header = new HeaderWidget( "Optimize Self-Collision Checking",
                                            "The Default Self-Collision Matrix Generator will search for pairs of links "
-                             "on the robot that can safely be disabled from collision checking, decreasing motion "
-                             "planning processing time. These pairs of links are disabled they are always in collision,"
-                             " never in collision, collision in the robot's default position and when the links are "
-                             "adjacent to each other on the kinematic chain. Sampling density specifies how many "
-                             "random robot positions to check for self collision. Higher densities require more "
-                             "computation time.",
+                                           "on the robot that can safely be disabled from collision checking, decreasing motion "
+                                           "planning processing time. These pairs of links are disabled they are always in collision,"
+                                           " never in collision, collision in the robot's default position and when the links are "
+                                           "adjacent to each other on the kinematic chain. Sampling density specifies how many "
+                                           "random robot positions to check for self collision. Higher densities require more "
+                                           "computation time.",
                                            this);
   layout_->addWidget( header );
    
@@ -161,11 +161,11 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
 
   // Table Headers
   /*  header_list_ = new QStringList();
-  header_list_->append("Link A");
-  header_list_->append("Link B");
-  header_list_->append("Disabled");
-  header_list_->append("Reason To Disable");
-  collision_table_->setHorizontalHeaderLabels(*header_list_);*/
+      header_list_->append("Link A");
+      header_list_->append("Link B");
+      header_list_->append("Disabled");
+      header_list_->append("Reason To Disable");
+      collision_table_->setHorizontalHeaderLabels(*header_list_);*/
 
   QStringList header_list;
   header_list.append("Link A");
@@ -188,12 +188,12 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
 
   // Save Button
   /*save_button_ = new QPushButton( this );
-  save_button_->setText("&Save to SRDF");
-  save_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  save_button_->setMinimumWidth(300);
-  connect(save_button_, SIGNAL(clicked()), this, SLOT(saveToSRDF()));
-  controls_box_bottom_layout->addWidget(save_button_);
-  controls_box_bottom_layout->setAlignment(save_button_, Qt::AlignRight);*/
+    save_button_->setText("&Save to SRDF");
+    save_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    save_button_->setMinimumWidth(300);
+    connect(save_button_, SIGNAL(clicked()), this, SLOT(saveToSRDF()));
+    controls_box_bottom_layout->addWidget(save_button_);
+    controls_box_bottom_layout->setAlignment(save_button_, Qt::AlignRight);*/
 
   // Does user need to save before exiting?
   unsaved_changes_ = false;
@@ -293,7 +293,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
 
   // Find the default collision matrix - all links that are allowed to collide
   link_pairs_ = moveit_configuration_tools::computeDefaultCollisions(psm.getPlanningScene(), collision_progress, 
-                                                                    include_never_colliding, num_trials, verbose);
+                                                                     include_never_colliding, num_trials, verbose);
   
   // End the progress bar loop
   *collision_progress = 100;
