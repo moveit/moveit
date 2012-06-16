@@ -40,6 +40,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <fstream>
+#include <ros/console.h>
 
 namespace ompl_interface
 {
@@ -461,7 +462,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     }
     
     planning_models::KinematicState kstate(default_state);
-    constraint_samplers::ConstraintSamplerManager *csmng = pcontext->getConstraintSamplerManager();
+    const constraint_samplers::ConstraintSamplerManagerPtr &csmng = pcontext->getConstraintSamplerManager();
     ConstrainedSampler *csmp = NULL;
     if (csmng)
     {

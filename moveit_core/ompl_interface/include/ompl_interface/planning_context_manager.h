@@ -56,11 +56,13 @@ struct PlanningConfigurationSettings
   std::map<std::string, std::string> config;
 };
 
+typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> FactoryTypeSelector;
+
 class PlanningContextManager
 {
 public: 
   
-  PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel, constraint_samplers::ConstraintSamplerManager &csm);
+  PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm);
   ~PlanningContextManager(void);
   
   /** @brief Specify configurations for the planners.
@@ -158,7 +160,7 @@ public:
 
   ModelBasedPlanningContextPtr getPlanningContext(const moveit_msgs::MotionPlanRequest &req) const;
   
-  void registerPlannerAllocator(const std::string &planner_id, const ob::PlannerAllocator &pa)
+  void registerPlannerAllocator(const std::string &planner_id, const ConfiguredPlannerAllocator &pa)
   {
     known_planners_[planner_id] = pa;
   }
@@ -167,8 +169,18 @@ public:
   {
     state_space_factories_[factory->getType()] = factory;
   }
-
-  ConfiguredPlannerAllocator getPlannerAllocator(void) const;
+  
+  const std::map<std::string, ConfiguredPlannerAllocator>& getRegisteredPlannerAllocators(void) const
+  {
+    return known_planners_;
+  }
+  
+  const std::map<std::string, ModelBasedStateSpaceFactoryPtr>& getRegisteredStateSpaceFactories(void) const
+  {
+    return state_space_factories_;
+  }
+  
+  ConfiguredPlannerSelector getPlannerSelector(void) const;
 
   const std::map<std::string, PlanningConfigurationSettings>& getPlanningConfigurations(void) const
   {
@@ -177,20 +189,21 @@ public:
   
 protected:
   
-  ob::PlannerPtr plannerAllocator(const ompl::base::SpaceInformationPtr &si, const std::string &planner,
-                                  const std::string &name, const std::map<std::string, std::string> &config) const;
+  ConfiguredPlannerAllocator plannerSelector(const std::string &planner) const;
   
   void registerDefaultPlanners(void);
   void registerDefaultStateSpaces(void);
   
-  ModelBasedPlanningContextPtr getPlanningContext(const PlanningConfigurationSettings &config, const ModelBasedStateSpaceFactory *factory) const;
+  ModelBasedPlanningContextPtr getPlanningContext(const PlanningConfigurationSettings &config, const FactoryTypeSelector &factory) const;
+  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory1(const std::string &group_name, const std::string &factory_type) const;
+  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string &group_name, const moveit_msgs::MotionPlanRequest &req) const;
   
   /** \brief The kinematic model for which motion plans are computed */
   planning_models::KinematicModelConstPtr               kmodel_;
   
-  constraint_samplers::ConstraintSamplerManager        *constraint_sampler_manager_;
+  constraint_samplers::ConstraintSamplerManagerPtr      constraint_sampler_manager_;
   
-  std::map<std::string, ob::PlannerAllocator>           known_planners_;
+  std::map<std::string, ConfiguredPlannerAllocator>     known_planners_;
   std::map<std::string, ModelBasedStateSpaceFactoryPtr> state_space_factories_; 
 
   /** \brief All the existing planning configurations. The name

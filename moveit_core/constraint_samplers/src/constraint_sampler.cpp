@@ -37,6 +37,7 @@
 #include "constraint_samplers/constraint_sampler.h"
 #include "constraint_samplers/default_constraint_samplers.h"
 #include "constraint_samplers/union_constraint_sampler.h"
+#include <ros/console.h>
 
 constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name)
 {

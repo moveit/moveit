@@ -38,6 +38,7 @@
 #define MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_MANAGER_
 
 #include "constraint_samplers/constraint_sampler_allocator.h"
+#include <boost/shared_ptr.hpp>
 
 namespace constraint_samplers
 {
@@ -61,6 +62,9 @@ private:
 
   std::vector<ConstraintSamplerAllocatorPtr> sampler_alloc_;
 };
+
+typedef boost::shared_ptr<ConstraintSamplerManager> ConstraintSamplerManagerPtr;
+typedef boost::shared_ptr<const ConstraintSamplerManager> ConstraintSamplerManagerConstPtr;
 
 }
 

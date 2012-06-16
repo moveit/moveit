@@ -775,8 +775,6 @@ public:
 planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::constructLinkModel(const urdf::Link *urdf_link,
                                                                                                 const std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> > &parent_map)
 {
-  ROS_ASSERT(urdf_link);
-
   LinkModel *result = new LinkModel();
   result->name_ = urdf_link->name;
   if (urdf_link->collision && urdf_link->collision->geometry)
@@ -841,8 +839,6 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
 
 shapes::ShapePtr planning_models::KinematicModel::constructShape(const urdf::Geometry *geom, std::string& filename)
 {
-  ROS_ASSERT(geom);
-  
   shapes::Shape *result = NULL;
   switch (geom->type)
   {

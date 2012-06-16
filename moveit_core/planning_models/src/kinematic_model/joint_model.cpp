@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, E. Gil Jones */
 
 #include <planning_models/kinematic_model.h>
+#include <ros/console.h>
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :
   name_(name), type_(UNKNOWN), max_velocity_(0.0), parent_link_model_(NULL), child_link_model_(NULL),

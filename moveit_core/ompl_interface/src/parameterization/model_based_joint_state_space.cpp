@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "ompl_interface/parameterization/model_based_joint_state_space.h"
+#include <ros/console.h>
 
 ompl_interface::ModelBasedJointStateSpace::ModelBasedJointStateSpace(const planning_models::KinematicModel::JointModel *joint_model,
                                                                      const planning_models::KinematicModel::JointModel::Bounds &joint_bounds) :
