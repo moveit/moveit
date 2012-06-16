@@ -39,6 +39,9 @@
 
 #include "ros/ros.h"
 
+namespace moveit_configuration_tools
+{
+
 // A simple class to help with benchmarking
 class BenchmarkTimer
 {
@@ -53,5 +56,8 @@ private:
   std::map<std::string, double> totalTimes;
   std::map<std::string, double> intermediateTimes;
 };
+
+
+}
 
 #endif

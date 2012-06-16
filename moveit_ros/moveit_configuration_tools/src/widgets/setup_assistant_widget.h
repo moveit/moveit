@@ -63,6 +63,7 @@
 #include "planning_groups_widget.h"
 #include "robot_poses_widget.h"
 #include "configuration_files_widget.h"
+#include "moveit_configuration_tools/tools/moveit_config_data.h"
 
 class SetupAssistantWidget : public QWidget
 {
@@ -73,7 +74,18 @@ public:
   // Public Functions
   // ******************************************************************************************
 
+  /** 
+   * Construct the setup assistant widget, the primary window for this application
+   * @param parent - used by Qt for destructing all elements
+   * @return 
+   */
   SetupAssistantWidget( QWidget *parent );
+
+  /** 
+   * Changes viewable screen
+   * @param index screen index to switch to
+   */
+  void moveToScreen( const int index );
 
   // ******************************************************************************************
   // Qt Components
@@ -81,12 +93,26 @@ public:
 
 
 private Q_SLOTS:
-
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
+
+  /** 
+   * Event for changing screens by user clicking
+   * @param index screen id
+   */
   void navigationClicked( const QModelIndex& index );
+
+  /** 
+   * Event for spinning the ros node
+   */
   void updateTimer();
+
+  /** 
+   * Call a function that enables navigation and goes to screen 2
+   */
+  void progressPastStartScreen();
+
 
 private:
 
@@ -94,7 +120,7 @@ private:
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
-  QList<NavItem> navs_;
+  QList<NavScreen> navs_;
   NavigationWidget *navs_view_;
   QWidget *right_frame_;
   QSplitter *splitter_;

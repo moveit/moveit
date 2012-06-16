@@ -10,7 +10,8 @@ inline bool distance_op(std::pair<unsigned int, double> i,
   return i.second < j.second;
 }
 
-namespace moveit_configuration_tools {
+namespace moveit_configuration_tools 
+{
 class ik_solver_base {
 public:
   virtual int solve(Eigen::Affine3d &pose, const std::vector<double> &ik_seed_state) = 0;

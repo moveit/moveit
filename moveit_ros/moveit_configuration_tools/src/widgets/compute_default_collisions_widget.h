@@ -57,6 +57,7 @@
 #include <boost/thread.hpp>
 #include "ros/ros.h"
 #include <moveit_configuration_tools/tools/compute_default_collisions.h>
+#include "moveit_configuration_tools/tools/moveit_config_data.h"
 #include "header_widget.h"
 
 /**
@@ -75,7 +76,7 @@ public:
    * \brief User interface for editing the default collision matrix list in an SRDF
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
-  ComputeDefaultCollisionsWidget( QWidget *parent, std::string srdf_file );
+  ComputeDefaultCollisionsWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data );
 
   /**
    * \brief Qt close event function for reminding user to save
@@ -157,8 +158,8 @@ private:
   /// does the user need to save before exiting?
   bool unsaved_changes_; 
 
-  /// location to save/load SRDF
-  std::string srdf_file_;
+  /// Contains all the configuration data for the setup assistant
+  moveit_configuration_tools::MoveItConfigDataPtr config_data_;
 
   // ******************************************************************************************
   // Private Functions

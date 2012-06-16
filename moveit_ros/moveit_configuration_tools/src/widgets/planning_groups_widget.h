@@ -58,6 +58,7 @@
 #include <boost/thread.hpp>
 #include "ros/ros.h"
 #include <moveit_configuration_tools/tools/compute_default_collisions.h>
+#include "moveit_configuration_tools/tools/moveit_config_data.h"
 #include "header_widget.h"
 
 class PlanningGroupsWidget : public QWidget
@@ -69,7 +70,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  PlanningGroupsWidget( QWidget *parent );
+  PlanningGroupsWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data );
 
 private Q_SLOTS:
 
@@ -92,6 +93,8 @@ private:
   // Variables
   // ******************************************************************************************
 
+  /// Contains all the configuration data for the setup assistant
+  moveit_configuration_tools::MoveItConfigDataPtr config_data_;
 
   // ******************************************************************************************
   // Private Functions

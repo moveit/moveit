@@ -37,6 +37,8 @@
 #include "moveit_configuration_tools/tools/benchmark_timer.h"
 
 using namespace std;
+namespace moveit_configuration_tools
+{
 
 BenchmarkTimer::BenchmarkTimer()
 {
@@ -79,4 +81,4 @@ void BenchmarkTimer::printTimes(){
   }
 }
 
-
+}

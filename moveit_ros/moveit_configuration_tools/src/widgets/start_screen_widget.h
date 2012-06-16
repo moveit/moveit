@@ -55,9 +55,11 @@
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loading images
 #include "header_widget.h"
-#include <string>
 #include <fstream>  // for reading in urdf
 #include <streambuf>
+#include <urdf/model.h> // for testing a valid urdf is loaded
+#include <srdf/model.h> // for testing a valid srdf is loaded
+#include "moveit_configuration_tools/tools/moveit_config_data.h"
 
 // Class Prototypes
 class SelectModeWidget;
@@ -78,7 +80,7 @@ class StartScreenWidget : public QWidget
   /**
    * \brief Start screen user interface for MoveIt Configuration Assistant
    */
-  StartScreenWidget( QWidget* parent );
+  StartScreenWidget( QWidget* parent, moveit_configuration_tools::MoveItConfigDataPtr config_data );
 
   ~StartScreenWidget();
 
@@ -91,6 +93,9 @@ class StartScreenWidget : public QWidget
   LoadPathWidget *urdf_file_;
   LoadPathWidget *srdf_file_;
   QPushButton *btn_load_;
+
+  /// Contains all the configuration data for the setup assistant
+  moveit_configuration_tools::MoveItConfigDataPtr config_data_;
 
 private Q_SLOTS:
 
@@ -106,6 +111,11 @@ private Q_SLOTS:
 
   /// Button event for loading user chosen files
   void loadFiles();
+
+Q_SIGNALS:
+
+  /// Event that is fired when the start screen has all its requirements completed and user can move on
+  void readyToProgress();
 
 private:
 

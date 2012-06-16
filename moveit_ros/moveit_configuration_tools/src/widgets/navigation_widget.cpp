@@ -41,22 +41,22 @@
 // CLASS
 // ******************************************************************************************
 
-NavItem::NavItem()
+NavScreen::NavScreen()
 {
 }
 
-NavItem::NavItem(const QString &name, QWidget *screen ) :
+NavScreen::NavScreen(const QString &name, QWidget *screen ) :
   name_(name), screen_(screen)
 {
 
 }
 
-QString NavItem::name() const
+QString NavScreen::name() const
 {
   return name_;
 }
 
-QWidget * NavItem::screen()
+QWidget * NavScreen::screen()
 {
   return screen_;
 }
@@ -92,7 +92,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) :
   setModel(model_);
 }
 
-void NavigationWidget::setNavs(QList<NavItem> &navs)
+void NavigationWidget::setNavs(QList<NavScreen> &navs)
 {
   setModel(NULL);
   model_->clear();
@@ -134,7 +134,7 @@ NavDelegate::NavDelegate(QObject *parent) :
 
 void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-  if(index.data().canConvert<NavItem>())
+  if(index.data().canConvert<NavScreen>())
     paintNav(painter, option, index);
   else
     paintLetter(painter, option, index);
@@ -142,7 +142,7 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
 
 QSize NavDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-  if(index.data().canConvert<NavItem>())
+  if(index.data().canConvert<NavScreen>())
     return QSize(option.rect.width(), 45);
   else
     return QSize(option.rect.width(), 25);
@@ -153,7 +153,7 @@ void NavDelegate::paintNav(QPainter *painter, const QStyleOptionViewItem &option
   const bool isSelected = option.state & QStyle::State_Selected;
   //const bool isHovered = option.state & QStyle::State_MouseOver;
 
-  NavItem tp = index.data().value<NavItem>();
+  NavScreen tp = index.data().value<NavScreen>();
 
   painter->save();
 

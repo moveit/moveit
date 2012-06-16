@@ -36,6 +36,7 @@
 
 #include "setup_assistant_widget.h"
 
+using namespace moveit_configuration_tools;
 
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
@@ -48,6 +49,8 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
   update_timer->start( 1000 );
   
+  // Create object to hold all moveit configuration data
+  MoveItConfigDataPtr config_data( new MoveItConfigData() );
 
   // Basic widget container -----------------------------------------
   QHBoxLayout *layout = new QHBoxLayout( this );
@@ -57,25 +60,26 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   // Screens --------------------------------------------------------
 
   // Start Screen
-  StartScreenWidget *ssw = new StartScreenWidget( this );
+  StartScreenWidget *ssw = new StartScreenWidget( this, config_data );
   //ssw->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  navs_ << NavItem("Start", ssw);
+  connect( ssw, SIGNAL( readyToProgress() ), this, SLOT( progressPastStartScreen() ) );
+  navs_ << NavScreen("Start", ssw);
   
   // Planning Groups
-  PlanningGroupsWidget *pgw = new PlanningGroupsWidget( this );
-  navs_ << NavItem("Planning Groups", pgw);
+  PlanningGroupsWidget *pgw = new PlanningGroupsWidget( this, config_data );
+  navs_ << NavScreen("Planning Groups", pgw);
 
   // Self-Collisions
-  ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget( this, "TODO");
-  navs_ << NavItem("Self-Collisions", cdcw);
+  ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget( this, config_data);
+  navs_ << NavScreen("Self-Collisions", cdcw);
 
   // Robot Poses
-  RobotPosesWidget *rpw = new RobotPosesWidget( this );
-  navs_ << NavItem("Robot Poses", rpw);
+  RobotPosesWidget *rpw = new RobotPosesWidget( this, config_data );
+  navs_ << NavScreen("Robot Poses", rpw);
 
   // Configuration Files
-  ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this );
-  navs_ << NavItem("Configuration Files", cfw);
+  ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this, config_data );
+  navs_ << NavScreen("Configuration Files", cfw);
 
 
 
@@ -106,22 +110,30 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   this->setWindowTitle("MoveIt Setup Assistant"); // title of window
 }
 
-// ******************************************************************************************
-// Change screens of Setup Assistant
-// ******************************************************************************************
-void SetupAssistantWidget::navigationClicked( const QModelIndex& index )
+void SetupAssistantWidget::moveToScreen( const int index )
 {
-  NavItem this_nav = navs_.at( index.row() ); //(NavItem*) index.model();
+  // Get a reference to the requested screen
+  NavScreen next_screen = navs_.at( index );
 
   // Hide the widget currently in the right frame
   right_frame_->hide();  
 
   // Change widgets
-  right_frame_ = this_nav.screen();
+  right_frame_ = next_screen.screen();
 
   // Insert widget into splitter
   splitter_->addWidget( right_frame_ );
   right_frame_->show();
+
+  // Change navigation selected option
+  navs_view_->setSelected( index ); // Select first item in list
+}
+// ******************************************************************************************
+// Change screens of Setup Assistant
+// ******************************************************************************************
+void SetupAssistantWidget::navigationClicked( const QModelIndex& index )
+{
+  moveToScreen( index.row() );
 }
 
 // ******************************************************************************************
@@ -131,4 +143,18 @@ void SetupAssistantWidget::updateTimer()
 {
   ros::spinOnce(); // keep ROS alive
 
+}
+
+// ******************************************************************************************
+// Enables navigation and goes to screen 2
+// ******************************************************************************************
+void SetupAssistantWidget::progressPastStartScreen()
+{
+  // Enable navigation
+  navs_view_->setDisabled( false );
+
+  std::cout << "PROGRESS PAST START \n" << std::endl;
+
+  // Go to next screen
+  moveToScreen( 1 );
 }
