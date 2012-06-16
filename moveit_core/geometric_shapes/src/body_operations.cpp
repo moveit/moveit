@@ -102,9 +102,13 @@ void bodies::mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, Bo
   }
 }
 
-bodies::Body* bodies::constructBodyFromMsg(const shape_msgs::Shape &shape_msg, const geometry_msgs::Pose &pose)
+namespace bodies
+{
+template<typename T>
+Body* constructBodyFromMsgHelper(const T &shape_msg, const geometry_msgs::Pose &pose)
 {
   shapes::Shape *shape = shapes::constructShapeFromMsg(shape_msg);
+  
   if (shape)
   {
     Body *body = createBodyFromShape(shape);
@@ -121,8 +125,23 @@ bodies::Body* bodies::constructBodyFromMsg(const shape_msgs::Shape &shape_msg, c
       return body;
     }
   }
-
   return NULL;
+}
+}
+
+bodies::Body* bodies::constructBodyFromMsg(const shapes::ShapeMsg &shape_msg, const geometry_msgs::Pose &pose)
+{
+  return constructBodyFromMsgHelper(shape_msg, pose);
+}
+
+bodies::Body* bodies::constructBodyFromMsg(const shape_msgs::Mesh &shape_msg, const geometry_msgs::Pose &pose)
+{
+  return constructBodyFromMsgHelper(shape_msg, pose);
+}
+
+bodies::Body* bodies::constructBodyFromMsg(const shape_msgs::SolidPrimitive &shape_msg, const geometry_msgs::Pose &pose)
+{
+  return constructBodyFromMsgHelper(shape_msg, pose);
 }
 
 void bodies::computeBoundingSphere(const std::vector<const bodies::Body*>& bodies, bodies::BoundingSphere& sphere) {

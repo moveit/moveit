@@ -141,24 +141,28 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     pcm.target_point_offset.x = 0;
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = 0;
-    pcm.constraint_region_shape.type = shape_msgs::Shape::SPHERE;
-    pcm.constraint_region_shape.dimensions.push_back(tolerance_pos);
-
-    pcm.constraint_region_pose.header = pose.header;
-    pcm.constraint_region_pose.pose.position = pose.pose.position;
-
+    pcm.constraint_region.primitives.resize(1);
+    shape_msgs::SolidPrimitive &bv = pcm.constraint_region.primitives[0];
+    bv.type = shape_msgs::SolidPrimitive::SPHERE;
+    bv.dimensions.x = tolerance_pos * 2.0;
+    bv.dimensions.y = bv.dimensions.z = 0.0;
+    
+    pcm.header = pose.header;
+    pcm.constraint_region.primitive_poses.resize(1);
+    pcm.constraint_region.primitive_poses[0].position = pose.pose.position;
+    
     // orientation of constraint region does not affect anything, since it is a sphere
-    pcm.constraint_region_pose.pose.orientation.x = 0.0;
-    pcm.constraint_region_pose.pose.orientation.y = 0.0;
-    pcm.constraint_region_pose.pose.orientation.z = 0.0;
-    pcm.constraint_region_pose.pose.orientation.w = 1.0;
+    pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
     pcm.weight = 1.0;
 
     goal.orientation_constraints.resize(1);
     moveit_msgs::OrientationConstraint &ocm = goal.orientation_constraints[0];
     ocm.link_name = link_name;
-    ocm.orientation.header = pose.header;
-    ocm.orientation.quaternion = pose.pose.orientation;
+    ocm.header = pose.header;
+    ocm.orientation = pose.pose.orientation;
     ocm.absolute_x_axis_tolerance = tolerance_angle;
     ocm.absolute_y_axis_tolerance = tolerance_angle;
     ocm.absolute_z_axis_tolerance = tolerance_angle;
@@ -173,7 +177,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     goal.orientation_constraints.resize(1);
     moveit_msgs::OrientationConstraint &ocm = goal.orientation_constraints[0];
     ocm.link_name = link_name;
-    ocm.orientation = quat;
+    ocm.header = quat.header;
+    ocm.orientation = quat.quaternion;
     ocm.absolute_x_axis_tolerance = tolerance;
     ocm.absolute_y_axis_tolerance = tolerance;
     ocm.absolute_z_axis_tolerance = tolerance;
@@ -190,17 +195,21 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     pcm.target_point_offset.x = 0;
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = 0;
-    pcm.constraint_region_shape.type = shape_msgs::Shape::SPHERE;
-    pcm.constraint_region_shape.dimensions.push_back(tolerance);
-
-    pcm.constraint_region_pose.header = point.header;
-    pcm.constraint_region_pose.pose.position = point.point;
+    pcm.constraint_region.primitives.resize(1);
+    pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+    pcm.constraint_region.primitives[0].dimensions.x = tolerance * 2.0;
+    pcm.constraint_region.primitives[0].dimensions.y = 0.0;
+    pcm.constraint_region.primitives[0].dimensions.z = 0.0;
+    
+    pcm.header = point.header;
+    pcm.constraint_region.primitive_poses.resize(1);
+    pcm.constraint_region.primitive_poses[0].position = point.point;
 
     // orientation of constraint region does not affect anything, since it is a sphere
-    pcm.constraint_region_pose.pose.orientation.x = 0.0;
-    pcm.constraint_region_pose.pose.orientation.y = 0.0;
-    pcm.constraint_region_pose.pose.orientation.z = 0.0;
-    pcm.constraint_region_pose.pose.orientation.w = 1.0;
+    pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
     pcm.weight = 1.0;
 
     return goal;

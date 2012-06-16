@@ -206,41 +206,65 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
   link_model_ = kmodel_->getLinkModel(pc.link_name);
   offset_ = Eigen::Vector3d(pc.target_point_offset.x, pc.target_point_offset.y, pc.target_point_offset.z);
   has_offset_ = offset_.squaredNorm() > std::numeric_limits<double>::epsilon();
-  boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region_shape));
-  if (shape)
-    constraint_region_.reset(bodies::createBodyFromShape(shape.get()));
   
-  if (link_model_ && constraint_region_)
+  if (pc.header.frame_id.empty())
+    ROS_WARN("No frame specified for position constraint on link '%s'!", pc.link_name.c_str());
+  
+  if (tf_->isFixedFrame(pc.header.frame_id))
   {
-    if (!planning_models::poseFromMsg(pc.constraint_region_pose.pose, constraint_region_pose_))
-      ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());
-    
-    if (pc.constraint_region_pose.header.frame_id.empty())
-      ROS_WARN("No frame specified for position constraint on link '%s'!", pc.link_name.c_str());
-    
-    if (tf_->isFixedFrame(pc.constraint_region_pose.header.frame_id))
-    {
-      tf_->transformPose(pc.constraint_region_pose.header.frame_id, constraint_region_pose_, constraint_region_pose_);
-      constraint_frame_id_ = tf_->getTargetFrame();
-      constraint_region_->setPose(constraint_region_pose_);
-      mobile_frame_ = false;
-    }
-    else
-    {
-      constraint_frame_id_ = pc.constraint_region_pose.header.frame_id;
-      mobile_frame_ = true;
-    }
-    
-    
-    if (pc.weight <= std::numeric_limits<double>::epsilon())
-      ROS_WARN_STREAM("The weight on position constraint for link '" << pc.link_name << "' should be positive");
-    else
-      constraint_weight_ = pc.weight;
-    
-    return true;
+    constraint_frame_id_ = tf_->getTargetFrame();
+    mobile_frame_ = false;
   }
   else
-    return false;
+  {
+    constraint_frame_id_ = pc.header.frame_id;
+    mobile_frame_ = true;
+  }
+  
+  // load primitive shapes
+  for (std::size_t i = 0 ; i < pc.constraint_region.primitives.size() ; ++i)
+  {
+    boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region.primitives[i]));
+    if (shape)
+    {
+      constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
+      Eigen::Affine3d t;
+      if (!planning_models::poseFromMsg(pc.constraint_region.primitive_poses[i], t))
+        ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());
+      constraint_region_pose_.push_back(t);
+      if (!mobile_frame_)
+      {
+        tf_->transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
+        constraint_region_.back()->setPose(constraint_region_pose_.back());
+      }
+    }
+  }
+  
+  // load meshes
+  for (std::size_t i = 0 ; i < pc.constraint_region.meshes.size() ; ++i)
+  {
+    boost::scoped_ptr<shapes::Shape> shape(shapes::constructShapeFromMsg(pc.constraint_region.meshes[i]));
+    if (shape)
+    {
+      constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
+      Eigen::Affine3d t;
+      if (!planning_models::poseFromMsg(pc.constraint_region.mesh_poses[i], t))
+        ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());
+      constraint_region_pose_.push_back(t);
+      if (!mobile_frame_)
+      {
+        tf_->transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
+        constraint_region_.back()->setPose(constraint_region_pose_.back());
+      }
+    }
+  }
+  
+  if (pc.weight <= std::numeric_limits<double>::epsilon())
+    ROS_WARN_STREAM("The weight on position constraint for link '" << pc.link_name << "' should be positive");
+  else
+    constraint_weight_ = pc.weight;
+  
+  return !constraint_region_.empty();
 }
 
 bool kinematic_constraints::PositionConstraint::equal(const KinematicConstraint &other, double margin) const
@@ -253,13 +277,18 @@ bool kinematic_constraints::PositionConstraint::equal(const KinematicConstraint 
   {
     if ((offset_ - o.offset_).norm() > margin)
       return false;
-    Eigen::Affine3d diff = constraint_region_pose_.inverse() * o.constraint_region_pose_;
-    if (diff.translation().norm() > margin)
+    if (constraint_region_.size() != o.constraint_region_.size())
       return false;
-    if (!diff.rotation().isIdentity(margin))
-      return false;
-    if (fabs(constraint_region_->computeVolume() - o.constraint_region_->computeVolume()) >= margin)
-      return false;
+    for (std::size_t i = 0 ; i < constraint_region_.size() ; ++i)
+    {
+      Eigen::Affine3d diff = constraint_region_pose_[i].inverse() * o.constraint_region_pose_[i];
+      if (diff.translation().norm() > margin)
+        return false;
+      if (!diff.rotation().isIdentity(margin))
+        return false;
+      if (fabs(constraint_region_[i]->computeVolume() - o.constraint_region_[i]->computeVolume()) >= margin)
+        return false;
+    }
     return true;
   }
   return false;
@@ -283,7 +312,7 @@ static inline kinematic_constraints::ConstraintEvaluationResult finishPositionCo
 
 kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::PositionConstraint::decide(const planning_models::KinematicState &state, bool verbose) const
 {
-  if (!link_model_ || !constraint_region_)
+  if (!link_model_ || constraint_region_.empty())
     return ConstraintEvaluationResult(true, 0.0);
   
   const planning_models::KinematicState::LinkState *link_state = state.getLinkState(link_model_->getName());
@@ -294,40 +323,35 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Positio
     return ConstraintEvaluationResult(false, 0.0);
   }
   
-  Eigen::Vector3d pt = link_state->getGlobalLinkTransform()*offset_;
+  Eigen::Vector3d pt = link_state->getGlobalLinkTransform() * offset_;
   if (mobile_frame_)
   {
     Eigen::Affine3d tmp;
-    tf_->transformPose(state, constraint_frame_id_, constraint_region_pose_, tmp);
-    bool result = constraint_region_->cloneAt(tmp)->containsPoint(pt);
-    return finishPositionConstraintDecision(pt, tmp.translation(), link_model_->getName(), constraint_weight_, result, verbose);
+    for (std::size_t i = 0 ; i < constraint_region_.size() ; ++i)
+    {
+      tf_->transformPose(state, constraint_frame_id_, constraint_region_pose_[i], tmp);
+      bool result = constraint_region_[i]->cloneAt(tmp)->containsPoint(pt);
+      if (result || (i + 1 == constraint_region_pose_.size()))
+        return finishPositionConstraintDecision(pt, tmp.translation(), link_model_->getName(), constraint_weight_, result, verbose);
+    }
   }
   else
-  {
-    bool result = constraint_region_->containsPoint(pt);
-    return finishPositionConstraintDecision(pt, constraint_region_->getPose().translation(), link_model_->getName(), constraint_weight_, result, verbose);
+  {   
+    for (std::size_t i = 0 ; i < constraint_region_.size() ; ++i)
+    {
+      bool result = constraint_region_[i]->containsPoint(pt);
+      if (result || (i + 1 == constraint_region_.size()))
+        return finishPositionConstraintDecision(pt, constraint_region_[i]->getPose().translation(), link_model_->getName(), constraint_weight_, result, verbose);
+    }
   }
+  return ConstraintEvaluationResult(false, 0.0);
 }
 
 void kinematic_constraints::PositionConstraint::print(std::ostream &out) const
 {
-  if (link_model_ && constraint_region_)
+  if (enabled())
   {
     out << "Position constraint on link '" << link_model_->getName() << "'" << std::endl;
-    if (constraint_region_->getType() == shapes::SPHERE)
-      out << "Spherical constraint region of radius " << constraint_region_->getDimensions()[0] << std::endl;
-    else if (constraint_region_->getType() == shapes::BOX)
-    {
-      const std::vector<double> &s = constraint_region_->getDimensions();
-      out << "Box constraint region with dimensions " << s[0] << " x " << s[1] << " x "  <<  s[2] << std::endl;
-    }
-    else if (constraint_region_->getType() == shapes::CYLINDER)
-    {
-      const std::vector<double> &s = constraint_region_->getDimensions();
-      out << "Cylinder constraint region with radius " << s[0] << " and length "  << s[1] << std::endl;
-    }
-    else if (constraint_region_->getType() == shapes::MESH)
-      out << "Mesh type constraint region." << std::endl;
   }
   else
     out << "No constraint" << std::endl;
@@ -336,28 +360,29 @@ void kinematic_constraints::PositionConstraint::print(std::ostream &out) const
 void kinematic_constraints::PositionConstraint::clear(void)
 {
   link_model_ = NULL;
-  constraint_region_.reset();
+  constraint_region_.clear();
+  constraint_region_pose_.clear();
 }
 
 bool kinematic_constraints::PositionConstraint::enabled(void) const
 {
-  return link_model_ && constraint_region_;
+  return link_model_ && !constraint_region_.empty();
 }
 
 bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::OrientationConstraint &oc)
 {
   link_model_ = kmodel_->getLinkModel(oc.link_name);
   Eigen::Quaterniond q;
-  if (!planning_models::quatFromMsg(oc.orientation.quaternion, q))
+  if (!planning_models::quatFromMsg(oc.orientation, q))
     ROS_WARN("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.", oc.link_name.c_str(),
-             oc.orientation.quaternion.x, oc.orientation.quaternion.y, oc.orientation.quaternion.z, oc.orientation.quaternion.w);
+             oc.orientation.x, oc.orientation.y, oc.orientation.z, oc.orientation.w);
   
-  if (oc.orientation.header.frame_id.empty())
+  if (oc.header.frame_id.empty())
     ROS_WARN("No frame specified for position constraint on link '%s'!", oc.link_name.c_str());
   
-  if (tf_->isFixedFrame(oc.orientation.header.frame_id))
+  if (tf_->isFixedFrame(oc.header.frame_id))
   {
-    tf_->transformQuaternion(oc.orientation.header.frame_id, q, q);
+    tf_->transformQuaternion(oc.header.frame_id, q, q);
     desired_rotation_frame_id_ = tf_->getTargetFrame();
     desired_rotation_matrix_ = Eigen::Matrix3d(q);
     desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse();
@@ -365,7 +390,7 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
   }
   else
   {
-    desired_rotation_frame_id_ = oc.orientation.header.frame_id;
+    desired_rotation_frame_id_ = oc.header.frame_id;
     desired_rotation_matrix_ = Eigen::Matrix3d(q);
     mobile_frame_ = true;
   }

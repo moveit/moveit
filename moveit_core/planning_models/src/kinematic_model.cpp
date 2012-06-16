@@ -37,6 +37,7 @@
 #include <planning_models/kinematic_model.h>
 #include <geometric_shapes/shape_operations.h>
 #include <boost/math/constants/constants.hpp>
+#include <shape_tools/shape_extents.h>
 #include <algorithm>
 #include <limits>
 #include <queue>
@@ -741,6 +742,34 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
   Eigen::Affine3d af(Eigen::Translation3d(pose.position.x, pose.position.y, pose.position.z)*q.toRotationMatrix());
   return af;
 }
+
+class ShapeVisitorComputeExtents : public boost::static_visitor<Eigen::Vector3d>
+{
+public:
+    
+  Eigen::Vector3d operator()(const shape_msgs::Plane &shape_msg) const
+  {
+    Eigen::Vector3d e(0.0, 0.0, 0.0);
+    return e;
+  }
+  
+  Eigen::Vector3d operator()(const shape_msgs::Mesh &shape_msg) const
+  {   
+    double x_extent, y_extent, z_extent;
+    shape_tools::getShapeExtents(shape_msg, x_extent, y_extent, z_extent);
+    Eigen::Vector3d e(x_extent, y_extent, z_extent);
+    return e;
+  }
+  
+  Eigen::Vector3d operator()(const shape_msgs::SolidPrimitive &shape_msg) const
+  {
+    double x_extent, y_extent, z_extent;
+    shape_tools::getShapeExtents(shape_msg, x_extent, y_extent, z_extent);
+    Eigen::Vector3d e(x_extent, y_extent, z_extent);
+    return e;
+  }
+};
+
 }
 
 planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::constructLinkModel(const urdf::Link *urdf_link,
@@ -755,14 +784,24 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
     result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->collision->origin);
     result->shape_ = constructShape(urdf_link->collision->geometry.get(), result->filename_);
     if (result->shape_)
-      shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_);
+    {
+      if (shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_))
+        result->shape_extents_ = boost::apply_visitor(ShapeVisitorComputeExtents(), result->shape_msg_);
+      else
+        result->shape_extents_ = Eigen::Vector3d(0.0, 0.0, 0.0);
+    }
   }
   else if (urdf_link->visual && urdf_link->visual->geometry)
   {
     result->collision_origin_transform_ = urdfPose2Affine3d(urdf_link->visual->origin);
     result->shape_ = constructShape(urdf_link->visual->geometry.get(), result->filename_);
-    if (result->shape_)
-      shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_);
+    if (result->shape_)   
+    {
+      if (shapes::constructMsgFromShape(result->shape_.get(), result->shape_msg_))
+        result->shape_extents_ = boost::apply_visitor(ShapeVisitorComputeExtents(), result->shape_msg_);
+      else
+        result->shape_extents_ = Eigen::Vector3d(0.0, 0.0, 0.0);
+    }
   }
   else
   {

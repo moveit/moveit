@@ -40,7 +40,7 @@
 #include <urdf/model.h>
 #include <srdf/model.h>
 #include <geometric_shapes/shapes.h>
-#include <shape_msgs/Shape.h>
+#include <geometric_shapes/shape_messages.h>
 #include <random_numbers/random_numbers.h>
 #include <kinematics_base/kinematics_base.h>
 

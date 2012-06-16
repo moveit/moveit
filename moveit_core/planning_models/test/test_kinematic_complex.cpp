@@ -37,6 +37,7 @@
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
 #include <planning_models/conversions.h>
+#include <ros/console.h>
 #include <gtest/gtest.h>
 
 class LoadPlanningModelsPr2 : public testing::Test

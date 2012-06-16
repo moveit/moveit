@@ -499,6 +499,12 @@ private:
   
 };
 
+/** \brief Shared pointer to a Body */
+typedef boost::shared_ptr<Body> BodyPtr;
+
+/** \brief Shared pointer to a const Body */
+typedef boost::shared_ptr<const Body> BodyConstPtr;
+
 }
 
 #endif
