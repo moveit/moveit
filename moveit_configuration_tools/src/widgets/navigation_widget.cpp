@@ -115,6 +115,7 @@ void NavigationWidget::setSelected(const int &index)
   QModelIndex bottom = model_->index(index, 0, QModelIndex());
 
   QItemSelection selection(top, bottom);
+  selectionModel()->reset(); // set them all to deselected
   selectionModel()->select(selection, QItemSelectionModel::Select);
 }
 
