@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, E. Gil Jones */
 
 #include "planning_models/kinematic_state.h"
+#include <ros/console.h>
 
 planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_models::KinematicState *state,
                                                                   const planning_models::KinematicModel::JointModelGroup *jmg) :

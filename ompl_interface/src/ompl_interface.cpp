@@ -38,9 +38,14 @@
 #include <planning_models/conversions.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <fstream>
+#include <ros/console.h>
 
 ompl_interface::OMPLInterface::OMPLInterface(const planning_models::KinematicModelConstPtr &kmodel) :
-  kmodel_(kmodel), context_manager_(kmodel, constraint_sampler_manager_), constraints_library_(context_manager_), use_constraints_approximations_(true)
+  kmodel_(kmodel),
+  constraint_sampler_manager_(new  constraint_samplers::ConstraintSamplerManager()),
+  context_manager_(kmodel, constraint_sampler_manager_),
+  constraints_library_(new ConstraintsLibrary(context_manager_)),
+  use_constraints_approximations_(true)
 {
 }
 

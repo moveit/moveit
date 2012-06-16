@@ -37,6 +37,7 @@
 #include <planning_models/kinematic_state.h>
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/transforms.h>
+#include <ros/console.h>
 
 planning_models::KinematicState::KinematicState(const KinematicModelConstPtr &kinematic_model) : kinematic_model_(kinematic_model)
 {

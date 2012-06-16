@@ -37,6 +37,7 @@
 #include "constraint_samplers/default_constraint_samplers.h"
 #include <ros/console.h>
 #include <set>  
+#include <cassert>
 
 bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::Constraints &constr)
 {  
@@ -414,7 +415,7 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
   // sample a seed value
   std::vector<double> vals;
   jmg_->getRandomValues(random_number_generator_, vals);
-  ROS_ASSERT(vals.size() == ik_joint_bijection_.size());
+  assert(vals.size() == ik_joint_bijection_.size());
   std::vector<double> seed(ik_joint_bijection_.size(), 0.0);
   for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
     seed[ik_joint_bijection_[i]] = vals[i];
@@ -424,7 +425,7 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
  
   if (kb_->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
   {
-    ROS_ASSERT(ik_sol.size() == ik_joint_bijection_.size());
+    assert(ik_sol.size() == ik_joint_bijection_.size());
     std::vector<double> solution(ik_joint_bijection_.size());
     for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
       solution[i] = ik_sol[ik_joint_bijection_[i]];

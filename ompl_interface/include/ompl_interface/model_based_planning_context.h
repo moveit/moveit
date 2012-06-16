@@ -56,26 +56,30 @@ namespace ot = ompl::tools;
 class ModelBasedPlanningContext;
 typedef boost::shared_ptr<ModelBasedPlanningContext> ModelBasedPlanningContextPtr;
 
-typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si, const std::string &planner, const std::string &name,
-                                       const std::map<std::string, std::string> &config)> ConfiguredPlannerAllocator;
 class ConstraintsLibrary;
+typedef boost::shared_ptr<const ConstraintsLibrary> ConstraintsLibraryConstPtr;
+
+struct ModelBasedPlanningContextSpecification;
+typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si, const std::string &name,
+                                       const ModelBasedPlanningContextSpecification &spec)> ConfiguredPlannerAllocator;
+typedef boost::function<ConfiguredPlannerAllocator(const std::string &planner_type)> ConfiguredPlannerSelector;
+
 struct ModelBasedPlanningContextSpecification
 {
-  ModelBasedPlanningContextSpecification(void) : constraints_library_(NULL), constraint_sampler_manager_(NULL)
-  {
-  }
-  
   std::map<std::string, std::string> config_;
-  ConfiguredPlannerAllocator planner_allocator_; 
-  const ConstraintsLibrary *constraints_library_;
-  constraint_samplers::ConstraintSamplerManager *constraint_sampler_manager_;
+  ConfiguredPlannerSelector planner_selector_; 
+  ConstraintsLibraryConstPtr constraints_library_;
+  constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
+  
+  ModelBasedStateSpacePtr state_space_;
+  std::vector<ModelBasedStateSpacePtr> subspaces_;
 };
   
 class ModelBasedPlanningContext
 {  
 public:  
   
-  ModelBasedPlanningContext(const std::string &name, const ModelBasedStateSpacePtr &state_space, const ModelBasedPlanningContextSpecification &spec);
+  ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec);
   
   virtual ~ModelBasedPlanningContext(void)
   {
@@ -93,17 +97,17 @@ public:
 
   const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
   {
-    return ompl_state_space_->getKinematicModel();
+    return spec_.state_space_->getKinematicModel();
   }
   
   const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void) const
   {
-    return ompl_state_space_->getJointModelGroup();
+    return spec_.state_space_->getJointModelGroup();
   }  
   
   const std::string& getJointModelGroupName(void) const
   {
-    return ompl_state_space_->getJointModelGroupName();
+    return spec_.state_space_->getJointModelGroupName();
   }
   
   const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
@@ -118,7 +122,7 @@ public:
   
   const ModelBasedStateSpacePtr& getOMPLStateSpace(void) const
   {
-    return ompl_state_space_;
+    return spec_.state_space_;
   }
   
   const og::SimpleSetup& getOMPLSimpleSetup(void) const
@@ -226,12 +230,12 @@ public:
     max_acceleration_ = ma;
   }
   
-  constraint_samplers::ConstraintSamplerManager* getConstraintSamplerManager(void)
+  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager(void)
   {
     return spec_.constraint_sampler_manager_;
   }
   
-  void setConstraintSamplerManager(constraint_samplers::ConstraintSamplerManager *csm)
+  void setConstraintSamplerManager(const constraint_samplers::ConstraintSamplerManagerPtr &csm)
   {
     spec_.constraint_sampler_manager_ = csm;
   }
@@ -251,7 +255,7 @@ public:
   bool setPathConstraints(const moveit_msgs::Constraints &path_constraints,
 			  moveit_msgs::MoveItErrorCodes *error);
 
-  void setConstraintsApproximations(const ConstraintsLibrary *constraints_library)
+  void setConstraintsApproximations(const ConstraintsLibraryConstPtr &constraints_library)
   {
     spec_.constraints_library_ = constraints_library;
   }
@@ -315,7 +319,6 @@ protected:
   
   std::string name_;
   
-  ModelBasedStateSpacePtr ompl_state_space_;
   planning_models::KinematicState complete_initial_robot_state_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
 

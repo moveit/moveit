@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "kinematic_constraints/utils.h"
+#include <ros/console.h>
 
 moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second)
 {

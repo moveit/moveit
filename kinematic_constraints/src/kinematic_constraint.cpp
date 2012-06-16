@@ -44,6 +44,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/bind.hpp>
 #include <limits>
+#include <ros/console.h>
 
 namespace kinematic_constraints
 {

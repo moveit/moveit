@@ -73,91 +73,10 @@ public:
   {
   public:
     
-    enum
-      {
-        VALIDITY_KNOWN = 1,
-        GOAL_DISTANCE_KNOWN = 2,
-        VALIDITY_TRUE = 4,
-        IS_START_STATE = 8,
-        IS_GOAL_STATE = 16
-      };
-    
-    StateType(void) : ompl::base::CompoundState(), flags(0), distance(0.0), tag(-1)
+    StateType(void) : ompl::base::CompoundState(), tag(-1)
     {
     }
     
-    void markValid(double d)
-    {
-      distance = d; 
-      flags |= GOAL_DISTANCE_KNOWN;
-      markValid();
-    }
-    
-    void markValid(void)
-    {
-      flags |= (VALIDITY_KNOWN | VALIDITY_TRUE);
-    }
-    
-    void markInvalid(double d)
-    {
-      distance = d;
-      flags |= GOAL_DISTANCE_KNOWN;
-      markInvalid();
-    }
-    
-    void markInvalid(void)
-    {
-      flags &= ~VALIDITY_TRUE;
-      flags |= VALIDITY_KNOWN;
-    }
-    
-    bool isValidityKnown(void) const
-    {
-      return flags & VALIDITY_KNOWN;
-    }
-    
-    void clearKnownInformation(void)
-    {
-      flags = 0;
-    }
-    
-    bool isMarkedValid(void) const
-    {
-      return flags & VALIDITY_TRUE;
-    }
-    
-    bool isGoalDistanceKnown(void) const
-    {
-      return flags & GOAL_DISTANCE_KNOWN;
-    }
-    
-    bool isStartState(void) const
-    {
-      return flags & IS_START_STATE;
-    }
-    
-    bool isGoalState(void) const
-    {
-      return flags & IS_GOAL_STATE;
-    }
-    
-    bool isInputState(void) const
-    {   
-      return flags & (IS_START_STATE | IS_GOAL_STATE);
-    }
-    
-    void markStartState(void)
-    {
-      flags |= IS_START_STATE;
-    }
-    
-    void markGoalState(void)
-    {
-      flags |= IS_GOAL_STATE;
-    }
-    
-    int    flags;
-    double distance;
     int    tag;
   };
   
@@ -169,6 +88,7 @@ public:
   virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
   virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
   virtual ompl::base::StateSamplerPtr allocDefaultStateSampler(void) const;  
+  virtual ompl::base::StateSamplerPtr allocSubspaceStateSampler(const ompl::base::StateSpace *subspace) const;
 
   const planning_models::KinematicModelConstPtr& getKinematicModel(void) const
   {
@@ -225,6 +145,7 @@ public:
   void setTagSnapToSegment(double snap);
   
 protected:
+  friend class WrappedStateSampler;
   
   virtual void afterStateSample(ompl::base::State *sample) const;
   

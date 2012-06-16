@@ -48,11 +48,11 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/tools/debug/Profiler.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
+#include <ros/console.h>
 
-ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedStateSpacePtr &state_space, 
-                                                                     const ModelBasedPlanningContextSpecification &spec) :
-  spec_(spec), name_(name), ompl_state_space_(state_space), complete_initial_robot_state_(ompl_state_space_->getKinematicModel()),
-  ompl_simple_setup_(ompl_state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
+ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec) :
+  spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getKinematicModel()),
+  ompl_simple_setup_(spec.state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
   last_plan_time_(0.0), last_simplify_time_(0.0), max_goal_samples_(0), max_state_sampling_attempts_(0), max_goal_sampling_attempts_(0), 
   max_planning_threads_(0), max_velocity_(0), max_acceleration_(0.0), max_solution_segment_length_(0.0)
 {
@@ -62,14 +62,14 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
 
 void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std::string &peval)
 {
-  if (!ompl_state_space_)
+  if (!spec_.state_space_)
   {
     ROS_ERROR("No state space is configured yet");
     return;
   }
   ob::ProjectionEvaluatorPtr pe = getProjectionEvaluator(peval);
   if (pe)
-    ompl_state_space_->registerDefaultProjection(pe);
+    spec_.state_space_->registerDefaultProjection(pe);
 }
 
 ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::string &peval) const
@@ -116,7 +116,7 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
 
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
 {
-  if (ompl_state_space_.get() != ss)
+  if (spec_.state_space_.get() != ss)
     ROS_FATAL("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
   ROS_DEBUG("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
   
@@ -157,9 +157,8 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedPlanningContext::allocPath
 void ompl_interface::ModelBasedPlanningContext::configure(void)
 {
   // convert the input state to the corresponding OMPL state
-  ompl::base::ScopedState<> ompl_start_state(ompl_state_space_);
-  ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
-  ompl_start_state->as<ModelBasedStateSpace::StateType>()->markStartState();
+  ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
+  spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
   ompl_simple_setup_.setStartState(ompl_start_state);
   ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
     
@@ -227,8 +226,8 @@ void ompl_interface::ModelBasedPlanningContext::useConfig(void)
     // remove the 'type' parameter; the rest are parameters for the planner itself
     std::string type = it->second;
     cfg.erase(it);
-    ompl_simple_setup_.setPlannerAllocator(boost::bind(spec_.planner_allocator_, _1, type, 
-						       name_ != getJointModelGroupName() ? name_ : "", cfg));
+    ompl_simple_setup_.setPlannerAllocator(boost::bind(spec_.planner_selector_(type), _1,
+						       name_ != getJointModelGroupName() ? name_ : "", spec_));
     ROS_INFO("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
 	     name_.c_str(), type.c_str());
   }
@@ -257,9 +256,9 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
   ROS_DEBUG("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]", name_.c_str(),
 	    wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
   
-  ompl_state_space_->setBounds(wparams.min_corner.x, wparams.max_corner.x,
-                               wparams.min_corner.y, wparams.max_corner.y,
-                               wparams.min_corner.z, wparams.max_corner.z);
+  spec_.state_space_->setBounds(wparams.min_corner.x, wparams.max_corner.x,
+                                wparams.min_corner.y, wparams.max_corner.y,
+                                wparams.min_corner.z, wparams.max_corner.z);
 }
 
 void ompl_interface::ModelBasedPlanningContext::simplifySolution(double timeout)
@@ -308,7 +307,7 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
   pg.computeFastTimeParametrization(max_velocity_, max_acceleration_, times, 50);
   for (std::size_t i = 0 ; i < pg.getStateCount() ; ++i)
   {
-    ompl_state_space_->copyToKinematicState(ks, pg.getState(i));
+    spec_.state_space_->copyToKinematicState(ks, pg.getState(i));
     if (!onedof.empty())
     {
       traj.joint_trajectory.points[i].positions.resize(onedof.size());
