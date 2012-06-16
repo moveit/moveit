@@ -39,6 +39,8 @@
 #include <boost/unordered_map.hpp>
 #include <boost/assign.hpp>
 
+using namespace moveit_configuration_tools;
+
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
 /// Boost mapping of reasons for disabling a link pair to strings
@@ -68,8 +70,9 @@ public:
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
-ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent, std::string srdf_file )
-  : QWidget( parent ), srdf_file_( srdf_file )
+ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent, 
+                                                                MoveItConfigDataPtr config_data )
+  : QWidget( parent ), config_data_(config_data)
 {
   // TODO
   // Create a Qt-ROS update spinner

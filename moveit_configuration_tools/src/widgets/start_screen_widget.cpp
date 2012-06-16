@@ -43,8 +43,8 @@ static const std::string ROBOT_DESCRIPTION_SEMANTICS="robot_description_semantic
 // ******************************************************************************************
 // Start screen user interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-StartScreenWidget::StartScreenWidget( QWidget* parent )
-  :  QWidget( parent )
+StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_configuration_tools::MoveItConfigDataPtr config_data )
+  :  QWidget( parent ), config_data_( config_data )
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout( this );
@@ -179,37 +179,107 @@ void StartScreenWidget::showExistingOptions()
 // ******************************************************************************************
 void StartScreenWidget::loadFiles()
 {
-  try {
-    std::string path = urdf_file_->getPath();
+  std::string urdf_path = urdf_file_->getPath();
+    
+  // check that a file is provided
+  if( urdf_path == "" )
+  {
+    QMessageBox::critical( this, "Error Loading Files", "Please specify a URDF or COLLADA file to load" );
+    return;
+  }
 
-    // check that URDF can be loaded
-    std::ifstream urdf_stream( path.c_str() );
+  // check that URDF can be loaded
+  std::ifstream urdf_stream( urdf_path.c_str() );
+  if( !urdf_stream.good() ) // File not found
+  {
+    QMessageBox::critical( this, "Error Loading Files", "URDF/COLLADA file not found" );
+    return;
+  }
+      
+  // Load the file to a string using an efficient memory allocation technique
+  std::string urdf_string;
 
-    if( !urdf_stream.good() ) // File not found
-      throw "URDF file not found";
+  urdf_stream.seekg(0, std::ios::end);   
+  urdf_string.reserve(urdf_stream.tellg());
+  urdf_stream.seekg(0, std::ios::beg);
+  urdf_string.assign((std::istreambuf_iterator<char>(urdf_stream)),
+                     std::istreambuf_iterator<char>());  
 
-    std::string urdf_string;
+  // Verify that file is in correct format / not an XACRO by loading into robot model
+  urdf::Model robot_model;
+  if( !robot_model.initString( urdf_string ) )
+  {
+    QMessageBox::critical( this, "Error Loading Files", "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
+    return;
+  }
+  else
+  {
+    std::cout << "robot name is: " << robot_model.getName() << std::endl;
+  }
 
-    urdf_stream.seekg(0, std::ios::end);   
-    urdf_string.reserve(urdf_stream.tellg());
-    urdf_stream.seekg(0, std::ios::beg);
+  // Load the robot model to the parameter server
+  ros::NodeHandle nh;
+  nh.setParam("/robot_description", urdf_string);
 
-    urdf_string.assign((std::istreambuf_iterator<char>(urdf_stream)),
+
+
+  // SRDF -----------------------------------------------------
+  std::string srdf_path = srdf_file_->getPath();
+    
+  // check that a file is provided. if not, we don't bother with anything else
+  if( srdf_path != "" )
+  {
+    // check that SRDF can be loaded
+    std::ifstream srdf_stream( srdf_path.c_str() );
+    if( !srdf_stream.good() ) // File not found
+    {
+      QMessageBox::critical( this, "Error Loading Files", "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
+      return;
+    }
+      
+    // Load the file to a string using an efficient memory allocation technique
+    std::string srdf_string;
+
+    srdf_stream.seekg(0, std::ios::end);   
+    srdf_string.reserve(srdf_stream.tellg());
+    srdf_stream.seekg(0, std::ios::beg);
+    srdf_string.assign((std::istreambuf_iterator<char>(srdf_stream)),
                        std::istreambuf_iterator<char>());  
 
+    // Verify that file is in correct format by loading into srdf parser
+    srdf::Model semantic_robot_model;
+    if( !semantic_robot_model.initString( robot_model, srdf_string ) )
+    {
+      QMessageBox::critical( this, "Error Loading Files", "SRDF file not a valid semantic robot description model." );
+      return;
+    }
+    else
+    {
+      std::cout << "Robot model successfully loaded. Robot name is: " << semantic_robot_model.getName() << std::endl;
+    }
 
+    // Load the robot model to the parameter server
     ros::NodeHandle nh;
-    nh.setParam("/robot_description", urdf_string);
-
+    nh.setParam("/robot_description_semantic", srdf_string);
   }
-  catch( std::string )
+  else
   {
-    QMessageBox messageBox;
-    messageBox.setWindowTitle("Error Loading Files");
-    messageBox.setText("ERROR!");
-    messageBox.setStandardButtons(QMessageBox::Ok);
-    messageBox.exec();
+    std::cout << "No SRDF provided" << std::endl;
   }
+
+  // Call a function that enables navigation and goes to screen 2
+  Q_EMIT readyToProgress();
+
+
+  // Communicate with the parent 
+  //SetupAssistantWidget *my_parent = qobject_cast< SetupAssistantWidget* >( this->parentWidget() );
+  //my_parent->progressPastStartScreen();
+
+    /*
+      SetupAssistantWidget *my_parent = qobject_cast< SetupAssistantWidget* >( this->parentWidget() );
+      LoadPathWidget *my_stack_path = qobject_cast< LoadPathWidget* >( my_parent->stack_path_ );
+      LoadPathWidget *my_urdf_path = qobject_cast< LoadPathWidget* >( my_parent->urdf_file_ );
+    */
 }
 
 // ******************************************************************************************

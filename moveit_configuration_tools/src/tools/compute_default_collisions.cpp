@@ -43,11 +43,11 @@
 #include <boost/unordered_map.hpp>
 #include <boost/assign.hpp>
 
-// Temporary benchmarking global object, will remove when collision checking tool is stable. TODO
-BenchmarkTimer g_btimer; 
-
 namespace moveit_configuration_tools
 {
+
+// Temporary benchmarking global object, will remove when collision checking tool is stable. TODO
+BenchmarkTimer g_btimer; 
 
 // ******************************************************************************************
 // Custom Types, Enums and Structs

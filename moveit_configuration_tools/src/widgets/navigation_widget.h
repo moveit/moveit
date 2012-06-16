@@ -50,12 +50,12 @@
  * 
  * @return 
  */
-class NavItem
+class NavScreen
 {
 public:
-  explicit NavItem();
-  NavItem( const QString &name, QWidget *screen );
-  virtual ~NavItem() { ; }
+  explicit NavScreen();
+  NavScreen( const QString &name, QWidget *screen );
+  virtual ~NavScreen() { ; }
 
   QString name() const;
   QWidget * screen();
@@ -66,7 +66,7 @@ private:
   QWidget *screen_; // pointer to the screen this navigation item refers to
 };
 
-Q_DECLARE_METATYPE(NavItem);
+Q_DECLARE_METATYPE(NavScreen);
 
 
 
@@ -83,7 +83,7 @@ class NavigationWidget : public QListView
   public:
   explicit NavigationWidget(QWidget *parent = 0);
 
-  void setNavs(QList<NavItem> &navs);
+  void setNavs(QList<NavScreen> &navs);
   void setSelected(const int &index);
   //  void pressed( const QModelIndex & index );
 

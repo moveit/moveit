@@ -34,57 +34,30 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_CONFIGURATION_FILES_WIDGET_
-#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_CONFIGURATION_FILES_WIDGET_
-
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QString>
 #include "moveit_configuration_tools/tools/moveit_config_data.h"
-#include "header_widget.h"
 
-class ConfigurationFilesWidget : public QWidget
+namespace moveit_configuration_tools
 {
-  Q_OBJECT
 
-public:
-  // ******************************************************************************************
-  // Public Functions
-  // ******************************************************************************************
+// ******************************************************************************************
+// 
+// ******************************************************************************************
+MoveItConfigData::MoveItConfigData()
+{
+  std::cout << "CONFIG DATA CREATED" << std::endl;
+}
 
-  ConfigurationFilesWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data );
+// ******************************************************************************************
+// 
+// ******************************************************************************************
+MoveItConfigData::~MoveItConfigData()
+{
+  std::cout << "CONFIG DATA DELETED" << std::endl;
+}
 
-
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-
-private Q_SLOTS:
-
-  // ******************************************************************************************
-  // Slot Event Functions
-  // ******************************************************************************************
-
-
-private:
+// ******************************************************************************************
+// 
+// ******************************************************************************************
 
 
-  // ******************************************************************************************
-  // Variables
-  // ******************************************************************************************
-
-  /// Contains all the configuration data for the setup assistant
-  moveit_configuration_tools::MoveItConfigDataPtr config_data_;
-
-  // ******************************************************************************************
-  // Private Functions
-  // ******************************************************************************************
-
-
-};
-
-#endif
+}

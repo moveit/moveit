@@ -34,57 +34,31 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_CONFIGURATION_FILES_WIDGET_
-#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_CONFIGURATION_FILES_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_MOVEIT_CONFIG_DATA_
+#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_TOOLS_MOVEIT_CONFIG_DATA_
 
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QString>
-#include "moveit_configuration_tools/tools/moveit_config_data.h"
-#include "header_widget.h"
+#include <iostream>
+#include <boost/shared_ptr.hpp>
 
-class ConfigurationFilesWidget : public QWidget
+namespace moveit_configuration_tools
 {
-  Q_OBJECT
 
+class MoveItConfigData
+{
 public:
-  // ******************************************************************************************
-  // Public Functions
-  // ******************************************************************************************
+  MoveItConfigData();
+  ~MoveItConfigData();
 
-  ConfigurationFilesWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data );
-
-
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-
-private Q_SLOTS:
-
-  // ******************************************************************************************
-  // Slot Event Functions
-  // ******************************************************************************************
-
-
-private:
-
-
-  // ******************************************************************************************
-  // Variables
-  // ******************************************************************************************
-
-  /// Contains all the configuration data for the setup assistant
-  moveit_configuration_tools::MoveItConfigDataPtr config_data_;
-
-  // ******************************************************************************************
-  // Private Functions
-  // ******************************************************************************************
-
-
+  // All of the data needed for creating a MoveIt Configuration Files
+  std::string urdf_path_;
+  std::string srdf_path_;
+ 
 };
+
+/// Create a shared pointer for passing this data object between widgets
+typedef boost::shared_ptr<MoveItConfigData> MoveItConfigDataPtr;
+
+
+}
 
 #endif

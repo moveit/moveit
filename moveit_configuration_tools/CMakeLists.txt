@@ -33,6 +33,7 @@ set( headers
   src/widgets/compute_default_collisions_widget.h
   src/widgets/robot_poses_widget.h
   src/widgets/configuration_files_widget.h
+  #src/widgets/start_screen_widget.cpp
 )
 
 # Convert the Qt Signals and Slots for QWidget events
@@ -42,7 +43,8 @@ qt4_wrap_cpp(moc_sources ${headers})
 rosbuild_add_library(${PROJECT_NAME}
   src/tools/compute_default_collisions.cpp
   #src/tools/compute_longest_valid_segment_fraction.cpp
-  #src/tools/write_srdf.cpp
+  #src/tools/srdf_writer.cpp
+  src/tools/moveit_config_data.cpp
   src/tools/benchmark_timer.cpp
 )
 

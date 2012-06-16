@@ -44,6 +44,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QString>
+#include "moveit_configuration_tools/tools/moveit_config_data.h"
 #include "header_widget.h"
 
 class RobotPosesWidget : public QWidget
@@ -55,7 +56,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  RobotPosesWidget( QWidget *parent );
+  RobotPosesWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data );
 
 
   // ******************************************************************************************
@@ -76,6 +77,8 @@ private:
   // Variables
   // ******************************************************************************************
 
+  /// Contains all the configuration data for the setup assistant
+  moveit_configuration_tools::MoveItConfigDataPtr config_data_;
 
   // ******************************************************************************************
   // Private Functions

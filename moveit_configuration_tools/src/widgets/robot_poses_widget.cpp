@@ -40,8 +40,8 @@
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-RobotPosesWidget::RobotPosesWidget( QWidget *parent )
-  : QWidget( parent )
+RobotPosesWidget::RobotPosesWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data )
+  : QWidget( parent ), config_data_(config_data)
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout( );
