@@ -278,7 +278,7 @@ public:
     return has_offset_;
   }
   
-  const boost::shared_ptr<bodies::Body>& getConstraintRegion(void) const
+  const std::vector<bodies::BodyPtr>& getConstraintRegions(void) const
   {
     return constraint_region_;
   }
@@ -297,8 +297,8 @@ protected:
   
   Eigen::Vector3d                                   offset_;
   bool                                              has_offset_;
-  boost::shared_ptr<bodies::Body>                   constraint_region_;
-  Eigen::Affine3d                                   constraint_region_pose_;
+  std::vector<bodies::BodyPtr>                      constraint_region_;
+  std::vector<Eigen::Affine3d>                      constraint_region_pose_;
   bool                                              mobile_frame_;
   std::string                                       constraint_frame_id_;
   const planning_models::KinematicModel::LinkModel *link_model_;

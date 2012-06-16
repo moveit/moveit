@@ -152,17 +152,20 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     pcm.target_point_offset.x = 0;
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = 0;
-    pcm.constraint_region_shape.type = shape_msgs::Shape::SPHERE;
-    pcm.constraint_region_shape.dimensions.push_back(0.1);
+    pcm.constraint_region.primitives.resize(1);
+    pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+    pcm.constraint_region.primitives[0].dimensions.x = 0.2;
 
-    pcm.constraint_region_pose.header.frame_id = kmodel->getModelFrame();
-    pcm.constraint_region_pose.pose.position.x = 0.55;
-    pcm.constraint_region_pose.pose.position.y = 0.2;
-    pcm.constraint_region_pose.pose.position.z = 1.25;
-    pcm.constraint_region_pose.pose.orientation.x = 0.0;
-    pcm.constraint_region_pose.pose.orientation.y = 0.0;
-    pcm.constraint_region_pose.pose.orientation.z = 0.0;
-    pcm.constraint_region_pose.pose.orientation.w = 1.0;
+    pcm.header.frame_id = kmodel->getModelFrame();
+
+    pcm.constraint_region.primitive_poses.resize(1);
+    pcm.constraint_region.primitive_poses[0].position.x = 0.55;
+    pcm.constraint_region.primitive_poses[0].position.y = 0.2;
+    pcm.constraint_region.primitive_poses[0].position.z = 1.25;
+    pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
     pcm.weight = 1.0;
 
     EXPECT_TRUE(pc.configure(pcm));
@@ -189,17 +192,21 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     pcm.target_point_offset.x = 0;
     pcm.target_point_offset.y = 0;
     pcm.target_point_offset.z = 0;
-    pcm.constraint_region_shape.type = shape_msgs::Shape::SPHERE;
-    pcm.constraint_region_shape.dimensions.push_back(0.38);
 
-    pcm.constraint_region_pose.header.frame_id = "r_wrist_roll_link";
-    pcm.constraint_region_pose.pose.position.x = 0.0;
-    pcm.constraint_region_pose.pose.position.y = 0.0;
-    pcm.constraint_region_pose.pose.position.z = 0.0;
-    pcm.constraint_region_pose.pose.orientation.x = 0.0;
-    pcm.constraint_region_pose.pose.orientation.y = 0.0;
-    pcm.constraint_region_pose.pose.orientation.z = 0.0;
-    pcm.constraint_region_pose.pose.orientation.w = 1.0;
+    pcm.constraint_region.primitives.resize(1);
+    pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+    pcm.constraint_region.primitives[0].dimensions.x = 0.38 * 2.0;
+
+    pcm.header.frame_id = "r_wrist_roll_link"; 
+
+    pcm.constraint_region.primitive_poses.resize(1);
+    pcm.constraint_region.primitive_poses[0].position.x = 0.0;
+    pcm.constraint_region.primitive_poses[0].position.y = 0.0;
+    pcm.constraint_region.primitive_poses[0].position.z = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.y = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.z = 0.0;
+    pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
     pcm.weight = 1.0;
 
     EXPECT_FALSE(tf->isFixedFrame(pcm.link_name));
@@ -207,11 +214,10 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 
     EXPECT_TRUE(pc.decide(ks).satisfied);
 
-    pcm.constraint_region_shape.type = shape_msgs::Shape::BOX;
-    pcm.constraint_region_shape.dimensions.resize(3);
-    pcm.constraint_region_shape.dimensions[0] = 0.2;
-    pcm.constraint_region_shape.dimensions[1] = 1.25;
-    pcm.constraint_region_shape.dimensions[2] = 0.1;
+    pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+    pcm.constraint_region.primitives[0].dimensions.x = 0.2;
+    pcm.constraint_region.primitives[0].dimensions.y = 1.25;
+    pcm.constraint_region.primitives[0].dimensions.z = 0.1;
     EXPECT_TRUE(pc.configure(pcm));
 
     std::map<std::string, double> jvals;
@@ -232,11 +238,11 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
     moveit_msgs::OrientationConstraint ocm;
 
     ocm.link_name = "r_wrist_roll_link";
-    ocm.orientation.header.frame_id = kmodel->getModelFrame();
-    ocm.orientation.quaternion.x = 0.0;
-    ocm.orientation.quaternion.y = 0.0;
-    ocm.orientation.quaternion.z = 0.0;
-    ocm.orientation.quaternion.w = 1.0;
+    ocm.header.frame_id = kmodel->getModelFrame();
+    ocm.orientation.x = 0.0;
+    ocm.orientation.y = 0.0;
+    ocm.orientation.z = 0.0;
+    ocm.orientation.w = 1.0;
     ocm.absolute_x_axis_tolerance = 0.1;
     ocm.absolute_y_axis_tolerance = 0.1;
     ocm.absolute_z_axis_tolerance = 0.1;
@@ -246,7 +252,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
     
     EXPECT_FALSE(oc.decide(ks).satisfied);
 
-    ocm.orientation.header.frame_id = ocm.link_name;
+    ocm.header.frame_id = ocm.link_name;
     EXPECT_TRUE(oc.configure(ocm));
     EXPECT_TRUE(oc.decide(ks).satisfied);  
     EXPECT_TRUE(oc.equal(oc, 1e-12));

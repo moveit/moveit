@@ -107,9 +107,15 @@ public:
   }
 
   /** \brief Get shape associated to the collision geometry for this link */
-  const shape_msgs::Shape& getShapeMsg(void) const
+  const shapes::ShapeMsg& getShapeMsg(void) const
   {
     return shape_msg_;
+  }
+  
+  /** \brief Get the extenrs of the link's geometry (dimensions of axis-aligned bounding box when the link is positioned at origin) */
+  const Eigen::Vector3d& getShapeExtentsAtOrigin(void) const
+  {
+    return shape_extents_;
   }
   
 private:
@@ -133,7 +139,10 @@ private:
   shapes::ShapeConstPtr     shape_;
   
   /** \brief The collision geometry of the link as a message */
-  shape_msgs::Shape         shape_msg_;
+  shapes::ShapeMsg          shape_msg_;
+
+  /** \brief The extents if shape (dimensions of axis aligned bounding box when shape is at origin */
+  Eigen::Vector3d           shape_extents_;
   
   /** \brief Filename associated with the collision geometry mesh of this link (loaded in shape_). If empty, no mesh was used. */
   std::string               filename_;

@@ -38,7 +38,7 @@
 #define MOVEIT_GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
 
 #include "geometric_shapes/shapes.h"
-#include <shape_msgs/Shape.h>
+#include "geometric_shapes/shape_messages.h"
 #include <visualization_msgs/Marker.h>
 #include <vector>
 #include <Eigen/Core>
@@ -66,10 +66,19 @@ shapes::Mesh* createMeshFromResource(const std::string& resource, const Eigen::V
 shapes::Mesh* createMeshFromAsset(const aiScene* scene, const Eigen::Vector3d &scale = Eigen::Vector3d(1.0, 1.0, 1.0), const std::string &resource_name = std::string());
 
 /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
-Shape* constructShapeFromMsg(const shape_msgs::Shape &shape_msg);
+Shape* constructShapeFromMsg(const shape_msgs::SolidPrimitive &shape_msg);
+
+/** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
+Shape* constructShapeFromMsg(const shape_msgs::Plane &shape_msg);
+
+/** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
+Shape* constructShapeFromMsg(const shape_msgs::Mesh &shape_msg);
+
+/** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
+Shape* constructShapeFromMsg(const ShapeMsg &shape_msg);
 
 /** \brief Construct the message that corresponds to the shape. Return false on failure. */
-bool constructMsgFromShape(const Shape* shape, shape_msgs::Shape &shape_msg);
+bool constructMsgFromShape(const Shape* shape, ShapeMsg &shape_msg);
 
 /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
 bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list = false);

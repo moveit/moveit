@@ -59,7 +59,7 @@ namespace detail
 {
 struct myVertex
 {
-  Eigen::Vector3d    point;
+  Eigen::Vector3d point;
   unsigned int index;
 };
 
@@ -301,90 +301,129 @@ Mesh* createMeshFromAsset(const aiScene* scene, const Eigen::Vector3d &scale, co
   return createMeshFromVertices(vertices, triangles);
 }
 
-Shape* constructShapeFromMsg(const shape_msgs::Shape &shape_msg)
-{
-  Shape *shape = NULL;
-  if (shape_msg.type == shape_msgs::Shape::SPHERE)
+Shape* constructShapeFromMsg(const shape_msgs::Plane &shape_msg)
+{ 
+  return new Plane(shape_msg.coef[0], shape_msg.coef[1], shape_msg.coef[2], shape_msg.coef[3]);
+}
+
+Shape* constructShapeFromMsg(const shape_msgs::Mesh &shape_msg)
+{      
+  if (shape_msg.triangles.empty() || shape_msg.vertices.empty())
   {
-    if (shape_msg.dimensions.size() != 1)
-      ROS_ERROR("Unexpected number of dimensions in sphere definition");
-    else
-      shape = new Sphere(shape_msg.dimensions[0]);
+    ROS_WARN("Mesh definition is empty");
+    return NULL;
   }
   else
-    if (shape_msg.type == shape_msgs::Shape::BOX)
+  {
+    std::vector<Eigen::Vector3d> vertices(shape_msg.vertices.size());
+    std::vector<unsigned int> triangles(shape_msg.triangles.size() * 3);
+    for (unsigned int i = 0 ; i < shape_msg.vertices.size() ; ++i)
+      vertices[i] = Eigen::Vector3d(shape_msg.vertices[i].x, shape_msg.vertices[i].y, shape_msg.vertices[i].z);
+    for (unsigned int i = 0 ; i < shape_msg.triangles.size() ; ++i)
     {
-      if (shape_msg.dimensions.size() != 3)
-        ROS_ERROR("Unexpected number of dimensions in box definition");
-      else
-        shape = new Box(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2]);
+      unsigned int i3 = i * 3;
+      triangles[i3++] = shape_msg.triangles[i].vertex_indices[0];
+      triangles[i3++] = shape_msg.triangles[i].vertex_indices[1];
+      triangles[i3] = shape_msg.triangles[i].vertex_indices[2];
+    }
+    return createMeshFromVertices(vertices, triangles);
+  }
+}
+
+Shape* constructShapeFromMsg(const shape_msgs::SolidPrimitive &shape_msg)
+{
+  Shape *shape = NULL;
+  if (shape_msg.type == shape_msgs::SolidPrimitive::SPHERE)
+  {
+    shape = new Sphere(shape_msg.dimensions.x / 2.0);
+  }
+  else
+    if (shape_msg.type == shape_msgs::SolidPrimitive::BOX)
+    {
+      shape = new Box(shape_msg.dimensions.x, shape_msg.dimensions.y, shape_msg.dimensions.z);
     }
     else
-      if (shape_msg.type == shape_msgs::Shape::PLANE)
+      if (shape_msg.type == shape_msgs::SolidPrimitive::CYLINDER)
       {
-        if (shape_msg.dimensions.size() != 4)
-          ROS_ERROR("Unexpected number of dimensions in plane definition (got %d, expected 4)", (int)shape_msg.dimensions.size());
-        else
-          shape = new Plane(shape_msg.dimensions[0], shape_msg.dimensions[1], shape_msg.dimensions[2], shape_msg.dimensions[3]);
+        shape = new Cylinder(shape_msg.dimensions.x / 2.0, shape_msg.dimensions.z);
       }
       else
-        if (shape_msg.type == shape_msgs::Shape::CYLINDER)
+        if (shape_msg.type == shape_msgs::SolidPrimitive::CONE)
         {
-          if (shape_msg.dimensions.size() != 2)
-            ROS_ERROR("Unexpected number of dimensions in cylinder definition");
-          else
-            shape = new Cylinder(shape_msg.dimensions[0], shape_msg.dimensions[1]);
+          shape = new Cone(shape_msg.dimensions.x / 2.0, shape_msg.dimensions.z);
         }
-        else
-          if (shape_msg.type == shape_msgs::Shape::CONE)
-          {
-            if (shape_msg.dimensions.size() != 2)
-              ROS_ERROR("Unexpected number of dimensions in cone definition");
-            else
-              shape = new Cone(shape_msg.dimensions[0], shape_msg.dimensions[1]);
-          }
-          else
-            if (shape_msg.type == shape_msgs::Shape::MESH)
-            {
-              if (shape_msg.dimensions.size() != 0)
-                ROS_ERROR("Unexpected number of dimensions in mesh definition");
-              else
-              {
-                if (shape_msg.triangles.size() % 3 != 0)
-                  ROS_ERROR("Number of triangle indices is not divisible by 3");
-                else
-                {
-                  if (shape_msg.triangles.empty() || shape_msg.vertices.empty())
-                    ROS_ERROR("Mesh definition is empty");
-                  else
-                  {
-                    std::vector<Eigen::Vector3d> vertices(shape_msg.vertices.size());
-                    std::vector<unsigned int> triangles(shape_msg.triangles.size());
-                    for (unsigned int i = 0 ; i < shape_msg.vertices.size() ; ++i)
-                      vertices[i] = Eigen::Vector3d(shape_msg.vertices[i].x, shape_msg.vertices[i].y, shape_msg.vertices[i].z);
-                    for (unsigned int i = 0 ; i < shape_msg.triangles.size() ; ++i)
-                      triangles[i] = shape_msg.triangles[i];
-                    shape = createMeshFromVertices(vertices, triangles);
-                  }
-                }
-              }
-            }
-  
   if (shape == NULL)
     ROS_ERROR("Unable to construct shape corresponding to shape_msgect of type %d", (int)shape_msg.type);
   
   return shape;
 }
 
-bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list)
+class ShapeVisitorAlloc : public boost::static_visitor<Shape*>
 {
-  shape_msgs::Shape shape_msg;
+public:
+  
+  Shape* operator()(const shape_msgs::Plane &shape_msg) const
+  {
+    return constructShapeFromMsg(shape_msg);
+  }
+  
+  Shape* operator()(const shape_msgs::Mesh &shape_msg) const
+  {
+    return constructShapeFromMsg(shape_msg);
+  }
+  
+  Shape* operator()(const shape_msgs::SolidPrimitive &shape_msg) const
+  {
+    return constructShapeFromMsg(shape_msg);
+  }
+};
+
+Shape* constructShapeFromMsg(const ShapeMsg &shape_msg)
+{
+  return boost::apply_visitor(ShapeVisitorAlloc(), shape_msg);
+}
+
+class ShapeVisitorMarker : public boost::static_visitor<void>
+{
+public:
+  
+  ShapeVisitorMarker(visualization_msgs::Marker *marker, bool use_mesh_triangle_list) :
+    boost::static_visitor<void>(),
+    use_mesh_triangle_list_(use_mesh_triangle_list),
+    marker_(marker)
+  {
+  }
+  
+  void operator()(const shape_msgs::Plane &shape_msg) const
+  {
+    throw std::runtime_error("No visual markers can be constructed for planes");
+  }
+  
+  void operator()(const shape_msgs::Mesh &shape_msg) const
+  {
+    shape_tools::constructMarkerFromShape(shape_msg, *marker_, use_mesh_triangle_list_);
+  }
+  
+  void operator()(const shape_msgs::SolidPrimitive &shape_msg) const
+  {
+    shape_tools::constructMarkerFromShape(shape_msg, *marker_);
+  }
+  
+private:
+  
+  bool use_mesh_triangle_list_;
+  visualization_msgs::Marker *marker_;
+};
+
+bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &marker, bool use_mesh_triangle_list)
+{
+  ShapeMsg shape_msg;
   if (constructMsgFromShape(shape, shape_msg))
   {
     bool ok = false;
     try
-    {
-      shape_tools::constructMarkerFromShape(shape_msg, mk, use_mesh_triangle_list);
+    { 
+      boost::apply_visitor(ShapeVisitorMarker(&marker, use_mesh_triangle_list), shape_msg);
       ok = true;
     }
     catch (std::runtime_error &ex)
@@ -397,70 +436,82 @@ bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk
   return false;
 }
 
-bool constructMsgFromShape(const Shape* shape, shape_msgs::Shape &shape_msg)
+bool constructMsgFromShape(const Shape* shape, ShapeMsg &shape_msg)
 {
-  shape_msg.dimensions.clear();
-  shape_msg.vertices.clear();
-  shape_msg.triangles.clear();
   if (shape->type == SPHERE)
   {
-    shape_msg.type = shape_msgs::Shape::SPHERE;
-    shape_msg.dimensions.push_back(static_cast<const Sphere*>(shape)->radius);
+    shape_msgs::SolidPrimitive s;
+    s.type = shape_msgs::SolidPrimitive::SPHERE;
+    s.dimensions.x = static_cast<const Sphere*>(shape)->radius * 2.0;
+    s.dimensions.y = s.dimensions.z = 0.0;
+    shape_msg = s;
   }
   else
     if (shape->type == BOX)
-    {
-      shape_msg.type = shape_msgs::Shape::BOX;
+    { 
+      shape_msgs::SolidPrimitive s;
+      s.type = shape_msgs::SolidPrimitive::BOX;
       const double* sz = static_cast<const Box*>(shape)->size;
-      shape_msg.dimensions.push_back(sz[0]);
-      shape_msg.dimensions.push_back(sz[1]);
-      shape_msg.dimensions.push_back(sz[2]);
+      s.dimensions.x = sz[0];
+      s.dimensions.y = sz[1];
+      s.dimensions.z = sz[2]; 
+      shape_msg = s;
     }
     else
-      if (shape->type == PLANE)
-      {
-        shape_msg.type = shape_msgs::Shape::PLANE;
-        const Plane *p = static_cast<const Plane*>(shape);
-        shape_msg.dimensions.push_back(p->a);
-        shape_msg.dimensions.push_back(p->b);
-        shape_msg.dimensions.push_back(p->c);
-        shape_msg.dimensions.push_back(p->d);
+      if (shape->type == CYLINDER)
+      { 
+        shape_msgs::SolidPrimitive s;
+        s.type = shape_msgs::SolidPrimitive::CYLINDER;
+        s.dimensions.x = static_cast<const Cylinder*>(shape)->radius * 2.0;
+        s.dimensions.y = 0.0;
+        s.dimensions.z = static_cast<const Cylinder*>(shape)->length;
+        shape_msg = s;
       }
       else
-        if (shape->type == CYLINDER)
-        {
-          shape_msg.type = shape_msgs::Shape::CYLINDER;
-          shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->radius);
-          shape_msg.dimensions.push_back(static_cast<const Cylinder*>(shape)->length);
+        if (shape->type == CONE)
+        {   
+          shape_msgs::SolidPrimitive s;
+          s.type = shape_msgs::SolidPrimitive::CONE;
+          s.dimensions.x = static_cast<const Cone*>(shape)->radius * 2.0; 
+          s.dimensions.y = 0.0;
+          s.dimensions.z = static_cast<const Cone*>(shape)->length;      
+          shape_msg = s;
         }
         else
-          if (shape->type == CONE)
-          {
-            shape_msg.type = shape_msgs::Shape::CONE;
-            shape_msg.dimensions.push_back(static_cast<const Cone*>(shape)->radius);
-            shape_msg.dimensions.push_back(static_cast<const Cone*>(shape)->length);
+          if (shape->type == PLANE)
+          {    
+            shape_msgs::Plane s;
+            const Plane *p = static_cast<const Plane*>(shape);
+            s.coef[0] = p->a;
+            s.coef[1] = p->b;
+            s.coef[2] = p->c;
+            s.coef[3] = p->d;  
+            shape_msg = s;
           }
           else
             if (shape->type == MESH)
             {
-              shape_msg.type = shape_msgs::Shape::MESH;
-              
+              shape_msgs::Mesh s;
               const Mesh *mesh = static_cast<const Mesh*>(shape);
-              const unsigned int t3 = mesh->triangle_count * 3;
-              
-              shape_msg.vertices.resize(mesh->vertex_count);
-              shape_msg.triangles.resize(t3);
+              s.vertices.resize(mesh->vertex_count);
+              s.triangles.resize(mesh->triangle_count);
               
               for (unsigned int i = 0 ; i < mesh->vertex_count ; ++i)
               {
                 unsigned int i3 = i * 3;
-                shape_msg.vertices[i].x = mesh->vertices[i3];
-                shape_msg.vertices[i].y = mesh->vertices[i3 + 1];
-                shape_msg.vertices[i].z = mesh->vertices[i3 + 2];
+                s.vertices[i].x = mesh->vertices[i3];
+                s.vertices[i].y = mesh->vertices[i3 + 1];
+                s.vertices[i].z = mesh->vertices[i3 + 2];
               }
               
-              for (unsigned int i = 0 ; i < t3  ; ++i)
-                shape_msg.triangles[i] = mesh->triangles[i];
+              for (unsigned int i = 0 ; i < s.triangles.size() ; ++i)
+              { 
+                unsigned int i3 = i * 3;
+                s.triangles[i].vertex_indices[0] = mesh->triangles[i3];
+                s.triangles[i].vertex_indices[1] = mesh->triangles[i3 + 1];
+                s.triangles[i].vertex_indices[2] = mesh->triangles[i3 + 2];
+              }
+              shape_msg = s;
             }
             else
             {
