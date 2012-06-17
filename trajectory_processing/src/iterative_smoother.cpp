@@ -36,6 +36,7 @@
 
 #include <trajectory_processing/iterative_smoother.h>
 #include <moveit_msgs/JointLimits.h>
+#include <ros/console.h>
 
 namespace trajectory_processing
 {
@@ -333,7 +334,7 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
             q3 = trajectory.points[index+1].positions[j];
             dt1 = time_diff[index];
             dt2 = time_diff[index];
-            ROS_ASSERT(!backwards);
+            assert(!backwards);
           }
           else if(index < num_points-1)
           { // middle points
@@ -350,7 +351,7 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
             q3 = trajectory.points[index-1].positions[j];
             dt1 = time_diff[index-1];
             dt2 = time_diff[index-1];
-            ROS_ASSERT(backwards);
+            assert(backwards);
           }
 
           v1 = (q2-q1)/dt1;

@@ -198,8 +198,15 @@ double constraint_samplers::IKConstraintSampler::getSamplingVolume(void) const
 {
   double v = 1.0;
   if (sampling_pose_.position_constraint_)
-    if (sampling_pose_.position_constraint_->getConstraintRegion())
-      v *= sampling_pose_.position_constraint_->getConstraintRegion()->computeVolume();
+  {
+    const std::vector<bodies::BodyPtr> &b = sampling_pose_.position_constraint_->getConstraintRegions();
+    double vol = 0;
+    for (std::size_t i = 0 ; i < b.size() ; ++i)
+      vol += b[i]->computeVolume();
+    if (!b.empty())
+      v *= vol;
+  }
+  
   if (sampling_pose_.orientation_constraint_)
     v *= sampling_pose_.orientation_constraint_->getXAxisTolerance() * sampling_pose_.orientation_constraint_->getYAxisTolerance() * sampling_pose_.orientation_constraint_->getZAxisTolerance();
   return v;
@@ -294,11 +301,29 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
 {  
   if (sampling_pose_.position_constraint_)
   {
-    if (!sampling_pose_.position_constraint_->getConstraintRegion()->samplePointInside(random_number_generator_, max_attempts, pos))
+    const std::vector<bodies::BodyPtr> &b = sampling_pose_.position_constraint_->getConstraintRegions();
+    if (!b.empty())
     {
-      ROS_ERROR("Unable to sample a point inside the constraint region");
+      bool found = false;
+      std::size_t k = random_number_generator_.uniformInteger(0, b.size() - 1);
+      for (std::size_t i = 0 ; i < b.size() ; ++i)
+        if (b[(i+k) % b.size()]->samplePointInside(random_number_generator_, max_attempts, pos))
+        {
+          found = true;
+          break;
+        }
+      if (!found)
+      {   
+        ROS_ERROR("Unable to sample a point inside the constraint region");
+        return false;
+      }
+    }
+    else
+    {   
+      ROS_ERROR("Unable to sample a point inside the constraint region. Constraint region is empty when it should not be.");
       return false;
     }
+    
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the model
     if (sampling_pose_.position_constraint_->mobileReferenceFrame())
     {
