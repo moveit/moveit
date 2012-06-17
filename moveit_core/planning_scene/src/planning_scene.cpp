@@ -40,6 +40,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
 #include <octomap_msgs/conversions.h>
+#include <ros/console.h>
 #include <set>
 
 namespace planning_scene
@@ -477,6 +478,48 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
   }
 }
 
+namespace planning_scene
+{         
+class ShapeVisitorAddToCollisionObject : public boost::static_visitor<void>
+{
+public:
+  
+  ShapeVisitorAddToCollisionObject(moveit_msgs::CollisionObject *obj) :
+    boost::static_visitor<void>(), obj_(obj)
+  {
+  }
+
+  void setPoseMessage(const geometry_msgs::Pose *pose)
+  {
+    pose_ = pose;
+  }
+    
+  void operator()(const shape_msgs::Plane &shape_msg) const
+  {
+    obj_->planes.push_back(shape_msg);   
+    obj_->plane_poses.push_back(*pose_);
+  }
+  
+  void operator()(const shape_msgs::Mesh &shape_msg) const
+  {
+    obj_->meshes.push_back(shape_msg);
+    obj_->mesh_poses.push_back(*pose_);
+  }
+  
+  void operator()(const shape_msgs::SolidPrimitive &shape_msg) const
+  {
+    obj_->primitives.push_back(shape_msg);
+    obj_->primitive_poses.push_back(*pose_);
+  }
+  
+private:
+  
+  moveit_msgs::CollisionObject *obj_;
+  const geometry_msgs::Pose *pose_;
+};
+}
+
+
 void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const
 {
   scene.attached_collision_objects.clear();
@@ -495,18 +538,19 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
     aco.object.operation = moveit_msgs::CollisionObject::ADD;
     const std::vector<shapes::ShapeConstPtr>& ab_shapes = ab[i]->getShapes();
     const std::vector<Eigen::Affine3d>& ab_tf = ab[i]->getFixedTransforms();
+    ShapeVisitorAddToCollisionObject sv(&aco.object);
     for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
     {
-      shape_msgs::Shape sm;
+      shapes::ShapeMsg sm;
       if (constructMsgFromShape(ab_shapes[j].get(), sm))
       {
-        aco.object.shapes.push_back(sm);
         geometry_msgs::Pose p;
         planning_models::msgFromPose(ab_tf[j], p);
-        aco.object.poses.push_back(p);
+        sv.setPoseMessage(&p);
+        boost::apply_visitor(sv, sm);
       }
     }
-    if (!aco.object.shapes.empty())
+    if (!aco.object.primitives.empty() || !aco.object.meshes.empty() || !aco.object.planes.empty())
     {
       scene.attached_collision_objects.push_back(aco);
       if (hasColor(aco.object.id))
@@ -522,16 +566,18 @@ bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns,
   co.id = ns;
   co.operation = moveit_msgs::CollisionObject::ADD;
   collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns);
-  if (!obj) return false;
+  if (!obj) 
+    return false;  
+  ShapeVisitorAddToCollisionObject sv(&co);
   for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
   {
-    shape_msgs::Shape sm;
+    shapes::ShapeMsg sm;
     if (constructMsgFromShape(obj->shapes_[j].get(), sm))
     {
-      co.shapes.push_back(sm);
       geometry_msgs::Pose p;
       planning_models::msgFromPose(obj->shape_poses_[j], p);
-      co.poses.push_back(p);
+      sv.setPoseMessage(&p);
+      boost::apply_visitor(sv, sm);
     }
   }
   return true;
@@ -548,20 +594,23 @@ void planning_scene::PlanningScene::getCollisionObjectMarkers(visualization_msgs
     collision_detection::CollisionWorld::ObjectConstPtr o = getCollisionWorld()->getObject(ids[i]);
     std_msgs::ColorRGBA color = default_color;
     if (hasColor(ids[i]))
-    {
       color = getColor(ids[i]);
-    }
+    
     unsigned int tot_count = 0;
-    for(std::size_t j = 0; j < o->shapes_.size(); j++, tot_count++) {
+    for(std::size_t j = 0; j < o->shapes_.size() ; ++j, ++tot_count)
+    {
       visualization_msgs::Marker mk;
       shapes::constructMarkerFromShape(o->shapes_[j].get(), mk, true);
       mk.header.frame_id = getPlanningFrame();
       mk.header.stamp = ros::Time::now();
       mk.color = color;
-      if(ns.empty()) {
+      if (ns.empty())
+      {
         mk.ns = ids[i];
         mk.id = j;
-      } else {
+      } 
+      else
+      {
         mk.ns = ns;
         mk.id = tot_count;
       }
@@ -578,7 +627,7 @@ void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_ms
   moveit_msgs::CollisionObject co;
   if (getCollisionObjectMsg(ns, co))
   {
-    if (!co.shapes.empty())
+    if (!co.primitives.empty() || !co.meshes.empty() || !co.planes.empty())
     {
       scene.world.collision_objects.push_back(co);
       if (hasColor(co.id))
@@ -932,9 +981,21 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
 
   if (object.object.operation == moveit_msgs::CollisionObject::ADD)
   {
-    if (object.object.shapes.size() != object.object.poses.size())
+    if (object.object.primitives.size() != object.object.primitive_poses.size())
     {
-      ROS_ERROR("Number of shapes does not match number of poses in attached collision object message");
+      ROS_ERROR("Number of primitive shapes does not match number of poses in attached collision object message");
+      return false;
+    }
+
+    if (object.object.meshes.size() != object.object.mesh_poses.size())
+    {
+      ROS_ERROR("Number of meshes does not match number of poses in attached collision object message");
+      return false;
+    }
+
+    if (object.object.planes.size() != object.object.plane_poses.size())
+    {
+      ROS_ERROR("Number of planes does not match number of poses in attached collision object message");
       return false;
     }
 
@@ -945,7 +1006,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       std::vector<Eigen::Affine3d> poses;
 
       // we need to add some shapes; if the message is empty, maybe the object is already in the world
-      if (object.object.shapes.empty())
+      if (object.object.primitives.empty() && object.object.meshes.empty() && object.object.planes.empty())
       {
         if (cworld_->hasObject(object.object.id))
         {
@@ -979,13 +1040,29 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           cworld_->removeObject(object.object.id);
         }
 
-        for (std::size_t i = 0 ; i < object.object.shapes.size() ; ++i)
+        for (std::size_t i = 0 ; i < object.object.primitives.size() ; ++i)
         {
-          shapes::Shape *s = shapes::constructShapeFromMsg(object.object.shapes[i]);
+          shapes::Shape *s = shapes::constructShapeFromMsg(object.object.primitives[i]);
           if (s)
           {
             Eigen::Affine3d p;
-            if(!planning_models::poseFromMsg(object.object.poses[i], p))
+            if(!planning_models::poseFromMsg(object.object.primitive_poses[i], p))
+            {
+              ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.object.id.c_str());
+              return false;
+            }
+
+            shapes.push_back(shapes::ShapeConstPtr(s));
+            poses.push_back(p);
+          }
+        }       
+        for (std::size_t i = 0 ; i < object.object.meshes.size() ; ++i)
+        {
+          shapes::Shape *s = shapes::constructShapeFromMsg(object.object.meshes[i]);
+          if (s)
+          {
+            Eigen::Affine3d p;
+            if(!planning_models::poseFromMsg(object.object.mesh_poses[i], p))
             {
               ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.object.id.c_str());
               return false;
@@ -995,6 +1072,23 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             poses.push_back(p);
           }
         }
+        for (std::size_t i = 0 ; i < object.object.planes.size() ; ++i)
+        {
+          shapes::Shape *s = shapes::constructShapeFromMsg(object.object.planes[i]);
+          if (s)
+          {
+            Eigen::Affine3d p;
+            if(!planning_models::poseFromMsg(object.object.plane_poses[i], p))
+            {
+              ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.object.id.c_str());
+              return false;
+            }
+
+            shapes.push_back(shapes::ShapeConstPtr(s));
+            poses.push_back(p);
+          }
+        }
+
         // transform poses to link frame
         if (object.object.header.frame_id != object.link_name)
         {
@@ -1066,30 +1160,70 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
 
   if (object.operation == moveit_msgs::CollisionObject::ADD)
   {
-    if (object.shapes.empty())
+    if (object.primitives.empty() && object.meshes.empty() && object.planes.empty())
     {
       ROS_ERROR("There are no shapes specified in the collision object message");
       return false;
     }
-    if (object.shapes.size() != object.poses.size())
+    
+    if (object.primitives.size() != object.primitive_poses.size())
     {
-      ROS_ERROR("Number of shapes does not match number of poses in collision object message");
+      ROS_ERROR("Number of primitive shapes does not match number of poses in collision object message");
       return false;
     }
 
-    const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), object.header.frame_id);
-    for (std::size_t i = 0 ; i < object.shapes.size() ; ++i)
+    if (object.meshes.size() != object.mesh_poses.size())
     {
-      shapes::Shape *s = shapes::constructShapeFromMsg(object.shapes[i]);
+      ROS_ERROR("Number of meshes does not match number of poses in collision object message");
+      return false;
+    }
+
+    if (object.planes.size() != object.plane_poses.size())
+    {
+      ROS_ERROR("Number of planes does not match number of poses in collision object message");
+      return false;
+    }
+    
+    const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), object.header.frame_id);
+    for (std::size_t i = 0 ; i < object.primitives.size() ; ++i)
+    {
+      shapes::Shape *s = shapes::constructShapeFromMsg(object.primitives[i]);
       if (s)
       {
         Eigen::Affine3d p; 
-        if(!planning_models::poseFromMsg(object.poses[i], p))
+        if(!planning_models::poseFromMsg(object.primitive_poses[i], p))
         {
           ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
           return false;
         }
-
+        cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
+      }
+    }
+    for (std::size_t i = 0 ; i < object.meshes.size() ; ++i)
+    {
+      shapes::Shape *s = shapes::constructShapeFromMsg(object.meshes[i]);
+      if (s)
+      {
+        Eigen::Affine3d p; 
+        if(!planning_models::poseFromMsg(object.mesh_poses[i], p))
+        {
+          ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
+          return false;
+        }
+        cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
+      }
+    }
+    for (std::size_t i = 0 ; i < object.planes.size() ; ++i)
+    {
+      shapes::Shape *s = shapes::constructShapeFromMsg(object.planes[i]);
+      if (s)
+      {
+        Eigen::Affine3d p; 
+        if(!planning_models::poseFromMsg(object.plane_poses[i], p))
+        {
+          ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
+          return false;
+        }
         cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
       }
     }

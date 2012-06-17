@@ -43,7 +43,7 @@
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/pRRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/rrt/msRRTConnect.h>
+//#include <ompl/geometric/planners/rrt/msRRTConnect.h>
 #include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/est/EST.h>
 #include <ompl/geometric/planners/sbl/SBL.h>
@@ -121,14 +121,14 @@ template<typename T>
 inline void auxPlannerConfig(const ob::PlannerPtr &planner, const ModelBasedPlanningContextSpecification &spec)
 {
 }
-
+/*
 template<>
 inline void auxPlannerConfig<og::msRRTConnect>(const ob::PlannerPtr &planner, const ModelBasedPlanningContextSpecification &spec)
 {
   for (std::size_t i = 0 ; i < spec.subspaces_.size() ; ++i)
     planner->as<og::msRRTConnect>()->addExplorationSubspace(spec.subspaces_[i]);
 }
-
+*/
 template<typename T>
 static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si, const std::string &new_name, const ModelBasedPlanningContextSpecification &spec)
 {
@@ -160,7 +160,7 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners(void)
 {
   registerPlannerAllocator("geometric::RRT", boost::bind(&allocatePlanner<og::RRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::RRTConnect", boost::bind(&allocatePlanner<og::RRTConnect>, _1, _2, _3));
-  registerPlannerAllocator("geometric::msRRTConnect", boost::bind(&allocatePlanner<og::msRRTConnect>, _1, _2, _3));
+  //  registerPlannerAllocator("geometric::msRRTConnect", boost::bind(&allocatePlanner<og::msRRTConnect>, _1, _2, _3));
   registerPlannerAllocator("geometric::LazyRRT", boost::bind(&allocatePlanner<og::LazyRRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::EST", boost::bind(&allocatePlanner<og::EST>, _1, _2, _3));
   registerPlannerAllocator("geometric::SBL", boost::bind(&allocatePlanner<og::SBL>, _1, _2, _3));
