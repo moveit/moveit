@@ -35,6 +35,7 @@
 #include <planning_models/kinematic_state.h>
 #include <float.h>
 #include <planning_models/transforms.h>
+#include <ros/console.h>
 
 static const double JOINT_STATE_EPSILON = 1e-2;
 

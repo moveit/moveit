@@ -33,6 +33,7 @@
 #include <kinematics_constraint_aware/kinematics_solver_constraint_aware.h>
 #include <boost/bind.hpp>
 #include <kinematic_constraints/kinematic_constraint.h>
+#include <ros/console.h>
 
 namespace kinematics_constraint_aware 
 {
