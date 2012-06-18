@@ -139,35 +139,30 @@ void PrimitiveObjectAdditionDialog::createObjectConfirmedPressed() {
   moveit_msgs::CollisionObject coll;
   coll.id = collision_object_name_->text().toStdString();
   
-  coll.shapes.resize(1);
+  coll.primitives.resize(1);
   std::string object_type = collision_object_type_box_->currentText().toStdString();
   if(object_type == "Box") {
-    coll.shapes[0].type = shape_msgs::Shape::BOX;
-    coll.shapes[0].dimensions.resize(3);
-    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
-    coll.shapes[0].dimensions[1] = (float)collision_object_scale_y_box_->value() / 100.0f;
-    coll.shapes[0].dimensions[2] = (float)collision_object_scale_z_box_->value() / 100.0f;
+    coll.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+    coll.primitives[0].dimensions.x = (float)collision_object_scale_x_box_->value() / 100.0f;
+    coll.primitives[0].dimensions.y = (float)collision_object_scale_y_box_->value() / 100.0f;
+    coll.primitives[0].dimensions.z = (float)collision_object_scale_z_box_->value() / 100.0f;
   } else if (object_type == "Cylinder") {
-    coll.shapes[0].type = shape_msgs::Shape::CYLINDER;
-    coll.shapes[0].dimensions.resize(2);
-    // aleeper: Division by 2 since user seems to specify diameter but collision objects expect radius.
-    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f / 2.0f;
-    coll.shapes[0].dimensions[1] = (float)collision_object_scale_z_box_->value() / 100.0f;
+    coll.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
+    coll.primitives[0].dimensions.x = (float)collision_object_scale_x_box_->value() / 100.0f;
+    coll.primitives[0].dimensions.z = (float)collision_object_scale_z_box_->value() / 100.0f;
   } else if (object_type == "Sphere") {
-    coll.shapes[0].type = shape_msgs::Shape::SPHERE;
-    coll.shapes[0].dimensions.resize(1);
-    // aleeper: Division by 2 since user seems to specify diameter but collision objects expect radius.
-    coll.shapes[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f / 2.0f;
+    coll.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
+    coll.primitives[0].dimensions.x = (float)collision_object_scale_x_box_->value() / 100.0f;
   }
 
-  coll.poses.resize(1);
-  coll.poses[0].position.x = (float)collision_object_pos_x_box_->value() / 100.0f;
-  coll.poses[0].position.y = (float)collision_object_pos_y_box_->value() / 100.0f;
-  coll.poses[0].position.z = (float)collision_object_pos_z_box_->value() / 100.0f;
-  coll.poses[0].orientation.x = 0;
-  coll.poses[0].orientation.y = 0;
-  coll.poses[0].orientation.z = 0;
-  coll.poses[0].orientation.w = 1;
+  coll.primitive_poses.resize(1);
+  coll.primitive_poses[0].position.x = (float)collision_object_pos_x_box_->value() / 100.0f;
+  coll.primitive_poses[0].position.y = (float)collision_object_pos_y_box_->value() / 100.0f;
+  coll.primitive_poses[0].position.z = (float)collision_object_pos_z_box_->value() / 100.0f;
+  coll.primitive_poses[0].orientation.x = 0;
+  coll.primitive_poses[0].orientation.y = 0;
+  coll.primitive_poses[0].orientation.z = 0;
+  coll.primitive_poses[0].orientation.w = 1;
   
   addCollisionObjectRequested(coll, selected_color_);
 }
