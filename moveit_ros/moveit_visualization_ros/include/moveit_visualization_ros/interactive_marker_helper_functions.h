@@ -42,9 +42,9 @@
 #include <planning_models/transforms.h>
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
+#include <geometric_shapes/shape_messages.h>
 #include <shape_tools/shape_extents.h>
 #include <shape_tools/shape_to_marker.h>
-#include <shape_msgs/Shape.h>
 
 namespace moveit_visualization_ros
 {
@@ -184,7 +184,7 @@ visualization_msgs::InteractiveMarker makeButtonPointMass(const std::string& nam
 
 visualization_msgs::InteractiveMarker makeButtonCompoundShape(const std::string& name, 
                                                               const std::string& frame_id,
-                                                              const std::vector<shape_msgs::Shape>& shapes,
+                                                              const std::vector<shapes::ShapeMsg>& shapes,
                                                               const std::vector<geometry_msgs::Pose>& poses,
                                                               const std_msgs::ColorRGBA& color, 
                                                               float scale, 
@@ -198,7 +198,7 @@ visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
                                                      bool view_facing);
 
 visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& marker_name,
-                                                     const shape_msgs::Shape& mesh_shape,
+                                                     const shape_msgs::Mesh& mesh_shape,
                                                      const geometry_msgs::PoseStamped &stamped,
                                                      const std_msgs::ColorRGBA& color);
 
