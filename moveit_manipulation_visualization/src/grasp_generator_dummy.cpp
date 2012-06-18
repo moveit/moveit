@@ -31,7 +31,7 @@
 
 #include <moveit_manipulation_visualization/grasp_generator_dummy.h>
 #include <geometric_shapes/shape_operations.h>
-#include <shape_utils/shape_extents.h>
+#include <shape_tools/shape_extents.h>
 
 namespace moveit_manipulation_visualization {
 
@@ -54,8 +54,13 @@ bool GraspGeneratorDummy::generateGrasps(const planning_scene::PlanningSceneCons
   //Eigen::Affine3d obj_pose;
   //planning_models::poseFromMsg(co.poses[0], obj_pose);
 
-  double xex, yex, zex;
-  shape_utils::getShapeExtents(co.shapes[0], xex, yex, zex);
+  double xex, yex, zex;   
+  if (!co.primitives.empty())
+    shape_tools::getShapeExtents(co.primitives[0], xex, yex, zex);
+  else
+    if (!co.meshes.empty())
+      shape_tools::getShapeExtents(co.meshes[0], xex, yex, zex);
+  
   ROS_INFO_STREAM("Extents are " << xex << " " << yex << " " << zex);
   if(obj.find("drive") != std::string::npos) {
     double xtrans = -(xex/2.0+.15);

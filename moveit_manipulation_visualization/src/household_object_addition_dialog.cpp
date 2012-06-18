@@ -364,16 +364,16 @@ void HouseholdObjectAdditionDialog::createObjectConfirmedPressed() {
 
   collision_object_name_to_model_id_map_[coll.id] = current_id_;
   
-  coll.shapes.push_back(loaded_meshes_[current_id_]);
+  coll.meshes.push_back(loaded_meshes_[current_id_]);
 
-  coll.poses.resize(1);
-  coll.poses[0].position.x = (float)collision_object_pos_x_box_->value() / 100.0f;
-  coll.poses[0].position.y = (float)collision_object_pos_y_box_->value() / 100.0f;
-  coll.poses[0].position.z = (float)collision_object_pos_z_box_->value() / 100.0f;
-  coll.poses[0].orientation.x = 0;
-  coll.poses[0].orientation.y = 0;
-  coll.poses[0].orientation.z = 0;
-  coll.poses[0].orientation.w = 1;
+  coll.mesh_poses.resize(1);
+  coll.mesh_poses[0].position.x = (float)collision_object_pos_x_box_->value() / 100.0f;
+  coll.mesh_poses[0].position.y = (float)collision_object_pos_y_box_->value() / 100.0f;
+  coll.mesh_poses[0].position.z = (float)collision_object_pos_z_box_->value() / 100.0f;
+  coll.mesh_poses[0].orientation.x = 0;
+  coll.mesh_poses[0].orientation.y = 0;
+  coll.mesh_poses[0].orientation.z = 0;
+  coll.mesh_poses[0].orientation.w = 1;
   
   Q_EMIT addCollisionObjectRequested(coll, selected_color_);
 }
@@ -395,9 +395,9 @@ void HouseholdObjectAdditionDialog::addHouseholdObjectToScene(std::string name,
     }
   } 
   collision_object_name_to_model_id_map_[coll.id] = model_id;
-  coll.shapes.push_back(loaded_meshes_.at(model_id));
+  coll.meshes.push_back(loaded_meshes_.at(model_id));
   //coll.header.frame_id = 
-  coll.poses.push_back(pose);
+  coll.mesh_poses.push_back(pose);
   QColor col(128, 128, 128, 255);
   Q_EMIT addCollisionObjectRequested(coll,col);
 }
