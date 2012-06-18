@@ -74,7 +74,7 @@ void GraspGeneratorVisualization::showGrasp(const planning_scene::PlanningSceneC
 
   if(grasp_frame == obj) {
     Eigen::Affine3d obj_pose;
-    planning_models::poseFromMsg(co.poses[0], obj_pose);
+    planning_models::poseFromMsg(co.primitive_poses.empty() ? co.mesh_poses[0] : co.primitive_poses[0], obj_pose);
     scene_pose = obj_pose*gp;
   } else if(grasp_frame != planning_scene->getPlanningFrame()) {
     planning_scene->getTransforms()->transformPose(planning_scene->getCurrentState(),

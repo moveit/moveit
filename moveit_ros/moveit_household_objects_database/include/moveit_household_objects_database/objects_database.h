@@ -46,7 +46,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 
-#include <shape_msgs/Shape.h>
+#include <shape_msgs/Mesh.h>
 
 //#include <moveit_household_objects_database_msgs/DatabaseScan.h>
 
@@ -234,12 +234,19 @@ namespace moveit_household_objects_database
 
     //! Gets the mesh for a scaled model as a shape_msgs::Shape
     bool
-    getScaledModelMesh (int scaled_model_id, shape_msgs::Shape &shape) const
+    getScaledModelMesh (int scaled_model_id, shape_msgs::Mesh &shape) const
     {
       DatabaseMesh mesh;
       if (!getScaledModelMesh (scaled_model_id, mesh))
-        return false;
-      shape.triangles = mesh.triangles_.data ();
+        return false; 
+      for (size_t i = 0; i < mesh.triangles_.data ().size () / 3; i++)
+      {
+        shape_msgs::MeshTriangle t;
+        t.vertex_indices[0] = mesh.triangles_.data ().at (3 * i + 0);
+        t.vertex_indices[1] = mesh.triangles_.data ().at (3 * i + 1);
+        t.vertex_indices[2] = mesh.triangles_.data ().at (3 * i + 2);
+        shape.triangles.push_back(t);
+      }
       shape.vertices.clear ();
       if (mesh.vertices_.data ().size () % 3 != 0)
       {
@@ -254,7 +261,6 @@ namespace moveit_household_objects_database
         p.z = mesh.vertices_.data ().at (3 * i + 2);
         shape.vertices.push_back (p);
       }
-      shape.type = shape.MESH;
       return true;
     }
 
