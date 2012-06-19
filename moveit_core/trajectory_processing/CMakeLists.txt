@@ -39,6 +39,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/ParabolicPathSmooth/DynamicPath.cpp
   src/ParabolicPathSmooth/ParabolicRamp.cpp
   src/KunzStilman/Trajectory.cpp
+  src/trajectory_tools.cpp
 )
 rosbuild_add_gtest(test_utils test/test_utils.cpp)
 target_link_libraries(test_utils ${PROJECT_NAME})
