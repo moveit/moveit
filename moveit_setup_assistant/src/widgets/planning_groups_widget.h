@@ -38,29 +38,21 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
 
 #include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QMessageBox>
-#include <QPushButton>
-#include <QSlider>
-#include <QProgressDialog>
-#include <QProgressBar>
 #include <QTableWidget>
-#include <QCheckBox>
-#include <QString>
-#include <QFont>
-#include <QApplication>
-#include <QTimer>
-#include <QCloseEvent>
 #include <QSplitter>
-#include <boost/thread.hpp>
-#include "ros/ros.h"
-#include <moveit_setup_assistant/tools/compute_default_collisions.h>
+#include <QStackedLayout>
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
-#include "header_widget.h"
+#include "joint_collection_widget.h"
 
+// Forward Declaration
+class PlanningGroupsTableWidget;
+
+
+// ******************************************************************************************
+// ******************************************************************************************
+// CLASS
+// ******************************************************************************************
+// ******************************************************************************************
 class PlanningGroupsWidget : public QWidget
 {
   Q_OBJECT
@@ -78,15 +70,72 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
-  void loadCollisionTable();
-  void addKinematicChainGroup();
+private:
+
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+
+  /// For changing between table and different add/edit views
+  QStackedLayout *stacked_layout_;
+
+  /// Main widget for groups
+  PlanningGroupsTableWidget *groups_table_widget_;
+  
+  /// Subpages for types of planning groups
+  JointCollectionWidget *joints_widget_;
+
+
+  // ******************************************************************************************
+  // Variables
+  // ******************************************************************************************
+
+  /// Contains all the configuration data for the setup assistant
+  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+
+  // ******************************************************************************************
+  // Private Functions
+  // ******************************************************************************************
+
+
+};
+
+
+// ******************************************************************************************
+// ******************************************************************************************
+// CLASS
+// ******************************************************************************************
+// ******************************************************************************************
+class PlanningGroupsTableWidget : public QWidget
+{
+  Q_OBJECT
+
+public:
+  // ******************************************************************************************
+  // Public Functions
+  // ******************************************************************************************
+
+  PlanningGroupsTableWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+
+private Q_SLOTS:
+
+  // ******************************************************************************************
+  // Slot Event Functions
+  // ******************************************************************************************
+  void loadGroupsTable();
   void addJointCollectionGroup();
+  void addLinkCollectionGroup();
+  void addKinematicChainGroup();
+  void addEndEffector();
+  void addSuperGroup();
 
 private:
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
+
+  /// Main table for holding groups
   QTableWidget *groups_table_;
 
   // ******************************************************************************************
@@ -102,5 +151,6 @@ private:
 
 
 };
+
 
 #endif

@@ -35,10 +35,18 @@
 /* Author: Dave Coleman */
 
 #include "planning_groups_widget.h"
+#include <boost/thread.hpp>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QString>
+#include "ros/ros.h"
+#include "header_widget.h"
 
 
 // ******************************************************************************************
-// 
+// CLASS
 // ******************************************************************************************
 PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
   : QWidget( parent ), config_data_(config_data)
@@ -56,67 +64,21 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
                                            this);
   left_layout->addWidget( header );
 
-  // Table Area --------------------------------------------  
+  // Left Side ---------------------------------------------
 
-  // Table Label
-  QLabel *table_title = new QLabel( this );
-  table_title->setText( "Current Groups" );
-  QFont table_title_font( "Arial", 10, QFont::Bold );
-  table_title->setFont(table_title_font);
-  left_layout->addWidget( table_title);
 
-  // Table
-  groups_table_ = new QTableWidget( this );
-  groups_table_->setColumnCount(2);
-  //groups_table_->resizeColumnToContents(0);
-  /*groups_table_->setColumnWidth(0, 300);
-  groups_table_->setColumnWidth(1, 150);
-  groups_table_->setColumnWidth(2, 85);*/
-  groups_table_->setSortingEnabled(true);
-  //connect(groups_table_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
-  left_layout->addWidget(groups_table_);
+  // Create left side widgets 
+  groups_table_widget_ = new PlanningGroupsTableWidget( this, config_data_ );
+  joints_widget_ = new JointCollectionWidget( this, config_data_ );
 
-  // Table Headers
-  QStringList header_list;
-  header_list.append("Planning Group");
-  header_list.append("Group Type");
-  groups_table_->setHorizontalHeaderLabels(header_list);
-  groups_table_->resizeColumnToContents(0);
-  groups_table_->resizeColumnToContents(1);
- 
-  // Bottom Area ----------------------------------------
-  QHBoxLayout *controls_layout = new QHBoxLayout( );
+  // Combine into stack
+  stacked_layout_ = new QStackedLayout( this );
+  stacked_layout_->addWidget( groups_table_widget_ );
+  stacked_layout_->addWidget( joints_widget_ );
 
-  // Add Kinematics Chain Button
-  QPushButton *btn_kinematics = new QPushButton( this );
-  btn_kinematics->setText("Add &Kinematics Chain Group");
-  btn_kinematics->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  //btn_kinematics->setMinimumWidth(300);
-  connect(btn_kinematics, SIGNAL(clicked()), this, SLOT(addKinematicChainGroup()));
-  controls_layout->addWidget(btn_kinematics);
-  controls_layout->setAlignment(btn_kinematics, Qt::AlignRight);
+  stacked_layout_->setCurrentIndex( 1 );
+  left_layout->addLayout( stacked_layout_ );
   
-  // Add Joint Colletion Group
-  QPushButton *btn_joint = new QPushButton( this );
-  btn_joint->setText("Add &Joint Collection Group");
-  btn_joint->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  //btn_joint->setMinimumWidth(300);
-  connect(btn_joint, SIGNAL(clicked()), this, SLOT(addJointCollectionGroup()));
-  controls_layout->addWidget(btn_joint);
-  controls_layout->setAlignment(btn_joint, Qt::AlignRight);
-
-  // Delete Button
-  QPushButton *btn_delete = new QPushButton( this );
-  btn_delete->setText("&Delete Group");
-  btn_delete->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  //btn_delete->setMinimumWidth(300);
-  //connect(btn_delete, SIGNAL(clicked()), this, SLOT(addDeleteCollectionGroup()));
-  controls_layout->addWidget(btn_delete);
-  controls_layout->setAlignment(btn_delete, Qt::AlignRight);
-
-  // Add Controls to layout
-  left_layout->addLayout( controls_layout );
-
   // Rviz Right Side -------------------------------------
   QLabel *temp = new QLabel( "RVIZ", this );
   temp->setMinimumWidth( 300 );
@@ -138,10 +100,99 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   setLayout(layout);
 }
 
+
+// ******************************************************************************************
+// CLASS
+// ******************************************************************************************
+PlanningGroupsTableWidget::PlanningGroupsTableWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
+  : QWidget( parent ), config_data_(config_data)
+{
+  // Basic widget container
+  QVBoxLayout *layout = new QVBoxLayout( this );
+
+  // Table Area --------------------------------------------  
+
+  // Table Label
+  QLabel *table_title = new QLabel( this );
+  table_title->setText( "Current Groups" );
+  QFont table_title_font( "Arial", 10, QFont::Bold );
+  table_title->setFont(table_title_font);
+  layout->addWidget( table_title);
+
+  // Table
+  groups_table_ = new QTableWidget( this );
+  groups_table_->setColumnCount(2);
+  groups_table_->setSortingEnabled(true);
+  //connect(groups_table_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
+  layout->addWidget(groups_table_);
+
+  // Table Headers
+  QStringList header_list;
+  header_list.append("Planning Group");
+  header_list.append("Group Type");
+  groups_table_->setHorizontalHeaderLabels(header_list);
+  groups_table_->resizeColumnToContents(0);
+  groups_table_->resizeColumnToContents(1);
+ 
+  // Bottom Area ----------------------------------------
+  QHBoxLayout *controls1_layout = new QHBoxLayout( );
+
+  // Add Joint Colletion Group
+  QPushButton *btn_joint = new QPushButton( "Add &Joint Collection Group", this );
+  btn_joint->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+  btn_joint->setMinimumWidth(250);
+  connect(btn_joint, SIGNAL(clicked()), this, SLOT(addJointCollectionGroup()));
+  controls1_layout->addWidget(btn_joint);
+
+  // Add Link Colletion Group
+  QPushButton *btn_link = new QPushButton( "Add &Link Collection Group", this );
+  btn_link->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+  btn_link->setMinimumWidth(250);
+  connect(btn_link, SIGNAL(clicked()), this, SLOT(addLinkCollectionGroup()));
+  controls1_layout->addWidget(btn_link);
+
+  QHBoxLayout *controls2_layout = new QHBoxLayout( );
+
+  // Add Kinematics Chain Button
+  QPushButton *btn_kinematics = new QPushButton( this );
+  btn_kinematics->setText("Add &Kinematics Chain Group");
+  btn_kinematics->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+  btn_kinematics->setMinimumWidth(250);
+  connect(btn_kinematics, SIGNAL(clicked()), this, SLOT(addKinematicChainGroup()));
+  controls2_layout->addWidget(btn_kinematics);
+
+  // Add End Effector Button
+  QPushButton *btn_end_effector = new QPushButton( this );
+  btn_end_effector->setText("Add &End Effector");
+  btn_end_effector->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+  btn_end_effector->setMinimumWidth(250);
+  connect(btn_end_effector, SIGNAL(clicked()), this, SLOT(addEndEffector()));
+  controls2_layout->addWidget(btn_end_effector);
+
+  QHBoxLayout *controls3_layout = new QHBoxLayout( );
+
+  // Add Super Group Button
+  QPushButton *btn_super_group = new QPushButton( this );
+  btn_super_group->setText("Add &Super Group");
+  btn_super_group->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+  btn_super_group->setMinimumWidth(250);
+  connect(btn_super_group, SIGNAL(clicked()), this, SLOT(addSuperGroup()));
+  controls3_layout->addWidget(btn_super_group);
+
+  
+  // Add Controls to layout
+  layout->addLayout( controls1_layout );
+  layout->addLayout( controls2_layout );
+  layout->addLayout( controls3_layout );
+
+  // Set layout
+  setLayout(layout);
+}
+
 // ******************************************************************************************
 // Displays data in the link_pairs_ data structure into a QtTableWidget
 // ******************************************************************************************
-void PlanningGroupsWidget::loadCollisionTable()
+void PlanningGroupsTableWidget::loadGroupsTable()
 {
   int row = 0;
   groups_table_->setUpdatesEnabled(false); // prevent table from updating until we are completely done
@@ -204,13 +255,29 @@ void PlanningGroupsWidget::loadCollisionTable()
   groups_table_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
 }
 
+void PlanningGroupsTableWidget::addJointCollectionGroup()
+{
+  std::cout << "ADD JOINT COLL" << std::endl;
+}
 
-void PlanningGroupsWidget::addKinematicChainGroup()
+void PlanningGroupsTableWidget::addLinkCollectionGroup()
+{
+  std::cout << "ADD Link COLL" << std::endl;
+}
+
+void PlanningGroupsTableWidget::addKinematicChainGroup()
 {
   std::cout << "ADD KIN CHAIN" << std::endl;
 }
 
-void PlanningGroupsWidget::addJointCollectionGroup()
+void PlanningGroupsTableWidget::addEndEffector()
 {
-  std::cout << "ADD JOINT COLL" << std::endl;
+  std::cout << "ADD END EFFEC" << std::endl;
 }
+
+void PlanningGroupsTableWidget::addSuperGroup()
+{
+  std::cout << "ADD SUPER GROUP" << std::endl;
+}
+
+

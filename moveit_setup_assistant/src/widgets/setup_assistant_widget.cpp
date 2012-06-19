@@ -78,8 +78,8 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   navs_ << NavScreen("Robot Poses", rpw, false);
 
   // End Effectors
-  EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
-  navs_ << NavScreen("End Effectors", efw, false);
+  //EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
+  //navs_ << NavScreen("End Effectors", efw, false);
 
   // Configuration Files
   ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this, config_data );

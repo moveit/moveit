@@ -34,33 +34,54 @@
 
 /* Author: Dave Coleman */
 
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QString>
-#include "header_widget.h" // for setup assistant template
-#include "template_widget.h"
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_TEMPLATE_WIDGET_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_TEMPLATE_WIDGET_
 
-// ******************************************************************************************
-// Outer User Interface for MoveIt Configuration Assistant
-// ******************************************************************************************
-TemplateWidget::TemplateWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
-  :  QWidget( parent ), config_data_( config_data )
+#include <QWidget>
+#include <QTableWidget>
+#include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
+
+class JointCollectionWidget : public QWidget
 {
-  // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout( );
+  Q_OBJECT
 
-  // Top Header Area ------------------------------------------------
+public:
+  // ******************************************************************************************
+  // Public Functions
+  // ******************************************************************************************
 
-  HeaderWidget *header = new HeaderWidget( "Robot Poses",
-                                           "Save sets of robot joint state groups",
-                                           this);
-  layout->addWidget( header );
+  JointCollectionWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
-  // Finish Layout --------------------------------------------------
 
-  this->setLayout(layout);
-}
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+  
+  QTableWidget *joint_table_;
+  QTableWidget *selected_joint_table_;
 
+private Q_SLOTS:
+
+  // ******************************************************************************************
+  // Slot Event Functions
+  // ******************************************************************************************
+
+
+private:
+
+
+  // ******************************************************************************************
+  // Variables
+  // ******************************************************************************************
+
+  /// Contains all the configuration data for the setup assistant
+  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+
+  // ******************************************************************************************
+  // Private Functions
+  // ******************************************************************************************
+
+
+};
+
+#endif
