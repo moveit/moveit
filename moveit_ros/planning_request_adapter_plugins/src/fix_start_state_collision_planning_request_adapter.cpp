@@ -126,6 +126,8 @@ public:
           jstates[i]->getJointModel()->getRandomValuesNearBy(rng, sampled_variable_values, jstates[i]->getVariableBounds(), original_values,
                                                              jstates[i]->getJointModel()->getMaximumExtent() * jiggle_fraction_);
           jstates[i]->setVariableValues(sampled_variable_values);
+	  start_state.updateLinkTransforms();
+	  std::cout << "State distance: " << prefix_state.distance(start_state) << std::endl;
           collision_detection::CollisionResult cres;
           planning_scene->checkCollision(creq, cres, start_state);
           if (!cres.collision)
@@ -140,7 +142,7 @@ public:
       {
         moveit_msgs::GetMotionPlan::Request req2 = req;
         planning_models::kinematicStateToRobotState(start_state, req2.motion_plan_request.start_state);
-        bool solved = planner(planning_scene, req2, res);
+	bool solved = planner(planning_scene, req2, res);
         planning_models::kinematicStateToRobotState(prefix_state, res.trajectory_start);
         if (solved)
         {        
