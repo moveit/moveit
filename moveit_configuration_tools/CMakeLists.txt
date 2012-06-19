@@ -43,7 +43,6 @@ qt4_wrap_cpp(moc_sources ${headers})
 # Tools Library
 rosbuild_add_library(${PROJECT_NAME}
   src/tools/compute_default_collisions.cpp
-  #src/tools/compute_longest_valid_segment_fraction.cpp
   #src/tools/srdf_writer.cpp
   src/tools/moveit_config_data.cpp
   src/tools/benchmark_timer.cpp

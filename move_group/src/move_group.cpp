@@ -144,6 +144,10 @@ public:
         /// We need a callback in the trajectory monitor for this
         d.sleep();
       } 
+      if (preempt_requested_)
+      {
+	// \TODO preempt controller somehow
+      }
       if(last_trajectory_execution_data_vector_.size() == 0)
       {
         ROS_WARN_STREAM("No recorded trajectory for execution");
