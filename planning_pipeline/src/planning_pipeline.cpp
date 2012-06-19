@@ -133,7 +133,7 @@ void planning_pipeline::PlanningPipeline::configure(const planning_models::Kinem
       }
       catch (pluginlib::PluginlibException& ex)
       {
-        ROS_ERROR_STREAM("Exception while planning adapter plugin '" << adapter_plugin_names_[i] << "': " << ex.what());
+        ROS_ERROR_STREAM("Exception while loading planning adapter plugin '" << adapter_plugin_names_[i] << "': " << ex.what());
       }
       if (ad)
         ads.push_back(ad);

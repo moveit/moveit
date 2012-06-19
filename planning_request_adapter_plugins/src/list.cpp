@@ -36,9 +36,12 @@
 
 #include <pluginlib/class_loader.h>
 #include <planning_request_adapter/planning_request_adapter.h>
+#include <ros/ros.h>
 
 int main(int argc, char **argv)
 {
+  ros::init(argc, argv, "list_planning_adapter_plugins");
+  
   boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > loader;
   try
   {
@@ -46,13 +49,27 @@ int main(int argc, char **argv)
   }
   catch(pluginlib::PluginlibException& ex)
   {
-    ROS_FATAL_STREAM("Exception while creating class loader " << ex.what());
+    std::cout << "Exception while creating class loader " << ex.what() << std::endl;
   }  
 
   const std::vector<std::string> &classes = loader->getDeclaredClasses();
   std::cout << "Available planning request adapter plugins:" << std::endl;
   for (std::size_t i = 0 ; i < classes.size() ; ++i)
-    std::cout << classes[i] << std::endl;
+  {
+    std::cout << " \t " << classes[i] << std::endl;
+    planning_request_adapter::PlanningRequestAdapterConstPtr ad;
+    try
+    {
+      ad.reset(loader->createUnmanagedInstance(classes[i]));
+    }
+    catch (pluginlib::PluginlibException& ex)
+    {
+      std::cout << " \t\t  Exception while planning adapter plugin '" << classes[i] << "': " << ex.what() << std::endl;
+    }
+    if (ad)
+      std::cout << " \t\t  " << ad->getDescription() << std::endl;
+    std::cout << std::endl << std::endl;
+  }
   
   return 0;
 }

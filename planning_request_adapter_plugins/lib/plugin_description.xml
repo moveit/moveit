@@ -15,7 +15,12 @@
     </description>
   </class>
 
-  <class name="default_planner_request_adapters/FixStartStateWorkspaceBoundsPlanningRequestAdapter" type="default_planner_request_adapters::FixStartStateWorkspaceBoundsPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+  <class name="default_planner_request_adapters/FixWorkspaceBoundsPlanningRequestAdapter" type="default_planner_request_adapters::FixWorkspaceBoundsPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
+  <class name="default_planner_request_adapters/FixStartStateCollisionPlanningRequestAdapter" type="default_planner_request_adapters::FixStartStateCollisionPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
   </class>
