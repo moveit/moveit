@@ -31,13 +31,12 @@
 
 #include <moveit_visualization_ros/collision_visualization.h>
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
-#include <conversion_utilities/msg_eigen.h>
+#include <planning_models/transforms.h>
 
 static const ros::WallDuration sleep_time = ros::WallDuration(0.01);
 
 namespace moveit_visualization_ros
 {
-  using namespace conversion_utilities;
 
 CollisionVisualization::CollisionVisualization(ros::Publisher& marker_publisher)
   : marker_publisher_(marker_publisher)
@@ -71,9 +70,10 @@ void CollisionVisualization::drawCollisions(const collision_detection::Collision
                  pos(0), pos(1), pos(2),
                  normal(0), normal(1), normal(2),
                  depth);
-
-
-        visualization_msgs::Marker marker = makeArrow(msg::pointEigenToMsg(pos), msg::pointEigenToMsg(pos+0.2*normal));
+        geometry_msgs::Point p1, p2;
+        planning_models::msgFromPoint(pos, p1);
+        planning_models::msgFromPoint(pos+0.2*normal, p2);
+        visualization_msgs::Marker marker = makeArrow(p1, p2);
         marker.header.frame_id= frame;
         marker.header.stamp = now;
         marker.id = arrow_count++;
