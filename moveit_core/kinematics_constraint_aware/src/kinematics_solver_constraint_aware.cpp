@@ -694,19 +694,13 @@ void KinematicsSolverConstraintAware::collisionCheck(const geometry_msgs::Pose &
     ROS_DEBUG_STREAM_NAMED("kinematics_collision", getCollisionDetectedString(res));
     error_code.val = error_code.GOAL_IN_COLLISION;
     ROS_DEBUG_STREAM("Collision constraints violated");
-  } else if(!kinematic_constraints::doesKinematicStateObeyConstraints(*state_, 
-                                                                      planning_scene_->getTransforms(),
-                                                                      constraints_, 
-                                                                      false)) {
+  } else if(!planning_scene_->isStateConstrained(*state_, constraints_, false)) {
     std::stringstream s;
     for(unsigned int i = 0; i < ik_solution.size(); i++) {
       s << " " << ik_solution[i];
     }
     ROS_DEBUG_STREAM("Sol " << s.str());
-    kinematic_constraints::doesKinematicStateObeyConstraints(*state_, 
-                                                             planning_scene_->getTransforms(),
-                                                             constraints_, 
-                                                             true);
+    planning_scene_->isStateConstrained(*state_, constraints_, true);
     error_code.val = error_code.GOAL_VIOLATES_PATH_CONSTRAINTS;
   }
 }
