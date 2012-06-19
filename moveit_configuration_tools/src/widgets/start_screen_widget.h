@@ -54,12 +54,13 @@
 #include <QFileDialog>
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loading images
-#include "header_widget.h"
+#include "header_widget.h" // title and instructions
 #include <fstream>  // for reading in urdf
 #include <streambuf>
+#include <boost/algorithm/string.hpp> // for trimming whitespace from user input
 #include <urdf/model.h> // for testing a valid urdf is loaded
 #include <srdf/model.h> // for testing a valid srdf is loaded
-#include "moveit_configuration_tools/tools/moveit_config_data.h"
+#include "moveit_configuration_tools/tools/moveit_config_data.h" // common datastructure class
 
 // Class Prototypes
 class SelectModeWidget;
@@ -191,6 +192,9 @@ public:
 
   /// Returns the file path in std::string format
   const std::string getPath();
+
+  /// Set the URDF path
+  void setPath( const QString &path );
 };
 
 

@@ -45,8 +45,8 @@ NavScreen::NavScreen()
 {
 }
 
-NavScreen::NavScreen(const QString &name, QWidget *screen ) :
-  name_(name), screen_(screen)
+NavScreen::NavScreen(const QString &name, QWidget *screen, bool disabled ) :
+  name_(name), screen_(screen), disabled_(disabled)
 {
 
 }
@@ -59,6 +59,16 @@ QString NavScreen::name() const
 QWidget * NavScreen::screen()
 {
   return screen_;
+}
+
+bool NavScreen::isDisabled()
+{
+  return disabled_;
+}
+
+void NavScreen::setDisabled( bool disabled )
+{
+  disabled_ = disabled;
 }
 
 // ******************************************************************************************
@@ -120,7 +130,7 @@ void NavigationWidget::setSelected(const int &index)
 }
 
 /*void NavigationWidget::pressed( const QModelIndex & index )
-{
+  {
   std::cout << "helloooo222" << std::endl;
   }*/
 
@@ -137,8 +147,8 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
 {
   if(index.data().canConvert<NavScreen>())
     paintNav(painter, option, index);
-  else
-    paintLetter(painter, option, index);
+  //  else
+  //    paintLetter(painter, option, index);
 }
 
 QSize NavDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -196,11 +206,16 @@ void NavDelegate::paintNav(QPainter *painter, const QStyleOptionViewItem &option
   textFont.setFamily("Arial"); //Helvetica Neue");
 
   // Font color
-  painter->setPen(QColor(69, 69, 69)); //69
+  painter->setPen(QColor(69, 69, 69));
   if(isSelected){
     painter->setPen(QColor(229, 229, 229));
   }
 
+  // Disabled font color if disabled
+  if( tp.isDisabled() )
+  {
+    //painter->setPen(QColor(170, 170, 170)); // TODO: make this work
+  }
 
   painter->setFont(textFont);
   painter->drawText(textRect, Qt::AlignLeft|Qt::AlignVCenter, tp.name());
@@ -208,15 +223,15 @@ void NavDelegate::paintNav(QPainter *painter, const QStyleOptionViewItem &option
   painter->restore();
 }
 
-void NavDelegate::paintLetter(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
+/*void NavDelegate::paintLetter(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+  {
   //const bool isSelected = option.state & QStyle::State_Selected;
   //const bool isHovered = option.state & QStyle::State_MouseOver;
 
   painter->save();
 
   QLinearGradient backgroundGradient(QPoint(option.rect.x(), option.rect.y()), 
-                                     QPoint(option.rect.x(), option.rect.y()+option.rect.height()));
+  QPoint(option.rect.x(), option.rect.y()+option.rect.height()));
   //        painter->fillRect(option.rect, QBrush(QColor(225, 225, 225)));
 
   backgroundGradient.setColorAt(0, QColor(215, 215, 215));
@@ -236,4 +251,4 @@ void NavDelegate::paintLetter(QPainter *painter, const QStyleOptionViewItem &opt
   painter->drawText(textRect, Qt::AlignLeft|Qt::AlignVCenter, index.model()->data(index).toString());
 
   painter->restore();
-}
+  }*/

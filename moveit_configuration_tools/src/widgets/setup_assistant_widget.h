@@ -62,6 +62,7 @@
 #include "compute_default_collisions_widget.h"
 #include "planning_groups_widget.h"
 #include "robot_poses_widget.h"
+#include "end_effectors_widget.h"
 #include "configuration_files_widget.h"
 #include "moveit_configuration_tools/tools/moveit_config_data.h"
 

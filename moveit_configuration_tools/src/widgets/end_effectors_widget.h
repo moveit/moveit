@@ -47,7 +47,7 @@
 #include "header_widget.h"
 #include "moveit_configuration_tools/tools/moveit_config_data.h" // common datastructure class
 
-class TemplateWidget : public QWidget
+class EndEffectorsWidget : public QWidget
 {
   Q_OBJECT
 
@@ -56,7 +56,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  TemplateWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data );
+  EndEffectorsWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data );
 
 
   // ******************************************************************************************

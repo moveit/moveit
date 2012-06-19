@@ -67,7 +67,7 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_configuratio
 
   // Table
   groups_table_ = new QTableWidget( this );
-  groups_table_->setColumnCount(3);
+  groups_table_->setColumnCount(2);
   //groups_table_->resizeColumnToContents(0);
   /*groups_table_->setColumnWidth(0, 300);
   groups_table_->setColumnWidth(1, 150);
@@ -80,11 +80,9 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_configuratio
   QStringList header_list;
   header_list.append("Planning Group");
   header_list.append("Group Type");
-  header_list.append("Category");
   groups_table_->setHorizontalHeaderLabels(header_list);
   groups_table_->resizeColumnToContents(0);
   groups_table_->resizeColumnToContents(1);
-  groups_table_->resizeColumnToContents(2);
  
   // Bottom Area ----------------------------------------
   QHBoxLayout *controls_layout = new QHBoxLayout( );
@@ -121,6 +119,7 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_configuratio
 
   // Rviz Right Side -------------------------------------
   QLabel *temp = new QLabel( "RVIZ", this );
+  temp->setMinimumWidth( 300 );
   right_layout->addWidget( temp );
 
   // Split screen -----------------------------------------
