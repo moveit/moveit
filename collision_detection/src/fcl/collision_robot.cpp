@@ -146,6 +146,7 @@ void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const Coll
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
   CollisionData cd(&req, &res, acm);
+  cd.enableGroup(getKinematicModel());
   manager.manager_->collide(&cd, &collisionCallback);
   if (req.distance)
     res.distance = distanceSelfHelper(state, acm);
@@ -189,6 +190,7 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
   fcl_rob.constructFCLObject(other_state, other_fcl_obj);
   
   CollisionData cd(&req, &res, acm);
+  cd.enableGroup(getKinematicModel());
   for (std::size_t i = 0 ; !cd.done_ && i < other_fcl_obj.collision_objects_.size() ; ++i)
     manager.manager_->collide(other_fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
   if (req.distance)

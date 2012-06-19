@@ -43,11 +43,23 @@ namespace collision_detection
 {
 bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void *data)
 {
-  CollisionData *cdata = (CollisionData*)data;
+  CollisionData *cdata = reinterpret_cast<CollisionData*>(data);
   if (cdata->done_)
     return true;
   const CollisionGeometryData *cd1 = static_cast<const CollisionGeometryData*>(o1->getCollisionGeometry()->getUserData());
   const CollisionGeometryData *cd2 = static_cast<const CollisionGeometryData*>(o2->getCollisionGeometry()->getUserData());
+  
+  // If active components are specified
+  if (cdata->active_components_only_)
+  {
+    const planning_models::KinematicModel::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
+    const planning_models::KinematicModel::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
+    
+    // If neither of the involved components is active
+    if ((!l1 || cdata->active_components_only_->find(l1) == cdata->active_components_only_->end()) &&
+        (!l2 || cdata->active_components_only_->find(l2) == cdata->active_components_only_->end()))
+      return false;
+  }
   
   // use the collision matrix (if any) to avoid certain collision checks
   DecideContactFn dcf;
@@ -530,6 +542,21 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
   return createCollisionGeometry<fcl::OBBRSS, CollisionWorld::Object>(shape, scale, padding, obj);
 }
 
+}
+
+void collision_detection::CollisionData::enableGroup(const planning_models::KinematicModelConstPtr &kmodel)
+{
+  if (kmodel->hasJointModelGroup(req_->group_name))
+  {
+    if (active_components_only_)
+      active_components_only_->clear();
+    else
+      active_components_only_ = new std::set<const planning_models::KinematicModel::LinkModel*>();
+    const planning_models::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req_->group_name);
+    const std::vector<const planning_models::KinematicModel::LinkModel*> &links = jmg->getLinkModels();
+    for (std::size_t i = 0 ; i < links.size() ; ++i)
+      active_components_only_->insert(links[i]);
+  }
 }
 
 void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager *manager)
