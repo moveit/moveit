@@ -64,58 +64,7 @@ public:
 
   PlanningGroupsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
-private Q_SLOTS:
-
-  // ******************************************************************************************
-  // Slot Event Functions
-  // ******************************************************************************************
-
-private:
-
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-
-  /// For changing between table and different add/edit views
-  QStackedLayout *stacked_layout_;
-
-  /// Main widget for groups
-  PlanningGroupsTableWidget *groups_table_widget_;
-  
-  /// Subpages for types of planning groups
-  JointCollectionWidget *joints_widget_;
-
-
-  // ******************************************************************************************
-  // Variables
-  // ******************************************************************************************
-
-  /// Contains all the configuration data for the setup assistant
-  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
-
-  // ******************************************************************************************
-  // Private Functions
-  // ******************************************************************************************
-
-
-};
-
-
-// ******************************************************************************************
-// ******************************************************************************************
-// CLASS
-// ******************************************************************************************
-// ******************************************************************************************
-class PlanningGroupsTableWidget : public QWidget
-{
-  Q_OBJECT
-
-public:
-  // ******************************************************************************************
-  // Public Functions
-  // ******************************************************************************************
-
-  PlanningGroupsTableWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  void changeScreen( int index );
 
 private Q_SLOTS:
 
@@ -129,11 +78,23 @@ private Q_SLOTS:
   void addEndEffector();
   void addSuperGroup();
 
+  /// This is called when a child screen (add/edit screens) are ready to come back to main screen
+  void doneEditing();
+  
 private:
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
+
+  /// For changing between table and different add/edit views
+  QStackedLayout *stacked_layout_;
+
+  /// Subpages for types of planning groups
+  JointCollectionWidget *joints_widget_;
+
+  /// Main contents widget
+  QWidget *groups_table_widget_;
 
   /// Main table for holding groups
   QTableWidget *groups_table_;
@@ -148,7 +109,7 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
-
+  QWidget* createContentsWidget();
 
 };
 

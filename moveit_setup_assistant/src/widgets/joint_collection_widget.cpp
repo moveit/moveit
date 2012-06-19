@@ -149,6 +149,7 @@ JointCollectionWidget::JointCollectionWidget( QWidget *parent, moveit_setup_assi
   // Cancel
   QPushButton *btn_cancel = new QPushButton( "Cancel", this );
   btn_cancel->setMaximumWidth( 200 );
+  connect( btn_cancel, SIGNAL(clicked()), parent, SLOT( doneEditing() ) );
   controls_layout->addWidget( btn_cancel );
   controls_layout->setAlignment(btn_cancel, Qt::AlignRight);
   
