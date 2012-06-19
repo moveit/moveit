@@ -38,13 +38,6 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_TEMPLATE_WIDGET_
 
 #include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QString>
-#include "header_widget.h"
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
 
 class TemplateWidget : public QWidget
