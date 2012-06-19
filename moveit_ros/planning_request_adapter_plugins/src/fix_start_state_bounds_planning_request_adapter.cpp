@@ -36,6 +36,7 @@
 
 #include <planning_request_adapter/planning_request_adapter.h>
 #include <boost/math/constants/constants.hpp>
+#include <trajectory_processing/trajectory_tools.h>
 #include <planning_models/conversions.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
@@ -166,23 +167,14 @@ public:
     
     // re-add the prefix state, if it was constructed
     if (prefix)
-    {
+    {      
+      planning_models::kinematicStateToRobotState(*prefix, res.trajectory_start);
       if (solved)
       {
         // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
-        double d = max_dt_offset_;
-        if (res.trajectory.joint_trajectory.points.size() > 1 || res.trajectory.multi_dof_joint_trajectory.points.size() > 1)
-        {
-          double temp = (res.trajectory.joint_trajectory.points.size() > res.trajectory.multi_dof_joint_trajectory.points.size()) ? 
-            res.trajectory.joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.joint_trajectory.points.size() - 1) :
-            res.trajectory.multi_dof_joint_trajectory.points.back().time_from_start.toSec() / (double)(res.trajectory.multi_dof_joint_trajectory.points.size() - 1);
-          if (temp < d)
-            d = temp;
-        }
-        addPrefixState(*prefix, res, d, planning_scene->getTransforms());
+        double d = std::min(max_dt_offset_, trajectory_processing::averageSegmentDuration(res.trajectory));
+        trajectory_processing::addPrefixState(*prefix, res.trajectory, d, planning_scene->getTransforms());
       }
-      else
-        planning_models::kinematicStateToRobotState(*prefix, res.trajectory_start);
     }
 
     trajectory_msgs::JointTrajectory orig_trajectory = res.trajectory.joint_trajectory;
@@ -232,7 +224,7 @@ private:
 
 
 const std::string FixStartStateBoundsPlanningRequestAdapter::BOUNDS_PARAM_NAME = "start_state_max_bounds_error";
-const std::string FixStartStateBoundsPlanningRequestAdapter::DT_PARAM_NAME = "state_state_max_dt";
+const std::string FixStartStateBoundsPlanningRequestAdapter::DT_PARAM_NAME = "start_state_max_dt";
 
 }
 

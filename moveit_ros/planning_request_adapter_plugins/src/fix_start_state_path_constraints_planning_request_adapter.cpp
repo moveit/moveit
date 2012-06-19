@@ -37,6 +37,7 @@
 #include <planning_request_adapter/planning_request_adapter.h>
 #include <planning_models/conversions.h>
 #include <pluginlib/class_list_macros.h>
+#include <trajectory_processing/trajectory_tools.h>
 #include <ros/ros.h>
 
 namespace default_planner_request_adapters
@@ -83,15 +84,13 @@ public:
         std::size_t last_index = std::max(res2.trajectory.joint_trajectory.points.size(),
                                           res2.trajectory.multi_dof_joint_trajectory.points.size());
         ROS_DEBUG("Planned to path constraints. Resuming original planning request.");
-        if (last_index > 0)
-        {
-          // extract the last state of the computed motion plan and set it as the new start state
-          moveit_msgs::RobotState new_start;
-          planning_models::robotTrajectoryPointToRobotState(res2.trajectory, last_index - 1, new_start);
-          planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), new_start, start_state);
-          planning_models::kinematicStateToRobotState(start_state, req3.motion_plan_request.start_state);
-        }
-        
+        assert(last_index > 0);
+        // extract the last state of the computed motion plan and set it as the new start state
+        moveit_msgs::RobotState new_start;
+        planning_models::robotTrajectoryPointToRobotState(res2.trajectory, last_index - 1, new_start);
+        planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), new_start, start_state);
+        planning_models::kinematicStateToRobotState(start_state, req3.motion_plan_request.start_state);
+                
         bool solved2 = planner(planning_scene, req3, res);
         if (solved2)
         {
@@ -139,7 +138,7 @@ public:
                 double dt = ((int)res.trajectory.joint_trajectory.points.size() > i + 1) ?
                   (res.trajectory.joint_trajectory.points[i + 1].time_from_start - res.trajectory.joint_trajectory.points[i].time_from_start).toSec() : 
                   (res.trajectory.multi_dof_joint_trajectory.points[i + 1].time_from_start - res.trajectory.multi_dof_joint_trajectory.points[i].time_from_start).toSec();
-                addPrefixState(st, res, dt, planning_scene->getTransforms());
+                trajectory_processing::addPrefixState(st, res.trajectory, dt, planning_scene->getTransforms());
               }
             }
           }
@@ -160,7 +159,7 @@ public:
       return planner(planning_scene, req, res);
     }
   }
-  
+
 };
 
 }

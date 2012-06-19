@@ -41,17 +41,17 @@
 namespace default_planner_request_adapters
 {
 
-class FixStartStateWorkspaceBoundsPlanningRequestAdapter : public planning_request_adapter::PlanningRequestAdapter
+class FixWorkspaceBoundsPlanningRequestAdapter : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
   
   static const std::string WBOUNDS_PARAM_NAME;
   
-  FixStartStateWorkspaceBoundsPlanningRequestAdapter(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixWorkspaceBoundsPlanningRequestAdapter(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(WBOUNDS_PARAM_NAME, workspace_extent_))
     {
-      workspace_extent_ = 1.0;
+      workspace_extent_ = 10.0;
       ROS_INFO_STREAM("Param '" << WBOUNDS_PARAM_NAME << "' was not set. Using default value: " << workspace_extent_);
     }
     else
@@ -59,13 +59,14 @@ public:
     workspace_extent_ /= 2.0;
   }
   
-  virtual std::string getDescription(void) const { return "Fix Start State Workspace Bounds"; }
+  virtual std::string getDescription(void) const { return "Fix Workspace Bounds"; }
   
   virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
                             const moveit_msgs::GetMotionPlan::Request &req, 
                             moveit_msgs::GetMotionPlan::Response &res) const
   {
+    ROS_DEBUG("Running '%s'", getDescription().c_str());
     const moveit_msgs::WorkspaceParameters &wparams = req.motion_plan_request.workspace_parameters;
     if (wparams.min_corner.x == wparams.max_corner.x && wparams.min_corner.x == 0.0 &&
         wparams.min_corner.y == wparams.max_corner.y && wparams.min_corner.y == 0.0 &&
@@ -87,10 +88,10 @@ private:
   double workspace_extent_;
 };
 
-const std::string FixStartStateWorkspaceBoundsPlanningRequestAdapter::WBOUNDS_PARAM_NAME = "start_state_default_workspace_bounds";
+const std::string FixWorkspaceBoundsPlanningRequestAdapter::WBOUNDS_PARAM_NAME = "default_workspace_bounds";
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixStartStateWorkspaceBoundsPlanningRequestAdapter,
-                        default_planner_request_adapters::FixStartStateWorkspaceBoundsPlanningRequestAdapter,
+PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixWorkspaceBoundsPlanningRequestAdapter,
+                        default_planner_request_adapters::FixWorkspaceBoundsPlanningRequestAdapter,
                         planning_request_adapter::PlanningRequestAdapter);

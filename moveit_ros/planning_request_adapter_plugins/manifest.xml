@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/planning_request_adapter_plugins</url>
   <depend package="planning_request_adapter"/>
   <depend package="planning_scene"/>
+  <depend package="trajectory_processing"/>
   <depend package="pluginlib"/>
   <depend package="roscpp"/>
 
