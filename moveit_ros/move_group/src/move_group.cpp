@@ -39,6 +39,7 @@
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
 #include <planning_pipeline/planning_pipeline.h>
+#include <kinematic_constraints/utils.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";      // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";
@@ -55,22 +56,22 @@ public:
     };
   
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorConstPtr& psm) : 
-    nh_("~"), psm_(psm), move_group_pipeline_(psm->getPlanningScene()->getKinematicModel()), state_(IDLE)
+    node_handle_("~"), planning_scene_monitor_(psm), move_group_pipeline_(psm->getPlanningScene()->getKinematicModel()), state_(IDLE)
   {
     bool allow_trajectory_execution = true;
-    nh_.param("allow_trajectory_execution", allow_trajectory_execution, true);
+    node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
     
     if (allow_trajectory_execution)
     {
       bool manage_controllers = false;
-      nh_.param("manage_controllers", manage_controllers, true);
-      trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(psm_->getPlanningScene()->getKinematicModel(),
+      node_handle_.param("manage_controllers", manage_controllers, true);
+      trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(planning_scene_monitor_->getPlanningScene()->getKinematicModel(),
                                                                                               manage_controllers));
     }
     move_group_pipeline_.displayComputedMotionPlans(true);
     
     // start the action server
-    action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_nh_, NODE_NAME, boost::bind(&MoveGroupAction::executeCallback, this, _1), false));
+    action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_node_handle_, NODE_NAME, boost::bind(&MoveGroupAction::executeCallback, this, _1), false));
     action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
     action_server_->start();
   }
@@ -79,7 +80,7 @@ public:
   {
     preempt_requested_ = true;
   }
-
+  
   void executeCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
   {
     moveit_msgs::MoveGroupResult action_res;
@@ -93,10 +94,25 @@ public:
       setState(IDLE);
       return;    
     }
+    
+    // check to see if the desired constraints are already met
+    for (std::size_t i = 0 ; i < mreq.motion_plan_request.goal_constraints.size() ; ++i)
+      if (planning_scene_monitor_->getPlanningScene()->isStateConstrained(mreq.motion_plan_request.start_state,
+                                                                          kinematic_constraints::mergeConstraints(mreq.motion_plan_request.goal_constraints[i],
+                                                                                                                  mreq.motion_plan_request.path_constraints)))
+      {
+        
+        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+        action_server_->setSucceeded(action_res, "Requested path and goal constraints are already met.");
+        setState(IDLE);
+        return;
+      }
+    
     setState(PLANNING);
     moveit_msgs::GetMotionPlan::Response mres;
     const planning_scene::PlanningSceneConstPtr &the_scene = 
-      planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff) ? psm_->getPlanningScene() : planning_scene::PlanningScene::diff(psm_->getPlanningScene(), goal->planning_scene_diff);
+      planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff) ? planning_scene_monitor_->getPlanningScene() :
+      planning_scene::PlanningScene::diff(planning_scene_monitor_->getPlanningScene(), goal->planning_scene_diff);
     
     bool solved = move_group_pipeline_.generatePlan(the_scene, mreq, mres);
     
@@ -107,7 +123,7 @@ public:
       setState(IDLE);
       return;
     }
-    if (!psm_->getPlanningScene()->isPathValid(mres.trajectory_start, mres.trajectory))
+    if (!planning_scene_monitor_->getPlanningScene()->isPathValid(mres.trajectory_start, mres.trajectory))
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
       action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). No execum");
@@ -118,7 +134,7 @@ public:
     action_res.planned_trajectory = mres.trajectory;
     if (!goal->plan_only && !trajectory_execution_)
       ROS_WARN_STREAM("Move group asked for execution and was not configured to allow execution");
-
+    
     if (goal->plan_only || !trajectory_execution_)
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -138,7 +154,7 @@ public:
     if (trajectory_execution_->executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
     {
       ros::WallDuration d(0.01);
-      while (nh_.ok() && !execution_complete_ && !preempt_requested_)
+      while (node_handle_.ok() && !execution_complete_ && !preempt_requested_)
       {
         /// \TODO Check if the remainder of the path is still valid; If not, replan.
         /// We need a callback in the trajectory monitor for this
@@ -212,9 +228,9 @@ public:
   
 private:
   
-  ros::NodeHandle root_nh_;
-  ros::NodeHandle nh_;
-  planning_scene_monitor::PlanningSceneMonitorConstPtr psm_;
+  ros::NodeHandle root_node_handle_;
+  ros::NodeHandle node_handle_;
+  planning_scene_monitor::PlanningSceneMonitorConstPtr planning_scene_monitor_;
   
   planning_pipeline::PlanningPipeline move_group_pipeline_;
   
@@ -231,12 +247,10 @@ private:
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, NODE_NAME, ros::init_options::AnonymousName);
+  ros::init(argc, argv, NODE_NAME);
   
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
-  ros::NodeHandle nh("~");
   
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor(new planning_scene_monitor::PlanningSceneMonitor(ROBOT_DESCRIPTION, tf));
