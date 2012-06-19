@@ -62,14 +62,14 @@ void InteractiveObjectVisualization::addCube(const std::string& name) {
   pose.position.z = DEFAULT_Z;
   pose.orientation.w = 1.0;
 
-  shape_msgs::Shape shape;
-  shape.type = shape_msgs::Shape::BOX;
-  shape.dimensions.resize(3, DEFAULT_SCALE);
+  shape_msgs::SolidPrimitive shape;
+  shape.type = shape_msgs::SolidPrimitive::BOX;
+  shape.dimensions.x = shape.dimensions.y = shape.dimensions.z = DEFAULT_SCALE;
 
   moveit_msgs::CollisionObject coll;
   coll.id = name_to_pass;
-  coll.poses.push_back(pose);
-  coll.shapes.push_back(shape);
+  coll.primitive_poses.push_back(pose);
+  coll.primitives.push_back(shape);
 
   addObject(coll);
 }
@@ -85,14 +85,15 @@ void InteractiveObjectVisualization::addSphere(const std::string& name) {
   pose.position.z = DEFAULT_Z;
   pose.orientation.w = 1.0;
 
-  shape_msgs::Shape shape;
-  shape.type = shape_msgs::Shape::SPHERE;
-  shape.dimensions.resize(1, DEFAULT_SCALE);
-
+  shape_msgs::SolidPrimitive shape;
+  shape.type = shape_msgs::SolidPrimitive::SPHERE;
+  shape.dimensions.x = DEFAULT_SCALE;
+  shape.dimensions.y = shape.dimensions.z = 0.0;
+  
   moveit_msgs::CollisionObject coll;
   coll.id = name_to_pass;
-  coll.poses.push_back(pose);
-  coll.shapes.push_back(shape);
+  coll.primitive_poses.push_back(pose);
+  coll.primitives.push_back(shape);
 
   addObject(coll);
 }
@@ -108,14 +109,16 @@ void InteractiveObjectVisualization::addCylinder(const std::string& name) {
   pose.position.z = DEFAULT_Z;
   pose.orientation.w = 1.0;
 
-  shape_msgs::Shape shape;
-  shape.type = shape_msgs::Shape::CYLINDER;
-  shape.dimensions.resize(2, DEFAULT_SCALE);
+  shape_msgs::SolidPrimitive shape;
+  shape.type = shape_msgs::SolidPrimitive::CYLINDER;
+  shape.dimensions.x = DEFAULT_SCALE;
+  shape.dimensions.y = 0.0;
+  shape.dimensions.z = DEFAULT_SCALE;
 
   moveit_msgs::CollisionObject coll;
   coll.id = name_to_pass;
-  coll.poses.push_back(pose);
-  coll.shapes.push_back(shape);
+  coll.primitive_poses.push_back(pose);
+  coll.primitives.push_back(shape);
 
   addObject(coll);
 }
@@ -168,66 +171,89 @@ void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObjec
   }
   //ROS_INFO_STREAM("Insertion took " << (ros::WallTime::now()-first).toSec());
   
-  geometry_msgs::PoseStamped pose_stamped;
-  pose_stamped.header.frame_id = "/"+planning_scene_->getPlanningFrame();
-  pose_stamped.pose = coll.poses[0];
-  visualization_msgs::InteractiveMarker marker; 
-  if(coll.shapes.size() == 0) {
+  if(coll.primitives.empty() && coll.meshes.empty()) {
     ROS_WARN_STREAM("No shapes");
     return;
   }
-  if(coll.poses.size() > 1 &&
-     coll.shapes.size() == 1) {
+  if(coll.primitive_poses.empty() && coll.mesh_poses.empty()) {
+    ROS_WARN_STREAM("No poses");
+    return;
+  }
+  visualization_msgs::InteractiveMarker marker; 
+
+  if(coll.primitive_poses.size() > 1 && coll.primitives.size() == 1 && coll.meshes.empty()) {
     marker = makeButtonPointMass(coll.id,
                                  "/"+planning_scene_->getPlanningFrame(),
-                                 coll.poses,
+                                 coll.primitive_poses,
                                  color_to_use,
-                                 coll.shapes[0].dimensions[0],
+                                 coll.primitives[0].dimensions.x,
                                  false,
                                  false);
     ROS_INFO_STREAM("Made button mass");
-  } else if(coll.shapes.size() > 1) {
+  } else if(coll.primitives.size() + coll.meshes.size() > 1) {
+    std::vector<shapes::ShapeMsg> shapes;
+    std::vector<geometry_msgs::Pose> poses;
+    for (std::size_t i = 0 ; i < coll.primitives.size() ; ++i)
+    {
+      shapes::ShapeMsg s = coll.primitives[i]; shapes.push_back(s);
+      poses.push_back(coll.primitive_poses[i]);
+    }
+    for (std::size_t i = 0 ; i < coll.meshes.size() ; ++i)
+    {
+      shapes::ShapeMsg s = coll.meshes[i]; shapes.push_back(s);
+      poses.push_back(coll.mesh_poses[i]);
+    }
     marker = makeButtonCompoundShape(coll.id,
                                      "/"+planning_scene_->getPlanningFrame(),
-                                     coll.shapes,
-                                     coll.poses,
+                                     shapes,
+                                     poses,
                                      color_to_use,
                                      1.0,
                                      false,
                                      false);
     ROS_INFO_STREAM("Made compound object");
   } else {
-    const shape_msgs::Shape& shape_msg = coll.shapes[0];
-    if(shape_msg.type == shape_msgs::Shape::BOX) {
-      marker = makeButtonBox(coll.id,
-                             pose_stamped,
-                             shape_msg.dimensions[0],
-                             shape_msg.dimensions[1],
-                             shape_msg.dimensions[2],
-                             false, 
-                             false);
-    } else if(shape_msg.type == shape_msgs::Shape::CYLINDER) { 
-      // TODO aleeper: I added this factor of 2 to make the marker have the same radius as the collision object.
-      marker = makeButtonCylinder(coll.id,
+    if (coll.meshes.empty())
+    {
+      const shape_msgs::SolidPrimitive& shape_msg = coll.primitives[0]; 
+      geometry_msgs::PoseStamped pose_stamped;
+      pose_stamped.header.frame_id = "/"+planning_scene_->getPlanningFrame();
+      pose_stamped.pose = coll.primitive_poses[0];
+      
+      if(shape_msg.type == shape_msgs::SolidPrimitive::BOX) {
+        marker = makeButtonBox(coll.id,
+                               pose_stamped,
+                               shape_msg.dimensions.x,
+                               shape_msg.dimensions.y,
+                               shape_msg.dimensions.z,
+                               false, 
+                               false);
+      } else if(shape_msg.type == shape_msgs::SolidPrimitive::CYLINDER) { 
+        marker = makeButtonCylinder(coll.id,
+                                    pose_stamped,
+                                    shape_msg.dimensions.x,
+                                    shape_msg.dimensions.z,
+                                    false, 
+                                    false);
+      } else if(shape_msg.type == shape_msgs::SolidPrimitive::SPHERE) {
+        marker = makeButtonSphere(coll.id,
                                   pose_stamped,
-                                  2*shape_msg.dimensions[0],
-                                  shape_msg.dimensions[1],
+                                  shape_msg.dimensions.x,
                                   false, 
                                   false);
-    } else if(shape_msg.type == shape_msgs::Shape::SPHERE) {
-      // TODO aleeper: I added this factor of 2 to make the marker have the same radius as the collision object.
-      marker = makeButtonSphere(coll.id,
-                                pose_stamped,
-                                2*shape_msg.dimensions[0],
-                                false, 
-                                false);
-    } else if(shape_msg.type == shape_msgs::Shape::MESH) {
+      }
+    }
+    else  {
+      geometry_msgs::PoseStamped pose_stamped;
+      pose_stamped.header.frame_id = "/"+planning_scene_->getPlanningFrame();
+      pose_stamped.pose = coll.mesh_poses[0];
       marker = makeButtonMesh(coll.id,
-                              shape_msg,
+                              coll.meshes[0],
                               pose_stamped,
                               color_to_use);
     }
   }
+
   if(dof_marker_enabled_.find(coll.id) == dof_marker_enabled_.end()) {
     dof_marker_enabled_[coll.id] = true;
   }
@@ -327,44 +353,53 @@ void InteractiveObjectVisualization::growObject(const std::string& name,
     ROS_WARN_STREAM("No object with name " << name);
     return;
   }
-  Eigen::Affine3d new_pose;
-  planning_models::poseFromMsg(new_pose_msg, new_pose);
-
-  Eigen::Affine3d cur_pose = obj->shape_poses_[0];
-  geometry_msgs::Pose cur_pose_msg;
-  planning_models::msgFromPose(cur_pose, cur_pose_msg);
-
-  Eigen::Affine3d diff = cur_pose.inverse()*new_pose;
-
-  shape_msgs::Shape shape;
-  shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
-  if(shape.type == shape_msgs::Shape::BOX) {
-    shape.dimensions[0] += fabs(diff.translation().x());
-    shape.dimensions[1] += fabs(diff.translation().y());
-    shape.dimensions[2] += fabs(diff.translation().z());
-  } else if(shape.type == shape_msgs::Shape::CYLINDER) {
-    shape.dimensions[0] += fmax(fabs(diff.translation().x()), fabs(diff.translation().y()));
-    shape.dimensions[1] += fabs(diff.translation().z());
-  } else if(shape.type == shape_msgs::Shape::SPHERE) {
-    shape.dimensions[0] += fmax(fmax(fabs(diff.translation().x()), fabs(diff.translation().y())), fabs(diff.translation().z()));
+  
+  if (obj->shapes_[0]->type == shapes::SPHERE || obj->shapes_[0]->type == shapes::BOX || obj->shapes_[0]->type == shapes::CYLINDER)
+  {
+    Eigen::Affine3d new_pose;
+    planning_models::poseFromMsg(new_pose_msg, new_pose);
+    
+    Eigen::Affine3d cur_pose = obj->shape_poses_[0];
+    geometry_msgs::Pose cur_pose_msg;
+    planning_models::msgFromPose(cur_pose, cur_pose_msg);
+    
+    Eigen::Affine3d diff = cur_pose.inverse()*new_pose;
+    
+    shapes::ShapeMsg shape_variant;
+    shape_msgs::SolidPrimitive shape;
+    if (shapes::constructMsgFromShape(obj->shapes_[0].get(), shape_variant))
+    {
+      shape = boost::get<shape_msgs::SolidPrimitive>(shape_variant);
+      if(shape.type == shape_msgs::SolidPrimitive::BOX) {
+        shape.dimensions.x += fabs(diff.translation().x());
+        shape.dimensions.y += fabs(diff.translation().y());
+        shape.dimensions.z += fabs(diff.translation().z());
+      } else if(shape.type == shape_msgs::SolidPrimitive::CYLINDER) {
+        shape.dimensions.x += 2.0 * fmax(fabs(diff.translation().x()), fabs(diff.translation().y()));
+        shape.dimensions.z += fabs(diff.translation().z());
+      } else if(shape.type == shape_msgs::SolidPrimitive::SPHERE) {
+        shape.dimensions.x += 2.0 * fmax(fmax(fabs(diff.translation().x()), fabs(diff.translation().y())), fabs(diff.translation().z()));
+      }
+    }
+    
+    
+    // we no longer need this instance, so we reset so that potential caching operations can avoid cloning the object
+    obj.reset();
+    
+    geometry_msgs::Pose diff_pose_msg;
+    Eigen::Affine3d diff_pose_adj = diff;
+    diff_pose_adj.translation() /= 2.0;
+    planning_models::msgFromPose(cur_pose*diff_pose_adj, diff_pose_msg);
+    
+    moveit_msgs::CollisionObject coll;
+    coll.id = name;
+    coll.primitive_poses.push_back(diff_pose_msg);
+    coll.primitives.push_back(shape);
+    
+    addObject(coll);
+    
+    callUpdateCallback();
   }
-  
-  // we no longer need this instance, so we reset so that potential caching operations can avoid cloning the object
-  obj.reset();
-  
-  geometry_msgs::Pose diff_pose_msg;
-  Eigen::Affine3d diff_pose_adj = diff;
-  diff_pose_adj.translation() /= 2.0;
-  planning_models::msgFromPose(cur_pose*diff_pose_adj, diff_pose_msg);
-
-  moveit_msgs::CollisionObject coll;
-  coll.id = name;
-  coll.poses.push_back(diff_pose_msg);
-  coll.shapes.push_back(shape);
-
-  addObject(coll);
-
-  callUpdateCallback();
 }
 
 void InteractiveObjectVisualization::shrinkObject(const std::string& name,
@@ -374,68 +409,77 @@ void InteractiveObjectVisualization::shrinkObject(const std::string& name,
   if(!obj) {
     ROS_WARN_STREAM("No object with name " << name);
     return;
+  } 
+
+  if (obj->shapes_[0]->type == shapes::SPHERE || obj->shapes_[0]->type == shapes::BOX || obj->shapes_[0]->type == shapes::CYLINDER)
+  {
+    Eigen::Affine3d new_pose;
+    planning_models::poseFromMsg(new_pose_msg, new_pose);
+    
+    Eigen::Affine3d cur_pose = obj->shape_poses_[0];
+    geometry_msgs::Pose cur_pose_msg;
+    planning_models::msgFromPose(cur_pose, cur_pose_msg);
+    
+    Eigen::Affine3d diff = cur_pose.inverse()*new_pose;
+    
+    ROS_INFO_STREAM("Diff is " << diff.translation().x() << " " 
+                    << diff.translation().y() << " " 
+                    << diff.translation().z());
+    
+    if(diff.translation().x() > 0) {
+      diff.translation().x() *= -1.0;
+    }
+    if(diff.translation().y() > 0) {
+      diff.translation().y() *= -1.0;
+    }
+    if(diff.translation().z() > 0) {
+      diff.translation().z() *= -1.0;
+    }
+    
+    shape_msgs::SolidPrimitive shape;
+    shapes::ShapeMsg shape_variant;
+    if (shapes::constructMsgFromShape(obj->shapes_[0].get(), shape_variant))
+    {
+      shape = boost::get<shape_msgs::SolidPrimitive>(shape_variant);
+
+      if(shape.type == shape_msgs::SolidPrimitive::BOX) {
+        diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions.x+MIN_DIMENSION);
+        diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions.y+MIN_DIMENSION);
+        diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions.z+MIN_DIMENSION);
+        shape.dimensions.x += diff.translation().x();
+        shape.dimensions.y += diff.translation().y();
+        shape.dimensions.z += diff.translation().z();
+      } else if(shape.type == shape_msgs::SolidPrimitive::CYLINDER) {
+        diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions.x+MIN_DIMENSION);
+        diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions.x+MIN_DIMENSION);
+        diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions.z+MIN_DIMENSION);
+        shape.dimensions.x += 2.0*fmin(diff.translation().x(), diff.translation().y());
+        shape.dimensions.z += diff.translation().z();
+      } else if(shape.type == shape_msgs::SolidPrimitive::SPHERE) {
+        diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions.x+MIN_DIMENSION);
+        diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions.x+MIN_DIMENSION);
+        diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions.x+MIN_DIMENSION);
+        shape.dimensions.x += 2.0*fmin(fmin(diff.translation().x(), diff.translation().y()), diff.translation().z());
+      }
+    }
+    
+    // we no longer need this instance, so we reset so that potential caching operations can avoid cloning the object
+    obj.reset();
+    
+    geometry_msgs::Pose diff_pose_msg;
+    Eigen::Affine3d diff_pose_adj = diff;
+    diff_pose_adj.translation() /= 2.0;
+    planning_models::msgFromPose(cur_pose*diff_pose_adj, diff_pose_msg);
+    
+    moveit_msgs::CollisionObject coll;
+    coll.id = name;
+    coll.primitive_poses.push_back(diff_pose_msg);
+    coll.primitives.push_back(shape);
+    
+    addObject(coll);
+    
+    callUpdateCallback();
   }
-  Eigen::Affine3d new_pose;
-  planning_models::poseFromMsg(new_pose_msg, new_pose);
-
-  Eigen::Affine3d cur_pose = obj->shape_poses_[0];
-  geometry_msgs::Pose cur_pose_msg;
-  planning_models::msgFromPose(cur_pose, cur_pose_msg);
-
-  Eigen::Affine3d diff = cur_pose.inverse()*new_pose;
-
-  ROS_INFO_STREAM("Diff is " << diff.translation().x() << " " 
-                  << diff.translation().y() << " " 
-                  << diff.translation().z());
-
-  if(diff.translation().x() > 0) {
-    diff.translation().x() *= -1.0;
-  }
-  if(diff.translation().y() > 0) {
-    diff.translation().y() *= -1.0;
-  }
-  if(diff.translation().z() > 0) {
-    diff.translation().z() *= -1.0;
-  }
-
-  shape_msgs::Shape shape;
-  shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
-  if(shape.type == shape_msgs::Shape::BOX) {
-    diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
-    diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[1]+MIN_DIMENSION);
-    diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[2]+MIN_DIMENSION);
-    shape.dimensions[0] += diff.translation().x();
-    shape.dimensions[1] += diff.translation().y();
-    shape.dimensions[2] += diff.translation().z();
-  } else if(shape.type == shape_msgs::Shape::CYLINDER) {
-    diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
-    diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[0]+MIN_DIMENSION);
-    diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[1]+MIN_DIMENSION);
-    shape.dimensions[0] += fmin(diff.translation().x(), diff.translation().y());
-    shape.dimensions[1] += diff.translation().z();
-  } else if(shape.type == shape_msgs::Shape::SPHERE) {
-    diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
-    diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[1]+MIN_DIMENSION);
-    diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[2]+MIN_DIMENSION);
-    shape.dimensions[0] += fmin(fmin(diff.translation().x(), diff.translation().y()), diff.translation().z());
-  }
-
-  // we no longer need this instance, so we reset so that potential caching operations can avoid cloning the object
-  obj.reset();
-  
-  geometry_msgs::Pose diff_pose_msg;
-  Eigen::Affine3d diff_pose_adj = diff;
-  diff_pose_adj.translation() /= 2.0;
-  planning_models::msgFromPose(cur_pose*diff_pose_adj, diff_pose_msg);
-
-  moveit_msgs::CollisionObject coll;
-  coll.id = name;
-  coll.poses.push_back(diff_pose_msg);
-  coll.shapes.push_back(shape);
-
-  addObject(coll);
-
-  callUpdateCallback();
 }
 
 
@@ -491,6 +535,44 @@ void InteractiveObjectVisualization::callUpdateCallback() {
   }
 }
 
+class ShapeVisitorAddToCollisionObject : public boost::static_visitor<void>
+{
+public:
+  
+  ShapeVisitorAddToCollisionObject(moveit_msgs::CollisionObject *obj) :
+    boost::static_visitor<void>(), obj_(obj)
+  {
+  }
+
+  void setPoseMessage(const geometry_msgs::Pose *pose)
+  {
+    pose_ = pose;
+  }
+    
+  void operator()(const shape_msgs::Plane &shape_msg) const
+  {
+    obj_->planes.push_back(shape_msg);   
+    obj_->plane_poses.push_back(*pose_);
+  }
+  
+  void operator()(const shape_msgs::Mesh &shape_msg) const
+  {
+    obj_->meshes.push_back(shape_msg);
+    obj_->mesh_poses.push_back(*pose_);
+  }
+  
+  void operator()(const shape_msgs::SolidPrimitive &shape_msg) const
+  {
+    obj_->primitives.push_back(shape_msg);
+    obj_->primitive_poses.push_back(*pose_);
+  }
+  
+private:
+  
+  moveit_msgs::CollisionObject *obj_;
+  const geometry_msgs::Pose *pose_;
+};
+
 void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback) 
 {    
   ROS_DEBUG_STREAM("Processing feedback for " << feedback->marker_name);
@@ -514,7 +596,7 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
     {
       dof_marker_enabled_[feedback->marker_name] = !dof_marker_enabled_[feedback->marker_name];
       collision_detection::CollisionWorld::ObjectConstPtr obj = planning_scene_diff_->getCollisionWorld()->getObject(feedback->marker_name);
-      shape_msgs::Shape shape;
+      shapes::ShapeMsg shape;
       shapes::constructMsgFromShape(obj->shapes_[0].get(), shape);
       geometry_msgs::Pose cur_pose_msg;
       planning_models::msgFromPose(obj->shape_poses_[0], cur_pose_msg);
@@ -524,8 +606,10 @@ void InteractiveObjectVisualization::processInteractiveMarkerFeedback(const visu
   
       moveit_msgs::CollisionObject coll;
       coll.id = feedback->marker_name;
-      coll.poses.push_back(cur_pose_msg);
-      coll.shapes.push_back(shape);
+      ShapeVisitorAddToCollisionObject sv(&coll);
+      sv.setPoseMessage(&cur_pose_msg);
+      boost::apply_visitor(sv, shape);
+      
       addObject(coll);
     }
     break;

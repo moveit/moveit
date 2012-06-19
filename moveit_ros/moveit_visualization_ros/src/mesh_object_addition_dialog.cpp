@@ -32,6 +32,7 @@
 #include <moveit_visualization_ros/mesh_object_addition_dialog.h>
 #include <moveit_visualization_ros/qt_helper_functions.h>
 #include <geometric_shapes/shape_operations.h>
+#include <ros/console.h>
 
 #include <QColorDialog>
 #include <QObject>
@@ -182,21 +183,23 @@ void MeshObjectAdditionDialog::createObjectConfirmedPressed() {
     return;
   }
 
-  coll.shapes.resize(1);
-  if(!constructMsgFromShape(mesh, coll.shapes[0])) {
+  coll.meshes.resize(1);
+  shapes::ShapeMsg shape_variant;
+  if(!constructMsgFromShape(mesh, shape_variant)) {
     ROS_WARN_STREAM("Some problem constructing shape msg");
     return;
   }
   delete mesh;
-
-  coll.poses.resize(1);
-  coll.poses[0].position.x = (float)collision_object_pos_x_box_->value() / 100.0f;
-  coll.poses[0].position.y = (float)collision_object_pos_y_box_->value() / 100.0f;
-  coll.poses[0].position.z = (float)collision_object_pos_z_box_->value() / 100.0f;
-  coll.poses[0].orientation.x = 0;
-  coll.poses[0].orientation.y = 0;
-  coll.poses[0].orientation.z = 0;
-  coll.poses[0].orientation.w = 1;
+  coll.meshes[0] = boost::get<shape_msgs::Mesh>(shape_variant);
+  
+  coll.mesh_poses.resize(1);
+  coll.mesh_poses[0].position.x = (float)collision_object_pos_x_box_->value() / 100.0f;
+  coll.mesh_poses[0].position.y = (float)collision_object_pos_y_box_->value() / 100.0f;
+  coll.mesh_poses[0].position.z = (float)collision_object_pos_z_box_->value() / 100.0f;
+  coll.mesh_poses[0].orientation.x = 0;
+  coll.mesh_poses[0].orientation.y = 0;
+  coll.mesh_poses[0].orientation.z = 0;
+  coll.mesh_poses[0].orientation.w = 1;
   
   addCollisionObjectRequested(coll, selected_color_);
 }

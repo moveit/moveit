@@ -33,6 +33,7 @@
 #include <float.h>
 
 #include <moveit_visualization_ros/interactive_marker_helper_functions.h>
+#include <ros/console.h>
 
 static bool done_seed = false;
 
@@ -494,9 +495,41 @@ visualization_msgs::InteractiveMarker makeButtonPointMass(const std::string& nam
   return int_marker;
 }
 
+class ShapeVisitorMarker : public boost::static_visitor<void>
+{
+public:
+  
+  ShapeVisitorMarker(visualization_msgs::Marker *marker, bool use_mesh_triangle_list) :
+    boost::static_visitor<void>(),
+    use_mesh_triangle_list_(use_mesh_triangle_list),
+    marker_(marker)
+  {
+  }
+  
+  void operator()(const shape_msgs::Plane &shape_msg) const
+  {
+    throw std::runtime_error("No visual markers can be constructed for planes");
+  }
+  
+  void operator()(const shape_msgs::Mesh &shape_msg) const
+  {
+    shape_tools::constructMarkerFromShape(shape_msg, *marker_, use_mesh_triangle_list_);
+  }
+  
+  void operator()(const shape_msgs::SolidPrimitive &shape_msg) const
+  {
+    shape_tools::constructMarkerFromShape(shape_msg, *marker_);
+  }
+  
+private:
+  
+  bool use_mesh_triangle_list_;
+  visualization_msgs::Marker *marker_;
+};
+
 visualization_msgs::InteractiveMarker makeButtonCompoundShape(const std::string& name, 
                                                               const std::string& frame_id,
-                                                              const std::vector<shape_msgs::Shape>& shapes,
+                                                              const std::vector<shapes::ShapeMsg>& shapes,
                                                               const std::vector<geometry_msgs::Pose>& poses,
                                                               const std_msgs::ColorRGBA& color, 
                                                               float scale, 
@@ -519,8 +552,8 @@ visualization_msgs::InteractiveMarker makeButtonCompoundShape(const std::string&
   for(unsigned int i = 0; i < shapes.size(); i++) {
     visualization_msgs::Marker mk;
     try
-    {
-      shape_tools::constructMarkerFromShape(shapes[i], mk, false);
+    {      
+      boost::apply_visitor(ShapeVisitorMarker(&mk, false), shapes[i]);
     }
     catch(std::runtime_error &ex)
     {
@@ -572,7 +605,7 @@ visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
 }
 
 visualization_msgs::InteractiveMarker makeButtonMesh(const std::string& marker_name,
-                                                     const shape_msgs::Shape& mesh_shape,
+                                                     const shape_msgs::Mesh& mesh_shape,
                                                      const geometry_msgs::PoseStamped &stamped,
                                                      const std_msgs::ColorRGBA& color)
 {
