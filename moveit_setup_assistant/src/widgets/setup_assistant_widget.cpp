@@ -47,7 +47,7 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   // Create timer to ping ROS ----------------------------------------
   QTimer *update_timer = new QTimer( this );
   connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
-  update_timer->start( 1000 );
+  update_timer->start( 500 );
   
   // Create object to hold all moveit configuration data
   MoveItConfigDataPtr config_data( new MoveItConfigData() );

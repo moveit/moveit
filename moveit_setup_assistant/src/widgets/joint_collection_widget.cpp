@@ -54,7 +54,6 @@ JointCollectionWidget::JointCollectionWidget( QWidget *parent, moveit_setup_assi
   QVBoxLayout *layout = new QVBoxLayout( );
 
   // Label ------------------------------------------------
-  
   QLabel *group_title = new QLabel( this );
   group_title->setText( "Add/Edit Joint Collection" );
   QFont group_title_font( "Arial", 12, QFont::Bold );
@@ -63,17 +62,18 @@ JointCollectionWidget::JointCollectionWidget( QWidget *parent, moveit_setup_assi
   
   // Simple form -------------------------------------------
   QFormLayout *form_layout = new QFormLayout();
-  form_layout->setContentsMargins( 0, 15, 15, 15 );
+  form_layout->setContentsMargins( 0, 15, 0, 15 );
 
   // Name input
   QLineEdit *name_input = new QLineEdit( this );
   name_input->setMaximumWidth( 400 );
-  form_layout->addRow( "Joint Name:", name_input );
+  form_layout->addRow( "Joint Collection Name:", name_input );
   
   layout->addLayout( form_layout );
-  //layout->setAlignment( Qt::AlignTop );
+  layout->setAlignment( Qt::AlignTop );
 
   // Double selection lists -------------------------------
+  
   QHBoxLayout *hlayout = new QHBoxLayout();
   
   // Left column -------------------------------------------
@@ -96,12 +96,12 @@ JointCollectionWidget::JointCollectionWidget( QWidget *parent, moveit_setup_assi
   
   // Right Arrow Button
   QPushButton *btn_right = new QPushButton( ">", this);
-  //btn_right->setMaximumSize(30, 80);
+  btn_right->setMaximumSize(30, 80);
   column2->addWidget( btn_right );
   
   // Left Arrow Button
   QPushButton *btn_left = new QPushButton( "<", this);
-  //btn_left->setMaximumSize(30, 80);
+  btn_left->setMaximumSize(30, 80);
   column2->addWidget( btn_left );
 
   // Add layouts
@@ -123,31 +123,39 @@ JointCollectionWidget::JointCollectionWidget( QWidget *parent, moveit_setup_assi
 
   // End Double Selection List ---------------------------------
   layout->addLayout( hlayout );
+  
 
   // Button controls -------------------------------------------
   QHBoxLayout *controls_layout = new QHBoxLayout();
-  //controls_layout->setContentsMargins( 0, 25, 0, 15 );
+  controls_layout->setContentsMargins( 0, 25, 0, 15 );
 
   // Delete
-  QPushButton *btn_delete = new QPushButton( "Delete Group", this );
-  //btn_delete->setMaximumWidth( 200 );
+  QPushButton *btn_delete = new QPushButton( "Delete This Group", this );
+  btn_delete->setMaximumWidth( 200 );
   controls_layout->addWidget( btn_delete );
+
+  // Spacer
+  QWidget *spacer = new QWidget( this );
+  spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  controls_layout->addWidget( spacer );
 
   // Save
   QPushButton *btn_save = new QPushButton( "Save", this );
-  //btn_save->setMaximumWidth( 200 );
+  btn_save->setMaximumWidth( 200 );
   controls_layout->addWidget( btn_save );
-  //controls_layout->setAlignment(btn_save, Qt::AlignRight);
+  controls_layout->setAlignment(btn_save, Qt::AlignRight);
+
 
   // Cancel
   QPushButton *btn_cancel = new QPushButton( "Cancel", this );
-  //btn_cancel->setMaximumWidth( 200 );
+  btn_cancel->setMaximumWidth( 200 );
   controls_layout->addWidget( btn_cancel );
-  //controls_layout->setAlignment(btn_cancel, Qt::AlignRight);
+  controls_layout->setAlignment(btn_cancel, Qt::AlignRight);
   
   // Add layout
   layout->addLayout( controls_layout );
 
+  //layout->addWidget( new QLabel( "TEST", this ) );
   // Finish Layout --------------------------------------------------
 
   this->setLayout(layout);

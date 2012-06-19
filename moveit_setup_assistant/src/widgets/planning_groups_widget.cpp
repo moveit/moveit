@@ -52,20 +52,19 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   : QWidget( parent ), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout( this );
-  QVBoxLayout *left_layout = new QVBoxLayout( );
-  QVBoxLayout *right_layout = new QVBoxLayout( );
-  left_layout->setContentsMargins( 0, 0, 0, 0);
+  QVBoxLayout *layout = new QVBoxLayout();
+  //QVBoxLayout *left_layout = new QVBoxLayout();
+  //QVBoxLayout *right_layout = new QVBoxLayout();
+  //left_layout->setContentsMargins( 0, 0, 0, 0);
 
   // Top Label Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "Create Planning Groups",
                                            "Select planning groups for your robot based on kinematic chains or joint collections.",
                                            this);
-  left_layout->addWidget( header );
+  layout->addWidget( header );
 
   // Left Side ---------------------------------------------
-
 
   // Create left side widgets 
   groups_table_widget_ = new PlanningGroupsTableWidget( this, config_data_ );
@@ -76,26 +75,30 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   stacked_layout_->addWidget( groups_table_widget_ );
   stacked_layout_->addWidget( joints_widget_ );
 
-  stacked_layout_->setCurrentIndex( 1 );
-  left_layout->addLayout( stacked_layout_ );
+  stacked_layout_->setCurrentIndex( 0 );
+  //left_layout->addLayout( stacked_layout_ );
   
   // Rviz Right Side -------------------------------------
   QLabel *temp = new QLabel( "RVIZ", this );
   temp->setMinimumWidth( 300 );
-  right_layout->addWidget( temp );
+  //right_layout->addWidget( temp );
+  //right_layout->setAlignment( temp, Qt::AlignCenter );
 
   // Split screen -----------------------------------------
   QWidget *left_frame = new QWidget( this );
-  left_frame->setLayout(left_layout);
+  left_frame->setLayout( stacked_layout_ );
 
+  /*
   QWidget *right_frame = new QWidget( this );
   right_frame->setLayout(right_layout);
-  
+  */ 
   QSplitter *splitter = new QSplitter( Qt::Horizontal, this );
   splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   splitter->addWidget( left_frame );
-  splitter->addWidget( right_frame );  
+  splitter->addWidget( temp ); 
+ 
   layout->addWidget( splitter );
+ 
 
   setLayout(layout);
 }
