@@ -44,6 +44,8 @@ ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlann
   group_name_(pc->getJointModelGroupName()), tss_(pc->getCompleteInitialRobotState()), verbose_(false)
 {
   collision_request_with_distance_.distance = true;
+  collision_request_simple_.group_name = planning_context_->getJointModelGroupName();
+  collision_request_with_distance_.group_name = planning_context_->getJointModelGroupName();
 }
 
 void ompl_interface::StateValidityChecker::setVerbose(bool flag)
