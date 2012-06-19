@@ -422,43 +422,64 @@ void planning_models::KinematicState::clearAttachedBodies(void)
     link_state_vector_[i]->clearAttachedBodies();
 }
 
+namespace planning_models
+{
+static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e, std::vector<double> &aabb)
+{
+  Eigen::Vector3d v = e / 2.0;
+  Eigen::Vector3d c2 = t * v;
+  v = -v;
+  Eigen::Vector3d c1 = t * v;
+  if (aabb.empty())
+  {
+    aabb.resize(6);
+    aabb[0] = c1.x();
+    aabb[2] = c1.y();
+    aabb[4] = c1.z();
+    aabb[1] = c2.x();
+    aabb[3] = c2.y();
+    aabb[5] = c2.z();
+  }
+  else
+  {
+    if (aabb[0] > c1.x())
+      aabb[0] = c1.x();
+    if (aabb[2] > c1.y())
+      aabb[2] = c1.y();
+    if (aabb[4] > c1.z())
+      aabb[4] = c1.z();
+    if (aabb[1] < c2.x())
+      aabb[1] = c2.x();
+    if (aabb[3] < c2.y())
+      aabb[3] = c2.y();
+    if (aabb[5] < c2.z())
+      aabb[5] = c2.z();
+  }
+}
+}
+
 void planning_models::KinematicState::computeAABB(std::vector<double> &aabb) const
 {
   aabb.clear();
-  aabb.resize(6, 0.0);
   for (std::size_t i = 0; i < link_state_vector_.size(); ++i)
   {
     const Eigen::Affine3d &t = link_state_vector_[i]->getGlobalCollisionBodyTransform();
     const Eigen::Vector3d &e = link_state_vector_[i]->getLinkModel()->getShapeExtentsAtOrigin();
-    Eigen::Vector3d v = e / 2.0;
-    Eigen::Vector3d c2 = t * v;
-    v = -v;
-    Eigen::Vector3d c1 = t * v;
-    if (i == 0)
+    updateAABB(t, e, aabb);
+  }
+  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ; ++it)
+  {
+    const std::vector<Eigen::Affine3d> &ts = it->second->getGlobalCollisionBodyTransforms();
+    const std::vector<shapes::ShapeConstPtr> &ss = it->second->getShapes();
+    for (std::size_t i = 0 ; i < ts.size() ; ++i)
     {
-      aabb[0] = c1.x();
-      aabb[2] = c1.y();
-      aabb[4] = c1.z();
-      aabb[1] = c2.x();
-      aabb[3] = c2.y();
-      aabb[5] = c2.z();
-    }
-    else
-    {
-      if (aabb[0] > c1.x())
-        aabb[0] = c1.x();
-      if (aabb[2] > c1.y())
-        aabb[2] = c1.y();
-      if (aabb[4] > c1.z())
-        aabb[4] = c1.z();
-      if (aabb[1] < c2.x())
-        aabb[1] = c2.x();
-      if (aabb[3] < c2.y())
-        aabb[3] = c2.y();
-      if (aabb[5] < c2.z())
-        aabb[5] = c2.z();
+      const Eigen::Affine3d &t = ts[i];
+      const Eigen::Vector3d &e = shapes::computeShapeExtents(ss[i].get());
+      updateAABB(t, e, aabb);
     }
   }
+  if (aabb.empty())
+    aabb.resize(6, 0.0);
 }
 
 double planning_models::KinematicState::distance(const KinematicState &state) const

@@ -51,6 +51,7 @@
 #include <Eigen/Geometry>
 
 #include <shape_tools/shape_to_marker.h>
+#include <shape_tools/shape_extents.h>
 
 namespace shapes
 {
@@ -434,6 +435,47 @@ bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &ma
       return true;
   }
   return false;
+}
+
+class ShapeVisitorComputeExtents : public boost::static_visitor<Eigen::Vector3d>
+{
+public:
+    
+  Eigen::Vector3d operator()(const shape_msgs::Plane &shape_msg) const
+  {
+    Eigen::Vector3d e(0.0, 0.0, 0.0);
+    return e;
+  }
+  
+  Eigen::Vector3d operator()(const shape_msgs::Mesh &shape_msg) const
+  {   
+    double x_extent, y_extent, z_extent;
+    shape_tools::getShapeExtents(shape_msg, x_extent, y_extent, z_extent);
+    Eigen::Vector3d e(x_extent, y_extent, z_extent);
+    return e;
+  }
+  
+  Eigen::Vector3d operator()(const shape_msgs::SolidPrimitive &shape_msg) const
+  {
+    double x_extent, y_extent, z_extent;
+    shape_tools::getShapeExtents(shape_msg, x_extent, y_extent, z_extent);
+    Eigen::Vector3d e(x_extent, y_extent, z_extent);
+    return e;
+  }
+};
+
+Eigen::Vector3d computeShapeExtents(const ShapeMsg &shape_msg)
+{
+  return boost::apply_visitor(ShapeVisitorComputeExtents(), shape_msg);
+}
+
+Eigen::Vector3d computeShapeExtents(const Shape *shape)
+{
+  ShapeMsg shape_msg;
+  if (constructMsgFromShape(shape, shape_msg))
+    return computeShapeExtents(shape_msg);
+  else
+    return Eigen::Vector3d(0.0, 0.0, 0.0);
 }
 
 bool constructMsgFromShape(const Shape* shape, ShapeMsg &shape_msg)

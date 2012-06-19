@@ -83,6 +83,12 @@ bool constructMsgFromShape(const Shape* shape, ShapeMsg &shape_msg);
 /** \brief Construct the marker that corresponds to the shape. Return false on failure. */
 bool constructMarkerFromShape(const Shape* shape, visualization_msgs::Marker &mk, bool use_mesh_triangle_list = false);
 
+/** \brief Compute the extents of a shape */
+Eigen::Vector3d computeShapeExtents(const ShapeMsg &shape_msg);
+
+/** \brief Compute the extents of a shape */
+Eigen::Vector3d computeShapeExtents(const Shape *shape);
+
 }
 
 #endif
