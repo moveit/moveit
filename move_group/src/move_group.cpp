@@ -123,12 +123,16 @@ public:
       setState(IDLE);
       return;
     }
-    if (!planning_scene_monitor_->getPlanningScene()->isPathValid(mres.trajectory_start, mres.trajectory))
+    std::vector<std::size_t> invalid_index;
+    if (!planning_scene_monitor_->getPlanningScene()->isPathValid(mres.trajectory_start, mres.trajectory, mreq.motion_plan_request.path_constraints, false, &invalid_index))
     {
-      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
-      action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). No execum");
-      setState(IDLE);
-      return;
+      if (invalid_index.size() > 1 || (invalid_index.size() == 1 && invalid_index[0] != 0))
+      {
+	action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+	action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
+	setState(IDLE);
+	return;
+      }
     }
     
     action_res.planned_trajectory = mres.trajectory;
