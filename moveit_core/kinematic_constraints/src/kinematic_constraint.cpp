@@ -980,23 +980,3 @@ bool kinematic_constraints::KinematicConstraintSet::equal(const KinematicConstra
   return true;
 }
 
-bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
-                                                              const planning_models::TransformsConstPtr& tf,
-                                                              const moveit_msgs::Constraints& constraints,
-                                                              bool verbose)
-{
-  KinematicConstraintSet kcs(state.getKinematicModel(), tf);
-  kcs.add(constraints);
-  return kcs.decide(state, verbose).satisfied;
-}
-
-bool kinematic_constraints::doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
-                                                              const planning_models::TransformsConstPtr& tf,
-                                                              const moveit_msgs::Constraints& constraints,
-                                                              moveit_msgs::ConstraintEvalResults& results,
-                                                              bool verbose)
-{
-  KinematicConstraintSet kcs(state.getKinematicModel(), tf);
-  kcs.add(constraints);
-  return kcs.decide(state, verbose).satisfied;
-}

@@ -1326,6 +1326,36 @@ bool planning_scene::PlanningScene::isStateFeasible(const planning_models::Kinem
   return true;
 }
 
+bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose) const
+{   
+  planning_models::KinematicState s(getCurrentState());
+  planning_models::robotStateToKinematicState(*getTransforms(), state, s);
+  return isStateConstrained(s, constr, verbose);
+}
+
+
+bool planning_scene::PlanningScene::isStateConstrained(const planning_models::KinematicState &state, const moveit_msgs::Constraints &constr, bool verbose) const
+{
+  kinematic_constraints::KinematicConstraintSetPtr ks(new kinematic_constraints::KinematicConstraintSet(getKinematicModel(), getTransforms()));
+  ks->add(constr);
+  if (ks->empty())
+    return true;
+  else
+    return isStateConstrained(state, ks, verbose);
+}
+
+bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState &state, const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose) const
+{
+  planning_models::KinematicState s(getCurrentState());
+  planning_models::robotStateToKinematicState(*getTransforms(), state, s);
+  return isStateConstrained(s, constr, verbose);
+}
+
+bool planning_scene::PlanningScene::isStateConstrained(const planning_models::KinematicState &state,  const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose) const
+{ 
+  return constr->decide(state, verbose).satisfied;
+}
+
 bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, bool verbose) const
 {
   static const moveit_msgs::Constraints emp_constraints;
@@ -1351,11 +1381,7 @@ bool planning_scene::PlanningScene::isStateValid(const planning_models::Kinemati
     return false;
   if (!isStateFeasible(state, verbose))
     return false;
-  kinematic_constraints::KinematicConstraintSet ks(getKinematicModel(), getTransforms());
-  ks.add(constr);
-  if (ks.empty())
-    return true;
-  return ks.decide(state, verbose).satisfied;
+  return isStateConstrained(state, constr, verbose);
 }
 
 bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose) const
@@ -1364,9 +1390,7 @@ bool planning_scene::PlanningScene::isStateValid(const planning_models::Kinemati
     return false;
   if (!isStateFeasible(state, verbose))
     return false;
-  if (constr->empty())
-    return true;
-  return constr->decide(state, verbose).satisfied;
+  return isStateConstrained(state, constr, verbose);
 }
 
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState &start_state, 
@@ -1487,9 +1511,7 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
       bool found = false;
       for (std::size_t k = 0 ; k < goal_constraints.size() ; ++k)
       {
-        kinematic_constraints::KinematicConstraintSet ks_g(getKinematicModel(), getTransforms());
-        ks_g.add(goal_constraints[k]);
-        if (ks_g.empty() || ks_g.decide(*st, verbose).satisfied)
+        if (isStateConstrained(*st, goal_constraints[k]))
         {
           found = true;
           break;
