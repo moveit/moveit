@@ -430,7 +430,7 @@ bool constraint_samplers::IKConstraintSampler::sample(planning_models::Kinematic
     ik_query.orientation.w = quat.w();        
     
     if (callIK(ik_query, ik_timeout_, jsg))
-      return true;
+      return true; 
   }
   return false;
 }
@@ -455,6 +455,8 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
     for (std::size_t i = 0 ; i < ik_joint_bijection_.size() ; ++i)
       solution[i] = ik_sol[ik_joint_bijection_[i]];
     jsg->setStateValues(solution);
+    assert((!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getKinematicState(), false).satisfied) && 
+	   (!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getKinematicState(), false).satisfied));
     return true;
   }
   else

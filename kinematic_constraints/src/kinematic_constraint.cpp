@@ -233,7 +233,9 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
       if (!planning_models::poseFromMsg(pc.constraint_region.primitive_poses[i], t))
         ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());
       constraint_region_pose_.push_back(t);
-      if (!mobile_frame_)
+      if (mobile_frame_)
+	constraint_region_.back()->setPose(constraint_region_pose_.back());
+      else
       {
         tf_->transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
         constraint_region_.back()->setPose(constraint_region_pose_.back());
@@ -252,7 +254,9 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
       if (!planning_models::poseFromMsg(pc.constraint_region.mesh_poses[i], t))
         ROS_WARN("Incorrect specification of orientation in pose for link '%s'. Assuming identity quaternion.", pc.link_name.c_str());
       constraint_region_pose_.push_back(t);
-      if (!mobile_frame_)
+      if (mobile_frame_)
+	constraint_region_.back()->setPose(constraint_region_pose_.back());
+      else
       {
         tf_->transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
         constraint_region_.back()->setPose(constraint_region_pose_.back());

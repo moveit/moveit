@@ -48,7 +48,7 @@
 #include <geometric_shapes/shape_operations.h>
 
 #include <boost/filesystem.hpp>
-
+#include <ros/console.h>
 
 typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
 typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
