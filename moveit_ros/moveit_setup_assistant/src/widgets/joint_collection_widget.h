@@ -34,26 +34,14 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_TEMPLATE_WIDGET_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_TEMPLATE_WIDGET_
 
 #include <QWidget>
 #include <QTableWidget>
-#include <QSplitter>
-#include <QStackedLayout>
-#include "moveit_setup_assistant/tools/moveit_config_data.h"
-#include "joint_collection_widget.h"
+#include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
 
-// Forward Declaration
-class PlanningGroupsTableWidget;
-
-
-// ******************************************************************************************
-// ******************************************************************************************
-// CLASS
-// ******************************************************************************************
-// ******************************************************************************************
-class PlanningGroupsWidget : public QWidget
+class JointCollectionWidget : public QWidget
 {
   Q_OBJECT
 
@@ -62,42 +50,29 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  PlanningGroupsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  JointCollectionWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
-  void changeScreen( int index );
+
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+  
+  QTableWidget *joint_table_;
+  QTableWidget *selected_joint_table_;
 
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-  void loadGroupsTable();
-  void addJointCollectionGroup();
-  void addLinkCollectionGroup();
-  void addKinematicChainGroup();
-  void addEndEffector();
-  void addSuperGroup();
 
-  /// This is called when a child screen (add/edit screens) are ready to come back to main screen
+Q_SIGNALS:
+
+  /// Event sent when this widget is done making data changes
   void doneEditing();
-  
+
 private:
 
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-
-  /// For changing between table and different add/edit views
-  QStackedLayout *stacked_layout_;
-
-  /// Subpages for types of planning groups
-  JointCollectionWidget *joints_widget_;
-
-  /// Main contents widget
-  QWidget *groups_table_widget_;
-
-  /// Main table for holding groups
-  QTableWidget *groups_table_;
 
   // ******************************************************************************************
   // Variables
@@ -109,9 +84,8 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
-  QWidget* createContentsWidget();
+
 
 };
-
 
 #endif

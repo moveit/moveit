@@ -38,26 +38,8 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_START_SCREEN_WIDGET_
 
 #include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QMessageBox>
-#include <QPushButton>
-#include <QCheckBox>
-#include <QString>
-#include <QFont>
-#include <QApplication>
-#include <QTimer>
 #include <QLineEdit>
-#include <QSpacerItem>
-#include <QFileDialog>
-#include <ros/ros.h>
-#include <ros/package.h> // for getting file path for loading images
-#include "header_widget.h" // title and instructions
-#include <fstream>  // for reading in urdf
-#include <streambuf>
-#include <boost/algorithm/string.hpp> // for trimming whitespace from user input
+#include <QPushButton>
 #include <urdf/model.h> // for testing a valid urdf is loaded
 #include <srdf/model.h> // for testing a valid srdf is loaded
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class

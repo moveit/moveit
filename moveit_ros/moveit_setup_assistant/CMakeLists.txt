@@ -30,6 +30,7 @@ set( headers
   src/widgets/setup_assistant_widget.h
   src/widgets/start_screen_widget.h
   src/widgets/planning_groups_widget.h
+  src/widgets/joint_collection_widget.h
   src/widgets/compute_default_collisions_widget.h
   src/widgets/robot_poses_widget.h
   src/widgets/end_effectors_widget.h
@@ -47,13 +48,11 @@ rosbuild_add_library(${PROJECT_NAME}
   src/tools/benchmark_timer.cpp
 )
 
-# Widgets Library
+# Main Widgets Library - all screens (navigation options)
 rosbuild_add_library(${PROJECT_NAME}_widgets
-  src/widgets/navigation_widget.cpp
-  src/widgets/header_widget.cpp
-  src/widgets/setup_assistant_widget.cpp
   src/widgets/start_screen_widget.cpp
   src/widgets/planning_groups_widget.cpp
+  src/widgets/joint_collection_widget.cpp
   src/widgets/compute_default_collisions_widget.cpp
   src/widgets/robot_poses_widget.cpp
   src/widgets/end_effectors_widget.cpp
@@ -61,12 +60,20 @@ rosbuild_add_library(${PROJECT_NAME}_widgets
 )
 target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME})
 
+# Secondary Widgets Library - trying to speed up compile
+rosbuild_add_library(${PROJECT_NAME}_secondary_widgets
+  src/widgets/navigation_widget.cpp
+  src/widgets/header_widget.cpp
+  src/widgets/setup_assistant_widget.cpp
+)
+target_link_libraries(${PROJECT_NAME}_secondary_widgets ${PROJECT_NAME})
+
 # Source files for the exectuable
 set( sources
   src/setup_assistant_main.cpp
 )
 
 rosbuild_add_executable(setup_assistant ${sources} ${headers} ${moc_sources})
-target_link_libraries(setup_assistant ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets)
+target_link_libraries(setup_assistant ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_secondary_widgets)
 
 

@@ -34,11 +34,28 @@
 
 /* Author: Dave Coleman */
 
+#include <QFileDialog>
+#include <QLabel>
+#include <QTimer>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QMessageBox>
+//#include <QCheckBox>
+#include <QString>
+#include <QFont>
+//#include <QApplication>
+#include <ros/ros.h>
+#include <ros/package.h> // for getting file path for loading images
+#include <ros/master.h> // for checking if roscore is started
+#include <fstream>  // for reading in urdf
+#include <streambuf>
+#include <boost/algorithm/string.hpp> // for trimming whitespace from user input
+#include "header_widget.h" // title and instructions
 #include "start_screen_widget.h"
 
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
-static const std::string ROBOT_DESCRIPTION_SEMANTICS="robot_description_semantics";
+//static const std::string ROBOT_DESCRIPTION="robot_description";
+//static const std::string ROBOT_DESCRIPTION_SEMANTICS="robot_description_semantics";
 
 // ******************************************************************************************
 // Start screen user interface for MoveIt Configuration Assistant
@@ -221,18 +238,30 @@ void StartScreenWidget::loadFiles()
   urdf::Model robot_model;
   if( !robot_model.initString( urdf_string ) )
   {
-    QMessageBox::critical( this, "Error Loading Files", "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
+    QMessageBox::critical( this, "Error Loading Files", 
+                           "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
     return;
   }
   else
   {
-    ROS_INFO_STREAM( "Loaded robot: " << robot_model.getName() );
+    ROS_INFO_STREAM( "Loaded " << robot_model.getName() << " robot model." );
+  }
+
+  // Check that ROS Core is running
+  if( ! ros::master::check() )
+  {
+    // roscore is not running
+    QMessageBox::critical( this, "ROS Error", 
+                           "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
+    return;
   }
 
   // Load the robot model to the parameter server
+  ros::spinOnce(); // prime ROS
   ros::NodeHandle nh;
+  ros::spinOnce();
   nh.setParam("/robot_description", urdf_string);
-
+  ros::spinOnce();
 
 
   // SRDF -----------------------------------------------------
@@ -276,10 +305,6 @@ void StartScreenWidget::loadFiles()
     // Load the robot model to the parameter server
     ros::NodeHandle nh;
     nh.setParam("/robot_description_semantic", srdf_string);
-  }
-  else
-  {
-    ROS_INFO_STREAM( "No SRDF provided" );
   }
 
   // Call a function that enables navigation and goes to screen 2

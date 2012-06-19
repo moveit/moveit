@@ -47,7 +47,7 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   // Create timer to ping ROS ----------------------------------------
   QTimer *update_timer = new QTimer( this );
   connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
-  update_timer->start( 1000 );
+  update_timer->start( 500 );
   
   // Create object to hold all moveit configuration data
   MoveItConfigDataPtr config_data( new MoveItConfigData() );
@@ -78,8 +78,8 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   navs_ << NavScreen("Robot Poses", rpw, false);
 
   // End Effectors
-  EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
-  navs_ << NavScreen("End Effectors", efw, false);
+  //EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
+  //navs_ << NavScreen("End Effectors", efw, false);
 
   // Configuration Files
   ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this, config_data );

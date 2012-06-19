@@ -34,8 +34,14 @@
 
 /* Author: Dave Coleman */
 
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QString>
+#include "header_widget.h" // for setup assistant template
 #include "template_widget.h"
-
 
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
