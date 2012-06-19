@@ -63,30 +63,35 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   StartScreenWidget *ssw = new StartScreenWidget( this, config_data );
   //ssw->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   connect( ssw, SIGNAL( readyToProgress() ), this, SLOT( progressPastStartScreen() ) );
-  navs_ << NavScreen("Start", ssw);
+  navs_ << NavScreen("Start", ssw, false);
   
   // Planning Groups
   PlanningGroupsWidget *pgw = new PlanningGroupsWidget( this, config_data );
-  navs_ << NavScreen("Planning Groups", pgw);
+  navs_ << NavScreen("Planning Groups", pgw, true);
 
   // Self-Collisions
   ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget( this, config_data);
-  navs_ << NavScreen("Self-Collisions", cdcw);
+  navs_ << NavScreen("Self-Collisions", cdcw, true);
 
   // Robot Poses
   RobotPosesWidget *rpw = new RobotPosesWidget( this, config_data );
-  navs_ << NavScreen("Robot Poses", rpw);
+  navs_ << NavScreen("Robot Poses", rpw, false);
+
+  // End Effectors
+  EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
+  navs_ << NavScreen("End Effectors", efw, false);
 
   // Configuration Files
   ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this, config_data );
-  navs_ << NavScreen("Configuration Files", cfw);
-
+  navs_ << NavScreen("Configuration Files", cfw, true);
+  
 
 
   // Left side navigation -------------------------------------------
   navs_view_ = new NavigationWidget( this );
   navs_view_->setNavs(navs_);
   navs_view_->setDisabled( true );
+
   connect( navs_view_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(navigationClicked(const QModelIndex&)) );
 
   // Initial right frame widget holder. Change these 2 lines if you want diff default screen
@@ -150,11 +155,23 @@ void SetupAssistantWidget::updateTimer()
 // ******************************************************************************************
 void SetupAssistantWidget::progressPastStartScreen()
 {
+  // Enable all nav buttons
+  /*for(int i = 0; i < navs_.size(); i ++)
+  {
+    navs_[i].setDisabled( false );
+    navs_[i].
+    }*/
+  
+  // Repaint - TODO
+  navs_view_->hide();
+  navs_view_->repaint();
+  navs_view_->update();
+  navs_view_->show();
+  QCoreApplication::processEvents();
+
   // Enable navigation
   navs_view_->setDisabled( false );
-
-  std::cout << "PROGRESS PAST START \n" << std::endl;
-
+  
   // Go to next screen
   moveToScreen( 1 );
 }

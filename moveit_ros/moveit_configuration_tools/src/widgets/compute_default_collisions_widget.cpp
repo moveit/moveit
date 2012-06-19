@@ -104,9 +104,9 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   controls_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
   // Slider Label
-  QLabel *density_label = new QLabel( this );
-  density_label->setText("Self Collision Sampling Density:");
-  controls_box_layout->addWidget(density_label);
+  QLabel *density_left_label = new QLabel( this );
+  density_left_label->setText("Self Collision Sampling Density:  Low");
+  controls_box_layout->addWidget(density_left_label);
 
   // Slider
   density_slider_ = new QSlider( this );
@@ -121,11 +121,17 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   controls_box_layout->addWidget(density_slider_);
   connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
 
+  // Slider Right Label
+  QLabel *density_right_label = new QLabel( this );
+  density_right_label->setText("High       ");
+  controls_box_layout->addWidget(density_right_label);
+
   // Slider Value Label
   density_value_label_ = new QLabel( this );
-  density_value_label_->setMinimumWidth(100);
+  density_value_label_->setMinimumWidth(150);
   controls_box_layout->addWidget(density_value_label_);
   changeDensityLabel( density_slider_->value() ); // initialize label with value
+
 
   // Generate Button
   generate_button_ = new QPushButton( this );

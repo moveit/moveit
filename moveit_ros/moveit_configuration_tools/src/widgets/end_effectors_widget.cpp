@@ -34,57 +34,27 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_TEMPLATE_WIDGET_
-#define MOVEIT_ROS_MOVEIT_CONFIGURATION_TOOLS_WIDGETS_TEMPLATE_WIDGET_
+#include "end_effectors_widget.h"
 
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QString>
-#include "header_widget.h"
-#include "moveit_configuration_tools/tools/moveit_config_data.h" // common datastructure class
 
-class TemplateWidget : public QWidget
+// ******************************************************************************************
+// Outer User Interface for MoveIt Configuration Assistant
+// ******************************************************************************************
+EndEffectorsWidget::EndEffectorsWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data )
+  :  QWidget( parent ), config_data_( config_data )
 {
-  Q_OBJECT
+  // Basic widget container
+  QVBoxLayout *layout = new QVBoxLayout( );
 
-public:
-  // ******************************************************************************************
-  // Public Functions
-  // ******************************************************************************************
+  // Top Header Area ------------------------------------------------
 
-  TemplateWidget( QWidget *parent, moveit_configuration_tools::MoveItConfigDataPtr config_data );
+  HeaderWidget *header = new HeaderWidget( "End Effectors",
+                                           "Setup robot end effectors",
+                                           this);
+  layout->addWidget( header );
 
+  // Finish Layout --------------------------------------------------
 
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
+  this->setLayout(layout);
+}
 
-private Q_SLOTS:
-
-  // ******************************************************************************************
-  // Slot Event Functions
-  // ******************************************************************************************
-
-
-private:
-
-
-  // ******************************************************************************************
-  // Variables
-  // ******************************************************************************************
-
-  /// Contains all the configuration data for the setup assistant
-  moveit_configuration_tools::MoveItConfigDataPtr config_data_;
-
-  // ******************************************************************************************
-  // Private Functions
-  // ******************************************************************************************
-
-
-};
-
-#endif

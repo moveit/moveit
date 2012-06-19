@@ -32,6 +32,7 @@ set( headers
   src/widgets/planning_groups_widget.h
   src/widgets/compute_default_collisions_widget.h
   src/widgets/robot_poses_widget.h
+  src/widgets/end_effectors_widget.h
   src/widgets/configuration_files_widget.h
   #src/widgets/start_screen_widget.cpp
 )
@@ -57,6 +58,7 @@ rosbuild_add_library(${PROJECT_NAME}_widgets
   src/widgets/planning_groups_widget.cpp
   src/widgets/compute_default_collisions_widget.cpp
   src/widgets/robot_poses_widget.cpp
+  src/widgets/end_effectors_widget.cpp
   src/widgets/configuration_files_widget.cpp
 )
 target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME})

@@ -139,6 +139,15 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_configuration_tool
 
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
+
+  // Development Only TODO REMOVE
+  urdf_file_->setPath( "/u/dcoleman/ros/moveit/moveit_pr2/pr2_moveit_config/config/pr2.urdf" );
+  select_mode_->btn_new_->click();
+
+  QTimer *update_timer = new QTimer( this );
+  update_timer->setSingleShot( true ); // only run once
+  connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
+  update_timer->start( 200 );  
 }
 
 StartScreenWidget::~StartScreenWidget()
@@ -180,7 +189,10 @@ void StartScreenWidget::showExistingOptions()
 void StartScreenWidget::loadFiles()
 {
   std::string urdf_path = urdf_file_->getPath();
-    
+
+  // Trim whitespace from user input
+  boost::trim( urdf_path );
+
   // check that a file is provided
   if( urdf_path == "" )
   {
@@ -214,7 +226,7 @@ void StartScreenWidget::loadFiles()
   }
   else
   {
-    std::cout << "robot name is: " << robot_model.getName() << std::endl;
+    ROS_INFO_STREAM( "Loaded robot: " << robot_model.getName() );
   }
 
   // Load the robot model to the parameter server
@@ -225,6 +237,9 @@ void StartScreenWidget::loadFiles()
 
   // SRDF -----------------------------------------------------
   std::string srdf_path = srdf_file_->getPath();
+
+  // Trim whitespace from user input
+  boost::trim( srdf_path );
     
   // check that a file is provided. if not, we don't bother with anything else
   if( srdf_path != "" )
@@ -264,22 +279,18 @@ void StartScreenWidget::loadFiles()
   }
   else
   {
-    std::cout << "No SRDF provided" << std::endl;
+    ROS_INFO_STREAM( "No SRDF provided" );
   }
 
   // Call a function that enables navigation and goes to screen 2
   Q_EMIT readyToProgress();
 
-
-  // Communicate with the parent 
-  //SetupAssistantWidget *my_parent = qobject_cast< SetupAssistantWidget* >( this->parentWidget() );
-  //my_parent->progressPastStartScreen();
-
-    /*
-      SetupAssistantWidget *my_parent = qobject_cast< SetupAssistantWidget* >( this->parentWidget() );
-      LoadPathWidget *my_stack_path = qobject_cast< LoadPathWidget* >( my_parent->stack_path_ );
-      LoadPathWidget *my_urdf_path = qobject_cast< LoadPathWidget* >( my_parent->urdf_file_ );
-    */
+  // Disable start screen GUI components from being changed
+  urdf_file_->setDisabled(true);
+  srdf_file_->setDisabled(true);
+  stack_path_->setDisabled(true);
+  select_mode_->setDisabled(true);
+  btn_load_->hide();
 }
 
 // ******************************************************************************************
@@ -452,4 +463,9 @@ const QString LoadPathWidget::getQPath()
 const std::string LoadPathWidget::getPath()
 {
   return getQPath().toStdString();
+}
+
+void LoadPathWidget::setPath( const QString &path )
+{
+  path_box_->setText( path );
 }

@@ -54,16 +54,19 @@ class NavScreen
 {
 public:
   explicit NavScreen();
-  NavScreen( const QString &name, QWidget *screen );
+  NavScreen( const QString &name, QWidget *screen, bool disabled );
   virtual ~NavScreen() { ; }
 
   QString name() const;
   QWidget * screen();
+  bool isDisabled();
+  void setDisabled( bool disabled );
 
 private:
   long id_;  
   QString name_;
   QWidget *screen_; // pointer to the screen this navigation item refers to
+  bool disabled_;
 };
 
 Q_DECLARE_METATYPE(NavScreen);

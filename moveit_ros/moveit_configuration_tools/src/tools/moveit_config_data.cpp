@@ -44,7 +44,7 @@ namespace moveit_configuration_tools
 // ******************************************************************************************
 MoveItConfigData::MoveItConfigData()
 {
-  std::cout << "CONFIG DATA CREATED" << std::endl;
+
 }
 
 // ******************************************************************************************
@@ -52,7 +52,7 @@ MoveItConfigData::MoveItConfigData()
 // ******************************************************************************************
 MoveItConfigData::~MoveItConfigData()
 {
-  std::cout << "CONFIG DATA DELETED" << std::endl;
+
 }
 
 // ******************************************************************************************
