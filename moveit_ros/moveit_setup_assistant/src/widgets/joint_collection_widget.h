@@ -66,6 +66,10 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
+Q_SIGNALS:
+
+  /// Event sent when this widget is done making data changes
+  void doneEditing();
 
 private:
 

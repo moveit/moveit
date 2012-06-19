@@ -54,7 +54,7 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout();
   //QVBoxLayout *left_layout = new QVBoxLayout();
-  //QVBoxLayout *right_layout = new QVBoxLayout();
+  QVBoxLayout *right_layout = new QVBoxLayout();
   //left_layout->setContentsMargins( 0, 0, 0, 0);
 
   // Top Label Area ------------------------------------------------
@@ -67,7 +67,9 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   // Left Side ---------------------------------------------
 
   // Create left side widgets 
-  groups_table_widget_ = new PlanningGroupsTableWidget( this, config_data_ );
+  //  groups_table_widget_ = new PlanningGroupsTableWidget( this, config_data_ );
+  groups_table_widget_ = createContentsWidget();
+
   joints_widget_ = new JointCollectionWidget( this, config_data_ );
 
   // Combine into stack
@@ -81,21 +83,20 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   // Rviz Right Side -------------------------------------
   QLabel *temp = new QLabel( "RVIZ", this );
   temp->setMinimumWidth( 300 );
-  //right_layout->addWidget( temp );
-  //right_layout->setAlignment( temp, Qt::AlignCenter );
+  right_layout->addWidget( temp );
+  right_layout->setAlignment( temp, Qt::AlignCenter );
 
   // Split screen -----------------------------------------
   QWidget *left_frame = new QWidget( this );
   left_frame->setLayout( stacked_layout_ );
-
-  /*
+  
   QWidget *right_frame = new QWidget( this );
-  right_frame->setLayout(right_layout);
-  */ 
+  right_frame->setLayout( right_layout );
+   
   QSplitter *splitter = new QSplitter( Qt::Horizontal, this );
   splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   splitter->addWidget( left_frame );
-  splitter->addWidget( temp ); 
+  splitter->addWidget( right_frame ); 
  
   layout->addWidget( splitter );
  
@@ -103,13 +104,17 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   setLayout(layout);
 }
 
-
-// ******************************************************************************************
-// CLASS
-// ******************************************************************************************
-PlanningGroupsTableWidget::PlanningGroupsTableWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
-  : QWidget( parent ), config_data_(config_data)
+void PlanningGroupsWidget::changeScreen( int index )
 {
+  stacked_layout_->setCurrentIndex( index );
+}
+
+
+QWidget* PlanningGroupsWidget::createContentsWidget()
+{
+  // Main widget
+  QWidget *content_widget = new QWidget( this );
+
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout( this );
 
@@ -189,13 +194,15 @@ PlanningGroupsTableWidget::PlanningGroupsTableWidget( QWidget *parent, moveit_se
   layout->addLayout( controls3_layout );
 
   // Set layout
-  setLayout(layout);
+  content_widget->setLayout(layout);
+
+  return content_widget;
 }
 
 // ******************************************************************************************
 // Displays data in the link_pairs_ data structure into a QtTableWidget
 // ******************************************************************************************
-void PlanningGroupsTableWidget::loadGroupsTable()
+void PlanningGroupsWidget::loadGroupsTable()
 {
   int row = 0;
   groups_table_->setUpdatesEnabled(false); // prevent table from updating until we are completely done
@@ -258,29 +265,35 @@ void PlanningGroupsTableWidget::loadGroupsTable()
   groups_table_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
 }
 
-void PlanningGroupsTableWidget::addJointCollectionGroup()
+void PlanningGroupsWidget::addJointCollectionGroup()
 {
   std::cout << "ADD JOINT COLL" << std::endl;
+  stacked_layout_->setCurrentIndex( 1 );
+
 }
 
-void PlanningGroupsTableWidget::addLinkCollectionGroup()
+void PlanningGroupsWidget::addLinkCollectionGroup()
 {
   std::cout << "ADD Link COLL" << std::endl;
 }
 
-void PlanningGroupsTableWidget::addKinematicChainGroup()
+void PlanningGroupsWidget::addKinematicChainGroup()
 {
   std::cout << "ADD KIN CHAIN" << std::endl;
 }
 
-void PlanningGroupsTableWidget::addEndEffector()
+void PlanningGroupsWidget::addEndEffector()
 {
   std::cout << "ADD END EFFEC" << std::endl;
 }
 
-void PlanningGroupsTableWidget::addSuperGroup()
+void PlanningGroupsWidget::addSuperGroup()
 {
   std::cout << "ADD SUPER GROUP" << std::endl;
 }
 
-
+void PlanningGroupsWidget::doneEditing()
+{
+  std::cout << "BACK" << std::endl;
+  stacked_layout_->setCurrentIndex( 0 );
+}
