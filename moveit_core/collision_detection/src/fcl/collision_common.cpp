@@ -555,7 +555,13 @@ void collision_detection::CollisionData::enableGroup(const planning_models::Kine
     const planning_models::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req_->group_name);
     const std::vector<const planning_models::KinematicModel::LinkModel*> &links = jmg->getLinkModels();
     for (std::size_t i = 0 ; i < links.size() ; ++i)
+    {
       active_components_only_->insert(links[i]);
+      std::vector<const planning_models::KinematicModel::LinkModel*> descendants;
+      kmodel->getChildLinkModels(links[i], descendants);
+      for (std::size_t j = 0 ; j < descendants.size() ; ++j)
+	active_components_only_->insert(descendants[j]);
+    }
   }
 }
 
