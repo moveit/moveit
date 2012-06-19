@@ -436,19 +436,6 @@ protected:
 typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr;
 typedef boost::shared_ptr<const KinematicConstraintSet> KinematicConstraintSetConstPtr;
 
-/// \todo this function should be in PlanningScene, perhaps with a better name
-bool doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
-                                       const planning_models::TransformsConstPtr& tf,
-                                       const moveit_msgs::Constraints& constraints,
-                                       bool verbose);
-
-/// \todo this function should be in PlanningScene, perhaps with a better name
-bool doesKinematicStateObeyConstraints(const planning_models::KinematicState& state,
-                                       const planning_models::TransformsConstPtr& tf,
-                                       const moveit_msgs::Constraints& constraints,
-                                       moveit_msgs::ConstraintEvalResults& status,
-                                       bool verbose);
-
 }
 
 

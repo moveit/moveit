@@ -378,11 +378,23 @@ public:
   /** \brief Check if a given state is in collision (with the environment or self collision) */
   bool isStateColliding(const planning_models::KinematicState &state, bool verbose = false) const;
 
-  /** \brief Check if a given state feasible, in accordance to the feasibility predicate specified by setStateFeasibilityPredicate(). Returns true if no feasibility predicate was specified. */
+  /** \brief Check if a given state is feasible, in accordance to the feasibility predicate specified by setStateFeasibilityPredicate(). Returns true if no feasibility predicate was specified. */
   bool isStateFeasible(const moveit_msgs::RobotState &state, bool verbose = false) const;
 
-  /** \brief Check if a given state feasible, in accordance to the feasibility predicate specified by setStateFeasibilityPredicate(). Returns true if no feasibility predicate was specified. */
+  /** \brief Check if a given state is feasible, in accordance to the feasibility predicate specified by setStateFeasibilityPredicate(). Returns true if no feasibility predicate was specified. */
   bool isStateFeasible(const planning_models::KinematicState &state, bool verbose = false) const;
+
+  /** \brief Check if a given state satisfies a set of constraints */
+  bool isStateConstrained(const moveit_msgs::RobotState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
+
+  /** \brief Check if a given state satisfies a set of constraints */
+  bool isStateConstrained(const planning_models::KinematicState &state, const moveit_msgs::Constraints &constr, bool verbose = false) const;
+
+  /** \brief Check if a given state satisfies a set of constraints */
+  bool isStateConstrained(const moveit_msgs::RobotState &state,  const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose = false) const;
+
+  /** \brief Check if a given state satisfies a set of constraints */
+  bool isStateConstrained(const planning_models::KinematicState &state,  const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose = false) const;
 
   /** \brief Check if a given state is valid. This means checking for collisions and feasibility */
   bool isStateValid(const moveit_msgs::RobotState &state, bool verbose = false) const;
