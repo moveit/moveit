@@ -108,7 +108,7 @@ public:
   /** \brief Destructor. Clear all memory. */
   virtual ~KinematicModel(void);
   
-  /** \brief General the model name **/
+  /** \brief Get the model name **/
   const std::string& getName(void) const;
   
   /** \brief Get a link by its name */
@@ -202,6 +202,7 @@ public:
     return root_link_;
   }
   
+  /** \brief Get the name of the root link of the robot. */
   const std::string& getRootLinkName(void) const
   {
     return getRootLink()->getName();
