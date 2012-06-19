@@ -65,6 +65,12 @@ public:
   const std::string& getAttachedLinkName(void) const
   {
     return parent_link_state_->getName();
+  } 
+
+  /** \brief Get the link this body is attached to */
+  const KinematicModel::LinkModel* getAttachedLink(void) const
+  {
+    return parent_link_state_->getLinkModel();
   }
   
   /** \brief Get the shapes that make up this attached body */

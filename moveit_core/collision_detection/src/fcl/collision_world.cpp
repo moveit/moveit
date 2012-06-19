@@ -86,6 +86,7 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
   robot_fcl.constructFCLObject(state, fcl_obj);
   
   CollisionData cd(&req, &res, acm);
+  cd.enableGroup(robot.getKinematicModel());
   for (std::size_t i = 0 ; !cd.done_ && i < fcl_obj.collision_objects_.size() ; ++i)
     manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
   

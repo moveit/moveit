@@ -40,6 +40,7 @@
 #include "collision_detection/collision_world.h"
 #include <fcl/broad_phase_collision.h>
 #include <fcl/collision.h>
+#include <set>
 
 namespace collision_detection
 {
@@ -87,18 +88,39 @@ struct CollisionGeometryData
 
 struct CollisionData
 {
-  CollisionData(void) : req_(NULL), res_(NULL), acm_(NULL), done_(false)
+  CollisionData(void) : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
   {
   }
   
   CollisionData(const CollisionRequest *req, CollisionResult *res,
-                const AllowedCollisionMatrix *acm) : req_(req), res_(res), acm_(acm), done_(false)
+                const AllowedCollisionMatrix *acm) : req_(req), active_components_only_(NULL), res_(res), acm_(acm), done_(false)
   {
   }
   
+  ~CollisionData(void)
+  {
+    if (active_components_only_)
+      delete active_components_only_;
+  }
+
+  /// Compute \e active_components_only_ based on \e req_
+  void enableGroup(const planning_models::KinematicModelConstPtr &kmodel);
+  
+  /// The collision request passed by the user
   const CollisionRequest       *req_;
+
+  /// If the collision request includes a group name, this set contains the pointers to the link models that are considered for collision;
+  /// If the pointer is NULL, all collisions are considered.
+  std::set<const planning_models::KinematicModel::LinkModel*> 
+                               *active_components_only_;
+
+  /// The user specified response location
   CollisionResult              *res_;
+  
+  /// The user specified collision matrix (may be NULL)
   const AllowedCollisionMatrix *acm_;
+
+  /// Flag indicating whether collision checking is complete
   bool                          done_;
 };
 
