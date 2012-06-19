@@ -48,8 +48,10 @@ namespace planning_models
 {
 bool quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::Quaterniond &q);
 bool poseFromMsg(const geometry_msgs::Pose &tmsg, Eigen::Affine3d &t);
+void pointFromMsg(const geometry_msgs::Point &pmsg, Eigen::Vector3d &p);
 void msgFromPose(const Eigen::Affine3d &t, geometry_msgs::Pose &tmsg);
 void msgFromPose(const Eigen::Affine3d &t, geometry_msgs::Transform &tmsg);
+void msgFromPoint(const Eigen::Vector3d &p, geometry_msgs::Point &msg);
 
 typedef std::map<std::string, Eigen::Affine3d, std::less<std::string>, 
                  Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > EigenAffine3dMapType;

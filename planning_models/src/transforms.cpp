@@ -61,6 +61,11 @@ bool planning_models::poseFromMsg(const geometry_msgs::Pose &tmsg, Eigen::Affine
   return r;
 }
 
+void planning_models::pointFromMsg(const geometry_msgs::Point &pmsg, Eigen::Vector3d &p)
+{  
+  p = Eigen::Vector3d(pmsg.x, pmsg.y, pmsg.z);
+}
+
 void planning_models::msgFromPose(const Eigen::Affine3d &t, geometry_msgs::Pose &tmsg)
 {
   tmsg.position.x = t.translation().x(); tmsg.position.y = t.translation().y(); tmsg.position.z = t.translation().z();
@@ -73,6 +78,11 @@ void planning_models::msgFromPose(const Eigen::Affine3d &t, geometry_msgs::Trans
   tmsg.translation.x = t.translation().x(); tmsg.translation.y = t.translation().y(); tmsg.translation.z = t.translation().z();
   Eigen::Quaterniond q(t.rotation());
   tmsg.rotation.x = q.x(); tmsg.rotation.y = q.y(); tmsg.rotation.z = q.z(); tmsg.rotation.w = q.w();
+}
+
+void planning_models::msgFromPoint(const Eigen::Vector3d &p, geometry_msgs::Point &msg)
+{
+  msg.x = p.x(); msg.y = p.y(); msg.z = p.z();
 }
 
 planning_models::Transforms::Transforms(const std::string &target_frame) : target_frame_(target_frame)
