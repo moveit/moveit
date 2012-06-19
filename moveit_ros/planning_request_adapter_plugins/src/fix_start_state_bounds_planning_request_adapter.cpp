@@ -54,7 +54,7 @@ public:
   {
     if (!nh_.getParam(BOUNDS_PARAM_NAME, bounds_dist_))
     {
-      bounds_dist_ = 1e-3;
+      bounds_dist_ = 0.05;
       ROS_INFO_STREAM("Param '" << BOUNDS_PARAM_NAME << "' was not set. Using default value: " << bounds_dist_);
     }
     else
@@ -82,8 +82,12 @@ public:
     // get the specified start state
     planning_models::KinematicState start_state = planning_scene->getCurrentState();
     planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
-    
-    const std::vector<planning_models::KinematicState::JointState*> &jstates = start_state.getJointStateVector(); 
+
+    const std::vector<planning_models::KinematicState::JointState*> &jstates = 
+      planning_scene->getKinematicModel()->hasJointModelGroup(req.motion_plan_request.group_name) ? 
+      start_state.getJointStateGroup(req.motion_plan_request.group_name)->getJointStateVector() : 
+      start_state.getJointStateVector(); 
+      
     std::map<std::string, double> update;
     std::map<std::string, double> continuous_joints;
 
@@ -130,8 +134,8 @@ public:
             update[vn[j]] = std::min(vb[j].first + std::numeric_limits<double>::epsilon(),  vb[j].second);
           }
           else
-            ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf < %lf (by more than %lf). "
-                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].first, bounds_dist_, BOUNDS_PARAM_NAME.c_str()); 
+            ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf should be in the range [%lf, %lf] but the error is %lf (more than %lf). "
+                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].first, vb[j].second, vb[j].first - vv[j], bounds_dist_, BOUNDS_PARAM_NAME.c_str()); 
         }
         
         if (vb[j].second < vv[j])
@@ -142,8 +146,8 @@ public:
             update[vn[j]] = std::max(vb[j].first, vb[j].second - std::numeric_limits<double>::epsilon());
           }
           else
-            ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf < %lf (by more than %lf). "
-                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].second, bounds_dist_, BOUNDS_PARAM_NAME.c_str());
+            ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf should be in the range [%lf, %lf] but the error is %lf (more than %lf). "
+                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].first, vb[j].second, vv[j] - vb[j].second, bounds_dist_, BOUNDS_PARAM_NAME.c_str()); 
         }
       }
     }
