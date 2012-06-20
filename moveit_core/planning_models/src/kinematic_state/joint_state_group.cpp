@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, E. Gil Jones */
+/* Author: Ioan Sucan, E. Gil Jones, Sachin Chitta */
 
 #include "planning_models/kinematic_state.h"
 #include <ros/console.h>
@@ -229,4 +229,83 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::Jo
   }
   else
     return it->second;
+}
+
+bool planning_models::KinematicState::JointStateGroup::getJacobian(const std::string &link_name,
+								   const Eigen::Vector3d &reference_point_position, 
+								   Eigen::MatrixXd& jacobian) const
+{
+  if(!joint_model_group_->isChain())
+  {
+    ROS_ERROR("Will compute Jacobian only for a chain");
+    return false;
+  }
+  if(!joint_model_group_->isUpdatedLink(link_name))
+  {
+    ROS_ERROR("Link name does not exist in this chain or is not a child for this chain");
+    return false;
+  }
+
+  const planning_models::KinematicModel::JointModel* root_joint_model = (joint_model_group_->getJointRoots())[0];
+  ROS_DEBUG_STREAM("ROOT_LINK" << root_joint_model->getParentLinkModel()->getName());
+  const planning_models::KinematicState::LinkState *root_link_state = kinematic_state_->getLinkState(root_joint_model->getParentLinkModel()->getName());
+  Eigen::Affine3d reference_transform = root_link_state ? root_link_state->getGlobalLinkTransform() : kinematic_state_->getRootTransform();
+  reference_transform = reference_transform.inverse();
+  jacobian = Eigen::MatrixXd::Zero(6, joint_model_group_->getVariableCount());
+
+  const planning_models::KinematicState::LinkState *link_state = kinematic_state_->getLinkState(link_name);
+  Eigen::Affine3d link_transform = reference_transform*link_state->getGlobalLinkTransform();
+  Eigen::Vector3d point_transform = link_transform*reference_point_position;
+
+  ROS_DEBUG("Point from reference origin expressed in world coordinates: %f %f %f",
+            point_transform.x(),
+            point_transform.y(),
+            point_transform.z());
+
+  Eigen::Vector3d joint_axis;
+  Eigen::Affine3d joint_transform;
+
+  while(link_state)
+  {
+    ROS_DEBUG("Link: %s, %f %f %f",link_state->getName().c_str(),
+             link_state->getGlobalLinkTransform().translation().x(),
+             link_state->getGlobalLinkTransform().translation().y(),
+             link_state->getGlobalLinkTransform().translation().z());    
+    ROS_DEBUG("Joint: %s",link_state->getParentJointState()->getName().c_str());
+
+    if(joint_model_group_->isActiveDOF(link_state->getParentJointState()->getJointModel()->getName()))
+    {
+      if(link_state->getParentJointState()->getJointModel()->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
+	{
+	  unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
+	  joint_transform = reference_transform*link_state->getGlobalLinkTransform();
+	  joint_axis = joint_transform.rotation()*(dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
+	  jacobian.block<3,1>(0,joint_index) = joint_axis.cross(point_transform - joint_transform.translation());
+	  jacobian.block<3,1>(3,joint_index) = joint_axis;
+	}
+      if(link_state->getParentJointState()->getJointModel()->getType() == planning_models::KinematicModel::JointModel::PRISMATIC)
+	{
+	  unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
+	  joint_transform = reference_transform*link_state->getGlobalLinkTransform();
+	  joint_axis = joint_transform*(dynamic_cast<const planning_models::KinematicModel::PrismaticJointModel*>(link_state->getParentJointState()->getJointModel()))->getAxis();
+	  jacobian.block<3,1>(0,joint_index) = joint_axis;
+	}
+      if(link_state->getParentJointState()->getJointModel()->getType() == planning_models::KinematicModel::JointModel::PLANAR)
+	{
+	  unsigned int joint_index = joint_model_group_->getJointVariablesIndexMap().find(link_state->getParentJointState()->getJointModel()->getName())->second;
+	  joint_transform = reference_transform*link_state->getGlobalLinkTransform();
+	  joint_axis = joint_transform*Eigen::Vector3d(1.0,0.0,0.0);
+	  jacobian.block<3,1>(0,joint_index) = joint_axis;
+	  joint_axis = joint_transform*Eigen::Vector3d(0.0,1.0,0.0);
+	  jacobian.block<3,1>(0,joint_index+1) = joint_axis;
+	  joint_axis = joint_transform*Eigen::Vector3d(0.0,0.0,1.0);
+	  jacobian.block<3,1>(0,joint_index+2) = joint_axis.cross(point_transform - joint_transform.translation());
+	  jacobian.block<3,1>(3,joint_index+2) = joint_axis;
+	}
+    }
+    if(link_state->getParentJointState()->getJointModel() == root_joint_model)
+      break;
+    link_state = link_state->getParentLinkState();
+  }
+  return true;
 }

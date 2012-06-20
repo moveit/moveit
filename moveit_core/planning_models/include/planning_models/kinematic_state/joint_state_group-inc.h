@@ -161,6 +161,16 @@ public:
   
   /** \brief Return the instance of a random number generator */
   random_numbers::RandomNumberGenerator& getRandomNumberGenerator(void);
+
+  /** \brief Given a set of joint angles, compute the jacobian with reference to a particular point on a given link
+   * \param link_name The name of the link 
+   * \param reference_point_position The reference point position (with respect to the link specified in link_index)
+   * \param jacobian The resultant jacobian
+   * \return True if jacobian was successfully computed, false otherwise
+   */    
+  bool getJacobian(const std::string &link_name,
+		   const Eigen::Vector3d &reference_point_position, 
+		   Eigen::MatrixXd& jacobian) const;
   
 private:
   
@@ -187,4 +197,5 @@ private:
       is allocated on a need basis, by the getRandomNumberGenerator() function. Never use the rng_ member directly, but call
       getRandomNumberGenerator() instead. */
   boost::scoped_ptr<random_numbers::RandomNumberGenerator> rng_;
+
 };
