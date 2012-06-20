@@ -31,7 +31,7 @@
 
 #include "widgets/setup_assistant_widget.h"
 #include <QApplication>
-//#include "ros/ros.h"
+#include "ros/ros.h"
 
 int main(int argc, char **argv)
 {
@@ -47,6 +47,7 @@ int main(int argc, char **argv)
   saw.setMinimumWidth(1024);
   saw.setMinimumHeight(768);
   saw.show();
+
 
   // Wait here until Qt App is finished
   const int result = qtApp.exec();

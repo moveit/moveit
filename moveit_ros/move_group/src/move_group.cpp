@@ -143,7 +143,11 @@ public:
           error = true;
       }
       
-      if (error || (invalid_index.size() == 1 && invalid_index[0] != 0))
+      if (error)
+	if (invalid_index.size() == 1 && invalid_index[0] != 0)
+	  error = false;
+      
+      if (error)
       {
 	action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
 	action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");

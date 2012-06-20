@@ -34,8 +34,8 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_TEMPLATE_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_TEMPLATE_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_JOINT_COLLECTION_WIDGET_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_JOINT_COLLECTION_WIDGET_
 
 #include <QWidget>
 #include <QTableWidget>
@@ -52,6 +52,8 @@ public:
 
   JointCollectionWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
+  /// Loads the availble joints list
+  void loadJoints();
 
   // ******************************************************************************************
   // Qt Components
@@ -60,14 +62,25 @@ public:
   QTableWidget *joint_table_;
   QTableWidget *selected_joint_table_;
 
+  /// Text input for name of group
+  QLineEdit *name_input_;                                  
+
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
+  void quitScreen();
+  void saveGroup();
+  void deleteGroup();
+  void selectJointButtonClicked();
+  void deselectJointButtonClicked();
 
 Q_SIGNALS:
 
+  // ******************************************************************************************
+  // Emitted Signals
+  // ******************************************************************************************
   /// Event sent when this widget is done making data changes
   void doneEditing();
 
@@ -84,7 +97,6 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
-
 
 };
 

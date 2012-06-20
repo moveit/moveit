@@ -34,22 +34,55 @@
 
 /* Author: Dave Coleman */
 
+#include <tinyxml.h>
+#include <moveit_setup_assistant/tools/srdf_writer.h>
+
 namespace moveit_setup_assistant
 {
 
 // ******************************************************************************************
-// Read in an SRDF file and provide ability to change sections before writing back to file
+// Constructor
 // ******************************************************************************************
-WriteSRDF::WriteSRDF(const std::string &srdf_file ) : srdf_file_(srdf_file)
+SRDFWriter::SRDFWriter()
 {
-  // Check that the file exists
-  // TODO
-
-  // Load an SRDF from file
-  srdf_model_ = new srdf::Model();
-
 }
 
+// ******************************************************************************************
+// Destructor
+// ******************************************************************************************
+SRDFWriter::~SRDFWriter()
+{
+}
+
+// ******************************************************************************************
+// Load SRDF data from a pre-populated string
+// ******************************************************************************************
+
+
+bool SRDFWriter::initString( const urdf::ModelInterface &robot_model, const std::string &srdf_string )
+{
+  // Load from SRDF Model
+  srdf::Model srdf_model;
+
+  // Error check
+  if( !srdf_model.initString( robot_model, srdf_string ) )
+  {
+    return false; // error loading file. improper format?
+  }
+
+  // Copy all read-only data from srdf model to this object
+  disabled_collisions_ = srdf_model.getDisabledCollisionPairs();
+  groups_ = srdf_model.getGroups();
+  virtual_joints_ = srdf_model.getVirtualJoints();
+  end_effectors_ = srdf_model.getEndEffectors();
+  group_states_ = srdf_model.getGroupStates();
+
+  return true;
+}
+// ******************************************************************************************
+// 
+// ******************************************************************************************
+
 
 
 // ******************************************************************************************
@@ -58,11 +91,8 @@ WriteSRDF::WriteSRDF(const std::string &srdf_file ) : srdf_file_(srdf_file)
 
 
 
-
 // ******************************************************************************************
 // 
 // ******************************************************************************************
-
-
 
 }
