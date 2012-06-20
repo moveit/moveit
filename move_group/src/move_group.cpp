@@ -114,7 +114,8 @@ public:
       planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff) ? planning_scene_monitor_->getPlanningScene() :
       planning_scene::PlanningScene::diff(planning_scene_monitor_->getPlanningScene(), goal->planning_scene_diff);
     
-    bool solved = move_group_pipeline_.generatePlan(the_scene, mreq, mres);
+    std::vector<std::size_t> adapter_added_state_index;
+    bool solved = move_group_pipeline_.generatePlan(the_scene, mreq, mres, adapter_added_state_index);
     
     if (!solved)
     {
@@ -126,7 +127,23 @@ public:
     std::vector<std::size_t> invalid_index;
     if (!planning_scene_monitor_->getPlanningScene()->isPathValid(mres.trajectory_start, mres.trajectory, mreq.motion_plan_request.path_constraints, false, &invalid_index))
     {
-      if (invalid_index.size() > 1 || (invalid_index.size() == 1 && invalid_index[0] != 0))
+      // check to see that the invalid states are ones not added by planning request adapters
+      // if they are not, skip execution
+      bool error = false;
+      for (std::size_t i = 0 ; i < invalid_index.size() && !error ; ++i)
+      {
+        bool found = false;
+        for (std::size_t j = 0 ; j < adapter_added_state_index.size() ; ++j)
+          if (invalid_index[i] == adapter_added_state_index[j])
+          {
+            found = true;
+            break;
+          }
+        if (!found)
+          error = true;
+      }
+      
+      if (error || (invalid_index.size() == 1 && invalid_index[0] != 0))
       {
 	action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
 	action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");

@@ -41,13 +41,13 @@
 namespace default_planner_request_adapters
 {
 
-class FixWorkspaceBoundsPlanningRequestAdapter : public planning_request_adapter::PlanningRequestAdapter
+class FixWorkspaceBounds : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
   
   static const std::string WBOUNDS_PARAM_NAME;
   
-  FixWorkspaceBoundsPlanningRequestAdapter(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixWorkspaceBounds(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(WBOUNDS_PARAM_NAME, workspace_extent_))
     {
@@ -64,7 +64,8 @@ public:
   virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
                             const moveit_msgs::GetMotionPlan::Request &req, 
-                            moveit_msgs::GetMotionPlan::Response &res) const
+                            moveit_msgs::GetMotionPlan::Response &res,
+                            std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     const moveit_msgs::WorkspaceParameters &wparams = req.motion_plan_request.workspace_parameters;
@@ -88,10 +89,10 @@ private:
   double workspace_extent_;
 };
 
-const std::string FixWorkspaceBoundsPlanningRequestAdapter::WBOUNDS_PARAM_NAME = "default_workspace_bounds";
+const std::string FixWorkspaceBounds::WBOUNDS_PARAM_NAME = "default_workspace_bounds";
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixWorkspaceBoundsPlanningRequestAdapter,
-                        default_planner_request_adapters::FixWorkspaceBoundsPlanningRequestAdapter,
+PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixWorkspaceBounds,
+                        default_planner_request_adapters::FixWorkspaceBounds,
                         planning_request_adapter::PlanningRequestAdapter);

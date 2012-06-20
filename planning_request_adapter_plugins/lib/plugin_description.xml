@@ -1,26 +1,26 @@
 <library path="lib/libdefault_planning_request_adapters">
 
-  <class name="default_planner_request_adapters/EmptyPlanningRequestAdapter" type="default_planner_request_adapters::EmptyPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+  <class name="default_planner_request_adapters/Empty" type="default_planner_request_adapters::Empty" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
   </class>
 
-  <class name="default_planner_request_adapters/FixStartStateBoundsPlanningRequestAdapter" type="default_planner_request_adapters::FixStartStateBoundsPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+  <class name="default_planner_request_adapters/FixStartStateBounds" type="default_planner_request_adapters::FixStartStateBounds" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
   </class>
 
-  <class name="default_planner_request_adapters/FixStartStatePathConstraintsPlanningRequestAdapter" type="default_planner_request_adapters::FixStartStatePathConstraintsPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+  <class name="default_planner_request_adapters/FixStartStatePathConstraints" type="default_planner_request_adapters::FixStartStatePathConstraints" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
   </class>
 
-  <class name="default_planner_request_adapters/FixWorkspaceBoundsPlanningRequestAdapter" type="default_planner_request_adapters::FixWorkspaceBoundsPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+  <class name="default_planner_request_adapters/FixWorkspaceBounds" type="default_planner_request_adapters::FixWorkspaceBounds" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
   </class>
 
-  <class name="default_planner_request_adapters/FixStartStateCollisionPlanningRequestAdapter" type="default_planner_request_adapters::FixStartStateCollisionPlanningRequestAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+  <class name="default_planner_request_adapters/FixStartStateCollision" type="default_planner_request_adapters::FixStartStateCollision" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
   </class>

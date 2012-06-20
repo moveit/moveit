@@ -43,7 +43,7 @@
 namespace default_planner_request_adapters
 {
 
-class FixStartStateCollisionPlanningRequestAdapter : public planning_request_adapter::PlanningRequestAdapter
+class FixStartStateCollision : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
   
@@ -51,7 +51,7 @@ public:
   static const std::string JIGGLE_PARAM_NAME;
   static const std::string ATTEMPTS_PARAM_NAME;
   
-  FixStartStateCollisionPlanningRequestAdapter(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixStartStateCollision(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(DT_PARAM_NAME, max_dt_offset_))
     {
@@ -91,7 +91,8 @@ public:
   virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
                             const moveit_msgs::GetMotionPlan::Request &req, 
-                            moveit_msgs::GetMotionPlan::Response &res) const
+                            moveit_msgs::GetMotionPlan::Response &res,
+                            std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
@@ -149,6 +150,7 @@ public:
           // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
           double d = std::min(max_dt_offset_, trajectory_processing::averageSegmentDuration(res.trajectory));
           trajectory_processing::addPrefixState(prefix_state, res.trajectory, d, planning_scene->getTransforms());
+          added_path_index.push_back(0);
         }
         return solved;
       }
@@ -177,12 +179,12 @@ private:
   int sampling_attempts_;
 };
 
-const std::string FixStartStateCollisionPlanningRequestAdapter::DT_PARAM_NAME = "start_state_max_dt";
-const std::string FixStartStateCollisionPlanningRequestAdapter::JIGGLE_PARAM_NAME = "jiggle_fraction";
-const std::string FixStartStateCollisionPlanningRequestAdapter::ATTEMPTS_PARAM_NAME = "max_sampling_attempts";
+const std::string FixStartStateCollision::DT_PARAM_NAME = "start_state_max_dt";
+const std::string FixStartStateCollision::JIGGLE_PARAM_NAME = "jiggle_fraction";
+const std::string FixStartStateCollision::ATTEMPTS_PARAM_NAME = "max_sampling_attempts";
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixStartStateCollisionPlanningRequestAdapter,
-                        default_planner_request_adapters::FixStartStateCollisionPlanningRequestAdapter,
+PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixStartStateCollision,
+                        default_planner_request_adapters::FixStartStateCollision,
                         planning_request_adapter::PlanningRequestAdapter);
