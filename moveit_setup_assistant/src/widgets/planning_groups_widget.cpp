@@ -36,11 +36,14 @@
 
 #include "planning_groups_widget.h"
 #include <boost/thread.hpp>
+#include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QString>
+#include <QTreeWidgetItem>
+#include <QHeaderView>
 #include "ros/ros.h"
 #include "header_widget.h"
 
@@ -67,14 +70,15 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   // Left Side ---------------------------------------------
 
   // Create left side widgets 
-  //  groups_table_widget_ = new PlanningGroupsTableWidget( this, config_data_ );
-  groups_table_widget_ = createContentsWidget();
+  //  groups_tree_widget_ = new PlanningGroupsTableWidget( this, config_data_ );
+  groups_tree_widget_ = createContentsWidget();
 
   joints_widget_ = new JointCollectionWidget( this, config_data_ );
+  connect( joints_widget_, SIGNAL( doneEditing() ), this, SLOT( doneEditing() ) );
 
   // Combine into stack
   stacked_layout_ = new QStackedLayout( this );
-  stacked_layout_->addWidget( groups_table_widget_ );
+  stacked_layout_->addWidget( groups_tree_widget_ );
   stacked_layout_->addWidget( joints_widget_ );
 
   stacked_layout_->setCurrentIndex( 0 );
@@ -102,6 +106,12 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
  
 
   setLayout(layout);
+
+  // process the gui
+  QApplication::processEvents(); 
+
+  // TODO: remove this demo
+  //addJointCollectionGroup();
 }
 
 void PlanningGroupsWidget::changeScreen( int index )
@@ -127,70 +137,75 @@ QWidget* PlanningGroupsWidget::createContentsWidget()
   table_title->setFont(table_title_font);
   layout->addWidget( table_title);
 
-  // Table
-  groups_table_ = new QTableWidget( this );
-  groups_table_->setColumnCount(2);
-  groups_table_->setSortingEnabled(true);
-  //connect(groups_table_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
-  layout->addWidget(groups_table_);
+  // Tree Box
+  groups_tree_ = new QTreeWidget( this );
+  //groups_tree_->setColumnCount(2);
+  //groups_tree_->setSortingEnabled(true);
+  //connec(tgroups_tree_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
+  layout->addWidget(groups_tree_);
 
+  /*
   // Table Headers
   QStringList header_list;
   header_list.append("Planning Group");
   header_list.append("Group Type");
-  groups_table_->setHorizontalHeaderLabels(header_list);
-  groups_table_->resizeColumnToContents(0);
-  groups_table_->resizeColumnToContents(1);
- 
+  groups_tree_->setHorizontalHeaderLabels(header_list);
+  groups_tree_->resizeColumnToContents(0);
+  groups_tree_->resizeColumnToContents(1);
+  */
+
   // Bottom Area ----------------------------------------
-  QHBoxLayout *controls1_layout = new QHBoxLayout( );
+  /*
+    QHBoxLayout *controls1_layout = new QHBoxLayout( );
 
-  // Add Joint Colletion Group
-  QPushButton *btn_joint = new QPushButton( "Add &Joint Collection Group", this );
-  btn_joint->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  btn_joint->setMinimumWidth(250);
-  connect(btn_joint, SIGNAL(clicked()), this, SLOT(addJointCollectionGroup()));
-  controls1_layout->addWidget(btn_joint);
+    // Add Joint Colletion Group
+    QPushButton *btn_joint = new QPushButton( "Add &Joint Collection Group", this );
+    btn_joint->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    btn_joint->setMinimumWidth(250);
+    connect(btn_joint, SIGNAL(clicked()), this, SLOT(addJointCollectionGroup()));
+    controls1_layout->addWidget(btn_joint);
 
-  // Add Link Colletion Group
-  QPushButton *btn_link = new QPushButton( "Add &Link Collection Group", this );
-  btn_link->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  btn_link->setMinimumWidth(250);
-  connect(btn_link, SIGNAL(clicked()), this, SLOT(addLinkCollectionGroup()));
-  controls1_layout->addWidget(btn_link);
+    // Add Link Colletion Group
+    QPushButton *btn_link = new QPushButton( "Add &Link Collection Group", this );
+    btn_link->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    btn_link->setMinimumWidth(250);
+    connect(btn_link, SIGNAL(clicked()), this, SLOT(addLinkCollectionGroup()));
+    controls1_layout->addWidget(btn_link);
 
-  QHBoxLayout *controls2_layout = new QHBoxLayout( );
+    QHBoxLayout *controls2_layout = new QHBoxLayout( );
 
-  // Add Kinematics Chain Button
-  QPushButton *btn_kinematics = new QPushButton( this );
-  btn_kinematics->setText("Add &Kinematics Chain Group");
-  btn_kinematics->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  btn_kinematics->setMinimumWidth(250);
-  connect(btn_kinematics, SIGNAL(clicked()), this, SLOT(addKinematicChainGroup()));
-  controls2_layout->addWidget(btn_kinematics);
+    // Add Kinematics Chain Button
+    QPushButton *btn_kinematics = new QPushButton( this );
+    btn_kinematics->setText("Add &Kinematics Chain Group");
+    btn_kinematics->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    btn_kinematics->setMinimumWidth(250);
+    connect(btn_kinematics, SIGNAL(clicked()), this, SLOT(addKinematicChainGroup()));
+    controls2_layout->addWidget(btn_kinematics);
 
-  // Add End Effector Button
-  QPushButton *btn_end_effector = new QPushButton( this );
-  btn_end_effector->setText("Add &End Effector");
-  btn_end_effector->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  btn_end_effector->setMinimumWidth(250);
-  connect(btn_end_effector, SIGNAL(clicked()), this, SLOT(addEndEffector()));
-  controls2_layout->addWidget(btn_end_effector);
+    // Add End Effector Button
+    QPushButton *btn_end_effector = new QPushButton( this );
+    btn_end_effector->setText("Add &End Effector");p
+    btn_end_effector->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    bt;n_end_effector->setMinimumWidth(250);
+    connect(btn_end_effector, SIGNAL(clicked()), this, SLOT(addEndEffector()));
+    controls2_layout->addWidget(btn_end_effector);
+  */
+
 
   QHBoxLayout *controls3_layout = new QHBoxLayout( );
 
   // Add Super Group Button
-  QPushButton *btn_super_group = new QPushButton( this );
-  btn_super_group->setText("Add &Super Group");
+  QPushButton *btn_super_group = new QPushButton( "&Add Group", this );
   btn_super_group->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   btn_super_group->setMinimumWidth(250);
   connect(btn_super_group, SIGNAL(clicked()), this, SLOT(addSuperGroup()));
   controls3_layout->addWidget(btn_super_group);
+  controls3_layout->setAlignment( btn_super_group, Qt::AlignRight );
 
   
   // Add Controls to layout
-  layout->addLayout( controls1_layout );
-  layout->addLayout( controls2_layout );
+  //layout->addLayout( controls1_layout );
+  //layout->addLayout( controls2_layout );
   layout->addLayout( controls3_layout );
 
   // Set layout
@@ -202,74 +217,49 @@ QWidget* PlanningGroupsWidget::createContentsWidget()
 // ******************************************************************************************
 // Displays data in the link_pairs_ data structure into a QtTableWidget
 // ******************************************************************************************
-void PlanningGroupsWidget::loadGroupsTable()
+void PlanningGroupsWidget::loadGroupsTree()
 {
-  int row = 0;
-  groups_table_->setUpdatesEnabled(false); // prevent table from updating until we are completely done
-  groups_table_->setDisabled(true); // make sure we disable it so that the cellChanged event is not called
-  groups_table_->clearContents();
-  /*
-  // Intially set the table to be worst-case scenario of every possible element pair
-  groups_table_->setRowCount( link_pairs_.size() ); 
+  std::cout << "LOADING " << std::endl;
 
-  for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin(); 
-  pair_it != link_pairs_.end(); 
-  ++pair_it)
+  groups_tree_->setUpdatesEnabled(false); // prevent table from updating until we are completely done
+  groups_tree_->setDisabled(true); // make sure we disable it so that the cellChanged event is not called
+
+
+  // Display all groups by looping through them
+  for( std::vector<srdf::Model::Group>::const_iterator group_it = config_data_->srdf_->groups_.begin(); 
+       group_it != config_data_->srdf_->groups_.end();  ++group_it )
   {
-  // Add link pair row if 1) it is disabled from collision checking or 2) the SHOW ALL LINK PAIRS checkbox is checked
-  if( pair_it->second.disable_check || collision_checkbox_->isChecked() ) 
-  {
-      
-  // Create row elements
-  QTableWidgetItem* linkA = new QTableWidgetItem( pair_it->first.first.c_str() ); 
-  linkA->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-  QTableWidgetItem* linkB = new QTableWidgetItem( pair_it->first.second.c_str() );
-  linkB->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    //addLinktoTreeRecursive( group_it, NULL );
+    QTreeWidgetItem *toAdd = new QTreeWidgetItem( groups_tree_ );
+    toAdd->setText( 0, group_it->name_.c_str() );
+    groups_tree_->addTopLevelItem( toAdd );
 
-  CheckboxSortWidgetItem* disable_check = new CheckboxSortWidgetItem;
-  disable_check->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
-  if( pair_it->second.disable_check ) // Checked means no collision checking
-  disable_check->setCheckState(Qt::Checked);
-  else
-  disable_check->setCheckState(Qt::Unchecked);
-
-  QTableWidgetItem* reason = new QTableWidgetItem( longReasonsToString.at( pair_it->second.reason ) );
-  reason->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-
-  // Insert row elements into collision table
-  groups_table_->setItem( row, 0, linkA);
-  groups_table_->setItem( row, 1, linkB);
-  groups_table_->setItem( row, 2, disable_check);
-  groups_table_->setItem( row, 3, reason);
-            
-  // Increment row count
-  ++row;
-  }
-    
-  ++progress_counter; // for calculating progress bar
-
-  if( progress_counter % 200 == 0 )
-  {
-  // Update Progress Bar
-  progress_bar_->setValue( progress_counter * 100 / link_pairs_.size() );  
-  QApplication::processEvents(); // allow the progress bar to be shown
   }
 
-  }
-  */
+  //groups_tree_->expandToDepth(0);
+  //groups_tree_->header()->setResizeMode(0, QHeaderView::ResizeToContents);
+  //groups_tree_->header()->setStretchLastSection(false);
 
-  // Reduce the table size to only the number of used rows
-  groups_table_->setRowCount( row ); 
+  // Reenable
+  groups_tree_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
+  groups_tree_->setDisabled(false); // make sure we disable it so that the cellChanged event is not called
 
-  groups_table_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
+  // Resize table
+  //groups_tree_->resizeColumnToContents(0);
+  //groups_tree_->resizeColumnToContents(1);
+
 }
 
 void PlanningGroupsWidget::addJointCollectionGroup()
 {
   std::cout << "ADD JOINT COLL" << std::endl;
+
+  // Switch screens
   stacked_layout_->setCurrentIndex( 1 );
 
+  // Load the available joints list
+  joints_widget_->loadJoints();
 }
 
 void PlanningGroupsWidget::addLinkCollectionGroup()
@@ -296,4 +286,8 @@ void PlanningGroupsWidget::doneEditing()
 {
   std::cout << "BACK" << std::endl;
   stacked_layout_->setCurrentIndex( 0 );
+  //loadGroupsTree();
 }
+
+
+
