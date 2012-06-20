@@ -38,7 +38,7 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
 
 #include <QWidget>
-#include <QTableWidget>
+#include <QTreeWidget>
 #include <QSplitter>
 #include <QStackedLayout>
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
@@ -71,7 +71,7 @@ private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-  void loadGroupsTable();
+  void loadGroupsTree();
   void addJointCollectionGroup();
   void addLinkCollectionGroup();
   void addKinematicChainGroup();
@@ -94,10 +94,10 @@ private:
   JointCollectionWidget *joints_widget_;
 
   /// Main contents widget
-  QWidget *groups_table_widget_;
+  QWidget *groups_tree_widget_;
 
   /// Main table for holding groups
-  QTableWidget *groups_table_;
+  QTreeWidget *groups_tree_;
 
   // ******************************************************************************************
   // Variables
@@ -110,6 +110,12 @@ private:
   // Private Functions
   // ******************************************************************************************
   QWidget* createContentsWidget();
+
+  /** 
+   * Called whenver widget is shown, used to re-populate table data
+   * @param p unused paint event object reference
+   */
+  void paintEvent( QPaintEvent * p );
 
 };
 

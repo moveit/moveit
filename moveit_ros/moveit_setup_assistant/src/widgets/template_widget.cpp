@@ -44,7 +44,7 @@
 #include "template_widget.h"
 
 // ******************************************************************************************
-// Outer User Interface for MoveIt Configuration Assistant
+// 
 // ******************************************************************************************
 TemplateWidget::TemplateWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
   :  QWidget( parent ), config_data_( config_data )

@@ -37,8 +37,10 @@
 #ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 
-#include <iostream>
+//#include <iostream>
 #include <boost/shared_ptr.hpp>
+#include <srdf/model.h> // use their struct datastructures
+#include <moveit_setup_assistant/tools/srdf_writer.h> // for writing srdf data
 
 namespace moveit_setup_assistant
 {
@@ -50,9 +52,14 @@ public:
   ~MoveItConfigData();
 
   // All of the data needed for creating a MoveIt Configuration Files
+
+  // Paths
   std::string urdf_path_;
   std::string srdf_path_;
  
+  // SRDF Data and Writer
+  SRDFWriterPtr srdf_;
+
 };
 
 /// Create a shared pointer for passing this data object between widgets
