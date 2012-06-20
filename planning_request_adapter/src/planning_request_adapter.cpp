@@ -35,6 +35,7 @@
 #include <planning_request_adapter/planning_request_adapter.h>
 #include <planning_models/conversions.h>
 #include <boost/bind.hpp>
+#include <algorithm>
 
 namespace planning_request_adapter
 {
@@ -135,7 +136,7 @@ bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const p
             added_path_index[k]++;
         added_path_index.push_back(added_path_index_each[i][j]);
       }
-    
+    std::sort(added_path_index.begin(), added_path_index.end());
     return result;
   }
 }
