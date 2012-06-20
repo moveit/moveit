@@ -20,11 +20,11 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 
 set(SOURCE_FILES
-  src/empty_planning_request_adapter.cpp
-  src/fix_start_state_bounds_planning_request_adapter.cpp
-  src/fix_start_state_collision_planning_request_adapter.cpp
-  src/fix_start_state_path_constraints_planning_request_adapter.cpp
-  src/fix_workspace_bounds_planning_request_adapter.cpp)
+  src/empty.cpp
+  src/fix_start_state_bounds.cpp
+  src/fix_start_state_collision.cpp
+  src/fix_start_state_path_constraints.cpp
+  src/fix_workspace_bounds.cpp)
 
 set(LIBRARY_NAME default_planning_request_adapters)
 include(CMakeDetermineSystem)

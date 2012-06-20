@@ -43,11 +43,11 @@
 namespace default_planner_request_adapters
 {
 
-class FixStartStatePathConstraintsPlanningRequestAdapter : public planning_request_adapter::PlanningRequestAdapter
+class FixStartStatePathConstraints : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
 
-  FixStartStatePathConstraintsPlanningRequestAdapter(void) : planning_request_adapter::PlanningRequestAdapter()
+  FixStartStatePathConstraints(void) : planning_request_adapter::PlanningRequestAdapter()
   {
   }
   
@@ -57,7 +57,8 @@ public:
   virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
                             const moveit_msgs::GetMotionPlan::Request &req, 
-                            moveit_msgs::GetMotionPlan::Response &res) const
+                            moveit_msgs::GetMotionPlan::Response &res,
+                            std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     
@@ -164,6 +165,6 @@ public:
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixStartStatePathConstraintsPlanningRequestAdapter,
-                        default_planner_request_adapters::FixStartStatePathConstraintsPlanningRequestAdapter,
+PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixStartStatePathConstraints,
+                        default_planner_request_adapters::FixStartStatePathConstraints,
                         planning_request_adapter::PlanningRequestAdapter);

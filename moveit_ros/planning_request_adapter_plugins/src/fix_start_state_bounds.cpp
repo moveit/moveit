@@ -44,14 +44,14 @@
 namespace default_planner_request_adapters
 {
 
-class FixStartStateBoundsPlanningRequestAdapter : public planning_request_adapter::PlanningRequestAdapter
+class FixStartStateBounds : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
 
   static const std::string BOUNDS_PARAM_NAME;
   static const std::string DT_PARAM_NAME;
   
-  FixStartStateBoundsPlanningRequestAdapter(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixStartStateBounds(void) : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam(BOUNDS_PARAM_NAME, bounds_dist_))
     {
@@ -76,7 +76,8 @@ public:
   virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
                             const moveit_msgs::GetMotionPlan::Request &req, 
-                            moveit_msgs::GetMotionPlan::Response &res) const
+                            moveit_msgs::GetMotionPlan::Response &res,
+                            std::vector<std::size_t> &added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
     
@@ -174,6 +175,7 @@ public:
         // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
         double d = std::min(max_dt_offset_, trajectory_processing::averageSegmentDuration(res.trajectory));
         trajectory_processing::addPrefixState(*prefix, res.trajectory, d, planning_scene->getTransforms());
+        added_path_index.push_back(0);
       }
     }
 
@@ -223,11 +225,11 @@ private:
 };
 
 
-const std::string FixStartStateBoundsPlanningRequestAdapter::BOUNDS_PARAM_NAME = "start_state_max_bounds_error";
-const std::string FixStartStateBoundsPlanningRequestAdapter::DT_PARAM_NAME = "start_state_max_dt";
+const std::string FixStartStateBounds::BOUNDS_PARAM_NAME = "start_state_max_bounds_error";
+const std::string FixStartStateBounds::DT_PARAM_NAME = "start_state_max_dt";
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixStartStateBoundsPlanningRequestAdapter,
-                        default_planner_request_adapters::FixStartStateBoundsPlanningRequestAdapter,
+PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, FixStartStateBounds,
+                        default_planner_request_adapters::FixStartStateBounds,
                         planning_request_adapter::PlanningRequestAdapter);

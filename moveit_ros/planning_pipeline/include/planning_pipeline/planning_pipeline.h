@@ -80,6 +80,11 @@ public:
                     const moveit_msgs::GetMotionPlan::Request& req,
                     moveit_msgs::GetMotionPlan::Response& res) const;
   
+  bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                    const moveit_msgs::GetMotionPlan::Request& req,
+                    moveit_msgs::GetMotionPlan::Response& res,
+                    std::vector<std::size_t> &adapter_added_state_index) const;
+  
   const std::string& getPlannerPluginName(void) const
   {
     return planner_plugin_name_;

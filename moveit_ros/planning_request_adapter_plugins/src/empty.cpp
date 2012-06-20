@@ -40,7 +40,7 @@
 namespace default_planner_request_adapters
 {
 
-class EmptyPlanningRequestAdapter : public planning_request_adapter::PlanningRequestAdapter
+class Empty : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
   virtual std::string getDescription(void) const { return "No Op"; }
@@ -48,7 +48,8 @@ public:
   virtual bool adaptAndPlan(const planning_request_adapter::PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,
                             const moveit_msgs::GetMotionPlan::Request &req, 
-                            moveit_msgs::GetMotionPlan::Response &res) const
+                            moveit_msgs::GetMotionPlan::Response &res,
+                            std::vector<std::size_t> &added_path_index) const
   {
     return planner(planning_scene, req, res);
   }  
@@ -56,6 +57,6 @@ public:
 
 }
 
-PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, EmptyPlanningRequestAdapter,
-                        default_planner_request_adapters::EmptyPlanningRequestAdapter,
+PLUGINLIB_DECLARE_CLASS(default_planner_request_adapters, Empty,
+                        default_planner_request_adapters::Empty,
                         planning_request_adapter::PlanningRequestAdapter);
