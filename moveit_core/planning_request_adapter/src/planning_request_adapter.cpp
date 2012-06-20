@@ -50,9 +50,19 @@ static bool callPlannerInterfaceSolve(const planning_interface::Planner *planner
 bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planning_interface::PlannerPtr &planner,
                                                                     const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                     const moveit_msgs::GetMotionPlan::Request &req, 
+                                                                    moveit_msgs::GetMotionPlan::Response &res,
+                                                                    std::vector<std::size_t> &added_path_index) const
+{
+  return adaptAndPlan(boost::bind(&callPlannerInterfaceSolve, planner.get(), _1, _2, _3), planning_scene, req, res, added_path_index);
+}
+
+bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(const planning_interface::PlannerPtr &planner,
+                                                                    const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                                    const moveit_msgs::GetMotionPlan::Request &req, 
                                                                     moveit_msgs::GetMotionPlan::Response &res) const
 {
-  return adaptAndPlan(boost::bind(&callPlannerInterfaceSolve, planner.get(), _1, _2, _3), planning_scene, req, res);
+  std::vector<std::size_t> dummy;
+  return adaptAndPlan(planner, planning_scene, req, res, dummy);
 }
 
 namespace planning_request_adapter
@@ -64,18 +74,20 @@ static bool callAdapter1(const PlanningRequestAdapter *adapter,
                          const planning_interface::PlannerPtr &planner,
                          const planning_scene::PlanningSceneConstPtr& planning_scene,
                          const moveit_msgs::GetMotionPlan::Request &req, 
-                         moveit_msgs::GetMotionPlan::Response &res)
+                         moveit_msgs::GetMotionPlan::Response &res,
+                         std::vector<std::size_t> &added_path_index)
 {
-  return adapter->adaptAndPlan(planner, planning_scene, req, res);
+  return adapter->adaptAndPlan(planner, planning_scene, req, res, added_path_index);
 }
 
 static bool callAdapter2(const PlanningRequestAdapter *adapter,
                          const PlannerFn &planner,
                          const planning_scene::PlanningSceneConstPtr& planning_scene,
                          const moveit_msgs::GetMotionPlan::Request &req, 
-                         moveit_msgs::GetMotionPlan::Response &res)
+                         moveit_msgs::GetMotionPlan::Response &res,
+                         std::vector<std::size_t> &added_path_index)
 {
-  return adapter->adaptAndPlan(planner, planning_scene, req, res);
+  return adapter->adaptAndPlan(planner, planning_scene, req, res, added_path_index);
 }
 
 }
@@ -85,16 +97,45 @@ bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const p
                                                                          const moveit_msgs::GetMotionPlan::Request &req, 
                                                                          moveit_msgs::GetMotionPlan::Response &res) const
 {
+  std::vector<std::size_t> dummy;
+  return adaptAndPlan(planner, planning_scene, req, res, dummy);
+}
+
+bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(const planning_interface::PlannerPtr &planner,
+                                                                         const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                                         const moveit_msgs::GetMotionPlan::Request &req, 
+                                                                         moveit_msgs::GetMotionPlan::Response &res,
+                                                                         std::vector<std::size_t> &added_path_index) const
+{
   // if there are no adapters, run the planner directly 
   if (adapters_.empty())
+  {
+    added_path_index.clear();
     return planner->solve(planning_scene, req, res);
+  }
   else
   {
+    // the index values added by each adapter
+    std::vector<std::vector<std::size_t> > added_path_index_each(adapters_.size());
+    
     // if there are adapters, construct a function pointer for each, in order,
     // so that in the end we have a nested sequence of function pointers that call the adapters in the correct order.
-    PlannerFn fn = boost::bind(&callAdapter1, adapters_.back().get(), planner, _1, _2, _3);
+    PlannerFn fn = boost::bind(&callAdapter1, adapters_.back().get(), planner, _1, _2, _3, boost::ref(added_path_index_each.back()));
     for (int i = adapters_.size() - 2 ; i >= 0 ; --i)
-      fn = boost::bind(&callAdapter2, adapters_[i].get(), fn, _1, _2, _3);
-    return fn(planning_scene, req, res);
+      fn = boost::bind(&callAdapter2, adapters_[i].get(), fn, _1, _2, _3, boost::ref(added_path_index_each[i]));
+    bool result = fn(planning_scene, req, res);
+    added_path_index.clear();
+    
+    // merge the index values from each adapter
+    for (std::size_t i = 0 ; i < added_path_index_each.size() ; ++i)
+      for (std::size_t j = 0 ; j < added_path_index_each[i].size() ; ++j)
+      {
+        for (std::size_t k = 0 ; k < added_path_index.size() ; ++k)
+          if (added_path_index_each[i][j] <= added_path_index[k])
+            added_path_index[k]++;
+        added_path_index.push_back(added_path_index_each[i][j]);
+      }
+    
+    return result;
   }
 }
