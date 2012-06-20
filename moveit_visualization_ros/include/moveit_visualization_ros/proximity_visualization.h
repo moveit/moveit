@@ -59,6 +59,8 @@ protected:
   
   std::string current_group_;
 
+  std::vector<std::string> last_object_ids_;
+  
   planning_scene::PlanningSceneConstPtr planning_scene_;
   collision_detection::AllowedCollisionMatrix distance_acm_;
 

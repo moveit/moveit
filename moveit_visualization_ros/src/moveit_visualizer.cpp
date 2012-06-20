@@ -36,6 +36,9 @@
 #include <moveit_visualization_ros/moveit_visualizer.h>
 #include <moveit_visualization_ros/primitive_object_addition_dialog.h>
 #include <moveit_visualization_ros/mesh_object_addition_dialog.h>
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/default_plugin/interactive_marker_display.h>
+#include <rviz/display_wrapper.h>
 
 static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 
@@ -132,23 +135,24 @@ MoveItVisualizer::MoveItVisualizer() :
 
   rviz_frame_ = new rviz::VisualizationPanel;
 
+  //kind of hacky way to do this - this just turns on interactive mode
+  //given the way that the vis manager is creating tools
+  rviz_frame_->getManager()->setCurrentTool(rviz_frame_->getManager()->getTool(1));
+
   QList<int> sizes;
   sizes.push_back(0);
   sizes.push_back(1000);
 
   rviz_frame_->setSizes(sizes);
 
-  //kind of hacky way to do this - this just turns on interactive move
-  //given the way that the vis manager is creating tools
-  rviz_frame_->getManager()->setCurrentTool(rviz_frame_->getManager()->getTool(1));
-
-  //std::string config_name = ros::package::getPath("pr2_arm_navigation")+"/config/pr2_planning_components_config.config";
-  std::string display_config_name = ros::package::getPath("pr2_arm_navigation")+"/config/pr2_planning_components_display_config.config";
-  
-  //frame->loadGeneralConfig(config_name);
-  rviz_frame_->loadDisplayConfig(display_config_name);
   rviz_frame_->getManager()->setFixedFrame(planning_scene_monitor_->getPlanningScene()->getPlanningFrame());
-  
+  rviz_frame_->getManager()->createDisplay("rviz/RobotModel", "Robot Model", true);
+  rviz::DisplayWrapper* marker_display = rviz_frame_->getManager()->createDisplay("rviz/Marker", "Markers", true);
+  rviz::MarkerDisplay* md = dynamic_cast<rviz::MarkerDisplay*>(marker_display->getDisplay());
+  md->setMarkerTopic(VIS_TOPIC_NAME);
+  rviz::DisplayWrapper* interactive_marker_display = rviz_frame_->getManager()->createDisplay("rviz/InteractiveMarker", "Interactive Markers", true);
+  rviz::InteractiveMarkerDisplay* imd = dynamic_cast<rviz::InteractiveMarkerDisplay*>(interactive_marker_display->getDisplay());
+  imd->setMarkerUpdateTopic("interactive_kinematics_visualization/update");
 
   main_window_ = new QWidget;
   main_window_->resize(1500,1000);
