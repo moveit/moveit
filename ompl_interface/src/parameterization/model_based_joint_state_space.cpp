@@ -93,7 +93,7 @@ void ompl_interface::ModelBasedJointStateSpace::enforceBounds(ompl::base::State 
 
 bool ompl_interface::ModelBasedJointStateSpace::satisfiesBounds(const ompl::base::State *state) const
 {
-  return joint_model_->satisfiesBounds(state->as<StateType>()->joint_state->getVariableValues(), joint_bounds_);
+  return joint_model_->satisfiesBounds(state->as<StateType>()->joint_state->getVariableValues(), joint_bounds_, std::numeric_limits<double>::epsilon());
 }
 
 void ompl_interface::ModelBasedJointStateSpace::copyState(ompl::base::State *destination, const ompl::base::State *source) const
