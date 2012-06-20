@@ -9,9 +9,9 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/ompl_interface</url>
 
-  <rosdep name="ompl" /> 
+<!--  <rosdep name="ompl" /> -->
 
-<!--  <depend package="ompl" /> -->
+  <depend package="ompl" /> 
   <depend package="rosconsole" />
   <depend package="planning_models"/>
   <depend package="planning_scene"/> 
