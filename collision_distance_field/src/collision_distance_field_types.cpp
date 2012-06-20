@@ -133,6 +133,28 @@ bool collision_distance_field::getCollisionSphereCollision(const distance_field:
 
 }
 
+bool collision_distance_field::getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
+                                                           const std::vector<CollisionSphere>& sphere_list,
+                                                           const std::vector<Eigen::Vector3d>& sphere_centers,
+                                                           double maximum_value,
+                                                           double tolerance,
+                                                           unsigned int num_coll,
+                                                           std::vector<unsigned int>& colls)
+{
+  for(unsigned int i = 0; i < sphere_list.size(); i++) {
+    Eigen::Vector3d p = sphere_centers[i];
+    double gx, gy, gz;
+    double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz);
+    if(maximum_value > dist && dist - sphere_list[i].radius_ < tolerance) {
+      colls.push_back(i);
+      if(colls.size() > num_coll) {
+        return true;
+      }
+    }
+  }
+  return colls.size() > 0;
+}
+
 ///
 /// BodyDecomposition
 ///
@@ -293,6 +315,53 @@ void collision_distance_field::getProximityGradientMarkers(const std::string& fr
         arrow_mark.color.b = 1.0;
       }
       arr.markers.push_back(arrow_mark);
+    }
+  }
+}
+
+void collision_distance_field::getCollisionMarkers(const std::string& frame_id,
+                                                   const std::string& ns,
+                                                   const ros::Duration& dur,
+                                                   const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
+                                                   const std::vector<GradientInfo>& gradients,
+                                                   visualization_msgs::MarkerArray& arr)
+{
+  for(unsigned int i = 0; i < gradients.size(); i++) {
+    for(unsigned int j = 0; j < gradients[i].types.size(); j++) {
+      visualization_msgs::Marker sphere_mark;
+      sphere_mark.type = visualization_msgs::Marker::SPHERE;
+      sphere_mark.header.frame_id = frame_id;
+      sphere_mark.header.stamp = ros::Time::now();
+      if(ns.empty()) {
+        sphere_mark.ns = "distance_collisions";
+      } else {
+        sphere_mark.ns = ns;
+      }
+      sphere_mark.id = i*1000+j;
+      sphere_mark.scale.x = sphere_mark.scale.y = sphere_mark.scale.z = posed_decompositions[i]->getCollisionSpheres()[j].radius_*2.0;
+      sphere_mark.pose.position.x = posed_decompositions[i]->getSphereCenters()[j].x();
+      sphere_mark.pose.position.y = posed_decompositions[i]->getSphereCenters()[j].y();
+      sphere_mark.pose.position.z = posed_decompositions[i]->getSphereCenters()[j].z();
+      sphere_mark.pose.orientation.w = 1.0;
+      sphere_mark.color.a = 1.0;
+      if(gradients[i].types[j] == collision_distance_field::SELF) {
+        sphere_mark.color.r = 1.0;
+        sphere_mark.color.g = 0.2;
+        sphere_mark.color.b = .5;
+      } else if(gradients[i].types[j] == collision_distance_field::INTRA) {
+        sphere_mark.color.r = .2;
+        sphere_mark.color.g = 1.0;
+        sphere_mark.color.b = .5;
+      } else if(gradients[i].types[j] == collision_distance_field::ENVIRONMENT) {
+        sphere_mark.color.r = .2;
+        sphere_mark.color.g = .5;
+        sphere_mark.color.b = 1.0;
+      } else {
+        sphere_mark.color.r = 1.0;
+        sphere_mark.color.g = .2;
+        sphere_mark.color.b = 1.0;
+      }
+      arr.markers.push_back(sphere_mark);
     }
   }
 }
