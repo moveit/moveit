@@ -8,7 +8,6 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/trajectory_processing</url>
-  <depend package="spline_msgs"/>
   <depend package="planning_models"/>
   <depend package="moveit_msgs"/>
   <depend package="angles"/>
