@@ -61,7 +61,7 @@
 // Start screen user interface for MoveIt Configuration Assistant
 // ******************************************************************************************
 StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
-  :  QWidget( parent ), config_data_( config_data )
+  :  SetupScreenWidget( parent ), config_data_( config_data )
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout( this );
@@ -507,3 +507,4 @@ void LoadPathWidget::setPath( const QString &path )
 {
   path_box_->setText( path );
 }
+

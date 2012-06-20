@@ -35,6 +35,7 @@ set( headers
   src/widgets/robot_poses_widget.h
   src/widgets/end_effectors_widget.h
   src/widgets/configuration_files_widget.h
+  src/widgets/setup_screen_widget.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
@@ -66,6 +67,7 @@ rosbuild_add_library(${PROJECT_NAME}_secondary_widgets
   src/widgets/navigation_widget.cpp
   src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
+  src/widgets/setup_screen_widget.cpp
 )
 target_link_libraries(${PROJECT_NAME}_secondary_widgets ${PROJECT_NAME})
 

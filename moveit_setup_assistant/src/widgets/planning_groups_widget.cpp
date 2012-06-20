@@ -52,7 +52,7 @@
 // CLASS
 // ******************************************************************************************
 PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
-  : QWidget( parent ), config_data_(config_data)
+  : SetupScreenWidget( parent ), config_data_(config_data)
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout();
@@ -223,7 +223,7 @@ void PlanningGroupsWidget::loadGroupsTree()
 
   groups_tree_->setUpdatesEnabled(false); // prevent table from updating until we are completely done
   groups_tree_->setDisabled(true); // make sure we disable it so that the cellChanged event is not called
-
+  groups_tree_->clear(); // reset the tree
 
   // Display all groups by looping through them
   for( std::vector<srdf::Model::Group>::const_iterator group_it = config_data_->srdf_->groups_.begin(); 
@@ -286,8 +286,13 @@ void PlanningGroupsWidget::doneEditing()
 {
   std::cout << "BACK" << std::endl;
   stacked_layout_->setCurrentIndex( 0 );
-  //loadGroupsTree();
+  loadGroupsTree();
 }
 
-
+void PlanningGroupsWidget::focusGiven()
+{
+  std::cout << "FOCUS ON PLANNING" << std::endl;
+  stacked_layout_->setCurrentIndex( 0 );
+  loadGroupsTree();
+}
 

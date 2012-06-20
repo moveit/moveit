@@ -37,6 +37,12 @@
 #include "setup_assistant_widget.h"
 #include <QStackedLayout>
 #include <QListWidget>
+#include <QListWidgetItem>
+#include <QDebug>
+#include <QFont>
+#include <QLabel>
+#include <QPushButton>
+#include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 using namespace moveit_setup_assistant;
 
@@ -55,108 +61,86 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   MoveItConfigDataPtr config_data( new MoveItConfigData() );
 
   // Basic widget container -----------------------------------------
-  QHBoxLayout *layout = new QHBoxLayout( this );
+  QHBoxLayout *layout = new QHBoxLayout();
   layout->setAlignment( Qt::AlignTop );
 
+  left_navigation_ = new QListWidget( this );
+  QFont nav_font( "Arial", 14 );
+  left_navigation_->setFont( nav_font );
 
-
-
-  QListWidget *left_navigation_ = new QListWidget( this );
-  /*left_navigation_->addItem("Appearance");
-  left_navigation_->addItem("Web Browser");
-  left_navigation_->addItem("Mail & News");
-  left_navigation_->addItem("Advanced");*/
-
-
-  QStackedLayout *main_content_ = new QStackedLayout( this );
-  //main_content_->addWidget( new QWidget( this ));
-  /*main_content_->addWidget(webBrowserPage);
-  main_content_->addWidget(mailAndNewsPage);
-  main_content_->addWidget(advancedPage);*/
+  //left_navigation_ = new NavigationWidget( this );
+  main_content_ = new QStackedLayout();
 
   // Screens --------------------------------------------------------
 
   // Start Screen
   StartScreenWidget *ssw = new StartScreenWidget( this, config_data );
   connect( ssw, SIGNAL( readyToProgress() ), this, SLOT( progressPastStartScreen() ) );
-  //navs_ << NavScreen("Start", ssw, false);
   left_navigation_->addItem("Start");
   main_content_->addWidget(ssw);
 
   // Planning Groups
   PlanningGroupsWidget *pgw = new PlanningGroupsWidget( this, config_data );
-  //navs_ << NavScreen("Planning Groups", pgw, true);
   left_navigation_->addItem("Planning Groups");
   main_content_->addWidget(pgw);
 
   // Self-Collisions
   ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget( this, config_data);
-  //navs_ << NavScreen("Self-Collisions", cdcw, true);
   left_navigation_->addItem("Self-Collisions");
   main_content_->addWidget(cdcw);
 
   // Robot Poses
   RobotPosesWidget *rpw = new RobotPosesWidget( this, config_data );
-  //navs_ << NavScreen("Robot Poses", rpw, false);
   left_navigation_->addItem("Robot Poses");
   main_content_->addWidget(rpw);
 
   // End Effectors
   EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
-  //navs_ << NavScreen("End Effectors", efw, false);
   left_navigation_->addItem("End Effectors");
   main_content_->addWidget(efw);  
 
   // Configuration Files
   ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this, config_data );
-  //navs_ << NavScreen("Configuration Files", cfw, true);
   left_navigation_->addItem("Configuration Files");
   main_content_->addWidget(cfw);  
+ 
+  // Disable all navigation options except first
+  for( int i = 1; i < left_navigation_->count(); ++i)
+  {
+    std::cout << "item " << i << std::endl;
+    QListWidgetItem *item = left_navigation_->item( i );
+    item->setFlags( Qt::NoItemFlags );
+  }
 
-  /*
-  // Left side navigation -------------------------------------------
-  navs_view_ = new NavigationWidget( this );
-  navs_view_->setNavs(navs_);
-  navs_view_->setDisabled( true );
+  // Wrap main_content_ with a widget
+  right_frame_ = new QWidget( this );
+  right_frame_->setLayout( main_content_ );
 
-  connect( navs_view_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(navigationClicked(const QModelIndex&)) );
-
-  // Initial right frame widget holder. Change these 2 lines if you want diff default screen
-  right_frame_ = ssw;
-  navs_view_->setSelected(0); // Select first item in list
-
-  // Split screen
+  // Split screen -----------------------------------------------------
   splitter_ = new QSplitter( Qt::Horizontal, this );
   splitter_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  splitter_->addWidget( navs_view_ );
+  splitter_->addWidget( left_navigation_ );
   splitter_->addWidget( right_frame_ );  
   layout->addWidget( splitter_ );
 
-  //layout->addWidget( right_frame_ );
-  //layout->addWidget( navs_view_ );
-
-  */
-
-  layout->addWidget( left_navigation_ );
-  layout->addLayout( main_content_ );
-
-  // Add event for switching between screens
+  // Add event for switching between screens -------------------------
   connect( left_navigation_, SIGNAL(currentRowChanged(int)), main_content_, SLOT(setCurrentIndex(int)));
   connect( left_navigation_, SIGNAL(currentRowChanged(int)), this, SLOT(sendUpdateCommand(int)));
-  left_navigation_->setCurrentRow(0);
   
-
-
   // Final Layout Setup ---------------------------------------------
   this->setLayout(layout);
-
   
   // Title
   this->setWindowTitle("MoveIt Setup Assistant"); // title of window
 }
 
+
 void SetupAssistantWidget::moveToScreen( const int index )
 {
+  left_navigation_->setCurrentRow( index );
+  //left_navigation_->setSelected( index );
+
+  /*
   // Get a reference to the requested screen
   NavScreen next_screen = navs_.at( index );
 
@@ -172,14 +156,17 @@ void SetupAssistantWidget::moveToScreen( const int index )
 
   // Change navigation selected option
   navs_view_->setSelected( index ); // Select first item in list
+  */
 }
+
+
 // ******************************************************************************************
 // Change screens of Setup Assistant
 // ******************************************************************************************
-void SetupAssistantWidget::navigationClicked( const QModelIndex& index )
+ /*void SetupAssistantWidget::navigationClicked( const QModelIndex& index )
 {
   moveToScreen( index.row() );
-}
+  }*/
 
 // ******************************************************************************************
 // Ping ROS on internval
@@ -196,6 +183,17 @@ void SetupAssistantWidget::updateTimer()
 void SetupAssistantWidget::progressPastStartScreen()
 {
   // Enable all nav buttons
+  for( int i = 1; i < left_navigation_->count(); ++i)
+  {
+    std::cout << "item " << i << std::endl;
+    QListWidgetItem *item = left_navigation_->item( i );
+    item->setFlags( Qt::ItemIsSelectable );
+  }
+
+  // Go to next screen
+  moveToScreen( 1 );
+
+  // Enable all nav buttons
   /*for(int i = 0; i < navs_.size(); i ++)
   {
     navs_[i].setDisabled( false );
@@ -203,7 +201,7 @@ void SetupAssistantWidget::progressPastStartScreen()
     }*/
   
   // Repaint - TODO
-  navs_view_->hide();
+  /*  navs_view_->hide();
   navs_view_->repaint();
   navs_view_->update();
   navs_view_->show();
@@ -213,5 +211,15 @@ void SetupAssistantWidget::progressPastStartScreen()
   navs_view_->setDisabled( false );
   
   // Go to next screen
-  moveToScreen( 1 );
+  moveToScreen( 1 );*/
+}
+
+// ******************************************************************************************
+// Send command
+// ******************************************************************************************
+void SetupAssistantWidget::sendUpdateCommand( int screen_index )
+{
+  // Send the focus given command to the screen widget
+  SetupScreenWidget *ssw = qobject_cast< SetupScreenWidget* >( main_content_->widget( screen_index ) );
+  ssw->focusGiven();
 }

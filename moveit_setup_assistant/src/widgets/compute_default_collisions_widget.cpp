@@ -72,7 +72,7 @@ public:
 // ******************************************************************************************
 ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent, 
                                                                 MoveItConfigDataPtr config_data )
-  : QWidget( parent ), config_data_(config_data)
+  : SetupScreenWidget( parent ), config_data_(config_data)
 {
   // TODO
   // Create a Qt-ROS update spinner

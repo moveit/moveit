@@ -59,11 +59,12 @@
 #include "moveit_setup_assistant/tools/compute_default_collisions.h"
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
+#include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 /**
  * \brief User interface for editing the default collision matrix list in an SRDF
  */
-class ComputeDefaultCollisionsWidget : public QWidget
+class ComputeDefaultCollisionsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
