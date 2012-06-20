@@ -159,12 +159,17 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
 
   // Development Only TODO REMOVE
   urdf_file_->setPath( "/u/dcoleman/ros/moveit/moveit_pr2/pr2_moveit_config/config/pr2.urdf" );
+  srdf_file_->setPath( "/u/dcoleman/ros/moveit/moveit_pr2/pr2_moveit_tests/pr2_jacobian_tests/pr2.srdf" );
   select_mode_->btn_new_->click();
 
-  QTimer *update_timer = new QTimer( this );
-  update_timer->setSingleShot( true ); // only run once
-  connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
-  update_timer->start( 200 );  
+
+  if( false )
+  {
+    QTimer *update_timer = new QTimer( this );
+    update_timer->setSingleShot( true ); // only run once
+    connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
+    update_timer->start( 200 );  
+  }
 }
 
 StartScreenWidget::~StartScreenWidget()
@@ -245,6 +250,9 @@ void StartScreenWidget::loadFiles()
   else
   {
     ROS_INFO_STREAM( "Loaded " << robot_model.getName() << " robot model." );
+
+    // Copy path to config data
+    config_data_->urdf_path_ = urdf_string;
   }
 
   // Check that ROS Core is running
@@ -257,7 +265,6 @@ void StartScreenWidget::loadFiles()
   }
 
   // Load the robot model to the parameter server
-  ros::spinOnce(); // prime ROS
   ros::NodeHandle nh;
   ros::spinOnce();
   nh.setParam("/robot_description", urdf_string);
@@ -277,7 +284,8 @@ void StartScreenWidget::loadFiles()
     std::ifstream srdf_stream( srdf_path.c_str() );
     if( !srdf_stream.good() ) // File not found
     {
-      QMessageBox::critical( this, "Error Loading Files", "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
+      QMessageBox::critical( this, "Error Loading Files", 
+                             "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
       return;
     }
       
@@ -291,20 +299,25 @@ void StartScreenWidget::loadFiles()
                        std::istreambuf_iterator<char>());  
 
     // Verify that file is in correct format by loading into srdf parser
-    srdf::Model semantic_robot_model;
-    if( !semantic_robot_model.initString( robot_model, srdf_string ) )
+    if( !config_data_->srdf_->initString( robot_model, srdf_string ) )
     {
-      QMessageBox::critical( this, "Error Loading Files", "SRDF file not a valid semantic robot description model." );
+      QMessageBox::critical( this, "Error Loading Files", 
+                             "SRDF file not a valid semantic robot description model." );
       return;
     }
     else
     {
-      std::cout << "Robot model successfully loaded. Robot name is: " << semantic_robot_model.getName() << std::endl;
+      ROS_INFO_STREAM( "Robot semantic model successfully loaded." );
+      
+      // Copy path to config data
+      config_data_->srdf_path_ = srdf_string;
     }
 
     // Load the robot model to the parameter server
     ros::NodeHandle nh;
+    ros::spinOnce();
     nh.setParam("/robot_description_semantic", srdf_string);
+    ros::spinOnce();
   }
 
   // Call a function that enables navigation and goes to screen 2

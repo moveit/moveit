@@ -56,7 +56,7 @@
 #include <QCloseEvent>
 #include <boost/thread.hpp>
 #include "ros/ros.h"
-#include <moveit_setup_assistant/tools/compute_default_collisions.h>
+#include "moveit_setup_assistant/tools/compute_default_collisions.h"
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
 
