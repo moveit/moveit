@@ -35,10 +35,31 @@
 /* Author: Ioan Sucan */
 
 #include "trajectory_processing/trajectory_tools.h"
+#include <planning_models/conversions.h>
 #include <ros/console.h>
 
 namespace trajectory_processing
 {
+
+void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
+                              const planning_models::KinematicState &reference_state, const planning_models::TransformsConstPtr &transforms,
+                              std::vector<planning_models::KinematicStatePtr> &states)
+{
+  states.clear();
+  planning_models::KinematicState start(reference_state);
+  planning_models::robotStateToKinematicState(*transforms, start_state, start);
+  std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
+                                     trajectory.multi_dof_joint_trajectory.points.size());
+  states.resize(state_count);
+  for (std::size_t i = 0 ; i < state_count ; ++i)
+  {
+    moveit_msgs::RobotState rs;
+    planning_models::robotTrajectoryPointToRobotState(trajectory, i, rs);
+    planning_models::KinematicStatePtr st(new planning_models::KinematicState(start));
+    planning_models::robotStateToKinematicState(*transforms, rs, *st);
+    states[i] = st;
+  }
+}
 
 void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
                     double dt_offset, const planning_models::TransformsConstPtr &transforms)

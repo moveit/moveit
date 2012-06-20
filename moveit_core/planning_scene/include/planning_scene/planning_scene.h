@@ -461,10 +461,6 @@ public:
                    const std::vector<moveit_msgs::Constraints>& goal_constraints,
                    bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
   
-  /** \brief Convert a trajectory to its corresponding kinematic states */
-  void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
-				std::vector<planning_models::KinematicStatePtr> &states) const;
-
 protected:
 
   void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;

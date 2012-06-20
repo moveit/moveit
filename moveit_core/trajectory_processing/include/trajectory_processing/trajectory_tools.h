@@ -40,9 +40,14 @@
 #include <planning_models/kinematic_state.h>
 #include <planning_models/transforms.h>
 #include <moveit_msgs/RobotTrajectory.h>
+#include <moveit_msgs/RobotState.h>
 
 namespace trajectory_processing
 {
+
+void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
+                              const planning_models::KinematicState &reference_state, const planning_models::TransformsConstPtr &transforms,
+                              std::vector<planning_models::KinematicStatePtr> &states);
 
 void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
                     double dt_offset, const planning_models::TransformsConstPtr &transforms);
