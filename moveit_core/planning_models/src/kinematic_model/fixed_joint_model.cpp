@@ -63,7 +63,7 @@ void planning_models::KinematicModel::FixedJointModel::enforceBounds(std::vector
 {
 }
 
-bool planning_models::KinematicModel::FixedJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds) const
+bool planning_models::KinematicModel::FixedJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   return true;
 }

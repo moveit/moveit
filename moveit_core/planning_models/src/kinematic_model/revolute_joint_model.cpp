@@ -123,12 +123,12 @@ double planning_models::KinematicModel::RevoluteJointModel::distance(const std::
     return fabs(values1[0] - values2[0]);
 }
 
-bool planning_models::KinematicModel::RevoluteJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds) const
+bool planning_models::KinematicModel::RevoluteJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   if (continuous_)
     return true;
   assert(bounds.size() > 0);
-  if (values[0] < bounds[0].first || values[0] > bounds[0].second)
+  if (values[0] < bounds[0].first - margin || values[0] > bounds[0].second + margin)
     return false;
   return true;
 }
