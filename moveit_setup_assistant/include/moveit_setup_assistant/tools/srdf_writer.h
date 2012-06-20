@@ -33,47 +33,53 @@
  *********************************************************************/
 
 /* Author: Dave Coleman */
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_SRDF_WRITER_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_SRDF_WRITER_
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_WRITE_SRDF_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_WRITE_SRDF_
 
-#include <srdf/model.h>
-#include <tinyxml.h>
-
+#include <boost/shared_ptr.hpp>
+#include <srdf/model.h> // use their struct datastructures
 
 namespace moveit_setup_assistant
 {
 
-/**
- * \brief Read in an SRDF file and provide ability to change sections before writing back to file
- */
-class WriteSRDF
+class SRDFWriter
 {
-
 public:
-  // ******************************************************************************************
-  // Public Functions
-  // ******************************************************************************************
-
-  /**
-   * \brief Read in an SRDF file and provide ability to change sections before writing back to file
+  /** 
+   * Constructor
    */
-  WriteSRDF( std::string srdf_file );
+  SRDFWriter();
+
+  /** 
+   * Destructor
+   */
+  ~SRDFWriter();
+  
+  /** 
+   * Initialize the SRDF writer with an exisiting SRDF file (optional)
+   * 
+   * @param urdf_model a preloaded urdf model reference
+   * @param srdf_string the text contents of an SRDF file
+   * 
+   * @return bool if initialization was successful
+   */
+  bool initString( const urdf::ModelInterface &robot_model, const std::string &srdf_string );
 
 
-private:
-  // ******************************************************************************************
-  // Private
-  // ******************************************************************************************
+  // Group Datastructures
+  std::vector<srdf::Model::Group>             groups_;
+  std::vector<srdf::Model::GroupState>        group_states_;
+  std::vector<srdf::Model::VirtualJoint>      virtual_joints_;
+  std::vector<srdf::Model::EndEffector>       end_effectors_;
+  std::vector<srdf::Model::DisabledCollision> disabled_collisions_;
 
-  /// Location of a SRDF File
-  std::string srdf_file_;
+};
 
-  /// Loaded SRDF model, read only
-  boost::shared_ptr<const srdf::Model> srdf_model_;
-
+/// Create a shared pointer for passing this data object between widgets
+typedef boost::shared_ptr<SRDFWriter> SRDFWriterPtr;
 
 
 }
 
-}
+#endif
