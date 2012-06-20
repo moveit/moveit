@@ -43,6 +43,7 @@
 #include <QStackedLayout>
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "joint_collection_widget.h"
+#include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 // Forward Declaration
 class PlanningGroupsTableWidget;
@@ -53,7 +54,7 @@ class PlanningGroupsTableWidget;
 // CLASS
 // ******************************************************************************************
 // ******************************************************************************************
-class PlanningGroupsWidget : public QWidget
+class PlanningGroupsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
@@ -65,6 +66,9 @@ public:
   PlanningGroupsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
   void changeScreen( int index );
+
+  /// Recieved when this widget is chosen from the navigation menu
+  virtual void focusGiven();
 
 private Q_SLOTS:
 

@@ -46,8 +46,9 @@
 #include <QString>
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
+#include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
-class ConfigurationFilesWidget : public QWidget
+class ConfigurationFilesWidget : public SetupScreenWidget
 {
   Q_OBJECT
 

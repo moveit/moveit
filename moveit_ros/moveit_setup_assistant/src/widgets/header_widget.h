@@ -42,7 +42,9 @@
 #include <QLabel>
 #include <QFont>
 
-
+// ******************************************************************************************
+// Provides the title and instructions
+// ******************************************************************************************
 class HeaderWidget : public QWidget
 {
   Q_OBJECT
