@@ -61,59 +61,59 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
 
 
 
-  QListWidget *listWidget = new QListWidget( this );
-  listWidget->addItem("Appearance");
-  listWidget->addItem("Web Browser");
-  listWidget->addItem("Mail & News");
-  listWidget->addItem("Advanced");
-  layout->addWidget( listWidget );
-
-  QStackedLayout *stackedLayout = new QStackedLayout( this );
-  stackedLayout->addWidget( new QWidget( this ));
-  /*stackedLayout->addWidget(webBrowserPage);
-  stackedLayout->addWidget(mailAndNewsPage);
-  stackedLayout->addWidget(advancedPage);*/
-  layout->addLayout( stackedLayout );
-
-  connect( listWidget, SIGNAL(currentRowChanged(int)), stackedLayout, SLOT(setCurrentIndex(int)));
-
-  listWidget->setCurrentRow(0);
-  
+  QListWidget *left_navigation_ = new QListWidget( this );
+  /*left_navigation_->addItem("Appearance");
+  left_navigation_->addItem("Web Browser");
+  left_navigation_->addItem("Mail & News");
+  left_navigation_->addItem("Advanced");*/
 
 
-
-  /*
+  QStackedLayout *main_content_ = new QStackedLayout( this );
+  //main_content_->addWidget( new QWidget( this ));
+  /*main_content_->addWidget(webBrowserPage);
+  main_content_->addWidget(mailAndNewsPage);
+  main_content_->addWidget(advancedPage);*/
 
   // Screens --------------------------------------------------------
 
   // Start Screen
   StartScreenWidget *ssw = new StartScreenWidget( this, config_data );
-  //ssw->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   connect( ssw, SIGNAL( readyToProgress() ), this, SLOT( progressPastStartScreen() ) );
-  navs_ << NavScreen("Start", ssw, false);
-  
+  //navs_ << NavScreen("Start", ssw, false);
+  left_navigation_->addItem("Start");
+  main_content_->addWidget(ssw);
+
   // Planning Groups
   PlanningGroupsWidget *pgw = new PlanningGroupsWidget( this, config_data );
-  navs_ << NavScreen("Planning Groups", pgw, true);
+  //navs_ << NavScreen("Planning Groups", pgw, true);
+  left_navigation_->addItem("Planning Groups");
+  main_content_->addWidget(pgw);
 
   // Self-Collisions
   ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget( this, config_data);
-  navs_ << NavScreen("Self-Collisions", cdcw, true);
+  //navs_ << NavScreen("Self-Collisions", cdcw, true);
+  left_navigation_->addItem("Self-Collisions");
+  main_content_->addWidget(cdcw);
 
   // Robot Poses
   RobotPosesWidget *rpw = new RobotPosesWidget( this, config_data );
-  navs_ << NavScreen("Robot Poses", rpw, false);
+  //navs_ << NavScreen("Robot Poses", rpw, false);
+  left_navigation_->addItem("Robot Poses");
+  main_content_->addWidget(rpw);
 
   // End Effectors
-  //EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
+  EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
   //navs_ << NavScreen("End Effectors", efw, false);
+  left_navigation_->addItem("End Effectors");
+  main_content_->addWidget(efw);  
 
   // Configuration Files
   ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this, config_data );
-  navs_ << NavScreen("Configuration Files", cfw, true);
-  
+  //navs_ << NavScreen("Configuration Files", cfw, true);
+  left_navigation_->addItem("Configuration Files");
+  main_content_->addWidget(cfw);  
 
-
+  /*
   // Left side navigation -------------------------------------------
   navs_view_ = new NavigationWidget( this );
   navs_view_->setNavs(navs_);
@@ -136,6 +136,17 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   //layout->addWidget( navs_view_ );
 
   */
+
+  layout->addWidget( left_navigation_ );
+  layout->addLayout( main_content_ );
+
+  // Add event for switching between screens
+  connect( left_navigation_, SIGNAL(currentRowChanged(int)), main_content_, SLOT(setCurrentIndex(int)));
+  connect( left_navigation_, SIGNAL(currentRowChanged(int)), this, SLOT(sendUpdateCommand(int)));
+  left_navigation_->setCurrentRow(0);
+  
+
+
   // Final Layout Setup ---------------------------------------------
   this->setLayout(layout);
 

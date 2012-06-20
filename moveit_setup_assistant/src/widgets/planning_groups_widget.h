@@ -111,11 +111,7 @@ private:
   // ******************************************************************************************
   QWidget* createContentsWidget();
 
-  /** 
-   * Called whenver widget is shown, used to re-populate table data
-   * @param p unused paint event object reference
-   */
-  void paintEvent( QPaintEvent * p );
+
 
 };
 

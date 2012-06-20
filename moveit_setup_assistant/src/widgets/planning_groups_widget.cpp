@@ -290,8 +290,4 @@ void PlanningGroupsWidget::doneEditing()
 }
 
 
-void PlanningGroupsWidget::paintEvent( QPaintEvent * p )
-{
-  std::cout << "PAINTING" << std::endl;
-  loadGroupsTree();
-}
+
