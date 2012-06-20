@@ -35,6 +35,8 @@
 /* Author: Dave Coleman */
 
 #include "setup_assistant_widget.h"
+#include <QStackedLayout>
+#include <QListWidget>
 
 using namespace moveit_setup_assistant;
 
@@ -56,6 +58,31 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   QHBoxLayout *layout = new QHBoxLayout( this );
   layout->setAlignment( Qt::AlignTop );
 
+
+
+
+  QListWidget *listWidget = new QListWidget( this );
+  listWidget->addItem("Appearance");
+  listWidget->addItem("Web Browser");
+  listWidget->addItem("Mail & News");
+  listWidget->addItem("Advanced");
+  layout->addWidget( listWidget );
+
+  QStackedLayout *stackedLayout = new QStackedLayout( this );
+  stackedLayout->addWidget( new QWidget( this ));
+  /*stackedLayout->addWidget(webBrowserPage);
+  stackedLayout->addWidget(mailAndNewsPage);
+  stackedLayout->addWidget(advancedPage);*/
+  layout->addLayout( stackedLayout );
+
+  connect( listWidget, SIGNAL(currentRowChanged(int)), stackedLayout, SLOT(setCurrentIndex(int)));
+
+  listWidget->setCurrentRow(0);
+  
+
+
+
+  /*
 
   // Screens --------------------------------------------------------
 
@@ -108,9 +135,11 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   //layout->addWidget( right_frame_ );
   //layout->addWidget( navs_view_ );
 
+  */
   // Final Layout Setup ---------------------------------------------
   this->setLayout(layout);
 
+  
   // Title
   this->setWindowTitle("MoveIt Setup Assistant"); // title of window
 }
