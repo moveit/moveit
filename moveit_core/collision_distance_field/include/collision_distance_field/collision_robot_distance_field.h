@@ -186,13 +186,15 @@ protected:
   bool getIntraGroupProximityGradients(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
                                        boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  bool getSelfCollisions(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
+  bool getSelfCollisions(const collision_detection::CollisionRequest& req,
+                         collision_detection::CollisionResult& res,
+                         const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
                          boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  bool getIntraGroupCollisions(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
+  bool getIntraGroupCollisions(const collision_detection::CollisionRequest& req,
+                               collision_detection::CollisionResult& res,
+                               const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce,
                                boost::shared_ptr<GroupStateRepresentation>& gsr) const;
-
-
 
   void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
                                 collision_detection::CollisionResult& res,
