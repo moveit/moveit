@@ -100,8 +100,7 @@ private Q_SLOTS:
    * Event for changing screens by user clicking
    * @param index screen id
    */
-  //void navigationClicked( const QModelIndex& index );
-  void sendUpdateCommand( int screen_index );
+  void navigationClicked( const QModelIndex& index );
 
   /** 
    * Event for spinning the ros node
@@ -120,11 +119,12 @@ private:
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
-  //QList<NavScreen> navs_;
-  //NavigationWidget *navs_view_;
+  QList<NavScreen> navs_;
+  NavigationWidget *navs_view_;
+  
   QWidget *right_frame_;
   QSplitter *splitter_;
-  QListWidget *left_navigation_;
+  //QListWidget *left_navigation_;
   QStackedLayout *main_content_;
 
   // ******************************************************************************************

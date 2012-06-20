@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include "navigation_widget.h"
+#include <QDebug>
 #include <iostream>
 
 // ******************************************************************************************
@@ -45,8 +46,8 @@ NavScreen::NavScreen()
 {
 }
 
-NavScreen::NavScreen(const QString &name, QWidget *screen, bool disabled ) :
-  name_(name), screen_(screen), disabled_(disabled)
+NavScreen::NavScreen(const QString &name) :
+  name_(name)
 {
 
 }
@@ -56,20 +57,6 @@ QString NavScreen::name() const
   return name_;
 }
 
-QWidget * NavScreen::screen()
-{
-  return screen_;
-}
-
-bool NavScreen::isDisabled()
-{
-  return disabled_;
-}
-
-void NavScreen::setDisabled( bool disabled )
-{
-  disabled_ = disabled;
-}
 
 // ******************************************************************************************
 // CLASS
@@ -111,14 +98,25 @@ void NavigationWidget::setNavs(QList<NavScreen> &navs)
   {
     QStandardItem *item = new QStandardItem();
     item->setData(QVariant::fromValue(navs.at(i)), Qt::DisplayRole);
+    item->setFlags( Qt::NoItemFlags );
     model_->appendRow(item);
   }
 
   setModel(model_);
 }
 
-void NavigationWidget::setSelected(const int &index)
+void NavigationWidget::setEnabled( const int &index, bool enabled )
 {
+  if( enabled)
+    model_->item( index )->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEnabled );
+  else
+    model_->item( index )->setFlags( Qt::NoItemFlags );
+}
+
+void NavigationWidget::setSelected( const int &index )
+{
+  // First make sure item is enabled
+  setEnabled( index, true );
 
   // Select one box from column 0, row index
   QModelIndex top = model_->index(index, 0, QModelIndex());
@@ -129,10 +127,6 @@ void NavigationWidget::setSelected(const int &index)
   selectionModel()->select(selection, QItemSelectionModel::Select);
 }
 
-/*void NavigationWidget::pressed( const QModelIndex & index )
-  {
-  std::cout << "helloooo222" << std::endl;
-  }*/
 
 // ******************************************************************************************
 // CLASS
@@ -143,26 +137,14 @@ NavDelegate::NavDelegate(QObject *parent) :
 {
 }
 
-void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-  if(index.data().canConvert<NavScreen>())
-    paintNav(painter, option, index);
-  //  else
-  //    paintLetter(painter, option, index);
-}
-
 QSize NavDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-  if(index.data().canConvert<NavScreen>())
-    return QSize(option.rect.width(), 45);
-  else
-    return QSize(option.rect.width(), 25);
+  return QSize(option.rect.width(), 45);
 }
 
-void NavDelegate::paintNav(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
   const bool isSelected = option.state & QStyle::State_Selected;
-  //const bool isHovered = option.state & QStyle::State_MouseOver;
 
   NavScreen tp = index.data().value<NavScreen>();
 
@@ -171,15 +153,12 @@ void NavDelegate::paintNav(QPainter *painter, const QStyleOptionViewItem &option
   QLinearGradient backgroundGradient(QPoint(option.rect.x(), option.rect.y()), QPoint(option.rect.x(), option.rect.y()+option.rect.height()));
   if(isSelected) 
   {
-    //        painter->fillRect(option.rect, QBrush(QColor(49, 49, 49)));
     backgroundGradient.setColorAt(0, QColor(109, 164, 219));
     backgroundGradient.setColorAt(1, QColor(61, 138, 212));
     painter->fillRect(option.rect, QBrush(backgroundGradient));
-    //        painter->fillRect(option.rect, QBrush(QColor(225, 225, 225)));
   } 
   else 
   {
-    //        painter->fillRect(option.rect, QBrush(QColor(244, 244, 244)));
     backgroundGradient.setColorAt(0, QColor(245, 245, 245));
     backgroundGradient.setColorAt(1, QColor(240, 240, 240));
     painter->fillRect(option.rect, QBrush(backgroundGradient));
@@ -198,57 +177,33 @@ void NavDelegate::paintNav(QPainter *painter, const QStyleOptionViewItem &option
     painter->setPen(QColor(248, 248, 248));
     painter->drawLine(QPoint(option.rect.x(), option.rect.y()+1), QPoint(option.rect.x()+option.rect.width(), option.rect.y()+1));
   }
-  //    QString text = index.model()->data(index, Qt::DisplayRole).toString();
+
   QRect textRect(option.rect.x()+10, option.rect.y(), option.rect.width()-10, option.rect.height());
 
   QFont textFont(painter->font());
   textFont.setPixelSize(14); // Set font size
   textFont.setFamily("Arial"); //Helvetica Neue");
+  painter->setFont(textFont);
 
   // Font color
-  painter->setPen(QColor(69, 69, 69));
-  if(isSelected){
+  if(isSelected)
+  {
+    // Selected
     painter->setPen(QColor(229, 229, 229));
   }
-
-  // Disabled font color if disabled
-  if( tp.isDisabled() )
+  else if( index.flags().testFlag( Qt::NoItemFlags ) )
   {
-    //painter->setPen(QColor(170, 170, 170)); // TODO: make this work
+    // Disabled font color if disabled
+    painter->setPen(QColor(170, 170, 170)); // TODO: make this work
+  }
+  else
+  {
+    // Normal
+    painter->setPen(QColor(69, 69, 69));
   }
 
-  painter->setFont(textFont);
   painter->drawText(textRect, Qt::AlignLeft|Qt::AlignVCenter, tp.name());
 
   painter->restore();
 }
 
-/*void NavDelegate::paintLetter(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-  {
-  //const bool isSelected = option.state & QStyle::State_Selected;
-  //const bool isHovered = option.state & QStyle::State_MouseOver;
-
-  painter->save();
-
-  QLinearGradient backgroundGradient(QPoint(option.rect.x(), option.rect.y()), 
-  QPoint(option.rect.x(), option.rect.y()+option.rect.height()));
-  //        painter->fillRect(option.rect, QBrush(QColor(225, 225, 225)));
-
-  backgroundGradient.setColorAt(0, QColor(215, 215, 215));
-  backgroundGradient.setColorAt(1, QColor(230, 230, 230));
-  painter->fillRect(option.rect, QBrush(backgroundGradient));
-
-  painter->setPen(QColor(213, 213, 213));
-  painter->drawLine(option.rect.bottomLeft(), option.rect.bottomRight());
-
-  QFont textFont(painter->font());
-  textFont.setPixelSize(14); // font size
-  textFont.setFamily("Arial"); //Helvetica Neue");
-  painter->setFont(textFont);
-
-  QRect textRect(option.rect.x()+10, option.rect.y(), option.rect.width()-10, option.rect.height());
-  painter->setPen(QColor(39, 39, 39));
-  painter->drawText(textRect, Qt::AlignLeft|Qt::AlignVCenter, index.model()->data(index).toString());
-
-  painter->restore();
-  }*/
