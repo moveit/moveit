@@ -1529,22 +1529,3 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
   }
   return result;
 } 
-
-void planning_scene::PlanningScene::convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
-							     std::vector<planning_models::KinematicStatePtr> &states) const
-{
-  states.clear();
-  planning_models::KinematicState start(getCurrentState());
-  planning_models::robotStateToKinematicState(*getTransforms(), start_state, start);
-  std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
-                                     trajectory.multi_dof_joint_trajectory.points.size());
-  states.resize(state_count);
-  for (std::size_t i = 0 ; i < state_count ; ++i)
-  {
-    moveit_msgs::RobotState rs;
-    planning_models::robotTrajectoryPointToRobotState(trajectory, i, rs);
-    planning_models::KinematicStatePtr st(new planning_models::KinematicState(start));
-    planning_models::robotStateToKinematicState(*getTransforms(), rs, *st);
-    states[i] = st;
-  }
-} 
