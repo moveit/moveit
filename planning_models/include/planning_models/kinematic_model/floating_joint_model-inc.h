@@ -49,7 +49,7 @@ public:
   virtual void getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
                                      const std::vector<double> &near, const double distance) const;
   virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
-  virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const;
+  virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const;
   
   virtual double getMaximumExtent(void) const;
   virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const;

@@ -154,11 +154,11 @@ double planning_models::KinematicModel::PlanarJointModel::distance(const std::ve
   return sqrt(dx*dx + dy*dy) + angular_distance_weight_ * d;
 }
 
-bool planning_models::KinematicModel::PlanarJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds) const
+bool planning_models::KinematicModel::PlanarJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   assert(bounds.size() > 1);
   for (unsigned int i = 0 ; i < 3 ; ++i)
-  if (values[0] < bounds[0].first || values[0] > bounds[0].second)
+  if (values[0] < bounds[0].first - margin || values[0] > bounds[0].second + margin)
     return false;
   return true;
 }

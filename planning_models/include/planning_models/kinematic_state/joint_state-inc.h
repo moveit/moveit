@@ -87,9 +87,9 @@ public:
   bool allVariablesAreDefined(const std::map<std::string, double>& value_map) const;
   
   /** \brief Checks if the current joint state values are all within the bounds set in the model */
-  bool satisfiesBounds(void) const
+  bool satisfiesBounds(double margin = 0.0) const
   {
-    return joint_model_->satisfiesBounds(joint_state_values_);
+    return joint_model_->satisfiesBounds(joint_state_values_, margin);
   }
   
   /** \brief Force the joint to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */

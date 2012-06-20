@@ -49,7 +49,7 @@ public:
   virtual void getRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
                                      const std::vector<double> &near, const double distance) const;
   virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const;
-  virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const;
+  virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const;
   
   virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const;
   virtual unsigned int getStateSpaceDimension(void) const;

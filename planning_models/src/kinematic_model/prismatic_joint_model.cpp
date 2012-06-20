@@ -63,10 +63,10 @@ void planning_models::KinematicModel::PrismaticJointModel::getDefaultValues(std:
     values.push_back((bounds[0].first + bounds[0].second)/2.0);
 }
 
-bool planning_models::KinematicModel::PrismaticJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds) const
+bool planning_models::KinematicModel::PrismaticJointModel::satisfiesBounds(const std::vector<double> &values, const Bounds &bounds, double margin) const
 {
   assert(bounds.size() > 0);
-  if (values[0] < bounds[0].first || values[0] > bounds[0].second)
+  if (values[0] < bounds[0].first - margin || values[0] > bounds[0].second + margin)
     return false;
   return true;
 }

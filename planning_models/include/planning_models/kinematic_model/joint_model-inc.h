@@ -193,13 +193,13 @@ public:
       @{ */
   
   /** \brief Check if the set of values for the variables of this joint are within bounds. */
-  bool satisfiesBounds(const std::vector<double> &values) const
+  bool satisfiesBounds(const std::vector<double> &values, double margin = 0.0) const
   {
-    return satisfiesBounds(values, variable_bounds_);
+    return satisfiesBounds(values, variable_bounds_, margin);
   }
   
-  /** \brief Check if the set of values for the variables of this joint are within bounds. */
-  virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds) const = 0;
+  /** \brief Check if the set of values for the variables of this joint are within bounds, up to some margin. */
+  virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const = 0;
   
   /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
   void enforceBounds(std::vector<double> &values) const
