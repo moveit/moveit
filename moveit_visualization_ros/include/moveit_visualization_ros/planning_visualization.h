@@ -36,8 +36,6 @@
 #include <moveit_visualization_ros/kinematics_start_goal_visualization.h>
 #include <moveit_visualization_ros/joint_trajectory_visualization.h>
 #include <boost/function.hpp>
-#include <trajectory_processing/trajectory_smoother.h>
-#include <trajectory_processing/trajectory_shortcutter.h>
 #include <planning_models_loader/kinematic_model_loader.h>
 #include <planning_pipeline/planning_pipeline.h>
 
