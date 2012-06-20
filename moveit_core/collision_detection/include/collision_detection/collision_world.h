@@ -70,10 +70,10 @@ namespace collision_detection
      *  @param req A CollisionRequest object that encapsulates the collision request
      *  @param res A CollisionResult object that encapsulates the collision result
      *  @param state The kinematic state for which checks are being made         */
-    void checkCollision(const CollisionRequest &req,
-			CollisionResult &res,
-			const CollisionRobot &robot,
-			const planning_models::KinematicState &state) const;
+    virtual void checkCollision(const CollisionRequest &req,
+                                CollisionResult &res,
+                                const CollisionRobot &robot,
+                                const planning_models::KinematicState &state) const;
     
     /** @brief Check whether the robot model is in collision with itself or the world at a particular state.
      *  Allowed collisions specified by the allowed collision matrix are taken into account.
@@ -81,11 +81,11 @@ namespace collision_detection
      *  @param res A CollisionResult object that encapsulates the collision result
      *  @param state The kinematic state for which checks are being made
      *  @param acm The allowed collision matrix. */
-    void checkCollision(const CollisionRequest &req,
-			CollisionResult &res,
-			const CollisionRobot &robot,
-			const planning_models::KinematicState &state,
-			const AllowedCollisionMatrix &acm) const;
+    virtual void checkCollision(const CollisionRequest &req,
+                                CollisionResult &res,
+                                const CollisionRobot &robot,
+                                const planning_models::KinematicState &state,
+                                const AllowedCollisionMatrix &acm) const;
 
     /** @brief Check whether the robot model is in collision with itself or the world in a continuous manner
      *  (between two robot states)
@@ -94,11 +94,11 @@ namespace collision_detection
      *  @param res A CollisionResult object that encapsulates the collision result
      *  @param state1 The kinematic state at the start of the segment for which checks are being made
      *  @param state2 The kinematic state at the end of the segment for which checks are being made */
-    void checkCollision(const CollisionRequest &req,
-			CollisionResult &res,
-			const CollisionRobot &robot,
-			const planning_models::KinematicState &state1,
-                        const planning_models::KinematicState &state2) const;
+    virtual void checkCollision(const CollisionRequest &req,
+                                CollisionResult &res,
+                                const CollisionRobot &robot,
+                                const planning_models::KinematicState &state1,
+                                const planning_models::KinematicState &state2) const;
     
     /** @brief Check whether the robot model is in collision with itself or the world in a continuous manner
      *  (between two robot states).
@@ -108,12 +108,12 @@ namespace collision_detection
      *  @param state1 The kinematic state at the start of the segment for which checks are being made
      *  @param state2 The kinematic state at the end of the segment for which checks are being made
      *  @param acm The allowed collision matrix. */
-    void checkCollision(const CollisionRequest &req,
-			CollisionResult &res,
-			const CollisionRobot &robot,
-			const planning_models::KinematicState &state1,
-			const planning_models::KinematicState &state2,
-			const AllowedCollisionMatrix &acm) const;
+    virtual void checkCollision(const CollisionRequest &req,
+                                CollisionResult &res,
+                                const CollisionRobot &robot,
+                                const planning_models::KinematicState &state1,
+                                const planning_models::KinematicState &state2,
+                                const AllowedCollisionMatrix &acm) const;
     
     /** \brief Check whether the robot model is in collision with the world. Any collisions between a robot link
      *  and the world are considered. Self collisions are not checked.
