@@ -151,6 +151,25 @@ public:
     return updated_link_model_with_geometry_name_vector_;
   }
   
+  /** \brief True if this name is in the set of links that are to be updated when the state of this group changes. This
+      includes links that are in the kinematic model but outside this group, if those links are descendants of
+      joints in this group that have their values updated. */
+  bool isUpdatedLink(const std::string &name) const
+  {
+    if(std::find(updated_link_model_name_vector_.begin(),updated_link_model_name_vector_.end(),name) == updated_link_model_name_vector_.end())
+      return false;
+    return true;
+  }
+  
+  /** \brief Is the joint in the list of active joints in this group (that  have controllable DOF).
+      This may not be the complete set of joints (see getFixedJointModels() and getMimicJointModels() ) */
+  bool isActiveDOF(const std::string &name) const
+  {
+    if(std::find(active_dof_names_.begin(),active_dof_names_.end(),name) == active_dof_names_.end())
+      return false;
+    return true;    
+  }
+  
   /** \brief A joint group consists of an array of joints. Each joint has a specific ordering of its variables.
       Given the ordering of joints the group maintains, an ordering of all the variables of the group can be then constructed.
       The map from variable names to their position in the joint group state is given by this function */
