@@ -128,6 +128,14 @@ void planning_models::KinematicState::JointStateGroup::setStateValues(const std:
   updateLinkTransforms();
 }
 
+void planning_models::KinematicState::JointStateGroup::setStateValues(const sensor_msgs::JointState& js)
+{
+  std::map<std::string, double> v;
+  for (std::size_t i = 0 ; i < js.name.size() ; ++i)
+    v[js.name[i]] = js.position[i];
+  setStateValues(v);
+}
+                    
 void planning_models::KinematicState::JointStateGroup::updateLinkTransforms(void)
 {
   for(unsigned int i = 0; i < updated_links_.size(); ++i)
