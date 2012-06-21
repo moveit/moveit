@@ -224,6 +224,33 @@ std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointMode
   return ret_vec;
 }
 
+void planning_models::KinematicModel::JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers)
+{
+  solver_allocators_ = solvers;
+  if (solver_allocators_.first)
+  {
+    solver_instance_ = solver_allocators_.first(this);
+    if (solver_instance_)
+    {
+      ik_joint_bijection_.clear();   
+      const std::vector<std::string> &ik_jnames = solver_instance_->getJointNames(); 
+      for (std::size_t i = 0 ; i < ik_jnames.size() ; ++i)
+      {
+        std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.find(ik_jnames[i]);
+        if (it == joint_variables_index_map_.end())
+        {
+          ROS_ERROR_STREAM("IK solver computes joint values for joint '" << ik_jnames[i] << "' but group '" << getName() << "' does not contain such a joint.");
+          solver_instance_.reset();
+          return;
+        }
+        const planning_models::KinematicModel::JointModel *jm = getJointModel(ik_jnames[i]);
+        for (unsigned int k = 0 ; k < jm->getVariableCount() ; ++k)
+          ik_joint_bijection_.push_back(it->second + k);
+      }
+    }
+  }
+}
+
 void planning_models::KinematicModel::JointModelGroup::printGroupInfo(std::ostream &out) const
 {
   out << "Group '" << name_ << "':" << std::endl;

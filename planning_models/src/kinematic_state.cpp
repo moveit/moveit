@@ -246,25 +246,22 @@ void planning_models::KinematicState::updateLinkTransforms(void)
     link_state_vector_[i]->computeTransform();
 }
 
-bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform, bool set_associated_fixed_transforms)
+bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform)
 {
   if (!hasLinkState(link_name))
     return false;
+  
   link_state_map_[link_name]->updateGivenGlobalLinkTransform(transform);
   std::vector<const KinematicModel::LinkModel*> child_link_models;
   kinematic_model_->getChildLinkModels(kinematic_model_->getLinkModel(link_name), child_link_models);
-  // the zeroith link will be the link itself, which shouldn't be getting updated, so we start at 1
+  // the zeroith link will be the link itself, which shouldn't be updated, so we start at 1
   for(unsigned int i = 1 ; i < child_link_models.size() ; ++i)
     link_state_map_[child_link_models[i]->getName()]->computeTransform();
-  if(set_associated_fixed_transforms) {
-    std::vector<std::string> associated_fixed_links;
-    kinematic_model_->getAllAssociatedFixedLinks(link_name, associated_fixed_links);
-    for(unsigned int i = 0; i < associated_fixed_links.size(); i++) {
-      Eigen::Affine3d t;
-      kinematic_model_->determineFixedTransform(link_name, associated_fixed_links[i], t);
-      link_state_map_[associated_fixed_links[i]]->updateGivenGlobalLinkTransform(transform*t);
-    }
-  }
+  
+  const std::map<const KinematicModel::LinkModel*, Eigen::Affine3d> &assoc = kinematic_model_->getLinkModel(link_name)->getAssociatedFixedTransforms();
+  for (std::map<const KinematicModel::LinkModel*, Eigen::Affine3d>::const_iterator it = assoc.begin() ; it != assoc.end() ; ++it)
+    link_state_map_[it->first->getName()]->updateGivenGlobalLinkTransform(transform * it->second);
+  
   return true;
 }
 

@@ -19,7 +19,8 @@
   <depend package="moveit_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="common_rosdeps"/>
-  
+  <depend package="eigen_conversions"/>
+
   <rosdep name="assimp" />
   <rosdep name="eigen" />
 

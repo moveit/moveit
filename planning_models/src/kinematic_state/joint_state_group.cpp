@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, E. Gil Jones, Sachin Chitta */
 
 #include "planning_models/kinematic_state.h"
+#include <eigen_conversions/eigen_msg.h>
 #include <ros/console.h>
 
 planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_models::KinematicState *state,
@@ -237,6 +238,118 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::Jo
   }
   else
     return it->second;
+}
+
+bool planning_models::KinematicState::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, double timeout)
+{
+  const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
+  if (!solver)
+    return false;
+  return setFromIK(pose, solver->getTipFrame(), timeout);
+}
+
+bool planning_models::KinematicState::JointStateGroup::setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout)
+{
+  Eigen::Affine3d mat;
+  tf::poseMsgToEigen(pose, mat);
+  return setFromIK(mat, tip, timeout);
+}
+
+bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Affine3d &pose, double timeout)
+{ 
+  const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
+  if (!solver)
+    return false;
+  return setFromIK(pose, solver->getTipFrame(), timeout);
+}
+
+bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Affine3d &pose_in, const std::string &tip_in, double timeout)
+{
+  const kinematics::KinematicsBaseConstPtr& solver = joint_model_group_->getSolverInstance();
+  if (!solver)
+    return false;
+
+  Eigen::Affine3d pose = pose_in;
+  std::string tip = tip_in;
+  
+  // bring the pose to the frame of the IK solver
+  const std::string &ik_frame = solver->getBaseFrame();
+  if (ik_frame != joint_model_group_->getParentModel()->getModelFrame())
+  {
+    const LinkState *ls = getParentState()->getLinkState(ik_frame);
+    if (!ls)
+      return false;
+    pose = ls->getGlobalLinkTransform().inverse() * pose;
+  }
+
+  // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
+  const std::string &tip_frame = solver->getBaseFrame();
+  if (tip != tip_frame)
+  {
+    if (getParentState()->hasAttachedBody(tip))
+    {
+      const AttachedBody *ab = getParentState()->getAttachedBody(tip);
+      const std::vector<Eigen::Affine3d> &ab_trans = ab->getFixedTransforms();
+      if (ab_trans.size() != 1)
+      {
+        ROS_ERROR("Cannot use an attached body with multiple geometries as a reference frame.");
+        return false;
+      }
+      tip = ab->getAttachedLinkName();
+      pose = pose * ab_trans[0].inverse();
+    }
+    if (tip != tip_frame)
+    {
+      const KinematicModel::LinkModel *lm = joint_model_group_->getParentModel()->getLinkModel(tip);
+      if (!lm)
+        return false;
+      const std::map<const KinematicModel::LinkModel*, Eigen::Affine3d> &fixed_links = lm->getAssociatedFixedTransforms();
+      for (std::map<const KinematicModel::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+        if (it->first->getName() == tip_frame)
+        {
+          tip = tip_frame;
+          pose = pose * it->second;
+          break;
+        }
+    }
+  }
+  
+  if (tip != tip_frame)
+  {
+    ROS_ERROR_STREAM("Cannot compute IK for tip reference frame " << tip);
+    return false;    
+  }
+  
+  // sample a seed
+  random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+  std::vector<double> seed;
+  joint_model_group_->getRandomValues(rng, seed);
+
+  Eigen::Quaterniond quat(pose.rotation());
+  Eigen::Vector3d point(pose.translation());
+  geometry_msgs::Pose ik_query;
+  ik_query.position.x = point.x();
+  ik_query.position.y = point.y();
+  ik_query.position.z = point.z();
+  ik_query.orientation.x = quat.x();
+  ik_query.orientation.y = quat.y();
+  ik_query.orientation.z = quat.z();
+  ik_query.orientation.w = quat.w();
+  
+  // compute the IK solution
+  std::vector<double> ik_sol;
+  moveit_msgs::MoveItErrorCodes error;
+  if (solver->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
+  {
+    const std::vector<unsigned int> &bij = joint_model_group_->getKinematicsSolverJointBijection();
+    std::vector<double> solution(bij.size());
+    for (std::size_t i = 0 ; i < bij.size() ; ++i)
+      solution[i] = ik_sol[bij[i]];
+    setStateValues(solution);
+    return true;
+  }
+  else
+    return false;
 }
 
 bool planning_models::KinematicState::JointStateGroup::getJacobian(const std::string &link_name,
