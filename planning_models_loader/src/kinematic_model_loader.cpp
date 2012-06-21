@@ -119,13 +119,18 @@ void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers(void)
 std::map<std::string, kinematics::KinematicsBasePtr> planning_models_loader::KinematicModelLoader::generateKinematicsSolversMap(void) const
 {
   std::map<std::string, kinematics::KinematicsBasePtr> result;
-  const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
-  for (std::size_t i = 0 ; i < groups.size() ; ++i)
+  if (kinematics_loader_ && model_)
   {
-    const planning_models::KinematicModel::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
-    planning_models::KinematicModel::SolverAllocatorFn a = jmg->getSolverAllocators().first;
-    if (a)
-      result[jmg->getName()] = a(jmg);
+    const std::vector<std::string> &groups = kinematics_loader_->getKnownGroups();
+    for (std::size_t i = 0 ; i < groups.size() ; ++i)
+    {
+      const planning_models::KinematicModel::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
+      planning_models::KinematicModel::SolverAllocatorFn a = jmg->getSolverAllocators().first;
+      if (a)
+        result[jmg->getName()] = a(jmg);
+    }
   }
+  else
+    ROS_WARN("Kinematic solvers not yet loaded. Call loadKinematicSolvers() first.");
   return result;
 }

@@ -137,7 +137,8 @@ public:
       setState(IDLE);
       return;
     }
-    
+
+    action_res.trajectory_start = mres.trajectory_start;
     action_res.planned_trajectory = mres.trajectory;
     if (!goal->plan_only && !trajectory_execution_)
       ROS_WARN_STREAM("Move group asked for execution and was not configured to allow execution");
