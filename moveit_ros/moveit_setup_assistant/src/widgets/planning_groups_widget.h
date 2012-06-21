@@ -46,8 +46,7 @@
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 // Forward Declaration
-class PlanningGroupsTableWidget;
-
+class PlanGroupType;
 
 // ******************************************************************************************
 // ******************************************************************************************
@@ -124,9 +123,41 @@ private:
   QWidget* createContentsWidget();
 
   /// Recursively build the SRDF tree
-  void addLinkToTreeRecursive( const srdf::Model::Group &group_it, QTreeWidgetItem *parent );
+  void loadGroupsTreeRecursive( srdf::Model::Group &group_it, QTreeWidgetItem *parent );
 
 };
+
+
+// ******************************************************************************************
+// ******************************************************************************************
+// Metatype Class For Holding Points to Group Parts
+// ******************************************************************************************
+// ******************************************************************************************
+
+enum GroupType {
+  JOINTS,
+  LINKS,
+  CHAIN,
+  GROUP,
+  SUBGROUP
+};
+  
+
+class PlanGroupType
+{
+public:
+
+  //  explicit PlanGroupType();
+  PlanGroupType() {}
+  PlanGroupType( srdf::Model::Group *group, const GroupType type );
+  virtual ~PlanGroupType() { ; }
+  
+  // Variables
+  srdf::Model::Group *group_;
+  GroupType type_;
+};
+
+Q_DECLARE_METATYPE(PlanGroupType);
 
 
 #endif
