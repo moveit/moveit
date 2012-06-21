@@ -37,7 +37,18 @@
 #include "planning_models_loader/kinematic_model_loader.h"
 #include <ros/ros.h>
 
+planning_models_loader::KinematicModelLoader::KinematicModelLoader(const std::string &robot_description)
+{
+  Options opt(robot_description);
+  configure(opt);
+}
+
 planning_models_loader::KinematicModelLoader::KinematicModelLoader(const Options &opt)
+{
+  configure(opt);
+}
+
+void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
 {
   robot_model_loader_.reset(new robot_model_loader::RobotModelLoader(opt.robot_description_));
   if (robot_model_loader_->getURDF())

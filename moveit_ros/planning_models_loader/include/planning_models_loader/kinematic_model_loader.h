@@ -69,6 +69,8 @@ public:
     
   /** @brief Default constructor */
   KinematicModelLoader(const Options &opt = Options());
+
+  KinematicModelLoader(const std::string &robot_description);
   
   /** @brief Get the constructed planning_models::KinematicModel */
   const planning_models::KinematicModelPtr& getModel(void) const
@@ -114,7 +116,9 @@ public:
   void loadKinematicsSolvers(void);
   
 private:
-  
+
+  void configure(const Options &opt);
+
   planning_models::KinematicModelPtr model_;
   robot_model_loader::RobotModelLoaderPtr robot_model_loader_; 
   kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
