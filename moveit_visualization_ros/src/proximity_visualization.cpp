@@ -52,14 +52,20 @@ ProximityVisualization::ProximityVisualization(const planning_scene::PlanningSce
 void ProximityVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
 {
   planning_scene_ = planning_scene;
-  std::vector<std::string> object_ids = planning_scene_->getCollisionWorld()->getObjectIds();
-  for(unsigned int i = 0; i < object_ids.size(); i++) {
-    collision_detection::CollisionWorld::ObjectConstPtr other_obj = planning_scene_->getCollisionWorld()->getObject(object_ids[i]);
-    if(!world_.hasObject(object_ids[i])) {
-      world_.addToObject(object_ids[i], other_obj->shapes_[0], other_obj->shape_poses_[0]);
+  for(unsigned int i = 0; i < last_object_ids_.size(); i++) {
+    if(!planning_scene_->getCollisionWorld()->hasObject(last_object_ids_[i])) {
+      ROS_INFO_STREAM("Removing object");
+      world_.removeObject(last_object_ids_[i]);
+    }
+  }
+  last_object_ids_ = planning_scene_->getCollisionWorld()->getObjectIds();
+  for(unsigned int i = 0; i < last_object_ids_.size(); i++) {
+    collision_detection::CollisionWorld::ObjectConstPtr other_obj = planning_scene_->getCollisionWorld()->getObject(last_object_ids_[i]);
+    if(!world_.hasObject(last_object_ids_[i])) {
+      world_.addToObject(last_object_ids_[i], other_obj->shapes_[0], other_obj->shape_poses_[0]);
     } else {
-      collision_detection::CollisionWorld::ObjectConstPtr our_obj = world_.getObject(object_ids[i]);
-      if((our_obj->shape_poses_[0].translation()-other_obj->shape_poses_[0].translation()).norm() > .01) {
+      collision_detection::CollisionWorld::ObjectConstPtr our_obj = world_.getObject(last_object_ids_[i]);
+      if((our_obj->shape_poses_[0].translation()-other_obj->shape_poses_[0].translation()).norm() > .001) {
         world_.moveShapeInObject(our_obj->id_,
                                  our_obj->shapes_[0],
                                  other_obj->shape_poses_[0]);
@@ -82,12 +88,22 @@ void ProximityVisualization::stateChanged(const std::string& group,
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = current_group_;
-  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_gsr =
+  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_grad_gsr =
     world_.getCollisionGradients(req, 
                                  res, 
                                  robot_, 
                                  state,
                                  distance_acm_);
+  req.contacts = true;
+  req.max_contacts = 100000;
+  req.max_contacts_per_pair = 1000;
+  res = collision_detection::CollisionResult();
+  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_coll_gsr =
+    world_.getAllCollisions(req, 
+                            res, 
+                            robot_, 
+                            state,
+                            distance_acm_);
 
   visualization_msgs::MarkerArray arrow_markers;
   std_msgs::ColorRGBA col;
@@ -96,10 +112,16 @@ void ProximityVisualization::stateChanged(const std::string& group,
   collision_distance_field::getProximityGradientMarkers(planning_scene_->getPlanningFrame(),
                                                         "arrows",
                                                         ros::Duration(0.0),
-                                                        world_gsr->link_body_decompositions_,
-                                                        world_gsr->gradients_,
+                                                        world_grad_gsr->link_body_decompositions_,
+                                                        world_grad_gsr->gradients_,
                                                         arrow_markers);
-
+  collision_distance_field::getCollisionMarkers(planning_scene_->getPlanningFrame(),
+                                                "spheres",
+                                                ros::Duration(0.0),
+                                                world_coll_gsr->link_body_decompositions_,
+                                                world_coll_gsr->gradients_,
+                                                arrow_markers);
+  
   publisher_.publish(arrow_markers);
 }
 

@@ -89,14 +89,11 @@ public:
       planning_scene->getKinematicModel()->hasJointModelGroup(req.motion_plan_request.group_name) ? 
       start_state.getJointStateGroup(req.motion_plan_request.group_name)->getJointStateVector() : 
       start_state.getJointStateVector(); 
-      
-    std::map<std::string, double> update;
+    
+    bool change_req = false;
     std::map<std::string, double> continuous_joints;
-
     for (std::size_t i = 0 ; i < jstates.size() ; ++i)
     { 
-      const std::vector<double> &vv = jstates[i]->getVariableValues();
-      
       // Check if we have a revolute, continuous joint. If we do, then we only need to make sure
       // it is within de model's declared bounds (usually -Pi, Pi), since the values wrap around. 
       // It is possible that the encoder maintains values outside the range [-Pi, Pi], to inform
@@ -105,76 +102,88 @@ public:
       
       const planning_models::KinematicModel::JointModel* jm = jstates[i]->getJointModel();
       if (jm->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
+      {
         if (static_cast<const planning_models::KinematicModel::RevoluteJointModel*>(jm)->isContinuous())
         {
-          double initial = vv[0];
+          double initial = jstates[i]->getVariableValues()[0];
           jstates[i]->enforceBounds();
-          continuous_joints[jstates[i]->getName()] = initial - vv[0];
-          continue;
+          double after = jstates[i]->getVariableValues()[0];
+          continuous_joints[jstates[i]->getName()] = initial - after;
+          if (fabs(initial - after) > std::numeric_limits<double>::epsilon())
+            change_req = true;
         } 
-      
-      // Normalize yaw; no offset needs to be remembered
-      if (jm->getType() == planning_models::KinematicModel::JointModel::PLANAR)
-        static_cast<const planning_models::KinematicModel::PlanarJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues());
-      
-      // Normalize quaternions
-      if (jm->getType() == planning_models::KinematicModel::JointModel::FLOATING)
-        static_cast<const planning_models::KinematicModel::FloatingJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues());
-      
-      const std::vector<std::string> &vn = jstates[i]->getVariableNames();
-      const std::vector<std::pair<double, double> > &vb = jstates[i]->getVariableBounds();      
-      
-      // we have some other type of joint; 
-      for (std::size_t j = 0 ; j < vn.size() ; ++j)
-      {
-        // we make sure the bounds are ok
-        if (vb[j].first > vv[j])
-        {
-          if (vb[j].first - vv[j] < bounds_dist_)
-          {
-            ROS_INFO("Starting state is just outside bounds (variable '%s'). Assuming within bounds.", vn[j].c_str());
-            update[vn[j]] = std::min(vb[j].first + std::numeric_limits<double>::epsilon(),  vb[j].second);
-          }
-          else
-            ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf should be in the range [%lf, %lf] but the error is %lf (more than %lf). "
-                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].first, vb[j].second, vb[j].first - vv[j], bounds_dist_, BOUNDS_PARAM_NAME.c_str()); 
+      }
+      else
+        // Normalize yaw; no offset needs to be remembered
+        if (jm->getType() == planning_models::KinematicModel::JointModel::PLANAR)
+        {   
+          double initial = jstates[i]->getVariableValues()[2];
+          static_cast<const planning_models::KinematicModel::PlanarJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues()); 
+          double after = jstates[i]->getVariableValues()[2];
+          if (fabs(initial - after) > std::numeric_limits<double>::epsilon())
+            change_req = true;
         }
-        
-        if (vb[j].second < vv[j])
-        {
-          if (vv[j] - vb[j].second < bounds_dist_)
+        else
+          // Normalize quaternions
+          if (jm->getType() == planning_models::KinematicModel::JointModel::FLOATING)
           {
-            ROS_INFO("Starting state is just outside bounds (variable '%s'). Assuming within bounds.", vn[j].c_str());
-            update[vn[j]] = std::max(vb[j].first, vb[j].second - std::numeric_limits<double>::epsilon());
+            static_cast<const planning_models::KinematicModel::FloatingJointModel*>(jm)->normalizeRotation(jstates[i]->getVariableValues());
+            change_req = true;
           }
-          else
-            ROS_WARN("Variable '%s' from the starting state is outside bounds by a significant margin: %lf should be in the range [%lf, %lf] but the error is %lf (more than %lf). "
-                     "Set ~%s on the param server to update the error margin.", vn[j].c_str(), vv[j], vb[j].first, vb[j].second, vv[j] - vb[j].second, bounds_dist_, BOUNDS_PARAM_NAME.c_str()); 
+    }
+    
+    // pointer to a prefix state we could possibly add, if we detect we have to make changes
+    planning_models::KinematicStatePtr prefix_state;
+    for (std::size_t i = 0 ; i < jstates.size() ; ++i)
+    {   
+      if (!jstates[i]->satisfiesBounds())
+      {    
+        if (jstates[i]->satisfiesBounds(bounds_dist_))
+        {
+          if (!prefix_state)
+            prefix_state.reset(new planning_models::KinematicState(start_state));
+          jstates[i]->enforceBounds();
+          change_req = true;
+          ROS_INFO("Starting state is just outside bounds (joint '%s'). Assuming within bounds.", jstates[i]->getName().c_str());
+        }
+        else
+        {
+          std::stringstream joint_values;
+          std::stringstream joint_bounds_low;
+          std::stringstream joint_bounds_hi;
+          for (std::size_t k = 0 ; k < jstates[i]->getVariableValues().size() ; ++k)
+            joint_values << jstates[i]->getVariableValues()[k] << " ";
+          for (std::size_t k = 0 ; k < jstates[i]->getVariableBounds().size() ; ++k)
+          {
+            joint_bounds_low << jstates[i]->getVariableBounds()[k].first << " ";
+            joint_bounds_hi << jstates[i]->getVariableBounds()[k].second << " ";
+          }
+          ROS_WARN_STREAM("Joint '" << jstates[i]->getName() << "' from the starting state is outside bounds by a significant margin: [ " << joint_values.str() << "] should be in the range [ " << joint_bounds_low.str() <<
+                          "], [ " << joint_bounds_hi.str() << "] but the error above the ~" << BOUNDS_PARAM_NAME << " parameter (currently set to " << bounds_dist_ << ")");
         }
       }
     }
-    
-    planning_models::KinematicStatePtr prefix;
-    if (!update.empty())
+
+    bool solved;
+    // if we made any changes, use them
+    if (change_req)
     {
-      prefix.reset(new planning_models::KinematicState(start_state));
-      start_state.setStateValues(update);
+      moveit_msgs::GetMotionPlan::Request req2 = req;
+      planning_models::kinematicStateToRobotState(start_state, req2.motion_plan_request.start_state);
+      solved = planner(planning_scene, req2, res);
     }
-    
-    // make sure we use the full, normalized start state, with potential updates applied
-    moveit_msgs::GetMotionPlan::Request req2 = req;
-    planning_models::kinematicStateToRobotState(start_state, req2.motion_plan_request.start_state);
-    bool solved = planner(planning_scene, req2, res);
-    
+    else
+      solved = planner(planning_scene, req, res);
+
     // re-add the prefix state, if it was constructed
-    if (prefix)
+    if (prefix_state)
     {      
-      planning_models::kinematicStateToRobotState(*prefix, res.trajectory_start);
+      planning_models::kinematicStateToRobotState(*prefix_state, res.trajectory_start);
       if (solved)
       {
         // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
         double d = std::min(max_dt_offset_, trajectory_processing::averageSegmentDuration(res.trajectory));
-        trajectory_processing::addPrefixState(*prefix, res.trajectory, d, planning_scene->getTransforms());
+        trajectory_processing::addPrefixState(*prefix_state, res.trajectory, d, planning_scene->getTransforms());
         added_path_index.push_back(0);
       }
     }
