@@ -1,0 +1,29 @@
+<package>
+  <description brief="move_group_interface">
+
+     move_group_interface
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/move_group_interface</url>
+  <depend package="move_group"/>
+  <depend package="actionlib"/>
+  <depend package="kinematic_constraints"/>
+  <depend package="planning_models_loader"/>
+  <depend package="constraint_samplers"/>
+  <depend package="planning_request_adapter_plugins"/>
+  <depend package="roscpp"/>
+  <depend package="moveit_msgs"/>
+  <depend package="kinematics_msgs"/>
+  <depend package="planning_scene_monitor"/>
+  <depend package="eigen_conversions"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmove_group_interface"/>
+  </export>
+
+</package>
+
+
