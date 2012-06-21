@@ -227,6 +227,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     ROS_ERROR("Unknown exception thrown by planner");
     return false;
   }
+  bool valid = true;
   
   if (solved)
   {
@@ -262,10 +263,11 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             ROS_DEBUG("It appears the robot is starting at an invalid state, but that is ok.");
           else
           {
+            valid = false;
             // display error messages
             std::stringstream ss;
             for (std::size_t i = 0 ; i < index.size() ; ++i)
-              ss << index[i] << " ";  
+              ss << index[i] << " ";
             unsigned int state_count = std::max(res.trajectory.joint_trajectory.points.size(),
                                                 res.trajectory.multi_dof_joint_trajectory.points.size());
             ROS_ERROR("Computed path is not valid. Invalid states at index locations: [ %s] out of %u", ss.str().c_str(), state_count);
@@ -320,5 +322,5 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     display_path_publisher_.publish(disp);      
   }
   
-  return solved;
+  return solved && valid;
 }

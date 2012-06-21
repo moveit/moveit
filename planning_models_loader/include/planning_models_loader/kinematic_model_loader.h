@@ -49,10 +49,26 @@ class KinematicModelLoader
 {
 public:
   
-  /** @brief Default constructor
-   *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded; Using the same parameter name plus the "_planning" suffix, additional configuration can be specified (e.g., additional joint limits)
-   *  @param root_link The name of the link to consider as root of the model. By default (\e root_link is empty) the root will be the one specified in the URDF. However, it is possible to re-parent the tree using this argument. */
-  KinematicModelLoader(const std::string &robot_description = "robot_description", const std::string &root_link = "");
+  /** @brief Structure that encodes the options to be passed to the KinematicModelLoader constructor */
+  struct Options
+  {
+    Options(const std::string &robot_description = "robot_description") : robot_description_(robot_description), load_kinematics_solvers_(true)
+    {
+    }
+
+    /**  @brief The string name corresponding to the ROS param where the URDF is loaded; Using the same parameter name plus the "_planning" suffix, additional configuration can be specified (e.g., additional joint limits) */
+    std::string robot_description_;
+    
+    /** @brief The name of the link to consider as root of the model. By default (\e root_link is empty) the root will be the one specified in the URDF. However, it is possible to re-parent the tree using this argument. */
+    std::string root_link_;
+    
+    /** @brief Flag indicating whether the kinematics solvers should be loaded as well */
+    bool load_kinematics_solvers_;
+  };
+  
+    
+  /** @brief Default constructor */
+  KinematicModelLoader(const Options &opt = Options());
   
   /** @brief Get the constructed planning_models::KinematicModel */
   const planning_models::KinematicModelPtr& getModel(void) const
@@ -78,6 +94,7 @@ public:
     return robot_model_loader_->getSRDF();
   }
 
+  /** @brief Get the instance of robot_model_loader::RobotModelLoader that was used to load the robot description */
   const robot_model_loader::RobotModelLoaderPtr& getRobotModelLoader(void) const
   {
     return robot_model_loader_;
@@ -90,7 +107,11 @@ public:
     return kinematics_loader_;
   }
 
+  /** @brief Get a map from group name to a configured instance of a kinematic solver */
   std::map<std::string, kinematics::KinematicsBasePtr> generateKinematicsSolversMap(void) const;
+  
+  /** @brief Load the kinematics solvers into the kinematic model. This is done by default, unless disabled explicitly by the options passed to the constructor */
+  void loadKinematicsSolvers(void);
   
 private:
   

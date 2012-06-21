@@ -17,4 +17,3 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_executable(move_group_action_server src/move_group.cpp)
-rosbuild_add_executable(planning_service_server src/planner_service.cpp)
