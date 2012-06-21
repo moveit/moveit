@@ -40,10 +40,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QMessageBox>
-//#include <QCheckBox>
 #include <QString>
 #include <QFont>
-//#include <QApplication>
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loading images
 #include <ros/master.h> // for checking if roscore is started
@@ -53,9 +51,6 @@
 #include "header_widget.h" // title and instructions
 #include "start_screen_widget.h"
 
-
-//static const std::string ROBOT_DESCRIPTION="robot_description";
-//static const std::string ROBOT_DESCRIPTION_SEMANTICS="robot_description_semantics";
 
 // ******************************************************************************************
 // Start screen user interface for MoveIt Configuration Assistant
@@ -74,7 +69,6 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   //right_layout->setContentsMargins( 20, 0, 0, 0);
 
   // Top Label Area ---------------------------------------------------
-
   HeaderWidget *header = new HeaderWidget( "MoveIt Setup Assistant",
                                            "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating a planning configuration for your robot. This includes generating a Semantic Robot Description Format (SRDF) file, kinematics configuration file and OMPL planning configuration file. It also involves creating launch files for move groups, OMPL planner, planning contexts and the planning warehouse.",
                                            this);
@@ -163,7 +157,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   select_mode_->btn_new_->click();
 
 
-  if( false )
+  if( true )
   {
     QTimer *update_timer = new QTimer( this );
     update_timer->setSingleShot( true ); // only run once
@@ -172,6 +166,9 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   }
 }
 
+// ******************************************************************************************
+// Destructor
+// ******************************************************************************************
 StartScreenWidget::~StartScreenWidget()
 {
 

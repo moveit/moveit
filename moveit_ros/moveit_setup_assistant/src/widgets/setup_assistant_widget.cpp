@@ -76,36 +76,36 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   // Start Screen
   StartScreenWidget *ssw = new StartScreenWidget( this, config_data );
   connect( ssw, SIGNAL( readyToProgress() ), this, SLOT( progressPastStartScreen() ) );
-  navs_ << NavScreen("Start");
+  nav_name_list_ << "Start";
   main_content_->addWidget(ssw);
 
   // Planning Groups
   PlanningGroupsWidget *pgw = new PlanningGroupsWidget( this, config_data );
-  navs_ << NavScreen("Planning Groups");
+  nav_name_list_ << "Planning Groups";
   main_content_->addWidget(pgw);
 
   // Self-Collisions
   ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget( this, config_data);
-  navs_ << NavScreen("Self-Collisions");
+  nav_name_list_ << "Self-Collisions";
   main_content_->addWidget(cdcw);
 
   // Robot Poses
   RobotPosesWidget *rpw = new RobotPosesWidget( this, config_data );
-  navs_ << NavScreen("Robot Poses");
+  nav_name_list_ << "Robot Poses";
   main_content_->addWidget(rpw);
 
   // End Effectors
   EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
-  navs_ << NavScreen("End Effectors");
+  nav_name_list_ << "End Effectors";
   main_content_->addWidget(efw);  
 
   // Configuration Files
   ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this, config_data );
-  navs_ << NavScreen("Configuration Files");
+  nav_name_list_ << "Configuration Files";
   main_content_->addWidget(cfw);  
  
   navs_view_ = new NavigationWidget( this );
-  navs_view_->setNavs(navs_);
+  navs_view_->setNavs(nav_name_list_);
   navs_view_->setDisabled( true );
   navs_view_->setSelected( 0 ); // start screen
   
@@ -162,7 +162,7 @@ void SetupAssistantWidget::moveToScreen( const int index )
 void SetupAssistantWidget::progressPastStartScreen()
 {
   // Enable all nav buttons
-  for( int i = 0; i < navs_.count(); ++i)
+  for( int i = 0; i < nav_name_list_.count(); ++i)
   {
     navs_view_->setEnabled( i, true );
   }

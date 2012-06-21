@@ -41,31 +41,8 @@
 #include <QStandardItemModel>
 #include <QScrollBar>
 #include <QString>
-//#include <QMetaType>
 #include <QStyledItemDelegate>
 #include <QPainter>
-
-/** 
- * Holds a single navigation button to a particular screen in the gui
- * 
- * @return 
- */
-class NavScreen
-{
-public:
-  explicit NavScreen();
-  NavScreen( const QString &name );
-  virtual ~NavScreen() { ; }
-
-  QString name() const;
-
-private:
-  long id_;  
-  QString name_;
-};
-
-Q_DECLARE_METATYPE(NavScreen);
-
 
 /** 
  * Widget for showing a left hand side list of navigation items
@@ -80,7 +57,7 @@ class NavigationWidget : public QListView
   public:
   explicit NavigationWidget(QWidget *parent = 0);
 
-  void setNavs(QList<NavScreen> &navs);
+  void setNavs(QList<QString> &navs);
   void setEnabled( const int &index, bool enabled );
   void setSelected( const int &index );
 
