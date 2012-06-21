@@ -248,6 +248,19 @@ public:
   {
     return solver_allocators_;
   }
+
+  void setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers);
+
+  const kinematics::KinematicsBaseConstPtr& getSolverInstance(void) const
+  {
+    return solver_instance_;
+  }
+  
+  /** \brief Return the mapping between the order of the joints in this group and the order of the joints in the kinematics solver */
+  const std::vector<unsigned int>& getKinematicsSolverJointBijection(void) const
+  {
+    return ik_joint_bijection_;
+  }
   
   /** \brief Print information about the constructed model */
   void printGroupInfo(std::ostream &out = std::cout) const;
@@ -327,6 +340,10 @@ protected:
   
   std::pair<SolverAllocatorFn, SolverAllocatorMapFn>    solver_allocators_;
   
+  kinematics::KinematicsBaseConstPtr                    solver_instance_;
+  
+  std::vector<unsigned int>                             ik_joint_bijection_;
+ 
   /** \brief The set of default states specified for this group in the SRDF */
   std::map<std::string, std::map<std::string, double> > default_states_;
 };

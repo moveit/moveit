@@ -52,7 +52,7 @@ public:
   ~JointStateGroup(void);
   
   /** \brief Get the kinematic state this link is part of */
-  const KinematicState* getKinematicState(void) const
+  const KinematicState* getParentState(void) const
   {
     return kinematic_state_;
   }
@@ -168,9 +168,21 @@ public:
    * \param jacobian The resultant jacobian
    * \return True if jacobian was successfully computed, false otherwise
    */    
-  bool getJacobian(const std::string &link_name,
-		   const Eigen::Vector3d &reference_point_position, 
-		   Eigen::MatrixXd& jacobian) const;
+  bool getJacobian(const std::string &link_name, const Eigen::Vector3d &reference_point_position, Eigen::MatrixXd& jacobian) const;
+  
+  
+
+  bool setFromIK(const geometry_msgs::Pose &pose, const std::string &tip, double timeout);
+  
+  /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
+      The transform is assumed to be in the reference frame of the kinematic model. Returns true on success. */
+  bool setFromIK(const geometry_msgs::Pose &pose, double timeout);
+
+  /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
+      The transform is assumed to be in the reference frame of the kinematic model. Returns true on success. */
+  bool setFromIK(const Eigen::Affine3d &pose, double timeout);
+
+  bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, double timeout);
   
 private:
   

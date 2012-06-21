@@ -117,6 +117,12 @@ public:
   {
     return shape_extents_;
   }
+
+  /** \brief Get the set of links that are attached to this one via fixed transforms */
+  const std::map<const LinkModel*, Eigen::Affine3d> &getAssociatedFixedTransforms(void) const
+  {
+    return associated_fixed_transforms_;
+  }
   
 private:
   
@@ -128,6 +134,9 @@ private:
   
   /** \brief List of descending joints (each connects to a child link) */
   std::vector<JointModel*>  child_joint_models_;
+
+  /** \brief The set of links that are attached to this one via fixed transforms */
+  std::map<const LinkModel*, Eigen::Affine3d> associated_fixed_transforms_;
   
   /** \brief The constant transform applied to the link (local) */
   Eigen::Affine3d           joint_origin_transform_;

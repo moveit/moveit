@@ -77,7 +77,7 @@ public:
   class JointModelGroup;
   
   /// function type that allocates a kinematics solver for a particular group
-  typedef boost::function<boost::shared_ptr<kinematics::KinematicsBase>(const JointModelGroup*)> SolverAllocatorFn;
+  typedef boost::function<kinematics::KinematicsBasePtr(const JointModelGroup*)> SolverAllocatorFn;
   
   /// function type that allocates a kinematics solvers for subgroups of a group
   typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn;
@@ -285,16 +285,12 @@ public:
     return joint_variables_index_map_;
   }
 
-  void getAllAssociatedFixedLinks(const std::string& link_name, std::vector<std::string>& associated_fixed_links) const;
-  void getAllAssociatedFixedLinks(const planning_models::KinematicModel::LinkModel* lm, std::set<std::string>& associated_fixed_links) const;
-  bool determineFixedTransform(const std::string& link1, const std::string& link2, Eigen::Affine3d& trans) const;
-
   /// A map of known kinematics solvers (associated to their group name)
   void setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn> &allocators);
 
 protected:
   
-  std::vector<std::pair<std::string, Eigen::Affine3d> > determineFixedAncestorTree(const std::string& link) const;
+  void computeFixedTransforms(LinkModel *link, Eigen::Affine3d transform, std::map<LinkModel*, Eigen::Affine3d> &associated_transforms);
   
   /** \brief The name of the model */
   std::string                               model_name_;
