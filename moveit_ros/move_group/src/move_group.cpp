@@ -40,9 +40,11 @@
 #include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
 #include <planning_pipeline/planning_pipeline.h>
 #include <kinematic_constraints/utils.h>
+#include <trajectory_processing/trajectory_tools.h>
 
-static const std::string ROBOT_DESCRIPTION = "robot_description";      // name of the robot description (a param name, so it can be changed externally)
+static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";
+static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
 
 class MoveGroupAction
 {
@@ -56,7 +58,7 @@ public:
     };
   
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorConstPtr& psm) : 
-    node_handle_("~"), planning_scene_monitor_(psm), move_group_pipeline_(psm->getPlanningScene()->getKinematicModel()), state_(IDLE)
+    node_handle_("~"), planning_scene_monitor_(psm), planning_pipeline_(psm->getPlanningScene()->getKinematicModel()), state_(IDLE)
   {
     bool allow_trajectory_execution = true;
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
@@ -68,12 +70,16 @@ public:
       trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(planning_scene_monitor_->getPlanningScene()->getKinematicModel(),
                                                                                               manage_controllers));
     }
-    move_group_pipeline_.displayComputedMotionPlans(true);
+    planning_pipeline_.displayComputedMotionPlans(true);
+    planning_pipeline_.checkSolutionPaths(true);
     
     // start the action server
     action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_node_handle_, NODE_NAME, boost::bind(&MoveGroupAction::executeCallback, this, _1), false));
     action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
     action_server_->start();
+    
+    // start the service server
+    plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlan, this);
   }
   
   void preemptCallback(void)
@@ -114,46 +120,22 @@ public:
       planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff) ? planning_scene_monitor_->getPlanningScene() :
       planning_scene::PlanningScene::diff(planning_scene_monitor_->getPlanningScene(), goal->planning_scene_diff);
     
-    std::vector<std::size_t> adapter_added_state_index;
-    bool solved = move_group_pipeline_.generatePlan(the_scene, mreq, mres, adapter_added_state_index);
+    bool solved = planning_pipeline_.generatePlan(the_scene, mreq, mres);
     
     if (!solved)
     {
-      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
-      action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
-      setState(IDLE);
-      return;
-    }
-    std::vector<std::size_t> invalid_index;
-    if (!planning_scene_monitor_->getPlanningScene()->isPathValid(mres.trajectory_start, mres.trajectory, mreq.motion_plan_request.path_constraints, false, &invalid_index))
-    {
-      // check to see that the invalid states are ones not added by planning request adapters
-      // if they are not, skip execution
-      bool error = false;
-      for (std::size_t i = 0 ; i < invalid_index.size() && !error ; ++i)
+      if (trajectory_processing::isTrajectoryEmpty(mres.trajectory))
       {
-        bool found = false;
-        for (std::size_t j = 0 ; j < adapter_added_state_index.size() ; ++j)
-          if (invalid_index[i] == adapter_added_state_index[j])
-          {
-            found = true;
-            break;
-          }
-        if (!found)
-          error = true;
+        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+        action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
       }
-      
-      if (error)
-	if (invalid_index.size() == 1 && invalid_index[0] != 0)
-	  error = false;
-      
-      if (error)
+      else
       {
 	action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
 	action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
-	setState(IDLE);
-	return;
       }
+      setState(IDLE);
+      return;
     }
     
     action_res.planned_trajectory = mres.trajectory;
@@ -245,10 +227,16 @@ public:
     }
     action_server_->publishFeedback(feedback_);
   }
+
+  bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+  {
+    ROS_INFO("Received new planning service request...");
+    return planning_pipeline_.generatePlan(planning_scene_monitor_->getPlanningScene(), req, res);
+  }
   
   void status(void)
   {
-    ROS_INFO_STREAM("MoveGroup action running using planning plugin " << move_group_pipeline_.getPlannerPluginName());
+    ROS_INFO_STREAM("MoveGroup action running using planning plugin " << planning_pipeline_.getPlannerPluginName());
   }
   
 private:
@@ -257,10 +245,12 @@ private:
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorConstPtr planning_scene_monitor_;
   
-  planning_pipeline::PlanningPipeline move_group_pipeline_;
+  planning_pipeline::PlanningPipeline planning_pipeline_;
   
   boost::shared_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;
   moveit_msgs::MoveGroupFeedback feedback_;
+  
+  ros::ServiceServer plan_service_;
   
   boost::shared_ptr<trajectory_execution_ros::TrajectoryExecutionMonitorRos> trajectory_execution_;  
   bool preempt_requested_;

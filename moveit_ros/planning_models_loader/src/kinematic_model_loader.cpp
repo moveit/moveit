@@ -37,16 +37,16 @@
 #include "planning_models_loader/kinematic_model_loader.h"
 #include <ros/ros.h>
 
-planning_models_loader::KinematicModelLoader::KinematicModelLoader(const std::string &robot_description, const std::string &root_link)
+planning_models_loader::KinematicModelLoader::KinematicModelLoader(const Options &opt)
 {
-  robot_model_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
+  robot_model_loader_.reset(new robot_model_loader::RobotModelLoader(opt.robot_description_));
   if (robot_model_loader_->getURDF())
   {
     const boost::shared_ptr<srdf::Model> &srdf = robot_model_loader_->getSRDF() ? robot_model_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
-    if (root_link.empty())
+    if (opt.root_link_.empty())
       model_.reset(new planning_models::KinematicModel(robot_model_loader_->getURDF(), srdf));
     else
-      model_.reset(new planning_models::KinematicModel(robot_model_loader_->getURDF(), srdf, root_link));
+      model_.reset(new planning_models::KinematicModel(robot_model_loader_->getURDF(), srdf, opt.root_link_));
   }
   
   if (model_)
@@ -54,24 +54,32 @@ planning_models_loader::KinematicModelLoader::KinematicModelLoader(const std::st
     // if there are additional joint limits specified in some .yaml file, read those in
     ros::NodeHandle nh("~");
     std::map<std::string, std::vector<moveit_msgs::JointLimits> > individual_joint_limits_map;
-
+    
     for (unsigned int i = 0; i < model_->getJointModels().size() ; ++i)
     {
       std::vector<moveit_msgs::JointLimits> jlim = model_->getJointModels()[i]->getVariableLimits();
       for(unsigned int j = 0; j < jlim.size(); ++j)
       {
         std::string prefix = robot_model_loader_->getRobotDescription() + "_planning/joint_limits/" + jlim[j].joint_name + "/";
-        ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " before vel " << jlim[j].max_velocity);
-        bool has_vel = jlim[j].has_velocity_limits;
-        nh.param(prefix + "has_velocity_limits", has_vel, has_vel);
-        jlim[j].has_velocity_limits = has_vel;
-        nh.param(prefix + "max_velocity", jlim[j].max_velocity, jlim[j].max_velocity);
-        bool has_accel = jlim[j].has_acceleration_limits;
-        nh.param(prefix + "has_acceleration_limits", has_accel, has_accel); 
-        jlim[j].has_acceleration_limits = has_accel;
-        nh.param(prefix + "max_acceleration", jlim[j].max_acceleration, jlim[j].max_acceleration);
-        ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " after vel " << jlim[j].max_velocity);
-        ROS_DEBUG_STREAM("Joint " << jlim[j].joint_name << " accel " << jlim[j].max_acceleration);
+        double max_velocity;
+        if (nh.getParam(prefix + "max_velocity", max_velocity))
+        {
+          jlim[j].has_velocity_limits = true;
+          jlim[j].max_velocity = max_velocity;
+        }
+        bool has_vel_limits;
+        if (nh.getParam(prefix + "has_velocity_limits", has_vel_limits))
+          jlim[j].has_velocity_limits = has_vel_limits;
+        
+        double max_acc;
+        if (nh.getParam(prefix + "max_acceleration", max_acc))
+        {
+          jlim[j].has_acceleration_limits = true;
+          jlim[j].max_acceleration = max_acc;
+        }
+        bool has_acc_limits;
+        if (nh.getParam(prefix + "has_acceleration_limits", has_acc_limits))
+          jlim[j].has_acceleration_limits = has_acc_limits;
       }
       model_->getJointModels()[i]->setLimits(jlim);
       individual_joint_limits_map[model_->getJointModels()[i]->getName()] = jlim;
@@ -88,7 +96,15 @@ planning_models_loader::KinematicModelLoader::KinematicModelLoader(const std::st
       }
       it->second->setJointLimits(group_joint_limits);
     }
+    if (opt.load_kinematics_solvers_)
+      loadKinematicsSolvers();
+  }
+}
 
+void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers(void)
+{
+  if (robot_model_loader_ && model_)
+  {
     // load the kinematics solvers     
     kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader(robot_model_loader_->getRobotDescription()));
     kinematics_plugin_loader::KinematicsLoaderFn kinematics_allocator = kinematics_loader_->getLoaderFunction(robot_model_loader_->getSRDF());
