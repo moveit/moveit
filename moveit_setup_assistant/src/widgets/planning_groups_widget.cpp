@@ -66,8 +66,8 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
 
   // Top Label Area ------------------------------------------------
 
-  HeaderWidget *header = new HeaderWidget( "Create Planning Groups",
-                                           "Select planning groups for your robot based on kinematic chains or joint collections.",
+  HeaderWidget *header = new HeaderWidget( "Planning Groups",
+                                           "Create and edit planning groups for your robot based on joint collections, link collections, kinematic chains and subgroups. After creating a group, select one of its four sub-elements and choose 'Edit Selected' to then add links/joints/etc.",
                                            this);
   layout->addWidget( header );
 
@@ -195,10 +195,10 @@ void PlanningGroupsWidget::loadGroupsTree()
 
 
   // Display all groups by looping through them
-  for( std::vector<srdf::Model::Group>::const_iterator group_it = config_data_->srdf_->groups_.begin(); 
+  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin(); 
        group_it != config_data_->srdf_->groups_.end();  ++group_it )
   {
-    addLinkToTreeRecursive( *group_it, NULL );
+    loadGroupsTreeRecursive( *group_it, NULL );
   }
 
   
@@ -210,7 +210,7 @@ void PlanningGroupsWidget::loadGroupsTree()
 // ******************************************************************************************
 // Recursively Adds Groups, and subgroups to groups...
 // ******************************************************************************************
-void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &group_it, QTreeWidgetItem *parent )
+void PlanningGroupsWidget::loadGroupsTreeRecursive( srdf::Model::Group &group_it, QTreeWidgetItem *parent )
 {
 
   // Fonts for tree
@@ -225,7 +225,7 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
     group = new QTreeWidgetItem( groups_tree_ );
     group->setText( 0, group_it.name_.c_str() );
     group->setFont( 0, top_level_font );
-    qDebug() << "Adding top level item";
+    group->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, GROUP ) ) );
     groups_tree_->addTopLevelItem( group );
   }
   else
@@ -233,7 +233,7 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
     group= new QTreeWidgetItem( parent );
     group->setText( 0, group_it.name_.c_str() );
     group->setFont( 0, top_level_font );
-    qDebug() << "Adding child";
+    group->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, GROUP ) ) );
     parent->addChild( group );
   }
 
@@ -241,6 +241,7 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
   QTreeWidgetItem *joints = new QTreeWidgetItem( group );
   joints->setText( 0, "Joints" );
   joints->setFont( 0, type_font );
+  joints->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, JOINTS ) ) );
   group->addChild( joints );
     
   // Loop through all aval. joints
@@ -248,6 +249,7 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
        joint_it != group_it.joints_.end(); ++joint_it )
   {
     QTreeWidgetItem *j = new QTreeWidgetItem( joints );
+    j->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, JOINTS ) ) );
     j->setText( 0, joint_it->c_str() );
     joints->addChild( j );
   }
@@ -256,6 +258,7 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
   QTreeWidgetItem *links = new QTreeWidgetItem( group );
   links->setText( 0, "Links" );
   links->setFont( 0, type_font );
+  links->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, LINKS ) ) );
   group->addChild( links );
     
   // Loop through all aval. links
@@ -263,6 +266,7 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
        joint_it != group_it.links_.end(); ++joint_it )
   {
     QTreeWidgetItem *j = new QTreeWidgetItem( links );
+    j->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, LINKS ) ) );
     j->setText( 0, joint_it->c_str() );
     links->addChild( j );
   }
@@ -271,6 +275,7 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
   QTreeWidgetItem *chains = new QTreeWidgetItem( group );
   chains->setText( 0, "Chain" );
   chains->setFont( 0, type_font );
+  chains->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, CHAIN ) ) );
   group->addChild( chains );
     
   // Loop through all aval. chains
@@ -278,6 +283,7 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
        chain_it != group_it.chains_.end(); ++chain_it )
   {
     QTreeWidgetItem *j = new QTreeWidgetItem( chains );
+    j->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, CHAIN ) ) );
     j->setText( 0, QString(chain_it->first.c_str() ).append("  ->  ").append( chain_it->second.c_str() ) );
     chains->addChild( j );
   }
@@ -286,22 +292,23 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
   QTreeWidgetItem *subgroups = new QTreeWidgetItem( group );
   subgroups->setText( 0, "Subgroups" );
   subgroups->setFont( 0, type_font );
+  subgroups->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, SUBGROUP ) ) );
   group->addChild( subgroups );
     
   // Loop through all aval. subgroups
-  for( std::vector<std::string>::const_iterator subgroup_it = group_it.subgroups_.begin();
+  for( std::vector<std::string>::iterator subgroup_it = group_it.subgroups_.begin();
        subgroup_it != group_it.subgroups_.end(); ++subgroup_it )
   {
     // Find group with this subgroups' name
 
-    const srdf::Model::Group *searched_group = NULL; // used for holding our search results
+    srdf::Model::Group *searched_group = NULL; // used for holding our search results
 
-    for( std::vector<srdf::Model::Group>::const_iterator group2_it = config_data_->srdf_->groups_.begin();
+    for( std::vector<srdf::Model::Group>::iterator group2_it = config_data_->srdf_->groups_.begin();
          group2_it != config_data_->srdf_->groups_.end(); ++group2_it )
     {
       if( group2_it->name_ == *subgroup_it ) // this is the group we are looking for
       {
-        searched_group = &(*group2_it); 
+        searched_group = &(*group2_it);  // convert to pointer from iterator
         break; // we are done searching
       }
     }
@@ -319,7 +326,7 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
     // subgroup found!
 
     // Recurse this function for each new group
-    addLinkToTreeRecursive( *searched_group, subgroups );
+    loadGroupsTreeRecursive( *searched_group, subgroups );
   }
 
 
@@ -330,7 +337,38 @@ void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &gro
 // ******************************************************************************************
 void PlanningGroupsWidget::editSelected()
 {
-  std::cout << "Edit Selected" << std::endl;
+  QTreeWidgetItem* item = groups_tree_->currentItem();
+
+  // Check that something was actually selected
+  if(item == NULL)
+    return;
+
+  //qDebug() << item->text(0);
+ 
+  //srdf::Model::Group *select_group = item->data( 0, Qt::UserRole ).value<oup>();
+  PlanGroupType plan_group = item->data( 0, Qt::UserRole ).value<PlanGroupType>();
+  
+  if( plan_group.type_ == JOINTS )
+  {
+    qDebug() << "EDIT JOINTS";
+  }
+  else if( plan_group.type_ == LINKS )
+  {
+    qDebug() << "EDIT LINKS";
+  }
+  else if( plan_group.type_ == CHAIN )
+  {
+    qDebug() << "EDIT CHAIN";
+  }
+  else if( plan_group.type_ == GROUP )
+  {
+    qDebug() << "EDIT GROUP";
+  }
+  else if( plan_group.type_ == SUBGROUP )
+  {
+    qDebug() << "EDIT SUBGROUP";
+  }
+
 }
 
 // ******************************************************************************************
@@ -372,4 +410,19 @@ void PlanningGroupsWidget::alterTree( const QString &link )
     groups_tree_->expandAll();
   else
     groups_tree_->collapseAll();
+}
+
+
+
+
+
+// ******************************************************************************************
+// ******************************************************************************************
+// CLASS
+// ******************************************************************************************
+// ******************************************************************************************
+
+PlanGroupType::PlanGroupType( srdf::Model::Group *group, const GroupType type )
+  : group_( group ), type_( type )
+{ 
 }
