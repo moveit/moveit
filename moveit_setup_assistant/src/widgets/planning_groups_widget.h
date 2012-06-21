@@ -58,7 +58,7 @@ class PlanningGroupsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-public:
+  public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -75,16 +75,22 @@ private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
+
+  /// Displays data in the link_pairs_ data structure into a QtTableWidget
   void loadGroupsTree();
-  void addJointCollectionGroup();
-  void addLinkCollectionGroup();
-  void addKinematicChainGroup();
-  void addEndEffector();
-  void addSuperGroup();
+
+  /// Edit whatever element is selected in the tree view
+  void editSelected();
+
+  /// Create a new, empty group
+  void addGroup();
 
   /// This is called when a child screen (add/edit screens) are ready to come back to main screen
   void doneEditing();
-  
+
+  /// Called when user clicks link part of bottom left label
+  void alterTree( const QString &link );
+
 private:
 
   // ******************************************************************************************
@@ -113,9 +119,12 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
+
+  
   QWidget* createContentsWidget();
 
-
+  /// Recursively build the SRDF tree
+  void addLinkToTreeRecursive( const srdf::Model::Group &group_it, QTreeWidgetItem *parent );
 
 };
 

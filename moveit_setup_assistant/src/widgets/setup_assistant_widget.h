@@ -40,19 +40,12 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-//#include <QGroupBox>
 #include <QString>
 #include <QApplication>
-//#include <QListView>
 #include <QListWidget>
 #include <QTimer>
 #include <QSplitter>
-//#include <QAbstractListModel>
-//#include <QObject>
 #include <QStringList>
-//#include <QItemSelectionModel>
-//#include <QModelIndex>
-//#include <QItemSelection>
 #include <ros/ros.h>
 #include "navigation_widget.h"
 #include "start_screen_widget.h"
@@ -119,12 +112,11 @@ private:
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
-  QList<NavScreen> navs_;
+  QList<QString> nav_name_list_;
   NavigationWidget *navs_view_;
   
   QWidget *right_frame_;
   QSplitter *splitter_;
-  //QListWidget *left_navigation_;
   QStackedLayout *main_content_;
 
   // ******************************************************************************************

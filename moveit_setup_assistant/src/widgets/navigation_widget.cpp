@@ -42,27 +42,6 @@
 // CLASS
 // ******************************************************************************************
 
-NavScreen::NavScreen()
-{
-}
-
-NavScreen::NavScreen(const QString &name) :
-  name_(name)
-{
-
-}
-
-QString NavScreen::name() const
-{
-  return name_;
-}
-
-
-// ******************************************************************************************
-// CLASS
-// ******************************************************************************************
-
-
 NavigationWidget::NavigationWidget(QWidget *parent) :
   QListView(parent)
 {
@@ -89,7 +68,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) :
   setModel(model_);
 }
 
-void NavigationWidget::setNavs(QList<NavScreen> &navs)
+void NavigationWidget::setNavs(QList<QString> &navs)
 {
   setModel(NULL);
   model_->clear();
@@ -146,7 +125,8 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
 {
   const bool isSelected = option.state & QStyle::State_Selected;
 
-  NavScreen tp = index.data().value<NavScreen>();
+  //NavScreen tp = index.data().value<NavScreen>();
+  QString nav_name = index.data().value<QString>();
 
   painter->save();
 
@@ -202,7 +182,7 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
     painter->setPen(QColor(69, 69, 69));
   }
 
-  painter->drawText(textRect, Qt::AlignLeft|Qt::AlignVCenter, tp.name());
+  painter->drawText(textRect, Qt::AlignLeft|Qt::AlignVCenter, nav_name );
 
   painter->restore();
 }

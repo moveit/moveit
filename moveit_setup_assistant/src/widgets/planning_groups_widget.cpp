@@ -37,10 +37,12 @@
 #include "planning_groups_widget.h"
 #include <boost/thread.hpp>
 #include <QApplication>
+#include <QDebug>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QMessageBox>
 #include <QString>
 #include <QTreeWidgetItem>
 #include <QHeaderView>
@@ -48,8 +50,10 @@
 #include "header_widget.h"
 
 
+
+
 // ******************************************************************************************
-// CLASS
+// Constructor
 // ******************************************************************************************
 PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
   : SetupScreenWidget( parent ), config_data_(config_data)
@@ -114,12 +118,17 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   //addJointCollectionGroup();
 }
 
+// ******************************************************************************************
+// Switch which screen is being shown
+// ******************************************************************************************
 void PlanningGroupsWidget::changeScreen( int index )
 {
   stacked_layout_->setCurrentIndex( index );
 }
 
-
+// ******************************************************************************************
+// Create the main tree view widget
+// ******************************************************************************************
 QWidget* PlanningGroupsWidget::createContentsWidget()
 {
   // Main widget
@@ -128,85 +137,44 @@ QWidget* PlanningGroupsWidget::createContentsWidget()
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout( this );
 
-  // Table Area --------------------------------------------  
 
-  // Table Label
-  QLabel *table_title = new QLabel( this );
-  table_title->setText( "Current Groups" );
-  QFont table_title_font( "Arial", 10, QFont::Bold );
-  table_title->setFont(table_title_font);
-  layout->addWidget( table_title);
+  // Tree Box ----------------------------------------------------------------------
 
-  // Tree Box
   groups_tree_ = new QTreeWidget( this );
-  //groups_tree_->setColumnCount(2);
-  //groups_tree_->setSortingEnabled(true);
+  groups_tree_->setHeaderLabel( "Current Groups" );
   //connec(tgroups_tree_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
   layout->addWidget(groups_tree_);
 
-  /*
-  // Table Headers
-  QStringList header_list;
-  header_list.append("Planning Group");
-  header_list.append("Group Type");
-  groups_tree_->setHorizontalHeaderLabels(header_list);
-  groups_tree_->resizeColumnToContents(0);
-  groups_tree_->resizeColumnToContents(1);
-  */
 
-  // Bottom Area ----------------------------------------
-  /*
-    QHBoxLayout *controls1_layout = new QHBoxLayout( );
+  // Bottom Controls -------------------------------------------------------------
+  
+  QHBoxLayout *controls_layout = new QHBoxLayout( );
 
-    // Add Joint Colletion Group
-    QPushButton *btn_joint = new QPushButton( "Add &Joint Collection Group", this );
-    btn_joint->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    btn_joint->setMinimumWidth(250);
-    connect(btn_joint, SIGNAL(clicked()), this, SLOT(addJointCollectionGroup()));
-    controls1_layout->addWidget(btn_joint);
+  // Expand/Contract controls
+  QLabel *expand_controls = new QLabel( this );
+  expand_controls->setText("<a href='expand'>Expand All</a> <a href='contract'>Collapse All</a>");
+  connect( expand_controls, SIGNAL(linkActivated( const QString )), this, SLOT( alterTree( const QString )));
+  controls_layout->addWidget( expand_controls );
 
-    // Add Link Colletion Group
-    QPushButton *btn_link = new QPushButton( "Add &Link Collection Group", this );
-    btn_link->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    btn_link->setMinimumWidth(250);
-    connect(btn_link, SIGNAL(clicked()), this, SLOT(addLinkCollectionGroup()));
-    controls1_layout->addWidget(btn_link);
-
-    QHBoxLayout *controls2_layout = new QHBoxLayout( );
-
-    // Add Kinematics Chain Button
-    QPushButton *btn_kinematics = new QPushButton( this );
-    btn_kinematics->setText("Add &Kinematics Chain Group");
-    btn_kinematics->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    btn_kinematics->setMinimumWidth(250);
-    connect(btn_kinematics, SIGNAL(clicked()), this, SLOT(addKinematicChainGroup()));
-    controls2_layout->addWidget(btn_kinematics);
-
-    // Add End Effector Button
-    QPushButton *btn_end_effector = new QPushButton( this );
-    btn_end_effector->setText("Add &End Effector");p
-    btn_end_effector->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    bt;n_end_effector->setMinimumWidth(250);
-    connect(btn_end_effector, SIGNAL(clicked()), this, SLOT(addEndEffector()));
-    controls2_layout->addWidget(btn_end_effector);
-  */
-
-
-  QHBoxLayout *controls3_layout = new QHBoxLayout( );
+  //  Edit Selected Button
+  QPushButton *btn_edit = new QPushButton( "&Edit Selected", this );
+  btn_edit->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+  btn_edit->setMinimumWidth(200);
+  connect(btn_edit, SIGNAL(clicked()), this, SLOT(editSelected()));
+  controls_layout->addWidget(btn_edit);
+  controls_layout->setAlignment( btn_edit, Qt::AlignRight );
 
   // Add Super Group Button
   QPushButton *btn_super_group = new QPushButton( "&Add Group", this );
   btn_super_group->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  btn_super_group->setMinimumWidth(250);
-  connect(btn_super_group, SIGNAL(clicked()), this, SLOT(addSuperGroup()));
-  controls3_layout->addWidget(btn_super_group);
-  controls3_layout->setAlignment( btn_super_group, Qt::AlignRight );
+  btn_super_group->setMinimumWidth(200);
+  connect(btn_super_group, SIGNAL(clicked()), this, SLOT(addGroup()));
+  controls_layout->addWidget(btn_super_group);
+  controls_layout->setAlignment( btn_super_group, Qt::AlignRight );
 
   
   // Add Controls to layout
-  //layout->addLayout( controls1_layout );
-  //layout->addLayout( controls2_layout );
-  layout->addLayout( controls3_layout );
+  layout->addLayout( controls_layout );
 
   // Set layout
   content_widget->setLayout(layout);
@@ -219,69 +187,163 @@ QWidget* PlanningGroupsWidget::createContentsWidget()
 // ******************************************************************************************
 void PlanningGroupsWidget::loadGroupsTree()
 {
-  std::cout << "LOADING " << std::endl;
-
+  // Disable Tree
   groups_tree_->setUpdatesEnabled(false); // prevent table from updating until we are completely done
   groups_tree_->setDisabled(true); // make sure we disable it so that the cellChanged event is not called
   groups_tree_->clear(); // reset the tree
+
+
 
   // Display all groups by looping through them
   for( std::vector<srdf::Model::Group>::const_iterator group_it = config_data_->srdf_->groups_.begin(); 
        group_it != config_data_->srdf_->groups_.end();  ++group_it )
   {
-
-    //addLinktoTreeRecursive( group_it, NULL );
-    QTreeWidgetItem *toAdd = new QTreeWidgetItem( groups_tree_ );
-    toAdd->setText( 0, group_it->name_.c_str() );
-    groups_tree_->addTopLevelItem( toAdd );
-
+    addLinkToTreeRecursive( *group_it, NULL );
   }
 
-  //groups_tree_->expandToDepth(0);
-  //groups_tree_->header()->setResizeMode(0, QHeaderView::ResizeToContents);
-  //groups_tree_->header()->setStretchLastSection(false);
-
-  // Reenable
+  
+  // Reenable Tree
   groups_tree_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
   groups_tree_->setDisabled(false); // make sure we disable it so that the cellChanged event is not called
-
-  // Resize table
-  //groups_tree_->resizeColumnToContents(0);
-  //groups_tree_->resizeColumnToContents(1);
-
 }
 
-void PlanningGroupsWidget::addJointCollectionGroup()
+// ******************************************************************************************
+// Recursively Adds Groups, and subgroups to groups...
+// ******************************************************************************************
+void PlanningGroupsWidget::addLinkToTreeRecursive( const srdf::Model::Group &group_it, QTreeWidgetItem *parent )
 {
-  std::cout << "ADD JOINT COLL" << std::endl;
 
-  // Switch screens
-  stacked_layout_->setCurrentIndex( 1 );
+  // Fonts for tree
+  const QFont top_level_font( "Arial", 11, QFont::Bold );
+  const QFont type_font( "Arial", 11, QFont::Normal, QFont::StyleItalic );
 
-  // Load the available joints list
-  joints_widget_->loadJoints();
+  QTreeWidgetItem *group;
+
+  // Allow a subgroup to open into a whole new group
+  if( parent == NULL )
+  {
+    group = new QTreeWidgetItem( groups_tree_ );
+    group->setText( 0, group_it.name_.c_str() );
+    group->setFont( 0, top_level_font );
+    qDebug() << "Adding top level item";
+    groups_tree_->addTopLevelItem( group );
+  }
+  else
+  {
+    group= new QTreeWidgetItem( parent );
+    group->setText( 0, group_it.name_.c_str() );
+    group->setFont( 0, top_level_font );
+    qDebug() << "Adding child";
+    parent->addChild( group );
+  }
+
+  // Joints --------------------------------------------------------------
+  QTreeWidgetItem *joints = new QTreeWidgetItem( group );
+  joints->setText( 0, "Joints" );
+  joints->setFont( 0, type_font );
+  group->addChild( joints );
+    
+  // Loop through all aval. joints
+  for( std::vector<std::string>::const_iterator joint_it = group_it.joints_.begin();
+       joint_it != group_it.joints_.end(); ++joint_it )
+  {
+    QTreeWidgetItem *j = new QTreeWidgetItem( joints );
+    j->setText( 0, joint_it->c_str() );
+    joints->addChild( j );
+  }
+
+  // Links -------------------------------------------------------------
+  QTreeWidgetItem *links = new QTreeWidgetItem( group );
+  links->setText( 0, "Links" );
+  links->setFont( 0, type_font );
+  group->addChild( links );
+    
+  // Loop through all aval. links
+  for( std::vector<std::string>::const_iterator joint_it = group_it.links_.begin();
+       joint_it != group_it.links_.end(); ++joint_it )
+  {
+    QTreeWidgetItem *j = new QTreeWidgetItem( links );
+    j->setText( 0, joint_it->c_str() );
+    links->addChild( j );
+  }
+
+  // Chains -------------------------------------------------------------
+  QTreeWidgetItem *chains = new QTreeWidgetItem( group );
+  chains->setText( 0, "Chain" );
+  chains->setFont( 0, type_font );
+  group->addChild( chains );
+    
+  // Loop through all aval. chains
+  for( std::vector<std::pair<std::string, std::string> >::const_iterator chain_it = group_it.chains_.begin();
+       chain_it != group_it.chains_.end(); ++chain_it )
+  {
+    QTreeWidgetItem *j = new QTreeWidgetItem( chains );
+    j->setText( 0, QString(chain_it->first.c_str() ).append("  ->  ").append( chain_it->second.c_str() ) );
+    chains->addChild( j );
+  }
+
+  // Subgroups -------------------------------------------------------------
+  QTreeWidgetItem *subgroups = new QTreeWidgetItem( group );
+  subgroups->setText( 0, "Subgroups" );
+  subgroups->setFont( 0, type_font );
+  group->addChild( subgroups );
+    
+  // Loop through all aval. subgroups
+  for( std::vector<std::string>::const_iterator subgroup_it = group_it.subgroups_.begin();
+       subgroup_it != group_it.subgroups_.end(); ++subgroup_it )
+  {
+    // Find group with this subgroups' name
+
+    const srdf::Model::Group *searched_group = NULL; // used for holding our search results
+
+    for( std::vector<srdf::Model::Group>::const_iterator group2_it = config_data_->srdf_->groups_.begin();
+         group2_it != config_data_->srdf_->groups_.end(); ++group2_it )
+    {
+      if( group2_it->name_ == *subgroup_it ) // this is the group we are looking for
+      {
+        searched_group = &(*group2_it); 
+        break; // we are done searching
+      }
+    }
+
+    
+    // Check if subgroup was found
+    if( searched_group == NULL ) // not found
+    {
+      QMessageBox::critical( this, "Error Loading SRDF", 
+                             QString("Subgroup '").append( subgroup_it->c_str() ).append( "' of group '")
+                             .append( group_it.name_.c_str() ).append( "' not found. Your SRDF is invalid" ));
+      return; // TODO: something better for error handling?
+    }
+
+    // subgroup found!
+
+    // Recurse this function for each new group
+    addLinkToTreeRecursive( *searched_group, subgroups );
+  }
+
+
 }
 
-void PlanningGroupsWidget::addLinkCollectionGroup()
+// ******************************************************************************************
+// Edit whatever element is selected in the tree view
+// ******************************************************************************************
+void PlanningGroupsWidget::editSelected()
 {
-  std::cout << "ADD Link COLL" << std::endl;
+  std::cout << "Edit Selected" << std::endl;
 }
 
-void PlanningGroupsWidget::addKinematicChainGroup()
+// ******************************************************************************************
+// Create a new, empty group
+// ******************************************************************************************
+void PlanningGroupsWidget::addGroup()
 {
-  std::cout << "ADD KIN CHAIN" << std::endl;
+  std::cout << "ADD GROUP" << std::endl;
 }
 
-void PlanningGroupsWidget::addEndEffector()
-{
-  std::cout << "ADD END EFFEC" << std::endl;
-}
-
-void PlanningGroupsWidget::addSuperGroup()
-{
-  std::cout << "ADD SUPER GROUP" << std::endl;
-}
-
+// ******************************************************************************************
+// Call when widget is ready to return to main screen
+// ******************************************************************************************
 void PlanningGroupsWidget::doneEditing()
 {
   std::cout << "BACK" << std::endl;
@@ -289,10 +351,25 @@ void PlanningGroupsWidget::doneEditing()
   loadGroupsTree();
 }
 
+// ******************************************************************************************
+// Called when setup assistant navigation switches to this screen
+// ******************************************************************************************
 void PlanningGroupsWidget::focusGiven()
 {
-  std::cout << "FOCUS ON PLANNING" << std::endl;
+  // Show the current groups screen
   stacked_layout_->setCurrentIndex( 0 );
+
+  // Load the data to the tree
   loadGroupsTree();
 }
 
+// ******************************************************************************************
+// Expand/Collapse Tree
+// ******************************************************************************************
+void PlanningGroupsWidget::alterTree( const QString &link )
+{
+  if( link.contains("expand") )
+    groups_tree_->expandAll();
+  else
+    groups_tree_->collapseAll();
+}
