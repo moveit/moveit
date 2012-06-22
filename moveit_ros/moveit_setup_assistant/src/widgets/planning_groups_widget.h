@@ -42,12 +42,21 @@
 #include <QSplitter>
 #include <QStackedLayout>
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
-#include "joint_collection_widget.h"
+#include "double_list_widget.h" // for joints, links and subgroups pages
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 // Forward Declaration
 class PlanGroupType;
 
+// Custom Type
+enum GroupType {
+  JOINTS,
+  LINKS,
+  CHAIN,
+  GROUP,
+  SUBGROUP
+};
+  
 // ******************************************************************************************
 // ******************************************************************************************
 // CLASS
@@ -84,8 +93,11 @@ private Q_SLOTS:
   /// Create a new, empty group
   void addGroup();
 
-  /// This is called when a child screen (add/edit screens) are ready to come back to main screen
-  void doneEditing();
+  /// Call when joints edit sceen is done and needs to be saved
+  void jointsSaveEditing();
+
+  /// Call when edit screen is canceled
+  void cancelEditing();
 
   /// Called when user clicks link part of bottom left label
   void alterTree( const QString &link );
@@ -96,17 +108,20 @@ private:
   // Qt Components
   // ******************************************************************************************
 
+  /// Main table for holding groups
+  QTreeWidget *groups_tree_;
+
   /// For changing between table and different add/edit views
   QStackedLayout *stacked_layout_;
 
-  /// Subpages for types of planning groups
-  JointCollectionWidget *joints_widget_;
+  // Stacked Layout SUBPAGES -------------------------------------------
 
-  /// Main contents widget
   QWidget *groups_tree_widget_;
-
-  /// Main table for holding groups
-  QTreeWidget *groups_tree_;
+  DoubleListWidget *joints_widget_;
+  DoubleListWidget *links_widget_;
+  DoubleListWidget *subgroups_widget_;
+  //ChainWidget *chain_widget_;
+  //GroupWidget *group_widget_;
 
   // ******************************************************************************************
   // Variables
@@ -115,15 +130,25 @@ private:
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 
+  /// Remember what group we are editing when an edit screen is being shown
+  std::string current_edit_group_;
+
+  /// Remember what group element we are editing when an edit screen is being shown
+  GroupType current_edit_element_;
+
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
 
-  
+  /// Builds the main screen list widget
   QWidget* createContentsWidget();
 
   /// Recursively build the SRDF tree
   void loadGroupsTreeRecursive( srdf::Model::Group &group_it, QTreeWidgetItem *parent );
+
+  // Load joints from a specefied group into the edit screen
+  void loadJointsScreen( srdf::Model::Group *this_group );
+
 
 };
 
@@ -133,15 +158,6 @@ private:
 // Metatype Class For Holding Points to Group Parts
 // ******************************************************************************************
 // ******************************************************************************************
-
-enum GroupType {
-  JOINTS,
-  LINKS,
-  CHAIN,
-  GROUP,
-  SUBGROUP
-};
-  
 
 class PlanGroupType
 {

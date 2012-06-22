@@ -48,9 +48,10 @@
 #include <QHeaderView>
 #include "ros/ros.h"
 #include "header_widget.h"
+#include <planning_scene/planning_scene.h> // for getting the joints
+#include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
 
-
-
+static const std::string ROBOT_DESCRIPTION="robot_description";
 
 // ******************************************************************************************
 // Constructor
@@ -60,12 +61,9 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout();
-  //QVBoxLayout *left_layout = new QVBoxLayout();
   QVBoxLayout *right_layout = new QVBoxLayout();
-  //left_layout->setContentsMargins( 0, 0, 0, 0);
 
   // Top Label Area ------------------------------------------------
-
   HeaderWidget *header = new HeaderWidget( "Planning Groups",
                                            "Create and edit planning groups for your robot based on joint collections, link collections, kinematic chains and subgroups. After creating a group, select one of its four sub-elements and choose 'Edit Selected' to then add links/joints/etc.",
                                            this);
@@ -74,19 +72,19 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   // Left Side ---------------------------------------------
 
   // Create left side widgets 
-  //  groups_tree_widget_ = new PlanningGroupsTableWidget( this, config_data_ );
-  groups_tree_widget_ = createContentsWidget();
+  groups_tree_widget_ = createContentsWidget(); // included in this file
 
-  joints_widget_ = new JointCollectionWidget( this, config_data_ );
-  connect( joints_widget_, SIGNAL( doneEditing() ), this, SLOT( doneEditing() ) );
+  // Joints edit widget
+  joints_widget_ = new DoubleListWidget( this, config_data_, "Joint Collection", "Joint" );
+  connect( joints_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
+  connect( joints_widget_, SIGNAL( doneEditing() ), this, SLOT( jointsSaveEditing() ) );
 
   // Combine into stack
   stacked_layout_ = new QStackedLayout( this );
-  stacked_layout_->addWidget( groups_tree_widget_ );
-  stacked_layout_->addWidget( joints_widget_ );
-
+  stacked_layout_->addWidget( groups_tree_widget_ ); // 0
+  stacked_layout_->addWidget( joints_widget_ ); // 1
+  
   stacked_layout_->setCurrentIndex( 0 );
-  //left_layout->addLayout( stacked_layout_ );
   
   // Rviz Right Side -------------------------------------
   QLabel *temp = new QLabel( "RVIZ", this );
@@ -113,9 +111,6 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
 
   // process the gui
   QApplication::processEvents(); 
-
-  // TODO: remove this demo
-  //addJointCollectionGroup();
 }
 
 // ******************************************************************************************
@@ -142,7 +137,7 @@ QWidget* PlanningGroupsWidget::createContentsWidget()
 
   groups_tree_ = new QTreeWidget( this );
   groups_tree_->setHeaderLabel( "Current Groups" );
-  //connec(tgroups_tree_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
+  connect( groups_tree_, SIGNAL( itemDoubleClicked( QTreeWidgetItem*, int) ), this, SLOT(editSelected()));
   layout->addWidget(groups_tree_);
 
 
@@ -205,6 +200,10 @@ void PlanningGroupsWidget::loadGroupsTree()
   // Reenable Tree
   groups_tree_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
   groups_tree_->setDisabled(false); // make sure we disable it so that the cellChanged event is not called
+
+
+  // TODO: remove this demo
+  alterTree( "expand" );
 }
 
 // ******************************************************************************************
@@ -343,14 +342,14 @@ void PlanningGroupsWidget::editSelected()
   if(item == NULL)
     return;
 
-  //qDebug() << item->text(0);
- 
-  //srdf::Model::Group *select_group = item->data( 0, Qt::UserRole ).value<oup>();
+  // Get the user custom properties of the currently selected row
   PlanGroupType plan_group = item->data( 0, Qt::UserRole ).value<PlanGroupType>();
   
   if( plan_group.type_ == JOINTS )
   {
-    qDebug() << "EDIT JOINTS";
+    loadJointsScreen( plan_group.group_ );
+    
+    stacked_layout_->setCurrentIndex( 1 ); // 1 is index of joints
   }
   else if( plan_group.type_ == LINKS )
   {
@@ -372,6 +371,44 @@ void PlanningGroupsWidget::editSelected()
 }
 
 // ******************************************************************************************
+void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
+{
+  // Only load the available joints once, to save time
+  if( joints_widget_->data_table_->rowCount() == 0 ) // we need to load the joints
+  {
+    // Load robot description
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+
+    // Load scene
+    const planning_scene::PlanningSceneConstPtr &scene = psm.getPlanningScene();
+
+    // Get the names of the all joints
+    const std::vector<std::string> joints = scene->getKinematicModel()->getJointModelNames();
+
+    if( joints.size() == 0 )
+    {
+      QMessageBox::critical( this, "Error Loading", "No joints found for robot model");
+      return;
+    }
+
+    // Set the available joints (left box)
+    joints_widget_->setAvailable( joints );
+  }
+
+  // Set the selected joints (right box)
+  joints_widget_->setSelected( this_group->joints_ );
+
+  // Set the title
+  joints_widget_->title_->setText( QString("Edit '").append( QString::fromUtf8( this_group->name_.c_str() ) )
+                                   .append( "' Joint Collection") );
+
+  // Remember what is currently being edited so we can later save changes
+  current_edit_group_ = this_group->name_;
+  current_edit_element_ = JOINTS;
+
+}
+
+// ******************************************************************************************
 // Create a new, empty group
 // ******************************************************************************************
 void PlanningGroupsWidget::addGroup()
@@ -380,13 +417,54 @@ void PlanningGroupsWidget::addGroup()
 }
 
 // ******************************************************************************************
-// Call when widget is ready to return to main screen
+// Call when joints edit sceen is done and needs to be saved
 // ******************************************************************************************
-void PlanningGroupsWidget::doneEditing()
+void PlanningGroupsWidget::jointsSaveEditing()
 {
-  std::cout << "BACK" << std::endl;
+  // Find the group we are editing based on the goup name string
+  srdf::Model::Group *searched_group = NULL; // used for holding our search results
+
+  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
+       group_it != config_data_->srdf_->groups_.end(); ++group_it )
+  {
+    if( group_it->name_ == current_edit_group_ ) // string match
+    {
+      searched_group = &(*group_it);  // convert to pointer from iterator
+      break; // we are done searching
+    }
+  }  
+
+  // Check if subgroup was found
+  if( searched_group != NULL ) // not found
+  {
+    // clear the old data
+    searched_group->joints_.clear();
+
+    // copy the data
+    for( int i = 0; i < joints_widget_->selected_data_table_->rowCount(); ++i )
+    {
+      searched_group->joints_.push_back( joints_widget_->selected_data_table_->item( i, 0 )->text().toStdString() );
+    }
+  }
+  else
+  {
+    QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving");
+  }
+  
+  // Switch to main screen
   stacked_layout_->setCurrentIndex( 0 );
+
+  // Reload main screen table
   loadGroupsTree();
+}
+
+// ******************************************************************************************
+// Call when edit screen is canceled
+// ******************************************************************************************
+void PlanningGroupsWidget::cancelEditing()
+{
+  // Switch to main screen
+  stacked_layout_->setCurrentIndex( 0 );
 }
 
 // ******************************************************************************************
