@@ -34,55 +34,74 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_JOINT_COLLECTION_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_JOINT_COLLECTION_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
 
 #include <QWidget>
+#include <QLabel>
 #include <QTableWidget>
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
 
-class JointCollectionWidget : public QWidget
+class DoubleListWidget : public QWidget
 {
   Q_OBJECT
 
+// ******************************************************************************************
+// Reusable double list widget for selecting and deselecting a subset from a set
+// ******************************************************************************************
 public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  JointCollectionWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  /// Constructor
+  DoubleListWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data, 
+                    QString long_name, QString short_name );
 
-  /// Loads the availble joints list
-  void loadJoints();
+  /// Loads the availble data list
+  void setAvailable( const std::vector<std::string> &items );
+
+  /// Set the right box
+  void setSelected( const std::vector<std::string> &items );
+
+  /// Convenience function for reusing set table code
+  void setTable( const std::vector<std::string> &items, QTableWidget *table );
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
   
-  QTableWidget *joint_table_;
-  QTableWidget *selected_joint_table_;
+  QTableWidget *data_table_;
+  QTableWidget *selected_data_table_;
+  QLabel *title_; // specify the title from the parent widget
 
-  /// Text input for name of group
-  QLineEdit *name_input_;                                  
+  /// Name of datatype
+  QString long_name_;
+  QString short_name_;
 
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-  void quitScreen();
-  void saveGroup();
-  void deleteGroup();
-  void selectJointButtonClicked();
-  void deselectJointButtonClicked();
+
+  /// Move selected data right
+  void selectDataButtonClicked();
+
+  /// Move selected data left
+  void deselectDataButtonClicked();
 
 Q_SIGNALS:
 
   // ******************************************************************************************
   // Emitted Signals
   // ******************************************************************************************
-  /// Event sent when this widget is done making data changes
+
+  /// Event sent when this widget is done making data changes and parent widget can save
   void doneEditing();
+
+  /// Event sent when user presses cancel button
+  void cancelEditing();
 
 private:
 
