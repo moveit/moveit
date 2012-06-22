@@ -43,6 +43,7 @@
 
 #include <tf/transform_listener.h>
 #include <planning_models/conversions.h>
+#include <trajectory_processing/trajectory_tools.h>
 
 namespace moveit_rviz_plugin
 {
@@ -87,7 +88,7 @@ struct PlanningDisplay::ReceivedTrajectoryMessage
   {
     start_state_.reset(new planning_models::KinematicState(scene->getCurrentState()));
     planning_models::robotStateToKinematicState(*scene->getTransforms(), message_->trajectory_start, *start_state_);
-    scene->convertToKinematicStates(message_->trajectory_start, message_->trajectory, trajectory_);
+    trajectory_processing::convertToKinematicStates(message_->trajectory_start, message_->trajectory, scene->getCurrentState(), scene->getTransforms(), trajectory_);
   }
   
   moveit_msgs::DisplayTrajectory::ConstPtr message_;
