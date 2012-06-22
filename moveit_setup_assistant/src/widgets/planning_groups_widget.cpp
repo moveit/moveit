@@ -50,8 +50,26 @@
 #include "header_widget.h"
 #include <planning_scene/planning_scene.h> // for getting the joints
 #include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
+// For cycle checking
+#include <boost/utility.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/visitors.hpp>
 
+// Used for loading joints and links
 static const std::string ROBOT_DESCRIPTION="robot_description";
+
+// Used for checking for cycles in a subgroup hierarchy
+struct cycle_detector : public boost::dfs_visitor<>
+{
+  cycle_detector(bool& has_cycle) 
+    : m_has_cycle(has_cycle) { }
+
+  template <class Edge, class Graph>
+  void back_edge(Edge, Graph&) { m_has_cycle = true; }
+protected:
+  bool& m_has_cycle;
+};
 
 // ******************************************************************************************
 // Constructor
@@ -734,9 +752,83 @@ void PlanningGroupsWidget::subgroupsSaveEditing()
   // Find the group we are editing based on the goup name string
   srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
 
-  // check for cycles (not allowed)
+  // Check for cycles -------------------------------
   
+  // Create vector index of all nodes
+  std::map<std::string,int> group_nodes;
 
+  // Create vector of all nodes for use as id's
+  int node_id = 0;
+  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
+       group_it != config_data_->srdf_->groups_.end(); ++group_it )
+  {
+    // Add string to vector
+    group_nodes.insert( std::pair<std::string,int>(group_it->name_, node_id) );
+    ++node_id;
+  }
+
+  // Create the empty graph
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> Graph;
+  typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+  Graph g( group_nodes.size() );
+
+
+  // Traverse the group list again, this time inserting subgroups into graph
+  int from_id = 0; // track the outer node we are on to reduce searches performed
+  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
+       group_it != config_data_->srdf_->groups_.end(); ++group_it )
+  {
+ 
+    // Check if group_it is same as current group
+    if( group_it->name_ == searched_group->name_ ) // yes, same group
+    {
+
+      // add new subgroup list from widget, not old one. this way we can check for new cycles     
+      for( int i = 0; i < subgroups_widget_->selected_data_table_->rowCount(); ++i )
+      {
+        // Get std::string of subgroup
+        const std::string to_string = subgroups_widget_->selected_data_table_->item( i, 0 )->text().toStdString();
+
+        // convert subgroup string to associated id
+        int to_id = group_nodes[ to_string ];
+        
+        // Add edge from from_id to to_id
+        add_edge( from_id, to_id, g);
+      }
+    }
+    else //this group is not the group we are editing, so just add subgroups from memory
+    {
+      // add new subgroup list from widget, not old one. this way we can check for new cycles     
+      for( unsigned int i = 0; i < group_it->subgroups_.size(); ++i )
+      {
+        // Get std::string of subgroup
+        const std::string to_string = group_it->subgroups_.at(i);
+
+        // convert subgroup string to associated id
+        int to_id = group_nodes[ to_string ];
+        
+        // Add edge from from_id to to_id
+        add_edge( from_id, to_id, g);
+      }
+    }
+
+    ++from_id;
+  }
+
+  // Check for cycles
+  bool has_cycle = false;
+  cycle_detector vis(has_cycle);
+  boost::depth_first_search(g, visitor(vis));
+
+  
+  std::cout << "The graph has a cycle? " << has_cycle << std::endl;  
+
+  if( has_cycle )
+  {
+    // report to user the error
+    QMessageBox::critical( this, "Error Saving", "Depth first search reveals a cycle in the subgroups");
+    return;
+  }
 
   // clear the old data
   searched_group->subgroups_.clear();
@@ -751,7 +843,7 @@ void PlanningGroupsWidget::subgroupsSaveEditing()
   stacked_layout_->setCurrentIndex( 0 );
 
   // Reload main screen table
-  //loadGroupsTree();
+  loadGroupsTree();
 }
 
 // ******************************************************************************************
