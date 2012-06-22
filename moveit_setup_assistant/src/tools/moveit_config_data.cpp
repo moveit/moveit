@@ -39,6 +39,9 @@
 namespace moveit_setup_assistant
 {
 
+// Used for loading kinematic model
+static const std::string ROBOT_DESCRIPTION="robot_description";
+
 // ******************************************************************************************
 // 
 // ******************************************************************************************
@@ -53,6 +56,28 @@ MoveItConfigData::MoveItConfigData()
 MoveItConfigData::~MoveItConfigData()
 {
 }
+
+// ******************************************************************************************
+// Provide a kinematic model. Load a new one if necessary
+// ******************************************************************************************
+const planning_models::KinematicModelConstPtr& MoveItConfigData::getKinematicModel()
+{
+  if (!kin_model_)
+  {
+    planning_models_loader::KinematicModelLoader::Options opt(ROBOT_DESCRIPTION);
+    opt.load_kinematics_solvers_ = false;
+    static planning_models_loader::KinematicModelLoaderPtr loader;
+    loader.reset(new planning_models_loader::KinematicModelLoader(opt));
+    kin_model_ = loader->getModel();
+  }
+  return kin_model_;
+}
+
+// ******************************************************************************************
+// 
+// ******************************************************************************************
+
+
 
 // ******************************************************************************************
 // 
