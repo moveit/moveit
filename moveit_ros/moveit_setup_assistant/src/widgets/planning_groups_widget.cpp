@@ -34,6 +34,21 @@
 
 /* Author: Dave Coleman */
 
+// ******************************************************************************************
+/* DEVELOPER NOTES
+
+   This widget has 6 subscreens, located in somewhat different places
+   - Main screen, the tree view of all groups & subgroups - embedded in this file as a function
+   - Add/Edit Group screen - located in group_widget.cpp // TODO: check this
+   - Joint Collection Screen - implements the double_list_widget.cpp widget
+   - Link Collection Screen - implements the double_list_widget.cpp widget
+   - Kinematic Chain Screen - uses it own custom widget - kinematic_chain_widget.cpp
+   - Subgroup Screen - implements the double_list_widget.cpp widget
+
+ */
+// ******************************************************************************************
+
+
 #include "planning_groups_widget.h"
 #include <boost/thread.hpp>
 #include <QApplication>
@@ -55,9 +70,6 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/visitors.hpp>
-
-// Used for loading joints and links
-static const std::string ROBOT_DESCRIPTION="robot_description";
 
 // Used for checking for cycles in a subgroup hierarchy
 struct cycle_detector : public boost::dfs_visitor<>
@@ -103,7 +115,7 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   connect( links_widget_, SIGNAL( doneEditing() ), this, SLOT( linksSaveEditing() ) );
 
   // Chain Widget
-  chain_widget_ = new QWidget( this );
+  chain_widget_ = new KinematicChainWidget( this, config_data );
   
   // Subgroups Widget
   subgroups_widget_ = new DoubleListWidget( this, config_data_, "Subgroup", "Subgroup" );
@@ -394,8 +406,6 @@ void PlanningGroupsWidget::editSelected()
   }
   else if( plan_group.type_ == LINK )
   {
-    qDebug() << "EDIT LINK";
-
     // Load the data
     loadLinksScreen( plan_group.group_ );
     
@@ -404,8 +414,6 @@ void PlanningGroupsWidget::editSelected()
   }
   else if( plan_group.type_ == CHAIN )
   {
-    qDebug() << "EDIT CHAIN";
-
     // Load the data
     loadChainScreen( plan_group.group_ );
     
@@ -414,8 +422,6 @@ void PlanningGroupsWidget::editSelected()
   }
   else if( plan_group.type_ == SUBGROUP )
   {
-    qDebug() << "EDIT SUBGROUP";
-
     // Load the data
     loadSubgroupsScreen( plan_group.group_ );
     
@@ -424,8 +430,6 @@ void PlanningGroupsWidget::editSelected()
   }
   else if( plan_group.type_ == GROUP )
   {
-    qDebug() << "EDIT GROUP";
-
     // Load the data
     loadGroupScreen( plan_group.group_ );
     
@@ -447,13 +451,23 @@ void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
   if( joints_widget_->data_table_->rowCount() == 0 ) // we need to load the joints
   {
     // Load robot description
-    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+    /* planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
 
     // Load scene
     const planning_scene::PlanningSceneConstPtr &scene = psm.getPlanningScene();
 
     // Get the names of the all joints
     const std::vector<std::string> joints = scene->getKinematicModel()->getJointModelNames();
+    */
+    std::cout << "load joints screen \n";
+
+    const planning_models::KinematicModelConstPtr model = config_data_->getKinematicModel();
+    std::cout << "here 3\n";
+
+    // Get the names of the all joints
+    const std::vector<std::string> joints = model->getJointModelNames();
+
+    std::cout << "here 4\n";
 
     if( joints.size() == 0 )
     {
@@ -486,7 +500,7 @@ void PlanningGroupsWidget::loadLinksScreen( srdf::Model::Group *this_group )
   if( links_widget_->data_table_->rowCount() == 0 ) // we need to load the links
   {
     // Load robot description
-    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+    /*planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
 
     // Load scene
     const planning_scene::PlanningSceneConstPtr &scene = psm.getPlanningScene();
@@ -502,6 +516,8 @@ void PlanningGroupsWidget::loadLinksScreen( srdf::Model::Group *this_group )
 
     // Set the available links (left box)
     links_widget_->setAvailable( links );
+    */
+    //TODO
   }
 
   // Set the selected links (right box)

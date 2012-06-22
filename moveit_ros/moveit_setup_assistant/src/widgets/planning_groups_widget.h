@@ -43,6 +43,7 @@
 #include <QStackedLayout>
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "double_list_widget.h" // for joints, links and subgroups pages
+#include "kinematic_chain_widget.h" // for kinematic chain page
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 // Forward Declaration
@@ -124,7 +125,7 @@ private:
   DoubleListWidget *joints_widget_;
   DoubleListWidget *links_widget_;
   DoubleListWidget *subgroups_widget_;
-  QWidget *chain_widget_;
+  KinematicChainWidget *chain_widget_;
   QWidget *group_widget_;
 
   // ******************************************************************************************

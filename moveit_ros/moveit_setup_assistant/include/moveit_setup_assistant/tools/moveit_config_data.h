@@ -41,6 +41,8 @@
 #include <boost/shared_ptr.hpp>
 #include <srdf/model.h> // use their struct datastructures
 #include <moveit_setup_assistant/tools/srdf_writer.h> // for writing srdf data
+#include <planning_scene/planning_scene.h> // for getting kinematic model
+#include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
 
 namespace moveit_setup_assistant
 {
@@ -59,6 +61,13 @@ public:
  
   // SRDF Data and Writer
   SRDFWriterPtr srdf_;
+
+  /// Provide a kinematic model. Load a new one if necessary
+  const planning_models::KinematicModelConstPtr& getKinematicModel();
+
+private:
+  // Remember a kinematic model
+  planning_models::KinematicModelConstPtr kin_model_;
 
 };
 
