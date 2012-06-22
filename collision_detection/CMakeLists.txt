@@ -32,15 +32,9 @@ rosbuild_add_library(${PROJECT_NAME}
   src/collision_tools.cpp
   src/allvalid/collision_robot.cpp
   src/allvalid/collision_world.cpp
-  src/fcl/collision_common.cpp
-  src/fcl/collision_robot.cpp
-  src/fcl/collision_world.cpp
 )
 
 rosbuild_add_compile_flags(${PROJECT_NAME})
 #target_link_libraries(${PROJECT_NAME} ${FCL_LIBRARIES})
 rosbuild_link_boost(${PROJECT_NAME} thread)
 
-rosbuild_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
-target_link_libraries(test_fcl_collision_detection ${PROJECT_NAME})
-rosbuild_link_boost(test_fcl_collision_detection system filesystem)

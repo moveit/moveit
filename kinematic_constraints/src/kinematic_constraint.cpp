@@ -38,8 +38,8 @@
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
-#include <collision_detection/fcl/collision_robot.h>
-#include <collision_detection/fcl/collision_world.h>
+#include <collision_detection_fcl/collision_robot.h>
+#include <collision_detection_fcl/collision_world.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/bind.hpp>

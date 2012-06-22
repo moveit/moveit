@@ -35,8 +35,8 @@
 /* Author: Ioan Sucan */
 
 #include "planning_scene/planning_scene.h"
-#include <collision_detection/fcl/collision_world.h>
-#include <collision_detection/fcl/collision_robot.h>
+#include <collision_detection_fcl/collision_world.h>
+#include <collision_detection_fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
 #include <planning_models/conversions.h>
 #include <octomap_msgs/conversions.h>
@@ -45,8 +45,7 @@
 
 namespace planning_scene
 {
-typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
-typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
+
 static const std::string COLLISION_MAP_NS = "_1_collision_map";
 static const std::string OCTOMAP_NS = "_2_octomap";
 static const std::string DEFAULT_SCENE_NAME = "(noname)";
@@ -77,12 +76,14 @@ planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff(const Plann
 planning_scene::PlanningScene::PlanningScene(void) : configured_(false)
 {
   name_ = DEFAULT_SCENE_NAME;
+  setCollisionDetectionTypes<collision_detection::CollisionWorldFCL, collision_detection::CollisionRobotFCL>();
 }
 
 planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent) : parent_(parent), configured_(false)
 {
   if (parent_)
   {
+    collision_detection_allocator_.reset(parent_->collision_detection_allocator_->clone());
     if (parent_->isConfigured())
       configure(parent_->getUrdfModel(), parent_->getSrdfModel());
     if (!parent_->getName().empty())
@@ -91,7 +92,8 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   else
   {
     ROS_ERROR("NULL parent scene specified. Ignoring.");
-    name_ = DEFAULT_SCENE_NAME;
+    name_ = DEFAULT_SCENE_NAME; 
+    setCollisionDetectionTypes<collision_detection::CollisionWorldFCL, collision_detection::CollisionRobotFCL>();
   }
 }
 
@@ -152,8 +154,8 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
       if (!acm_)
         acm_.reset(new collision_detection::AllowedCollisionMatrix());
       
-      crobot_.reset(new DefaultCRobotType(kmodel_));
-      crobot_unpadded_.reset(new DefaultCRobotType(kmodel_));
+      crobot_ = collision_detection_allocator_->allocateRobot(kmodel_);
+      crobot_unpadded_ = collision_detection_allocator_->allocateRobot(kmodel_);
       crobot_const_ = crobot_;
       crobot_unpadded_const_ = crobot_unpadded_;
       
@@ -162,7 +164,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
       // however, this is direcly requested by the user
       if (!cworld_)
       {
-        cworld_.reset(new DefaultCWorldType());
+        cworld_ = collision_detection_allocator_->allocateWorld();
         cworld_const_ = cworld_;
         
         colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
@@ -180,7 +182,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
 
       // even if we have a parent, we do maintain a separate world representation, one that records changes
       // this is cheap however, because the worlds share the world representation
-      cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
+      cworld_ = collision_detection_allocator_->allocateWorld(parent_->getCollisionWorld());
       cworld_->recordChanges(true);
       cworld_const_ = cworld_;
       configured_ = true;
@@ -198,7 +200,7 @@ void planning_scene::PlanningScene::clearDiffs(void)
     return;
 
   // clear everything, reset the world
-  cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
+  cworld_ = collision_detection_allocator_->allocateWorld(parent_->getCollisionWorld());
   cworld_->recordChanges(true);
   cworld_const_ = cworld_;
 
@@ -371,7 +373,7 @@ const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::get
 {
   if (!crobot_)
   {
-    crobot_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobot())));
+    crobot_ = collision_detection_allocator_->allocateRobot(parent_->getCollisionRobot());
     crobot_const_ = crobot_;
   }
   return crobot_;
@@ -749,18 +751,18 @@ void planning_scene::PlanningScene::decoupleParent(void)
       acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
 
     if(!crobot_unpadded_) {
-      crobot_unpadded_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobotUnpadded())));
+      crobot_unpadded_ = collision_detection_allocator_->allocateRobot(parent_->getCollisionRobotUnpadded());
       crobot_unpadded_const_ = crobot_unpadded_;
     }
     if (!crobot_)
     {
-      crobot_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobot())));
+      crobot_ = collision_detection_allocator_->allocateRobot(parent_->getCollisionRobot());
       crobot_const_ = crobot_;
     }
 
     if (!cworld_)
     {
-      cworld_.reset(new DefaultCWorldType(static_cast<const DefaultCWorldType&>(*parent_->getCollisionWorld())));
+      cworld_ = collision_detection_allocator_->allocateWorld(parent_->getCollisionWorld());
       cworld_const_ = cworld_;
     }
     else
@@ -833,7 +835,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   {
     if (!crobot_)
     { // this means we have a parent too
-      crobot_.reset(new DefaultCRobotType(static_cast<const DefaultCRobotType&>(*parent_->getCollisionRobot())));
+      crobot_ = collision_detection_allocator_->allocateRobot(parent_->getCollisionRobot());
       crobot_const_ = crobot_;
     }
     crobot_->setPadding(scene.link_padding);
@@ -878,10 +880,10 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
 
     if (!crobot_)
     {
-      crobot_.reset(new DefaultCRobotType(kmodel_));
+      crobot_ = collision_detection_allocator_->allocateRobot(kmodel_);
       crobot_const_ = crobot_;
     }
-    crobot_unpadded_.reset(new DefaultCRobotType(kmodel_));
+    crobot_unpadded_ = collision_detection_allocator_->allocateRobot(kmodel_);
     crobot_unpadded_const_ = crobot_unpadded_;
 
     cworld_->recordChanges(false);
