@@ -37,7 +37,7 @@
 #ifndef COLLISION_DETECTION_FCL_COLLISION_ROBOT_
 #define COLLISION_DETECTION_FCL_COLLISION_ROBOT_
 
-#include "collision_detection/fcl/collision_common.h"
+#include "collision_detection_fcl/collision_common.h"
 
 namespace collision_detection
 {

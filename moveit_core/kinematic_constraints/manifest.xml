@@ -13,6 +13,7 @@
   <depend package="geometric_shapes"/>
   <depend package="moveit_msgs"/>
   <depend package="collision_detection"/>
+  <depend package="collision_detection_fcl"/>
   <depend package="visualization_msgs"/>
 
   <export>
