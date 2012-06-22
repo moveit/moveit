@@ -187,7 +187,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
                                                        moveit_msgs::GetMotionPlan::Response& res) const
 {
   std::vector<std::size_t> dummy;
-  return generatePlan(planning_scene, req, res);
+  return generatePlan(planning_scene, req, res, dummy);
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
