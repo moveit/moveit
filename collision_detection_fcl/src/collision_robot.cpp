@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "collision_detection/fcl/collision_robot.h"
+#include "collision_detection_fcl/collision_robot.h"
 #include <ros/console.h>
 
 collision_detection::CollisionRobotFCL::CollisionRobotFCL(const planning_models::KinematicModelConstPtr &kmodel, double padding, double scale) : CollisionRobot(kmodel, padding, scale)

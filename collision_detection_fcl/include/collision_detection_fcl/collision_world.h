@@ -37,7 +37,7 @@
 #ifndef COLLISION_DETECTION_FCL_COLLISION_WORLD_
 #define COLLISION_DETECTION_FCL_COLLISION_WORLD_
 
-#include "collision_detection/fcl/collision_robot.h"
+#include "collision_detection_fcl/collision_robot.h"
 #include <fcl/broad_phase_collision.h>
 
 namespace collision_detection
