@@ -43,7 +43,7 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
     scene->setName("pole_blocking_right_arm_pan");
     
     Eigen::Affine3d t;
-    t = Eigen::Translation3d(0.45, -0.45, 0.7);
+    t = Eigen::Translation3d(2.2, 2.75, 0.7);
     scene->getCollisionWorld()->addToObject("pole", shapes::ShapeConstPtr(new shapes::Box(0.1, 0.1, 1.4)), t);
 
     /*

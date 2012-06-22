@@ -94,6 +94,8 @@ public:
   
   void setJointValueTarget(const sensor_msgs::JointState &state);
 
+  const planning_models::KinematicState::JointStateGroup& getJointValueTarget(void) const;
+
   void setPoseTarget(const Eigen::Affine3d &end_effector_pose);
   
   void setPoseTarget(const geometry_msgs::Pose &target);
@@ -101,6 +103,8 @@ public:
   void setPoseTarget(const geometry_msgs::PoseStamped &target);
 
   void setPoseReferenceFrame(const std::string &pose_reference_frame);
+
+  const Eigen::Affine3d& getPoseTarget(void) const;
 
   const std::string& getPoseReferenceFrame(void) const;
 

@@ -50,6 +50,7 @@ planning_models_loader::KinematicModelLoader::KinematicModelLoader(const Options
 
 void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
 {
+  ros::WallTime start = ros::WallTime::now();
   robot_model_loader_.reset(new robot_model_loader::RobotModelLoader(opt.robot_description_));
   if (robot_model_loader_->getURDF())
   {
@@ -59,7 +60,7 @@ void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
     else
       model_.reset(new planning_models::KinematicModel(robot_model_loader_->getURDF(), srdf, opt.root_link_));
   }
-  
+
   if (model_)
   {
     // if there are additional joint limits specified in some .yaml file, read those in
@@ -106,10 +107,11 @@ void planning_models_loader::KinematicModelLoader::configure(const Options &opt)
                                   individual_joint_limits_map[it->second->getJointModelNames()[i]].end());
       }
       it->second->setJointLimits(group_joint_limits);
-    }
+    }  
     if (opt.load_kinematics_solvers_)
       loadKinematicsSolvers();
   }
+  ROS_DEBUG_STREAM("Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
 void planning_models_loader::KinematicModelLoader::loadKinematicsSolvers(void)
