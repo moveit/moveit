@@ -65,7 +65,7 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
 
   // Top Label Area ------------------------------------------------
   HeaderWidget *header = new HeaderWidget( "Planning Groups",
-                                           "Create and edit planning groups for your robot based on joint collections, link collections, kinematic chains and subgroups. After creating a group, select one of its four sub-elements and choose 'Edit Selected' to then add links/joints/etc.",
+                                           "Create and edit planning groups for your robot based on joint collections, link collections, kinematic chains and subgroups. After creating a group, select one of its four sub-elements and choose 'Edit Selected' to then add links/joints/etc. You can also double click elements.",
                                            this);
   layout->addWidget( header );
 
@@ -79,10 +79,31 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   connect( joints_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
   connect( joints_widget_, SIGNAL( doneEditing() ), this, SLOT( jointsSaveEditing() ) );
 
+  // Links edit widget
+  links_widget_ = new DoubleListWidget( this, config_data_, "Link Collection", "Link" );
+  connect( links_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
+  connect( links_widget_, SIGNAL( doneEditing() ), this, SLOT( linksSaveEditing() ) );
+
+  // Chain Widget
+  chain_widget_ = new QWidget( this );
+  
+  // Subgroups Widget
+  subgroups_widget_ = new DoubleListWidget( this, config_data_, "Subgroup", "Subgroup" );
+  connect( subgroups_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
+  connect( subgroups_widget_, SIGNAL( doneEditing() ), this, SLOT( subgroupsSaveEditing() ) );
+
+  // Group Edit Widget
+  group_widget_ = new QWidget( this );
+
   // Combine into stack
   stacked_layout_ = new QStackedLayout( this );
-  stacked_layout_->addWidget( groups_tree_widget_ ); // 0
-  stacked_layout_->addWidget( joints_widget_ ); // 1
+  stacked_layout_->addWidget( groups_tree_widget_ ); // screen index 0
+  stacked_layout_->addWidget( joints_widget_ ); // screen index 1
+  stacked_layout_->addWidget( links_widget_ ); // screen index 2
+  stacked_layout_->addWidget( chain_widget_ ); // screen index 3
+  stacked_layout_->addWidget( subgroups_widget_ ); // screen index 4
+  stacked_layout_->addWidget( group_widget_ ); // screen index 5
+
   
   stacked_layout_->setCurrentIndex( 0 );
   
@@ -240,7 +261,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive( srdf::Model::Group &group_it
   QTreeWidgetItem *joints = new QTreeWidgetItem( group );
   joints->setText( 0, "Joints" );
   joints->setFont( 0, type_font );
-  joints->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, JOINTS ) ) );
+  joints->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, JOINT ) ) );
   group->addChild( joints );
     
   // Loop through all aval. joints
@@ -248,7 +269,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive( srdf::Model::Group &group_it
        joint_it != group_it.joints_.end(); ++joint_it )
   {
     QTreeWidgetItem *j = new QTreeWidgetItem( joints );
-    j->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, JOINTS ) ) );
+    j->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, JOINT ) ) );
     j->setText( 0, joint_it->c_str() );
     joints->addChild( j );
   }
@@ -257,7 +278,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive( srdf::Model::Group &group_it
   QTreeWidgetItem *links = new QTreeWidgetItem( group );
   links->setText( 0, "Links" );
   links->setFont( 0, type_font );
-  links->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, LINKS ) ) );
+  links->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, LINK ) ) );
   group->addChild( links );
     
   // Loop through all aval. links
@@ -265,7 +286,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive( srdf::Model::Group &group_it
        joint_it != group_it.links_.end(); ++joint_it )
   {
     QTreeWidgetItem *j = new QTreeWidgetItem( links );
-    j->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, LINKS ) ) );
+    j->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, LINK ) ) );
     j->setText( 0, joint_it->c_str() );
     links->addChild( j );
   }
@@ -345,31 +366,62 @@ void PlanningGroupsWidget::editSelected()
   // Get the user custom properties of the currently selected row
   PlanGroupType plan_group = item->data( 0, Qt::UserRole ).value<PlanGroupType>();
   
-  if( plan_group.type_ == JOINTS )
+  if( plan_group.type_ == JOINT )
   {
+    // Load the data
     loadJointsScreen( plan_group.group_ );
     
+    // Switch to screen
     stacked_layout_->setCurrentIndex( 1 ); // 1 is index of joints
   }
-  else if( plan_group.type_ == LINKS )
+  else if( plan_group.type_ == LINK )
   {
-    qDebug() << "EDIT LINKS";
+    qDebug() << "EDIT LINK";
+
+    // Load the data
+    loadLinksScreen( plan_group.group_ );
+    
+    // Switch to screen
+    stacked_layout_->setCurrentIndex( 2 ); 
   }
   else if( plan_group.type_ == CHAIN )
   {
     qDebug() << "EDIT CHAIN";
-  }
-  else if( plan_group.type_ == GROUP )
-  {
-    qDebug() << "EDIT GROUP";
+
+    // Load the data
+    loadChainScreen( plan_group.group_ );
+    
+    // Switch to screen
+    stacked_layout_->setCurrentIndex( 3 ); 
   }
   else if( plan_group.type_ == SUBGROUP )
   {
     qDebug() << "EDIT SUBGROUP";
-  }
 
+    // Load the data
+    loadSubgroupsScreen( plan_group.group_ );
+    
+    // Switch to screen
+    stacked_layout_->setCurrentIndex( 4 ); 
+  }
+  else if( plan_group.type_ == GROUP )
+  {
+    qDebug() << "EDIT GROUP";
+
+    // Load the data
+    loadGroupScreen( plan_group.group_ );
+    
+    // Switch to screen
+    stacked_layout_->setCurrentIndex( 5 ); 
+  }
+  else
+  {
+    QMessageBox::critical( this, "Error Loading", "An internal error has occured while loading.");
+  }
 }
 
+// ******************************************************************************************
+// Load the popup screen with correct data for joints
 // ******************************************************************************************
 void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
 {
@@ -404,7 +456,163 @@ void PlanningGroupsWidget::loadJointsScreen( srdf::Model::Group *this_group )
 
   // Remember what is currently being edited so we can later save changes
   current_edit_group_ = this_group->name_;
-  current_edit_element_ = JOINTS;
+  current_edit_element_ = JOINT;
+}
+
+// ******************************************************************************************
+// Load the popup screen with correct data for links
+// ******************************************************************************************
+void PlanningGroupsWidget::loadLinksScreen( srdf::Model::Group *this_group )
+{
+  // Only load the available links once, to save time
+  if( links_widget_->data_table_->rowCount() == 0 ) // we need to load the links
+  {
+    // Load robot description
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+
+    // Load scene
+    const planning_scene::PlanningSceneConstPtr &scene = psm.getPlanningScene();
+
+    // Get the names of the all links
+    const std::vector<std::string> links = scene->getKinematicModel()->getLinkModelNames();
+
+    if( links.size() == 0 )
+    {
+      QMessageBox::critical( this, "Error Loading", "No links found for robot model");
+      return;
+    }
+
+    // Set the available links (left box)
+    links_widget_->setAvailable( links );
+  }
+
+  // Set the selected links (right box)
+  links_widget_->setSelected( this_group->links_ );
+
+  // Set the title
+  links_widget_->title_->setText( QString("Edit '").append( QString::fromUtf8( this_group->name_.c_str() ) )
+                                  .append( "' Link Collection") );
+
+  // Remember what is currently being edited so we can later save changes
+  current_edit_group_ = this_group->name_;
+  current_edit_element_ = LINK;
+}
+
+// ******************************************************************************************
+// Load the popup screen with correct data for chains
+// ******************************************************************************************
+void PlanningGroupsWidget::loadChainScreen( srdf::Model::Group *this_group )
+{
+  /*
+  // Only load the available chains once, to save time
+  if( chains_widget_->data_table_->rowCount() == 0 ) // we need to load the chains
+  {
+  // Load robot description
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+
+  // Load scene
+  const planning_scene::PlanningSceneConstPtr &scene = psm.getPlanningScene();
+
+  // Get the names of the all chains
+  const std::vector<std::string> chains = scene->getKinematicModel()->getChainModelNames();
+
+  if( chains.size() == 0 )
+  {
+  QMessageBox::critical( this, "Error Loading", "No chains found for robot model");
+  return;
+  }
+
+  // Set the available chains (left box)
+  chains_widget_->setAvailable( chains );
+  }
+
+  // Set the selected chains (right box)
+  chains_widget_->setSelected( this_group->chains_ );
+
+  // Set the title
+  chains_widget_->title_->setText( QString("Edit '").append( QString::fromUtf8( this_group->name_.c_str() ) )
+  .append( "' Chain Collection") );
+
+  // Remember what is currently being edited so we can later save changes
+  */
+  current_edit_group_ = this_group->name_;
+  current_edit_element_ = CHAIN;
+}
+
+// ******************************************************************************************
+// Load the popup screen with correct data for subgroups
+// ******************************************************************************************
+void PlanningGroupsWidget::loadSubgroupsScreen( srdf::Model::Group *this_group )
+{
+  // Load all groups into the subgroup screen except the current group
+  std::vector<std::string> subgroups;
+
+  // Display all groups by looping through them
+  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin(); 
+       group_it != config_data_->srdf_->groups_.end();  ++group_it )
+  {
+    if( group_it->name_ != this_group->name_ ) //  do not include current group
+    {
+      // add to available subgroups list
+      subgroups.push_back( group_it->name_ );
+    }
+  }
+
+  // Set the available subgroups (left box)
+  subgroups_widget_->setAvailable( subgroups );
+
+  // Set the selected subgroups (right box)
+  subgroups_widget_->setSelected( this_group->subgroups_ );
+
+  // Set the title
+  subgroups_widget_->title_->setText( QString("Edit '").append( QString::fromUtf8( this_group->name_.c_str() ) )
+                                      .append( "' Subgroups") );
+
+  // Remember what is currently being edited so we can later save changes
+  current_edit_group_ = this_group->name_;
+  current_edit_element_ = SUBGROUP;
+}
+
+// ******************************************************************************************
+// Load the popup screen with correct data for groups
+// ******************************************************************************************
+void PlanningGroupsWidget::loadGroupScreen( srdf::Model::Group *this_group )
+{
+  /*
+  // Only load the available groups once, to save time
+  if( groups_widget_->data_table_->rowCount() == 0 ) // we need to load the groups
+  {
+  // Load robot description
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+
+  // Load scene
+  const planning_scene::PlanningSceneConstPtr &scene = psm.getPlanningScene();
+
+  // Get the names of the all groups
+  const std::vector<std::string> groups = scene->getKinematicModel()->getGroupModelNames();
+
+  if( groups.size() == 0 )
+  {
+  QMessageBox::critical( this, "Error Loading", "No groups found for robot model");
+  return;
+  }
+
+  // Set the available groups (left box)
+  groups_widget_->setAvailable( groups );
+  }
+
+  // Set the selected groups (right box)
+  groups_widget_->setSelected( this_group->groups_ );
+
+  // Set the title
+  groups_widget_->title_->setText( QString("Edit '").append( QString::fromUtf8( this_group->name_.c_str() ) )
+  .append( "' Group Collection") );
+  */
+  //TODO
+
+  // Remember what is currently being edited so we can later save changes
+  current_edit_group_ = this_group->name_;
+  current_edit_element_ = GROUP;
 
 }
 
@@ -419,7 +627,7 @@ void PlanningGroupsWidget::addGroup()
 // ******************************************************************************************
 // Call when joints edit sceen is done and needs to be saved
 // ******************************************************************************************
-void PlanningGroupsWidget::jointsSaveEditing()
+srdf::Model::Group * PlanningGroupsWidget::findGroupByName( const std::string &name )
 {
   // Find the group we are editing based on the goup name string
   srdf::Model::Group *searched_group = NULL; // used for holding our search results
@@ -427,7 +635,7 @@ void PlanningGroupsWidget::jointsSaveEditing()
   for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
        group_it != config_data_->srdf_->groups_.end(); ++group_it )
   {
-    if( group_it->name_ == current_edit_group_ ) // string match
+    if( group_it->name_ == name ) // string match
     {
       searched_group = &(*group_it);  // convert to pointer from iterator
       break; // we are done searching
@@ -435,21 +643,137 @@ void PlanningGroupsWidget::jointsSaveEditing()
   }  
 
   // Check if subgroup was found
-  if( searched_group != NULL ) // not found
+  if( searched_group == NULL ) // not found
   {
-    // clear the old data
-    searched_group->joints_.clear();
+    QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving. Quitting.");
+    exit(0); // TODO: is this the ROS way?
+  }
+  
+  return searched_group;
+}
 
-    // copy the data
-    for( int i = 0; i < joints_widget_->selected_data_table_->rowCount(); ++i )
-    {
-      searched_group->joints_.push_back( joints_widget_->selected_data_table_->item( i, 0 )->text().toStdString() );
-    }
-  }
-  else
+// ******************************************************************************************
+// Call when joints edit sceen is done and needs to be saved
+// ******************************************************************************************
+void PlanningGroupsWidget::jointsSaveEditing()
+{
+  // Find the group we are editing based on the goup name string
+  srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+
+  // clear the old data
+  searched_group->joints_.clear();
+
+  // copy the data
+  for( int i = 0; i < joints_widget_->selected_data_table_->rowCount(); ++i )
   {
-    QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving");
+    searched_group->joints_.push_back( joints_widget_->selected_data_table_->item( i, 0 )->text().toStdString() );
   }
+  
+  // Switch to main screen
+  stacked_layout_->setCurrentIndex( 0 );
+
+  // Reload main screen table
+  loadGroupsTree();
+}
+
+// ******************************************************************************************
+// Call when links edit sceen is done and needs to be saved
+// ******************************************************************************************
+void PlanningGroupsWidget::linksSaveEditing()
+{
+  // Find the group we are editing based on the goup name string
+  srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+
+  // Find the group we are editing based on the goup name string
+  // clear the old data
+  searched_group->links_.clear();
+
+  // copy the data
+  for( int i = 0; i < links_widget_->selected_data_table_->rowCount(); ++i )
+  {
+    searched_group->links_.push_back( links_widget_->selected_data_table_->item( i, 0 )->text().toStdString() );
+  }
+  
+  // Switch to main screen
+  stacked_layout_->setCurrentIndex( 0 );
+
+  // Reload main screen table
+  loadGroupsTree();
+}
+
+// ******************************************************************************************
+// Call when chains edit sceen is done and needs to be saved
+// ******************************************************************************************
+void PlanningGroupsWidget::chainSaveEditing()
+{
+  // Find the group we are editing based on the goup name string
+  srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+
+  // clear the old data
+  searched_group->chains_.clear();
+
+  // TODO
+  // copy the data
+  /* for( int i = 0; i < chains_widget_->selected_data_table_->rowCount(); ++i )
+     {
+     searched_group->chains_.push_back( chains_widget_->selected_data_table_->item( i, 0 )->text().toStdString() );
+     }*/
+  
+  // Switch to main screen
+  stacked_layout_->setCurrentIndex( 0 );
+
+  // Reload main screen table
+  loadGroupsTree();
+}
+
+// ******************************************************************************************
+// Call when subgroups edit sceen is done and needs to be saved
+// ******************************************************************************************
+void PlanningGroupsWidget::subgroupsSaveEditing()
+{
+  // Find the group we are editing based on the goup name string
+  srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+
+  // check for cycles (not allowed)
+  
+
+
+  // clear the old data
+  searched_group->subgroups_.clear();
+
+  // copy the data
+  for( int i = 0; i < subgroups_widget_->selected_data_table_->rowCount(); ++i )
+  {
+    searched_group->subgroups_.push_back( subgroups_widget_->selected_data_table_->item( i, 0 )->text().toStdString() );
+  }
+  
+  // Switch to main screen
+  stacked_layout_->setCurrentIndex( 0 );
+
+  // Reload main screen table
+  //loadGroupsTree();
+}
+
+// ******************************************************************************************
+// Call when groups edit sceen is done and needs to be saved
+// ******************************************************************************************
+void PlanningGroupsWidget::groupSaveEditing()
+{
+  // Find the group we are editing based on the goup name string
+  //srdf::Model::Group *searched_group = findGroupByName( current_edit_group_ );
+
+
+  // clear the old data
+  //searched_group->groups_.clear();
+
+  //TODO
+  /*
+  // copy the data
+  for( int i = 0; i < groups_widget_->selected_data_table_->rowCount(); ++i )
+  {
+  searched_group->groups_.push_back( groups_widget_->selected_data_table_->item( i, 0 )->text().toStdString() );
+  }
+  */
   
   // Switch to main screen
   stacked_layout_->setCurrentIndex( 0 );

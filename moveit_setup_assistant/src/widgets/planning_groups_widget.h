@@ -50,11 +50,11 @@ class PlanGroupType;
 
 // Custom Type
 enum GroupType {
-  JOINTS,
-  LINKS,
+  JOINT,
+  LINK,
   CHAIN,
-  GROUP,
-  SUBGROUP
+  SUBGROUP,
+  GROUP
 };
   
 // ******************************************************************************************
@@ -93,8 +93,12 @@ private Q_SLOTS:
   /// Create a new, empty group
   void addGroup();
 
-  /// Call when joints edit sceen is done and needs to be saved
+  /// Call when screen is done being edited
   void jointsSaveEditing();
+  void linksSaveEditing();
+  void chainSaveEditing();
+  void subgroupsSaveEditing();
+  void groupSaveEditing();
 
   /// Call when edit screen is canceled
   void cancelEditing();
@@ -120,8 +124,8 @@ private:
   DoubleListWidget *joints_widget_;
   DoubleListWidget *links_widget_;
   DoubleListWidget *subgroups_widget_;
-  //ChainWidget *chain_widget_;
-  //GroupWidget *group_widget_;
+  QWidget *chain_widget_;
+  QWidget *group_widget_;
 
   // ******************************************************************************************
   // Variables
@@ -146,8 +150,15 @@ private:
   /// Recursively build the SRDF tree
   void loadGroupsTreeRecursive( srdf::Model::Group &group_it, QTreeWidgetItem *parent );
 
-  // Load joints from a specefied group into the edit screen
+  // Convenience function for getting a group pointer
+  srdf::Model::Group * findGroupByName( const std::string &name );
+
+  // Load edit screen
   void loadJointsScreen( srdf::Model::Group *this_group );
+  void loadLinksScreen( srdf::Model::Group *this_group );
+  void loadChainScreen( srdf::Model::Group *this_group );
+  void loadSubgroupsScreen( srdf::Model::Group *this_group );
+  void loadGroupScreen( srdf::Model::Group *this_group );
 
 
 };
