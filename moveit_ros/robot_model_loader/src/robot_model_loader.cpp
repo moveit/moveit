@@ -39,6 +39,7 @@
 
 robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description)
 {
+  ros::WallTime start = ros::WallTime::now();
   ros::NodeHandle nh("~");
   if (nh.searchParam(robot_description, robot_description_))
   {
@@ -70,4 +71,5 @@ robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_
     else
       ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
   }
+  ROS_DEBUG_STREAM("Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }

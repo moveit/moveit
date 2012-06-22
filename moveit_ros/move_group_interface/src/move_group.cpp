@@ -51,6 +51,44 @@ namespace move_group_interface
 
 const std::string MoveGroup::ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 
+static boost::shared_ptr<tf::Transformer> getSharedTF(void)
+{
+  static boost::shared_ptr<tf::Transformer> tf(new tf::TransformListener());
+  return tf;
+}
+
+static planning_models::KinematicModelConstPtr getSharedKinematicModel(const std::string &robot_description)
+{
+  static std::map<std::string, planning_models_loader::KinematicModelLoaderPtr> model_loaders;
+  static boost::mutex lock;
+  boost::mutex::scoped_lock slock(lock);
+  if (model_loaders.find(robot_description) != model_loaders.end())
+    return model_loaders[robot_description]->getModel();
+  else
+  {
+    planning_models_loader::KinematicModelLoader::Options opt(robot_description);
+    opt.load_kinematics_solvers_ = false;
+    planning_models_loader::KinematicModelLoaderPtr loader(new planning_models_loader::KinematicModelLoader(opt));
+    model_loaders[robot_description] = loader;
+    return loader->getModel();
+  }
+} 
+
+static planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const planning_models::KinematicModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf)
+{
+  static std::map<std::string, planning_scene_monitor::CurrentStateMonitorPtr> state_monitors;
+  static boost::mutex lock;
+  boost::mutex::scoped_lock slock(lock);
+  if (state_monitors.find(kmodel->getName()) != state_monitors.end())
+    return state_monitors[kmodel->getName()];
+  else
+  {
+    planning_scene_monitor::CurrentStateMonitorPtr monitor(new planning_scene_monitor::CurrentStateMonitor(kmodel, tf));
+    state_monitors[kmodel->getName()] = monitor;
+    return monitor;
+  }
+}
+
 class MoveGroup::MoveGroupImpl
 {
 public: 
@@ -60,9 +98,7 @@ public:
   MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf) : opt_(opt), tf_(tf)
   {
     action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>("move_group", false));
-    planning_models_loader::KinematicModelLoader::Options km_opt(opt.robot_description_);
-    km_opt.load_kinematics_solvers_ = false;
-    kinematic_model_loader_.reset(new planning_models_loader::KinematicModelLoader(km_opt));
+    kinematic_model_ = getSharedKinematicModel(opt.robot_description_);
     if (!getKinematicModel())
       ROS_FATAL_STREAM("Unable to construct robot model. Make sure all needed information is on the parameter server.");
     if (!getKinematicModel()->hasJointModelGroup(opt.group_name_))
@@ -72,13 +108,13 @@ public:
     joint_state_target_->setToDefaultValues();
     use_joint_state_target_ = true;
     
-    planning_models::KinematicModel::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
+    const planning_models::KinematicModel::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group->isChain())
       end_effector_ = joint_model_group->getLinkModelNames().back();
     pose_target_.setIdentity();
     pose_reference_frame_ = getKinematicModel()->getModelFrame();
     
-    current_state_monitor_.reset(new planning_scene_monitor::CurrentStateMonitor(kinematic_model_loader_->getModel(), tf_));
+    current_state_monitor_ = getSharedStateMonitor(kinematic_model_, tf_);
     action_client_->waitForServer();
     ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
   }
@@ -93,9 +129,9 @@ public:
     return opt_;
   }
   
-  const planning_models::KinematicModelPtr& getKinematicModel(void)
+  const planning_models::KinematicModelConstPtr& getKinematicModel(void)
   {
-    return kinematic_model_loader_->getModel();
+    return kinematic_model_;
   }
   
   planning_models::KinematicState::JointStateGroup* getJointStateTarget(void)
@@ -105,10 +141,7 @@ public:
   
   void setEndEffector(const std::string &end_effector)
   {
-    if (getKinematicModel()->getJointModelGroup(opt_.group_name_)->hasLinkModel(end_effector))
-      end_effector_ = end_effector;
-    else
-      ROS_ERROR_STREAM("Link '" << end_effector << "' does not belong to group " << opt_.group_name_);
+    end_effector_ = end_effector;
   }
   
   const std::string &getEndEffector(void) const
@@ -213,11 +246,11 @@ public:
 private:
   
   Options opt_;
-  planning_models_loader::KinematicModelLoaderPtr kinematic_model_loader_;
+
+  boost::shared_ptr<tf::Transformer> tf_;
+  planning_models::KinematicModelConstPtr kinematic_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > action_client_;
-  boost::shared_ptr<tf::Transformer> tf_;
-  
   planning_models::KinematicStatePtr joint_state_target_;
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
@@ -228,12 +261,12 @@ private:
 
 MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf)
 {  
-  impl_ = new MoveGroupImpl(Options(group_name), tf ? tf : boost::shared_ptr<tf::Transformer>(new tf::TransformListener()));
+  impl_ = new MoveGroupImpl(Options(group_name), tf ? tf : getSharedTF());
 }
 
 MoveGroup::MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf)
 {
-  impl_ = new MoveGroupImpl(opt, tf ? tf : boost::shared_ptr<tf::Transformer>(new tf::TransformListener()));
+  impl_ = new MoveGroupImpl(opt, tf ? tf : getSharedTF());
 }
 
 MoveGroup::~MoveGroup(void)
@@ -313,6 +346,11 @@ void MoveGroup::setJointValueTarget(const sensor_msgs::JointState &state)
   impl_->useJointStateTarget();
 }
 
+const planning_models::KinematicState::JointStateGroup& MoveGroup::getJointValueTarget(void) const
+{
+  return *impl_->getJointStateTarget();
+}
+
 void MoveGroup::setPoseTarget(const Eigen::Affine3d &pose)
 {
   impl_->setPoseTarget(pose);
@@ -349,6 +387,11 @@ void MoveGroup::setPoseTarget(const geometry_msgs::PoseStamped &target)
   geometry_msgs::Pose pose_out;
   tf::poseTFToMsg(stamped_pose_out, pose_out);
   setPoseTarget(pose_out);
+}
+
+const Eigen::Affine3d& MoveGroup::getPoseTarget(void) const
+{
+  return impl_->getPoseTarget();
 }
 
 void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)
