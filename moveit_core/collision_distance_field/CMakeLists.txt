@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
 
@@ -25,6 +25,10 @@ rosbuild_add_library(${PROJECT_NAME}
   src/collision_robot_distance_field.cpp
   src/collision_world_distance_field.cpp
 )
+
+rosbuild_add_gtest(test_collision_distance_field test/test_collision_distance_field.cpp)
+target_link_libraries(test_collision_distance_field ${PROJECT_NAME})
+rosbuild_link_boost(test_collision_distance_field system filesystem)
 
 #uncomment if you have defined messages
 #rosbuild_genmsg()

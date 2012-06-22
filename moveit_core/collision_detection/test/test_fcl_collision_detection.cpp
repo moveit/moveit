@@ -70,7 +70,6 @@ protected:
 
     crobot_.reset(new DefaultCRobotType(kmodel_));
     cworld_.reset(new DefaultCWorldType());
-
   }
 
   virtual void TearDown()

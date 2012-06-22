@@ -141,13 +141,17 @@ bool collision_distance_field::getCollisionSphereCollision(const distance_field:
                                                            unsigned int num_coll,
                                                            std::vector<unsigned int>& colls)
 {
+  colls.clear();
   for(unsigned int i = 0; i < sphere_list.size(); i++) {
     Eigen::Vector3d p = sphere_centers[i];
     double gx, gy, gz;
     double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz);
     if(maximum_value > dist && dist - sphere_list[i].radius_ < tolerance) {
+      if(num_coll == 0) {
+        return true;
+      }
       colls.push_back(i);
-      if(colls.size() > num_coll) {
+      if(colls.size() >= num_coll) {
         return true;
       }
     }
