@@ -15,6 +15,7 @@
   <depend package="planning_scene"/>
   <depend package="planning_scene_monitor"/>
   <depend package="moveit_msgs"/>
+  <depend package="trajectory_processing"/>
 
   <export>
     <rviz plugin="${prefix}/lib/plugin_description.xml"/>
