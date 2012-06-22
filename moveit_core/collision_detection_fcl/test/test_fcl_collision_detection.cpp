@@ -43,8 +43,8 @@
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
 #include <planning_models/transforms.h>
-#include <collision_detection/fcl/collision_world.h>
-#include <collision_detection/fcl/collision_robot.h>
+#include <collision_detection_fcl/collision_world.h>
+#include <collision_detection_fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
 
 #include <boost/filesystem.hpp>

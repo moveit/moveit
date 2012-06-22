@@ -11,12 +11,23 @@ set(ROS_BUILD_TYPE Release)
 
 rosbuild_init()
 
+rosbuild_add_boost_directories()
+
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-rosbuild_add_boost_directories()
+#common commands for building c++ executables and libraries
+rosbuild_add_library(${PROJECT_NAME}
+  src/collision_common.cpp
+  src/collision_robot.cpp
+  src/collision_world.cpp
+)
 
-rosbuild_add_library(${PROJECT_NAME} src/random_numbers.cpp)
-rosbuild_link_boost(${PROJECT_NAME} thread date_time)
+#target_link_libraries(${PROJECT_NAME} ${FCL_LIBRARIES})
+rosbuild_link_boost(${PROJECT_NAME} thread)
+
+rosbuild_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
+target_link_libraries(test_fcl_collision_detection ${PROJECT_NAME})
+rosbuild_link_boost(test_fcl_collision_detection system filesystem)

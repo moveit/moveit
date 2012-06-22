@@ -104,7 +104,14 @@ public:
   {
     name_ = name;
   }
-	
+  
+  /** \brief Set the types that satisfy the interfaces for collision_space::CollisionWorld and collision_space::CollisionRobot that should be used for collision checking. */
+  template<typename CollisionWorldType, typename CollisionRobotType>
+  void setCollisionDetectionTypes(void)
+  {
+    collision_detection_allocator_.reset(new CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>());
+  }
+
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
       The information passed in for this function allows the construction of a kinematic model and of all the classed that
       depend on the kinematic model (e.g., collision world/robot classes) */
@@ -468,6 +475,40 @@ protected:
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
+  
+  struct CollisionDetectionAllocBase
+  { 
+    virtual collision_detection::CollisionRobotPtr allocateRobot(const planning_models::KinematicModelConstPtr &kmodel) = 0;
+    virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy) = 0;
+    virtual collision_detection::CollisionWorldPtr allocateWorld(void) = 0;
+    virtual collision_detection::CollisionWorldPtr allocateWorld(const collision_detection::CollisionWorldConstPtr &copy) = 0;
+    virtual CollisionDetectionAllocBase* clone(void) = 0;
+  };
+  
+  template<typename CollisionWorldType, typename CollisionRobotType>
+  struct CollisionDetectionAlloc : public CollisionDetectionAllocBase
+  {
+    virtual collision_detection::CollisionRobotPtr allocateRobot(const planning_models::KinematicModelConstPtr &kmodel)
+    {
+      return collision_detection::CollisionRobotPtr(new CollisionRobotType(kmodel));
+    }
+    virtual collision_detection::CollisionWorldPtr allocateWorld(void)
+    {    
+      return collision_detection::CollisionWorldPtr(new CollisionWorldType());
+    }
+    virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy)
+    {
+      return collision_detection::CollisionRobotPtr(new CollisionRobotType(static_cast<const CollisionRobotType&>(*copy)));
+    }
+    virtual collision_detection::CollisionWorldPtr allocateWorld(const  collision_detection::CollisionWorldConstPtr &copy)
+    {    
+      return collision_detection::CollisionWorldPtr(new CollisionWorldType(static_cast<const CollisionWorldType&>(*copy)));
+    }
+    virtual CollisionDetectionAllocBase* clone(void)
+    {
+      return new CollisionDetectionAlloc<CollisionWorldType, CollisionRobotType>();
+    }    
+  };
 
   std::string                                    name_;
 	
@@ -484,6 +525,8 @@ protected:
   planning_models::TransformsPtr                 ftf_;
   planning_models::TransformsConstPtr            ftf_const_;
 
+  boost::scoped_ptr<CollisionDetectionAllocBase> collision_detection_allocator_;
+  
   collision_detection::CollisionRobotPtr         crobot_unpadded_;
   collision_detection::CollisionRobotConstPtr    crobot_unpadded_const_;
   collision_detection::CollisionRobotPtr         crobot_;
