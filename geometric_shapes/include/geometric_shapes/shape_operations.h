@@ -42,7 +42,9 @@
 #include <visualization_msgs/Marker.h>
 #include <vector>
 #include <Eigen/Core>
-#include <assimp/aiScene.h>
+
+// forward declaration of aiScene (called needs to include assimp)
+class aiScene;
 
 namespace shapes
 {

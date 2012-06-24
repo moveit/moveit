@@ -16,6 +16,28 @@ rosbuild_init()
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 
+find_package(ASSIMP)
+if (NOT ASSIMP_FOUND)
+  pkg_check_modules(ASSIMP assimp)
+endif()
+if (ASSIMP_FOUND)
+  if( ${ASSIMP_VERSION} STRGREATER "2.0.0" )
+    set(IS_ASSIMP3 1)
+    add_definitions(-DIS_ASSIMP3)
+  endif()
+  include_directories(${ASSIMP_INCLUDE_DIRS})
+  link_directories(${ASSIMP_LIBRARY_DIRS})
+else()
+  message(STATUS "could not find assimp (perhaps available thorugh ROS package?), so assimping assimp v2")
+  set(ASSIMP_LIBRARIES assimp)
+  set(ASSIMP_LIBRARY_DIRS)
+  set(ASSIMP_CXX_FLAGS)
+  set(ASSIMP_CFLAGS_OTHER)
+  set(ASSIMP_LINK_FLAGS)
+  set(ASSIMP_INCLUDE_DIRS)
+  set(IS_ASSIMP3 0) # most likely not
+endif()
+
 rosbuild_add_boost_directories()
 
 #set the default path for built libraries to the "lib" directory
@@ -26,7 +48,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/shape_operations.cpp
   src/bodies.cpp
   src/body_operations.cpp)
-target_link_libraries(${PROJECT_NAME} assimp qhull)
+target_link_libraries(${PROJECT_NAME} ${ASSIMP_LIBRARIES} qhull)
 
 
 # Unit tests

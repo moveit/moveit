@@ -45,8 +45,15 @@
 #include <ros/console.h>
 #include <resource_retriever/retriever.h>
 
+#if defined(IS_ASSIMP3)
+#include <assimp/scene.h>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#else
+#include <assimp/aiScene.hpp>
 #include <assimp/assimp.hpp>
 #include <assimp/aiPostProcess.h>
+#endif
 
 #include <Eigen/Geometry>
 
