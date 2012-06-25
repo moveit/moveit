@@ -77,6 +77,11 @@ void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(const std::s
   }
 }
 
+bool planning_scene_monitor::CurrentStateMonitor::isActive(void) const
+{
+  return state_monitor_started_;
+}
+
 void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor(void)
 {
   if (state_monitor_started_)
