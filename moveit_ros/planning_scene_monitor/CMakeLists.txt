@@ -21,8 +21,8 @@ rosbuild_add_boost_directories()
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME}
   src/planning_scene_monitor.cpp
-  src/current_state_monitor.cpp)
-rosbuild_link_boost(${PROJECT_NAME} signals)
+  src/current_state_monitor.cpp
+  src/trajectory_monitor.cpp)
 
 rosbuild_add_executable(demo_scene demos/demo_scene.cpp)
 target_link_libraries(demo_scene ${PROJECT_NAME})
