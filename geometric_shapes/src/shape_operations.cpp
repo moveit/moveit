@@ -50,7 +50,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #else
-#include <assimp/aiScene.hpp>
+#include <assimp/aiScene.h>
 #include <assimp/assimp.hpp>
 #include <assimp/aiPostProcess.h>
 #endif
