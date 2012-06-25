@@ -407,6 +407,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
 {
   scene.name = name_;
   scene.planning_frame = getPlanningFrame();
+  scene.is_diff = true;
   
   if (ftf_)
     ftf_->getTransforms(scene.fixed_frame_transforms);
@@ -687,7 +688,8 @@ void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::Plan
 
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const
 {
-  scene.name = name_; 
+  scene.name = name_;
+  scene.is_diff = false;
   scene.planning_frame = getPlanningFrame();
   getTransforms()->getTransforms(scene.fixed_frame_transforms);
   planning_models::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
@@ -922,6 +924,14 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   
   processOctomapMsg(scene.world.octomap);
   processCollisionMapMsg(scene.world.collision_map);
+}
+
+void planning_scene::PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
+{
+  if (scene.is_diff)
+    setPlanningSceneDiffMsg(scene);
+  else
+    setPlanningSceneMsg(scene);
 }
 
 void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
