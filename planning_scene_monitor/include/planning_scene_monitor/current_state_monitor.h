@@ -71,6 +71,9 @@ public:
    */
   void stopStateMonitor(void);
   
+  /** @brief Check if the state monitor is started */
+  bool isActive(void) const;
+  
   /** @brief Get the name of the topic being monitored. Returns an empty string if the monitor is inactive. */
   std::string getMonitoredTopic(void) const;
   
@@ -112,7 +115,7 @@ public:
   /** @brief When a joint value is received to be out of bounds, it is changed slightly to fit within bounds,
    *  if the difference is less than a specified value (labeled the "allowed bounds error").
    *  This value can be set using this function.
-   *  @param error The specified value for the "allowed bounds error"*/
+   *  @param error The specified value for the "allowed bounds error". The default is machine precision. */
   void setBoundsError(double error)
   {
     error_ = (error > 0) ? error : -error;
