@@ -328,11 +328,15 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     if (cache_it != cache.map_.end())
     {
       if (cache_it->second->collision_geometry_data_->ptr.raw == (void*)data)
+      {
+        ROS_DEBUG("Collision data structures for object %s retrieved from cache.", cache_it->second->collision_geometry_data_->getID().c_str());
         return cache_it->second;
+      }
       else
         if (cache_it->second.unique())
         {
           const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, false);
+          ROS_DEBUG("Collision data structures for object %s retrieved from cache after updating the source object.", cache_it->second->collision_geometry_data_->getID().c_str());
           return cache_it->second;
         }
     }
@@ -350,11 +354,9 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     othercache.lock_.lock(); // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
     std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator cache_it = othercache.map_.find(wptr);
     if (cache_it != othercache.map_.end())
-    {
-      // this reinterpret_cast is safe because we checked the type above
-      if (cache_it->second->collision_geometry_data_->getID() == reinterpret_cast<const planning_models::KinematicState::AttachedBody*>(data)->getName()
-          && cache_it->second.unique())
-      {
+    {   
+      if (cache_it->second.unique())
+      {   
         // remove from old cache
         FCLGeometryConstPtr obj_cache = cache_it->second;
         othercache.map_.erase(cache_it);
@@ -362,6 +364,8 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
         
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
+        
+        ROS_DEBUG("Collision data structures for attached body %s retrieved from the cache for world objects.", obj_cache->collision_geometry_data_->getID().c_str()); 
         
         // add to the new cache
         boost::mutex::scoped_lock slock(cache.lock_);
@@ -386,9 +390,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
       std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator cache_it = othercache.map_.find(wptr);
       if (cache_it != othercache.map_.end())
       {
-        // this reinterpret_cast is safe because we checked the type above
-        if (cache_it->second->collision_geometry_data_->getID() == reinterpret_cast<const CollisionWorld::Object*>(data)->id_ && 
-            cache_it->second.unique())
+        if (cache_it->second.unique())
         {
           // remove from old cache
           FCLGeometryConstPtr obj_cache = cache_it->second;
@@ -397,6 +399,8 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
           
           // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
           const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
+
+          ROS_DEBUG("Collision data structures for world object %s retrieved from the cache for attached bodies.", obj_cache->collision_geometry_data_->getID().c_str());
           
           // add to the new cache
           boost::mutex::scoped_lock slock(cache.lock_);
