@@ -286,13 +286,16 @@ public:
       exactly the same using setPlanningSceneMsg() */
   void getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const;
 
-  /** \brief Apply changes to this planning scene as diffs. A parent is not required to exist. However, the existing data
-      in the planning instance is not cleared. Data from the message is only appended (and in cases such as e.g.,
-      the robot state, is overwritten). */
+  /** \brief Apply changes to this planning scene as diffs, even if the message itself is not marked as being a diff (is_diff
+      member). A parent is not required to exist. However, the existing data in the planning instance is not cleared. Data from
+      the message is only appended (and in cases such as e.g., the robot state, is overwritten). */
   void setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene);
 
-  /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene message. */
+  /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene message, even if the message itself is marked as being a diff (is_diff member) */
   void setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
+  
+  /** \brief Call setPlanningSceneMsg() or setPlanningSceneDiffMsg() depending on how the is_diff member of the message is set */
+  void usePlanningSceneMsg(const moveit_msgs::PlanningScene &scene);
 
   bool processCollisionObjectMsg(const moveit_msgs::CollisionObject &object);
   bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
