@@ -253,36 +253,31 @@ public:
   PosedBodySphereDecompositionVector()
   {}
 
-  std::vector<CollisionSphere> getCollisionSpheres() const
+  const std::vector<CollisionSphere>& getCollisionSpheres() const
   {
-    std::vector<CollisionSphere> ret_spheres;
-    for(unsigned int i = 0; i < decomp_vector_.size(); i++) {
-      ret_spheres.insert(ret_spheres.end(),
-                        decomp_vector_[i]->getCollisionSpheres().begin(),
-                        decomp_vector_[i]->getCollisionSpheres().end());
-    }
-    return ret_spheres;
+    return collision_spheres_;
   }
 
-  std::vector<Eigen::Vector3d> getSphereCenters() const {
-    std::vector<Eigen::Vector3d> ret_centers;
-    for(unsigned int i = 0; i < decomp_vector_.size(); i++) {
-      ret_centers.insert(ret_centers.end(),
-                         decomp_vector_[i]->getSphereCenters().begin(),
-                         decomp_vector_[i]->getSphereCenters().end());
-    }
-    return ret_centers;
+  const std::vector<Eigen::Vector3d>& getSphereCenters() const {
+    return posed_collision_spheres_;
   }
-
+  
   void addToVector(PosedBodySphereDecompositionPtr& bd)
   {
+    sphere_index_map_[decomp_vector_.size()] = collision_spheres_.size();
     decomp_vector_.push_back(bd);
+    collision_spheres_.insert(collision_spheres_.end(), 
+                              bd->getCollisionSpheres().begin(),
+                              bd->getCollisionSpheres().end());
+    posed_collision_spheres_.insert(posed_collision_spheres_.end(),
+                                    bd->getSphereCenters().begin(),
+                                    bd->getSphereCenters().end());
   }
 
   unsigned int getSize() const {
     return decomp_vector_.size();
   }
-    
+
   PosedBodySphereDecompositionConstPtr getPosedBodySphereDecomposition(unsigned int i) const {
     if(i >= decomp_vector_.size()) {
       ROS_INFO_STREAM("No body decomposition");
@@ -292,17 +287,22 @@ public:
   }
 
   void updatePose(unsigned int ind, const Eigen::Affine3d& pose) {
-    if(ind < decomp_vector_.size()) {
-      decomp_vector_[ind]->updatePose(pose);
-    } else {
+    if(ind >= decomp_vector_.size()) {
       ROS_WARN("Can't update pose");
       return;
+    }
+    decomp_vector_[ind]->updatePose(pose);
+    for(unsigned int i = 0; i < decomp_vector_[ind]->getSphereCenters().size(); i++) {
+      posed_collision_spheres_[sphere_index_map_[ind]+i] = decomp_vector_[ind]->getSphereCenters()[i];
     }
   }
 
 private:
   PosedBodySphereDecompositionConstPtr empty_ptr_;
   std::vector<PosedBodySphereDecompositionPtr> decomp_vector_;
+  std::vector<CollisionSphere> collision_spheres_;
+  std::vector<Eigen::Vector3d> posed_collision_spheres_;
+  std::map<unsigned int, unsigned int> sphere_index_map_;
 };
 
 class PosedBodyPointDecompositionVector

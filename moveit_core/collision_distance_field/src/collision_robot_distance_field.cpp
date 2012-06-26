@@ -167,13 +167,23 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
                                                     collision_detection::CollisionResult& res,
                                                     const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
                                                     boost::shared_ptr<GroupStateRepresentation>& gsr) const {
-  for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
-    if(!dfce->link_has_geometry_[i] || !dfce->self_collision_enabled_[i]) continue;
+  for(unsigned int i = 0; i < dfce->link_names_.size()+dfce->attached_body_names_.size(); i++) {
+    bool is_link = i < dfce->link_names_.size();
+    if((is_link && !dfce->link_has_geometry_[i]) || !dfce->self_collision_enabled_[i]) continue;
+    const std::vector<CollisionSphere>* collision_spheres_1;
+    const std::vector<Eigen::Vector3d>* sphere_centers_1;
+    if(is_link) {
+      collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
+      sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
+    } else {
+      collision_spheres_1 = &(gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getCollisionSpheres());
+      sphere_centers_1 = &(gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getSphereCenters());
+    }
     if(req.contacts) {
       std::vector<unsigned int> colls;
       bool coll = getCollisionSphereCollision(dfce->distance_field_.get(),
-                                              gsr->link_body_decompositions_[i]->getCollisionSpheres(),
-                                              gsr->link_body_decompositions_[i]->getSphereCenters(),
+                                              *collision_spheres_1,
+                                              *sphere_centers_1,
                                               max_propogation_distance_,
                                               0.0,
                                               std::min(req.max_contacts_per_pair, req.max_contacts-res.contact_count),
@@ -182,9 +192,15 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
         res.collision = true;
         for(unsigned int j = 0; j < colls.size(); j++) {
           collision_detection::Contact con;
-          con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[colls[j]];
-          con.body_type_1 = collision_detection::BodyTypes::ROBOT_LINK;
-          con.body_name_1 = dfce->link_names_[i];
+          if(is_link) {
+            con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[colls[j]];
+            con.body_type_1 = collision_detection::BodyTypes::ROBOT_LINK;
+            con.body_name_1 = dfce->link_names_[i];
+          } else {
+            con.pos = gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getSphereCenters()[colls[j]];
+            con.body_type_1 = collision_detection::BodyTypes::ROBOT_ATTACHED;
+            con.body_name_1 = dfce->attached_body_names_[i-dfce->link_names_.size()];
+          }
           //std::cerr << "Self collision with " << con.body_name_1 << std::endl;
           con.body_type_2 = collision_detection::BodyTypes::ROBOT_LINK;
           con.body_name_2 = "self";
@@ -199,8 +215,8 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
       }
     } else {
       bool coll = getCollisionSphereCollision(dfce->distance_field_.get(),
-                                              gsr->link_body_decompositions_[i]->getCollisionSpheres(),
-                                              gsr->link_body_decompositions_[i]->getSphereCenters(),
+                                              *collision_spheres_1,
+                                              *sphere_centers_1,
                                               max_propogation_distance_,
                                               0.0);
       if(coll) {
@@ -216,10 +232,20 @@ bool CollisionRobotDistanceField::getSelfProximityGradients(const boost::shared_
                                                             boost::shared_ptr<GroupStateRepresentation>& gsr) const {
   bool in_collision = false;
   for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
-    if(!dfce->link_has_geometry_[i] || !dfce->self_collision_enabled_[i]) continue;
+    bool is_link = i < dfce->link_names_.size();
+    if((is_link && !dfce->link_has_geometry_[i]) || !dfce->self_collision_enabled_[i]) continue;
+    const std::vector<CollisionSphere>* collision_spheres_1;
+    const std::vector<Eigen::Vector3d>* sphere_centers_1;
+    if(is_link) {
+      collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
+      sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
+    } else {
+      collision_spheres_1 = &(gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getCollisionSpheres());
+      sphere_centers_1 = &(gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getSphereCenters());
+    }
     bool coll = getCollisionSphereGradients(dfce->distance_field_.get(),
-                                            gsr->link_body_decompositions_[i]->getCollisionSpheres(),
-                                            gsr->link_body_decompositions_[i]->getSphereCenters(),
+                                            *collision_spheres_1,
+                                            *sphere_centers_1,
                                             gsr->gradients_[i],
                                             collision_distance_field::SELF,
                                             0.0,
@@ -240,18 +266,51 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
 {
   unsigned int num_links = dfce->link_names_.size();
   unsigned int num_attached_bodies = dfce->attached_body_names_.size();
-  //TODO - deal with attached bodies
-  for(unsigned int i = 0; i < num_links; i++) {
-    for(unsigned int j = i+1; j < num_links; j++) {    
+  for(unsigned int i = 0; i < num_links+num_attached_bodies; i++) {
+    for(unsigned int j = i+1; j < num_links+num_attached_bodies; j++) {    
       if(i == j) continue;
-      if(!dfce->link_has_geometry_[i] || !dfce->link_has_geometry_[j]) continue;
+      bool i_is_link = i < num_links;
+      bool j_is_link = j < num_links;
+      if((i_is_link && !dfce->link_has_geometry_[i]) || (j_is_link && !dfce->link_has_geometry_[j])) continue;
       if(!dfce->intra_group_collision_enabled_[i][j]) continue;
-      if(!doBoundingSpheresIntersect(gsr->link_body_decompositions_[i],
-                                     gsr->link_body_decompositions_[j])) {
+      if(i_is_link && j_is_link && !doBoundingSpheresIntersect(gsr->link_body_decompositions_[i],
+                                                               gsr->link_body_decompositions_[j])) {
         ROS_DEBUG_STREAM("Bounding spheres for " << dfce->link_names_[i] << " and " << dfce->link_names_[j]
                          << " don't intersect");
         continue;
-      } else {
+      } else if(!i_is_link || !j_is_link) {
+        bool all_ok = true;
+        if(!i_is_link && j_is_link) {
+          for(unsigned int k = 0; k < gsr->attached_body_decompositions_[i-num_links]->getSize(); k++) {
+            if(doBoundingSpheresIntersect(gsr->link_body_decompositions_[j], 
+                                          gsr->attached_body_decompositions_[i-num_links]->getPosedBodySphereDecomposition(k))) {
+              all_ok = false;
+              break;
+            }
+          } 
+        } else if(i_is_link && !j_is_link) {
+          for(unsigned int k = 0; k < gsr->attached_body_decompositions_[j-num_links]->getSize(); k++) {
+            if(doBoundingSpheresIntersect(gsr->link_body_decompositions_[i], 
+                                          gsr->attached_body_decompositions_[j-num_links]->getPosedBodySphereDecomposition(k))) {
+              all_ok = false;
+              break;
+            }
+          } 
+        } else {
+          for(unsigned int k = 0; k < gsr->attached_body_decompositions_[i-num_links]->getSize() && all_ok; k++) {
+            for(unsigned int l = 0; l < gsr->attached_body_decompositions_[j-num_links]->getSize(); l++) {
+              if(doBoundingSpheresIntersect(gsr->attached_body_decompositions_[i-num_links]->getPosedBodySphereDecomposition(k),
+                                            gsr->attached_body_decompositions_[j-num_links]->getPosedBodySphereDecomposition(l))) {
+                
+                all_ok = false;
+                break;
+              }
+            }
+          }
+        }
+        if(all_ok) {
+          continue;
+        }
         // std::cerr << "Bounding spheres for " << dfce->link_names_[i] << " and " << dfce->link_names_[j]
         //           << " intersect" << std::endl;
       }
@@ -268,10 +327,20 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
       const std::vector<CollisionSphere>* collision_spheres_2;
       const std::vector<Eigen::Vector3d>* sphere_centers_1;
       const std::vector<Eigen::Vector3d>* sphere_centers_2;
-      collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
-      sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
-      collision_spheres_2 = &(gsr->link_body_decompositions_[j]->getCollisionSpheres());
-      sphere_centers_2 = &(gsr->link_body_decompositions_[j]->getSphereCenters());
+      if(i_is_link) {
+        collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
+        sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
+      } else {
+        collision_spheres_1 = &(gsr->attached_body_decompositions_[i-num_links]->getCollisionSpheres());
+        sphere_centers_1 = &(gsr->attached_body_decompositions_[i-num_links]->getSphereCenters());
+      }
+      if(j_is_link) {
+        collision_spheres_2 = &(gsr->link_body_decompositions_[j]->getCollisionSpheres());
+        sphere_centers_2 = &(gsr->link_body_decompositions_[j]->getSphereCenters());
+      } else {
+        collision_spheres_2 = &(gsr->attached_body_decompositions_[j-num_links]->getCollisionSpheres());
+        sphere_centers_2 = &(gsr->attached_body_decompositions_[j-num_links]->getSphereCenters());
+      }
       for(unsigned int k = 0; k < collision_spheres_1->size() && num_pair < (int)req.max_contacts_per_pair; k++) {
         for(unsigned int l = 0; l < collision_spheres_2->size() && num_pair < (int)req.max_contacts_per_pair; l++) {
           Eigen::Vector3d gradient = (*sphere_centers_1)[k] - (*sphere_centers_2)[l];
@@ -282,10 +351,20 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
             if(req.contacts) {
               collision_detection::Contact con;
               con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[k];
-              con.body_type_1 = collision_detection::BodyTypes::ROBOT_LINK;
-              con.body_name_1 = dfce->link_names_[i];
-              con.body_type_2 = collision_detection::BodyTypes::ROBOT_LINK;
-              con.body_name_2 = dfce->link_names_[j];
+              if(i_is_link) {
+                con.body_type_1 = collision_detection::BodyTypes::ROBOT_LINK;
+                con.body_name_1 = dfce->link_names_[i];
+              } else {
+                con.body_type_1 = collision_detection::BodyTypes::ROBOT_ATTACHED;
+                con.body_name_1 = dfce->attached_body_names_[i-num_links];
+              }
+              if(j_is_link) {
+                con.body_type_2 = collision_detection::BodyTypes::ROBOT_LINK;
+                con.body_name_2 = dfce->link_names_[j];
+              } else {
+                con.body_type_2 = collision_detection::BodyTypes::ROBOT_ATTACHED;
+                con.body_name_2 = dfce->attached_body_names_[j-num_links];
+              }
               res.contact_count++;
               res.contacts[std::pair<std::string,std::string>(con.body_name_1, con.body_name_2)].push_back(con);
               num_pair++;
@@ -323,19 +402,31 @@ bool CollisionRobotDistanceField::getIntraGroupProximityGradients(const boost::s
   unsigned int num_links = dfce->link_names_.size();
   unsigned int num_attached_bodies = dfce->attached_body_names_.size();
   //TODO - deal with attached bodies
-  for(unsigned int i = 0; i < num_links; i++) {
-    for(unsigned int j = i+1; j < num_links; j++) {    
+  for(unsigned int i = 0; i < num_links+num_attached_bodies; i++) {
+    for(unsigned int j = i+1; j < num_links+num_attached_bodies; j++) {    
       if(i == j) continue;
-      if(!dfce->link_has_geometry_[i] || !dfce->link_has_geometry_[j]) continue;
+      bool i_is_link = i < num_links;
+      bool j_is_link = j < num_links;
+      if((i_is_link && !dfce->link_has_geometry_[i]) || (j_is_link && !dfce->link_has_geometry_[j])) continue;
       if(!dfce->intra_group_collision_enabled_[i][j]) continue;
       const std::vector<CollisionSphere>* collision_spheres_1;
       const std::vector<CollisionSphere>* collision_spheres_2;
       const std::vector<Eigen::Vector3d>* sphere_centers_1;
       const std::vector<Eigen::Vector3d>* sphere_centers_2;
-      collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
-      sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
-      collision_spheres_2 = &(gsr->link_body_decompositions_[j]->getCollisionSpheres());
-      sphere_centers_2 = &(gsr->link_body_decompositions_[j]->getSphereCenters());
+      if(i_is_link) {
+        collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
+        sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
+      } else {
+        collision_spheres_1 = &(gsr->attached_body_decompositions_[i-num_links]->getCollisionSpheres());
+        sphere_centers_1 = &(gsr->attached_body_decompositions_[i-num_links]->getSphereCenters());
+      }
+      if(j_is_link) {
+        collision_spheres_2 = &(gsr->link_body_decompositions_[j]->getCollisionSpheres());
+        sphere_centers_2 = &(gsr->link_body_decompositions_[j]->getSphereCenters());
+      } else {
+        collision_spheres_2 = &(gsr->attached_body_decompositions_[j-num_links]->getCollisionSpheres());
+        sphere_centers_2 = &(gsr->attached_body_decompositions_[j-num_links]->getSphereCenters());
+      }
       for(unsigned int k = 0; k < collision_spheres_1->size(); k++) {
         for(unsigned int l = 0; l < collision_spheres_2->size(); l++) {
           Eigen::Vector3d gradient = (*sphere_centers_1)[k] - (*sphere_centers_2)[l];
@@ -379,8 +470,10 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
   }
   //generateAllowedCollisionInformation(dfce);
   dfce->link_names_ = kmodel_->getJointModelGroup(group_name)->getUpdatedLinkModelNames();
-  std::vector<bool> all_true(dfce->link_names_.size(), true);
-  std::vector<bool> all_false(dfce->link_names_.size(), false);
+  std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
+  dfce->state_->getAttachedBodies(attached_bodies);
+  std::vector<bool> all_true(dfce->link_names_.size()+attached_bodies.size(), true);
+  std::vector<bool> all_false(dfce->link_names_.size()+attached_bodies.size(), false);
   const std::vector<planning_models::KinematicState::LinkState*>& lsv = state.getLinkStateVector();
   for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
     std::string link_name = dfce->link_names_[i];
@@ -411,6 +504,20 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
             //}
           }
         }
+        for(unsigned int j = 0; j < attached_bodies.size(); j++) {
+          if(acm->getEntry(link_name, attached_bodies[j]->getName(), t)) {
+            if(t == collision_detection::AllowedCollision::ALWAYS) {
+              intra_entries[j+dfce->link_names_.size()] = false;
+            }
+          } 
+          // std::cerr << "Checking touch links for " << link_name << " and " << attached_bodies[j]->getName() 
+          //           << " num " << attached_bodies[j]->getTouchLinks().size() << std::endl;
+          //touch links take priority
+          if(attached_bodies[j]->getTouchLinks().find(link_name) != attached_bodies[j]->getTouchLinks().end()) {
+            intra_entries[j+dfce->link_names_.size()] = false;
+            //std::cerr << "Setting intra group for " << link_name << " and attached body " << attached_bodies[j] << " to false" << std::endl;
+          }
+        }
         dfce->intra_group_collision_enabled_.push_back(intra_entries);
       } else {
         dfce->self_collision_enabled_.push_back(true);
@@ -436,9 +543,45 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
     }
     std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
     link_state->getAttachedBodies(attached_bodies);
-    for(unsigned int i = 0; i < attached_bodies.size(); i++) {
-      dfce->attached_body_names_.push_back(attached_bodies[i]->getName());
+    for(unsigned int j = 0; j < attached_bodies.size(); j++) {
+      dfce->attached_body_names_.push_back(attached_bodies[j]->getName());
       dfce->attached_body_link_state_indices_.push_back(dfce->link_state_indices_[i]);
+      if(acm) {
+        collision_detection::AllowedCollision::Type t;
+        if(!acm->getEntry(attached_bodies[j]->getName(), attached_bodies[j]->getName(), t)) {
+          dfce->self_collision_enabled_.push_back(true);
+        }
+        if(t == collision_detection::AllowedCollision::ALWAYS) {
+          dfce->self_collision_enabled_.push_back(false);
+        }
+        std::vector<bool> intra_entries = all_true;
+        for(unsigned int k = 0; k < dfce->link_names_.size(); k++) {
+          if(link_name == dfce->link_names_[k]) {
+            intra_entries[k] = false;
+            continue;
+          } 
+          if(acm->getEntry(link_name, dfce->link_names_[k], t)) {
+            if(t == collision_detection::AllowedCollision::ALWAYS) {
+              intra_entries[k] = false;
+            } 
+            //else {
+            //std::cerr << "Setting not allowed for " << link_name << " and " << dfce->link_names_[j] << std::endl;
+            //}
+          }
+        }
+        for(unsigned int k = 0; k < attached_bodies.size(); k++) {
+          if(acm->getEntry(attached_bodies[j]->getName(), attached_bodies[k]->getName(), t)) {
+            if(t == collision_detection::AllowedCollision::ALWAYS) {
+              intra_entries[k+dfce->link_names_.size()] = false;
+            }
+          }
+        }
+        dfce->intra_group_collision_enabled_.push_back(intra_entries);
+      } else {
+        dfce->self_collision_enabled_.push_back(true);
+        dfce->intra_group_collision_enabled_.push_back(all_true);
+      }
+
     }
   }
   std::map<std::string, boost::shared_ptr<GroupStateRepresentation> >::const_iterator it = pregenerated_group_state_representation_map_.find(dfce->group_name_);
@@ -580,8 +723,8 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
     gsr.reset(new GroupStateRepresentation());
     gsr->gradients_.resize(dfce->link_names_.size()+dfce->attached_body_names_.size());
     for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
+      const planning_models::KinematicState::LinkState* ls = state.getLinkStateVector()[dfce->link_state_indices_[i]];
       if(dfce->link_has_geometry_[i]) {
-        const planning_models::KinematicState::LinkState* ls = state.getLinkStateVector()[dfce->link_state_indices_[i]];
         gsr->link_body_decompositions_.push_back(getPosedLinkBodySphereDecomposition(ls, dfce->link_body_indices_[i]));
         gsr->gradients_[i].types.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size(), NONE);
         gsr->gradients_[i].distances.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size(), DBL_MAX);
@@ -597,8 +740,8 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
     gsr.reset(new GroupStateRepresentation(*(dfce->pregenerated_group_state_representation_)));
     gsr->gradients_.resize(dfce->link_names_.size()+dfce->attached_body_names_.size());
     for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
+      const planning_models::KinematicState::LinkState* ls = state.getLinkStateVector()[dfce->link_state_indices_[i]];
       if(dfce->link_has_geometry_[i]) {
-        const planning_models::KinematicState::LinkState* ls = state.getLinkStateVector()[dfce->link_state_indices_[i]];
         gsr->link_body_decompositions_[i]->updatePose(ls->getGlobalCollisionBodyTransform());
       }
     }
@@ -607,6 +750,9 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
   for(unsigned int i = 0; i < dfce->attached_body_names_.size(); i++) {
     const planning_models::KinematicState::LinkState* ls = state.getLinkStateVector()[dfce->attached_body_link_state_indices_[i]];
     gsr->attached_body_decompositions_.push_back(getAttachedBodySphereDecomposition(ls->getAttachedBody(dfce->attached_body_names_[i]), resolution_));
+    gsr->gradients_[i+dfce->link_names_.size()].types.resize(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size(), NONE);
+    gsr->gradients_[i+dfce->link_names_.size()].distances.resize(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size(), DBL_MAX);
+    gsr->gradients_[i+dfce->link_names_.size()].gradients.resize(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size());
   }
   return gsr;
 }
@@ -627,7 +773,30 @@ bool CollisionRobotDistanceField::compareCacheEntryToState(const boost::shared_p
       return false;
     }
   }
-  //TODO - deal with attached objects
+  std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies_dfce;
+  std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies_state;
+  dfce->state_->getAttachedBodies(attached_bodies_dfce);
+  state.getAttachedBodies(attached_bodies_state);
+  if(attached_bodies_dfce.size() != attached_bodies_state.size()) {
+    return false;
+  }
+  //TODO - figure all the things that can change
+  for(unsigned int i = 0; i < attached_bodies_dfce.size(); i++) {
+    if(attached_bodies_dfce[i]->getName() != attached_bodies_state[i]->getName()) {
+      return false;
+    }
+    if(attached_bodies_dfce[i]->getTouchLinks() != attached_bodies_state[i]->getTouchLinks()) {
+      return false;
+    }
+    if(attached_bodies_dfce[i]->getShapes().size() != attached_bodies_state[i]->getShapes().size()) {
+      return false;
+    }
+    for(unsigned int j = 0; j < attached_bodies_dfce[i]->getShapes().size(); j++) {
+      if(attached_bodies_dfce[i]->getShapes()[j] != attached_bodies_state[i]->getShapes()[j]) {
+        return false;
+      }
+    }
+  }
   return true;
 }             
 
