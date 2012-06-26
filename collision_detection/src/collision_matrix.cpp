@@ -46,7 +46,7 @@ collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(void)
 collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const std::vector<std::string>& names, bool allowed)
 {
   for (std::size_t i = 0 ; i < names.size() ; ++i)
-    for (std::size_t j = i + 1 ; j < names.size() ; ++j)
+    for (std::size_t j = i; j < names.size() ; ++j)
       setEntry(names[i], names[j], allowed);
 }
 
