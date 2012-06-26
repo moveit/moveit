@@ -110,6 +110,15 @@ planning_models::KinematicState& planning_models::KinematicState::operator=(cons
 
 void planning_models::KinematicState::copyFrom(const KinematicState &ks)
 {
+  //need to delete anything already in the state
+  for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
+    delete joint_state_vector_[i];
+  for(unsigned int i = 0; i < link_state_vector_.size(); i++)
+    delete link_state_vector_[i];
+  for (std::map<std::string, JointStateGroup*>::iterator it = joint_state_group_map_.begin();
+       it != joint_state_group_map_.end(); ++it)
+    delete it->second;
+
   kinematic_model_ = ks.getKinematicModel();
   root_transform_ = ks.root_transform_;
   
