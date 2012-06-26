@@ -208,6 +208,10 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
     Eigen::Quaterniond tq;
     EXPECT_FALSE(planning_models::quatFromMsg(q, tq));
     EXPECT_TRUE(tq.w() == 1.0);
+
+    std::vector<double> state_double_vector;
+    ks.getStateValues(state_double_vector);
+    ASSERT_TRUE(ks.setStateValues(state_double_vector));
 }
 
 TEST_F(LoadPlanningModelsPr2, SubgroupInit)
