@@ -170,7 +170,8 @@ bool planning_models::KinematicState::setStateValues(const std::vector<double>& 
 void planning_models::KinematicState::setStateValues(const std::map<std::string, double>& joint_state_map)
 {
   for (unsigned int i = 0 ; i < joint_state_vector_.size() ; ++i)
-    joint_state_vector_[i]->setVariableValues(joint_state_map);
+    if (joint_state_vector_[i]->getJointModel()->getMimic() == NULL)
+      joint_state_vector_[i]->setVariableValues(joint_state_map);
   updateLinkTransforms();
 }
 
@@ -178,7 +179,8 @@ void planning_models::KinematicState::setStateValues(const std::map<std::string,
 {
   missing.clear();
   for(unsigned int i = 0 ; i < joint_state_vector_.size() ; ++i)
-    joint_state_vector_[i]->setVariableValues(joint_state_map, missing);
+    if (joint_state_vector_[i]->getJointModel()->getMimic() == NULL)
+      joint_state_vector_[i]->setVariableValues(joint_state_map, missing);
   updateLinkTransforms();
 }
 
@@ -207,10 +209,11 @@ void planning_models::KinematicState::getStateValues(std::vector<double>& joint_
 {
   joint_state_values.clear();
   for(unsigned int i = 0; i < joint_state_vector_.size(); i++)
-  {
-    const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
-    joint_state_values.insert(joint_state_values.end(), jv.begin(), jv.end());
-  }
+    if (joint_state_vector_[i]->getJointModel()->getMimic() == NULL)
+    {
+      const std::vector<double> &jv = joint_state_vector_[i]->getVariableValues();
+      joint_state_values.insert(joint_state_values.end(), jv.begin(), jv.end());
+    }
 }
 
 void planning_models::KinematicState::getStateValues(std::map<std::string,double>& joint_state_values) const
