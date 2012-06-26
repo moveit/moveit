@@ -131,9 +131,6 @@ public:
   const std::string& getPlanningSceneTopic(void) { return planning_scene_topic_; }
   void setPlanningSceneTopic(const std::string &topic);
 
-  const std::string& getPlanningSceneDiffTopic(void) { return planning_scene_diff_topic_; }
-  void setPlanningSceneDiffTopic(const std::string &topic);
-
   void setRobotAlpha( float alpha );
   float getRobotAlpha() { return robot_path_alpha_; }
 
@@ -222,7 +219,6 @@ protected:
   float state_display_time_;
   float scene_display_time_;
   std::string planning_scene_topic_;
-  std::string planning_scene_diff_topic_;
   std::string scene_name_;
 
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
@@ -253,7 +249,6 @@ protected:
   rviz::StringPropertyWPtr robot_description_property_;
   rviz::ROSTopicStringPropertyWPtr trajectory_topic_property_;
   rviz::ROSTopicStringPropertyWPtr planning_scene_topic_property_;
-  rviz::ROSTopicStringPropertyWPtr planning_scene_diff_topic_property_;
   rviz::FloatPropertyWPtr robot_path_alpha_property_;
   rviz::FloatPropertyWPtr robot_scene_alpha_property_;
   rviz::FloatPropertyWPtr scene_alpha_property_;

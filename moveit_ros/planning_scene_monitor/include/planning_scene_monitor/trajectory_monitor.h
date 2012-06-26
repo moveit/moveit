@@ -85,7 +85,7 @@ private:
 
   std::vector<planning_models::KinematicStateConstPtr> trajectory_states_;
 
-  boost::thread *record_states_thread_;
+  boost::scoped_ptr<boost::thread> record_states_thread_;
   TrajectoryStateAddedCallback state_add_callback_;
 };
 
