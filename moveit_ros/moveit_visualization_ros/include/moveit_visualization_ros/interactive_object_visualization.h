@@ -104,6 +104,13 @@ protected:
 
   void shrinkObject(const std::string& name,
                    const geometry_msgs::Pose& new_pose_msg); 
+
+  void attachObject(const std::string& name,
+                    const std::string& link,
+                    const std::vector<std::string>& touch_links);
+
+  void detachObject(const std::string& name,
+                    const std::string& link);
   
   void addObject(const moveit_msgs::CollisionObject& coll);
 
@@ -122,6 +129,11 @@ protected:
   void processInteractiveMenuFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback); 
 
 protected:
+
+  void makeInteractiveMarkerButton(const moveit_msgs::CollisionObject& coll,
+                                   const std_msgs::ColorRGBA& color_to_use,
+                                   visualization_msgs::InteractiveMarker& marker,
+                                   double scale=1.0);
   
   planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;

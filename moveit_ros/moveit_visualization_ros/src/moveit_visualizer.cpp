@@ -39,6 +39,7 @@
 #include <rviz/default_plugin/marker_display.h>
 #include <rviz/default_plugin/interactive_marker_display.h>
 #include <rviz/display_wrapper.h>
+#include <rviz/view_controllers/orbit_view_controller.h>
 
 static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 
@@ -145,6 +146,7 @@ MoveItVisualizer::MoveItVisualizer() :
 
   rviz_frame_->setSizes(sizes);
 
+  //programmatic control of rviz to add display types and set viewpoint
   rviz_frame_->getManager()->setFixedFrame(planning_scene_monitor_->getPlanningScene()->getPlanningFrame());
   rviz_frame_->getManager()->createDisplay("rviz/RobotModel", "Robot Model", true);
   rviz::DisplayWrapper* marker_display = rviz_frame_->getManager()->createDisplay("rviz/Marker", "Markers", true);
@@ -160,6 +162,8 @@ MoveItVisualizer::MoveItVisualizer() :
 
   PrimitiveObjectAdditionDialog* primitive_object_dialog = new PrimitiveObjectAdditionDialog(main_window_);
   MeshObjectAdditionDialog* mesh_object_dialog = new MeshObjectAdditionDialog(main_window_);
+  attach_object_addition_dialog_ = new AttachObjectAdditionDialog(main_window_,
+                                                                  planning_scene_monitor_->getPlanningScene()->getKinematicModel());
 
   QHBoxLayout* main_layout = new QHBoxLayout;
   QMenuBar* menu_bar = new QMenuBar(main_window_);
@@ -206,9 +210,28 @@ MoveItVisualizer::MoveItVisualizer() :
                    SIGNAL(addCollisionObjectRequested(const moveit_msgs::CollisionObject&, const QColor&)), 
                    iov_.get(), 
                    SLOT(addCollisionObjectSignalled(const moveit_msgs::CollisionObject&, const QColor&)));
-
-
+  //stuff for handling attached objects
+  iov_->addMenuEntry("Attach object",
+                     boost::bind(&MoveItVisualizer::attachObject, this, _1));
+  QObject::connect(attach_object_addition_dialog_,
+                   SIGNAL(attachCollisionObjectRequested(const std::string&,
+                                                         const std::string&,
+                                                         const std::vector<std::string>&)),
+                   iov_.get(),
+                   SLOT(attachCollisionObjectSignalled(const std::string&,
+                                                       const std::string&,
+                                                       const std::vector<std::string>&)));
   main_window_->show();
+
+  rviz::OrbitViewController* orb = dynamic_cast<rviz::OrbitViewController*>(rviz_frame_->getManager()->getCurrentViewController());
+  if(orb == NULL) {
+    ROS_WARN_STREAM("Current view controller not orbit");
+  } else {
+    orb->zoom(15.0);
+    //orb->move(10.0, 0, .5);
+    //Ogre::Vector3 p(0,0,.5);
+    //orb->lookAt(p);
+  }
 
   planning_scene_monitor_->setUpdateCallback(boost::bind(&MoveItVisualizer::updateSceneCallback, this));
 }
@@ -327,6 +350,10 @@ void MoveItVisualizer::cycleLastTrajectory() {
 
 void MoveItVisualizer::stopCycle() {
   stop_cycle_requested_ = true;
+}
+
+void MoveItVisualizer::attachObject(const std::string& name) {
+  attach_object_addition_dialog_->attachObject(name);
 }
 
 void MoveItVisualizer::updateToCurrentState() {

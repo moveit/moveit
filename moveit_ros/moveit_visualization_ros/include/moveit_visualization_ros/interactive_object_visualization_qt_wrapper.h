@@ -70,6 +70,10 @@ public Q_SLOTS:
   void addCollisionObjectSignalled(const moveit_msgs::CollisionObject&,
                                    const QColor&);
 
+  void attachCollisionObjectSignalled(const std::string& name,
+                                      const std::string& link_name,
+                                      const std::vector<std::string>& touch_links);
+
   void loadPlanningSceneSignalled(moveit_msgs::PlanningScenePtr);
 
 Q_SIGNALS:

@@ -294,6 +294,13 @@ void KinematicsGroupVisualization::addMenuEntry(const std::string& name,
 
 void KinematicsGroupVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
   planning_scene_ = planning_scene;
+  std::map<std::string, double> state_vals;
+  state_.getStateValues(state_vals);
+  state_ = planning_scene_->getCurrentState();
+  std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
+  state_.getAttachedBodies(attached_bodies);
+  ROS_INFO_STREAM("Have " << attached_bodies.size() << " bodies");
+  state_.setStateValues(state_vals);
   if(!all_markers_hidden_ && !last_poses_.empty()) {
     updateEndEffectorState(last_poses_.begin()->first, last_poses_.begin()->second);
   }
