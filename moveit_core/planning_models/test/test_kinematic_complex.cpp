@@ -235,6 +235,43 @@ TEST_F(LoadPlanningModelsPr2, AssociatedFixedLinks)
   EXPECT_TRUE(kmodel->getLinkModel("r_gripper_palm_link")->getAssociatedFixedTransforms().size() > 1);
 }
 
+TEST_F(LoadPlanningModelsPr2, KinematicStateCopy) {
+  planning_models::KinematicModelPtr kmodel(new planning_models::KinematicModel(urdf_model_, srdf_model_));    
+
+  planning_models::KinematicState ks(kmodel);
+  ks.setToDefaultValues();
+
+  planning_models::KinematicState ks2(kmodel);
+  ks2.setToDefaultValues();
+  
+  std::vector<shapes::ShapeConstPtr> shapes;
+  std::vector<Eigen::Affine3d> poses;
+  shapes::Shape* shape = new shapes::Box(.1,.1,.1);
+  shapes.push_back(shapes::ShapeConstPtr(shape));
+  poses.push_back(Eigen::Affine3d::Identity());
+  std::vector<std::string> touch_links;
+  ks.getLinkState("r_gripper_palm_link")->attachBody("box", shapes, poses, touch_links);
+  
+  std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies_1;
+  ks.getAttachedBodies(attached_bodies_1);
+  ASSERT_EQ(attached_bodies_1.size(),1);
+  
+  std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies_2;
+  ks2 = ks;
+  ks2.getAttachedBodies(attached_bodies_2);
+  ASSERT_EQ(attached_bodies_2.size(),1);
+
+  ks.getLinkState("r_gripper_palm_link")->clearAttachedBody("box");
+  attached_bodies_1.clear();
+  ks.getAttachedBodies(attached_bodies_1);
+  ASSERT_EQ(attached_bodies_1.size(),0);
+  
+  ks2 = ks;
+  attached_bodies_2.clear();
+  ks2.getAttachedBodies(attached_bodies_2);
+  ASSERT_EQ(attached_bodies_2.size(),0);
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
