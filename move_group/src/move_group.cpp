@@ -42,9 +42,6 @@
 #include <kinematic_constraints/utils.h>
 #include <trajectory_processing/trajectory_tools.h>
 
-#include <dynamic_reconfigure/server.h>
-#include <move_group/MoveGroupDynamicReconfigureConfig.h>
-
 static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";
 static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
@@ -83,23 +80,8 @@ public:
     
     // start the service server
     plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlan, this);
-
-    // dynamic reconfigure
-    dynamic_reconfigure_callback_ = boost::bind(&MoveGroupAction::dynamicReconfigureCallback,this, _1, _2);
-    dynamic_reconfigure_server_.setCallback(dynamic_reconfigure_callback_);
-    publish_planning_scene_ = false;
-    publish_planning_scene_diff_ = false;
-    planning_scene_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1, true);
   }
 
-  void dynamicReconfigureCallback(move_group::MoveGroupDynamicReconfigureConfig &config, uint32_t level) 
-  {
-    ROS_INFO("Reconfigure Request: %s", 
-	     config.publish_planning_scene?"True":"False");
-    if(!config.publish_planning_scene)
-      publish_planning_scene_diff_ = false;
-    publish_planning_scene_ = config.publish_planning_scene;
-  }
   
   void preemptCallback(void)
   {
@@ -141,19 +123,6 @@ public:
     
     bool solved = planning_pipeline_.generatePlan(the_scene, mreq, mres);
     
-    if(publish_planning_scene_)
-    {
-      moveit_msgs::PlanningScene scene_msg;
-      if(publish_planning_scene_diff_)
-	the_scene->getPlanningSceneDiffMsg(scene_msg);
-      else
-      {
-	the_scene->getPlanningSceneMsg(scene_msg);
-	publish_planning_scene_diff_ = true;
-      }
-      planning_scene_publisher_.publish(scene_msg);
-    }
-
     if (!solved)
     {
       if (trajectory_processing::isTrajectoryEmpty(mres.trajectory))
@@ -290,11 +259,6 @@ private:
   bool execution_complete_;
   MoveGroupState state_;
   trajectory_execution::TrajectoryExecutionDataVector last_trajectory_execution_data_vector_;  
-
-  bool publish_planning_scene_, publish_planning_scene_diff_;
-  dynamic_reconfigure::Server<move_group::MoveGroupDynamicReconfigureConfig> dynamic_reconfigure_server_;
-  dynamic_reconfigure::Server<move_group::MoveGroupDynamicReconfigureConfig>::CallbackType dynamic_reconfigure_callback_;
-  ros::Publisher planning_scene_publisher_;
 };
 
 

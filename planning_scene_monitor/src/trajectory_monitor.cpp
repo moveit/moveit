@@ -38,7 +38,7 @@
 #include <ros/rate.h>
 
 planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency) :
-  current_state_monitor_(state_monitor), sampling_frequency_(sampling_frequency), record_states_thread_(NULL)
+  current_state_monitor_(state_monitor), sampling_frequency_(sampling_frequency)
 {
 }
 
@@ -49,14 +49,14 @@ planning_scene_monitor::TrajectoryMonitor::~TrajectoryMonitor(void)
 
 bool planning_scene_monitor::TrajectoryMonitor::isActive(void) const
 {
-  return record_states_thread_ != NULL;
+  return record_states_thread_;
 }
 
 void planning_scene_monitor::TrajectoryMonitor::startTrajectoryMonitor(void)
 {
   if (!record_states_thread_)
   {
-    record_states_thread_ = new boost::thread(boost::bind(&TrajectoryMonitor::recordStates, this));
+    record_states_thread_.reset(new boost::thread(boost::bind(&TrajectoryMonitor::recordStates, this)));
     ROS_DEBUG("Started trajecory monitor");
   }
 }
@@ -65,8 +65,8 @@ void planning_scene_monitor::TrajectoryMonitor::stopTrajectoryMonitor(void)
 {
   if (record_states_thread_)
   {
-    boost::thread *copy = record_states_thread_;
-    record_states_thread_ = NULL;
+    boost::scoped_ptr<boost::thread> copy;
+    copy.swap(record_states_thread_);
     copy->join();
     ROS_DEBUG("Stopped trajecory monitor");
   }

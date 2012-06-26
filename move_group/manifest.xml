@@ -17,6 +17,5 @@
   <depend package="planning_scene_monitor"/>
   <depend package="planning_pipeline"/>
   <depend package="trajectory_processing"/>
-  <depend package="dynamic_reconfigure"/>
   
 </package>

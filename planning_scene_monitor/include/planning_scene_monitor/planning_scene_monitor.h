@@ -44,12 +44,13 @@
 #include <planning_scene/planning_scene.h>
 #include <planning_models_loader/kinematic_model_loader.h>
 #include "planning_scene_monitor/current_state_monitor.h"
+#include <boost/thread.hpp>
 
 namespace planning_scene_monitor
 {
 /**
  * @class PlanningSceneMonitor
- * Subscribes to two topics \e planning_scene and \e planning_scene_diff*/
+ * Subscribes to the topic \e planning_scene */
 class PlanningSceneMonitor
 {
 public:
@@ -123,8 +124,27 @@ public:
     return robot_description_;
   }
 
+  /** \brief By default, the maintained planning scene does not reason about diffs. When the flag passed in is true, the maintained
+      scene starts counting diffs. Future updates to the planning scene will be stored as diffs and can be retrieved as
+      such. Setting the flag to false restores the default behaviour. Maintaining diffs is automatically enabled when
+      publishing planning scenes. */
   void monitorDiffs(bool flag);
 
+  /** \brief Start publishing the maintained planning scene. The first message set out is a complete planning scene. Diffs are sent afterwards. */
+  void startPublishingPlanningScene(const std::string &planning_scene_topic = "monitored_planning_scene");
+
+  /** \brief Stop publishing the maintained planning scene. */
+  void stopPublishingPlanningScene(void);
+
+  /** \brief Set the maximum frequency at which planning scenes are being published */
+  void setPlanningScenePublishingFrequency(double hz);
+  
+  /** \brief Get the maximum frequency at which planning scenes are published (Hz) */
+  double getPlanningScenePublishingFrequency(void) const
+  {
+    return publish_planning_scene_frequency_;
+  }
+  
   /** @brief Get the stored instance of the stored current state monitor
    *  @return An instance of the stored current state monitor*/
   const CurrentStateMonitorPtr& getStateMonitor(void) const
@@ -165,10 +185,8 @@ public:
   
   /** @brief Start the scene monitor
    *  @param scene_topic The name of the planning scene topic
-   *  @param planning_scene_diff The name of the planning scene diff topic
    */
-  void startSceneMonitor(const std::string &scene_topic = "planning_scene",
-                         const std::string &scene_diff_topic = "planning_scene_diff");
+  void startSceneMonitor(const std::string &scene_topic = "planning_scene");
 
   /** @brief Stop the scene monitor*/
   void stopSceneMonitor(void);
@@ -222,9 +240,6 @@ protected:
   /** @brief Callback for a new planning scene msg*/
   void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
 
-  /** @brief Callback for a new planning scene diff msg*/
-  void newPlanningSceneDiffCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
-
   /** @brief Callback for a new collision object msg*/
   void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj);
 
@@ -237,11 +252,12 @@ protected:
   /** @brief Callback for a new attached object msg*/
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
 
-  void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
-
   planning_scene::PlanningScenePtr      scene_; /// internally stored planning scene
 
   planning_scene::PlanningSceneConstPtr scene_const_; /// internally stored
+
+  planning_scene::PlanningScenePtr      parent_scene_; /// if diffs are monitored, this is the pointer to the parent scene
+
   boost::mutex                          scene_update_mutex_; /// mutex for stored scene
 
 
@@ -260,31 +276,51 @@ protected:
   /// default attached padding
   double                                default_attached_padd_;
   
-
+  ros::Publisher                        planning_scene_publisher_;
+  boost::scoped_ptr<boost::thread>      publish_planning_scene_;
+  double                                publish_planning_scene_frequency_;
+  bool                                  new_scene_update_;
+  boost::condition_variable             new_scene_update_condition_;
+  
   ros::Subscriber                       planning_scene_subscriber_;
-  ros::Subscriber                       planning_scene_diff_subscriber_;
   ros::Subscriber                       planning_scene_world_subscriber_;
 
   message_filters::Subscriber<moveit_msgs::CollisionObject> *collision_object_subscriber_;
   tf::MessageFilter<moveit_msgs::CollisionObject>           *collision_object_filter_;
 
-  message_filters::Subscriber<moveit_msgs::CollisionMap> *collision_map_subscriber_;
-  tf::MessageFilter<moveit_msgs::CollisionMap>           *collision_map_filter_;
+  message_filters::Subscriber<moveit_msgs::CollisionMap>    *collision_map_subscriber_;
+  tf::MessageFilter<moveit_msgs::CollisionMap>              *collision_map_filter_;
 
   ros::Subscriber                       attached_collision_object_subscriber_;
   
   CurrentStateMonitorPtr                current_state_monitor_;
   ros::Time                             last_update_time_; /// Last time the state was updated
   boost::function<void()>               update_callback_;
+
   /// the planning scene state is updated at a maximum specified frequency,
   /// and this timestamp is used to implement that functionality
   ros::WallTime                         last_state_update_;
+
   /// the amount of time to wait in between updates to the robot state (in seconds)
   double                                dt_state_update_; 
+
   /// the error accepted when the state is reported as outside of bounds;
   double                                bounds_error_;
 
   planning_models_loader::KinematicModelLoaderPtr kinematics_loader_;
+
+private:
+
+  /** @brief This function is called every time there is a change to the planning scene */
+  void processSceneUpdateEvent(void);
+  
+  /** @brief */
+  void scenePublishingThread(void);
+  
+  void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
+
+  class DynamicReconfigureImpl;
+  boost::scoped_ptr<DynamicReconfigureImpl> reconfigure_impl_;
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
