@@ -99,179 +99,179 @@ protected:
 
 };
 
-// TEST_F(DistanceFieldCollisionDetectionTester, DefaultNotInCollision)
-// {
-//   planning_models::KinematicState kstate(kmodel_);
-//   kstate.setToDefaultValues();
+TEST_F(DistanceFieldCollisionDetectionTester, DefaultNotInCollision)
+{
+  planning_models::KinematicState kstate(kmodel_);
+  kstate.setToDefaultValues();
 
-//   collision_detection::CollisionRequest req;
-//   collision_detection::CollisionResult res;
-//   req.group_name = "whole_body";
-//   crobot_->checkSelfCollision(req, res, kstate, *acm_);
-//   ASSERT_FALSE(res.collision);
-// }
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+  req.group_name = "whole_body";
+  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  ASSERT_FALSE(res.collision);
+}
 
-// TEST_F(DistanceFieldCollisionDetectionTester, ChangeTorsoPosition) {
-//   planning_models::KinematicState kstate(kmodel_);
-//   kstate.setToDefaultValues();
+TEST_F(DistanceFieldCollisionDetectionTester, ChangeTorsoPosition) {
+  planning_models::KinematicState kstate(kmodel_);
+  kstate.setToDefaultValues();
   
-//   collision_detection::CollisionRequest req;
-//   collision_detection::CollisionResult res1;
-//   collision_detection::CollisionResult res2;
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res1;
+  collision_detection::CollisionResult res2;
 
-//   req.group_name = "right_arm";
-//   crobot_->checkSelfCollision(req, res1, kstate, *acm_);
-//   std::map<std::string, double> torso_val;
-//   torso_val["torso_lift_joint"] = .15;
-//   kstate.setStateValues(torso_val);
-//   crobot_->checkSelfCollision(req, res1, kstate, *acm_);
-//   crobot_->checkSelfCollision(req, res1, kstate, *acm_);
-// }
+  req.group_name = "right_arm";
+  crobot_->checkSelfCollision(req, res1, kstate, *acm_);
+  std::map<std::string, double> torso_val;
+  torso_val["torso_lift_joint"] = .15;
+  kstate.setStateValues(torso_val);
+  crobot_->checkSelfCollision(req, res1, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res1, kstate, *acm_);
+}
 
-// TEST_F(DistanceFieldCollisionDetectionTester, LinksInCollision)
-// {
-//   collision_detection::CollisionRequest req;
-//   collision_detection::CollisionResult res1;
-//   collision_detection::CollisionResult res2;
-//   collision_detection::CollisionResult res3;
-//   //req.contacts = true;
-//   //req.max_contacts = 100;
-//   req.group_name = "whole_body";
+TEST_F(DistanceFieldCollisionDetectionTester, LinksInCollision)
+{
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res1;
+  collision_detection::CollisionResult res2;
+  collision_detection::CollisionResult res3;
+  //req.contacts = true;
+  //req.max_contacts = 100;
+  req.group_name = "whole_body";
 
-//   planning_models::KinematicState kstate(kmodel_);
-//   kstate.setToDefaultValues();
+  planning_models::KinematicState kstate(kmodel_);
+  kstate.setToDefaultValues();
 
-//   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
-//   offset.translation().x() = .01;
+  Eigen::Affine3d offset = Eigen::Affine3d::Identity();
+  offset.translation().x() = .01;
 
-//   kstate.getLinkState("base_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
-//   kstate.getLinkState("base_bellow_link")->updateGivenGlobalLinkTransform(offset);
-//   acm_->setEntry("base_link", "base_bellow_link", false);
-//   crobot_->checkSelfCollision(req, res1, kstate, *acm_);
-//   ASSERT_TRUE(res1.collision);
+  kstate.getLinkState("base_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
+  kstate.getLinkState("base_bellow_link")->updateGivenGlobalLinkTransform(offset);
+  acm_->setEntry("base_link", "base_bellow_link", false);
+  crobot_->checkSelfCollision(req, res1, kstate, *acm_);
+  ASSERT_TRUE(res1.collision);
 
-//   acm_->setEntry("base_link", "base_bellow_link", true);
-//   crobot_->checkSelfCollision(req, res2, kstate, *acm_);
-//   ASSERT_FALSE(res2.collision);
+  acm_->setEntry("base_link", "base_bellow_link", true);
+  crobot_->checkSelfCollision(req, res2, kstate, *acm_);
+  ASSERT_FALSE(res2.collision);
   
-//   //  req.verbose = true;
-//   kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
-//   kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(offset);
+  //  req.verbose = true;
+  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
+  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(offset);
 
-//   acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
-//   crobot_->checkSelfCollision(req, res3, kstate, *acm_);
-//   ASSERT_TRUE(res3.collision);
-// }
+  acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
+  crobot_->checkSelfCollision(req, res3, kstate, *acm_);
+  ASSERT_TRUE(res3.collision);
+}
 
-// TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
-// {
-//   collision_detection::CollisionRequest req;
-//   req.contacts = true;
-//   req.max_contacts = 1;
-//   req.group_name = "whole_body";
+TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
+{
+  collision_detection::CollisionRequest req;
+  req.contacts = true;
+  req.max_contacts = 1;
+  req.group_name = "whole_body";
 
-//   planning_models::KinematicState kstate(kmodel_);
-//   kstate.setToDefaultValues();
+  planning_models::KinematicState kstate(kmodel_);
+  kstate.setToDefaultValues();
 
-//   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
-//   offset.translation().x() = .01;
+  Eigen::Affine3d offset = Eigen::Affine3d::Identity();
+  offset.translation().x() = .01;
 
-//   kstate.getLinkState("base_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
-//   kstate.getLinkState("base_bellow_link")->updateGivenGlobalLinkTransform(offset);
-//   kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
-//   kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(offset);
+  kstate.getLinkState("base_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
+  kstate.getLinkState("base_bellow_link")->updateGivenGlobalLinkTransform(offset);
+  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
+  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(offset);
 
-//   acm_->setEntry("base_link", "base_bellow_link", false);
-//   acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
+  acm_->setEntry("base_link", "base_bellow_link", false);
+  acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
 
-//   collision_detection::CollisionResult res;
-//   crobot_->checkSelfCollision(req, res, kstate, *acm_);
-//   ASSERT_TRUE(res.collision);
-//   EXPECT_EQ(res.contacts.size(),1);
-//   EXPECT_EQ(res.contacts.begin()->second.size(),1);
+  collision_detection::CollisionResult res;
+  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  ASSERT_TRUE(res.collision);
+  EXPECT_EQ(res.contacts.size(),1);
+  EXPECT_EQ(res.contacts.begin()->second.size(),1);
 
-//   res.clear();
-//   req.max_contacts = 2;
-//   req.max_contacts_per_pair = 1;
-//   //  req.verbose = true;
-//   crobot_->checkSelfCollision(req, res, kstate, *acm_);
-//   ASSERT_TRUE(res.collision);
-//   EXPECT_EQ(res.contact_count, 2);
-//   EXPECT_EQ(res.contacts.begin()->second.size(),1);
+  res.clear();
+  req.max_contacts = 2;
+  req.max_contacts_per_pair = 1;
+  //  req.verbose = true;
+  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  ASSERT_TRUE(res.collision);
+  EXPECT_EQ(res.contact_count, 2);
+  EXPECT_EQ(res.contacts.begin()->second.size(),1);
 
-//   res.contacts.clear(); 
-//   res.contact_count = 0;
+  res.contacts.clear(); 
+  res.contact_count = 0;
 
-//   req.max_contacts = 10;
-//   req.max_contacts_per_pair = 2;
-//   acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), false)); 
-//   crobot_->checkSelfCollision(req, res, kstate, *acm_);
-//   ASSERT_TRUE(res.collision);
-//   EXPECT_LE(res.contacts.size(), 10);  
-//   EXPECT_LE(res.contact_count, 10);
+  req.max_contacts = 10;
+  req.max_contacts_per_pair = 2;
+  acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), false)); 
+  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  ASSERT_TRUE(res.collision);
+  EXPECT_LE(res.contacts.size(), 10);  
+  EXPECT_LE(res.contact_count, 10);
 
-// }
+}
 
-// TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
-// {
-//   collision_detection::CollisionRequest req;
-//   req.contacts = true;
-//   req.max_contacts = 1;
-//   req.group_name = "whole_body";
+TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
+{
+  collision_detection::CollisionRequest req;
+  req.contacts = true;
+  req.max_contacts = 1;
+  req.group_name = "whole_body";
 
-//   planning_models::KinematicState kstate(kmodel_);
-//   kstate.setToDefaultValues();
+  planning_models::KinematicState kstate(kmodel_);
+  kstate.setToDefaultValues();
 
-//   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
-//   Eigen::Affine3d pos2 = Eigen::Affine3d::Identity();
+  Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
+  Eigen::Affine3d pos2 = Eigen::Affine3d::Identity();
 
-//   pos1.translation().x() = 5.0;
-//   pos2.translation().x() = 5.01;
+  pos1.translation().x() = 5.0;
+  pos2.translation().x() = 5.01;
 
-//   kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
-//   kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
+  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
+  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
 
-//   acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
+  acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
 
-//   collision_detection::CollisionResult res;
-//   crobot_->checkSelfCollision(req, res, kstate, *acm_);
-//   ASSERT_TRUE(res.collision);
-//   ASSERT_EQ(res.contacts.size(),1);
-//   ASSERT_EQ(res.contacts.begin()->second.size(),1);
+  collision_detection::CollisionResult res;
+  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  ASSERT_TRUE(res.collision);
+  ASSERT_EQ(res.contacts.size(),1);
+  ASSERT_EQ(res.contacts.begin()->second.size(),1);
 
-//   for(collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin();
-//       it != res.contacts.end();
-//       it++) {
-//     EXPECT_NEAR(it->second[0].pos.x(), 5.0, .33);
-//   }
+  for(collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin();
+      it != res.contacts.end();
+      it++) {
+    EXPECT_NEAR(it->second[0].pos.x(), 5.0, .33);
+  }
 
-//   pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond::Identity());
-//   pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(0.965, 0.0, 0.258, 0.0));
-//   kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
-//   kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
+  pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond::Identity());
+  pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(0.965, 0.0, 0.258, 0.0));
+  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
+  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
 
-//   collision_detection::CollisionResult res2;
-//   crobot_->checkSelfCollision(req, res2, kstate, *acm_);
-//   ASSERT_TRUE(res2.collision);
-//   ASSERT_EQ(res2.contacts.size(),1);
-//   ASSERT_EQ(res2.contacts.begin()->second.size(),1);
+  collision_detection::CollisionResult res2;
+  crobot_->checkSelfCollision(req, res2, kstate, *acm_);
+  ASSERT_TRUE(res2.collision);
+  ASSERT_EQ(res2.contacts.size(),1);
+  ASSERT_EQ(res2.contacts.begin()->second.size(),1);
 
-//   for(collision_detection::CollisionResult::ContactMap::const_iterator it = res2.contacts.begin();
-//       it != res2.contacts.end();
-//       it++) {
-//     ROS_INFO_STREAM("Col x is " << it->second[0].pos.x());
-//     EXPECT_NEAR(it->second[0].pos.x(), 3.0, 0.33);
-//   }
+  for(collision_detection::CollisionResult::ContactMap::const_iterator it = res2.contacts.begin();
+      it != res2.contacts.end();
+      it++) {
+    ROS_INFO_STREAM("Col x is " << it->second[0].pos.x());
+    EXPECT_NEAR(it->second[0].pos.x(), 3.0, 0.33);
+  }
 
-//   pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond::Identity());
-//   pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(M_PI/4.0, 0.0, M_PI/4.0, 0.0));
-//   kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
-//   kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
+  pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond::Identity());
+  pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0,0.0,0.0)*Eigen::Quaterniond(M_PI/4.0, 0.0, M_PI/4.0, 0.0));
+  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
+  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
 
-//   collision_detection::CollisionResult res3;
-//   crobot_->checkSelfCollision(req, res2, kstate, *acm_);
-//   ASSERT_FALSE(res3.collision);
-// }
+  collision_detection::CollisionResult res3;
+  crobot_->checkSelfCollision(req, res2, kstate, *acm_);
+  ASSERT_FALSE(res3.collision);
+}
 
 TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
   collision_detection::CollisionRequest req;
@@ -285,13 +285,13 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
   kstate.setToDefaultValues();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
-  pos1.translation().x() = 5.0;
+  pos1.translation().x() = 1.0;
 
   kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_FALSE(res.collision);  
 
-  shapes::Shape* shape = new shapes::Box(.1,.1,.1);
+  shapes::Shape* shape = new shapes::Box(.25,.25,.25);
   cworld_->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
   
   res = collision_detection::CollisionResult();
@@ -301,7 +301,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
   //deletes shape
   cworld_->removeObject("box");
 
-  shape = new shapes::Box(.1,.1,.1);
+  shape = new shapes::Box(.25,.25,.25);
   std::vector<shapes::ShapeConstPtr> shapes;
   std::vector<Eigen::Affine3d> poses;
   shapes.push_back(shapes::ShapeConstPtr(shape));
@@ -324,7 +324,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester) {
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_FALSE(res.collision);  
 
-  pos1.translation().x() = 5.01;
+  pos1.translation().x() = 1.01;
   shapes::Shape* coll = new shapes::Box(.1, .1, .1);
   cworld_->addToObject("coll", shapes::ShapeConstPtr(coll), pos1);  
   res = collision_detection::CollisionResult();

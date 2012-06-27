@@ -96,8 +96,8 @@ PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const p
   PosedBodySphereDecompositionVectorPtr ret(new PosedBodySphereDecompositionVector());
   for(unsigned int i = 0; i < att->getShapes().size(); i++) {
     PosedBodySphereDecompositionPtr pbd(new PosedBodySphereDecomposition(getBodyDecompositionCacheEntry(att->getShapes()[i], resolution)));
+    pbd->updatePose(att->getGlobalCollisionBodyTransforms()[i]);
     ret->addToVector(pbd);
-    ret->updatePose(ret->getSize()-1, att->getGlobalCollisionBodyTransforms()[i]);
   }
   return ret;
 }

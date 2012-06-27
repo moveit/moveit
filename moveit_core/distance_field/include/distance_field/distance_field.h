@@ -114,7 +114,7 @@ public:
   /**
    * \brief Gets the distance at a location and the gradient of the field.
    */
-  double getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y, double& gradient_z) const;
+  double getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y, double& gradient_z, bool& in_bounds) const;
 
   /**
    * \brief Gets the distance to the closest obstacle at the given integer cell location.

@@ -26,7 +26,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/collision_world_distance_field.cpp
 )
 
-rosbuild_add_gtest(test_collision_distance_field test/test_collision_distance_field.cpp)
+rosbuild_add_gtest(test_collision_distance_field test/test_collision_distance_field.cpp TIMEOUT 600)
 target_link_libraries(test_collision_distance_field ${PROJECT_NAME})
 rosbuild_link_boost(test_collision_distance_field system filesystem)
 

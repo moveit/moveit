@@ -49,7 +49,8 @@ DistanceField::~DistanceField()
 {
 }
 
-double DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y, double& gradient_z) const
+double DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y, double& gradient_z,
+                                          bool& in_bounds) const
 {
   int gx, gy, gz;
 
@@ -62,6 +63,7 @@ double DistanceField::getDistanceGradient(double x, double y, double z, double& 
     gradient_x = 0.0;
     gradient_y = 0.0;
     gradient_z = 0.0;
+    in_bounds = false;
     return 0;
   }
 
@@ -69,6 +71,7 @@ double DistanceField::getDistanceGradient(double x, double y, double z, double& 
   gradient_y = (getDistanceFromCell(gx,gy+1,gz) - getDistanceFromCell(gx,gy-1,gz))*inv_twice_resolution_;
   gradient_z = (getDistanceFromCell(gx,gy,gz+1) - getDistanceFromCell(gx,gy,gz-1))*inv_twice_resolution_;
 
+  in_bounds = true;
   return getDistanceFromCell(gx,gy,gz);
 }
 
@@ -140,10 +143,11 @@ void DistanceField::getGradientMarkers( double min_radius, double max_radius,
         gridToWorld(x, y, z, worldX, worldY, worldZ);
 
         double gradientX, gradientY, gradientZ;
-        double distance = getDistanceGradient(worldX, worldY, worldZ, gradientX, gradientY, gradientZ);
+        bool in_bounds;
+        double distance = getDistanceGradient(worldX, worldY, worldZ, gradientX, gradientY, gradientZ, in_bounds);
         Eigen::Vector3d gradient(gradientX, gradientY, gradientZ);
 
-        if (distance >= min_radius && distance <= max_radius && gradient.norm() > 0)
+        if (in_bounds && distance >= min_radius && distance <= max_radius && gradient.norm() > 0)
         {
           visualization_msgs::Marker marker;
 
