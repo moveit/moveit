@@ -130,6 +130,7 @@ int main(int argc, char** argv)
                                                         "arrows",
                                                         ros::Duration(0.0),
                                                         world_gsr->link_body_decompositions_,
+                                                        world_gsr->attached_body_decompositions_,
                                                         world_gsr->gradients_,
                                                         arrow_markers);
 

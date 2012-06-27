@@ -181,78 +181,7 @@ void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObjec
   }
   visualization_msgs::InteractiveMarker marker; 
 
-  if(coll.primitive_poses.size() > 1 && coll.primitives.size() == 1 && coll.meshes.empty()) {
-    marker = makeButtonPointMass(coll.id,
-                                 "/"+planning_scene_->getPlanningFrame(),
-                                 coll.primitive_poses,
-                                 color_to_use,
-                                 coll.primitives[0].dimensions.x,
-                                 false,
-                                 false);
-    ROS_INFO_STREAM("Made button mass");
-  } else if(coll.primitives.size() + coll.meshes.size() > 1) {
-    std::vector<shapes::ShapeMsg> shapes;
-    std::vector<geometry_msgs::Pose> poses;
-    for (std::size_t i = 0 ; i < coll.primitives.size() ; ++i)
-    {
-      shapes::ShapeMsg s = coll.primitives[i]; shapes.push_back(s);
-      poses.push_back(coll.primitive_poses[i]);
-    }
-    for (std::size_t i = 0 ; i < coll.meshes.size() ; ++i)
-    {
-      shapes::ShapeMsg s = coll.meshes[i]; shapes.push_back(s);
-      poses.push_back(coll.mesh_poses[i]);
-    }
-    marker = makeButtonCompoundShape(coll.id,
-                                     "/"+planning_scene_->getPlanningFrame(),
-                                     shapes,
-                                     poses,
-                                     color_to_use,
-                                     1.0,
-                                     false,
-                                     false);
-    ROS_INFO_STREAM("Made compound object");
-  } else {
-    if (coll.meshes.empty())
-    {
-      const shape_msgs::SolidPrimitive& shape_msg = coll.primitives[0]; 
-      geometry_msgs::PoseStamped pose_stamped;
-      pose_stamped.header.frame_id = "/"+planning_scene_->getPlanningFrame();
-      pose_stamped.pose = coll.primitive_poses[0];
-      
-      if(shape_msg.type == shape_msgs::SolidPrimitive::BOX) {
-        marker = makeButtonBox(coll.id,
-                               pose_stamped,
-                               shape_msg.dimensions.x,
-                               shape_msg.dimensions.y,
-                               shape_msg.dimensions.z,
-                               false, 
-                               false);
-      } else if(shape_msg.type == shape_msgs::SolidPrimitive::CYLINDER) { 
-        marker = makeButtonCylinder(coll.id,
-                                    pose_stamped,
-                                    shape_msg.dimensions.x,
-                                    shape_msg.dimensions.z,
-                                    false, 
-                                    false);
-      } else if(shape_msg.type == shape_msgs::SolidPrimitive::SPHERE) {
-        marker = makeButtonSphere(coll.id,
-                                  pose_stamped,
-                                  shape_msg.dimensions.x,
-                                  false, 
-                                  false);
-      }
-    }
-    else  {
-      geometry_msgs::PoseStamped pose_stamped;
-      pose_stamped.header.frame_id = "/"+planning_scene_->getPlanningFrame();
-      pose_stamped.pose = coll.mesh_poses[0];
-      marker = makeButtonMesh(coll.id,
-                              coll.meshes[0],
-                              pose_stamped,
-                              color_to_use);
-    }
-  }
+  makeInteractiveMarkerButton(coll, color_to_use, marker);
 
   if(dof_marker_enabled_.find(coll.id) == dof_marker_enabled_.end()) {
     dof_marker_enabled_[coll.id] = true;
@@ -268,7 +197,7 @@ void InteractiveObjectVisualization::addObject(const moveit_msgs::CollisionObjec
   if(menu_name_to_handle_maps_[coll.id].find("Delete object") == menu_name_to_handle_maps_[coll.id].end()) {
     interactive_markers::MenuHandler::EntryHandle del_entry
       = object_menu_handlers_[coll.id].insert("Delete object", 
-                                           boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+                                              boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
     menu_handle_to_function_maps_[coll.id][del_entry] = boost::bind(&InteractiveObjectVisualization::deleteObject, this, _1);
     menu_name_to_handle_maps_[coll.id]["Delete object"] = del_entry;
   }
@@ -501,6 +430,99 @@ void InteractiveObjectVisualization::deleteObject(const std::string& name) {
   callUpdateCallback();
 }
 
+void InteractiveObjectVisualization::attachObject(const std::string& name,
+                                                  const std::string& link,
+                                                  const std::vector<std::string>& touch_links)
+{
+  if(!planning_scene_diff_->getCollisionWorld()->hasObject(name)) {
+    ROS_WARN_STREAM("No object " << name << " for attach");
+    return;
+  }
+  moveit_msgs::AttachedCollisionObject att;
+  planning_scene_diff_->getCollisionObjectMsg(name, att.object);
+  att.link_name = link;
+  att.touch_links = touch_links;
+  planning_scene_diff_->processAttachedCollisionObjectMsg(att);
+  callUpdateCallback();
+
+  visualization_msgs::InteractiveMarker tm;
+  bool already_have = interactive_marker_server_->get(name, tm);
+  if(!already_have) {
+    ROS_WARN_STREAM("Somehow don't have interactive marker");
+    return;
+  }
+
+  std_msgs::ColorRGBA color_to_use;
+  if(tm.controls.size() > 0 && tm.controls[0].markers.size() > 0) {
+    if(tm.controls[0].markers[0].color.r != default_object_color_.r ||
+       tm.controls[0].markers[0].color.g != default_object_color_.g ||
+       tm.controls[0].markers[0].color.b != default_object_color_.b) {
+      color_to_use = tm.controls[0].markers[0].color;
+    }
+  }
+  dof_marker_enabled_.erase(name);
+  object_menu_handlers_.erase(name);
+  menu_name_to_handle_maps_.erase(name);
+  menu_handle_to_function_maps_.erase(name);
+  interactive_marker_server_->erase(name);
+  interactive_marker_server_->applyChanges();
+  visualization_msgs::InteractiveMarker marker; 
+  makeInteractiveMarkerButton(att.object, color_to_use, marker, 1.001);
+  recolorInteractiveMarker(marker, color_to_use);
+  interactive_marker_server_->insert(marker);
+  if(menu_name_to_handle_maps_[name].find("Detach object") == menu_name_to_handle_maps_[name].end()) {
+    interactive_markers::MenuHandler::EntryHandle del_entry
+      = object_menu_handlers_[name].insert("Detach object", 
+                                           boost::bind(&InteractiveObjectVisualization::processInteractiveMenuFeedback, this, _1));
+    menu_handle_to_function_maps_[name][del_entry] = boost::bind(&InteractiveObjectVisualization::detachObject, this, _1, link);
+    menu_name_to_handle_maps_[name]["Detach object"] = del_entry;
+  }
+  object_menu_handlers_[name].apply(*interactive_marker_server_, name);
+  interactive_marker_server_->applyChanges();
+}
+
+void InteractiveObjectVisualization::detachObject(const std::string& name,
+                                                  const std::string& link) 
+{
+  visualization_msgs::InteractiveMarker tm;
+  bool already_have = interactive_marker_server_->get(name, tm);
+  if(!already_have) {
+    ROS_WARN_STREAM("Somehow don't have interactive marker");
+    return;
+  }
+
+  std_msgs::ColorRGBA color_to_use;
+  if(tm.controls.size() > 0 && tm.controls[0].markers.size() > 0) {
+    if(tm.controls[0].markers[0].color.r != default_object_color_.r ||
+       tm.controls[0].markers[0].color.g != default_object_color_.g ||
+       tm.controls[0].markers[0].color.b != default_object_color_.b) {
+      color_to_use = tm.controls[0].markers[0].color;
+    }
+  }
+  moveit_msgs::AttachedCollisionObject att;
+  att.object.id = name;
+  att.link_name = link;
+  att.object.operation = moveit_msgs::CollisionObject::REMOVE;
+  planning_scene_diff_->processAttachedCollisionObjectMsg(att);
+  
+  interactive_marker_server_->erase(name);
+  interactive_marker_server_->applyChanges();
+
+  dof_marker_enabled_.erase(name);
+  object_menu_handlers_.erase(name);
+  menu_name_to_handle_maps_.erase(name);
+  menu_handle_to_function_maps_.erase(name);
+
+  //should be back as object
+  moveit_msgs::CollisionObject coll;
+  if(planning_scene_diff_->getCollisionObjectMsg(name, coll)) {
+    addObject(coll, color_to_use);
+  } else {
+    ROS_WARN_STREAM("Object disappeared");
+  }
+  callUpdateCallback();
+}
+
 void InteractiveObjectVisualization::setResizeModeOff(const std::string& name)
 {
   object_menu_handlers_[name].setCheckState(menu_name_to_handle_maps_[name]["Off"], interactive_markers::MenuHandler::CHECKED);
@@ -689,6 +711,85 @@ void InteractiveObjectVisualization::addMenuEntry(const std::string& object_name
   menu_handle_to_function_maps_[object_name][eh] = callback;
   mh.apply(*interactive_marker_server_, object_name);
   interactive_marker_server_->applyChanges();
+}
+
+void InteractiveObjectVisualization::makeInteractiveMarkerButton(const moveit_msgs::CollisionObject& coll,
+                                                                 const std_msgs::ColorRGBA& color_to_use,
+                                                                 visualization_msgs::InteractiveMarker& marker,
+                                                                 double scale)
+{
+  if(coll.primitive_poses.size() > 1 && coll.primitives.size() == 1 && coll.meshes.empty()) {
+    marker = makeButtonPointMass(coll.id,
+                                 "/"+planning_scene_->getPlanningFrame(),
+                                 coll.primitive_poses,
+                                 color_to_use,
+                                 coll.primitives[0].dimensions.x*scale,
+                                 false,
+                                 false);
+    ROS_INFO_STREAM("Made button mass");
+  } else if(coll.primitives.size() + coll.meshes.size() > 1) {
+    std::vector<shapes::ShapeMsg> shapes;
+    std::vector<geometry_msgs::Pose> poses;
+    for (std::size_t i = 0 ; i < coll.primitives.size() ; ++i)
+    {
+      shapes::ShapeMsg s = coll.primitives[i]; shapes.push_back(s);
+      poses.push_back(coll.primitive_poses[i]);
+    }
+    for (std::size_t i = 0 ; i < coll.meshes.size() ; ++i)
+    {
+      shapes::ShapeMsg s = coll.meshes[i]; shapes.push_back(s);
+      poses.push_back(coll.mesh_poses[i]);
+    }
+    marker = makeButtonCompoundShape(coll.id,
+                                     "/"+planning_scene_->getPlanningFrame(),
+                                     shapes,
+                                     poses,
+                                     color_to_use,
+                                     1.0*scale,
+                                     false,
+                                     false);
+    ROS_INFO_STREAM("Made compound object");
+  } else {
+    if (coll.meshes.empty())
+    {
+      const shape_msgs::SolidPrimitive& shape_msg = coll.primitives[0]; 
+      geometry_msgs::PoseStamped pose_stamped;
+      pose_stamped.header.frame_id = "/"+planning_scene_->getPlanningFrame();
+      pose_stamped.pose = coll.primitive_poses[0];
+      
+      if(shape_msg.type == shape_msgs::SolidPrimitive::BOX) {
+        marker = makeButtonBox(coll.id,
+                               pose_stamped,
+                               shape_msg.dimensions.x*scale,
+                               shape_msg.dimensions.y*scale,
+                               shape_msg.dimensions.z*scale,
+                               false, 
+                               false);
+      } else if(shape_msg.type == shape_msgs::SolidPrimitive::CYLINDER) { 
+        marker = makeButtonCylinder(coll.id,
+                                    pose_stamped,
+                                    shape_msg.dimensions.x*scale,
+                                    shape_msg.dimensions.z*scale,
+                                    false, 
+                                    false);
+      } else if(shape_msg.type == shape_msgs::SolidPrimitive::SPHERE) {
+        marker = makeButtonSphere(coll.id,
+                                  pose_stamped,
+                                  shape_msg.dimensions.x*scale,
+                                  false, 
+                                  false);
+      }
+    }
+    else  {
+      geometry_msgs::PoseStamped pose_stamped;
+      pose_stamped.header.frame_id = "/"+planning_scene_->getPlanningFrame();
+      pose_stamped.pose = coll.mesh_poses[0];
+      marker = makeButtonMesh(coll.id,
+                              coll.meshes[0],
+                              pose_stamped,
+                              color_to_use);
+    }
+  }
 }
 
 }

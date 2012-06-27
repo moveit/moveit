@@ -36,6 +36,7 @@
 #include <moveit_visualization_ros/planning_group_selection_menu.h>
 #include <moveit_visualization_ros/planning_scene_file_menu.h>
 #include <moveit_visualization_ros/planning_visualization_qt_wrapper.h>
+#include <moveit_visualization_ros/attach_object_addition_dialog.h>
 #include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
 #include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
 
@@ -71,6 +72,8 @@ protected:
   void startCycle();
   void cycleLastTrajectory();
   void stopCycle();
+  
+  void attachObject(const std::string& name);
 
   bool first_update_;
 
@@ -81,6 +84,7 @@ protected:
   QWidget* main_window_;
   PlanningGroupSelectionMenu* planning_group_selection_menu_;  
   QMenu* coll_object_menu_;
+  AttachObjectAdditionDialog* attach_object_addition_dialog_;
   boost::shared_ptr<tf::TransformListener> transformer_;
 
   bool allow_trajectory_execution_;

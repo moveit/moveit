@@ -206,16 +206,8 @@ void PlanningDisplay::setPlanningSceneTopic(const std::string &topic)
 {
   planning_scene_topic_ = topic;
   if (scene_monitor_)
-    scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
+    scene_monitor_->startSceneMonitor(planning_scene_topic_);
   propertyChanged(planning_scene_topic_property_);
-}
-
-void PlanningDisplay::setPlanningSceneDiffTopic(const std::string &topic)
-{
-  planning_scene_diff_topic_ = topic;
-  if (scene_monitor_)
-    scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
-  propertyChanged(planning_scene_diff_topic_property_);
 }
 
 void PlanningDisplay::setSceneDisplayTime(float time)
@@ -309,7 +301,7 @@ void PlanningDisplay::load()
   
   if (scene_monitor_->getPlanningScene())
   {
-    scene_monitor_->startSceneMonitor(planning_scene_topic_, planning_scene_diff_topic_);
+    scene_monitor_->startSceneMonitor(planning_scene_topic_);
     scene_robot_->update(PlanningLinkUpdater(&scene_monitor_->getPlanningScene()->getCurrentState()));
   }
   else
@@ -696,14 +688,6 @@ void PlanningDisplay::createProperties()
                                                                                                     scene_category_, this);
   setPropertyHelpText(planning_scene_topic_property_, "The topic on which the moveit_msgs::PlanningScene messages are received");
   rviz::ROSTopicStringPropertyPtr topic_prop = planning_scene_topic_property_.lock();
-  topic_prop->setMessageType(ros::message_traits::datatype<moveit_msgs::PlanningScene>());
-  
-  planning_scene_diff_topic_property_ = property_manager_->createProperty<rviz::ROSTopicStringProperty> ("Planning Scene Diffs Topic", path_prefix,
-                                                                                                         boost::bind(&PlanningDisplay::getPlanningSceneDiffTopic, this),
-                                                                                                         boost::bind(&PlanningDisplay::setPlanningSceneDiffTopic, this, _1),
-                                                                                                         scene_category_, this);
-  setPropertyHelpText(planning_scene_diff_topic_property_, "The topic on which the moveit_msgs::PlanningScene diff messages are received");
-  topic_prop = planning_scene_diff_topic_property_.lock();
   topic_prop->setMessageType(ros::message_traits::datatype<moveit_msgs::PlanningScene>());
   
   

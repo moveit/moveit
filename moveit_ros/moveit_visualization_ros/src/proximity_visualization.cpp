@@ -113,12 +113,14 @@ void ProximityVisualization::stateChanged(const std::string& group,
                                                         "arrows",
                                                         ros::Duration(0.0),
                                                         world_grad_gsr->link_body_decompositions_,
+                                                        world_grad_gsr->attached_body_decompositions_,
                                                         world_grad_gsr->gradients_,
                                                         arrow_markers);
   collision_distance_field::getCollisionMarkers(planning_scene_->getPlanningFrame(),
                                                 "spheres",
                                                 ros::Duration(0.0),
                                                 world_coll_gsr->link_body_decompositions_,
+                                                world_grad_gsr->attached_body_decompositions_,
                                                 world_coll_gsr->gradients_,
                                                 arrow_markers);
   
