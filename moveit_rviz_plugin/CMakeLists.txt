@@ -17,7 +17,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 find_package(Eigen REQUIRED)
-include_directories(${EIGEN_INCLUDE_DIRS})
+include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES src/planning_display.cpp src/init.cpp)
 

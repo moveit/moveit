@@ -81,6 +81,7 @@ public:
     // start the service server
     plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlan, this);
   }
+
   
   void preemptCallback(void)
   {
@@ -271,7 +272,7 @@ int main(int argc, char **argv)
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor(new planning_scene_monitor::PlanningSceneMonitor(ROBOT_DESCRIPTION, tf));
   
-  if (planning_scene_monitor->getPlanningScene()->isConfigured())
+  if (planning_scene_monitor->getPlanningScene() && planning_scene_monitor->getPlanningScene()->isConfigured())
   {
     planning_scene_monitor->startWorldGeometryMonitor();
     planning_scene_monitor->startSceneMonitor();

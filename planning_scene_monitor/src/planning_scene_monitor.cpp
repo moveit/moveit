@@ -32,10 +32,42 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, E. Gil Jones */
+/* Author: Ioan Sucan */
 
 #include "planning_scene_monitor/planning_scene_monitor.h"
 #include <planning_models_loader/kinematic_model_loader.h>
+
+#include <dynamic_reconfigure/server.h>
+#include "planning_scene_monitor/PlanningSceneMonitorDynamicReconfigureConfig.h"
+
+namespace planning_scene_monitor
+{
+
+class PlanningSceneMonitor::DynamicReconfigureImpl
+{ 
+public:
+  
+  DynamicReconfigureImpl(PlanningSceneMonitor *owner) : owner_(owner)
+  {
+    dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
+  }
+  
+private:
+  
+  void dynamicReconfigureCallback(PlanningSceneMonitorDynamicReconfigureConfig &config, uint32_t level)
+  {
+    if (config.groups.scene_publisher.publish_planning_scene)
+      owner_->startPublishingPlanningScene();
+    else
+      owner_->stopPublishingPlanningScene();
+    owner_->setPlanningScenePublishingFrequency(config.groups.scene_publisher.publish_planning_scene_hz);
+  }
+  
+  PlanningSceneMonitor *owner_;
+  dynamic_reconfigure::Server<planning_scene_monitor::PlanningSceneMonitorDynamicReconfigureConfig> dynamic_reconfigure_server_;
+};
+  
+}
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description) :
   nh_("~")
@@ -75,6 +107,7 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const plannin
 
 planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
 {
+  stopPublishingPlanningScene();
   stopStateMonitor();
   stopWorldGeometryMonitor();
   stopSceneMonitor();
@@ -116,9 +149,14 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
     }
   }
   
+  publish_planning_scene_frequency_ = 2.0;
+  new_scene_update_ = false;
+  
   last_update_time_ = ros::Time::now();
   last_state_update_ = ros::WallTime::now();
   dt_state_update_ = 0.2;
+
+  reconfigure_impl_.reset(new DynamicReconfigureImpl(this));
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
@@ -128,8 +166,79 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
     boost::mutex::scoped_lock slock(scene_update_mutex_);
     scene_->decoupleParent();
     if (flag)
+    {
+      parent_scene_ = scene_;
       scene_.reset(new planning_scene::PlanningScene(scene_));
+    }
+    else
+    {
+      parent_scene_.reset();
+      if (publish_planning_scene_)
+      {
+        ROS_WARN("Diff monitoring was stopped while publishing planning scene diffs. Stopping planning scene diff publisher");
+        stopPublishingPlanningScene();
+      }
+    }
   }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::stopPublishingPlanningScene(void)
+{ 
+  if (publish_planning_scene_)
+  {
+    boost::scoped_ptr<boost::thread> copy;
+    copy.swap(publish_planning_scene_);
+    new_scene_update_condition_.notify_all();
+    copy->join();
+    monitorDiffs(false);
+    planning_scene_publisher_.shutdown(); 
+    ROS_INFO("Stopped publishing maintained planning scene.");
+  }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::startPublishingPlanningScene(const std::string &planning_scene_topic)
+{
+  if (!publish_planning_scene_)
+  {
+    planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>(planning_scene_topic, 100, false);
+    ROS_INFO("Publishing maintained planning scene on '%s'", planning_scene_topic.c_str());
+    monitorDiffs(true);
+    publish_planning_scene_.reset(new boost::thread(boost::bind(&PlanningSceneMonitor::scenePublishingThread, this)));
+  }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
+{
+  moveit_msgs::PlanningScene msg;
+  scene_->getPlanningSceneMsg(msg);
+  planning_scene_publisher_.publish(msg);
+  
+  bool have_diff = false;
+  do 
+  {
+    have_diff = false;
+    ros::Rate rate(publish_planning_scene_frequency_);
+    {
+      boost::unique_lock<boost::mutex> ulock(scene_update_mutex_);
+      while (!new_scene_update_ && publish_planning_scene_)
+        new_scene_update_condition_.wait(ulock);
+      if (new_scene_update_)
+      {
+        rate.reset();
+        scene_->getPlanningSceneDiffMsg(msg);  
+        scene_->pushDiffs(parent_scene_);
+        scene_->clearDiffs();
+        new_scene_update_ = false;
+        have_diff = true;
+      }
+    }
+    if (have_diff)
+    {
+      planning_scene_publisher_.publish(msg);
+      rate.sleep();
+    }
+  }
+  while (have_diff && publish_planning_scene_);
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vector<std::string> &topics) const
@@ -143,8 +252,6 @@ void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vecto
   }
   if (planning_scene_subscriber_)
     topics.push_back(planning_scene_subscriber_.getTopic());
-  if (planning_scene_diff_subscriber_)
-    topics.push_back(planning_scene_diff_subscriber_.getTopic());
   if (collision_object_subscriber_)
     topics.push_back(collision_object_subscriber_->getTopic());
   if (collision_map_subscriber_)
@@ -153,31 +260,24 @@ void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vecto
     topics.push_back(planning_scene_world_subscriber_.getTopic());
 }
 
+void planning_scene_monitor::PlanningSceneMonitor::processSceneUpdateEvent(void)
+{
+  if (update_callback_)
+    update_callback_();
+  new_scene_update_ = true;
+  new_scene_update_condition_.notify_all();
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
 {
   if (scene_)
   {
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);
-      scene_->setPlanningSceneMsg(*scene);
+      scene_->usePlanningSceneMsg(*scene);
       last_update_time_ = ros::Time::now();
     }
-    if (update_callback_)
-      update_callback_();
-  }
-}
-
-void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneDiffCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
-{
-  if (scene_)
-  {
-    {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);
-      scene_->setPlanningSceneDiffMsg(*scene);
-      last_update_time_ = ros::Time::now();
-    }
-    if (update_callback_)
-      update_callback_();
+    processSceneUpdateEvent();
   }
 }
 
@@ -191,9 +291,8 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
       for (std::size_t i = 0 ; i < world->collision_objects.size() ; ++i)
         scene_->processCollisionObjectMsg(world->collision_objects[i]);
       last_update_time_ = ros::Time::now();
-    }
-    if (update_callback_)
-      update_callback_();
+    }  
+    processSceneUpdateEvent();
   }
 }
 
@@ -206,8 +305,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const
       scene_->processCollisionObjectMsg(*obj);
       last_update_time_ = ros::Time::now();
     }
-    if (update_callback_)
-      update_callback_();
+    processSceneUpdateEvent();
   }
 }
 
@@ -220,8 +318,7 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
       scene_->processAttachedCollisionObjectMsg(*obj);
       last_update_time_ = ros::Time::now();
     }
-    if (update_callback_)
-      update_callback_();
+    processSceneUpdateEvent();
   }
 }
 
@@ -234,8 +331,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
       scene_->processCollisionMapMsg(*map);
       last_update_time_ = ros::Time::now();
     }
-    if (update_callback_)
-      update_callback_();
+    processSceneUpdateEvent();
   }
 }
 
@@ -249,25 +345,22 @@ void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
   scene_update_mutex_.unlock();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string &scene_topic, const std::string &scene_diff_topic)
+void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string &scene_topic)
 {
   stopSceneMonitor();
   
   ROS_INFO("Starting scene monitor");
   // listen for planning scene updates; these messages include transforms, so no need for filters
   if (!scene_topic.empty())
-    planning_scene_subscriber_ = root_nh_.subscribe(scene_topic, 2, &PlanningSceneMonitor::newPlanningSceneCallback, this);
-  if (!scene_diff_topic.empty())
-    planning_scene_diff_subscriber_ = root_nh_.subscribe(scene_diff_topic, 100, &PlanningSceneMonitor::newPlanningSceneDiffCallback, this);
-  ROS_INFO("Listening to '%s' and '%s'", scene_topic.c_str(), scene_diff_topic.c_str());
+    planning_scene_subscriber_ = root_nh_.subscribe(scene_topic, 100, &PlanningSceneMonitor::newPlanningSceneCallback, this);
+  ROS_INFO("Listening to '%s'", scene_topic.c_str());
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
 {
-  if (planning_scene_diff_subscriber_ || planning_scene_subscriber_)
+  if (planning_scene_subscriber_)
   {
     ROS_INFO("Stopping scene monitor");
-    planning_scene_diff_subscriber_.shutdown();
     planning_scene_subscriber_.shutdown();
   }
 }
@@ -406,7 +499,8 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(v
   if (current_state_monitor_)
   {
     std::vector<std::string> missing;
-    if (!current_state_monitor_->haveCompleteState(missing)) {
+    if (!current_state_monitor_->haveCompleteState(missing))
+    {
       std::string missing_str = boost::algorithm::join(missing, ", ");
       ROS_WARN("The complete state of the robot is not yet known.  Missing %s", missing_str.c_str());
     }
@@ -417,8 +511,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(v
       scene_->getCurrentState().setStateValues(v);
       last_update_time_ = ros::Time::now();
     }
-    if (update_callback_)
-      update_callback_();
+    processSceneUpdateEvent();
   }
   else
     ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
@@ -427,6 +520,11 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(v
 void planning_scene_monitor::PlanningSceneMonitor::setUpdateCallback(const boost::function<void()> &fn)
 {
   update_callback_ = fn;
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::setPlanningScenePublishingFrequency(double hz)
+{
+  publish_planning_scene_frequency_ = hz;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
@@ -483,9 +581,8 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
     boost::mutex::scoped_lock slock(scene_update_mutex_);
     scene_->getTransforms()->setTransforms(transforms);
     last_update_time_ = ros::Time::now();
-  }
-  if (update_callback_)
-    update_callback_();
+  }  
+  processSceneUpdateEvent();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::configureDefaultCollisionMatrix(void)
