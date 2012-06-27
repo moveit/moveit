@@ -117,6 +117,7 @@ void CollisionRobotDistanceField::checkSelfCollisionHelper(const collision_detec
                                                                                         true);
   //ros::WallTime n = ros::WallTime::now();
   bool done = getSelfCollisions(req, res, dfce, gsr);
+  //std::cerr << "Self collision " << res.collision << std::endl;
   if(!done) {
     getIntraGroupCollisions(req, res, dfce, gsr);
   }
@@ -136,13 +137,13 @@ CollisionRobotDistanceField::getDistanceFieldCacheEntry(const std::string& group
   }
   boost::shared_ptr<const DistanceFieldCacheEntry> cur = distance_field_cache_entry_;
   if(group_name != cur->group_name_) {
-    //ROS_INFO_STREAM("No cache entry as group name changed from " << cur->group_name_ << " to " << group_name);
+    ROS_DEBUG_STREAM("No cache entry as group name changed from " << cur->group_name_ << " to " << group_name);
     return ret;
   } else if(!compareCacheEntryToState(cur, state)) {
-    //ROS_INFO_STREAM("Regenerating distance field as state has changed from last time");
+    ROS_DEBUG_STREAM("Regenerating distance field as state has changed from last time");
     return ret;
   } else if(acm && !compareCacheEntryToAllowedCollisionMatrix(cur, *acm)) {
-    //ROS_INFO_STREAM("Regenerating distance field as some relevant part of the acm changed");    
+    ROS_DEBUG_STREAM("Regenerating distance field as some relevant part of the acm changed");    
     return ret;
   }
   return cur;
@@ -220,6 +221,11 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
                                               max_propogation_distance_,
                                               0.0);
       if(coll) {
+        if(is_link) {
+          std::cerr << "Link " << dfce->link_names_[i] << " in self collision" << std::endl;
+        } else {
+          std::cerr << "Attached body in self collision" << std::endl;
+        }
         res.collision = true;
         return true;
       }
@@ -315,8 +321,20 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
         //           << " intersect" << std::endl;
       }
       int num_pair = -1;
+      std::string name_1;
+      std::string name_2;
       if(req.contacts) {
-        collision_detection::CollisionResult::ContactMap::iterator it = res.contacts.find(std::pair<std::string,std::string>(dfce->link_names_[i], dfce->link_names_[j]));
+        if(i_is_link) {
+          name_1 = dfce->link_names_[i];
+        } else {
+          name_1 = dfce->attached_body_names_[i-num_links];        
+        }
+        if(j_is_link) {
+          name_2 = dfce->link_names_[j];
+        } else {
+          name_2 = dfce->attached_body_names_[j-num_links];        
+        }
+        collision_detection::CollisionResult::ContactMap::iterator it = res.contacts.find(std::pair<std::string,std::string>(name_1, name_2));
         if(it == res.contacts.end()) {
           num_pair = 0;
         } else {
@@ -351,19 +369,17 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
             if(req.contacts) {
               collision_detection::Contact con;
               con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[k];
+              con.body_name_1 = name_1;
+              con.body_name_2 = name_2;
               if(i_is_link) {
                 con.body_type_1 = collision_detection::BodyTypes::ROBOT_LINK;
-                con.body_name_1 = dfce->link_names_[i];
               } else {
                 con.body_type_1 = collision_detection::BodyTypes::ROBOT_ATTACHED;
-                con.body_name_1 = dfce->attached_body_names_[i-num_links];
               }
               if(j_is_link) {
                 con.body_type_2 = collision_detection::BodyTypes::ROBOT_LINK;
-                con.body_name_2 = dfce->link_names_[j];
               } else {
                 con.body_type_2 = collision_detection::BodyTypes::ROBOT_ATTACHED;
-                con.body_name_2 = dfce->attached_body_names_[j-num_links];
               }
               res.contact_count++;
               res.contacts[std::pair<std::string,std::string>(con.body_name_1, con.body_name_2)].push_back(con);
@@ -470,65 +486,18 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
   }
   //generateAllowedCollisionInformation(dfce);
   dfce->link_names_ = kmodel_->getJointModelGroup(group_name)->getUpdatedLinkModelNames();
-  std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
-  dfce->state_->getAttachedBodies(attached_bodies);
-  std::vector<bool> all_true(dfce->link_names_.size()+attached_bodies.size(), true);
-  std::vector<bool> all_false(dfce->link_names_.size()+attached_bodies.size(), false);
+  std::vector<const planning_models::KinematicState::AttachedBody*> all_attached_bodies;
+  dfce->state_->getAttachedBodies(all_attached_bodies);
+  unsigned int att_count = 0;
+  //may be bigger than necessary
+  std::vector<bool> all_true(dfce->link_names_.size()+all_attached_bodies.size(), true);
+  std::vector<bool> all_false(dfce->link_names_.size()+all_attached_bodies.size(), false);
   const std::vector<planning_models::KinematicState::LinkState*>& lsv = state.getLinkStateVector();
+  dfce->self_collision_enabled_.resize(dfce->link_names_.size()+all_attached_bodies.size(), true);
+  dfce->intra_group_collision_enabled_.resize(dfce->link_names_.size()+all_attached_bodies.size());
   for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
     std::string link_name = dfce->link_names_[i];
     const planning_models::KinematicState::LinkState* link_state = dfce->state_->getLinkState(link_name);
-    if(link_state->getLinkModel()->getShape()) {
-      dfce->link_has_geometry_.push_back(true);
-      dfce->link_body_indices_.push_back(link_body_decomposition_index_map_.find(link_name)->second);
-      if(acm) {
-        collision_detection::AllowedCollision::Type t;
-        if(!acm->getEntry(link_name, link_name, t)) {
-          dfce->self_collision_enabled_.push_back(true);
-        }
-        if(t == collision_detection::AllowedCollision::ALWAYS) {
-          dfce->self_collision_enabled_.push_back(false);
-        }
-        std::vector<bool> intra_entries = all_true;
-        for(unsigned int j = 0; j < dfce->link_names_.size(); j++) {
-          if(link_name == dfce->link_names_[j]) {
-            intra_entries[j] = false;
-            continue;
-          } 
-          if(acm->getEntry(link_name, dfce->link_names_[j], t)) {
-            if(t == collision_detection::AllowedCollision::ALWAYS) {
-              intra_entries[j] = false;
-            } 
-            //else {
-            //std::cerr << "Setting not allowed for " << link_name << " and " << dfce->link_names_[j] << std::endl;
-            //}
-          }
-        }
-        for(unsigned int j = 0; j < attached_bodies.size(); j++) {
-          if(acm->getEntry(link_name, attached_bodies[j]->getName(), t)) {
-            if(t == collision_detection::AllowedCollision::ALWAYS) {
-              intra_entries[j+dfce->link_names_.size()] = false;
-            }
-          } 
-          // std::cerr << "Checking touch links for " << link_name << " and " << attached_bodies[j]->getName() 
-          //           << " num " << attached_bodies[j]->getTouchLinks().size() << std::endl;
-          //touch links take priority
-          if(attached_bodies[j]->getTouchLinks().find(link_name) != attached_bodies[j]->getTouchLinks().end()) {
-            intra_entries[j+dfce->link_names_.size()] = false;
-            //std::cerr << "Setting intra group for " << link_name << " and attached body " << attached_bodies[j] << " to false" << std::endl;
-          }
-        }
-        dfce->intra_group_collision_enabled_.push_back(intra_entries);
-      } else {
-        dfce->self_collision_enabled_.push_back(true);
-        dfce->intra_group_collision_enabled_.push_back(all_true);
-      }
-    } else {
-      dfce->link_has_geometry_.push_back(false);
-      dfce->link_body_indices_.push_back(0);
-      dfce->self_collision_enabled_.push_back(false);
-      dfce->intra_group_collision_enabled_.push_back(all_false);
-    }
     bool found = false;
     for(unsigned int j = 0; j < lsv.size(); j++) {
       if(lsv[j]->getName() == link_name) {
@@ -541,48 +510,78 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
       ROS_INFO_STREAM("No link state found for link " << dfce->link_names_[i]);
       return dfce;
     }
-    std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
-    link_state->getAttachedBodies(attached_bodies);
-    for(unsigned int j = 0; j < attached_bodies.size(); j++) {
-      dfce->attached_body_names_.push_back(attached_bodies[j]->getName());
-      dfce->attached_body_link_state_indices_.push_back(dfce->link_state_indices_[i]);
+    if(link_state->getLinkModel()->getShape()) {
+      dfce->link_has_geometry_.push_back(true);
+      dfce->link_body_indices_.push_back(link_body_decomposition_index_map_.find(link_name)->second);
       if(acm) {
         collision_detection::AllowedCollision::Type t;
-        if(!acm->getEntry(attached_bodies[j]->getName(), attached_bodies[j]->getName(), t)) {
-          dfce->self_collision_enabled_.push_back(true);
+        if(acm->getEntry(link_name, link_name, t) && 
+           t == collision_detection::AllowedCollision::ALWAYS) {
+          dfce->self_collision_enabled_[i] = false;
         }
-        if(t == collision_detection::AllowedCollision::ALWAYS) {
-          dfce->self_collision_enabled_.push_back(false);
-        }
-        std::vector<bool> intra_entries = all_true;
-        for(unsigned int k = 0; k < dfce->link_names_.size(); k++) {
-          if(link_name == dfce->link_names_[k]) {
-            intra_entries[k] = false;
+        dfce->intra_group_collision_enabled_[i] = all_true;
+        for(unsigned int j = i+1; j < dfce->link_names_.size(); j++) {
+          if(link_name == dfce->link_names_[j]) {
+            dfce->intra_group_collision_enabled_[i][j] = false;
             continue;
           } 
-          if(acm->getEntry(link_name, dfce->link_names_[k], t)) {
-            if(t == collision_detection::AllowedCollision::ALWAYS) {
-              intra_entries[k] = false;
-            } 
-            //else {
-            //std::cerr << "Setting not allowed for " << link_name << " and " << dfce->link_names_[j] << std::endl;
-            //}
-          }
+          if(acm->getEntry(link_name, dfce->link_names_[j], t) &&
+             t == collision_detection::AllowedCollision::ALWAYS) 
+          {
+            dfce->intra_group_collision_enabled_[i][j] = false;
+          } 
+          //else {
+          //std::cerr << "Setting not allowed for " << link_name << " and " << dfce->link_names_[j] << std::endl;
+          //}
         }
-        for(unsigned int k = 0; k < attached_bodies.size(); k++) {
-          if(acm->getEntry(attached_bodies[j]->getName(), attached_bodies[k]->getName(), t)) {
+        std::vector<const planning_models::KinematicState::AttachedBody*> link_attached_bodies;
+        link_state->getAttachedBodies(link_attached_bodies);
+        for(unsigned int j = 0; j < link_attached_bodies.size(); j++, att_count++) {
+          dfce->attached_body_names_.push_back(link_attached_bodies[j]->getName());
+          dfce->attached_body_link_state_indices_.push_back(dfce->link_state_indices_[i]);
+          if(acm->getEntry(link_name, link_attached_bodies[j]->getName(), t)) {
             if(t == collision_detection::AllowedCollision::ALWAYS) {
-              intra_entries[k+dfce->link_names_.size()] = false;
+              dfce->intra_group_collision_enabled_[i][att_count+dfce->link_names_.size()] = false;
             }
+          } 
+          // std::cerr << "Checking touch links for " << link_name << " and " << attached_bodies[j]->getName() 
+          //           << " num " << attached_bodies[j]->getTouchLinks().size() << std::endl;
+          //touch links take priority
+          if(link_attached_bodies[j]->getTouchLinks().find(link_name) != link_attached_bodies[j]->getTouchLinks().end()) {
+            dfce->intra_group_collision_enabled_[i][att_count+dfce->link_names_.size()] = false;
+            //std::cerr << "Setting intra group for " << link_name << " and attached body " << link_attached_bodies[j]->getName() << " to false" << std::endl;
           }
         }
-        dfce->intra_group_collision_enabled_.push_back(intra_entries);
       } else {
-        dfce->self_collision_enabled_.push_back(true);
-        dfce->intra_group_collision_enabled_.push_back(all_true);
+        dfce->self_collision_enabled_[i] = true;
+        dfce->intra_group_collision_enabled_[i] = all_true;
       }
-
+    } else {
+      dfce->link_has_geometry_.push_back(false);
+      dfce->link_body_indices_.push_back(0);
+      dfce->self_collision_enabled_[i] = false;
+      dfce->intra_group_collision_enabled_[i] = all_false;
     }
+  }
+  for(unsigned int i = 0; i < dfce->attached_body_names_.size(); i++) {  
+    dfce->intra_group_collision_enabled_[i+dfce->link_names_.size()] = all_true;
+    if(acm) {
+      collision_detection::AllowedCollision::Type t;
+      if(acm->getEntry(dfce->attached_body_names_[i], dfce->attached_body_names_[i], t) &&
+         t == collision_detection::AllowedCollision::ALWAYS) {
+        dfce->self_collision_enabled_[i+dfce->link_names_.size()] = false;
+      }
+      for(unsigned int j = i+1; j < dfce->attached_body_names_.size(); j++) {
+        if(acm->getEntry(dfce->attached_body_names_[i], dfce->attached_body_names_[j], t) &&
+           t == collision_detection::AllowedCollision::ALWAYS) {
+          dfce->intra_group_collision_enabled_[i+dfce->link_names_.size()][j+dfce->link_names_.size()] = false;
+        } 
+        //TODO - allow for touch links to be attached bodies?
+        //else {
+        //std::cerr << "Setting not allowed for " << link_name << " and " << dfce->link_names_[j] << std::endl;
+        //}
+      }
+    } 
   }
   std::map<std::string, boost::shared_ptr<GroupStateRepresentation> >::const_iterator it = pregenerated_group_state_representation_map_.find(dfce->group_name_);
   if(it != pregenerated_group_state_representation_map_.end()) {
@@ -596,14 +595,15 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
     updated_map[child_joint_models[i]->getName()] = true;
   }
   for(unsigned int i = 0; i < state.getJointStateVector().size(); i++) {
+    if(state.getJointStateVector()[i]->getJointModel()->getMimic()) continue;
     if(updated_map.find(state.getJointStateVector()[i]->getName()) == updated_map.end()) {
-      for(unsigned int j = 0; j < state.getJointStateVector()[i]->getVariableValues().size(); j++) {
+      for(unsigned int j = 0; j < state.getJointStateVector()[i]->getVariableCount(); j++) {
         dfce->state_values_.push_back(state.getJointStateVector()[i]->getVariableValues()[j]);
         dfce->state_check_indices_.push_back(dfce->state_values_.size()-1);
         //std::cerr << "Pushing back " << state.getJointStateVector()[i]->getName() << " index " << dfce->state_values_.size()-1 << std::endl;
       }
     } else {
-      for(unsigned int j = 0; j < state.getJointStateVector()[i]->getVariableValues().size(); j++) {
+      for(unsigned int j = 0; j < state.getJointStateVector()[i]->getVariableCount(); j++) {
         dfce->state_values_.push_back(state.getJointStateVector()[i]->getVariableValues()[j]);
       }
     }
@@ -620,8 +620,9 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
       //ROS_INFO_STREAM("Adding link " << link_name << " with " << non_group_link_decompositions.back()->getCollisionPoints().size() << " points");
       std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
       link_state->getAttachedBodies(attached_bodies);
-      for(unsigned int i = 0; i < attached_bodies.size(); i++) {
-        non_group_attached_body_decompositions.push_back(getAttachedBodyPointDecomposition(attached_bodies[i], resolution_));
+      for(unsigned int j = 0; j < attached_bodies.size(); j++) {
+        //ROS_INFO_STREAM("Adding attached body " << attached_bodies[j]->getName());
+        non_group_attached_body_decompositions.push_back(getAttachedBodyPointDecomposition(attached_bodies[j], resolution_));
       }
     }
     //ros::WallTime before_create = ros::WallTime::now();
@@ -749,6 +750,7 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
   }
   for(unsigned int i = 0; i < dfce->attached_body_names_.size(); i++) {
     const planning_models::KinematicState::LinkState* ls = state.getLinkStateVector()[dfce->attached_body_link_state_indices_[i]];
+    ///std::cerr << "Attached " << dfce->attached_body_names_[i] << " index " << dfce->attached_body_link_state_indices_[i] << std::endl;
     gsr->attached_body_decompositions_.push_back(getAttachedBodySphereDecomposition(ls->getAttachedBody(dfce->attached_body_names_[i]), resolution_));
     gsr->gradients_[i+dfce->link_names_.size()].types.resize(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size(), NONE);
     gsr->gradients_[i+dfce->link_names_.size()].distances.resize(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size(), DBL_MAX);
@@ -804,9 +806,11 @@ bool CollisionRobotDistanceField::compareCacheEntryToAllowedCollisionMatrix(cons
                                                                             const collision_detection::AllowedCollisionMatrix& acm) const
 {
   if(dfce->acm_.getSize() != acm.getSize()) {
-    ROS_INFO_STREAM("Allowed collision matrix size mismatch");
+    ROS_DEBUG_STREAM("Allowed collision matrix size mismatch");
     return false;
   }
+  std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;
+  dfce->state_->getAttachedBodies(attached_bodies);
   for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
     std::string link_name = dfce->link_names_[i];
     if(dfce->link_has_geometry_[i]) {
@@ -818,10 +822,10 @@ bool CollisionRobotDistanceField::compareCacheEntryToAllowedCollisionMatrix(cons
         }
       }
       if(self_collision_enabled != dfce->self_collision_enabled_[i]) {
-        //ROS_INFO_STREAM("Self collision went from " << dfce->self_collision_enabled_[i] << " to " << self_collision_enabled);
+        //ROS_INFO_STREAM("Self collision for " << link_name << " went from " << dfce->self_collision_enabled_[i] << " to " << self_collision_enabled);
         return false;
       }
-      for(unsigned int j = 0; j < dfce->link_names_.size(); j++) {
+      for(unsigned int j = i; j < dfce->link_names_.size(); j++) {
         if(i == j) continue;
         if(dfce->link_has_geometry_[j]) {
           bool intra_collision_enabled = true;
@@ -831,8 +835,8 @@ bool CollisionRobotDistanceField::compareCacheEntryToAllowedCollisionMatrix(cons
             }
           }
           if(dfce->intra_group_collision_enabled_[i][j] != intra_collision_enabled) {
-            // std::cerr << "Intra collision for " << dfce->link_names_[i] << " " << dfce->link_names_[j]
-            //           << " went from " << dfce->intra_group_collision_enabled_[i][j] << " to " << intra_collision_enabled << std::endl;
+            std::cerr << "Intra collision for " << dfce->link_names_[i] << " " << dfce->link_names_[j]
+                      << " went from " << dfce->intra_group_collision_enabled_[i][j] << " to " << intra_collision_enabled << std::endl;
             return false;
           }
         }

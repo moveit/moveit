@@ -91,7 +91,12 @@ bool collision_distance_field::getCollisionSphereGradients(const distance_field:
   for(unsigned int i = 0; i < sphere_list.size(); i++) {
     Eigen::Vector3d p = sphere_centers[i];
     double gx, gy, gz;
-    double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz);
+    bool in_bounds;
+    double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz, in_bounds);
+    if(!in_bounds) {
+      ROS_ERROR_STREAM("Collision sphere point is out of bounds");
+      return true;
+    }
     if(dist < maximum_value) {
       if(subtract_radii) {
         dist -= sphere_list[i].radius_;
@@ -124,8 +129,14 @@ bool collision_distance_field::getCollisionSphereCollision(const distance_field:
   for(unsigned int i = 0; i < sphere_list.size(); i++) {
     Eigen::Vector3d p = sphere_centers[i];
     double gx, gy, gz;
-    double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz);
+    bool in_bounds;
+    double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz, in_bounds);
+    if(!in_bounds) {
+      ROS_ERROR_STREAM("Collision sphere point is out of bounds");
+      return true;
+    }
     if(maximum_value > dist && dist - sphere_list[i].radius_ < tolerance) {
+      ROS_INFO_STREAM("Point " << p.x() << " " << p.y() << " " << p.z() << " " << dist << " " << sphere_list[i].radius_);
       return true;
     }
   }
@@ -145,7 +156,16 @@ bool collision_distance_field::getCollisionSphereCollision(const distance_field:
   for(unsigned int i = 0; i < sphere_list.size(); i++) {
     Eigen::Vector3d p = sphere_centers[i];
     double gx, gy, gz;
-    double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz);
+    bool in_bounds;
+    double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz, in_bounds);
+    if(!in_bounds) {
+      ROS_ERROR_STREAM("Collision sphere point is out of bounds");
+      return true;
+    }
+    if(dist == 0.0 && gx == 0.0 && gy == 0.0 && gz == 0.0) {
+      ROS_ERROR_STREAM("Collision sphere point is out of bounds");
+      return true;
+    }
     if(maximum_value > dist && dist - sphere_list[i].radius_ < tolerance) {
       if(num_coll == 0) {
         return true;
@@ -262,9 +282,15 @@ void collision_distance_field::getProximityGradientMarkers(const std::string& fr
                                                            const std::string& ns,
                                                            const ros::Duration& dur,
                                                            const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
+                                                           const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
                                                            const std::vector<GradientInfo>& gradients,
                                                            visualization_msgs::MarkerArray& arr)
 {
+  if(gradients.size() != posed_decompositions.size() + posed_vector_decompositions.size()) {
+    ROS_WARN_STREAM("Size mismatch between gradients " << gradients.size() << " and decompositions " 
+                    << posed_decompositions.size() + posed_vector_decompositions.size());
+    return;
+  }
   for(unsigned int i = 0; i < gradients.size(); i++) {
     for(unsigned int j = 0; j < gradients[i].distances.size(); j++) {
       visualization_msgs::Marker arrow_mark;
@@ -291,9 +317,15 @@ void collision_distance_field::getProximityGradientMarkers(const std::string& fr
         ROS_DEBUG_STREAM("Negative dist " << gradients[i].distances[j] << " for " << i << " " << arrow_mark.id);
       }
       arrow_mark.points.resize(2);
-      arrow_mark.points[1].x = posed_decompositions[i]->getSphereCenters()[j].x();
-      arrow_mark.points[1].y = posed_decompositions[i]->getSphereCenters()[j].y();
-      arrow_mark.points[1].z = posed_decompositions[i]->getSphereCenters()[j].z();
+      if(i < posed_decompositions.size()) {
+        arrow_mark.points[1].x = posed_decompositions[i]->getSphereCenters()[j].x();
+        arrow_mark.points[1].y = posed_decompositions[i]->getSphereCenters()[j].y();
+        arrow_mark.points[1].z = posed_decompositions[i]->getSphereCenters()[j].z();
+      } else {
+        arrow_mark.points[1].x = posed_vector_decompositions[i-posed_decompositions.size()]->getSphereCenters()[j].x();
+        arrow_mark.points[1].y = posed_vector_decompositions[i-posed_decompositions.size()]->getSphereCenters()[j].y();
+        arrow_mark.points[1].z = posed_vector_decompositions[i-posed_decompositions.size()]->getSphereCenters()[j].z();
+      }
       arrow_mark.points[0] = arrow_mark.points[1];
       arrow_mark.points[0].x -= xscale*gradients[i].distances[j];
       arrow_mark.points[0].y -= yscale*gradients[i].distances[j];
@@ -327,9 +359,15 @@ void collision_distance_field::getCollisionMarkers(const std::string& frame_id,
                                                    const std::string& ns,
                                                    const ros::Duration& dur,
                                                    const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
+                                                   const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
                                                    const std::vector<GradientInfo>& gradients,
                                                    visualization_msgs::MarkerArray& arr)
 {
+  if(gradients.size() != posed_decompositions.size() + posed_vector_decompositions.size()) {
+    ROS_WARN_STREAM("Size mismatch between gradients " << gradients.size() << " and decompositions " 
+                    << posed_decompositions.size() + posed_vector_decompositions.size());
+    return;
+  }
   for(unsigned int i = 0; i < gradients.size(); i++) {
     for(unsigned int j = 0; j < gradients[i].types.size(); j++) {
       visualization_msgs::Marker sphere_mark;
@@ -342,10 +380,17 @@ void collision_distance_field::getCollisionMarkers(const std::string& frame_id,
         sphere_mark.ns = ns;
       }
       sphere_mark.id = i*1000+j;
-      sphere_mark.scale.x = sphere_mark.scale.y = sphere_mark.scale.z = posed_decompositions[i]->getCollisionSpheres()[j].radius_*2.0;
-      sphere_mark.pose.position.x = posed_decompositions[i]->getSphereCenters()[j].x();
-      sphere_mark.pose.position.y = posed_decompositions[i]->getSphereCenters()[j].y();
-      sphere_mark.pose.position.z = posed_decompositions[i]->getSphereCenters()[j].z();
+      if(i < posed_decompositions.size()) {
+        sphere_mark.scale.x = sphere_mark.scale.y = sphere_mark.scale.z = posed_decompositions[i]->getCollisionSpheres()[j].radius_*2.0;
+        sphere_mark.pose.position.x = posed_decompositions[i]->getSphereCenters()[j].x();
+        sphere_mark.pose.position.y = posed_decompositions[i]->getSphereCenters()[j].y();
+        sphere_mark.pose.position.z = posed_decompositions[i]->getSphereCenters()[j].z();
+      } else {
+        sphere_mark.scale.x = sphere_mark.scale.y = sphere_mark.scale.z = posed_vector_decompositions[i-posed_decompositions.size()]->getCollisionSpheres()[j].radius_*2.0;
+        sphere_mark.pose.position.x = posed_vector_decompositions[i-posed_decompositions.size()]->getSphereCenters()[j].x();
+        sphere_mark.pose.position.y = posed_vector_decompositions[i-posed_decompositions.size()]->getSphereCenters()[j].y();
+        sphere_mark.pose.position.z = posed_vector_decompositions[i-posed_decompositions.size()]->getSphereCenters()[j].z();
+      }
       sphere_mark.pose.orientation.w = 1.0;
       sphere_mark.color.a = 1.0;
       if(gradients[i].types[j] == collision_distance_field::SELF) {

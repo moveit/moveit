@@ -386,6 +386,7 @@ void getProximityGradientMarkers(const std::string& frame_id,
                                  const std::string& ns,
                                  const ros::Duration& dur,
                                  const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
+                                 const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
                                  const std::vector<GradientInfo>& gradients,
                                  visualization_msgs::MarkerArray& arr);
 
@@ -393,6 +394,7 @@ void getCollisionMarkers(const std::string& frame_id,
                          const std::string& ns,
                          const ros::Duration& dur,
                          const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
+                         const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
                          const std::vector<GradientInfo>& gradients,
                          visualization_msgs::MarkerArray& arr);
 }
