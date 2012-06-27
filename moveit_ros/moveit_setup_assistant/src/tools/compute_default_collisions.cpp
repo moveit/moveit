@@ -180,7 +180,11 @@ static unsigned int disableNeverInCollision(const unsigned int num_trials, plann
  */
 static void disableNeverInCollisionThread(ThreadComputation tc);
 
-//TODO
+/** 
+ * \brief Converts a reason for disabling a link pair into a string
+ * \param reason enum reason type
+ * \return reason as string
+ */
 std::string disabledReasonToString( DisabledReason reason );
 
 // ******************************************************************************************

@@ -38,22 +38,15 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COMPUTE_DEFAULT_COLLISIONS_WIDGET_
 
 #include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
 #include <QLabel>
-#include <QMessageBox>
-#include <QPushButton>
-#include <QSlider>
-#include <QProgressDialog>
-#include <QProgressBar>
+#include <QVBoxLayout>
 #include <QTableWidget>
+#include <QSlider>
+#include <QPushButton>
+#include <QGroupBox>
+#include <QProgressBar>
 #include <QCheckBox>
-#include <QString>
-#include <QFont>
-#include <QApplication>
 #include <QTimer>
-#include <QCloseEvent>
 #include <boost/thread.hpp>
 #include "ros/ros.h"
 #include "moveit_setup_assistant/tools/compute_default_collisions.h"

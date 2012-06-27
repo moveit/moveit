@@ -34,71 +34,44 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_KINEMATIC_CHAIN_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_KINEMATIC_CHAIN_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_GROUP_EDIT_WIDGET_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_GROUP_EDIT_WIDGET_
 
 #include <QWidget>
 #include <QLabel>
-#include <QTreeWidget>
+#include <QLineEdit>
+#include <QPushButton>
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
-//#include <planning_scene/planning_scene.h> // for getting kinematic model
-//#include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
 
-class KinematicChainWidget : public QWidget
+class GroupEditWidget : public QWidget
 {
   Q_OBJECT
 
-  // ******************************************************************************************
-  // Reusable double list widget for selecting and deselecting a subset from a set
-  // ******************************************************************************************
   public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
   /// Constructor
-  KinematicChainWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
-  /// Loads the availble data list
-  void setAvailable();
+  /// Set the previous data
+  void setSelected( const std::string &group_name );
 
-  /// Set the link field with previous value
-  void setSelected( const std::string &base_link, const std::string &tip_link );
-
-
-  void addLinktoTreeRecursive(const planning_models::KinematicModel::LinkModel* link,
-                              const planning_models::KinematicModel::LinkModel* parent);
-
-
-  bool addLinkChildRecursive(QTreeWidgetItem* parent,
-                             const planning_models::KinematicModel::LinkModel* link,
-                             const std::string& parent_name);
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
 
   QLabel *title_; // specify the title from the parent widget  
-  QTreeWidget *link_tree_;
-  QLineEdit *base_link_field_;
-  QLineEdit *tip_link_field_;
-
+  QLineEdit *group_name_field_;
+  QPushButton *btn_delete_; // this button is hidden for new groups 
 
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-
-  /// Choose the base link
-  void baseLinkTreeClick();
-
-  /// Choose the tip link
-  void tipLinkTreeClick();
-
-  /// Expand/Collapse Tree
-  void alterTree( const QString &link );
-
 
 Q_SIGNALS:
 
@@ -112,6 +85,9 @@ Q_SIGNALS:
   /// Event sent when user presses cancel button
   void cancelEditing();
 
+  /// Event sent when delete is being requested for group
+  void deleteGroup();
+
 private:
 
 
@@ -122,8 +98,6 @@ private:
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 
-  /// Remember if the chain tree has been loaded
-  bool kinematic_chain_loaded_;
 
   // ******************************************************************************************
   // Private Functions
