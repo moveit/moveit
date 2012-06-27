@@ -162,10 +162,6 @@ bool collision_distance_field::getCollisionSphereCollision(const distance_field:
       ROS_ERROR_STREAM("Collision sphere point is out of bounds");
       return true;
     }
-    if(dist == 0.0 && gx == 0.0 && gy == 0.0 && gz == 0.0) {
-      ROS_ERROR_STREAM("Collision sphere point is out of bounds");
-      return true;
-    }
     if(maximum_value > dist && dist - sphere_list[i].radius_ < tolerance) {
       if(num_coll == 0) {
         return true;
