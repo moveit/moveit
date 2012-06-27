@@ -43,15 +43,16 @@ namespace moveit_setup_assistant
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
 // ******************************************************************************************
-// 
+// Constructor
 // ******************************************************************************************
 MoveItConfigData::MoveItConfigData()
 {
+  // Create an instance of SRDF writer for all widgets to share
   srdf_.reset( new SRDFWriter() );
 }
 
 // ******************************************************************************************
-// 
+// Destructor
 // ******************************************************************************************
 MoveItConfigData::~MoveItConfigData()
 {

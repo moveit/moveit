@@ -44,6 +44,7 @@
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "double_list_widget.h" // for joints, links and subgroups pages
 #include "kinematic_chain_widget.h" // for kinematic chain page
+#include "group_edit_widget.h" // for group rename page
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 // Forward Declaration
@@ -95,11 +96,14 @@ private Q_SLOTS:
   void addGroup();
 
   /// Call when screen is done being edited
-  void jointsSaveEditing();
-  void linksSaveEditing();
-  void chainSaveEditing();
-  void subgroupsSaveEditing();
-  void groupSaveEditing();
+  void saveJointsScreen();
+  void saveLinksScreen();
+  void saveChainScreen();
+  void saveSubgroupsScreen();
+  void saveGroupScreen();
+
+  // Delete a group
+  void deleteGroup();
 
   /// Call when edit screen is canceled
   void cancelEditing();
@@ -126,7 +130,7 @@ private:
   DoubleListWidget *links_widget_;
   DoubleListWidget *subgroups_widget_;
   KinematicChainWidget *chain_widget_;
-  QWidget *group_widget_;
+  GroupEditWidget *group_edit_widget_;
 
   // ******************************************************************************************
   // Variables
@@ -160,7 +164,6 @@ private:
   void loadChainScreen( srdf::Model::Group *this_group );
   void loadSubgroupsScreen( srdf::Model::Group *this_group );
   void loadGroupScreen( srdf::Model::Group *this_group );
-
 
 };
 

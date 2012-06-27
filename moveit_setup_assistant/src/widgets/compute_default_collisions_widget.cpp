@@ -34,6 +34,14 @@
 
 /* Author: Dave Coleman */
 
+
+#include <QHBoxLayout>
+#include <QMessageBox>
+#include <QProgressDialog>
+#include <QString>
+#include <QFont>
+#include <QApplication>
+#include <QCloseEvent>
 #include "compute_default_collisions_widget.h"
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <boost/unordered_map.hpp>
@@ -168,14 +176,6 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   connect(collision_table_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
   layout_->addWidget(collision_table_);
 
-  // Table Headers
-  /*  header_list_ = new QStringList();
-      header_list_->append("Link A");
-      header_list_->append("Link B");
-      header_list_->append("Disabled");
-      header_list_->append("Reason To Disable");
-      collision_table_->setHorizontalHeaderLabels(*header_list_);*/
-
   QStringList header_list;
   header_list.append("Link A");
   header_list.append("Link B");
@@ -290,8 +290,6 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
 
 void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collision_progress )
 {
-  //ROS_INFO("Inner thread");
-
   unsigned int num_trials = density_slider_->value() * 1000 + 1000; // scale to trials amount
 
   const bool verbose = true; // Output benchmarking and statistics
