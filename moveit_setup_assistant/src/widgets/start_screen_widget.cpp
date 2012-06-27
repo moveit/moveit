@@ -156,7 +156,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   srdf_file_->setPath( "/u/dcoleman/ros/moveit/moveit_pr2/pr2_moveit_tests/pr2_jacobian_tests/pr2.srdf" );
   select_mode_->btn_new_->click();
 
-
+  /*
   if( true )
   {
     QTimer *update_timer = new QTimer( this );
@@ -164,6 +164,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
     connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
     update_timer->start( 200 );  
   }
+  */
 }
 
 // ******************************************************************************************
