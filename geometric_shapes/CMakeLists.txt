@@ -16,7 +16,7 @@ rosbuild_init()
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 
-find_package(ASSIMP)
+find_package(ASSIMP QUIET)
 if (NOT ASSIMP_FOUND)
   pkg_check_modules(ASSIMP assimp)
 endif()
