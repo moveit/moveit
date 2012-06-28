@@ -61,8 +61,7 @@ public:
   PlanningSceneMonitor(const std::string &robot_description);
 
   /** @brief Constructor
-   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
-   *  @param kpl The kinematic plugin loader to use (one will be constructed automatically if this is not provided)
+   *  @param kml A pointer to a kinematic model loader
    */
   PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml);
 
@@ -74,26 +73,28 @@ public:
   PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf);
 
   /** @brief Constructor
-   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
+   *  @param kml A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
-   *  @param kpl The kinematic plugin loader to use (one will be constructed automatically if this is not provided)
    */
-  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf);
+  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, 
+                       const boost::shared_ptr<tf::Transformer> &tf);
 
   /** @brief Constructor
    *  @param parent The parent planning scene with respect to which the diffs are to be maintained
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    *  @param tf A pointer to a tf::Transformer
    */
-  PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf);
+  PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, 
+                       const boost::shared_ptr<tf::Transformer> &tf);
 
   /** @brief Constructor
    *  @param parent The parent planning scene with respect to which the diffs are to be maintained
-   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
+   *  @param kml A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
-   *  @param kpl The kinematic plugin loader to use (one will be constructed automatically if this is not provided)
    */
-  PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf);
+  PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, 
+                       const planning_models_loader::KinematicModelLoaderPtr &kml, 
+                       const boost::shared_ptr<tf::Transformer> &tf);
 
   ~PlanningSceneMonitor(void);
 
