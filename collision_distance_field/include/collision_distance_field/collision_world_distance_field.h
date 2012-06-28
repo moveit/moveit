@@ -61,7 +61,8 @@ public:
                               double collision_tolerance = 0.0,
                               double max_propogation_distance = .25);
 
-  //CollisionWorldDistanceField(const CollisionWorldDistanceField &other);
+  CollisionWorldDistanceField(const CollisionWorldDistanceField &other);
+
   virtual ~CollisionWorldDistanceField(void){}
 
   virtual void checkCollision(const collision_detection::CollisionRequest &req,

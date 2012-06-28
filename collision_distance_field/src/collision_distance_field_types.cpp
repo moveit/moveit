@@ -136,7 +136,7 @@ bool collision_distance_field::getCollisionSphereCollision(const distance_field:
       return true;
     }
     if(maximum_value > dist && dist - sphere_list[i].radius_ < tolerance) {
-      ROS_INFO_STREAM("Point " << p.x() << " " << p.y() << " " << p.z() << " " << dist << " " << sphere_list[i].radius_);
+      //ROS_INFO_STREAM("Point " << p.x() << " " << p.y() << " " << p.z() << " " << dist << " " << sphere_list[i].radius_);
       return true;
     }
   }

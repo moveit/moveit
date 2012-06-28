@@ -79,6 +79,22 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const planning_models::
   }
 }
 
+CollisionRobotDistanceField::CollisionRobotDistanceField(const CollisionRobotDistanceField& other) :
+  CollisionRobot(other)
+{
+  size_x_ = other.size_x_;
+  size_y_ = other.size_y_;
+  size_z_ = other.size_z_;
+  use_signed_distance_field_ = other.use_signed_distance_field_;
+  resolution_ = other.resolution_;
+  collision_tolerance_ = other.collision_tolerance_;
+  max_propogation_distance_ = other.max_propogation_distance_;
+  link_body_decomposition_vector_ = other.link_body_decomposition_vector_;
+  link_body_decomposition_index_map_ = other.link_body_decomposition_index_map_;
+  in_group_update_map_ = other.in_group_update_map_;
+  pregenerated_group_state_representation_map_ = other.pregenerated_group_state_representation_map_;
+}
+
 boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> 
 CollisionRobotDistanceField::generateCollisionCheckingStructures(const std::string& group_name,
                                                                  const planning_models::KinematicState& state,
@@ -221,11 +237,11 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
                                               max_propogation_distance_,
                                               0.0);
       if(coll) {
-        if(is_link) {
-          std::cerr << "Link " << dfce->link_names_[i] << " in self collision" << std::endl;
-        } else {
-          std::cerr << "Attached body in self collision" << std::endl;
-        }
+        // if(is_link) {
+        //   std::cerr << "Link " << dfce->link_names_[i] << " in self collision" << std::endl;
+        // } else {
+        //   std::cerr << "Attached body in self collision" << std::endl;
+        // }
         res.collision = true;
         return true;
       }
@@ -835,8 +851,8 @@ bool CollisionRobotDistanceField::compareCacheEntryToAllowedCollisionMatrix(cons
             }
           }
           if(dfce->intra_group_collision_enabled_[i][j] != intra_collision_enabled) {
-            std::cerr << "Intra collision for " << dfce->link_names_[i] << " " << dfce->link_names_[j]
-                      << " went from " << dfce->intra_group_collision_enabled_[i][j] << " to " << intra_collision_enabled << std::endl;
+            // std::cerr << "Intra collision for " << dfce->link_names_[i] << " " << dfce->link_names_[j]
+            //           << " went from " << dfce->intra_group_collision_enabled_[i][j] << " to " << intra_collision_enabled << std::endl;
             return false;
           }
         }

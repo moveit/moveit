@@ -102,7 +102,7 @@ public:
                               double padding = 0.0, 
                               double scale = 1.0);
 
-  //CollisionRobotDistanceField(const CollisionRobotDistanceField& other);
+  CollisionRobotDistanceField(const CollisionRobotDistanceField& other); 
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
@@ -117,21 +117,27 @@ public:
                                   collision_detection::CollisionResult &res, 
                                   const planning_models::KinematicState &state1, 
                                   const planning_models::KinematicState &state2) const
-  {};
+  {
+    ROS_WARN_STREAM("Not implemented");
+  };
   
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
                                   const planning_models::KinematicState &state1, 
                                   const planning_models::KinematicState &state2, 
                                   const collision_detection::AllowedCollisionMatrix &acm) const
-  {};
+  {
+    ROS_WARN_STREAM("Not implemented");
+  };
   
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
                                    const planning_models::KinematicState &state,
                                    const CollisionRobot &other_robot, 
                                    const planning_models::KinematicState &other_state) const
-  {};
+  {
+    ROS_WARN_STREAM("Not implemented");
+  };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
@@ -139,7 +145,9 @@ public:
                                    const CollisionRobot &other_robot, 
                                    const planning_models::KinematicState &other_state,
                                    const collision_detection::AllowedCollisionMatrix &acm) const
-  {};
+  {
+    ROS_WARN_STREAM("Not implemented");
+  };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, collision_detection::CollisionResult &res, 
                                    const planning_models::KinematicState &state1, 
@@ -147,7 +155,9 @@ public:
                                    const CollisionRobot &other_robot, 
                                    const planning_models::KinematicState &other_state1, 
                                    const planning_models::KinematicState &other_state2) const
-  {};
+  {
+    ROS_WARN_STREAM("Not implemented");
+  };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
@@ -157,7 +167,9 @@ public:
                                    const planning_models::KinematicState &other_state1, 
                                    const planning_models::KinematicState &other_state2,
                                    const collision_detection::AllowedCollisionMatrix &acm) const
-  {};
+  {
+    ROS_WARN_STREAM("Not implemented");
+  };
   
   virtual double distanceSelf(const planning_models::KinematicState &state) const
   {
