@@ -1,7 +1,0 @@
-\subsubsection parameters ROS parameters
-
-Reads and maintains the following parameters on the ROS server
-
-- \b "~publish_planning_scene" : \b [bool] Set to True to publish Planning Scenes min: False, default: False, max: True
-- \b "~publish_planning_scene_hz" : \b [double] Set the maximum frequency at which planning scene updates are published min: 0.01, default: 2.0, max: 100.0
-
