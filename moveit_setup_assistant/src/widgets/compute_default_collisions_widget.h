@@ -78,6 +78,11 @@ public:
    */
   void closeEvent( QCloseEvent * event );
 
+  /** 
+   * \brief Output Link Pairs to SRDF Format
+   */
+  void linkPairsToSRDF();
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -99,7 +104,7 @@ private Q_SLOTS:
   /**
    * \brief Calls the tool's SRDF saving functionality
    */
-  void saveToSRDF();
+  //void saveToSRDF();
 
   /**
    * \brief Displays data in the link_pairs data structure into a QtTableWidget
@@ -140,7 +145,6 @@ private:
   QGroupBox *controls_box_bottom_;
   QPushButton *save_button_;
   QTimer *update_timer_;
-  //  QStringList *header_list_;
 
   // ******************************************************************************************
   // Variables

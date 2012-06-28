@@ -180,13 +180,6 @@ static unsigned int disableNeverInCollision(const unsigned int num_trials, plann
  */
 static void disableNeverInCollisionThread(ThreadComputation tc);
 
-/** 
- * \brief Converts a reason for disabling a link pair into a string
- * \param reason enum reason type
- * \return reason as string
- */
-std::string disabledReasonToString( DisabledReason reason );
-
 // ******************************************************************************************
 // Generates an adjacency list of links that are always and never in collision, to speed up collision detection
 // ******************************************************************************************
@@ -197,7 +190,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   // Setup benchmark timer
   g_btimer = BenchmarkTimer();
   g_btimer.start("Total"); 
-   
+
   // Create new instance of planning scene using pointer
   planning_scene::PlanningScene scene(parent_scene);
 
@@ -686,8 +679,18 @@ void disableNeverInCollisionThread(ThreadComputation tc)
 }
 
 // ******************************************************************************************
+// Converts a reason for disabling a link pair into a string
+// ******************************************************************************************
+const std::string disabledReasonToString( DisabledReason reason )
+{
+  return reasonsToString.at( reason );
+}
+
+
+// ******************************************************************************************
 // Output XML String of Saved Results
 // ******************************************************************************************
+/*
 void outputDisabledCollisionsXML(const LinkPairMap & link_pairs)
 {
   unsigned int num_disabled = 0;
@@ -707,7 +710,7 @@ void outputDisabledCollisionsXML(const LinkPairMap & link_pairs)
       robot_root->LinkEndChild(dc);
       dc->SetAttribute("link1", pair_it->first.first);
       dc->SetAttribute("link2", pair_it->first.second);
-      dc->SetAttribute("reason", reasonsToString.at( pair_it->second.reason ));
+      dc->SetAttribute("reason", disabledReasonToString( pair_it->second.reason ));
       ++num_disabled;
     }
   }
@@ -717,5 +720,6 @@ void outputDisabledCollisionsXML(const LinkPairMap & link_pairs)
   //ROS_INFO("TOTAL DISABLED LINKS: %d", num_disabled);
 
 }
+*/
 
 }

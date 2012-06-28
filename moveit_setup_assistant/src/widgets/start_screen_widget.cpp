@@ -34,7 +34,6 @@
 
 /* Author: Dave Coleman */
 
-#include <QFileDialog>
 #include <QLabel>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -151,20 +150,15 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
 
-  // Development Only TODO REMOVE
-  urdf_file_->setPath( "/u/dcoleman/ros/moveit/moveit_pr2/pr2_moveit_config/config/pr2.urdf" );
-  srdf_file_->setPath( "/u/dcoleman/ros/moveit/moveit_pr2/pr2_moveit_tests/pr2_jacobian_tests/pr2.srdf" );
-  select_mode_->btn_new_->click();
-
-  /*
-  if( true )
+  if( false )
   {
+    select_mode_->btn_new_->click();
+
     QTimer *update_timer = new QTimer( this );
     update_timer->setSingleShot( true ); // only run once
     connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
     update_timer->start( 200 );  
   }
-  */
 }
 
 // ******************************************************************************************
@@ -216,7 +210,7 @@ void StartScreenWidget::loadFiles()
   // check that a file is provided
   if( urdf_path == "" )
   {
-    QMessageBox::critical( this, "Error Loading Files", "Please specify a URDF or COLLADA file to load" );
+    QMessageBox::warning( this, "Error Loading Files", "Please specify a URDF or COLLADA file to load" );
     return;
   }
 
@@ -224,7 +218,7 @@ void StartScreenWidget::loadFiles()
   std::ifstream urdf_stream( urdf_path.c_str() );
   if( !urdf_stream.good() ) // File not found
   {
-    QMessageBox::critical( this, "Error Loading Files", "URDF/COLLADA file not found" );
+    QMessageBox::warning( this, "Error Loading Files", "URDF/COLLADA file not found" );
     return;
   }
       
@@ -238,16 +232,15 @@ void StartScreenWidget::loadFiles()
                      std::istreambuf_iterator<char>());  
 
   // Verify that file is in correct format / not an XACRO by loading into robot model
-  urdf::Model robot_model;
-  if( !robot_model.initString( urdf_string ) )
+  if( !config_data_->urdf_model_.initString( urdf_string ) )
   {
-    QMessageBox::critical( this, "Error Loading Files", 
+    QMessageBox::warning( this, "Error Loading Files", 
                            "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
     return;
   }
   else
   {
-    ROS_INFO_STREAM( "Loaded " << robot_model.getName() << " robot model." );
+    ROS_INFO_STREAM( "Loaded " << config_data_->urdf_model_.getName() << " robot model." );
 
     // Copy path to config data
     config_data_->urdf_path_ = urdf_string;
@@ -257,7 +250,7 @@ void StartScreenWidget::loadFiles()
   if( ! ros::master::check() )
   {
     // roscore is not running
-    QMessageBox::critical( this, "ROS Error", 
+    QMessageBox::warning( this, "ROS Error", 
                            "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
     return;
   }
@@ -282,7 +275,7 @@ void StartScreenWidget::loadFiles()
     std::ifstream srdf_stream( srdf_path.c_str() );
     if( !srdf_stream.good() ) // File not found
     {
-      QMessageBox::critical( this, "Error Loading Files", 
+      QMessageBox::warning( this, "Error Loading Files", 
                              "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
       return;
     }
@@ -297,9 +290,9 @@ void StartScreenWidget::loadFiles()
                        std::istreambuf_iterator<char>());  
 
     // Verify that file is in correct format by loading into srdf parser
-    if( !config_data_->srdf_->initString( robot_model, srdf_string ) )
+    if( !config_data_->srdf_->initString( config_data_->urdf_model_, srdf_string ) )
     {
-      QMessageBox::critical( this, "Error Loading Files", 
+      QMessageBox::warning( this, "Error Loading Files", 
                              "SRDF file not a valid semantic robot description model." );
       return;
     }
@@ -382,127 +375,5 @@ SelectModeWidget::SelectModeWidget( QWidget* parent )
   // Add horizontal layer to verticle layer
   layout->addLayout(hlayout);
   setLayout(layout);
-}
-
-// ******************************************************************************************
-// ******************************************************************************************
-// Class for selecting files
-// ******************************************************************************************
-// ******************************************************************************************
-
-// ******************************************************************************************
-// Create the widget
-// ******************************************************************************************
-LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &instructions, 
-                                const bool dir_only, const bool load_only, QWidget* parent )
-  : QFrame(parent), dir_only_(dir_only), load_only_(load_only)
-{
-  // Set frame graphics
-  setFrameShape(QFrame::StyledPanel);
-  setFrameShadow(QFrame::Raised);
-  setLineWidth(1);
-  setMidLineWidth(0);
-
-  // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout(this);
-
-  // Horizontal layout splitter
-  QHBoxLayout *hlayout = new QHBoxLayout();
-    
-  // Widget Title
-  QLabel * widget_title = new QLabel(this);
-  widget_title->setText( title.c_str() );
-  QFont widget_title_font( "Arial", 12, QFont::Bold );
-  widget_title->setFont(widget_title_font);
-  layout->addWidget( widget_title);
-  layout->setAlignment( widget_title, Qt::AlignTop);
-
-  // Widget Instructions
-  QLabel * widget_instructions = new QLabel(this);
-  widget_instructions->setText( instructions.c_str() );
-  widget_instructions->setWordWrap(true);
-  layout->addWidget( widget_instructions);
-  layout->setAlignment( widget_instructions, Qt::AlignTop);    
-
-  // Line Edit
-  path_box_ = new QLineEdit(this);
-  hlayout->addWidget(path_box_);
-
-  // Button
-  button_ = new QPushButton(this);
-  button_->setText("Browse");
-  connect( button_, SIGNAL( clicked() ), this, SLOT( btn_file_dialog() ) );
-  hlayout->addWidget(button_);
-
-  // Add horizontal layer to verticle layer
-  layout->addLayout(hlayout);
-
-  setLayout(layout);
-}
-
-// ******************************************************************************************
-// Load the file dialog
-// ******************************************************************************************
-void LoadPathWidget::btn_file_dialog()
-{
-  QString path;
-  if( dir_only_ ) // only allow user to select a directory
-  {
-    path = QFileDialog::getExistingDirectory(this, "Open Package Directory", path_box_->text(),
-                                             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-  }
-  else // only allow user to select file
-  {
-    QString start_path;
-    // smart load: open file dialog in location of stack directory
-    if( path_box_->text() != "" )
-    {
-      start_path = path_box_->text();
-    }
-    else
-    {
-      // Temp pointers used for casting and accessing parent widget elements
-      StartScreenWidget *my_parent = qobject_cast< StartScreenWidget* >( this->parentWidget() );
-      LoadPathWidget *my_stack_path = qobject_cast< LoadPathWidget* >( my_parent->stack_path_ );
-      LoadPathWidget *my_urdf_path = qobject_cast< LoadPathWidget* >( my_parent->urdf_file_ );
-
-      // Check if the urdf file was already loaded
-      if( my_urdf_path->path_box_->text() != "" ) // it has text
-      {
-        start_path = my_urdf_path->path_box_->text();
-      }
-      else
-      {
-        start_path = my_stack_path->path_box_->text();	
-      }
-    }
-    if( load_only_ )
-    {
-      path = QFileDialog::getOpenFileName(this, "Open File", start_path, "");
-    }
-    else
-    {
-      path = QFileDialog::getSaveFileName(this, "Create/Load File", start_path, "" );
-    }
-  }
-  
-  // check they did not press cancel
-  if (path != NULL)
-    path_box_->setText( path );
-}
-
-const QString LoadPathWidget::getQPath()
-{
-  return path_box_->text();
-}
-
-const std::string LoadPathWidget::getPath()
-{
-  return getQPath().toStdString();
-}
-
-void LoadPathWidget::setPath( const QString &path )
-{
-  path_box_->setText( path );
 }
 

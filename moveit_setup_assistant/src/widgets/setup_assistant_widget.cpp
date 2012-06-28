@@ -49,7 +49,7 @@ using namespace moveit_setup_assistant;
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
+SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_options::variables_map args )
   : QWidget( parent )
 {
   // Create timer to ping ROS ----------------------------------------
@@ -64,11 +64,6 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   QHBoxLayout *layout = new QHBoxLayout();
   layout->setAlignment( Qt::AlignTop );
 
-  //left_navigation_ = new QListWidget( this );
-  //QFont nav_font( "Arial", 14 );
-  //left_navigation_->setFont( nav_font );
-
-  //left_navigation_ = new NavigationWidget( this );
   main_content_ = new QStackedLayout();
 
   // Screens --------------------------------------------------------
@@ -78,6 +73,15 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   connect( ssw, SIGNAL( readyToProgress() ), this, SLOT( progressPastStartScreen() ) );
   nav_name_list_ << "Start";
   main_content_->addWidget(ssw);
+
+  // Pass command arg values to start screen
+  if (args.count("urdf"))
+    ssw->urdf_file_->setPath( args["urdf"].as<std::string>() );
+  if (args.count("srdf"))
+    ssw->srdf_file_->setPath( args["srdf"].as<std::string>() );
+  if (args.count("config_pkg"))
+    ssw->stack_path_->setPath( args["config_pkg"].as<std::string>() );
+
 
   // Planning Groups
   PlanningGroupsWidget *pgw = new PlanningGroupsWidget( this, config_data );
@@ -103,7 +107,12 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent )
   ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this, config_data );
   nav_name_list_ << "Configuration Files";
   main_content_->addWidget(cfw);  
- 
+
+  // Pass command arg values to config files screen
+  if (args.count("config_pkg"))
+    cfw->stack_path_->setPath( args["config_pkg"].as<std::string>() );
+
+  // Navigation Left Pane --------------------------------------------------
   navs_view_ = new NavigationWidget( this );
   navs_view_->setNavs(nav_name_list_);
   navs_view_->setDisabled( true );

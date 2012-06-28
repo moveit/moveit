@@ -82,26 +82,13 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
                                                                 MoveItConfigDataPtr config_data )
   : SetupScreenWidget( parent ), config_data_(config_data)
 {
-  // TODO
-  // Create a Qt-ROS update spinner
-  // TODO: not sure how this will integrate with whole GUI Tools combined
-  /*  update_timer_ = new QTimer();
-      connect( update_timer_, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
-      update_timer_->start( 1000 );*/
-
   // Basic widget container
   layout_ = new QVBoxLayout( this );
 
   // Top Label Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "Optimize Self-Collision Checking",
-                                           "The Default Self-Collision Matrix Generator will search for pairs of links "
-                                           "on the robot that can safely be disabled from collision checking, decreasing motion "
-                                           "planning processing time. These pairs of links are disabled they are always in collision,"
-                                           " never in collision, collision in the robot's default position and when the links are "
-                                           "adjacent to each other on the kinematic chain. Sampling density specifies how many "
-                                           "random robot positions to check for self collision. Higher densities require more "
-                                           "computation time.",
+                                           "The Default Self-Collision Matrix Generator will search for pairs of links on the robot that can safely be disabled from collision checking, decreasing motion planning processing time. These pairs of links are disabled they are always in collision, never in collision, collision in the robot's default position and when the links are adjacent to each other on the kinematic chain. Sampling density specifies how many random robot positions to check for self collision. Higher densities require more computation time.",
                                            this);
   layout_->addWidget( header );
    
@@ -217,9 +204,6 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
 // ******************************************************************************************
 void ComputeDefaultCollisionsWidget::closeEvent( QCloseEvent * event )
 {
-  std::cout << "CLOSING" << std::endl;
-
-
   if( unsaved_changes_ )
   {
     QMessageBox messageBox;
@@ -276,7 +260,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
 
   // Wait for thread to finish
   workerThread.join();
-  std::cout << "\nThreads joined.\n";
+  //std::cout << "\nThreads joined.\n";
 
   // Load the results into the GUI
   loadCollisionTable();
@@ -300,13 +284,15 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
 
   // Find the default collision matrix - all links that are allowed to collide
   link_pairs_ = moveit_setup_assistant::computeDefaultCollisions(psm.getPlanningScene(), collision_progress, 
-                                                                     include_never_colliding, num_trials, verbose);
-  
+                                                                 include_never_colliding, num_trials, verbose);
+
+  // Copy data changes to srdf_writer object
+  linkPairsToSRDF();
+
   // End the progress bar loop
   *collision_progress = 100;
 
-  //ROS_INFO_STREAM("Thread complete " << link_pairs_.size());
-  //ROS_INFO("Thread complete");
+  ROS_INFO_STREAM("Thread complete " << link_pairs_.size());
 }
 
 // ******************************************************************************************
@@ -426,7 +412,7 @@ void ComputeDefaultCollisionsWidget::disableControls(bool disable)
   controls_box_->setDisabled( disable );
   collision_table_->setDisabled( disable );
   collision_checkbox_->setDisabled( disable );
-  save_button_->setDisabled( disable );
+  //save_button_->setDisabled( disable );
 
   if( disable )
   {
@@ -465,11 +451,9 @@ void ComputeDefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are f
   // Only accept cell changes if table is enabled, otherwise it is this program making changes
   if( collision_table_->isEnabled() )
   {
-    std::cout << "CLICK " << i << " " << j << std::endl;
     // Make sure change is the checkbox column
     if( i == 2 ) 
     {
-      std::cout << "ROW " << j << std::endl;
 
       // Convert row to pair
       std::pair<std::string, std::string> link_pair;
@@ -479,12 +463,10 @@ void ComputeDefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are f
       // Get the state of checkbox
       bool check_state = collision_table_->item(j, 2)->checkState();
 
-      std::cout << link_pair.first << " " << link_pair.second << "checked? " << check_state << "\n";
 
       // Check if the checkbox state has changed from original value
       if( link_pairs_[ link_pair ].disable_check != check_state )
       {
-        std::cout << link_pair.first << " to " << link_pair.second << " has changed " << check_state << "\n";
         
         // Save the change
         link_pairs_[ link_pair ].disable_check = check_state;
@@ -494,7 +476,6 @@ void ComputeDefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are f
             link_pairs_[ link_pair ].reason == moveit_setup_assistant::NOT_DISABLED )
         {
           link_pairs_[ link_pair ].reason = moveit_setup_assistant::USER;
-          std::cout << link_pair.first << " is now USER \n";
           
           // Change Reason in Table
           collision_table_->item(j, 3)->setText( longReasonsToString.at( link_pairs_[ link_pair ].reason ) );
@@ -504,37 +485,45 @@ void ComputeDefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are f
                  link_pairs_[ link_pair ].reason == moveit_setup_assistant::USER )
         {
           link_pairs_[ link_pair ].reason = moveit_setup_assistant::NOT_DISABLED;
-          std::cout << link_pair.first << " is now NOT DISABLED \n";
           
           // Change Reason in Table
           collision_table_->item(j, 3)->setText( "" );
         }
 
         unsaved_changes_ = true;
-      }    
+      }
+
+      // Copy data changes to srdf_writer object
+      linkPairsToSRDF();
     }
   }
 }
 
 // ******************************************************************************************
-// Calls the tool's SRDF saving functionality
+// Output Link Pairs to SRDF Format
 // ******************************************************************************************
-void ComputeDefaultCollisionsWidget::saveToSRDF()
+void ComputeDefaultCollisionsWidget::linkPairsToSRDF()
 {
-  // Show Progress bar
-  disableControls( true );
+  // reset the data in the SRDF Writer class
+  config_data_->srdf_->disabled_collisions_.clear();
 
-  // Do the save
-  moveit_setup_assistant::outputDisabledCollisionsXML( link_pairs_ );
+  // Create temp disabled collision
+  srdf::Model::DisabledCollision dc;
 
-  // Update the table to reflect changes in data
-  loadCollisionTable();
+  // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
+  for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin(); 
+        pair_it != link_pairs_.end(); ++pair_it)
+  {  
+    // Only copy those that are actually disabled
+    if( pair_it->second.disable_check )
+    {
+      dc.link1_ = pair_it->first.first;
+      dc.link2_ = pair_it->first.second;
+      dc.reason_ = moveit_setup_assistant::disabledReasonToString( pair_it->second.reason );
+      config_data_->srdf_->disabled_collisions_.push_back( dc );
+    }
+  }
 
-  // Remove exit application warning
-  unsaved_changes_ = false;
-
-  // Hide Progress bar
-  disableControls( false );
 }
 
 // ******************************************************************************************

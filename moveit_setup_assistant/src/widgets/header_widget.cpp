@@ -34,7 +34,17 @@
 
 /* Author: Dave Coleman */
 
+#include <QPushButton>
+#include <QFont>
+#include <QFileDialog>
+#include <QVBoxLayout>
 #include "header_widget.h"
+
+// ******************************************************************************************
+// ******************************************************************************************
+// Class for Header of Screen
+// ******************************************************************************************
+// ******************************************************************************************
 
 HeaderWidget::HeaderWidget( const std::string &title, const std::string &instructions, QWidget *parent )
   : QWidget(parent)
@@ -62,4 +72,151 @@ HeaderWidget::HeaderWidget( const std::string &title, const std::string &instruc
   layout->setContentsMargins( 0, 0, 0, 15);
 
   setLayout(layout);
+}
+
+
+// ******************************************************************************************
+// ******************************************************************************************
+// Class for selecting files
+// ******************************************************************************************
+// ******************************************************************************************
+
+// ******************************************************************************************
+// Create the widget
+// ******************************************************************************************
+LoadPathWidget::LoadPathWidget( const std::string &title, const std::string &instructions, 
+                                const bool dir_only, const bool load_only, QWidget* parent )
+  : QFrame(parent), dir_only_(dir_only), load_only_(load_only)
+{
+  // Set frame graphics
+  setFrameShape(QFrame::StyledPanel);
+  setFrameShadow(QFrame::Raised);
+  setLineWidth(1);
+  setMidLineWidth(0);
+
+  // Basic widget container
+  QVBoxLayout *layout = new QVBoxLayout(this);
+
+  // Horizontal layout splitter
+  QHBoxLayout *hlayout = new QHBoxLayout();
+    
+  // Widget Title
+  QLabel * widget_title = new QLabel(this);
+  widget_title->setText( title.c_str() );
+  QFont widget_title_font( "Arial", 12, QFont::Bold );
+  widget_title->setFont(widget_title_font);
+  layout->addWidget( widget_title);
+  layout->setAlignment( widget_title, Qt::AlignTop);
+
+  // Widget Instructions
+  QLabel * widget_instructions = new QLabel(this);
+  widget_instructions->setText( instructions.c_str() );
+  widget_instructions->setWordWrap(true);
+  widget_instructions->setTextFormat( Qt::RichText );
+  layout->addWidget( widget_instructions);
+  layout->setAlignment( widget_instructions, Qt::AlignTop);    
+
+  // Line Edit
+  path_box_ = new QLineEdit(this);
+  hlayout->addWidget(path_box_);
+
+  // Button
+  QPushButton *browse_button = new QPushButton(this);
+  browse_button->setText("Browse");
+  connect( browse_button, SIGNAL( clicked() ), this, SLOT( btn_file_dialog() ) );
+  hlayout->addWidget(browse_button);
+
+  // Add horizontal layer to verticle layer
+  layout->addLayout(hlayout);
+
+  setLayout(layout);
+}
+
+// ******************************************************************************************
+// Load the file dialog
+// ******************************************************************************************
+void LoadPathWidget::btn_file_dialog()
+{
+  QString path;
+  if( dir_only_ ) // only allow user to select a directory
+  {
+    path = QFileDialog::getExistingDirectory(this, "Open Package Directory", path_box_->text(),
+                                             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+  }
+  else // only allow user to select file
+  {
+    QString start_path;
+
+      start_path = path_box_->text();
+
+      /*
+    // smart load: open file dialog in location of stack directory
+    if( path_box_->text() != "" )
+    {
+      start_path = path_box_->text();
+    }
+    else
+    {
+      // Temp pointers used for casting and accessing parent widget elements
+      StartScreenWidget *my_parent = qobject_cast< StartScreenWidget* >( this->parentWidget() );
+      LoadPathWidget *my_stack_path = qobject_cast< LoadPathWidget* >( my_parent->stack_path_ );
+      LoadPathWidget *my_urdf_path = qobject_cast< LoadPathWidget* >( my_parent->urdf_file_ );
+
+      // Check if the urdf file was already loaded
+      if( my_urdf_path->path_box_->text() != "" ) // it has text
+      {
+        start_path = my_urdf_path->path_box_->text();
+      }
+      else
+      {
+        start_path = my_stack_path->path_box_->text();	
+      }
+    }
+    */
+
+    if( load_only_ )
+    {
+      path = QFileDialog::getOpenFileName(this, "Open File", start_path, "");
+    }
+    else
+    {
+      path = QFileDialog::getSaveFileName(this, "Create/Load File", start_path, "" );
+    }
+  }
+  
+  // check they did not press cancel
+  if (path != NULL)
+    path_box_->setText( path );
+}
+
+// ******************************************************************************************
+// Get the QString path
+// ******************************************************************************************
+const QString LoadPathWidget::getQPath()
+{
+  return path_box_->text();
+}
+
+// ******************************************************************************************
+// Get Std String path
+// ******************************************************************************************
+const std::string LoadPathWidget::getPath()
+{
+  return getQPath().toStdString();
+}
+
+// ******************************************************************************************
+// Set the file/dir path
+// ******************************************************************************************
+void LoadPathWidget::setPath( const QString &path )
+{
+  path_box_->setText( path );
+}
+
+// ******************************************************************************************
+// Set the file/dir path with std string
+// ******************************************************************************************
+void LoadPathWidget::setPath( const std::string &path )
+{
+  path_box_->setText( QString( path.c_str() ) );
 }

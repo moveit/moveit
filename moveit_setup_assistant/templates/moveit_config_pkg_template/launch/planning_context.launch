@@ -1,0 +1,12 @@
+<launch>
+
+  <!-- load robot -->
+  
+  <include file="$(find pr2_description)/robots/upload_pr2.launch" />
+  
+  <group ns="robot_description_planning">
+    <rosparam command="load" file="$(find pr2_moveit_config)/config/collision_matrix.yaml"/>
+    <rosparam command="load" file="$(find pr2_moveit_config)/config/joint_limits.yaml"/>
+  </group>
+  
+</launch>
