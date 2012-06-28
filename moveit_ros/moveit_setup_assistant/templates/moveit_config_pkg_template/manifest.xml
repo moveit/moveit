@@ -1,0 +1,14 @@
+<package>
+  <description brief="ROBOT_moveit_config">
+
+     ROBOT_moveit_config
+
+  </description>
+  <author>MoveIt Setup Assistant</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_setup_assistant</url>
+
+</package>
+
+

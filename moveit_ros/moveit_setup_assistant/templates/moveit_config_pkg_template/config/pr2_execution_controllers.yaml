@@ -1,0 +1,14 @@
+right_arm:
+  controllers: 
+    - name: r_arm_controller
+      ns: follow_joint_trajectory
+      type: trajectory_execution_ros/FollowJointTrajectoryControllerHandler
+      load: false
+      default: true
+left_arm:
+  controllers: 
+    - name: l_arm_controller
+      ns: follow_joint_trajectory
+      type: trajectory_execution_ros/FollowJointTrajectoryControllerHandler
+      load: false
+      default: true

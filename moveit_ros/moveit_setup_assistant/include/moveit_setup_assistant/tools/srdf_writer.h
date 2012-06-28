@@ -66,6 +66,27 @@ public:
    */
   bool initString( const urdf::ModelInterface &robot_model, const std::string &srdf_string );
 
+  /** 
+   * Generate SRDF XML of all contained data and save to file
+   * 
+   * @param file_path - string path location to save SRDF
+   * @return bool - true if save was successful
+   */
+  bool writeSRDF( const std::string &file_path );
+
+  /** 
+   * Generate XML for SRDF groups
+   * 
+   * @param root - TinyXML root element to attach sub elements to
+   */
+  void createGroupsXML( TiXmlElement *root );
+
+  /** 
+   * Generate XML for SRDF disabled collisions of robot link pairs
+   * 
+   * @param root  - TinyXML root element to attach sub elements to
+   */
+  void createDisabledCollisionsXML( TiXmlElement *root );
 
   // Group Datastructures
   std::vector<srdf::Model::Group>             groups_;

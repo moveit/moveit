@@ -1,0 +1,6 @@
+r_end_effector:
+  database_id: WILLOW_GRIPPER_2010
+  approach_direction: [-1.0,0.0,0.0]
+l_end_effector:
+  database_id: WILLOW_GRIPPER_2010
+  approach_direction: [-1.0,0.0,0.0]

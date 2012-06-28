@@ -75,11 +75,18 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
                                      const bool include_never_colliding = true, const unsigned int trials = 10000, 
                                      const bool verbose = false);
 
+/** 
+ * \brief Converts a reason for disabling a link pair into a string
+ * \param reason enum reason type
+ * \return reason as string
+ */
+const std::string disabledReasonToString( DisabledReason reason );
+
 /**
  * \brief Generate xml format of disabled links for use in an SRDF
  * \param Adj List of unique set of pairs of links in string-based form 
  */
-void outputDisabledCollisionsXML(const LinkPairMap &link_pairs);
+//void outputDisabledCollisionsXML(const LinkPairMap &link_pairs);
 
 }
 

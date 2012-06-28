@@ -55,6 +55,7 @@
 #include "end_effectors_widget.h"
 #include "configuration_files_widget.h"
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
+#include <boost/program_options.hpp> // for parsing input arguments
 
 class SetupAssistantWidget : public QWidget
 {
@@ -70,7 +71,7 @@ public:
    * @param parent - used by Qt for destructing all elements
    * @return 
    */
-  SetupAssistantWidget( QWidget *parent );
+  SetupAssistantWidget( QWidget *parent, boost::program_options::variables_map args );
 
   /** 
    * Changes viewable screen

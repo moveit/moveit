@@ -38,12 +38,13 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_HEADER_WIDGET_
 
 #include <QWidget>
-#include <QVBoxLayout>
 #include <QLabel>
-#include <QFont>
+#include <QLineEdit>
 
 // ******************************************************************************************
-// Provides the title and instructions
+// ******************************************************************************************
+// Class for showing the title and instructions
+// ******************************************************************************************
 // ******************************************************************************************
 class HeaderWidget : public QWidget
 {
@@ -51,9 +52,50 @@ class HeaderWidget : public QWidget
 
 public:
 
+  /// Contructor
   HeaderWidget( const std::string &title, const std::string &instructions, QWidget *parent );
 };
 
+
+// ******************************************************************************************
+// ******************************************************************************************
+// Class for selecting files
+// ******************************************************************************************
+// ******************************************************************************************
+class LoadPathWidget : public QFrame
+{
+  Q_OBJECT
+
+  private:
+  // Only allow user to select folders
+  bool dir_only_;
+  // Only allow user to load files (not save)
+  bool load_only_;
+  // Stores the path qstring
+  QLineEdit *path_box_;
+
+private Q_SLOTS:
+  /// Load the file dialog
+  void btn_file_dialog();
+
+public:
+  
+  /// Constructor
+  LoadPathWidget( const std::string &title, const std::string &instructions, 
+                  const bool dir_only = false, const bool load_only = false, QWidget * parent=0 );
+
+  /// Returns the file path in QString format
+  const QString getQPath();
+
+  /// Returns the file path in std::string format
+  const std::string getPath();
+
+  /// Set the path with QString
+  void setPath( const QString &path );
+
+  /// Set the path with std string
+  void setPath( const std::string &path );
+};
 
 
 #endif

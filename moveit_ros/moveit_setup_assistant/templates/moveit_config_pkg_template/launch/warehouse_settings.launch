@@ -1,0 +1,24 @@
+<launch>
+  <!-- Set the parameters for the warehouse and run the mongodb server. -->
+
+  <!-- The default namespace under which to load parameters -->  
+  <arg name="moveit_warehouse_default_ns" default="moveit_warehouse" />
+
+  <!-- The default DB port for moveit (not default MongoDB port to avoid potential conflicts) -->  
+  <arg name="moveit_warehouse_port" default="33829" /> 
+  
+  <!-- The default DB host for moveit (empty means localhost) -->  
+  <arg name="moveit_warehouse_host" default="" /> 
+  
+  <!-- A little hack to set the path we want as a ROS param;
+       this sets $(arg default_ns)/database_path_base to ROS_HOME/moveit_warehouse -->
+  <node name="$(arg moveit_warehouse_default_ns)" cwd="ROS_HOME" type="db_path_config.py" pkg="moveit_warehouse" />
+  
+  <!-- Set arguments as params, in the desired namespace -->
+  <group ns="$(arg moveit_warehouse_default_ns)">
+    <param name="warehouse_port" value="$(arg moveit_warehouse_port)"/>
+    <param name="warehouse_host" value="$(arg moveit_warehouse_host)"/>
+    <param name="warehouse_exec" value="$(find mongodb)/mongo/bin/mongod" />
+  </group>
+
+</launch>

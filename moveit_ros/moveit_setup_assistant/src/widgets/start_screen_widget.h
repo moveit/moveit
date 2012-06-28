@@ -141,44 +141,6 @@ class SelectModeWidget : public QFrame
 
 };
 
-// ******************************************************************************************
-// ******************************************************************************************
-// Class for selecting files
-// ******************************************************************************************
-// ******************************************************************************************
-
-class LoadPathWidget : public QFrame
-{
-  Q_OBJECT
-
-  private:
-  // Load file button
-  QPushButton *button_;
-  // Only allow user to select folders
-  bool dir_only_;
-  // Only allow user to load files (not save)
-  bool load_only_;
-  // Stores the path qstring
-  QLineEdit *path_box_;
-
-private Q_SLOTS:
-  /// Load the file dialog
-  void btn_file_dialog();
-
-public:
-
-  LoadPathWidget( const std::string &title, const std::string &instructions, 
-                  const bool dir_only = false, const bool load_only = false, QWidget * parent=0 );
-
-  /// Returns the file path in QString format
-  const QString getQPath();
-
-  /// Returns the file path in std::string format
-  const std::string getPath();
-
-  /// Set the URDF path
-  void setPath( const QString &path );
-};
 
 
 

@@ -32,18 +32,39 @@
 #include "widgets/setup_assistant_widget.h"
 #include <QApplication>
 #include "ros/ros.h"
-
+#include <boost/program_options.hpp>
 
 int main(int argc, char **argv)
 {
   // Start ROS Node
   ros::init(argc, argv, "moveit_setup_assistant");
 
+  // Parse parameters
+  namespace po = boost::program_options;
+
+  // Declare the supported options
+  po::options_description desc("Allowed options");
+  desc.add_options()
+    ("help", "Show help message")
+    ("urdf", po::value<std::string>(), "Optional, pass in URDF to load")
+    ("srdf", po::value<std::string>(), "Optional, pass in SRDF to load")
+    ("config_pkg", po::value<std::string>(), "Optional, pass in existing config package to load");
+
+  // Process options
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::notify(vm);    
+
+  if (vm.count("help")) {
+    std::cout << desc << "\n";
+    return 1;
+  }
+
   // Create Qt Application
   QApplication qtApp(argc, argv);
 
   // Load Qt Widget
-  SetupAssistantWidget saw(0);
+  SetupAssistantWidget saw( NULL, vm );
   saw.setMinimumWidth(1024);
   saw.setMinimumHeight(768);
   saw.show();
