@@ -338,6 +338,7 @@ bool KinematicsGroupVisualization::setRandomState(unsigned int max_tries) {
     jsg->setStateValues(all_joint_values);
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
+    req.group_name = group_name_;
     planning_scene_->checkCollision(req, res, ks);
     if(!res.collision)
     {

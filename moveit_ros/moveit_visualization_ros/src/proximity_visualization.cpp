@@ -41,12 +41,6 @@ ProximityVisualization::ProximityVisualization(const planning_scene::PlanningSce
   publisher_(marker_publisher)
 {
   distance_acm_ = planning_scene->getAllowedCollisionMatrix();
-  distance_acm_.setEntry("r_shoulder_pan_link", "r_shoulder_pan_link", true);
-  distance_acm_.setEntry("r_shoulder_lift_link", "r_shoulder_lift_link", true);
-  distance_acm_.setEntry("r_upper_arm_link", "r_upper_arm_link", true);  
-  distance_acm_.setEntry("l_shoulder_pan_link", "l_shoulder_pan_link", true);
-  distance_acm_.setEntry("l_shoulder_lift_link", "l_shoulder_lift_link", true);
-  distance_acm_.setEntry("l_upper_arm_link", "l_upper_arm_link", true);  
 }
 
 void ProximityVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
