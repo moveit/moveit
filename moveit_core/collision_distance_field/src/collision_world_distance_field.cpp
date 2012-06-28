@@ -60,6 +60,19 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(double size_x,
   distance_field_cache_entry_ = generateDistanceFieldCacheEntry();
 }
 
+CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDistanceField& other) :
+  CollisionWorld(other)
+{
+  size_x_ = other.size_x_;
+  size_y_ = other.size_y_;
+  size_z_ = other.size_z_;
+  use_signed_distance_field_ = other.use_signed_distance_field_;
+  resolution_ = other.resolution_;
+  collision_tolerance_ = other.collision_tolerance_;
+  max_propogation_distance_ = other.max_propogation_distance_;
+  distance_field_cache_entry_ = generateDistanceFieldCacheEntry();
+}
+
 void CollisionWorldDistanceField::checkCollision(const collision_detection::CollisionRequest &req, 
                                                  collision_detection::CollisionResult &res, 
                                                  const collision_detection::CollisionRobot &robot, 
@@ -306,7 +319,7 @@ void CollisionWorldDistanceField::removeObject(const std::string& id)
 
 void CollisionWorldDistanceField::clearObjects() 
 {
-  clearObjects();
+  CollisionWorld::clearObjects();
   distance_field_cache_entry_->distance_field_->reset();
 }
 
