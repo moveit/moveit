@@ -102,6 +102,10 @@ void IterativeParabolicSmoother::applyVelocityConstraints(trajectory_msgs::Joint
                                                           const std::vector<moveit_msgs::JointLimits>& limits,
                                                           std::vector<double> &time_diff) const
 {
+
+  // aleeper: This function computes the minimum time needed for each trajectory
+  //          point by (forward_difference/ v_max), and recording the minimum time in
+  //          the time_diff vector, which will be used later.
   const unsigned int num_points = trajectory.points.size();
   const unsigned int num_joints = trajectory.joint_names.size();
 
@@ -126,11 +130,6 @@ void IterativeParabolicSmoother::applyVelocityConstraints(trajectory_msgs::Joint
       if( limits[j].has_velocity_limits )
       {
         v_max = limits[j].max_velocity;
-      }
-      double a_max = 1.0;
-      if( limits[j].has_velocity_limits )
-      {
-        a_max = limits[j].max_acceleration;
       }
 
       const double dq1 = point1.positions[j];
@@ -199,7 +198,7 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::v
   unsigned int num_joints = trajectory.joint_names.size();
   const unsigned int num_points = trajectory.points.size();
 
-	// Error check
+  // Error check
   if(time_diff.size() < 1)
 		return;
 
@@ -210,6 +209,9 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::v
     time_sum += time_diff[i-1];
     trajectory.points[i].time_from_start = ros::Duration(time_sum);
   }
+
+  // Return if there is only one point in the trajectory!
+  if(trajectory.points.size() <= 1) return;
 
   // Velocities
 /*
