@@ -675,6 +675,7 @@ void KinematicsSolverConstraintAware::collisionCheck(const geometry_msgs::Pose &
   error_code.val = error_code.SUCCESS;
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
+  req.group_name = jsg->getName();
   //req.contacts = true;
   //req.max_contacts = 1;
   if(!use_unpadded_robot_) {
@@ -731,6 +732,7 @@ void KinematicsSolverConstraintAware::initialPoseCheck(const geometry_msgs::Pose
  
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
+  req.group_name = group_name_;
   //last_initial_pose_check_collision_result_ = collision_detection::CollisionResult();
   //req.contacts = true;
   //req.max_contacts = 1;
