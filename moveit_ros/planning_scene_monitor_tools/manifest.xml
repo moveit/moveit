@@ -11,6 +11,7 @@
   <depend package="planning_scene_monitor"/>
   <depend package="tf"/>
   <depend package="kinematics_constraint_aware"/>
+  <depend package="collision_distance_field"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`"/>

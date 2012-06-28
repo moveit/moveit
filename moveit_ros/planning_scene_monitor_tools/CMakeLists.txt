@@ -31,3 +31,4 @@ rosbuild_link_boost(evaluate_collision_checking_speed thread program_options)
 
 rosbuild_add_executable(inverse_kinematics_sanity_checker src/inverse_kinematics_sanity_checker_main.cpp)
 
+rosbuild_add_gtest(test_planning_scene_distance_field src/test_planning_scene_distance_field.cpp)
