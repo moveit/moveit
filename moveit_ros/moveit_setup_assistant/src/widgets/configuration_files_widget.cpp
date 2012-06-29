@@ -41,6 +41,9 @@
 #include "configuration_files_widget.h"
 #include <boost/filesystem.hpp>  // for creating folders/files
 
+namespace moveit_setup_assistant
+{
+
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
@@ -381,5 +384,5 @@ const std::string ConfigurationFilesWidget::getPackageName( std::string stack_pa
 // 
 // ******************************************************************************************
 
-
+}
 

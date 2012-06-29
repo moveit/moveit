@@ -43,6 +43,10 @@
 #include "header_widget.h" // for setup assistant template
 #include "template_widget.h"
 
+namespace moveit_setup_assistant
+{
+
+
 // ******************************************************************************************
 // 
 // ******************************************************************************************
@@ -64,3 +68,5 @@ TemplateWidget::TemplateWidget( QWidget *parent, moveit_setup_assistant::MoveItC
   this->setLayout(layout);
 }
 
+
+}

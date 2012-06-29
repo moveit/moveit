@@ -44,9 +44,13 @@
 #include <moveit_setup_assistant/tools/srdf_writer.h> // for writing srdf data
 #include <planning_scene/planning_scene.h> // for getting kinematic model
 #include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
+#include <planning_models_loader/kinematic_model_loader.h>
 
 namespace moveit_setup_assistant
 {
+
+// Used for loading kinematic model
+static const std::string ROBOT_DESCRIPTION="robot_description";
 
 class MoveItConfigData
 {
@@ -66,18 +70,29 @@ public:
   // SRDF Data and Writer
   SRDFWriterPtr srdf_;
 
+  /// Provide a shared kinematic model loader
+  planning_models_loader::KinematicModelLoaderPtr getKinematicModelLoader();
+
+  /// Provide a shared planning scene
+  planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitor();
+
   /// Provide a kinematic model. Load a new one if necessary
   const planning_models::KinematicModelConstPtr& getKinematicModel();
 
 private:
-  // Remember a kinematic model
-  planning_models::KinematicModelConstPtr kin_model_;
+  // Shared kinematic model loader
+  planning_models_loader::KinematicModelLoaderPtr kin_model_loader_;
 
+  // Shared planning scene monitor
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+
+  // Shared kinematic model
+  planning_models::KinematicModelConstPtr kin_model_;
+  
 };
 
 /// Create a shared pointer for passing this data object between widgets
 typedef boost::shared_ptr<MoveItConfigData> MoveItConfigDataPtr;
-
 
 }
 

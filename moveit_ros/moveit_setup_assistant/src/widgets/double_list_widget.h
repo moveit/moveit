@@ -42,6 +42,9 @@
 #include <QTableWidget>
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
 
+namespace moveit_setup_assistant
+{
+
 class DoubleListWidget : public QWidget
 {
   Q_OBJECT
@@ -119,4 +122,7 @@ private:
 
 };
 
+} //namespace moveit_setup_assistant
+
 #endif
+

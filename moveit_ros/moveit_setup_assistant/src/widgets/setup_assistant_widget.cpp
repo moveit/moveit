@@ -8,7 +8,7 @@
  *  modification, are permitted provided that the following conditions
  *  are met:
  *
- *   * Redistributions of source code must retain the above copyright
+n *   * Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
  *   * Redistributions in binary form must reproduce the above
  *     copyright notice, this list of conditions and the following
@@ -42,9 +42,12 @@
 #include <QFont>
 #include <QLabel>
 #include <QPushButton>
+#include <QCloseEvent>
+#include <QMessageBox>
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
-using namespace moveit_setup_assistant;
+namespace moveit_setup_assistant
+{
 
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
@@ -53,12 +56,12 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   : QWidget( parent )
 {
   // Create timer to ping ROS ----------------------------------------
-  QTimer *update_timer = new QTimer( this );
+  /*QTimer *update_timer = new QTimer( this );
   connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
-  update_timer->start( 500 );
+  update_timer->start( 250 );*/
   
   // Create object to hold all moveit configuration data
-  MoveItConfigDataPtr config_data( new MoveItConfigData() );
+  config_data_.reset( new MoveItConfigData() );
 
   // Basic widget container -----------------------------------------
   QHBoxLayout *layout = new QHBoxLayout();
@@ -69,48 +72,25 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   // Screens --------------------------------------------------------
 
   // Start Screen
-  StartScreenWidget *ssw = new StartScreenWidget( this, config_data );
-  connect( ssw, SIGNAL( readyToProgress() ), this, SLOT( progressPastStartScreen() ) );
-  nav_name_list_ << "Start";
-  main_content_->addWidget(ssw);
+  ssw_ = new StartScreenWidget( this, config_data_ );
+  connect( ssw_, SIGNAL( readyToProgress() ), this, SLOT( progressPastStartScreen() ) );
+  main_content_->addWidget(ssw_);
 
   // Pass command arg values to start screen
   if (args.count("urdf"))
-    ssw->urdf_file_->setPath( args["urdf"].as<std::string>() );
+    ssw_->urdf_file_->setPath( args["urdf"].as<std::string>() );
   if (args.count("srdf"))
-    ssw->srdf_file_->setPath( args["srdf"].as<std::string>() );
+    ssw_->srdf_file_->setPath( args["srdf"].as<std::string>() );
   if (args.count("config_pkg"))
-    ssw->stack_path_->setPath( args["config_pkg"].as<std::string>() );
+    ssw_->stack_path_->setPath( args["config_pkg"].as<std::string>() );
 
-
-  // Planning Groups
-  PlanningGroupsWidget *pgw = new PlanningGroupsWidget( this, config_data );
+  // Add Navigation Buttons (but do not load widgets yet except start screen)
+  nav_name_list_ << "Start";
   nav_name_list_ << "Planning Groups";
-  main_content_->addWidget(pgw);
-
-  // Self-Collisions
-  ComputeDefaultCollisionsWidget *cdcw = new ComputeDefaultCollisionsWidget( this, config_data);
   nav_name_list_ << "Self-Collisions";
-  main_content_->addWidget(cdcw);
-
-  // Robot Poses
-  RobotPosesWidget *rpw = new RobotPosesWidget( this, config_data );
   nav_name_list_ << "Robot Poses";
-  main_content_->addWidget(rpw);
-
-  // End Effectors
-  EndEffectorsWidget *efw = new EndEffectorsWidget( this, config_data );
   nav_name_list_ << "End Effectors";
-  main_content_->addWidget(efw);  
-
-  // Configuration Files
-  ConfigurationFilesWidget *cfw = new ConfigurationFilesWidget( this, config_data );
   nav_name_list_ << "Configuration Files";
-  main_content_->addWidget(cfw);  
-
-  // Pass command arg values to config files screen
-  if (args.count("config_pkg"))
-    cfw->stack_path_->setPath( args["config_pkg"].as<std::string>() );
 
   // Navigation Left Pane --------------------------------------------------
   navs_view_ = new NavigationWidget( this );
@@ -166,11 +146,37 @@ void SetupAssistantWidget::moveToScreen( const int index )
 }
 
 // ******************************************************************************************
-// Enables navigation and goes to screen 2
+// Loads other windows, enables navigation and goes to screen 2
 // ******************************************************************************************
 void SetupAssistantWidget::progressPastStartScreen()
 {
-  // Enable all nav buttons
+  // Load all widgets ------------------------------------------------
+
+  // Planning Groups
+  pgw_ = new PlanningGroupsWidget( this, config_data_ );
+  main_content_->addWidget(pgw_);
+
+  // Self-Collisions
+  cdcw_ = new ComputeDefaultCollisionsWidget( this, config_data_);
+  main_content_->addWidget(cdcw_);
+
+  // Robot Poses
+  rpw_ = new RobotPosesWidget( this, config_data_ );
+  main_content_->addWidget(rpw_);
+
+  // End Effectors
+  efw_ = new EndEffectorsWidget( this, config_data_ );
+  main_content_->addWidget(efw_);  
+
+  // Configuration Files
+  cfw_ = new ConfigurationFilesWidget( this, config_data_ );
+  main_content_->addWidget(cfw_);  
+
+  // Pass command arg values to config files screen
+  cfw_->stack_path_->setPath( ssw_->stack_path_->getQPath() );
+
+
+  // Enable all nav buttons -------------------------------------------
   for( int i = 0; i < nav_name_list_.count(); ++i)
   {
     navs_view_->setEnabled( i, true );
@@ -189,4 +195,25 @@ void SetupAssistantWidget::progressPastStartScreen()
 void SetupAssistantWidget::updateTimer()
 {
   ros::spinOnce(); // keep ROS alive
+}
+
+// ******************************************************************************************
+// Qt close event function for reminding user to save
+// ******************************************************************************************
+void SetupAssistantWidget::closeEvent( QCloseEvent * event )
+{
+  if( QMessageBox::question( this, "Exit Setup Assistant", 
+                             QString("Are you sure you want to exit the MoveIt Setup Assistant?"),
+                             QMessageBox::Ok | QMessageBox::Cancel) 
+      == QMessageBox::Cancel )
+  {
+      event->ignore();
+      return;
+  }
+
+  event->accept();
+}
+
+
+
 }

@@ -101,13 +101,13 @@ bool SRDFWriter::writeSRDF( const std::string &file_path )
   createGroupsXML( robot_root );
   
   // Add Group States
-  // TODO
+  createGroupStatesXML( robot_root );
 
   // Add End Effectors
-  // TODO
+  createEndEffectorsXML( robot_root );
 
   // Add Virtual Joints
-  // TODO
+  createVirtualJointsXML( robot_root );  
 
   // Add Disabled Collisions
   createDisabledCollisionsXML( robot_root );
@@ -122,17 +122,20 @@ bool SRDFWriter::writeSRDF( const std::string &file_path )
 void SRDFWriter::createGroupsXML( TiXmlElement *root )
 {
   // Convenience comments
-  TiXmlComment *comment;
-  comment = new TiXmlComment( "GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc" );  
-  root->LinkEndChild( comment );  
-  comment = new TiXmlComment( "LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included" );
-  root->LinkEndChild( comment );  
-  comment = new TiXmlComment( "JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included" );
-  root->LinkEndChild( comment );  
-  comment = new TiXmlComment( "CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group");
-  root->LinkEndChild( comment );
-  comment = new TiXmlComment( "SUBGROUPS: Groups can also be formed by referencing to already defined group names" );
-  root->LinkEndChild( comment );  
+  if( groups_.size() ) // only show comments if there are corresponding elements
+  {
+    TiXmlComment *comment;
+    comment = new TiXmlComment( "GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc" );  
+    root->LinkEndChild( comment );  
+    comment = new TiXmlComment( "LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included" );
+    root->LinkEndChild( comment );  
+    comment = new TiXmlComment( "JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included" );
+    root->LinkEndChild( comment );  
+    comment = new TiXmlComment( "CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group");
+    root->LinkEndChild( comment );
+    comment = new TiXmlComment( "SUBGROUPS: Groups can also be formed by referencing to already defined group names" );
+    root->LinkEndChild( comment );  
+  }
 
   // Loop through all of the top groups
   for( std::vector<srdf::Model::Group>::iterator group_it = groups_.begin(); 
@@ -190,9 +193,12 @@ void SRDFWriter::createGroupsXML( TiXmlElement *root )
 void SRDFWriter::createDisabledCollisionsXML( TiXmlElement *root )
 {
   // Convenience comments
-  TiXmlComment *comment = new TiXmlComment();
-  comment->SetValue( "DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. " );  
-  root->LinkEndChild( comment );  
+  if( disabled_collisions_.size() ) // only show comments if there are corresponding elements
+  {
+    TiXmlComment *comment = new TiXmlComment();
+    comment->SetValue( "DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. " );  
+    root->LinkEndChild( comment );  
+  }
 
   for ( std::vector<srdf::Model::DisabledCollision>::const_iterator pair_it = disabled_collisions_.begin();
         pair_it != disabled_collisions_.end() ; ++pair_it)
@@ -206,5 +212,94 @@ void SRDFWriter::createDisabledCollisionsXML( TiXmlElement *root )
     root->LinkEndChild( link_pair );
   }
 }
+
+// ******************************************************************************************
+// Generate XML for SRDF group states
+// ******************************************************************************************
+void SRDFWriter::createGroupStatesXML( TiXmlElement *root )
+{
+  // Convenience comments
+  if( group_states_.size() ) // only show comments if there are corresponding elements
+  {
+    TiXmlComment *comment = new TiXmlComment();
+    comment->SetValue( "GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'" );
+    root->LinkEndChild( comment );  
+  }
+
+  for ( std::vector<srdf::Model::GroupState>::const_iterator state_it = group_states_.begin();
+        state_it != group_states_.end() ; ++state_it)
+  {
+    // Create new element for each group state
+    TiXmlElement *state = new TiXmlElement("group_state");
+    state->SetAttribute("name", state_it->name_ );
+    state->SetAttribute("group", state_it->group_ );
+    root->LinkEndChild( state );
+
+    // Add all joints
+    for( std::map<std::string, std::vector<double> >::const_iterator value_it = state_it->joint_values_.begin();
+         value_it != state_it->joint_values_.end(); ++value_it )
+    {
+      TiXmlElement *joint = new TiXmlElement("joint");
+      joint->SetAttribute("name", value_it->first ); // joint name
+      joint->SetAttribute("value", value_it->second[0] ); // joint value
+      // TODO: use the vector to support multi-DOF joints
+      state->LinkEndChild( joint );
+    }
+  }
+}
+
+// ******************************************************************************************
+// Generate XML for SRDF end effectors
+// ******************************************************************************************
+void SRDFWriter::createEndEffectorsXML( TiXmlElement *root )
+{
+  // Convenience comments
+  if( end_effectors_.size() ) // only show comments if there are corresponding elements
+  {
+    TiXmlComment *comment = new TiXmlComment();
+    comment->SetValue( "END EFFECTOR: Purpose: Represent information about an end effector." );
+    root->LinkEndChild( comment );  
+  }
+
+  for ( std::vector<srdf::Model::EndEffector>::const_iterator effector_it = end_effectors_.begin();
+        effector_it != end_effectors_.end() ; ++effector_it)
+  {
+    // Create new element for each link pair
+    TiXmlElement *effector = new TiXmlElement("end_effector");
+    effector->SetAttribute("name", effector_it->name_ );
+    effector->SetAttribute("parent_link", effector_it->parent_link_ );
+    effector->SetAttribute("group", effector_it->component_group_ );
+
+    root->LinkEndChild( effector );
+  }
+}
+
+// ******************************************************************************************
+// Generate XML for SRDF virtual joints
+// ******************************************************************************************
+void SRDFWriter::createVirtualJointsXML( TiXmlElement *root )
+{
+  // Convenience comments
+  if( virtual_joints_.size() ) // only show comments if there are corresponding elements
+  {
+    TiXmlComment *comment = new TiXmlComment();
+    comment->SetValue( "VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)" );
+    root->LinkEndChild( comment );  
+  }
+
+  for ( std::vector<srdf::Model::VirtualJoint>::const_iterator virtual_it = virtual_joints_.begin();
+        virtual_it != virtual_joints_.end() ; ++virtual_it)
+  {
+    // Create new element for each link pair
+    TiXmlElement *virtual_joint = new TiXmlElement("disabled_collisions");
+    virtual_joint->SetAttribute("name", virtual_it->name_ );
+    virtual_joint->SetAttribute("type", virtual_it->type_ );
+    virtual_joint->SetAttribute("parent_frame", virtual_it->parent_frame_ );
+    virtual_joint->SetAttribute("child_link", virtual_it->child_link_ );
+
+    root->LinkEndChild( virtual_joint );
+  }
+}
+
 
 }

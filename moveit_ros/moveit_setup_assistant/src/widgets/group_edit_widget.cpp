@@ -41,6 +41,9 @@
 #include <QString>
 #include "group_edit_widget.h"
 
+namespace moveit_setup_assistant
+{
+
 // ******************************************************************************************
 // 
 // ******************************************************************************************
@@ -118,3 +121,5 @@ void GroupEditWidget::setSelected( const std::string &group_name )
   group_name_field_->setText( QString( group_name.c_str() ) );
 }
 
+
+}

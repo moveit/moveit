@@ -44,6 +44,9 @@
 #include <QStyledItemDelegate>
 #include <QPainter>
 
+namespace moveit_setup_assistant
+{
+
 /** 
  * Widget for showing a left hand side list of navigation items
  * 
@@ -83,5 +86,7 @@ class NavDelegate : public QStyledItemDelegate
   void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 
 };
+
+}
 
 #endif 

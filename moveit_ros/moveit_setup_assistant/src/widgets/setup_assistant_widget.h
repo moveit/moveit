@@ -57,6 +57,9 @@
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include <boost/program_options.hpp> // for parsing input arguments
 
+namespace moveit_setup_assistant
+{
+
 class SetupAssistantWidget : public QWidget
 {
   Q_OBJECT
@@ -79,6 +82,12 @@ public:
    */
 
   void moveToScreen( const int index );
+
+  /**
+   * Qt close event function for reminding user to save
+   * @param event A Qt paramenter
+   */
+  void closeEvent( QCloseEvent * event );
 
   // ******************************************************************************************
   // Qt Components
@@ -120,6 +129,17 @@ private:
   QSplitter *splitter_;
   QStackedLayout *main_content_;
 
+  // Screen Widgets
+  StartScreenWidget *ssw_;
+  PlanningGroupsWidget *pgw_;
+  ComputeDefaultCollisionsWidget *cdcw_;
+  RobotPosesWidget *rpw_;
+  EndEffectorsWidget *efw_;
+  ConfigurationFilesWidget *cfw_;
+  
+  /// Contains all the configuration data for the setup assistant
+  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
@@ -127,5 +147,7 @@ private:
 
 };
 
+
+}
 
 #endif

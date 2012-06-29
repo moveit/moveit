@@ -88,6 +88,27 @@ public:
    */
   void createDisabledCollisionsXML( TiXmlElement *root );
 
+  /** 
+   * Generate XML for SRDF group states of each joint's position
+   * 
+   * @param root  - TinyXML root element to attach sub elements to
+   */
+  void createGroupStatesXML( TiXmlElement *root );
+
+  /** 
+   * Generate XML for SRDF end effectors
+   * 
+   * @param root  - TinyXML root element to attach sub elements to
+   */
+  void createEndEffectorsXML( TiXmlElement *root );
+
+  /** 
+   * Generate XML for SRDF virtual joints
+   * 
+   * @param root  - TinyXML root element to attach sub elements to
+   */
+  void createVirtualJointsXML( TiXmlElement *root );
+
   // Group Datastructures
   std::vector<srdf::Model::Group>             groups_;
   std::vector<srdf::Model::GroupState>        group_states_;

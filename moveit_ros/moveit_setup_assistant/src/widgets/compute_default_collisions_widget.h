@@ -46,13 +46,15 @@
 #include <QGroupBox>
 #include <QProgressBar>
 #include <QCheckBox>
-#include <QTimer>
 #include <boost/thread.hpp>
 #include "ros/ros.h"
 #include "moveit_setup_assistant/tools/compute_default_collisions.h"
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
+
+namespace moveit_setup_assistant
+{
 
 /**
  * \brief User interface for editing the default collision matrix list in an SRDF
@@ -71,12 +73,6 @@ public:
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
   ComputeDefaultCollisionsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
-
-  /**
-   * \brief Qt close event function for reminding user to save
-   * \param event A Qt paramenter
-   */
-  void closeEvent( QCloseEvent * event );
 
   /** 
    * \brief Output Link Pairs to SRDF Format
@@ -100,11 +96,6 @@ private Q_SLOTS:
    * \param value Sampling density
    */
   void changeDensityLabel(int value);
-
-  /**
-   * \brief Calls the tool's SRDF saving functionality
-   */
-  //void saveToSRDF();
 
   /**
    * \brief Displays data in the link_pairs data structure into a QtTableWidget
@@ -153,9 +144,6 @@ private:
   /// main storage of link pair data
   moveit_setup_assistant::LinkPairMap link_pairs_; 
 
-  /// does the user need to save before exiting?
-  bool unsaved_changes_; 
-
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 
@@ -177,5 +165,7 @@ private:
   void disableControls(bool disable);
 
 };
+
+}
 
 #endif
