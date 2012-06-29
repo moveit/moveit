@@ -160,7 +160,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
     QTimer *update_timer = new QTimer( this );
     update_timer->setSingleShot( true ); // only run once
     connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
-    update_timer->start( 200 );  
+    update_timer->start( 10 );  
   }
 }
 

@@ -241,7 +241,8 @@ void SRDFWriter::createGroupStatesXML( TiXmlElement *root )
     {
       TiXmlElement *joint = new TiXmlElement("joint");
       joint->SetAttribute("name", value_it->first ); // joint name
-      joint->SetAttribute("value", value_it->second[0] ); // joint value
+      joint->SetDoubleAttribute("value", value_it->second[0] ); // joint value
+
       // TODO: use the vector to support multi-DOF joints
       state->LinkEndChild( joint );
     }
@@ -291,7 +292,7 @@ void SRDFWriter::createVirtualJointsXML( TiXmlElement *root )
         virtual_it != virtual_joints_.end() ; ++virtual_it)
   {
     // Create new element for each link pair
-    TiXmlElement *virtual_joint = new TiXmlElement("disabled_collisions");
+    TiXmlElement *virtual_joint = new TiXmlElement("virtual_joint");
     virtual_joint->SetAttribute("name", virtual_it->name_ );
     virtual_joint->SetAttribute("type", virtual_it->type_ );
     virtual_joint->SetAttribute("parent_frame", virtual_it->parent_frame_ );
