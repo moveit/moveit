@@ -179,7 +179,8 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   moveit_rviz_plugin::PlanningDisplay* pd = dynamic_cast<moveit_rviz_plugin::PlanningDisplay*>( dw->getDisplay() );
   
   // turn off planned path
-  
+  pd->setVisualVisible( false );
+
   // set robot description
   pd->setRobotDescription( ROBOT_DESCRIPTION );
   
@@ -400,9 +401,11 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive( srdf::Model::Group &group_it
   group->addChild( chains );
 
   // Warn if there is more than 1 chain per group
-  if( group_it.chains_.size() > 1 )
+  static bool warn_once = true;
+  if( group_it.chains_.size() > 1 && warn_once )
   {
-    QMessageBox::warning( this, "Group With Multiple Chains", "Notice: this MoveIt Setup Assistant does not support more than one kinematic chain per planning group. The loaded SRDF has more than one kinematic chain in a planning group, and this data may be over written" );
+    warn_once = false;
+    QMessageBox::warning( this, "Group with Multiple Kinematic Chains", "Warning: this MoveIt Setup Assistant is only designed to handle one kinematic chain per group. The loaded SRDF has more than one kinematic chain for a group. A possible loss of data may occur.");
   }
  
   // Loop through all aval. chains
@@ -602,7 +605,7 @@ void PlanningGroupsWidget::loadChainScreen( srdf::Model::Group *this_group )
   // Make sure there isn't more than 1 chain pair
   if( this_group->chains_.size() > 1 )
   {
-    QMessageBox::critical( this, "Error Loading", "Warning: This setup assistant is only designed to handle one kinematic chain per group. The loaded SRDF has more than one kinematic chain for a group. A possible loss of data may occur.");
+    QMessageBox::warning( this, "Multiple Kinematic Chains", "Warning: This setup assistant is only designed to handle one kinematic chain per group. The loaded SRDF has more than one kinematic chain for a group. A possible loss of data may occur.");
   }
 
   // Set the selected tip and base of chain if one exists

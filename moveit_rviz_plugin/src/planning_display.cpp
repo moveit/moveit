@@ -693,9 +693,11 @@ void PlanningDisplay::createProperties()
   
   ///// robot path
   
-  visual_enabled_property_ = property_manager_->createProperty<rviz::BoolProperty> ("Show Robot Visual", path_prefix,
-                                                                                    boost::bind(&PlanningDisplay::getVisualVisible, this),
-                                                                                    boost::bind(&PlanningDisplay::setVisualVisible, this, _1), path_category_, this);
+  visual_enabled_property_ 
+    = property_manager_->createProperty<rviz::BoolProperty> ("Show Robot Visual", path_prefix,
+                                                             boost::bind(&PlanningDisplay::getVisualVisible, this),
+                                                             boost::bind(&PlanningDisplay::setVisualVisible, this, _1), 
+                                                             path_category_, this);
   setPropertyHelpText(visual_enabled_property_, "Indicates whether the geometry of the robot as defined for visualisation purposes should be displayed");
   
   collision_enabled_property_ = property_manager_->createProperty<rviz::BoolProperty> ("Show Robot Collision", path_prefix,
