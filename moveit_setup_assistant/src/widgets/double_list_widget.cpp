@@ -44,6 +44,9 @@
 #include <QString>
 #include "double_list_widget.h"
 
+namespace moveit_setup_assistant
+{
+
 // ******************************************************************************************
 // 
 // ******************************************************************************************
@@ -290,4 +293,8 @@ void DoubleListWidget::deselectDataButtonClicked()
     }
   */
 }
+
+
+} //namespace moveit_setup_assistant
+
 

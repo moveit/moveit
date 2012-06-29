@@ -43,6 +43,9 @@
 #include <QPushButton>
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
 
+namespace moveit_setup_assistant
+{
+
 class GroupEditWidget : public QWidget
 {
   Q_OBJECT
@@ -105,4 +108,7 @@ private:
 
 };
 
+}
+
 #endif
+

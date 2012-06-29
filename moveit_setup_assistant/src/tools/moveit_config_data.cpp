@@ -39,9 +39,6 @@
 namespace moveit_setup_assistant
 {
 
-// Used for loading kinematic model
-static const std::string ROBOT_DESCRIPTION="robot_description";
-
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
@@ -59,30 +56,46 @@ MoveItConfigData::~MoveItConfigData()
 }
 
 // ******************************************************************************************
+// Provide a shared kinematic model loader
+// ******************************************************************************************
+planning_models_loader::KinematicModelLoaderPtr MoveItConfigData::getKinematicModelLoader()
+{
+  if( !kin_model_loader_ )
+  {
+    // Customize the loader with options
+    planning_models_loader::KinematicModelLoader::Options opt(ROBOT_DESCRIPTION);
+    opt.load_kinematics_solvers_ = false;
+
+    // Initialize
+    kin_model_loader_.reset(new planning_models_loader::KinematicModelLoader(opt));
+  }
+
+  return kin_model_loader_;
+}
+
+// ******************************************************************************************
+// Provide a shared planning scene
+// ******************************************************************************************
+planning_scene_monitor::PlanningSceneMonitorPtr MoveItConfigData::getPlanningSceneMonitor()
+{
+  if( !planning_scene_monitor_ )
+  {
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor( getKinematicModelLoader() ));
+  }
+  return planning_scene_monitor_;
+}
+
+// ******************************************************************************************
 // Provide a kinematic model. Load a new one if necessary
 // ******************************************************************************************
 const planning_models::KinematicModelConstPtr& MoveItConfigData::getKinematicModel()
 {
   if (!kin_model_)
   {
-    planning_models_loader::KinematicModelLoader::Options opt(ROBOT_DESCRIPTION);
-    opt.load_kinematics_solvers_ = false;
-    static planning_models_loader::KinematicModelLoaderPtr loader;
-    loader.reset(new planning_models_loader::KinematicModelLoader(opt));
-    kin_model_ = loader->getModel();
+    kin_model_ = getKinematicModelLoader()->getModel();
   }
   return kin_model_;
 }
-
-// ******************************************************************************************
-// 
-// ******************************************************************************************
-
-
-
-// ******************************************************************************************
-// 
-// ******************************************************************************************
 
 
 }

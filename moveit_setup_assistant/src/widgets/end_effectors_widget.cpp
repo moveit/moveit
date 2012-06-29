@@ -36,6 +36,8 @@
 
 #include "end_effectors_widget.h"
 
+namespace moveit_setup_assistant
+{
 
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
@@ -58,3 +60,5 @@ EndEffectorsWidget::EndEffectorsWidget( QWidget *parent, moveit_setup_assistant:
   this->setLayout(layout);
 }
 
+
+} //namespace moveit_setup_assistant

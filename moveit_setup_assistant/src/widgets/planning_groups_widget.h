@@ -37,18 +37,26 @@
 #ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
 
+// Qt
 #include <QWidget>
 #include <QTreeWidget>
 #include <QSplitter>
 #include <QStackedLayout>
+// Rviz
+#include <rviz/visualization_panel.h>
+#include <rviz/visualization_manager.h>
+// Setup Asst
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "double_list_widget.h" // for joints, links and subgroups pages
 #include "kinematic_chain_widget.h" // for kinematic chain page
 #include "group_edit_widget.h" // for group rename page
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
-// Forward Declaration
+// Forward Declaration (outside of namespace for Qt)
 class PlanGroupType;
+
+namespace moveit_setup_assistant
+{
 
 // Custom Type
 enum GroupType {
@@ -132,6 +140,9 @@ private:
   KinematicChainWidget *chain_widget_;
   GroupEditWidget *group_edit_widget_;
 
+  // Rviz Frame
+  rviz::VisualizationPanel* rviz_frame_;
+
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
@@ -167,6 +178,7 @@ private:
 
 };
 
+}
 
 // ******************************************************************************************
 // ******************************************************************************************
@@ -180,15 +192,16 @@ public:
 
   //  explicit PlanGroupType();
   PlanGroupType() {}
-  PlanGroupType( srdf::Model::Group *group, const GroupType type );
+  PlanGroupType( srdf::Model::Group *group, const moveit_setup_assistant::GroupType type );
   virtual ~PlanGroupType() { ; }
   
   // Variables
   srdf::Model::Group *group_;
-  GroupType type_;
+  moveit_setup_assistant::GroupType type_;
 };
 
 Q_DECLARE_METATYPE(PlanGroupType);
 
 
 #endif
+

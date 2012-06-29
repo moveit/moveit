@@ -9,13 +9,14 @@
 
   <rosdep name="tinyxml" />
 
-  <!--depend package="random_numbers"/-->
   <depend package="planning_models"/>
   <depend package="kinematics_constraint_aware"/>
   <depend package="planning_scene"/>
   <depend package="planning_scene_monitor"/>
   <depend package="srdf"/>
   <depend package="urdf"/>
+  <depend package="rviz"/>
+  <depend package="moveit_rviz_plugin"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_setup_assistant -lmoveit_setup_assistant_widgets `rosboost-cfg --lflags thread`"/>

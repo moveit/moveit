@@ -44,6 +44,9 @@
 #include <QString>
 #include "kinematic_chain_widget.h"
 
+namespace moveit_setup_assistant
+{
+
 // ******************************************************************************************
 // 
 // ******************************************************************************************
@@ -273,4 +276,6 @@ void KinematicChainWidget::alterTree( const QString &link )
     link_tree_->expandAll();
   else
     link_tree_->collapseAll();
+}
+
 }

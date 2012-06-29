@@ -41,15 +41,12 @@
 #include <QString>
 #include <QFont>
 #include <QApplication>
-#include <QCloseEvent>
 #include "compute_default_collisions_widget.h"
-#include <planning_scene_monitor/planning_scene_monitor.h>
 #include <boost/unordered_map.hpp>
 #include <boost/assign.hpp>
 
-using namespace moveit_setup_assistant;
-
-static const std::string ROBOT_DESCRIPTION="robot_description";
+namespace moveit_setup_assistant
+{
 
 /// Boost mapping of reasons for disabling a link pair to strings
 const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char*> longReasonsToString = 
@@ -191,34 +188,9 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
     controls_box_bottom_layout->addWidget(save_button_);
     controls_box_bottom_layout->setAlignment(save_button_, Qt::AlignRight);*/
 
-  // Does user need to save before exiting?
-  unsaved_changes_ = false;
-
   setLayout(layout_);
 
   setWindowTitle("Default Collision Matrix");
-}
-
-// ******************************************************************************************
-// Qt close event function for reminding user to save
-// ******************************************************************************************
-void ComputeDefaultCollisionsWidget::closeEvent( QCloseEvent * event )
-{
-  if( unsaved_changes_ )
-  {
-    QMessageBox messageBox;
-    messageBox.setWindowTitle("Default Collision Matrix");
-    messageBox.setText("There are unsaved changes to the default collision matrix. Do you really want to quit?");
-    messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    messageBox.setDefaultButton(QMessageBox::No);
-    if(messageBox.exec() == QMessageBox::No)
-    {
-      event->ignore();
-      return;
-    }
-  }
-
-  event->accept();
 }
 
 // ******************************************************************************************
@@ -265,13 +237,13 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
   // Load the results into the GUI
   loadCollisionTable();
 
-  // For exiting application
-  unsaved_changes_ = true;
-
   // Hide the progress bar
   disableControls(false); // enable everything else
 }
 
+// ******************************************************************************************
+// The thread that is called to allow the GUI to update. Calls an external function to do calcs
+// ******************************************************************************************
 void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collision_progress )
 {
   unsigned int num_trials = density_slider_->value() * 1000 + 1000; // scale to trials amount
@@ -279,12 +251,11 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
   const bool verbose = true; // Output benchmarking and statistics
   const bool include_never_colliding = true;
 
-  // Load robot description
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
-
   // Find the default collision matrix - all links that are allowed to collide
-  link_pairs_ = moveit_setup_assistant::computeDefaultCollisions(psm.getPlanningScene(), collision_progress, 
-                                                                 include_never_colliding, num_trials, verbose);
+  link_pairs_ = 
+    moveit_setup_assistant::computeDefaultCollisions( config_data_->getPlanningSceneMonitor()->getPlanningScene(), 
+                                                      collision_progress, include_never_colliding, num_trials, 
+                                                      verbose);
 
   // Copy data changes to srdf_writer object
   linkPairsToSRDF();
@@ -490,7 +461,6 @@ void ComputeDefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are f
           collision_table_->item(j, 3)->setText( "" );
         }
 
-        unsaved_changes_ = true;
       }
 
       // Copy data changes to srdf_writer object
@@ -534,4 +504,4 @@ void ComputeDefaultCollisionsWidget::updateTimer()
   ros::spinOnce(); // keep ROS alive
 }
 
-
+}

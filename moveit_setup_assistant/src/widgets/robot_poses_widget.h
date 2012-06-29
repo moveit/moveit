@@ -48,6 +48,9 @@
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
+namespace moveit_setup_assistant
+{
+
 class RobotPosesWidget : public SetupScreenWidget
 {
   Q_OBJECT
@@ -88,4 +91,6 @@ private:
 
 };
 
+}
 #endif
+

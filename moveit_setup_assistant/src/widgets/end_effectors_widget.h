@@ -48,6 +48,9 @@
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
+namespace moveit_setup_assistant
+{
+
 class EndEffectorsWidget : public SetupScreenWidget
 {
   Q_OBJECT
@@ -87,5 +90,7 @@ private:
 
 
 };
+
+} //namespace moveit_setup_assistant
 
 #endif
