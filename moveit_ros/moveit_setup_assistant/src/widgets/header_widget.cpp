@@ -40,6 +40,9 @@
 #include <QVBoxLayout>
 #include "header_widget.h"
 
+namespace moveit_setup_assistant
+{
+
 // ******************************************************************************************
 // ******************************************************************************************
 // Class for Header of Screen
@@ -219,4 +222,7 @@ void LoadPathWidget::setPath( const QString &path )
 void LoadPathWidget::setPath( const std::string &path )
 {
   path_box_->setText( QString( path.c_str() ) );
+}
+
+
 }

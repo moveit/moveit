@@ -36,6 +36,8 @@
 
 #include "robot_poses_widget.h"
 
+namespace moveit_setup_assistant
+{
 
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
@@ -58,3 +60,5 @@ RobotPosesWidget::RobotPosesWidget( QWidget *parent, moveit_setup_assistant::Mov
   this->setLayout(layout);
 }
 
+
+}

@@ -50,6 +50,9 @@
 #include "header_widget.h" // title and instructions
 #include "start_screen_widget.h"
 
+namespace moveit_setup_assistant
+{
+
 
 // ******************************************************************************************
 // Start screen user interface for MoveIt Configuration Assistant
@@ -150,7 +153,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
 
-  if( false )
+  if( true )
   {
     select_mode_->btn_new_->click();
 
@@ -257,6 +260,8 @@ void StartScreenWidget::loadFiles()
 
   // Load the robot model to the parameter server
   ros::NodeHandle nh;
+  ros::spinOnce();
+  ros::spinOnce();
   ros::spinOnce();
   nh.setParam("/robot_description", urdf_string);
   ros::spinOnce();
@@ -377,3 +382,5 @@ SelectModeWidget::SelectModeWidget( QWidget* parent )
   setLayout(layout);
 }
 
+
+}

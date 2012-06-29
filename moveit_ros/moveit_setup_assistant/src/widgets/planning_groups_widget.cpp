@@ -44,12 +44,14 @@
    - Link Collection Screen - implements the double_list_widget.cpp widget
    - Kinematic Chain Screen - uses it own custom widget - kinematic_chain_widget.cpp
    - Subgroup Screen - implements the double_list_widget.cpp widget
-
 */
 // ******************************************************************************************
 
+#include "ros/ros.h"
+#include "header_widget.h"
 #include "planning_groups_widget.h"
 #include <boost/thread.hpp>
+// Qt
 #include <QApplication>
 #include <QDebug>
 #include <QVBoxLayout>
@@ -61,16 +63,24 @@
 #include <QLineEdit>
 #include <QTreeWidgetItem>
 #include <QHeaderView>
-#include "ros/ros.h"
-#include "header_widget.h"
-#include <planning_scene/planning_scene.h> // for getting the joints
-#include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
-#include <planning_models/kinematic_model.h> // for joint model
-// For cycle checking
+// Cycle checking
 #include <boost/utility.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/visitors.hpp>
+// Rviz
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/default_plugin/interactive_marker_display.h>
+#include <rviz/display_wrapper.h>
+#include <rviz/view_controllers/orbit_view_controller.h>
+#include <moveit_rviz_plugin/planning_display.h>
+
+
+namespace moveit_setup_assistant
+{
+
+// Name of rviz topic in ROS
+static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 
 // Used for checking for cycles in a subgroup hierarchy
 struct cycle_detector : public boost::dfs_visitor<>
@@ -145,10 +155,59 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   stacked_layout_->setCurrentIndex( 0 );
   
   // Rviz Right Side -------------------------------------
-  QLabel *temp = new QLabel( "RVIZ", this );
-  temp->setMinimumWidth( 300 );
-  right_layout->addWidget( temp );
-  right_layout->setAlignment( temp, Qt::AlignCenter );
+
+  // Create rviz frame
+  rviz_frame_ = new rviz::VisualizationPanel();
+  //rviz_frame_->setMinimumWidth( 300 );
+
+  // Turn on interactive mode
+  // EGJ: kind of hacky way to do this, given the way that the vis manager is creating tools
+  //rviz_frame_->getManager()->setCurrentTool(rviz_frame_->getManager()->getTool(1));
+
+  // Sizes for QSplitter - allows the left pane to be hidden
+  /*QList<int> sizes;
+    sizes.push_back(0);
+    sizes.push_back(1000);
+    rviz_frame_->setSizes(sizes); */
+
+
+  rviz_frame_->getManager()->setFixedFrame( config_data_->getPlanningSceneMonitor()->
+                                            getPlanningScene()->getPlanningFrame() );
+
+  // Add Motion Planning Plugin to Rviz
+  rviz::DisplayWrapper* dw = rviz_frame_->getManager()->createDisplay( "moveit_rviz_plugin/MotionPlanning","Motion Planning", true );
+  moveit_rviz_plugin::PlanningDisplay* pd = dynamic_cast<moveit_rviz_plugin::PlanningDisplay*>( dw->getDisplay() );
+  
+  // turn off planned path
+  
+  // set robot description
+  pd->setRobotDescription( ROBOT_DESCRIPTION );
+  
+  // Add RobotModel Display to Rviz
+  //rviz_frame_->getManager()->createDisplay("rviz/RobotModel", "Robot Model", true);
+
+
+  /*
+  // Add Marker Display to Rviz 
+  rviz::DisplayWrapper* marker_display = rviz_frame_->getManager()->createDisplay("rviz/Marker", "Markers", true);
+  // Get pointer to created marker display 
+  rviz::MarkerDisplay* md = dynamic_cast<rviz::MarkerDisplay*>(marker_display->getDisplay());
+  // Set Marker Topic Name
+  md->setMarkerTopic(VIS_TOPIC_NAME);
+
+  // Add Interactive Marker Display to Rviz
+  rviz::DisplayWrapper* interactive_marker_display = rviz_frame_->getManager()->
+  createDisplay("rviz/InteractiveMarker", "Interactive Markers", true);
+  // Get pointer to created interactive marker
+  rviz::InteractiveMarkerDisplay* imd = dynamic_cast<rviz::InteractiveMarkerDisplay*>(interactive_marker_display->getDisplay());
+  // Set Interactive Marker Name
+  imd->setMarkerUpdateTopic("interactive_kinematics_visualization/update");
+  */
+
+  
+
+  // Add Rviz to Planning Groups Widget
+  right_layout->addWidget( rviz_frame_ );
 
   // Split screen -----------------------------------------
   QWidget *left_frame = new QWidget( this );
@@ -209,23 +268,28 @@ QWidget* PlanningGroupsWidget::createContentsWidget()
   connect( expand_controls, SIGNAL(linkActivated( const QString )), this, SLOT( alterTree( const QString )));
   controls_layout->addWidget( expand_controls );
 
+  // Spacer
+  QWidget *spacer = new QWidget( this );
+  spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  controls_layout->addWidget( spacer );
+
   //  Edit Selected Button
   QPushButton *btn_edit = new QPushButton( "&Edit Selected", this );
-  btn_edit->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  btn_edit->setMinimumWidth(200);
+  btn_edit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
+  btn_edit->setMaximumWidth(300);
   connect(btn_edit, SIGNAL(clicked()), this, SLOT(editSelected()));
   controls_layout->addWidget(btn_edit);
   controls_layout->setAlignment( btn_edit, Qt::AlignRight );
 
-  // Add Super Group Button
-  QPushButton *btn_super_group = new QPushButton( "&Add Group", this );
-  btn_super_group->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  btn_super_group->setMinimumWidth(200);
-  connect(btn_super_group, SIGNAL(clicked()), this, SLOT(addGroup()));
-  controls_layout->addWidget(btn_super_group);
-  controls_layout->setAlignment( btn_super_group, Qt::AlignRight );
+  // Add Group Button
+  QPushButton *btn_add = new QPushButton( "&Add Group", this );
+  btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
+  btn_add->setMaximumWidth(300);
+  connect(btn_add, SIGNAL(clicked()), this, SLOT(addGroup()));
+  controls_layout->addWidget(btn_add);
+  controls_layout->setAlignment( btn_add, Qt::AlignRight );
 
-  
+
   // Add Controls to layout
   layout->addLayout( controls_layout );
 
@@ -334,7 +398,13 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive( srdf::Model::Group &group_it
   chains->setFont( 0, type_font );
   chains->setData( 0, Qt::UserRole, QVariant::fromValue( PlanGroupType( &group_it, CHAIN ) ) );
   group->addChild( chains );
-    
+
+  // Warn if there is more than 1 chain per group
+  if( group_it.chains_.size() > 1 )
+  {
+    QMessageBox::warning( this, "Group With Multiple Chains", "Notice: this MoveIt Setup Assistant does not support more than one kinematic chain per planning group. The loaded SRDF has more than one kinematic chain in a planning group, and this data may be over written" );
+  }
+ 
   // Loop through all aval. chains
   for( std::vector<std::pair<std::string, std::string> >::const_iterator chain_it = group_it.chains_.begin();
        chain_it != group_it.chains_.end(); ++chain_it )
@@ -1062,6 +1132,7 @@ void PlanningGroupsWidget::alterTree( const QString &link )
 
 
 
+}
 
 
 // ******************************************************************************************
@@ -1070,7 +1141,8 @@ void PlanningGroupsWidget::alterTree( const QString &link )
 // ******************************************************************************************
 // ******************************************************************************************
 
-PlanGroupType::PlanGroupType( srdf::Model::Group *group, const GroupType type )
+PlanGroupType::PlanGroupType( srdf::Model::Group *group, const moveit_setup_assistant::GroupType type )
   : group_( group ), type_( type )
 { 
 }
+
