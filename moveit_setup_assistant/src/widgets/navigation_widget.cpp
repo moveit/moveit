@@ -38,6 +38,9 @@
 #include <QDebug>
 #include <iostream>
 
+namespace moveit_setup_assistant
+{
+
 // ******************************************************************************************
 // CLASS
 // ******************************************************************************************
@@ -187,3 +190,5 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
   painter->restore();
 }
 
+
+}

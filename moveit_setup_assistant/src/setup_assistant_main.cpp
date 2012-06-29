@@ -60,11 +60,15 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  // ROS Spin
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+
   // Create Qt Application
   QApplication qtApp(argc, argv);
 
   // Load Qt Widget
-  SetupAssistantWidget saw( NULL, vm );
+  moveit_setup_assistant::SetupAssistantWidget saw( NULL, vm );
   saw.setMinimumWidth(1024);
   saw.setMinimumHeight(768);
   saw.show();
@@ -78,3 +82,4 @@ int main(int argc, char **argv)
 
   return result;
 }
+

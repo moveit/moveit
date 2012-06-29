@@ -41,6 +41,9 @@
 #include <QLabel>
 #include <QLineEdit>
 
+namespace moveit_setup_assistant
+{
+
 // ******************************************************************************************
 // ******************************************************************************************
 // Class for showing the title and instructions
@@ -98,4 +101,7 @@ public:
 };
 
 
+}
+
 #endif
+

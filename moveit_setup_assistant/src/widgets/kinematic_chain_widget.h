@@ -44,6 +44,9 @@
 //#include <planning_scene/planning_scene.h> // for getting kinematic model
 //#include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
 
+namespace moveit_setup_assistant
+{
+
 class KinematicChainWidget : public QWidget
 {
   Q_OBJECT
@@ -131,4 +134,7 @@ private:
 
 };
 
+}
+
 #endif
+

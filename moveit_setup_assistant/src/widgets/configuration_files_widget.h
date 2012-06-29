@@ -49,6 +49,9 @@
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
+namespace moveit_setup_assistant
+{
+
 class ConfigurationFilesWidget : public SetupScreenWidget
 {
   Q_OBJECT
@@ -117,5 +120,7 @@ private:
   const std::string getPackageName( std::string stack_path );
 
 };
+
+} //namespace moveit_setup_assistant
 
 #endif
