@@ -129,10 +129,9 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   QLabel* imageLabel = new QLabel( this );
   imageLabel->setPixmap(QPixmap::fromImage(image));
   imageLabel->setMinimumHeight(493);  // size of imageLabel
-  imageLabel->setMinimumWidth(450);
+  //imageLabel->setMinimumWidth(450);
   right_layout->addWidget(imageLabel);
   right_layout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignTop);
-
 
   // Final Layout Setup ---------------------------------------------
   // Alignment
@@ -153,7 +152,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
 
-  if( true )
+  if( config_data_->debug_ )
   {
     select_mode_->btn_new_->click();
 

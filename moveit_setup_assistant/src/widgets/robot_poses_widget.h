@@ -43,6 +43,8 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QTableWidget>
+#include <QStackedLayout>
 #include <QString>
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
@@ -55,18 +57,138 @@ class RobotPosesWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-public:
+  public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
   RobotPosesWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
+  /// Recieved when this widget is chosen from the navigation menu
+  virtual void focusGiven();
+
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+  QTableWidget *data_table_;
+  QPushButton *btn_edit_;
+  QPushButton *btn_delete_;
+  QPushButton *btn_save_;
+  QPushButton *btn_cancel_;
+  QStackedLayout *stacked_layout_;
+  QLineEdit *pose_name_field_;
+  QLineEdit *group_name_field_;
+  QWidget *joint_list_widget_;
+  QVBoxLayout *joint_list_layout_;
+  QWidget *pose_list_widget_;
+  QWidget *pose_edit_widget_;
+                                                                                              
+private Q_SLOTS:
+
+  // ******************************************************************************************
+  // Slot Event Functions
+  // ******************************************************************************************
+
+  /// Show edit screen
+  void showEditScreen();
+
+  /// Edit whatever element is selected
+  void editSelected();
+
+  /// Delete currently editing ite
+  void deleteItem();
+
+  /// Save editing changes
+  void doneEditing();
+
+  /// Cancel changes
+  void cancelEditing();
+
+  /// Run this whenever the group is changed
+  void loadJointSliders();
+
+private:
+
+  // ******************************************************************************************
+  // Variables
+  // ******************************************************************************************
+
+  /// Contains all the configuration data for the setup assistant
+  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+  
+  /// Orignal name of pose currently being edited. This is used to find the element in the vector
+  std::string current_edit_pose_;
+
+
+  // ******************************************************************************************
+  // Private Functions
+  // ******************************************************************************************
+
+  /** 
+   * Find the associated data by name
+   * 
+   * @param name - name of data to find in datastructure
+   * @return pointer to data in datastructure
+   */
+  srdf::Model::Group *findGroupByName( const std::string &name );
+
+  /** 
+   * Find the associated data by name
+   * 
+   * @param name - name of data to find in datastructure
+   * @return pointer to data in datastructure
+   */
+  srdf::Model::GroupState *findPoseByName( const std::string &name );
+
+  /** 
+   * Create the main list view of poses for robot
+   * 
+   * @return the widget
+   */
+  QWidget* createContentsWidget();
+
+  /** 
+   * Create the screen for editing poses
+   * 
+   * @return the widget
+   */
+  QWidget* createEditWidget();
+  
+  /** 
+   * Load the robot poses into the table
+   * 
+   */
+  void loadDataTable();
+
+
+};
+
+
+// ******************************************************************************************
+// ******************************************************************************************
+// Slider Widget
+// ******************************************************************************************
+// ******************************************************************************************
+class SliderWidget : public QWidget
+{
+  Q_OBJECT
+
+  public:
+  // ******************************************************************************************
+  // Public Functions
+  // ******************************************************************************************
+
+  SliderWidget( QWidget *parent );
+
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
 
+  QLabel *joint_label_;
+  QSlider *joint_slider_;
+  QLineEdit *joint_value_;
+                                                                                              
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -76,13 +198,13 @@ private Q_SLOTS:
 
 private:
 
-
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
 
-  /// Contains all the configuration data for the setup assistant
-  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+  /// Name of joint this edits
+  std::string joint_name_;
+
 
   // ******************************************************************************************
   // Private Functions
@@ -91,6 +213,7 @@ private:
 
 };
 
-}
+
+} //namespace
 #endif
 

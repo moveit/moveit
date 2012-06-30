@@ -70,6 +70,9 @@ public:
   // SRDF Data and Writer
   SRDFWriterPtr srdf_;
 
+  // Is this application in debug mode?
+  bool debug_;
+
   /// Provide a shared kinematic model loader
   planning_models_loader::KinematicModelLoaderPtr getKinematicModelLoader();
 

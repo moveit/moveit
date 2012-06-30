@@ -197,7 +197,7 @@ void DoubleListWidget::setSelected( const std::vector<std::string> &items )
 // ******************************************************************************************
 void DoubleListWidget::setTable( const std::vector<std::string> &items, QTableWidget *table )
 {
-  // Setup table
+  // Disable Table
   table->setUpdatesEnabled(false); // prevent table from updating until we are completely done
   table->setDisabled(true); // make sure we disable it so that the cellChanged event is not called
   table->clearContents();

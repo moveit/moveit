@@ -42,9 +42,6 @@
 #include <QTreeWidget>
 #include <QSplitter>
 #include <QStackedLayout>
-// Rviz
-#include <rviz/visualization_panel.h>
-#include <rviz/visualization_manager.h>
 // Setup Asst
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "double_list_widget.h" // for joints, links and subgroups pages
@@ -131,6 +128,9 @@ private:
   /// For changing between table and different add/edit views
   QStackedLayout *stacked_layout_;
 
+  /// Show and hide edit button
+  QPushButton *btn_edit_;
+
   // Stacked Layout SUBPAGES -------------------------------------------
 
   QWidget *groups_tree_widget_;
@@ -139,9 +139,6 @@ private:
   DoubleListWidget *subgroups_widget_;
   KinematicChainWidget *chain_widget_;
   GroupEditWidget *group_edit_widget_;
-
-  // Rviz Frame
-  rviz::VisualizationPanel* rviz_frame_;
 
   // ******************************************************************************************
   // Variables
