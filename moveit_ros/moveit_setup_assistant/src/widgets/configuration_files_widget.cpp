@@ -107,7 +107,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   action_label_->setMidLineWidth(0);  
   action_label_->setWordWrap(true);
   action_label_->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
-  action_label_->setMinimumWidth( 300 );
+  //action_label_->setMinimumWidth( 300 );
   action_label_->setAlignment( Qt::AlignTop );
   action_label_->setOpenExternalLinks(true); // open with web browser
   hlayout2->addWidget( action_label_ );

@@ -96,9 +96,9 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   controls_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
   // Slider Label
-  QLabel *density_left_label = new QLabel( this );
+  /*QLabel *density_left_label = new QLabel( this );
   density_left_label->setText("Self Collision Sampling Density:  Low");
-  controls_box_layout->addWidget(density_left_label);
+  controls_box_layout->addWidget(density_left_label); */
 
   // Slider
   density_slider_ = new QSlider( this );
@@ -127,7 +127,7 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
 
   // Generate Button
   generate_button_ = new QPushButton( this );
-  generate_button_->setText("&Generate Default Collision Matrix");
+  generate_button_->setText("&Generate");
   generate_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   connect(generate_button_, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
   controls_box_layout->addWidget(generate_button_);

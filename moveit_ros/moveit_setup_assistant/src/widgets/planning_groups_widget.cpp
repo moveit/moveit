@@ -68,13 +68,6 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/visitors.hpp>
-// Rviz
-#include <rviz/default_plugin/marker_display.h>
-#include <rviz/default_plugin/interactive_marker_display.h>
-#include <rviz/display_wrapper.h>
-#include <rviz/view_controllers/orbit_view_controller.h>
-#include <moveit_rviz_plugin/planning_display.h>
-
 
 namespace moveit_setup_assistant
 {
@@ -102,7 +95,6 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout();
-  QVBoxLayout *right_layout = new QVBoxLayout();
 
   // Top Label Area ------------------------------------------------
   HeaderWidget *header = new HeaderWidget( "Planning Groups",
@@ -150,80 +142,16 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   stacked_layout_->addWidget( chain_widget_ ); // screen index 3
   stacked_layout_->addWidget( subgroups_widget_ ); // screen index 4
   stacked_layout_->addWidget( group_edit_widget_ ); // screen index 5
-
   
   stacked_layout_->setCurrentIndex( 0 );
+
+  // Finish GUI -----------------------------------------------------------
   
-  // Rviz Right Side -------------------------------------
+  // Create Widget wrapper for layout
+  QWidget *stacked_layout_widget = new QWidget( this );
+  stacked_layout_widget->setLayout( stacked_layout_ );
 
-  // Create rviz frame
-  rviz_frame_ = new rviz::VisualizationPanel();
-  //rviz_frame_->setMinimumWidth( 300 );
-
-  // Turn on interactive mode
-  // EGJ: kind of hacky way to do this, given the way that the vis manager is creating tools
-  //rviz_frame_->getManager()->setCurrentTool(rviz_frame_->getManager()->getTool(1));
-
-  // Sizes for QSplitter - allows the left pane to be hidden
-  /*QList<int> sizes;
-    sizes.push_back(0);
-    sizes.push_back(1000);
-    rviz_frame_->setSizes(sizes); */
-
-
-  rviz_frame_->getManager()->setFixedFrame( config_data_->getPlanningSceneMonitor()->
-                                            getPlanningScene()->getPlanningFrame() );
-
-  // Add Motion Planning Plugin to Rviz
-  rviz::DisplayWrapper* dw = rviz_frame_->getManager()->createDisplay( "moveit_rviz_plugin/MotionPlanning","Motion Planning", true );
-  moveit_rviz_plugin::PlanningDisplay* pd = dynamic_cast<moveit_rviz_plugin::PlanningDisplay*>( dw->getDisplay() );
-  
-  // turn off planned path
-  pd->setVisualVisible( false );
-
-  // set robot description
-  pd->setRobotDescription( ROBOT_DESCRIPTION );
-  
-  // Add RobotModel Display to Rviz
-  //rviz_frame_->getManager()->createDisplay("rviz/RobotModel", "Robot Model", true);
-
-
-  /*
-  // Add Marker Display to Rviz 
-  rviz::DisplayWrapper* marker_display = rviz_frame_->getManager()->createDisplay("rviz/Marker", "Markers", true);
-  // Get pointer to created marker display 
-  rviz::MarkerDisplay* md = dynamic_cast<rviz::MarkerDisplay*>(marker_display->getDisplay());
-  // Set Marker Topic Name
-  md->setMarkerTopic(VIS_TOPIC_NAME);
-
-  // Add Interactive Marker Display to Rviz
-  rviz::DisplayWrapper* interactive_marker_display = rviz_frame_->getManager()->
-  createDisplay("rviz/InteractiveMarker", "Interactive Markers", true);
-  // Get pointer to created interactive marker
-  rviz::InteractiveMarkerDisplay* imd = dynamic_cast<rviz::InteractiveMarkerDisplay*>(interactive_marker_display->getDisplay());
-  // Set Interactive Marker Name
-  imd->setMarkerUpdateTopic("interactive_kinematics_visualization/update");
-  */
-
-  
-
-  // Add Rviz to Planning Groups Widget
-  right_layout->addWidget( rviz_frame_ );
-
-  // Split screen -----------------------------------------
-  QWidget *left_frame = new QWidget( this );
-  left_frame->setLayout( stacked_layout_ );
-  
-  QWidget *right_frame = new QWidget( this );
-  right_frame->setLayout( right_layout );
-   
-  QSplitter *splitter = new QSplitter( Qt::Horizontal, this );
-  splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  splitter->addWidget( left_frame );
-  splitter->addWidget( right_frame ); 
- 
-  layout->addWidget( splitter );
- 
+  layout->addWidget( stacked_layout_widget );
 
   setLayout(layout);
 
@@ -275,12 +203,13 @@ QWidget* PlanningGroupsWidget::createContentsWidget()
   controls_layout->addWidget( spacer );
 
   //  Edit Selected Button
-  QPushButton *btn_edit = new QPushButton( "&Edit Selected", this );
-  btn_edit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
-  btn_edit->setMaximumWidth(300);
-  connect(btn_edit, SIGNAL(clicked()), this, SLOT(editSelected()));
-  controls_layout->addWidget(btn_edit);
-  controls_layout->setAlignment( btn_edit, Qt::AlignRight );
+  btn_edit_ = new QPushButton( "&Edit Selected", this );
+  btn_edit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
+  btn_edit_->setMaximumWidth(300);
+  btn_edit_->hide(); // show once we know if there are existing groups
+  connect(btn_edit_, SIGNAL(clicked()), this, SLOT(editSelected()));
+  controls_layout->addWidget(btn_edit_);
+  controls_layout->setAlignment( btn_edit_, Qt::AlignRight );
 
   // Add Group Button
   QPushButton *btn_add = new QPushButton( "&Add Group", this );
@@ -310,8 +239,6 @@ void PlanningGroupsWidget::loadGroupsTree()
   groups_tree_->setDisabled(true); // make sure we disable it so that the cellChanged event is not called
   groups_tree_->clear(); // reset the tree
 
-
-
   // Display all groups by looping through them
   for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin(); 
        group_it != config_data_->srdf_->groups_.end();  ++group_it )
@@ -319,13 +246,16 @@ void PlanningGroupsWidget::loadGroupsTree()
     loadGroupsTreeRecursive( *group_it, NULL );
   }
 
-  
   // Reenable Tree
   groups_tree_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
   groups_tree_->setDisabled(false); // make sure we disable it so that the cellChanged event is not called
 
+  // Show Edit button if there are things to edit
+  if( config_data_->srdf_->groups_.size() )
+    btn_edit_->show();
+  else
+    btn_edit_->hide();
 
-  // TODO: remove this demo
   alterTree( "expand" );
 }
 
@@ -758,9 +688,9 @@ void PlanningGroupsWidget::addGroup()
 }
 
 // ******************************************************************************************
-// Call when joints edit sceen is done and needs to be saved
+// Find a group by pointer using its string name
 // ******************************************************************************************
-srdf::Model::Group * PlanningGroupsWidget::findGroupByName( const std::string &name )
+srdf::Model::Group *PlanningGroupsWidget::findGroupByName( const std::string &name )
 {
   // Find the group we are editing based on the goup name string
   srdf::Model::Group *searched_group = NULL; // used for holding our search results
@@ -1135,7 +1065,7 @@ void PlanningGroupsWidget::alterTree( const QString &link )
 
 
 
-}
+} // namespace
 
 
 // ******************************************************************************************

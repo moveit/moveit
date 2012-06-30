@@ -46,6 +46,9 @@ MoveItConfigData::MoveItConfigData()
 {
   // Create an instance of SRDF writer for all widgets to share
   srdf_.reset( new SRDFWriter() );
+
+  // Not in debug mode
+  debug_ = false;
 }
 
 // ******************************************************************************************

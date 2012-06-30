@@ -37,6 +37,7 @@
 #ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_ASSISTANT_WIDGET_
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_ASSISTANT_WIDGET_
 
+// Qt
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -46,7 +47,7 @@
 #include <QTimer>
 #include <QSplitter>
 #include <QStringList>
-#include <ros/ros.h>
+// Setup Asst
 #include "navigation_widget.h"
 #include "start_screen_widget.h"
 #include "compute_default_collisions_widget.h"
@@ -55,7 +56,12 @@
 #include "end_effectors_widget.h"
 #include "configuration_files_widget.h"
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
+// Other
+#include <ros/ros.h>
 #include <boost/program_options.hpp> // for parsing input arguments
+// Rviz
+#include <rviz/visualization_panel.h>
+#include <rviz/visualization_manager.h>
 
 namespace moveit_setup_assistant
 {
@@ -64,7 +70,7 @@ class SetupAssistantWidget : public QWidget
 {
   Q_OBJECT
 
-public:
+  public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -88,6 +94,18 @@ public:
    * @param event A Qt paramenter
    */
   void closeEvent( QCloseEvent * event );
+
+  /** 
+   * Load Rviz once we have a robot description ready
+   * 
+   */
+  void loadRviz();
+
+  /** 
+   * Show/hide the Rviz right panel
+   * @param show bool - whether to show
+   */
+  void showRviz( bool show );
 
   // ******************************************************************************************
   // Qt Components
@@ -126,15 +144,20 @@ private:
   NavigationWidget *navs_view_;
   
   QWidget *right_frame_;
+  QWidget *rviz_container_;
   QSplitter *splitter_;
   QStackedLayout *main_content_;
 
+  // Rviz Frame
+  rviz::VisualizationPanel* rviz_frame_;
+
   // Screen Widgets
   StartScreenWidget *ssw_;
-  PlanningGroupsWidget *pgw_;
   ComputeDefaultCollisionsWidget *cdcw_;
+  PlanningGroupsWidget *pgw_;
   RobotPosesWidget *rpw_;
   EndEffectorsWidget *efw_;
+  //VirtualJointsWidget *vjw_;
   ConfigurationFilesWidget *cfw_;
   
   /// Contains all the configuration data for the setup assistant

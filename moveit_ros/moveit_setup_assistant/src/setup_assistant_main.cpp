@@ -46,6 +46,7 @@ int main(int argc, char **argv)
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "Show help message")
+    ("debug", "Run in debug/test mode")
     ("urdf", po::value<std::string>(), "Optional, pass in URDF to load")
     ("srdf", po::value<std::string>(), "Optional, pass in SRDF to load")
     ("config_pkg", po::value<std::string>(), "Optional, pass in existing config package to load");
