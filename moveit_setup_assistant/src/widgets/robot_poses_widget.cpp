@@ -666,29 +666,20 @@ SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicMod
 
   // Joint Limits ----------------------------------------------------
   std::vector<moveit_msgs::JointLimits> limits = joint_model_->getLimits();
-  if( !limits.size() )
+  if( limits.empty() )
   {
-    // TODO: why would this happen?
     QMessageBox::critical( this, "Error Loading", "An internal error has occured while loading the joints" );
   }
   else
   {
-    // TODO: why is it a vector of limits?
+    // Only use the first limit, because there is only 1 variable (as checked earlier)
     moveit_msgs::JointLimits joint_limit = limits[0];
     max_position_ = joint_limit.max_position;
     min_position_ = joint_limit.min_position;
     std::cout << joint_model->getName().c_str() << " min " << min_position_ << " max " << max_position_ << std::endl;
-    // Set slider limits, depending on order of limits
-    if( max_position_ > min_position_ )
-    {
-      joint_slider_->setMaximum( max_position_*100 );
-      joint_slider_->setMinimum( min_position_*100 ); 
-    }
-    else
-    {
-      joint_slider_->setMaximum( min_position_*100 );
-      joint_slider_->setMinimum( max_position_*100 ); 
-    }
+
+    joint_slider_->setMaximum( max_position_*100 );
+    joint_slider_->setMinimum( min_position_*100 ); 
   }
 
   // Connect slider to joint value box
