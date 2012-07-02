@@ -81,19 +81,21 @@ struct GradientInfo
 
   double closest_distance;
   bool collision;
-  //std::vector<Eigen::Vector3d> sphere_locations;
+  std::vector<Eigen::Vector3d> sphere_locations;
   std::vector<double> distances;
   std::vector<Eigen::Vector3d> gradients;
   std::vector<CollisionType> types;
-  //std::vector<double> sphere_radii;
-  //std::string joint_name;
+  std::vector<double> sphere_radii;
+  std::string joint_name;
 
   void clear() {
     closest_distance = DBL_MAX;
     collision = false;
-    //sphere_locations.clear();
+    sphere_locations.clear();
     distances.clear();
     gradients.clear();
+    sphere_radii.clear();
+    joint_name.clear();
   }
 };
 
@@ -149,7 +151,11 @@ public:
   {
     return collision_spheres_;
   }
-    
+
+  const std::vector<double>& getSphereRadii() const {
+    return sphere_radii_;
+  }
+
   const std::vector<Eigen::Vector3d>& getCollisionPoints() const
   {
     return relative_collision_points_;
@@ -172,6 +178,7 @@ private:
   bodies::Body* body_;
 
   bodies::BoundingSphere relative_bounding_sphere_;
+  std::vector<double> sphere_radii_;
   std::vector<CollisionSphere> collision_spheres_;
   std::vector<Eigen::Vector3d> relative_collision_points_;
 };
@@ -194,7 +201,10 @@ public:
   {
     return sphere_centers_;
   }
-    
+
+  const std::vector<double>& getSphereRadii() const {
+    return body_decomposition_->getSphereRadii();
+  }  
   const Eigen::Vector3d& getBoundingSphereCenter() const {
     return posed_bounding_sphere_center_;
   }
@@ -261,6 +271,10 @@ public:
   const std::vector<Eigen::Vector3d>& getSphereCenters() const {
     return posed_collision_spheres_;
   }
+
+  const std::vector<double>& getSphereRadii() const {
+    return sphere_radii_;
+  }  
   
   void addToVector(PosedBodySphereDecompositionPtr& bd)
   {
@@ -272,6 +286,9 @@ public:
     posed_collision_spheres_.insert(posed_collision_spheres_.end(),
                                     bd->getSphereCenters().begin(),
                                     bd->getSphereCenters().end());
+    sphere_radii_.insert(sphere_radii_.end(),
+                         bd->getSphereRadii().begin(),
+                         bd->getSphereRadii().end());
   }
 
   unsigned int getSize() const {
@@ -302,6 +319,7 @@ private:
   std::vector<PosedBodySphereDecompositionPtr> decomp_vector_;
   std::vector<CollisionSphere> collision_spheres_;
   std::vector<Eigen::Vector3d> posed_collision_spheres_;
+  std::vector<double> sphere_radii_;
   std::map<unsigned int, unsigned int> sphere_index_map_;
 };
 

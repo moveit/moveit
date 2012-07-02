@@ -746,6 +746,9 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
         gsr->gradients_[i].types.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size(), NONE);
         gsr->gradients_[i].distances.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size(), DBL_MAX);
         gsr->gradients_[i].gradients.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size());
+        gsr->gradients_[i].sphere_locations = gsr->link_body_decompositions_.back()->getSphereCenters();
+        gsr->gradients_[i].sphere_radii = gsr->link_body_decompositions_.back()->getSphereRadii();
+        gsr->gradients_[i].joint_name = ls->getLinkModel()->getParentJointModel()->getName();
       } else {
         PosedBodySphereDecompositionPtr emp;
         gsr->link_body_decompositions_.push_back(emp);
@@ -771,6 +774,9 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
     gsr->gradients_[i+dfce->link_names_.size()].types.resize(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size(), NONE);
     gsr->gradients_[i+dfce->link_names_.size()].distances.resize(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size(), DBL_MAX);
     gsr->gradients_[i+dfce->link_names_.size()].gradients.resize(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size());
+    gsr->gradients_[i+dfce->link_names_.size()].sphere_locations = gsr->attached_body_decompositions_.back()->getSphereCenters();
+    gsr->gradients_[i+dfce->link_names_.size()].sphere_radii = gsr->attached_body_decompositions_.back()->getSphereRadii();
+    gsr->gradients_[i].joint_name = ls->getLinkModel()->getParentJointModel()->getName();
   }
   return gsr;
 }
