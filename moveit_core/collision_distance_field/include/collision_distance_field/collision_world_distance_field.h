@@ -123,7 +123,7 @@ public:
                         collision_detection::CollisionResult &res, 
                         const collision_detection::CollisionRobot &robot, 
                         const planning_models::KinematicState &state, 
-                        const collision_detection::AllowedCollisionMatrix &acm) const;
+                        const collision_detection::AllowedCollisionMatrix* acm) const;
 
   boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>  
   getAllCollisions(const collision_detection::CollisionRequest &req, 

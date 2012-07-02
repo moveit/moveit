@@ -186,6 +186,10 @@ collision_distance_field::BodyDecomposition::BodyDecomposition(const shapes::Sha
   body_->setPadding(padding);
   collision_spheres_ = determineCollisionSpheres(body_, relative_cylinder_pose_);
   relative_collision_points_ = determineCollisionPoints(body_, resolution);
+  sphere_radii_.resize(collision_spheres_.size());
+  for(unsigned int i = 0; i < collision_spheres_.size(); i++) {
+    sphere_radii_[i] = collision_spheres_[i].radius_;
+  }
   body_->computeBoundingSphere(relative_bounding_sphere_);
 }
 
