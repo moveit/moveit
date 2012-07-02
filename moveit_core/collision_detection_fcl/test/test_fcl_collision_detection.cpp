@@ -97,6 +97,7 @@ protected:
 
 };
 
+
 TEST_F(FclCollisionDetectionTester, InitOK)
 {
     ASSERT_TRUE(urdf_ok_);
@@ -113,6 +114,7 @@ TEST_F(FclCollisionDetectionTester, DefaultNotInCollision)
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_FALSE(res.collision);
 }
+
 
 TEST_F(FclCollisionDetectionTester, LinksInCollision)
 {
@@ -147,6 +149,7 @@ TEST_F(FclCollisionDetectionTester, LinksInCollision)
   crobot_->checkSelfCollision(req, res3, kstate, *acm_);
   ASSERT_TRUE(res3.collision);
 }
+
 
 TEST_F(FclCollisionDetectionTester, ContactReporting)
 {
@@ -442,6 +445,8 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
   EXPECT_LT(fabs(first_check-second_check), .1);
 }
 
+
+
 TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
 {
   std::vector<Eigen::Affine3d> poses;
@@ -459,6 +464,7 @@ TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
   ROS_INFO_STREAM("Adding boxes Took " << t);
 }
 
+
 TEST_F(FclCollisionDetectionTester, MoveMesh) 
 {
   planning_models::KinematicState kstate1(kmodel_);
@@ -468,8 +474,9 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
   shapes::ShapePtr kinect_shape;
   boost::filesystem::path path(boost::filesystem::current_path());  
   kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/../planning_models/test/kinect.dae"));
+
   cworld_->addToObject("kinect", kinect_shape, kinect_pose);
-  
+
   Eigen::Affine3d np;
   for(unsigned int i = 0; i < 5 ; i++) 
   {
@@ -479,7 +486,8 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
     collision_detection::CollisionResult res;
     cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
   }
-  SUCCEED();
+  
+  // SUCCEED();
 }
 
 TEST_F(FclCollisionDetectionTester, TestChangingShapeSize) 
@@ -531,6 +539,7 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
     ASSERT_TRUE(res.collision);
   }
 }
+
 
 int main(int argc, char **argv)
 {
