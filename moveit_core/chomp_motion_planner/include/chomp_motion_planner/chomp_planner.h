@@ -47,7 +47,7 @@ class ChompPlanner
 {
 public:
   ChompPlanner(const planning_models::KinematicModelConstPtr& kmodel);
-  virtual ~ChompPlanner(void);
+  virtual ~ChompPlanner(void){};
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
              const moveit_msgs::GetMotionPlan::Request &req, 
