@@ -16,6 +16,9 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+find_package(srdfdom REQUIRED)
+include_directories(${srdfdom_INCLUDE_DIRS})
+
 # Qt Stuff
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})

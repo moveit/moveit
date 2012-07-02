@@ -128,7 +128,6 @@ public:
                                                              jstates[i]->getJointModel()->getMaximumExtent() * jiggle_fraction_);
           jstates[i]->setVariableValues(sampled_variable_values);
 	  start_state.updateLinkTransforms();
-	  std::cout << "State distance: " << prefix_state.distance(start_state) << std::endl;
           collision_detection::CollisionResult cres;
           planning_scene->checkCollision(creq, cres, start_state);
           if (!cres.collision)

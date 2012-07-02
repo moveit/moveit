@@ -39,7 +39,7 @@
 
 //#include <iostream>
 #include <boost/shared_ptr.hpp>
-#include <srdf/model.h> // use their struct datastructures
+#include <srdfdom/model.h> // use their struct datastructures
 #include <urdf/model.h> // to share throughout app
 #include <moveit_setup_assistant/tools/srdf_writer.h> // for writing srdf data
 #include <planning_scene/planning_scene.h> // for getting kinematic model

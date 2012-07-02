@@ -89,12 +89,12 @@ void planning_pipeline::PlanningPipeline::configure(const planning_models::Kinem
   if (planner_plugin_name_.empty() && classes.size() == 1)
   {
     planner_plugin_name_ = classes[0];
-    ROS_INFO("No 'planning_plugin' parameter specified, but only '%s' planning plugin is available. Using that one.", planner_plugin_name_.c_str());
+    ROS_INFO("No '~planning_plugin' parameter specified, but only '%s' planning plugin is available. Using that one.", planner_plugin_name_.c_str());
   }
   if (planner_plugin_name_.empty() && classes.size() > 1)
   {      
     planner_plugin_name_ = classes[0];   
-    ROS_INFO("Multiple planning plugins available. You shuold specify the 'planning_plugin' parameter. Using '%s' for now.", planner_plugin_name_.c_str());
+    ROS_INFO("Multiple planning plugins available. You shuold specify the '~planning_plugin' parameter. Using '%s' for now.", planner_plugin_name_.c_str());
   }
   try
   {
