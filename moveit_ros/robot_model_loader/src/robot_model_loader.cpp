@@ -46,13 +46,14 @@ robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_
     std::string content;
     if (nh.getParam(robot_description_, content))
     {
-      urdf_.reset(new urdf::Model);
-      if (urdf_->initString(content))
+      urdf::Model *umodel = new urdf::Model();
+      urdf_.reset(umodel);
+      if (umodel->initString(content))
       {
         std::string scontent;
         if (nh.getParam(robot_description_ + "_semantic", scontent))
         {
-          srdf_.reset(new srdf::Model);
+          srdf_.reset(new srdf::Model());
           if (!srdf_->initString(*urdf_, scontent))
           {
             ROS_ERROR("Unable to parse SRDF");
