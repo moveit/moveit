@@ -86,7 +86,7 @@ std::vector<moveit_msgs::JointLimits> planning_models::KinematicModel::JointMode
     lim.joint_name = variable_names_[i];
     lim.has_position_limits = true;
     lim.min_position = variable_bounds_[i].first;
-    lim.min_position = variable_bounds_[i].second;
+    lim.max_position = variable_bounds_[i].second;
     if (max_velocity_ != 0.0)
       lim.has_velocity_limits = true;
     else
