@@ -18,8 +18,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(${PROJECT_NAME}
   src/chomp_cost.cpp
-  src/chomp_optimizer.cpp
   src/chomp_trajectory.cpp
+  src/chomp_optimizer.cpp
+  src/chomp_planner.cpp
 )
 
 #uncomment if you have defined messages
