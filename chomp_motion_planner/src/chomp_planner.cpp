@@ -64,7 +64,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   int goal_index = trajectory.getNumPoints()- 1;
   trajectory.getTrajectoryPoint(goal_index) = trajectory.getTrajectoryPoint(0);
   sensor_msgs::JointState js;
-  for(unsigned int i = 0; req.motion_plan_request.goal_constraints[0].joint_constraints.size(); i++) {
+  for(unsigned int i = 0; i < req.motion_plan_request.goal_constraints[0].joint_constraints.size(); i++) {
     js.name.push_back(req.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name);
     js.position.push_back(req.motion_plan_request.goal_constraints[0].joint_constraints[i].position);
   }
