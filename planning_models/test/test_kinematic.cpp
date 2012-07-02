@@ -36,6 +36,7 @@
 
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
+#include <urdf_parser/urdf_parser.h>
 #include <gtest/gtest.h>
 #include <sstream>
 #include <algorithm>
@@ -82,10 +83,8 @@ TEST(Loading, SimpleRobot)
         "<robot name=\"myrobot\">"
         "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"floating\"/>"
         "</robot>";
-
-    boost::shared_ptr<urdf::Model> urdfModel(new urdf::Model());
-    urdfModel->initString(MODEL0);
-
+    
+    boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL0);
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL0);
 
@@ -168,8 +167,7 @@ TEST(LoadingAndFK, SimpleRobot)
         "</group>"
         "</robot>";
 
-    boost::shared_ptr<urdf::Model> urdfModel(new urdf::Model());
-    urdfModel->initString(MODEL1);
+    boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL1);
 
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL1);
@@ -396,8 +394,7 @@ TEST(FK, OneRobot)
         "</group>"
         "</robot>";
 
-    boost::shared_ptr<urdf::Model> urdfModel(new urdf::Model());
-    urdfModel->initString(MODEL2);
+    boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL2);
 
     boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL2);
@@ -514,9 +511,9 @@ TEST(FK, OneRobot)
     EXPECT_NEAR(1.5, state.getLinkState("link_b")->getGlobalLinkTransform().translation().y(), 1e-5);
     EXPECT_NEAR(0.0, state.getLinkState("link_b")->getGlobalLinkTransform().translation().z(), 1e-5);
     EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).x(), 1e-5);
-    EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).y(), 1e-5);
+    EXPECT_NEAR(-0.2084598, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).y(), 1e-5);
     EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).z(), 1e-5);
-    EXPECT_NEAR(1.0, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).w(), 1e-5);
+    EXPECT_NEAR(0.97803091, Eigen::Quaterniond(state.getLinkState("link_b")->getGlobalLinkTransform().rotation()).w(), 1e-5);
 
     EXPECT_NEAR(1.1, state.getLinkState("link_c")->getGlobalLinkTransform().translation().x(), 1e-5);
     EXPECT_NEAR(1.4, state.getLinkState("link_c")->getGlobalLinkTransform().translation().y(), 1e-5);

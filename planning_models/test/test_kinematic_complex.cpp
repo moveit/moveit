@@ -37,6 +37,8 @@
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
 #include <planning_models/conversions.h>
+#include <urdf_parser/urdf_parser.h>
+#include <fstream>
 #include <ros/console.h>
 #include <gtest/gtest.h>
 
@@ -46,9 +48,24 @@ protected:
 
     virtual void SetUp()
     {
-        urdf_model_.reset(new urdf::Model());
         srdf_model_.reset(new srdf::Model());
-        urdf_ok_ = urdf_model_->initFile("test/urdf/robot.xml");
+
+        std::string xml_string;
+        std::fstream xml_file("test/urdf/robot.xml", std::fstream::in);
+        if (xml_file.is_open())
+        {
+          while ( xml_file.good() )
+          {
+            std::string line;
+            std::getline( xml_file, line);
+            xml_string += (line + "\n");
+          }
+          xml_file.close();
+          urdf_model_ = urdf::parseURDF(xml_string);
+          urdf_ok_ = urdf_model_;
+        }
+        else
+          urdf_ok_ = false;
         srdf_ok_ = srdf_model_->initFile(*urdf_model_, "test/srdf/robot.xml");
     };
 
@@ -58,10 +75,10 @@ protected:
 
 protected:
 
-    boost::shared_ptr<urdf::Model> urdf_model_;
-    boost::shared_ptr<srdf::Model> srdf_model_;
-    bool                           urdf_ok_;
-    bool                           srdf_ok_;
+    boost::shared_ptr<urdf::ModelInterface> urdf_model_;
+    boost::shared_ptr<srdf::Model>          srdf_model_;
+    bool                                    urdf_ok_;
+    bool                                    srdf_ok_;
 
 };
 

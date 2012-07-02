@@ -7,8 +7,6 @@
   <review status="unreviewed" notes=""/>
   <url>http://www.ros.org/wiki/urdf</url>
 
-  <depend package="urdf"/>
-  <depend package="srdf"/>
   <depend package="rosconsole" />
   <depend package="geometric_shapes"/>
   <depend package="shape_tools"/>
@@ -21,16 +19,17 @@
   <depend package="common_rosdeps"/>
   <depend package="eigen_conversions"/>
 
+
+  <depend package="urdf_interface"/>
+  <depend package="urdf_parser"/>
+
+  <rosdep name="srdfdom"/>
+  <rosdep name="urdfdom"/>
   <rosdep name="assimp" />
   <rosdep name="eigen" />
 
   <export>
-    <cpp cflags="`pkg-config --cflags eigen3` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_models"/>
+    <cpp cflags="`pkg-config --cflags eigen3` `pkg-config --cflags urdfdom` `pkg-config --cflags srdfdom` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_models `pkg-config --libs urdfdom` `pkg-config --libs srdfdom`"/>
   </export>
   
-  <platform os="ubuntu" version="10.04"/>
-  <platform os="ubuntu" version="10.10"/>
-  <platform os="ubuntu" version="11.04"/>
-  <platform os="ubuntu" version="11.10"/>
-
 </package>

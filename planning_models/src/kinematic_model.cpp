@@ -47,7 +47,7 @@
 
 /* ------------------------ KinematicModel ------------------------ */
 
-planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                                 const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   if (urdf_model->getRoot())
@@ -59,7 +59,7 @@ planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const ur
     ROS_WARN("No root link found");
 }
 
-planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                                 const boost::shared_ptr<const srdf::Model> &srdf_model,
                                                 const std::string &root_link)
 { 
@@ -89,7 +89,7 @@ const std::string& planning_models::KinematicModel::getName(void) const
   return model_name_;
 }
 
-void planning_models::KinematicModel::computeTreeStructure(const boost::shared_ptr<const urdf::Model> &urdf_model, const std::string &root_link,
+void planning_models::KinematicModel::computeTreeStructure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model, const std::string &root_link,
                                                            std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& parent_map,
                                                            std::map<const urdf::Link*, std::vector<const urdf::Link*> >& child_map)
 {
@@ -161,7 +161,7 @@ void planning_models::KinematicModel::computeTreeStructure(const boost::shared_p
   }  
 }
 
-void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                                  const boost::shared_ptr<const srdf::Model> &srdf_model,
                                                  const std::string &root_link)
 { 
@@ -327,7 +327,7 @@ void planning_models::KinematicModel::buildGroupStates(const boost::shared_ptr<c
   }
 }
 
-void planning_models::KinematicModel::buildMimic(const boost::shared_ptr<const urdf::Model> &urdf_model)
+void planning_models::KinematicModel::buildMimic(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model)
 {
   // compute mimic joints
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)

@@ -46,6 +46,8 @@
 #include <collision_detection_fcl/collision_world.h>
 #include <collision_detection_fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
+#include <urdf_parser/urdf_parser.h>
+#include <fstream>
 
 #include <boost/filesystem.hpp>
 #include <ros/console.h>
@@ -59,9 +61,23 @@ protected:
 
   virtual void SetUp() 
   {
-    urdf_model_.reset(new urdf::Model());
     srdf_model_.reset(new srdf::Model());
-    urdf_ok_ = urdf_model_->initFile("../planning_models/test/urdf/robot.xml");
+    std::string xml_string;
+    std::fstream xml_file("../planning_models/test/urdf/robot.xml", std::fstream::in);
+    if (xml_file.is_open())
+    {
+      while ( xml_file.good() )
+      {
+        std::string line;
+        std::getline( xml_file, line);
+        xml_string += (line + "\n");
+      }
+      xml_file.close();
+      urdf_model_ = urdf::parseURDF(xml_string);
+      urdf_ok_ = urdf_model_;
+    }
+    else
+      urdf_ok_ = false;
     srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../planning_models/test/srdf/robot.xml");
 
     kmodel_.reset(new planning_models::KinematicModel(urdf_model_, srdf_model_));
@@ -82,7 +98,7 @@ protected:
   bool urdf_ok_;
   bool srdf_ok_;
 
-  boost::shared_ptr<urdf::Model>           urdf_model_;
+  boost::shared_ptr<urdf::ModelInterface>  urdf_model_;
   boost::shared_ptr<srdf::Model>           srdf_model_;
   
   planning_models::KinematicModelPtr             kmodel_;

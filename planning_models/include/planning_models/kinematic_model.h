@@ -37,8 +37,8 @@
 #ifndef MOVEIT_PLANNING_MODELS_KINEMATIC_MODEL_
 #define MOVEIT_PLANNING_MODELS_KINEMATIC_MODEL_
 
-#include <urdf/model.h>
-#include <srdf/model.h>
+#include <urdf_interface/model.h>
+#include <srdfdom/model.h>
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_messages.h>
 #include <random_numbers/random_numbers.h>
@@ -97,11 +97,11 @@ public:
 #include "planning_models/kinematic_model/joint_model_group-inc.h"
 
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
-  KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+  KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model);
 
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
-  KinematicModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+  KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model,
                  const std::string &root_link);
   
@@ -353,7 +353,7 @@ protected:
   std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
   
   /** \brief Given an URDF model and a SRDF model, build a full kinematic model */
-  void buildModel(const boost::shared_ptr<const urdf::Model> &urdf_model,
+  void buildModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                   const boost::shared_ptr<const srdf::Model> &srdf_model,
                   const std::string &root_link);
   
@@ -361,7 +361,7 @@ protected:
   void buildGroups(const std::vector<srdf::Model::Group> &group_config);
   
   /** \brief Given the URDF model, build up the mimic joints (mutually constrained joints) */
-  void buildMimic(const boost::shared_ptr<const urdf::Model> &urdf_model);
+  void buildMimic(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model);
 
   /** \brief Given a SRDF model describing the groups, build the default states defined in the SRDF */
   void buildGroupStates(const boost::shared_ptr<const srdf::Model> &srdf_model);
@@ -374,7 +374,7 @@ protected:
   
   /** \brief If constructing a kinematic model that has a parent different than the one specified by the URDF, this function 
       computes the parent and child maps for URDF links */
-  void computeTreeStructure(const boost::shared_ptr<const urdf::Model> &urdf_model, const std::string &root_link,
+  void computeTreeStructure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model, const std::string &root_link,
                             std::map<const urdf::Link*, std::pair<const urdf::Link*, const urdf::Joint*> >& parent_map,
                             std::map<const urdf::Link*, std::vector<const urdf::Link*> >& child_map);
   
