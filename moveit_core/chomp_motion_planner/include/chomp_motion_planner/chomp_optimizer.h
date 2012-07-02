@@ -57,11 +57,11 @@ class ChompOptimizer
 {
 public:
   ChompOptimizer(ChompTrajectory *trajectory, 
-                 const planning_models::KinematicModelConstPtr& kmodel,
+                 const planning_scene::PlanningSceneConstPtr& planning_scene,
                  const std::string& planning_group, 
                  const ChompParameters *parameters,
-                 const planning_models::KinematicState& start_state,
-                 const planning_scene::PlanningSceneConstPtr& planning_scene);
+                 const planning_models::KinematicState& start_state);
+
   virtual ~ChompOptimizer();
 
   void optimize();
