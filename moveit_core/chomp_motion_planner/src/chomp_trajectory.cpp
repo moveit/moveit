@@ -37,35 +37,40 @@
 #include <ros/ros.h>
 #include <chomp_motion_planner/chomp_trajectory.h>
 #include <iostream>
-using namespace std;
 
 namespace chomp
 {
 
-ChompTrajectory::ChompTrajectory(const planning_models::KinematicModel* robot_model, double duration, double discretization, std::string groupName):
-  planning_group_name_(groupName),
+ChompTrajectory::ChompTrajectory(const planning_models::KinematicModelConstPtr& robot_model, 
+                                 double duration, 
+                                 double discretization, 
+                                 std::string group_name):
+  planning_group_name_(group_name),
   num_points_((duration/discretization)+1),
   discretization_(discretization),
   duration_(duration),
   start_index_(1),
   end_index_(num_points_-2)
 {
-  std::map<std::string, planning_models::KinematicModel::JointModelGroup*> groupMap = robot_model->getJointModelGroupMap();
-  const planning_models::KinematicModel::JointModelGroup* modelGroup = groupMap[planning_group_name_];
+  std::map<std::string, planning_models::KinematicModel::JointModelGroup*> group_map = robot_model->getJointModelGroupMap();
+  const planning_models::KinematicModel::JointModelGroup* modelGroup = group_map[planning_group_name_];
   num_joints_ = modelGroup->getJointModels().size();
   init();
 }
 
-ChompTrajectory::ChompTrajectory(const planning_models::KinematicModel* robot_model, int num_points, double discretization, std::string groupName):
-  planning_group_name_(groupName),
+ChompTrajectory::ChompTrajectory(const planning_models::KinematicModelConstPtr& robot_model, 
+                                 int num_points, 
+                                 double discretization, 
+                                 std::string group_name):
+  planning_group_name_(group_name),
   num_points_(num_points),
   discretization_(discretization),
   duration_((num_points-1)*discretization),
   start_index_(1),
   end_index_(num_points_-2)
 {
-  std::map<std::string, planning_models::KinematicModel::JointModelGroup*> groupMap = robot_model->getJointModelGroupMap();
-  const planning_models::KinematicModel::JointModelGroup* modelGroup = groupMap[planning_group_name_];
+  std::map<std::string, planning_models::KinematicModel::JointModelGroup*> group_map = robot_model->getJointModelGroupMap();
+  const planning_models::KinematicModel::JointModelGroup* modelGroup = group_map[planning_group_name_];
   num_joints_ = modelGroup->getJointModels().size();
   init();
 }
@@ -107,14 +112,14 @@ ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::
   }
 }
 
-ChompTrajectory::ChompTrajectory(const planning_models::KinematicModel* robot_model,
+ChompTrajectory::ChompTrajectory(const planning_models::KinematicModelConstPtr& robot_model,
                                  const std::string& planning_group,
                                  const trajectory_msgs::JointTrajectory& traj) :
   planning_group_name_(planning_group)
 {
-  std::map<std::string, planning_models::KinematicModel::JointModelGroup*> groupMap = robot_model->getJointModelGroupMap();
-  const planning_models::KinematicModel::JointModelGroup* modelGroup = groupMap[planning_group_name_];
-  num_joints_ = modelGroup->getJointModels().size();
+  std::map<std::string, planning_models::KinematicModel::JointModelGroup*> group_map = robot_model->getJointModelGroupMap();
+  const planning_models::KinematicModel::JointModelGroup* model_group = group_map[planning_group_name_];
+  num_joints_ = model_group->getJointModels().size();
   double discretization = (traj.points[1].time_from_start-traj.points[0].time_from_start).toSec();
 
   double discretization2 = (traj.points[2].time_from_start-traj.points[1].time_from_start).toSec();

@@ -50,13 +50,12 @@ double getRandomDouble()
 }
 
 ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory, 
-                               const planning_models::KinematicModelConstPtr& kmodel,
+                               const planning_scene::PlanningSceneConstPtr& planning_scene,
                                const std::string& planning_group,
                                const ChompParameters *parameters,
-                               const planning_models::KinematicState& start_state,
-                               const planning_scene::PlanningSceneConstPtr& planning_scene) :
+                               const planning_models::KinematicState& start_state) :
   full_trajectory_(trajectory), 
-  kmodel_(kmodel), 
+  kmodel_(planning_scene->getKinematicModel()), 
   planning_group_(planning_group), 
   parameters_(parameters),
   group_trajectory_(*full_trajectory_, 
@@ -66,7 +65,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
   state_(start_state)
 {
   collision_detection::CollisionWorldConstPtr coll_world = planning_scene->getCollisionWorld();
-  distance_field_world_ = static_cast<const collision_distance_field::CollisionWorldDistanceField*>(coll_world.get());
+  distance_field_world_ = dynamic_cast<const collision_distance_field::CollisionWorldDistanceField*>(coll_world.get());
   if(!distance_field_world_) {
     ROS_WARN_STREAM("Dynamic cast failed");
   } else {

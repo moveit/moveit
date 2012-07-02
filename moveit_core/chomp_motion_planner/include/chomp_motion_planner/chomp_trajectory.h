@@ -56,12 +56,12 @@ public:
   /**
    * \brief Constructs a trajectory for a given robot model, trajectory duration, and discretization
    */
-  ChompTrajectory(const planning_models::KinematicModel* robot_model, double duration, double discretization, std::string groupName);
+  ChompTrajectory(const planning_models::KinematicModelConstPtr& robot_model, double duration, double discretization, std::string groupName);
 
   /**
    * \brief Constructs a trajectory for a given robot model, number of trajectory points, and discretization
    */
-  ChompTrajectory(const planning_models::KinematicModel* robot_model, int num_points, double discretization, std::string groupName);
+  ChompTrajectory(const planning_models::KinematicModelConstPtr& robot_model, int num_points, double discretization, std::string groupName);
 
   /**
    * \brief Creates a new containing only the joints of interest, and adds padding to the start
@@ -69,7 +69,7 @@ public:
    */
   ChompTrajectory(const ChompTrajectory& source_traj, const std::string& planning_group, int diff_rule_length);
 
-  ChompTrajectory(const planning_models::KinematicModel* robot_model,
+  ChompTrajectory(const planning_models::KinematicModelConstPtr& robot_model,
                   const std::string& planning_group,
                   const trajectory_msgs::JointTrajectory& traj);
 
