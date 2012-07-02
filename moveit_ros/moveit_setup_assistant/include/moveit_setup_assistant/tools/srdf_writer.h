@@ -38,7 +38,7 @@
 
 
 #include <boost/shared_ptr.hpp>
-#include <srdf/model.h> // use their struct datastructures
+#include <srdfdom/model.h> // use their struct datastructures
 
 namespace moveit_setup_assistant
 {

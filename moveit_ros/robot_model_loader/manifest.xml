@@ -11,7 +11,6 @@
 
   <depend package="roscpp"/>
   <depend package="urdf"/>
-  <depend package="srdf"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lrobot_model_loader"/>
