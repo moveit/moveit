@@ -225,29 +225,20 @@ void collision_detection::CollisionWorldFCL::clearObjects(void)
 
 double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const
 {       
-  /*  const CollisionRobotFCL &robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
+  const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
   robot_fcl.constructFCLObject(state, fcl_obj);
-  double d = std::numeric_limits<double>::infinity();
-  for (std::size_t i = 0 ; i < fcl_obj.collision_objects_.size() ; ++i)
-  {
-    const fcl::BVHModel<fcl::RSS> &obj_i = static_cast<const fcl::BVHModel<fcl::RSS>&>(*fcl_obj.collision_objects_[i]->getCollisionGeometry());
-    const fcl::SimpleTransform &t_i = fcl_obj.collision_objects_[i]->getTransform();
-    for (std::map<std::string, FCLObject>::const_iterator it = fcl_objs_rss_.begin() ; it != fcl_objs_rss_.end() ; ++it)
-      for (std::size_t j = 0 ; j < it->second.collision_objects_.size() ; ++j)
-      {    
-        const fcl::BVHModel<fcl::RSS> &obj_j = static_cast<const fcl::BVHModel<fcl::RSS>&>(*it->second.collision_objects_[j]->getCollisionGeometry());
-        const fcl::SimpleTransform &t_j = it->second.collision_objects_[j]->getTransform();
-        fcl::MeshDistanceTraversalNodeRSS node;
-        if (!fcl::initialize(node, obj_i, t_i, obj_j, t_j))
-          ROS_ERROR("FCL error setting up MeshDistanceTraversalNodeRSS");
-        fcl::distance(&node, NULL, 2); 
-        if (node.min_distance < d)
-          d = node.min_distance;
-      }
-  }
-  return d; */
-  return 0.0;
+
+  CollisionRequest req;
+  CollisionResult res;
+  CollisionData cd(&req, &res, acm);
+  cd.enableGroup(robot.getKinematicModel());
+  
+  for(std::size_t i = 0; !cd.done_ && i < fcl_obj.collision_objects_.size(); ++i)
+    manager_->distance(fcl_obj.collision_objects_[i].get(), &cd, &distanceCallback);
+
+
+  return res.distance;
 }
 
 double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot &robot, const planning_models::KinematicState &state) const
@@ -270,7 +261,24 @@ double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorl
   return distanceWorldHelper(world, &acm);
 }
 
-double collision_detection::CollisionWorldFCL::distanceWorldHelper(const CollisionWorld &world, const AllowedCollisionMatrix *acm) const
+double collision_detection::CollisionWorldFCL::distanceWorldHelper(const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const
 {
-  return 0.0;
+  const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
+  
+  if(fcl_objs_.size() > other_fcl_world.fcl_objs_.size())
+    return other_fcl_world.distanceWorldHelper(*this, acm);
+  else
+  {
+    CollisionRequest req;
+    CollisionResult res;
+    CollisionData cd(&req, &res, acm);
+    for(std::map<std::string, FCLObject>::const_iterator it = fcl_objs_.begin(); !cd.done_ && it != fcl_objs_.end(); ++it)
+    {
+      for(std::size_t i = 0; !cd.done_ && i < it->second.collision_objects_.size(); ++i)
+      {
+        manager_->distance(it->second.collision_objects_[i].get(), &cd, &distanceCallback);
+      }
+    }
+    return res.distance;
+  }
 }

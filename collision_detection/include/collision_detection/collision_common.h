@@ -91,7 +91,7 @@ namespace collision_detection
   struct CollisionResult
   {
     CollisionResult(void) : collision(false),
-			    distance(0.0),
+			    distance(std::numeric_limits<double>::max()),
 			    direction(0.0, 0.0, 0.0),
 			    contact_count(0)
     {

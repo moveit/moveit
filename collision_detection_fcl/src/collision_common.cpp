@@ -35,7 +35,8 @@
 /* Author: Ioan Sucan, Jia Pan */
 
 #include "collision_detection_fcl/collision_common.h"
-#include <fcl/geometric_shape_to_BVH_model.h>
+#include <fcl/BVH_model.h>
+#include <fcl/geometric_shapes.h>
 #include <ros/console.h>
 #include <boost/thread/mutex.hpp>
 
@@ -296,6 +297,104 @@ struct FCLShapeCache
   boost::mutex lock_;
 };
 
+
+bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* data, double& min_dist)
+{
+  CollisionData* cdata = reinterpret_cast<CollisionData*>(data);
+  
+  const CollisionGeometryData* cd1 = static_cast<const CollisionGeometryData*>(o1->getCollisionGeometry()->getUserData());
+  const CollisionGeometryData* cd2 = static_cast<const CollisionGeometryData*>(o2->getCollisionGeometry()->getUserData());
+  
+  // If active components are specified
+  if (cdata->active_components_only_)
+  {
+    const planning_models::KinematicModel::LinkModel *l1 = cd1->type == BodyTypes::ROBOT_LINK ? cd1->ptr.link : (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
+    const planning_models::KinematicModel::LinkModel *l2 = cd2->type == BodyTypes::ROBOT_LINK ? cd2->ptr.link : (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
+    
+    // If neither of the involved components is active
+    if ((!l1 || cdata->active_components_only_->find(l1) == cdata->active_components_only_->end()) &&
+        (!l2 || cdata->active_components_only_->find(l2) == cdata->active_components_only_->end()))
+    {
+      min_dist = cdata->res_->distance;
+      return cdata->done_;
+    }
+  }
+
+  // use the collision matrix (if any) to avoid certain distance checks
+  bool always_allow_collision = false;
+  if (cdata->acm_)
+  {
+    AllowedCollision::Type type;
+    //ROS_INFO_STREAM("Values " << cd1 << " " << cd2);
+    //ROS_INFO_STREAM("Id " << cd1->getID() << " " << cd2->getID());
+    bool found = cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), type);
+    if (found)
+    {
+      // if we have an entry in the collision matrix, we read it
+      if (type == AllowedCollision::ALWAYS)
+      {
+        always_allow_collision = true;
+        if (cdata->req_->verbose)
+          ROS_DEBUG_NAMED("allowed_collisions", "Collision between '%s' and '%s' is always allowed. No contacts are computed.",
+                          cd1->getID().c_str(), cd2->getID().c_str());
+      }
+    }
+  }
+
+  // check if a link is touching an attached object
+  if (cd1->type == BodyTypes::ROBOT_LINK && cd2->type == BodyTypes::ROBOT_ATTACHED)
+  {
+    const std::set<std::string> &tl = cd2->ptr.ab->getTouchLinks();
+    if (tl.find(cd1->getID()) != tl.end())
+    {
+      always_allow_collision = true;
+      if (cdata->req_->verbose)
+        ROS_DEBUG_NAMED("allowed_collisions", "Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                        cd1->getID().c_str(), cd2->getID().c_str());
+    }
+  }
+  else
+  {
+    if (cd2->type == BodyTypes::ROBOT_LINK && cd1->type == BodyTypes::ROBOT_ATTACHED)
+    {
+      const std::set<std::string> &tl = cd1->ptr.ab->getTouchLinks();
+      if (tl.find(cd2->getID()) != tl.end())
+      {
+        always_allow_collision = true;
+        if (cdata->req_->verbose)
+          ROS_DEBUG_NAMED("allowed_collisions", "Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                          cd2->getID().c_str(), cd1->getID().c_str());
+      }
+    }
+  }
+
+  if(always_allow_collision)
+  {
+    min_dist = cdata->res_->distance;
+    return cdata->done_;
+  }
+
+  if (cdata->req_->verbose)
+    ROS_DEBUG_STREAM_NAMED("allowed_collisions", "Actually checking collisions between " << cd1->getID() << " and " << cd2->getID());
+
+  double d = fcl::distance(o1, o2);
+
+  if(d < 0)
+  {
+    cdata->done_ = true;
+    cdata->res_->distance = -1;
+  }
+  else
+  {
+    if(cdata->res_->distance > d)
+      cdata->res_->distance = d;
+  }
+
+  min_dist = cdata->res_->distance;
+
+  return cdata->done_;
+}
+
 /* We template the function so we get a different cache for each of the template arguments combinations */
 template<typename BV, typename T>
 FCLShapeCache& GetShapeCache(void)
@@ -420,7 +519,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     {
     case shapes::PLANE:
       {
-        const shapes::Plane *p = static_cast<const shapes::Plane*>(shape.get());
+        const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
         cg_g = new fcl::Plane(p->a, p->b, p->c, p->d);
       }
       break;
@@ -430,34 +529,36 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
   }
   else
   {
-    fcl::BVHModel<BV>* g = new fcl::BVHModel<BV>();
     switch (shape->type)
     {
     case shapes::SPHERE:
       {
-        fcl::generateBVHModel(*g, fcl::Sphere(static_cast<const shapes::Sphere*>(shape.get())->radius));
+        const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
+        cg_g = new fcl::Sphere(s->radius);
       }
       break;
     case shapes::BOX:
       {
-        const double *size = static_cast<const shapes::Box*>(shape.get())->size;
-        fcl::generateBVHModel(*g, fcl::Box(size[0], size[1], size[2]));
+        const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
+        const double* size = s->size;
+        cg_g = new fcl::Box(size[0], size[1], size[2]);
       }
       break;
     case shapes::CYLINDER:
       {
-        fcl::generateBVHModel(*g, fcl::Cylinder(static_cast<const shapes::Cylinder*>(shape.get())->radius,
-                                                static_cast<const shapes::Cylinder*>(shape.get())->length));
+        const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
+        cg_g = new fcl::Cylinder(s->radius, s->length);
       }
-      break; 
+      break;
     case shapes::CONE:
       {
-        fcl::generateBVHModel(*g, fcl::Cone(static_cast<const shapes::Cone*>(shape.get())->radius,
-                                            static_cast<const shapes::Cone*>(shape.get())->length));
+        const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
+        cg_g = new fcl::Cone(s->radius, s->length);
       }
       break;
     case shapes::MESH:
       {
+        fcl::BVHModel<BV>* g = new fcl::BVHModel<BV>();
         const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(shape.get());
         if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
         {
@@ -473,15 +574,13 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
           g->addSubModel(points, tri_indices);
           g->endModel();
         }
+        cg_g = g;
       }
       break;
     default:
       ROS_ERROR("This shape type (%d) is not supported using FCL yet", (int)shape->type);
-      delete g;
-      g = NULL;
+      cg_g = NULL;
     }
-    if (g)
-      cg_g = g;
   }
   if (cg_g)
   {

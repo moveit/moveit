@@ -40,6 +40,7 @@
 #include "collision_detection/collision_world.h"
 #include <fcl/broad_phase_collision.h>
 #include <fcl/collision.h>
+#include <fcl/distance.h>
 #include <set>
 
 namespace collision_detection
@@ -182,6 +183,8 @@ struct FCLManager
 };
 
 bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data);
+
+bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void *data, double& min_dist);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const planning_models::KinematicModel::LinkModel *link);

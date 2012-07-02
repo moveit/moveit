@@ -250,5 +250,19 @@ double collision_detection::CollisionRobotFCL::distanceOtherHelper(const plannin
                                                                    const planning_models::KinematicState &other_state,
                                                                    const AllowedCollisionMatrix *acm) const
 {
-  return 0.0;
+  FCLManager manager;
+  allocSelfCollisionBroadPhase(state, manager);
+
+  const CollisionRobotFCL& fcl_rob = dynamic_cast<const CollisionRobotFCL&>(other_robot);
+  FCLObject other_fcl_obj;
+  fcl_rob.constructFCLObject(other_state, other_fcl_obj);
+  
+  CollisionRequest req;
+  CollisionResult res;
+  CollisionData cd(&req, &res, acm);
+  cd.enableGroup(getKinematicModel());
+  for(std::size_t i = 0; !cd.done_ && i < other_fcl_obj.collision_objects_.size(); ++i)
+    manager.manager_->distance(other_fcl_obj.collision_objects_[i].get(), &cd, &distanceCallback);
+  
+  return res.distance;
 }
