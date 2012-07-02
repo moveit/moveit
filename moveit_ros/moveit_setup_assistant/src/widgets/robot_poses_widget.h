@@ -37,6 +37,7 @@
 #ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROBOT_POSES_WIDGET_
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROBOT_POSES_WIDGET_
 
+// Qt
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -46,6 +47,8 @@
 #include <QTableWidget>
 #include <QStackedLayout>
 #include <QString>
+#include <QComboBox>
+// SA
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
@@ -77,7 +80,7 @@ class RobotPosesWidget : public SetupScreenWidget
   QPushButton *btn_cancel_;
   QStackedLayout *stacked_layout_;
   QLineEdit *pose_name_field_;
-  QLineEdit *group_name_field_;
+  QComboBox *group_name_field_;
   QWidget *joint_list_widget_;
   QVBoxLayout *joint_list_layout_;
   QWidget *pose_list_widget_;
@@ -90,10 +93,13 @@ private Q_SLOTS:
   // ******************************************************************************************
 
   /// Show edit screen
-  void showEditScreen();
+  void showNewScreen();
 
   /// Edit whatever element is selected
   void editSelected();
+
+  /// Edit the double clicked element
+  void editDoubleClicked( int row, int column );
 
   /// Delete currently editing ite
   void deleteItem();
@@ -105,7 +111,7 @@ private Q_SLOTS:
   void cancelEditing();
 
   /// Run this whenever the group is changed
-  void loadJointSliders();
+  void loadJointSliders( const QString &selected );
 
 private:
 
@@ -160,7 +166,18 @@ private:
    */
   void loadDataTable();
 
+  /** 
+   * Populate the combo dropdown box with avail group names
+   * 
+   */
+  void loadGroupsComboBox();
 
+  /** 
+   * Edit the pose with the input name
+   * 
+   * @param name name of pose
+   */
+  void edit( const std::string &name );
 };
 
 
@@ -178,7 +195,13 @@ class SliderWidget : public QWidget
   // Public Functions
   // ******************************************************************************************
 
-  SliderWidget( QWidget *parent );
+  /** 
+   * Constructor
+   * 
+   * @param parent - parent QWidget
+   * @param joint_model_ - a ptr reference to the joint this widget represents
+   */
+  SliderWidget( QWidget *parent, const planning_models::KinematicModel::JointModel *joint_model_ );
 
 
   // ******************************************************************************************
@@ -195,16 +218,21 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
+  /// Called when the joint value slider is changed
+  void changeJointValue( int value );
 
 private:
 
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
+  
+  // Ptr to the joint's data
+  const planning_models::KinematicModel::JointModel *joint_model_;
 
-  /// Name of joint this edits
-  std::string joint_name_;
-
+  // Max & min position
+  double max_position_;
+  double min_position_;
 
   // ******************************************************************************************
   // Private Functions
