@@ -85,7 +85,7 @@ public:
   }
   
   /** @brief Get the parsed URDF model*/
-  const boost::shared_ptr<urdf::Model>& getURDF(void) const
+  const boost::shared_ptr<urdf::ModelInterface>& getURDF(void) const
   {
     return robot_model_loader_->getURDF();
   }

@@ -41,7 +41,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <urdf/model.h> // for testing a valid urdf is loaded
-#include <srdf/model.h> // for testing a valid srdf is loaded
+#include <srdfdom/model.h> // for testing a valid srdf is loaded
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 

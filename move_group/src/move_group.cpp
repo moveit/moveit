@@ -66,7 +66,7 @@ public:
     if (allow_trajectory_execution)
     {
       bool manage_controllers = false;
-      node_handle_.param("manage_controllers", manage_controllers, true);
+      //      node_handle_.param("manage_controllers", manage_controllers, true);
       trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(planning_scene_monitor_->getPlanningScene()->getKinematicModel(),
                                                                                               manage_controllers));
     }

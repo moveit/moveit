@@ -38,7 +38,7 @@
 #define MOVEIT_ROBOT_MODEL_LOADER_ROBOT_MODEL_LOADER_
 
 #include <urdf/model.h>
-#include <srdf/model.h>
+#include <srdfdom/model.h>
 #include <boost/shared_ptr.hpp>
 
 namespace robot_model_loader
@@ -60,7 +60,7 @@ public:
   }
   
   /** @brief Get the parsed URDF model*/
-  const boost::shared_ptr<urdf::Model>& getURDF(void) const
+  const boost::shared_ptr<urdf::ModelInterface>& getURDF(void) const
   {
     return urdf_;
   }
@@ -73,9 +73,9 @@ public:
   
 private:
   
-  std::string                    robot_description_;
-  boost::shared_ptr<srdf::Model> srdf_;
-  boost::shared_ptr<urdf::Model> urdf_;
+  std::string                             robot_description_;
+  boost::shared_ptr<srdf::Model>          srdf_;
+  boost::shared_ptr<urdf::ModelInterface> urdf_;
   
 };
 
