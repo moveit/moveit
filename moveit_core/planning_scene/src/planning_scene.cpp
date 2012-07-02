@@ -97,7 +97,7 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   }
 }
 
-bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
+bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                               const boost::shared_ptr<const srdf::Model> &srdf_model,
                                               const std::string &root_link)
 { 
@@ -119,7 +119,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
   return isConfigured();
 }
 
-bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
+bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                               const boost::shared_ptr<const srdf::Model> &srdf_model,
                                               const planning_models::KinematicModelPtr &kmodel)
 {

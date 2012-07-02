@@ -9,14 +9,13 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/planning_scene</url>
   <depend package="moveit_msgs"/>
-  <depend package="urdf"/>
-  <depend package="srdf"/>
   <depend package="planning_models"/>
   <depend package="kinematic_constraints"/>
   <depend package="collision_detection"/>
   <depend package="collision_detection_fcl"/>
   <depend package="kinematics_base"/>
   <depend package="octomap_msgs"/>
+  <depend package="urdf_parser"/>
 
   <rosdep name="octomap" />
 

@@ -36,63 +36,79 @@
 
 #include <gtest/gtest.h>
 #include <planning_scene/planning_scene.h>
+#include <urdf_parser/urdf_parser.h>
+#include <fstream>
+
+boost::shared_ptr<urdf::ModelInterface> loadRobotModel()
+{
+  std::string xml_string;
+  std::fstream xml_file("../planning_models/test/urdf/robot.xml", std::fstream::in);
+  EXPECT_TRUE(xml_file.is_open());
+  while ( xml_file.good() )
+  {
+    std::string line;
+    std::getline( xml_file, line);
+    xml_string += (line + "\n");
+  }
+  xml_file.close();
+  return urdf::parseURDF(xml_string);
+}
 
 TEST(PlanningScene, LoadRestore)
 {
-    boost::shared_ptr<urdf::Model> urdf_model(new urdf::Model());
-    boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
-    urdf_model->initFile("../planning_models/test/urdf/robot.xml");
-    planning_scene::PlanningScene ps;
-    ps.configure(urdf_model, srdf_model);
-    EXPECT_TRUE(ps.isConfigured());
-    moveit_msgs::PlanningScene ps_msg;
-    ps.getPlanningSceneMsg(ps_msg);
-    ps.setPlanningSceneMsg(ps_msg);
+  boost::shared_ptr<urdf::ModelInterface> urdf_model = loadRobotModel();
+  boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
+  planning_scene::PlanningScene ps;
+  ps.configure(urdf_model, srdf_model);
+  EXPECT_TRUE(ps.isConfigured());
+  moveit_msgs::PlanningScene ps_msg;
+  ps.getPlanningSceneMsg(ps_msg);
+  ps.setPlanningSceneMsg(ps_msg);
 }
 
 TEST(PlanningScene, LoadRestoreDiff)
 {
-    boost::shared_ptr<urdf::Model> urdf_model(new urdf::Model());
-    boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
-    urdf_model->initFile("../planning_models/test/urdf/robot.xml");
-    planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
-    ps->configure(urdf_model, srdf_model);
-    EXPECT_TRUE(ps->isConfigured());
-
-    collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
-    Eigen::Affine3d id = Eigen::Affine3d::Identity();
-    cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
-    
-    moveit_msgs::PlanningScene ps_msg;
-    EXPECT_TRUE(planning_scene::PlanningScene::isEmpty(ps_msg));
-    ps->getPlanningSceneMsg(ps_msg);
-    ps->setPlanningSceneMsg(ps_msg);
-    EXPECT_FALSE(planning_scene::PlanningScene::isEmpty(ps_msg));
-    EXPECT_TRUE(ps->getCollisionWorld()->hasObject("sphere"));
-    
-    planning_scene::PlanningScene next(ps);
-    EXPECT_TRUE(next.isConfigured());
-    EXPECT_TRUE(next.getCollisionWorld()->hasObject("sphere"));
-    next.getCollisionWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
-    EXPECT_EQ(next.getCollisionWorld()->getObjectIds().size(), 2);
-    EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 1);
-    next.getPlanningSceneDiffMsg(ps_msg);
-    EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
-    next.decoupleParent();
-    moveit_msgs::PlanningScene ps_msg2;
-    next.getPlanningSceneDiffMsg(ps_msg2);	
-    EXPECT_EQ(ps_msg2.world.collision_objects.size(), 0);
-    next.getPlanningSceneMsg(ps_msg);	
-    EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
-    ps->setPlanningSceneMsg(ps_msg);
-    EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 2);
+  boost::shared_ptr<urdf::ModelInterface> urdf_model = loadRobotModel();
+  boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
+  
+  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
+  ps->configure(urdf_model, srdf_model);
+  EXPECT_TRUE(ps->isConfigured());
+  
+  collision_detection::CollisionWorld &cw = *ps->getCollisionWorld();
+  Eigen::Affine3d id = Eigen::Affine3d::Identity();
+  cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
+  
+  moveit_msgs::PlanningScene ps_msg;
+  EXPECT_TRUE(planning_scene::PlanningScene::isEmpty(ps_msg));
+  ps->getPlanningSceneMsg(ps_msg);
+  ps->setPlanningSceneMsg(ps_msg);
+  EXPECT_FALSE(planning_scene::PlanningScene::isEmpty(ps_msg));
+  EXPECT_TRUE(ps->getCollisionWorld()->hasObject("sphere"));
+  
+  planning_scene::PlanningScene next(ps);
+  EXPECT_TRUE(next.isConfigured());
+  EXPECT_TRUE(next.getCollisionWorld()->hasObject("sphere"));
+  next.getCollisionWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
+  EXPECT_EQ(next.getCollisionWorld()->getObjectIds().size(), 2);
+  EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 1);
+  next.getPlanningSceneDiffMsg(ps_msg);
+  EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
+  next.decoupleParent();
+  moveit_msgs::PlanningScene ps_msg2;
+  next.getPlanningSceneDiffMsg(ps_msg2);	
+  EXPECT_EQ(ps_msg2.world.collision_objects.size(), 0);
+  next.getPlanningSceneMsg(ps_msg);	
+  EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
+  ps->setPlanningSceneMsg(ps_msg);
+  EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 2);
 }
 
 TEST(PlanningScene, MakeAttachedDiff)
 {
-  boost::shared_ptr<urdf::Model> urdf_model(new urdf::Model());
   boost::shared_ptr<srdf::Model> srdf_model(new srdf::Model());
-  urdf_model->initFile("../planning_models/test/urdf/robot.xml");
+  boost::shared_ptr<urdf::ModelInterface> urdf_model = loadRobotModel();
+  
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene());
   ps->configure(urdf_model, srdf_model);
   EXPECT_TRUE(ps->isConfigured());
@@ -110,7 +126,7 @@ TEST(PlanningScene, MakeAttachedDiff)
   
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-
+  
   attached_object_diff_scene->processAttachedCollisionObjectMsg(att_obj);
   attached_object_diff_scene->checkCollision(req,res);
   ps->checkCollision(req, res);
@@ -118,6 +134,6 @@ TEST(PlanningScene, MakeAttachedDiff)
 
 int main(int argc, char **argv)
 {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

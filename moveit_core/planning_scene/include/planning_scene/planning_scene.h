@@ -115,13 +115,13 @@ public:
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
       The information passed in for this function allows the construction of a kinematic model and of all the classed that
       depend on the kinematic model (e.g., collision world/robot classes) */
-  bool configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
+  bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model,
                  const std::string &root_link = "");
 
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
       The kinematic model constructed from the parsed descriptions is also passed in. */
-  bool configure(const boost::shared_ptr<const urdf::Model> &urdf_model,
+  bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                  const boost::shared_ptr<const srdf::Model> &srdf_model,
                  const planning_models::KinematicModelPtr &kmodel);
   
@@ -318,7 +318,7 @@ public:
   void setCurrentState(const planning_models::KinematicState &state);
 
   /** \brief Get the URDF model used to construct the kinematic model maintained by this planning scene */
-  const boost::shared_ptr<const urdf::Model>& getUrdfModel(void) const
+  const boost::shared_ptr<const urdf::ModelInterface>& getUrdfModel(void) const
   {
     return parent_ ? parent_->getUrdfModel() : urdf_model_;
   }
@@ -517,7 +517,7 @@ protected:
 	
   PlanningSceneConstPtr                          parent_;
 
-  boost::shared_ptr<const urdf::Model>           urdf_model_;
+  boost::shared_ptr<const urdf::ModelInterface>  urdf_model_;
   boost::shared_ptr<const srdf::Model>           srdf_model_;
 
   planning_models::KinematicModelPtr             kmodel_;
