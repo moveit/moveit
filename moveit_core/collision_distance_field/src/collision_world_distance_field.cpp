@@ -146,14 +146,14 @@ CollisionWorldDistanceField::getAllCollisions(const collision_detection::Collisi
                                               collision_detection::CollisionResult &res, 
                                               const collision_detection::CollisionRobot &robot, 
                                               const planning_models::KinematicState &state, 
-                                              const collision_detection::AllowedCollisionMatrix &acm) const 
+                                              const collision_detection::AllowedCollisionMatrix* acm) const 
 {
   const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
   boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry> dfce;
   
   boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> gsr = cdr.generateCollisionCheckingStructures(req.group_name,
                                                                                                                          state,
-                                                                                                                         &acm,
+                                                                                                                         acm,
                                                                                                                          dfce,
                                                                                                                          true);
   cdr.getSelfCollisions(req, res, dfce, gsr);
