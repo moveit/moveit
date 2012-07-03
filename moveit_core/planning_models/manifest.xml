@@ -29,7 +29,7 @@
   <rosdep name="eigen" />
 
   <export>
-    <cpp cflags="`pkg-config --cflags eigen3` `pkg-config --cflags urdfdom` `pkg-config --cflags srdfdom` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_models `pkg-config --libs urdfdom` `pkg-config --libs srdfdom`"/>
+    <cpp cflags="`pkg-config --cflags eigen3` `pkg-config --cflags srdfdom` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_models `pkg-config --libs srdfdom`"/>
   </export>
   
 </package>
