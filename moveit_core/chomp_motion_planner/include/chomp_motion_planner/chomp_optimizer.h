@@ -70,6 +70,11 @@ public:
   {
     //Nothing for now.
   }
+
+  bool isInitialized() const {
+    return initialized_;
+  }
+
 private:
 
   inline double getPotential(double field_distance, double radius, double clearence)
@@ -129,6 +134,7 @@ private:
 
   std::vector<ChompCost> joint_costs_;
   const collision_distance_field::CollisionWorldDistanceField* distance_field_world_;
+  bool initialized_;
 
   std::vector<std::vector<std::string> > collision_point_joint_names_;
   std::vector<std::vector<Eigen::Vector3d > > collision_point_pos_eigen_;

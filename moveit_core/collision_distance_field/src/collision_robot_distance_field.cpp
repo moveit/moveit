@@ -746,7 +746,6 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
         gsr->gradients_[i].types.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size(), NONE);
         gsr->gradients_[i].distances.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size(), DBL_MAX);
         gsr->gradients_[i].gradients.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size());
-        gsr->gradients_[i].sphere_locations = gsr->link_body_decompositions_.back()->getSphereCenters();
         gsr->gradients_[i].sphere_radii = gsr->link_body_decompositions_.back()->getSphereRadii();
         gsr->gradients_[i].joint_name = ls->getLinkModel()->getParentJointModel()->getName();
       } else {
@@ -763,6 +762,7 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
       const planning_models::KinematicState::LinkState* ls = state.getLinkStateVector()[dfce->link_state_indices_[i]];
       if(dfce->link_has_geometry_[i]) {
         gsr->link_body_decompositions_[i]->updatePose(ls->getGlobalCollisionBodyTransform());
+        gsr->gradients_[i].sphere_locations = gsr->link_body_decompositions_[i]->getSphereCenters();
       }
     }
     //std::cerr << "Copy took " << (b-ros::WallTime::now()).toSec() << std::endl;
@@ -776,7 +776,7 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
     gsr->gradients_[i+dfce->link_names_.size()].gradients.resize(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size());
     gsr->gradients_[i+dfce->link_names_.size()].sphere_locations = gsr->attached_body_decompositions_.back()->getSphereCenters();
     gsr->gradients_[i+dfce->link_names_.size()].sphere_radii = gsr->attached_body_decompositions_.back()->getSphereRadii();
-    gsr->gradients_[i].joint_name = ls->getLinkModel()->getParentJointModel()->getName();
+    gsr->gradients_[i+dfce->link_names_.size()].joint_name = ls->getLinkModel()->getParentJointModel()->getName();
   }
   return gsr;
 }

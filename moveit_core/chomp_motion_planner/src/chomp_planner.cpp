@@ -67,6 +67,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   for(unsigned int i = 0; i < req.motion_plan_request.goal_constraints[0].joint_constraints.size(); i++) {
     js.name.push_back(req.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name);
     js.position.push_back(req.motion_plan_request.goal_constraints[0].joint_constraints[i].position);
+    ROS_INFO_STREAM("Setting joint " << req.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name
+                    << " to position " << req.motion_plan_request.goal_constraints[0].joint_constraints[i].position);
   }
   jointStateToArray(planning_scene->getKinematicModel(),
                     js, 
@@ -104,6 +106,11 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                            req.motion_plan_request.group_name,
                            &params,
                            start_state);
+  if(!optimizer.isInitialized()) {
+    ROS_WARN_STREAM("Could not initialize optimizer");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+    return false;
+  }
   ROS_INFO("Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
   ROS_INFO("Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
   optimizer.optimize();
