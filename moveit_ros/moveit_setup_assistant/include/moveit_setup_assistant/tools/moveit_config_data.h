@@ -40,6 +40,7 @@
 #include <boost/shared_ptr.hpp>
 #include <srdfdom/model.h> // use their struct datastructures
 #include <urdf/model.h> // to share throughout app
+#include <ros/ros.h> // for the node handle
 #include <moveit_setup_assistant/tools/srdf_writer.h> // for writing srdf data
 #include <planning_scene/planning_scene.h> // for getting kinematic model
 #include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
@@ -80,6 +81,10 @@ public:
   // Is this application in debug mode?
   bool debug_;
 
+  // ******************************************************************************************
+  // Public Functions
+  // ******************************************************************************************
+
   /// Provide a shared kinematic model loader
   planning_models_loader::KinematicModelLoaderPtr getKinematicModelLoader();
 
@@ -89,7 +94,16 @@ public:
   /// Provide a kinematic model. Load a new one if necessary
   const planning_models::KinematicModelConstPtr& getKinematicModel();
 
+  /// Share the same node handle throughout the application
+  ros::NodeHandle& getNodeHandle();
+
+
 private:
+
+  // ******************************************************************************************
+  // Private Vars
+  // ******************************************************************************************
+
   // Shared kinematic model loader
   planning_models_loader::KinematicModelLoaderPtr kin_model_loader_;
 
@@ -98,6 +112,9 @@ private:
 
   // Shared kinematic model
   planning_models::KinematicModelConstPtr kin_model_;
+
+  // Shared node handle
+  ros::NodeHandle *nh_;
   
 };
 

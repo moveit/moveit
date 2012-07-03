@@ -108,11 +108,6 @@ private Q_SLOTS:
   void collisionCheckboxToggle();
 
   /**
-   * \brief Timer call for letting ROS spin
-   */
-  void updateTimer();
-
-  /**
    * \brief Called when user changes data in table, really just the checkbox
    * \param i,j Check coordinates, aka y,x (weird)
    */
