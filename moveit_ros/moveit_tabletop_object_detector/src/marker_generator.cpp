@@ -47,7 +47,7 @@
 
 namespace moveit_tabletop_object_detector {
 
-visualization_msgs::Marker MarkerGenerator::getFitMarker(const shape_msgs::Shape &mesh, double rank)
+visualization_msgs::Marker MarkerGenerator::getFitMarker(const shape_msgs::Mesh &mesh, double rank)
 {
   //create the marker
   visualization_msgs::Marker marker;
@@ -134,7 +134,7 @@ visualization_msgs::Marker MarkerGenerator::getTableMarker(float xmin, float xma
   It is the responsibility of the caller to set the appropriate pose for the marker so that
   it shows up in the right reference frame.
  */
-visualization_msgs::Marker MarkerGenerator::getConvexHullTableMarker(const shape_msgs::Shape &mesh)
+visualization_msgs::Marker MarkerGenerator::getConvexHullTableMarker(const shape_msgs::Mesh &mesh)
 {
   visualization_msgs::Marker marker;
   marker.action = visualization_msgs::Marker::ADD;
@@ -149,7 +149,9 @@ visualization_msgs::Marker MarkerGenerator::getConvexHullTableMarker(const shape
   marker.scale.z = 0.001;
   for(size_t i=0; i<mesh.triangles.size(); i++)
   {
-    marker.points.push_back(mesh.vertices[mesh.triangles[i]]);
+    marker.points.push_back(mesh.vertices[mesh.triangles[i].vertex_indices[0]]);
+    marker.points.push_back(mesh.vertices[mesh.triangles[i].vertex_indices[1]]);
+    marker.points.push_back(mesh.vertices[mesh.triangles[i].vertex_indices[2]]);
   }
   return marker;
 }

@@ -22,6 +22,7 @@
   <depend package="moveit_manipulation_msgs" />
   <depend package="moveit_msgs" />
   <depend package="shape_msgs" />
+  <depend package="geometric_shapes" />
 
  <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/msg_gen/cpp -I${prefix}/srv_gen/cpp" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltabletop_model_fitter -lmarker_generator"/>

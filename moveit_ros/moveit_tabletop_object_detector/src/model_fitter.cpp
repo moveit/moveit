@@ -169,7 +169,7 @@ std::vector<Eigen::Vector3d> interpolateTriangle(Eigen::Vector3d v0,
   return vectors;
 }
 
-void ModelToCloudFitter::sampleMesh(const shape_msgs::Shape &mesh, 
+void ModelToCloudFitter::sampleMesh(const shape_msgs::Mesh &mesh, 
 				    std::vector<Eigen::Vector3d> &points,
 				    double resolution)
 {
@@ -184,24 +184,24 @@ void ModelToCloudFitter::sampleMesh(const shape_msgs::Shape &mesh,
   
   //sample triangle surfaces at a specified min-resolution 
   //and insert the resulting points
-  for (size_t i=0; i<mesh.triangles.size(); i+=3)
+  for (size_t i=0; i<mesh.triangles.size(); i++)
   {
-    Eigen::Vector3d v0( mesh.vertices.at( mesh.triangles.at(i+0) ).x,
-		  mesh.vertices.at( mesh.triangles.at(i+0) ).y,
-		  mesh.vertices.at( mesh.triangles.at(i+0) ).z);
-    Eigen::Vector3d v1( mesh.vertices.at( mesh.triangles.at(i+1) ).x,
-		  mesh.vertices.at( mesh.triangles.at(i+1) ).y,
-		  mesh.vertices.at( mesh.triangles.at(i+1) ).z);
-    Eigen::Vector3d v2( mesh.vertices.at( mesh.triangles.at(i+2) ).x,
-		  mesh.vertices.at( mesh.triangles.at(i+2) ).y,
-		  mesh.vertices.at( mesh.triangles.at(i+2) ).z);
+    Eigen::Vector3d v0( mesh.vertices.at( mesh.triangles.at(i).vertex_indices[0]).x,
+                        mesh.vertices.at( mesh.triangles.at(i).vertex_indices[0]).y,
+                        mesh.vertices.at( mesh.triangles.at(i).vertex_indices[0]).z);
+    Eigen::Vector3d v1( mesh.vertices.at( mesh.triangles.at(i).vertex_indices[1]).x,
+		  mesh.vertices.at( mesh.triangles.at(i).vertex_indices[1]).y,
+		  mesh.vertices.at( mesh.triangles.at(i).vertex_indices[1]).z);
+    Eigen::Vector3d v2( mesh.vertices.at( mesh.triangles.at(i).vertex_indices[2]).x,
+		  mesh.vertices.at( mesh.triangles.at(i).vertex_indices[2]).y,
+		  mesh.vertices.at( mesh.triangles.at(i).vertex_indices[2]).z);
     std::vector<Eigen::Vector3d> triangleVectors = interpolateTriangle(v0, v1, v2, resolution);
     points.insert(points.begin(), triangleVectors.begin(), triangleVectors.end());
   }
 }
 
 
-void DistanceFieldFitter::initializeFromMesh(const shape_msgs::Shape &mesh)
+void DistanceFieldFitter::initializeFromMesh(const shape_msgs::Mesh &mesh)
 {
   std::vector<Eigen::Vector3d> points;
   //we use a slightly larger resolution than the distance field, in an attempt to bring
