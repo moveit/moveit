@@ -34,6 +34,7 @@
 
 /* Author: Dave Coleman */
 
+// Qt
 #include <QLabel>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -41,14 +42,17 @@
 #include <QMessageBox>
 #include <QString>
 #include <QFont>
+// ROS
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loading images
 #include <ros/master.h> // for checking if roscore is started
+// SA
+#include "header_widget.h" // title and instructions
+#include "start_screen_widget.h"
+// C
 #include <fstream>  // for reading in urdf
 #include <streambuf>
 #include <boost/algorithm/string.hpp> // for trimming whitespace from user input
-#include "header_widget.h" // title and instructions
-#include "start_screen_widget.h"
 
 namespace moveit_setup_assistant
 {
@@ -152,7 +156,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
 
-  if( config_data_->debug_ && false )
+  if( config_data_->debug_ && true )
   {
     select_mode_->btn_new_->click();
 
@@ -204,6 +208,8 @@ void StartScreenWidget::showExistingOptions()
 // ******************************************************************************************
 void StartScreenWidget::loadFiles()
 {
+  std::cout << "here 1" << std::endl;
+
   std::string urdf_path = urdf_file_->getPath();
 
   // Trim whitespace from user input
@@ -233,11 +239,22 @@ void StartScreenWidget::loadFiles()
   urdf_string.assign((std::istreambuf_iterator<char>(urdf_stream)),
                      std::istreambuf_iterator<char>());  
 
+
+
+
+
+
+
+
+
+
+  std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n";
+  ROS_INFO_STREAM( "LOADING ROBOT MODEL NOW: ");
   // Verify that file is in correct format / not an XACRO by loading into robot model
   if( !config_data_->urdf_model_.initString( urdf_string ) )
   {
     QMessageBox::warning( this, "Error Loading Files", 
-                           "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
+                          "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
     return;
   }
   else
@@ -248,22 +265,35 @@ void StartScreenWidget::loadFiles()
     config_data_->urdf_path_ = urdf_string;
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+  std::cout << "here 2" << std::endl;
+
   // Check that ROS Core is running
   if( ! ros::master::check() )
   {
     // roscore is not running
     QMessageBox::warning( this, "ROS Error", 
-                           "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
+                          "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
     return;
   }
 
+  std::cout << "here 3" << std::endl;
   // Load the robot model to the parameter server
-  ros::NodeHandle nh;
-  /*ros::spinOnce();
-  ros::Duration(0.5).sleep();
-  ros::spinOnce();*/
+  ros::NodeHandle nh = config_data_->getNodeHandle();
+  std::cout << "here 4" << std::endl;
   nh.setParam("/robot_description", urdf_string);
-  //ros::spinOnce();
+  std::cout << "here 5" << std::endl;
 
   // SRDF -----------------------------------------------------
   std::string srdf_path = srdf_file_->getPath();
@@ -279,7 +309,7 @@ void StartScreenWidget::loadFiles()
     if( !srdf_stream.good() ) // File not found
     {
       QMessageBox::warning( this, "Error Loading Files", 
-                             "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
+                            "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
       return;
     }
       
@@ -296,7 +326,7 @@ void StartScreenWidget::loadFiles()
     if( !config_data_->srdf_->initString( config_data_->urdf_model_, srdf_string ) )
     {
       QMessageBox::warning( this, "Error Loading Files", 
-                             "SRDF file not a valid semantic robot description model." );
+                            "SRDF file not a valid semantic robot description model." );
       return;
     }
     else
@@ -306,12 +336,10 @@ void StartScreenWidget::loadFiles()
       // Copy path to config data
       config_data_->srdf_path_ = srdf_string;
     }
-
+    std::cout << "here 5" << std::endl;
     // Load the robot model to the parameter server
-    ros::NodeHandle nh;
-    ros::spinOnce();
     nh.setParam("/robot_description_semantic", srdf_string);
-    ros::spinOnce();
+    std::cout << "here 6" << std::endl;
   }
 
   // Call a function that enables navigation and goes to screen 2
@@ -323,6 +351,8 @@ void StartScreenWidget::loadFiles()
   stack_path_->setDisabled(true);
   select_mode_->setDisabled(true);
   btn_load_->hide();
+
+  std::cout << "here 7 - SUCCESS" << std::endl;
 }
 
 // ******************************************************************************************

@@ -651,6 +651,8 @@ void RobotPosesWidget::loadDataTable()
 // ******************************************************************************************
 void RobotPosesWidget::focusGiven()
 {
+  ROS_INFO(" ROBOT POSES HAS FOCUS" );
+
   // Show the current poses screen
   stacked_layout_->setCurrentIndex( 0 );
 

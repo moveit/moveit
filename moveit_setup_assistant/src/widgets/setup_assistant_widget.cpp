@@ -65,9 +65,9 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   : QWidget( parent )
 {
   // Create timer to ping ROS ----------------------------------------
-  //QTimer *update_timer = new QTimer( this );
-  //connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
-  //update_timer->start( 250 );
+  QTimer *update_timer = new QTimer( this );
+  connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
+  update_timer->start( 250 );
   
   // Create object to hold all moveit configuration data
   config_data_.reset( new MoveItConfigData() );
@@ -167,7 +167,7 @@ void SetupAssistantWidget::moveToScreen( const int index )
   // Send the focus given command to the screen widget
   SetupScreenWidget *ssw = qobject_cast< SetupScreenWidget* >( main_content_->widget( index ) );
   ssw->focusGiven();  
-  //TODO remove
+
   // Change navigation selected option
   navs_view_->setSelected( index ); // Select first item in list
 }
@@ -177,32 +177,39 @@ void SetupAssistantWidget::moveToScreen( const int index )
 // ******************************************************************************************
 void SetupAssistantWidget::progressPastStartScreen()
 {
+  std::cout << "Progress past start screen" << std::endl;
   // Load all widgets ------------------------------------------------
+  
+  std::cout << "Screen" << std::endl;
 
   // Self-Collisions
   cdcw_ = new ComputeDefaultCollisionsWidget( this, config_data_);
   main_content_->addWidget(cdcw_);
 
+  std::cout << "Screen" << std::endl;
+
   // Planning Groups
   pgw_ = new PlanningGroupsWidget( this, config_data_ );
   main_content_->addWidget(pgw_);
+  std::cout << "Screen" << std::endl;
 
   // Robot Poses
   rpw_ = new RobotPosesWidget( this, config_data_ );
   main_content_->addWidget(rpw_);
+  std::cout << "Screen" << std::endl;
 
   // End Effectors
   efw_ = new EndEffectorsWidget( this, config_data_ );
   main_content_->addWidget(efw_);  
-
+  std::cout << "Screen" << std::endl;
   // Virtual Joints
   //vjw_ = new VirtualJointsWidget( this, config_data_ );
   //main_content_->addWidget(vjw_);  
-
+  std::cout << "Screen" << std::endl;
   // Configuration Files
   cfw_ = new ConfigurationFilesWidget( this, config_data_ );
   main_content_->addWidget(cfw_);  
-
+  std::cout << "Screen" << std::endl;
   // Pass command arg values to config files screen
   cfw_->stack_path_->setPath( ssw_->stack_path_->getQPath() );
 
@@ -222,6 +229,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Load Rviz
   //loadRviz(); //TODO enable this
 
+  std::cout << "Done progress past start screen" << std::endl;
 }
 
 // ******************************************************************************************

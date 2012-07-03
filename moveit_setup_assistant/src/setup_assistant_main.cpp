@@ -30,8 +30,8 @@
 // Author: Dave Coleman
 
 #include "widgets/setup_assistant_widget.h"
-#include <QApplication>
 #include "ros/ros.h"
+#include <QApplication>
 #include <boost/program_options.hpp>
 
 int main(int argc, char **argv)
@@ -62,8 +62,8 @@ int main(int argc, char **argv)
   }
 
   // ROS Spin
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
+  //ros::AsyncSpinner spinner(1);
+  //spinner.start();
 
   // Create Qt Application
   QApplication qtApp(argc, argv);
