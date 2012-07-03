@@ -87,7 +87,7 @@ void ProximityVisualization::stateChanged(const std::string& group,
                                  res, 
                                  robot_, 
                                  state,
-                                 distance_acm_);
+                                 &distance_acm_);
   req.contacts = true;
   req.max_contacts = 100000;
   req.max_contacts_per_pair = 1000;
@@ -97,7 +97,7 @@ void ProximityVisualization::stateChanged(const std::string& group,
                             res, 
                             robot_, 
                             state,
-                            distance_acm_);
+                            &distance_acm_);
 
   visualization_msgs::MarkerArray arrow_markers;
   std_msgs::ColorRGBA col;

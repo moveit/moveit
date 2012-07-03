@@ -106,7 +106,7 @@ int main(int argc, char** argv)
                                 res, 
                                 coll, 
                                 planning_scene_monitor_->getPlanningScene()->getCurrentState(), 
-                                acm);
+                                &acm);
 
   // world.checkRobotCollision(req,
   //                           res,
