@@ -47,7 +47,7 @@
 #include <geometry_msgs/Pose.h>
 
 #include <sensor_msgs/PointCloud.h>
-#include <shape_msgs/Shape.h>
+#include <geometric_shapes/shape_messages.h>
 
 namespace distance_field {
   class PropagationDistanceField;
@@ -104,7 +104,7 @@ class ModelToCloudFitter
   //! The id of this model if loaded from the model database
   int model_id_;
 
-  void sampleMesh(const shape_msgs::Shape &mesh, std::vector<Eigen::Vector3d> &btVectors, double resolution);
+  void sampleMesh(const shape_msgs::Mesh &mesh, std::vector<Eigen::Vector3d> &btVectors, double resolution);
 
  public:
 
@@ -155,7 +155,7 @@ class DistanceFieldFitter : public ModelToCloudFitter
   ~DistanceFieldFitter();
   
   //! Calls initialize from points on the vertices of the mesh
-  void initializeFromMesh(const shape_msgs::Shape &mesh);
+  void initializeFromMesh(const shape_msgs::Mesh &mesh);
 };
 
 } //namespace tabletop_object_detector

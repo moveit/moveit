@@ -123,7 +123,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
       return;
     }
     in_object_frame = true;
-    ROS_DEBUG_STREAM("In object frame is true " << co.poses[0]);
+    //ROS_DEBUG_STREAM("In object frame is true " << co.poses[0]);
     //TODO - Use potential pose?
     //Eigen::Affine3d potential_pose;
     //planning_models::poseFromMsg(pickup_goal.target.potential_models[0].pose.pose, potential_pose);
@@ -131,7 +131,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     //                                                pickup_goal.target.potential_models[0].pose.header.frame_id,
     //                                                potential_pose,
     //                                                obj_pose);
-    planning_models::poseFromMsg(co.poses[0], obj_pose);
+    planning_models::poseFromMsg(co.mesh_poses[0], obj_pose);
   } 
   
   //assumes that whatever is in there is valid

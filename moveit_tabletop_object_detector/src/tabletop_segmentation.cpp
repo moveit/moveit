@@ -251,7 +251,6 @@ void TabletopSegmentor::addConvexHullTable(moveit_manipulation_msgs::Table &tabl
 					   bool flatten_table)
 {
   //create a triangle mesh out of the convex hull points and add it to the table message
-  table.convex_hull.type = table.convex_hull.MESH;
   for (size_t i=0; i<convex_hull.points.size(); i++)
   {
     geometry_msgs::Point vertex;
@@ -262,9 +261,11 @@ void TabletopSegmentor::addConvexHullTable(moveit_manipulation_msgs::Table &tabl
     table.convex_hull.vertices.push_back(vertex);
       
     if(i==0 || i==convex_hull.points.size()-1) continue;
-    table.convex_hull.triangles.push_back(0);
-    table.convex_hull.triangles.push_back(i);
-    table.convex_hull.triangles.push_back(i+1);
+    shape_msgs::MeshTriangle triangle;
+    triangle.vertex_indices[0] = 0;
+    triangle.vertex_indices[i] = 0;
+    triangle.vertex_indices[i+1] = 0;
+    table.convex_hull.triangles.push_back(triangle);
   }
   visualization_msgs::Marker tableMarker = MarkerGenerator::getConvexHullTableMarker(table.convex_hull);
   tableMarker.header = table.pose.header;
