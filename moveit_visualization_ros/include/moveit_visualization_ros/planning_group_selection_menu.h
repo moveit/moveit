@@ -35,7 +35,7 @@
 #include <QString>
 #include <QMenu>
 #include <QActionGroup>
-#include <srdf/model.h>
+#include <srdfdom/model.h>
 
 namespace moveit_visualization_ros
 {
