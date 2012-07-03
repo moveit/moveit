@@ -78,7 +78,7 @@ public:
   void setRandomJumpAmount(double amount);
   bool getUseStochasticDescent() const;
 
-private:
+public:
   double planning_time_limit_;
   int max_iterations_;
   int max_iterations_after_collision_free_;
