@@ -65,9 +65,9 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   : QWidget( parent )
 {
   // Create timer to ping ROS ----------------------------------------
-  /*QTimer *update_timer = new QTimer( this );
-    connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
-    update_timer->start( 250 );*/
+  //QTimer *update_timer = new QTimer( this );
+  //connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
+  //update_timer->start( 250 );
   
   // Create object to hold all moveit configuration data
   config_data_.reset( new MoveItConfigData() );
@@ -167,7 +167,7 @@ void SetupAssistantWidget::moveToScreen( const int index )
   // Send the focus given command to the screen widget
   SetupScreenWidget *ssw = qobject_cast< SetupScreenWidget* >( main_content_->widget( index ) );
   ssw->focusGiven();  
-
+  //TODO remove
   // Change navigation selected option
   navs_view_->setSelected( index ); // Select first item in list
 }
@@ -220,7 +220,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   navs_view_->setDisabled( false );
 
   // Load Rviz
-  loadRviz();
+  //loadRviz(); //TODO enable this
 
 }
 
@@ -229,7 +229,7 @@ void SetupAssistantWidget::progressPastStartScreen()
 // ******************************************************************************************
 void SetupAssistantWidget::updateTimer()
 {
-  ros::spinOnce(); // keep ROS alive
+  ros::spinOnce(); // keep ROS node alive
 }
 
 // ******************************************************************************************
@@ -267,6 +267,9 @@ void SetupAssistantWidget::loadRviz()
   
   // Turn off planned path
   planning_display->setVisualVisible( false );
+
+  // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
+  //planning_display->setPlanningSceneTopic( MOVEIT_PLANNING_SCENE );
 
   // Set robot description
   planning_display->setRobotDescription( ROBOT_DESCRIPTION );
@@ -320,10 +323,10 @@ void SetupAssistantWidget::loadRviz()
 void SetupAssistantWidget::showRviz( bool show )
 {
   /*
-  QList<int> sizes;
-  sizes.push_back(0);
-  sizes.push_back(1000);
-  rviz_frame_->setSizes(sizes); 
+    QList<int> sizes;
+    sizes.push_back(0);
+    sizes.push_back(1000);
+    rviz_frame_->setSizes(sizes); 
   */
 }
 

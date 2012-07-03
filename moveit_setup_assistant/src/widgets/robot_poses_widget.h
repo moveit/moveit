@@ -41,6 +41,7 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QScrollArea>
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
@@ -78,7 +79,10 @@ class RobotPosesWidget : public SetupScreenWidget
   QPushButton *btn_delete_;
   QPushButton *btn_save_;
   QPushButton *btn_cancel_;
+  QPushButton *btn_test_;
   QStackedLayout *stacked_layout_;
+  QScrollArea *scroll_area_;
+  QVBoxLayout *column2_;
   QLineEdit *pose_name_field_;
   QComboBox *group_name_field_;
   QWidget *joint_list_widget_;
@@ -112,6 +116,17 @@ private Q_SLOTS:
 
   /// Run this whenever the group is changed
   void loadJointSliders( const QString &selected );
+
+  /** 
+   * Call when one of the sliders has its value changed to store its value in kinematic model
+   * 
+   * @param name - name of joint being changed
+   * @param value - value of joint
+   */
+  void updateKinematicModel( const std::string &name, double value );
+
+  /// Testing
+  void publishJoints();
 
 private:
 
@@ -203,6 +218,10 @@ class SliderWidget : public QWidget
    */
   SliderWidget( QWidget *parent, const planning_models::KinematicModel::JointModel *joint_model_ );
 
+  /** 
+   * Deconstructor
+   */
+  ~SliderWidget();
 
   // ******************************************************************************************
   // Qt Components
@@ -220,6 +239,18 @@ private Q_SLOTS:
 
   /// Called when the joint value slider is changed
   void changeJointValue( int value );
+
+  /// Called when the joint value box is changed
+  void changeJointSlider();
+
+Q_SIGNALS:
+
+  // ******************************************************************************************
+  // Emitted Signal Functions
+  // ******************************************************************************************
+
+  /// Indicate joint name and value when slider widget changed
+  void jointValueChanged( const std::string &name, double value );
 
 private:
 
@@ -243,5 +274,10 @@ private:
 
 
 } //namespace
+
+// Declare std::string as metatype so we can use it in a signal
+Q_DECLARE_METATYPE (std::string)
+
+
 #endif
 
