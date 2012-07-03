@@ -39,10 +39,11 @@
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h> // necessary?
 #include <moveit_msgs/JointLimits.h>
+//#include <planning_scene_monitor/planning_scene_monitor.h>
 // Qt
-#include <QScrollArea>
 #include <QFormLayout>
 #include <QMessageBox>
+#include <QDoubleValidator>
 
 namespace moveit_setup_assistant
 {
@@ -83,6 +84,11 @@ RobotPosesWidget::RobotPosesWidget( QWidget *parent, moveit_setup_assistant::Mov
   // Finish Layout --------------------------------------------------
 
   this->setLayout(layout);
+
+
+
+  // Create joint publisher -----------------------------------------
+
 }
 
 // ******************************************************************************************
@@ -162,7 +168,7 @@ QWidget* RobotPosesWidget::createEditWidget()
   
   QHBoxLayout *columns_layout = new QHBoxLayout();
   QVBoxLayout *column1 = new QVBoxLayout();
-  QVBoxLayout *column2 = new QVBoxLayout();
+  column2_ = new QVBoxLayout();
 
   // Column 1 --------------------------------------------------------
 
@@ -189,20 +195,16 @@ QWidget* RobotPosesWidget::createEditWidget()
 
   // Box to hold joint sliders
   joint_list_widget_ = new QWidget( this );
-  joint_list_layout_ = new QVBoxLayout();
-  joint_list_widget_->setLayout( joint_list_layout_ );
-  // Add joint sliders
-
+  
   // Create scroll area
-  /*  QScrollArea *scroll_area = new QScrollArea( this );
-      scroll_area->setBackgroundRole(QPalette::Dark);
-      scroll_area->setWidget( joint_list_widget_ );
+  scroll_area_ = new QScrollArea( this );
+  //scroll_area_->setBackgroundRole(QPalette::Dark);
+  scroll_area_->setWidget( joint_list_widget_ );
 
-      column2->addWidget( scroll_area );
-  */
-  column2->addWidget( joint_list_widget_ );
+  column2_->addWidget( scroll_area_ );
+  //  column2_->addWidget( joint_list_widget_ );
 
-  columns_layout->addLayout( column2 );
+  columns_layout->addLayout( column2_ );
 
   // Set columns in main layout
   layout->addLayout( columns_layout );
@@ -227,6 +229,14 @@ QWidget* RobotPosesWidget::createEditWidget()
   QWidget *spacer = new QWidget( this );
   spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
   controls_layout->addWidget( spacer );
+
+  // Test
+  QPushButton *btn_test_ = new QPushButton( "&Test", this );
+  btn_test_->setMaximumWidth( 200 );
+  connect( btn_test_, SIGNAL(clicked()), this, SLOT( publishJoints() ) );
+  controls_layout->addWidget( btn_test_ );
+  controls_layout->setAlignment(btn_test_, Qt::AlignRight);
+  
 
   // Save
   QPushButton *btn_save_ = new QPushButton( "&Save", this );
@@ -257,15 +267,15 @@ QWidget* RobotPosesWidget::createEditWidget()
 // ******************************************************************************************
 void RobotPosesWidget::showNewScreen()
 {
-  // Load the data
-  //loadGroupScreen( NULL ); // NULL indicates this is a new group, not an existing one
-    
+  // Remember that this is a new pose
+  current_edit_pose_.clear();
+
   // Hide delete button because this is a new widget
   btn_delete_->hide();
 
   // Clear previous data
   pose_name_field_->setText("");
-  group_name_field_->clearEditText();
+  group_name_field_->clearEditText(); // actually this just chooses first option
 
   // Switch to screen
   stacked_layout_->setCurrentIndex( 1 ); 
@@ -355,6 +365,19 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
     return;
   }
 
+  // Delete old sliders from joint_list_layout_
+  delete joint_list_layout_;
+  qDeleteAll( joint_list_widget_->children() );
+
+  // Create layout again
+  joint_list_layout_ = new QVBoxLayout();
+  joint_list_widget_->setLayout( joint_list_layout_ );
+  //  joint_list_widget_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+  joint_list_widget_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+  joint_list_widget_->setMinimumSize( 50, 50 ); // w, h
+
+  // Load joints ---------------------------------------------------------
+
   namespace pm = planning_models;
 
   // Get list of associated joints   // TODO: change the comment in kinematic_model.h
@@ -362,6 +385,7 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
   const std::vector<const pm::KinematicModel::JointModel*> joint_models = joint_model_group->getJointModels();
   
   // Iterate through the joints
+  int num_joints = 0;
   for( std::vector<const pm::KinematicModel::JointModel*>::const_iterator joint_it = joint_models.begin();
        joint_it < joint_models.end(); ++joint_it )
   {
@@ -371,9 +395,18 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
     if( (*joint_it)->getVariableCount() == 1 )
     {
       // For each joint in group add slider
-      joint_list_layout_->addWidget( new SliderWidget( this, *joint_it ) );
+      SliderWidget *sw = new SliderWidget( this, *joint_it );
+      joint_list_layout_->addWidget( sw );
+      
+      // Connect value change event
+      connect( sw, SIGNAL( jointValueChanged( const std::string &, double ) ), 
+               this, SLOT( updateKinematicModel( const std::string &, double ) ) );
+
+      ++num_joints;
     }
   }
+  // Copy the width of column 2 and manually calculate height from number of joints
+  joint_list_widget_->resize( 350, num_joints * 70 ); //w, h
 
 }
 
@@ -534,6 +567,7 @@ void RobotPosesWidget::doneEditing()
     new_pose.group_ = group_name_field_->currentText().toStdString();
 
     // TODO: copy joint positions
+    // TODO: zebra
 
     // Add to vector
     config_data_->srdf_->group_states_.push_back( new_pose );
@@ -549,6 +583,8 @@ void RobotPosesWidget::doneEditing()
     // TODO: copy joint positions
   }
 
+  // Reload main screen table
+  loadDataTable();
 
   // Switch to screen
   stacked_layout_->setCurrentIndex( 0 ); 
@@ -629,6 +665,53 @@ void RobotPosesWidget::focusGiven()
 }
 
 // ******************************************************************************************
+// Call when one of the sliders has its value changed
+// ******************************************************************************************
+void RobotPosesWidget::updateKinematicModel( const std::string &name, double value )
+{
+  std::cout << "Joint " << name << " now has value " << value << std::endl;
+
+   
+}
+
+// ******************************************************************************************
+// 
+// ******************************************************************************************
+void RobotPosesWidget::publishJoints()
+{
+  // Create scene publisher
+  //  ros::NodeHandle nh;
+  //ros::Duration(0.5).sleep();
+  /*
+  ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>( MOVEIT_PLANNING_SCENE, 1 );
+
+  // Get the planning scene
+  const planning_scene::PlanningScenePtr scene = config_data_->getPlanningSceneMonitor()->getPlanningScene();
+  scene->setName("MoveIt Planning Scene");
+
+
+  // Create the joint values map
+   std::map<std::string, double> joint_state_map;
+  joint_state_map["r_shoulder_pan_joint"] = 0.06;
+
+  // Change the scene
+  // scene.getCurrentState().setToDefaultValues(); // set to default values of 0 OR half between low and high joint values
+  // scene->getCurrentState().setToRandomValues();
+  planning_models::KinematicState kin_state = scene->getCurrentState();
+  kin_state.setStateValues( joint_state_map );
+
+  // Create a planning scene message
+  moveit_msgs::PlanningScene psmsg;
+  scene->getPlanningSceneMsg(psmsg);
+
+  // Publish!
+  pub_scene.publish(psmsg);
+  ROS_INFO("Scene published.");
+  */
+}
+
+
+// ******************************************************************************************
 // ******************************************************************************************
 // Slider Widget
 // ******************************************************************************************
@@ -645,7 +728,7 @@ SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicMod
   QHBoxLayout *row2 = new QHBoxLayout();
   
   // Row 1
-  joint_label_ = new QLabel( joint_model->getName().c_str() , this );
+  joint_label_ = new QLabel( joint_model_->getName().c_str() , this );
   joint_label_->setContentsMargins( 0, 0, 0, 0 );
   layout->addWidget( joint_label_ );
 
@@ -662,6 +745,7 @@ SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicMod
   joint_value_ = new QLineEdit( this );
   joint_value_->setMaximumWidth( 50 );
   joint_value_->setContentsMargins( 0, 0, 0, 0 );
+  connect( joint_value_, SIGNAL( editingFinished() ), this, SLOT( changeJointSlider() ) );
   row2->addWidget( joint_value_ );
 
   // Joint Limits ----------------------------------------------------
@@ -669,18 +753,23 @@ SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicMod
   if( limits.empty() )
   {
     QMessageBox::critical( this, "Error Loading", "An internal error has occured while loading the joints" );
+    return;
   }
-  else
-  {
-    // Only use the first limit, because there is only 1 variable (as checked earlier)
-    moveit_msgs::JointLimits joint_limit = limits[0];
-    max_position_ = joint_limit.max_position;
-    min_position_ = joint_limit.min_position;
-    std::cout << joint_model->getName().c_str() << " min " << min_position_ << " max " << max_position_ << std::endl;
 
-    joint_slider_->setMaximum( max_position_*100 );
-    joint_slider_->setMinimum( min_position_*100 ); 
-  }
+  // Only use the first limit, because there is only 1 variable (as checked earlier)
+  moveit_msgs::JointLimits joint_limit = limits[0];
+  max_position_ = joint_limit.max_position;
+  min_position_ = joint_limit.min_position;
+  std::cout << joint_model_->getName().c_str() << " min " << min_position_ << " max " << max_position_ << std::endl;
+
+  // Set the slider limits
+  joint_slider_->setMaximum( max_position_*100 );
+  joint_slider_->setMinimum( min_position_*100 ); 
+    
+  // Set the text box limits    
+  QDoubleValidator *validator = new QDoubleValidator( this );
+  validator->setRange( min_position_, max_position_, 2 );
+  joint_value_->setValidator( validator );
 
   // Connect slider to joint value box
   connect( joint_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeJointValue(int)) );
@@ -688,14 +777,27 @@ SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicMod
   // Default joint values -------------------------------------------
   std::vector<double> default_values;
   joint_model_->getDefaultValues( default_values );
-  joint_slider_->setSliderPosition( default_values[0] * 100 );
-  //  changeJointValue( default_values[0]
+  int value = default_values[0] * 100; // scale double to integer for slider use
+  joint_slider_->setSliderPosition( value ); // show in slider
+  changeJointValue( value ); // show in textbox
 
   // Finish GUI ----------------------------------------
   layout->addLayout( row2 );
 
   this->setContentsMargins( 0, 0, 0, 0 );
+  //this->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  this->setGeometry(QRect(110, 80, 120, 80));
   this->setLayout( layout );
+
+  // Declare std::string as metatype so we can use it in a signal
+  qRegisterMetaType<std::string>("std::string");
+}
+
+// ******************************************************************************************
+// Deconstructor
+// ******************************************************************************************
+SliderWidget::~SliderWidget()
+{
 }
 
 // ******************************************************************************************
@@ -703,8 +805,34 @@ SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicMod
 // ******************************************************************************************
 void SliderWidget::changeJointValue( int value )
 {
-  joint_value_->setText( QString( "%1" ).arg( double( value )/100, 0, 'f', 2 ) );
+  // Get joint value
+  const double double_value = double( value ) / 1000;
+
+  // Set textbox
+  joint_value_->setText( QString( "%1" ).arg( double_value, 0, 'f', 2 ) );
+  
+  // Send event to parent widget
+  Q_EMIT jointValueChanged( joint_model_->getName(), double_value );
 }
+
+// ******************************************************************************************
+// Called when the joint value box is changed
+// ******************************************************************************************
+void SliderWidget::changeJointSlider()
+{
+  // Get joint value
+  const double value = joint_value_->text().toDouble();
+
+  // We assume it converts to double because of the validator
+  joint_slider_->setSliderPosition( value * 100 );
+
+  // Send event to parent widget
+  Q_EMIT jointValueChanged( joint_model_->getName(), value );
+}
+
+
+
+
 
 
 } // namespace

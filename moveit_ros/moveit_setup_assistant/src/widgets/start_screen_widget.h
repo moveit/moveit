@@ -103,6 +103,10 @@ private Q_SLOTS:
 
 Q_SIGNALS:
 
+  // ******************************************************************************************
+  // Emitted Signal Functions
+  // ******************************************************************************************
+
   /// Event that is fired when the start screen has all its requirements completed and user can move on
   void readyToProgress();
 

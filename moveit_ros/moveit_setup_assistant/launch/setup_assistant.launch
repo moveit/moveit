@@ -4,5 +4,8 @@
 	      --srdf=/u/dcoleman/ros/moveit/moveit_pr2/tests/pr2_jacobian_tests/pr2.srdf
 	      --config_pkg=/wg/stor1a/dcoleman/ros/pr2_config_test/
 	      --debug" 
-	output="screen" />
+ launch-prefix="gdb -ex run --args"
+        output="screen" />
+
+
 </launch>

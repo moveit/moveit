@@ -37,7 +37,6 @@
 #ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 
-//#include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <srdfdom/model.h> // use their struct datastructures
 #include <urdf/model.h> // to share throughout app
@@ -49,9 +48,17 @@
 namespace moveit_setup_assistant
 {
 
+// ******************************************************************************************
+// Constants
+// ******************************************************************************************
+
 // Used for loading kinematic model
 static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string MOVEIT_PLANNING_SCENE="moveit_planning_scene";
 
+// ******************************************************************************************
+// Class
+// ******************************************************************************************
 class MoveItConfigData
 {
 public:
@@ -93,6 +100,10 @@ private:
   planning_models::KinematicModelConstPtr kin_model_;
   
 };
+
+// ******************************************************************************************
+// Boost Pointers
+// ******************************************************************************************
 
 /// Create a shared pointer for passing this data object between widgets
 typedef boost::shared_ptr<MoveItConfigData> MoveItConfigDataPtr;

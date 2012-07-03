@@ -152,14 +152,14 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
 
-  if( config_data_->debug_ )
+  if( config_data_->debug_ && false )
   {
     select_mode_->btn_new_->click();
 
     QTimer *update_timer = new QTimer( this );
     update_timer->setSingleShot( true ); // only run once
     connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
-    update_timer->start( 10 );  
+    update_timer->start( 100 );  
   }
 }
 
@@ -259,12 +259,11 @@ void StartScreenWidget::loadFiles()
 
   // Load the robot model to the parameter server
   ros::NodeHandle nh;
-  ros::spinOnce();
-  ros::spinOnce();
-  ros::spinOnce();
+  /*ros::spinOnce();
+  ros::Duration(0.5).sleep();
+  ros::spinOnce();*/
   nh.setParam("/robot_description", urdf_string);
-  ros::spinOnce();
-
+  //ros::spinOnce();
 
   // SRDF -----------------------------------------------------
   std::string srdf_path = srdf_file_->getPath();
