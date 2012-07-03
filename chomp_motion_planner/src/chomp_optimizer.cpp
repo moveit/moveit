@@ -62,7 +62,8 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
                     planning_group_, 
                     DIFF_RULE_LENGTH),
   planning_scene_(planning_scene),
-  state_(start_state)
+  state_(start_state),
+  initialized_(false)
 {
   collision_detection::CollisionWorldConstPtr coll_world = planning_scene->getCollisionWorld();
   distance_field_world_ = dynamic_cast<const collision_distance_field::CollisionWorldDistanceField*>(coll_world.get());
@@ -86,13 +87,14 @@ void ChompOptimizer::initialize()
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = planning_group_;
+  ros::WallTime wt = ros::WallTime::now();
   boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> gsr =
     distance_field_world_->getCollisionGradients(req,
                                                  res,
                                                  *planning_scene_->getCollisionRobot().get(),
                                                  state_,
                                                  &planning_scene_->getAllowedCollisionMatrix());
-    
+  ROS_INFO_STREAM("First coll check took " << (ros::WallTime::now()-wt));
   num_collision_points_ = 0;
   for(size_t i = 0; i < gsr->gradients_.size(); i++)
   {
@@ -254,6 +256,7 @@ void ChompOptimizer::initialize()
       }
     }
   }
+  initialized_ = true;
 }
 
 ChompOptimizer::~ChompOptimizer()
@@ -313,27 +316,29 @@ void ChompOptimizer::optimize()
   {
     ros::WallTime for_time = ros::WallTime::now();
     performForwardKinematics();
-    ROS_DEBUG_STREAM("Forward kinematics took " << (ros::WallTime::now()-for_time));
+    ROS_INFO_STREAM("Forward kinematics took " << (ros::WallTime::now()-for_time));
     double cCost = getCollisionCost();
     double sCost = getSmoothnessCost();
     double cost = cCost + sCost;
 
-    if(parameters_->getAddRandomness() && currentCostIter != -1)
-    {
-      costs[currentCostIter] = cCost;
-      currentCostIter++;
+    ROS_INFO_STREAM("Collision cost " << cCost << " smoothness cost " << sCost);
 
-      if(currentCostIter >= costWindow)
-      {
-        for(int i = 1; i < costWindow; i++)
-        {
-          averageCostVelocity += (costs.at(i) - costs.at(i - 1));
-        }
+    // if(parameters_->getAddRandomness() && currentCostIter != -1)
+    // {
+    //   costs[currentCostIter] = cCost;
+    //   currentCostIter++;
 
-        averageCostVelocity /= (double)(costWindow);
-        currentCostIter = -1;
-      }
-    }
+    //   if(currentCostIter >= costWindow)
+    //   {
+    //     for(int i = 1; i < costWindow; i++)
+    //     {
+    //       averageCostVelocity += (costs.at(i) - costs.at(i - 1));
+    //     }
+
+    //     averageCostVelocity /= (double)(costWindow);
+    //     currentCostIter = -1;
+    //   }
+    // }
     if(iteration_ == 0)
     {
       best_group_trajectory_ = group_trajectory_.getTrajectory();
@@ -354,19 +359,19 @@ void ChompOptimizer::optimize()
     ROS_DEBUG_STREAM("Collision increments took " << (ros::WallTime::now()-coll_time));
     calculateTotalIncrements();
 
-    if(!parameters_->getUseHamiltonianMonteCarlo())
-    {
-      // non-stochastic version:
-      addIncrementsToTrajectory();
-    }
-    else
-    {
-      // hamiltonian monte carlo updates:
-      getRandomMomentum();
-      updateMomentum();
-      updatePositionFromMomentum();
-      stochasticity_factor_ *= parameters_->getHmcAnnealingFactor();
-    }
+    // if(!parameters_->getUseHamiltonianMonteCarlo())
+    // {
+    //   // non-stochastic version:
+    addIncrementsToTrajectory();
+    // }
+    // else
+    // {
+    //   // hamiltonian monte carlo updates:
+    //   getRandomMomentum();
+    //   updateMomentum();
+    //   updatePositionFromMomentum();
+    //   stochasticity_factor_ *= parameters_->getHmcAnnealingFactor();
+    // }
     handleJointLimits();
     updateFullTrajectory();
 
@@ -398,12 +403,14 @@ void ChompOptimizer::optimize()
     {
       if(cCost < parameters_->getCollisionThreshold())
       {
+        num_collision_free_iterations_ = parameters_->getMaxIterationsAfterCollisionFree();
         is_collision_free_ = true;
         iteration_++;
         shouldBreakOut = true;
+      } else {
+        ROS_INFO_STREAM("cCost " << cCost << " over threshold " << parameters_->getCollisionThreshold());
       }
     }
-
 
     if((ros::WallTime::now() - start_time).toSec() > parameters_->getPlanningTimeLimit() && !parameters_->getAnimatePath() && !parameters_->getAnimateEndeffector())
     {
@@ -411,45 +418,45 @@ void ChompOptimizer::optimize()
       break;
     }
 
-    if(fabs(averageCostVelocity) < minimaThreshold && currentCostIter == -1 && !is_collision_free_ && parameters_->getAddRandomness())
-    {
-      ROS_INFO("Detected local minima. Attempting to break out!");
-      int iter = 0;
-      bool success = false;
-      while(iter < 20 && !success)
-      {
-        performForwardKinematics();
-        double original_cost = getTrajectoryCost();
-        group_trajectory_backup_ = group_trajectory_.getTrajectory();
-        perturbTrajectory();
-        handleJointLimits();
-        updateFullTrajectory();
-        performForwardKinematics();
-        double new_cost = getTrajectoryCost();
-        iter ++;
-        if(new_cost < original_cost)
-        {
-          ROS_INFO("Got out of minimum in %d iters!", iter);
-          averageCostVelocity = 0.0;
-          currentCostIter = 0;
-          success = true;
-        }
-        else
-        {
-          group_trajectory_.getTrajectory() = group_trajectory_backup_;
-          updateFullTrajectory();
-          currentCostIter = 0;
-          averageCostVelocity = 0.0;
-          success = false;
-        }
+    // if(fabs(averageCostVelocity) < minimaThreshold && currentCostIter == -1 && !is_collision_free_ && parameters_->getAddRandomness())
+    // {
+    //   ROS_INFO("Detected local minima. Attempting to break out!");
+    //   int iter = 0;
+    //   bool success = false;
+    //   while(iter < 20 && !success)
+    //   {
+    //     performForwardKinematics();
+    //     double original_cost = getTrajectoryCost();
+    //     group_trajectory_backup_ = group_trajectory_.getTrajectory();
+    //     perturbTrajectory();
+    //     handleJointLimits();
+    //     updateFullTrajectory();
+    //     performForwardKinematics();
+    //     double new_cost = getTrajectoryCost();
+    //     iter ++;
+    //     if(new_cost < original_cost)
+    //     {
+    //       ROS_INFO("Got out of minimum in %d iters!", iter);
+    //       averageCostVelocity = 0.0;
+    //       currentCostIter = 0;
+    //       success = true;
+    //     }
+    //     else
+    //     {
+    //       group_trajectory_.getTrajectory() = group_trajectory_backup_;
+    //       updateFullTrajectory();
+    //       currentCostIter = 0;
+    //       averageCostVelocity = 0.0;
+    //       success = false;
+    //     }
 
-      }
+    //   }
 
-      if(!success)
-      {
-        ROS_INFO("Failed to exit minimum!");
-      }
-    }
+    //   if(!success)
+    //   {
+    //     ROS_INFO("Failed to exit minimum!");
+    //   }
+    //}
     else if(currentCostIter == -1)
     {
       currentCostIter = 0;
@@ -478,7 +485,7 @@ void ChompOptimizer::optimize()
         //    safety != CollisionProximitySpace::InCollisionSafe) {
         //   ROS_WARN_STREAM("Apparently regressed");
         // }
-        // break;
+        break;
       }
     }
   }
@@ -888,6 +895,8 @@ void ChompOptimizer::performForwardKinematics()
 
   is_collision_free_ = true;
 
+  ros::WallDuration total_dur(0.0);
+
   // for each point in the trajectory
   for(int i = start; i <= end; ++i)
   {
@@ -896,12 +905,14 @@ void ChompOptimizer::performForwardKinematics()
     collision_detection::CollisionResult res;
     req.group_name = planning_group_;
     setRobotStateFromPoint(group_trajectory_, i);
+    ros::WallTime grad = ros::WallTime::now();
     boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> gsr =
       distance_field_world_->getCollisionGradients(req,
                                                    res,
                                                    *planning_scene_->getCollisionRobot().get(),
                                                    state_,
                                                    NULL);
+    total_dur += (ros::WallTime::now()-grad);
     computeJointProperties(i);
     state_is_in_collision_[i] = false;
 
@@ -928,13 +939,21 @@ void ChompOptimizer::performForwardKinematics()
           if(point_is_in_collision_[i][j])
           {
             state_is_in_collision_[i] = true;
+            if(is_collision_free_ == true) {
+              ROS_INFO_STREAM("We know it's not collision free " << g);
+              ROS_INFO_STREAM("Sphere location " << info.sphere_locations[k].x() << " " << info.sphere_locations[k].y() << " " << info.sphere_locations[k].z());
+              ROS_INFO_STREAM("Gradient " << info.gradients[k].x() << " " << info.gradients[k].y() << " " << info.gradients[k].z());
+              ROS_INFO_STREAM("Radius " << info.sphere_radii[k] << " potential " << collision_point_potential_[i][j]);
+            }
             is_collision_free_ = false;
           }
-          j ++;
+          j++;
         }
       }
     }
   }
+
+  ROS_INFO_STREAM("Total dur " << total_dur << " total checks " << end-start+1);
 
   // now, get the vel and acc for each collision point (using finite differencing)
   for(int i = free_vars_start_; i <= free_vars_end_; i++)

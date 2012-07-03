@@ -94,7 +94,7 @@ bool collision_distance_field::getCollisionSphereGradients(const distance_field:
     bool in_bounds;
     double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz, in_bounds);
     if(!in_bounds) {
-      ROS_ERROR_STREAM("Collision sphere point is out of bounds");
+      ROS_ERROR_STREAM("Collision sphere point is out of bounds " << p.x() << " " << p.y() << " " << p.z());
       return true;
     }
     if(dist < maximum_value) {
