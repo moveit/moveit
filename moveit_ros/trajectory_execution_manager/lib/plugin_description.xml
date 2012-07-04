@@ -1,0 +1,7 @@
+<library path="lib/libtest_controller_manager_plugin">
+  <class name="moveit_controller_manager/MoveItControllerManager" type="moveit_controller_manager::TestMoveItControllerManager" base_class_type="moveit_controller_manager::MoveItControllerManager">
+    <description>
+    </description>
+  </class>
+</library>
+
