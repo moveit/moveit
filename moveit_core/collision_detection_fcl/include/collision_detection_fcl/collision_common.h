@@ -76,6 +76,20 @@ struct CollisionGeometryData
     }
     return ptr.obj->id_;
   }
+
+  std::string getTypeString(void) const
+  {
+    switch (type)
+    {
+    case BodyTypes::ROBOT_LINK:
+      return "Robot link";
+    case BodyTypes::ROBOT_ATTACHED:
+      return "Robot attached";
+    default:
+      break;
+    }
+    return "Object";
+  }
   
   BodyType type;
   union
