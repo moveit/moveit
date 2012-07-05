@@ -78,8 +78,11 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
-          ROS_DEBUG_NAMED("allowed_collisions", "Collision between '%s' and '%s' is always allowed. No contacts are computed.",
-                          cd1->getID().c_str(), cd2->getID().c_str());
+          ROS_DEBUG_NAMED("allowed_collisions", "Collision between '%s' (type '%s') and '%s' (type '%s') is always allowed. No contacts are computed.",
+                          cd1->getID().c_str(), 
+                          cd1->getTypeString().c_str(), 
+                          cd2->getID().c_str(),
+                          cd2->getTypeString().c_str());
       }
       else
         if (type == AllowedCollision::CONDITIONAL)
@@ -182,8 +185,11 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
             if (cdata->req_->verbose)
               ROS_INFO_NAMED("contact_information", "Found unacceptable contact between '%s' and '%s'. Contact was not stored.",
                              cd1->getID().c_str(), cd2->getID().c_str());
-            else ROS_DEBUG_NAMED("contact_information", "Found unacceptable contact between '%s' and '%s'. Contact was stored.",
-                                 cd1->getID().c_str(), cd2->getID().c_str());  
+            else ROS_DEBUG_NAMED("contact_information", "Found unacceptable contact between '%s' (type '%s') and '%s' (type '%s'). Contact was stored.",
+                                 cd1->getID().c_str(), 
+                                 cd1->getTypeString().c_str(), 
+                                 cd2->getID().c_str(),
+                                 cd2->getTypeString().c_str());
 
           cdata->res_->collision = true;
           if (want_contact_count == 0)
@@ -216,8 +222,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
           ROS_INFO_NAMED("contact_information", "Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
                          num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)num_contacts);
         else 
-          ROS_DEBUG_NAMED("contact_information", "Found %d contacts between '%s' and '%s', which constitute a collision. %d contacts will be stored",
-                          num_contacts, cd1->getID().c_str(), cd2->getID().c_str(), (int)num_contacts);
+          ROS_DEBUG_NAMED("contact_information", "Found %d contacts between '%s' (type '%s') and '%s' (type '%s'), which constitute a collision. %d contacts will be stored",
+                          num_contacts, 
+                          cd1->getID().c_str(), 
+                          cd1->getTypeString().c_str(), 
+                          cd2->getID().c_str(), 
+                          cd2->getTypeString().c_str(), 
+                          (int)num_contacts);
           
         const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
           std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
