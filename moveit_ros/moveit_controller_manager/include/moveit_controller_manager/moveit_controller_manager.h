@@ -90,6 +90,7 @@ public:
   {
     bool active_;
     bool loaded_;
+    bool default_;
   };
       
   MoveItControllerManager(void)
@@ -112,7 +113,9 @@ public:
   /// Load a controller, but do not activate it by default
   virtual bool loadController(const std::string &name) = 0;
   virtual bool unloadController(const std::string &name) = 0;
-  virtual bool switchControllers(const std::vector<std::string> &load, const std::vector<std::string> &unload) = 0;
+
+  /// Activate and deactivate loaded controllers
+  virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate) = 0;
 };
 
 typedef boost::shared_ptr<MoveItControllerManager> MoveItControllerManagerPtr;

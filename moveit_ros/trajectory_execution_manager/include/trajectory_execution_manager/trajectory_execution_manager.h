@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -114,13 +114,16 @@ public:
   bool push(const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
   
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
-  void execute(const ExecutionCompleteCallback &callback, bool auto_clear = true);
+  void execute(const ExecutionCompleteCallback &callback = ExecutionCompleteCallback(), bool auto_clear = true);
   
   /// Wait until the execution is complete
-  void waitForExecution(void);
+  bool waitForExecution(void);
+  
+  /// Return the controller status for the last attempted execution 
+  moveit_controller_manager::ExecutionStatus::Value getLastExecutionStatus(void) const;
   
   // this is a blocking call for the execution of the passed in trajectories
-  void executeAndWait(bool auto_clear = true);
+  bool executeAndWait(bool auto_clear = true);
   
   /// Stop whatever executions are active, if any
   void stopExecution(bool auto_clear = true);
@@ -142,7 +145,6 @@ private:
   struct ControllerInformation
   {
     std::string name_;
-    bool default_;
     std::set<std::string> joints_;
     std::set<std::string> overlapping_controllers_;
     moveit_controller_manager::MoveItControllerManager::ControllerState state_;
@@ -193,12 +195,15 @@ private:
   boost::scoped_ptr<boost::thread> execution_thread_;
   boost::mutex execution_state_mutex_;
   boost::condition_variable execution_complete_condition_;
+  moveit_controller_manager::ExecutionStatus::Value last_execution_status_;
   bool execution_complete_;
     
   std::vector<TrajectoryExecutionContext> trajectories_;
 
   boost::scoped_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> > controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
+
+  bool verbose_;
 };
 
 }

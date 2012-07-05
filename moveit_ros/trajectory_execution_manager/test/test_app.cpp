@@ -36,17 +36,67 @@
 #include <planning_models_loader/kinematic_model_loader.h>
 
 int main(int argc, char **argv)
-{
+{  
   ros::init(argc, argv, "test_trajectory_execution_manager");
   
   ros::AsyncSpinner spinner(1);
   spinner.start();
-
+  
   planning_models_loader::KinematicModelLoader kml;
   trajectory_execution_manager::TrajectoryExecutionManager tem(kml.getModel(), true);
-  tem.ensureActiveControllersForJoints(std::vector<std::string>(1, "basej"));
-  tem.ensureActiveController("arms");
 
+  std::cout << "1:\n";  
+  if (!tem.ensureActiveControllersForJoints(std::vector<std::string>(1, "basej")))
+    ROS_ERROR("Fail!");
+  
+  std::cout << "2:\n";  
+  if (!tem.ensureActiveController("arms"))
+    ROS_ERROR("Fail!");
+
+  std::cout << "3:\n";
+  if (!tem.ensureActiveControllersForJoints(std::vector<std::string>(1, "rj2")))
+    ROS_ERROR("Fail!");
+  
+  std::cout << "4:\n";  
+  if (!tem.ensureActiveControllersForJoints(std::vector<std::string>(1, "lj1")))
+    ROS_ERROR("Fail!");
+  
+  std::cout << "5:\n";  
+  if (!tem.ensureActiveController("left_arm_head"))
+    ROS_ERROR("Fail!");
+  std::cout << "6:\n";  
+  if (!tem.ensureActiveController("arms"))
+    ROS_ERROR("Fail!");
+  
+  // execute with empty set of trajectories
+  tem.execute();
+  if (!tem.waitForExecution())
+    ROS_ERROR("Fail!");
+  
+  moveit_msgs::RobotTrajectory traj1;
+  traj1.joint_trajectory.joint_names.push_back("rj1");
+  traj1.joint_trajectory.points.resize(1);
+  traj1.joint_trajectory.points[0].positions.push_back(0.0);
+  if (!tem.push(traj1))
+    ROS_ERROR("Fail!");
+
+  moveit_msgs::RobotTrajectory traj2 = traj1;
+  traj2.joint_trajectory.joint_names.push_back("lj2");
+  traj2.joint_trajectory.points[0].positions.push_back(1.0);
+  traj2.multi_dof_joint_trajectory.joint_names.push_back("basej");
+  traj2.multi_dof_joint_trajectory.points.resize(1);
+  traj2.multi_dof_joint_trajectory.points[0].poses.resize(1);
+
+  if (!tem.push(traj2))
+    ROS_ERROR("Fail!");
+  
+  traj1.multi_dof_joint_trajectory = traj2.multi_dof_joint_trajectory;
+  if (!tem.push(traj1))
+    ROS_ERROR("Fail!");
+  
+  if (!tem.executeAndWait())
+    ROS_ERROR("Fail!");
+  
   ros::waitForShutdown();
 
   return 0;
