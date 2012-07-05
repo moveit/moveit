@@ -16,10 +16,11 @@
   <depend package="planning_models"/>
   <depend package="planning_models_loader"/>
 
-   <export>
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ltrajectory_execution_manager"/>
     <moveit_controller_manager plugin="${prefix}/lib/plugin_description.xml"/>
   </export>
-
+  
 </package>
 
 

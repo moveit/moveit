@@ -37,7 +37,7 @@
 
 #include <tf/transform_listener.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
-#include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
+#include <trajectory_execution_manager/trajectory_execution_manager.h>
 #include <planning_pipeline/planning_pipeline.h>
 #include <kinematic_constraints/utils.h>
 #include <trajectory_processing/trajectory_tools.h>
@@ -64,12 +64,7 @@ public:
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
     
     if (allow_trajectory_execution)
-    {
-      bool manage_controllers = false;
-      //      node_handle_.param("manage_controllers", manage_controllers, true);
-      trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(planning_scene_monitor_->getPlanningScene()->getKinematicModel(),
-                                                                                              manage_controllers));
-    }
+      trajectory_execution_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
     planning_pipeline_.displayComputedMotionPlans(true);
     planning_pipeline_.checkSolutionPaths(true);
     
@@ -155,13 +150,9 @@ public:
     setState(MONITOR);
     execution_complete_ = false;
     
-    ROS_INFO_STREAM("Sending joint trajectory");
-
-    trajectory_execution::TrajectoryExecutionRequest ter;
-    ter.group_name_ = mreq.motion_plan_request.group_name;      
-    ter.trajectory_ = mres.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
-    if (trajectory_execution_->executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
+    if (trajectory_execution_->push(mres.trajectory))
     {
+      trajectory_execution_->execute(boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1));
       ros::WallDuration d(0.01);
       while (node_handle_.ok() && !execution_complete_ && !preempt_requested_)
       {
@@ -171,16 +162,20 @@ public:
       } 
       if (preempt_requested_)
       {
-	// \TODO preempt controller somehow
+        trajectory_execution_->stopExecution();
       }
+      /*
+        // use the trajectory monitor to generate the recorded trajectory
+        
       if(last_trajectory_execution_data_vector_.size() == 0)
       {
         ROS_WARN_STREAM("No recorded trajectory for execution");
       } 
       else
+      */
       {
-        action_res.executed_trajectory.joint_trajectory = last_trajectory_execution_data_vector_[0].recorded_trajectory_;
-        if (last_trajectory_execution_data_vector_[0].result_ == trajectory_execution::SUCCEEDED)
+        //        action_res.executed_trajectory.joint_trajectory = last_trajectory_execution_data_vector_[0].recorded_trajectory_;
+        if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
         {
           action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
           action_server_->setSucceeded(action_res, "Solution was found and executed.");
@@ -202,11 +197,9 @@ public:
     setState(IDLE);
   }
   
-  bool doneWithTrajectoryExecution(trajectory_execution::TrajectoryExecutionDataVector data)
+  void doneWithTrajectoryExecution(bool success)
   {
-    last_trajectory_execution_data_vector_ = data;
     execution_complete_ = true;
-    return true;
   }
   
   void setState(MoveGroupState state)
@@ -254,11 +247,10 @@ private:
   
   ros::ServiceServer plan_service_;
   
-  boost::shared_ptr<trajectory_execution_ros::TrajectoryExecutionMonitorRos> trajectory_execution_;  
+  boost::scoped_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_;  
   bool preempt_requested_;
   bool execution_complete_;
   MoveGroupState state_;
-  trajectory_execution::TrajectoryExecutionDataVector last_trajectory_execution_data_vector_;  
 };
 
 
