@@ -58,10 +58,11 @@ public:
     return true;
   }
   
-  virtual void waitForExecution(void)
+  virtual bool waitForExecution(const ros::Duration &timeout = ros::Duration(0))
   {
+    return false;
   }
-  
+    
   virtual moveit_controller_manager::ExecutionStatus::Value getLastExecutionStatus(void)
   {
     return moveit_controller_manager::ExecutionStatus::SUCCEEDED;

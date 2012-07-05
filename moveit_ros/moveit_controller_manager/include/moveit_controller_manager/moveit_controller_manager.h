@@ -47,7 +47,7 @@ namespace ExecutionStatus
 {
 enum Value
   {
-    RUNNING, SUCCEEDED, FAILED
+    RUNNING, SUCCEEDED, ABORTED, FAILED
   };
 }
   
@@ -63,14 +63,16 @@ public:
   {
   }
   
-  const std::string& getName(const std::string &name) const
+  const std::string& getName(void) const
   {
     return name_;
   }
   
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &trajectory) = 0;
   virtual bool cancelExecution(void) = 0;
-  virtual void waitForExecution(void) = 0;
+
+  /// Return true if the execution is complete (whether successful or not). Return false if timeout was reached
+  virtual bool waitForExecution(const ros::Duration &timeout = ros::Duration(0)) = 0;
   virtual ExecutionStatus::Value getLastExecutionStatus(void) = 0;
   
 protected:
