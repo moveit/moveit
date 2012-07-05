@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2012, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -35,15 +35,16 @@
 /* Author: Ioan Sucan */
 
 #include "trajectory_execution_manager/trajectory_execution_manager.h"
-#include "/u/isucan/projects/moveit/moveit_ros/trajectory_execution_manager/test/test_moveit_controller_manager.h"
 
 namespace trajectory_execution_manager
 {
 
 void TrajectoryExecutionManager::initialize(void)
-{ 
+{
+  verbose_ = false;
   execution_complete_ = true;
-  /*
+  last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
+  
   // load the controller manager plugin
   try
   {
@@ -75,8 +76,7 @@ void TrajectoryExecutionManager::initialize(void)
   catch(pluginlib::PluginlibException& ex)
   {
     ROS_FATAL_STREAM("Exception while loading controller manager '" << controller << "': " << ex.what());
-  } */
-  controller_manager_.reset(new test_moveit_controller_manager::TestMoveItControllerManager());
+  } 
   
   // other configuration steps
   reloadControllerInformation();
@@ -141,6 +141,17 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory &trajec
   TrajectoryExecutionContext context;
   if (configure(context, trajectory, controllers))
   {
+    if (verbose_)
+    {
+      std::stringstream ss;
+      ss << "Pushed trajectory for execution using controllers [ ";
+      for (std::size_t i = 0 ; i < context.controllers_.size() ; ++i)
+        ss << context.controllers_[i] << " ";
+      ss << "]:" << std::endl;
+      for (std::size_t i = 0 ; i < context.trajectory_parts_.size() ; ++i)
+        ss << context.trajectory_parts_[i] << std::endl;
+      ROS_INFO("%s", ss.str().c_str());
+    }
     trajectories_.push_back(context);
     return true;
   }
@@ -213,7 +224,20 @@ bool TrajectoryExecutionManager::checkControllerCombination(std::vector<std::str
   {
     const ControllerInformation &ci = known_controllers_[selected[i]];
     combined_joints.insert(ci.joints_.begin(), ci.joints_.end());
+  }  
+
+  if (verbose_)
+  {
+    std::stringstream ss, saj, sac;
+    for (std::size_t i = 0 ; i < selected.size() ; ++i)
+      ss << selected[i] << " ";
+    for (std::set<std::string>::const_iterator it = actuated_joints.begin() ; it != actuated_joints.end() ; ++it)
+      saj << *it << " ";
+    for (std::set<std::string>::const_iterator it = combined_joints.begin() ; it != combined_joints.end() ; ++it)
+      sac << *it << " ";
+    ROS_INFO("Checking if controllers [ %s] operating on joints [ %s] cover joints [ %s]", ss.str().c_str(), sac.str().c_str(), saj.str().c_str());
   }
+  
   return std::includes(combined_joints.begin(), combined_joints.end(),
                        actuated_joints.begin(), actuated_joints.end());
 }
@@ -248,27 +272,94 @@ void TrajectoryExecutionManager::generateControllerCombination(std::size_t start
   }
 }
 
+struct OrderPotentialControllerCombination
+{
+  bool operator()(const std::size_t a, const std::size_t b) const
+  {  
+    // preference is given to controllers marked as default
+    if (nrdefault[a] > nrdefault[b])
+      return true;
+    if (nrdefault[a] < nrdefault[b])
+      return false;
+    
+    // and then to ones that operate on fewer joints
+    if (nrjoints[a] < nrjoints[b])
+      return true;
+    if (nrjoints[a] > nrjoints[b])
+      return false;
+    
+    // and then to active ones
+    if (nractive[a] < nractive[b])
+      return true;
+    if (nractive[a] > nractive[b])
+      return false;
+    
+    return false;
+  }
+  
+  std::vector< std::vector<std::string> > selected_options;
+  std::vector<std::size_t> nrdefault;
+  std::vector<std::size_t> nrjoints;
+  std::vector<std::size_t> nractive;
+};
+
 bool TrajectoryExecutionManager::findControllers(const std::set<std::string> &actuated_joints, std::size_t controller_count, const std::vector<std::string> &available_controllers, std::vector<std::string> &selected_controllers)
 {
   // generate all combinations of controller_count controllers that operate on disjoint sets of joints 
   std::vector<std::string> work_area;
-  std::vector< std::vector<std::string> > selected_options;
+  OrderPotentialControllerCombination order; 
+  std::vector< std::vector<std::string> > &selected_options = order.selected_options;
   generateControllerCombination(0, controller_count, available_controllers, work_area, selected_options, actuated_joints);
 
+  if (verbose_)
+  {
+    std::stringstream saj;
+    std::stringstream sac;
+    for (std::size_t i = 0 ; i < available_controllers.size() ; ++i)
+      sac << available_controllers[i] << " ";
+    for (std::set<std::string>::const_iterator it = actuated_joints.begin() ; it != actuated_joints.end() ; ++it)
+      saj << *it << " ";
+    ROS_INFO("Looking for %lu controllers among [ %s] that cover joints [ %s]. Found %ld options.", controller_count, sac.str().c_str(), saj.str().c_str(), selected_options.size());
+  }
+  
   // if none was found, this is a problem
   if (selected_options.empty())
     return false;
-
+  
   // if only one was found, return it
   if (selected_options.size() == 1)
   {
     selected_controllers.swap(selected_options[0]);
     return true;
   }
-  
+
   // if more options were found, evaluate them all and return the best one
-  // preference is given to controllers marked as default
-  // and then to ones that are already active 
+
+  // count how many default controllers are used in each reported option, and how many joints are actuated in total by the selected controllers,
+  // to use that in the ranking of the options
+  order.nrdefault.resize(selected_options.size(), 0);
+  order.nrjoints.resize(selected_options.size(), 0);
+  order.nractive.resize(selected_options.size(), 0);
+  for (std::size_t i = 0 ; i < selected_options.size() ; ++i)
+  {
+    for (std::size_t k = 0 ; k < selected_options[i].size() ; ++k)
+    {
+      const ControllerInformation &ci = known_controllers_[selected_options[i][k]];
+      if (ci.state_.default_)
+        order.nrdefault[i]++;
+      if (ci.state_.active_)
+        order.nractive[i]++;
+      order.nrjoints[i] += ci.joints_.size();
+    }
+  } 
+
+  // define a bijection to compute the raking of the found options
+  std::vector<std::size_t> bijection(selected_options.size(), 0);
+  for (std::size_t i = 0 ; i < selected_options.size() ; ++i)
+    bijection[i] = i;
+
+  // sort the options
+  std::sort(bijection.begin(), bijection.end(), order);
   
   // depending on whether we are allowed to load & unload controllers, 
   // we have different preference on deciding between options
@@ -276,48 +367,15 @@ bool TrajectoryExecutionManager::findControllers(const std::set<std::string> &ac
   {
     // if we can't load different options at will, just choose one that is already loaded
     for (std::size_t i = 0 ; i < selected_options.size() ; ++i)
-      if (areControllersActive(selected_options[i]))
+      if (areControllersActive(selected_options[bijection[i]]))
       {
-        selected_controllers.swap(selected_options[i]);
+        selected_controllers.swap(selected_options[bijection[i]]);
         return true;
       }
   }
   
-  // find the number of default controllers for each of the found options
-  std::vector<std::size_t> nrdefault(selected_options.size(), 0);
-  std::size_t max_nrdefault = 0;
-  std::size_t max_nrdefault_count = 0;
-  std::size_t max_nrdefault_index = 0;
-  for (std::size_t i = 0 ; i < selected_options.size() ; ++i)
-  {
-    for (std::size_t k = 0 ; k < selected_options[i].size() ; ++k)
-      if (known_controllers_[selected_options[i][k]].default_)
-        nrdefault[i]++;
-    if (nrdefault[i] > max_nrdefault)
-    {
-      max_nrdefault = nrdefault[i];
-      max_nrdefault_count = 1;
-      max_nrdefault_index = i;
-    }
-    else
-      if (nrdefault[i] == max_nrdefault)
-        max_nrdefault_count++;
-  }
-  
-  // if there are multiple options with the same number of default controllers, choose the first option that has all 
-  // controllers already active
-  if (max_nrdefault_count > 1)
-    for (std::size_t i = max_nrdefault_index ; i < selected_options.size() ; ++i)
-      if (nrdefault[i] == max_nrdefault)
-      {
-        if (areControllersActive(selected_options[i]))
-        {
-          selected_controllers.swap(selected_options[i]);
-          return true;
-        }
-      }
   // otherwise, just use the first valid option
-  selected_controllers.swap(selected_options[max_nrdefault_index]);
+  selected_controllers.swap(selected_options[bijection[0]]);
   return true;
 }
 
@@ -403,8 +461,10 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
         for (std::size_t j = 0 ; j < jnames.size() ; ++j)
         {
           bijection[j] = index[jnames[j]];
-          parts[i].multi_dof_joint_trajectory.frame_ids[j] = trajectory.multi_dof_joint_trajectory.frame_ids[bijection[j]];
-          parts[i].multi_dof_joint_trajectory.child_frame_ids[j] = trajectory.multi_dof_joint_trajectory.child_frame_ids[bijection[j]];
+          if (trajectory.multi_dof_joint_trajectory.frame_ids.size() > bijection[j])
+            parts[i].multi_dof_joint_trajectory.frame_ids[j] = trajectory.multi_dof_joint_trajectory.frame_ids[bijection[j]];
+          if (trajectory.multi_dof_joint_trajectory.child_frame_ids.size() > bijection[j])
+            parts[i].multi_dof_joint_trajectory.child_frame_ids[j] = trajectory.multi_dof_joint_trajectory.child_frame_ids[bijection[j]];
         }
         parts[i].multi_dof_joint_trajectory.points.resize(trajectory.multi_dof_joint_trajectory.points.size());
         for (std::size_t j = 0 ; j < trajectory.multi_dof_joint_trajectory.points.size() ; ++j)
@@ -457,11 +517,22 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
 
 bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers)
 {
+  if (trajectory.multi_dof_joint_trajectory.points.empty() &&  trajectory.joint_trajectory.points.empty())
+  {
+    ROS_WARN("The trajectory to execute is empty");
+    return false;
+  }
+  
   std::set<std::string> actuated_joints;
   actuated_joints.insert(trajectory.multi_dof_joint_trajectory.joint_names.begin(),
                          trajectory.multi_dof_joint_trajectory.joint_names.end());
   actuated_joints.insert(trajectory.joint_trajectory.joint_names.begin(),
                          trajectory.joint_trajectory.joint_names.end());
+  if (actuated_joints.empty())
+  {
+    ROS_WARN("The trajectory to execute specifies not joints");
+    return false;
+  }
   
   if (controllers.empty())
   {
@@ -518,10 +589,10 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, 
   return false;
 }
 
-void TrajectoryExecutionManager::executeAndWait(bool auto_clear)
+bool TrajectoryExecutionManager::executeAndWait(bool auto_clear)
 {
   execute(ExecutionCompleteCallback(), auto_clear);
-  waitForExecution();
+  return waitForExecution();
 }
 
 void TrajectoryExecutionManager::stopExecution(bool auto_clear)
@@ -549,13 +620,14 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callba
   execution_thread_.reset(new boost::thread(&TrajectoryExecutionManager::executeThread, this, callback, auto_clear));
 }
 
-void TrajectoryExecutionManager::waitForExecution(void)
+bool TrajectoryExecutionManager::waitForExecution(void)
 {
   boost::unique_lock<boost::mutex> ulock(execution_state_mutex_);
   while (!execution_complete_)
     execution_complete_condition_.wait(ulock);
   // this will join the thread
   stopExecution(false);
+  return last_execution_status_ == moveit_controller_manager::ExecutionStatus::SUCCEEDED;
 }
 
 void TrajectoryExecutionManager::clear(void)
@@ -572,9 +644,9 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
       ok = false;
       break;
     }
+  if (ok)
+    last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
   
-  if (callback)
-    callback(ok);
   if (auto_clear)
     clear();
   
@@ -582,6 +654,8 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
   execution_complete_ = true;
   execution_state_mutex_.unlock();
   execution_complete_condition_.notify_all();
+  if (callback)
+    callback(ok);  
 }
 
 bool TrajectoryExecutionManager::executePart(TrajectoryExecutionContext &context)
@@ -603,12 +677,20 @@ bool TrajectoryExecutionManager::executePart(TrajectoryExecutionContext &context
     {
       handles[i]->waitForExecution();
       if (handles[i]->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::SUCCEEDED)
+      {
+        last_execution_status_ = handles[i]->getLastExecutionStatus();
         result = false;
+      }
     }
     return result;
   }
   else
     return false;
+}
+
+moveit_controller_manager::ExecutionStatus::Value TrajectoryExecutionManager::getLastExecutionStatus(void) const
+{
+  return last_execution_status_;
 }
 
 bool TrajectoryExecutionManager::ensureActiveControllersForGroup(const std::string &group)
@@ -658,8 +740,8 @@ bool TrajectoryExecutionManager::ensureActiveControllers(const std::vector<std::
         return false;
       }
       if (!it->second.state_.active_)
-      {      ROS_INFO_STREAM("Need to activate " << controllers[i]);
-
+      {
+        ROS_DEBUG_STREAM("Need to activate " << controllers[i]);
         controllers_to_activate.push_back(controllers[i]);
         joints_to_be_activated.insert(it->second.joints_.begin(), it->second.joints_.end());
         for (std::set<std::string>::iterator kt = it->second.overlapping_controllers_.begin() ; 
@@ -674,7 +756,7 @@ bool TrajectoryExecutionManager::ensureActiveControllers(const std::vector<std::
         }
       }
       else
-        ROS_INFO_STREAM("Controller " << controllers[i] << " is already active");
+        ROS_DEBUG_STREAM("Controller " << controllers[i] << " is already active");
     }
     std::set<std::string> diff;
     std::set_difference(joints_to_be_deactivated.begin(), joints_to_be_deactivated.end(),
@@ -707,14 +789,19 @@ bool TrajectoryExecutionManager::ensureActiveControllers(const std::vector<std::
     if (!controllers_to_activate.empty() || !controllers_to_deactivate.empty())
     {
       if (controller_manager_)
-      {
+      {   
+        // load controllers to be activated, if needed, and reset the state update cache
         for (std::size_t a = 0 ; a < controllers_to_activate.size() ; ++a)
         {
           ControllerInformation &ci = known_controllers_[controllers_to_activate[a]];
+          ci.last_update_ = ros::Time();
           if (!ci.state_.loaded_)
             if (!controller_manager_->loadController(controllers_to_activate[a]))
               return false;
         }
+        // reset the state update cache
+        for (std::size_t a = 0 ; a < controllers_to_deactivate.size() ; ++a)  
+          known_controllers_[controllers_to_deactivate[a]].last_update_ = ros::Time();
         return controller_manager_->switchControllers(controllers_to_activate, controllers_to_deactivate);
       }
       else

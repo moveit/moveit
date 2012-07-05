@@ -15,7 +15,11 @@
   <depend package="std_msgs"/>
   <depend package="planning_models"/>
   <depend package="planning_models_loader"/>
-  
+
+   <export>
+    <moveit_controller_manager plugin="${prefix}/lib/plugin_description.xml"/>
+  </export>
+
 </package>
 
 

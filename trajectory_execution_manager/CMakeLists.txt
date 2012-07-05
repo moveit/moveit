@@ -17,7 +17,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_library(${PROJECT_NAME} src/trajectory_execution_manager.cpp)
-#rosbuild_add_library(test_controller_manager_plugin test/test_moveit_controller_manager_plugin.cpp)
+rosbuild_add_library(test_controller_manager_plugin test/test_moveit_controller_manager_plugin.cpp)
 rosbuild_add_executable(test_controller_manager test/test_app.cpp)
 target_link_libraries(test_controller_manager ${PROJECT_NAME})
 

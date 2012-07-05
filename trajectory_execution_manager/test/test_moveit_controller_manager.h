@@ -74,18 +74,19 @@ class TestMoveItControllerManager : public moveit_controller_manager::MoveItCont
 public:
   static const int LOADED = 1;
   static const int ACTIVE = 2;
+  static const int DEFAULT = 4;
   
   TestMoveItControllerManager(void)
   {
-    controllers_["right_arm"] = 0;
-    controllers_["left_arm"] = LOADED + ACTIVE;
+    controllers_["right_arm"] = DEFAULT;
+    controllers_["left_arm"] = LOADED + ACTIVE + DEFAULT;
     controllers_["arms"] = LOADED;
-    controllers_["base"] = 0;
+    controllers_["base"] = DEFAULT;
     controllers_["head"] = 0;
     controllers_["left_arm_head"] = LOADED;
     
-    controller_joints_["righ_arm"].push_back("rj1");
-    controller_joints_["righ_arm"].push_back("rj2");
+    controller_joints_["right_arm"].push_back("rj1");
+    controller_joints_["right_arm"].push_back("rj2");
 
     controller_joints_["left_arm"].push_back("lj1");
     controller_joints_["left_arm"].push_back("lj2");
