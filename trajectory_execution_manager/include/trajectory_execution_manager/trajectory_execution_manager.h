@@ -196,6 +196,7 @@ private:
   boost::mutex execution_state_mutex_;
   boost::condition_variable execution_complete_condition_;
   moveit_controller_manager::ExecutionStatus::Value last_execution_status_;
+  std::vector<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
   bool execution_complete_;
     
   std::vector<TrajectoryExecutionContext> trajectories_;

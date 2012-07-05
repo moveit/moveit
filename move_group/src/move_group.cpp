@@ -84,7 +84,8 @@ public:
   }
   
   void executeCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
-  {
+  {   
+    preempt_requested_ = false;
     moveit_msgs::MoveGroupResult action_res;
     moveit_msgs::GetMotionPlan::Request mreq;
     mreq.motion_plan_request = goal->request;
@@ -149,7 +150,7 @@ public:
     
     setState(MONITOR);
     execution_complete_ = false;
-    
+
     if (trajectory_execution_->push(mres.trajectory))
     {
       trajectory_execution_->execute(boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1));
@@ -162,6 +163,7 @@ public:
       } 
       if (preempt_requested_)
       {
+        ROS_INFO("Stopping execution due to preemt request");
         trajectory_execution_->stopExecution();
       }
       /*
