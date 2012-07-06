@@ -78,7 +78,16 @@ static bool callAdapter1(const PlanningRequestAdapter *adapter,
                          moveit_msgs::GetMotionPlan::Response &res,
                          std::vector<std::size_t> &added_path_index)
 {
-  return adapter->adaptAndPlan(planner, planning_scene, req, res, added_path_index);
+  try
+  {
+    return adapter->adaptAndPlan(planner, planning_scene, req, res, added_path_index);
+  }
+  catch(...)
+  {
+    ROS_ERROR("Exception caught executing adapter '%s'", adapter->getDescription().c_str());
+    added_path_index.clear();
+    return planner->solve(planning_scene, req, res);
+  }
 }
 
 static bool callAdapter2(const PlanningRequestAdapter *adapter,
@@ -88,7 +97,16 @@ static bool callAdapter2(const PlanningRequestAdapter *adapter,
                          moveit_msgs::GetMotionPlan::Response &res,
                          std::vector<std::size_t> &added_path_index)
 {
-  return adapter->adaptAndPlan(planner, planning_scene, req, res, added_path_index);
+  try
+  {
+    return adapter->adaptAndPlan(planner, planning_scene, req, res, added_path_index);
+  }
+  catch(...)
+  {    
+    ROS_ERROR("Exception caught executing adapter '%s'", adapter->getDescription().c_str());
+    added_path_index.clear();
+    return planner(planning_scene, req, res);
+  }
 }
 
 }
