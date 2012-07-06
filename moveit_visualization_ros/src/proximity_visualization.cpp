@@ -28,18 +28,24 @@
  */
 
 #include <moveit_visualization_ros/proximity_visualization.h>
+#include <collision_distance_field_ros/collision_distance_field_ros_helpers.h>
 
 namespace moveit_visualization_ros
 {
 
 ProximityVisualization::ProximityVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                                     ros::Publisher& marker_publisher)
+                                               ros::Publisher& marker_publisher)
   :
   planning_scene_(planning_scene), 
-  robot_(planning_scene->getKinematicModel()),
   world_(),
   publisher_(marker_publisher)
 {
+  ros::NodeHandle nh;
+  std::map<std::string, std::vector<collision_distance_field::CollisionSphere> > coll_spheres;
+  collision_distance_field_ros::loadLinkBodySphereDecompositions(nh,
+                                                                 planning_scene->getKinematicModel(),
+                                                                 coll_spheres);
+  robot_.reset(new collision_distance_field::CollisionRobotDistanceField(planning_scene->getKinematicModel(), coll_spheres));
   distance_acm_ = planning_scene->getAllowedCollisionMatrix();
 }
 
@@ -85,7 +91,7 @@ void ProximityVisualization::stateChanged(const std::string& group,
   boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_grad_gsr =
     world_.getCollisionGradients(req, 
                                  res, 
-                                 robot_, 
+                                 *robot_.get(), 
                                  state,
                                  &distance_acm_);
   req.contacts = true;
@@ -95,7 +101,7 @@ void ProximityVisualization::stateChanged(const std::string& group,
   boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_coll_gsr =
     world_.getAllCollisions(req, 
                             res, 
-                            robot_, 
+                            *robot_.get(), 
                             state,
                             &distance_acm_);
 
