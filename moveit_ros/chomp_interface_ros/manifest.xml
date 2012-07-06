@@ -12,10 +12,11 @@
   <depend package="distance_field"/>
   <depend package="planning_scene_monitor"/>
   <depend package="planning_interface"/>
+  <depend package="pluginlib"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lchomp_interface_ros `rosboost-cfg --lflags thread`"/>
-    <planning_interface plugin="${prefix}/lib/plugin_description.xml"/>
+    <planning_interface plugin="${prefix}/plugin_description.xml"/>
   </export>
 
 </package>
