@@ -49,7 +49,7 @@ std::vector<collision_distance_field::CollisionSphere> collision_distance_field:
   Eigen::Vector3d vec(0.0,0.0,0.0);
   for(unsigned int i = 1; i < num_points-1; i++) {
     vec.z() = (-cyl.length/2.0)+i*spacing;
-    Eigen::Vector3d p = cyl.pose*vec;
+    //Eigen::Vector3d p = cyl.pose*vec;
     collision_distance_field::CollisionSphere cs(vec,cyl.radius);
     css.push_back(cs);
   }
