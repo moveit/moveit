@@ -79,6 +79,45 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const planning_models::
   }
 }
 
+CollisionRobotDistanceField::CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel, 
+                                                         const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
+                                                         double size_x, 
+                                                         double size_y,
+                                                         double size_z,
+                                                         bool use_signed_distance_field,
+                                                         double resolution,
+                                                         double collision_tolerance,
+                                                         double max_propogation_distance,
+                                                         double padding, 
+                                                         double scale)
+  : collision_detection::CollisionRobot(kmodel, padding, scale),
+    size_x_(size_x),
+    size_y_(size_y),
+    size_z_(size_z),
+    use_signed_distance_field_(use_signed_distance_field),
+    resolution_(resolution),
+    collision_tolerance_(collision_tolerance),
+    max_propogation_distance_(max_propogation_distance)
+{  
+  planning_models::KinematicState state(kmodel);
+  addLinkBodyDecompositions(resolution_, link_body_decompositions);
+  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& jmgm = kmodel_->getJointModelGroupMap();
+  for(std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin();
+      it != jmgm.end();
+      it++) {
+    std::map<std::string, bool> updated_group_entry;
+    for(unsigned int i = 0; i < it->second->getUpdatedLinkModelsWithGeometryNames().size(); i++) {
+      updated_group_entry[it->second->getUpdatedLinkModelsWithGeometryNames()[i]] = true;
+    }
+    in_group_update_map_[it->first] = updated_group_entry;
+    boost::shared_ptr<DistanceFieldCacheEntry> dfce = generateDistanceFieldCacheEntry(it->first,
+                                                                                      state,
+                                                                                      NULL,
+                                                                                      false);
+    pregenerated_group_state_representation_map_[it->first] = getGroupStateRepresentation(dfce, state);
+  }
+}
+
 CollisionRobotDistanceField::CollisionRobotDistanceField(const CollisionRobotDistanceField& other) :
   CollisionRobot(other)
 {
@@ -707,6 +746,25 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution)
   }
 }
 
+void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution,
+                                                            const std::map<std::string, std::vector<CollisionSphere> >& link_spheres) 
+{
+  const std::vector<planning_models::KinematicModel::LinkModel*>& link_models = kmodel_->getLinkModelsWithCollisionGeometry();
+  for(unsigned int i = 0; i < link_models.size(); i++) {
+    if(!link_models[i]->getShape()) {
+      ROS_WARN_STREAM("No collision geometry for link model " << link_models[i]->getName() << " though there should be");
+      continue;
+    }
+    ROS_DEBUG_STREAM("Generating model for " << link_models[i]->getName());
+    BodyDecompositionPtr bd(new BodyDecomposition(link_models[i]->getShape(), resolution, resolution));
+    if(link_spheres.find(link_models[i]->getName()) != link_spheres.end()) {
+      bd->replaceCollisionSpheres(link_spheres.find(link_models[i]->getName())->second);
+    }
+    link_body_decomposition_vector_.push_back(bd);
+    link_body_decomposition_index_map_[link_models[i]->getName()] = link_body_decomposition_vector_.size()-1;
+  }
+}
+
 PosedBodySphereDecompositionPtr 
 CollisionRobotDistanceField::getPosedLinkBodySphereDecomposition(const planning_models::KinematicState::LinkState* ls,
                                                                  unsigned int ind) const {
@@ -736,6 +794,7 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
 {
   boost::shared_ptr<GroupStateRepresentation> gsr;
   if(!dfce->pregenerated_group_state_representation_) {
+    //unsigned int count = 0;
     //ros::WallTime b = ros::WallTime::now();
     gsr.reset(new GroupStateRepresentation());
     gsr->gradients_.resize(dfce->link_names_.size()+dfce->attached_body_names_.size());
@@ -743,6 +802,8 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
       const planning_models::KinematicState::LinkState* ls = state.getLinkStateVector()[dfce->link_state_indices_[i]];
       if(dfce->link_has_geometry_[i]) {
         gsr->link_body_decompositions_.push_back(getPosedLinkBodySphereDecomposition(ls, dfce->link_body_indices_[i]));
+        //std::cerr << dfce->link_names_[i] << " num " << gsr->link_body_decompositions_.back()->getCollisionSpheres().size() << std::endl;
+        //count += gsr->link_body_decompositions_.back()->getCollisionSpheres().size();
         gsr->gradients_[i].types.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size(), NONE);
         gsr->gradients_[i].distances.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size(), DBL_MAX);
         gsr->gradients_[i].gradients.resize(gsr->link_body_decompositions_.back()->getCollisionSpheres().size());
@@ -753,6 +814,7 @@ CollisionRobotDistanceField::getGroupStateRepresentation(const boost::shared_ptr
         gsr->link_body_decompositions_.push_back(emp);
       }
     }
+    //std::cerr << "Total count for group " << dfce->group_name_ << " " << count << std::endl;
     //std::cerr << "Initial creation took " << (b-ros::WallTime::now()).toSec() << std::endl;
   } else {
     //ros::WallTime b = ros::WallTime::now();
