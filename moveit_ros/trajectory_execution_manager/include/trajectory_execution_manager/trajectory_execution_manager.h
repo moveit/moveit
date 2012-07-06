@@ -44,6 +44,7 @@
 #include <moveit_controller_manager/moveit_controller_manager.h>
 #include <boost/thread.hpp>
 #include <pluginlib/class_loader.h>
+#include <boost/scoped_ptr.hpp>
 
 namespace trajectory_execution_manager
 {
