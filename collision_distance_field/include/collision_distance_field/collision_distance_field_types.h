@@ -147,10 +147,12 @@ public:
 
   Eigen::Affine3d relative_cylinder_pose_;
 
-  void replaceCollisionSpheres(const std::vector<CollisionSphere>& new_collision_spheres) 
+  void replaceCollisionSpheres(const std::vector<CollisionSphere>& new_collision_spheres,
+                               const Eigen::Affine3d& new_relative_cylinder_pose) 
   {
     //std::cerr << "Replacing " << collision_spheres_.size() << " with " << new_collision_spheres.size() << std::endl;
     collision_spheres_ = new_collision_spheres;
+    relative_cylinder_pose_ = new_relative_cylinder_pose;
   }
 
   const std::vector<CollisionSphere>& getCollisionSpheres() const 
