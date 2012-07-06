@@ -231,12 +231,6 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   
   if (solved)
   {
-    // is this the right place to do this computation?
-    trajectory_msgs::JointTrajectory trajectory_out;
-    const std::vector<moveit_msgs::JointLimits> &jlim = planning_scene->getKinematicModel()->getJointModelGroup(req.motion_plan_request.group_name)->getJointLimits();
-    smoother_.smooth(res.trajectory.joint_trajectory, trajectory_out, jlim);
-    res.trajectory.joint_trajectory = trajectory_out; /// \todo apply this for the RobotTrajectory; is this the right place for this operation?
-    
     if (check_solution_paths_)
     {
       std::vector<std::size_t> index;
@@ -311,7 +305,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
         ROS_DEBUG("Planned path was found to be valid when rechecked");
     }
   }
-
+  
   // display solution path if needed
   if (display_computed_motion_plans_ && solved)
   { 

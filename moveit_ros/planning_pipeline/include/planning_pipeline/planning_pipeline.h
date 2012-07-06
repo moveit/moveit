@@ -35,7 +35,6 @@
 #include <planning_interface/planning_interface.h>
 #include <planning_request_adapter/planning_request_adapter.h>
 #include <pluginlib/class_loader.h>
-#include <trajectory_processing/iterative_smoother.h>
 #include <boost/scoped_ptr.hpp>
 #include <ros/ros.h>
 
@@ -121,8 +120,6 @@ private:
   bool check_solution_paths_;
   ros::Publisher contacts_publisher_;
   
-  trajectory_processing::IterativeParabolicSmoother smoother_;
-
 };
 
 }

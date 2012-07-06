@@ -24,7 +24,8 @@ set(SOURCE_FILES
   src/fix_start_state_bounds.cpp
   src/fix_start_state_collision.cpp
   src/fix_start_state_path_constraints.cpp
-  src/fix_workspace_bounds.cpp)
+  src/fix_workspace_bounds.cpp
+  src/add_time_parameterization.cpp)
 
 set(LIBRARY_NAME default_planning_request_adapters)
 include(CMakeDetermineSystem)
