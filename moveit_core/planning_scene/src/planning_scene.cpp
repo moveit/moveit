@@ -406,7 +406,7 @@ const planning_models::TransformsPtr& planning_scene::PlanningScene::getTransfor
 void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const
 {
   scene.name = name_;
-  scene.planning_frame = getPlanningFrame();
+  scene.planning_frame = getKinematicModel()->getRootLinkName();
   scene.is_diff = true;
   
   if (ftf_)
@@ -690,7 +690,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 {
   scene.name = name_;
   scene.is_diff = false;
-  scene.planning_frame = getPlanningFrame();
+  scene.planning_frame = getKinematicModel()->getRootLinkName();
   getTransforms()->getTransforms(scene.fixed_frame_transforms);
   planning_models::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
   getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
@@ -800,8 +800,8 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   if (!scene.name.empty())
       name_ = scene.name;
   
-  if (!scene.planning_frame.empty() && scene.planning_frame != getPlanningFrame())
-    ROS_WARN("Setting scene with planning frame '%s' but the current planning scene is in frame '%s'.", scene.planning_frame.c_str(), getPlanningFrame().c_str());
+  if (!scene.planning_frame.empty() && scene.planning_frame != getKinematicModel()->getRootLinkName())
+    ROS_WARN("Setting scene with planning frame '%s' but the current planning scene is in frame '%s'.", scene.planning_frame.c_str(), getKinematicModel()->getRootLinkName().c_str());
   
   // there is at least one transform in the list of fixed transform: from model frame to itself;
   // if the list is empty, then nothing has been set
@@ -895,7 +895,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
     parent_.reset();
   }
   // re-parent the robot model if needed
-  if (!scene.planning_frame.empty() && scene.planning_frame != getPlanningFrame())
+  if (!scene.planning_frame.empty() && scene.planning_frame != getKinematicModel()->getRootLinkName())
     configure(urdf_model_, srdf_model_, scene.planning_frame);
   
   ftf_->setTransforms(scene.fixed_frame_transforms);
