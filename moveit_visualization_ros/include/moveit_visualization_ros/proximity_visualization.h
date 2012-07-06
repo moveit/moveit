@@ -64,7 +64,7 @@ protected:
   planning_scene::PlanningSceneConstPtr planning_scene_;
   collision_detection::AllowedCollisionMatrix distance_acm_;
 
-  collision_distance_field::CollisionRobotDistanceField robot_;
+  boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField> robot_;
   collision_distance_field::CollisionWorldDistanceField world_;
 
   ros::Publisher publisher_;
