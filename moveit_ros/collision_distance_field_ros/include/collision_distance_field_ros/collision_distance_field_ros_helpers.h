@@ -77,7 +77,7 @@ static inline bool loadLinkBodySphereDecompositions(ros::NodeHandle& nh,
     XmlRpc::XmlRpcValue spheres = link_spheres[i]["spheres"];
     if(spheres.getType() != XmlRpc::XmlRpcValue::TypeArray) {    
       if(std::string(spheres) == "none") {
-        ROS_INFO_STREAM("No spheres for " << link);
+        ROS_DEBUG_STREAM("No spheres for " << link);
         std::vector<collision_distance_field::CollisionSphere> coll_spheres;
         link_body_spheres[link_spheres[i]["link"]] = coll_spheres;
         continue;
@@ -102,6 +102,7 @@ static inline bool loadLinkBodySphereDecompositions(ros::NodeHandle& nh,
         continue;
       }
       Eigen::Vector3d rel(spheres[j]["x"], spheres[j]["y"], spheres[j]["z"]);
+      ROS_DEBUG_STREAM("Link " << link_spheres[i]["link"] << " sphere " << coll_spheres.size() << " " << rel.x() << " " << rel.y() << " " << rel.z());
       collision_distance_field::CollisionSphere cs(rel, spheres[j]["radius"]);
       coll_spheres.push_back(cs);
     }
