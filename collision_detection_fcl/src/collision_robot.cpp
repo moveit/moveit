@@ -113,7 +113,7 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_m
 
 void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const planning_models::KinematicState &state, FCLManager &manager) const
 {
-  manager.manager_.reset(new fcl::SSaPCollisionManager());
+  manager.manager_.reset(new fcl::DynamicAABBTreeCollisionManager());
   constructFCLObject(state, manager.object_);
   manager.object_.registerTo(manager.manager_.get());
   manager.manager_->update();
@@ -227,7 +227,17 @@ double collision_detection::CollisionRobotFCL::distanceSelf(const planning_model
 double collision_detection::CollisionRobotFCL::distanceSelfHelper(const planning_models::KinematicState &state,
                                                                   const AllowedCollisionMatrix *acm) const
 {
-  return 0.0;
+  FCLManager manager;
+  allocSelfCollisionBroadPhase(state, manager);
+  
+  CollisionRequest req;
+  CollisionResult res;
+  CollisionData cd(&req, &res, acm);
+  cd.enableGroup(getKinematicModel());
+
+  manager.manager_->distance(&cd, &distanceCallback);
+
+  return res.distance;
 }
 
 double collision_detection::CollisionRobotFCL::distanceOther(const planning_models::KinematicState &state,

@@ -139,6 +139,7 @@ struct CollisionData
   bool                          done_;
 };
 
+
 struct FCLGeometry
 {
   FCLGeometry(void)

@@ -107,16 +107,9 @@ void collision_detection::CollisionWorldFCL::checkWorldCollision(const Collision
 void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const
 {
   const CollisionWorldFCL &other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
+  CollisionData cd(&req, &res, acm);
+  manager_->collide(other_fcl_world.manager_.get(), &cd, &collisionCallback);
   
-  if (fcl_objs_.size() > other_fcl_world.fcl_objs_.size())
-    other_fcl_world.checkWorldCollisionHelper(req, res, *this, acm);
-  else
-  {
-    CollisionData cd(&req, &res, acm);
-    for (std::map<std::string, FCLObject>::const_iterator it = fcl_objs_.begin() ; !cd.done_ && it != fcl_objs_.end() ; ++it)
-      for (std::size_t i = 0 ; !cd.done_ && i < it->second.collision_objects_.size() ; ++i)
-	manager_->collide(it->second.collision_objects_[i].get(), &cd, &collisionCallback);
-  }
   if (req.distance)
     res.distance = distanceWorldHelper(other_world, acm);
 }
@@ -264,21 +257,10 @@ double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorl
 double collision_detection::CollisionWorldFCL::distanceWorldHelper(const CollisionWorld &other_world, const AllowedCollisionMatrix *acm) const
 {
   const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
-  
-  if(fcl_objs_.size() > other_fcl_world.fcl_objs_.size())
-    return other_fcl_world.distanceWorldHelper(*this, acm);
-  else
-  {
-    CollisionRequest req;
-    CollisionResult res;
-    CollisionData cd(&req, &res, acm);
-    for(std::map<std::string, FCLObject>::const_iterator it = fcl_objs_.begin(); !cd.done_ && it != fcl_objs_.end(); ++it)
-    {
-      for(std::size_t i = 0; !cd.done_ && i < it->second.collision_objects_.size(); ++i)
-      {
-        manager_->distance(it->second.collision_objects_[i].get(), &cd, &distanceCallback);
-      }
-    }
-    return res.distance;
-  }
+  CollisionRequest req;
+  CollisionResult res;
+  CollisionData cd(&req, &res, acm);
+  manager_->distance(other_fcl_world.manager_.get(), &cd, &distanceCallback);
+
+  return res.distance;
 }
