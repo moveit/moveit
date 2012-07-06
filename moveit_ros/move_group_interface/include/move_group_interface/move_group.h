@@ -74,9 +74,11 @@ public:
 
   ~MoveGroup(void);
   
-  bool move(void);
+  bool move(bool wait = true);
   
   bool plan(Plan &plan);
+  
+  void stop(void);
   
   void setJointValueTarget(const std::vector<double> &group_variable_values);
 
