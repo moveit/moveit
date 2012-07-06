@@ -60,19 +60,9 @@ public:
   /// load the controller manager plugin
   /// Start listening for events on a topic.
 
-  TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel) : 
-    kinematic_model_(kmodel), node_handle_("~")
-  {
-    if (!node_handle_.getParam("manage_controllers", manage_controllers_))
-      manage_controllers_ = false;
-    initialize();
-  }
+  TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel);
   
-  TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel, bool manage_controllers) :
-    kinematic_model_(kmodel), node_handle_("~"), manage_controllers_(manage_controllers)
-  {
-    initialize();
-  }
+  TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel, bool manage_controllers);
   
   bool isManagingControllers(void) const;
   
@@ -121,6 +111,9 @@ public:
   
   /// Return the controller status for the last attempted execution 
   moveit_controller_manager::ExecutionStatus::Value getLastExecutionStatus(void) const;
+  
+  /// Return the controller status for the last attempted execution 
+  std::string getLastExecutionStatusString(void) const;
   
   // this is a blocking call for the execution of the passed in trajectories
   bool executeAndWait(bool auto_clear = true);

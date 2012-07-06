@@ -42,9 +42,11 @@
 #include <actionlib/client/simple_action_client.h>
 #include <kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <std_msgs/String.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_datatypes.h>
 #include <ros/console.h>
+#include <ros/ros.h>
 
 namespace move_group_interface
 {
@@ -113,6 +115,8 @@ public:
       end_effector_ = joint_model_group->getLinkModelNames().back();
     pose_target_.setIdentity();
     pose_reference_frame_ = getKinematicModel()->getModelFrame();
+
+    trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
     
     current_state_monitor_ = getSharedStateMonitor(kinematic_model_, tf_);
     action_client_->waitForServer();
@@ -202,12 +206,14 @@ public:
     }
   }
   
-  bool move(void)
+  bool move(bool wait)
   {
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = false;
     action_client_->sendGoal(goal);
+    if (!wait)
+      return true;
     if (!action_client_->waitForResult())
     {
       ROS_INFO_STREAM("MoveGroup action returned early");
@@ -219,6 +225,13 @@ public:
       ROS_WARN_STREAM("Fail: " << action_client_->getState().toString() << ": " << action_client_->getState().getText());
       return false;
     }
+  }
+  
+  void stop(void)
+  {
+    std_msgs::String event;
+    event.data = "stop";
+    trajectory_event_publisher_.publish(event);
   }
   
   void constructGoal(moveit_msgs::MoveGroupGoal &goal)
@@ -246,12 +259,13 @@ public:
 private:
   
   Options opt_;
-
+  ros::NodeHandle node_handle_;
   boost::shared_ptr<tf::Transformer> tf_;
   planning_models::KinematicModelConstPtr kinematic_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > action_client_;
   planning_models::KinematicStatePtr joint_state_target_;
+  ros::Publisher trajectory_event_publisher_;
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
   std::string pose_reference_frame_;
@@ -274,14 +288,19 @@ MoveGroup::~MoveGroup(void)
   delete impl_;
 }
 
-bool MoveGroup::move(void)
+bool MoveGroup::move(bool wait)
 {
-  return impl_->move();
+  return impl_->move(wait);
 }
 
 bool MoveGroup::plan(Plan &plan)
 {
   return impl_->plan(plan);
+}
+
+void MoveGroup::stop(void)
+{
+  impl_->stop();
 }
 
 void MoveGroup::setRandomTarget(void)

@@ -15,6 +15,7 @@
   <depend package="constraint_samplers"/>
   <depend package="planning_request_adapter_plugins"/>
   <depend package="roscpp"/>
+  <depend package="std_msgs"/>
   <depend package="moveit_msgs"/>
   <depend package="kinematics_msgs"/>
   <depend package="planning_scene_monitor"/>

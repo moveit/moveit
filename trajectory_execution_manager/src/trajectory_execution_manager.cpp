@@ -39,6 +39,20 @@
 namespace trajectory_execution_manager
 {
 
+TrajectoryExecutionManager::TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel) : 
+  kinematic_model_(kmodel), node_handle_("~")
+{
+  if (!node_handle_.getParam("manage_controllers", manage_controllers_))
+    manage_controllers_ = false;
+  initialize();
+}
+
+TrajectoryExecutionManager::TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel, bool manage_controllers) :
+  kinematic_model_(kmodel), node_handle_("~"), manage_controllers_(manage_controllers)
+{
+  initialize();
+}
+
 void TrajectoryExecutionManager::initialize(void)
 {
   verbose_ = false;
@@ -81,7 +95,7 @@ void TrajectoryExecutionManager::initialize(void)
   // other configuration steps
   reloadControllerInformation();
   
-  root_node_handle_.subscribe("trajectory_execution_event", 100, &TrajectoryExecutionManager::receiveEvent, this);
+  event_topic_subscriber_ = root_node_handle_.subscribe("trajectory_execution_event", 100, &TrajectoryExecutionManager::receiveEvent, this);
   
   if (manage_controllers_)
     ROS_INFO("Trajectory execution is managing controllers");
@@ -600,7 +614,6 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
   if (!execution_complete_)
   {
     execution_complete_ = true;
-
     execution_state_mutex_.lock();
     for (std::size_t i = 0 ; i < active_handles_.size() ; ++i)
       try
@@ -611,6 +624,7 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
       {
         ROS_ERROR("Exception caught when canceling execution.");
       }
+    last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
     execution_state_mutex_.unlock();
     ROS_INFO("Stopped trajectory execution.");
 
@@ -671,7 +685,7 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
   if (auto_clear)
     clear();
   
-  ROS_DEBUG("Completed trajectory execution ...");
+  ROS_DEBUG("Completed trajectory execution with status %s ...", getLastExecutionStatusString().c_str());
   
   execution_state_mutex_.lock();
   execution_complete_ = true;
@@ -736,7 +750,7 @@ bool TrajectoryExecutionManager::executePart(TrajectoryExecutionContext &context
     {
       active_handles_[i]->waitForExecution(); 
       if (execution_complete_)
-      {
+      {        
         result = false;
         break;
       }
@@ -761,6 +775,24 @@ bool TrajectoryExecutionManager::executePart(TrajectoryExecutionContext &context
 moveit_controller_manager::ExecutionStatus::Value TrajectoryExecutionManager::getLastExecutionStatus(void) const
 {
   return last_execution_status_;
+}
+
+std::string TrajectoryExecutionManager::getLastExecutionStatusString(void) const
+{
+  moveit_controller_manager::ExecutionStatus::Value s = getLastExecutionStatus();
+  switch (s)
+  {
+  case moveit_controller_manager::ExecutionStatus::RUNNING:
+    return "RUNNING";
+  case moveit_controller_manager::ExecutionStatus::SUCCEEDED:
+    return "SUCCEEDED";
+  case moveit_controller_manager::ExecutionStatus::ABORTED:
+    return "ABORTED";
+  case moveit_controller_manager::ExecutionStatus::FAILED:
+    return "FAILED";
+  default:
+    return "UNKNOWN";
+  }
 }
 
 bool TrajectoryExecutionManager::ensureActiveControllersForGroup(const std::string &group)
