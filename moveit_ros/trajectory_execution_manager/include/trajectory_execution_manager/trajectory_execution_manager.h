@@ -111,10 +111,7 @@ public:
   bool waitForExecution(void);
   
   /// Return the controller status for the last attempted execution 
-  moveit_controller_manager::ExecutionStatus::Value getLastExecutionStatus(void) const;
-  
-  /// Return the controller status for the last attempted execution 
-  std::string getLastExecutionStatusString(void) const;
+  moveit_controller_manager::ExecutionStatus getLastExecutionStatus(void) const;
   
   // this is a blocking call for the execution of the passed in trajectories
   bool executeAndWait(bool auto_clear = true);
@@ -189,7 +186,7 @@ private:
   boost::scoped_ptr<boost::thread> execution_thread_;
   boost::mutex execution_state_mutex_;
   boost::condition_variable execution_complete_condition_;
-  moveit_controller_manager::ExecutionStatus::Value last_execution_status_;
+  moveit_controller_manager::ExecutionStatus last_execution_status_;
   std::vector<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
   bool execution_complete_;
     

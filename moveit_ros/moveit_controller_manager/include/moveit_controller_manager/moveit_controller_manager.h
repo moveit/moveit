@@ -40,17 +40,52 @@
 #include <boost/shared_ptr.hpp>
 #include <moveit_msgs/RobotTrajectory.h>
 
+/// Namespace for the base class of a MoveIt controller manager
 namespace moveit_controller_manager
 {
 
-namespace ExecutionStatus
+/// The reported execution status
+struct ExecutionStatus
 {
-enum Value
-  {
-    RUNNING, SUCCEEDED, ABORTED, FAILED
-  };
-}
+  enum Value
+    {
+      UNKNOWN, RUNNING, SUCCEEDED, PREEMPTED, TIMED_OUT, ABORTED, FAILED
+    };  
   
+  ExecutionStatus(Value value = UNKNOWN) : status_(value)
+  {
+  }
+  
+  operator Value() const
+  {
+    return status_;
+  }
+  
+  std::string asString(void) const
+  {
+    switch (status_)
+    {
+    case RUNNING:
+      return "RUNNING";
+    case SUCCEEDED:
+      return "SUCCEEDED";
+    case PREEMPTED:
+      return "PREEMPTED";
+    case TIMED_OUT:
+      return "TIMED_OUT";
+    case ABORTED:
+      return "ABORTED";
+    case FAILED:
+      return "FAILED";
+    default:
+      return "UNKNOWN";
+    }
+  }
+private:
+  Value status_;  
+};
+
+
 class MoveItControllerHandle
 {
 public:
@@ -73,7 +108,7 @@ public:
 
   /// Return true if the execution is complete (whether successful or not). Return false if timeout was reached
   virtual bool waitForExecution(const ros::Duration &timeout = ros::Duration(0)) = 0;
-  virtual ExecutionStatus::Value getLastExecutionStatus(void) = 0;
+  virtual ExecutionStatus getLastExecutionStatus(void) = 0;
 
 protected:
   
