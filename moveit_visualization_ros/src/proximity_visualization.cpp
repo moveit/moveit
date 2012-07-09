@@ -88,22 +88,24 @@ void ProximityVisualization::stateChanged(const std::string& group,
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = current_group_;
-  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_grad_gsr =
-    world_.getCollisionGradients(req, 
-                                 res, 
-                                 *robot_.get(), 
-                                 state,
-                                 &distance_acm_);
+  boost::shared_ptr<collision_distance_field::GroupStateRepresentation> world_grad_gsr;
+  world_.getCollisionGradients(req, 
+                               res, 
+                               *robot_.get(), 
+                               state,
+                               &distance_acm_,
+                               world_grad_gsr);
   req.contacts = true;
   req.max_contacts = 100000;
   req.max_contacts_per_pair = 1000;
   res = collision_detection::CollisionResult();
-  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_coll_gsr =
-    world_.getAllCollisions(req, 
-                            res, 
-                            *robot_.get(), 
-                            state,
-                            &distance_acm_);
+  boost::shared_ptr<collision_distance_field::GroupStateRepresentation> world_coll_gsr;
+  world_.getAllCollisions(req, 
+                          res, 
+                          *robot_.get(), 
+                          state,
+                          &distance_acm_,
+                          world_coll_gsr);
 
   visualization_msgs::MarkerArray arrow_markers;
   std_msgs::ColorRGBA col;
