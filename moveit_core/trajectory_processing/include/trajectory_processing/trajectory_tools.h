@@ -45,9 +45,18 @@
 namespace trajectory_processing
 {
 
-void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
-                              const planning_models::KinematicState &reference_state, const planning_models::TransformsConstPtr &transforms,
-                              std::vector<planning_models::KinematicStatePtr> &states);
+void convertToKinematicStates(std::vector<planning_models::KinematicStatePtr> &states,
+                              const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
+                              const planning_models::KinematicState &reference_state, const planning_models::TransformsConstPtr &transforms);
+
+void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
+                              const std::vector<planning_models::KinematicStateConstPtr> &states,
+                              const std::vector<ros::Duration> &stamps = std::vector<ros::Duration>(),
+                              const std::string &group = std::string());
+
+void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
+                              const std::vector<planning_models::KinematicStateConstPtr> &states, 
+                              const std::string &group);
 
 void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
                     double dt_offset, const planning_models::TransformsConstPtr &transforms);

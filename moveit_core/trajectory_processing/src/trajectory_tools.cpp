@@ -41,9 +41,9 @@
 namespace trajectory_processing
 {
 
-void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
-                              const planning_models::KinematicState &reference_state, const planning_models::TransformsConstPtr &transforms,
-                              std::vector<planning_models::KinematicStatePtr> &states)
+void convertToKinematicStates(std::vector<planning_models::KinematicStatePtr> &states,
+                              const moveit_msgs::RobotState &start_state, const moveit_msgs::RobotTrajectory &trajectory,
+                              const planning_models::KinematicState &reference_state, const planning_models::TransformsConstPtr &transforms)
 {
   states.clear();
   planning_models::KinematicState start(reference_state);
@@ -59,6 +59,69 @@ void convertToKinematicStates(const moveit_msgs::RobotState &start_state, const 
     planning_models::robotStateToKinematicState(*transforms, rs, *st);
     states[i] = st;
   }
+}
+
+void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory,
+                              const std::vector<planning_models::KinematicStateConstPtr> &states, 
+                              const std::vector<ros::Duration> &stamps, const std::string &group)
+{
+  trajectory = moveit_msgs::RobotTrajectory();
+  if (states.empty())
+    return;
+  const planning_models::KinematicModel &kmodel = *states.front()->getKinematicModel();
+  const std::vector<const planning_models::KinematicModel::JointModel*> &jnt = 
+    (!group.empty() && kmodel.hasJointModelGroup(group)) ? kmodel.getJointModelGroup(group)->getJointModels() : kmodel.getJointModels();
+  
+  std::vector<const planning_models::KinematicModel::JointModel*> onedof;
+  std::vector<const planning_models::KinematicModel::JointModel*> mdof;
+  trajectory.joint_trajectory.header.frame_id = kmodel.getModelFrame();
+  trajectory.joint_trajectory.header.stamp = ros::Time::now();
+  trajectory.joint_trajectory.joint_names.clear();
+  trajectory.multi_dof_joint_trajectory.joint_names.clear();
+  trajectory.multi_dof_joint_trajectory.child_frame_ids.clear();
+  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
+    if (jnt[i]->getVariableCount() == 1)
+    {
+      trajectory.joint_trajectory.joint_names.push_back(jnt[i]->getName());
+      onedof.push_back(jnt[i]);
+    }
+    else
+    {
+      trajectory.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
+      trajectory.multi_dof_joint_trajectory.frame_ids.push_back(trajectory.joint_trajectory.header.frame_id);
+      trajectory.multi_dof_joint_trajectory.child_frame_ids.push_back(jnt[i]->getChildLinkModel()->getName());
+      mdof.push_back(jnt[i]);
+    }
+  if (!onedof.empty())
+    trajectory.joint_trajectory.points.resize(states.size());
+  if (!mdof.empty())
+    trajectory.multi_dof_joint_trajectory.points.resize(states.size());
+  static const ros::Duration zero_duration(0.0);
+  for (std::size_t i = 0 ; i < states.size() ; ++i)
+  {
+    if (!onedof.empty())
+    {
+      trajectory.joint_trajectory.points[i].positions.resize(onedof.size());
+      for (std::size_t j = 0 ; j < onedof.size() ; ++j)
+	trajectory.joint_trajectory.points[i].positions[j] = states[i]->getJointState(onedof[j]->getName())->getVariableValues()[0];
+      trajectory.joint_trajectory.points[i].time_from_start = stamps.size() > i ? stamps[i] : zero_duration;
+    }
+    if (!mdof.empty())
+    {
+      trajectory.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
+      for (std::size_t j = 0 ; j < mdof.size() ; ++j)
+      {
+	planning_models::msgFromPose(states[i]->getJointState(mdof[j]->getName())->getVariableTransform(),
+				     trajectory.multi_dof_joint_trajectory.points[i].poses[j]);
+      }
+      trajectory.multi_dof_joint_trajectory.points[i].time_from_start = stamps.size() > i ? stamps[i] : zero_duration;
+    }
+  }
+}
+
+void convertToRobotTrajectory(moveit_msgs::RobotTrajectory &trajectory, const std::vector<planning_models::KinematicStateConstPtr> &states, const std::string &group)
+{
+  convertToRobotTrajectory(trajectory, states, std::vector<ros::Duration>(), group);
 }
 
 void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::RobotTrajectory &trajectory,
