@@ -254,7 +254,9 @@ private:
       else
         dist = d;
     }
-    ROS_DEBUG("Controller seems to be at state %lu of %lu", currently_executed_trajectory_index_ + 1, currently_executed_trajectory_states_.size());
+    std::pair<int, int> expected = trajectory_execution_->getCurrentExpectedTrajectoryIndex();
+
+    ROS_DEBUG("Controller seems to be at state %lu of %lu. Trajectory execution manager expects the index to be %d.", currently_executed_trajectory_index_ + 1, currently_executed_trajectory_states_.size(), expected.second);
   }
   
   void setState(MoveGroupState state, double duration)
