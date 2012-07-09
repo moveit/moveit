@@ -80,23 +80,21 @@ void CollisionWorldDistanceField::checkCollision(const collision_detection::Coll
                                                  const collision_detection::AllowedCollisionMatrix &acm) const
 {
   const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
-  boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry> dfce;
 
-  boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> gsr; 
+  boost::shared_ptr<GroupStateRepresentation> gsr; 
   cdr.generateCollisionCheckingStructures(req.group_name,
                                           state,
                                           &acm,
-                                          dfce,
                                           gsr,
                                           false);
   
-  bool done = cdr.getSelfCollisions(req, res, dfce, gsr);
+  bool done = cdr.getSelfCollisions(req, res, gsr);
   if(!done) {
-    done = cdr.getIntraGroupCollisions(req, res, dfce, gsr);
+    done = cdr.getIntraGroupCollisions(req, res, gsr);
   }
   if(!done) {
     boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
-    getEnvironmentCollisions(req, res, dfce, gsr, env_distance_field);
+    getEnvironmentCollisions(req, res, env_distance_field, gsr);
   }
   //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
@@ -109,84 +107,80 @@ void CollisionWorldDistanceField::checkRobotCollision(const collision_detection:
 {
   boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
   const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
-  boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry> dfce;
+  boost::shared_ptr<const DistanceFieldCacheEntry> dfce;
 
-  boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> gsr;
+  boost::shared_ptr<GroupStateRepresentation> gsr;
   cdr.generateCollisionCheckingStructures(req.group_name,
                                           state,
                                           &acm,
-                                          dfce,
                                           gsr,
                                           false);
   
-  getEnvironmentCollisions(req, res, dfce, gsr, env_distance_field);
+  getEnvironmentCollisions(req, res, env_distance_field, gsr);
   //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
   //checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
-boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>  
-CollisionWorldDistanceField::getCollisionGradients(const collision_detection::CollisionRequest &req, 
+void CollisionWorldDistanceField::getCollisionGradients(const collision_detection::CollisionRequest &req, 
+                                                        collision_detection::CollisionResult &res, 
+                                                        const collision_detection::CollisionRobot &robot, 
+                                                        const planning_models::KinematicState &state, 
+                                                        const collision_detection::AllowedCollisionMatrix* acm,
+                                                        boost::shared_ptr<GroupStateRepresentation>& gsr) const {
+  boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
+  const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
+  boost::shared_ptr<const DistanceFieldCacheEntry> dfce;
+  
+  if(!gsr) {
+    cdr.generateCollisionCheckingStructures(req.group_name,
+                                            state,
+                                            acm,
+                                            gsr,
+                                            true);
+  }
+  cdr.getSelfProximityGradients(gsr);
+  cdr.getIntraGroupProximityGradients(gsr);
+  getEnvironmentProximityGradients(env_distance_field, gsr);
+}
+
+void CollisionWorldDistanceField::getAllCollisions(const collision_detection::CollisionRequest &req, 
                                                    collision_detection::CollisionResult &res, 
                                                    const collision_detection::CollisionRobot &robot, 
                                                    const planning_models::KinematicState &state, 
-                                                   const collision_detection::AllowedCollisionMatrix* acm) const {
-  boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
-  const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
-  boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry> dfce;
-  
-  boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> gsr;
-  cdr.generateCollisionCheckingStructures(req.group_name,
-                                          state,
-                                          acm,
-                                          dfce,
-                                          gsr,
-                                          true);
-  cdr.getSelfProximityGradients(dfce, gsr);
-  cdr.getIntraGroupProximityGradients(dfce, gsr);
-  getEnvironmentProximityGradients(dfce, gsr, env_distance_field);
-  return gsr;
-}
-
-boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>  
-CollisionWorldDistanceField::getAllCollisions(const collision_detection::CollisionRequest &req, 
-                                              collision_detection::CollisionResult &res, 
-                                              const collision_detection::CollisionRobot &robot, 
-                                              const planning_models::KinematicState &state, 
-                                              const collision_detection::AllowedCollisionMatrix* acm) const 
+                                                   const collision_detection::AllowedCollisionMatrix* acm,
+                                                   boost::shared_ptr<GroupStateRepresentation>& gsr) const
 {
   const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
-  boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry> dfce;
   
-  boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> gsr;
-  cdr.generateCollisionCheckingStructures(req.group_name,
-                                          state,
-                                          acm,
-                                          dfce,
-                                          gsr,
-                                          true);
-  cdr.getSelfCollisions(req, res, dfce, gsr);
-  cdr.getIntraGroupCollisions(req, res, dfce, gsr);
+  if(!gsr) {
+    cdr.generateCollisionCheckingStructures(req.group_name,
+                                            state,
+                                            acm,
+                                            gsr,
+                                            true);
+  } 
+  cdr.getSelfCollisions(req, res, gsr);
+  cdr.getIntraGroupCollisions(req, res, gsr);
   boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
-  getEnvironmentCollisions(req, res, dfce, gsr, env_distance_field);
-  return gsr;
+  getEnvironmentCollisions(req, res, env_distance_field, gsr);
 }
 
 bool CollisionWorldDistanceField::getEnvironmentCollisions(const collision_detection::CollisionRequest& req,
                                                            collision_detection::CollisionResult& res,
-                                                           const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
-                                                           boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>& gsr,
-                                                           const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field) const {
-  for(unsigned int i = 0; i < dfce->link_names_.size()+dfce->attached_body_names_.size(); i++) {
-    bool is_link = i < dfce->link_names_.size();
-    if(is_link && !dfce->link_has_geometry_[i]) continue;
+                                                           const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field,
+                                                           boost::shared_ptr<GroupStateRepresentation>& gsr) const
+{
+  for(unsigned int i = 0; i < gsr->dfce_->link_names_.size()+gsr->dfce_->attached_body_names_.size(); i++) {
+    bool is_link = i < gsr->dfce_->link_names_.size();
+    if(is_link && !gsr->dfce_->link_has_geometry_[i]) continue;
     const std::vector<CollisionSphere>* collision_spheres_1;
     const std::vector<Eigen::Vector3d>* sphere_centers_1;
     if(is_link) {
       collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
     } else {
-      collision_spheres_1 = &(gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getCollisionSpheres());
-      sphere_centers_1 = &(gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getSphereCenters());
+      collision_spheres_1 = &(gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getCollisionSpheres());
+      sphere_centers_1 = &(gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getSphereCenters());
     }
     if(req.contacts) {
       std::vector<unsigned int> colls;
@@ -204,11 +198,11 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(const collision_detec
           if(is_link) {
             con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[colls[j]];
             con.body_type_1 = collision_detection::BodyTypes::ROBOT_LINK;
-            con.body_name_1 = dfce->link_names_[i];
+            con.body_name_1 = gsr->dfce_->link_names_[i];
           } else {
-            con.pos = gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getSphereCenters()[colls[j]];
+            con.pos = gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getSphereCenters()[colls[j]];
             con.body_type_1 = collision_detection::BodyTypes::ROBOT_ATTACHED;
-            con.body_name_1 = dfce->attached_body_names_[i-dfce->link_names_.size()];
+            con.body_name_1 = gsr->dfce_->attached_body_names_[i-gsr->dfce_->link_names_.size()];
           }
           con.body_type_2 = collision_detection::BodyTypes::WORLD_OBJECT;
           con.body_name_2 = "environment";
@@ -241,21 +235,21 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(const collision_detec
   return (res.contact_count >= req.max_contacts);
 } 
 
-bool CollisionWorldDistanceField::getEnvironmentProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
-                                                                   boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>& gsr,
-                                                                   const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field) const {
+bool CollisionWorldDistanceField::getEnvironmentProximityGradients(const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field,
+                                                                   boost::shared_ptr<GroupStateRepresentation>& gsr) const 
+{
   bool in_collision = false;
-  for(unsigned int i = 0; i < dfce->link_names_.size(); i++) {
-    bool is_link = i < dfce->link_names_.size();
-    if(is_link && !dfce->link_has_geometry_[i]) continue;
+  for(unsigned int i = 0; i < gsr->dfce_->link_names_.size(); i++) {
+    bool is_link = i < gsr->dfce_->link_names_.size();
+    if(is_link && !gsr->dfce_->link_has_geometry_[i]) continue;
     const std::vector<CollisionSphere>* collision_spheres_1;
     const std::vector<Eigen::Vector3d>* sphere_centers_1;
     if(is_link) {
       collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
     } else {
-      collision_spheres_1 = &(gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getCollisionSpheres());
-      sphere_centers_1 = &(gsr->attached_body_decompositions_[i-dfce->link_names_.size()]->getSphereCenters());
+      collision_spheres_1 = &(gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getCollisionSpheres());
+      sphere_centers_1 = &(gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getSphereCenters());
     }
     bool coll = getCollisionSphereGradients(env_distance_field.get(),
                                             *collision_spheres_1,
