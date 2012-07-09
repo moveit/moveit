@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "planning_scene_monitor/trajectory_monitor.h"
+#include <trajectory_processing/trajectory_tools.h>
 #include <ros/rate.h>
 
 planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency) :
@@ -78,6 +79,7 @@ void planning_scene_monitor::TrajectoryMonitor::clearTrajectory(void)
   if (restart)
     stopTrajectoryMonitor();
   trajectory_states_.clear();
+  trajectory_stamps_.clear();
   if (restart)
     startTrajectoryMonitor();
 }
@@ -88,8 +90,18 @@ void planning_scene_monitor::TrajectoryMonitor::recordStates(void)
   while (record_states_thread_)
   {
     rate.sleep();
-    trajectory_states_.push_back(current_state_monitor_->getCurrentState());
+    std::pair<planning_models::KinematicStatePtr, ros::Time> state = current_state_monitor_->getCurrentStateAndTime();
+    trajectory_states_.push_back(state.first);
+    trajectory_stamps_.push_back(state.second);
     if (state_add_callback_)
-      state_add_callback_(trajectory_states_.back());
+      state_add_callback_(trajectory_states_.back(), trajectory_stamps_.back());
   }
+}
+
+void planning_scene_monitor::TrajectoryMonitor::getTrajectory(moveit_msgs::RobotTrajectory &trajectory)
+{
+  std::vector<ros::Duration> durations(trajectory_stamps_.size(), ros::Duration(0.0));
+  for (std::size_t i = 1 ; i < trajectory_stamps_.size() ; ++i)
+    durations[i] = trajectory_stamps_[i] - trajectory_stamps_[i - 1];
+  trajectory_processing::convertToRobotTrajectory(trajectory, trajectory_states_, durations);
 }

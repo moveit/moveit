@@ -88,7 +88,7 @@ struct PlanningDisplay::ReceivedTrajectoryMessage
   {
     start_state_.reset(new planning_models::KinematicState(scene->getCurrentState()));
     planning_models::robotStateToKinematicState(*scene->getTransforms(), message_->trajectory_start, *start_state_);
-    trajectory_processing::convertToKinematicStates(message_->trajectory_start, message_->trajectory, scene->getCurrentState(), scene->getTransforms(), trajectory_);
+    trajectory_processing::convertToKinematicStates(trajectory_, message_->trajectory_start, message_->trajectory, scene->getCurrentState(), scene->getTransforms());
   }
   
   moveit_msgs::DisplayTrajectory::ConstPtr message_;

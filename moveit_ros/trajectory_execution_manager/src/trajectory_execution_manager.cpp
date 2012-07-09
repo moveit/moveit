@@ -57,6 +57,7 @@ void TrajectoryExecutionManager::initialize(void)
 {
   verbose_ = false;
   execution_complete_ = true;
+  current_context_ = -1;
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
   
   // load the controller manager plugin
@@ -108,7 +109,7 @@ bool TrajectoryExecutionManager::isManagingControllers(void) const
   return manage_controllers_;
 }
 
-const moveit_controller_manager::MoveItControllerManagerPtr& TrajectoryExecutionManager::getControllerManager(void)
+const moveit_controller_manager::MoveItControllerManagerPtr& TrajectoryExecutionManager::getControllerManager(void) const
 {
   return controller_manager_;
 }
@@ -152,6 +153,12 @@ bool TrajectoryExecutionManager::push(const trajectory_msgs::JointTrajectory &tr
 
 bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers)
 {
+  if (!execution_complete_)
+  {
+    ROS_ERROR("Cannot push a new trajectory while another is being executed");
+    return false;
+  }
+  
   TrajectoryExecutionContext context;
   if (configure(context, trajectory, controllers))
   {
@@ -536,7 +543,6 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, 
     ROS_WARN("The trajectory to execute is empty");
     return false;
   }
-  
   std::set<std::string> actuated_joints;
   actuated_joints.insert(trajectory.multi_dof_joint_trajectory.joint_names.begin(),
                          trajectory.multi_dof_joint_trajectory.joint_names.end());
@@ -603,7 +609,7 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, 
   return false;
 }
 
-bool TrajectoryExecutionManager::executeAndWait(bool auto_clear)
+moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::executeAndWait(bool auto_clear)
 {
   execute(ExecutionCompleteCallback(), auto_clear);
   return waitForExecution();
@@ -613,26 +619,35 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 {
   if (!execution_complete_)
   {
-    execution_complete_ = true;
     execution_state_mutex_.lock();
-    for (std::size_t i = 0 ; i < active_handles_.size() ; ++i)
-      try
-      {
-        active_handles_[i]->cancelExecution();
-      }
-      catch(...)
-      {
-        ROS_ERROR("Exception caught when canceling execution.");
-      }
-    last_execution_status_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
-    execution_state_mutex_.unlock();
-    ROS_INFO("Stopped trajectory execution.");
-
-    execution_thread_->join();
-    execution_thread_.reset();
-    
-    if (auto_clear)
-      clear();
+    if (!execution_complete_)
+    {
+      // we call cancel for all active handles; we know these are not being modified as we loop through them because of the lock
+      // we mark execution_complete_ as true ahead of time. Using this flag, executePart() will know that an external trigger to stop has been received
+      execution_complete_ = true;
+      for (std::size_t i = 0 ; i < active_handles_.size() ; ++i)
+        try
+        {
+          active_handles_[i]->cancelExecution();
+        }
+        catch(...)
+        {
+          ROS_ERROR("Exception caught when canceling execution.");
+        }
+      // we set the status here; executePart() will not set status when execution_complete_ is true ahead of time
+      last_execution_status_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
+      execution_state_mutex_.unlock();
+      ROS_INFO("Stopped trajectory execution.");
+      
+      // wait for the execution thread to finish
+      execution_thread_->join();
+      execution_thread_.reset();
+      
+      if (auto_clear)
+        clear();
+    }
+    else
+      execution_state_mutex_.unlock();
   }
   else
     if (execution_thread_) // just in case we have some thread waiting to be joined from some point in the past, we join it now
@@ -646,17 +661,18 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callba
 {
   stopExecution(false);
   execution_complete_ = false;
+  // start the execution thread
   execution_thread_.reset(new boost::thread(&TrajectoryExecutionManager::executeThread, this, callback, auto_clear));
 }
 
-bool TrajectoryExecutionManager::waitForExecution(void)
+moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForExecution(void)
 {
   boost::unique_lock<boost::mutex> ulock(execution_state_mutex_);
   while (!execution_complete_)
     execution_complete_condition_.wait(ulock);
   // this will join the thread
   stopExecution(false);
-  return last_execution_status_ == moveit_controller_manager::ExecutionStatus::SUCCEEDED;
+  return last_execution_status_;
 }
 
 void TrajectoryExecutionManager::clear(void)
@@ -666,6 +682,7 @@ void TrajectoryExecutionManager::clear(void)
 
 void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &callback, bool auto_clear)
 {
+  // if we already got a stop request before we even started anything, we abort
   if (execution_complete_)
   {
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
@@ -673,42 +690,52 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
   }
     
   ROS_DEBUG("Starting trajectory execution ...");
-  bool ok = true;
+  // assume everything will be OK
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
-  for (std::size_t i = 0 ; i < trajectories_.size() ; ++i)
-    if (!executePart(trajectories_[i]) || execution_complete_)
-    {
-      ok = false;
-      break;
-    }
 
+  // execute each trajectory, one after the other (executePart() is blocking) or until one fails.
+  // on failure, the status is set by executePart(). Otherwise, it will remain as set above (success)
+  for (std::size_t i = 0 ; i < trajectories_.size() ; ++i)
+    if (!executePart(i) || execution_complete_)
+      break;
+  
+  // clear the paths just executed, if needed
   if (auto_clear)
     clear();
   
   ROS_DEBUG("Completed trajectory execution with status %s ...", last_execution_status_.asString().c_str());
   
+  // notify whoever is waiting for the event of trajectory completion
   execution_state_mutex_.lock();
   execution_complete_ = true;
   execution_state_mutex_.unlock();
   execution_complete_condition_.notify_all();
+
+  // call user-specified callback
   if (callback)
-    callback(ok);  
+    callback(last_execution_status_);  
 }
 
-bool TrajectoryExecutionManager::executePart(TrajectoryExecutionContext &context)
+bool TrajectoryExecutionManager::executePart(std::size_t part_index)
 {
+  TrajectoryExecutionContext &context = trajectories_[part_index];
+
+  // first make sure desired controllers are active
   if (ensureActiveControllers(context.controllers_))
   {
+    // stop if we are already asked to do so
     if (execution_complete_)
-    {
-      last_execution_status_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
       return false;
-    }
+
     std::vector<moveit_controller_manager::MoveItControllerHandlePtr> handles;
     {
       boost::mutex::scoped_lock slock(execution_state_mutex_);
       if (!execution_complete_)
-      {
+      {    
+        // time indexing uses this member too, so we lock this mutex as well
+        time_index_mutex_.lock();
+        current_context_ = part_index;
+        time_index_mutex_.unlock();
         active_handles_.resize(context.controllers_.size());
         for (std::size_t i = 0 ; i < context.controllers_.size() ; ++i)
           active_handles_[i] = controller_manager_->getControllerHandle(context.controllers_[i]);
@@ -739,31 +766,65 @@ bool TrajectoryExecutionManager::executePart(TrajectoryExecutionContext &context
             if (i > 0)
               ROS_ERROR("Cancelling previously sent trajectory parts");  
             active_handles_.clear();
-            last_execution_status_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
+            current_context_ = -1;
+            last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
             return false;
           }
         }
       }
     }
     
+    // compute the expected duration of the trajectory and find the part of the trajectory that takes longest to execute
     ros::Time current_time = ros::Time::now();
     ros::Duration expected_trajectory_duration(0.0);
+    int longest_part = -1;
     for (std::size_t i = 0 ; i < context.trajectory_parts_.size() ; ++i)
     {
       ros::Duration d(0.0);
       if (!context.trajectory_parts_[i].joint_trajectory.points.empty())
       {
         if (context.trajectory_parts_[i].joint_trajectory.header.stamp > current_time)
-          d = context.trajectory_parts_[i].joint_trajectory.header.stamp - current_time;
+          d = context.trajectory_parts_[i].joint_trajectory.header.stamp - current_time; /// \todo use Header info from MultiDOFJointTrajectory
         d += std::max(context.trajectory_parts_[i].joint_trajectory.points.empty() ? ros::Duration(0.0) : 
                       context.trajectory_parts_[i].joint_trajectory.points.back().time_from_start,
                       context.trajectory_parts_[i].multi_dof_joint_trajectory.points.empty() ? ros::Duration(0.0) : 
                       context.trajectory_parts_[i].multi_dof_joint_trajectory.points.back().time_from_start);
+
+        if (longest_part < 0 || 
+            std::max(context.trajectory_parts_[i].joint_trajectory.points.size(),
+                     context.trajectory_parts_[i].multi_dof_joint_trajectory.points.size()) >
+            std::max(context.trajectory_parts_[longest_part].joint_trajectory.points.size(),
+                     context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points.size()))
+          longest_part = i;
       }
       expected_trajectory_duration = std::max(d, expected_trajectory_duration);
     }
     // add 10% + 0.5s to the expected duration; this is just to allow things to finish propery
     expected_trajectory_duration = expected_trajectory_duration * 1.1 + ros::Duration(0.5);
+
+
+    if (longest_part >= 0)
+    {  
+      boost::mutex::scoped_lock slock(time_index_mutex_);
+      
+      // construct a map from expected time to state index, for easy access to expected state location
+      if (context.trajectory_parts_[longest_part].joint_trajectory.points.size() >= context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points.size())
+      {
+        ros::Duration d(0.0);
+        if (context.trajectory_parts_[longest_part].joint_trajectory.header.stamp > current_time)
+          d = context.trajectory_parts_[longest_part].joint_trajectory.header.stamp - current_time;
+        for (std::size_t j = 0 ; j < context.trajectory_parts_[longest_part].joint_trajectory.points.size() ; ++j)
+          time_index_.push_back(current_time + d + context.trajectory_parts_[longest_part].joint_trajectory.points[j].time_from_start);
+      }
+      else
+      { /// \todo use Header info from MultiDOFJointTrajectory once new deb is out
+        ros::Duration d(0.0);
+        //        if (context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.header.stamp > current_time)
+        //          d = context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.header.stamp - current_time;
+        for (std::size_t j = 0 ; j < context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points.size() ; ++j)
+          time_index_.push_back(current_time + d + context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points[j].time_from_start);
+      }
+    }
     
     bool result = true;
     for (std::size_t i = 0 ; i < handles.size() ; ++i)
@@ -773,6 +834,7 @@ bool TrajectoryExecutionManager::executePart(TrajectoryExecutionContext &context
         {
           ROS_ERROR("Controller is taking too long to execute trajectory (the expected upper bound for the trajectory execution was %lf seconds). Stopping trajectory.", expected_trajectory_duration.toSec());
           stopExecution(false);
+          // we overwrite the PREEMPTED status set by stopExecution() here
           last_execution_status_ = moveit_controller_manager::ExecutionStatus::TIMED_OUT;
         }
       if (execution_complete_)
@@ -783,19 +845,44 @@ bool TrajectoryExecutionManager::executePart(TrajectoryExecutionContext &context
       else
         if (handles[i]->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::SUCCEEDED)
         {
-          ROS_DEBUG("Controller handle reports status %d", (int)handles[i]->getLastExecutionStatus());
+          ROS_WARN("Controller handle reports status %s", handles[i]->getLastExecutionStatus().asString().c_str());
           last_execution_status_ = handles[i]->getLastExecutionStatus();
           result = false;
         }
     }
     
+    // clear the active handles
     execution_state_mutex_.lock();
     active_handles_.clear();
+
+    // clear the time index
+    time_index_mutex_.lock();
+    time_index_.clear();
+    current_context_ = -1;
+    time_index_mutex_.unlock();
+    
     execution_state_mutex_.unlock();
     return result;
   }
   else
     return false;
+}
+
+std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryIndex(void) const
+{
+  boost::mutex::scoped_lock slock(time_index_mutex_);
+  if (current_context_ < 0)
+    return std::make_pair(-1, -1);
+  if (time_index_.empty())
+    return std::make_pair((int)current_context_, -1);
+  std::vector<ros::Time>::const_iterator it = std::lower_bound(time_index_.begin(), time_index_.end(), ros::Time::now());
+  int pos = it - time_index_.begin();
+  return std::make_pair((int)current_context_, pos);
+}
+
+const std::vector<TrajectoryExecutionManager::TrajectoryExecutionContext>& TrajectoryExecutionManager::getTrajectories(void) const
+{
+  return trajectories_;
 }
 
 moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::getLastExecutionStatus(void) const
