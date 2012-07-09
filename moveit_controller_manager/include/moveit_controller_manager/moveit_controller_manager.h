@@ -61,6 +61,11 @@ struct ExecutionStatus
     return status_;
   }
   
+  operator bool() const
+  {
+    return status_ == SUCCEEDED;
+  }
+  
   std::string asString(void) const
   {
     switch (status_)

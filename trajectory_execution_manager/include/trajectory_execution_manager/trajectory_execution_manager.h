@@ -55,19 +55,28 @@ namespace trajectory_execution_manager
 class TrajectoryExecutionManager
 {
 public:
-  
-  typedef boost::function<void(bool success)> ExecutionCompleteCallback;
-  
-  /// load the controller manager plugin
-  /// Start listening for events on a topic.
 
+  /// Definition of the function signature that can be called when the execution of the pushed trajectories completes. The status of the execution is passed as argument
+  typedef boost::function<void(const moveit_controller_manager::ExecutionStatus&)> ExecutionCompleteCallback;
+
+  struct TrajectoryExecutionContext
+  {
+    /// The controllers to use for executing the different trajectory parts; 
+    std::vector<std::string> controllers_;
+    
+    // The trajectory to execute, split in different parts (by joints), each set of joints corresponding to one controller
+    std::vector<moveit_msgs::RobotTrajectory> trajectory_parts_;
+  };
+  
+  /// Load the controller manager plugin, start listening for events on a topic.
   TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel);
   
+  /// Load the controller manager plugin, start listening for events on a topic.
   TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel, bool manage_controllers);
   
   bool isManagingControllers(void) const;
   
-  const moveit_controller_manager::MoveItControllerManagerPtr& getControllerManager(void);
+  const moveit_controller_manager::MoveItControllerManagerPtr& getControllerManager(void) const;
   
   /** \brief Execute a named event */
   void processEvent(const std::string &event);
@@ -104,17 +113,25 @@ public:
   /// If no controller is specified, a default is used.
   bool push(const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
   
+  /// Get the trajectories to be executed
+  const std::vector<TrajectoryExecutionContext>& getTrajectories(void) const;
+  
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
   void execute(const ExecutionCompleteCallback &callback = ExecutionCompleteCallback(), bool auto_clear = true);
   
   /// Wait until the execution is complete
-  bool waitForExecution(void);
+  moveit_controller_manager::ExecutionStatus waitForExecution(void);
+  
+  /// Get the state that the robot is expected to be at, given current time. The return value is a pair of two index values:
+  /// first = the index of the trajectory to be executed (in the order push() was called), second = the index of the point within that trajectory.
+  /// Values of -1 are returned when there is no trajectory being executed
+  std::pair<int, int> getCurrentExpectedTrajectoryIndex(void) const;
   
   /// Return the controller status for the last attempted execution 
   moveit_controller_manager::ExecutionStatus getLastExecutionStatus(void) const;
   
   // this is a blocking call for the execution of the passed in trajectories
-  bool executeAndWait(bool auto_clear = true);
+  moveit_controller_manager::ExecutionStatus executeAndWait(bool auto_clear = true);
   
   /// Stop whatever executions are active, if any
   void stopExecution(bool auto_clear = true);
@@ -124,15 +141,6 @@ public:
   
 private:
 
-  struct TrajectoryExecutionContext
-  {
-    /// The controllers to use for executing the different trajectory parts; 
-    std::vector<std::string> controllers_;
-    
-    // The trajectory to execute, split in different parts (by joints), each set of joints corresponding to one controller
-    std::vector<moveit_msgs::RobotTrajectory> trajectory_parts_;
-  };
-  
   struct ControllerInformation
   {
     std::string name_;
@@ -170,7 +178,7 @@ private:
   bool areControllersActive(const std::vector<std::string> &controllers);
   
   void executeThread(const ExecutionCompleteCallback &callback, bool auto_clear);
-  bool executePart(TrajectoryExecutionContext &context);
+  bool executePart(std::size_t part_index);
   
 
   void receiveEvent(const std_msgs::StringConstPtr &event);
@@ -188,6 +196,9 @@ private:
   boost::condition_variable execution_complete_condition_;
   moveit_controller_manager::ExecutionStatus last_execution_status_;
   std::vector<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
+  int current_context_;
+  std::vector<ros::Time> time_index_;
+  mutable boost::mutex time_index_mutex_;
   bool execution_complete_;
     
   std::vector<TrajectoryExecutionContext> trajectories_;

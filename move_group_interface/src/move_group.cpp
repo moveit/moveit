@@ -226,6 +226,31 @@ public:
       return false;
     }
   }
+
+  bool move2(unsigned int attempt_count, unsigned int max_attempts)
+  {
+    if (attempt_count >= max_attempts)
+    {
+      ROS_WARN_STREAM("Unable to get to goal after " << max_attempts << " attempts");
+      return false;
+    }
+    moveit_msgs::MoveGroupGoal goal;
+    constructGoal(goal);
+    goal.plan_only = false;
+    action_client_->sendGoal(goal);
+    if (!action_client_->waitForResult())
+    {
+      ROS_INFO_STREAM("MoveGroup action returned early");
+    }
+    if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+      return true;
+    else
+    {
+      attempt_count++;
+      ROS_INFO_STREAM("Attempt " << attempt_count << " of " << max_attempts << " failed: " << action_client_->getState().toString() << ": " << action_client_->getState().getText());
+      return move2(attempt_count, max_attempts);
+    }
+  }
   
   void stop(void)
   {
@@ -293,6 +318,11 @@ bool MoveGroup::move(bool wait)
   return impl_->move(wait);
 }
 
+bool MoveGroup::move2(unsigned int max_attempts)
+{
+  return impl_->move2(0, max_attempts);
+}
+    
 bool MoveGroup::plan(Plan &plan)
 {
   return impl_->plan(plan);
