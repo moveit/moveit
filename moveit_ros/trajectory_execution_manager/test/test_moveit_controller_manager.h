@@ -63,7 +63,7 @@ public:
     return false;
   }
     
-  virtual moveit_controller_manager::ExecutionStatus::Value getLastExecutionStatus(void)
+  virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus(void)
   {
     return moveit_controller_manager::ExecutionStatus::SUCCEEDED;
   }
