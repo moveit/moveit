@@ -406,7 +406,8 @@ const planning_models::TransformsPtr& planning_scene::PlanningScene::getTransfor
 void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const
 {
   scene.name = name_;
-  scene.planning_frame = getKinematicModel()->getRootLinkName();
+  scene.robot_model_root = getKinematicModel()->getRootLinkName();
+  scene.robot_model_name = getKinematicModel()->getName();
   scene.is_diff = true;
   
   if (ftf_)
@@ -690,7 +691,8 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 {
   scene.name = name_;
   scene.is_diff = false;
-  scene.planning_frame = getKinematicModel()->getRootLinkName();
+  scene.robot_model_root = getKinematicModel()->getRootLinkName();
+  scene.robot_model_name = getKinematicModel()->getName();
   getTransforms()->getTransforms(scene.fixed_frame_transforms);
   planning_models::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
   getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
@@ -798,10 +800,13 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 {
   ROS_DEBUG("Adding planning scene diff");
   if (!scene.name.empty())
-      name_ = scene.name;
+    name_ = scene.name;
   
-  if (!scene.planning_frame.empty() && scene.planning_frame != getKinematicModel()->getRootLinkName())
-    ROS_WARN("Setting scene with planning frame '%s' but the current planning scene is in frame '%s'.", scene.planning_frame.c_str(), getKinematicModel()->getRootLinkName().c_str());
+  if (!scene.robot_model_name.empty() && scene.robot_model_name != getKinematicModel()->getName())
+    ROS_WARN("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getKinematicModel()->getName().c_str());
+  
+  if (!scene.robot_model_root.empty() && scene.robot_model_root != getKinematicModel()->getRootLinkName())
+    ROS_WARN("Setting scene with robot model root '%s' but the current planning scene uses link '%s' as root.", scene.robot_model_root.c_str(), getKinematicModel()->getRootLinkName().c_str());
   
   // there is at least one transform in the list of fixed transform: from model frame to itself;
   // if the list is empty, then nothing has been set
@@ -861,6 +866,9 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
 {
   ROS_DEBUG("Setting new planning scene");
   name_ = scene.name;
+  
+  if (!scene.robot_model_name.empty() && scene.robot_model_name != getKinematicModel()->getName())
+    ROS_WARN("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getKinematicModel()->getName().c_str());
 
   if (parent_)
   {
@@ -895,8 +903,8 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
     parent_.reset();
   }
   // re-parent the robot model if needed
-  if (!scene.planning_frame.empty() && scene.planning_frame != getKinematicModel()->getRootLinkName())
-    configure(urdf_model_, srdf_model_, scene.planning_frame);
+  if (!scene.robot_model_root.empty() && scene.robot_model_root != getKinematicModel()->getRootLinkName())
+    configure(urdf_model_, srdf_model_, scene.robot_model_root);
   
   ftf_->setTransforms(scene.fixed_frame_transforms);
   setCurrentState(scene.robot_state);
