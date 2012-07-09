@@ -54,7 +54,7 @@ random_numbers::RandomNumberGenerator& planning_models::KinematicState::getRando
 
 void planning_models::KinematicState::buildState(void)
 {
-  const std::vector<KinematicModel::JointModel*>& joint_model_vector = kinematic_model_->getJointModels();
+  const std::vector<const KinematicModel::JointModel*>& joint_model_vector = kinematic_model_->getJointModels();
   joint_state_vector_.resize(joint_model_vector.size());
   
   // create joint states
@@ -65,7 +65,7 @@ void planning_models::KinematicState::buildState(void)
   }
   
   // create link states
-  const std::vector<KinematicModel::LinkModel*>& link_model_vector = kinematic_model_->getLinkModels();
+  const std::vector<const KinematicModel::LinkModel*>& link_model_vector = kinematic_model_->getLinkModels();
   link_state_vector_.resize(link_model_vector.size());
   for (unsigned int i = 0; i < link_model_vector.size(); ++i)
   {

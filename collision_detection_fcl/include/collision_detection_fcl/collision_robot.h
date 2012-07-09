@@ -91,9 +91,9 @@ namespace collision_detection
     double distanceOtherHelper(const planning_models::KinematicState &state, const CollisionRobot &other_robot,
                                const planning_models::KinematicState &other_state, const AllowedCollisionMatrix *acm) const;
     
-    std::vector<planning_models::KinematicModel::LinkModel*> links_;
-    std::vector<FCLGeometryConstPtr>                         geoms_;
-    std::map<std::string, std::size_t>                       index_map_;
+    std::vector<const planning_models::KinematicModel::LinkModel*> links_;
+    std::vector<FCLGeometryConstPtr>                               geoms_;
+    std::map<std::string, std::size_t>                             index_map_;
   };
 
 }

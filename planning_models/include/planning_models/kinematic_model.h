@@ -149,7 +149,14 @@ public:
   
   /** \brief Get the array of joints, in the order they appear
       in the robot state. */
-  const std::vector<JointModel*>& getJointModels(void) const
+  const std::vector<const JointModel*>& getJointModels(void) const
+  {
+    return joint_model_vector_const_;
+  }
+
+  /** \brief Get the array of joints, in the order they appear
+      in the robot state. */
+  const std::vector<JointModel*>& getJointModels(void)
   {
     return joint_model_vector_;
   }
@@ -160,9 +167,14 @@ public:
     return joint_model_names_vector_;
   }
   
-  /** \brief Get the array of joints, in the order they should be
-      updated*/
-  const std::vector<LinkModel*>& getLinkModels(void) const
+  /** \brief Get the array of links  */
+  const std::vector<const LinkModel*>& getLinkModels(void) const
+  {
+    return link_model_vector_const_;
+  }
+
+  /** \brief Get the array of links  */
+  const std::vector<LinkModel*>& getLinkModels(void)
   {
     return link_model_vector_;
   }
@@ -304,6 +316,9 @@ protected:
   /** \brief The vector of links that are updated when computeTransforms() is called, in the order they are updated */
   std::vector<LinkModel*>                   link_model_vector_;
   
+  /** \brief The vector of links that are updated when computeTransforms() is called, in the order they are updated */
+  std::vector<const LinkModel*>             link_model_vector_const_;
+  
   /** \brief The vector of link names that corresponds to link_model_vector_ */
   std::vector<std::string>                  link_model_names_vector_;
   
@@ -318,6 +333,9 @@ protected:
   
   /** \brief The vector of joints in the model, in the order they appear in the state vector */
   std::vector<JointModel*>                  joint_model_vector_;
+
+  /** \brief The vector of joints in the model, in the order they appear in the state vector */
+  std::vector<const JointModel*>            joint_model_vector_const_;
   
   /** \brief The vector of joint names that corresponds to joint_model_vector_ */
   std::vector<std::string>                  joint_model_names_vector_;

@@ -600,12 +600,14 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::bu
   joint_model_map_[joint->name_] = joint;
   joint->tree_index_ = joint_model_vector_.size();
   joint_model_vector_.push_back(joint);
+  joint_model_vector_const_.push_back(joint);
   joint_model_names_vector_.push_back(joint->getName());
   joint->parent_link_model_ = parent;
   joint->child_link_model_ = constructLinkModel(link, parent_map);
   link_model_map_[joint->child_link_model_->name_] = joint->child_link_model_;
   joint->child_link_model_->tree_index_ = link_model_vector_.size();
   link_model_vector_.push_back(joint->child_link_model_);
+  link_model_vector_const_.push_back(joint->child_link_model_);
   link_model_names_vector_.push_back(link_model_vector_.back()->getName());
   if (joint->child_link_model_->shape_)
   {

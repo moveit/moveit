@@ -1353,19 +1353,19 @@ bool planning_scene::PlanningScene::isStateConstrained(const planning_models::Ki
   if (ks->empty())
     return true;
   else
-    return isStateConstrained(state, ks, verbose);
+    return isStateConstrained(state, *ks, verbose);
 }
 
-bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState &state, const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose) const
+bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState &state, const kinematic_constraints::KinematicConstraintSet &constr, bool verbose) const
 {
   planning_models::KinematicState s(getCurrentState());
   planning_models::robotStateToKinematicState(*getTransforms(), state, s);
   return isStateConstrained(s, constr, verbose);
 }
 
-bool planning_scene::PlanningScene::isStateConstrained(const planning_models::KinematicState &state,  const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose) const
+bool planning_scene::PlanningScene::isStateConstrained(const planning_models::KinematicState &state,  const kinematic_constraints::KinematicConstraintSet &constr, bool verbose) const
 { 
-  return constr->decide(state, verbose).satisfied;
+  return constr.decide(state, verbose).satisfied;
 }
 
 bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, bool verbose) const
@@ -1396,7 +1396,7 @@ bool planning_scene::PlanningScene::isStateValid(const planning_models::Kinemati
   return isStateConstrained(state, constr, verbose);
 }
 
-bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, const kinematic_constraints::KinematicConstraintSetConstPtr &constr, bool verbose) const
+bool planning_scene::PlanningScene::isStateValid(const planning_models::KinematicState &state, const kinematic_constraints::KinematicConstraintSet &constr, bool verbose) const
 {
   if (isStateColliding(state, verbose))
     return false;
