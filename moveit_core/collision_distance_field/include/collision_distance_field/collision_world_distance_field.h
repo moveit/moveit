@@ -118,19 +118,19 @@ public:
   //   return last_gsr_;
   // }
 
-  boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>  
-  getCollisionGradients(const collision_detection::CollisionRequest &req, 
+  void getCollisionGradients(const collision_detection::CollisionRequest &req, 
+                             collision_detection::CollisionResult &res, 
+                             const collision_detection::CollisionRobot &robot, 
+                             const planning_models::KinematicState &state, 
+                             const collision_detection::AllowedCollisionMatrix* acm,
+                             boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+  void getAllCollisions(const collision_detection::CollisionRequest &req, 
                         collision_detection::CollisionResult &res, 
                         const collision_detection::CollisionRobot &robot, 
                         const planning_models::KinematicState &state, 
-                        const collision_detection::AllowedCollisionMatrix* acm) const;
-
-  boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>  
-  getAllCollisions(const collision_detection::CollisionRequest &req, 
-                   collision_detection::CollisionResult &res, 
-                   const collision_detection::CollisionRobot &robot, 
-                   const planning_models::KinematicState &state, 
-                   const collision_detection::AllowedCollisionMatrix* acm) const;
+                        const collision_detection::AllowedCollisionMatrix* acm,
+                        boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
 protected:
 
@@ -144,16 +144,14 @@ protected:
 
   bool getEnvironmentCollisions(const collision_detection::CollisionRequest& req,
                                 collision_detection::CollisionResult& res,
-                                const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
-                                boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>& gsr,
-                                const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field) const;
+                                const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field,
+                                boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+  
 
 
-
-  bool getEnvironmentProximityGradients(const boost::shared_ptr<const CollisionRobotDistanceField::DistanceFieldCacheEntry>& dfce,
-                                        boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation>& gsr,
-                                        const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field) const;
-
+  bool getEnvironmentProximityGradients(const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field,
+                                        boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+                                        
   double size_x_;
   double size_y_;
   double size_z_;

@@ -88,17 +88,17 @@ void ChompOptimizer::initialize()
   collision_detection::CollisionResult res;
   req.group_name = planning_group_;
   ros::WallTime wt = ros::WallTime::now();
-  boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> gsr =
-    distance_field_world_->getCollisionGradients(req,
-                                                 res,
-                                                 *planning_scene_->getCollisionRobot().get(),
-                                                 state_,
-                                                 &planning_scene_->getAllowedCollisionMatrix());
+  distance_field_world_->getCollisionGradients(req,
+                                               res,
+                                               *planning_scene_->getCollisionRobot().get(),
+                                               state_,
+                                               &planning_scene_->getAllowedCollisionMatrix(),
+                                               gsr_);
   ROS_INFO_STREAM("First coll check took " << (ros::WallTime::now()-wt));
   num_collision_points_ = 0;
-  for(size_t i = 0; i < gsr->gradients_.size(); i++)
+  for(size_t i = 0; i < gsr_->gradients_.size(); i++)
   {
-    num_collision_points_ += gsr->gradients_[i].gradients.size();
+    num_collision_points_ += gsr_->gradients_[i].gradients.size();
   }
   
   // set up the joint costs:
@@ -238,9 +238,9 @@ void ChompOptimizer::initialize()
   for(int i = start; i <= end; ++i)
   {
     size_t j = 0;
-    for(size_t g = 0; g < gsr->gradients_.size(); g++)
+    for(size_t g = 0; g < gsr_->gradients_.size(); g++)
     {
-      collision_distance_field::GradientInfo& info = gsr->gradients_[g];
+      collision_distance_field::GradientInfo& info = gsr_->gradients_[g];
       
       for(size_t k = 0; k < info.sphere_locations.size(); k++)
       {
@@ -906,12 +906,13 @@ void ChompOptimizer::performForwardKinematics()
     req.group_name = planning_group_;
     setRobotStateFromPoint(group_trajectory_, i);
     ros::WallTime grad = ros::WallTime::now();
-    boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> gsr =
-      distance_field_world_->getCollisionGradients(req,
-                                                   res,
-                                                   *planning_scene_->getCollisionRobot().get(),
-                                                   state_,
-                                                   NULL);
+    
+    distance_field_world_->getCollisionGradients(req,
+                                                 res,
+                                                 *planning_scene_->getCollisionRobot().get(),
+                                                 state_,
+                                                 NULL,
+                                                 gsr_);
     total_dur += (ros::WallTime::now()-grad);
     computeJointProperties(i);
     state_is_in_collision_[i] = false;
@@ -919,9 +920,9 @@ void ChompOptimizer::performForwardKinematics()
     //Keep vars in scope
     {
       size_t j = 0;
-      for(size_t g = 0; g < gsr->gradients_.size(); g++)
+      for(size_t g = 0; g < gsr_->gradients_.size(); g++)
       {
-        collision_distance_field::GradientInfo& info = gsr->gradients_[g];
+        collision_distance_field::GradientInfo& info = gsr_->gradients_[g];
 
         for(size_t k = 0; k < info.sphere_locations.size(); k++)
         {

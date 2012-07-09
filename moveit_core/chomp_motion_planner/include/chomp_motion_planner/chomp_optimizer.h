@@ -134,6 +134,7 @@ private:
 
   std::vector<ChompCost> joint_costs_;
   const collision_distance_field::CollisionWorldDistanceField* distance_field_world_;
+  boost::shared_ptr<collision_distance_field::GroupStateRepresentation> gsr_;
   bool initialized_;
 
   std::vector<std::vector<std::string> > collision_point_joint_names_;
