@@ -810,10 +810,16 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
   {
     // if we consider the kinematic tree as in the URDF, then we just take the transform as is
     if (urdf_link->parent_joint.get() == pmi->second.second)
+    {
       result->joint_origin_transform_ = urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform);
+      result->reverse_joint_ = false;
+    }
     else
+    {
       // if not, it means we are viewing the transform in reverse, so we take the inverse:
-      result->joint_origin_transform_ = urdfPose2Affine3d(pmi->second.second->parent_to_joint_origin_transform).inverse();
+      result->joint_origin_transform_ = urdfPose2Affine3d(pmi->second.second->parent_to_joint_origin_transform);
+      result->reverse_joint_ = true;
+    }
     
     // normally, we have ChildLinkTF = ParentLinkTF * JOrigin
     // when we reverse this, ParentLinkTF becomes the child of ChildLinkTF
