@@ -496,12 +496,4 @@ void ComputeDefaultCollisionsWidget::linkPairsToSRDF()
 
 }
 
-// ******************************************************************************************
-// Timer call for letting ROS spin
-// ******************************************************************************************
-void ComputeDefaultCollisionsWidget::updateTimer()
-{
-  ros::spinOnce(); // keep ROS alive
-}
-
 }

@@ -65,9 +65,9 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   : QWidget( parent )
 {
   // Create timer to ping ROS ----------------------------------------
-  /*QTimer *update_timer = new QTimer( this );
-    connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
-    update_timer->start( 250 );*/
+  //  QTimer *update_timer = new QTimer( this );
+  //  connect( update_timer, SIGNAL( timeout() ), this, SLOT( updateTimer() ));
+  //  update_timer->start( 250 );
   
   // Create object to hold all moveit configuration data
   config_data_.reset( new MoveItConfigData() );
@@ -177,8 +177,9 @@ void SetupAssistantWidget::moveToScreen( const int index )
 // ******************************************************************************************
 void SetupAssistantWidget::progressPastStartScreen()
 {
+  std::cout << "Progress past start screen" << std::endl;
   // Load all widgets ------------------------------------------------
-
+  
   // Self-Collisions
   cdcw_ = new ComputeDefaultCollisionsWidget( this, config_data_);
   main_content_->addWidget(cdcw_);
@@ -220,8 +221,9 @@ void SetupAssistantWidget::progressPastStartScreen()
   navs_view_->setDisabled( false );
 
   // Load Rviz
-  loadRviz();
+  loadRviz(); //TODO enable this
 
+  std::cout << "Done progress past start screen" << std::endl;
 }
 
 // ******************************************************************************************
@@ -229,7 +231,7 @@ void SetupAssistantWidget::progressPastStartScreen()
 // ******************************************************************************************
 void SetupAssistantWidget::updateTimer()
 {
-  ros::spinOnce(); // keep ROS alive
+  ros::spinOnce(); // keep ROS node alive
 }
 
 // ******************************************************************************************
@@ -239,7 +241,7 @@ void SetupAssistantWidget::loadRviz()
 {
   // Create rviz frame
   rviz_frame_ = new rviz::VisualizationPanel();
-  //rviz_frame_->setMinimumWidth( 300 );
+  rviz_frame_->setMinimumWidth( 800 );
 
   // Turn on interactive mode
   // EGJ: kind of hacky way to do this, given the way that the vis manager is creating tools
@@ -268,6 +270,9 @@ void SetupAssistantWidget::loadRviz()
   // Turn off planned path
   planning_display->setVisualVisible( false );
 
+  // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
+  planning_display->setPlanningSceneTopic( MOVEIT_PLANNING_SCENE );
+
   // Set robot description
   planning_display->setRobotDescription( ROBOT_DESCRIPTION );
 
@@ -282,9 +287,6 @@ void SetupAssistantWidget::loadRviz()
   else 
   {
     orbit_view->zoom(14.0);
-    //orbit_view->move(10.0, 0, .5);
-    //Ogre::Vector3 p(0,0,.5);
-    //orbit_view->lookAt(p);
   }
   
   // Add RobotModel Display to Rviz
@@ -297,7 +299,6 @@ void SetupAssistantWidget::loadRviz()
   rviz::MarkerDisplay* md = dynamic_cast<rviz::MarkerDisplay*>(marker_display->getDisplay());
   1  // Set Marker Topic Name
   md->setMarkerTopic(VIS_TOPIC_NAME);
-
   // Add Interactive Marker Display to Rviz
   rviz::DisplayWrapper* interactive_marker_display = rviz_frame_->getManager()->
   createDisplay("rviz/InteractiveMarker", "Interactive Markers", true);
@@ -312,6 +313,7 @@ void SetupAssistantWidget::loadRviz()
   QVBoxLayout *rviz_layout = new QVBoxLayout();
   rviz_layout->addWidget( rviz_frame_ );
   rviz_container_->setLayout( rviz_layout );
+
 }
 
 // ******************************************************************************************
@@ -319,12 +321,10 @@ void SetupAssistantWidget::loadRviz()
 // ******************************************************************************************
 void SetupAssistantWidget::showRviz( bool show )
 {
-  /*
   QList<int> sizes;
   sizes.push_back(0);
   sizes.push_back(1000);
   rviz_frame_->setSizes(sizes); 
-  */
 }
 
 // ******************************************************************************************

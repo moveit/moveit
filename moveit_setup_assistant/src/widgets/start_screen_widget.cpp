@@ -34,6 +34,7 @@
 
 /* Author: Dave Coleman */
 
+// Qt
 #include <QLabel>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -41,14 +42,17 @@
 #include <QMessageBox>
 #include <QString>
 #include <QFont>
+// ROS
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loading images
 #include <ros/master.h> // for checking if roscore is started
+// SA
+#include "header_widget.h" // title and instructions
+#include "start_screen_widget.h"
+// C
 #include <fstream>  // for reading in urdf
 #include <streambuf>
 #include <boost/algorithm/string.hpp> // for trimming whitespace from user input
-#include "header_widget.h" // title and instructions
-#include "start_screen_widget.h"
 
 namespace moveit_setup_assistant
 {
@@ -152,14 +156,14 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
 
-  if( config_data_->debug_ )
+  if( config_data_->debug_ && true )
   {
     select_mode_->btn_new_->click();
 
     QTimer *update_timer = new QTimer( this );
     update_timer->setSingleShot( true ); // only run once
     connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
-    update_timer->start( 10 );  
+    update_timer->start( 100 );  
   }
 }
 
@@ -233,11 +237,15 @@ void StartScreenWidget::loadFiles()
   urdf_string.assign((std::istreambuf_iterator<char>(urdf_stream)),
                      std::istreambuf_iterator<char>());  
 
+
+
+  ROS_INFO_STREAM( "LOADING ROBOT MODEL: ");
+
   // Verify that file is in correct format / not an XACRO by loading into robot model
   if( !config_data_->urdf_model_.initString( urdf_string ) )
   {
     QMessageBox::warning( this, "Error Loading Files", 
-                           "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
+                          "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
     return;
   }
   else
@@ -248,24 +256,30 @@ void StartScreenWidget::loadFiles()
     config_data_->urdf_path_ = urdf_string;
   }
 
+
   // Check that ROS Core is running
-  if( ! ros::master::check() )
+   if( ! ros::master::check() )
   {
     // roscore is not running
     QMessageBox::warning( this, "ROS Error", 
-                           "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
+                          "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
     return;
   }
 
+  std::cout << "Getting node handle" << std::endl;
+
   // Load the robot model to the parameter server
   ros::NodeHandle nh;
-  ros::spinOnce();
-  ros::spinOnce();
-  ros::spinOnce();
-  nh.setParam("/robot_description", urdf_string);
-  ros::spinOnce();
+  while (!nh.ok())
+  {
+    std::cout << "stuff is not OK\n";
+    sleep(1);
+    ros::spinOnce(); 
+  }
 
-
+  std::cout << "Setting Param Server" << std::endl;
+  //nh.setParam("/robot_description", urdf_string);
+  
   // SRDF -----------------------------------------------------
   std::string srdf_path = srdf_file_->getPath();
 
@@ -280,7 +294,7 @@ void StartScreenWidget::loadFiles()
     if( !srdf_stream.good() ) // File not found
     {
       QMessageBox::warning( this, "Error Loading Files", 
-                             "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
+                            "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
       return;
     }
       
@@ -297,7 +311,7 @@ void StartScreenWidget::loadFiles()
     if( !config_data_->srdf_->initString( config_data_->urdf_model_, srdf_string ) )
     {
       QMessageBox::warning( this, "Error Loading Files", 
-                             "SRDF file not a valid semantic robot description model." );
+                            "SRDF file not a valid semantic robot description model." );
       return;
     }
     else
@@ -307,12 +321,13 @@ void StartScreenWidget::loadFiles()
       // Copy path to config data
       config_data_->srdf_path_ = srdf_string;
     }
+  
+    std::cout << "Setting Param Server - Semantic" << std::endl;
 
     // Load the robot model to the parameter server
-    ros::NodeHandle nh;
-    ros::spinOnce();
     nh.setParam("/robot_description_semantic", srdf_string);
-    ros::spinOnce();
+
+    std::cout << "Done Param Server" << std::endl;
   }
 
   // Call a function that enables navigation and goes to screen 2
@@ -324,6 +339,8 @@ void StartScreenWidget::loadFiles()
   stack_path_->setDisabled(true);
   select_mode_->setDisabled(true);
   btn_load_->hide();
+
+  std::cout << "Loading COMPLETE" << std::endl;
 }
 
 // ******************************************************************************************

@@ -100,5 +100,18 @@ const planning_models::KinematicModelConstPtr& MoveItConfigData::getKinematicMod
   return kin_model_;
 }
 
+// ******************************************************************************************
+// Share the same node handle throughout the application
+// ******************************************************************************************
+/*ros::NodeHandle& MoveItConfigData::getNodeHandle()
+{
+  // Load if necessary
+  if( !nh_ )
+  {
+    nh_ = new ros::NodeHandle();
+  }
+  return *nh_;
+  }*/
+
 
 }
