@@ -1,8 +1,0 @@
-\subsubsection usage Usage
-\verbatim
-<node name="planning_scene_monitor" pkg="planning_scene_monitor" type="planning_scene_monitor">
-  <param name="publish_planning_scene" type="bool" value="False" />
-  <param name="publish_planning_scene_hz" type="double" value="2.0" />
-</node>
-\endverbatim
-
