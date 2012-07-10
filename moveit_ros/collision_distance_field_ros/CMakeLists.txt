@@ -7,32 +7,24 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE Debug)
+#set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
-
-rosbuild_add_boost_directories()
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+#uncomment if you have defined messages
+#rosbuild_genmsg()
+#uncomment if you have defined services
+#rosbuild_gensrv()
 
-set(SOURCE_FILES
-  src/empty.cpp
-  src/fix_start_state_bounds.cpp
-  src/fix_start_state_collision.cpp
-  src/fix_start_state_path_constraints.cpp
-  src/fix_workspace_bounds.cpp
-  src/add_time_parameterization.cpp)
-
-set(LIBRARY_NAME default_planning_request_adapters)
-include(CMakeDetermineSystem)
-if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  rosbuild_add_library_module(${LIBRARY_NAME} ${SOURCE_FILES})
-else(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  rosbuild_add_library(${LIBRARY_NAME} ${SOURCE_FILES})
-endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-
-rosbuild_add_executable(list_plugins src/list.cpp)
+#common commands for building c++ executables and libraries
+#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
+#target_link_libraries(${PROJECT_NAME} another_library)
+#rosbuild_add_boost_directories()
+#rosbuild_link_boost(${PROJECT_NAME} thread)
+#rosbuild_add_executable(example examples/example.cpp)
+#target_link_libraries(example ${PROJECT_NAME})

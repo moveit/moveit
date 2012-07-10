@@ -102,8 +102,15 @@ public:
   bool haveCompleteState(const ros::Duration &age, std::vector<std::string> &missing_states) const;
   
   /** @brief Get the current state
-   *  @return Returns the current state*/
+   *  @return Returns the current state */
   planning_models::KinematicStatePtr getCurrentState(void) const;
+  
+  /** @brief Get the time stamp for the current state */
+  ros::Time getCurrentStateTime(void) const;
+
+  /** @brief Get the current state and its time stamp
+   *  @return Returns a pair of the current state and its time stamp */
+  std::pair<planning_models::KinematicStatePtr, ros::Time> getCurrentStateAndTime(void) const;
   
   /** @brief Get the current state values as a map from joint names to joint state values
    *  @return Returns the map from joint names to joint state values*/
@@ -143,6 +150,7 @@ private:
   bool                                         state_monitor_started_;
   double                                       error_;
   ros::Subscriber                              joint_state_subscriber_;
+  ros::Time                                    current_state_time_;
   
   mutable boost::mutex                         state_update_lock_;
   JointStateUpdateCallback                     on_state_update_callback_;

@@ -15,6 +15,7 @@
   <depend package="moveit_msgs"/>
   <depend package="sensor_msgs"/>
   <depend package="message_filters"/>
+  <depend package="trajectory_processing"/>
   <depend package="tf"/>
   <depend package="tf_conversions"/>
   <depend package="dynamic_reconfigure"/>

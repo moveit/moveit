@@ -37,10 +37,12 @@
 
 #include <tf/transform_listener.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
-#include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
+#include <planning_scene_monitor/trajectory_monitor.h>
+#include <trajectory_execution_manager/trajectory_execution_manager.h>
 #include <planning_pipeline/planning_pipeline.h>
 #include <kinematic_constraints/utils.h>
 #include <trajectory_processing/trajectory_tools.h>
+#include <planning_models/conversions.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";
@@ -58,20 +60,18 @@ public:
     };
   
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorConstPtr& psm) : 
-    node_handle_("~"), planning_scene_monitor_(psm), planning_pipeline_(psm->getPlanningScene()->getKinematicModel()), state_(IDLE)
+    node_handle_("~"), planning_scene_monitor_(psm), trajectory_monitor_(psm->getStateMonitor(), 10.0),
+    planning_pipeline_(psm->getPlanningScene()->getKinematicModel()), state_(IDLE)
   {
     bool allow_trajectory_execution = true;
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
     
     if (allow_trajectory_execution)
-    {
-      bool manage_controllers = false;
-      //      node_handle_.param("manage_controllers", manage_controllers, true);
-      trajectory_execution_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(planning_scene_monitor_->getPlanningScene()->getKinematicModel(),
-                                                                                              manage_controllers));
-    }
+      trajectory_execution_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
     planning_pipeline_.displayComputedMotionPlans(true);
     planning_pipeline_.checkSolutionPaths(true);
+
+    trajectory_monitor_.setOnStateAddCallback(boost::bind(&MoveGroupAction::newMonitoredStateCallback, this, _1, _2));
     
     // start the action server
     action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_node_handle_, NODE_NAME, boost::bind(&MoveGroupAction::executeCallback, this, _1), false));
@@ -81,15 +81,22 @@ public:
     // start the service server
     plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlan, this);
   }
-
   
+  void status(void)
+  {
+    ROS_INFO_STREAM("MoveGroup action running using planning plugin " << planning_pipeline_.getPlannerPluginName());
+  }
+  
+private:
+
   void preemptCallback(void)
   {
     preempt_requested_ = true;
   }
   
   void executeCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
-  {
+  {   
+    preempt_requested_ = false;
     moveit_msgs::MoveGroupResult action_res;
     moveit_msgs::GetMotionPlan::Request mreq;
     mreq.motion_plan_request = goal->request;
@@ -98,7 +105,7 @@ public:
       ROS_WARN_STREAM("Must specify group in motion plan request");
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
       action_server_->setAborted(action_res, "Must specify group in motion plan request");
-      setState(IDLE);
+      setState(IDLE, 0.0);
       return;    
     }
     
@@ -111,11 +118,11 @@ public:
         
         action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
         action_server_->setSucceeded(action_res, "Requested path and goal constraints are already met.");
-        setState(IDLE);
+        setState(IDLE, 0.0);
         return;
       }
     
-    setState(PLANNING);
+    setState(PLANNING, 0.1);
     moveit_msgs::GetMotionPlan::Response mres;
     const planning_scene::PlanningSceneConstPtr &the_scene = 
       planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff) ? planning_scene_monitor_->getPlanningScene() :
@@ -135,7 +142,7 @@ public:
 	action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
 	action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
       }
-      setState(IDLE);
+      setState(IDLE, 0.0);
       return;
     }
 
@@ -148,83 +155,126 @@ public:
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
       action_server_->setSucceeded(action_res, "Solution was found and returned but not executed.");
-      setState(IDLE);
+      setState(IDLE, 0.0);
       return;
     }
     
-    setState(MONITOR);
     execution_complete_ = false;
-    
-    ROS_INFO_STREAM("Sending joint trajectory");
 
-    trajectory_execution::TrajectoryExecutionRequest ter;
-    ter.group_name_ = mreq.motion_plan_request.group_name;      
-    ter.trajectory_ = mres.trajectory.joint_trajectory; // \TODO This should take in a RobotTrajectory
-    if (trajectory_execution_->executeTrajectory(ter, boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1)))
+    if (trajectory_execution_->push(mres.trajectory))
     {
-      ros::WallDuration d(0.01);
-      while (node_handle_.ok() && !execution_complete_ && !preempt_requested_)
+      trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
+      currently_executed_trajectory_index_ = 0;
+      setState(MONITOR, trajectory_processing::getTrajectoryDuration(mres.trajectory));
+      trajectory_monitor_.startTrajectoryMonitor();
+     
+      trajectory_execution_->execute(boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1));
+      
+      // wait for path to be done, while checking that the path does not become invalid
+      static const ros::WallDuration d(0.01);
+      bool path_became_invalid = false;
+      kinematic_constraints::KinematicConstraintSet path_constraints(the_scene->getKinematicModel(), the_scene->getTransforms());
+      path_constraints.add(mreq.motion_plan_request.path_constraints);
+      while (node_handle_.ok() && !execution_complete_ && !preempt_requested_ && !path_became_invalid)
       {
-        /// \TODO Check if the remainder of the path is still valid; If not, replan.
-        /// We need a callback in the trajectory monitor for this
-        d.sleep();
-      } 
+        d.sleep(); 
+        for (std::size_t i = currently_executed_trajectory_index_ ; i < currently_executed_trajectory_states_.size() ; ++i)
+          if (!the_scene->isStateValid(*currently_executed_trajectory_states_[i], path_constraints, false))
+          {
+            the_scene->isStateValid(*currently_executed_trajectory_states_[i], path_constraints, true);
+            path_became_invalid = true;
+            break;
+          }
+      }
+      
       if (preempt_requested_)
       {
-	// \TODO preempt controller somehow
+        ROS_INFO("Stopping execution due to preemt request");
+        trajectory_execution_->stopExecution();
       }
-      if(last_trajectory_execution_data_vector_.size() == 0)
+      else
+        if (path_became_invalid)
+        {
+          ROS_INFO("Stopping execution because the path to execute became invalid (probably the environment changed)");
+          trajectory_execution_->stopExecution();
+        }
+
+      trajectory_monitor_.stopTrajectoryMonitor();
+      currently_executed_trajectory_states_.clear();
+      trajectory_monitor_.getTrajectory(action_res.executed_trajectory);
+
+      if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
       {
-        ROS_WARN_STREAM("No recorded trajectory for execution");
+        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+        action_server_->setSucceeded(action_res, "Solution was found and executed.");
       } 
       else
       {
-        action_res.executed_trajectory.joint_trajectory = last_trajectory_execution_data_vector_[0].recorded_trajectory_;
-        if (last_trajectory_execution_data_vector_[0].result_ == trajectory_execution::SUCCEEDED)
+        if (path_became_invalid)
         {
-          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-          action_server_->setSucceeded(action_res, "Solution was found and executed.");
-        } 
+          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+          action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
+        }
         else
         {
-          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+          if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
+            action_res.error_code.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+          else
+            action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
           action_server_->setAborted(action_res, "Solution found but controller failed during execution");
         }
       }
     }
-    
     else
     {
       ROS_INFO_STREAM("Apparently trajectory initialization failed");
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
       action_server_->setAborted(action_res, "Solution found but could not initiate trajectory execution");
     }
-    setState(IDLE);
+    setState(IDLE, 0.0);
   }
   
-  bool doneWithTrajectoryExecution(trajectory_execution::TrajectoryExecutionDataVector data)
+  void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus &status)
   {
-    last_trajectory_execution_data_vector_ = data;
     execution_complete_ = true;
-    return true;
   }
   
-  void setState(MoveGroupState state)
+  void newMonitoredStateCallback(const planning_models::KinematicStateConstPtr &state, const ros::Time &stamp)
+  {           
+    // find the index where the distance to the current state starts increasing
+    double dist = currently_executed_trajectory_states_[currently_executed_trajectory_index_]->distance(*state);
+    for (std::size_t i = currently_executed_trajectory_index_ + 1 ; i < currently_executed_trajectory_states_.size() ; ++i)
+    {
+      double d = currently_executed_trajectory_states_[i]->distance(*state);
+      if (d >= dist)
+      {
+        currently_executed_trajectory_index_ = i - 1;
+        break;
+      }
+      else
+        dist = d;
+    }
+    std::pair<int, int> expected = trajectory_execution_->getCurrentExpectedTrajectoryIndex();
+
+    ROS_DEBUG("Controller seems to be at state %lu of %lu. Trajectory execution manager expects the index to be %d.", currently_executed_trajectory_index_ + 1, currently_executed_trajectory_states_.size(), expected.second);
+  }
+  
+  void setState(MoveGroupState state, double duration)
   {
     state_ = state;
     switch (state_)
     {
     case IDLE:
       feedback_.state = "IDLE";
-      feedback_.time_to_completion = ros::Duration(0.0);
+      feedback_.time_to_completion = ros::Duration(duration);
       break;
     case PLANNING:
       feedback_.state = "PLANNING";
-      feedback_.time_to_completion = ros::Duration(0.0);
+      feedback_.time_to_completion = ros::Duration(duration);
       break;
     case MONITOR:
       feedback_.state = "MONITOR";
-      feedback_.time_to_completion = ros::Duration(0.0);
+      feedback_.time_to_completion = ros::Duration(duration);
       break;
     }
     action_server_->publishFeedback(feedback_);
@@ -235,17 +285,13 @@ public:
     ROS_INFO("Received new planning service request...");
     return planning_pipeline_.generatePlan(planning_scene_monitor_->getPlanningScene(), req, res);
   }
-  
-  void status(void)
-  {
-    ROS_INFO_STREAM("MoveGroup action running using planning plugin " << planning_pipeline_.getPlannerPluginName());
-  }
-  
-private:
-  
+   
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorConstPtr planning_scene_monitor_;
+  planning_scene_monitor::TrajectoryMonitor trajectory_monitor_;
+  std::vector<planning_models::KinematicStatePtr> currently_executed_trajectory_states_;
+  std::size_t currently_executed_trajectory_index_;
   
   planning_pipeline::PlanningPipeline planning_pipeline_;
   
@@ -254,11 +300,10 @@ private:
   
   ros::ServiceServer plan_service_;
   
-  boost::shared_ptr<trajectory_execution_ros::TrajectoryExecutionMonitorRos> trajectory_execution_;  
+  boost::scoped_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_;  
   bool preempt_requested_;
   bool execution_complete_;
   MoveGroupState state_;
-  trajectory_execution::TrajectoryExecutionDataVector last_trajectory_execution_data_vector_;  
 };
 
 
