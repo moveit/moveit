@@ -103,7 +103,7 @@ const planning_models::KinematicModelConstPtr& MoveItConfigData::getKinematicMod
 // ******************************************************************************************
 // Share the same node handle throughout the application
 // ******************************************************************************************
-ros::NodeHandle& MoveItConfigData::getNodeHandle()
+/*ros::NodeHandle& MoveItConfigData::getNodeHandle()
 {
   // Load if necessary
   if( !nh_ )
@@ -111,7 +111,7 @@ ros::NodeHandle& MoveItConfigData::getNodeHandle()
     nh_ = new ros::NodeHandle();
   }
   return *nh_;
-}
+  }*/
 
 
 }

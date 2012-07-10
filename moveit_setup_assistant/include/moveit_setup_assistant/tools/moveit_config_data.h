@@ -95,7 +95,7 @@ public:
   const planning_models::KinematicModelConstPtr& getKinematicModel();
 
   /// Share the same node handle throughout the application
-  ros::NodeHandle& getNodeHandle();
+  //ros::NodeHandle& getNodeHandle();
 
 
 private:
@@ -114,7 +114,7 @@ private:
   planning_models::KinematicModelConstPtr kin_model_;
 
   // Shared node handle
-  ros::NodeHandle *nh_;
+  //  ros::NodeHandle *nh_;
   
 };
 
