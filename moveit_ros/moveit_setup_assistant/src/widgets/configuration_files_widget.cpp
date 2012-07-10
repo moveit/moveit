@@ -302,7 +302,7 @@ void ConfigurationFilesWidget::savePackage()
   action_list_->setCurrentRow( 0 );
 
   // Create SRDF file -----------------------------------------------------------------
-  const std::string srdf_file = config_data_->urdf_model_.getName() + ".srdf";
+  const std::string srdf_file = config_data_->urdf_model_->getName() + ".srdf";
   const std::string srdf_path = config_path + "/" + srdf_file;
 
   if ( !config_data_->srdf_->writeSRDF( srdf_path ) )

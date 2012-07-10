@@ -44,11 +44,13 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 MoveItConfigData::MoveItConfigData()
 {
-  // Create an instance of SRDF writer for all widgets to share
+  // Create an instance of SRDF writer and URDF model for all widgets to share
   srdf_.reset( new SRDFWriter() );
+  urdf_model_.reset( new urdf::Model() );
 
   // Not in debug mode
   debug_ = false;
+ 
 }
 
 // ******************************************************************************************
@@ -59,59 +61,49 @@ MoveItConfigData::~MoveItConfigData()
 }
 
 // ******************************************************************************************
-// Provide a shared kinematic model loader
+// Provide a kinematic model. Load a new one if necessary
 // ******************************************************************************************
-planning_models_loader::KinematicModelLoaderPtr MoveItConfigData::getKinematicModelLoader()
+planning_models::KinematicModelConstPtr MoveItConfigData::getKinematicModel()
 {
-  if( !kin_model_loader_ )
+  if( !kin_model_ )
   {
-    // Customize the loader with options
-    planning_models_loader::KinematicModelLoader::Options opt(ROBOT_DESCRIPTION);
-    opt.load_kinematics_solvers_ = false;
-
-    // Initialize
-    kin_model_loader_.reset(new planning_models_loader::KinematicModelLoader(opt));
+    // Initialize with a URDF Model Interface and a SRDF Model
+    kin_model_.reset( new planning_models::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
   }
+  
+  return kin_model_;
+}
 
-  return kin_model_loader_;
+// ******************************************************************************************
+// Update the Kinematic Model with latest SRDF modifications
+// ******************************************************************************************
+void MoveItConfigData::updateKinematicModel()
+{
+  ROS_INFO( "Updating kinematic model");
+
+  // Tell SRDF Writer to create new SRDF Model, use original URDF model
+  srdf_->updateSRDFModel( *urdf_model_ );
+
+  // Create new kin model
+  kin_model_.reset( new planning_models::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
 }
 
 // ******************************************************************************************
 // Provide a shared planning scene
 // ******************************************************************************************
-planning_scene_monitor::PlanningSceneMonitorPtr MoveItConfigData::getPlanningSceneMonitor()
+planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 {
-  if( !planning_scene_monitor_ )
+  if( !planning_scene_ )
   {
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor( getKinematicModelLoader() ));
+    // Allocate an empty planning scene
+    planning_scene_.reset(new planning_scene::PlanningScene( ));
+
+    // Configure planning scene
+    planning_scene_->configure( urdf_model_, srdf_->srdf_model_ );
   }
-  return planning_scene_monitor_;
+  return planning_scene_;
 }
 
-// ******************************************************************************************
-// Provide a kinematic model. Load a new one if necessary
-// ******************************************************************************************
-const planning_models::KinematicModelConstPtr& MoveItConfigData::getKinematicModel()
-{
-  if (!kin_model_)
-  {
-    kin_model_ = getKinematicModelLoader()->getModel();
-  }
-  return kin_model_;
-}
-
-// ******************************************************************************************
-// Share the same node handle throughout the application
-// ******************************************************************************************
-/*ros::NodeHandle& MoveItConfigData::getNodeHandle()
-{
-  // Load if necessary
-  if( !nh_ )
-  {
-    nh_ = new ros::NodeHandle();
-  }
-  return *nh_;
-  }*/
 
 
-}
+} // namespace
