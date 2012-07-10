@@ -77,7 +77,8 @@ int main(int argc, char **argv)
   moveit_setup_assistant::SetupAssistantWidget saw( NULL, vm );
   saw.setMinimumWidth(1024);
   saw.setMinimumHeight(768);
-  saw.setWindowState( Qt::WindowMaximized );
+  //  saw.setWindowState( Qt::WindowMaximized );
+
   saw.show();
 
   // Wait here until Qt App is finished

@@ -239,10 +239,8 @@ void StartScreenWidget::loadFiles()
 
 
 
-  ROS_INFO_STREAM( "LOADING ROBOT MODEL: ");
-
   // Verify that file is in correct format / not an XACRO by loading into robot model
-  if( !config_data_->urdf_model_.initString( urdf_string ) )
+  if( !config_data_->urdf_model_->initString( urdf_string ) )
   {
     QMessageBox::warning( this, "Error Loading Files", 
                           "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
@@ -250,10 +248,10 @@ void StartScreenWidget::loadFiles()
   }
   else
   {
-    ROS_INFO_STREAM( "Loaded " << config_data_->urdf_model_.getName() << " robot model." );
+    ROS_INFO_STREAM( "Loaded " << config_data_->urdf_model_->getName() << " robot model." );
 
     // Copy path to config data
-    config_data_->urdf_path_ = urdf_string;
+    config_data_->urdf_path_ = urdf_path;
   }
 
 
@@ -266,18 +264,16 @@ void StartScreenWidget::loadFiles()
     return;
   }
 
-  std::cout << "Getting node handle" << std::endl;
-
   // Load the robot model to the parameter server
   ros::NodeHandle nh;
   while (!nh.ok())
   {
-    std::cout << "stuff is not OK\n";
+    ROS_WARN("Waiting for node handle");
     sleep(1);
     ros::spinOnce(); 
   }
 
-  std::cout << "Setting Param Server" << std::endl;
+  ROS_INFO("Setting Param Server with Robot Description");
   //nh.setParam("/robot_description", urdf_string);
   
   // SRDF -----------------------------------------------------
@@ -308,7 +304,7 @@ void StartScreenWidget::loadFiles()
                        std::istreambuf_iterator<char>());  
 
     // Verify that file is in correct format by loading into srdf parser
-    if( !config_data_->srdf_->initString( config_data_->urdf_model_, srdf_string ) )
+    if( !config_data_->srdf_->initString( *config_data_->urdf_model_, srdf_string ) )
     {
       QMessageBox::warning( this, "Error Loading Files", 
                             "SRDF file not a valid semantic robot description model." );
@@ -322,12 +318,11 @@ void StartScreenWidget::loadFiles()
       config_data_->srdf_path_ = srdf_string;
     }
   
-    std::cout << "Setting Param Server - Semantic" << std::endl;
+    ROS_INFO( "Setting Param Server - Semantic" );
 
     // Load the robot model to the parameter server
     nh.setParam("/robot_description_semantic", srdf_string);
 
-    std::cout << "Done Param Server" << std::endl;
   }
 
   // Call a function that enables navigation and goes to screen 2
@@ -340,7 +335,7 @@ void StartScreenWidget::loadFiles()
   select_mode_->setDisabled(true);
   btn_load_->hide();
 
-  std::cout << "Loading COMPLETE" << std::endl;
+  ROS_INFO( "Loading COMPLETE" );
 }
 
 // ******************************************************************************************

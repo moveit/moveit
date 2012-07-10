@@ -155,21 +155,29 @@ void SetupAssistantWidget::navigationClicked( const QModelIndex& index )
 // ******************************************************************************************
 void SetupAssistantWidget::moveToScreen( const int index )
 {
-  // Show Rviz if appropriate
-  if( index != 0 )
-    rviz_container_->show();
-  else
-    rviz_container_->hide();
+  // Use this static variable to prevent double clicks on navigation from slowing down system
+  static int current_index = 0;
 
-  // Change screens
-  main_content_->setCurrentIndex( index );
+  if( current_index != index )
+  {
+    current_index = index;
 
-  // Send the focus given command to the screen widget
-  SetupScreenWidget *ssw = qobject_cast< SetupScreenWidget* >( main_content_->widget( index ) );
-  ssw->focusGiven();  
+    // Show Rviz if appropriate
+    if( index != 0 )
+      rviz_container_->show();
+    else
+      rviz_container_->hide();
 
-  // Change navigation selected option
-  navs_view_->setSelected( index ); // Select first item in list
+    // Change screens
+    main_content_->setCurrentIndex( index );
+
+    // Send the focus given command to the screen widget
+    SetupScreenWidget *ssw = qobject_cast< SetupScreenWidget* >( main_content_->widget( index ) );
+    ssw->focusGiven();  
+
+    // Change navigation selected option
+    navs_view_->setSelected( index ); // Select first item in list
+  }
 }
 
 // ******************************************************************************************
@@ -223,7 +231,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Load Rviz
   loadRviz(); //TODO enable this
 
-  std::cout << "Done progress past start screen" << std::endl;
+  //std::cout << "Done progress past start screen" << std::endl;
 }
 
 // ******************************************************************************************
@@ -254,10 +262,8 @@ void SetupAssistantWidget::loadRviz()
   rviz_frame_->setSizes(sizes); 
 
   // Set the fixed and target frame 
-  rviz_frame_->getManager()->setFixedFrame( config_data_->getPlanningSceneMonitor()->
-                                            getPlanningScene()->getPlanningFrame() );
-  rviz_frame_->getManager()->setTargetFrame( config_data_->getPlanningSceneMonitor()->
-                                             getPlanningScene()->getPlanningFrame() );
+  rviz_frame_->getManager()->setFixedFrame( config_data_->getPlanningScene()->getPlanningFrame() );
+  rviz_frame_->getManager()->setTargetFrame( config_data_->getPlanningScene()->getPlanningFrame() );
 
   // Add Motion Planning Plugin to Rviz
   rviz::DisplayWrapper* display_wrapper = rviz_frame_->getManager()->
