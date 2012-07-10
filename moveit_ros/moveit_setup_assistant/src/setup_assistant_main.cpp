@@ -61,10 +61,15 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  // ROS Spin
-  //ros::AsyncSpinner spinner(1);
-  //spinner.start();
 
+  ros::NodeHandle nh;
+  
+  // ROS Spin
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+
+  //nh.setParam("/robot_description", "caca");
+  
   // Create Qt Application
   QApplication qtApp(argc, argv);
 
@@ -72,8 +77,8 @@ int main(int argc, char **argv)
   moveit_setup_assistant::SetupAssistantWidget saw( NULL, vm );
   saw.setMinimumWidth(1024);
   saw.setMinimumHeight(768);
+  saw.setWindowState( Qt::WindowMaximized );
   saw.show();
-
 
   // Wait here until Qt App is finished
   const int result = qtApp.exec();

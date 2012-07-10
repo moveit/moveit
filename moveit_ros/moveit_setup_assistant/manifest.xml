@@ -15,7 +15,7 @@
   <depend package="planning_scene"/>
   <depend package="planning_scene_monitor"/>
   <depend package="urdf"/>
-  <depend package="rviz"/>
+  <!-- depend package="rviz"/ -->
   <depend package="moveit_rviz_plugin"/>
 
   <export>

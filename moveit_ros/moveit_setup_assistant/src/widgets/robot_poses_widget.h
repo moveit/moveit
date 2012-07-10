@@ -140,6 +140,11 @@ private:
   /// Orignal name of pose currently being edited. This is used to find the element in the vector
   std::string current_edit_pose_;
 
+  /// Holds all the joint slider values
+  std::map<std::string, double> joint_state_map_;
+
+  /// Remember the publisher for quick publishing later
+  ros::Publisher pub_scene_;
 
   // ******************************************************************************************
   // Private Functions
@@ -216,7 +221,8 @@ class SliderWidget : public QWidget
    * @param parent - parent QWidget
    * @param joint_model_ - a ptr reference to the joint this widget represents
    */
-  SliderWidget( QWidget *parent, const planning_models::KinematicModel::JointModel *joint_model_ );
+  SliderWidget( QWidget *parent, const planning_models::KinematicModel::JointModel *joint_model, 
+                double init_value );
 
   /** 
    * Deconstructor
