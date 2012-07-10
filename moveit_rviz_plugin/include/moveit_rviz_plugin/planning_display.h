@@ -147,6 +147,9 @@ public:
   const std::string& getSceneName(void) { return scene_name_; }
   void setSceneName(const std::string &name);
 
+  const std::string& getRootLinkName(void) { return root_link_name_; }
+  void setRootLinkName(const std::string &name);
+
   virtual void update(float wall_dt, float ros_dt);
 
   // Overrides from Display
@@ -220,6 +223,7 @@ protected:
   float scene_display_time_;
   std::string planning_scene_topic_;
   std::string scene_name_;
+  std::string root_link_name_;
 
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
@@ -240,6 +244,7 @@ protected:
   rviz::CategoryPropertyWPtr scene_category_;
   rviz::CategoryPropertyWPtr path_category_;
   rviz::StringPropertyWPtr scene_name_property_;
+  rviz::StringPropertyWPtr root_link_name_property_;
   rviz::BoolPropertyWPtr visual_enabled_property_;
   rviz::BoolPropertyWPtr collision_enabled_property_;
   rviz::BoolPropertyWPtr scene_enabled_property_;
