@@ -49,6 +49,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
+#include <boost/concept_check.hpp>
 
 /** \brief This namespace includes the central class for representing planning contexts */
 namespace planning_scene
@@ -480,7 +481,7 @@ protected:
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
   
   struct CollisionDetectionAllocBase
-  { 
+  {         
     virtual collision_detection::CollisionRobotPtr allocateRobot(const planning_models::KinematicModelConstPtr &kmodel) = 0;
     virtual collision_detection::CollisionRobotPtr allocateRobot(const collision_detection::CollisionRobotConstPtr &copy) = 0;
     virtual collision_detection::CollisionWorldPtr allocateWorld(void) = 0;
@@ -491,6 +492,9 @@ protected:
   template<typename CollisionWorldType, typename CollisionRobotType>
   struct CollisionDetectionAlloc : public CollisionDetectionAllocBase
   {
+    BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionWorldType*, collision_detection::CollisionWorld*>));
+    BOOST_CONCEPT_ASSERT((boost::Convertible<CollisionRobotType*, collision_detection::CollisionRobot*>));
+    
     virtual collision_detection::CollisionRobotPtr allocateRobot(const planning_models::KinematicModelConstPtr &kmodel)
     {
       return collision_detection::CollisionRobotPtr(new CollisionRobotType(kmodel));
