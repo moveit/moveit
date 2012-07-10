@@ -153,6 +153,12 @@ void PlanningDisplay::setSceneName(const std::string &name)
   propertyChanged(scene_name_property_);
 }
 
+void PlanningDisplay::setRootLinkName(const std::string &name)
+{
+  root_link_name_ = name;
+  propertyChanged(root_link_name_property_);
+}
+
 void PlanningDisplay::setRobotDescription(const std::string& description_param)
 {
   description_param_ = description_param;
@@ -567,6 +573,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     render = true;
     offset = true;
     setSceneName(scene_monitor_->getPlanningScene()->getName());
+    setRootLinkName(scene_monitor_->getPlanningScene()->getKinematicModel()->getRootLink()->getName());
     renderPlanningScene();
     current_scene_time_ = 0.0f;
   }
@@ -649,6 +656,11 @@ void PlanningDisplay::createProperties()
                                                                                   boost::bind(&PlanningDisplay::getSceneName, this),
                                                                                   boost::bind(&PlanningDisplay::setSceneName, this, _1), scene_category_, this);
   setPropertyHelpText(scene_name_property_, "Shows the name of the planning scene");
+
+  root_link_name_property_ = property_manager_->createProperty<rviz::StringProperty> ("Robot Root Link", scene_prefix,
+                                                                                      boost::bind(&PlanningDisplay::getRootLinkName, this),
+                                                                                      boost::bind(&PlanningDisplay::setRootLinkName, this, _1), scene_category_, this);
+  setPropertyHelpText(root_link_name_property_, "Shows the name of the root link for the robot model");
   
   scene_enabled_property_ = property_manager_->createProperty<rviz::BoolProperty> ("Show Scene Geometry", scene_prefix,
                                                                                    boost::bind(&PlanningDisplay::getSceneVisible, this),
