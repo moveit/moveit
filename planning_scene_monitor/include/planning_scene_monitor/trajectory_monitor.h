@@ -38,12 +38,13 @@
 #define MOVEIT_PLANNING_SCENE_MONITOR_TRAJECTORY_MONITOR_
 
 #include "planning_scene_monitor/current_state_monitor.h"
+#include <moveit_msgs/RobotTrajectory.h>
 #include <boost/thread.hpp>
 
 namespace planning_scene_monitor
 {
 
-typedef boost::function<void(const planning_models::KinematicStateConstPtr &state)> TrajectoryStateAddedCallback;
+typedef boost::function<void(const planning_models::KinematicStateConstPtr &state, const ros::Time &stamp)> TrajectoryStateAddedCallback;
 
 /** @class TrajectoryMonitor
     @brief Monitors the joint_states topic and tf to record the trajectory of the robot. */
@@ -70,6 +71,14 @@ public:
   {
     return trajectory_states_;
   }
+
+  /// Return the time stamps for the current maintained trajectory. This function is not thread safe (hence NOT const), because the trajectory could be modified.
+  const std::vector<ros::Time>& getTrajectoryStamps(void)
+  {
+    return trajectory_stamps_;
+  }
+
+  void getTrajectory(moveit_msgs::RobotTrajectory &trajectory);
   
   void setOnStateAddCallback(const TrajectoryStateAddedCallback &callback)
   {
@@ -84,6 +93,7 @@ private:
   double sampling_frequency_;
 
   std::vector<planning_models::KinematicStateConstPtr> trajectory_states_;
+  std::vector<ros::Time> trajectory_stamps_;
 
   boost::scoped_ptr<boost::thread> record_states_thread_;
   TrajectoryStateAddedCallback state_add_callback_;

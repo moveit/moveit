@@ -20,6 +20,7 @@
   <depend package="planning_models"/>
   <depend package="rviz"/>
   <depend package="collision_distance_field"/>
+  <depend package="collision_distance_field_ros"/>
   <depend package="distance_field"/>
   <depend package="trajectory_processing"/>
   <depend package="moveit_warehouse"/>

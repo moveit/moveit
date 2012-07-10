@@ -97,16 +97,14 @@ int main(int argc, char** argv)
   collision_detection::CollisionResult res;
   req.group_name = "right_arm";
   collision_detection::AllowedCollisionMatrix acm = planning_scene_monitor_->getPlanningScene()->getAllowedCollisionMatrix();
-  acm.setEntry("r_shoulder_pan_link", "r_shoulder_pan_link", true);
-  acm.setEntry("r_shoulder_lift_link", "r_shoulder_lift_link", true);
-  acm.setEntry("r_upper_arm_link", "r_upper_arm_link", true);
 
-  boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_gsr =
-    world.getCollisionGradients(req, 
-                                res, 
-                                coll, 
-                                planning_scene_monitor_->getPlanningScene()->getCurrentState(), 
-                                acm);
+  boost::shared_ptr<collision_distance_field::GroupStateRepresentation> world_gsr;
+  world.getCollisionGradients(req, 
+                              res, 
+                              coll, 
+                              planning_scene_monitor_->getPlanningScene()->getCurrentState(), 
+                              &acm,
+                              world_gsr);
 
   // world.checkRobotCollision(req,
   //                           res,

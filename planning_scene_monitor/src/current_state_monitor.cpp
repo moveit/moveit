@@ -50,6 +50,19 @@ planning_models::KinematicStatePtr planning_scene_monitor::CurrentStateMonitor::
   return planning_models::KinematicStatePtr(result);
 }
 
+ros::Time planning_scene_monitor::CurrentStateMonitor::getCurrentStateTime(void) const
+{
+  boost::mutex::scoped_lock slock(state_update_lock_);
+  return current_state_time_;
+}
+
+std::pair<planning_models::KinematicStatePtr, ros::Time> planning_scene_monitor::CurrentStateMonitor::getCurrentStateAndTime(void) const
+{  
+  boost::mutex::scoped_lock slock(state_update_lock_);
+  planning_models::KinematicState *result = new planning_models::KinematicState(kstate_);
+  return std::make_pair(planning_models::KinematicStatePtr(result), current_state_time_);
+}
+
 std::map<std::string, double> planning_scene_monitor::CurrentStateMonitor::getCurrentStateValues(void) const
 {
   std::map<std::string, double> m;
@@ -255,7 +268,8 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       tf::TransformTFToEigen(transf, eigen_transf);
       boost::mutex::scoped_lock slock(state_update_lock_);
       root_->setVariableValues(eigen_transf);
-      kstate_.setStateValues(joint_state_map);
+      kstate_.setStateValues(joint_state_map); 
+      current_state_time_ = joint_state->header.stamp;
     }
   }
   
@@ -263,6 +277,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
   {
     boost::mutex::scoped_lock slock(state_update_lock_);
     kstate_.setStateValues(joint_state_map);
+    current_state_time_ = joint_state->header.stamp;
   }
   
   // callback, if needed

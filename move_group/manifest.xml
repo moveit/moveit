@@ -13,7 +13,7 @@
   <depend package="actionlib"/>
   <depend package="pluginlib"/>
   <depend package="tf"/>
-  <depend package="trajectory_execution_ros"/>
+  <depend package="trajectory_execution_manager"/>
   <depend package="planning_scene_monitor"/>
   <depend package="planning_pipeline"/>
   <depend package="trajectory_processing"/>
