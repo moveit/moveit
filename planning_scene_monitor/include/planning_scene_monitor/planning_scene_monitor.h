@@ -55,29 +55,66 @@ class PlanningSceneMonitor
 {
 public:
 
-  /** @brief Constructor
-   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
-   */
-  PlanningSceneMonitor(const std::string &robot_description);
+  struct SceneConfigBase
+  {
+    SceneConfigBase(const std::string &type) : type_(type)
+    {
+    }
+    virtual planning_scene::PlanningScenePtr allocPlanningScene(void)  = 0;  
+    virtual planning_scene::PlanningScenePtr allocPlanningScene(const planning_scene::PlanningSceneConstPtr &parent)  = 0;
 
-  /** @brief Constructor
-   *  @param kml A pointer to a kinematic model loader
-   */
-  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml);
+    std::string type_;
+  };
 
+  template<typename PlanningSceneType, typename CollisionWorldType, typename CollisionRobotType>
+  struct SceneConfig : public SceneConfigBase
+  {  
+    BOOST_CONCEPT_ASSERT((boost::Convertible<PlanningSceneType*, planning_scene::PlanningScene*>));
 
+    SceneConfig(const std::string &type = "default") : SceneConfigBase(type)
+    {
+    }
+    
+    virtual planning_scene::PlanningScenePtr allocPlanningScene(void)
+    {
+      planning_scene::PlanningScenePtr result(new PlanningSceneType());
+      result->setCollisionDetectionTypes<CollisionWorldType, CollisionRobotType>();
+      return result;
+    }
+    
+    virtual planning_scene::PlanningScenePtr allocPlanningScene(const planning_scene::PlanningSceneConstPtr &parent)
+    {    
+      return planning_scene::PlanningScenePtr(new PlanningSceneType(parent));
+    }
+  };
+
+  typedef boost::shared_ptr<SceneConfigBase> SceneConfigPtr;
+  
   /** @brief Constructor
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    *  @param tf A pointer to a tf::Transformer
    */
-  PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf);
+  PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
 
   /** @brief Constructor
    *  @param kml A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
    */
-  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, 
-                       const boost::shared_ptr<tf::Transformer> &tf);
+  PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+
+  /** @brief Constructor
+   *  @param configs When multiple planning scenes are to be maintained, the allocator for each planning scene can be passed as argument
+   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
+   *  @param tf A pointer to a tf::Transformer
+   */
+  PlanningSceneMonitor(const std::vector<SceneConfigPtr> &configs, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+
+  /** @brief Constructor
+   *  @param configs When multiple planning scenes are to be maintained, the allocator for each planning scene can be passed as argument
+   *  @param kml A pointer to a kinematic model loader
+   *  @param tf A pointer to a tf::Transformer
+   */
+  PlanningSceneMonitor(const std::vector<SceneConfigPtr> &configs, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
 
   /** @brief Constructor
    *  @param parent The parent planning scene with respect to which the diffs are to be maintained
@@ -85,7 +122,7 @@ public:
    *  @param tf A pointer to a tf::Transformer
    */
   PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, 
-                       const boost::shared_ptr<tf::Transformer> &tf);
+                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
 
   /** @brief Constructor
    *  @param parent The parent planning scene with respect to which the diffs are to be maintained
@@ -94,7 +131,7 @@ public:
    */
   PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, 
                        const planning_models_loader::KinematicModelLoaderPtr &kml, 
-                       const boost::shared_ptr<tf::Transformer> &tf);
+                       const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
 
   ~PlanningSceneMonitor(void);
 
@@ -106,17 +143,11 @@ public:
   
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
-  const planning_scene::PlanningScenePtr& getPlanningScene(void)
-  {
-    return scene_;
-  }
+  const planning_scene::PlanningScenePtr& getPlanningScene(const std::string &type = "default");
 
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
-  const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const
-  {
-    return scene_const_;
-  }
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene(const std::string &type = "default") const;
 
   /** @brief Get the stored robot description
    *  @return An instance of the stored robot description*/
@@ -223,18 +254,33 @@ public:
 
 protected:
 
+  struct InternalSceneInfo
+  {
+    InternalSceneInfo(void)
+    {
+    }
+    InternalSceneInfo(const planning_scene::PlanningScenePtr &scene) : 
+      ptr_(scene), ptr_const_(scene)
+    {
+    }
+    planning_scene::PlanningScenePtr ptr_;
+    planning_scene::PlanningSceneConstPtr ptr_const_;
+    planning_scene::PlanningScenePtr parent_scene_; /// if diffs are monitored, this is the pointer to the parent scene
+    SceneConfigPtr config_;
+  };
+  
   /** @brief Initialize the planning scene monitor
    *  @param parent The parent planning scene with respect to which the diffs are to be maintained
    *  @param robot_description The name of the ROS parameter that contains the URDF */
-  void initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description);
+  void initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const std::vector<SceneConfigPtr> &configs);
 
   /** @brief Initialize the planning scene monitor
    *  @param parent The parent planning scene with respect to which the diffs are to be maintained */
-  void initialize(const planning_scene::PlanningSceneConstPtr &parent);
+  void initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::vector<SceneConfigPtr> &configs);
 
-  /** @brief Configure the default collision matrix*/
-  void configureDefaultCollisionMatrix(void);
-
+  /** @brief Configure the collision matrix for a particular scene */
+  void configureCollisionMatrix(const planning_scene::PlanningScenePtr &scene);
+  
   /** @brief Configure the default padding*/
   void configureDefaultPadding(void);
 
@@ -252,15 +298,11 @@ protected:
 
   /** @brief Callback for a new attached object msg*/
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
-
-  planning_scene::PlanningScenePtr      scene_; /// internally stored planning scene
-
-  planning_scene::PlanningSceneConstPtr scene_const_; /// internally stored
-
-  planning_scene::PlanningScenePtr      parent_scene_; /// if diffs are monitored, this is the pointer to the parent scene
-
-  boost::mutex                          scene_update_mutex_; /// mutex for stored scene
-
+  
+  void getUpdatedFrameTransforms(const planning_models::KinematicModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms);
+  
+  std::map<std::string, InternalSceneInfo> scenes_;
+  boost::mutex                             scene_update_mutex_; /// mutex for stored scene
 
   ros::NodeHandle                       nh_;
   ros::NodeHandle                       root_nh_;
