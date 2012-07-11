@@ -29,6 +29,7 @@
 
 #include <moveit_visualization_ros/proximity_visualization.h>
 #include <collision_distance_field_ros/collision_distance_field_ros_helpers.h>
+#include <planning_scene_distance_field/planning_scene_distance_field.h>
 
 namespace moveit_visualization_ros
 {
@@ -37,42 +38,41 @@ ProximityVisualization::ProximityVisualization(const planning_scene::PlanningSce
                                                ros::Publisher& marker_publisher)
   :
   planning_scene_(planning_scene), 
-  world_(),
   publisher_(marker_publisher)
 {
   ros::NodeHandle nh;
-  std::map<std::string, std::vector<collision_distance_field::CollisionSphere> > coll_spheres;
-  collision_distance_field_ros::loadLinkBodySphereDecompositions(nh,
-                                                                 planning_scene->getKinematicModel(),
-                                                                 coll_spheres);
-  robot_.reset(new collision_distance_field::CollisionRobotDistanceField(planning_scene->getKinematicModel(), coll_spheres));
-  distance_acm_ = planning_scene->getAllowedCollisionMatrix();
+  // std::map<std::string, std::vector<collision_distance_field::CollisionSphere> > coll_spheres;
+  // collision_distance_field_ros::loadLinkBodySphereDecompositions(nh,
+  //                                                                planning_scene->getKinematicModel(),
+  //                                                                coll_spheres);
+  // robot_.reset(new collision_distance_field::CollisionRobotDistanceField(planning_scene->getKinematicModel(), coll_spheres));
+  //distance_acm_ = planning_scene->getAllowedCollisionMatrix();
 }
 
 void ProximityVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
 {
   planning_scene_ = planning_scene;
-  for(unsigned int i = 0; i < last_object_ids_.size(); i++) {
-    if(!planning_scene_->getCollisionWorld()->hasObject(last_object_ids_[i])) {
-      ROS_INFO_STREAM("Removing object");
-      world_.removeObject(last_object_ids_[i]);
-    }
-  }
-  last_object_ids_ = planning_scene_->getCollisionWorld()->getObjectIds();
-  for(unsigned int i = 0; i < last_object_ids_.size(); i++) {
-    collision_detection::CollisionWorld::ObjectConstPtr other_obj = planning_scene_->getCollisionWorld()->getObject(last_object_ids_[i]);
-    if(!world_.hasObject(last_object_ids_[i])) {
-      world_.addToObject(last_object_ids_[i], other_obj->shapes_[0], other_obj->shape_poses_[0]);
-    } else {
-      collision_detection::CollisionWorld::ObjectConstPtr our_obj = world_.getObject(last_object_ids_[i]);
-      if((our_obj->shape_poses_[0].translation()-other_obj->shape_poses_[0].translation()).norm() > .001) {
-        world_.moveShapeInObject(our_obj->id_,
-                                 our_obj->shapes_[0],
-                                 other_obj->shape_poses_[0]);
-      }
-    }
-  }
-  groupChanged(current_group_);
+  // for(unsigned int i = 0; i < last_object_ids_.size(); i++) {
+  //   if(!planning_scene_->getCollisionWorld()->hasObject(last_object_ids_[i])) {
+  //     ROS_INFO_STREAM("Removing object");
+  //     world_.removeObject(last_object_ids_[i]);
+  //   }
+  // }
+  // last_object_ids_ = planning_scene_->getCollisionWorld()->getObjectIds();
+  // for(unsigned int i = 0; i < last_object_ids_.size(); i++) {
+  //   collision_detection::CollisionWorld::ObjectConstPtr other_obj = planning_scene_->getCollisionWorld()->getObject(last_object_ids_[i]);
+  //   if(!world_.hasObject(last_object_ids_[i])) {
+  //     world_.addToObject(last_object_ids_[i], other_obj->shapes_[0], other_obj->shape_poses_[0]);
+  //   } else {
+  //     collision_detection::CollisionWorld::ObjectConstPtr our_obj = world_.getObject(last_object_ids_[i]);
+  //     if((our_obj->shape_poses_[0].translation()-other_obj->shape_poses_[0].translation()).norm() > .001) {
+  //       world_.moveShapeInObject(our_obj->id_,
+  //                                our_obj->shapes_[0],
+  //                                other_obj->shape_poses_[0]);
+  //     }
+  //   }
+  // }
+  // groupChanged(current_group_);
 }
 
 void ProximityVisualization::groupChanged(const std::string& group) 
@@ -88,24 +88,29 @@ void ProximityVisualization::stateChanged(const std::string& group,
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = current_group_;
+  const planning_scene::PlanningSceneDistanceField* psdf = dynamic_cast<const planning_scene::PlanningSceneDistanceField*>(planning_scene_.get());
+  if(!psdf) {
+    ROS_WARN_STREAM("Can no longer cast planning scene to planning scene distance field");
+    return;
+  }
   boost::shared_ptr<collision_distance_field::GroupStateRepresentation> world_grad_gsr;
-  world_.getCollisionGradients(req, 
-                               res, 
-                               *robot_.get(), 
-                               state,
-                               &distance_acm_,
-                               world_grad_gsr);
+  psdf->getCollisionWorldDistanceField()->getCollisionGradients(req, 
+                                                                res, 
+                                                                *psdf->getCollisionRobotDistanceField().get(),
+                                                                state,
+                                                                &planning_scene_->getAllowedCollisionMatrix(),
+                                                                world_grad_gsr);
   req.contacts = true;
   req.max_contacts = 100000;
   req.max_contacts_per_pair = 1000;
   res = collision_detection::CollisionResult();
   boost::shared_ptr<collision_distance_field::GroupStateRepresentation> world_coll_gsr;
-  world_.getAllCollisions(req, 
-                          res, 
-                          *robot_.get(), 
-                          state,
-                          &distance_acm_,
-                          world_coll_gsr);
+  psdf->getCollisionWorldDistanceField()->getAllCollisions(req, 
+                                                           res, 
+                                                           *psdf->getCollisionRobotDistanceField().get(),
+                                                           state,
+                                                           &planning_scene_->getAllowedCollisionMatrix(),
+                                                           world_coll_gsr);
 
   visualization_msgs::MarkerArray arrow_markers;
   std_msgs::ColorRGBA col;

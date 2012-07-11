@@ -62,10 +62,10 @@ protected:
   std::vector<std::string> last_object_ids_;
   
   planning_scene::PlanningSceneConstPtr planning_scene_;
-  collision_detection::AllowedCollisionMatrix distance_acm_;
+  //collision_detection::AllowedCollisionMatrix distance_acm_;
 
-  boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField> robot_;
-  collision_distance_field::CollisionWorldDistanceField world_;
+  //boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField> robot_;
+  //collision_distance_field::CollisionWorldDistanceField world_;
 
   ros::Publisher publisher_;
 
