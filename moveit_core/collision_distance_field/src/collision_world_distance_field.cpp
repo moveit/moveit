@@ -79,28 +79,28 @@ void CollisionWorldDistanceField::checkCollision(const collision_detection::Coll
                                                  const planning_models::KinematicState &state, 
                                                  const collision_detection::AllowedCollisionMatrix &acm) const
 {
-  const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
-
-  if(!cdr) {
+  try {
+    const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
+    boost::shared_ptr<GroupStateRepresentation> gsr; 
+    cdr.generateCollisionCheckingStructures(req.group_name,
+                                            state,
+                                            &acm,
+                                            gsr,
+                                            false);
+    
+    bool done = cdr.getSelfCollisions(req, res, gsr);
+    if(!done) {
+      done = cdr.getIntraGroupCollisions(req, res, gsr);
+    }
+    if(!done) {
+      boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
+      getEnvironmentCollisions(req, res, env_distance_field, gsr);
+    }
+  } catch(...) {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
     return;
   }
 
-  boost::shared_ptr<GroupStateRepresentation> gsr; 
-  cdr.generateCollisionCheckingStructures(req.group_name,
-                                          state,
-                                          &acm,
-                                          gsr,
-                                          false);
-  
-  bool done = cdr.getSelfCollisions(req, res, gsr);
-  if(!done) {
-    done = cdr.getIntraGroupCollisions(req, res, gsr);
-  }
-  if(!done) {
-    boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
-    getEnvironmentCollisions(req, res, env_distance_field, gsr);
-  }
   //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
 
@@ -111,25 +111,24 @@ void CollisionWorldDistanceField::checkRobotCollision(const collision_detection:
                                                       const collision_detection::AllowedCollisionMatrix &acm) const
 {
   boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
-  const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
-
-  if(!cdr) {
+  try {
+    const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
+    boost::shared_ptr<const DistanceFieldCacheEntry> dfce;
+    
+    boost::shared_ptr<GroupStateRepresentation> gsr;
+    cdr.generateCollisionCheckingStructures(req.group_name,
+                                            state,
+                                            &acm,
+                                            gsr,
+                                            false);
+    
+    getEnvironmentCollisions(req, res, env_distance_field, gsr);
+    //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
+    //checkRobotCollisionHelper(req, res, robot, state, &acm);
+  } catch(...) {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
     return;
   }
-
-  boost::shared_ptr<const DistanceFieldCacheEntry> dfce;
-
-  boost::shared_ptr<GroupStateRepresentation> gsr;
-  cdr.generateCollisionCheckingStructures(req.group_name,
-                                          state,
-                                          &acm,
-                                          gsr,
-                                          false);
-  
-  getEnvironmentCollisions(req, res, env_distance_field, gsr);
-  //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
-  //checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
 void CollisionWorldDistanceField::getCollisionGradients(const collision_detection::CollisionRequest &req, 
@@ -139,23 +138,22 @@ void CollisionWorldDistanceField::getCollisionGradients(const collision_detectio
                                                         const collision_detection::AllowedCollisionMatrix* acm,
                                                         boost::shared_ptr<GroupStateRepresentation>& gsr) const {
   boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
-  const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
-
-  if(!cdr) {
+  try {
+    const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
+    if(!gsr) {
+      cdr.generateCollisionCheckingStructures(req.group_name,
+                                              state,
+                                              acm,
+                                              gsr,
+                                              true);
+    }
+    cdr.getSelfProximityGradients(gsr);
+    cdr.getIntraGroupProximityGradients(gsr);
+    getEnvironmentProximityGradients(env_distance_field, gsr);
+  } catch(...) {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
     return;
   }
-
-  if(!gsr) {
-    cdr.generateCollisionCheckingStructures(req.group_name,
-                                            state,
-                                            acm,
-                                            gsr,
-                                            true);
-  }
-  cdr.getSelfProximityGradients(gsr);
-  cdr.getIntraGroupProximityGradients(gsr);
-  getEnvironmentProximityGradients(env_distance_field, gsr);
 }
 
 void CollisionWorldDistanceField::getAllCollisions(const collision_detection::CollisionRequest &req, 
@@ -165,23 +163,23 @@ void CollisionWorldDistanceField::getAllCollisions(const collision_detection::Co
                                                    const collision_detection::AllowedCollisionMatrix* acm,
                                                    boost::shared_ptr<GroupStateRepresentation>& gsr) const
 {
-  const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
-  if(!cdr) {
-    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
+  try {
+    const collision_distance_field::CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
+    if(!gsr) {
+      cdr.generateCollisionCheckingStructures(req.group_name,
+                                              state,
+                                              acm,
+                                              gsr,
+                                              true);
+    } 
+    cdr.getSelfCollisions(req, res, gsr);
+    cdr.getIntraGroupCollisions(req, res, gsr);
+    boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
+    getEnvironmentCollisions(req, res, env_distance_field, gsr);
+  } catch(...) {
+    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");    
     return;
-  }
-  
-  if(!gsr) {
-    cdr.generateCollisionCheckingStructures(req.group_name,
-                                            state,
-                                            acm,
-                                            gsr,
-                                            true);
-  } 
-  cdr.getSelfCollisions(req, res, gsr);
-  cdr.getIntraGroupCollisions(req, res, gsr);
-  boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
-  getEnvironmentCollisions(req, res, env_distance_field, gsr);
+  }  
 }
 
 bool CollisionWorldDistanceField::getEnvironmentCollisions(const collision_detection::CollisionRequest& req,
