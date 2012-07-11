@@ -36,7 +36,6 @@
 
 // SA
 #include "robot_poses_widget.h"
-//#include <planning_models/kinematic_state.h> // necessary?
 #include <moveit_msgs/JointLimits.h>
 // Qt
 #include <QFormLayout>
@@ -192,11 +191,12 @@ QWidget* RobotPosesWidget::createEditWidget()
 
   // Name input
   pose_name_field_ = new QLineEdit( this );
-  //pose_name_field_->setMaximumWidth( 400 );
+  //pose_name_field_->setMaximumWidth( 300 );
   form_layout->addRow( "Pose Name:", pose_name_field_ );
 
   group_name_field_ = new QComboBox( this );
   group_name_field_->setEditable( false );
+  //group_name_field_->setMaximumWidth( 300 );
   connect( group_name_field_, SIGNAL( currentIndexChanged( const QString & ) ), 
            this, SLOT( loadJointSliders( const QString & ) ) );
   form_layout->addRow( "Planning Group:", group_name_field_ );
@@ -325,12 +325,6 @@ void RobotPosesWidget::previewClicked( int row, int column )
 void RobotPosesWidget::showDefaultPose()
 {
   namespace pm = planning_models;
-
-  //  const pm::KinematicModel::JointModelGroup *joint_model_group = 
-  //  config_data_->getKinematicModel()->getJointModels();
-  //config_data_->getKinematicModel()->getJointModelGroup( group_name );
-  //const std::vector<JointModel*>& getJointModels(void)
-  //    const std::vector<const pm::KinematicModel::JointModel*> joint_models = joint_model_group->getJointModels();
 
   // Get list of all joints for the robot
   std::vector<const pm::KinematicModel::JointModel*> joint_models = config_data_->getKinematicModel()->getJointModels();
@@ -518,7 +512,7 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
   }
 
   // Copy the width of column 2 and manually calculate height from number of joints
-  joint_list_widget_->resize( 350, num_joints * 70 ); //w, h
+  joint_list_widget_->resize( 280, num_joints * 70 ); //w, h
 
   // Update the robot model in Rviz with newly selected joint values
   publishJoints();
@@ -563,8 +557,6 @@ srdf::Model::GroupState *RobotPosesWidget::findPoseByName( const std::string &na
   for( std::vector<srdf::Model::GroupState>::iterator pose_it = config_data_->srdf_->group_states_.begin();
        pose_it != config_data_->srdf_->group_states_.end(); ++pose_it )
   {
-    //    std::cout << "SEARCH " << pose_it->name_ << std::endl;
-
     if( pose_it->name_ == name ) // string match
     {
       searched_group = &(*pose_it);  // convert to pointer from iterator
@@ -646,16 +638,10 @@ void RobotPosesWidget::doneEditing()
   for( std::vector<srdf::Model::GroupState>::const_iterator data_it = config_data_->srdf_->group_states_.begin(); 
        data_it != config_data_->srdf_->group_states_.end();  ++data_it )
   {
-    std::cout << (*data_it).name_ << std::endl;
-
     if( data_it->name_.compare( pose_name ) == 0 ) // the names are the same
     {
       // is this our existing pose? check if pose pointers are same
-      if( &(*data_it) == searched_data )
-      {
-        std::cout << "these two have same pointer" << std::endl;
-      }
-      else
+      if( &(*data_it) != searched_data )
       {
         QMessageBox::warning( this, "Error Saving", "A pose already exists with that name!" );
         return;
@@ -675,7 +661,6 @@ void RobotPosesWidget::doneEditing()
 
   if( searched_data == NULL ) // create new
   {
-    std::cout << "Creating new pose" << std::endl;
     isNew = true;
 
     searched_data = new srdf::Model::GroupState();
@@ -798,8 +783,6 @@ void RobotPosesWidget::focusGiven()
 // ******************************************************************************************
 void RobotPosesWidget::updateKinematicModel( const std::string &name, double value )
 {
-  //std::cout << "Joint " << name << " now has value " << value << std::endl;
-  
   // Save the new value
   joint_state_map_[ name ] = value;
 
@@ -880,7 +863,6 @@ SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicMod
   moveit_msgs::JointLimits joint_limit = limits[0];
   max_position_ = joint_limit.max_position;
   min_position_ = joint_limit.min_position;
-  //std::cout << joint_model_->getName().c_str() << " min " << min_position_ << " max " << max_position_ << std::endl;
 
   // Set the slider limits
   joint_slider_->setMaximum( max_position_*10000 );

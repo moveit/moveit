@@ -108,7 +108,7 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   nav_name_list_ << "Planning Groups";
   nav_name_list_ << "Robot Poses";
   nav_name_list_ << "End Effectors";
-  //  nav_name_list_ << "Virtual Joints";
+  nav_name_list_ << "Virtual Joints";
   nav_name_list_ << "Configuration Files";
 
   // Navigation Left Pane --------------------------------------------------
@@ -127,6 +127,7 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   splitter_->addWidget( navs_view_ );
   splitter_->addWidget( right_frame_ );  
   splitter_->addWidget( rviz_container_ );
+  splitter_->setHandleWidth( 6 );
   //splitter_->setCollapsible( 0, false ); // don't let navigation collapse
   layout->addWidget( splitter_ );
 
@@ -164,9 +165,15 @@ void SetupAssistantWidget::moveToScreen( const int index )
 
     // Show Rviz if appropriate
     if( index != 0 )
+    {
       rviz_container_->show();
+    }
     else
+    {
       rviz_container_->hide();
+      // hide the start screen image so that is doesn't mess up the rviz column resizing
+      
+    }
 
     // Change screens
     main_content_->setCurrentIndex( index );
@@ -189,7 +196,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Load all widgets ------------------------------------------------
   
   // Self-Collisions
-  cdcw_ = new ComputeDefaultCollisionsWidget( this, config_data_);
+  cdcw_ = new DefaultCollisionsWidget( this, config_data_);
   main_content_->addWidget(cdcw_);
 
   // Planning Groups
@@ -205,8 +212,8 @@ void SetupAssistantWidget::progressPastStartScreen()
   main_content_->addWidget(efw_);  
 
   // Virtual Joints
-  //vjw_ = new VirtualJointsWidget( this, config_data_ );
-  //main_content_->addWidget(vjw_);  
+  vjw_ = new VirtualJointsWidget( this, config_data_ );
+  main_content_->addWidget(vjw_);  
 
   // Configuration Files
   cfw_ = new ConfigurationFilesWidget( this, config_data_ );
@@ -215,7 +222,6 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Pass command arg values to config files screen
   cfw_->stack_path_->setPath( ssw_->stack_path_->getQPath() );
 
-
   // Enable all nav buttons -------------------------------------------
   for( int i = 0; i < nav_name_list_.count(); ++i)
   {
@@ -223,7 +229,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   }
 
   // Go to next screen
-  moveToScreen( 3 );
+  moveToScreen( 1 );
 
   // Enable navigation
   navs_view_->setDisabled( false );

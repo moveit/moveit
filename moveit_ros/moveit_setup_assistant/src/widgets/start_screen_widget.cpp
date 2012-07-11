@@ -120,7 +120,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   connect( btn_load_, SIGNAL( clicked() ), this, SLOT( loadFiles() ) );
   
   // Right Image Area ----------------------------------------------
-  QImage image;
+  /*QImage image;
 
   if(chdir(ros::package::getPath("moveit_setup_assistant").c_str()) != 0)
   {
@@ -136,6 +136,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   //imageLabel->setMinimumWidth(450);
   right_layout->addWidget(imageLabel);
   right_layout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignTop);
+  */
 
   // Final Layout Setup ---------------------------------------------
   // Alignment

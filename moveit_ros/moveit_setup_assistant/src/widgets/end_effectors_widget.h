@@ -172,6 +172,12 @@ private:
   void loadGroupsComboBox();
 
   /** 
+   * Populate the combo dropdown box with avail parent links
+   * 
+   */  
+  void loadParentComboBox();
+
+  /** 
    * Edit the effector with the input name
    * 
    * @param name name of effector
