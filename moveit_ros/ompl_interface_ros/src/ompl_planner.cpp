@@ -79,6 +79,7 @@ public:
     {
       if (result)
         displaySolution(res);
+      displayPlannerData("r_wrist_roll_link");
       std::stringstream ss;
       ompl::tools::Profiler::Status(ss);
       ROS_INFO("%s", ss.str().c_str());
@@ -144,11 +145,11 @@ public:
 
   bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)
   {
-    planning_models::KinematicState kstate(psm_.getPlanningScene()->getCurrentState());
-    planning_models::robotStateToKinematicState(*psm_.getPlanningScene()->getTransforms(), req.start_state, kstate);
+    planning_scene::PlanningScenePtr diff_scene(new planning_scene::PlanningScene(psm_.getPlanningScene()));
+    planning_models::robotStateToKinematicState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentState());
     ompl_interface::ConstraintApproximationConstructionResults ca_res = 
       ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group, req.state_space_parameterization,
-                                                                         kstate, req.samples, req.edges_per_sample);
+                                                                         diff_scene, req.samples, req.edges_per_sample);
     if (ca_res.approx)
     {
       res.sampling_success_rate = ca_res.sampling_success_rate;
