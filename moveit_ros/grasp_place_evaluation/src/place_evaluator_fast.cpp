@@ -187,7 +187,7 @@ void PlaceEvaluatorFast::testPlaceLocations(const planning_scene::PlanningSceneC
     att_obj.object.operation = moveit_msgs::CollisionObject::REMOVE;
     att_obj.object.id = place_goal.collision_object_name;
 
-    execution_info[i].detached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
+    execution_info[i].detached_object_diff_scene_ = planning_scene->diff();
     execution_info[i].detached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,execution_info[i].place_pose_);
     execution_info[i].detached_object_diff_scene_->processAttachedCollisionObjectMsg(att_obj);
     
