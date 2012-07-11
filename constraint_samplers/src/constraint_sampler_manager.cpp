@@ -37,6 +37,7 @@
 #include "constraint_samplers/constraint_sampler_manager.h"
 #include "constraint_samplers/default_constraint_samplers.h"
 #include "constraint_samplers/union_constraint_sampler.h"
+#include <sstream>
 #include <ros/console.h>
 
 constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::selectSampler(const planning_scene::PlanningSceneConstPtr &scene,
@@ -58,8 +59,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   const planning_models::KinematicModel::JointModelGroup *jmg = scene->getKinematicModel()->getJointModelGroup(group_name);
   if (!jmg)
     return constraint_samplers::ConstraintSamplerPtr();
-  
-  ROS_DEBUG("Attempting to construct constrained state sampler for group '%s'", jmg->getName().c_str());
+  std::stringstream ss; ss << constr;
+  ROS_DEBUG("Attempting to construct constrained state sampler for group '%s', using constraints:\n%s.\n", jmg->getName().c_str(), ss.str().c_str());
   
   ConstraintSamplerPtr joint_sampler;
   // if there are joint constraints, we could possibly get a sampler from those
