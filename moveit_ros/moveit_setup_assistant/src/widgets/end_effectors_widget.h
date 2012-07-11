@@ -37,15 +37,21 @@
 #ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_END_EFFECTORS_WIDGET_
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_END_EFFECTORS_WIDGET_
 
+// Qt
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QScrollArea>
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QTableWidget>
+#include <QStackedLayout>
 #include <QString>
+#include <QComboBox>
+// SA
+#include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
-#include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
@@ -55,27 +61,59 @@ class EndEffectorsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-public:
+  public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
   EndEffectorsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
+  /// Recieved when this widget is chosen from the navigation menu
+  virtual void focusGiven();
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-
+  QTableWidget *data_table_;
+  QPushButton *btn_edit_;
+  QPushButton *btn_delete_;
+  QPushButton *btn_save_;
+  QPushButton *btn_cancel_;
+  QStackedLayout *stacked_layout_;
+  QLineEdit *effector_name_field_;
+  QComboBox *parent_name_field_;
+  QComboBox *group_name_field_;
+  QWidget *effector_list_widget_;
+  QWidget *effector_edit_widget_;
+                                                                                              
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
 
+  /// Show edit screen
+  void showNewScreen();
+
+  /// Edit whatever element is selected
+  void editSelected();
+
+  /// Edit the double clicked element
+  void editDoubleClicked( int row, int column );
+
+  /// Preview whatever element is selected
+  void previewClicked( int row, int column );
+
+  /// Delete currently editing ite
+  void deleteItem();
+
+  /// Save editing changes
+  void doneEditing();
+
+  /// Cancel changes
+  void cancelEditing();
 
 private:
-
 
   // ******************************************************************************************
   // Variables
@@ -83,14 +121,68 @@ private:
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+  
+  /// Orignal name of effector currently being edited. This is used to find the element in the vector
+  std::string current_edit_effector_;
 
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
 
+  /** 
+   * Find the associated data by name
+   * 
+   * @param name - name of data to find in datastructure
+   * @return pointer to data in datastructure
+   */
+  srdf::Model::Group *findGroupByName( const std::string &name );
 
+  /** 
+   * Find the associated data by name
+   * 
+   * @param name - name of data to find in datastructure
+   * @return pointer to data in datastructure
+   */
+  srdf::Model::EndEffector *findEffectorByName( const std::string &name );
+
+  /** 
+   * Create the main list view of effectors for robot
+   * 
+   * @return the widget
+   */
+  QWidget* createContentsWidget();
+
+  /** 
+   * Create the screen for editing effectors
+   * 
+   * @return the widget
+   */
+  QWidget* createEditWidget();
+  
+  /** 
+   * Load the robot effectors into the table
+   * 
+   */
+  void loadDataTable();
+
+  /** 
+   * Populate the combo dropdown box with avail group names
+   * 
+   */
+  void loadGroupsComboBox();
+
+  /** 
+   * Edit the effector with the input name
+   * 
+   * @param name name of effector
+   */
+  void edit( const std::string &name );
 };
 
-} //namespace moveit_setup_assistant
+
+
+} //namespace
+
 
 #endif
+
