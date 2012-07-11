@@ -88,6 +88,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
       {
         double start = (trajectory)(0, i);
         double end = (trajectory)(goal_index, i);
+        ROS_INFO_STREAM("Start is " << start << " end " << end << " short " << shortestAngularDistance(start, end));
         (trajectory)(goal_index, i) = start + shortestAngularDistance(start, end);
       }
     }
@@ -137,6 +138,9 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     for (size_t j=0; j < res.trajectory.joint_trajectory.points[i].positions.size(); j++)
     {
       res.trajectory.joint_trajectory.points[i].positions[j] = trajectory.getTrajectoryPoint(i)(j);
+      if(i == trajectory.getNumPoints()-1) {
+        ROS_INFO_STREAM("Joint " << j << " " << res.trajectory.joint_trajectory.points[i].positions[j]);
+      }
     }
     // Setting invalid timestamps.
     // Further filtering is required to set valid timestamps accounting for velocity and acceleration constraints.
