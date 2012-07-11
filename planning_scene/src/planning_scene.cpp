@@ -247,7 +247,7 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
     const std::vector<collision_detection::CollisionWorld::Change> &changes = cworld_->getChanges();
     if (!changes.empty())
     {
-      collision_detection::CollisionWorldPtr w = scene->getCollisionWorld();
+      collision_detection::CollisionWorldPtr w = scene->getCollisionWorldPtr();
       for (std::size_t i = 0 ; i < changes.size() ; ++i)
         if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
         {
@@ -717,6 +717,11 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   getPlanningSceneMsgCollisionMap(scene);
 }
 
+void planning_scene::PlanningScene::moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
+{
+  cworld_->moveShapeInObject(id,shape, pose);
+}
+
 void planning_scene::PlanningScene::addToObject(const std::string &id,
                                                 const std::vector<shapes::ShapeConstPtr> &shapes,
                                                 const std::vector<Eigen::Affine3d> &poses)
@@ -733,6 +738,9 @@ void planning_scene::PlanningScene::removeObject(const std::string& id){
   cworld_->removeObject(id);
 }
 
+void planning_scene::PlanningScene::removeAllObjects(){
+  cworld_->clearObjects();
+}
 
 void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotState &state)
 {

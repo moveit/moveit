@@ -59,6 +59,9 @@ public:
   }
 
   const boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField> getCollisionRobotDistanceField() const {
+    if(parent_distance_field_) {
+      return parent_distance_field_->getCollisionRobotDistanceField();
+    }
     return crobot_distance_;
   }
   
@@ -66,6 +69,8 @@ public:
                          const boost::shared_ptr<const srdf::Model> &srdf_model,
                          const planning_models::KinematicModelPtr &kmodel);
   
+  virtual void moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
+
   virtual void addToObject(const std::string &id,
                            const std::vector<shapes::ShapeConstPtr> &shapes,
                            const std::vector<Eigen::Affine3d> &poses);
@@ -74,9 +79,13 @@ public:
 
   virtual void removeObject(const std::string& id);
 
+  virtual void removeAllObjects();
+
 protected:
 
   PlanningSceneDistanceField(const PlanningSceneConstPtr &parent);
+
+  boost::shared_ptr<const PlanningSceneDistanceField> parent_distance_field_;
 
   boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField> crobot_distance_;
   boost::shared_ptr<collision_distance_field::CollisionWorldDistanceField> cworld_distance_;
