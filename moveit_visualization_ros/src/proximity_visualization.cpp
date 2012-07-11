@@ -28,7 +28,6 @@
  */
 
 #include <moveit_visualization_ros/proximity_visualization.h>
-#include <collision_distance_field_ros/collision_distance_field_ros_helpers.h>
 #include <planning_scene_distance_field/planning_scene_distance_field.h>
 
 namespace moveit_visualization_ros
@@ -40,13 +39,6 @@ ProximityVisualization::ProximityVisualization(const planning_scene::PlanningSce
   planning_scene_(planning_scene), 
   publisher_(marker_publisher)
 {
-  ros::NodeHandle nh;
-  // std::map<std::string, std::vector<collision_distance_field::CollisionSphere> > coll_spheres;
-  // collision_distance_field_ros::loadLinkBodySphereDecompositions(nh,
-  //                                                                planning_scene->getKinematicModel(),
-  //                                                                coll_spheres);
-  // robot_.reset(new collision_distance_field::CollisionRobotDistanceField(planning_scene->getKinematicModel(), coll_spheres));
-  //distance_acm_ = planning_scene->getAllowedCollisionMatrix();
 }
 
 void ProximityVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
