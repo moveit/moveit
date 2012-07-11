@@ -249,7 +249,7 @@ void SetupAssistantWidget::loadRviz()
 {
   // Create rviz frame
   rviz_frame_ = new rviz::VisualizationPanel();
-  rviz_frame_->setMinimumWidth( 800 );
+  //rviz_frame_->setMinimumWidth( 800 );
 
   // Turn on interactive mode
   // EGJ: kind of hacky way to do this, given the way that the vis manager is creating tools

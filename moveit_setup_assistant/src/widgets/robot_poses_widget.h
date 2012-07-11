@@ -80,7 +80,6 @@ class RobotPosesWidget : public SetupScreenWidget
   QPushButton *btn_delete_;
   QPushButton *btn_save_;
   QPushButton *btn_cancel_;
-  QPushButton *btn_test_;
   QStackedLayout *stacked_layout_;
   QScrollArea *scroll_area_;
   QVBoxLayout *column2_;
@@ -132,7 +131,7 @@ private Q_SLOTS:
    */
   void updateKinematicModel( const std::string &name, double value );
 
-  /// Testing
+  /// Publishes a joint state message based on all the slider locations in a planning group, to rviz
   void publishJoints();
 
 private:
