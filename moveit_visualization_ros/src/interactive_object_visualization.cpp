@@ -45,7 +45,7 @@ InteractiveObjectVisualization::InteractiveObjectVisualization(const planning_sc
     sphere_counter_(0),
     cylinder_counter_(0)
 {
-  planning_scene_diff_.reset(new planning_scene::PlanningScene(planning_scene_));
+  planning_scene_diff_ = planning_scene_->diff();
   default_object_color_.r = default_object_color_.g = default_object_color_.b = .75;
   default_object_color_.a = 1.0;
 }
@@ -672,7 +672,7 @@ void InteractiveObjectVisualization::updateOriginalPlanningScene(moveit_msgs::Pl
   menu_name_to_handle_maps_.clear();
   menu_handle_to_function_maps_.clear();
   interactive_marker_server_->applyChanges();
-  planning_scene_diff_.reset(new planning_scene::PlanningScene(planning_scene_));
+  planning_scene_diff_ = planning_scene_->diff();
   planning_scene_diff_->setPlanningSceneMsg(*ptr);
   for(unsigned int i = 0; i < ptr->world.collision_objects.size(); i++) {
     addObject(ptr->world.collision_objects[i]);

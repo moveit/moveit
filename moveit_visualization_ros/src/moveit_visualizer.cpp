@@ -64,7 +64,7 @@ MoveItVisualizer::MoveItVisualizer() :
   interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
   kinematic_model_loader_.reset(new planning_models_loader::KinematicModelLoader("robot_description"));
 
-  planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr scp(new planning_scene_monitor::PlanningSceneMonitor::SceneConfig<planning_scene::PlanningSceneDistanceField,collision_detection::CollisionWorldFCL, collision_detection::CollisionRobotFCL>("distance"));
+  planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr scp(new planning_scene_monitor::PlanningSceneMonitor::SceneConfig<planning_scene::PlanningSceneDistanceField>("distance"));
 
   std::vector<planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr> scpv(1, scp);
 
