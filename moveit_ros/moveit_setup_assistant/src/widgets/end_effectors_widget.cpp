@@ -34,16 +34,20 @@
 
 /* Author: Dave Coleman */
 
+// SA
 #include "end_effectors_widget.h"
+// Qt
+#include <QFormLayout>
+#include <QMessageBox>
 
 namespace moveit_setup_assistant
 {
 
 // ******************************************************************************************
-// Outer User Interface for MoveIt Configuration Assistant
+// Constructor
 // ******************************************************************************************
 EndEffectorsWidget::EndEffectorsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
-  :  SetupScreenWidget( parent ), config_data_( config_data )
+  : SetupScreenWidget( parent ), config_data_(config_data)
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout( );
@@ -51,14 +55,572 @@ EndEffectorsWidget::EndEffectorsWidget( QWidget *parent, moveit_setup_assistant:
   // Top Header Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "End Effectors",
-                                           "Setup robot end effectors",
+                                           "Setup grippers and other end effectors for this robot",
                                            this);
   layout->addWidget( header );
 
-  // Finish Layout --------------------------------------------------
+  // Create contents screens ---------------------------------------
 
+  effector_list_widget_ = createContentsWidget();
+  effector_edit_widget_ = createEditWidget();
+
+  // Create stacked layout -----------------------------------------
+  stacked_layout_ = new QStackedLayout( this );
+  stacked_layout_->addWidget( effector_list_widget_ ); // screen index 0
+  stacked_layout_->addWidget( effector_edit_widget_ ); // screen index 1
+
+  // Create Widget wrapper for layout
+  QWidget *stacked_layout_widget = new QWidget( this );
+  stacked_layout_widget->setLayout( stacked_layout_ );
+
+  layout->addWidget( stacked_layout_widget );
+
+
+  // Finish Layout --------------------------------------------------
   this->setLayout(layout);
+
+}
+
+// ******************************************************************************************
+// Create the main content widget
+// ******************************************************************************************
+QWidget* EndEffectorsWidget::createContentsWidget()
+{
+  // Main widget
+  QWidget *content_widget = new QWidget( this );
+
+  // Basic widget container
+  QVBoxLayout *layout = new QVBoxLayout( this );
+
+  // Table ------------ ------------------------------------------------
+
+  data_table_ = new QTableWidget( this );
+  data_table_->setColumnCount(3);
+  data_table_->setSortingEnabled(true);
+  data_table_->setSelectionBehavior( QAbstractItemView::SelectRows );
+  connect( data_table_, SIGNAL( cellDoubleClicked( int, int ) ), this, SLOT( editDoubleClicked( int, int ) ) );
+  connect( data_table_, SIGNAL( cellClicked( int, int ) ), this, SLOT( previewClicked( int, int ) ) );
+  layout->addWidget( data_table_ );  
+
+  // Set header labels
+  QStringList header_list;
+  header_list.append("End Effector Name");
+  header_list.append("Group Name");
+  header_list.append("Parent Link");
+  data_table_->setHorizontalHeaderLabels(header_list);
+  
+  // Bottom Buttons --------------------------------------------------
+
+  QHBoxLayout *controls_layout = new QHBoxLayout();
+
+  // Spacer
+  QWidget *spacer = new QWidget( this );
+  spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  controls_layout->addWidget( spacer );
+
+  // Edit Selected Button
+  btn_edit_ = new QPushButton( "&Edit Selected", this );
+  btn_edit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
+  btn_edit_->setMaximumWidth(300);
+  btn_edit_->hide(); // show once we know if there are existing poses
+  connect(btn_edit_, SIGNAL(clicked()), this, SLOT(editSelected()));
+  controls_layout->addWidget(btn_edit_);
+  controls_layout->setAlignment( btn_edit_, Qt::AlignRight );
+
+  // Add end effector Button
+  QPushButton *btn_add = new QPushButton( "&Add End Effector", this );
+  btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
+  btn_add->setMaximumWidth(300);
+  connect(btn_add, SIGNAL(clicked()), this, SLOT(showNewScreen()));
+  controls_layout->addWidget(btn_add);
+  controls_layout->setAlignment( btn_add, Qt::AlignRight );
+  
+  // Add layout
+  layout->addLayout( controls_layout );
+
+  
+  // Set layout -----------------------------------------------------
+  content_widget->setLayout(layout);
+
+  return content_widget;
+}
+
+// ******************************************************************************************
+// Create the edit widget
+// ******************************************************************************************
+QWidget* EndEffectorsWidget::createEditWidget()
+{
+  // Main widget
+  QWidget *edit_widget = new QWidget( this );
+  // Layout
+  QVBoxLayout *layout = new QVBoxLayout();
+
+
+  // Simple form -------------------------------------------
+  QFormLayout *form_layout = new QFormLayout();
+  //form_layout->setContentsMargins( 0, 15, 0, 15 );
+  form_layout->setRowWrapPolicy( QFormLayout::WrapAllRows );
+
+  // Name input
+  effector_name_field_ = new QLineEdit( this );
+  form_layout->addRow( "End Effector Name:", effector_name_field_ );
+
+  // Parent Link input
+  parent_name_field_ = new QComboBox( this );
+  parent_name_field_->setEditable( false );
+  form_layout->addRow( "Parent Link:", parent_name_field_ );
+
+  // Group input
+  group_name_field_ = new QComboBox( this );
+  group_name_field_->setEditable( false );
+  //connect( group_name_field_, SIGNAL( currentIndexChanged( const QString & ) ), 
+  //         this, SLOT( loadJointSliders( const QString & ) ) );
+  form_layout->addRow( "Planning Group:", group_name_field_ );
+  
+  layout->addLayout( form_layout );
+
+  // Bottom Buttons --------------------------------------------------
+
+  QHBoxLayout *controls_layout = new QHBoxLayout();
+  controls_layout->setContentsMargins( 0, 25, 0, 15 );
+
+  // Delete
+  btn_delete_ = new QPushButton( "&Delete End Effector", this );
+  connect( btn_delete_, SIGNAL(clicked()), this, SLOT( deleteItem() ) );
+  controls_layout->addWidget( btn_delete_ );
+  controls_layout->setAlignment(btn_delete_, Qt::AlignLeft);
+
+  // Spacer
+  QWidget *spacer = new QWidget( this );
+  spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  controls_layout->addWidget( spacer );
+
+  // Save
+  QPushButton *btn_save_ = new QPushButton( "&Save", this );
+  btn_save_->setMaximumWidth( 200 );
+  connect( btn_save_, SIGNAL(clicked()), this, SLOT( doneEditing() ) );
+  controls_layout->addWidget( btn_save_ );
+  controls_layout->setAlignment(btn_save_, Qt::AlignRight);
+
+  // Cancel
+  QPushButton *btn_cancel_ = new QPushButton( "&Cancel", this );
+  btn_cancel_->setMaximumWidth( 200 );
+  connect( btn_cancel_, SIGNAL(clicked()), this, SLOT( cancelEditing() ) );
+  controls_layout->addWidget( btn_cancel_ );
+  controls_layout->setAlignment(btn_cancel_, Qt::AlignRight);
+  
+  // Add layout
+  layout->addLayout( controls_layout );
+
+  
+  // Set layout -----------------------------------------------------
+  edit_widget->setLayout(layout);
+
+  return edit_widget;
+}
+
+// ******************************************************************************************
+// Show edit screen for creating a new effector
+// ******************************************************************************************
+void EndEffectorsWidget::showNewScreen()
+{
+  // Remember that this is a new effector
+  current_edit_effector_.clear();
+
+  // Hide delete button because this is a new widget
+  btn_delete_->hide();
+
+  // Clear previous data
+  effector_name_field_->setText("");
+  parent_name_field_->clearEditText();
+  group_name_field_->clearEditText(); // actually this just chooses first option
+  
+  // Switch to screen
+  stacked_layout_->setCurrentIndex( 1 ); 
+}
+
+// ******************************************************************************************
+// Edit whatever element is selected
+// ******************************************************************************************
+void EndEffectorsWidget::editDoubleClicked( int row, int column )
+{
+  editSelected();
+}
+
+// ******************************************************************************************
+// Preview whatever element is selected
+// ******************************************************************************************
+void EndEffectorsWidget::previewClicked( int row, int column )
+{
+  // TODO: highlight the end effector?
+
+
+  /*  // Get list of all selected items
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
+
+  // Check that an element was selected
+  if( !selected.size() )
+    return;
+
+  // Find the selected in datastructure
+  srdf::Model::GroupState *effector = findEffectorByName( selected[0]->text().toStdString() );
+
+  // Set effector joint values by adding them to the local joint state map
+  for( std::map<std::string, std::vector<double> >::const_iterator value_it = effector->joint_values_.begin();
+       value_it != effector->joint_values_.end(); ++value_it )
+  {
+    // Only copy the first joint value 
+    joint_state_map_[ value_it->first ] = value_it->second[0];
+  }
+
+  // Update the joints
+  publishJoints();
+  */
+}
+
+// ******************************************************************************************
+// Edit whatever element is selected
+// ******************************************************************************************
+void EndEffectorsWidget::editSelected()
+{
+  // Get list of all selected items
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
+
+  // Check that an element was selected
+  if( !selected.size() )
+    return;
+
+  // Get selected name and edit it
+  edit( selected[0]->text().toStdString() );
+}
+
+// ******************************************************************************************
+// Edit effector
+// ******************************************************************************************
+void EndEffectorsWidget::edit( const std::string &name )
+{
+  // Remember what we are editing
+  current_edit_effector_ = name;
+
+  // Find the selected in datastruture
+  srdf::Model::EndEffector *effector = findEffectorByName( name );
+
+  // Set effector name
+  effector_name_field_->setText( effector->name_.c_str() );
+
+  // Set effector parent link
+  int index = parent_name_field_->findText( effector->parent_link_.c_str() );
+  if( index == -1 )
+  {
+    QMessageBox::critical( this, "Error Loading", "Unable to find parent link in drop down box" );
+    return;
+  }
+  parent_name_field_->setCurrentIndex( index );
+
+  // Set group:
+  index = group_name_field_->findText( effector->component_group_.c_str() );
+  if( index == -1 )
+  {
+    QMessageBox::critical( this, "Error Loading", "Unable to find group name in drop down box" );
+    return;
+  }
+  group_name_field_->setCurrentIndex( index );
+
+  // Show delete button because its an existing item
+  btn_delete_->show();
+
+  // Switch to screen
+  stacked_layout_->setCurrentIndex( 1 ); 
+}
+
+// ******************************************************************************************
+// Populate the combo dropdown box with avail group names
+// ******************************************************************************************
+void EndEffectorsWidget::loadGroupsComboBox()
+{
+  // Remove all old groups
+  group_name_field_->clear();
+  
+  // Add all group names to combo box
+  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
+       group_it != config_data_->srdf_->groups_.end(); ++group_it )
+  {
+    group_name_field_->addItem( group_it->name_.c_str() );
+  }  
+
+}
+
+// ******************************************************************************************
+// Populate the combo dropdown box with avail parent links
+// ******************************************************************************************
+void EndEffectorsWidget::loadParentComboBox()
+{
+  namespace pm = planning_models;
+
+  // Remove all old groups
+  parent_name_field_->clear();
+  
+  // Get all links in robot model
+  std::vector<const pm::KinematicModel::LinkModel*> link_models = config_data_->getKinematicModel()->getLinkModels();
+  
+  // Add all links to combo box
+  for( std::vector<const pm::KinematicModel::LinkModel*>::const_iterator link_it = link_models.begin();
+       link_it < link_models.end(); ++link_it )
+  {
+    parent_name_field_->addItem( (*link_it)->getName().c_str() );
+  }  
+
+}
+
+// ******************************************************************************************
+// Find a group by pointer using its string name
+// ******************************************************************************************
+srdf::Model::Group *EndEffectorsWidget::findGroupByName( const std::string &name )
+{
+  // Find the group we are editing based on the goup name string
+  srdf::Model::Group *searched_group = NULL; // used for holding our search results
+
+  for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
+       group_it != config_data_->srdf_->groups_.end(); ++group_it )
+  {
+    if( group_it->name_ == name ) // string match
+    {
+      searched_group = &(*group_it);  // convert to pointer from iterator
+      break; // we are done searching
+    }
+  }  
+
+  // Check if subgroup was found
+  if( searched_group == NULL ) // not found
+  {
+    QMessageBox::critical( this, "Error Loading", "An internal error has occured while searching for groups");
+    exit(0); 
+  }
+  
+  return searched_group;
+}
+
+// ******************************************************************************************
+// Find the associated data by name
+// ******************************************************************************************
+srdf::Model::EndEffector *EndEffectorsWidget::findEffectorByName( const std::string &name )
+{
+  // Find the group state we are editing based on the effector name
+  srdf::Model::EndEffector *searched_group = NULL; // used for holding our search results
+
+  for( std::vector<srdf::Model::EndEffector>::iterator effector_it = config_data_->srdf_->end_effectors_.begin();
+       effector_it != config_data_->srdf_->end_effectors_.end(); ++effector_it )
+  {
+    if( effector_it->name_ == name ) // string match
+    {
+      searched_group = &(*effector_it);  // convert to pointer from iterator
+      break; // we are done searching
+    }
+  }  
+
+  // Check if effector was found
+  if( searched_group == NULL ) // not found
+  {
+    QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving. Quitting.");
+    exit(0); 
+  }
+  
+  return searched_group;
+}
+
+// ******************************************************************************************
+// Delete currently editing item
+// ******************************************************************************************
+void EndEffectorsWidget::deleteItem()
+{
+  // Confirm user wants to delete group
+  if( QMessageBox::question( this, "Confirm End Effector Deletion", 
+                             QString("Are you sure you want to delete the end effector '")
+                             .append( current_edit_effector_.c_str() )
+                             .append( "'?" ), 
+                             QMessageBox::Ok | QMessageBox::Cancel) 
+      == QMessageBox::Cancel )
+  {
+    return;
+  }
+
+  // Delete effector from vector
+  for( std::vector<srdf::Model::EndEffector>::iterator effector_it = config_data_->srdf_->end_effectors_.begin();
+       effector_it != config_data_->srdf_->end_effectors_.end(); ++effector_it )
+  {
+    // check if this is the group we want to delete
+    if( effector_it->name_ == current_edit_effector_ ) // string match
+    {
+      config_data_->srdf_->end_effectors_.erase( effector_it );
+      break;
+    }
+  }
+
+  // Reload main screen table
+  loadDataTable();
+
+  // Switch to screen  
+  stacked_layout_->setCurrentIndex( 0 ); 
+}
+
+// ******************************************************************************************
+// Save editing changes
+// ******************************************************************************************
+void EndEffectorsWidget::doneEditing()
+{
+  // Get a reference to the supplied strings
+  const std::string effector_name = effector_name_field_->text().toStdString();
+
+  // Used for editing existing groups
+  srdf::Model::EndEffector *searched_data = NULL;
+
+  // Check that name field is not empty
+  if( effector_name.empty() )
+  {
+    QMessageBox::warning( this, "Error Saving", "A name must be given for the end effector!" );
+    return;    
+  }
+
+  // Check if this is an existing group
+  if( !current_edit_effector_.empty() )
+  {
+    // Find the group we are editing based on the goup name string
+    searched_data = findEffectorByName( current_edit_effector_ );
+  }
+  
+  // Check that the effector name is unique
+  for( std::vector<srdf::Model::EndEffector>::const_iterator data_it = config_data_->srdf_->end_effectors_.begin(); 
+       data_it != config_data_->srdf_->end_effectors_.end();  ++data_it )
+  {
+    if( data_it->name_.compare( effector_name ) == 0 ) // the names are the same
+    {
+      // is this our existing effector? check if effector pointers are same
+      if( &(*data_it) != searched_data )
+      {
+        QMessageBox::warning( this, "Error Saving", "A effector already exists with that name!" );
+        return;
+      }
+    }
+  }
+
+  // Check that a group was selected
+  if( group_name_field_->currentText().isEmpty() )
+  {
+    QMessageBox::warning( this, "Error Saving", "A planning group must be chosen!" );
+    return;    
+  }
+
+  // Check that a parent link was selected
+  if( parent_name_field_->currentText().isEmpty() )
+  {
+    QMessageBox::warning( this, "Error Saving", "A parent link must be chosen!" );
+    return;    
+  }
+
+  // Save the new effector name or create the new effector ----------------------------
+  bool isNew = false;
+
+  if( searched_data == NULL ) // create new
+  {
+    isNew = true;
+
+    searched_data = new srdf::Model::EndEffector();
+  }
+
+  // Copy name data ----------------------------------------------------
+  searched_data->name_ = effector_name;
+  searched_data->parent_link_ = parent_name_field_->currentText().toStdString();
+  searched_data->component_group_ = group_name_field_->currentText().toStdString();
+
+  // Insert new effectors into group state vector --------------------------
+  if( isNew )
+  {
+    config_data_->srdf_->end_effectors_.push_back( *searched_data );
+  }
+
+  // Finish up ------------------------------------------------------
+
+  // Reload main screen table
+  loadDataTable();
+
+  // Switch to screen
+  stacked_layout_->setCurrentIndex( 0 ); 
+}
+
+// ******************************************************************************************
+// Cancel changes
+// ******************************************************************************************
+void EndEffectorsWidget::cancelEditing()
+{
+  // Switch to screen
+  stacked_layout_->setCurrentIndex( 0 ); 
+}
+
+// ******************************************************************************************
+// Load the end effectors into the table
+// ******************************************************************************************
+void EndEffectorsWidget::loadDataTable()
+{
+  // Disable Table
+  data_table_->setUpdatesEnabled(false); // prevent table from updating until we are completely done
+  data_table_->setDisabled(true); // make sure we disable it so that the cellChanged event is not called
+  data_table_->clearContents();
+
+  // Set size of datatable
+  data_table_->setRowCount( config_data_->srdf_->end_effectors_.size() ); 
+
+  // Loop through every end effector
+  int row = 0;
+  for( std::vector<srdf::Model::EndEffector>::const_iterator data_it = config_data_->srdf_->end_effectors_.begin(); 
+       data_it != config_data_->srdf_->end_effectors_.end(); ++data_it )
+  {
+    // Create row elements
+    QTableWidgetItem* data_name = new QTableWidgetItem( data_it->name_.c_str() );
+    data_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    QTableWidgetItem* group_name = new QTableWidgetItem( data_it->component_group_.c_str() );
+    group_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    QTableWidgetItem* parent_name = new QTableWidgetItem( data_it->parent_link_.c_str() );
+    group_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+
+    // Add to table
+    data_table_->setItem( row, 0, data_name );
+    data_table_->setItem( row, 1, group_name );
+    data_table_->setItem( row, 2, parent_name );
+    
+    // Increment counter
+    ++row;
+  }
+
+  // Reenable
+  data_table_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
+  data_table_->setDisabled(false); // make sure we disable it so that the cellChanged event is not called
+
+  // Resize header
+  data_table_->resizeColumnToContents(0);
+  data_table_->resizeColumnToContents(1);
+  data_table_->resizeColumnToContents(2);
+
+  // Show edit button if applicable
+  if( config_data_->srdf_->end_effectors_.size() )
+    btn_edit_->show();
+}
+
+// ******************************************************************************************
+// Called when setup assistant navigation switches to this screen
+// ******************************************************************************************
+void EndEffectorsWidget::focusGiven()
+{
+  // Show the current effectors screen
+  stacked_layout_->setCurrentIndex( 0 );
+
+  // Load the data to the tree
+  loadDataTable();
+
+  // Load the avail groups to the combo box
+  loadGroupsComboBox();
+  loadParentComboBox();
+
 }
 
 
-} //namespace moveit_setup_assistant
+} // namespace

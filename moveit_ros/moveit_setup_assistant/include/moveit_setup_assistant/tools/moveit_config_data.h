@@ -71,9 +71,11 @@ public:
   // Paths
   std::string urdf_path_;
   std::string srdf_path_;
-
+  
   // URDF robot model
-  urdf::Model urdf_model_;
+  //urdf::Model urdf_model_;
+  //  boost::shared_ptr<urdf::ModelInterface> urdf_model_;
+  boost::shared_ptr<urdf::Model> urdf_model_;
 
   // SRDF Data and Writer
   SRDFWriterPtr srdf_;
@@ -86,17 +88,19 @@ public:
   // ******************************************************************************************
 
   /// Provide a shared kinematic model loader
-  planning_models_loader::KinematicModelLoaderPtr getKinematicModelLoader();
+  planning_models::KinematicModelConstPtr getKinematicModel();
+
+  /// Update the Kinematic Model with latest SRDF modifications
+  void updateKinematicModel();
 
   /// Provide a shared planning scene
-  planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitor();
+  planning_scene::PlanningScenePtr getPlanningScene();
 
-  /// Provide a kinematic model. Load a new one if necessary
-  const planning_models::KinematicModelConstPtr& getKinematicModel();
+  /// Provide a shared planning scene
+  //planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitor();
 
-  /// Share the same node handle throughout the application
-  //ros::NodeHandle& getNodeHandle();
-
+  /// Provide a shared kinematic model loader
+  //planning_models_loader::KinematicModelLoaderPtr getKinematicModelLoader();
 
 private:
 
@@ -104,18 +108,17 @@ private:
   // Private Vars
   // ******************************************************************************************
 
-  // Shared kinematic model loader
-  planning_models_loader::KinematicModelLoaderPtr kin_model_loader_;
-
   // Shared planning scene monitor
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  //planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
   // Shared kinematic model
   planning_models::KinematicModelConstPtr kin_model_;
 
-  // Shared node handle
-  //  ros::NodeHandle *nh_;
-  
+  // Shared kinematic model loader
+  //planning_models_loader::KinematicModelLoaderPtr kin_model_loader_;
+
+  // Shared planning scene
+  planning_scene::PlanningScenePtr planning_scene_;
 };
 
 // ******************************************************************************************
