@@ -133,6 +133,8 @@ private:
   planning_scene::PlanningSceneConstPtr planning_scene_;
   planning_models::KinematicState state_;
   planning_models::KinematicState start_state_;
+  const planning_models::KinematicModel::JointModelGroup* joint_model_group_;
+
 
   std::vector<ChompCost> joint_costs_;
   const planning_scene::PlanningSceneDistanceField* psdf_;

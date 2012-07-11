@@ -179,12 +179,6 @@ public:
     return distance_field_cache_entry_;
   } 
 
-  void generateCollisionCheckingStructures(const std::string& group_name,
-                                           const planning_models::KinematicState& state,
-                                           const collision_detection::AllowedCollisionMatrix *acm,
-                                           boost::shared_ptr<GroupStateRepresentation>& gsr,
-                                           bool generate_distance_field) const;
-
   // void getSelfCollisionsGradients(const collision_detection::CollisionRequest &req, 
   //                                 collision_detection::CollisionResult &res, 
   //                                 const planning_models::KinematicState &state, 
@@ -211,6 +205,12 @@ protected:
 
   void updateGroupStateRepresentationState(const planning_models::KinematicState& state,
                                            boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+  void generateCollisionCheckingStructures(const std::string& group_name,
+                                           const planning_models::KinematicState& state,
+                                           const collision_detection::AllowedCollisionMatrix *acm,
+                                           boost::shared_ptr<GroupStateRepresentation>& gsr,
+                                           bool generate_distance_field) const;
 
   boost::shared_ptr<const DistanceFieldCacheEntry> 
   getDistanceFieldCacheEntry(const std::string& group_name,
