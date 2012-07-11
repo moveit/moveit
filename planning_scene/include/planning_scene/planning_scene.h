@@ -122,9 +122,9 @@ public:
 
   /** \brief Configure this planning scene to use a particular robot model and semantic description of that robot model.
       The kinematic model constructed from the parsed descriptions is also passed in. */
-  bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                 const boost::shared_ptr<const srdf::Model> &srdf_model,
-                 const planning_models::KinematicModelPtr &kmodel);
+  virtual bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+                         const boost::shared_ptr<const srdf::Model> &srdf_model,
+                         const planning_models::KinematicModelPtr &kmodel);
   
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
@@ -480,6 +480,14 @@ protected:
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
   
+  virtual void addToObject(const std::string &id,
+                           const std::vector<shapes::ShapeConstPtr> &shapes,
+                           const std::vector<Eigen::Affine3d> &poses);
+
+  virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
+
+  virtual void removeObject(const std::string& id);
+
   struct CollisionDetectionAllocBase
   {         
     virtual collision_detection::CollisionRobotPtr allocateRobot(const planning_models::KinematicModelConstPtr &kmodel) = 0;
