@@ -125,8 +125,7 @@ private:
     setState(PLANNING, 0.1);
     moveit_msgs::GetMotionPlan::Response mres;
     const planning_scene::PlanningSceneConstPtr &the_scene = 
-      planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff) ? planning_scene_monitor_->getPlanningScene() :
-      planning_scene::PlanningScene::diff(planning_scene_monitor_->getPlanningScene(), goal->planning_scene_diff);
+      planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff) ? planning_scene_monitor_->getPlanningScene() : planning_scene_monitor_->getPlanningScene()->diff(goal->planning_scene_diff);
     
     bool solved = planning_pipeline_.generatePlan(the_scene, mreq, mres);
     
