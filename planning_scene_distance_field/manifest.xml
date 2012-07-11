@@ -1,0 +1,20 @@
+<package>
+  <description brief="planning_scene_distance_field">
+
+     planning_scene_distance_field
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/planning_scene_distance_field</url>
+  <depend package="planning_scene"/>
+  <depend package="collision_distance_field"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplanning_scene_distance_field"/>
+  </export>
+
+</package>
+
+
