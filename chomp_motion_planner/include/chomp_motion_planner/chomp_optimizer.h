@@ -45,6 +45,7 @@
 #include <collision_distance_field/collision_distance_field_types.h>
 #include <collision_distance_field/collision_world_distance_field.h>
 #include <planning_scene/planning_scene.h>
+#include <planning_scene_distance_field/planning_scene_distance_field.h>
 
 #include <Eigen/Core>
 
@@ -131,9 +132,11 @@ private:
   ChompTrajectory group_trajectory_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   planning_models::KinematicState state_;
+  planning_models::KinematicState start_state_;
 
   std::vector<ChompCost> joint_costs_;
-  const collision_distance_field::CollisionWorldDistanceField* distance_field_world_;
+  const planning_scene::PlanningSceneDistanceField* psdf_;
+  boost::shared_ptr<const collision_distance_field::CollisionWorldDistanceField> distance_field_world_;
   boost::shared_ptr<collision_distance_field::GroupStateRepresentation> gsr_;
   bool initialized_;
 
@@ -214,7 +217,7 @@ private:
   void updatePositionFromMomentum();
   void calculatePseudoInverse();
   void computeJointProperties(int trajectoryPoint);
-
+  bool isCurrentTrajectoryMeshToMeshCollisionFree() const;
 };
 
 }

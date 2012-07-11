@@ -89,7 +89,7 @@ static inline double normalizeAngle(double angle)
 }
 
 static inline double shortestAngularDistance(double start, double end) {
-  double res = normalizeAnglePositive(normalizeAnglePositive(end)-normalizeAnglePositive(end));
+  double res = normalizeAnglePositive(normalizeAnglePositive(end)-normalizeAnglePositive(start));
   if(res > M_PI) {
     res = -(2.0*M_PI-res);
   }

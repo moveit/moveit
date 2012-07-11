@@ -63,13 +63,14 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
                     DIFF_RULE_LENGTH),
   planning_scene_(planning_scene),
   state_(start_state),
+  start_state_(start_state),
   initialized_(false)
 {
-  collision_detection::CollisionWorldConstPtr coll_world = planning_scene->getCollisionWorld();
-  distance_field_world_ = dynamic_cast<const collision_distance_field::CollisionWorldDistanceField*>(coll_world.get());
-  if(!distance_field_world_) {
-    ROS_WARN_STREAM("Dynamic cast failed");
+  psdf_ = dynamic_cast<const planning_scene::PlanningSceneDistanceField*>(planning_scene.get());
+  if(!psdf_) {
+    ROS_WARN_STREAM("Could not initialize PlanningSceneDistanceField from planning scene");
   } else {
+    distance_field_world_ = psdf_->getCollisionWorldDistanceField();
     initialize();
   }
 }
@@ -90,7 +91,7 @@ void ChompOptimizer::initialize()
   ros::WallTime wt = ros::WallTime::now();
   distance_field_world_->getCollisionGradients(req,
                                                res,
-                                               *planning_scene_->getCollisionRobot().get(),
+                                               *psdf_->getCollisionRobotDistanceField().get(),
                                                state_,
                                                &planning_scene_->getAllowedCollisionMatrix(),
                                                gsr_);
@@ -304,7 +305,7 @@ void ChompOptimizer::optimize()
   int costWindow = 10;
   std::vector<double>costs(costWindow, 0.0);
   double minimaThreshold = 0.05;
-  bool shouldBreakOut = false;
+  bool should_break_out = false;
 
   // if(parameters_->getAnimatePath())
   // {
@@ -377,6 +378,15 @@ void ChompOptimizer::optimize()
 
     if(iteration_ % 10 == 0)
     {
+      if(isCurrentTrajectoryMeshToMeshCollisionFree()) {
+        num_collision_free_iterations_ = 0;
+        ROS_INFO("Chomp Got mesh to mesh safety at iter %d. Breaking out early.", iteration_);
+        is_collision_free_ = true;
+        iteration_++;
+        should_break_out = true;
+      }
+      // } else if(safety == CollisionProximitySpace::InCollisionSafe) {
+      
       // ROS_DEBUG("Trajectory cost: %f (s=%f, c=%f)", getTrajectoryCost(), getSmoothnessCost(), getCollisionCost());
       // CollisionProximitySpace::TrajectorySafety safety = checkCurrentIterValidity();
       // if(safety == CollisionProximitySpace::MeshToMeshSafe) 
@@ -385,13 +395,13 @@ void ChompOptimizer::optimize()
       //   ROS_INFO("Chomp Got mesh to mesh safety at iter %d. Breaking out early.", iteration_);
       //   is_collision_free_ = true;
       //   iteration_++;
-      //   shouldBreakOut = true;
+      //   should_break_out = true;
       // } else if(safety == CollisionProximitySpace::InCollisionSafe) {
       //   num_collision_free_iterations_ = parameters_->getMaxIterationsAfterCollisionFree();
       //   ROS_INFO("Chomp Got in collision safety at iter %d. Breaking out soon.", iteration_);
       //   is_collision_free_ = true;
       //   iteration_++;
-      //   shouldBreakOut = true;
+      //   should_break_out = true;
       // }
       // else
       // {
@@ -406,7 +416,7 @@ void ChompOptimizer::optimize()
         num_collision_free_iterations_ = parameters_->getMaxIterationsAfterCollisionFree();
         is_collision_free_ = true;
         iteration_++;
-        shouldBreakOut = true;
+        should_break_out = true;
       } else {
         ROS_INFO_STREAM("cCost " << cCost << " over threshold " << parameters_->getCollisionThreshold());
       }
@@ -473,7 +483,7 @@ void ChompOptimizer::optimize()
     //   animatePath();
     // }
 
-    if(shouldBreakOut)
+    if(should_break_out)
     {
       collision_free_iteration_++;
       if(num_collision_free_iterations_ == 0) {
@@ -513,6 +523,20 @@ void ChompOptimizer::optimize()
   ROS_INFO("Terminated after %d iterations, using path from iteration %d", iteration_, last_improvement_iteration_);
   ROS_INFO("Optimization core finished in %f sec", (ros::WallTime::now() - start_time).toSec() );
   ROS_INFO_STREAM("Time per iteration " << (ros::WallTime::now() - start_time).toSec()/(iteration_*1.0));
+}
+
+bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
+{
+  moveit_msgs::RobotTrajectory traj;
+  for(int i = 0; i < group_trajectory_.getNumPoints(); i++) {
+    trajectory_msgs::JointTrajectoryPoint point;
+    for(int j = 0; j < group_trajectory_.getNumJoints(); j++) {
+      point.positions.push_back(best_group_trajectory_(i,j));
+    }
+    traj.joint_trajectory.points.push_back(point);
+  }
+  return planning_scene_->isPathValid(start_state_,
+                                      traj);
 }
 
 // CollisionProximitySpace::TrajectorySafety ChompOptimizer::checkCurrentIterValidity()
@@ -714,6 +738,10 @@ double ChompOptimizer::getCollisionCost()
     double state_collision_cost = 0.0;
     for(int j = 0; j < num_collision_points_; j++)
     {
+      if(collision_point_potential_[i][j] > .0001) {
+        ROS_INFO_STREAM("I J " << i << " " << j << " " << collision_point_potential_[i][j] << " " << collision_point_vel_mag_[i][j] << " " 
+                        << collision_point_potential_[i][j] * collision_point_vel_mag_[i][j]);
+      }
       state_collision_cost += collision_point_potential_[i][j] * collision_point_vel_mag_[i][j];
     }
     collision_cost += state_collision_cost;
@@ -909,7 +937,7 @@ void ChompOptimizer::performForwardKinematics()
     
     distance_field_world_->getCollisionGradients(req,
                                                  res,
-                                                 *planning_scene_->getCollisionRobot().get(),
+                                                 *psdf_->getCollisionRobotDistanceField().get(),
                                                  state_,
                                                  NULL,
                                                  gsr_);
@@ -940,12 +968,12 @@ void ChompOptimizer::performForwardKinematics()
           if(point_is_in_collision_[i][j])
           {
             state_is_in_collision_[i] = true;
-            if(is_collision_free_ == true) {
+            //if(is_collision_free_ == true) {
               ROS_INFO_STREAM("We know it's not collision free " << g);
               ROS_INFO_STREAM("Sphere location " << info.sphere_locations[k].x() << " " << info.sphere_locations[k].y() << " " << info.sphere_locations[k].z());
-              ROS_INFO_STREAM("Gradient " << info.gradients[k].x() << " " << info.gradients[k].y() << " " << info.gradients[k].z());
+              ROS_INFO_STREAM("Gradient " << info.gradients[k].x() << " " << info.gradients[k].y() << " " << info.gradients[k].z() << " distance " << info.distances[k] << " radii " << info.sphere_radii[k]);
               ROS_INFO_STREAM("Radius " << info.sphere_radii[k] << " potential " << collision_point_potential_[i][j]);
-            }
+              //}
             is_collision_free_ = false;
           }
           j++;
