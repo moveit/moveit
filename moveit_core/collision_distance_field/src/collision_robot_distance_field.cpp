@@ -837,12 +837,13 @@ void CollisionRobotDistanceField::updateGroupStateRepresentationState(const plan
     }
     for(unsigned int j = 0; j < att->getShapes().size(); j++) {
       gsr->attached_body_decompositions_[i]->updatePose(j, att->getGlobalCollisionBodyTransforms()[j]);
-      gsr->gradients_[i+gsr->dfce_->link_names_.size()].closest_distance = DBL_MAX;
-      gsr->gradients_[i+gsr->dfce_->link_names_.size()].collision = false;
-      gsr->gradients_[i+gsr->dfce_->link_names_.size()].types.assign(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size(), NONE);
-      gsr->gradients_[i+gsr->dfce_->link_names_.size()].distances.assign(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size(), DBL_MAX);
-      gsr->gradients_[i+gsr->dfce_->link_names_.size()].gradients.assign(gsr->attached_body_decompositions_.back()->getCollisionSpheres().size(), Eigen::Vector3d(0.0,0.0,0.0));
     }
+    gsr->gradients_[i+gsr->dfce_->link_names_.size()].closest_distance = DBL_MAX;
+    gsr->gradients_[i+gsr->dfce_->link_names_.size()].collision = false;
+    gsr->gradients_[i+gsr->dfce_->link_names_.size()].types.assign(gsr->attached_body_decompositions_[i]->getCollisionSpheres().size(), NONE);
+    gsr->gradients_[i+gsr->dfce_->link_names_.size()].distances.assign(gsr->attached_body_decompositions_[i]->getCollisionSpheres().size(), DBL_MAX);
+    gsr->gradients_[i+gsr->dfce_->link_names_.size()].gradients.assign(gsr->attached_body_decompositions_[i]->getCollisionSpheres().size(), Eigen::Vector3d(0.0,0.0,0.0));
+    gsr->gradients_[i+gsr->dfce_->link_names_.size()].sphere_locations = gsr->attached_body_decompositions_[i]->getSphereCenters();
   }
 }
 
