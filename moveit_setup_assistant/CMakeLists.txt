@@ -87,6 +87,6 @@ set( sources
 add_definitions(-Wno-deprecated)
 
 rosbuild_add_executable(setup_assistant ${sources} ${headers} ${moc_sources})
-target_link_libraries(setup_assistant ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_secondary_widgets)
+target_link_libraries(setup_assistant ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_secondary_widgets yaml-cpp)
 
 

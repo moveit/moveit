@@ -192,7 +192,6 @@ void SetupAssistantWidget::moveToScreen( const int index )
 // ******************************************************************************************
 void SetupAssistantWidget::progressPastStartScreen()
 {
-  std::cout << "Progress past start screen" << std::endl;
   // Load all widgets ------------------------------------------------
   
   // Self-Collisions
@@ -229,7 +228,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   }
 
   // Go to next screen
-  moveToScreen( 1 );
+  moveToScreen( 6 );
 
   // Enable navigation
   navs_view_->setDisabled( false );

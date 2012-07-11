@@ -275,7 +275,7 @@ void StartScreenWidget::loadFiles()
   }
 
   ROS_INFO("Setting Param Server with Robot Description");
-  //nh.setParam("/robot_description", urdf_string);
+  //nh.setParam("/robot_description", urdf_string); // TODO: fix the rosparam issue with large strings
   
   // SRDF -----------------------------------------------------
   std::string srdf_path = srdf_file_->getPath();
@@ -316,7 +316,7 @@ void StartScreenWidget::loadFiles()
       ROS_INFO_STREAM( "Robot semantic model successfully loaded." );
       
       // Copy path to config data
-      config_data_->srdf_path_ = srdf_string;
+      config_data_->srdf_path_ = srdf_path;
     }
   
     ROS_INFO( "Setting Param Server - Semantic" );
@@ -336,7 +336,7 @@ void StartScreenWidget::loadFiles()
   select_mode_->setDisabled(true);
   btn_load_->hide();
 
-  ROS_INFO( "Loading COMPLETE" );
+  ROS_INFO( "Loading Setup Assistant Complete" );
 }
 
 // ******************************************************************************************
