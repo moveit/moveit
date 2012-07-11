@@ -63,20 +63,7 @@ DoubleListWidget::DoubleListWidget( QWidget *parent, moveit_setup_assistant::Mov
   title_->setFont(group_title_font);
   layout->addWidget( title_ );
   
-  // Simple form -------------------------------------------
-  /* QFormLayout *form_layout = new QFormLayout();
-     form_layout->setContentsMargins( 0, 15, 0, 15 );
-
-     // Name input
-     name_input_ = new QLineEdit( this );
-     name_input_->setMaximumWidth( 400 );
-     form_layout->addRow( "Data Collection Name:", name_input_ );
-  
-     layout->addLayout( form_layout );
-     layout->setAlignment( Qt::AlignTop );
-  */
   // Double selection lists -------------------------------
-  
   QHBoxLayout *hlayout = new QHBoxLayout();
   
   // Left column -------------------------------------------
@@ -106,13 +93,13 @@ DoubleListWidget::DoubleListWidget( QWidget *parent, moveit_setup_assistant::Mov
   
   // Right Arrow Button
   QPushButton *btn_right = new QPushButton( ">", this);
-  btn_right->setMaximumSize(30, 80);
+  btn_right->setMaximumSize(25, 80);
   connect( btn_right, SIGNAL( clicked() ), this, SLOT( selectDataButtonClicked() ) );
   column2->addWidget( btn_right );
   
   // Left Arrow Button
   QPushButton *btn_left = new QPushButton( "<", this);
-  btn_left->setMaximumSize(30, 80);
+  btn_left->setMaximumSize(25, 80);
   connect( btn_left, SIGNAL( clicked() ), this, SLOT( deselectDataButtonClicked() ) );
   column2->addWidget( btn_left );
 
@@ -153,14 +140,14 @@ DoubleListWidget::DoubleListWidget( QWidget *parent, moveit_setup_assistant::Mov
 
   // Save
   QPushButton *btn_save = new QPushButton( "&Save", this );
-  btn_save->setMaximumWidth( 200 );
+  //btn_save->setMaximumWidth( 200 );
   connect( btn_save, SIGNAL(clicked()), this, SIGNAL( doneEditing() ) );
   controls_layout->addWidget( btn_save );
   controls_layout->setAlignment(btn_save, Qt::AlignRight);
 
   // Cancel
   QPushButton *btn_cancel = new QPushButton( "&Cancel", this );
-  btn_cancel->setMaximumWidth( 200 );
+  //btn_cancel->setMaximumWidth( 200 );
   connect( btn_cancel, SIGNAL(clicked()), this, SIGNAL( cancelEditing() ) );
   controls_layout->addWidget( btn_cancel );
   controls_layout->setAlignment(btn_cancel, Qt::AlignRight);

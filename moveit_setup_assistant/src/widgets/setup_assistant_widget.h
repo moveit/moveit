@@ -50,10 +50,11 @@
 // Setup Asst
 #include "navigation_widget.h"
 #include "start_screen_widget.h"
-#include "compute_default_collisions_widget.h"
+#include "default_collisions_widget.h"
 #include "planning_groups_widget.h"
 #include "robot_poses_widget.h"
 #include "end_effectors_widget.h"
+#include "virtual_joints_widget.h"
 #include "configuration_files_widget.h"
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 // Other
@@ -153,11 +154,11 @@ private:
 
   // Screen Widgets
   StartScreenWidget *ssw_;
-  ComputeDefaultCollisionsWidget *cdcw_;
+  DefaultCollisionsWidget *cdcw_;
   PlanningGroupsWidget *pgw_;
   RobotPosesWidget *rpw_;
   EndEffectorsWidget *efw_;
-  //VirtualJointsWidget *vjw_;
+  VirtualJointsWidget *vjw_;
   ConfigurationFilesWidget *cfw_;
   
   /// Contains all the configuration data for the setup assistant

@@ -127,7 +127,7 @@ QWidget* EndEffectorsWidget::createContentsWidget()
   controls_layout->addWidget(btn_edit_);
   controls_layout->setAlignment( btn_edit_, Qt::AlignRight );
 
-  // Add Group Button
+  // Add end effector Button
   QPushButton *btn_add = new QPushButton( "&Add End Effector", this );
   btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
   btn_add->setMaximumWidth(300);
@@ -269,7 +269,7 @@ void EndEffectorsWidget::previewClicked( int row, int column )
   for( std::map<std::string, std::vector<double> >::const_iterator value_it = effector->joint_values_.begin();
        value_it != effector->joint_values_.end(); ++value_it )
   {
-    // Only copy the first joint value // TODO: add capability for multi-DOF joints?
+    // Only copy the first joint value 
     joint_state_map_[ value_it->first ] = value_it->second[0];
   }
 
@@ -351,6 +351,28 @@ void EndEffectorsWidget::loadGroupsComboBox()
 }
 
 // ******************************************************************************************
+// Populate the combo dropdown box with avail parent links
+// ******************************************************************************************
+void EndEffectorsWidget::loadParentComboBox()
+{
+  namespace pm = planning_models;
+
+  // Remove all old groups
+  parent_name_field_->clear();
+  
+  // Get all links in robot model
+  std::vector<const pm::KinematicModel::LinkModel*> link_models = config_data_->getKinematicModel()->getLinkModels();
+  
+  // Add all links to combo box
+  for( std::vector<const pm::KinematicModel::LinkModel*>::const_iterator link_it = link_models.begin();
+       link_it < link_models.end(); ++link_it )
+  {
+    parent_name_field_->addItem( (*link_it)->getName().c_str() );
+  }  
+
+}
+
+// ******************************************************************************************
 // Find a group by pointer using its string name
 // ******************************************************************************************
 srdf::Model::Group *EndEffectorsWidget::findGroupByName( const std::string &name )
@@ -372,7 +394,7 @@ srdf::Model::Group *EndEffectorsWidget::findGroupByName( const std::string &name
   if( searched_group == NULL ) // not found
   {
     QMessageBox::critical( this, "Error Loading", "An internal error has occured while searching for groups");
-    exit(0); // TODO: is this the ROS way?
+    exit(0); 
   }
   
   return searched_group;
@@ -400,7 +422,7 @@ srdf::Model::EndEffector *EndEffectorsWidget::findEffectorByName( const std::str
   if( searched_group == NULL ) // not found
   {
     QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving. Quitting.");
-    exit(0); // TODO: is this the ROS way?
+    exit(0); 
   }
   
   return searched_group;
@@ -470,16 +492,10 @@ void EndEffectorsWidget::doneEditing()
   for( std::vector<srdf::Model::EndEffector>::const_iterator data_it = config_data_->srdf_->end_effectors_.begin(); 
        data_it != config_data_->srdf_->end_effectors_.end();  ++data_it )
   {
-    std::cout << (*data_it).name_ << std::endl;
-
     if( data_it->name_.compare( effector_name ) == 0 ) // the names are the same
     {
       // is this our existing effector? check if effector pointers are same
-      if( &(*data_it) == searched_data )
-      {
-        std::cout << "these two have same pointer" << std::endl;
-      }
-      else
+      if( &(*data_it) != searched_data )
       {
         QMessageBox::warning( this, "Error Saving", "A effector already exists with that name!" );
         return;
@@ -506,7 +522,6 @@ void EndEffectorsWidget::doneEditing()
 
   if( searched_data == NULL ) // create new
   {
-    std::cout << "Creating new effector" << std::endl;
     isNew = true;
 
     searched_data = new srdf::Model::EndEffector();
@@ -603,10 +618,8 @@ void EndEffectorsWidget::focusGiven()
 
   // Load the avail groups to the combo box
   loadGroupsComboBox();
-  // TODO: loadParentLinks();
+  loadParentComboBox();
 
-  // TODO: remove demo
-  //edit( "tuck_right_arm" );
 }
 
 
