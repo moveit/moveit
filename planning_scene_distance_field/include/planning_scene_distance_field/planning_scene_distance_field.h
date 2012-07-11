@@ -85,6 +85,8 @@ protected:
 
   PlanningSceneDistanceField(const PlanningSceneConstPtr &parent);
 
+  std::map<std::string, std::vector<collision_distance_field::CollisionSphere> > coll_spheres_;
+
   boost::shared_ptr<const PlanningSceneDistanceField> parent_distance_field_;
 
   boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField> crobot_distance_;
