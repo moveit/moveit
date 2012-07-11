@@ -44,7 +44,7 @@ void constructScene(const planning_scene::PlanningScenePtr &scene)
     
     Eigen::Affine3d t;
     t = Eigen::Translation3d(2.2, 2.75, 0.7);
-    scene->getCollisionWorld()->addToObject("pole", shapes::ShapeConstPtr(new shapes::Box(0.1, 0.1, 1.4)), t);
+    scene->addToObject("pole", shapes::ShapeConstPtr(new shapes::Box(0.1, 0.1, 1.4)), t);
 
     /*
     moveit_msgs::AttachedCollisionObject aco;
