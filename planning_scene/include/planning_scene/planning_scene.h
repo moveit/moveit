@@ -189,12 +189,6 @@ public:
     // we always have a world representation
     return cworld_const_;
   }
-  /** \brief Get the representation of the collision world */
-  const collision_detection::CollisionWorldPtr& getCollisionWorld(void)
-  {
-    // we always have a world representation
-    return cworld_;
-  }
 
   /** \brief Get the representation of the collision robot */
   const collision_detection::CollisionRobotConstPtr& getCollisionRobot(void) const
@@ -480,14 +474,8 @@ public:
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
   
-protected:
+  virtual void moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
 
-  void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
-  void addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
-  void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
-  void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
-  void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
-  
   virtual void addToObject(const std::string &id,
                            const std::vector<shapes::ShapeConstPtr> &shapes,
                            const std::vector<Eigen::Affine3d> &poses);
@@ -496,6 +484,23 @@ protected:
 
   virtual void removeObject(const std::string& id);
 
+  virtual void removeAllObjects();
+
+protected:
+
+  //brief Get the representation of the collision world
+  const collision_detection::CollisionWorldPtr& getCollisionWorldPtr(void)
+  {
+    // we always have a world representation
+    return cworld_;
+  }
+
+  void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
+  void addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
+  void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
+  void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
+  void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
+  
   struct CollisionDetectionAllocBase
   {         
     virtual collision_detection::CollisionRobotPtr allocateRobot(const planning_models::KinematicModelConstPtr &kmodel) = 0;
