@@ -205,7 +205,7 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     att_obj.object.id = pickup_goal.collision_object_name;
     att_obj.touch_links = end_effector_links;
 
-    execution_info[i].attached_object_diff_scene_.reset(new planning_scene::PlanningScene(planning_scene));
+    execution_info[i].attached_object_diff_scene_ = planning_scene->diff();
     //need to make sure that the fingers are in the grasped pose in order to do the attach
     execution_info[i].attached_object_diff_scene_->getCurrentState().setStateValues(grasp_joint_vals);
     execution_info[i].attached_object_diff_scene_->getCurrentState().updateStateWithLinkAt(tip_link,grasp_poses[i]);
