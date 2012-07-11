@@ -369,7 +369,7 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningScene(const planning_
   planning_scene_ = planning_scene;
 }
 
-void ompl_interface::ModelBasedPlanningContext::setStartState(const planning_models::KinematicState &complete_initial_robot_state)
+void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(const planning_models::KinematicState &complete_initial_robot_state)
 {
   complete_initial_robot_state_ = complete_initial_robot_state;
 }

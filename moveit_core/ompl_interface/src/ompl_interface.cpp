@@ -87,7 +87,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::prep
   
   // set the planning scene
   context->setPlanningScene(planning_scene);
-  context->setStartState(start_state);
+  context->setCompleteInitialState(start_state);
   
   context->setPlanningVolume(req.workspace_parameters);
   if (!context->setPathConstraints(req.path_constraints, error_code))
@@ -150,6 +150,9 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &error_code, &attempts, &timeout);
   if (!context)
     return false;
+  //  std::ofstream d("/home/isucan/diagram.dot");
+  //  context->getOMPLSimpleSetup().getStateSpace()->diagram(d);
+  //  d.close();
   
   if (context->solve(timeout, attempts))
   {
@@ -228,7 +231,7 @@ ompl::base::PathPtr ompl_interface::OMPLInterface::solve(const planning_scene::P
   
   std::vector<moveit_msgs::Constraints> goal_constraints_v(1, goal_constraints);  
   context->setPlanningScene(planning_scene);
-  context->setStartState(start_state);
+  context->setCompleteInitialState(start_state);
   context->setPathConstraints(path_constraints, NULL);
   context->setGoalConstraints(goal_constraints_v, path_constraints, NULL);
   context->configure();

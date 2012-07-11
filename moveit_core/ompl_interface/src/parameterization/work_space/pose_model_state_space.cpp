@@ -63,7 +63,9 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
     {
       double *va = getValueAddressAtIndex(bad_state_, index++);
       *va = spec_.joints_bounds_[i][k].first - 1.0;
-    }
+    }  
+  bad_state_->as<StateType>()->setJointsComputed(true);
+  bad_state_->as<StateType>()->setPoseComputed(true);
 }
 
 ompl_interface::PoseModelStateSpace::~PoseModelStateSpace(void)
@@ -96,6 +98,7 @@ void ompl_interface::PoseModelStateSpace::copyState(ompl::base::State *destinati
 {
   // copy the state data
   ModelBasedStateSpace::copyState(destination, source);
+  destination->as<StateType>()->flags = source->as<StateType>()->flags;
   
   // compute additional stuff if needed
   computeStateK(destination);
@@ -241,14 +244,16 @@ bool ompl_interface::PoseModelStateSpace::computeStateK(ompl::base::State *state
     return computeStateIK(state);
   if (state->as<StateType>()->jointsComputed() && state->as<StateType>()->poseComputed())
     return true;
-  copyState(state, bad_state_);
+  if (state != bad_state_)
+    copyState(state, bad_state_);
   return false;
-}
+} 
 
 void ompl_interface::PoseModelStateSpace::afterStateSample(ompl::base::State *sample) const
 {
   ModelBasedStateSpace::afterStateSample(sample); 
   sample->as<StateType>()->setJointsComputed(true);
+  sample->as<StateType>()->setPoseComputed(false);
   computeStateFK(sample);
 }
 

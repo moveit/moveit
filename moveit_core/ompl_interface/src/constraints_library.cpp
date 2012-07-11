@@ -378,20 +378,24 @@ const ompl_interface::ConstraintApproximationPtr& ompl_interface::ConstraintsLib
 
 ompl_interface::ConstraintApproximationConstructionResults
 ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr, const std::string &group, const std::string &state_space_parameterization,
-                                                               const planning_models::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
+                                                               const planning_scene::PlanningSceneConstPtr &scene, unsigned int samples, unsigned int edges_per_sample)
 {
-  return addConstraintApproximation(constr, constr, group, state_space_parameterization, kstate, samples, edges_per_sample);
+  return addConstraintApproximation(constr, constr, group, state_space_parameterization, scene, samples, edges_per_sample);
 }
 
 ompl_interface::ConstraintApproximationConstructionResults
 ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
                                                                const std::string &group, const std::string &state_space_parameterization,
-                                                               const planning_models::KinematicState &kstate, unsigned int samples, unsigned int edges_per_sample)
+                                                               const planning_scene::PlanningSceneConstPtr &scene, unsigned int samples, unsigned int edges_per_sample)
 { 
   ConstraintApproximationConstructionResults res;
-  const ModelBasedPlanningContextPtr &pc = context_manager_.getPlanningContext(group, state_space_parameterization);
+  ModelBasedPlanningContextPtr pc = context_manager_.getPlanningContext(group, state_space_parameterization);
   if (pc)
-  {
+  {                                             
+    pc->clear();
+    pc->setPlanningScene(scene);
+    pc->setCompleteInitialState(scene->getCurrentState());
+
     std::map<std::string, ConstraintApproximationFactoryPtr>::const_iterator it = constraint_factories_.find(constr_hard.name);
     ConstraintApproximationFactory *fct = NULL;
     ConstraintStateStorageOrderFn order;
@@ -402,8 +406,8 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
     }
     
     ros::WallTime start = ros::WallTime::now();
-    ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, kstate, order, samples, edges_per_sample, res);
-    ROS_INFO("Spend %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
+    ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, order, samples, edges_per_sample, res);
+    ROS_INFO("Spent %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
     if (ss)
     {
       ConstraintApproximationPtr ca;
@@ -430,7 +434,6 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs
 ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstraintApproximation(const ModelBasedPlanningContextPtr &pcontext,
                                                                                                  const moveit_msgs::Constraints &constr_sampling,
                                                                                                  const moveit_msgs::Constraints &constr_hard,
-                                                                                                 const planning_models::KinematicState &default_state,
                                                                                                  const ConstraintStateStorageOrderFn &order,
                                                                                                  unsigned int samples, unsigned int edges_per_sample,
                                                                                                  ConstraintApproximationConstructionResults &result)
@@ -442,10 +445,8 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   // construct a sampler for the sampling constraints
   kinematic_constraints::KinematicConstraintSet kset(pcontext->getKinematicModel(), planning_models::TransformsConstPtr(new planning_models::Transforms(pcontext->getKinematicModel()->getModelFrame())));
   kset.add(constr_hard);
-  
-  // default state
-  pcontext->clear();
-  pcontext->setStartState(default_state);
+
+  const planning_models::KinematicState &default_state = pcontext->getCompleteInitialRobotState();
   
   int nthreads = 0;
   unsigned int attempts = 0;
