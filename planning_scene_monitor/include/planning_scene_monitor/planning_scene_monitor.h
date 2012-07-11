@@ -57,34 +57,28 @@ public:
 
   struct SceneConfigBase
   {
+    static const std::string DEFAULT_SCENE_TYPE;
+    
     SceneConfigBase(const std::string &type) : type_(type)
     {
     }
-    virtual planning_scene::PlanningScenePtr allocPlanningScene(void)  = 0;  
-    virtual planning_scene::PlanningScenePtr allocPlanningScene(const planning_scene::PlanningSceneConstPtr &parent)  = 0;
-
+    virtual planning_scene::PlanningScenePtr allocPlanningScene(void) = 0;  
+    
     std::string type_;
   };
 
-  template<typename PlanningSceneType, typename CollisionWorldType, typename CollisionRobotType>
+  template<typename PlanningSceneType = planning_scene::PlanningScene>
   struct SceneConfig : public SceneConfigBase
   {  
     BOOST_CONCEPT_ASSERT((boost::Convertible<PlanningSceneType*, planning_scene::PlanningScene*>));
 
-    SceneConfig(const std::string &type = "default") : SceneConfigBase(type)
+    SceneConfig(const std::string &type = DEFAULT_SCENE_TYPE) : SceneConfigBase(type)
     {
     }
     
     virtual planning_scene::PlanningScenePtr allocPlanningScene(void)
     {
-      planning_scene::PlanningScenePtr result(new PlanningSceneType());
-      result->setCollisionDetectionTypes<CollisionWorldType, CollisionRobotType>();
-      return result;
-    }
-    
-    virtual planning_scene::PlanningScenePtr allocPlanningScene(const planning_scene::PlanningSceneConstPtr &parent)
-    {    
-      return planning_scene::PlanningScenePtr(new PlanningSceneType(parent));
+      return planning_scene::PlanningScenePtr(new PlanningSceneType());
     }
   };
 
@@ -143,11 +137,19 @@ public:
   
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
-  const planning_scene::PlanningScenePtr& getPlanningScene(const std::string &type = "default");
+  const planning_scene::PlanningScenePtr& getPlanningScene(void);
 
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
-  const planning_scene::PlanningSceneConstPtr& getPlanningScene(const std::string &type = "default") const;
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene(void) const;
+
+  /** @brief Get the planning scene
+   *  @return An instance of the planning scene*/
+  const planning_scene::PlanningScenePtr& getPlanningScene(const std::string &type);
+
+  /** @brief Get the planning scene
+   *  @return An instance of the planning scene*/
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene(const std::string &type) const;
 
   /** @brief Get the stored robot description
    *  @return An instance of the stored robot description*/
@@ -266,7 +268,6 @@ protected:
     planning_scene::PlanningScenePtr ptr_;
     planning_scene::PlanningSceneConstPtr ptr_const_;
     planning_scene::PlanningScenePtr parent_scene_; /// if diffs are monitored, this is the pointer to the parent scene
-    SceneConfigPtr config_;
   };
   
   /** @brief Initialize the planning scene monitor

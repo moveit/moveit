@@ -67,47 +67,32 @@ private:
   dynamic_reconfigure::Server<planning_scene_monitor::PlanningSceneMonitorDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
-struct DefaultSceneConfig : public PlanningSceneMonitor::SceneConfigBase
-{  
-  DefaultSceneConfig(void) : SceneConfigBase("default")
-  {
-  }
-  
-  virtual planning_scene::PlanningScenePtr allocPlanningScene(void)
-  {
-    return planning_scene::PlanningScenePtr(new planning_scene::PlanningScene());
-  }
-  
-  virtual planning_scene::PlanningScenePtr allocPlanningScene(const planning_scene::PlanningSceneConstPtr &parent)
-  {    
-    return planning_scene::PlanningScenePtr(new planning_scene::PlanningScene(parent));
-  }
-};
-  
+const std::string PlanningSceneMonitor::SceneConfigBase::DEFAULT_SCENE_TYPE = "default";
+
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf)
 {
-  initialize(planning_scene::PlanningSceneConstPtr(), robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
+  initialize(planning_scene::PlanningSceneConstPtr(), robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new SceneConfig<>())));
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf)
 {
-  initialize(parent, robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
+  initialize(parent, robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new SceneConfig<>())));
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf), kinematics_loader_(kml)
 {
-  initialize(planning_scene::PlanningSceneConstPtr(), std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
+  initialize(planning_scene::PlanningSceneConstPtr(), std::vector<SceneConfigPtr>(1, SceneConfigPtr(new SceneConfig<>())));
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf), kinematics_loader_(kml)
 {
-  initialize(parent, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
+  initialize(parent, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new SceneConfig<>())));
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::vector<SceneConfigPtr> &configs, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf):
@@ -150,11 +135,10 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
     planning_scene::PlanningScenePtr first_scene;
     for (std::size_t i = 0 ; i < configs.size() ; ++i)
     {
-      planning_scene::PlanningScenePtr new_scene = parent ? configs[i]->allocPlanningScene(parent) : configs[i]->allocPlanningScene();
+      planning_scene::PlanningScenePtr new_scene = parent ? parent->diff() : configs[i]->allocPlanningScene();
       if (new_scene->configure(kinematics_loader_->getURDF(), kinematics_loader_->getSRDF() ? kinematics_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()), kinematics_loader_->getModel()))
       {
         scenes_[configs[i]->type_] = InternalSceneInfo(new_scene);
-        scenes_[configs[i]->type_].config_ = configs[i];
         if (!first_scene)
         {
           first_scene = new_scene;
@@ -194,7 +178,7 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
       for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
       {
         it->second.parent_scene_ = it->second.ptr_;
-        it->second.ptr_ = it->second.config_->allocPlanningScene(it->second.parent_scene_);
+        it->second.ptr_ = it->second.parent_scene_->diff();
       }
     }
     else
@@ -383,12 +367,23 @@ void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
   scene_update_mutex_.unlock();
 }
 
+const planning_scene::PlanningScenePtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(void)
+{ 
+  if (scenes_.size() == 1)
+    return scenes_.begin()->second.ptr_;
+  return getPlanningScene(PlanningSceneMonitor::SceneConfigBase::DEFAULT_SCENE_TYPE);
+}
+
+const planning_scene::PlanningSceneConstPtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(void) const
+{ 
+  if (scenes_.size() == 1)
+    return scenes_.begin()->second.ptr_const_;
+  return getPlanningScene(PlanningSceneMonitor::SceneConfigBase::DEFAULT_SCENE_TYPE);
+}
+
 const planning_scene::PlanningScenePtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(const std::string &type)
 {
   static const planning_scene::PlanningScenePtr empty;
-  if(scenes_.size() == 1) {
-    return scenes_.begin()->second.ptr_;
-  }
   std::map<std::string, InternalSceneInfo>::iterator it = scenes_.find(type);
   return it != scenes_.end() ? it->second.ptr_ : empty;
 }
@@ -396,9 +391,6 @@ const planning_scene::PlanningScenePtr& planning_scene_monitor::PlanningSceneMon
 const planning_scene::PlanningSceneConstPtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(const std::string &type) const
 {
   static const planning_scene::PlanningSceneConstPtr empty;
-  if(scenes_.size() == 1) {
-    return scenes_.begin()->second.ptr_const_;
-  }
   std::map<std::string, InternalSceneInfo>::const_iterator it = scenes_.find(type);
   return it != scenes_.end() ? it->second.ptr_const_ : empty;
 }
