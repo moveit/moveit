@@ -386,6 +386,9 @@ void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
 const planning_scene::PlanningScenePtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(const std::string &type)
 {
   static const planning_scene::PlanningScenePtr empty;
+  if(scenes_.size() == 1) {
+    return scenes_.begin()->second.ptr_;
+  }
   std::map<std::string, InternalSceneInfo>::iterator it = scenes_.find(type);
   return it != scenes_.end() ? it->second.ptr_ : empty;
 }
@@ -393,6 +396,9 @@ const planning_scene::PlanningScenePtr& planning_scene_monitor::PlanningSceneMon
 const planning_scene::PlanningSceneConstPtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(const std::string &type) const
 {
   static const planning_scene::PlanningSceneConstPtr empty;
+  if(scenes_.size() == 1) {
+    return scenes_.begin()->second.ptr_const_;
+  }
   std::map<std::string, InternalSceneInfo>::const_iterator it = scenes_.find(type);
   return it != scenes_.end() ? it->second.ptr_const_ : empty;
 }
