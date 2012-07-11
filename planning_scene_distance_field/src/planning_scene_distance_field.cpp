@@ -67,6 +67,11 @@ bool PlanningSceneDistanceField::configure(const boost::shared_ptr<const urdf::M
   return configured;
 }
 
+planning_scene::PlanningScenePtr PlanningSceneDistanceField::diff(void) const
+{
+  return PlanningScenePtr(new PlanningSceneDistanceField(shared_from_this()));
+}
+
 void PlanningSceneDistanceField::addToObject(const std::string &id,
                                              const std::vector<shapes::ShapeConstPtr> &shapes,
                                              const std::vector<Eigen::Affine3d> &poses)

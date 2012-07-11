@@ -49,10 +49,10 @@ public:
 
   PlanningSceneDistanceField(void);
 
-  explicit PlanningSceneDistanceField(const PlanningSceneConstPtr &parent);
-
   virtual ~PlanningSceneDistanceField(void) {
   }
+
+  virtual PlanningScenePtr diff(void) const;
 
   const boost::shared_ptr<const collision_distance_field::CollisionWorldDistanceField> getCollisionWorldDistanceField() const {
     return cworld_distance_;
@@ -75,6 +75,8 @@ public:
   virtual void removeObject(const std::string& id);
 
 protected:
+
+  PlanningSceneDistanceField(const PlanningSceneConstPtr &parent);
 
   boost::shared_ptr<collision_distance_field::CollisionRobotDistanceField> crobot_distance_;
   boost::shared_ptr<collision_distance_field::CollisionWorldDistanceField> cworld_distance_;
