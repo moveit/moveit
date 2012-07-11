@@ -50,7 +50,7 @@ PlanningSceneDistanceField::PlanningSceneDistanceField(const PlanningSceneConstP
   //configure won't actually get called from the parent constructor, as virtual functions will not get called during
   //construction, so we have to do more work here
   if(!parent_) {
-    crobot_distance_.reset(new collision_distance_field::CollisionRobotDistanceField(parent->getKinematicModel()));
+    crobot_distance_.reset(new collision_distance_field::CollisionRobotDistanceField(parent->getKinematicModel(), coll_spheres_));
     if(!cworld_distance_) {
       cworld_distance_.reset(new collision_distance_field::CollisionWorldDistanceField());
     }
@@ -66,7 +66,7 @@ bool PlanningSceneDistanceField::configure(const boost::shared_ptr<const urdf::M
 {
   bool configured = PlanningScene::configure(urdf_model, srdf_model, kmodel);
   if(!parent_) {
-    crobot_distance_.reset(new collision_distance_field::CollisionRobotDistanceField(kmodel));
+    crobot_distance_.reset(new collision_distance_field::CollisionRobotDistanceField(kmodel, coll_spheres_));
     if(!cworld_distance_) {
       cworld_distance_.reset(new collision_distance_field::CollisionWorldDistanceField());
     }
