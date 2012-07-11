@@ -41,7 +41,7 @@
 #include <QString>
 #include <QFont>
 #include <QApplication>
-#include "compute_default_collisions_widget.h"
+#include "default_collisions_widget.h"
 #include <boost/unordered_map.hpp>
 #include <boost/assign.hpp>
 
@@ -75,7 +75,7 @@ public:
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
-ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent, 
+DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent, 
                                                                 MoveItConfigDataPtr config_data )
   : SetupScreenWidget( parent ), config_data_(config_data)
 {
@@ -96,9 +96,9 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   controls_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
   // Slider Label
-  /*QLabel *density_left_label = new QLabel( this );
-  density_left_label->setText("Self Collision Sampling Density:  Low");
-  controls_box_layout->addWidget(density_left_label); */
+  QLabel *density_left_label = new QLabel( this );
+  density_left_label->setText("Sampling Density: Low");
+  controls_box_layout->addWidget(density_left_label);
 
   // Slider
   density_slider_ = new QSlider( this );
@@ -115,22 +115,24 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
 
   // Slider Right Label
   QLabel *density_right_label = new QLabel( this );
-  density_right_label->setText("High       ");
+  density_right_label->setText("High   ");
   controls_box_layout->addWidget(density_right_label);
 
   // Slider Value Label
   density_value_label_ = new QLabel( this );
-  density_value_label_->setMinimumWidth(150);
+  density_value_label_->setMinimumWidth(50);
   controls_box_layout->addWidget(density_value_label_);
   changeDensityLabel( density_slider_->value() ); // initialize label with value
 
 
   // Generate Button
-  generate_button_ = new QPushButton( this );
-  generate_button_->setText("&Generate");
-  generate_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-  connect(generate_button_, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
-  controls_box_layout->addWidget(generate_button_);
+  btn_generate_ = new QPushButton( this );
+  btn_generate_->setText("&Generate Collision Matrix");
+  btn_generate_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred );
+  connect(btn_generate_, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
+  //controls_box_layout->addWidget(btn_generate_);
+  layout_->addWidget(btn_generate_);
+  layout_->setAlignment( btn_generate_, Qt::AlignRight );
 
   // Progress Bar Area ---------------------------------------------
 
@@ -152,10 +154,6 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   // Table
   collision_table_ = new QTableWidget( this );
   collision_table_->setColumnCount(4);
-  collision_table_->setColumnWidth(0, 330);
-  collision_table_->setColumnWidth(1, 330);
-  collision_table_->setColumnWidth(2, 85);
-  collision_table_->setColumnWidth(3, 180);
   collision_table_->setSortingEnabled(true);
   connect(collision_table_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
   layout_->addWidget(collision_table_);
@@ -166,6 +164,12 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   header_list.append("Disabled");
   header_list.append("Reason To Disable");
   collision_table_->setHorizontalHeaderLabels(header_list);
+
+  // Resize headers
+  collision_table_->resizeColumnToContents(0);
+  collision_table_->resizeColumnToContents(1);
+  collision_table_->resizeColumnToContents(2);
+  collision_table_->resizeColumnToContents(3);
 
   // Bottom Area ----------------------------------------
   controls_box_bottom_ = new QGroupBox( this );
@@ -179,15 +183,6 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
   controls_box_bottom_layout->addWidget(collision_checkbox_);
   controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
 
-  // Save Button
-  /*save_button_ = new QPushButton( this );
-    save_button_->setText("&Save to SRDF");
-    save_button_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    save_button_->setMinimumWidth(300);
-    connect(save_button_, SIGNAL(clicked()), this, SLOT(saveToSRDF()));
-    controls_box_bottom_layout->addWidget(save_button_);
-    controls_box_bottom_layout->setAlignment(save_button_, Qt::AlignRight);*/
-
   setLayout(layout_);
 
   setWindowTitle("Default Collision Matrix");
@@ -196,7 +191,7 @@ ComputeDefaultCollisionsWidget::ComputeDefaultCollisionsWidget( QWidget *parent,
 // ******************************************************************************************
 // Qt close event function for reminding user to save
 // ******************************************************************************************
-void ComputeDefaultCollisionsWidget::generateCollisionTable()
+void DefaultCollisionsWidget::generateCollisionTable()
 {
   // Disable controls on form
   disableControls(true);
@@ -211,7 +206,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
   QApplication::processEvents(); // allow the progress bar to be shown
 
   // Create thread to do actual work
-  boost::thread workerThread( boost::bind( &ComputeDefaultCollisionsWidget::generateCollisionTableThread, 
+  boost::thread workerThread( boost::bind( &DefaultCollisionsWidget::generateCollisionTableThread, 
                                            this, &collision_progress ));
   // Check interval
   boost::posix_time::seconds check_interval(1);  
@@ -244,7 +239,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTable()
 // ******************************************************************************************
 // The thread that is called to allow the GUI to update. Calls an external function to do calcs
 // ******************************************************************************************
-void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collision_progress )
+void DefaultCollisionsWidget::generateCollisionTableThread( unsigned int *collision_progress )
 {
   unsigned int num_trials = density_slider_->value() * 1000 + 1000; // scale to trials amount
 
@@ -269,7 +264,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
 // ******************************************************************************************
 // Displays data in the link_pairs_ data structure into a QtTableWidget
 // ******************************************************************************************
-void ComputeDefaultCollisionsWidget::loadCollisionTable()
+void DefaultCollisionsWidget::loadCollisionTable()
 {
   int row = 0;
   int progress_counter = 0;
@@ -295,7 +290,7 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
   else
   {
     // The table will be populated, so indicate it on the button
-    generate_button_->setText("Regenerate Default Collision Matrix");
+    btn_generate_->setText("Regenerate Default Collision Matrix");
   }
 
 
@@ -362,7 +357,11 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
   // Reduce the table size to only the number of used rows
   collision_table_->setRowCount( row ); 
 
-      
+  // Resize headers
+  collision_table_->resizeColumnToContents(0);
+  collision_table_->resizeColumnToContents(1);
+  collision_table_->resizeColumnToContents(2);
+  collision_table_->resizeColumnToContents(3);
 
   collision_table_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
 }
@@ -370,20 +369,19 @@ void ComputeDefaultCollisionsWidget::loadCollisionTable()
 // ******************************************************************************************
 // GUI func for showing sampling density amount
 // ******************************************************************************************
-void ComputeDefaultCollisionsWidget::changeDensityLabel(int value)
+void DefaultCollisionsWidget::changeDensityLabel(int value)
 {
-  density_value_label_->setText( QString::number( value*1000 + 1000).append(" samples") );
+  density_value_label_->setText( QString::number( value*1000 + 1000) ); //.append(" samples") );
 }
 
 // ******************************************************************************************
 // Helper function to disable parts of GUI during computation
 // ******************************************************************************************
-void ComputeDefaultCollisionsWidget::disableControls(bool disable)
+void DefaultCollisionsWidget::disableControls(bool disable)
 {
   controls_box_->setDisabled( disable );
   collision_table_->setDisabled( disable );
   collision_checkbox_->setDisabled( disable );
-  //save_button_->setDisabled( disable );
 
   if( disable )
   {
@@ -402,7 +400,7 @@ void ComputeDefaultCollisionsWidget::disableControls(bool disable)
 // ******************************************************************************************
 // Changes the table to show or hide collisions that are not disabled (that have collision checking enabled)
 // ******************************************************************************************
-void ComputeDefaultCollisionsWidget::collisionCheckboxToggle()
+void DefaultCollisionsWidget::collisionCheckboxToggle()
 {
   // Show Progress bar
   disableControls( true );
@@ -417,7 +415,7 @@ void ComputeDefaultCollisionsWidget::collisionCheckboxToggle()
 // ******************************************************************************************
 // Called when user changes data in table, really just the checkbox
 // ******************************************************************************************
-void ComputeDefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are flipped on purpose
+void DefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are flipped on purpose
 {
   // Only accept cell changes if table is enabled, otherwise it is this program making changes
   if( collision_table_->isEnabled() )
@@ -472,7 +470,7 @@ void ComputeDefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are f
 // ******************************************************************************************
 // Output Link Pairs to SRDF Format
 // ******************************************************************************************
-void ComputeDefaultCollisionsWidget::linkPairsToSRDF()
+void DefaultCollisionsWidget::linkPairsToSRDF()
 {
   // reset the data in the SRDF Writer class
   config_data_->srdf_->disabled_collisions_.clear();

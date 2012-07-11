@@ -34,21 +34,20 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COMPUTE_DEFAULT_COLLISIONS_WIDGET__
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COMPUTE_DEFAULT_COLLISIONS_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_VIRTUAL_JOINTS_WIDGET_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_VIRTUAL_JOINTS_WIDGET_
 
+// Qt
 #include <QWidget>
-#include <QLabel>
 #include <QVBoxLayout>
-#include <QTableWidget>
-#include <QSlider>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QPushButton>
-#include <QGroupBox>
-#include <QProgressBar>
-#include <QCheckBox>
-#include <boost/thread.hpp>
-#include "ros/ros.h"
-#include "moveit_setup_assistant/tools/compute_default_collisions.h"
+#include <QTableWidget>
+#include <QStackedLayout>
+#include <QString>
+#include <QComboBox>
+// SA
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
@@ -56,111 +55,139 @@
 namespace moveit_setup_assistant
 {
 
-/**
- * \brief User interface for editing the default collision matrix list in an SRDF
- */
-class ComputeDefaultCollisionsWidget : public SetupScreenWidget
+class VirtualJointsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-public:
+  public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  /**
-   * \brief User interface for editing the default collision matrix list in an SRDF
-   * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
-   */
-  ComputeDefaultCollisionsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  VirtualJointsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
-  /** 
-   * \brief Output Link Pairs to SRDF Format
-   */
-  void linkPairsToSRDF();
+  /// Recieved when this widget is chosen from the navigation menu
+  virtual void focusGiven();
 
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+  QTableWidget *data_table_;
+  QPushButton *btn_edit_;
+  QPushButton *btn_delete_;
+  QPushButton *btn_save_;
+  QPushButton *btn_cancel_;
+  QStackedLayout *stacked_layout_;
+  QLineEdit *vjoint_name_field_;
+  QLineEdit *parent_name_field_;
+  QComboBox *child_link_field_;
+  QComboBox *joint_type_field_;
+  QWidget *vjoint_list_widget_;
+  QWidget *vjoint_edit_widget_;
+                                                                                              
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
 
-  /**
-   * \brief
-   Qt close event function for reminding user to saveCreates a thread and updates the GUI progress bar
-   */
-  void generateCollisionTable();
+  /// Show edit screen
+  void showNewScreen();
 
-  /**
-   * \brief GUI func for showing sampling density amount
-   * \param value Sampling density
-   */
-  void changeDensityLabel(int value);
+  /// Edit whatever element is selected
+  void editSelected();
 
-  /**
-   * \brief Displays data in the link_pairs data structure into a QtTableWidget
-   */
-  void loadCollisionTable();
- 
-  /**
-   * \brief Changes the table to show or hide collisions that are not disabled (that have collision checking enabled
-   */
-  void collisionCheckboxToggle();
+  /// Edit the double clicked element
+  void editDoubleClicked( int row, int column );
 
-  /**
-   * \brief Called when user changes data in table, really just the checkbox
-   * \param i,j Check coordinates, aka y,x (weird)
-   */
-  void toggleCheckBox(int j, int i);
+  /// Preview whatever element is selected
+  void previewClicked( int row, int column );
+
+  /// Delete currently editing ite
+  void deleteItem();
+
+  /// Save editing changes
+  void doneEditing();
+
+  /// Cancel changes
+  void cancelEditing();
 
 private:
-
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-  QLabel *page_title_;
-  QTableWidget *collision_table_;
-  QVBoxLayout *layout_;
-  QLabel *density_value_label_;
-  QSlider *density_slider_;
-  QPushButton *generate_button_;
-  QGroupBox *controls_box_;
-  QProgressBar *progress_bar_;
-  QLabel *progress_label_;
-  QCheckBox *collision_checkbox_;
-  QGroupBox *controls_box_bottom_;
-  QPushButton *save_button_;
-  QTimer *update_timer_;
 
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
 
-  /// main storage of link pair data
-  moveit_setup_assistant::LinkPairMap link_pairs_; 
-
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+  
+  /// Orignal name of vjoint currently being edited. This is used to find the element in the vector
+  std::string current_edit_vjoint_;
 
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
 
-  /**
-   * \brief The thread that is called to allow the GUI to update. Calls an external function to do calcs
-   * \param collision_progress A shared pointer between 3 threads to allow progress bar to update. See declaration 
-   * location for more details and warning.
+  /** 
+   * Find the associated data by name
+   * 
+   * @param name - name of data to find in datastructure
+   * @return pointer to data in datastructure
    */
-  void generateCollisionTableThread( unsigned int *collision_progress );
+  //srdf::Model::Group *findGroupByName( const std::string &name );
 
-  /**
-   * \brief Helper function to disable parts of GUI during computation
-   * \param disable A command
-   */                                
-  void disableControls(bool disable);
+  /** 
+   * Find the associated data by name
+   * 
+   * @param name - name of data to find in datastructure
+   * @return pointer to data in datastructure
+   */
+  srdf::Model::VirtualJoint *findVJointByName( const std::string &name );
 
+  /** 
+   * Create the main list view of vjoints for robot
+   * 
+   * @return the widget
+   */
+  QWidget* createContentsWidget();
+
+  /** 
+   * Create the screen for editing vjoints
+   * 
+   * @return the widget
+   */
+  QWidget* createEditWidget();
+  
+  /** 
+   * Load the robot vjoints into the table
+   * 
+   */
+  void loadDataTable();
+
+  /** 
+   * Populate the combo dropdown box with avail group names
+   * 
+   */
+  void loadJointTypesComboBox();
+
+  /** 
+   * Populate the combo dropdown box with avail parent links
+   * 
+   */  
+  void loadChildLinksComboBox();
+
+  /** 
+   * Edit the vjoint with the input name
+   * 
+   * @param name name of vjoint
+   */
+  void edit( const std::string &name );
 };
 
-}
+
+
+} //namespace
+
 
 #endif
+

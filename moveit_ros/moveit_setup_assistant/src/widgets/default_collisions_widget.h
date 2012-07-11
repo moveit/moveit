@@ -34,17 +34,21 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONFIGURATION_FILES_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONFIGURATION_FILES_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET__
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET_
 
 #include <QWidget>
-#include <QPushButton>
-#include <QString>
-#include <QProgressBar>
 #include <QLabel>
-#include <QListWidget>
-#include <QList>
+#include <QVBoxLayout>
+#include <QTableWidget>
+#include <QSlider>
+#include <QPushButton>
 #include <QGroupBox>
+#include <QProgressBar>
+#include <QCheckBox>
+#include <boost/thread.hpp>
+#include "ros/ros.h"
+#include "moveit_setup_assistant/tools/compute_default_collisions.h"
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
@@ -52,7 +56,10 @@
 namespace moveit_setup_assistant
 {
 
-class ConfigurationFilesWidget : public SetupScreenWidget
+/**
+ * \brief User interface for editing the default collision matrix list in an SRDF
+ */
+class DefaultCollisionsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
@@ -61,19 +68,16 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  ConfigurationFilesWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  /**
+   * \brief User interface for editing the default collision matrix list in an SRDF
+   * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
+   */
+  DefaultCollisionsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
-
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-  QPushButton *btn_save_;
-  LoadPathWidget *stack_path_;
-  QProgressBar *progress_bar_;
-  QListWidget *action_list_;
-  QLabel *action_label_;
-  QGroupBox *actions_box_;
-  QList<QString> action_desc_; // Holds the descriptions explaining all performed actions
+  /** 
+   * \brief Output Link Pairs to SRDF Format
+   */
+  void linkPairsToSRDF();
 
 private Q_SLOTS:
 
@@ -81,46 +85,81 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
-  /// Save package using default path
-  void savePackage();
+  /**
+   * \brief
+   Qt close event function for reminding user to saveCreates a thread and updates the GUI progress bar
+   */
+  void generateCollisionTable();
 
-  /// Quit the program because we are done
-  void exitSetupAssistant();
+  /**
+   * \brief GUI func for showing sampling density amount
+   * \param value Sampling density
+   */
+  void changeDensityLabel(int value);
 
-  /// Display the selected action in the desc box
-  void changeActionDesc(int id);
+  /**
+   * \brief Displays data in the link_pairs data structure into a QtTableWidget
+   */
+  void loadCollisionTable();
+ 
+  /**
+   * \brief Changes the table to show or hide collisions that are not disabled (that have collision checking enabled
+   */
+  void collisionCheckboxToggle();
+
+  /**
+   * \brief Called when user changes data in table, really just the checkbox
+   * \param i,j Check coordinates, aka y,x (weird)
+   */
+  void toggleCheckBox(int j, int i);
 
 private:
 
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+  QLabel *page_title_;
+  QTableWidget *collision_table_;
+  QVBoxLayout *layout_;
+  QLabel *density_value_label_;
+  QSlider *density_slider_;
+  QPushButton *btn_generate_;
+  QGroupBox *controls_box_;
+  QProgressBar *progress_bar_;
+  QLabel *progress_label_;
+  QCheckBox *collision_checkbox_;
+  QGroupBox *controls_box_bottom_;
+  QTimer *update_timer_;
 
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
 
+  /// main storage of link pair data
+  moveit_setup_assistant::LinkPairMap link_pairs_; 
+
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
-
-  /// Track progress
-  unsigned int action_num;
-
-  /// Total actions - update this whenever a new call to displayAction() is added
-  static const unsigned int action_num_total = 11;
 
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
 
-  /// Verify with user if certain screens have not been completed
-  bool checkDependencies();
+  /**
+   * \brief The thread that is called to allow the GUI to update. Calls an external function to do calcs
+   * \param collision_progress A shared pointer between 3 threads to allow progress bar to update. See declaration 
+   * location for more details and warning.
+   */
+  void generateCollisionTableThread( unsigned int *collision_progress );
 
-  /// A function for showing progress and user feedback about what happened
-  void displayAction( const QString title, const QString desc );
-
-  /// Get the last folder name in a directory path
-  const std::string getPackageName( std::string stack_path );
+  /**
+   * \brief Helper function to disable parts of GUI during computation
+   * \param disable A command
+   */                                
+  void disableControls(bool disable);
 
 };
 
-} //namespace moveit_setup_assistant
+}
 
 #endif
