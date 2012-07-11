@@ -40,7 +40,7 @@
 #include <rviz/default_plugin/interactive_marker_display.h>
 #include <rviz/display_wrapper.h>
 #include <rviz/view_controllers/orbit_view_controller.h>
-#include <planning_scene_distance_field/planning_scene_distance_field.h>
+#include <collision_distance_field_ros/planning_scene_distance_field_ros.h>
 #include <collision_detection_fcl/collision_world.h>
 #include <collision_detection_fcl/collision_robot.h>
 
@@ -64,7 +64,7 @@ MoveItVisualizer::MoveItVisualizer() :
   interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
   kinematic_model_loader_.reset(new planning_models_loader::KinematicModelLoader("robot_description"));
 
-  planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr scp(new planning_scene_monitor::PlanningSceneMonitor::SceneConfig<planning_scene::PlanningSceneDistanceField>("distance"));
+  planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr scp(new planning_scene_monitor::PlanningSceneMonitor::SceneConfig<planning_scene::PlanningSceneDistanceFieldRos>("distance"));
 
   std::vector<planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr> scpv(1, scp);
 
