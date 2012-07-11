@@ -46,7 +46,18 @@ PlanningSceneDistanceField::PlanningSceneDistanceField()
 PlanningSceneDistanceField::PlanningSceneDistanceField(const PlanningSceneConstPtr &parent) 
   :PlanningScene(parent)
 {
-  ROS_INFO_STREAM("Making diff");
+  parent_distance_field_ = boost::static_pointer_cast<const PlanningSceneDistanceField>(parent);
+  //configure won't actually get called from the parent constructor, as virtual functions will not get called during
+  //construction, so we have to do more work here
+  if(!parent_) {
+    crobot_distance_.reset(new collision_distance_field::CollisionRobotDistanceField(parent->getKinematicModel()));
+    if(!cworld_distance_) {
+      cworld_distance_.reset(new collision_distance_field::CollisionWorldDistanceField());
+    }
+  } else if(parent_->isConfigured()) {
+    cworld_distance_.reset(new collision_distance_field::CollisionWorldDistanceField());
+    cworld_distance_->recordChanges(true);
+  } 
 }
 
 bool PlanningSceneDistanceField::configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
@@ -63,13 +74,20 @@ bool PlanningSceneDistanceField::configure(const boost::shared_ptr<const urdf::M
     cworld_distance_.reset(new collision_distance_field::CollisionWorldDistanceField());
     cworld_distance_->recordChanges(true);
   } 
-  ROS_INFO_STREAM("Calling configure");
   return configured;
 }
 
 planning_scene::PlanningScenePtr PlanningSceneDistanceField::diff(void) const
 {
   return PlanningScenePtr(new PlanningSceneDistanceField(shared_from_this()));
+}
+
+void PlanningSceneDistanceField::moveShapeInObject(const std::string &id, 
+                                                   const shapes::ShapeConstPtr &shape, 
+                                                   const Eigen::Affine3d &pose)
+{
+  PlanningScene::moveShapeInObject(id, shape, pose);
+  cworld_distance_->moveShapeInObject(id,shape, pose);
 }
 
 void PlanningSceneDistanceField::addToObject(const std::string &id,
@@ -89,6 +107,11 @@ void PlanningSceneDistanceField::addToObject(const std::string &id, const shapes
 void PlanningSceneDistanceField::removeObject(const std::string& id){
   PlanningScene::removeObject(id);
   cworld_distance_->removeObject(id);
+}
+
+void PlanningSceneDistanceField::removeAllObjects(){
+  PlanningScene::removeAllObjects();
+  cworld_distance_->clearObjects();
 }
 
 
