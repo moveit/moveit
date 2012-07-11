@@ -51,13 +51,6 @@ static const std::string OCTOMAP_NS = "_2_octomap";
 static const std::string DEFAULT_SCENE_NAME = "(noname)";
 }
 
-planning_scene::PlanningScenePtr planning_scene::PlanningScene::clone(const PlanningSceneConstPtr &scene)
-{
-  PlanningScenePtr result(new PlanningScene(scene));
-  result->decoupleParent();
-  return result;
-}
-
 bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningScene &msg)
 {
   return msg.name.empty() && msg.fixed_frame_transforms.empty() && msg.robot_state.multi_dof_joint_state.joint_names.empty() &&
@@ -66,9 +59,21 @@ bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningScene &ms
       msg.world.collision_map.boxes.empty();
 }
 
-planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff(const PlanningSceneConstPtr &scene, const moveit_msgs::PlanningScene &msg)
+planning_scene::PlanningScenePtr planning_scene::PlanningScene::clone(const planning_scene::PlanningSceneConstPtr &scene)
 {
-  PlanningScenePtr result(new PlanningScene(scene));
+  PlanningScenePtr result = scene->diff();
+  result->decoupleParent();
+  return result;
+}
+
+planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff(void) const
+{
+  return PlanningScenePtr(new PlanningScene(shared_from_this()));
+}
+
+planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff(const moveit_msgs::PlanningScene &msg) const
+{
+  planning_scene::PlanningScenePtr result = diff();
   result->setPlanningSceneDiffMsg(msg);
   return result;
 }

@@ -86,19 +86,19 @@ TEST(PlanningScene, LoadRestoreDiff)
   EXPECT_FALSE(planning_scene::PlanningScene::isEmpty(ps_msg));
   EXPECT_TRUE(ps->getCollisionWorld()->hasObject("sphere"));
   
-  planning_scene::PlanningScene next(ps);
-  EXPECT_TRUE(next.isConfigured());
-  EXPECT_TRUE(next.getCollisionWorld()->hasObject("sphere"));
-  next.getCollisionWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
-  EXPECT_EQ(next.getCollisionWorld()->getObjectIds().size(), 2);
+  planning_scene::PlanningScenePtr next = ps->diff();
+  EXPECT_TRUE(next->isConfigured());
+  EXPECT_TRUE(next->getCollisionWorld()->hasObject("sphere"));
+  next->getCollisionWorld()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
+  EXPECT_EQ(next->getCollisionWorld()->getObjectIds().size(), 2);
   EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 1);
-  next.getPlanningSceneDiffMsg(ps_msg);
+  next->getPlanningSceneDiffMsg(ps_msg);
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
-  next.decoupleParent();
+  next->decoupleParent();
   moveit_msgs::PlanningScene ps_msg2;
-  next.getPlanningSceneDiffMsg(ps_msg2);	
+  next->getPlanningSceneDiffMsg(ps_msg2);	
   EXPECT_EQ(ps_msg2.world.collision_objects.size(), 0);
-  next.getPlanningSceneMsg(ps_msg);	
+  next->getPlanningSceneMsg(ps_msg);	
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
   ps->setPlanningSceneMsg(ps_msg);
   EXPECT_EQ(ps->getCollisionWorld()->getObjectIds().size(), 2);
@@ -117,7 +117,7 @@ TEST(PlanningScene, MakeAttachedDiff)
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
   cw.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
   
-  planning_scene::PlanningScenePtr attached_object_diff_scene(new planning_scene::PlanningScene(ps));
+  planning_scene::PlanningScenePtr attached_object_diff_scene = ps->diff();
   
   moveit_msgs::AttachedCollisionObject att_obj;
   att_obj.link_name = "r_wrist_roll_link";
