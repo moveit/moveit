@@ -103,8 +103,8 @@ private:
   /// Track progress
   unsigned int action_num;
 
-  /// Total actions
-  static const unsigned int action_num_total = 2;
+  /// Total actions - update this whenever a new call to displayAction() is added
+  static const unsigned int action_num_total = 11;
 
   // ******************************************************************************************
   // Private Functions

@@ -8,6 +8,7 @@
   <url>http://ros.org/wiki/moveit_setup_assistant</url> 
 
   <rosdep name="tinyxml" />
+  <rosdep name="yaml-cpp"/>
   <rosdep name="srdfdom" />
 
   <depend package="planning_models"/>
@@ -15,7 +16,7 @@
   <depend package="planning_scene"/>
   <depend package="planning_scene_monitor"/>
   <depend package="urdf"/>
-  <!-- depend package="rviz"/ -->
+  <!--depend package="rviz"/-->
   <depend package="moveit_rviz_plugin"/>
 
   <export>
