@@ -146,6 +146,8 @@ void CollisionWorldDistanceField::getCollisionGradients(const collision_detectio
                                               acm,
                                               gsr,
                                               true);
+    } else {
+      cdr.updateGroupStateRepresentationState(state, gsr);
     }
     cdr.getSelfProximityGradients(gsr);
     cdr.getIntraGroupProximityGradients(gsr);
@@ -171,7 +173,9 @@ void CollisionWorldDistanceField::getAllCollisions(const collision_detection::Co
                                               acm,
                                               gsr,
                                               true);
-    } 
+    } else {
+      cdr.updateGroupStateRepresentationState(state, gsr);
+    }
     cdr.getSelfCollisions(req, res, gsr);
     cdr.getIntraGroupCollisions(req, res, gsr);
     boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
