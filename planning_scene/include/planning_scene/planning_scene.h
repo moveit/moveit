@@ -46,6 +46,7 @@
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
@@ -73,13 +74,16 @@ typedef std::map<std::string, std_msgs::ColorRGBA> ColorMap;
 /** \brief This class maintains the representation of the
     environment as seen by a planning instance. The environment
     geometry, the robot geometry and state are maintained. */
-class PlanningScene : private boost::noncopyable
+class PlanningScene : private boost::noncopyable,
+                      public boost::enable_shared_from_this<PlanningScene>
 {
 public:
-
+  
   /** \brief Constructor. Allocate an empty planning scene. Before use, this instance needs to be configured
       by calling the configure() function. */
   PlanningScene(void);
+  
+protected:
 
   /** \brief Constructor. Allocate a planning scene that is to be maintained as a diff to a \e parent planning scene.
       This representation does not actually copy the parent scene data. Instead, it maintains diffs with respect to the
@@ -87,9 +91,10 @@ public:
       the modified objects were previously modified within the diff class (and a modified copy is stored instead).
       It is recommended that the \e parent planning scene is configured before use. Otherwise,
       the configure() function will have to be called on the diff class as well. */
-  explicit
   PlanningScene(const PlanningSceneConstPtr &parent);
-
+  
+public:
+  
   virtual ~PlanningScene(void)
   {
   }
@@ -125,16 +130,13 @@ public:
   virtual bool configure(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                          const boost::shared_ptr<const srdf::Model> &srdf_model,
                          const planning_models::KinematicModelPtr &kmodel);
+
+  /** \brief Return a new planning scene that uses this one as parent. */
+  virtual PlanningScenePtr diff(void) const;
   
-  /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
-  static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
-
-  /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message. */
-  static bool isEmpty(const moveit_msgs::PlanningScene &msg);
-
-  /** \brief Return a new planning scene that uses \e scene as parent and has the diffs specified by \e msg applied. */
-  static PlanningScenePtr diff(const PlanningSceneConstPtr &scene, const moveit_msgs::PlanningScene &msg);
-    
+  /** \brief Return a new planning scene that uses this one as parent and has the diffs specified by \e msg applied. */
+  PlanningScenePtr diff(const moveit_msgs::PlanningScene &msg) const;
+  
   /** \brief Get the parent scene (whith respect to which the diffs are maintained). This may be empty */
   const PlanningSceneConstPtr& getParent(void) const
   {
@@ -471,6 +473,12 @@ public:
                    const moveit_msgs::Constraints& path_constraints,
                    const std::vector<moveit_msgs::Constraints>& goal_constraints,
                    bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
+    
+  /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message. */
+  static bool isEmpty(const moveit_msgs::PlanningScene &msg);
+  
+  /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
+  static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
   
 protected:
 
