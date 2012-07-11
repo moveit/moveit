@@ -37,6 +37,7 @@
 #ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 
+#include <yaml-cpp/yaml.h> // outputing yaml config files
 #include <boost/shared_ptr.hpp>
 #include <srdfdom/model.h> // use their struct datastructures
 #include <urdf/model.h> // to share throughout app
@@ -83,6 +84,9 @@ public:
   // Is this application in debug mode?
   bool debug_;
 
+  // For writing yaml files
+  //YAML::Emitter* emitter_;
+
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -96,11 +100,19 @@ public:
   /// Provide a shared planning scene
   planning_scene::PlanningScenePtr getPlanningScene();
 
-  /// Provide a shared planning scene
-  //planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitor();
 
-  /// Provide a shared kinematic model loader
-  //planning_models_loader::KinematicModelLoaderPtr getKinematicModelLoader();
+  // ******************************************************************************************
+  // Public Functions for outputting configuration and setting files
+  // ******************************************************************************************
+  bool outputSetupAssistantFile( const std::string& file_path );
+  bool outputOMPLPlanningYAML( const std::string& file_path );
+  bool outputKinematicsYAML( const std::string& file_path );
+  bool outputBenchmarkServerLaunch( const std::string& file_path );
+  bool outputMoveGroupLaunch( const std::string& file_path );
+  bool outputOMPLPlannerLaunch( const std::string& file_path );
+  bool outputPlanningContextLaunch( const std::string& file_path );
+  bool outputWarehouseLaunch( const std::string& file_path );
+  bool outputWarehouseSettingsLaunch( const std::string& file_path );
 
 private:
 
