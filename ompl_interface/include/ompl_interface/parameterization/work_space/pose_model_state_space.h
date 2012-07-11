@@ -89,7 +89,7 @@ public:
         flags &= ~POSE_COMPUTED;
     }
     
-    int flags;    
+    int flags;
   };
   
   PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
