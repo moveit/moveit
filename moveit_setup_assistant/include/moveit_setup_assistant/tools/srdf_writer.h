@@ -67,12 +67,33 @@ public:
   bool initString( const urdf::ModelInterface &robot_model, const std::string &srdf_string );
 
   /** 
+   * Update the SRDF Model class using a new SRDF string
+   * 
+   * @param robot_model a loaded URDF model
+   */
+  void updateSRDFModel( const urdf::ModelInterface &robot_model );
+
+  /** 
    * Generate SRDF XML of all contained data and save to file
    * 
    * @param file_path - string path location to save SRDF
    * @return bool - true if save was successful
    */
   bool writeSRDF( const std::string &file_path );
+
+  /** 
+   * Get a string of a generated SRDF document
+   * 
+   * @return string of XML of current SRDF contents
+   */
+  std::string getSRDFString();
+
+  /** 
+   * Generate SRDF XML of all contained data 
+   * 
+   * @return TinyXML document that contains current SRDF data in this class
+   */
+  TiXmlDocument generateSRDF();
 
   /** 
    * Generate XML for SRDF groups
@@ -115,6 +136,12 @@ public:
   std::vector<srdf::Model::VirtualJoint>      virtual_joints_;
   std::vector<srdf::Model::EndEffector>       end_effectors_;
   std::vector<srdf::Model::DisabledCollision> disabled_collisions_;
+
+  // Store the SRDF Model for updating the kinematic_model
+  boost::shared_ptr<srdf::Model> srdf_model_;
+
+  // Robot name
+  std::string robot_name_;
 
 };
 

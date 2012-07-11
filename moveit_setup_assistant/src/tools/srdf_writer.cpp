@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include <tinyxml.h>
+#include "ros/ros.h"
 #include <moveit_setup_assistant/tools/srdf_writer.h>
 
 namespace moveit_setup_assistant
@@ -45,6 +46,8 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 SRDFWriter::SRDFWriter()
 {
+  // Intialize the SRDF model
+  srdf_model_.reset( new srdf::Model() );
 }
 
 // ******************************************************************************************
@@ -57,33 +60,76 @@ SRDFWriter::~SRDFWriter()
 // ******************************************************************************************
 // Load SRDF data from a pre-populated string
 // ******************************************************************************************
-
-
 bool SRDFWriter::initString( const urdf::ModelInterface &robot_model, const std::string &srdf_string )
 {
-  // Load from SRDF Model
-  srdf::Model srdf_model;
-
   // Error check
-  if( !srdf_model.initString( robot_model, srdf_string ) )
+  if( !srdf_model_->initString( robot_model, srdf_string ) )
   {
     return false; // error loading file. improper format?
   }
 
   // Copy all read-only data from srdf model to this object
-  disabled_collisions_ = srdf_model.getDisabledCollisionPairs();
-  groups_ = srdf_model.getGroups();
-  virtual_joints_ = srdf_model.getVirtualJoints();
-  end_effectors_ = srdf_model.getEndEffectors();
-  group_states_ = srdf_model.getGroupStates();
+  disabled_collisions_ = srdf_model_->getDisabledCollisionPairs();
+  groups_ = srdf_model_->getGroups();
+  virtual_joints_ = srdf_model_->getVirtualJoints();
+  end_effectors_ = srdf_model_->getEndEffectors();
+  group_states_ = srdf_model_->getGroupStates();
+
+  // Copy the robot name b/c the root xml element requires this attribute
+  robot_name_ = robot_model.getName();
 
   return true;
 }
 
 // ******************************************************************************************
-// Generate SRDF XML of all contained data and save to file
+// Update the SRDF Model class using a new SRDF string
+// ******************************************************************************************
+void SRDFWriter::updateSRDFModel( const urdf::ModelInterface &robot_model )
+{
+  // Get an up to date SRDF String
+  const std::string srdf_string = getSRDFString();
+
+  // Error check
+  if( !srdf_model_->initString( robot_model, srdf_string ) )  // TODO: can I initstring twice?
+  {
+    ROS_ERROR( "Unable to update the SRDF Model" );
+    exit(0);
+  }
+}
+
+// ******************************************************************************************
+// Save to file a generated SRDF document
 // ******************************************************************************************
 bool SRDFWriter::writeSRDF( const std::string &file_path )
+{
+  // Generate the SRDF
+  TiXmlDocument document = generateSRDF();
+
+  // Save to file
+  return document.SaveFile( file_path );
+}
+
+// ******************************************************************************************
+// Get a string of a generated SRDF document
+// ******************************************************************************************
+std::string SRDFWriter::getSRDFString()
+{
+  // Generate the SRDF
+  TiXmlDocument document = generateSRDF();
+
+  // Setup printer
+  TiXmlPrinter printer;
+  printer.SetIndent( "    " );
+  document.Accept( &printer );
+  
+  // Return string
+  return printer.CStr();
+}
+
+// ******************************************************************************************
+// Generate SRDF XML of all contained data 
+// ******************************************************************************************
+TiXmlDocument SRDFWriter::generateSRDF()
 {
   TiXmlDocument document;
   TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );  
@@ -95,6 +141,7 @@ bool SRDFWriter::writeSRDF( const std::string &file_path )
   
   // Root
   TiXmlElement* robot_root = new TiXmlElement("robot");
+  robot_root->SetAttribute("name", robot_name_ ); // robot name
   document.LinkEndChild( robot_root );
 
   // Add Groups
@@ -113,7 +160,7 @@ bool SRDFWriter::writeSRDF( const std::string &file_path )
   createDisabledCollisionsXML( robot_root );
 
   // Save
-  return document.SaveFile( file_path );
+  return document;
 }
 
 // ******************************************************************************************

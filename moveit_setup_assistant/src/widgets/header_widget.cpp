@@ -61,6 +61,7 @@ HeaderWidget::HeaderWidget( const std::string &title, const std::string &instruc
   page_title->setText( title.c_str() );
   QFont page_title_font( "Arial", 18, QFont::Bold );
   page_title->setFont(page_title_font);
+  page_title->setWordWrap(true);
   layout->addWidget( page_title);
   layout->setAlignment( page_title, Qt::AlignTop);
   
@@ -72,7 +73,7 @@ HeaderWidget::HeaderWidget( const std::string &title, const std::string &instruc
   layout->setAlignment( page_instructions, Qt::AlignTop);    
   
   // Margin on bottom
-  layout->setContentsMargins( 0, 0, 0, 15);
+  layout->setContentsMargins( 0, 0, 0, 0); // last 15
 
   setLayout(layout);
 }

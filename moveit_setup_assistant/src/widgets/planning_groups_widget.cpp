@@ -625,11 +625,79 @@ void PlanningGroupsWidget::deleteGroup()
   if( QMessageBox::question( this, "Confirm Group Deletion", 
                              QString("Are you sure you want to delete the planning group '")
                              .append( searched_group->name_.c_str() )
-                             .append( "'? This will also delete all subgroup references of it in other groups." ),
+                             .append( "'? This will also delete all references in subgroups, robot poses and end effectors." ),
                              QMessageBox::Ok | QMessageBox::Cancel) 
       == QMessageBox::Cancel )
   {
     return;
+  }
+
+  // delete all robot poses that use that group's name
+  bool haveConfirmedGroupStateDeletion = false;
+  bool haveDeletedGroupState = true;
+  while( haveDeletedGroupState )
+  {
+    haveDeletedGroupState = false;
+    for( std::vector<srdf::Model::GroupState>::iterator pose_it = config_data_->srdf_->group_states_.begin(); 
+         pose_it != config_data_->srdf_->group_states_.end(); ++pose_it )
+    {
+      // check if this group state depends on the currently being deleted group
+      if( pose_it->group_ == searched_group->name_ )
+      {
+        if( !haveConfirmedGroupStateDeletion )
+        {
+          haveConfirmedGroupStateDeletion = true;
+
+          // confirm the user wants to delete group states
+          if( QMessageBox::question( this, "Confirm Group State Deletion", 
+                                     QString("The group that is about to be deleted has robot poses (robot states) that depend on this group. Are you sure you want to delete this group as well as all dependend robot poses?"),
+                                     QMessageBox::Ok | QMessageBox::Cancel) 
+              == QMessageBox::Cancel )
+          {
+            return;
+          }
+        }
+      
+        // the user has confirmed, now delete this group state
+        config_data_->srdf_->group_states_.erase( pose_it );
+        haveDeletedGroupState = true;
+        break; // you can only delete 1 item in vector before invalidating iterator
+      }
+    }
+  }
+
+  // delete all end effectors that use that group's name
+  bool haveConfirmedEndEffectorDeletion = false;
+  bool haveDeletedEndEffector = true;
+  while( haveDeletedEndEffector )
+  {
+    haveDeletedEndEffector = false;
+    for( std::vector<srdf::Model::EndEffector>::iterator effector_it = config_data_->srdf_->end_effectors_.begin(); 
+         effector_it != config_data_->srdf_->end_effectors_.end(); ++effector_it )
+    {
+      // check if this group state depends on the currently being deleted group
+      if( effector_it->component_group_ == searched_group->name_ )
+      {
+        if( !haveConfirmedEndEffectorDeletion )
+        {
+          haveConfirmedEndEffectorDeletion = true;
+
+          // confirm the user wants to delete group states
+          if( QMessageBox::question( this, "Confirm End Effector Deletion", 
+                                     QString("The group that is about to be deleted has end effectors (grippers) that depend on this group. Are you sure you want to delete this group as well as all dependend end effectors?"),
+                                     QMessageBox::Ok | QMessageBox::Cancel) 
+              == QMessageBox::Cancel )
+          {
+            return;
+          }
+        }
+      
+        // the user has confirmed, now delete this group state
+        config_data_->srdf_->end_effectors_.erase( effector_it );
+        haveDeletedEndEffector = true;
+        break; // you can only delete 1 item in vector before invalidating iterator
+      }
+    }
   }
 
   // delete actual group
@@ -644,6 +712,7 @@ void PlanningGroupsWidget::deleteGroup()
     }
   }
 
+  // loop again to delete all subgroup references
   for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
        group_it != config_data_->srdf_->groups_.end(); ++group_it )
   {
@@ -673,6 +742,9 @@ void PlanningGroupsWidget::deleteGroup()
 
   // Reload main screen table
   loadGroupsTree();
+
+  // Update the kinematic model with changes
+  config_data_->updateKinematicModel();
 }
 
 // ******************************************************************************************
@@ -737,6 +809,9 @@ void PlanningGroupsWidget::saveJointsScreen()
 
   // Reload main screen table
   loadGroupsTree();
+
+  // Update the kinematic model with changes
+  config_data_->updateKinematicModel();
 }
 
 // ******************************************************************************************
@@ -762,6 +837,9 @@ void PlanningGroupsWidget::saveLinksScreen()
 
   // Reload main screen table
   loadGroupsTree();
+
+  // Update the kinematic model with changes
+  config_data_->updateKinematicModel();
 }
 
 // ******************************************************************************************
@@ -834,6 +912,9 @@ void PlanningGroupsWidget::saveChainScreen()
 
   // Reload main screen table
   loadGroupsTree();
+
+  // Update the kinematic model with changes
+  config_data_->updateKinematicModel();
 }
 
 // ******************************************************************************************
@@ -933,6 +1014,9 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 
   // Reload main screen table
   loadGroupsTree();
+
+  // Update the kinematic model with changes
+  config_data_->updateKinematicModel();
 }
 
 // ******************************************************************************************
@@ -1029,6 +1113,9 @@ void PlanningGroupsWidget::saveGroupScreen()
 
   // Reload main screen table
   loadGroupsTree();
+
+  // Update the kinematic model with changes
+  // Gives warning: config_data_->updateKinematicModel();
 }
 
 // ******************************************************************************************

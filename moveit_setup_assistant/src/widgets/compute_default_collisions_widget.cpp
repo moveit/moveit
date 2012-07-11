@@ -253,7 +253,7 @@ void ComputeDefaultCollisionsWidget::generateCollisionTableThread( unsigned int 
 
   // Find the default collision matrix - all links that are allowed to collide
   link_pairs_ = 
-    moveit_setup_assistant::computeDefaultCollisions( config_data_->getPlanningSceneMonitor()->getPlanningScene(), 
+    moveit_setup_assistant::computeDefaultCollisions( config_data_->getPlanningScene(), 
                                                       collision_progress, include_never_colliding, num_trials, 
                                                       verbose);
 

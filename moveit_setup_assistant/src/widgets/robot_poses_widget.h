@@ -51,6 +51,7 @@
 #include <QComboBox>
 // SA
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
+#include <planning_models/kinematic_model.h> // for joint models, etc
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
@@ -79,7 +80,6 @@ class RobotPosesWidget : public SetupScreenWidget
   QPushButton *btn_delete_;
   QPushButton *btn_save_;
   QPushButton *btn_cancel_;
-  QPushButton *btn_test_;
   QStackedLayout *stacked_layout_;
   QScrollArea *scroll_area_;
   QVBoxLayout *column2_;
@@ -105,6 +105,9 @@ private Q_SLOTS:
   /// Edit the double clicked element
   void editDoubleClicked( int row, int column );
 
+  /// Preview whatever element is selected
+  void previewClicked( int row, int column );
+
   /// Delete currently editing ite
   void deleteItem();
 
@@ -117,6 +120,9 @@ private Q_SLOTS:
   /// Run this whenever the group is changed
   void loadJointSliders( const QString &selected );
 
+  /// Show the robot in its default joint positions
+  void showDefaultPose();
+
   /** 
    * Call when one of the sliders has its value changed to store its value in kinematic model
    * 
@@ -125,7 +131,7 @@ private Q_SLOTS:
    */
   void updateKinematicModel( const std::string &name, double value );
 
-  /// Testing
+  /// Publishes a joint state message based on all the slider locations in a planning group, to rviz
   void publishJoints();
 
 private:
@@ -140,8 +146,11 @@ private:
   /// Orignal name of pose currently being edited. This is used to find the element in the vector
   std::string current_edit_pose_;
 
-  /// Holds all the joint slider values
+  /// All the joint slider values that have thus far been seen. May contain more than just the current joints' values
   std::map<std::string, double> joint_state_map_;
+  
+  /// The joints currently in the selected planning group
+  std::vector<const planning_models::KinematicModel::JointModel*> joint_models_;
 
   /// Remember the publisher for quick publishing later
   ros::Publisher pub_scene_;

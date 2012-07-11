@@ -63,10 +63,10 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   // Path Widget ----------------------------------------------------
 
   // Stack Path Dialog
-  stack_path_ = new LoadPathWidget("MoveIt Configuration Package Generation Path", 
+  stack_path_ = new LoadPathWidget("Configuration Package Save Path", 
                                    "Specify the desired directory for the MoveIt configuration package to be generated. Choosing an existing configuration package directory to overwrite is fine. <br/>Example: <i>~/ros/pr2_moveit_config</i>",
                                    true, this); // is directory
-  layout->addWidget( stack_path_ );
+                                   layout->addWidget( stack_path_ );
   
   // Save buttons ---------------------------------------------------
   QHBoxLayout *hlayout = new QHBoxLayout();
@@ -83,7 +83,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   progress_bar_->setMaximum(100);
   progress_bar_->setMinimum(0);
   hlayout->addWidget(progress_bar_);
-  hlayout->setContentsMargins( 20, 50, 20, 50 );
+  hlayout->setContentsMargins( 20, 30, 20, 30 );
 
   // Add Layout
   layout->addLayout( hlayout );
@@ -107,7 +107,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   action_label_->setMidLineWidth(0);  
   action_label_->setWordWrap(true);
   action_label_->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
-  //action_label_->setMinimumWidth( 300 );
+  action_label_->setMinimumWidth( 50 );
   action_label_->setAlignment( Qt::AlignTop );
   action_label_->setOpenExternalLinks(true); // open with web browser
   hlayout2->addWidget( action_label_ );
@@ -302,7 +302,7 @@ void ConfigurationFilesWidget::savePackage()
   action_list_->setCurrentRow( 0 );
 
   // Create SRDF file -----------------------------------------------------------------
-  const std::string srdf_file = config_data_->urdf_model_.getName() + ".srdf";
+  const std::string srdf_file = config_data_->urdf_model_->getName() + ".srdf";
   const std::string srdf_path = config_path + "/" + srdf_file;
 
   if ( !config_data_->srdf_->writeSRDF( srdf_path ) )
