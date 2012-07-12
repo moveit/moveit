@@ -1,3 +1,0 @@
-constraint_approximations_path: /some/path
-
-constraint_samplers: plugin_names_of_sampler1 plugin_names_of_sampler2

@@ -468,8 +468,8 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
   namespace pm = planning_models;
 
   // Get list of associated joints  
-  const pm::KinematicModel::JointModelGroup *joint_model_group = config_data_->getKinematicModel()->getJointModelGroup( group_name );
-  //    const std::vector<const pm::KinematicModel::JointModel*> joint_models = joint_model_group->getJointModels();
+  const pm::KinematicModel::JointModelGroup *joint_model_group = 
+    config_data_->getKinematicModel()->getJointModelGroup( group_name );
   joint_models_ = joint_model_group->getJointModels();
   
   // Iterate through the joints

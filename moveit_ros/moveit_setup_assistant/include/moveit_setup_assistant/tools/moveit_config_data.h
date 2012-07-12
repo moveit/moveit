@@ -84,8 +84,8 @@ public:
   // Is this application in debug mode?
   bool debug_;
 
-  // For writing yaml files
-  //YAML::Emitter* emitter_;
+  // Remember this package's name
+  std::string setup_assistant_path_;
 
   // ******************************************************************************************
   // Public Functions
@@ -104,16 +104,34 @@ public:
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
   // ******************************************************************************************
+  bool outputPackageFiles( const std::string& template_package_path, 
+                           const std::string& new_package_path,
+                           const std::string& new_package_name );
   bool outputSetupAssistantFile( const std::string& file_path );
   bool outputOMPLPlanningYAML( const std::string& file_path );
   bool outputKinematicsYAML( const std::string& file_path );
+  bool outputJointLimitsYAML( const std::string& file_path );
   bool outputBenchmarkServerLaunch( const std::string& file_path );
-  bool outputMoveGroupLaunch( const std::string& file_path );
+  bool outputMoveGroupLaunch( const std::string& file_path, 
+                              const std::string& template_package_path, 
+                              const std::string& new_package_name );
   bool outputOMPLPlannerLaunch( const std::string& file_path );
   bool outputPlanningContextLaunch( const std::string& file_path );
   bool outputWarehouseLaunch( const std::string& file_path );
   bool outputWarehouseSettingsLaunch( const std::string& file_path );
 
+  /** 
+   * Copy a template from location <template_path> to location <output_path> and replace package name
+   * 
+   * @param template_path path to template file
+   * @param output_path desired path to copy to
+   * @param new_package_name name of the new package being created, to replace key word in template
+   * 
+   * @return 
+   */
+  bool copyTemplate( const std::string& template_path, const std::string& output_path, 
+                     const std::string& new_package_name );
+                                     
 private:
 
   // ******************************************************************************************

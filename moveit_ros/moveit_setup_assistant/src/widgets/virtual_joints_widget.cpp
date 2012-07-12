@@ -516,8 +516,9 @@ void VirtualJointsWidget::doneEditing()
     }
   }
 
-  // Check that the parent frame name is unique // TODO: is this necessary?
-  for( std::vector<srdf::Model::VirtualJoint>::const_iterator data_it = config_data_->srdf_->virtual_joints_.begin(); 
+  // Check that the parent frame name is unique 
+  // Ioan said this is not necessary
+  /*  for( std::vector<srdf::Model::VirtualJoint>::const_iterator data_it = config_data_->srdf_->virtual_joints_.begin(); 
        data_it != config_data_->srdf_->virtual_joints_.end();  ++data_it )
   {
     if( data_it->parent_frame_.compare( parent_name ) == 0 ) // the names are the same
@@ -529,7 +530,7 @@ void VirtualJointsWidget::doneEditing()
         return;
       }
     }
-  }
+    }*/
 
   // Check that a joint type was selected
   if( joint_type_field_->currentText().isEmpty() )

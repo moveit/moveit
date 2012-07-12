@@ -235,20 +235,30 @@ void ConfigurationFilesWidget::savePackage()
   // File system
   namespace fs = boost::filesystem;
   
-  const std::string stack_path = stack_path_->getPath();
+  const std::string new_package_path = stack_path_->getPath();
+
+  // Get template package location ----------------------------------------------------------------------
+  const std::string template_package_path = config_data_->setup_assistant_path_ + "/templates/moveit_config_pkg_template/";
+  if( !fs::is_directory( template_package_path ) )
+  {
+    QMessageBox::critical( this, "Error Generating", 
+                           QString("Unable to find package template directory: ")
+                           .append( template_package_path.c_str() ) );
+    return;
+  }
 
   // Check that a valid stack package name has been given --------------------------------------------------
-  if( stack_path.empty() )
+  if( new_package_path.empty() )
   {
     QMessageBox::warning( this, "Error Generating", "No package path provided. Please choose a directory location to generate the MoveIt configuration files." );
     return;
   }
 
   // Get the package name ---------------------------------------------------------------------------------
-  std::string package_name = getPackageName( stack_path );
+  const std::string package_name = getPackageName( new_package_path );
   QString qpackage_name = QString( package_name.c_str() ).append("/"); // for gui feedback
 
-  std::string setup_assistant_file = stack_path + ".setup_assistant";
+  std::string setup_assistant_file = new_package_path + ".setup_assistant";
 
   // Reset the progress bar counter and GUI stuff
   action_num = 0;
@@ -256,7 +266,7 @@ void ConfigurationFilesWidget::savePackage()
   action_desc_.clear();
 
   // Verify with user the desire to overwrite old package--------------------------------------------------
-  if( fs::is_directory( stack_path ) )
+  if( fs::is_directory( new_package_path ) )
   {
     // Check if the old package is a setup assistant package. If it is not, quit
     if( ! fs::is_regular_file( setup_assistant_file ) )
@@ -270,7 +280,7 @@ void ConfigurationFilesWidget::savePackage()
     // Confirm overwrite
     if( QMessageBox::question( this, "Confirm Package Update", 
                                QString("Are you sure you want to overwrite this existing package with updated configurations?<br /><i>")
-                               .append( stack_path.c_str() )
+                               .append( new_package_path.c_str() )
                                .append( "</i>" ),
                                QMessageBox::Ok | QMessageBox::Cancel) 
         == QMessageBox::Cancel )
@@ -278,28 +288,23 @@ void ConfigurationFilesWidget::savePackage()
       return; // abort
     }
 
-    // Now delete all contents in old directory
-    /*if( !fs::remove_all( stack_path ) )
-      {
-      QMessageBox::critical( this, "Error Generating Files", 
-      QString("Unable to delete old directory ").append( stack_path.c_str() ) );
-      return;
-      }*/
   }
   else // this is a new package
   {
     // Create new directory
-    if ( !fs::create_directory( stack_path ))
+    if ( !fs::create_directory( new_package_path ))
     {
       QMessageBox::critical( this, "Error Generating Files", 
-                             QString("Unable to create directory ").append( stack_path.c_str() ) );
+                             QString("Unable to create directory ").append( new_package_path.c_str() ) );
       return;
     }
 
-    // Copy barebones package template --------------------------------------------------
-    // TODO
-    // try this: http://stackoverflow.com/questions/8593608/how-can-i-copy-a-directory-using-boost-filesystem
-
+    // Copy barebones package template
+    if ( !config_data_->outputPackageFiles( template_package_path, new_package_path, package_name ) )
+    {
+      QMessageBox::critical( this, "Error Generating Files", "Failed to generate base package files" );
+      return;
+    }    
 
   }
   // Feedback
@@ -311,11 +316,14 @@ void ConfigurationFilesWidget::savePackage()
 
   // Create setup assistant file --------------------------------------------------------
   const std::string hidden_file = ".setup_assistant";
-  const std::string hidden_path = stack_path + hidden_file;
+  const std::string hidden_path = new_package_path + hidden_file;
 
   if ( !config_data_->outputSetupAssistantFile( hidden_path ) )
+  {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create an .setup_assistant file at location ").append( hidden_path.c_str() ) );
+    return;
+  }
 
   // Feedback
   displayAction( QString( hidden_file.c_str() ).prepend( qpackage_name ), 
@@ -323,12 +331,15 @@ void ConfigurationFilesWidget::savePackage()
   
   // Create config folder ---------------------------------------------------------------
 
-  const std::string config_path = stack_path + "config";
+  const std::string config_path = new_package_path + "config";
   QString qconfig_path = QString("config/").prepend( qpackage_name );
 
   if ( !fs::create_directory( config_path ) && !fs::is_directory( config_path ) )
+  {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Unable to create directory ").append( config_path.c_str() ) );
+    return;
+  }
   
   // Feedback
   displayAction( qconfig_path,
@@ -336,12 +347,15 @@ void ConfigurationFilesWidget::savePackage()
 
   // Create launch folder ---------------------------------------------------------------
   
-  const std::string launch_path = stack_path + "launch";
+  const std::string launch_path = new_package_path + "launch";
   QString qlaunch_path = QString("launch/").prepend( qpackage_name );
 
   if ( !fs::create_directory( launch_path ) && !fs::is_directory( launch_path ) )
+  {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Unable to create directory ").append( launch_path.c_str() ) );
+    return;
+  }
   
   // Feedback
   displayAction( qlaunch_path,
@@ -352,8 +366,11 @@ void ConfigurationFilesWidget::savePackage()
   const std::string srdf_path = config_path + "/" + srdf_file;
 
   if ( !config_data_->srdf_->writeSRDF( srdf_path ) )
+  {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create an SRDF file at location ").append( srdf_path.c_str() ) );
+    return;
+  }
 
   // Feedback
   displayAction( QString( srdf_file.c_str() ).prepend( qconfig_path ), 
@@ -365,8 +382,11 @@ void ConfigurationFilesWidget::savePackage()
   const std::string ompl_path = config_path + "/" + ompl_file;
 
   if ( !config_data_->outputOMPLPlanningYAML( ompl_path ) )
+  {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create ompl_planning.yaml file at location ").append( ompl_path.c_str() ) );
+    return;
+  }
 
   // Feedback
   displayAction( QString( ompl_file.c_str() ).prepend( qconfig_path ), 
@@ -378,12 +398,30 @@ void ConfigurationFilesWidget::savePackage()
   const std::string kinematics_path = config_path + "/" + kinematics_file;
 
   if ( !config_data_->outputKinematicsYAML( kinematics_path ) )
+  {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create kinematics.yaml file at location ").append( kinematics_path.c_str() ) );
+    return;
+  }
 
   // Feedback
   displayAction( QString( kinematics_file.c_str() ).prepend( qconfig_path ), 
                  "Holds kinematic info" ); // TODO: description
+
+  // Create Joint Limits Config File -----------------------------------------------------
+  const std::string joint_limits_file = "joint_limits.yaml";
+  const std::string joint_limits_path = config_path + "/" + joint_limits_file;
+
+  if ( !config_data_->outputJointLimitsYAML( joint_limits_path ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", 
+                           QString("Failed to create joint_limits.yaml file at location ").append( joint_limits_path.c_str() ) );
+    return;
+  }
+
+  // Feedback
+  displayAction( QString( joint_limits_file.c_str() ).prepend( qconfig_path ), 
+                 "This file contains additional information about joints that appear in your planning groups that is not contained in the URDF, as well as allowing you to set lower limits for velocity and acceleration than those contained in your URDF. As our planners are exclusively kinematic planners, this information is used by our trajectory filtering system to assign reasonable velocities and timing for the trajectory before it is passed to your controllers." );
 
   // Create Benchmark_Server Launch File  -----------------------------------------------------
   // TODO: Ioan needs to fix this stuff. Told me to disable it for now
@@ -392,8 +430,11 @@ void ConfigurationFilesWidget::savePackage()
     const std::string benchmark_server_path = launch_path + "/" + benchmark_server_file;
 
     if ( !config_data_->outputBenchmarkServerLaunch( benchmark_server_path ) )
+    {
     QMessageBox::critical( this, "Error Generating Files", 
     QString("Failed to create benchmark_server.yaml file at location ").append( benchmark_server_path.c_str() ) );
+    return;
+    }
 
     // Feedback
     displayAction( QString( benchmark_server_file.c_str() ).prepend( qconfig_path ), 
@@ -404,9 +445,12 @@ void ConfigurationFilesWidget::savePackage()
   const std::string move_group_file = "move_group.launch";
   const std::string move_group_path = launch_path + "/" + move_group_file;
 
-  if ( !config_data_->outputMoveGroupLaunch( move_group_path ) )
+  if ( !config_data_->outputMoveGroupLaunch( move_group_path, template_package_path, package_name ) )
+  {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create move_group.yaml file at location ").append( move_group_path.c_str() ) );
+    return;
+  }
 
   // Feedback
   displayAction( QString( move_group_file.c_str() ).prepend( qlaunch_path ), 
@@ -417,8 +461,11 @@ void ConfigurationFilesWidget::savePackage()
   const std::string ompl_planner_path = launch_path + "/" + ompl_planner_file;
 
   if ( !config_data_->outputOMPLPlannerLaunch( ompl_planner_path ) )
+  {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create ompl_planner.yaml file at location ").append( ompl_planner_path.c_str() ) );
+    return;
+  }
 
   // Feedback
   displayAction( QString( ompl_planner_file.c_str() ).prepend( qlaunch_path ), 
@@ -429,8 +476,11 @@ void ConfigurationFilesWidget::savePackage()
   const std::string planning_context_path = launch_path + "/" + planning_context_file;
 
   if ( !config_data_->outputPlanningContextLaunch( planning_context_path ) )
+  {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create planning_context.yaml file at location ").append( planning_context_path.c_str() ) );
+    return;
+  }
 
   // Feedback
   displayAction( QString( planning_context_file.c_str() ).prepend( qlaunch_path ), 
@@ -443,8 +493,11 @@ void ConfigurationFilesWidget::savePackage()
     const std::string warehouse_path = launch_path + "/" + warehouse_file;
 
     if ( !config_data_->outputWarehouseLaunch( warehouse_path ) )
+    {
     QMessageBox::critical( this, "Error Generating Files", 
     QString("Failed to create warehouse.yaml file at location ").append( warehouse_path.c_str() ) );
+    return;
+    }
 
     // Feedback
     displayAction( QString( warehouse_file.c_str() ).prepend( qconfig_path ), 
@@ -458,8 +511,11 @@ void ConfigurationFilesWidget::savePackage()
     const std::string warehouse_settings_path = launch_path + "/" + warehouse_settings_file;
 
     if ( !config_data_->outputWarehouseSettingsLaunch( warehouse_settings_path ) )
+    {
     QMessageBox::critical( this, "Error Generating Files", 
     QString("Failed to create warehouse_settings.yaml file at location ").append( warehouse_settings_path.c_str() ) );
+    return;
+    }
 
     // Feedback
     displayAction( QString( warehouse_settings_file.c_str() ).prepend( qconfig_path ), 
@@ -490,17 +546,17 @@ void ConfigurationFilesWidget::exitSetupAssistant()
 // ******************************************************************************************
 // Get the last folder name in a directory path
 // ******************************************************************************************
-const std::string ConfigurationFilesWidget::getPackageName( std::string stack_path )
+const std::string ConfigurationFilesWidget::getPackageName( std::string package_path )
 {
   std::string package_name;
 
-  size_t found_index = stack_path.find_last_of("/\\");
+  size_t found_index = package_path.find_last_of("/\\");
   //std::cout << found_index << std::endl;
 
   // Check if last character is a slash
-  if( found_index == stack_path.size() - 1 ) // get second to last
+  if( found_index == package_path.size() - 1 ) // get second to last
   {
-    std::string sub_path = stack_path.substr( 0, stack_path.size() - 1);
+    std::string sub_path = package_path.substr( 0, package_path.size() - 1);
     //std::cout << "substring " << sub_path << std::endl;
 
     found_index = sub_path.find_last_of("/\\");
@@ -508,7 +564,7 @@ const std::string ConfigurationFilesWidget::getPackageName( std::string stack_pa
   }
   else // get substring only
   {
-    package_name = stack_path.substr( found_index + 1, stack_path.size() - 1 );
+    package_name = package_path.substr( found_index + 1, package_path.size() - 1 );
   }
 
   // check for empty

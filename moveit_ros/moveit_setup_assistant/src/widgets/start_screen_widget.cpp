@@ -44,7 +44,7 @@
 #include <QFont>
 // ROS
 #include <ros/ros.h>
-#include <ros/package.h> // for getting file path for loading images
+#include <ros/package.h> // for getting file path for loadng images
 #include <ros/master.h> // for checking if roscore is started
 // SA
 #include "header_widget.h" // title and instructions
@@ -122,7 +122,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   // Right Image Area ----------------------------------------------
   /*QImage image;
 
-  if(chdir(ros::package::getPath("moveit_setup_assistant").c_str()) != 0)
+  if(chdir(config_data_->setup_assistant_path_.c_str()) != 0)
   {
     ROS_ERROR("FAILED TO CHANGE PACKAGE TO moveit_setup_assistant");
   }
@@ -217,6 +217,7 @@ void StartScreenWidget::loadFiles()
   // check that a file is provided
   if( urdf_path == "" )
   {
+
     QMessageBox::warning( this, "Error Loading Files", "Please specify a URDF or COLLADA file to load" );
     return;
   }
@@ -231,14 +232,11 @@ void StartScreenWidget::loadFiles()
       
   // Load the file to a string using an efficient memory allocation technique
   std::string urdf_string;
-
   urdf_stream.seekg(0, std::ios::end);   
   urdf_string.reserve(urdf_stream.tellg());
   urdf_stream.seekg(0, std::ios::beg);
-  urdf_string.assign((std::istreambuf_iterator<char>(urdf_stream)),
-                     std::istreambuf_iterator<char>());  
-
-
+  urdf_string.assign( (std::istreambuf_iterator<char>(urdf_stream)), std::istreambuf_iterator<char>() );  
+  urdf_stream.close();
 
   // Verify that file is in correct format / not an XACRO by loading into robot model
   if( !config_data_->urdf_model_->initString( urdf_string ) )

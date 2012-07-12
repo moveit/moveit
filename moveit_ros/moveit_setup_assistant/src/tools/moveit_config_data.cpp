@@ -35,9 +35,13 @@
 /* Author: Dave Coleman */
 
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
-// For writing yaml and launch files
-#include <iostream> 
+#include <iostream> // For writing yaml and launch files
 #include <fstream>
+#include <boost/filesystem.hpp>  // for creating folders/files
+#include <boost/algorithm/string.hpp> // for string find and replace in templates
+// ROS
+#include <ros/ros.h>
+#include <ros/package.h> // for getting file path for loading images
 
 namespace moveit_setup_assistant
 {
@@ -53,7 +57,15 @@ MoveItConfigData::MoveItConfigData()
 
   // Not in debug mode
   debug_ = false;
- 
+
+  // Get MoveIt Setup Assistant package path
+  setup_assistant_path_ = ros::package::getPath("moveit_setup_assistant");
+  if( setup_assistant_path_.empty() )
+  {
+    // use cout b/c we don't know ROS's status...
+    std::cout << "Unable to get MoveIt Setup Assistant package path " << std::endl;
+    exit(0);
+  }
 }
 
 // ******************************************************************************************
@@ -108,6 +120,40 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 }
 
 // ******************************************************************************************
+// Output basic package files
+// ******************************************************************************************
+bool MoveItConfigData::outputPackageFiles( const std::string& template_package_path,
+                                           const std::string& new_package_path,
+                                           const std::string& new_package_name  )
+{
+  // Copy CMakeLists.txt
+  std::string template_path = template_package_path + "CMakeLists.txt";
+  std::string file_path = new_package_path + "CMakeLists.txt";
+  std::cout << file_path << std::endl;
+  // Use generic template copy function
+  if( !copyTemplate( template_path, file_path, new_package_name ) )
+    return false;
+
+  // Copy Makefile
+  template_path = template_package_path + "Makefile";
+  file_path = new_package_path + "Makefile";
+  std::cout << file_path << std::endl;
+  // Use generic template copy function
+  if( !copyTemplate( template_path, file_path, new_package_name ) )
+    return false;
+
+  // Copy manifest.xml
+  template_path = template_package_path + "manifest.xml";
+  file_path = new_package_path + "manifest.xml";
+  std::cout << file_path << std::endl;
+  // Use generic template copy function
+  if( !copyTemplate( template_path, file_path, new_package_name ) )
+    return false;
+
+  return true; // success
+}
+
+// ******************************************************************************************
 // Output MoveIt Setup Assistant hidden settings file
 // ******************************************************************************************
 bool MoveItConfigData::outputSetupAssistantFile( const std::string& file_path )
@@ -133,9 +179,16 @@ bool MoveItConfigData::outputSetupAssistantFile( const std::string& file_path )
   emitter << YAML::EndMap;
   
   emitter << YAML::EndMap;
-  std::ofstream outf( file_path.c_str(), std::ios_base::trunc );
-  
-  outf << emitter.c_str();
+
+  std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
+  if( !output_stream.good() )
+  {
+    ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
+    return false;
+  }
+
+  output_stream << emitter.c_str();
+  output_stream.close();
 
   return true; // file created successfully  
 }
@@ -226,9 +279,16 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
   }    
 
   emitter << YAML::EndMap;
-  std::ofstream outf( file_path.c_str(), std::ios_base::trunc );
-  
-  outf << emitter.c_str();
+
+  std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
+  if( !output_stream.good() )
+  {
+    ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
+    return false;
+  }
+
+  output_stream << emitter.c_str();
+  output_stream.close();
 
   return true; // file created successfully
 }
@@ -238,9 +298,116 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
 // ******************************************************************************************
 bool MoveItConfigData::outputKinematicsYAML( const std::string& file_path )
 {
+  YAML::Emitter emitter;
+  emitter << YAML::BeginMap;
 
+  // Output every group and the kinematic solver it can use ----------------------------------
+  for( std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); 
+       group_it != srdf_->groups_.end();  ++group_it )
+  {
+    emitter << YAML::Key << group_it->name_;
+    emitter << YAML::Value << YAML::BeginMap;
 
+    // Kinematic Solver
+    emitter << YAML::Key << "kinematics_solver";
+    emitter << YAML::Value << "pr2_arm_kinematics/PR2ArmKinematicsPlugin";
 
+    // Search Resolution
+    emitter << YAML::Key << "kinematics_solver_search_resolution";
+    emitter << YAML::Value << "0.005";
+    emitter << YAML::EndMap;
+  }    
+
+  emitter << YAML::EndMap;
+
+  std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
+  if( !output_stream.good() )
+  {
+    ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
+    return false;
+  }
+
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true; // file created successfully
+}
+
+// ******************************************************************************************
+// Output joint limits config files 
+// ******************************************************************************************
+bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
+{
+  YAML::Emitter emitter;
+  emitter << YAML::BeginMap;
+
+  emitter << YAML::Key << "joint_limits";
+  emitter << YAML::Value << YAML::BeginMap;
+
+  // Union all the joints in groups 
+  std::set<std::string> joints;
+
+  namespace pm = planning_models;
+
+  // Loop through groups
+  for( std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); 
+       group_it != srdf_->groups_.end();  ++group_it )
+  {  
+    // Get list of associated joints  
+    const pm::KinematicModel::JointModelGroup *joint_model_group = 
+      getKinematicModel()->getJointModelGroup( group_it->name_ );
+
+    std::vector<const pm::KinematicModel::JointModel*> joint_models = joint_model_group->getJointModels();
+  
+    // Iterate through the joints
+    for( std::vector<const pm::KinematicModel::JointModel*>::const_iterator joint_it = joint_models.begin();
+         joint_it < joint_models.end(); ++joint_it )
+    {
+      // Check that this joint only represents 1 variable.
+      if( (*joint_it)->getVariableCount() == 1 )
+      {
+        joints.insert( (*joint_it)->getName() );
+      }
+    }
+  }
+
+  // Add joints to yaml file, if no more than 1 dof
+  for ( std::set<std::string>::iterator joint_it = joints.begin() ; joint_it != joints.end() ; ++joint_it )
+  {
+    emitter << YAML::Key << *joint_it;
+    emitter << YAML::Value << YAML::BeginMap;
+
+    // Output property
+    emitter << YAML::Key << "has_velocity_limits";
+    emitter << YAML::Value << "true";
+
+    // Output property
+    emitter << YAML::Key << "max_velocity";
+    emitter << YAML::Value << "1.0";
+
+    // Output property
+    emitter << YAML::Key << "has_acceleration_limits";
+    emitter << YAML::Value << "true";
+
+    // Output property
+    emitter << YAML::Key << "max_acceleration";
+    emitter << YAML::Value << "1.0";
+
+    emitter << YAML::EndMap;
+
+  }    
+
+  emitter << YAML::EndMap;
+
+  std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
+  if( !output_stream.good() )
+  {
+    ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
+    return false;
+  }
+
+  output_stream << emitter.c_str();
+  output_stream.close();
 
   return true; // file created successfully
 }
@@ -250,9 +417,7 @@ bool MoveItConfigData::outputKinematicsYAML( const std::string& file_path )
 // ******************************************************************************************
 bool MoveItConfigData::outputBenchmarkServerLaunch( const std::string& file_path )
 {
-
-
-
+  // TODO: identify what goes in this launch file
 
   return true; // file created successfully
 }
@@ -260,13 +425,15 @@ bool MoveItConfigData::outputBenchmarkServerLaunch( const std::string& file_path
 // ******************************************************************************************
 // Output move group launch file
 // ******************************************************************************************
-bool MoveItConfigData::outputMoveGroupLaunch( const std::string& file_path )
+bool MoveItConfigData::outputMoveGroupLaunch( const std::string& file_path,
+                                              const std::string& template_package_path,
+                                              const std::string& new_package_name  )
 {
+  // Path
+  const std::string template_path = template_package_path + "launch/move_group.launch";
 
-
-
-
-  return true; // file created successfully
+  // Use generic template copy function
+  return copyTemplate( template_path, file_path, new_package_name );
 }
 
 // ******************************************************************************************
@@ -298,9 +465,7 @@ bool MoveItConfigData::outputPlanningContextLaunch( const std::string& file_path
 // ******************************************************************************************
 bool MoveItConfigData::outputWarehouseLaunch( const std::string& file_path )
 {
-
-
-
+  // TODO: identify what goes in this launch file
 
   return true; // file created successfully
 }
@@ -310,9 +475,56 @@ bool MoveItConfigData::outputWarehouseLaunch( const std::string& file_path )
 // ******************************************************************************************
 bool MoveItConfigData::outputWarehouseSettingsLaunch( const std::string& file_path )
 {
+  // TODO: identify what goes in this launch file
 
+  return true; // file created successfully
+}
 
+// ******************************************************************************************
+// Copy a template from location <template_path> to location <output_path> and replace package name
+// ******************************************************************************************
+bool MoveItConfigData::copyTemplate( const std::string& template_path, const std::string& output_path,
+                                     const std::string& new_package_name  )
+{
+  // File system
+  namespace fs = boost::filesystem;
 
+  // Error check file
+  if( ! fs::is_regular_file( template_path ) )
+  {
+    ROS_ERROR_STREAM( "Unable to find template file " << template_path );
+    return false;
+  }
+  
+  // Load file
+  std::ifstream template_stream( template_path.c_str() );
+  if( !template_stream.good() ) // File not found
+  {
+    ROS_ERROR_STREAM( "Unable to load file " << template_path );
+    return false;
+  }
+
+  // Load the file to a string using an efficient memory allocation technique
+  std::string template_string;
+  template_stream.seekg(0, std::ios::end);   
+  template_string.reserve(template_stream.tellg());
+  template_stream.seekg(0, std::ios::beg);
+  template_string.assign( (std::istreambuf_iterator<char>(template_stream)), std::istreambuf_iterator<char>() );  
+  template_stream.close();
+
+  // Replace keywords in string ------------------------------------------------------------
+  boost::replace_all( template_string, "[GENERATED_PACKAGE_NAME]", new_package_name );
+
+  // Save string to new location -----------------------------------------------------------
+  std::ofstream output_stream( output_path.c_str(), std::ios_base::trunc );
+  if( !output_stream.good() )
+  {
+    ROS_ERROR_STREAM( "Unable to open file for writing " << output_path );
+    return false;
+  }
+
+  output_stream << template_string.c_str();
+  output_stream.close();
 
   return true; // file created successfully
 }
