@@ -125,7 +125,7 @@ public:
   
   /** \brief Get the names of the links that are to be updated when the state of this group changes. This
       includes links that are in the kinematic model but outside this group, if those links are descendants of
-      joints in this group that have their values updated. */
+      joints in this group that have their values updated. The order is the correct order for updating the corresponding states. */
   const std::vector<const LinkModel*>& getUpdatedLinkModels(void) const
   {
     return updated_link_model_vector_;
@@ -145,6 +145,12 @@ public:
     return updated_link_model_with_geometry_vector_;
   }
   
+  /** \brief Return the same data as getUpdatedLinkModelsWithGeometry() but as a set */
+  const std::set<const LinkModel*>& getUpdatedLinkModelsWithGeometrySet(void) const
+  {
+    return updated_link_model_with_geometry_set_;
+  }
+  
   /** \brief Get the names of the links returned by getUpdatedLinkModels() */
   const std::vector<std::string>& getUpdatedLinkModelsWithGeometryNames(void) const
   {
@@ -156,7 +162,7 @@ public:
       joints in this group that have their values updated. */
   bool isUpdatedLink(const std::string &name) const
   {
-    if(std::find(updated_link_model_name_vector_.begin(),updated_link_model_name_vector_.end(),name) == updated_link_model_name_vector_.end())
+    if (std::find(updated_link_model_name_vector_.begin(), updated_link_model_name_vector_.end(),name) == updated_link_model_name_vector_.end())
       return false;
     return true;
   }
@@ -165,9 +171,9 @@ public:
       This may not be the complete set of joints (see getFixedJointModels() and getMimicJointModels() ) */
   bool isActiveDOF(const std::string &name) const
   {
-    if(std::find(active_dof_names_.begin(),active_dof_names_.end(),name) == active_dof_names_.end())
+    if (std::find(active_dof_names_.begin(), active_dof_names_.end(),name) == active_dof_names_.end())
       return false;
-    return true;    
+    return true;
   }
   
   /** \brief A joint group consists of an array of joints. Each joint has a specific ordering of its variables.
@@ -315,6 +321,9 @@ protected:
 
   /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
   std::vector<const LinkModel*>                         updated_link_model_with_geometry_vector_;
+
+  /** \brief The list of downstream link models in the order they should be updated (may include links that are not in this group) */
+  std::set<const LinkModel*>                            updated_link_model_with_geometry_set_;
   
   /** \brief The list of downstream link names in the order they should be updated (may include links that are not in this group) */
   std::vector<std::string>                              updated_link_model_with_geometry_name_vector_;

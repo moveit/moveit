@@ -135,20 +135,21 @@ planning_models::KinematicModel::JointModelGroup::JointModelGroup(const std::str
     parent_model->getChildLinkModels(joint_roots_[i], links);
     u_links.insert(links.begin(), links.end());
   }
-  for (std::set<const LinkModel*>::iterator it = u_links.begin(); it != u_links.end(); ++it) {
+  for (std::set<const LinkModel*>::iterator it = u_links.begin(); it != u_links.end(); ++it)
+  {
     updated_link_model_vector_.push_back(*it);
-    if((*it)->getShape()) {
+    if ((*it)->getShape())
+    {
       updated_link_model_with_geometry_vector_.push_back(*it);
+      updated_link_model_with_geometry_set_.insert(*it);
     }
   }
   std::sort(updated_link_model_vector_.begin(), updated_link_model_vector_.end(), &orderLinksByIndex);
   std::sort(updated_link_model_with_geometry_vector_.begin(), updated_link_model_with_geometry_vector_.end(), &orderLinksByIndex);
-  for (std::size_t i = 0; i < updated_link_model_vector_.size(); i++) {
+  for (std::size_t i = 0; i < updated_link_model_vector_.size(); ++i)
     updated_link_model_name_vector_.push_back(updated_link_model_vector_[i]->getName());
-    if(updated_link_model_vector_[i]->getShape()) {
-      updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_vector_[i]->getName());
-    }
-  }
+  for (std::size_t i = 0; i < updated_link_model_with_geometry_vector_.size(); ++i)
+    updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_with_geometry_vector_[i]->getName());
 }
 
 planning_models::KinematicModel::JointModelGroup::~JointModelGroup(void)

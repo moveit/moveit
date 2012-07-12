@@ -114,8 +114,6 @@ struct CollisionData
   
   ~CollisionData(void)
   {
-    if (active_components_only_)
-      delete active_components_only_;
   }
 
   /// Compute \e active_components_only_ based on \e req_
@@ -126,7 +124,7 @@ struct CollisionData
 
   /// If the collision request includes a group name, this set contains the pointers to the link models that are considered for collision;
   /// If the pointer is NULL, all collisions are considered.
-  std::set<const planning_models::KinematicModel::LinkModel*> 
+  const std::set<const planning_models::KinematicModel::LinkModel*> 
                                *active_components_only_;
 
   /// The user specified response location
