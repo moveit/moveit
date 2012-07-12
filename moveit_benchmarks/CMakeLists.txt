@@ -19,5 +19,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_executable(run_benchmark src/run_benchmark.cpp)
+rosbuild_link_boost(run_benchmark date_time)
+
 rosbuild_add_executable(call_benchmark src/call_benchmark.cpp)
-rosbuild_link_boost(call_benchmark program_options)
+rosbuild_link_boost(call_benchmark date_time program_options)
