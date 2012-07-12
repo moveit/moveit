@@ -164,7 +164,7 @@ void KinematicChainWidget::setAvailable()
   const planning_models::KinematicModelConstPtr model = config_data_->getKinematicModel();
 
   // Get the root joint
-  const planning_models::KinematicModel::JointModel::JointModel* root_joint = model->getRoot();
+  const planning_models::KinematicModel::JointModel *root_joint = model->getRoot();
 
   addLinktoTreeRecursive( root_joint->getChildLinkModel(), NULL);
 
