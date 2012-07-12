@@ -171,8 +171,8 @@ bool bodies::Sphere::samplePointInside(random_numbers::RandomNumberGenerator &rn
     const double minX = center_.x() - radiusU_; const double maxX = center_.x() + radiusU_;
     const double minY = center_.y() - radiusU_; const double maxY = center_.y() + radiusU_;
     const double minZ = center_.z() - radiusU_; const double maxZ = center_.z() + radiusU_;
-    // we are sampling in a box; the probability of success after 10 attempts is 99.94% given the ratio of box volume to sphere volume
-    for (int j = 0 ; j < 10 ; ++j)
+    // we are sampling in a box; the probability of success after 20 attempts is 99.99996% given the ratio of box volume to sphere volume
+    for (int j = 0 ; j < 20 ; ++j)
     {
       result = Eigen::Vector3d(rng.uniformReal(minX, maxX),
                                rng.uniformReal(minY, maxY),

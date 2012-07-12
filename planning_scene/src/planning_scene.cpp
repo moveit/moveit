@@ -247,7 +247,7 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
     const std::vector<collision_detection::CollisionWorld::Change> &changes = cworld_->getChanges();
     if (!changes.empty())
     {
-      collision_detection::CollisionWorldPtr w = scene->getCollisionWorldPtr();
+      collision_detection::CollisionWorldPtr w = scene->getCollisionWorld();
       for (std::size_t i = 0 ; i < changes.size() ; ++i)
         if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
         {
