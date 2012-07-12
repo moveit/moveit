@@ -5,8 +5,7 @@
 	      --srdf=/wg/stor1a/dcoleman/ros/moveit/moveit_ros/moveit_setup_assistant/resources/pr2.srdf
 	      --config_pkg=/wg/stor1a/dcoleman/ros/pr2_config_test/
 	      --debug" 
-        launch-prefix="gdb -ex run --args "
         output="screen" />
-<!--   -->
+<!--         launch-prefix="gdb -ex run - -args "  -->
 
 </launch>

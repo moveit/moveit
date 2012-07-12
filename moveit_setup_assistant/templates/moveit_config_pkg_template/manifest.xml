@@ -1,7 +1,7 @@
 <package>
-  <description brief="ROBOT_moveit_config">
+  <description brief="[GENERATED_PACKAGE_NAME]">
 
-     ROBOT_moveit_config
+     [GENERATED_PACKAGE_NAME]
 
   </description>
   <author>MoveIt Setup Assistant</author>

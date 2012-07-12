@@ -117,7 +117,7 @@ private:
   void displayAction( const QString title, const QString desc );
 
   /// Get the last folder name in a directory path
-  const std::string getPackageName( std::string stack_path );
+  const std::string getPackageName( std::string package_path );
 
 };
 

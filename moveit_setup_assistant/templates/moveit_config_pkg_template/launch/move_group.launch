@@ -1,0 +1,31 @@
+<launch>
+  <arg name="monitor_robot_state" default="true"/>
+  <arg name="allow_trajectory_execution" default="true"/>
+  <arg name="manage_controllers" default="true"/>
+
+  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch" />
+
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <arg name="planning_plugin" default="ompl_interface_ros/OMPLPlanner" />
+  <arg name="planning_adapters" default="default_planner_request_adapters/FixWorkspaceBounds default_planner_request_adapters/FixStartStateBounds default_planner_request_adapters/FixStartStateCollision default_planner_request_adapters/FixStartStatePathConstraints default_planner_request_adapters/AddTimeParameterization" />
+
+  <arg name="controller_manager_plugin" default="" />
+  
+  <node name="move_group" launch-prefix="$(arg launch_prefix)" pkg="move_group" type="move_group_action_server" respawn="false" output="screen">
+    <param name="planning_plugin" value="$(arg planning_plugin)" />
+    <param name="request_adapters" value="$(arg planning_adapters)" />
+
+    <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/kinematics.yaml"/>
+    <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/ompl_planning.yaml"/>
+
+    <param name="monitor_robot_state" value="$(arg monitor_robot_state)"/>
+    <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>  
+    <param name="manage_controllers" value="$(arg manage_controllers)"/>
+    <param name="controller_manager" value="$(arg controller_manager_plugin)"/>
+
+  </node>
+  
+</launch>
