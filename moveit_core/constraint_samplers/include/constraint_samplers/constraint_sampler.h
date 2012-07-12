@@ -40,7 +40,6 @@
 #include <planning_scene/planning_scene.h>
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <boost/shared_ptr.hpp>
-#include <visualization_msgs/MarkerArray.h>
 #include <vector>
 
 namespace constraint_samplers
@@ -60,6 +59,11 @@ public:
   
   virtual bool configure(const moveit_msgs::Constraints &constr) = 0;
 
+  const std::string& getGroupName(void) const
+  {
+    return getJointModelGroup()->getName();
+  }
+  
   const planning_models::KinematicModel::JointModelGroup* getJointModelGroup(void) const
   {
     return jmg_;
@@ -82,9 +86,6 @@ public:
   }
   
   virtual bool sample(planning_models::KinematicState::JointStateGroup *jsg, const planning_models::KinematicState &reference_state, unsigned int max_attempts) = 0;
-  
-  virtual void visualizeDistribution(const planning_models::KinematicState &reference_state, const std::string &link_name, unsigned int attempts,
-                                     unsigned int sample_count, visualization_msgs::MarkerArray &markers);
   
 protected:
 
