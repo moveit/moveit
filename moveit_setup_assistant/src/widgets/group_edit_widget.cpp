@@ -40,6 +40,7 @@
 #include <QFormLayout>
 #include <QString>
 #include "group_edit_widget.h"
+#include <pluginlib/class_loader.h> // for loading all avail kinematic planners
 
 namespace moveit_setup_assistant
 {
@@ -67,7 +68,18 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
   group_name_field_ = new QLineEdit( this );
   group_name_field_->setMaximumWidth( 400 );
   form_layout->addRow( "Group Name:", group_name_field_ );
+
+  // Kinematic solver
+  kinematics_solver_field_ = new QComboBox( this );
+  kinematics_solver_field_->setEditable( false );
+  kinematics_solver_field_->setMaximumWidth( 400 );
+  form_layout->addRow( "Kinematic Planner:", kinematics_solver_field_ );
   
+  // resolution to use with solver
+  kinematics_resolution_field_ = new QLineEdit( this );
+  kinematics_resolution_field_->setMaximumWidth( 400 );
+  form_layout->addRow( "Group Name:", kinematics_resolution_field_ );
+
   layout->addLayout( form_layout );
   layout->setAlignment( Qt::AlignTop );
 
@@ -119,7 +131,51 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
 void GroupEditWidget::setSelected( const std::string &group_name )
 {
   group_name_field_->setText( QString( group_name.c_str() ) );
+  //kinematics_resolution_field_->setText( QString( group_name.c_str() ) );
+}
+
+// ******************************************************************************************
+// Populate the combo dropdown box with kinematic planners
+// ******************************************************************************************
+void GroupEditWidget::loadKinematicPlannersComboBox()
+{
+  // Only load this combo box once
+  static bool hasLoaded = false;
+  if( hasLoaded )
+    return;
+  hasLoaded = true;
+
+  // Remove all old items
+  kinematics_solver_field_->clear();
+  
+  // load all avail kin planners
+  boost::scoped_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > loader;
+  try
+  {
+    loader.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicBase"));
+  }
+  catch(pluginlib::PluginlibException& ex)
+  {
+    std::cout << "Exception while creating class loader " << ex.what() << std::endl;
+  }  
+
+  // Get classes
+  const std::vector<std::string> &classes = loader->getDeclaredClasses();
+
+  // Loop through all planners and add to combo box
+  for( std::vector<std::string>::const_iterator plugin_it = classes.begin();
+       plugin_it < classes.end(); ++plugin_it )
+  {
+    kinematics_solver_field_->addItem( plugin_it->c_str() );
+  }
+
+  // if no avail planners add none option
+  if( ! kinematics_solver_field_->count() )
+  {
+    kinematics_solver_field_->addItem( "None" );
+  }
 }
 
 
-}
+
+} // namespace

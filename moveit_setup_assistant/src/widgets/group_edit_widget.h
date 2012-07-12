@@ -40,6 +40,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QLineEdit>
+#include <QComboBox>
 #include <QPushButton>
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
 
@@ -61,6 +62,8 @@ class GroupEditWidget : public QWidget
   /// Set the previous data
   void setSelected( const std::string &group_name );
 
+  /// Populate the combo dropdown box with kinematic planners
+  void loadKinematicPlannersComboBox();
 
   // ******************************************************************************************
   // Qt Components
@@ -68,6 +71,8 @@ class GroupEditWidget : public QWidget
 
   QLabel *title_; // specify the title from the parent widget  
   QLineEdit *group_name_field_;
+  QComboBox *kinematics_solver_field_;
+  QLineEdit *kinematics_resolution_field_;
   QPushButton *btn_delete_; // this button is hidden for new groups 
 
 private Q_SLOTS:
@@ -105,6 +110,8 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
+
+
 
 };
 

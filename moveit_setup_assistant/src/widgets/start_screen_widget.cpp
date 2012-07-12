@@ -323,9 +323,22 @@ void StartScreenWidget::loadFiles()
     nh.setParam("/robot_description_semantic", srdf_string);
 
   }
+  // Load kinematics solver if available --------------------------------------------------
+  // TODO: un-hard code this
+  const std::string kinematics_yaml_path = "/u/dcoleman/ros/moveit/moveit_ros/moveit_setup_assistant/templates/moveit_config_pkg_template/config/kinematics.yaml"; 
+  
+  if( !config_data_->inputKinematicsYAML( kinematics_yaml_path ) )
+  {
+    QMessageBox::critical( this, "Error Loading Files", 
+                           QString("Failed to parse kinematics yaml file at location ").append( kinematics_yaml_path.c_str() ) );
+    return;
+  }
+
+
+  // DONE LOADING --------------------------------------------------------------------------
 
   // Call a function that enables navigation and goes to screen 2
-  Q_EMIT readyToProgress();
+  //Q_EMIT readyToProgress();
 
   // Disable start screen GUI components from being changed
   urdf_file_->setDisabled(true);

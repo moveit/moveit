@@ -54,6 +54,8 @@
 #include <planning_models/kinematic_model.h> // for joint models, etc
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
+// ROS
+#include <ros/ros.h>
 
 namespace moveit_setup_assistant
 {

@@ -37,15 +37,13 @@
 #ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 
-#include <yaml-cpp/yaml.h> // outputing yaml config files
 #include <boost/shared_ptr.hpp>
 #include <srdfdom/model.h> // use their struct datastructures
 #include <urdf/model.h> // to share throughout app
-#include <ros/ros.h> // for the node handle
 #include <moveit_setup_assistant/tools/srdf_writer.h> // for writing srdf data
 #include <planning_scene/planning_scene.h> // for getting kinematic model
-#include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
-#include <planning_models_loader/kinematic_model_loader.h>
+//#include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
+//#include <planning_models_loader/kinematic_model_loader.h>
 
 namespace moveit_setup_assistant
 {
@@ -59,6 +57,19 @@ static const std::string ROBOT_DESCRIPTION="robot_description";
 static const std::string MOVEIT_PLANNING_SCENE="moveit_planning_scene";
 
 // ******************************************************************************************
+// Structs
+// ******************************************************************************************
+
+/** 
+ * Planning groups extra data not found in srdf but used in config files
+ */
+struct GroupMetaData
+{
+  std::string kinematics_solver_; // Name of kinematics plugin to use
+  double kinematics_solver_search_resolution_; // resolution to use with solver
+};
+
+// ******************************************************************************************
 // Class
 // ******************************************************************************************
 class MoveItConfigData
@@ -69,23 +80,22 @@ public:
 
   // All of the data needed for creating a MoveIt Configuration Files
 
-  // Paths
-  std::string urdf_path_;
-  std::string srdf_path_;
-  
-  // URDF robot model
-  //urdf::Model urdf_model_;
-  //  boost::shared_ptr<urdf::ModelInterface> urdf_model_;
-  boost::shared_ptr<urdf::Model> urdf_model_;
-
   // SRDF Data and Writer
   SRDFWriterPtr srdf_;
 
+  // URDF robot model
+  boost::shared_ptr<urdf::Model> urdf_model_;
+  
+  /// Planning groups extra data not found in srdf but used in config files
+  std::map<std::string, GroupMetaData> group_meta_data_;
+
+  // Paths
+  std::string urdf_path_;
+  std::string srdf_path_;
+  std::string setup_assistant_path_; // Remember Setup Assistants package's path for when we use its templates
+  
   // Is this application in debug mode?
   bool debug_;
-
-  // Remember this package's name
-  std::string setup_assistant_path_;
 
   // ******************************************************************************************
   // Public Functions
@@ -127,25 +137,27 @@ public:
    * @param output_path desired path to copy to
    * @param new_package_name name of the new package being created, to replace key word in template
    * 
-   * @return 
+   * @return bool if the template was copied correctly
    */
   bool copyTemplate( const std::string& template_path, const std::string& output_path, 
                      const std::string& new_package_name );
-                                     
+
+  /** 
+   * Input kinematics.yaml file for editing its values
+   * @param file_path path to kinematics.yaml in the input package
+   * @return bool if the file was read correctly
+   */  
+  bool inputKinematicsYAML( const std::string& file_path );
+
+
 private:
 
   // ******************************************************************************************
   // Private Vars
   // ******************************************************************************************
 
-  // Shared planning scene monitor
-  //planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-
   // Shared kinematic model
   planning_models::KinematicModelConstPtr kin_model_;
-
-  // Shared kinematic model loader
-  //planning_models_loader::KinematicModelLoaderPtr kin_model_loader_;
 
   // Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;
@@ -158,6 +170,7 @@ private:
 /// Create a shared pointer for passing this data object between widgets
 typedef boost::shared_ptr<MoveItConfigData> MoveItConfigDataPtr;
 
-}
+
+} // namespace
 
 #endif

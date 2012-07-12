@@ -39,7 +39,7 @@
 
    This widget has 6 subscreens, located in somewhat different places
    - Main screen, the tree view of all groups & subgroups - embedded in this file as a function
-   - Add/Edit Group screen - located in group_widget.cpp // TODO: check this
+   - Add/Edit Group screen - located in group_edit_widget.cpp
    - Joint Collection Screen - implements the double_list_widget.cpp widget
    - Link Collection Screen - implements the double_list_widget.cpp widget
    - Kinematic Chain Screen - uses it own custom widget - kinematic_chain_widget.cpp
@@ -592,6 +592,9 @@ void PlanningGroupsWidget::loadSubgroupsScreen( srdf::Model::Group *this_group )
 // ******************************************************************************************
 void PlanningGroupsWidget::loadGroupScreen( srdf::Model::Group *this_group )
 {
+  // Load the avail kin solvers. This function only runs once
+  group_edit_widget_->loadKinematicPlannersComboBox();
+
   if( this_group == NULL ) // this is a new screen
   {
     current_edit_group_ = ""; // provide a blank group name
@@ -601,13 +604,13 @@ void PlanningGroupsWidget::loadGroupScreen( srdf::Model::Group *this_group )
   else // load the group name into the widget
   {
     current_edit_group_ = this_group->name_;
-    group_edit_widget_->title_->setText( QString("Rename Planning Group '")
+    group_edit_widget_->title_->setText( QString("Edit Planning Group '")
                                          .append( current_edit_group_.c_str() ).append("'") );
     group_edit_widget_->btn_delete_->show();
   }
 
   // Set the data in the edit box
-  group_edit_widget_->setSelected( current_edit_group_ );
+  group_edit_widget_->setSelected( current_edit_group_ ); // TODO: set kinematic planner type also?
 
   // Remember what is currently being edited so we can later save changes
   current_edit_element_ = GROUP;
@@ -1137,6 +1140,7 @@ void PlanningGroupsWidget::focusGiven()
 
   // Load the data to the tree
   loadGroupsTree();
+
 }
 
 // ******************************************************************************************

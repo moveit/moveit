@@ -5,11 +5,7 @@
 right_arm:
   kinematics_solver: pr2_arm_kinematics/PR2ArmKinematicsPlugin
   kinematics_solver_search_resolution: 0.005
-  redundancy:
-    name: r_upper_arm_roll_joint
 
 left_arm: 
   kinematics_solver: pr2_arm_kinematics/PR2ArmKinematicsPlugin
   kinematics_solver_search_resolution: 0.005
-  redundancy:
-    name: l_upper_arm_roll_joint
