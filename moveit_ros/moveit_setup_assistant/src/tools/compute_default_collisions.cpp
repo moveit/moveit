@@ -192,7 +192,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   g_btimer.start("Total"); 
 
   // Create new instance of planning scene using pointer
-  planning_scene::PlanningScene scene(parent_scene);
+  planning_scene::PlanningScenePtr scene = parent_scene->diff();
 
   // Map of disabled collisions that contains a link as a key and an ordered list of links that are connected. 
   LinkPairMap link_pairs;
@@ -208,7 +208,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   // 0. GENERATE ALL POSSIBLE LINK PAIRS -------------------------------------------------------------
   // Generate a list of unique link pairs for all links with geometry. Order pairs alphabetically.
   // There should be n choose 2 pairs
-  computeLinkPairs( scene, link_pairs );
+  computeLinkPairs( *scene, link_pairs );
   *progress = 1;
 
   // 1. FIND CONNECTING LINKS ------------------------------------------------------------------------
@@ -217,14 +217,14 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
 
   // Create Connection Graph
   g_btimer.start("Compute Connection Graph"); // Benchmarking Timer - temporary
-  computeConnectionGraph(scene.getKinematicModel()->getRootLink(), link_graph);
+  computeConnectionGraph(scene->getKinematicModel()->getRootLink(), link_graph);
   g_btimer.end("Compute Connection Graph"); // Benchmarking Timer - temporary
   *progress = 2; // Progress bar feedback
 
   // 2. DISABLE ALL ADJACENT LINK COLLISIONS ---------------------------------------------------------
   // if 2 links are adjacent, or adjacent with a zero-shape between them, disable collision checking for them
   g_btimer.start("Disable Adjacent Links"); // Benchmarking Timer - temporary
-  unsigned int num_adjacent = disableAdjacentLinks( scene, link_graph, link_pairs);
+  unsigned int num_adjacent = disableAdjacentLinks( *scene, link_graph, link_pairs);
   g_btimer.end("Disable Adjacent Links"); // Benchmarking Timer - temporary
   *progress = 4; // Progress bar feedback
 
@@ -240,14 +240,14 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   // 4. DISABLE "DEFAULT" COLLISIONS --------------------------------------------------------
   // Disable all collision checks that occur when the robot is started in its default state
   g_btimer.start("Default Collisions"); // Benchmarking Timer - temporary
-  unsigned int num_default = disableDefaultCollisions(scene, link_pairs, req);
+  unsigned int num_default = disableDefaultCollisions(*scene, link_pairs, req);
   g_btimer.end("Default Collisions"); // Benchmarking Timer - temporary
   *progress = 6; // Progress bar feedback
 
   // 5. ALWAYS IN COLLISION --------------------------------------------------------------------
   // Compute the links that are always in collision
   g_btimer.start("Always in Collision"); // Benchmarking Timer - temporary
-  unsigned int num_always = disableAlwaysInCollision(scene, link_pairs, req, links_seen_colliding);
+  unsigned int num_always = disableAlwaysInCollision(*scene, link_pairs, req, links_seen_colliding);
   g_btimer.end("Always in Collision"); // Benchmarking Timer - temporary  
   //ROS_INFO("Links seen colliding total = %d", int(links_seen_colliding.size()));
   *progress = 8; // Progress bar feedback
@@ -258,7 +258,7 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   unsigned int num_never = 0;
   if (include_never_colliding) // option of function
   {
-    num_never = disableNeverInCollision(num_trials, scene, link_pairs, req, links_seen_colliding, progress);
+    num_never = disableNeverInCollision(num_trials, *scene, link_pairs, req, links_seen_colliding, progress);
   }
   g_btimer.end("Never in Collision"); // Benchmarking Timer - temporary  
 
