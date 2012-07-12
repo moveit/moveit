@@ -26,4 +26,5 @@ rosbuild_add_library(${PROJECT_NAME}
   src/default_constraint_samplers.cpp
   src/union_constraint_sampler.cpp
   src/constraint_sampler_manager.cpp
+  src/constraint_sampler_tools.cpp
 )

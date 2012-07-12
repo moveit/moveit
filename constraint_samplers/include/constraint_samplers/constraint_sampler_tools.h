@@ -34,13 +34,26 @@
 
 /* Author: Ioan Sucan */
 
-#include "constraint_samplers/constraint_sampler.h"
-#include <ros/console.h>
+#ifndef MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_TOOLS_
+#define MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_TOOLS_
 
-constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name)
+#include "constraint_samplers/constraint_sampler.h"
+#include <visualization_msgs/MarkerArray.h>
+
+namespace constraint_samplers
 {
-  jmg_ = scene->getKinematicModel()->getJointModelGroup(group_name);
-  scene_ = scene;
-  if (!jmg_)
-    ROS_FATAL("A JointModelGroup should have been specified for the constraint sampler");
+
+void visualizeDistribution(const ConstraintSamplerPtr &sampler, const planning_models::KinematicState &reference_state,
+                           const std::string &link_name, unsigned int attempts, unsigned int sample_count, visualization_msgs::MarkerArray &markers);
+
+void visualizeDistribution(const moveit_msgs::Constraints &constr, const planning_scene::PlanningSceneConstPtr &scene, const std::string &group,
+                           const std::string &link_name, unsigned int attempts, unsigned int sample_count, visualization_msgs::MarkerArray &markers);
+
+double countSamplesPerSecond(const ConstraintSamplerPtr &sampler, const planning_models::KinematicState &reference_state);
+
+double countSamplesPerSecond(const moveit_msgs::Constraints &constr, const planning_scene::PlanningSceneConstPtr &scene, const std::string &group);
+
 }
+
+
+#endif
