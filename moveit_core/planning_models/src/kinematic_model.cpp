@@ -820,13 +820,12 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
       result->joint_origin_transform_ = urdfPose2Affine3d(pmi->second.second->parent_to_joint_origin_transform);
       result->reverse_joint_ = true;
     }
-    
-    // normally, we have ChildLinkTF = ParentLinkTF * JOrigin
-    // when we reverse this, ParentLinkTF becomes the child of ChildLinkTF
-    // so ParentLinkTF = ChildLinkTF * inverse(JOrigin)
   }
   else
-    result->joint_origin_transform_.setIdentity();
+  {
+    result->joint_origin_transform_.setIdentity();  
+    result->reverse_joint_ = false;
+  }
   
   return result;
 }

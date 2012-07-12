@@ -661,22 +661,9 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 void collision_detection::CollisionData::enableGroup(const planning_models::KinematicModelConstPtr &kmodel)
 {
   if (kmodel->hasJointModelGroup(req_->group_name))
-  {
-    if (active_components_only_)
-      active_components_only_->clear();
-    else
-      active_components_only_ = new std::set<const planning_models::KinematicModel::LinkModel*>();
-    const planning_models::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(req_->group_name);
-    const std::vector<const planning_models::KinematicModel::LinkModel*> &links = jmg->getLinkModels();
-    for (std::size_t i = 0 ; i < links.size() ; ++i)
-    {
-      active_components_only_->insert(links[i]);
-      std::vector<const planning_models::KinematicModel::LinkModel*> descendants;
-      kmodel->getChildLinkModels(links[i], descendants);
-      for (std::size_t j = 0 ; j < descendants.size() ; ++j)
-	active_components_only_->insert(descendants[j]);
-    }
-  }
+    active_components_only_ = &kmodel->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsWithGeometrySet();
+  else
+    active_components_only_ = NULL;
 }
 
 void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager *manager)
