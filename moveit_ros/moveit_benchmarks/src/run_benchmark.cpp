@@ -40,6 +40,7 @@
 #include <pluginlib/class_loader.h>
 #include <planning_interface/planning_interface.h>
 #include <planning_models/conversions.h>
+#include <trajectory_processing/trajectory_tools.h>
 
 #include <moveit_msgs/ComputePlanningBenchmark.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
@@ -149,7 +150,8 @@ public:
         clearance = 0.0;
         smoothness = 0.0;
         std::vector<planning_models::KinematicStatePtr> p;
-        scene_->convertToKinematicStates(mp_res.trajectory_start, mp_res.trajectory[j], p);                        
+        trajectory_processing::convertToKinematicStates(p, mp_res.trajectory_start, mp_res.trajectory[j],
+                                                        scene_->getCurrentState(), scene_->getTransforms());
         
         // compute path length
         for (std::size_t k = 1 ; k < p.size() ; ++k)

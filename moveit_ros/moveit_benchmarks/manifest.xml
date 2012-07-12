@@ -13,6 +13,7 @@
   <depend package="planning_scene"/>
   <depend package="robot_model_loader"/>
   <depend package="moveit_warehouse"/>
+  <depend package="trajectory_processing"/>
 
 </package>
 
