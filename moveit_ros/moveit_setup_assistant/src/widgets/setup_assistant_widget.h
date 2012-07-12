@@ -43,6 +43,8 @@
 #include <QHBoxLayout>
 #include <QString>
 #include <QApplication>
+#include <QObject>
+#include <QEvent>
 #include <QListWidget>
 #include <QTimer>
 #include <QSplitter>
@@ -95,6 +97,15 @@ class SetupAssistantWidget : public QWidget
    * @param event A Qt paramenter
    */
   void closeEvent( QCloseEvent * event );
+
+  /** 
+   * Qt error handling function
+   * 
+   * @param rec 
+   * @param ev 
+   * @return bool
+   */
+  virtual bool notify( QObject * rec, QEvent * ev );
 
   /** 
    * Load Rviz once we have a robot description ready

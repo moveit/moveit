@@ -34,9 +34,22 @@
 
 /* Author: Dave Coleman */
 
+// ******************************************************************************************
+/* DEVELOPER NOTES
+
+   This class is shared with all widgets and contains the common configuration data 
+   needed for generating each robot's MoveIt configuration package. All SRDF data is 
+   contained in a subclass of this class - srdf_writer.cpp. This class also contains
+   the functions for writing out the configuration files. Maybe it would have been best to
+   keep the writing out functions in configuration_files_widget.cpp, but I am not sure.
+*/
+// ******************************************************************************************
+
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
+// Reading/Writing Files
 #include <iostream> // For writing yaml and launch files
 #include <fstream>
+#include <yaml-cpp/yaml.h> // outputing yaml config files
 #include <boost/filesystem.hpp>  // for creating folders/files
 #include <boost/algorithm/string.hpp> // for string find and replace in templates
 // ROS
@@ -528,6 +541,63 @@ bool MoveItConfigData::copyTemplate( const std::string& template_path, const std
 
   return true; // file created successfully
 }
+
+// ******************************************************************************************
+// Input kinematics.yaml file
+// ******************************************************************************************
+bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
+{
+  // Load file
+  std::ifstream input_stream( file_path.c_str() );
+  if( !input_stream.good() )
+  {
+    ROS_ERROR_STREAM( "Unable to open file for reading " << file_path );
+    return false;
+  }
+
+  // Begin parsing
+  try {
+    YAML::Parser parser(input_stream);
+    YAML::Node doc;
+    parser.GetNextDocument(doc);
+
+    // Loop through all groups
+    for( YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it ) 
+    {
+      std::string group_name;
+      group_it.first() >> group_name;
+
+      // Create new meta data
+      GroupMetaData new_meta_data;
+
+      // kinematics_solver
+      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver" ) ) 
+      {
+        *prop_name >> new_meta_data.kinematics_solver_;
+      }
+
+      // kinematics_solver_search_resolution 
+      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_search_resolution" ) ) 
+      {
+        *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
+      }
+
+      // Assign meta data to vector
+      group_meta_data_[ group_name ] = new_meta_data;
+    }
+
+  } 
+  catch(YAML::ParserException& e)  // Catch errors
+  {
+    ROS_ERROR_STREAM( e.what() );
+    return false;
+  }
+
+  return true; // file created successfully
+}
+
+
+
 
 
 } // namespace

@@ -345,7 +345,7 @@ void VirtualJointsWidget::edit( const std::string &name )
 // ******************************************************************************************
 void VirtualJointsWidget::loadJointTypesComboBox()
 {
-  // Remove all old groups
+  // Remove all old items
   joint_type_field_->clear();
   
   // joint types (hard coded)

@@ -360,6 +360,27 @@ void SetupAssistantWidget::closeEvent( QCloseEvent * event )
   event->accept();
 }
 
+// ******************************************************************************************
+// Qt Error Handling 
+// ******************************************************************************************
+bool SetupAssistantWidget::notify( QObject * reciever, QEvent * event )
+{
+  /*  try
+  {
+    return QApplication::notify( reciever, event );
+  }
+  catch( std::Exception& event)
+  {*/
+  QMessageBox::critical( this, "Error", "An error occurred and was caught by Qt notify event handler.", QMessageBox::Ok);
 
-
+    /*  }
+  catch(...)
+  {
+    QMessageBox::warning(0, "An unexpected error occurred", "This is likely a bug.");
+    }*/
+  return false; 
 }
+
+
+
+} // namespace
