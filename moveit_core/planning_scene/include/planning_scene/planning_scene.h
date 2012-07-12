@@ -190,6 +190,13 @@ public:
     return cworld_const_;
   }
 
+  //brief Get the representation of the collision world
+  const collision_detection::CollisionWorldPtr& getCollisionWorld(void)
+  {
+    // we always have a world representation
+    return cworld_;
+  }
+
   /** \brief Get the representation of the collision robot */
   const collision_detection::CollisionRobotConstPtr& getCollisionRobot(void) const
   {
@@ -487,13 +494,6 @@ public:
   virtual void removeAllObjects();
 
 protected:
-
-  //brief Get the representation of the collision world
-  const collision_detection::CollisionWorldPtr& getCollisionWorldPtr(void)
-  {
-    // we always have a world representation
-    return cworld_;
-  }
 
   void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
   void addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
