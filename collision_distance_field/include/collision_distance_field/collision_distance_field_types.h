@@ -49,7 +49,7 @@
 #include <distance_field/distance_field.h>
 #include <visualization_msgs/MarkerArray.h>
 
-namespace collision_distance_field
+namespace collision_detection
 {
 
 enum CollisionType {
@@ -110,7 +110,7 @@ bool getCollisionSphereGradients(const distance_field::DistanceField* distance_f
                                  const std::vector<CollisionSphere>& sphere_list, 
                                  const std::vector<Eigen::Vector3d>& sphere_centers,
                                  GradientInfo& gradient, 
-                                 const collision_distance_field::CollisionType& type,
+                                 const CollisionType& type,
                                  double tolerance, 
                                  bool subtract_radii, 
                                  double maximum_value, 

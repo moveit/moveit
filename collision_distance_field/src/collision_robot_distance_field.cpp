@@ -38,45 +38,12 @@
 #include <collision_distance_field/collision_common_distance_field.h>
 #include <distance_field/propagation_distance_field.h>
 
-namespace collision_distance_field
+namespace collision_detection
 {
 
-CollisionRobotDistanceField::CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel, 
-                                                         double size_x, 
-                                                         double size_y,
-                                                         double size_z,
-                                                         bool use_signed_distance_field,
-                                                         double resolution,
-                                                         double collision_tolerance,
-                                                         double max_propogation_distance,
-                                                         double padding, 
-                                                         double scale)
-  : collision_detection::CollisionRobot(kmodel, padding, scale),
-    size_x_(size_x),
-    size_y_(size_y),
-    size_z_(size_z),
-    use_signed_distance_field_(use_signed_distance_field),
-    resolution_(resolution),
-    collision_tolerance_(collision_tolerance),
-    max_propogation_distance_(max_propogation_distance)
+CollisionRobotDistanceField::CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel)
+  : CollisionRobot(kmodel)
 {  
-  planning_models::KinematicState state(kmodel);
-  addLinkBodyDecompositions(resolution_);
-  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& jmgm = kmodel_->getJointModelGroupMap();
-  for(std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin();
-      it != jmgm.end();
-      it++) {
-    std::map<std::string, bool> updated_group_entry;
-    for(unsigned int i = 0; i < it->second->getUpdatedLinkModelsWithGeometryNames().size(); i++) {
-      updated_group_entry[it->second->getUpdatedLinkModelsWithGeometryNames()[i]] = true;
-    }
-    in_group_update_map_[it->first] = updated_group_entry;
-    boost::shared_ptr<DistanceFieldCacheEntry> dfce = generateDistanceFieldCacheEntry(it->first,
-                                                                                      state,
-                                                                                      NULL,
-                                                                                      false);
-    getGroupStateRepresentation(dfce, state, pregenerated_group_state_representation_map_[it->first]);
-  }
 }
 
 CollisionRobotDistanceField::CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel, 
@@ -90,32 +57,9 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const planning_models::
                                                          double max_propogation_distance,
                                                          double padding, 
                                                          double scale)
-  : collision_detection::CollisionRobot(kmodel, padding, scale),
-    size_x_(size_x),
-    size_y_(size_y),
-    size_z_(size_z),
-    use_signed_distance_field_(use_signed_distance_field),
-    resolution_(resolution),
-    collision_tolerance_(collision_tolerance),
-    max_propogation_distance_(max_propogation_distance)
+  : CollisionRobot(kmodel, padding, scale)
 {  
-  planning_models::KinematicState state(kmodel);
-  addLinkBodyDecompositions(resolution_, link_body_decompositions);
-  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& jmgm = kmodel_->getJointModelGroupMap();
-  for(std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin();
-      it != jmgm.end();
-      it++) {
-    std::map<std::string, bool> updated_group_entry;
-    for(unsigned int i = 0; i < it->second->getUpdatedLinkModelsWithGeometryNames().size(); i++) {
-      updated_group_entry[it->second->getUpdatedLinkModelsWithGeometryNames()[i]] = true;
-    }
-    in_group_update_map_[it->first] = updated_group_entry;
-    boost::shared_ptr<DistanceFieldCacheEntry> dfce = generateDistanceFieldCacheEntry(it->first,
-                                                                                      state,
-                                                                                      NULL,
-                                                                                      false);
-    getGroupStateRepresentation(dfce, state, pregenerated_group_state_representation_map_[it->first]);
-  }
+  initialize(link_body_decompositions, size_x, size_y, size_z, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
 }
 
 CollisionRobotDistanceField::CollisionRobotDistanceField(const CollisionRobotDistanceField& other) :
@@ -132,6 +76,41 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const CollisionRobotDis
   link_body_decomposition_index_map_ = other.link_body_decomposition_index_map_;
   in_group_update_map_ = other.in_group_update_map_;
   pregenerated_group_state_representation_map_ = other.pregenerated_group_state_representation_map_;
+}
+
+void CollisionRobotDistanceField::initialize(const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
+                                             double size_x, 
+                                             double size_y,
+                                             double size_z,
+                                             bool use_signed_distance_field,
+                                             double resolution,
+                                             double collision_tolerance,
+                                             double max_propogation_distance)
+{
+  size_x_ = size_x;
+  size_y_ = size_y;
+  size_z_ = size_z;
+  use_signed_distance_field_ = use_signed_distance_field;
+  resolution_ = resolution;
+  collision_tolerance_ = collision_tolerance;
+  max_propogation_distance_ = max_propogation_distance;
+  addLinkBodyDecompositions(resolution_, link_body_decompositions);  
+  planning_models::KinematicState state(kmodel_);
+  const std::map<std::string, planning_models::KinematicModel::JointModelGroup*>& jmgm = kmodel_->getJointModelGroupMap();
+  for(std::map<std::string, planning_models::KinematicModel::JointModelGroup*>::const_iterator it = jmgm.begin();
+      it != jmgm.end();
+      it++) {
+    std::map<std::string, bool> updated_group_entry;
+    for(unsigned int i = 0; i < it->second->getUpdatedLinkModelsWithGeometryNames().size(); i++) {
+      updated_group_entry[it->second->getUpdatedLinkModelsWithGeometryNames()[i]] = true;
+    }
+    in_group_update_map_[it->first] = updated_group_entry;
+    boost::shared_ptr<DistanceFieldCacheEntry> dfce = generateDistanceFieldCacheEntry(it->first,
+                                                                                      state,
+                                                                                      NULL,
+                                                                                      false);
+    getGroupStateRepresentation(dfce, state, pregenerated_group_state_representation_map_[it->first]);
+  }
 }
 
 void CollisionRobotDistanceField::generateCollisionCheckingStructures(const std::string& group_name,
@@ -330,7 +309,7 @@ bool CollisionRobotDistanceField::getSelfProximityGradients(boost::shared_ptr<Gr
                                             *collision_spheres_1,
                                             *sphere_centers_1,
                                             gsr->gradients_[i],
-                                            collision_distance_field::SELF,
+                                            collision_detection::SELF,
                                             0.0,
                                             false,
                                             max_propogation_distance_,

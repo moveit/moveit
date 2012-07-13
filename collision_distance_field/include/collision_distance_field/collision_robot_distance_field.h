@@ -43,26 +43,17 @@
 
 #include <boost/thread/mutex.hpp>
 
-namespace collision_distance_field 
+namespace collision_detection
 {
 
-class CollisionRobotDistanceField : public collision_detection::CollisionRobot
+class CollisionRobotDistanceField : public CollisionRobot
 {
   
   friend class CollisionWorldDistanceField;
 
 public:
-  
-  CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel, 
-                              double size_x = 3.0, 
-                              double size_y = 3.0,
-                              double size_z = 4.0,
-                              bool use_signed_distance_field = false,
-                              double resolution = .02,
-                              double collision_tolerance = 0.0,
-                              double max_propogation_distance = .25,
-                              double padding = 0.0, 
-                              double scale = 1.0);
+
+  CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel);
 
   CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel, 
                               const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
@@ -77,6 +68,15 @@ public:
                               double scale = 1.0);
 
   CollisionRobotDistanceField(const CollisionRobotDistanceField& other); 
+
+  void initialize(const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
+                  double size_x, 
+                  double size_y,
+                  double size_z,
+                  bool use_signed_distance_field,
+                  double resolution,
+                  double collision_tolerance,
+                  double max_propogation_distance);
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 

@@ -37,10 +37,10 @@
 #include <collision_distance_field/collision_distance_field_types.h>
 #include <geometric_shapes/body_operations.h>
 
-std::vector<collision_distance_field::CollisionSphere> collision_distance_field::determineCollisionSpheres(const bodies::Body* body, 
+std::vector<collision_detection::CollisionSphere> collision_detection::determineCollisionSpheres(const bodies::Body* body, 
                                                                                                            Eigen::Affine3d& relative_transform)
 {
-  std::vector<collision_distance_field::CollisionSphere> css;
+  std::vector<collision_detection::CollisionSphere> css;
   
   bodies::BoundingCylinder cyl;
   body->computeBoundingCylinder(cyl);
@@ -50,14 +50,14 @@ std::vector<collision_distance_field::CollisionSphere> collision_distance_field:
   for(unsigned int i = 1; i < num_points-1; i++) {
     vec.z() = (-cyl.length/2.0)+i*spacing;
     //Eigen::Vector3d p = cyl.pose*vec;
-    collision_distance_field::CollisionSphere cs(vec,cyl.radius);
+    collision_detection::CollisionSphere cs(vec,cyl.radius);
     css.push_back(cs);
   }
   relative_transform = body->getPose().inverse() * cyl.pose;
   return css; 
 }
 
-std::vector<Eigen::Vector3d> collision_distance_field::determineCollisionPoints(const bodies::Body* body, double resolution)
+std::vector<Eigen::Vector3d> collision_detection::determineCollisionPoints(const bodies::Body* body, double resolution)
 {
   std::vector<Eigen::Vector3d> ret_vec;
   bodies::BoundingSphere sphere;
@@ -77,11 +77,11 @@ std::vector<Eigen::Vector3d> collision_distance_field::determineCollisionPoints(
   return ret_vec;
 }
 
-bool collision_distance_field::getCollisionSphereGradients(const distance_field::DistanceField* distance_field,
+bool collision_detection::getCollisionSphereGradients(const distance_field::DistanceField* distance_field,
                                                            const std::vector<CollisionSphere>& sphere_list,
                                                            const std::vector<Eigen::Vector3d>& sphere_centers,
                                                            GradientInfo& gradient, 
-                                                           const collision_distance_field::CollisionType& type,
+                                                           const collision_detection::CollisionType& type,
                                                            double tolerance, 
                                                            bool subtract_radii, 
                                                            double maximum_value,
@@ -120,7 +120,7 @@ bool collision_distance_field::getCollisionSphereGradients(const distance_field:
   return in_collision;
 }
 
-bool collision_distance_field::getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
+bool collision_detection::getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
                                                            const std::vector<CollisionSphere>& sphere_list,
                                                            const std::vector<Eigen::Vector3d>& sphere_centers,
                                                            double maximum_value,
@@ -144,7 +144,7 @@ bool collision_distance_field::getCollisionSphereCollision(const distance_field:
 
 }
 
-bool collision_distance_field::getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
+bool collision_detection::getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
                                                            const std::vector<CollisionSphere>& sphere_list,
                                                            const std::vector<Eigen::Vector3d>& sphere_centers,
                                                            double maximum_value,
@@ -179,7 +179,7 @@ bool collision_distance_field::getCollisionSphereCollision(const distance_field:
 /// BodyDecomposition
 ///
 
-collision_distance_field::BodyDecomposition::BodyDecomposition(const shapes::ShapeConstPtr& shape, double resolution, double padding)
+collision_detection::BodyDecomposition::BodyDecomposition(const shapes::ShapeConstPtr& shape, double resolution, double padding)
 {
   body_ = bodies::createBodyFromShape(shape.get()); //unpadded
   body_->setPose(Eigen::Affine3d::Identity());
@@ -193,39 +193,39 @@ collision_distance_field::BodyDecomposition::BodyDecomposition(const shapes::Sha
   body_->computeBoundingSphere(relative_bounding_sphere_);
 }
 
-collision_distance_field::BodyDecomposition::~BodyDecomposition()
+collision_detection::BodyDecomposition::~BodyDecomposition()
 {
   delete body_;
 }
 
-collision_distance_field::PosedBodyPointDecomposition::PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition) 
+collision_detection::PosedBodyPointDecomposition::PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition) 
   : body_decomposition_(body_decomposition)
 {
   posed_collision_points_ = body_decomposition_->getCollisionPoints();
 }
 
-collision_distance_field::PosedBodyPointDecomposition::PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition,
+collision_detection::PosedBodyPointDecomposition::PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition,
                                                                                    const Eigen::Affine3d& trans)
   : body_decomposition_(body_decomposition)
 {
   updatePose(trans);
 }
 
-void collision_distance_field::PosedBodyPointDecomposition::updatePose(const Eigen::Affine3d& trans) {
+void collision_detection::PosedBodyPointDecomposition::updatePose(const Eigen::Affine3d& trans) {
   posed_collision_points_.resize(body_decomposition_->getCollisionPoints().size());
   for(unsigned int i = 0; i < body_decomposition_->getCollisionPoints().size(); i++) {
     posed_collision_points_[i] = trans*body_decomposition_->getCollisionPoints()[i];
   }
 }
 
-collision_distance_field::PosedBodySphereDecomposition::PosedBodySphereDecomposition(const BodyDecompositionConstPtr& body_decomposition) 
+collision_detection::PosedBodySphereDecomposition::PosedBodySphereDecomposition(const BodyDecompositionConstPtr& body_decomposition) 
   : body_decomposition_(body_decomposition)
 {
   posed_bounding_sphere_center_ = body_decomposition_->getRelativeBoundingSphere().center;
   sphere_centers_.resize(body_decomposition_->getCollisionSpheres().size());
 }
 
-void collision_distance_field::PosedBodySphereDecomposition::updatePose(const Eigen::Affine3d& trans) 
+void collision_detection::PosedBodySphereDecomposition::updatePose(const Eigen::Affine3d& trans) 
 {
   posed_bounding_sphere_center_ = trans * body_decomposition_->getRelativeBoundingSphere().center;
   Eigen::Affine3d cyl_transform = trans * body_decomposition_->getRelativeCylinderPose();
@@ -234,7 +234,7 @@ void collision_distance_field::PosedBodySphereDecomposition::updatePose(const Ei
   }
 }
 
-bool collision_distance_field::doBoundingSpheresIntersect(const PosedBodySphereDecompositionConstPtr& p1,
+bool collision_detection::doBoundingSpheresIntersect(const PosedBodySphereDecompositionConstPtr& p1,
                                                           const PosedBodySphereDecompositionConstPtr& p2)
 {
   Eigen::Vector3d p1_sphere_center = p1->getBoundingSphereCenter();
@@ -249,7 +249,7 @@ bool collision_distance_field::doBoundingSpheresIntersect(const PosedBodySphereD
   return false;
 }
 
-void collision_distance_field::getCollisionSphereMarkers(const std_msgs::ColorRGBA& color,
+void collision_detection::getCollisionSphereMarkers(const std_msgs::ColorRGBA& color,
                                                          const std::string& frame_id,
                                                          const std::string& ns,
                                                          const ros::Duration& dur,
@@ -278,7 +278,7 @@ void collision_distance_field::getCollisionSphereMarkers(const std_msgs::ColorRG
   }
 }
 
-void collision_distance_field::getProximityGradientMarkers(const std::string& frame_id,
+void collision_detection::getProximityGradientMarkers(const std::string& frame_id,
                                                            const std::string& ns,
                                                            const ros::Duration& dur,
                                                            const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
@@ -333,19 +333,19 @@ void collision_distance_field::getProximityGradientMarkers(const std::string& fr
       arrow_mark.scale.x = 0.01;
       arrow_mark.scale.y = 0.03;
       arrow_mark.color.a = 1.0;
-      if(gradients[i].types[j] == collision_distance_field::SELF) {
+      if(gradients[i].types[j] == collision_detection::SELF) {
         arrow_mark.color.r = 1.0;
         arrow_mark.color.g = 0.2;
         arrow_mark.color.b = .5;
-      } else if(gradients[i].types[j] == collision_distance_field::INTRA) {
+      } else if(gradients[i].types[j] == collision_detection::INTRA) {
         arrow_mark.color.r = .2;
         arrow_mark.color.g = 1.0;
         arrow_mark.color.b = .5;
-      } else if(gradients[i].types[j] == collision_distance_field::ENVIRONMENT) {
+      } else if(gradients[i].types[j] == collision_detection::ENVIRONMENT) {
         arrow_mark.color.r = .2;
         arrow_mark.color.g = .5;
         arrow_mark.color.b = 1.0;
-      } else if(gradients[i].types[j] == collision_distance_field::NONE) {
+      } else if(gradients[i].types[j] == collision_detection::NONE) {
         arrow_mark.color.r = 1.0;
         arrow_mark.color.g = .2;
         arrow_mark.color.b = 1.0;
@@ -355,7 +355,7 @@ void collision_distance_field::getProximityGradientMarkers(const std::string& fr
   }
 }
 
-void collision_distance_field::getCollisionMarkers(const std::string& frame_id,
+void collision_detection::getCollisionMarkers(const std::string& frame_id,
                                                    const std::string& ns,
                                                    const ros::Duration& dur,
                                                    const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
@@ -393,15 +393,15 @@ void collision_distance_field::getCollisionMarkers(const std::string& frame_id,
       }
       sphere_mark.pose.orientation.w = 1.0;
       sphere_mark.color.a = 1.0;
-      if(gradients[i].types[j] == collision_distance_field::SELF) {
+      if(gradients[i].types[j] == collision_detection::SELF) {
         sphere_mark.color.r = 1.0;
         sphere_mark.color.g = 0.2;
         sphere_mark.color.b = .5;
-      } else if(gradients[i].types[j] == collision_distance_field::INTRA) {
+      } else if(gradients[i].types[j] == collision_detection::INTRA) {
         sphere_mark.color.r = .2;
         sphere_mark.color.g = 1.0;
         sphere_mark.color.b = .5;
-      } else if(gradients[i].types[j] == collision_distance_field::ENVIRONMENT) {
+      } else if(gradients[i].types[j] == collision_detection::ENVIRONMENT) {
         sphere_mark.color.r = .2;
         sphere_mark.color.g = .5;
         sphere_mark.color.b = 1.0;

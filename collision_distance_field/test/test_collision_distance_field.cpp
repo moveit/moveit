@@ -53,8 +53,8 @@
 #include <boost/filesystem.hpp>
 #include <ros/console.h>
 
-typedef collision_distance_field::CollisionWorldDistanceField DefaultCWorldType;
-typedef collision_distance_field::CollisionRobotDistanceField DefaultCRobotType;
+typedef collision_detection::CollisionWorldDistanceField DefaultCWorldType;
+typedef collision_detection::CollisionRobotDistanceField DefaultCRobotType;
 
 class DistanceFieldCollisionDetectionTester : public testing::Test{
 
