@@ -156,8 +156,9 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req,
       done = cdr.getIntraGroupCollisions(req, res, gsr);
     }
     if(!done) {
-      boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
-      getEnvironmentCollisions(req, res, env_distance_field, gsr);
+      getEnvironmentCollisions(req, res, distance_field_cache_entry_->distance_field_, gsr);
+      //boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
+      //getEnvironmentCollisions(req, res, env_distance_field, gsr);
     }
   } catch(...) {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
