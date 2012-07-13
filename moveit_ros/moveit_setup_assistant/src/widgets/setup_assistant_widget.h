@@ -108,12 +108,6 @@ class SetupAssistantWidget : public QWidget
   virtual bool notify( QObject * rec, QEvent * ev );
 
   /** 
-   * Load Rviz once we have a robot description ready
-   * 
-   */
-  void loadRviz();
-
-  /** 
    * Show/hide the Rviz right panel
    * @param show bool - whether to show
    */
@@ -145,6 +139,11 @@ private Q_SLOTS:
    */
   void progressPastStartScreen();
 
+  /** 
+   * Load Rviz once we have a robot description ready
+   * 
+   */
+  void loadRviz();
 
 private:
 

@@ -125,8 +125,12 @@ public:
   bool outputMoveGroupLaunch( const std::string& file_path, 
                               const std::string& template_package_path, 
                               const std::string& new_package_name );
-  bool outputOMPLPlannerLaunch( const std::string& file_path );
-  bool outputPlanningContextLaunch( const std::string& file_path );
+  bool outputOMPLPlannerLaunch( const std::string& file_path,
+                                const std::string& template_package_path,
+                                const std::string& new_package_name  );
+  bool outputPlanningContextLaunch( const std::string& file_path,
+                                    const std::string& template_package_path,
+                                    const std::string& new_package_name );
   bool outputWarehouseLaunch( const std::string& file_path );
   bool outputWarehouseSettingsLaunch( const std::string& file_path );
 

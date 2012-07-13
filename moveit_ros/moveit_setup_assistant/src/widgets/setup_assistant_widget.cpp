@@ -93,6 +93,7 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   // Start Screen
   ssw_ = new StartScreenWidget( this, config_data_ );
   connect( ssw_, SIGNAL( readyToProgress() ), this, SLOT( progressPastStartScreen() ) );
+  connect( ssw_, SIGNAL( loadRviz() ), this, SLOT( loadRviz() ) );
   main_content_->addWidget(ssw_);
 
   // Pass command arg values to start screen
@@ -254,17 +255,11 @@ void SetupAssistantWidget::progressPastStartScreen()
   }
 
   // Go to next screen
-  moveToScreen( 2 );
+  //moveToScreen( 2 );
 
   // Enable navigation
   navs_view_->setDisabled( false );
 
-  // Load Rviz
-  loadRviz(); //TODO enable this
-
-  
-
-  //std::cout << "Done progress past start screen" << std::endl;
 }
 
 // ******************************************************************************************

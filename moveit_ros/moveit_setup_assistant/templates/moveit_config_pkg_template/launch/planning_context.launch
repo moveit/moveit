@@ -1,12 +1,15 @@
 <launch>
 
-  <!-- load robot -->
+  <!-- Load universal robotic description format (URDF) -->
+  <!-- FILL IN THE URDF LOCATION ON THE FOLLOWING LINE AND ENABLE: -->
+  <!-- param name="robot_description" command="$(find xacro)/xacro.py '$(find ROBOT_DESCRIPTION_PKG)/urdf/robot.urdf.xacro'" /-->
+      
+  <!-- the semantic description that corresponds to the URDF -->
+  <param name="robot_description_semantic" textfile="$(find [GENERATED_PACKAGE_NAME])/config/pr2.srdf" />
   
-  <include file="$(find pr2_description)/robots/upload_pr2.launch" />
-  
-  <group ns="robot_description_planning">
-    <rosparam command="load" file="$(find pr2_moveit_config)/config/collision_matrix.yaml"/>
-    <rosparam command="load" file="$(find pr2_moveit_config)/config/joint_limits.yaml"/>
+  <!-- Load to the parameter server yaml files -->
+  <group ns="robot_description_planning">    
+    <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/joint_limits.yaml"/>
   </group>
   
 </launch>
