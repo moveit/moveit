@@ -47,6 +47,7 @@ n *   * Redistributions of source code must retain the above copyright
 #include <QPushButton>
 #include <QCloseEvent>
 #include <QMessageBox>
+#include <pluginlib/class_loader.h> // for loading all avail kinematic planners
 // Rviz
 #include <rviz/default_plugin/marker_display.h>
 #include <rviz/default_plugin/interactive_marker_display.h>
@@ -140,6 +141,31 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   
   // Title
   this->setWindowTitle("MoveIt Setup Assistant"); // title of window
+
+  /*
+  std::cout << " Outputting poses" << std::endl;
+
+  // load all avail kin planners
+  boost::scoped_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > loader;
+  try
+  {
+    loader.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
+  }
+  catch(pluginlib::PluginlibException& ex)
+  {
+    std::cout << "Exception while creating class loader " << ex.what() << std::endl;
+  }  
+
+  // Get classes
+  const std::vector<std::string> &classes = loader->getDeclaredClasses();
+
+  // Loop through all planners and add to combo box
+  for( std::vector<std::string>::const_iterator plugin_it = classes.begin();
+       plugin_it != classes.end(); ++plugin_it )
+  {
+    std::cout << " plugin: " <<  plugin_it->c_str() << std::endl;
+  }
+  */
 }
 
 // ******************************************************************************************
@@ -228,13 +254,15 @@ void SetupAssistantWidget::progressPastStartScreen()
   }
 
   // Go to next screen
-  moveToScreen( 6 );
+  moveToScreen( 2 );
 
   // Enable navigation
   navs_view_->setDisabled( false );
 
   // Load Rviz
   loadRviz(); //TODO enable this
+
+  
 
   //std::cout << "Done progress past start screen" << std::endl;
 }

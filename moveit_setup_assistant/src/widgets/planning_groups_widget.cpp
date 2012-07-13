@@ -51,6 +51,7 @@
 #include "header_widget.h"
 #include "planning_groups_widget.h"
 #include <boost/thread.hpp>
+#include <boost/lexical_cast.hpp> // for checking convertion of string to double
 // Qt
 #include <QApplication>
 #include <QDebug>
@@ -130,8 +131,12 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   // Group Edit Widget
   group_edit_widget_ = new GroupEditWidget( this, config_data_ );
   connect( group_edit_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
-  connect( group_edit_widget_, SIGNAL( doneEditing() ), this, SLOT( saveGroupScreen() ) );
   connect( group_edit_widget_, SIGNAL( deleteGroup() ), this, SLOT( deleteGroup() ) );
+  connect( group_edit_widget_, SIGNAL( save() ), this, SLOT( saveGroupScreenEdit() ) );
+  connect( group_edit_widget_, SIGNAL( saveJoints() ), this, SLOT( saveGroupScreenJoints() ) );
+  connect( group_edit_widget_, SIGNAL( saveLinks() ), this, SLOT( saveGroupScreenLinks() ) );
+  connect( group_edit_widget_, SIGNAL( saveChain() ), this, SLOT( saveGroupScreenChain() ) );
+  connect( group_edit_widget_, SIGNAL( saveSubgroups() ), this, SLOT( saveGroupScreenSubgroups() ) );
 
 
   // Combine into stack
@@ -600,6 +605,8 @@ void PlanningGroupsWidget::loadGroupScreen( srdf::Model::Group *this_group )
     current_edit_group_ = ""; // provide a blank group name
     group_edit_widget_->title_->setText( "Create New Planning Group" );
     group_edit_widget_->btn_delete_->hide();
+    group_edit_widget_->new_buttons_widget_->show(); // helps user choose next step
+    group_edit_widget_->btn_save_->hide(); // this is only for edit mode
   }
   else // load the group name into the widget
   {
@@ -607,10 +614,13 @@ void PlanningGroupsWidget::loadGroupScreen( srdf::Model::Group *this_group )
     group_edit_widget_->title_->setText( QString("Edit Planning Group '")
                                          .append( current_edit_group_.c_str() ).append("'") );
     group_edit_widget_->btn_delete_->show();
+    group_edit_widget_->new_buttons_widget_->hide(); // not necessary for existing groups
+    group_edit_widget_->btn_save_->show(); // this is only for edit mode
   }
 
   // Set the data in the edit box
-  group_edit_widget_->setSelected( current_edit_group_ ); // TODO: set kinematic planner type also?
+  group_edit_widget_->setSelected( current_edit_group_ ); 
+                                   
 
   // Remember what is currently being edited so we can later save changes
   current_edit_element_ = GROUP;
@@ -1025,11 +1035,13 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 // ******************************************************************************************
 // Call when groups edit sceen is done and needs to be saved
 // ******************************************************************************************
-void PlanningGroupsWidget::saveGroupScreen()
+bool PlanningGroupsWidget::saveGroupScreen()
 {
   // Get a reference to the supplied strings
   const std::string &group_name = group_edit_widget_->group_name_field_->text().toStdString();
-
+  const std::string &kinematics_solver = group_edit_widget_->kinematics_solver_field_->currentText().toStdString();
+  const std::string &kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
+  
   // Used for editing existing groups
   srdf::Model::Group *searched_group = NULL;
 
@@ -1037,7 +1049,7 @@ void PlanningGroupsWidget::saveGroupScreen()
   if( group_name.empty() )
   {
     QMessageBox::warning( this, "Error Saving", "A name must be given for the group!" );
-    return;
+    return false;
   }
 
   // Check if this is an existing group
@@ -1046,47 +1058,42 @@ void PlanningGroupsWidget::saveGroupScreen()
     // Find the group we are editing based on the goup name string
     searched_group = findGroupByName( current_edit_group_ );
   
-    // we can shortcut and be done if no name change occurred
-    if( searched_group->name_.compare( group_name ) == 0 ) // same group
-    {
-      cancelEditing(); // we don't have to do anything
-      return;
-    }
   }
 
   // Check that the group name is unique
   for( std::vector<srdf::Model::Group>::const_iterator group_it = config_data_->srdf_->groups_.begin(); 
        group_it != config_data_->srdf_->groups_.end();  ++group_it )
   {
-    std::cout << (*group_it).name_ << std::endl;
 
     if( group_it->name_.compare( group_name ) == 0 ) // the names are the same
     {
       // is this our existing group? check if group pointers are same
-      if( &(*group_it) == searched_group )
-      {
-        std::cout << "these two have same pointer" << std::endl;
-      }
-      else
+      if( &(*group_it) != searched_group )
       {
         QMessageBox::warning( this, "Error Saving", "A group already exists with that name!" );
-        return;
+        return false;
       }
     }
+  }
+
+  // Check that the resolution is an double number
+  double kinematics_resolution_double;
+  try {
+    kinematics_resolution_double = boost::lexical_cast<double>(kinematics_resolution);
+  } catch( boost::bad_lexical_cast& ) {
+    QMessageBox::warning( this, "Error Saving", "Unable to convert resolution to a double number." );
+    return false;
   }
 
   // Save the new group name or create the new group
   if( searched_group == NULL ) // create new
   {
-    std::cout << "Creating new group" << std::endl;
-    srdf::Model::Group new_group; // = new srdf::Model::Group;
+    srdf::Model::Group new_group;
     new_group.name_ = group_name;
     config_data_->srdf_->groups_.push_back( new_group );
   }
   else
   {
-    std::cout << "Editing old group" << std::endl;
-
     // Remember old group name
     const std::string old_group_name = searched_group->name_;
 
@@ -1111,14 +1118,94 @@ void PlanningGroupsWidget::saveGroupScreen()
     }
   }
 
-  // Switch to main screen
-  stacked_layout_->setCurrentIndex( 0 );
+  // Save the group meta data
+  config_data_->group_meta_data_[ group_name ].kinematics_solver_ = kinematics_solver;
+  config_data_->group_meta_data_[ group_name ].kinematics_solver_search_resolution_ = kinematics_resolution_double;
 
   // Reload main screen table
   loadGroupsTree();
 
-  // Update the kinematic model with changes
-  // Gives warning: config_data_->updateKinematicModel();
+  // Update the current edit group so that we can proceed to the next screen, if user desires
+  current_edit_group_ = group_name;
+
+  return true;
+}
+
+// ******************************************************************************************
+// Call when a new group is created and ready to progress to next screen
+// ******************************************************************************************
+void PlanningGroupsWidget::saveGroupScreenEdit()
+{
+  // Save the group
+  if( !saveGroupScreen() )
+    return;
+
+  // Switch to main screen
+  stacked_layout_->setCurrentIndex( 0 );
+}
+
+// ******************************************************************************************
+// Call when a new group is created and ready to progress to next screen
+// ******************************************************************************************
+void PlanningGroupsWidget::saveGroupScreenJoints()
+{
+  // Save the group
+  if( !saveGroupScreen() )
+    return;
+
+  // Find the group we are editing based on the goup name string
+  loadJointsScreen( findGroupByName( current_edit_group_ ) );
+
+  // Switch to screen
+  stacked_layout_->setCurrentIndex( 1 ); // 1 is index of joints
+}
+
+// ******************************************************************************************
+// Call when a new group is created and ready to progress to next screen
+// ******************************************************************************************
+void PlanningGroupsWidget::saveGroupScreenLinks()
+{
+  // Save the group
+  if( !saveGroupScreen() )
+    return;
+
+  // Find the group we are editing based on the goup name string
+  loadLinksScreen( findGroupByName( current_edit_group_ ) );
+
+  // Switch to screen
+  stacked_layout_->setCurrentIndex( 2 ); // 2 is index of links
+}
+
+// ******************************************************************************************
+// Call when a new group is created and ready to progress to next screen
+// ******************************************************************************************
+void PlanningGroupsWidget::saveGroupScreenChain()
+{
+  // Save the group
+  if( !saveGroupScreen() )
+    return;
+
+  // Find the group we are editing based on the goup name string
+  loadChainScreen( findGroupByName( current_edit_group_ ) );
+
+  // Switch to screen
+  stacked_layout_->setCurrentIndex( 3 ); 
+}
+
+// ******************************************************************************************
+// Call when a new group is created and ready to progress to next screen
+// ******************************************************************************************
+void PlanningGroupsWidget::saveGroupScreenSubgroups()
+{
+  // Save the group
+  if( !saveGroupScreen() )
+    return;
+
+  // Find the group we are editing based on the goup name string
+  loadSubgroupsScreen( findGroupByName( current_edit_group_ ) );
+
+  // Switch to screen
+  stacked_layout_->setCurrentIndex( 4 ); 
 }
 
 // ******************************************************************************************
@@ -1169,4 +1256,13 @@ PlanGroupType::PlanGroupType( srdf::Model::Group *group, const moveit_setup_assi
   : group_( group ), type_( type )
 { 
 }
+
+
+
+
+
+
+
+
+
 

@@ -338,7 +338,7 @@ void StartScreenWidget::loadFiles()
   // DONE LOADING --------------------------------------------------------------------------
 
   // Call a function that enables navigation and goes to screen 2
-  //Q_EMIT readyToProgress();
+  Q_EMIT readyToProgress();
 
   // Disable start screen GUI components from being changed
   urdf_file_->setDisabled(true);

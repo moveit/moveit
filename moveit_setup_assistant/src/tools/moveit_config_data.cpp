@@ -318,16 +318,21 @@ bool MoveItConfigData::outputKinematicsYAML( const std::string& file_path )
   for( std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); 
        group_it != srdf_->groups_.end();  ++group_it )
   {
+    // Only save kinematic data if the solver is not "None"
+    if( group_meta_data_[ group_it->name_ ].kinematics_solver_.empty() ||
+        group_meta_data_[ group_it->name_ ].kinematics_solver_ == "None" )
+      continue;
+
     emitter << YAML::Key << group_it->name_;
     emitter << YAML::Value << YAML::BeginMap;
 
     // Kinematic Solver
     emitter << YAML::Key << "kinematics_solver";
-    emitter << YAML::Value << "pr2_arm_kinematics/PR2ArmKinematicsPlugin";
+    emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_;
 
     // Search Resolution
     emitter << YAML::Key << "kinematics_solver_search_resolution";
-    emitter << YAML::Value << "0.005";
+    emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_search_resolution_;
     emitter << YAML::EndMap;
   }    
 
