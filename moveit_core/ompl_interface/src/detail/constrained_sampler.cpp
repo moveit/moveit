@@ -47,9 +47,9 @@ ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningC
 }
 
 bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
-{  
+{ 
   if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
-  {
+  { 
     planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_joint_group_state_);
     if (space_->satisfiesBounds(state))
     {

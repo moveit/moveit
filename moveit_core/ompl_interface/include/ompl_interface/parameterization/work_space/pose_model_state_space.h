@@ -54,13 +54,13 @@ public:
   public:
     enum 
       {
-        JOINTS_COMPUTED = 1,
-        POSE_COMPUTED = 2
+        JOINTS_COMPUTED = 256,
+        POSE_COMPUTED = 512
       };
     
     StateType(void) : ModelBasedStateSpace::StateType()
     {
-      flags = JOINTS_COMPUTED;
+      flags |= JOINTS_COMPUTED;
     }    
 
     bool jointsComputed(void) const
@@ -89,7 +89,6 @@ public:
         flags &= ~POSE_COMPUTED;
     }
     
-    int flags;
   };
   
   PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
@@ -134,7 +133,6 @@ private:
   virtual void afterStateSample(ompl::base::State *sample) const;
 
   std::vector<PoseComponent> poses_;
-  ompl::base::State *bad_state_;
 };
 
 }

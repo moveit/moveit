@@ -57,12 +57,22 @@ void ompl_interface::StateValidityChecker::setVerbose(bool flag)
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state) const
 {  
-  //  ompl::tools::Profiler::ScopedBlock sblock("isValid");
-  
+  ompl::tools::Profiler::ScopedBlock sblock("isValid");
+  return planning_context_->useStateValidityCache() ? isValidWithCache(state) : isValidWithoutCache(state);
+}
+
+bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist) const
+{
+  //  ompl::tools::Profiler::ScopedBlock sblock("isValidD");
+  return planning_context_->useStateValidityCache() ? isValidWithCache(state, dist) : isValidWithoutCache(state, dist);
+}
+
+bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base::State *state) const
+{
   if (!si_->satisfiesBounds(state))
   {
     if (verbose_)
-      ROS_INFO("State outside bounds");
+      ROS_INFO("State outside bounds");   
     return false;
   }
   
@@ -73,7 +83,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
   if (kset && !kset->decide(*kstate, verbose_).satisfied)
     return false;
-
+  
   // check feasibility
   if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose_))
     return false;
@@ -84,10 +94,8 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
   return res.collision == false;
 }
 
-bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist) const
+bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base::State *state, double &dist) const
 {
-  //  ompl::tools::Profiler::ScopedBlock sblock("isValidD");
-
   if (!si_->satisfiesBounds(state))
   {
     if (verbose_)
@@ -106,6 +114,98 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
     if (!cer.satisfied)
     {
       dist = cer.distance;
+      return false;
+    }
+  }
+  
+  // check feasibility
+  if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose_))
+  {
+    dist = 0.0;
+    return false;
+  }
+  
+  // check collision avoidance
+  collision_detection::CollisionResult res;
+  planning_context_->getPlanningScene()->checkCollision(collision_request_with_distance_, res, *kstate);
+  dist = res.distance;
+  return res.collision == false;
+}
+
+bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::State *state) const
+{
+  if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown())
+    return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();  
+  
+  if (!si_->satisfiesBounds(state))
+  {
+    if (verbose_)
+      ROS_INFO("State outside bounds");   
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    return false;
+  }
+  
+  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+
+  // check path constraints
+  const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
+  if (kset && !kset->decide(*kstate, verbose_).satisfied)
+  {
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    return false;
+  }
+  
+  // check feasibility
+  if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose_))
+  {    
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    return false;
+  }
+  
+  // check collision avoidance
+  collision_detection::CollisionResult res;
+  planning_context_->getPlanningScene()->checkCollision(collision_request_simple_, res, *kstate);
+  if (res.collision == false)
+  {
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
+    return true;
+  } 
+  else
+  {
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    return false;
+  }
+}
+
+bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::State *state, double &dist) const
+{ 
+  if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown() && state->as<ModelBasedStateSpace::StateType>()->isGoalDistanceKnown())
+  {
+    dist = state->as<ModelBasedStateSpace::StateType>()->distance;
+    return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
+  }
+  
+  if (!si_->satisfiesBounds(state))
+  {
+    if (verbose_)
+      ROS_INFO("State outside bounds");  
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
+    return false;
+  }
+
+  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+  
+  // check path constraints
+  const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
+  if (kset)
+  {
+    kinematic_constraints::ConstraintEvaluationResult cer = kset->decide(*kstate, verbose_);
+    if (!cer.satisfied)
+    {
+      dist = cer.distance;   
+      const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist); 
       return false;
     }
   }

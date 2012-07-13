@@ -333,20 +333,29 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
 void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std::string &path)
 {
   ROS_INFO("Saving %u constrained space approximations to '%s'", (unsigned int)constraint_approximations_.size(), path.c_str());
-  boost::filesystem::create_directories(path);
+  try
+  {
+    boost::filesystem::create_directories(path);
+  }
+  catch(...)
+  {
+  }
   
   std::ofstream fout((path + "/manifest").c_str());
-  for (std::map<std::string, ConstraintApproximationPtr>::const_iterator it = constraint_approximations_.begin() ; it != constraint_approximations_.end() ; ++it)
-  {
-    fout << it->second->getGroup() << std::endl;
-    fout << it->second->getStateSpaceParameterization() << std::endl;
-    std::string serialization;
-    msgToHex(it->second->getConstraintsMsg(), serialization);
-    fout << serialization << std::endl;
-    fout << it->second->getFilename() << std::endl;
-    if (it->second->getStateStorage())
-      it->second->getStateStorage()->store((path + "/" + it->second->getFilename()).c_str());
-  }
+  if (fout.good())
+    for (std::map<std::string, ConstraintApproximationPtr>::const_iterator it = constraint_approximations_.begin() ; it != constraint_approximations_.end() ; ++it)
+    {
+      fout << it->second->getGroup() << std::endl;
+      fout << it->second->getStateSpaceParameterization() << std::endl;
+      std::string serialization;
+      msgToHex(it->second->getConstraintsMsg(), serialization);
+      fout << serialization << std::endl;
+      fout << it->second->getFilename() << std::endl;
+      if (it->second->getStateStorage())
+        it->second->getStateStorage()->store((path + "/" + it->second->getFilename()).c_str());
+    }
+  else
+    ROS_ERROR("Unable to save constraint approximation to '%s'", path.c_str());
   fout.close();
 }
 
@@ -451,8 +460,9 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   int nthreads = 0;
   unsigned int attempts = 0;
   
-  double bounds_val = 0.0;
+  double bounds_val = std::numeric_limits<double>::max() / 2.0 - 1.0;
   pcontext->getOMPLStateSpace()->setBounds(-bounds_val, bounds_val, -bounds_val, bounds_val, -bounds_val, bounds_val);
+  pcontext->getOMPLStateSpace()->setup();
   
   // construct the constrained states
 #pragma omp parallel
@@ -471,6 +481,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       if (cs)
         csmp = new ConstrainedSampler(pcontext.get(), cs);
     }
+    
     ob::StateSamplerPtr ss(csmp ? ob::StateSamplerPtr(csmp) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
     
     ompl::base::ScopedState<> temp(pcontext->getOMPLStateSpace());
