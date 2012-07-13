@@ -33,9 +33,6 @@
 #include <ros/ros.h>
 #include <planning_scene/planning_scene.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
-#include <collision_distance_field/collision_distance_field_types.h>
-#include <collision_distance_field/collision_robot_distance_field.h>
-#include <collision_distance_field/collision_world_distance_field.h>
 
 namespace moveit_visualization_ros 
 {

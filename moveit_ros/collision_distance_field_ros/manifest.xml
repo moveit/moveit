@@ -10,7 +10,6 @@
   <url>http://ros.org/wiki/collision_distance_field_ros</url>
   <depend package="collision_distance_field"/>
   <depend package="planning_models"/>
-  <depend package="planning_scene_distance_field"/>
 
   <export>
     <cpp cflags="-I${prefix}/include"/>

@@ -28,7 +28,9 @@
  */
 
 #include <moveit_visualization_ros/proximity_visualization.h>
-#include <planning_scene_distance_field/planning_scene_distance_field.h>
+#include <collision_distance_field/collision_distance_field_types.h>
+#include <collision_distance_field/hybrid_collision_robot.h>
+#include <collision_distance_field/hybrid_collision_world.h>
 
 namespace moveit_visualization_ros
 {
@@ -80,48 +82,55 @@ void ProximityVisualization::stateChanged(const std::string& group,
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = current_group_;
-  const planning_scene::PlanningSceneDistanceField* psdf = dynamic_cast<const planning_scene::PlanningSceneDistanceField*>(planning_scene_.get());
-  if(!psdf) {
-    ROS_WARN_STREAM("Can no longer cast planning scene to planning scene distance field");
+  const collision_detection::CollisionWorldHybrid* hy_world 
+    = dynamic_cast<const collision_detection::CollisionWorldHybrid*>(planning_scene_->getCollisionWorld().get());
+  if(!hy_world) {
+    ROS_WARN_STREAM("Can't cast to hybrid collision world");
     return;
   }
-  boost::shared_ptr<collision_distance_field::GroupStateRepresentation> world_grad_gsr;
-  psdf->getCollisionWorldDistanceField()->getCollisionGradients(req, 
-                                                                res, 
-                                                                *psdf->getCollisionRobotDistanceField().get(),
-                                                                state,
-                                                                &planning_scene_->getAllowedCollisionMatrix(),
+  const collision_detection::CollisionRobotHybrid* hy_robot
+    = dynamic_cast<const collision_detection::CollisionRobotHybrid*>(planning_scene_->getCollisionRobot().get());
+  if(!hy_robot) {
+    ROS_WARN_STREAM("Can't cast to hybrid collision robot");
+    return;
+  }
+  boost::shared_ptr<collision_detection::GroupStateRepresentation> world_grad_gsr;
+  hy_world->getCollisionGradients(req, 
+                                  res, 
+                                  *hy_robot->getCollisionRobotDistanceField().get(),
+                                  state,
+                                  &planning_scene_->getAllowedCollisionMatrix(),
                                                                 world_grad_gsr);
   req.contacts = true;
   req.max_contacts = 100000;
   req.max_contacts_per_pair = 1000;
   res = collision_detection::CollisionResult();
-  boost::shared_ptr<collision_distance_field::GroupStateRepresentation> world_coll_gsr;
-  psdf->getCollisionWorldDistanceField()->getAllCollisions(req, 
-                                                           res, 
-                                                           *psdf->getCollisionRobotDistanceField().get(),
-                                                           state,
-                                                           &planning_scene_->getAllowedCollisionMatrix(),
-                                                           world_coll_gsr);
+  boost::shared_ptr<collision_detection::GroupStateRepresentation> world_coll_gsr;
+  hy_world->getAllCollisions(req, 
+                             res, 
+                             *hy_robot->getCollisionRobotDistanceField().get(),
+                             state,
+                             &planning_scene_->getAllowedCollisionMatrix(),
+                             world_coll_gsr);
 
   visualization_msgs::MarkerArray arrow_markers;
   std_msgs::ColorRGBA col;
   col.b = 1.0;
   col.a = .8;
-  collision_distance_field::getProximityGradientMarkers(planning_scene_->getPlanningFrame(),
-                                                        "arrows",
-                                                        ros::Duration(0.0),
-                                                        world_grad_gsr->link_body_decompositions_,
-                                                        world_grad_gsr->attached_body_decompositions_,
-                                                        world_grad_gsr->gradients_,
-                                                        arrow_markers);
-  collision_distance_field::getCollisionMarkers(planning_scene_->getPlanningFrame(),
-                                                "spheres",
-                                                ros::Duration(0.0),
-                                                world_coll_gsr->link_body_decompositions_,
-                                                world_grad_gsr->attached_body_decompositions_,
-                                                world_coll_gsr->gradients_,
-                                                arrow_markers);
+  collision_detection::getProximityGradientMarkers(planning_scene_->getPlanningFrame(),
+                                                   "arrows",
+                                                   ros::Duration(0.0),
+                                                   world_grad_gsr->link_body_decompositions_,
+                                                   world_grad_gsr->attached_body_decompositions_,
+                                                   world_grad_gsr->gradients_,
+                                                   arrow_markers);
+  collision_detection::getCollisionMarkers(planning_scene_->getPlanningFrame(),
+                                           "spheres",
+                                           ros::Duration(0.0),
+                                           world_coll_gsr->link_body_decompositions_,
+                                           world_grad_gsr->attached_body_decompositions_,
+                                           world_coll_gsr->gradients_,
+                                           arrow_markers);
   
   publisher_.publish(arrow_markers);
 }
