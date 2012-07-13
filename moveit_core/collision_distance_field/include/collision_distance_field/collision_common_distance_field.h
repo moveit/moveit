@@ -42,7 +42,7 @@
 #include <collision_detection/collision_world.h>
 #include <collision_distance_field/collision_distance_field_types.h>
 
-namespace collision_distance_field
+namespace collision_detection
 {
 
 struct DistanceFieldCacheEntry;

@@ -24,6 +24,8 @@ rosbuild_add_library(${PROJECT_NAME}
   src/collision_common_distance_field.cpp
   src/collision_robot_distance_field.cpp
   src/collision_world_distance_field.cpp
+  src/hybrid_collision_robot.cpp
+  src/hybrid_collision_world.cpp
 )
 
 rosbuild_add_gtest(test_collision_distance_field test/test_collision_distance_field.cpp TIMEOUT 600)

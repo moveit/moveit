@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/collision_distance_field</url>
   <depend package="distance_field"/>
   <depend package="collision_detection"/>
+  <depend package="collision_detection_fcl"/>
   <depend package="geometric_shapes"/>
 
   <export>
