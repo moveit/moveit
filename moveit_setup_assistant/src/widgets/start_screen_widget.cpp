@@ -41,6 +41,7 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QString>
+#include <QApplication>
 #include <QFont>
 // ROS
 #include <ros/ros.h>
@@ -72,7 +73,6 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   QVBoxLayout *left_layout = new QVBoxLayout( );
   // Right side of screen
   QVBoxLayout *right_layout = new QVBoxLayout( );
-  //right_layout->setContentsMargins( 20, 0, 0, 0);
 
   // Top Label Area ---------------------------------------------------
   HeaderWidget *header = new HeaderWidget( "MoveIt Setup Assistant",
@@ -110,33 +110,48 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   left_layout->addWidget( srdf_file_ );
   
   // Load settings box ---------------------------------------------
+  QHBoxLayout *load_files_layout = new QHBoxLayout();
+
+  progress_bar_ = new QProgressBar( this );
+  progress_bar_->setMaximum(100);
+  progress_bar_->setMinimum(0);
+  progress_bar_->hide();
+  load_files_layout->addWidget( progress_bar_ );
+  //load_files_layout->setContentsMargins( 20, 30, 20, 30 );
 
   btn_load_ = new QPushButton("&Load Files", this);
   btn_load_->setMinimumWidth(180);
   btn_load_->setMinimumHeight(40);
   btn_load_->hide();
-  left_layout->addWidget( btn_load_ );  
-  left_layout->setAlignment( btn_load_, Qt::AlignRight );  
-  connect( btn_load_, SIGNAL( clicked() ), this, SLOT( loadFiles() ) );
+  load_files_layout->addWidget( btn_load_ );  
+  load_files_layout->setAlignment( btn_load_, Qt::AlignRight );  
+  connect( btn_load_, SIGNAL( clicked() ), this, SLOT( loadFilesClick() ) );
+
+  // Next step instructions
+  next_label_ = new QLabel( this );
+  QFont next_label_font( "Arial", 12, QFont::Bold );
+  next_label_->setFont(next_label_font);
+  //next_label_->setWordWrap(true);
+  next_label_->hide(); // only show once the files have been loaded. 
+  next_label_->setText( "Configuration files loaded successfully. Move to next screen using the left navigation pane." );
   
   // Right Image Area ----------------------------------------------
-  /*QImage image;
-
+  right_image_ = new QImage();
+  const std::string image_path = "./resources/MoveIt_Setup_Asst_xSm.png";
   if(chdir(config_data_->setup_assistant_path_.c_str()) != 0)
   {
     ROS_ERROR("FAILED TO CHANGE PACKAGE TO moveit_setup_assistant");
   }
-  if(!image.load("./resources/MoveIt_Setup_Asst_Sm.png"))
+  if(!right_image_->load( image_path.c_str() ) )
   {
-    ROS_ERROR("FAILED TO LOAD ./resources/wizard.png");
+    ROS_ERROR_STREAM("FAILED TO LOAD " << image_path );
   }
-  QLabel* imageLabel = new QLabel( this );
-  imageLabel->setPixmap(QPixmap::fromImage(image));
-  imageLabel->setMinimumHeight(493);  // size of imageLabel
-  //imageLabel->setMinimumWidth(450);
-  right_layout->addWidget(imageLabel);
-  right_layout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignTop);
-  */
+  right_image_label_ = new QLabel( this );
+  right_image_label_->setPixmap(QPixmap::fromImage( *right_image_));
+  right_image_label_->setMinimumHeight(384);  // size of right_image_label_
+  //right_image_label_->setMinimumWidth(450);
+  right_layout->addWidget(right_image_label_);
+  right_layout->setAlignment(right_image_label_, Qt::AlignRight | Qt::AlignTop);
 
   // Final Layout Setup ---------------------------------------------
   // Alignment
@@ -154,10 +169,20 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   hlayout->addLayout( right_layout );
   layout->addLayout( hlayout );
 
+  // Verticle Spacer
+  QWidget *vspacer = new QWidget( this );
+  vspacer->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
+  layout->addWidget( vspacer );
+  
+  // Attach bottom layout
+  layout->addWidget( next_label_);
+  layout->addLayout( load_files_layout );
+  layout->setAlignment( next_label_, Qt::AlignCenter );  
+
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
 
-  if( config_data_->debug_ && true )
+  if( config_data_->debug_ && false )
   {
     select_mode_->btn_new_->click();
 
@@ -174,6 +199,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
 StartScreenWidget::~StartScreenWidget()
 {
 
+  delete right_image_; // does not have a parent passed to it
 }
 
 // ******************************************************************************************
@@ -188,6 +214,9 @@ void StartScreenWidget::showNewOptions()
   srdf_file_->show();
   stack_path_->hide();
   btn_load_->show();
+
+  // Remember choice
+  create_new_package_ = true;
 }
 
 // ******************************************************************************************
@@ -202,12 +231,70 @@ void StartScreenWidget::showExistingOptions()
   srdf_file_->hide();
   stack_path_->show();
   btn_load_->show();
+
+  // Remember choice
+  create_new_package_ = false;
 }
 
 // ******************************************************************************************
-// Load files to parameter server
+// Load files to parameter server - CLICK
 // ******************************************************************************************
-void StartScreenWidget::loadFiles()
+void StartScreenWidget::loadFilesClick()
+{
+  // Disable start screen GUI components from being changed
+  urdf_file_->setDisabled(true);
+  srdf_file_->setDisabled(true);
+  stack_path_->setDisabled(true);
+  select_mode_->setDisabled(true);
+  btn_load_->setDisabled(true);
+  progress_bar_->show();
+
+  bool result;
+
+  // Decide if this is a new config package, or loading an old one
+  if( create_new_package_ )
+  {
+    result = loadNewFiles();
+  }
+  else
+  {
+    result = loadExistingFiles();
+  }
+
+  // Check if there was a failure loading files
+  if( !result )
+  {
+    // Renable components
+    urdf_file_->setDisabled(false);
+    srdf_file_->setDisabled(false);
+    stack_path_->setDisabled(false);
+    select_mode_->setDisabled(false);
+    btn_load_->setDisabled(false);
+    progress_bar_->hide();
+  }
+  else
+  {
+    // Hide the logo image so that other screens can resize the rviz thing properly
+    //right_image_label_->hide();
+  }
+
+}
+
+// ******************************************************************************************
+// Load exisiting package files
+// ******************************************************************************************
+bool StartScreenWidget::loadExistingFiles()
+{
+  // TODO: THIS FUNCTION
+  std::cout << "load existing" << std::endl;
+
+  return true; //success
+}
+
+// ******************************************************************************************
+// Load chosen files for creating new package
+// ******************************************************************************************
+bool StartScreenWidget::loadNewFiles()
 {
   std::string urdf_path = urdf_file_->getPath();
 
@@ -219,7 +306,7 @@ void StartScreenWidget::loadFiles()
   {
 
     QMessageBox::warning( this, "Error Loading Files", "Please specify a URDF or COLLADA file to load" );
-    return;
+    return false;
   }
 
   // check that URDF can be loaded
@@ -227,7 +314,7 @@ void StartScreenWidget::loadFiles()
   if( !urdf_stream.good() ) // File not found
   {
     QMessageBox::warning( this, "Error Loading Files", "URDF/COLLADA file not found" );
-    return;
+    return false;
   }
       
   // Load the file to a string using an efficient memory allocation technique
@@ -238,12 +325,16 @@ void StartScreenWidget::loadFiles()
   urdf_string.assign( (std::istreambuf_iterator<char>(urdf_stream)), std::istreambuf_iterator<char>() );  
   urdf_stream.close();
 
+  // Progress Indicator
+  progress_bar_->setValue( 10 );
+  QApplication::processEvents();
+
   // Verify that file is in correct format / not an XACRO by loading into robot model
   if( !config_data_->urdf_model_->initString( urdf_string ) )
   {
     QMessageBox::warning( this, "Error Loading Files", 
                           "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
-    return;
+    return false;
   }
   else
   {
@@ -255,12 +346,12 @@ void StartScreenWidget::loadFiles()
 
 
   // Check that ROS Core is running
-   if( ! ros::master::check() )
+  if( ! ros::master::check() )
   {
     // roscore is not running
     QMessageBox::warning( this, "ROS Error", 
                           "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
-    return;
+    return false;
   }
 
   // Load the robot model to the parameter server
@@ -272,9 +363,17 @@ void StartScreenWidget::loadFiles()
     ros::spinOnce(); 
   }
 
+  // Progress Indicator
+  progress_bar_->setValue( 20 );
+  QApplication::processEvents();
+
   ROS_INFO("Setting Param Server with Robot Description");
-  //nh.setParam("/robot_description", urdf_string); // TODO: fix the rosparam issue with large strings
+  nh.setParam("/robot_description", urdf_string); // TODO: fix the rosparam issue with large strings
   
+  // Progress Indicator
+  progress_bar_->setValue( 40 );
+  QApplication::processEvents();
+
   // SRDF -----------------------------------------------------
   std::string srdf_path = srdf_file_->getPath();
 
@@ -290,7 +389,7 @@ void StartScreenWidget::loadFiles()
     {
       QMessageBox::warning( this, "Error Loading Files", 
                             "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
-      return;
+      return false;
     }
       
     // Load the file to a string using an efficient memory allocation technique
@@ -307,7 +406,7 @@ void StartScreenWidget::loadFiles()
     {
       QMessageBox::warning( this, "Error Loading Files", 
                             "SRDF file not a valid semantic robot description model." );
-      return;
+      return false;
     }
     else
     {
@@ -322,7 +421,11 @@ void StartScreenWidget::loadFiles()
     // Load the robot model to the parameter server
     nh.setParam("/robot_description_semantic", srdf_string);
 
+    // Progress Indicator
+    progress_bar_->setValue( 50 );
+    QApplication::processEvents();
   }
+
   // Load kinematics solver if available --------------------------------------------------
   // TODO: un-hard code this
   const std::string kinematics_yaml_path = "/u/dcoleman/ros/moveit/moveit_ros/moveit_setup_assistant/templates/moveit_config_pkg_template/config/kinematics.yaml"; 
@@ -331,23 +434,33 @@ void StartScreenWidget::loadFiles()
   {
     QMessageBox::critical( this, "Error Loading Files", 
                            QString("Failed to parse kinematics yaml file at location ").append( kinematics_yaml_path.c_str() ) );
-    return;
+    return false;
   }
 
+  // Progress Indicator
+  progress_bar_->setValue( 70 );
+  QApplication::processEvents();
 
   // DONE LOADING --------------------------------------------------------------------------
 
   // Call a function that enables navigation and goes to screen 2
   Q_EMIT readyToProgress();
 
-  // Disable start screen GUI components from being changed
-  urdf_file_->setDisabled(true);
-  srdf_file_->setDisabled(true);
-  stack_path_->setDisabled(true);
-  select_mode_->setDisabled(true);
-  btn_load_->hide();
+  // Progress Indicator
+  progress_bar_->setValue( 80 );
+  QApplication::processEvents();
+
+  // Load Rviz
+  Q_EMIT loadRviz(); 
+
+  // Progress Indicator
+  progress_bar_->setValue( 100 );
+  QApplication::processEvents();
+
+  next_label_->show(); // only show once the files have been loaded
 
   ROS_INFO( "Loading Setup Assistant Complete" );
+  return true; // success!
 }
 
 // ******************************************************************************************

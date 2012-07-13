@@ -40,6 +40,8 @@
 #include <QWidget>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QLabel>
+#include <QProgressBar>
 #include <urdf/model.h> // for testing a valid urdf is loaded
 #include <srdfdom/model.h> // for testing a valid srdf is loaded
 #include "moveit_setup_assistant/tools/moveit_config_data.h" // common datastructure class
@@ -82,6 +84,10 @@ class StartScreenWidget : public SetupScreenWidget
   LoadPathWidget *urdf_file_;
   LoadPathWidget *srdf_file_;
   QPushButton *btn_load_;
+  QLabel *next_label_;
+  QProgressBar *progress_bar_;
+  QImage *right_image_;
+  QLabel *right_image_label_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
@@ -99,7 +105,7 @@ private Q_SLOTS:
   void showExistingOptions();
 
   /// Button event for loading user chosen files
-  void loadFiles();
+  void loadFilesClick();
 
 Q_SIGNALS:
 
@@ -110,20 +116,28 @@ Q_SIGNALS:
   /// Event that is fired when the start screen has all its requirements completed and user can move on
   void readyToProgress();
 
+  /// Inform the parent widget to load rviz. This is done so that progress bar can be more accurate
+  void loadRviz();
+
 private:
 
 
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
-
-  /// location to save/load SRDF
-  //std::string srdf_file_;
+  
+  /// Create new config files, or load previos one?
+  bool create_new_package_;
 
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
 
+  /// Load chosen files for creating new package
+  bool loadNewFiles();
+
+  /// Load exisiting package files
+  bool loadExistingFiles();
 };
 
 // ******************************************************************************************

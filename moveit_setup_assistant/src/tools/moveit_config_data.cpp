@@ -142,7 +142,7 @@ bool MoveItConfigData::outputPackageFiles( const std::string& template_package_p
   // Copy CMakeLists.txt
   std::string template_path = template_package_path + "CMakeLists.txt";
   std::string file_path = new_package_path + "CMakeLists.txt";
-  std::cout << file_path << std::endl;
+
   // Use generic template copy function
   if( !copyTemplate( template_path, file_path, new_package_name ) )
     return false;
@@ -150,7 +150,7 @@ bool MoveItConfigData::outputPackageFiles( const std::string& template_package_p
   // Copy Makefile
   template_path = template_package_path + "Makefile";
   file_path = new_package_path + "Makefile";
-  std::cout << file_path << std::endl;
+
   // Use generic template copy function
   if( !copyTemplate( template_path, file_path, new_package_name ) )
     return false;
@@ -158,7 +158,7 @@ bool MoveItConfigData::outputPackageFiles( const std::string& template_package_p
   // Copy manifest.xml
   template_path = template_package_path + "manifest.xml";
   file_path = new_package_path + "manifest.xml";
-  std::cout << file_path << std::endl;
+
   // Use generic template copy function
   if( !copyTemplate( template_path, file_path, new_package_name ) )
     return false;
@@ -457,25 +457,41 @@ bool MoveItConfigData::outputMoveGroupLaunch( const std::string& file_path,
 // ******************************************************************************************
 // Output OMPL Planner launch file
 // ******************************************************************************************
-bool MoveItConfigData::outputOMPLPlannerLaunch( const std::string& file_path )
+bool MoveItConfigData::outputOMPLPlannerLaunch( const std::string& file_path,
+                                                const std::string& template_package_path,
+                                                const std::string& new_package_name  )
 {
+  // File system
+  namespace fs = boost::filesystem;
 
+  // Path
+  const std::string template_path = template_package_path + "launch/ompl_planner.launch";
 
+  // Only generate this file if it does not exist. This allows user to customize the urdf launch part
+  if( fs::is_regular_file( file_path ) )
+  {
+    return true; // do nothing
+  }  
 
-
-  return true; // file created successfully
+  // Use generic template copy function
+  return copyTemplate( template_path, file_path, new_package_name );
 }
 
 // ******************************************************************************************
 // Output planning context launch file
 // ******************************************************************************************
-bool MoveItConfigData::outputPlanningContextLaunch( const std::string& file_path )
+bool MoveItConfigData::outputPlanningContextLaunch( const std::string& file_path,
+                                                    const std::string& template_package_path,
+                                                    const std::string& new_package_name )
 {
+  // File system
+  namespace fs = boost::filesystem;
 
+  // Path
+  const std::string template_path = template_package_path + "launch/planning_context.launch";
 
-
-
-  return true; // file created successfully
+  // Use generic template copy function
+  return copyTemplate( template_path, file_path, new_package_name );
 }
 
 // ******************************************************************************************

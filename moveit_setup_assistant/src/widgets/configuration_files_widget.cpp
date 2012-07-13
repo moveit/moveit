@@ -460,7 +460,7 @@ void ConfigurationFilesWidget::savePackage()
   const std::string ompl_planner_file = "ompl_planner.launch";
   const std::string ompl_planner_path = launch_path + "/" + ompl_planner_file;
 
-  if ( !config_data_->outputOMPLPlannerLaunch( ompl_planner_path ) )
+  if ( !config_data_->outputOMPLPlannerLaunch( ompl_planner_path, template_package_path, package_name ) )
   {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create ompl_planner.yaml file at location ").append( ompl_planner_path.c_str() ) );
@@ -475,7 +475,7 @@ void ConfigurationFilesWidget::savePackage()
   const std::string planning_context_file = "planning_context.launch";
   const std::string planning_context_path = launch_path + "/" + planning_context_file;
 
-  if ( !config_data_->outputPlanningContextLaunch( planning_context_path ) )
+  if ( !config_data_->outputPlanningContextLaunch( planning_context_path, template_package_path, package_name ) )
   {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create planning_context.yaml file at location ").append( planning_context_path.c_str() ) );
@@ -573,14 +573,6 @@ const std::string ConfigurationFilesWidget::getPackageName( std::string package_
 
   return package_name;
 }
-
-// ******************************************************************************************
-// 
-// ******************************************************************************************
-
-// ******************************************************************************************
-// 
-// ******************************************************************************************
 
 // ******************************************************************************************
 // 
