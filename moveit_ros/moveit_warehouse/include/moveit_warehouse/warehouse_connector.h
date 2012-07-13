@@ -37,30 +37,25 @@
 #ifndef MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
 #define MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
 
-#include <sys/types.h>
-#include <signal.h>
-#include <unistd.h>
-#include <ros/package.h>
 #include <moveit_warehouse/warehouse.h>
 
 namespace moveit_warehouse
 {
 
-class WarehouseConnector {
-
+class WarehouseConnector
+{
 public:
   
-  WarehouseConnector();
-
-  ~WarehouseConnector();
-
-  bool connectToDatabase(const std::string& dirname, 
-                         boost::shared_ptr<PlanningSceneStorage>& planning_scene_storage);
-
-protected:
-
+  WarehouseConnector(const std::string &mongoexec);
+  
+  ~WarehouseConnector(void);
+  
+  bool connectToDatabase(const std::string& db_dirname, boost::shared_ptr<PlanningSceneStorage>& planning_scene_storage);
+  
+private:
+  
+  std::string mongoexec_;
   int child_pid_;
-
 };
 
 }
