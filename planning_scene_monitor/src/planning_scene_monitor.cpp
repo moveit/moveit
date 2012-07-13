@@ -69,30 +69,42 @@ private:
 
 const std::string PlanningSceneMonitor::SceneConfigBase::DEFAULT_SCENE_TYPE = "default";
 
+struct DefaultSceneConfig : public PlanningSceneMonitor::SceneConfigBase
+{  
+  DefaultSceneConfig(void) : SceneConfigBase("default")
+  {
+  }
+  
+  virtual planning_scene::PlanningScenePtr allocPlanningScene(void)
+  {
+    return planning_scene::PlanningScenePtr(new planning_scene::PlanningScene());
+  }  
+};
+
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf)
 {
-  initialize(planning_scene::PlanningSceneConstPtr(), robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new SceneConfig<>())));
+  initialize(planning_scene::PlanningSceneConstPtr(), robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf)
 {
-  initialize(parent, robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new SceneConfig<>())));
+  initialize(parent, robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf), kinematics_loader_(kml)
 {
-  initialize(planning_scene::PlanningSceneConstPtr(), std::vector<SceneConfigPtr>(1, SceneConfigPtr(new SceneConfig<>())));
+  initialize(planning_scene::PlanningSceneConstPtr(), std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf), kinematics_loader_(kml)
 {
-  initialize(parent, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new SceneConfig<>())));
+  initialize(parent, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::vector<SceneConfigPtr> &configs, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf):
