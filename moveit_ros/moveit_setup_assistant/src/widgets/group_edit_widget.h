@@ -74,22 +74,37 @@ class GroupEditWidget : public QWidget
   QComboBox *kinematics_solver_field_;
   QLineEdit *kinematics_resolution_field_;
   QPushButton *btn_delete_; // this button is hidden for new groups 
+  QPushButton *btn_save_; // this button is hidden for new groups
+  QWidget *new_buttons_widget_; // for showing/hiding the new group buttons
+
 
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-
+  
 Q_SIGNALS:
 
   // ******************************************************************************************
   // Emitted Signals
   // ******************************************************************************************
 
-  /// Event sent when this widget is done making data changes and parent widget can save
-  void doneEditing();
+  /// Button event for new groups, progressing to adding joints
+  void saveJoints();
 
+  /// Button event for new groups, progressing to adding links
+  void saveLinks();
+
+  /// Button event for new groups, progressing to adding a chain
+  void saveChain();
+
+  /// Button event for new groups, progressing to adding subgroups
+  void saveSubgroups();
+
+  /// Button event for just saving, when in edit mode
+  void save();
+  
   /// Event sent when user presses cancel button
   void cancelEditing();
 

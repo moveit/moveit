@@ -105,7 +105,11 @@ private Q_SLOTS:
   void saveLinksScreen();
   void saveChainScreen();
   void saveSubgroupsScreen();
-  void saveGroupScreen();
+  void saveGroupScreenEdit();
+  void saveGroupScreenJoints();
+  void saveGroupScreenLinks();
+  void saveGroupScreenChain();
+  void saveGroupScreenSubgroups();
 
   // Delete a group
   void deleteGroup();
@@ -173,6 +177,8 @@ private:
   void loadSubgroupsScreen( srdf::Model::Group *this_group );
   void loadGroupScreen( srdf::Model::Group *this_group );
 
+  // Save group screen
+  bool saveGroupScreen();
 };
 
 }
