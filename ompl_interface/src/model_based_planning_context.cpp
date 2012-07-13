@@ -54,7 +54,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   spec_(spec), name_(name), complete_initial_robot_state_(spec.state_space_->getKinematicModel()),
   ompl_simple_setup_(spec.state_space_), ompl_benchmark_(ompl_simple_setup_), ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
   last_plan_time_(0.0), last_simplify_time_(0.0), max_goal_samples_(0), max_state_sampling_attempts_(0), max_goal_sampling_attempts_(0), 
-  max_planning_threads_(0), max_velocity_(0), max_acceleration_(0.0), max_solution_segment_length_(0.0)
+  max_planning_threads_(0), max_velocity_(0), max_acceleration_(0.0), max_solution_segment_length_(0.0), use_state_validity_cache_(true)
 {
   ompl_simple_setup_.getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
@@ -444,28 +444,6 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
   return filename.empty() ? ompl_benchmark_.saveResultsToFile() : ompl_benchmark_.saveResultsToFile(filename.c_str());
 }
 
-bool ompl_interface::ModelBasedPlanningContext::fixInvalidInputStates(const ompl::time::point &end_time)
-{
-  // try to fix invalid input states, if any
-  static const double INITIAL_DISTANCE_DIVISOR = 1000.0;
-  static const double DISTANCE_INCREASE_FACTOR = 5.0;
-  static const unsigned int MAX_INCREASE_STEPS = (unsigned int)(log(INITIAL_DISTANCE_DIVISOR) / log(DISTANCE_INCREASE_FACTOR));
-  static const unsigned int FIX_ATTEMPTS = 100;
-  
-  double d = ompl_simple_setup_.getStateSpace()->getMaximumExtent() / INITIAL_DISTANCE_DIVISOR;
-  bool fixed = false;
-  unsigned int steps = 0;
-  do
-  {
-    steps++;
-    if (ompl_simple_setup_.getProblemDefinition()->fixInvalidInputStates(d, d, FIX_ATTEMPTS))
-      fixed = true;
-    else
-      d *= DISTANCE_INCREASE_FACTOR;
-  } while (!fixed && steps < MAX_INCREASE_STEPS && ompl::time::now() < end_time);
-  
-  return fixed;
-}
 
 bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned int count)
 {
@@ -482,9 +460,6 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   // just in case sampling is not started
   if (gls)
     static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
-  
-  // don't fix invalid states on purpose; this should be handled by planning request adapters
-  //  fixInvalidInputStates(end_time);
   
   ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
   

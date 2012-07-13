@@ -106,13 +106,13 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
 {
   ompl::tools::Profiler::ScopedStart pslv;
   ot::Profiler::ScopedBlock sblock("OMPLInterfaceSolve");
-  
+
   unsigned int attempts = 1;
   double timeout = 0.0;
   ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &res.error_code, &attempts, &timeout);
   if (!context)
     return false;
-  
+
   if (context->solve(timeout, attempts))
   {
     double ptime = context->getLastPlanTime();
@@ -150,9 +150,6 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &error_code, &attempts, &timeout);
   if (!context)
     return false;
-  //  std::ofstream d("/home/isucan/diagram.dot");
-  //  context->getOMPLSimpleSetup().getStateSpace()->diagram(d);
-  //  d.close();
   
   if (context->solve(timeout, attempts))
   {

@@ -262,6 +262,16 @@ public:
     
   void clear(void);
   
+  bool useStateValidityCache(void) const
+  {
+    return use_state_validity_cache_;
+  }
+
+  void useStateValidityCache(bool flag) 
+  {
+    use_state_validity_cache_ = flag;
+  }
+  
   
   /* @brief solve the planning problem. Return true if the problem is solved
      @param timeout The time to spend on solving
@@ -306,7 +316,6 @@ public:
 
 protected:
 
-  bool fixInvalidInputStates(const ompl::time::point &end_time);
   virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const;
   virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
   virtual void useConfig(void);
@@ -368,6 +377,7 @@ protected:
   /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the extent of the space
   double                                                  max_solution_segment_length_;
   
+  bool                                                    use_state_validity_cache_;
 };
 
 }

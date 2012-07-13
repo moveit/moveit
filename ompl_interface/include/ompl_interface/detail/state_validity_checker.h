@@ -61,6 +61,12 @@ public:
   
 protected:
   
+  bool isValidWithoutCache(const ompl::base::State *state) const;
+  bool isValidWithoutCache(const ompl::base::State *state, double &dist) const;
+
+  bool isValidWithCache(const ompl::base::State *state) const;
+  bool isValidWithCache(const ompl::base::State *state, double &dist) const;
+  
   const ModelBasedPlanningContext      *planning_context_;
   std::string                           group_name_;
   TSStateStorage                        tss_;
