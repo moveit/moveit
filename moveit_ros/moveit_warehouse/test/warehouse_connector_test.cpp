@@ -1,7 +1,8 @@
 #include <moveit_warehouse/warehouse_connector.h>
 #include <moveit_warehouse/warehouse.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) 
+{
 
   ros::init(argc, argv, "warehouse_test");
 
