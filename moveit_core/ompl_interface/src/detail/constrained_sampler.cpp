@@ -48,6 +48,8 @@ ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningC
 
 bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
 { 
+  ompl::tools::Profiler::ScopedBlock sblock("sampleWithConstraints");
+  
   if (constraint_sampler_->sample(work_joint_group_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
   { 
     planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_joint_group_state_);
@@ -63,13 +65,13 @@ bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
 
 void ompl_interface::ConstrainedSampler::sampleUniform(ob::State *state)
 {
-  if (!sampleC(state))
+  if (!sampleC(state) && !sampleC(state) && !sampleC(state))
     default_->sampleUniform(state);
 }
 
 void ompl_interface::ConstrainedSampler::sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
 {
-  if (sampleC(state))
+  if (sampleC(state) || sampleC(state) || sampleC(state))
   {    
     double total_d = space_->distance(state, near);
     if (total_d > distance)
@@ -84,7 +86,7 @@ void ompl_interface::ConstrainedSampler::sampleUniformNear(ob::State *state, con
 
 void ompl_interface::ConstrainedSampler::sampleGaussian(ob::State *state, const ob::State *mean, const double stdDev)
 {
-  if (sampleC(state))
+  if (sampleC(state) || sampleC(state) || sampleC(state))
   {
     double dist = rng_.gaussian(0.0, stdDev);
     double total_d = space_->distance(state, mean);

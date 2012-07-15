@@ -63,7 +63,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist) const
 {
-  //  ompl::tools::Profiler::ScopedBlock sblock("isValidD");
+  ompl::tools::Profiler::ScopedBlock sblock("isValid");
   return planning_context_->useStateValidityCache() ? isValidWithCache(state, dist) : isValidWithoutCache(state, dist);
 }
 
@@ -78,7 +78,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
   
   planning_models::KinematicState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
-
+  
   // check path constraints
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
   if (kset && !kset->decide(*kstate, verbose_).satisfied)
@@ -113,7 +113,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
     kinematic_constraints::ConstraintEvaluationResult cer = kset->decide(*kstate, verbose_);
     if (!cer.satisfied)
     {
-      dist = cer.distance;
+      dist = cer.distance;    
       return false;
     }
   }
@@ -121,7 +121,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
   // check feasibility
   if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose_))
   {
-    dist = 0.0;
+    dist = 0.0;   
     return false;
   }
   
@@ -152,14 +152,14 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
   if (kset && !kset->decide(*kstate, verbose_).satisfied)
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();   
     return false;
   }
   
   // check feasibility
   if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose_))
   {    
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(); 
     return false;
   }
   

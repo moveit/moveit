@@ -244,14 +244,7 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
   if (wparams.min_corner.x == wparams.max_corner.x && wparams.min_corner.x == 0.0 &&
       wparams.min_corner.y == wparams.max_corner.y && wparams.min_corner.y == 0.0 &&
       wparams.min_corner.z == wparams.max_corner.z && wparams.min_corner.z == 0.0)
-  {
-    ROS_DEBUG("It looks like the planning volume was not specified. Using default values.");
-    moveit_msgs::WorkspaceParameters default_wp;
-    default_wp.min_corner.x = default_wp.min_corner.y = default_wp.min_corner.z = -10.0;
-    default_wp.max_corner.x = default_wp.max_corner.y = default_wp.max_corner.z = 10.0;
-    setPlanningVolume(default_wp);    
-    return;
-  }
+    ROS_WARN("It looks like the planning volume was not specified.");
   
   ROS_DEBUG("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]", name_.c_str(),
 	    wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
@@ -462,6 +455,10 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
   
   ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+
+  //  ompl_simple_setup_.getPlanner()->params().setParam("range", "0.07");  
+  //  ompl_simple_setup_.print();
+
   
   bool result = false;
   if (count <= 1)
