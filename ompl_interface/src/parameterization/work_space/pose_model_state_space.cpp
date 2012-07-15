@@ -63,11 +63,29 @@ ompl_interface::PoseModelStateSpace::~PoseModelStateSpace(void)
 
 void ompl_interface::PoseModelStateSpace::constructSpaceFromPoses(void)
 {
-  std::sort(poses_.begin(), poses_.end());
+  std::sort(poses_.begin(), poses_.end());  
+  for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
+    weights_[i] = 0;
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
-    addSubspace(poses_[i].state_space_, 0.0);  
+    addSubspace(poses_[i].state_space_, 1.0);  
   setName(getJointModelGroupName() + "_" + PARAMETERIZATION_TYPE);
   lock();
+}
+
+double ompl_interface::PoseModelStateSpace::distance(const ompl::base::State *state1, const ompl::base::State *state2) const
+{
+  double total = 0;
+  for (unsigned int i = jointSubspaceCount_ ; i < componentCount_ ; ++i)
+    total += weights_[i] * components_[i]->distance(state1->as<StateType>()->components[i], state2->as<StateType>()->components[i]);
+  return total;
+}
+
+double ompl_interface::PoseModelStateSpace::getMaximumExtent(void) const
+{
+  double total = 0.0;
+  for (unsigned int i = jointSubspaceCount_ ; i < componentCount_ ; ++i)
+    total += weights_[i] * components_[i]->getMaximumExtent();
+  return total;
 }
 
 ompl::base::State* ompl_interface::PoseModelStateSpace::allocState(void) const
@@ -89,6 +107,11 @@ void ompl_interface::PoseModelStateSpace::copyState(ompl::base::State *destinati
   
   // compute additional stuff if needed
   computeStateK(destination);
+}
+
+void ompl_interface::PoseModelStateSpace::sanityChecks(void) const
+{
+  ModelBasedStateSpace::sanityChecks(std::numeric_limits<double>::epsilon(), std::numeric_limits<float>::epsilon(), ~ompl::base::StateSpace::STATESPACE_TRIANGLE_INEQUALITY);
 }
 
 void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const

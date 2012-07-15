@@ -109,6 +109,28 @@ void ompl_interface::ModelBasedStateSpace::copyState(ompl::base::State *destinat
   destination->as<StateType>()->distance = source->as<StateType>()->distance;
 }
 
+double ompl_interface::ModelBasedStateSpace::getMaximumExtent(void) const
+{ 
+  double total = 0.0;
+  for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
+  {
+    double e = components_[i]->getMaximumExtent();
+    total += e * e * weights_[i];
+  }
+  return sqrt(total);
+}
+
+double ompl_interface::ModelBasedStateSpace::distance(const ompl::base::State *state1, const ompl::base::State *state2) const
+{
+  double total = 0.0;
+  for (unsigned int i = 0 ; i < jointSubspaceCount_ ; ++i)
+  {
+    double d = components_[i]->distance(state1->as<StateType>()->components[i], state2->as<StateType>()->components[i]);
+    total += d * d * weights_[i];
+  }
+  return sqrt(total);
+}
+
 void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const
 {  
   // clear any cached info (such as validity known or not)

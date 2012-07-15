@@ -101,7 +101,7 @@ struct PlanningContextManager::CachedContexts
 
 ompl_interface::PlanningContextManager::PlanningContextManager(const planning_models::KinematicModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
   kmodel_(kmodel), constraint_sampler_manager_(csm),
-  max_goal_samples_(10), max_state_sampling_attempts_(10), max_goal_sampling_attempts_(1000),
+  max_goal_samples_(10), max_state_sampling_attempts_(4), max_goal_sampling_attempts_(1000),
   max_planning_threads_(4), max_velocity_(10), max_acceleration_(2.0), max_solution_segment_length_(0.0)
 {
   last_planning_context_.reset(new LastPlanningContext());
