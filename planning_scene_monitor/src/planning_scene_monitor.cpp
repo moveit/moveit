@@ -414,8 +414,10 @@ void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::
   ROS_INFO("Starting scene monitor");
   // listen for planning scene updates; these messages include transforms, so no need for filters
   if (!scene_topic.empty())
+  {
     planning_scene_subscriber_ = root_nh_.subscribe(scene_topic, 100, &PlanningSceneMonitor::newPlanningSceneCallback, this);
-  ROS_INFO("Listening to '%s'", scene_topic.c_str());
+    ROS_INFO("Listening to '%s'", scene_topic.c_str());
+  }
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
