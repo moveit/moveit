@@ -34,12 +34,15 @@
 
 /* Author: Dave Coleman */
 
+// Qt
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QMessageBox>
 #include <QApplication>
+// SA
 #include "configuration_files_widget.h"
 #include <boost/filesystem.hpp>  // for creating folders/files
+#include <srdfdom/model.h> // use their struct datastructures
 
 namespace moveit_setup_assistant
 {
@@ -74,19 +77,19 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   // Save buttons ---------------------------------------------------
   QHBoxLayout *hlayout = new QHBoxLayout();
 
-  // Generate Package
-  btn_save_ = new QPushButton("&Generate Package", this);
-  //  btn_save_->setMinimumWidth(180);
-  //  btn_save_->setMinimumHeight(40);
-  connect( btn_save_, SIGNAL( clicked() ), this, SLOT( savePackage() ) );
-  hlayout->addWidget( btn_save_ );  
-
   // Progress Bar
   progress_bar_ = new QProgressBar( this );
   progress_bar_->setMaximum(100);
   progress_bar_->setMinimum(0);
   hlayout->addWidget(progress_bar_);
   hlayout->setContentsMargins( 20, 30, 20, 30 );
+
+  // Generate Package Button
+  btn_save_ = new QPushButton("&Generate Package", this);
+  btn_save_->setMinimumWidth(180);
+  btn_save_->setMinimumHeight(40);
+  connect( btn_save_, SIGNAL( clicked() ), this, SLOT( savePackage() ) );
+  hlayout->addWidget( btn_save_ );  
 
   // Add Layout
   layout->addLayout( hlayout );
@@ -234,6 +237,10 @@ void ConfigurationFilesWidget::savePackage()
   // Check setup assist deps
   if( !checkDependencies() )
     return; // canceled
+
+  // Check that all groups have components
+  if( !noGroupsEmpty() )
+    return; // not ready
 
   const std::string new_package_path = stack_path_->getPath();
 
@@ -575,9 +582,34 @@ const std::string ConfigurationFilesWidget::getPackageName( std::string package_
 }
 
 // ******************************************************************************************
-// 
+// Check that no group is empty (without links/joints/etc)
 // ******************************************************************************************
+bool ConfigurationFilesWidget::noGroupsEmpty()
+{
+  // Loop through all groups
+  for( std::vector<srdf::Model::Group>::const_iterator group_it = config_data_->srdf_->groups_.begin(); 
+       group_it != config_data_->srdf_->groups_.end();  ++group_it )
+  {
+    // Whenever 1 of the 4 component types are found, stop checking this group
+    if( group_it->joints_.size() )
+      continue;
+    if( group_it->links_.size() )
+      continue;
+    if( group_it->chains_.size() )
+      continue;
+    if( group_it->subgroups_.size() )
+      continue;
 
+    // This group has no contents, bad
+    QMessageBox::warning( this, "Empty Group", 
+                          QString("The planning group '").append( group_it->name_.c_str() )
+                          .append("' is empty and has no subcomponents associated with it (joints/links/chains/subgroups). You must edit or remove this planning group before this configuration package can be saved.") );
+    return false;
+  }
+
+  return true; // good
 }
+
+} // namespace
 
 

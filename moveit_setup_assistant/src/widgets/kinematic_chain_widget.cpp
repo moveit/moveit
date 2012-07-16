@@ -91,7 +91,7 @@ KinematicChainWidget::KinematicChainWidget( QWidget *parent, moveit_setup_assist
   form_grid->addWidget( base_link_label, 0, 0, Qt::AlignRight );
 
   base_link_field_ = new QLineEdit( this );
-  //  base_link_field_->setMinimumWidth( 300 );
+  base_link_field_->setMinimumWidth( 300 );
   form_grid->addWidget( base_link_field_, 0, 1, Qt::AlignLeft );
 
   QPushButton *btn_base_link = new QPushButton( "Choose Selected", this );
@@ -103,7 +103,7 @@ KinematicChainWidget::KinematicChainWidget( QWidget *parent, moveit_setup_assist
   form_grid->addWidget( tip_link_label, 1, 0, Qt::AlignRight );
 
   tip_link_field_ = new QLineEdit( this );
-  //tip_link_field_->setMinimumWidth( 300 );
+  tip_link_field_->setMinimumWidth( 300 );
   form_grid->addWidget( tip_link_field_, 1, 1, Qt::AlignLeft );
 
   QPushButton *btn_tip_link = new QPushButton( "Choose Selected", this );

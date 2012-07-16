@@ -94,21 +94,25 @@ GroupEditWidget::GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveI
 
   // Save and add joints
   QPushButton *btn_save_joints = new QPushButton( "Save and Add Joints", this );
+  btn_save_joints->setMaximumWidth( 280 );
   connect( btn_save_joints, SIGNAL(clicked()), this, SIGNAL( saveJoints() ) );
   new_buttons_layout->addWidget( btn_save_joints );
 
   // Save and add links
   QPushButton *btn_save_links = new QPushButton( "Save and Add Links", this );
+  btn_save_links->setMaximumWidth( 280 );
   connect( btn_save_links, SIGNAL(clicked()), this, SIGNAL( saveLinks() ) );
   new_buttons_layout->addWidget( btn_save_links );
 
   // Save and add chain
   QPushButton *btn_save_chain = new QPushButton( "Save and Add Chain", this );
+  btn_save_chain->setMaximumWidth( 280 );
   connect( btn_save_chain, SIGNAL(clicked()), this, SIGNAL( saveChain() ) );
   new_buttons_layout->addWidget( btn_save_chain );
 
   // Save and add subgroups
   QPushButton *btn_save_subgroups = new QPushButton( "Save and Add Subgroups", this );
+  btn_save_subgroups->setMaximumWidth( 280 );
   connect( btn_save_subgroups, SIGNAL(clicked()), this, SIGNAL( saveSubgroups() ) );
   new_buttons_layout->addWidget( btn_save_subgroups );
 

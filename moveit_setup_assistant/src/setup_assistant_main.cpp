@@ -47,8 +47,9 @@ int main(int argc, char **argv)
   desc.add_options()
     ("help", "Show help message")
     ("debug", "Run in debug/test mode")
-    ("urdf", po::value<std::string>(), "Optional, pass in URDF to load")
-    ("srdf", po::value<std::string>(), "Optional, pass in SRDF to load")
+    ("urdf_pkg", po::value<std::string>(), "Optional, pass in name of package containing URDF")
+    ("urdf_path", po::value<std::string>(), "Optional, relative path to URDF in URDF package")
+    //("srdf", po::value<std::string>(), "Optional, pass in SRDF to load")
     ("config_pkg", po::value<std::string>(), "Optional, pass in existing config package to load");
 
   // Process options

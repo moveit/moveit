@@ -54,13 +54,22 @@ BenchmarkTimer g_btimer;
 // ******************************************************************************************
 
 // Boost mapping of reasons for disabling a link pair to strings
-const boost::unordered_map<DisabledReason, const char*> reasonsToString = boost::assign::map_list_of
+const boost::unordered_map<DisabledReason, std::string> reasonsToString = boost::assign::map_list_of
   ( NEVER, "Never" )
   ( DEFAULT, "Default" )
   ( ADJACENT, "Adjacent" )
   ( ALWAYS, "Always" )
   ( USER, "User" )
   ( NOT_DISABLED, "Not Disabled");
+
+const boost::unordered_map< std::string, DisabledReason> reasonsFromString = boost::assign::map_list_of
+  ( "Never", NEVER )
+  ( "Default", DEFAULT )
+  ( "Adjacent", ADJACENT )
+  ( "Always", ALWAYS )
+  ( "User", USER )
+  ( "Not Disabled", NOT_DISABLED );
+
 
 // Unique set of pairs of links in string-based form
 typedef std::set<std::pair<std::string, std::string> > StringPairSet;
@@ -686,40 +695,24 @@ const std::string disabledReasonToString( DisabledReason reason )
   return reasonsToString.at( reason );
 }
 
-
 // ******************************************************************************************
-// Output XML String of Saved Results
+// Converts a string reason for disabling a link pair into a struct data type
 // ******************************************************************************************
-/*
-void outputDisabledCollisionsXML(const LinkPairMap & link_pairs)
+DisabledReason disabledReasonFromString( const std::string& reason )
 {
-  unsigned int num_disabled = 0;
-
-  // TODO: integrate this into SRDF system
-  TiXmlDocument doc;
-  TiXmlElement* robot_root = new TiXmlElement("robot");
-  doc.LinkEndChild(robot_root);
-
-  for ( LinkPairMap::const_iterator pair_it = link_pairs.begin() ; pair_it != link_pairs.end() ; ++pair_it)
+  DisabledReason r;
+  try
   {
-    if( pair_it->second.disable_check ) // has a reason to be disabled
-    {
-  
-      // Create new element for each link pair
-      TiXmlElement *dc = new TiXmlElement("disabled_collisions");
-      robot_root->LinkEndChild(dc);
-      dc->SetAttribute("link1", pair_it->first.first);
-      dc->SetAttribute("link2", pair_it->first.second);
-      dc->SetAttribute("reason", disabledReasonToString( pair_it->second.reason ));
-      ++num_disabled;
-    }
+    r = reasonsFromString.at( reason );
   }
-  
-  doc.SaveFile("default_collisions.xml"); // TODO: change location
+  catch( std::out_of_range )
+  {
+    r = USER;
+    std::cout << "This reason is default '" << disabledReasonToString( r ) << "' because originally it was " << reason << std::endl;
+  }
 
-  //ROS_INFO("TOTAL DISABLED LINKS: %d", num_disabled);
-
+  return r;
 }
-*/
 
-}
+
+} // namespace
