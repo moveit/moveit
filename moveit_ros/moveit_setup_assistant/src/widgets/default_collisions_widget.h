@@ -79,6 +79,12 @@ public:
    */
   void linkPairsToSRDF();
 
+  /** 
+   * \brief Load Link Pairs from SRDF Format
+   */
+  void linkPairsFromSRDF();
+
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -112,6 +118,11 @@ private Q_SLOTS:
    * \param i,j Check coordinates, aka y,x (weird)
    */
   void toggleCheckBox(int j, int i);
+
+  /** 
+   * \brief Called when setup assistant navigation switches to this screen
+   */
+  void focusGiven();
 
 private:
 

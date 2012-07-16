@@ -82,11 +82,13 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
  */
 const std::string disabledReasonToString( DisabledReason reason );
 
-/**
- * \brief Generate xml format of disabled links for use in an SRDF
- * \param Adj List of unique set of pairs of links in string-based form 
+/** 
+ * \brief Converts a string reason for disabling a link pair into a struct data type
+ * \param reason string that should match one of the DisableReason types. If not, is set as "USER"
+ * \return reason as struct
  */
-//void outputDisabledCollisionsXML(const LinkPairMap &link_pairs);
+DisabledReason disabledReasonFromString( const std::string& reason );
+
 
 }
 

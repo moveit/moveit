@@ -251,7 +251,7 @@ void SRDFWriter::createDisabledCollisionsXML( TiXmlElement *root )
         pair_it != disabled_collisions_.end() ; ++pair_it)
   {
     // Create new element for each link pair
-    TiXmlElement *link_pair = new TiXmlElement("disabled_collisions");
+    TiXmlElement *link_pair = new TiXmlElement("disable_collisions");
     link_pair->SetAttribute("link1", pair_it->link1_ );
     link_pair->SetAttribute("link2", pair_it->link2_ );
     link_pair->SetAttribute("reason", pair_it->reason_ );

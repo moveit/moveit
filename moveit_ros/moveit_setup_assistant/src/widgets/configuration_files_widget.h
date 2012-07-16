@@ -56,7 +56,7 @@ class ConfigurationFilesWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-public:
+  public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -118,6 +118,9 @@ private:
 
   /// Get the last folder name in a directory path
   const std::string getPackageName( std::string package_path );
+
+  /// Check that no group is empty (without links/joints/etc)
+  bool noGroupsEmpty();
 
 };
 

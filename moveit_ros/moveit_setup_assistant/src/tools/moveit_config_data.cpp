@@ -642,41 +642,28 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
     {
       if( const YAML::Node *urdf_node = title_node->FindValue( "URDF" ) ) 
       {
+        // Load first property
         if( const YAML::Node *package_node = urdf_node->FindValue( "package" ) ) 
         {
           *package_node >> urdf_pkg_name_;
         } 
+        else
+        {
+          return false; // if we do not find this value we cannot continue
+        }
+
+        // Load second property
+        if( const YAML::Node *relative_node = urdf_node->FindValue( "relative_path" ) ) 
+        {
+          *relative_node >> urdf_pkg_relative_path_;
+        }
+        else
+        {
+          return false; // if we do not find this value we cannot continue
+        } 
         return true;
       }
     }
-    
-    /*
-    // Loop through all groups
-    for( YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it ) 
-    {
-      std::string group_name;
-      group_it.first() >> group_name;
-
-      // Create new meta data
-      GroupMetaData new_meta_data;
-
-      // kinematics_solver
-      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver" ) ) 
-      {
-        *prop_name >> new_meta_data.kinematics_solver_;
-      }
-
-      // kinematics_solver_search_resolution 
-      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_search_resolution" ) ) 
-      {
-        *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
-      }
-
-      // Assign meta data to vector
-      group_meta_data_[ group_name ] = new_meta_data;
-    }
-    */
-
   } 
   catch(YAML::ParserException& e)  // Catch errors
   {

@@ -76,14 +76,13 @@ public:
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
 DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent, 
-                                                                MoveItConfigDataPtr config_data )
+                                                  MoveItConfigDataPtr config_data )
   : SetupScreenWidget( parent ), config_data_(config_data)
 {
   // Basic widget container
   layout_ = new QVBoxLayout( this );
 
   // Top Label Area ------------------------------------------------
-
   HeaderWidget *header = new HeaderWidget( "Optimize Self-Collision Checking",
                                            "The Default Self-Collision Matrix Generator will search for pairs of links on the robot that can safely be disabled from collision checking, decreasing motion planning processing time. These pairs of links are disabled they are always in collision, never in collision, collision in the robot's default position and when the links are adjacent to each other on the kinematic chain. Sampling density specifies how many random robot positions to check for self collision. Higher densities require more computation time.",
                                            this);
@@ -179,6 +178,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   // Checkbox
   collision_checkbox_ = new QCheckBox( this );
   collision_checkbox_->setText("Show Non-Disabled Link Pairs");
+  collision_checkbox_->hide(); // not until we have clicked the button at least once
   connect(collision_checkbox_, SIGNAL(toggled(bool)), this, SLOT(collisionCheckboxToggle()));
   controls_box_bottom_layout->addWidget(collision_checkbox_);
   controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
@@ -193,6 +193,20 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
 // ******************************************************************************************
 void DefaultCollisionsWidget::generateCollisionTable()
 {
+  // Confirm the user wants to overwrite the current disabled collisions
+  if( link_pairs_.size() )
+  {
+    if( QMessageBox::question( this, "Confirm Disabled Collision Overwrite",
+                               "Are you sure you want to overwrite the current default collisions matrix with a newly generated one?",
+                               QMessageBox::Ok | QMessageBox::Cancel) 
+        == QMessageBox::Cancel )
+    {
+      return; // abort
+    }
+  }
+  QApplication::processEvents(); // allow the progress bar to be shown
+  progress_label_->setText("Computing default collision matrix for robot model...");
+
   // Disable controls on form
   disableControls(true);
 
@@ -227,10 +241,13 @@ void DefaultCollisionsWidget::generateCollisionTable()
 
   // Wait for thread to finish
   workerThread.join();
-  //std::cout << "\nThreads joined.\n";
 
   // Load the results into the GUI
   loadCollisionTable();
+
+  // Show the checkbox for "show non-disabled link pairs" only after we have run the algorithm, because otherwise
+  // we do not yet know all the link pairs, but only the ones that were in the SRDF
+  collision_checkbox_->show();
 
   // Hide the progress bar
   disableControls(false); // enable everything else
@@ -318,17 +335,6 @@ void DefaultCollisionsWidget::loadCollisionTable()
         disable_check->setCheckState(Qt::Checked);
       else
         disable_check->setCheckState(Qt::Unchecked);
-
-      /*QCheckBox* enable_box = new QCheckBox(collision_table_);
-        if( pair_it->second.disable_check ) // Checked means no collision checking
-        {
-        enable_box->setChecked(true);
-        } 
-        else 
-        {
-        enable_box->setChecked(false);
-        }*/
-      //collision_table_->setCellWidget( row, 2, enable_box); 
 
       QTableWidgetItem* reason = new QTableWidgetItem( longReasonsToString.at( pair_it->second.reason ) );
       reason->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
@@ -494,4 +500,50 @@ void DefaultCollisionsWidget::linkPairsToSRDF()
 
 }
 
+// ******************************************************************************************
+// Load Link Pairs from SRDF Format
+// ******************************************************************************************
+void DefaultCollisionsWidget::linkPairsFromSRDF()
+{
+  // Clear all the previous data in the compute_default_collisions tool
+  link_pairs_.clear();
+
+  // Create temp link pair data struct
+  moveit_setup_assistant::LinkPairData link_pair_data;
+  std::pair<std::string, std::string> link_pair;
+
+  // Loop through all disabled collisions in SRDF and add to this data structure
+  for( std::vector<srdf::Model::DisabledCollision>::const_iterator collision_it = 
+         config_data_->srdf_->disabled_collisions_.begin(); 
+       collision_it != config_data_->srdf_->disabled_collisions_.end(); ++collision_it )
+  {
+    // Set the link names
+    link_pair.first = collision_it->link1_;
+    link_pair.second = collision_it->link2_;
+
+    // Set the link meta data
+    link_pair_data.reason = moveit_setup_assistant::disabledReasonFromString( collision_it->reason_ );
+    link_pair_data.disable_check = true; // disable checking the collision btw the 2 links
+    
+    // Insert into map
+    link_pairs_[ link_pair ] = link_pair_data;
+  }
 }
+
+// ******************************************************************************************
+// Called when setup assistant navigation switches to this screen
+// ******************************************************************************************
+void DefaultCollisionsWidget::focusGiven()
+{
+  // Convert the SRDF data to LinkPairData format
+  linkPairsFromSRDF();
+
+  // Load the data to the table
+  loadCollisionTable();
+
+  // Enable the table
+  disableControls( false );
+}
+
+
+} // namespace

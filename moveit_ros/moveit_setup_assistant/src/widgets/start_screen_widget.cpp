@@ -295,6 +295,10 @@ void StartScreenWidget::loadFilesClick()
 // ******************************************************************************************
 bool StartScreenWidget::loadExistingFiles()
 {
+  // Progress Indicator
+  progress_bar_->setValue( 10 );
+  QApplication::processEvents();
+
   // Get package path
   std::string package_path = stack_path_->getPath();
 
@@ -319,14 +323,14 @@ bool StartScreenWidget::loadExistingFiles()
   // TODO: is this needed?
   //const std::string package_name = getPackageName( package_path );
 
-  // .setup_assistant file
+  // Path of .setup_assistanyt file
   const std::string setup_assistant_file = package_path + ".setup_assistant";
 
   // Check if the old package is a setup assistant package. If it is not, quit
   if( ! fs::is_regular_file( setup_assistant_file ) )
   {
     QMessageBox::warning( this, "Incorrect Directory/Package", 
-                          QString("The chosen package location already exists but was not previously created using this MoveIt Setup Assistant. If this is a mistake, replace the missing file: ")
+                          QString("The chosen package location exists but was not previously created using this MoveIt Setup Assistant. If this is a mistake, replace the missing file: ")
                           .append( setup_assistant_file.c_str() ) );
     return false;
   }
@@ -340,6 +344,10 @@ bool StartScreenWidget::loadExistingFiles()
     return false;
   }
 
+  // Progress Indicator
+  progress_bar_->setValue( 30 );
+  QApplication::processEvents();
+
   // Get the URDF path using the loaded .setup_assistant data and check it
   if( !createFullURDFPath() )
     return false; // error occured
@@ -352,10 +360,17 @@ bool StartScreenWidget::loadExistingFiles()
   if( !createFullSRDFPath( package_path ) )
     return false; // error occured
 
+  // Progress Indicator
+  progress_bar_->setValue( 50 );
+  QApplication::processEvents();
+
   // Load the SRDF
   if( !loadSRDFFile( config_data_->srdf_path_ ) )
     return false; // error occured
 
+  // Progress Indicator
+  progress_bar_->setValue( 60 );
+  QApplication::processEvents();
 
   // Load kinematics yaml file if available --------------------------------------------------
   const std::string kinematics_yaml_path = package_path + "config/kinematics.yaml"; 
@@ -367,9 +382,26 @@ bool StartScreenWidget::loadExistingFiles()
     return false;
   }
 
+  // DONE LOADING --------------------------------------------------------------------------
 
+  // Call a function that enables navigation
+  Q_EMIT readyToProgress();
 
-  return true; //success
+  // Progress Indicator
+  progress_bar_->setValue( 70 );
+  QApplication::processEvents();
+
+  // Load Rviz
+  Q_EMIT loadRviz(); 
+
+  // Progress Indicator
+  progress_bar_->setValue( 100 );
+  QApplication::processEvents();
+
+  next_label_->show(); // only show once the files have been loaded
+
+  ROS_INFO( "Loading Setup Assistant Complete" );
+  return true; // success!
 }
 
 // ******************************************************************************************
@@ -404,7 +436,7 @@ bool StartScreenWidget::loadNewFiles()
     "<?xml version='1.0'?><robot name='" + config_data_->urdf_model_->getName() + "'></robot>";
 
   // Load a blank SRDF file to the parameter server
-  if( setSRDFFile( blank_srdf ))
+  if( !setSRDFFile( blank_srdf ))
   {
     QMessageBox::warning( this, "Error Loading Files", "Failure loading blank SRDF file." );
     return false;
@@ -416,7 +448,7 @@ bool StartScreenWidget::loadNewFiles()
 
   // DONE LOADING --------------------------------------------------------------------------
 
-  // Call a function that enables navigation and goes to screen 2
+  // Call a function that enables navigation
   Q_EMIT readyToProgress();
 
   // Progress Indicator
@@ -561,7 +593,7 @@ bool StartScreenWidget::createFullURDFPath()
   if( ! fs::is_regular_file( config_data_->urdf_path_ ) )
   {
     QMessageBox::warning( this, "Error Loading Files",
-                          QString("Unable to locate the URDF file: " )
+                          QString("Unable to locate the URDF file in package. File: " )
                           .append( config_data_->urdf_path_.c_str() ) );
     return false;
   }
@@ -785,8 +817,16 @@ const std::string LoadURDFWidget::getURDFPath()
     return "";
   }    
 
+  // Check that the relative path has a preceeding slash
+  std::string relative_path = relative_urdf_path_field_->text().toStdString();
+  if( relative_path.substr( 0, 1 ) != "/" ) // TODO: this is not Windows ready...
+  {
+    relative_path.insert( 0, "/" );
+    relative_urdf_path_field_->setText( relative_path.c_str() );
+  }
+
   // Append the relative URDF url path
-  std::string full_urdf_file_path = robot_desc_pkg_path + relative_urdf_path_field_->text().toStdString();
+  std::string full_urdf_file_path = robot_desc_pkg_path + relative_path;
 
   // Trim whitespace from user input
   boost::trim( full_urdf_file_path );
