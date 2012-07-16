@@ -44,6 +44,9 @@
 namespace moveit_setup_assistant
 {
 
+// Boost file system
+namespace fs = boost::filesystem; 
+
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
@@ -232,9 +235,6 @@ void ConfigurationFilesWidget::savePackage()
   if( !checkDependencies() )
     return; // canceled
 
-  // File system
-  namespace fs = boost::filesystem;
-  
   const std::string new_package_path = stack_path_->getPath();
 
   // Get template package location ----------------------------------------------------------------------
@@ -258,7 +258,7 @@ void ConfigurationFilesWidget::savePackage()
   const std::string package_name = getPackageName( new_package_path );
   QString qpackage_name = QString( package_name.c_str() ).append("/"); // for gui feedback
 
-  std::string setup_assistant_file = new_package_path + ".setup_assistant";
+  const std::string setup_assistant_file = new_package_path + ".setup_assistant";
 
   // Reset the progress bar counter and GUI stuff
   action_num = 0;

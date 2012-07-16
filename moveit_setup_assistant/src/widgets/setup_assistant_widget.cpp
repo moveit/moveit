@@ -8,29 +8,29 @@
  *  modification, are permitted provided that the following conditions
  *  are met:
  *
-n *   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Dave Coleman */
 
@@ -54,7 +54,8 @@ n *   * Redistributions of source code must retain the above copyright
 #include <rviz/display_wrapper.h>
 #include <rviz/view_controllers/orbit_view_controller.h>
 #include <moveit_rviz_plugin/planning_display.h>
-
+// ROS
+#include <ros/master.h> // for checking if roscore is started
 
 namespace moveit_setup_assistant
 {
@@ -97,10 +98,11 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   main_content_->addWidget(ssw_);
 
   // Pass command arg values to start screen
-  if (args.count("urdf"))
-    ssw_->urdf_file_->setPath( args["urdf"].as<std::string>() );
-  if (args.count("srdf"))
-    ssw_->srdf_file_->setPath( args["srdf"].as<std::string>() );
+  // TODO: fix this
+  /*if (args.count("urdf"))
+    ssw_->urdf_file_->( args["urdf"].as<std::string>() ); */
+  /*if (args.count("srdf"))
+    ssw_->srdf_file_->setPath( args["srdf"].as<std::string>() );*/
   if (args.count("config_pkg"))
     ssw_->stack_path_->setPath( args["config_pkg"].as<std::string>() );
 
@@ -143,30 +145,25 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   // Title
   this->setWindowTitle("MoveIt Setup Assistant"); // title of window
 
-  /*
-  std::cout << " Outputting poses" << std::endl;
+  // Show screen before message
+  QApplication::processEvents();
 
-  // load all avail kin planners
-  boost::scoped_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > loader;
-  try
+  // Check that ROS Core is running
+  bool do_check = true;
+  while( do_check )
   {
-    loader.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
+    if( ! ros::master::check() )
+    {
+      // roscore is not running
+      QMessageBox::warning( this, "ROS Error", 
+                            "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");    
+    }
+    else
+    {
+      do_check = false;
+    }
   }
-  catch(pluginlib::PluginlibException& ex)
-  {
-    std::cout << "Exception while creating class loader " << ex.what() << std::endl;
-  }  
 
-  // Get classes
-  const std::vector<std::string> &classes = loader->getDeclaredClasses();
-
-  // Loop through all planners and add to combo box
-  for( std::vector<std::string>::const_iterator plugin_it = classes.begin();
-       plugin_it != classes.end(); ++plugin_it )
-  {
-    std::cout << " plugin: " <<  plugin_it->c_str() << std::endl;
-  }
-  */
 }
 
 // ******************************************************************************************
@@ -389,18 +386,18 @@ void SetupAssistantWidget::closeEvent( QCloseEvent * event )
 bool SetupAssistantWidget::notify( QObject * reciever, QEvent * event )
 {
   /*  try
-  {
-    return QApplication::notify( reciever, event );
-  }
-  catch( std::Exception& event)
-  {*/
+      {
+      return QApplication::notify( reciever, event );
+      }
+      catch( std::Exception& event)
+      {*/
   QMessageBox::critical( this, "Error", "An error occurred and was caught by Qt notify event handler.", QMessageBox::Ok);
 
-    /*  }
-  catch(...)
-  {
-    QMessageBox::warning(0, "An unexpected error occurred", "This is likely a bug.");
-    }*/
+  /*  }
+      catch(...)
+      {
+      QMessageBox::warning(0, "An unexpected error occurred", "This is likely a bug.");
+      }*/
   return false; 
 }
 

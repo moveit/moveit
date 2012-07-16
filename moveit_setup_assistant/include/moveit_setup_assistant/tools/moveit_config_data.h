@@ -80,21 +80,43 @@ public:
 
   // All of the data needed for creating a MoveIt Configuration Files
 
-  // SRDF Data and Writer
+  // ******************************************************************************************
+  // URDF Data
+  // ******************************************************************************************
+
+  /// Full file-system path to urdf
+  std::string urdf_path_; 
+
+  /// Name of package containig urdf
+  std::string urdf_pkg_name_; 
+
+  /// Path relative to urdf package
+  std::string urdf_pkg_relative_path_; 
+
+  /// URDF robot model
+  boost::shared_ptr<urdf::Model> urdf_model_;
+
+  // ******************************************************************************************
+  // SRDF Data
+  // ******************************************************************************************
+
+  /// Full fil-system path to srdf
+  std::string srdf_path_;
+ 
+  /// SRDF Data and Writer
   SRDFWriterPtr srdf_;
 
-  // URDF robot model
-  boost::shared_ptr<urdf::Model> urdf_model_;
-  
+  // ******************************************************************************************
+  // Other Data
+  // ******************************************************************************************
+
   /// Planning groups extra data not found in srdf but used in config files
   std::map<std::string, GroupMetaData> group_meta_data_;
 
-  // Paths
-  std::string urdf_path_;
-  std::string srdf_path_;
-  std::string setup_assistant_path_; // Remember Setup Assistants package's path for when we use its templates
+  /// Remember Setup Assistants package's path for when we use its templates
+  std::string setup_assistant_path_; 
   
-  // Is this application in debug mode?
+  /// Is this application in debug mode?
   bool debug_;
 
   // ******************************************************************************************
@@ -153,6 +175,13 @@ public:
    */  
   bool inputKinematicsYAML( const std::string& file_path );
 
+  /** 
+   * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
+   * 
+   * @param file_path path to .setup_assistant file
+   * @return bool if the file was read correctly
+   */
+  bool inputSetupAssistantYAML( const std::string& file_path );
 
 private:
 

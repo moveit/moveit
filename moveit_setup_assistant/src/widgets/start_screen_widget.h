@@ -55,6 +55,7 @@ namespace moveit_setup_assistant
 // Class Prototypes
 class SelectModeWidget;
 class LoadPathWidget;
+class LoadURDFWidget;
 
 /**
  * \brief Start screen user interface for MoveIt Configuration Assistant
@@ -81,7 +82,7 @@ class StartScreenWidget : public SetupScreenWidget
   // ******************************************************************************************
   SelectModeWidget *select_mode_;
   LoadPathWidget *stack_path_;
-  LoadPathWidget *urdf_file_;
+  LoadURDFWidget *urdf_file_;
   LoadPathWidget *srdf_file_;
   QPushButton *btn_load_;
   QLabel *next_label_;
@@ -138,6 +139,22 @@ private:
 
   /// Load exisiting package files
   bool loadExistingFiles();
+
+  /// Load URDF File to Parameter Server
+  bool loadURDFFile( const std::string& urdf_file_path );
+
+  /// Load SRDF File 
+  bool loadSRDFFile( const std::string& srdf_file_path );
+
+  /// Put SRDF File on Parameter Server
+  bool setSRDFFile( const std::string& srdf_string );
+
+  /// Make the full URDF path using the loaded .setup_assistant data
+  bool createFullURDFPath();
+
+  /// Make the full SRDF path using the loaded .setup_assistant data
+  bool createFullSRDFPath( const std::string& package_path );
+
 };
 
 // ******************************************************************************************
@@ -162,6 +179,40 @@ class SelectModeWidget : public QFrame
   QPushButton *btn_new_;
   QPushButton *btn_exist_;
 
+};
+
+
+// ******************************************************************************************
+// ******************************************************************************************
+// Class for selecting urdf package and file
+// ******************************************************************************************
+// ******************************************************************************************
+class LoadURDFWidget : public QFrame
+{
+  Q_OBJECT
+
+  private:
+
+    private Q_SLOTS:
+  /// Load the file dialog
+  void btn_file_dialog();
+
+public:
+  
+  /// Constructor
+  LoadURDFWidget( QWidget * parent=0 );
+
+  /// Name of package that contains URDF
+  QLineEdit *robot_desc_pkg_field_;
+
+  /// Relative path to URDF from URDF package
+  QLineEdit *relative_urdf_path_field_;
+
+  /// Get the full URDF path
+  const std::string getURDFPath();
+
+  /// Get the full robot description path
+  const std::string getURDFPackagePath();
 };
 
 
