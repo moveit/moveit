@@ -43,21 +43,26 @@
 #include <QString>
 #include <QApplication>
 #include <QFont>
+#include <QFileDialog>
 // ROS
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loadng images
-#include <ros/master.h> // for checking if roscore is started
 // SA
 #include "header_widget.h" // title and instructions
 #include "start_screen_widget.h"
 // C
 #include <fstream>  // for reading in urdf
 #include <streambuf>
+// Boost
 #include <boost/algorithm/string.hpp> // for trimming whitespace from user input
+#include <boost/filesystem.hpp>  // for reading folders/files
+#include <boost/algorithm/string.hpp> // for string find and replace in paths
 
 namespace moveit_setup_assistant
 {
 
+// Boost file system
+namespace fs = boost::filesystem; 
 
 // ******************************************************************************************
 // Start screen user interface for MoveIt Configuration Assistant
@@ -96,18 +101,23 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   left_layout->addWidget( stack_path_ );
 
   // URDF File Dialog
-  urdf_file_ = new LoadPathWidget("Load a URDF or COLLADA Robot Model",
-                                  "Specify the location of an existing Unified Robot Description Format or COLLADA file for your robot. It will load the robot model to the parameter server for you. \nNote: an XACRO URDF must first be converted to a regular XML URDF before opening here. To convert a file run the following command: 'rosrun xacro xacro.py model.xacro > model.urdf'.", 
-                                  false, true, this); // no directory, load only
-  urdf_file_->hide(); // user needs to select option before this is shown
+  /*urdf_file_ = new LoadPathWidget("Load a URDF or COLLADA Robot Model",
+    "Specify the location of an existing Unified Robot Description Format or COLLADA file for your robot. It will load the robot model to the parameter server for you. \nNote: an XACRO URDF must first be converted to a regular XML URDF before opening here. To convert a file run the following command: 'rosrun xacro xacro.py model.xacro > model.urdf'.", 
+    false, true, this); // no directory, load only
+    urdf_file_->hide(); // user needs to select option before this is shown
+    left_layout->addWidget( urdf_file_ );*/
+
+  // URDF Package and File Dialog
+  urdf_file_ = new LoadURDFWidget( this );
+  urdf_file_->hide();
   left_layout->addWidget( urdf_file_ );
 
   // SRDF File Dialog
-  srdf_file_ = new LoadPathWidget("Load a SRDF File (optional)",
-                                  "Specify the location for an existing Semantic Robot Description Format (SRDF) file for your robot, if one exists. It will be copied into the generated MoveIt configuration package. If left blank this setup assistant will create the file for you.",
-                                  false, false, this); // no directory, save
-  srdf_file_->hide(); // user needs to select option before this is shown
-  left_layout->addWidget( srdf_file_ );
+  /*srdf_file_ = new LoadPathWidget("Load a SRDF File (optional)",
+    "Specify the location for an existing Semantic Robot Description Format (SRDF) file for your robot, if one exists. It will be copied into the generated MoveIt configuration package. If left blank this setup assistant will create the file for you.",
+    false, false, this); // no directory, save
+    srdf_file_->hide(); // user needs to select option before this is shown
+    left_layout->addWidget( srdf_file_ ); */
   
   // Load settings box ---------------------------------------------
   QHBoxLayout *load_files_layout = new QHBoxLayout();
@@ -211,7 +221,7 @@ void StartScreenWidget::showNewOptions()
   select_mode_->btn_exist_->setFlat( false );
   select_mode_->btn_new_->setFlat( true );
   urdf_file_->show();
-  srdf_file_->show();
+  //  srdf_file_->show();
   stack_path_->hide();
   btn_load_->show();
 
@@ -228,7 +238,7 @@ void StartScreenWidget::showExistingOptions()
   select_mode_->btn_exist_->setFlat( true );
   select_mode_->btn_new_->setFlat( false );
   urdf_file_->hide();
-  srdf_file_->hide();
+  //srdf_file_->hide();
   stack_path_->show();
   btn_load_->show();
 
@@ -243,7 +253,7 @@ void StartScreenWidget::loadFilesClick()
 {
   // Disable start screen GUI components from being changed
   urdf_file_->setDisabled(true);
-  srdf_file_->setDisabled(true);
+  //srdf_file_->setDisabled(true);
   stack_path_->setDisabled(true);
   select_mode_->setDisabled(true);
   btn_load_->setDisabled(true);
@@ -266,7 +276,7 @@ void StartScreenWidget::loadFilesClick()
   {
     // Renable components
     urdf_file_->setDisabled(false);
-    srdf_file_->setDisabled(false);
+    //srdf_file_->setDisabled(false);
     stack_path_->setDisabled(false);
     select_mode_->setDisabled(false);
     btn_load_->setDisabled(false);
@@ -285,8 +295,79 @@ void StartScreenWidget::loadFilesClick()
 // ******************************************************************************************
 bool StartScreenWidget::loadExistingFiles()
 {
-  // TODO: THIS FUNCTION
-  std::cout << "load existing" << std::endl;
+  // Get package path
+  std::string package_path = stack_path_->getPath();
+
+  // Trim whitespace from user input
+  boost::trim( package_path );
+
+  // check that a folder is provided
+  if( package_path.empty() )
+  {
+    QMessageBox::warning( this, "Error Loading Files", "Please specify a configuration package path to load." );
+    return false;
+  }
+  
+  // check that the folder exists
+  if( !fs::is_directory( package_path ) )
+  {
+    QMessageBox::critical( this, "Error Loading Files", "The specified path is not a directory, or is not accessable" );
+    return false;
+  }
+
+  // Get the package name 
+  // TODO: is this needed?
+  //const std::string package_name = getPackageName( package_path );
+
+  // .setup_assistant file
+  const std::string setup_assistant_file = package_path + ".setup_assistant";
+
+  // Check if the old package is a setup assistant package. If it is not, quit
+  if( ! fs::is_regular_file( setup_assistant_file ) )
+  {
+    QMessageBox::warning( this, "Incorrect Directory/Package", 
+                          QString("The chosen package location already exists but was not previously created using this MoveIt Setup Assistant. If this is a mistake, replace the missing file: ")
+                          .append( setup_assistant_file.c_str() ) );
+    return false;
+  }
+
+  // Get setup assistant data
+  if( !config_data_->inputSetupAssistantYAML( setup_assistant_file ) )
+  {
+    QMessageBox::warning( this, "Setup Assistant File Error",
+                          QString("Unable to correctly parse the setup assistant configuration file: " )
+                          .append( setup_assistant_file.c_str() ) );
+    return false;
+  }
+
+  // Get the URDF path using the loaded .setup_assistant data and check it
+  if( !createFullURDFPath() )
+    return false; // error occured
+
+  // Load the URDF
+  if( !loadURDFFile( config_data_->urdf_path_ ) )
+    return false; // error occured
+
+  // Get the SRDF path using the loaded .setup_assistant data and check it
+  if( !createFullSRDFPath( package_path ) )
+    return false; // error occured
+
+  // Load the SRDF
+  if( !loadSRDFFile( config_data_->srdf_path_ ) )
+    return false; // error occured
+
+
+  // Load kinematics yaml file if available --------------------------------------------------
+  const std::string kinematics_yaml_path = package_path + "config/kinematics.yaml"; 
+  
+  if( !config_data_->inputKinematicsYAML( kinematics_yaml_path ) )
+  {
+    QMessageBox::critical( this, "Error Loading Files", 
+                           QString("Failed to parse kinematics yaml file at location ").append( kinematics_yaml_path.c_str() ) );
+    return false;
+  }
+
+
 
   return true; //success
 }
@@ -296,149 +377,41 @@ bool StartScreenWidget::loadExistingFiles()
 // ******************************************************************************************
 bool StartScreenWidget::loadNewFiles()
 {
-  std::string urdf_path = urdf_file_->getPath();
+  // Get URDF file names and load to moveit_config_data_
+  config_data_->urdf_path_ = urdf_file_->getURDFPath();
 
-  // Trim whitespace from user input
-  boost::trim( urdf_path );
-
-  // check that a file is provided
-  if( urdf_path == "" )
-  {
-
-    QMessageBox::warning( this, "Error Loading Files", "Please specify a URDF or COLLADA file to load" );
+  // Check that an error did not occur
+  if( config_data_->urdf_path_.empty() )
     return false;
-  }
-
-  // check that URDF can be loaded
-  std::ifstream urdf_stream( urdf_path.c_str() );
-  if( !urdf_stream.good() ) // File not found
-  {
-    QMessageBox::warning( this, "Error Loading Files", "URDF/COLLADA file not found" );
-    return false;
-  }
-      
-  // Load the file to a string using an efficient memory allocation technique
-  std::string urdf_string;
-  urdf_stream.seekg(0, std::ios::end);   
-  urdf_string.reserve(urdf_stream.tellg());
-  urdf_stream.seekg(0, std::ios::beg);
-  urdf_string.assign( (std::istreambuf_iterator<char>(urdf_stream)), std::istreambuf_iterator<char>() );  
-  urdf_stream.close();
-
-  // Progress Indicator
-  progress_bar_->setValue( 10 );
-  QApplication::processEvents();
-
-  // Verify that file is in correct format / not an XACRO by loading into robot model
-  if( !config_data_->urdf_model_->initString( urdf_string ) )
-  {
-    QMessageBox::warning( this, "Error Loading Files", 
-                          "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
-    return false;
-  }
-  else
-  {
-    ROS_INFO_STREAM( "Loaded " << config_data_->urdf_model_->getName() << " robot model." );
-
-    // Copy path to config data
-    config_data_->urdf_path_ = urdf_path;
-  }
-
-
-  // Check that ROS Core is running
-  if( ! ros::master::check() )
-  {
-    // roscore is not running
-    QMessageBox::warning( this, "ROS Error", 
-                          "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
-    return false;
-  }
-
-  // Load the robot model to the parameter server
-  ros::NodeHandle nh;
-  while (!nh.ok())
-  {
-    ROS_WARN("Waiting for node handle");
-    sleep(1);
-    ros::spinOnce(); 
-  }
+  
+  // Copy other data
+  config_data_->urdf_pkg_name_ = urdf_file_->robot_desc_pkg_field_->text().toStdString();
+  config_data_->urdf_pkg_relative_path_ = urdf_file_->relative_urdf_path_field_->text().toStdString();
 
   // Progress Indicator
   progress_bar_->setValue( 20 );
   QApplication::processEvents();
 
-  ROS_INFO("Setting Param Server with Robot Description");
-  nh.setParam("/robot_description", urdf_string); // TODO: fix the rosparam issue with large strings
-  
+  // Load the URDF to the parameter server and check that it is correct format
+  loadURDFFile( config_data_->urdf_path_ );
+
   // Progress Indicator
-  progress_bar_->setValue( 40 );
+  progress_bar_->setValue( 50 );
   QApplication::processEvents();
 
-  // SRDF -----------------------------------------------------
-  std::string srdf_path = srdf_file_->getPath();
+  // Create blank SRDF file
+  const std::string blank_srdf = 
+    "<?xml version='1.0'?><robot name='" + config_data_->urdf_model_->getName() + "'></robot>";
 
-  // Trim whitespace from user input
-  boost::trim( srdf_path );
-    
-  // check that a file is provided. if not, we don't bother with anything else
-  if( srdf_path != "" )
+  // Load a blank SRDF file to the parameter server
+  if( setSRDFFile( blank_srdf ))
   {
-    // check that SRDF can be loaded
-    std::ifstream srdf_stream( srdf_path.c_str() );
-    if( !srdf_stream.good() ) // File not found
-    {
-      QMessageBox::warning( this, "Error Loading Files", 
-                            "SRDF file not found. This file is optional, so leaving the textbox blank is also allowable" );
-      return false;
-    }
-      
-    // Load the file to a string using an efficient memory allocation technique
-    std::string srdf_string;
-
-    srdf_stream.seekg(0, std::ios::end);   
-    srdf_string.reserve(srdf_stream.tellg());
-    srdf_stream.seekg(0, std::ios::beg);
-    srdf_string.assign((std::istreambuf_iterator<char>(srdf_stream)),
-                       std::istreambuf_iterator<char>());  
-
-    // Verify that file is in correct format by loading into srdf parser
-    if( !config_data_->srdf_->initString( *config_data_->urdf_model_, srdf_string ) )
-    {
-      QMessageBox::warning( this, "Error Loading Files", 
-                            "SRDF file not a valid semantic robot description model." );
-      return false;
-    }
-    else
-    {
-      ROS_INFO_STREAM( "Robot semantic model successfully loaded." );
-      
-      // Copy path to config data
-      config_data_->srdf_path_ = srdf_path;
-    }
-  
-    ROS_INFO( "Setting Param Server - Semantic" );
-
-    // Load the robot model to the parameter server
-    nh.setParam("/robot_description_semantic", srdf_string);
-
-    // Progress Indicator
-    progress_bar_->setValue( 50 );
-    QApplication::processEvents();
-  }
-
-  // Load kinematics solver if available --------------------------------------------------
-  // TODO: un-hard code this
-  const std::string kinematics_yaml_path = "/u/dcoleman/ros/moveit/moveit_ros/moveit_setup_assistant/templates/moveit_config_pkg_template/config/kinematics.yaml"; 
-  
-  if( !config_data_->inputKinematicsYAML( kinematics_yaml_path ) )
-  {
-    QMessageBox::critical( this, "Error Loading Files", 
-                           QString("Failed to parse kinematics yaml file at location ").append( kinematics_yaml_path.c_str() ) );
+    QMessageBox::warning( this, "Error Loading Files", "Failure loading blank SRDF file." );
     return false;
   }
 
   // Progress Indicator
-  progress_bar_->setValue( 70 );
+  progress_bar_->setValue( 60 );
   QApplication::processEvents();
 
   // DONE LOADING --------------------------------------------------------------------------
@@ -447,7 +420,7 @@ bool StartScreenWidget::loadNewFiles()
   Q_EMIT readyToProgress();
 
   // Progress Indicator
-  progress_bar_->setValue( 80 );
+  progress_bar_->setValue( 70 );
   QApplication::processEvents();
 
   // Load Rviz
@@ -462,6 +435,163 @@ bool StartScreenWidget::loadNewFiles()
   ROS_INFO( "Loading Setup Assistant Complete" );
   return true; // success!
 }
+
+// ******************************************************************************************
+// Load URDF File to Parameter Server
+// ******************************************************************************************
+bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
+{
+  // check that URDF can be loaded
+  std::ifstream urdf_stream( urdf_file_path.c_str() );
+  if( !urdf_stream.good() ) // File not found
+  {
+    QMessageBox::warning( this, "Error Loading Files", QString( "URDF/COLLADA file not found: " ).append( urdf_file_path.c_str() ) );
+    return false;
+  }
+      
+  // Load the file to a string using an efficient memory allocation technique
+  std::string urdf_string;
+  urdf_stream.seekg(0, std::ios::end);   
+  urdf_string.reserve(urdf_stream.tellg());
+  urdf_stream.seekg(0, std::ios::beg);
+  urdf_string.assign( (std::istreambuf_iterator<char>(urdf_stream)), std::istreambuf_iterator<char>() );  
+  urdf_stream.close();
+
+  // Verify that file is in correct format / not an XACRO by loading into robot model
+  if( !config_data_->urdf_model_->initString( urdf_string ) )
+  {
+    QMessageBox::warning( this, "Error Loading Files", 
+                          "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
+    return false;
+  }
+
+  ROS_INFO_STREAM( "Loaded " << config_data_->urdf_model_->getName() << " robot model." );
+
+  // Load the robot model to the parameter server
+  ros::NodeHandle nh;
+  while (!nh.ok())
+  {
+    ROS_WARN("Waiting for node handle");
+    sleep(1);
+    ros::spinOnce(); 
+  }
+
+  ROS_INFO("Setting Param Server with Robot Description");
+  nh.setParam("/robot_description", urdf_string); // TODO: fix the rosparam issue with large strings
+
+  return true;
+}
+
+// ******************************************************************************************
+// Load SRDF File to Parameter Server
+// ******************************************************************************************
+bool StartScreenWidget::loadSRDFFile( const std::string& srdf_file_path )
+{
+  // check that SRDF can be loaded
+  std::ifstream srdf_stream( srdf_file_path.c_str() );
+  if( !srdf_stream.good() ) // File not found
+  {
+    QMessageBox::warning( this, "Error Loading Files", QString( "SRDF file not found: " ).append( config_data_->srdf_path_.c_str() ) );
+    return false;
+  }
+      
+  // Load the file to a string using an efficient memory allocation technique
+  std::string srdf_string;
+  srdf_stream.seekg(0, std::ios::end);   
+  srdf_string.reserve(srdf_stream.tellg());
+  srdf_stream.seekg(0, std::ios::beg);
+  srdf_string.assign( (std::istreambuf_iterator<char>(srdf_stream)), std::istreambuf_iterator<char>() );  
+  srdf_stream.close();
+
+  // Put on param server
+  return setSRDFFile( srdf_string );
+}
+
+// ******************************************************************************************
+// Put SRDF File on Parameter Server
+// ******************************************************************************************
+bool StartScreenWidget::setSRDFFile( const std::string& srdf_string )
+{
+  // Verify that file is in correct format / not an XACRO by loading into robot model
+  if( !config_data_->srdf_->initString( *config_data_->urdf_model_, srdf_string ) )
+  {
+    QMessageBox::warning( this, "Error Loading Files", 
+                          "SRDF file not a valid semantic robot description model." );
+    return false;
+  }
+  ROS_INFO_STREAM( "Robot semantic model successfully loaded." );
+
+  // Load to param server
+  ros::NodeHandle nh;
+  while (!nh.ok())
+  {
+    ROS_WARN("Waiting for node handle");
+    sleep(1);
+    ros::spinOnce(); 
+  }
+
+  ROS_INFO("Setting Param Server with Robot Semantic Description");
+  nh.setParam("/robot_description_semantic", srdf_string);
+
+  return true;
+}
+
+// ******************************************************************************************
+// Make the full URDF path using the loaded .setup_assistant data
+// ******************************************************************************************
+bool StartScreenWidget::createFullURDFPath()
+{
+  // Check that ROS can find the package
+  const std::string robot_desc_pkg_path = ros::package::getPath( config_data_->urdf_pkg_name_ );
+  if( robot_desc_pkg_path.empty() )
+  {
+    QMessageBox::warning( this, "Error Loading Files", QString("ROS was unable to find the package name '")
+                          .append( config_data_->urdf_pkg_name_.c_str() )
+                          .append("'. Verify this package is inside your ROS workspace and is a proper ROS package.") );
+    return false;
+  }
+
+  // Append the relative URDF url path
+  config_data_->urdf_path_ = robot_desc_pkg_path + config_data_->urdf_pkg_relative_path_;
+
+  // Trim whitespace from user input
+  boost::trim( config_data_->urdf_path_ );
+
+  // Check that this file exits
+  if( ! fs::is_regular_file( config_data_->urdf_path_ ) )
+  {
+    QMessageBox::warning( this, "Error Loading Files",
+                          QString("Unable to locate the URDF file: " )
+                          .append( config_data_->urdf_path_.c_str() ) );
+    return false;
+  }
+
+  return true; // success
+}
+
+// ******************************************************************************************
+// Make the full SRDF path using the loaded .setup_assistant data
+// ******************************************************************************************
+bool StartScreenWidget::createFullSRDFPath( const std::string& package_path )
+{
+  // Append the relative SRDF url path
+  config_data_->srdf_path_ = package_path + "config/pr2.srdf"; // TODO: make this not PR2!!
+
+  // Trim whitespace from user input
+  boost::trim( config_data_->srdf_path_ );
+
+  // Check that this file exits
+  if( ! fs::is_regular_file( config_data_->srdf_path_ ) )
+  {
+    QMessageBox::warning( this, "Error Loading Files",
+                          QString("Unable to locate the SRDF file: " )
+                          .append( config_data_->srdf_path_.c_str() ) );
+    return false;
+  }
+
+  return true; // success
+}
+
 
 // ******************************************************************************************
 // ******************************************************************************************
@@ -518,5 +648,196 @@ SelectModeWidget::SelectModeWidget( QWidget* parent )
   setLayout(layout);
 }
 
+// ******************************************************************************************
+// ******************************************************************************************
+// Class for selecting urdf package and file
+// ******************************************************************************************
+// ******************************************************************************************
 
+// ******************************************************************************************
+// Create the widget
+// ******************************************************************************************
+LoadURDFWidget::LoadURDFWidget( QWidget* parent )
+  : QFrame(parent)
+{
+  // Set frame graphics
+  setFrameShape(QFrame::StyledPanel);
+  setFrameShadow(QFrame::Raised);
+  setLineWidth(1);
+  setMidLineWidth(0);
+
+  // Basic widget container
+  QVBoxLayout *layout = new QVBoxLayout(this);
+
+  // Widget Title
+  QLabel * widget_title = new QLabel(this);
+  widget_title->setText( "Load a URDF or Collada Robot Model" );
+  QFont widget_title_font( "Arial", 12, QFont::Bold );
+  widget_title->setFont(widget_title_font);
+  layout->addWidget( widget_title);
+  layout->setAlignment( widget_title, Qt::AlignTop);
+
+  // Widget Instructions
+  QLabel * widget_instructions = new QLabel(this);
+  widget_instructions->setText( "Specify the 'robot description' package that contains your robot's URDF/Collada file, then input the relative path to the actual URDF/Collada file." );
+  widget_instructions->setWordWrap(true);
+  widget_instructions->setTextFormat( Qt::RichText );
+  layout->addWidget( widget_instructions);
+  layout->setAlignment( widget_instructions, Qt::AlignTop);    
+
+  // Robot Description Package Name ----------------------------------------------
+
+  // Label
+  QLabel * field1_label = new QLabel(this);
+  field1_label->setText( "Package containing URDF:" );
+  layout->addWidget( field1_label);
+
+  // Field
+  robot_desc_pkg_field_ = new QLineEdit( this );
+  //robot_desc_pkg_field_->setMaximumWidth( 400 );
+  robot_desc_pkg_field_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  layout->addWidget( robot_desc_pkg_field_ );
+  //layout->setAlignment( robot_desc_pkg_field_, Qt::AlignLeft );
+  // Relative URDF path -----------------------------------------------------------
+
+  // Label
+  QLabel * field2_label = new QLabel(this);
+  field2_label->setText( "Relative Path to URDF in Package:" );
+  layout->addWidget( field2_label);
+
+  // Layout
+  QHBoxLayout * field2_layout = new QHBoxLayout();
+
+  // Field
+  relative_urdf_path_field_ = new QLineEdit( this );
+  relative_urdf_path_field_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  //  relative_urdf_path_field_->setMaximumWidth( 400 );
+  field2_layout->addWidget( relative_urdf_path_field_ );
+  //field2_layout->setAlignment( relative_urdf_path_field_, Qt::AlignLeft );
+
+  // Button
+  QPushButton *btn_browse = new QPushButton(this);
+  btn_browse->setText("Browse");
+  connect( btn_browse, SIGNAL( clicked() ), this, SLOT( btn_file_dialog() ) );
+  field2_layout->addWidget( btn_browse );
+  field2_layout->setAlignment( btn_browse, Qt::AlignRight );
+
+  // Add horizontal layer to verticle layer
+  layout->addLayout( field2_layout );
+
+  // Done
+  setLayout(layout);
 }
+
+// ******************************************************************************************
+// Load the file dialog
+// ******************************************************************************************
+void LoadURDFWidget::btn_file_dialog()
+{
+  // Get the full path to the robot description package
+  const std::string robot_desc_pkg_path = getURDFPackagePath();
+
+  // Exit if error occured
+  if( robot_desc_pkg_path.empty() )
+    return;
+  
+  // Popup the file dialog
+  QString start_path = robot_desc_pkg_path.c_str();
+  QString path = QFileDialog::getOpenFileName(this, "Open File", start_path, "");
+
+  // Check they did not press cancel
+  if (path == NULL)
+    return;
+
+  // Confirm that the chosen file is within the robot description package
+  std::string urdf_path = path.toStdString();
+  if( urdf_path.find( robot_desc_pkg_path ) == std::string::npos )
+  {
+    // they have chosen a location outside the robot description path
+    QMessageBox::warning( this, "Error Loading Files", QString("The chosen URDF path is outside the ROS package you chose for the robot description package. Original path: " )
+                          .append( robot_desc_pkg_field_->text() ).append("'. URDF file path: '")
+                          .append( path ) );
+    return;
+  }    
+
+  // Remove preceeding string part
+  boost::replace_all( urdf_path, robot_desc_pkg_path, "" );
+
+  relative_urdf_path_field_->setText( urdf_path.c_str() );
+}
+
+// ******************************************************************************************
+// Get the full URDF path
+// ******************************************************************************************
+const std::string LoadURDFWidget::getURDFPath()
+{
+  // Get the full path to the robot description package
+  const std::string robot_desc_pkg_path = getURDFPackagePath();
+
+  // Exit if error occured
+  if( robot_desc_pkg_path.empty() )
+    return "";
+
+  // Check that a relative URL has been added
+  if( !relative_urdf_path_field_->text().size() )
+  {
+    QMessageBox::warning( this, "Error Loading Files", "Please specify the package-relative path to the actual URDF/Collada file." );
+    return "";
+  }    
+
+  // Append the relative URDF url path
+  std::string full_urdf_file_path = robot_desc_pkg_path + relative_urdf_path_field_->text().toStdString();
+
+  // Trim whitespace from user input
+  boost::trim( full_urdf_file_path );
+
+  // Check that this file exits
+  if( ! fs::is_regular_file( full_urdf_file_path ) )
+  {
+    QMessageBox::warning( this, "Error Loading Files",
+                          QString("Unable to locate the URDF file: " )
+                          .append( full_urdf_file_path.c_str() ) );
+    return "";
+  }
+  
+  return full_urdf_file_path;
+}
+
+
+// ******************************************************************************************
+// Get the full robot descriuption path
+// ******************************************************************************************
+const std::string LoadURDFWidget::getURDFPackagePath()
+{
+  // Check that a package has been provided
+  if( !robot_desc_pkg_field_->text().size() )
+  {
+    QMessageBox::warning( this, "Error Loading Files", "Please first specify the ROS package containing the URDF/Collada file." );
+    return "";
+  }  
+
+  const std::string robot_desc_pkg_name = robot_desc_pkg_field_->text().toStdString();
+  
+  // Check that there are no slashes
+  if( robot_desc_pkg_name.find( "/" ) != std::string::npos )
+  {
+    // they have chosen a location outside the robot description path
+    QMessageBox::warning( this, "Error Loading Files", "No slashes allowed in package name" );
+    return "";
+  }      
+
+  // Check that ROS can find the package
+  const std::string robot_desc_pkg_path = ros::package::getPath( robot_desc_pkg_name );
+  if( robot_desc_pkg_path.empty() )
+  {
+    QMessageBox::warning( this, "Error Loading Files", QString("ROS was unable to find the package name '")
+                          .append( robot_desc_pkg_field_->text() ).append("'. Verify this package is inside your ROS workspace and is a proper ROS package.") );
+    return "";
+  }
+
+  return robot_desc_pkg_path;
+}
+
+
+
+} // namespace

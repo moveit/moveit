@@ -182,14 +182,15 @@ bool MoveItConfigData::outputSetupAssistantFile( const std::string& file_path )
   // URDF Path Location
   emitter << YAML::Key << "URDF";
   emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "path" << YAML::Value << urdf_path_;
+  emitter << YAML::Key << "package" << YAML::Value << urdf_pkg_name_;
+  emitter << YAML::Key << "relative_path" << YAML::Value << urdf_pkg_relative_path_;
   emitter << YAML::EndMap;
 
   /// SRDF Path Location
-  emitter << YAML::Key << "SRDF";
-  emitter << YAML::Value << YAML::BeginMap;
-  emitter << YAML::Key << "path" << YAML::Value << srdf_path_;
-  emitter << YAML::EndMap;
+  /*emitter << YAML::Key << "SRDF";
+    emitter << YAML::Value << YAML::BeginMap;
+    emitter << YAML::Key << "path" << YAML::Value << srdf_path_;
+    emitter << YAML::EndMap; */
   
   emitter << YAML::EndMap;
 
@@ -617,6 +618,73 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
   return true; // file created successfully
 }
 
+// ******************************************************************************************
+// Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
+// ******************************************************************************************
+bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
+{
+  // Load file
+  std::ifstream input_stream( file_path.c_str() );
+  if( !input_stream.good() )
+  {
+    ROS_ERROR_STREAM( "Unable to open file for reading " << file_path );
+    return false;
+  }
+
+  // Begin parsing
+  try {
+    YAML::Parser parser(input_stream);
+    YAML::Node doc;
+    parser.GetNextDocument(doc);
+
+    // Get title node
+    if( const YAML::Node *title_node =doc.FindValue( "moveit_setup_assistant_config" ) ) 
+    {
+      if( const YAML::Node *urdf_node = title_node->FindValue( "URDF" ) ) 
+      {
+        if( const YAML::Node *package_node = urdf_node->FindValue( "package" ) ) 
+        {
+          *package_node >> urdf_pkg_name_;
+        } 
+        return true;
+      }
+    }
+    
+    /*
+    // Loop through all groups
+    for( YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it ) 
+    {
+      std::string group_name;
+      group_it.first() >> group_name;
+
+      // Create new meta data
+      GroupMetaData new_meta_data;
+
+      // kinematics_solver
+      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver" ) ) 
+      {
+        *prop_name >> new_meta_data.kinematics_solver_;
+      }
+
+      // kinematics_solver_search_resolution 
+      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_search_resolution" ) ) 
+      {
+        *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
+      }
+
+      // Assign meta data to vector
+      group_meta_data_[ group_name ] = new_meta_data;
+    }
+    */
+
+  } 
+  catch(YAML::ParserException& e)  // Catch errors
+  {
+    ROS_ERROR_STREAM( e.what() );
+  }
+
+  return false; // if it gets to this point an error has occured
+}
 
 
 
