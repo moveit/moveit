@@ -67,7 +67,7 @@ public:
     std::string type_;
   };
 
-  template<typename PlanningSceneType = planning_scene::PlanningScene>
+  template<typename PlanningSceneType, typename CollisionWorldType, typename CollisionRobotType>
   struct SceneConfig : public SceneConfigBase
   {  
     BOOST_CONCEPT_ASSERT((boost::Convertible<PlanningSceneType*, planning_scene::PlanningScene*>));
@@ -78,7 +78,9 @@ public:
     
     virtual planning_scene::PlanningScenePtr allocPlanningScene(void)
     {
-      return planning_scene::PlanningScenePtr(new PlanningSceneType());
+      planning_scene::PlanningScenePtr result(new PlanningSceneType());
+      result->setCollisionDetectionTypes<CollisionWorldType, CollisionRobotType>();
+      return result;
     }
   };
 

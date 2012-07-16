@@ -41,12 +41,12 @@
 #include <planning_models/kinematic_model.h>
 #include <collision_distance_field/collision_distance_field_types.h>
 
-namespace collision_distance_field_ros 
+namespace collision_detection 
 {
 
 static inline bool loadLinkBodySphereDecompositions(ros::NodeHandle& nh,
                                                     const planning_models::KinematicModelConstPtr& kmodel, 
-                                                    std::map<std::string, std::vector<collision_distance_field::CollisionSphere> >& link_body_spheres)
+                                                    std::map<std::string, std::vector<collision_detection::CollisionSphere> >& link_body_spheres)
 {
   if(!nh.hasParam("link_spheres")) {
     ROS_INFO_STREAM("No parameter for link spheres");
@@ -78,12 +78,12 @@ static inline bool loadLinkBodySphereDecompositions(ros::NodeHandle& nh,
     if(spheres.getType() != XmlRpc::XmlRpcValue::TypeArray) {    
       if(std::string(spheres) == "none") {
         ROS_DEBUG_STREAM("No spheres for " << link);
-        std::vector<collision_distance_field::CollisionSphere> coll_spheres;
+        std::vector<collision_detection::CollisionSphere> coll_spheres;
         link_body_spheres[link_spheres[i]["link"]] = coll_spheres;
         continue;
       }
     }
-    std::vector<collision_distance_field::CollisionSphere> coll_spheres;
+    std::vector<collision_detection::CollisionSphere> coll_spheres;
     for(int j = 0; j < spheres.size(); j++) {
       if(!spheres[j].hasMember("x")) {
         ROS_WARN_STREAM("All spheres must specify a value for x");
@@ -103,7 +103,7 @@ static inline bool loadLinkBodySphereDecompositions(ros::NodeHandle& nh,
       }
       Eigen::Vector3d rel(spheres[j]["x"], spheres[j]["y"], spheres[j]["z"]);
       ROS_DEBUG_STREAM("Link " << link_spheres[i]["link"] << " sphere " << coll_spheres.size() << " " << rel.x() << " " << rel.y() << " " << rel.z());
-      collision_distance_field::CollisionSphere cs(rel, spheres[j]["radius"]);
+      collision_detection::CollisionSphere cs(rel, spheres[j]["radius"]);
       coll_spheres.push_back(cs);
     }
     link_body_spheres[link_spheres[i]["link"]] = coll_spheres;

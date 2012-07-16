@@ -40,9 +40,8 @@
 #include <rviz/default_plugin/interactive_marker_display.h>
 #include <rviz/display_wrapper.h>
 #include <rviz/view_controllers/orbit_view_controller.h>
-#include <collision_distance_field_ros/planning_scene_distance_field_ros.h>
-#include <collision_detection_fcl/collision_world.h>
-#include <collision_detection_fcl/collision_robot.h>
+#include <collision_distance_field_ros/hybrid_collision_robot_ros.h>
+#include <collision_distance_field/hybrid_collision_world.h>
 
 static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 
@@ -64,7 +63,7 @@ MoveItVisualizer::MoveItVisualizer() :
   interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
   kinematic_model_loader_.reset(new planning_models_loader::KinematicModelLoader("robot_description"));
 
-  planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr scp(new planning_scene_monitor::PlanningSceneMonitor::SceneConfig<planning_scene::PlanningSceneDistanceFieldRos>("distance"));
+  planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr scp(new planning_scene_monitor::PlanningSceneMonitor::SceneConfig<planning_scene::PlanningScene, collision_detection::CollisionWorldHybrid, collision_detection::CollisionRobotHybridROS>("distance"));
 
   std::vector<planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr> scpv(1, scp);
 

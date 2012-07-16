@@ -38,54 +38,63 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
-#include <ros/package.h>
 #include <moveit_warehouse/warehouse_connector.h>
 
 namespace moveit_warehouse
 {
 
-WarehouseConnector::WarehouseConnector() {
-  child_pid_ = 0;
+WarehouseConnector::WarehouseConnector(const std::string &mongoexec) : mongoexec_(mongoexec), child_pid_(0)
+{
 }
 
-WarehouseConnector::~WarehouseConnector() {
-  if(child_pid_ != 0) {
+WarehouseConnector::~WarehouseConnector(void)
+{
+  if (child_pid_ != 0)
     kill(child_pid_, SIGTERM);
-  }
 }
 
-bool WarehouseConnector::connectToDatabase(const std::string& dirname, 
-                                           boost::shared_ptr<PlanningSceneStorage>& planning_scene_storage) {
-  
-  if(child_pid_ != 0) {
+bool WarehouseConnector::connectToDatabase(const std::string& dirname, boost::shared_ptr<PlanningSceneStorage>& planning_scene_storage)
+{
+  if(child_pid_ != 0)
     kill(child_pid_, SIGTERM);
-  }
   
   child_pid_ = fork();
-  if(child_pid_ == 0) {
-    std::string mongoexec = "/opt/ros/fuerte/stacks/warehousewg/mongodb/mongo/bin/mongod";
-    char** argv = new char*[4];
-    
-    argv[0] = new char[25];
-    sprintf(argv[0], "mongod");
-    
-    argv[1] = new char[25];
-    sprintf(argv[1], "--dbpath");
-    
-    argv[2] = new char[1024];
-    sprintf(argv[2], "%s", dirname.c_str());
-    
-    argv[3] = NULL;
-    
-    //ros::package::getPath("mongodb");//+"/bin/mongod";
-    int code = execv(mongoexec.c_str(), argv);
-    delete[] argv[0];
-    delete[] argv[1];
-    delete[] argv[2];
-    delete[] argv;
-    ROS_INFO_STREAM("Deleting " << code << " errno " << errno << " string errno " << strerror(errno));
-    //std::string("--dbpath").c_str(), "/u/gjones/.ros/arm_navigation_dbs/pr2_manip_db", NULL);
-  } else {
+  if (child_pid_ == -1)
+  {
+    ROS_ERROR("Error forking process.");
+    child_pid_ = 0;
+    return false;
+  }
+  
+  if (child_pid_ == 0)
+  {
+    std::size_t exec_file_pos = mongoexec_.find_last_of("/\\");
+    if (exec_file_pos != std::string::npos)
+    {
+      char** argv = new char*[4];      
+      std::size_t exec_length = 1 + mongoexec_.length() - exec_file_pos;
+      argv[0] = new char[1 + exec_length];
+      snprintf(argv[0], exec_length, "%s", mongoexec_.substr(exec_file_pos + 1).c_str());
+      
+      argv[1] = new char[16];
+      snprintf(argv[1], 15, "--dbpath");
+      
+      argv[2] = new char[1024];
+      snprintf(argv[2], 1023, "%s", dirname.c_str());
+      
+      argv[3] = NULL;
+      
+      int code = execv(mongoexec_.c_str(), argv);
+      delete[] argv[0];
+      delete[] argv[1];
+      delete[] argv[2];
+      delete[] argv;
+      ROS_ERROR_STREAM("execv() returned " << code << ", errno=" << errno << " string errno = " << strerror(errno));
+    }
+    return false;
+  }
+  else
+  {
     //sleep so mongod has time to come up
     ros::WallDuration(1.0).sleep();
     planning_scene_storage.reset(new PlanningSceneStorage());
