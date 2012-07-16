@@ -34,23 +34,37 @@
 
 /** \author E. Gil Jones */
 
-#ifndef _PLANNING_SCENE_DISTANCE_FIELD_ROS_H_
-#define _PLANNING_SCENE_DISTANCE_FIELD_ROS_H_
+#ifndef _COLLISION_ROBOT_HYBRID_ROS_H_
+#define _COLLISION_ROBOT_HYBRID_ROS_H_
 
 #include <ros/ros.h>
-#include <planning_scene_distance_field/planning_scene_distance_field.h>
 #include <collision_distance_field_ros/collision_distance_field_ros_helpers.h>
+#include <collision_distance_field/hybrid_collision_robot.h>
 
-namespace planning_scene {
+namespace collision_detection {
 
-class PlanningSceneDistanceFieldRos : public PlanningSceneDistanceField 
+class CollisionRobotHybridROS : public CollisionRobotHybrid
 {
 public:
-  PlanningSceneDistanceFieldRos() : PlanningSceneDistanceField() {
+  
+  CollisionRobotHybridROS(const planning_models::KinematicModelConstPtr& kmodel, 
+                          double size_x = 3.0, 
+                          double size_y = 3.0,
+                          double size_z = 4.0,
+                          bool use_signed_distance_field = false,
+                          double resolution = .02,
+                          double collision_tolerance = 0.0,
+                          double max_propogation_distance = .25,
+                          double padding = 0.0, 
+                          double scale = 1.0) :
+    CollisionRobotHybrid(kmodel)
+  {
     ros::NodeHandle nh;
-    collision_distance_field_ros::loadLinkBodySphereDecompositions(nh,
-                                                                   getKinematicModel(),
-                                                                   coll_spheres_);
+    std::map<std::string, std::vector<CollisionSphere> > coll_spheres;
+    collision_detection::loadLinkBodySphereDecompositions(nh,
+                                                          getKinematicModel(),
+                                                          coll_spheres);
+    initializeRobotDistanceField(coll_spheres, size_x, size_y, size_z, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
   }
 };
 

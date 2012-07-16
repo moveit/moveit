@@ -22,7 +22,6 @@
   <depend package="collision_distance_field"/>
   <depend package="collision_distance_field_ros"/>
   <depend package="distance_field"/>
-  <depend package="planning_scene_distance_field"/>
   <depend package="trajectory_processing"/>
   <depend package="moveit_warehouse"/>
   <depend package="planning_models_loader"/>

@@ -85,8 +85,8 @@ int main(int argc, char** argv)
   vis_marker_publisher = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
-  collision_distance_field::CollisionRobotDistanceField coll(planning_scene_monitor_->getPlanningScene()->getKinematicModel());
-  collision_distance_field::CollisionWorldDistanceField world;
+  collision_detection::CollisionRobotDistanceField coll(planning_scene_monitor_->getPlanningScene()->getKinematicModel());
+  collision_detection::CollisionWorldDistanceField world;
   shapes::Shape* shape = new shapes::Box(.1,.1,.5);
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
   pos1.translation().x() = .4;
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
   req.group_name = "right_arm";
   collision_detection::AllowedCollisionMatrix acm = planning_scene_monitor_->getPlanningScene()->getAllowedCollisionMatrix();
 
-  boost::shared_ptr<collision_distance_field::GroupStateRepresentation> world_gsr;
+  boost::shared_ptr<collision_detection::GroupStateRepresentation> world_gsr;
   world.getCollisionGradients(req, 
                               res, 
                               coll, 
@@ -118,13 +118,13 @@ int main(int argc, char** argv)
                                                   ros::Time::now(),
                                                   Eigen::Affine3d::Identity(),
                                                   inf_marker);
-  //boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> world_gsr = world.getLastGroupStateRepresentation();
+  //boost::shared_ptr<const collision_detection::CollisionRobotDistanceField::GroupStateRepresentation> world_gsr = world.getLastGroupStateRepresentation();
 
   visualization_msgs::MarkerArray arrow_markers;
   std_msgs::ColorRGBA col;
   col.b = 1.0;
   col.a = .8;
-  collision_distance_field::getProximityGradientMarkers(planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+  collision_detection::getProximityGradientMarkers(planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
                                                         "arrows",
                                                         ros::Duration(0.0),
                                                         world_gsr->link_body_decompositions_,
@@ -134,17 +134,17 @@ int main(int argc, char** argv)
 
   // //req.contacts = true;
   // coll.checkSelfCollision(req, res, planning_scene_monitor_->getPlanningScene()->getCurrentState(), acm);
-  // boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::DistanceFieldCacheEntry> dfce = coll.getLastDistanceFieldEntry();
+  // boost::shared_ptr<const collision_detection::CollisionRobotDistanceField::DistanceFieldCacheEntry> dfce = coll.getLastDistanceFieldEntry();
   // if(!dfce) {
   //   ROS_WARN_STREAM("no dfce");
   //   exit(-1);
   // }
-  // boost::shared_ptr<const collision_distance_field::CollisionRobotDistanceField::GroupStateRepresentation> gsr = coll.getLastGroupStateRepresentation();
+  // boost::shared_ptr<const collision_detection::CollisionRobotDistanceField::GroupStateRepresentation> gsr = coll.getLastGroupStateRepresentation();
   // // visualization_msgs::MarkerArray sphere_markers;
   // // std_msgs::ColorRGBA col;
   // // col.g = 1.0;
   // // col.a = .8;
-  // // collision_distance_field::getCollisionSphereMarkers(col,
+  // // collision_detection::getCollisionSphereMarkers(col,
   // //                                                     planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
   // //                                                     "spheres",
   // //                                                     ros::Duration(0.0),
@@ -155,7 +155,7 @@ int main(int argc, char** argv)
   // // std_msgs::ColorRGBA col;
   // // col.b = 1.0;
   // // col.a = .8;
-  // // collision_distance_field::getProximityGradientMarkers(col,
+  // // collision_detection::getProximityGradientMarkers(col,
   // //                                                      planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
   // //                                                      "arrows",
   // //                                                      ros::Duration(0.0),
