@@ -117,6 +117,9 @@ void MoveItConfigData::updateKinematicModel()
 
   // Create new kin model
   kin_model_.reset( new planning_models::KinematicModel( urdf_model_, srdf_->srdf_model_ ) );                                                            
+
+  // Reset the planning scene
+  planning_scene_.reset();
 }
 
 // ******************************************************************************************

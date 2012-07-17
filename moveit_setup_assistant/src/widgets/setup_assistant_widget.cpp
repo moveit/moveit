@@ -191,16 +191,16 @@ void SetupAssistantWidget::moveToScreen( const int index )
     current_index = index;
 
     // Show Rviz if appropriate
-    if( index != 0 )
-    {
+    /*if( index != 0 )
+      {
       rviz_container_->show();
-    }
-    else
-    {
+      }
+      else
+      {
       rviz_container_->hide();
-      // hide the start screen image so that is doesn't mess up the rviz column resizing
-      
-    }
+      // hide the start screen image so that is doesn't mess up the rviz column resizing      
+      }*/
+    rviz_container_->show();
 
     // Change screens
     main_content_->setCurrentIndex( index );
@@ -257,6 +257,8 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Enable navigation
   navs_view_->setDisabled( false );
 
+  // Replace logo with Rviz screen
+  rviz_container_->show();
 }
 
 // ******************************************************************************************

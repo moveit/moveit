@@ -287,7 +287,7 @@ void StartScreenWidget::loadFilesClick()
   else
   {
     // Hide the logo image so that other screens can resize the rviz thing properly
-    //right_image_label_->hide();
+    right_image_label_->hide();
   }
 
 }
@@ -401,8 +401,6 @@ bool StartScreenWidget::loadNewFiles()
   // Copy other data
   config_data_->urdf_pkg_name_ = urdf_file_->robot_desc_pkg_field_->text().toStdString();
   config_data_->urdf_pkg_relative_path_ = urdf_file_->relative_urdf_path_field_->text().toStdString();
-
-  std::cout << "URDF PKG RELATIVE: " <<   config_data_->urdf_pkg_relative_path_ << std::endl;
 
   // Progress Indicator
   progress_bar_->setValue( 20 );
