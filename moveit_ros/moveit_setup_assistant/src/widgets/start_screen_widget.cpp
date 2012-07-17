@@ -95,7 +95,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   
   // Stack Path Dialog
   stack_path_ = new LoadPathWidget("Load MoveIt Configuration Package Path", 
-                                   "Specify the location for an existing MoveIt configuration package to be edited for your robot. Example package name: '/u/robot/ros/pr2_moveit_config'. No tilde allowed.",
+                                   "Specify the package name or path of an existing MoveIt configuration package to be edited for your robot. Example package name: <i>pr2_moveit_config</i>",
                                    true, this); // is directory
   stack_path_->hide(); // user needs to select option before this is shown
   left_layout->addWidget( stack_path_ );
@@ -192,6 +192,8 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
 
+
+  // Debug mode:
   if( config_data_->debug_ && false )
   {
     select_mode_->btn_new_->click();
@@ -285,7 +287,7 @@ void StartScreenWidget::loadFilesClick()
   else
   {
     // Hide the logo image so that other screens can resize the rviz thing properly
-    //right_image_label_->hide();
+    right_image_label_->hide();
   }
 
 }
@@ -299,41 +301,12 @@ bool StartScreenWidget::loadExistingFiles()
   progress_bar_->setValue( 10 );
   QApplication::processEvents();
 
-  // Get package path
-  std::string package_path = stack_path_->getPath();
-
-  // Trim whitespace from user input
-  boost::trim( package_path );
-
-  // Add a slash at end of path name if it does not currently have one
-  size_t slash_pos = package_path.find_last_of("/\\");
-
-  // Make sure the last slash is the last character
-  if( slash_pos != package_path.size() - 1 )
-  {
-    // Add the slash at end
-    package_path.append("/"); // TODO: not Windows ready
-    
-    // Update the textbox
-    stack_path_->setPath( package_path );
-  }
-
-  // check that a folder is provided
-  if( package_path.empty() )
-  {
-    QMessageBox::warning( this, "Error Loading Files", "Please specify a configuration package path to load." );
-    return false;
-  }
-  
-  // check that the folder exists
-  if( !fs::is_directory( package_path ) )
-  {
-    QMessageBox::critical( this, "Error Loading Files", "The specified path is not a directory or is not accessable" );
-    return false;
-  }
+  // Get the package path
+  if( !createFullPackagePath() )
+    return false; // error occured
 
   // Path of .setup_assistant file
-  const std::string setup_assistant_file = package_path + ".setup_assistant";
+  const std::string setup_assistant_file = config_data_->config_pkg_path_ + ".setup_assistant";
 
   // Check if the old package is a setup assistant package. If it is not, quit
   if( ! fs::is_regular_file( setup_assistant_file ) )
@@ -366,7 +339,7 @@ bool StartScreenWidget::loadExistingFiles()
     return false; // error occured
 
   // Get the SRDF path using the loaded .setup_assistant data and check it
-  if( !createFullSRDFPath( package_path ) )
+  if( !createFullSRDFPath( config_data_->config_pkg_path_ ) )
     return false; // error occured
 
   // Progress Indicator
@@ -382,7 +355,7 @@ bool StartScreenWidget::loadExistingFiles()
   QApplication::processEvents();
 
   // Load kinematics yaml file if available --------------------------------------------------
-  const std::string kinematics_yaml_path = package_path + "config/kinematics.yaml"; 
+  const std::string kinematics_yaml_path = config_data_->config_pkg_path_ + "config/kinematics.yaml"; 
   
   if( !config_data_->inputKinematicsYAML( kinematics_yaml_path ) )
   {
@@ -428,8 +401,6 @@ bool StartScreenWidget::loadNewFiles()
   // Copy other data
   config_data_->urdf_pkg_name_ = urdf_file_->robot_desc_pkg_field_->text().toStdString();
   config_data_->urdf_pkg_relative_path_ = urdf_file_->relative_urdf_path_field_->text().toStdString();
-
-  std::cout << "URDF PKG RELATIVE: " <<   config_data_->urdf_pkg_relative_path_ << std::endl;
 
   // Progress Indicator
   progress_bar_->setValue( 20 );
@@ -634,6 +605,66 @@ bool StartScreenWidget::createFullSRDFPath( const std::string& package_path )
   return true; // success
 }
 
+// ******************************************************************************************
+// Get the full package path for editing an existing package
+// ******************************************************************************************
+bool StartScreenWidget::createFullPackagePath()
+{
+  // Get package path
+  std::string package_path_input = stack_path_->getPath();
+  std::string full_package_path;
+
+  // Trim whitespace from user input
+  boost::trim( package_path_input );
+
+  // check that a folder is provided
+  if( package_path_input.empty() )
+  {
+    QMessageBox::warning( this, "Error Loading Files", "Please specify a configuration package path to load." );
+    return false;
+  }
+
+  // Decide if this is a package name or a full path ----------------------------------------------
+
+  // check that the folder exists
+  if( !fs::is_directory( package_path_input ) )
+  {
+    // does not exist, check if its a package
+    full_package_path = ros::package::getPath( package_path_input ) + "/";    
+
+    // check that the folder exists
+    if( !fs::is_directory( full_package_path ) )
+    {
+      // error
+      QMessageBox::critical( this, "Error Loading Files", "The specified path is not a directory or is not accessable" );
+      return false;
+    }
+  }
+  else
+  {
+    // they inputted a full path
+    full_package_path = package_path_input;
+
+    // Add a slash at end of path name if it does not currently have one
+    size_t slash_pos = full_package_path.find_last_of("/\\");
+
+    // Make sure the last slash is the last character
+    if( slash_pos != full_package_path.size() - 1 )
+    {
+      // Add the slash at end
+      full_package_path.append("/"); // TODO: not Windows ready
+    
+      // Update the textbox
+      stack_path_->setPath( full_package_path );
+    }
+
+  }
+
+  config_data_->config_pkg_path_ = full_package_path;
+
+  return true;
+}
+
 
 // ******************************************************************************************
 // ******************************************************************************************
@@ -794,7 +825,7 @@ void LoadURDFWidget::btn_folder_dialog()
   std::string initial_path = robot_desc_pkg_path_;
 
   // Popup the folder dialog
-    QString path = QFileDialog::getExistingDirectory(this, "Open Robot Description Folder", initial_path.c_str(), 
+  QString path = QFileDialog::getExistingDirectory(this, "Open Robot Description Folder", initial_path.c_str(), 
                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks); 
 
   // Check they did not press cancel
@@ -934,7 +965,6 @@ const std::string LoadURDFWidget::getURDFPackagePath()
 
   return robot_desc_pkg_path;
 }
-
 
 
 } // namespace

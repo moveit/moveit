@@ -35,7 +35,6 @@
 /* Author: Dave Coleman */
 
 #include "moveit_setup_assistant/tools/compute_default_collisions.h"
-#include "moveit_setup_assistant/tools/benchmark_timer.h"
 #include <boost/math/special_functions/binomial.hpp> // for statistics at end
 #include <boost/thread.hpp>
 #include <tinyxml.h>
@@ -45,9 +44,6 @@
 
 namespace moveit_setup_assistant
 {
-
-// Temporary benchmarking global object, will remove when collision checking tool is stable. TODO
-BenchmarkTimer g_btimer; 
 
 // ******************************************************************************************
 // Custom Types, Enums and Structs
@@ -196,10 +192,6 @@ LinkPairMap
 computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int * progress, 
                          const bool include_never_colliding, const unsigned int num_trials, const bool verbose)
 {
-  // Setup benchmark timer
-  g_btimer = BenchmarkTimer();
-  g_btimer.start("Total"); 
-
   // Create new instance of planning scene using pointer
   planning_scene::PlanningScenePtr scene = parent_scene->diff();
 
@@ -225,16 +217,12 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
   // or via a chain of joints with intermediate links with no geometry (like a socket joint)
 
   // Create Connection Graph
-  g_btimer.start("Compute Connection Graph"); // Benchmarking Timer - temporary
   computeConnectionGraph(scene->getKinematicModel()->getRootLink(), link_graph);
-  g_btimer.end("Compute Connection Graph"); // Benchmarking Timer - temporary
   *progress = 2; // Progress bar feedback
 
   // 2. DISABLE ALL ADJACENT LINK COLLISIONS ---------------------------------------------------------
   // if 2 links are adjacent, or adjacent with a zero-shape between them, disable collision checking for them
-  g_btimer.start("Disable Adjacent Links"); // Benchmarking Timer - temporary
   unsigned int num_adjacent = disableAdjacentLinks( *scene, link_graph, link_pairs);
-  g_btimer.end("Disable Adjacent Links"); // Benchmarking Timer - temporary
   *progress = 4; // Progress bar feedback
 
   // 3. INITIAL CONTACTS TO CONSIDER GUESS -----------------------------------------------------------
@@ -248,28 +236,22 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
 
   // 4. DISABLE "DEFAULT" COLLISIONS --------------------------------------------------------
   // Disable all collision checks that occur when the robot is started in its default state
-  g_btimer.start("Default Collisions"); // Benchmarking Timer - temporary
   unsigned int num_default = disableDefaultCollisions(*scene, link_pairs, req);
-  g_btimer.end("Default Collisions"); // Benchmarking Timer - temporary
   *progress = 6; // Progress bar feedback
 
   // 5. ALWAYS IN COLLISION --------------------------------------------------------------------
   // Compute the links that are always in collision
-  g_btimer.start("Always in Collision"); // Benchmarking Timer - temporary
   unsigned int num_always = disableAlwaysInCollision(*scene, link_pairs, req, links_seen_colliding);
-  g_btimer.end("Always in Collision"); // Benchmarking Timer - temporary  
   //ROS_INFO("Links seen colliding total = %d", int(links_seen_colliding.size()));
   *progress = 8; // Progress bar feedback
 
   // 6. NEVER IN COLLISION -------------------------------------------------------------------
   // Get the pairs of links that are never in collision
-  g_btimer.start("Never in Collision"); // Benchmarking Timer - temporary  
   unsigned int num_never = 0;
   if (include_never_colliding) // option of function
   {
     num_never = disableNeverInCollision(num_trials, *scene, link_pairs, req, links_seen_colliding, progress);
   }
-  g_btimer.end("Never in Collision"); // Benchmarking Timer - temporary  
 
   //ROS_INFO("Link pairs seen colliding ever: %d", int(links_seen_colliding.size()));
 
@@ -305,11 +287,6 @@ computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_sce
     std::cout << num_links << "\t" << num_possible << "\t" << num_always << "\t" << num_never 
               << "\t" << num_default << "\t" << num_adjacent << "\t" << num_sometimes 
               << "\t" << num_disabled << std::endl;
-
-    // Benchmarking Results
-    g_btimer.end("Total"); 
-    g_btimer.printTimes(); // output results   
-    std::cout << std::endl;
 
   }
 

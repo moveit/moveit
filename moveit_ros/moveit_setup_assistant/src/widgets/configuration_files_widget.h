@@ -105,7 +105,7 @@ private:
   unsigned int action_num;
 
   /// Total actions - update this whenever a new call to displayAction() is added
-  static const unsigned int action_num_total = 11;
+  static const unsigned int action_num_total = 12;
 
   // ******************************************************************************************
   // Private Functions

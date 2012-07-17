@@ -1,0 +1,9 @@
+<!-- Re-launch the MoveIt Setup Assistant with this configuration package already loaded -->
+<launch>
+  <node 
+	pkg="moveit_setup_assistant" type="setup_assistant" name="moveit_setup_assistant" 
+	args="--config_pkg=[GENERATED_PACKAGE_NAME]"
+        output="screen" />
+<!--         launch-prefix="gdb -ex run - -args "  -->
+
+</launch>

@@ -103,8 +103,12 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   if (args.count("urdf_path"))
     ssw_->urdf_file_->relative_urdf_path_field_->setText( args["urdf_path"].as<std::string>().c_str() );
   if (args.count("config_pkg"))
+  {
     ssw_->stack_path_->setPath( args["config_pkg"].as<std::string>() );
 
+    // Show this part of screen
+    ssw_->select_mode_->btn_exist_->click();
+  }
   // Add Navigation Buttons (but do not load widgets yet except start screen)
   nav_name_list_ << "Start";
   nav_name_list_ << "Self-Collisions";
@@ -187,16 +191,16 @@ void SetupAssistantWidget::moveToScreen( const int index )
     current_index = index;
 
     // Show Rviz if appropriate
-    if( index != 0 )
-    {
+    /*if( index != 0 )
+      {
       rviz_container_->show();
-    }
-    else
-    {
+      }
+      else
+      {
       rviz_container_->hide();
-      // hide the start screen image so that is doesn't mess up the rviz column resizing
-      
-    }
+      // hide the start screen image so that is doesn't mess up the rviz column resizing      
+      }*/
+    rviz_container_->show();
 
     // Change screens
     main_content_->setCurrentIndex( index );
@@ -241,9 +245,6 @@ void SetupAssistantWidget::progressPastStartScreen()
   cfw_ = new ConfigurationFilesWidget( this, config_data_ );
   main_content_->addWidget(cfw_);  
 
-  // Pass command arg values to config files screen
-  cfw_->stack_path_->setPath( ssw_->stack_path_->getQPath() );
-
   // Enable all nav buttons -------------------------------------------
   for( int i = 0; i < nav_name_list_.count(); ++i)
   {
@@ -256,6 +257,8 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Enable navigation
   navs_view_->setDisabled( false );
 
+  // Replace logo with Rviz screen
+  rviz_container_->show();
 }
 
 // ******************************************************************************************
@@ -321,7 +324,6 @@ void SetupAssistantWidget::loadRviz()
   
   // Add RobotModel Display to Rviz
   //rviz_frame_->getManager()->createDisplay("rviz/RobotModel", "Robot Model", true);
-
   /*
   // Add Marker Display to Rviz 
   rviz::DisplayWrapper* marker_display = rviz_frame_->getManager()->createDisplay("rviz/Marker", "Markers", true);
@@ -337,7 +339,6 @@ void SetupAssistantWidget::loadRviz()
   // Set Interactive Marker Name
   imd->setMarkerUpdateTopic("interactive_kinematics_visualization/update");
   */
-  
 
   // Add Rviz to Planning Groups Widget
   QVBoxLayout *rviz_layout = new QVBoxLayout();
