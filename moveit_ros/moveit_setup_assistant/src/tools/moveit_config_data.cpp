@@ -187,10 +187,10 @@ bool MoveItConfigData::outputSetupAssistantFile( const std::string& file_path )
   emitter << YAML::EndMap;
 
   /// SRDF Path Location
-  /*emitter << YAML::Key << "SRDF";
-    emitter << YAML::Value << YAML::BeginMap;
-    emitter << YAML::Key << "path" << YAML::Value << srdf_path_;
-    emitter << YAML::EndMap; */
+  emitter << YAML::Key << "SRDF";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "relative_path" << YAML::Value << srdf_pkg_relative_path_;
+  emitter << YAML::EndMap;
   
   emitter << YAML::EndMap;
 
@@ -640,6 +640,7 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
     // Get title node
     if( const YAML::Node *title_node =doc.FindValue( "moveit_setup_assistant_config" ) ) 
     {
+      // URDF Properties
       if( const YAML::Node *urdf_node = title_node->FindValue( "URDF" ) ) 
       {
         // Load first property
@@ -661,6 +662,20 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
         {
           return false; // if we do not find this value we cannot continue
         } 
+      }
+      // SRDF Properties
+      if( const YAML::Node *srdf_node = title_node->FindValue( "SRDF" ) ) 
+      {
+        // Load first property
+        if( const YAML::Node *relative_node = srdf_node->FindValue( "relative_path" ) ) 
+        {
+          *relative_node >> srdf_pkg_relative_path_;
+        } 
+        else
+        {
+          return false; // if we do not find this value we cannot continue
+        }
+
         return true;
       }
     }

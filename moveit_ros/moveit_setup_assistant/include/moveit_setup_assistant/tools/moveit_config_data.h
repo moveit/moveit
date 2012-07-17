@@ -100,8 +100,11 @@ public:
   // SRDF Data
   // ******************************************************************************************
 
-  /// Full fil-system path to srdf
-  std::string srdf_path_;
+  /// Full file-system path to srdf
+  std::string srdf_path_; 
+
+  /// Path relative to loaded configuration package
+  std::string srdf_pkg_relative_path_;
  
   /// SRDF Data and Writer
   SRDFWriterPtr srdf_;

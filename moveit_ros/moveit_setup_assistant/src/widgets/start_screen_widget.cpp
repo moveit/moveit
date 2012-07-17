@@ -95,7 +95,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   
   // Stack Path Dialog
   stack_path_ = new LoadPathWidget("Load MoveIt Configuration Package Path", 
-                                   "Specify the location for an existing MoveIt configuration package to be edited for your robot. Example package name: '~/ros/pr2_moveit_config'",
+                                   "Specify the location for an existing MoveIt configuration package to be edited for your robot. Example package name: '/u/robot/ros/pr2_moveit_config'. No tilde allowed.",
                                    true, this); // is directory
   stack_path_->hide(); // user needs to select option before this is shown
   left_layout->addWidget( stack_path_ );
@@ -305,6 +305,19 @@ bool StartScreenWidget::loadExistingFiles()
   // Trim whitespace from user input
   boost::trim( package_path );
 
+  // Add a slash at end of path name if it does not currently have one
+  size_t slash_pos = package_path.find_last_of("/\\");
+
+  // Make sure the last slash is the last character
+  if( slash_pos != package_path.size() - 1 )
+  {
+    // Add the slash at end
+    package_path.append("/"); // TODO: not Windows ready
+    
+    // Update the textbox
+    stack_path_->setPath( package_path );
+  }
+
   // check that a folder is provided
   if( package_path.empty() )
   {
@@ -315,15 +328,11 @@ bool StartScreenWidget::loadExistingFiles()
   // check that the folder exists
   if( !fs::is_directory( package_path ) )
   {
-    QMessageBox::critical( this, "Error Loading Files", "The specified path is not a directory, or is not accessable" );
+    QMessageBox::critical( this, "Error Loading Files", "The specified path is not a directory or is not accessable" );
     return false;
   }
 
-  // Get the package name 
-  // TODO: is this needed?
-  //const std::string package_name = getPackageName( package_path );
-
-  // Path of .setup_assistanyt file
+  // Path of .setup_assistant file
   const std::string setup_assistant_file = package_path + ".setup_assistant";
 
   // Check if the old package is a setup assistant package. If it is not, quit
@@ -420,12 +429,15 @@ bool StartScreenWidget::loadNewFiles()
   config_data_->urdf_pkg_name_ = urdf_file_->robot_desc_pkg_field_->text().toStdString();
   config_data_->urdf_pkg_relative_path_ = urdf_file_->relative_urdf_path_field_->text().toStdString();
 
+  std::cout << "URDF PKG RELATIVE: " <<   config_data_->urdf_pkg_relative_path_ << std::endl;
+
   // Progress Indicator
   progress_bar_->setValue( 20 );
   QApplication::processEvents();
 
   // Load the URDF to the parameter server and check that it is correct format
-  loadURDFFile( config_data_->urdf_path_ );
+  if( !loadURDFFile( config_data_->urdf_path_ ) )
+    return false; // error occurred
 
   // Progress Indicator
   progress_bar_->setValue( 50 );
@@ -493,7 +505,7 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
   if( !config_data_->urdf_model_->initString( urdf_string ) )
   {
     QMessageBox::warning( this, "Error Loading Files", 
-                          "URDF/COLLADA file not a valid robot model. Is the URDF still in XACRO format?" );
+                          "URDF/COLLADA file is not a valid robot model. Is the URDF still in XACRO format?" );
     return false;
   }
 
@@ -574,7 +586,8 @@ bool StartScreenWidget::setSRDFFile( const std::string& srdf_string )
 bool StartScreenWidget::createFullURDFPath()
 {
   // Check that ROS can find the package
-  const std::string robot_desc_pkg_path = ros::package::getPath( config_data_->urdf_pkg_name_ );
+  const std::string robot_desc_pkg_path = ros::package::getPath( config_data_->urdf_pkg_name_ ) + "/";
+
   if( robot_desc_pkg_path.empty() )
   {
     QMessageBox::warning( this, "Error Loading Files", QString("ROS was unable to find the package name '")
@@ -607,10 +620,7 @@ bool StartScreenWidget::createFullURDFPath()
 bool StartScreenWidget::createFullSRDFPath( const std::string& package_path )
 {
   // Append the relative SRDF url path
-  config_data_->srdf_path_ = package_path + "config/pr2.srdf"; // TODO: make this not PR2!!
-
-  // Trim whitespace from user input
-  boost::trim( config_data_->srdf_path_ );
+  config_data_->srdf_path_ = package_path + config_data_->srdf_pkg_relative_path_;
 
   // Check that this file exits
   if( ! fs::is_regular_file( config_data_->srdf_path_ ) )
@@ -711,7 +721,7 @@ LoadURDFWidget::LoadURDFWidget( QWidget* parent )
 
   // Widget Instructions
   QLabel * widget_instructions = new QLabel(this);
-  widget_instructions->setText( "Specify the 'robot description' package that contains your robot's URDF/Collada file, then input the relative path to the actual URDF/Collada file." );
+  widget_instructions->setText( "Provide the name of the 'robot description' package that contains your robot's URDF/Collada file. Then provide a package-relative path to a URDF/Collada file. This setup assistant will load the robot model to the parameter server for you. Note: an XACRO URDF must first be converted to a regular XML URDF before opening here. To convert a file run the following command: <i>rosrun xacro xacro.py model.xacro > model.urdf</i>." );
   widget_instructions->setWordWrap(true);
   widget_instructions->setTextFormat( Qt::RichText );
   layout->addWidget( widget_instructions);
@@ -724,12 +734,24 @@ LoadURDFWidget::LoadURDFWidget( QWidget* parent )
   field1_label->setText( "Package containing URDF:" );
   layout->addWidget( field1_label);
 
+  // Layout 1
+  QHBoxLayout * field1_layout = new QHBoxLayout();
+
   // Field
   robot_desc_pkg_field_ = new QLineEdit( this );
-  //robot_desc_pkg_field_->setMaximumWidth( 400 );
   robot_desc_pkg_field_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
-  layout->addWidget( robot_desc_pkg_field_ );
-  //layout->setAlignment( robot_desc_pkg_field_, Qt::AlignLeft );
+  field1_layout->addWidget( robot_desc_pkg_field_ );
+
+  // Button
+  QPushButton *btn_browse1 = new QPushButton(this);
+  btn_browse1->setText("Browse");
+  connect( btn_browse1, SIGNAL( clicked() ), this, SLOT( btn_folder_dialog() ) );
+  field1_layout->addWidget( btn_browse1 );
+  field1_layout->setAlignment( btn_browse1, Qt::AlignRight );
+
+  // Add horizontal layer to verticle layer
+  layout->addLayout( field1_layout );
+
   // Relative URDF path -----------------------------------------------------------
 
   // Label
@@ -737,28 +759,61 @@ LoadURDFWidget::LoadURDFWidget( QWidget* parent )
   field2_label->setText( "Relative Path to URDF in Package:" );
   layout->addWidget( field2_label);
 
-  // Layout
+  // Layout 2
   QHBoxLayout * field2_layout = new QHBoxLayout();
 
   // Field
   relative_urdf_path_field_ = new QLineEdit( this );
   relative_urdf_path_field_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
-  //  relative_urdf_path_field_->setMaximumWidth( 400 );
   field2_layout->addWidget( relative_urdf_path_field_ );
   //field2_layout->setAlignment( relative_urdf_path_field_, Qt::AlignLeft );
 
   // Button
-  QPushButton *btn_browse = new QPushButton(this);
-  btn_browse->setText("Browse");
-  connect( btn_browse, SIGNAL( clicked() ), this, SLOT( btn_file_dialog() ) );
-  field2_layout->addWidget( btn_browse );
-  field2_layout->setAlignment( btn_browse, Qt::AlignRight );
+  QPushButton *btn_browse2 = new QPushButton(this);
+  btn_browse2->setText("Browse");
+  connect( btn_browse2, SIGNAL( clicked() ), this, SLOT( btn_file_dialog() ) );
+  field2_layout->addWidget( btn_browse2 );
+  field2_layout->setAlignment( btn_browse2, Qt::AlignRight );
 
   // Add horizontal layer to verticle layer
   layout->addLayout( field2_layout );
 
   // Done
   setLayout(layout);
+
+  // Init values
+  robot_desc_pkg_path_ = "";
+}
+
+// ******************************************************************************************
+// Load the folder dialog
+// ******************************************************************************************
+void LoadURDFWidget::btn_folder_dialog()
+{
+  // Decide where to start off the popup box
+  std::string initial_path = robot_desc_pkg_path_;
+
+  // Popup the folder dialog
+    QString path = QFileDialog::getExistingDirectory(this, "Open Robot Description Folder", initial_path.c_str(), 
+                                                   QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks); 
+
+  // Check they did not press cancel
+  if (path == NULL)
+    return;
+
+  // Confirm that the chosen folder is within the robot description package
+  robot_desc_pkg_path_ = path.toStdString();
+
+  // Remove the whole path except the lowest child folder ----------------------------------
+
+  // Find the last slash
+  int slash_pos = robot_desc_pkg_path_.find_last_of("/\\");
+
+  // Take the substring after the slash
+  std::string package_name = robot_desc_pkg_path_.substr( slash_pos+1, robot_desc_pkg_path_.size() );
+
+  // Put modified name in text field
+  robot_desc_pkg_field_->setText( package_name.c_str() );
 }
 
 // ******************************************************************************************
@@ -817,11 +872,13 @@ const std::string LoadURDFWidget::getURDFPath()
     return "";
   }    
 
-  // Check that the relative path has a preceeding slash
+  // Check that the relative path does not have preceeding slash
   std::string relative_path = relative_urdf_path_field_->text().toStdString();
-  if( relative_path.substr( 0, 1 ) != "/" ) // TODO: this is not Windows ready...
+
+  if( relative_path.substr( 0, 1 ) == "/" ||
+      relative_path.substr( 0, 1 ) == "/\\" )
   {
-    relative_path.insert( 0, "/" );
+    relative_path = relative_path.substr( 1, relative_path.size() - 1 );
     relative_urdf_path_field_->setText( relative_path.c_str() );
   }
 
@@ -867,7 +924,7 @@ const std::string LoadURDFWidget::getURDFPackagePath()
   }      
 
   // Check that ROS can find the package
-  const std::string robot_desc_pkg_path = ros::package::getPath( robot_desc_pkg_name );
+  const std::string robot_desc_pkg_path = ros::package::getPath( robot_desc_pkg_name ) + "/";
   if( robot_desc_pkg_path.empty() )
   {
     QMessageBox::warning( this, "Error Loading Files", QString("ROS was unable to find the package name '")
