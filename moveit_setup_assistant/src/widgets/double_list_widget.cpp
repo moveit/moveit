@@ -192,10 +192,15 @@ void DoubleListWidget::setTable( const std::vector<std::string> &items, QTableWi
   // Set size of datatable
   table->setRowCount( items.size() ); 
 
-  // Loop through every joint
+  // Loop through every item
   int row = 0;
   for( std::vector<std::string>::const_iterator data_it = items.begin(); data_it != items.end(); ++data_it )
   {
+    // This is a hack to prevent a dummy joint from being added. Not really the best place to place this but
+    // here is computationally smart
+    if( *data_it == "ASSUMED_FIXED_ROOT_JOINT" )
+      continue;
+
     // Create row elements
     QTableWidgetItem* data_name = new QTableWidgetItem( data_it->c_str() );
     data_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
@@ -206,6 +211,8 @@ void DoubleListWidget::setTable( const std::vector<std::string> &items, QTableWi
     // Increment counter
     ++row;
   }
+
+  table->setRowCount( row );
 
   // Reenable
   table->setUpdatesEnabled(true); // prevent table from updating until we are completely done

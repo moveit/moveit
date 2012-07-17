@@ -155,6 +155,8 @@ private:
   /// Make the full SRDF path using the loaded .setup_assistant data
   bool createFullSRDFPath( const std::string& package_path );
 
+  /// Get the full package path for editing an existing package
+  bool createFullPackagePath();
 };
 
 // ******************************************************************************************

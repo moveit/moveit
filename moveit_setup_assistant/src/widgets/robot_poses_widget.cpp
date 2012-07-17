@@ -808,9 +808,7 @@ void RobotPosesWidget::publishJoints()
   config_data_->getPlanningScene()->getPlanningSceneMsg( psmsg );
 
   // Publish!
-  pub_scene_.publish(psmsg);
-
-  ROS_INFO("Scene published.");
+  pub_scene_.publish( psmsg );
 }
 
 
