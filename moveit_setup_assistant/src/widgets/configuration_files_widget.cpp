@@ -72,9 +72,13 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
 
   // Stack Path Dialog
   stack_path_ = new LoadPathWidget("Configuration Package Save Path", 
-                                   "Specify the desired directory for the MoveIt configuration package to be generated. Choosing an existing configuration package directory to overwrite is fine. <br/>Example: <i>~/ros/pr2_moveit_config</i>",
+                                   "Specify the desired directory for the MoveIt configuration package to be generated. Overwriting an existing configuration package directory is acceptable. Example: <i>/u/robot/ros/pr2_moveit_config</i>",
                                    true, this); // is directory
   layout->addWidget( stack_path_ );
+
+  // Pass the package path from start screen to configuration files screen
+  stack_path_->setPath( config_data_->config_pkg_path_ );
+
   
   // Save buttons ---------------------------------------------------
   QHBoxLayout *hlayout1 = new QHBoxLayout();
@@ -461,13 +465,13 @@ void ConfigurationFilesWidget::savePackage()
   // Create Benchmark_Server Launch File  -----------------------------------------------------
   // TODO: Ioan needs to fix this stuff. Told me to disable it for now
   /*
-    const std::string benchmark_server_file = "benchmark_server.yaml";
+    const std::string benchmark_server_file = "benchmark_server.launch";
     const std::string benchmark_server_path = launch_path + "/" + benchmark_server_file;
 
     if ( !config_data_->outputBenchmarkServerLaunch( benchmark_server_path ) )
     {
     QMessageBox::critical( this, "Error Generating Files", 
-    QString("Failed to create benchmark_server.yaml file at location ").append( benchmark_server_path.c_str() ) );
+    QString("Failed to create benchmark_server.launch file at location ").append( benchmark_server_path.c_str() ) );
     return;
     }
 
@@ -483,7 +487,7 @@ void ConfigurationFilesWidget::savePackage()
   if ( !config_data_->outputMoveGroupLaunch( move_group_path, template_package_path, package_name ) )
   {
     QMessageBox::critical( this, "Error Generating Files", 
-                           QString("Failed to create move_group.yaml file at location ").append( move_group_path.c_str() ) );
+                           QString("Failed to create move_group.launch file at location ").append( move_group_path.c_str() ) );
     return;
   }
 
@@ -498,7 +502,7 @@ void ConfigurationFilesWidget::savePackage()
   if ( !config_data_->outputOMPLPlannerLaunch( ompl_planner_path, template_package_path, package_name ) )
   {
     QMessageBox::critical( this, "Error Generating Files", 
-                           QString("Failed to create ompl_planner.yaml file at location ").append( ompl_planner_path.c_str() ) );
+                           QString("Failed to create ompl_planner.launch file at location ").append( ompl_planner_path.c_str() ) );
     return;
   }
 
@@ -513,7 +517,7 @@ void ConfigurationFilesWidget::savePackage()
   if ( !config_data_->outputPlanningContextLaunch( planning_context_path, template_package_path, package_name ) )
   {
     QMessageBox::critical( this, "Error Generating Files", 
-                           QString("Failed to create planning_context.yaml file at location ").append( planning_context_path.c_str() ) );
+                           QString("Failed to create planning_context.launch file at location ").append( planning_context_path.c_str() ) );
     return;
   }
 
@@ -524,13 +528,13 @@ void ConfigurationFilesWidget::savePackage()
   // Create Warehouse Launch File  -----------------------------------------------------
   // TODO: Ioan needs to fix this stuff. Told me to disable it for now
   /*
-    const std::string warehouse_file = "warehouse.yaml";
+    const std::string warehouse_file = "warehouse.launch";
     const std::string warehouse_path = launch_path + "/" + warehouse_file;
 
     if ( !config_data_->outputWarehouseLaunch( warehouse_path ) )
     {
     QMessageBox::critical( this, "Error Generating Files", 
-    QString("Failed to create warehouse.yaml file at location ").append( warehouse_path.c_str() ) );
+    QString("Failed to create warehouse.launch file at location ").append( warehouse_path.c_str() ) );
     return;
     }
 
@@ -542,13 +546,13 @@ void ConfigurationFilesWidget::savePackage()
   // Create Warehouse_Settings Launch File  -----------------------------------------------------
   // TODO: Ioan needs to fix this stuff. Told me to disable it for now
   /*
-    const std::string warehouse_settings_file = "warehouse_settings.yaml";
+    const std::string warehouse_settings_file = "warehouse_settings.launch";
     const std::string warehouse_settings_path = launch_path + "/" + warehouse_settings_file;
 
     if ( !config_data_->outputWarehouseSettingsLaunch( warehouse_settings_path ) )
     {
     QMessageBox::critical( this, "Error Generating Files", 
-    QString("Failed to create warehouse_settings.yaml file at location ").append( warehouse_settings_path.c_str() ) );
+    QString("Failed to create warehouse_settings.launch file at location ").append( warehouse_settings_path.c_str() ) );
     return;
     }
 
@@ -556,6 +560,22 @@ void ConfigurationFilesWidget::savePackage()
     displayAction( QString( warehouse_settings_file.c_str() ).prepend( qconfig_path ), 
     "TODO" ); // TODO: description
   */
+
+  // Create Setup Assistant Launch File  -----------------------------------------------------
+  const std::string setup_assistant_launch_file = "setup_assistant.launch";
+  const std::string setup_assistant_launch_path = launch_path + "/" + setup_assistant_launch_file;
+
+  if ( !config_data_->outputSetupAssistantLaunch( setup_assistant_launch_path, template_package_path, package_name ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", 
+                           QString("Failed to create setup_assistant.launch file at location ")
+                           .append( setup_assistant_launch_path.c_str() ) );
+    return;
+  }
+
+  // Feedback
+  displayAction( QString( setup_assistant_launch_file.c_str() ).prepend( qlaunch_path ), 
+                 "Launch file for easily re-starting the MoveIt Setup Assistant to edit this generated configuration package." );
 
   // Create setup assistant file --------------------------------------------------------
   const std::string hidden_file = ".setup_assistant";

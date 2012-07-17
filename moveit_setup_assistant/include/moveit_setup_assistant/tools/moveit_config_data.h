@@ -116,8 +116,11 @@ public:
   /// Planning groups extra data not found in srdf but used in config files
   std::map<std::string, GroupMetaData> group_meta_data_;
 
-  /// Remember Setup Assistants package's path for when we use its templates
+  /// Setup Assistants package's path for when we use its templates
   std::string setup_assistant_path_; 
+
+  /// Loaded configuration package path - if an existing package was loaded, holds that path
+  std::string config_pkg_path_;
   
   /// Is this application in debug mode?
   bool debug_;
@@ -158,7 +161,9 @@ public:
                                     const std::string& new_package_name );
   bool outputWarehouseLaunch( const std::string& file_path );
   bool outputWarehouseSettingsLaunch( const std::string& file_path );
-
+  bool outputSetupAssistantLaunch( const std::string& file_path,
+                                   const std::string& template_package_path,
+                                   const std::string& new_package_name );
   /** 
    * Copy a template from location <template_path> to location <output_path> and replace package name
    * 
@@ -168,8 +173,8 @@ public:
    * 
    * @return bool if the template was copied correctly
    */
-  bool copyTemplate( const std::string& template_path, const std::string& output_path, 
-                     const std::string& new_package_name );
+    bool copyTemplate( const std::string& template_path, const std::string& output_path, 
+                       const std::string& new_package_name );
 
   /** 
    * Input kinematics.yaml file for editing its values
