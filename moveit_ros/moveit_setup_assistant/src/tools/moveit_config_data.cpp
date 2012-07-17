@@ -59,6 +59,9 @@
 namespace moveit_setup_assistant
 {
 
+// File system
+namespace fs = boost::filesystem;
+
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
@@ -462,9 +465,6 @@ bool MoveItConfigData::outputOMPLPlannerLaunch( const std::string& file_path,
                                                 const std::string& template_package_path,
                                                 const std::string& new_package_name  )
 {
-  // File system
-  namespace fs = boost::filesystem;
-
   // Path
   const std::string template_path = template_package_path + "launch/ompl_planner.launch";
 
@@ -485,9 +485,6 @@ bool MoveItConfigData::outputPlanningContextLaunch( const std::string& file_path
                                                     const std::string& template_package_path,
                                                     const std::string& new_package_name )
 {
-  // File system
-  namespace fs = boost::filesystem;
-
   // Path
   const std::string template_path = template_package_path + "launch/planning_context.launch";
 
@@ -516,14 +513,25 @@ bool MoveItConfigData::outputWarehouseSettingsLaunch( const std::string& file_pa
 }
 
 // ******************************************************************************************
+// Output setup assistant launch file
+// ******************************************************************************************
+bool MoveItConfigData::outputSetupAssistantLaunch( const std::string& file_path,
+                                                   const std::string& template_package_path,
+                                                   const std::string& new_package_name )
+{
+  // Path - named differently so that it doesn't interefere with Setup Assistant's normal launch file
+  const std::string template_path = template_package_path + "launch/edit_configuration_package.launch";
+
+  // Use generic template copy function
+  return copyTemplate( template_path, file_path, new_package_name );
+}
+
+// ******************************************************************************************
 // Copy a template from location <template_path> to location <output_path> and replace package name
 // ******************************************************************************************
 bool MoveItConfigData::copyTemplate( const std::string& template_path, const std::string& output_path,
                                      const std::string& new_package_name  )
 {
-  // File system
-  namespace fs = boost::filesystem;
-
   // Error check file
   if( ! fs::is_regular_file( template_path ) )
   {
