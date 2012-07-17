@@ -77,6 +77,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
     ROS_WARN_STREAM("Could not initialize hybrid collision robot from planning scene");
     return;
   }
+  initialize();
 }
 
 void ChompOptimizer::initialize()
