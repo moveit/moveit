@@ -37,6 +37,7 @@
 #ifndef COLLISION_DETECTION_COLLISION_COMMON_
 #define COLLISION_DETECTION_COLLISION_COMMON_
 
+#include <boost/array.hpp>
 #include <vector>
 #include <string>
 #include <map>
@@ -87,6 +88,12 @@ namespace collision_detection
     BodyType        body_type_2;
   };
   
+  struct AABB
+  {
+    boost::array<double, 3> min_;
+    boost::array<double, 3> max_;
+  };
+
   /** \brief Representation of a collision checking result */
   struct CollisionResult
   {
@@ -115,12 +122,17 @@ namespace collision_detection
     
     /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contacts themselves */
     ContactMap      contacts;
+    
+    double          cost_value;
+    
+    std::vector<AABB> cost_sources;
   };
   
   /** \brief Representation of a collision checking request */
   struct CollisionRequest
   {
     CollisionRequest(void) : distance(false),
+                             cost(false),
 			     contacts(false),
 			     max_contacts(1),
 			     max_contacts_per_pair(1),
@@ -133,7 +145,10 @@ namespace collision_detection
     
     /** \brief If true, compute proximity distance */
     bool        distance;
-    
+
+    /** \brief If true, a collision cost is computed */
+    bool        cost;
+
     /** \brief If true, compute contacts */
     bool        contacts;
     
