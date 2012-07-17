@@ -809,8 +809,6 @@ void RobotPosesWidget::publishJoints()
 
   // Publish!
   pub_scene_.publish( psmsg );
-
-  ROS_INFO("Scene published.");
 }
 
 
