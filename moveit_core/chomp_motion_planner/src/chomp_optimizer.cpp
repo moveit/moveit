@@ -66,12 +66,16 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
   start_state_(start_state),
   initialized_(false)
 {
-  psdf_ = dynamic_cast<const planning_scene::PlanningSceneDistanceField*>(planning_scene.get());
-  if(!psdf_) {
-    ROS_WARN_STREAM("Could not initialize PlanningSceneDistanceField from planning scene");
-  } else {
-    distance_field_world_ = psdf_->getCollisionWorldDistanceField();
-    initialize();
+  hy_world_ = dynamic_cast<const collision_detection::CollisionWorldHybrid*>(planning_scene->getCollisionWorld().get());
+  if(!hy_world_) {
+    ROS_WARN_STREAM("Could not initialize hybrid collision world from planning scene");
+    return;
+  }
+
+  hy_robot_ = dynamic_cast<const collision_detection::CollisionRobotHybrid*>(planning_scene->getCollisionRobot().get());
+  if(!hy_robot_) {
+    ROS_WARN_STREAM("Could not initialize hybrid collision robot from planning scene");
+    return;
   }
 }
 
@@ -89,12 +93,12 @@ void ChompOptimizer::initialize()
   collision_detection::CollisionResult res;
   req.group_name = planning_group_;
   ros::WallTime wt = ros::WallTime::now();
-  distance_field_world_->getCollisionGradients(req,
-                                               res,
-                                               *psdf_->getCollisionRobotDistanceField().get(),
-                                               state_,
-                                               &planning_scene_->getAllowedCollisionMatrix(),
-                                               gsr_);
+  hy_world_->getCollisionGradients(req,
+                                   res,
+                                   *hy_robot_->getCollisionRobotDistanceField().get(), 
+                                   state_,
+                                   &planning_scene_->getAllowedCollisionMatrix(),
+                                   gsr_);
   ROS_INFO_STREAM("First coll check took " << (ros::WallTime::now()-wt));
   num_collision_points_ = 0;
   for(size_t i = 0; i < gsr_->gradients_.size(); i++)
@@ -242,7 +246,7 @@ void ChompOptimizer::initialize()
     size_t j = 0;
     for(size_t g = 0; g < gsr_->gradients_.size(); g++)
     {
-      collision_distance_field::GradientInfo& info = gsr_->gradients_[g];
+      collision_detection::GradientInfo& info = gsr_->gradients_[g];
       
       for(size_t k = 0; k < info.sphere_locations.size(); k++)
       {
@@ -926,12 +930,12 @@ void ChompOptimizer::performForwardKinematics()
     setRobotStateFromPoint(group_trajectory_, i);
     ros::WallTime grad = ros::WallTime::now();
     
-    distance_field_world_->getCollisionGradients(req,
-                                                 res,
-                                                 *psdf_->getCollisionRobotDistanceField().get(),
-                                                 state_,
-                                                 NULL,
-                                                 gsr_);
+    hy_world_->getCollisionGradients(req,
+                                     res,
+                                     *hy_robot_->getCollisionRobotDistanceField().get(),                              
+                                     state_,
+                                     NULL,
+                                     gsr_);
     total_dur += (ros::WallTime::now()-grad);
     computeJointProperties(i);
     state_is_in_collision_[i] = false;
@@ -941,7 +945,7 @@ void ChompOptimizer::performForwardKinematics()
       size_t j = 0;
       for(size_t g = 0; g < gsr_->gradients_.size(); g++)
       {
-        collision_distance_field::GradientInfo& info = gsr_->gradients_[g];
+        collision_detection::GradientInfo& info = gsr_->gradients_[g];
 
         for(size_t k = 0; k < info.sphere_locations.size(); k++)
         {

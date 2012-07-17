@@ -42,10 +42,10 @@
 #include <chomp_motion_planner/chomp_cost.h>
 #include <chomp_motion_planner/multivariate_gaussian.h>
 #include <planning_models/kinematic_model.h>
-#include <collision_distance_field/collision_distance_field_types.h>
-#include <collision_distance_field/collision_world_distance_field.h>
 #include <planning_scene/planning_scene.h>
-#include <planning_scene_distance_field/planning_scene_distance_field.h>
+#include <collision_distance_field/hybrid_collision_robot.h>
+#include <collision_distance_field/hybrid_collision_world.h>
+
 
 #include <Eigen/Core>
 
@@ -134,12 +134,11 @@ private:
   planning_models::KinematicState state_;
   planning_models::KinematicState start_state_;
   const planning_models::KinematicModel::JointModelGroup* joint_model_group_;
-
+  const collision_detection::CollisionWorldHybrid* hy_world_;
+  const collision_detection::CollisionRobotHybrid* hy_robot_; 
 
   std::vector<ChompCost> joint_costs_;
-  const planning_scene::PlanningSceneDistanceField* psdf_;
-  boost::shared_ptr<const collision_distance_field::CollisionWorldDistanceField> distance_field_world_;
-  boost::shared_ptr<collision_distance_field::GroupStateRepresentation> gsr_;
+  boost::shared_ptr<collision_detection::GroupStateRepresentation> gsr_;
   bool initialized_;
 
   std::vector<std::vector<std::string> > collision_point_joint_names_;
