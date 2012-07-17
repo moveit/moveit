@@ -39,7 +39,8 @@ namespace moveit_visualization_ros
 {
 
 PlanningSceneFileMenu::PlanningSceneFileMenu(QWidget* parent)
-  : QMenu("Scene Files", parent)
+  : QMenu("Scene Files", parent),
+    warehouse_connector_("/opt/ros/fuerte/stacks/warehousewg/mongodb/mongo/bin/mongod")
 {
   database_dialog_ = new PlanningSceneDatabaseDialog(this);
 
