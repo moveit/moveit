@@ -72,6 +72,7 @@ class ConfigurationFilesWidget : public SetupScreenWidget
   QProgressBar *progress_bar_;
   QListWidget *action_list_;
   QLabel *action_label_;
+  QLabel *success_label_;
   QGroupBox *actions_box_;
   QList<QString> action_desc_; // Holds the descriptions explaining all performed actions
 

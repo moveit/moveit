@@ -191,9 +191,13 @@ class LoadURDFWidget : public QFrame
 {
   Q_OBJECT
 
-  private:
+private:
 
-    private Q_SLOTS:
+private Q_SLOTS:
+
+  /// Load the folder dialog
+  void btn_folder_dialog();
+
   /// Load the file dialog
   void btn_file_dialog();
 
@@ -207,6 +211,9 @@ public:
 
   /// Relative path to URDF from URDF package
   QLineEdit *relative_urdf_path_field_;
+
+  /// Remember the full path corresponding to the urdf package name, if available
+  std::string robot_desc_pkg_path_;
 
   /// Get the full URDF path
   const std::string getURDFPath();

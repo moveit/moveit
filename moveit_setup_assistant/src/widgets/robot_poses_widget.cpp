@@ -65,7 +65,6 @@ RobotPosesWidget::RobotPosesWidget( QWidget *parent, moveit_setup_assistant::Mov
   layout->addWidget( header );
 
   // Create contents screens ---------------------------------------
-
   pose_list_widget_ = createContentsWidget();
   pose_edit_widget_ = createEditWidget();
 
@@ -313,6 +312,8 @@ void RobotPosesWidget::previewClicked( int row, int column )
   {
     // Only copy the first joint value // TODO: add capability for multi-DOF joints?
     joint_state_map_[ value_it->first ] = value_it->second[0];
+
+    std::cout << "JOINT " << value_it->first << " -- " << value_it->second[0] << std::endl;
   }
 
   // Update the joints
@@ -796,8 +797,8 @@ void RobotPosesWidget::updateKinematicModel( const std::string &name, double val
 void RobotPosesWidget::publishJoints()
 {
   // Change the scene
-  //scene.getCurrentState().setToDefaultValues();//set to default values of 0 OR half between low and high joint values
-  //scene->getCurrentState().setToRandomValues();    
+  //scene.getCurrentState().setToDefaultValues();//set to default values of 0 OR half between low and high joint values  
+  //config_data_->getPlanningScene()->getCurrentState().setToRandomValues(); 
 
   // Set the joints based on the map
   config_data_->getPlanningScene()->getCurrentState().setStateValues( joint_state_map_ );
@@ -809,7 +810,7 @@ void RobotPosesWidget::publishJoints()
   // Publish!
   pub_scene_.publish(psmsg);
 
-  //  ROS_INFO("Scene published.");
+  ROS_INFO("Scene published.");
 }
 
 

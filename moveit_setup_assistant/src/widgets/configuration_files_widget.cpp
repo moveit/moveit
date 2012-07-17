@@ -39,10 +39,12 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QApplication>
-// SA
+// ROS
 #include "configuration_files_widget.h"
-#include <boost/filesystem.hpp>  // for creating folders/files
 #include <srdfdom/model.h> // use their struct datastructures
+// Boost
+#include <boost/algorithm/string.hpp> // for trimming whitespace from user input
+#include <boost/filesystem.hpp>  // for creating folders/files
 
 namespace moveit_setup_assistant
 {
@@ -75,27 +77,27 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   layout->addWidget( stack_path_ );
   
   // Save buttons ---------------------------------------------------
-  QHBoxLayout *hlayout = new QHBoxLayout();
+  QHBoxLayout *hlayout1 = new QHBoxLayout();
 
   // Progress Bar
   progress_bar_ = new QProgressBar( this );
   progress_bar_->setMaximum(100);
   progress_bar_->setMinimum(0);
-  hlayout->addWidget(progress_bar_);
-  hlayout->setContentsMargins( 20, 30, 20, 30 );
+  hlayout1->addWidget(progress_bar_);
+  hlayout1->setContentsMargins( 20, 30, 20, 30 );
 
   // Generate Package Button
   btn_save_ = new QPushButton("&Generate Package", this);
   btn_save_->setMinimumWidth(180);
   btn_save_->setMinimumHeight(40);
   connect( btn_save_, SIGNAL( clicked() ), this, SLOT( savePackage() ) );
-  hlayout->addWidget( btn_save_ );  
+  hlayout1->addWidget( btn_save_ );  
 
   // Add Layout
-  layout->addLayout( hlayout );
+  layout->addLayout( hlayout1 );
 
   // Generated Files List -------------------------------------------
-  actions_box_ = new QGroupBox( "Generated Files:", this );
+  actions_box_ = new QGroupBox( "Generated Files/Folders:", this );
     
   QHBoxLayout *hlayout2 = new QHBoxLayout();
 
@@ -122,13 +124,28 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   actions_box_->setLayout( hlayout2 );
   layout->addWidget( actions_box_ );
 
-  // Bottom button --------------------------------------------------
+  // Bottom row --------------------------------------------------
+
+  QHBoxLayout *hlayout3 = new QHBoxLayout();
+
+  // Success label
+  success_label_ = new QLabel( this );
+  QFont success_label_font( "Arial", 12, QFont::Bold );
+  success_label_->setFont( success_label_font );
+  success_label_->hide(); // only show once the files have been generated
+  success_label_->setText(  "Configuration package generated successfully!" );
+  hlayout3->addWidget( success_label_ );
+  hlayout3->setAlignment( success_label_, Qt::AlignRight );  
+
+  // Exit button
   QPushButton *btn_exit = new QPushButton( "E&xit Setup Assistant", this );
   btn_exit->setMinimumWidth(180);
   connect( btn_exit, SIGNAL( clicked() ), this, SLOT( exitSetupAssistant() ) );
-  layout->addWidget( btn_exit );
-  layout->setAlignment( btn_exit, Qt::AlignRight );  
-  
+  hlayout3->addWidget( btn_exit );
+  hlayout3->setAlignment( btn_exit, Qt::AlignRight );  
+
+  layout->addLayout( hlayout3 );
+
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
 
@@ -234,6 +251,19 @@ void ConfigurationFilesWidget::changeActionDesc(int id)
 // ******************************************************************************************
 void ConfigurationFilesWidget::savePackage()
 {
+  // Feedback
+  success_label_->hide();
+
+  // Get path name
+  std::string new_package_path = stack_path_->getPath(); 
+
+  // Check that a valid stack package name has been given
+  if( new_package_path.empty() )
+  {
+    QMessageBox::warning( this, "Error Generating", "No package path provided. Please choose a directory location to generate the MoveIt configuration files." );
+    return;
+  }
+
   // Check setup assist deps
   if( !checkDependencies() )
     return; // canceled
@@ -242,7 +272,21 @@ void ConfigurationFilesWidget::savePackage()
   if( !noGroupsEmpty() )
     return; // not ready
 
-  const std::string new_package_path = stack_path_->getPath();
+  // Trim whitespace from user input
+  boost::trim( new_package_path );
+
+  // Add a slash at end of path name if it does not currently have one
+  size_t slash_pos = new_package_path.find_last_of("/\\");
+
+  // Make sure the last slash is the last character
+  if( slash_pos != new_package_path.size() - 1 )
+  {
+    // Add the slash at end
+    new_package_path.append("/"); // TODO: not Windows ready
+    
+    // Update the textbox
+    stack_path_->setPath( new_package_path );
+  }
 
   // Get template package location ----------------------------------------------------------------------
   const std::string template_package_path = config_data_->setup_assistant_path_ + "/templates/moveit_config_pkg_template/";
@@ -251,13 +295,6 @@ void ConfigurationFilesWidget::savePackage()
     QMessageBox::critical( this, "Error Generating", 
                            QString("Unable to find package template directory: ")
                            .append( template_package_path.c_str() ) );
-    return;
-  }
-
-  // Check that a valid stack package name has been given --------------------------------------------------
-  if( new_package_path.empty() )
-  {
-    QMessageBox::warning( this, "Error Generating", "No package path provided. Please choose a directory location to generate the MoveIt configuration files." );
     return;
   }
 
@@ -272,9 +309,10 @@ void ConfigurationFilesWidget::savePackage()
   action_list_->clear();
   action_desc_.clear();
 
-  // Verify with user the desire to overwrite old package--------------------------------------------------
-  if( fs::is_directory( new_package_path ) )
+  // Make sure old package is correct package type and verify over write
+  if( fs::is_directory( new_package_path ) && !fs::is_empty( new_package_path ) )
   {
+
     // Check if the old package is a setup assistant package. If it is not, quit
     if( ! fs::is_regular_file( setup_assistant_file ) )
     {
@@ -294,12 +332,16 @@ void ConfigurationFilesWidget::savePackage()
     {
       return; // abort
     }
-
+   
   }
-  else // this is a new package
+  else // this is a new package (but maybe the folder already exists)
   {
     // Create new directory
-    if ( !fs::create_directory( new_package_path ))
+    try
+    {
+      fs::create_directory( new_package_path ) && !fs::is_directory( new_package_path );
+    } 
+    catch( ... )
     {
       QMessageBox::critical( this, "Error Generating Files", 
                              QString("Unable to create directory ").append( new_package_path.c_str() ) );
@@ -321,21 +363,6 @@ void ConfigurationFilesWidget::savePackage()
   action_list_->setCurrentRow( 0 );
 
 
-  // Create setup assistant file --------------------------------------------------------
-  const std::string hidden_file = ".setup_assistant";
-  const std::string hidden_path = new_package_path + hidden_file;
-
-  if ( !config_data_->outputSetupAssistantFile( hidden_path ) )
-  {
-    QMessageBox::critical( this, "Error Generating Files", 
-                           QString("Failed to create an .setup_assistant file at location ").append( hidden_path.c_str() ) );
-    return;
-  }
-
-  // Feedback
-  displayAction( QString( hidden_file.c_str() ).prepend( qpackage_name ), 
-                 "MoveIt Setup Assistant hidden settings file. Do not edit." );
-  
   // Create config folder ---------------------------------------------------------------
 
   const std::string config_path = new_package_path + "config";
@@ -371,6 +398,7 @@ void ConfigurationFilesWidget::savePackage()
   // Create SRDF file -----------------------------------------------------------------
   const std::string srdf_file = config_data_->urdf_model_->getName() + ".srdf";
   const std::string srdf_path = config_path + "/" + srdf_file;
+  config_data_->srdf_pkg_relative_path_ = "config/" + srdf_file;
 
   if ( !config_data_->srdf_->writeSRDF( srdf_path ) )
   {
@@ -529,10 +557,26 @@ void ConfigurationFilesWidget::savePackage()
     "TODO" ); // TODO: description
   */
 
+  // Create setup assistant file --------------------------------------------------------
+  const std::string hidden_file = ".setup_assistant";
+  const std::string hidden_path = new_package_path + hidden_file;
+
+  if ( !config_data_->outputSetupAssistantFile( hidden_path ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", 
+                           QString("Failed to create an .setup_assistant file at location ").append( hidden_path.c_str() ) );
+    return;
+  }
+
+  // Feedback
+  displayAction( QString( hidden_file.c_str() ).prepend( qpackage_name ), 
+                 "MoveIt Setup Assistant hidden settings file. Do not edit." );
+  
+
   // Alert user it completed successfully --------------------------------------------------
   progress_bar_->setValue( 100 );
-  QMessageBox::information( this, "Complete", "All MoveIt configuration files generated successfully!" );
-
+  //QMessageBox::information( this, "Complete", "All MoveIt configuration files generated successfully!" );
+  success_label_->show();
 }
 
 

@@ -360,8 +360,10 @@ void DefaultCollisionsWidget::loadCollisionTable()
 
   }
   
-  // Reduce the table size to only the number of used rows
+  // Reduce the table size to only the number of used rows. The hiding is a hack so that it resizes correctly
+  collision_table_->setVisible(false);
   collision_table_->setRowCount( row ); 
+  collision_table_->setVisible(true);
 
   // Resize headers
   collision_table_->resizeColumnToContents(0);
