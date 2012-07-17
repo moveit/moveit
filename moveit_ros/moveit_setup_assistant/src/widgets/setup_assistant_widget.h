@@ -62,9 +62,15 @@
 // Other
 #include <ros/ros.h>
 #include <boost/program_options.hpp> // for parsing input arguments
-// Rviz
-#include <rviz/visualization_panel.h>
-#include <rviz/visualization_manager.h>
+
+// Forward declarations for rviz
+namespace rviz
+{
+class GridDisplay;
+class RenderPanel;
+class VisualizationManager;
+}
+
 
 namespace moveit_setup_assistant
 {
@@ -84,6 +90,12 @@ class SetupAssistantWidget : public QWidget
    * @return 
    */
   SetupAssistantWidget( QWidget *parent, boost::program_options::variables_map args );
+
+  /** 
+   * Deconstructor
+   * 
+   */
+  ~SetupAssistantWidget();
 
   /** 
    * Changes viewable screen
@@ -159,8 +171,12 @@ private:
   QSplitter *splitter_;
   QStackedLayout *main_content_;
 
-  // Rviz Frame
-  rviz::VisualizationPanel* rviz_frame_;
+  // Rviz Panel
+  //  rviz::VisualizationPanel* rviz_frame_;
+  rviz::RenderPanel* rviz_render_panel_;
+  rviz::VisualizationManager* rviz_manager_;
+
+
 
   // Screen Widgets
   StartScreenWidget *ssw_;
