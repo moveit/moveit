@@ -114,7 +114,7 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const planning_m
 void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const planning_models::KinematicState &state, FCLManager &manager) const
 {
   fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
-  m->tree_init_level = 2;
+  // m->tree_init_level = 2;
   manager.manager_.reset(m);
   constructFCLObject(state, manager.object_);
   manager.object_.registerTo(manager.manager_.get());
