@@ -49,11 +49,16 @@
 #include <QMessageBox>
 #include <pluginlib/class_loader.h> // for loading all avail kinematic planners
 // Rviz
-#include <rviz/default_plugin/marker_display.h>
-#include <rviz/default_plugin/interactive_marker_display.h>
+//#include <rviz/default_plugin/marker_display.h>
+//#include <rviz/default_plugin/interactive_marker_display.h>
 #include <rviz/display_wrapper.h>
 #include <rviz/view_controllers/orbit_view_controller.h>
+#include <rviz/render_panel.h>
+#include <rviz/visualization_panel.h>
+#include <rviz/visualization_manager.h>
 #include <moveit_rviz_plugin/planning_display.h>
+
+
 // ROS
 #include <ros/master.h> // for checking if roscore is started
 
@@ -170,6 +175,19 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
 }
 
 // ******************************************************************************************
+// Decontructor
+// ******************************************************************************************
+SetupAssistantWidget::~SetupAssistantWidget()
+{
+  if( rviz_manager_ != NULL )
+  {
+    rviz_manager_->removeAllDisplays();
+  }
+  delete rviz_render_panel_;
+  delete rviz_manager_;
+}
+
+// ******************************************************************************************
 // Change screens of Setup Assistant
 // ******************************************************************************************
 void SetupAssistantWidget::navigationClicked( const QModelIndex& index )
@@ -274,13 +292,10 @@ void SetupAssistantWidget::updateTimer()
 // ******************************************************************************************
 void SetupAssistantWidget::loadRviz()
 {
+  /*
   // Create rviz frame
   rviz_frame_ = new rviz::VisualizationPanel();
   //rviz_frame_->setMinimumWidth( 800 );
-
-  // Turn on interactive mode
-  // EGJ: kind of hacky way to do this, given the way that the vis manager is creating tools
-  //rviz_frame_->getManager()->setCurrentTool(rviz_frame_->getManager()->getTool(1));
 
   // Sizes for QSplitter - allows the left pane to be hidden
   QList<int> sizes;
@@ -294,11 +309,11 @@ void SetupAssistantWidget::loadRviz()
 
   // Add Motion Planning Plugin to Rviz
   rviz::DisplayWrapper* display_wrapper = rviz_frame_->getManager()->
-    createDisplay( "moveit_rviz_plugin/MotionPlanning","Motion Planning", true );
+  createDisplay( "moveit_rviz_plugin/MotionPlanning","Motion Planning", true );
   
   // Get Motion Planning Display Reference
   moveit_rviz_plugin::PlanningDisplay* planning_display = 
-    dynamic_cast<moveit_rviz_plugin::PlanningDisplay*>( display_wrapper->getDisplay() );
+  dynamic_cast<moveit_rviz_plugin::PlanningDisplay*>( display_wrapper->getDisplay() );
   
   // Turn off planned path
   planning_display->setVisualVisible( false );
@@ -311,7 +326,59 @@ void SetupAssistantWidget::loadRviz()
 
   // Set the Orbit View
   rviz::OrbitViewController* orbit_view = 
-    dynamic_cast<rviz::OrbitViewController*>(rviz_frame_->getManager()->getCurrentViewController());
+  dynamic_cast<rviz::OrbitViewController*>(rviz_frame_->getManager()->getCurrentViewController());
+
+  if(orbit_view == NULL) 
+  {
+  ROS_WARN_STREAM("Current view controller not orbit");
+  } 
+  else 
+  {
+  orbit_view->zoom(14.0);
+  }
+  
+  // Add Rviz to Planning Groups Widget
+  QVBoxLayout *rviz_layout = new QVBoxLayout();
+  rviz_layout->addWidget( rviz_frame_ );
+  rviz_container_->setLayout( rviz_layout );
+  */
+
+
+  // Create rviz frame
+  rviz_render_panel_ = new rviz::RenderPanel();
+  //rviz_render_panel_->setMinimumWidth( 800 );
+
+  rviz_manager_ = new rviz::VisualizationManager( rviz_render_panel_ );
+  rviz_render_panel_->initialize( rviz_manager_->getSceneManager(), rviz_manager_ );
+  rviz_manager_->initialize();
+  rviz_manager_->startUpdate();
+
+  // Set the fixed and target frame 
+  rviz_manager_->setFixedFrame( config_data_->getPlanningScene()->getPlanningFrame() );
+  rviz_manager_->setTargetFrame( config_data_->getPlanningScene()->getPlanningFrame() );
+
+  // Add Motion Planning Plugin to Rviz
+  rviz::DisplayWrapper* display_wrapper = rviz_manager_->createDisplay( "moveit_rviz_plugin/MotionPlanning",
+                                                                        "Motion Planning", true );
+  ROS_ASSERT( display_wrapper != NULL );
+  
+  // Get Motion Planning Display Reference
+  moveit_rviz_plugin::PlanningDisplay* planning_display = 
+    dynamic_cast<moveit_rviz_plugin::PlanningDisplay*>( display_wrapper->getDisplay() );
+  ROS_ASSERT( planning_display != NULL );
+
+  // Turn off planned path
+  planning_display->setVisualVisible( false );
+
+  // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
+  planning_display->setPlanningSceneTopic( MOVEIT_PLANNING_SCENE );
+
+  // Set robot description
+  planning_display->setRobotDescription( ROBOT_DESCRIPTION );
+
+  // Set the Orbit View
+  rviz::OrbitViewController* orbit_view = 
+    dynamic_cast<rviz::OrbitViewController*>(rviz_manager_->getCurrentViewController());
 
   if(orbit_view == NULL) 
   {
@@ -322,29 +389,12 @@ void SetupAssistantWidget::loadRviz()
     orbit_view->zoom(14.0);
   }
   
-  // Add RobotModel Display to Rviz
-  //rviz_frame_->getManager()->createDisplay("rviz/RobotModel", "Robot Model", true);
-  /*
-  // Add Marker Display to Rviz 
-  rviz::DisplayWrapper* marker_display = rviz_frame_->getManager()->createDisplay("rviz/Marker", "Markers", true);
-  // Get pointer to created marker display 
-  rviz::MarkerDisplay* md = dynamic_cast<rviz::MarkerDisplay*>(marker_display->getDisplay());
-  1  // Set Marker Topic Name
-  md->setMarkerTopic(VIS_TOPIC_NAME);
-  // Add Interactive Marker Display to Rviz
-  rviz::DisplayWrapper* interactive_marker_display = rviz_frame_->getManager()->
-  createDisplay("rviz/InteractiveMarker", "Interactive Markers", true);
-  // Get pointer to created interactive marker
-  rviz::InteractiveMarkerDisplay* imd = dynamic_cast<rviz::InteractiveMarkerDisplay*>(interactive_marker_display->getDisplay());
-  // Set Interactive Marker Name
-  imd->setMarkerUpdateTopic("interactive_kinematics_visualization/update");
-  */
-
   // Add Rviz to Planning Groups Widget
   QVBoxLayout *rviz_layout = new QVBoxLayout();
-  rviz_layout->addWidget( rviz_frame_ );
+  rviz_layout->addWidget( rviz_render_panel_ );
   rviz_container_->setLayout( rviz_layout );
 
+  rviz_container_->show(); 
 }
 
 // ******************************************************************************************
@@ -352,10 +402,10 @@ void SetupAssistantWidget::loadRviz()
 // ******************************************************************************************
 void SetupAssistantWidget::showRviz( bool show )
 {
-  QList<int> sizes;
-  sizes.push_back(0);
-  sizes.push_back(1000);
-  rviz_frame_->setSizes(sizes); 
+  if( show )
+    rviz_container_->show(); 
+  else
+    rviz_container_->hide();
 }
 
 // ******************************************************************************************
