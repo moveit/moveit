@@ -335,7 +335,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   std::map<std::string, PlanningConfigurationSettings>::const_iterator pc = planner_configs_.end();
   if (!req.planner_id.empty())
   {
-    pc = planner_configs_.find(req.group_name + "[" + req.planner_id + "]");
+    pc = planner_configs_.find(req.planner_id.find(req.group_name) == std::string::npos ? req.group_name + "[" + req.planner_id + "]" : req.planner_id);
     if (pc == planner_configs_.end())
       ROS_WARN_STREAM("Cannot find planning configuration for group '" << req.group_name
 		      << "' using planner '" << req.planner_id << "'. Will use defaults instead.");

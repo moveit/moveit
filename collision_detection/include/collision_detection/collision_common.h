@@ -41,6 +41,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
 #include <Eigen/Core>
 
 namespace collision_detection
@@ -88,19 +89,33 @@ namespace collision_detection
     BodyType        body_type_2;
   };
   
-  struct AABB
+  /** \brief When collision costs are computed, this structure contains information about the partial cost incurred in a particular volume */
+  struct CostSource
   {
-    boost::array<double, 3> min_;
-    boost::array<double, 3> max_;
-  };
+    /// The minimum bound of the AABB defining the volume responsible for this partial cost
+    boost::array<double, 3> aabb_min;
 
+    /// The maximum bound of the AABB defining the volume responsible for this partial cost
+    boost::array<double, 3> aabb_max;
+
+    /// The partial cost
+    double                  cost;
+    
+    /// Order cost sources so that the most costly source is at the top
+    bool operator<(const CostSource &other) const
+    {
+      return cost > other.cost;
+    }
+  };
+  
   /** \brief Representation of a collision checking result */
   struct CollisionResult
   {
     CollisionResult(void) : collision(false),
 			    distance(std::numeric_limits<double>::max()),
 			    direction(0.0, 0.0, 0.0),
-			    contact_count(0)
+			    contact_count(0),
+                            cost_value(0.0)
     {
     }
     typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
@@ -109,23 +124,25 @@ namespace collision_detection
     void clear(void) { *this = CollisionResult(); }
     
     /** \brief True if collision was found, false otherwise */
-    bool            collision;
+    bool                 collision;
     
     /** \brief Closest distance between two bodies */
-    double          distance;
+    double               distance;
     
     /** \brief Gradient vector associated with collision */
-    Eigen::Vector3d direction;
+    Eigen::Vector3d      direction;
     
     /** \brief Number of contacts returned */
-    std::size_t     contact_count;
+    std::size_t          contact_count;
     
     /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contacts themselves */
-    ContactMap      contacts;
+    ContactMap           contacts;
     
-    double          cost_value;
+    /** \brief This is the overall cost of the collision. This value is computed only if \e cost was set to true in the CollisionRequest */
+    double               cost_value;
     
-    std::vector<AABB> cost_sources;
+    /** \brief When costs are computed, the individual cost sources are  */
+    std::set<CostSource> cost_sources;
   };
   
   /** \brief Representation of a collision checking request */
@@ -136,6 +153,7 @@ namespace collision_detection
 			     contacts(false),
 			     max_contacts(1),
 			     max_contacts_per_pair(1),
+                             max_cost_sources(1),
 			     verbose(false)
     {
     }
@@ -152,11 +170,14 @@ namespace collision_detection
     /** \brief If true, compute contacts */
     bool        contacts;
     
-    /** \brief Overall maximum number of contacts to compute*/
+    /** \brief Overall maximum number of contacts to compute */
     std::size_t max_contacts;
     
     /** \brief Maximum number of contacts to compute per pair of bodies (multiple bodies may be in contact at different configurations) */
     std::size_t max_contacts_per_pair;
+    
+    /** \brief When costs are computed, this value defines how many of the top cost sources should be returned */
+    std::size_t max_cost_sources;
     
     /** \brief Flag indicating whether information about detected collisions should be reported */
     bool        verbose;
