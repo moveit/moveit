@@ -43,18 +43,18 @@
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(void) : CollisionWorld()
 {
-  // fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
-  // m->tree_init_level = 2;
-  // manager_.reset(m);
-  manager_.reset(new fcl::SSaPCollisionManager());
+  fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
+  m->tree_init_level = 2;
+  manager_.reset(m);
+  //  manager_.reset(new fcl::SSaPCollisionManager());
 }
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other) : CollisionWorld(other)
 {
-  // fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
-  // m->tree_init_level = 2;
-  // manager_.reset(m);
-  manager_.reset(new fcl::SSaPCollisionManager());
+  fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
+  m->tree_init_level = 2;
+  manager_.reset(m);
+  //  manager_.reset(new fcl::SSaPCollisionManager());
   fcl_objs_ = other.fcl_objs_;
   for (std::map<std::string, FCLObject>::iterator it = fcl_objs_.begin() ; it != fcl_objs_.end() ; ++it)
     it->second.registerTo(manager_.get());
