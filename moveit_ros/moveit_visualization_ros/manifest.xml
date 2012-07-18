@@ -25,11 +25,12 @@
   <depend package="trajectory_processing"/>
   <depend package="moveit_warehouse"/>
   <depend package="planning_models_loader"/>
-  <depend package="trajectory_execution"/>
-  <depend package="trajectory_execution_ros"/>
+  <depend package="trajectory_execution_manager"/>
+  <depend package="moveit_controller_manager"/>
   <depend package="shape_msgs"/>
   <depend package="shape_tools"/>
   <depend package="planning_pipeline"/>
+  <depend package="control_msgs"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_visualization_ros"/>
