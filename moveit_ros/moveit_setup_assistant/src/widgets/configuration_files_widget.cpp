@@ -476,7 +476,7 @@ void ConfigurationFilesWidget::savePackage()
     }
 
     // Feedback
-    displayAction( QString( benchmark_server_file.c_str() ).prepend( qconfig_path ), 
+    displayAction( QString( benchmark_server_file.c_str() ).prepend( qlaunch_path ), 
     "Holds benchmark_server info" ); // TODO: description
   */
 
@@ -539,7 +539,7 @@ void ConfigurationFilesWidget::savePackage()
     }
 
     // Feedback
-    displayAction( QString( warehouse_file.c_str() ).prepend( qconfig_path ), 
+    displayAction( QString( warehouse_file.c_str() ).prepend( qlaunch_path ), 
     "TODO" ); // TODO: description
   */
 
@@ -557,9 +557,24 @@ void ConfigurationFilesWidget::savePackage()
     }
 
     // Feedback
-    displayAction( QString( warehouse_settings_file.c_str() ).prepend( qconfig_path ), 
+    displayAction( QString( warehouse_settings_file.c_str() ).prepend( qlaunch_path ), 
     "TODO" ); // TODO: description
   */
+
+  // Create Moveit_Visualizer Launch File  -----------------------------------------------------
+  const std::string moveit_visualizer_file = "moveit_visualizer.launch";
+  const std::string moveit_visualizer_path = launch_path + "/" + moveit_visualizer_file;
+
+  if ( !config_data_->outputMoveItVisualizerLaunch( moveit_visualizer_path ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", 
+                           QString("Failed to create moveit_visualizer.launch file at location ").append( moveit_visualizer_path.c_str() ) );
+    return;
+  }
+
+  // Feedback
+  displayAction( QString( moveit_visualizer_file.c_str() ).prepend( qlaunch_path ), 
+                 "TODO" ); // TODO: description
 
   // Create Setup Assistant Launch File  -----------------------------------------------------
   const std::string setup_assistant_launch_file = "setup_assistant.launch";

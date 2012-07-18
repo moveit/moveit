@@ -530,6 +530,20 @@ bool MoveItConfigData::outputSetupAssistantLaunch( const std::string& file_path,
 }
 
 // ******************************************************************************************
+// Output moveit visualizer launch file
+// ******************************************************************************************
+bool MoveItConfigData::outputMoveItVisualizerLaunch( const std::string& file_path,
+                                                     const std::string& template_package_path,
+                                                     const std::string& new_package_name )
+{
+  // Path 
+  const std::string template_path = template_package_path + "launch/moveit_visualizer.launch";
+
+  // Use generic template copy function
+  return copyTemplate( template_path, file_path, new_package_name );
+}
+
+// ******************************************************************************************
 // Copy a template from location <template_path> to location <output_path> and replace package name
 // ******************************************************************************************
 bool MoveItConfigData::copyTemplate( const std::string& template_path, const std::string& output_path,
