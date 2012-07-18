@@ -65,12 +65,32 @@ int main(int argc, char **argv)
   
   ros::NodeHandle nh;  
   ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+  ros::Publisher pub_req = nh.advertise<moveit_msgs::MotionPlanRequest>("motion_plan_request", 100);
+  ros::Publisher pub_res = nh.advertise<moveit_msgs::RobotTrajectory>("motion_plan_results", 100);
   moveit_warehouse::PlanningSceneStorage pss;
   moveit_warehouse::PlanningSceneWithMetadata pswm;
   pss.getPlanningScene(pswm, vm["scene"].as<std::string>());
   ROS_INFO("Publishing scene '%s'", pswm->name.c_str());
   pub_scene.publish(static_cast<const moveit_msgs::PlanningScene&>(*pswm));
+  std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
+  std::vector<std::string> query_names;
+  pss.getPlanningQueries(planning_queries, query_names, pswm->name);
+  ROS_INFO("There are %d planning queries associated to the scene", (int)planning_queries.size());
+  ros::WallDuration(0.5).sleep();
+  for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
+  {
+    ROS_INFO("Publishing query '%s'", query_names[i].c_str());
+    pub_req.publish(static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]));
+    ros::spinOnce();
+    std::vector<moveit_warehouse::RobotTrajectoryWithMetadata> planning_results;
+    pss.getPlanningResults(planning_results, query_names[i], pswm->name);
+    for (std::size_t j = 0 ; j < planning_results.size() ; ++j)
+    {
+      pub_res.publish(static_cast<const moveit_msgs::RobotTrajectory&>(*planning_results[j]));
+      ros::spinOnce();
+    }
+  }
   ros::WallDuration(1.0).sleep();
-  
+
   return 0;
 }

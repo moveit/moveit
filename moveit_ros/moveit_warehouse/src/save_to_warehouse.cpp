@@ -42,6 +42,7 @@
 #include <ros/console.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
+static bool ALLOW_DUPLICATE_SCENE_NAMES = false;
 
 void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_warehouse::PlanningSceneStorage *pss)
 {
@@ -49,9 +50,14 @@ void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_war
   
   if (!psm->getPlanningScene()->getName().empty())
   {
-    moveit_msgs::PlanningScene psmsg;
-    psm->getPlanningScene()->getPlanningSceneMsg(psmsg);
-    pss->addPlanningScene(psmsg);
+    if (ALLOW_DUPLICATE_SCENE_NAMES || !pss->hasPlanningScene(psm->getPlanningScene()->getName()))
+    {
+      moveit_msgs::PlanningScene psmsg;
+      psm->getPlanningScene()->getPlanningSceneMsg(psmsg);
+      pss->addPlanningScene(psmsg);
+    }
+    else
+      ROS_INFO("Scene '%s' was previously added. Not adding again.", psm->getPlanningScene()->getName().c_str());
   }
   else
     ROS_INFO("Scene name is empty. Not saving.");
@@ -76,6 +82,7 @@ int main(int argc, char **argv)
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
+    ("allow-duplicate-scene-names", "Allow adding scenes with same name.")
     ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
     ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
   
@@ -87,6 +94,11 @@ int main(int argc, char **argv)
   {
     std::cout << desc << std::endl;
     return 1;
+  }
+  
+  if (vm.count("allow-duplicate-scene-names"))
+  {
+    ALLOW_DUPLICATE_SCENE_NAMES = true;
   }
   
   ros::AsyncSpinner spinner(1);

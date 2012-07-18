@@ -48,7 +48,6 @@ moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &
   // if we are using default values for initialization, attempt to use ROS params for initialization
   if (db_host_.empty() || db_port_ == 0)
   {
-    static const std::string DEFAULT_CONFIG_NAMESPACE = "/moveit_warehouse";
     ros::NodeHandle nh("~");
     // search for the warehouse_port parameter in the local name space of the node, and up the tree of namespaces;
     // if the desired param is not found, make a final attempt to look fro the param in the default namespace defined above
@@ -56,7 +55,7 @@ moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &
     {
       std::string paramName;
       if (!nh.searchParam("warehouse_port", paramName))
-        paramName = DEFAULT_CONFIG_NAMESPACE + "/warehouse_port";
+        paramName = "warehouse_port";
       int param_port;
       if (nh.getParam(paramName, param_port))
         db_port_ = param_port;
@@ -65,16 +64,17 @@ moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &
     {
       std::string paramName;
       if (!nh.searchParam("warehouse_host", paramName))
-        paramName = DEFAULT_CONFIG_NAMESPACE + "/warehouse_host";
+        paramName = "warehouse_host";
       std::string param_host;
       if (nh.getParam(paramName, param_host))
         db_host_ = param_host;
     }
   }
-  ROS_INFO("Connecting to MongoDB on host '%s' port '%u'", db_host_.c_str(), db_port_);
+  ROS_INFO("Connecting to MongoDB on host '%s' port '%u'...", db_host_.c_str(), db_port_);
   planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene", db_host_, db_port_));
   motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request", db_host_, db_port_));
-  robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory", db_host_, db_port_));
+  robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory", db_host_, db_port_));  
+  ROS_INFO("Connected to MongoDB on host '%s' port '%u'.", db_host_.c_str(), db_port_);
 }
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)
@@ -83,6 +83,13 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs:
                                PLANNING_SCENE_TIME_NAME, scene.robot_state.joint_state.header.stamp.toSec());
   planning_scene_collection_->insert(scene, metadata); 
   ROS_INFO("Saved scene '%s'", scene.name.c_str());
+}
+
+bool moveit_warehouse::PlanningSceneStorage::hasPlanningScene(const std::string &name) const
+{
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, name);
+  std::vector<PlanningSceneWithMetadata> planning_scenes = planning_scene_collection_->pullAllResults(q, false);
+  return !planning_scenes.empty();
 }
 
 std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const
@@ -289,6 +296,18 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(std::vector<Moti
 {
   mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
   planning_queries = motion_plan_request_collection_->pullAllResults(q, false);
+}
+
+void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const
+{
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  planning_queries = motion_plan_request_collection_->pullAllResults(q, false);
+  query_names.resize(planning_queries.size());
+  for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
+    if (planning_queries[i]->metadata.hasField(MOTION_PLAN_REQUEST_ID_NAME.c_str()))
+      query_names[i] = planning_queries[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME);
+    else
+      query_names[i].clear();
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results,
