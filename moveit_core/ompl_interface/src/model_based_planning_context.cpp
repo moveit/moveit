@@ -401,14 +401,12 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
   {
     moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
-    std::cout << constr << std::endl;
-    
     kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
     kset->add(constr);
     if (!kset->empty())
       goal_constraints_.push_back(kset);
   }
-  std::cout << goal_constraints_.size() << std::endl;
+
   if (goal_constraints_.empty())
   {
     ROS_WARN("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
