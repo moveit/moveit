@@ -107,6 +107,12 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
+  if (!psm.getPlanningScene() || !psm.getPlanningScene()->isConfigured())
+  {
+    ROS_ERROR("Unable to initialize PlanningSceneMonitor");
+    return 1;
+  }
+  
   psm.startSceneMonitor();
   psm.startWorldGeometryMonitor();
   moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
