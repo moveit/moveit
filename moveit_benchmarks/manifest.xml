@@ -11,7 +11,7 @@
   <depend package="planning_interface"/>
   <depend package="pluginlib"/>
   <depend package="planning_scene"/>
-  <depend package="robot_model_loader"/>
+  <depend package="planning_models_loader"/>
   <depend package="moveit_warehouse"/>
   <depend package="trajectory_processing"/>
 
