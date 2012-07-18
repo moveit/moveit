@@ -34,7 +34,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 ######################################################################
 
-# Author: Mark Moll
+# Author: Mark Moll, Ioan Sucan
 
 from sys import argv, exit
 from os.path import basename, splitext
@@ -55,7 +55,7 @@ def read_benchmark_log(dbname, filenames):
     c = conn.cursor()
     c.execute('PRAGMA FOREIGN_KEYS = ON')
     c.execute("""CREATE TABLE IF NOT EXISTS experiments
-        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, memorylimit REAL, runcount INTEGER, hostname VARCHAR(1024), date DATETIME, seed INTEGER, setup TEXT)""")
+        (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, hostname VARCHAR(1024), date DATETIME, setup TEXT)""")
     c.execute("""CREATE TABLE IF NOT EXISTS planner_configs
         (id INTEGER PRIMARY KEY AUTOINCREMENT, planner_name VARCHAR(512) NOT NULL, settings TEXT)""")
     for filename in filenames:
@@ -70,14 +70,11 @@ def read_benchmark_log(dbname, filenames):
         while not expline.startswith("|>>>"):
             expsetup = expsetup + expline
             expline = logfile.readline()
-        rseed = int(logfile.readline().split()[0])
         timelimit = float(logfile.readline().split()[0])
-        memorylimit = float(logfile.readline().split()[0])
-        nrruns = float(logfile.readline().split()[0])
         totaltime = float(logfile.readline().split()[0])
 
-        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?,?,?,?)',
-              (None, expname, totaltime, timelimit, memorylimit, nrruns, hostname, date, rseed, expsetup) )
+        c.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?,?)',
+              (None, expname, totaltime, timelimit, hostname, date, expsetup) )
         c.execute('SELECT last_insert_rowid()')
         experiment_id = c.fetchone()[0]
         num_planners = int(logfile.readline().split()[0])
@@ -122,8 +119,9 @@ def read_benchmark_log(dbname, filenames):
             table_columns = "experimentid INTEGER, plannerid INTEGER"
             for k, v in properties.iteritems():
                 table_columns = table_columns + ', ' + k + ' ' + v
-            table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE"
-            table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planner_configs(id) ON DELETE CASCADE"
+#            table_columns = table_columns + ", INDEX (experimentid, plannerid)"
+            table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE ON UPDATE CASCADE"
+            table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planner_configs(id) ON DELETE CASCADE ON UPDATE CASCADE"
 
             planner_table = 'planner_%s' % planner_name
             c.execute("CREATE TABLE IF NOT EXISTS `%s` (%s)" %  (planner_table, table_columns))
@@ -247,12 +245,11 @@ def plot_statistics(dbname, fname):
         else:
             runs = runs + str(runcount[0])
 
-        c.execute('SELECT name, timelimit, memorylimit FROM experiments WHERE id = %s' % e)
+        c.execute('SELECT name, timelimit FROM experiments WHERE id = %s' % e)
         d = c.fetchone()
         plt.figtext(pagex, pagey, "Experiment '%s'" % d[0])
         plt.figtext(pagex, pagey-0.05, runs)
         plt.figtext(pagex, pagey-0.10, "Time limit per run: %s seconds" % d[1])
-        plt.figtext(pagex, pagey-0.15, "Memory limit per run: %s MB" % d[2])
         pagey -= 0.22
     plt.show()
     pp.savefig(plt.gcf())
@@ -313,56 +310,6 @@ def save_as_mysql(dbname, mysqldump):
         mysqldump.write(line)
     mysqldump.close()
 
-def compute_views(dbname):
-    conn = sqlite3.connect(dbname)
-    c = conn.cursor()
-    c.execute('PRAGMA FOREIGN_KEYS = ON')
-
-    # best configuration per problem, for each planner
-    c.execute('SELECT DISTINCT planner_name FROM planner_configs')
-    planners = [p[0] for p in c.fetchall() if not p[0] == None]
-    c.execute('SELECT DISTINCT name FROM experiments')
-    exps = [e[0] for e in c.fetchall() if not e[0] == None]
-    for p in planners:
-        # the table name for this planner
-        tname = 'planner_' + p
-
-        # check if simplification time is available
-        has_simplification_time = False
-        c.execute('SELECT * FROM `%s` LIMIT 1' % tname)
-        if 'simplification_time' in [t[0] for t in c.description]:
-            has_simplification_time = True
-
-        for enm in exps:
-            # select all runs, in all configurations, for a particular problem and a particular planner
-            s0 = 'SELECT * FROM `%s` INNER JOIN experiments ON `%s`.experimentid = experiments.id WHERE experiments.name = "%s"' % (tname, tname, enm)
-            # select the highest solve rate and shortest average runtime for each planner configuration
-            if has_simplification_time:
-                s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
-            else:
-                s1 = 'SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM (%s) GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % s0
-            c.execute(s1)
-            best = c.fetchone()
-            if not best == None:
-                if not best[0] == None:
-                    bp = 'best_' + enm + '_' + p
-                    print("Best plannner configuration for planner " + p + " on problem '" + enm + "' is " + str(best[0]))
-                    c.execute('DROP VIEW IF EXISTS `%s`' % bp)
-                    c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM (%s) WHERE plannerid = %s' % (bp, s0, best[0]))
-
-        if has_simplification_time:
-            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time + simplification_time) AS total_time FROM `%s` GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
-        else:
-            c.execute('SELECT plannerid, AVG(solved) AS avg_slv, AVG(time) AS total_time FROM `%s` GROUP BY plannerid ORDER BY avg_slv DESC, total_time ASC LIMIT 1' % tname)
-        best = c.fetchone()
-        if not best == None:
-            if not best[0] == None:
-                bp = 'best_' + p
-                print("Best overall plannner configuration for planner " + p + " on is " + str(best[0]))
-                c.execute('DROP VIEW IF EXISTS `%s`' % bp)
-                c.execute('CREATE VIEW IF NOT EXISTS `%s` AS SELECT * FROM `%s` WHERE plannerid = %s' % (bp, tname, best[0]))
-    conn.commit()
-    c.close()
 
 if __name__ == "__main__":
     usage = """%prog [options] [<benchmark.log> ...]"""
@@ -379,9 +326,6 @@ if __name__ == "__main__":
 
     if len(args)>0:
         read_benchmark_log(options.dbname, args)
-        # If we update the database, we recompute the views as well
-        options.view = True
-
 
     if options.plot:
         plot_statistics(options.dbname, options.plot)

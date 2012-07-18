@@ -223,11 +223,10 @@ public:
           ROS_ERROR("Planning interface '%s' was not found", req.planner_interfaces[i].name.c_str());
     
     res.planner_interfaces.clear();
-    std::vector<planning_interface::Planner*> pi;
-    std::vector<std::vector<std::string> > planner_ids;
-    std::vector<std::size_t> average_count;
-    std::vector<planning_interface::PlannerCapability> pc;
-    planning_interface::PlannerCapability capabilities;	
+    std::vector<planning_interface::Planner*> planner_interfaces_to_benchmark;
+    std::vector<planning_interface::PlannerCapability> planner_interfaces_to_benchmark_capabilities;
+    std::vector<std::vector<std::string> > planner_ids_to_benchmark_per_planner_interface;
+    std::vector<std::size_t> average_count_per_planner_interface;
     moveit_msgs::GetMotionPlan::Request mp_req;
     mp_req.motion_plan_request = req.motion_plan_request;
     
@@ -246,44 +245,48 @@ public:
         if (found < 0)
           continue;
       }
-      
+      planning_interface::PlannerCapability capabilities;	
       if (it->second->canServiceRequest(mp_req, capabilities))
       {
         res.planner_interfaces.resize(res.planner_interfaces.size() + 1);
         res.planner_interfaces.back().name = it->first;
-        pi.push_back(it->second.get());
-        pc.push_back(capabilities);
-        planner_ids.resize(planner_ids.size() + 1);
-        average_count.resize(average_count.size() + 1, std::max<std::size_t>(1, req.default_average_count));
+        planner_interfaces_to_benchmark.push_back(it->second.get());
+        planner_interfaces_to_benchmark_capabilities.push_back(capabilities);
+        planner_ids_to_benchmark_per_planner_interface.resize(planner_ids_to_benchmark_per_planner_interface.size() + 1);
+        average_count_per_planner_interface.resize(average_count_per_planner_interface.size() + 1, std::max<std::size_t>(1, req.default_average_count));
         std::vector<std::string> known;
-        pi.back()->getPlanningAlgorithms(known);
+        it->second->getPlanningAlgorithms(known);
         if (found < 0 || req.planner_interfaces[found].planner_ids.empty())
-          planner_ids.back() = known;
+          planner_ids_to_benchmark_per_planner_interface.back() = known;
         else
         {
           if ((int)req.average_count.size() > found)
-            average_count.back() = std::max<std::size_t>(1, req.average_count[found]);
+            average_count_per_planner_interface.back() = std::max<std::size_t>(1, req.average_count[found]);
           for (std::size_t k = 0 ; k < req.planner_interfaces[found].planner_ids.size() ; ++k)
           {
             bool fnd = false;
             for (std::size_t q = 0 ; q < known.size() ; ++q)
-              if (known[q] == req.planner_interfaces[found].planner_ids[k] || mp_req.motion_plan_request.group_name + "[" + known[q] + "]" == req.planner_interfaces[found].planner_ids[k])
+              if (known[q] == req.planner_interfaces[found].planner_ids[k] ||
+                  mp_req.motion_plan_request.group_name + "[" + known[q] + "]" == req.planner_interfaces[found].planner_ids[k])
               {
                 fnd = true;
                 break;
               }
             if (fnd)
-              planner_ids.back().push_back(req.planner_interfaces[found].planner_ids[k]);
+              planner_ids_to_benchmark_per_planner_interface.back().push_back(req.planner_interfaces[found].planner_ids[k]);
             else
               ROS_ERROR("The planner id '%s' is not known to the planning interface '%s'", req.planner_interfaces[found].planner_ids[k].c_str(), it->first.c_str());
           }          
         }
+        
+        if (planner_ids_to_benchmark_per_planner_interface.back().empty())
+          ROS_ERROR("Planning interface '%s' has no planners defined", it->first.c_str());
       }
       else
         ROS_WARN_STREAM("Planning interface '" << it->second->getDescription() << "' is not able to solve the specified benchmark problem.");
     }
     
-    if (pi.empty())
+    if (planner_interfaces_to_benchmark.empty())
     {
       ROS_ERROR("There are no planning interfaces to benchmark");
       return false;	    
@@ -292,25 +295,27 @@ public:
     // output information about tested planners
     ROS_INFO("Benchmarking planning interfaces:");
     std::stringstream sst;
-    for (std::size_t i = 0 ; i < pi.size() ; ++i)
+    for (std::size_t i = 0 ; i < planner_interfaces_to_benchmark.size() ; ++i)
     {
-      sst << "  * " << pi[i]->getDescription() << " executed " << average_count[i] << " times" << std::endl;
-      for (std::size_t k = 0 ; k < planner_ids[i].size() ; ++k)
-        sst << "    - " << planner_ids[i][k] << std::endl;
+      if (planner_ids_to_benchmark_per_planner_interface[i].empty())
+        continue;
+      sst << "  * " << planner_interfaces_to_benchmark[i]->getDescription() << " executed " << average_count_per_planner_interface[i] << " times" << std::endl;
+      for (std::size_t k = 0 ; k < planner_ids_to_benchmark_per_planner_interface[i].size() ; ++k)
+        sst << "    - " << planner_ids_to_benchmark_per_planner_interface[i][k] << std::endl;
       sst << std::endl;
     }
     ROS_INFO("%s", sst.str().c_str());
     
     // configure planning context 
     scene_->setPlanningSceneMsg(req.scene);
-    res.responses.resize(pi.size());
+    res.responses.resize(planner_interfaces_to_benchmark.size());
 
     std::size_t total_n_planners = 0;
     std::size_t total_n_runs = 0;
-    for (std::size_t i = 0 ; i < planner_ids.size() ; ++i)
+    for (std::size_t i = 0 ; i < planner_ids_to_benchmark_per_planner_interface.size() ; ++i)
     {
-      total_n_planners += planner_ids[i].size();
-      total_n_runs += planner_ids[i].size() * average_count[i];
+      total_n_planners += planner_ids_to_benchmark_per_planner_interface[i].size();
+      total_n_runs += planner_ids_to_benchmark_per_planner_interface[i].size() * average_count_per_planner_interface[i];
     }
     
     // benchmark all the planners
@@ -318,19 +323,19 @@ public:
     boost::progress_display progress(total_n_runs, std::cout);
     typedef std::vector<std::map<std::string, std::string> > RunData;
     std::vector<RunData> data;
-    std::vector<bool> first(pi.size(), true);
-    for (std::size_t i = 0 ; i < pi.size() ; ++i)
+    std::vector<bool> first(planner_interfaces_to_benchmark.size(), true);
+    for (std::size_t i = 0 ; i < planner_interfaces_to_benchmark.size() ; ++i)
     {
-      for (std::size_t j = 0 ; j < planner_ids[i].size() ; ++j)
+      for (std::size_t j = 0 ; j < planner_ids_to_benchmark_per_planner_interface[i].size() ; ++j)
       {
-        mp_req.motion_plan_request.planner_id = planner_ids[i][j];
-        RunData runs(average_count[i]);
-        for (unsigned int c = 0 ; c < average_count[i] ; ++c)
+        mp_req.motion_plan_request.planner_id = planner_ids_to_benchmark_per_planner_interface[i][j];
+        RunData runs(average_count_per_planner_interface[i]);
+        for (unsigned int c = 0 ; c < average_count_per_planner_interface[i] ; ++c)
         {
           ++progress; 
           moveit_msgs::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
-          bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
+          bool solved = planner_interfaces_to_benchmark[i]->solve(cscene_, mp_req, mp_res);
           double total_time = (ros::WallTime::now() - start).toSec();
           
           // collect data   
@@ -362,10 +367,10 @@ public:
     out << duration << " seconds spent to collect the data" << std::endl;
     out << total_n_planners << " planners" << std::endl;
     std::size_t ri = 0;
-    for (std::size_t q = 0 ; q < pi.size() ; ++q)
-      for (std::size_t p = 0 ; p < planner_ids[q].size() ; ++p, ++ri)
+    for (std::size_t q = 0 ; q < planner_interfaces_to_benchmark.size() ; ++q)
+      for (std::size_t p = 0 ; p < planner_ids_to_benchmark_per_planner_interface[q].size() ; ++p, ++ri)
       {
-        out << pi[q]->getDescription() + "_" + planner_ids[q][p] << std::endl;
+        out << planner_interfaces_to_benchmark[q]->getDescription() + "_" + planner_ids_to_benchmark_per_planner_interface[q][p] << std::endl;
         // in general, we could have properties specific for a planner;
         // right now, we do not include such properties
         out << "0 common properties" << std::endl;
