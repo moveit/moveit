@@ -60,14 +60,14 @@ class BenchmarkService
 {
 public:
   
-  BenchmarkService(void)
+  BenchmarkService(void) : kml_(ROBOT_DESCRIPTION)
   {
     // initialize a planning scene
-    planning_models_loader::KinematicModelLoader kml(ROBOT_DESCRIPTION);
-    if (kml.getModel())
+    
+    if (kml_.getModel())
     {
       scene_.reset(new planning_scene::PlanningScene());
-      scene_->configure(kml.getURDF(), kml.getSRDF() ? kml.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()), kml.getModel());
+      scene_->configure(kml_.getURDF(), kml_.getSRDF() ? kml_.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()), kml_.getModel());
       if (scene_->isConfigured())
       {
         cscene_ = scene_;		
@@ -294,10 +294,10 @@ public:
     std::stringstream sst;
     for (std::size_t i = 0 ; i < pi.size() ; ++i)
     {
-      sst << "  * " << pi[i]->getDescription() << " [ ";
+      sst << "  * " << pi[i]->getDescription() << " executed " << average_count[i] << " times" << std::endl;
       for (std::size_t k = 0 ; k < planner_ids[i].size() ; ++k)
-        sst << planner_ids[i][k] << " ";
-      sst << "]" << std::endl;
+        sst << "    - " << planner_ids[i][k] << std::endl;
+      sst << std::endl;
     }
     ROS_INFO("%s", sst.str().c_str());
     
@@ -333,8 +333,11 @@ public:
           bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
           double total_time = (ros::WallTime::now() - start).toSec();
           
-          // collect data 
+          // collect data   
+          start = ros::WallTime::now();
           collectMetrics(runs[c], mp_res, solved, total_time);
+          double metrics_time = (ros::WallTime::now() - start).toSec();
+          ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
           
           // record the first solution in the response
           if (solved && first[i])
@@ -419,6 +422,7 @@ private:
   }
   
   ros::NodeHandle nh_;
+  planning_models_loader::KinematicModelLoader kml_;
   planning_scene::PlanningScenePtr scene_;
   planning_scene::PlanningSceneConstPtr cscene_;
   boost::shared_ptr<pluginlib::ClassLoader<planning_interface::Planner> > planner_plugin_loader_;
