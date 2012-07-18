@@ -784,7 +784,9 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
       if (!context.trajectory_parts_[i].joint_trajectory.points.empty())
       {
         if (context.trajectory_parts_[i].joint_trajectory.header.stamp > current_time)
-          d = context.trajectory_parts_[i].joint_trajectory.header.stamp - current_time; /// \todo use Header info from MultiDOFJointTrajectory
+          d = context.trajectory_parts_[i].joint_trajectory.header.stamp - current_time;
+        if (context.trajectory_parts_[i].multi_dof_joint_trajectory.header.stamp > current_time)
+          d = std::max(d, context.trajectory_parts_[i].multi_dof_joint_trajectory.header.stamp - current_time);
         d += std::max(context.trajectory_parts_[i].joint_trajectory.points.empty() ? ros::Duration(0.0) : 
                       context.trajectory_parts_[i].joint_trajectory.points.back().time_from_start,
                       context.trajectory_parts_[i].multi_dof_joint_trajectory.points.empty() ? ros::Duration(0.0) : 
@@ -817,10 +819,10 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           time_index_.push_back(current_time + d + context.trajectory_parts_[longest_part].joint_trajectory.points[j].time_from_start);
       }
       else
-      { /// \todo use Header info from MultiDOFJointTrajectory once new deb is out
+      {
         ros::Duration d(0.0);
-        //        if (context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.header.stamp > current_time)
-        //          d = context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.header.stamp - current_time;
+        if (context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.header.stamp > current_time)
+          d = context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.header.stamp - current_time;
         for (std::size_t j = 0 ; j < context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points.size() ; ++j)
           time_index_.push_back(current_time + d + context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points[j].time_from_start);
       }
