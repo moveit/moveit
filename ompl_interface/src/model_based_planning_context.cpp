@@ -345,8 +345,11 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal(voi
     constraint_samplers::ConstraintSamplerPtr cs;
     if (spec_.constraint_sampler_manager_)
       cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getJointModelGroup()->getName(), goal_constraints_[i]->getAllConstraints());
-    ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));
-    goals.push_back(g);
+    if (cs)
+    {
+      ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));
+      goals.push_back(g);
+    }
   }
   
   if (!goals.empty())
@@ -398,12 +401,14 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
   {
     moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
+    std::cout << constr << std::endl;
+    
     kinematic_constraints::KinematicConstraintSetPtr kset(new kinematic_constraints::KinematicConstraintSet(getPlanningScene()->getKinematicModel(), getPlanningScene()->getTransforms()));
     kset->add(constr);
     if (!kset->empty())
       goal_constraints_.push_back(kset);
   }
-  
+  std::cout << goal_constraints_.size() << std::endl;
   if (goal_constraints_.empty())
   {
     ROS_WARN("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
@@ -411,7 +416,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
       error->val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
   }
-  
+
   ob::GoalPtr goal = constructGoal();
   ompl_simple_setup_.setGoal(goal);
   if (goal)
