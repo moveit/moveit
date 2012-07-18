@@ -207,7 +207,7 @@ void runBenchmark(const moveit_warehouse::PlanningSceneStorage &pss, const Bench
   }
   ros::NodeHandle nh;
   ros::service::waitForService(BENCHMARK_SERVICE_NAME);
-  ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningBenchmark>(BENCHMARK_SERVICE_NAME);
+  ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningBenchmark>(BENCHMARK_SERVICE_NAME, true);
   
   for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
   {
