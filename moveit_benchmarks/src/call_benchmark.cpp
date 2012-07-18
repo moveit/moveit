@@ -164,9 +164,10 @@ bool readOptions(const char *filename, BenchmarkOptions &opt)
     if (k == "planners")
     {
       if (bpo)
-      {
-        boost::tokenizer<> tok(val);
-        for(boost::tokenizer<>::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+      {   
+        boost::char_separator<char> sep(" ");
+        boost::tokenizer<boost::char_separator<char> > tok(val, sep);
+        for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
           bpo->planners.push_back(*beg);
       }
       else
