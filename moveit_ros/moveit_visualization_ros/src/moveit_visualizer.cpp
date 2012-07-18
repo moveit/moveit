@@ -63,18 +63,14 @@ MoveItVisualizer::MoveItVisualizer() :
   interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
   kinematic_model_loader_.reset(new planning_models_loader::KinematicModelLoader("robot_description"));
 
-  planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr scp(new planning_scene_monitor::PlanningSceneMonitor::SceneConfig<planning_scene::PlanningScene, collision_detection::CollisionWorldHybrid, collision_detection::CollisionRobotHybridROS>("distance"));
-
-  std::vector<planning_scene_monitor::PlanningSceneMonitor::SceneConfigPtr> scpv(1, scp);
-
   if(!monitor_robot_state) {
     ROS_INFO_STREAM("Starting publisher thread");
     joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(scpv, kinematic_model_loader_));
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(kinematic_model_loader_));
     boost::thread publisher_thread(boost::bind(&MoveItVisualizer::publisherFunction, this, true));
   } else {
     transformer_.reset(new tf::TransformListener());
-    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(scpv, kinematic_model_loader_, transformer_));
+    planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(kinematic_model_loader_, transformer_));
     joint_state_publisher_.reset(new KinematicStateJointStatePublisher());
     bool publish_root_transform = false;
     loc_nh.param("publish_root_transform", publish_root_transform, false);
