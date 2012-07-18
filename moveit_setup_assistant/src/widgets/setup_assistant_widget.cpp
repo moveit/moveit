@@ -400,13 +400,13 @@ void SetupAssistantWidget::loadRviz()
 // ******************************************************************************************
 // Show/hide Rviz Frame
 // ******************************************************************************************
-void SetupAssistantWidget::showRviz( bool show )
+/*void SetupAssistantWidget::showRviz( bool show )
 {
   if( show )
     rviz_container_->show(); 
   else
     rviz_container_->hide();
-}
+    }*/
 
 // ******************************************************************************************
 // Qt close event function for reminding user to save
