@@ -293,18 +293,18 @@ void ConfigurationFilesWidget::savePackage()
   }
 
   // Get template package location ----------------------------------------------------------------------
-  const std::string template_package_path = config_data_->setup_assistant_path_ + "/templates/moveit_config_pkg_template/";
-  if( !fs::is_directory( template_package_path ) )
+  config_data_->template_package_path_ = config_data_->setup_assistant_path_ + "/templates/moveit_config_pkg_template/";
+  if( !fs::is_directory( config_data_->template_package_path_ ) )
   {
     QMessageBox::critical( this, "Error Generating", 
                            QString("Unable to find package template directory: ")
-                           .append( template_package_path.c_str() ) );
+                           .append( config_data_->template_package_path_.c_str() ) );
     return;
   }
 
   // Get the package name ---------------------------------------------------------------------------------
-  const std::string package_name = getPackageName( new_package_path );
-  QString qpackage_name = QString( package_name.c_str() ).append("/"); // for gui feedback
+  const std::string new_package_name = getPackageName( new_package_path );
+  QString qnew_package_name = QString( new_package_name.c_str() ).append("/"); // for gui feedback
 
   const std::string setup_assistant_file = new_package_path + ".setup_assistant";
 
@@ -340,7 +340,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   else // this is a new package (but maybe the folder already exists)
   {
-    // Create new directory
+    // Create new directory ------------------------------------------------------------------
     try
     {
       fs::create_directory( new_package_path ) && !fs::is_directory( new_package_path );
@@ -351,53 +351,94 @@ void ConfigurationFilesWidget::savePackage()
                              QString("Unable to create directory ").append( new_package_path.c_str() ) );
       return;
     }
+    // Feedback
+    displayAction( qnew_package_name,
+                   "Package that contains all necessary configuration and launch files for MoveIt");
 
-    // Copy barebones package template
-    if ( !config_data_->outputPackageFiles( template_package_path, new_package_path, package_name ) )
+
+    // Copy CMakeLists.txt ------------------------------------------------------------------
+    std::string file_name = "CMakeLists.txt";
+    std::string template_path = config_data_->template_package_path_ + file_name;
+    std::string file_path = new_package_path + file_name;
+
+    // Use generic template copy function
+    if( !config_data_->copyTemplate( template_path, file_path, new_package_name ) )
     {
-      QMessageBox::critical( this, "Error Generating Files", "Failed to generate base package files" );
+      QMessageBox::critical( this, "Error Generating File", 
+                             QString("Failed to generate file ").append( file_path.c_str() ));
       return;
-    }    
+    }
+    // Feedback
+    displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
+                   "Package that contains all necessary configuration and launch files for MoveIt");
+
+    // Copy Makefile ------------------------------------------------------------------
+    file_name = "Makefile";
+    template_path = config_data_->template_package_path_ + file_name;
+    file_path = new_package_path + file_name;
+
+    // Use generic template copy function
+    if( !config_data_->copyTemplate( template_path, file_path, new_package_name ) )
+    {
+      QMessageBox::critical( this, "Error Generating File", 
+                             QString("Failed to generate file ").append( file_path.c_str() ));
+      return;
+    }
+    // Feedback
+    displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
+                   "Package that contains all necessary configuration and launch files for MoveIt");
+
+    // Copy manifest.xml ------------------------------------------------------------------
+    file_name = "manifext.xml";
+    template_path = config_data_->template_package_path_ + file_name;
+    file_path = new_package_path + file_name;
+
+    // Use generic template copy function
+    if( !config_data_->copyTemplate( template_path, file_path, new_package_name ) )
+    {
+      QMessageBox::critical( this, "Error Generating File", 
+                             QString("Failed to generate file ").append( file_path.c_str() ));
+      return;
+    }
+    // Feedback
+    displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
+                   "Package that contains all necessary configuration and launch files for MoveIt");
 
   }
-  // Feedback
-  displayAction( qpackage_name,
-                 "Package that contains all necessary configuration and launch files for MoveIt");
-  // Select first item in file list for user clue
-  action_list_->setCurrentRow( 0 );
-
 
   // Create config folder ---------------------------------------------------------------
-
   const std::string config_path = new_package_path + "config";
-  QString qconfig_path = QString("config/").prepend( qpackage_name );
+  QString qconfig_path = QString("config/").prepend( qnew_package_name );
 
-  if ( !fs::create_directory( config_path ) && !fs::is_directory( config_path ) )
+  if( !fs::is_directory( config_path ) )
   {
-    QMessageBox::critical( this, "Error Generating Files", 
-                           QString("Unable to create directory ").append( config_path.c_str() ) );
-    return;
+    if ( !fs::create_directory( config_path ) )
+    {
+      QMessageBox::critical( this, "Error Generating Files", 
+                             QString("Unable to create directory ").append( config_path.c_str() ) );
+      return;
+    }
+    // Feedback
+    displayAction( qconfig_path,
+                   "Folder for storing configuration files");
   }
-  
-  // Feedback
-  displayAction( qconfig_path,
-                 "Folder for storing configuration files");
 
   // Create launch folder ---------------------------------------------------------------
-  
   const std::string launch_path = new_package_path + "launch";
-  QString qlaunch_path = QString("launch/").prepend( qpackage_name );
+  QString qlaunch_path = QString("launch/").prepend( qnew_package_name );
 
-  if ( !fs::create_directory( launch_path ) && !fs::is_directory( launch_path ) )
+  if( !fs::is_directory( launch_path ) )
   {
-    QMessageBox::critical( this, "Error Generating Files", 
-                           QString("Unable to create directory ").append( launch_path.c_str() ) );
-    return;
+    if( !fs::create_directory( launch_path ) )
+    {
+      QMessageBox::critical( this, "Error Generating Files", 
+                             QString("Unable to create directory ").append( launch_path.c_str() ) );
+      return;
+    }
+    // Feedback
+    displayAction( qlaunch_path,
+                   "Folder for storing launch files" );
   }
-  
-  // Feedback
-  displayAction( qlaunch_path,
-                 "Folder for storing launch files" );
 
   // Create SRDF file -----------------------------------------------------------------
   const std::string srdf_file = config_data_->urdf_model_->getName() + ".srdf";
@@ -410,11 +451,11 @@ void ConfigurationFilesWidget::savePackage()
                            QString("Failed to create an SRDF file at location ").append( srdf_path.c_str() ) );
     return;
   }
-
   // Feedback
   displayAction( QString( srdf_file.c_str() ).prepend( qconfig_path ), 
                  "SRDF ( Robot Description Format) is a representation of semantic information about robots. This format is intended to represent information about the robot that is not in the URDF file, but it is useful for a variety of applications. The intention is to include information that has a semantic aspect to it. <a href='http://www.ros.org/wiki/srdf'>http://www.ros.org/wiki/srdf</a>");
-
+  // Select first item in file list for user clue. This may or may not be the srdf file being highlighted
+  action_list_->setCurrentRow( 0 );
 
   // Create OMPL Planning Config File --------------------------------------------------
   const std::string ompl_file = "ompl_planning.yaml";
@@ -426,7 +467,6 @@ void ConfigurationFilesWidget::savePackage()
                            QString("Failed to create ompl_planning.yaml file at location ").append( ompl_path.c_str() ) );
     return;
   }
-
   // Feedback
   displayAction( QString( ompl_file.c_str() ).prepend( qconfig_path ), 
                  "Configures the OMPL planning node for your robot. In addition to some basic parameterization for OMPL it contains two groups per planning group - a <group_name> group and a <group_name>_cartesian group. The <group_name> group is configured to support configuration space planning for your groups - sampling in the joint space in order to reach joint goals. The <group_name>_cartesian group is configured to support task space planning for your robot. This is particularly useful as it allows you to specify path constraints on allowable paths, for instance to instruct the robot to keep its end effector upright while moving a glass. The task space planner likely will not successfully plan for your robot in a reasonable amount of time using the auto-configured nodes, as it requires robust and very fast inverse kinematics, generally from an analytic solver." );
@@ -442,7 +482,6 @@ void ConfigurationFilesWidget::savePackage()
                            QString("Failed to create kinematics.yaml file at location ").append( kinematics_path.c_str() ) );
     return;
   }
-
   // Feedback
   displayAction( QString( kinematics_file.c_str() ).prepend( qconfig_path ), 
                  "Holds kinematic info" ); // TODO: description
@@ -457,7 +496,6 @@ void ConfigurationFilesWidget::savePackage()
                            QString("Failed to create joint_limits.yaml file at location ").append( joint_limits_path.c_str() ) );
     return;
   }
-
   // Feedback
   displayAction( QString( joint_limits_file.c_str() ).prepend( qconfig_path ), 
                  "This file contains additional information about joints that appear in your planning groups that is not contained in the URDF, as well as allowing you to set lower limits for velocity and acceleration than those contained in your URDF. As our planners are exclusively kinematic planners, this information is used by our trajectory filtering system to assign reasonable velocities and timing for the trajectory before it is passed to your controllers." );
@@ -476,7 +514,7 @@ void ConfigurationFilesWidget::savePackage()
     }
 
     // Feedback
-    displayAction( QString( benchmark_server_file.c_str() ).prepend( qconfig_path ), 
+    displayAction( QString( benchmark_server_file.c_str() ).prepend( qlaunch_path ), 
     "Holds benchmark_server info" ); // TODO: description
   */
 
@@ -484,13 +522,12 @@ void ConfigurationFilesWidget::savePackage()
   const std::string move_group_file = "move_group.launch";
   const std::string move_group_path = launch_path + "/" + move_group_file;
 
-  if ( !config_data_->outputMoveGroupLaunch( move_group_path, template_package_path, package_name ) )
+  if ( !config_data_->outputMoveGroupLaunch( move_group_path, new_package_name ) )
   {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create move_group.launch file at location ").append( move_group_path.c_str() ) );
     return;
   }
-
   // Feedback
   displayAction( QString( move_group_file.c_str() ).prepend( qlaunch_path ), 
                  "This launch file just launches all the individual move_<group_name> launch files. You should not need to alter it" ); // TODO: description
@@ -499,13 +536,12 @@ void ConfigurationFilesWidget::savePackage()
   const std::string ompl_planner_file = "ompl_planner.launch";
   const std::string ompl_planner_path = launch_path + "/" + ompl_planner_file;
 
-  if ( !config_data_->outputOMPLPlannerLaunch( ompl_planner_path, template_package_path, package_name ) )
+  if ( !config_data_->outputOMPLPlannerLaunch( ompl_planner_path, new_package_name ) )
   {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create ompl_planner.launch file at location ").append( ompl_planner_path.c_str() ) );
     return;
   }
-
   // Feedback
   displayAction( QString( ompl_planner_file.c_str() ).prepend( qlaunch_path ), 
                  "TODO" ); // TODO: description
@@ -514,7 +550,7 @@ void ConfigurationFilesWidget::savePackage()
   const std::string planning_context_file = "planning_context.launch";
   const std::string planning_context_path = launch_path + "/" + planning_context_file;
 
-  if ( !config_data_->outputPlanningContextLaunch( planning_context_path, template_package_path, package_name ) )
+  if ( !config_data_->outputPlanningContextLaunch( planning_context_path, new_package_name ) )
   {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create planning_context.launch file at location ").append( planning_context_path.c_str() ) );
@@ -539,7 +575,7 @@ void ConfigurationFilesWidget::savePackage()
     }
 
     // Feedback
-    displayAction( QString( warehouse_file.c_str() ).prepend( qconfig_path ), 
+    displayAction( QString( warehouse_file.c_str() ).prepend( qlaunch_path ), 
     "TODO" ); // TODO: description
   */
 
@@ -557,15 +593,30 @@ void ConfigurationFilesWidget::savePackage()
     }
 
     // Feedback
-    displayAction( QString( warehouse_settings_file.c_str() ).prepend( qconfig_path ), 
+    displayAction( QString( warehouse_settings_file.c_str() ).prepend( qlaunch_path ), 
     "TODO" ); // TODO: description
   */
+
+  // Create Moveit_Visualizer Launch File  -----------------------------------------------------
+  const std::string moveit_visualizer_file = "moveit_visualizer.launch";
+  const std::string moveit_visualizer_path = launch_path + "/" + moveit_visualizer_file;
+
+  if ( !config_data_->outputMoveItVisualizerLaunch( moveit_visualizer_path, new_package_name ) )
+  {
+    QMessageBox::critical( this, "Error Generating Files", 
+                           QString("Failed to create moveit_visualizer.launch file at location ").append( moveit_visualizer_path.c_str() ) );
+    return;
+  }
+
+  // Feedback
+  displayAction( QString( moveit_visualizer_file.c_str() ).prepend( qlaunch_path ), 
+                 "TODO" ); // TODO: description
 
   // Create Setup Assistant Launch File  -----------------------------------------------------
   const std::string setup_assistant_launch_file = "setup_assistant.launch";
   const std::string setup_assistant_launch_path = launch_path + "/" + setup_assistant_launch_file;
 
-  if ( !config_data_->outputSetupAssistantLaunch( setup_assistant_launch_path, template_package_path, package_name ) )
+  if ( !config_data_->outputSetupAssistantLaunch( setup_assistant_launch_path, new_package_name ) )
   {
     QMessageBox::critical( this, "Error Generating Files", 
                            QString("Failed to create setup_assistant.launch file at location ")
@@ -589,7 +640,7 @@ void ConfigurationFilesWidget::savePackage()
   }
 
   // Feedback
-  displayAction( QString( hidden_file.c_str() ).prepend( qpackage_name ), 
+  displayAction( QString( hidden_file.c_str() ).prepend( qnew_package_name ), 
                  "MoveIt Setup Assistant hidden settings file. Do not edit." );
   
 
