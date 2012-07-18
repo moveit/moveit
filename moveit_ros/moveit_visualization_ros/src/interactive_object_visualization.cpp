@@ -269,7 +269,7 @@ void InteractiveObjectVisualization::updateObjectPose(const std::string& name,
   
   Eigen::Affine3d aff;
   planning_models::poseFromMsg(pose, aff);
-  planning_scene_diff_->moveShapeInObject(name, shape, aff);
+  planning_scene_diff_->getCollisionWorld()->moveShapeInObject(name, shape, aff);
   
   callUpdateCallback();
 }
