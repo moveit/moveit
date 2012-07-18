@@ -38,7 +38,7 @@
 #include <moveit_visualization_ros/planning_visualization_qt_wrapper.h>
 #include <moveit_visualization_ros/attach_object_addition_dialog.h>
 #include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
-#include <trajectory_execution_ros/trajectory_execution_monitor_ros.h>
+#include <trajectory_execution_manager/trajectory_execution_manager.h>
 
 #include <OGRE/OgreLogManager.h>
 #include <rviz/visualization_panel.h>
@@ -59,7 +59,7 @@ public:
 
   void updateToCurrentState();
 
-  bool doneWithExecution(const trajectory_execution::TrajectoryExecutionDataVector& tedv);
+  bool doneWithExecution(const moveit_controller_manager::ExecutionStatus& ex_status);
 
   void executeLastTrajectory();
 
@@ -96,7 +96,7 @@ protected:
   boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
   boost::shared_ptr<PlanningVisualizationQtWrapper> pv_;
   boost::shared_ptr<InteractiveObjectVisualizationQtWrapper> iov_;
-  boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor_;
+  boost::shared_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_manager_;
   boost::shared_ptr<planning_models_loader::KinematicModelLoader> kinematic_model_loader_;
 
   bool execution_succeeded_;

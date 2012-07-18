@@ -85,7 +85,7 @@ MoveItVisualizer::MoveItVisualizer() :
     if(allow_trajectory_execution_) {
       bool manage_controllers= false;
       loc_nh.param("manage_controllers", manage_controllers, true);
-      trajectory_execution_monitor_.reset(new trajectory_execution_ros::TrajectoryExecutionMonitorRos(planning_scene_monitor_->getPlanningScene()->getKinematicModel(), manage_controllers));
+      trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getPlanningScene()->getKinematicModel(), manage_controllers));
     }
   }
 
@@ -241,9 +241,9 @@ MoveItVisualizer::MoveItVisualizer() :
 MoveItVisualizer::~MoveItVisualizer() {
   iov_.reset();
   pv_.reset();
-  if(trajectory_execution_monitor_) {
-    trajectory_execution_monitor_->restoreOriginalControllers();
-    trajectory_execution_monitor_.reset();
+  if(trajectory_execution_manager_) {
+	  // TODO: not sure if i need to restore controllers here -binney
+    trajectory_execution_manager_.reset();
   }
   planning_scene_monitor_.reset();
   delete rviz_frame_;
@@ -277,12 +277,10 @@ void MoveItVisualizer::updateSceneCallback() {
   }
 }
 
-bool MoveItVisualizer::doneWithExecution(const trajectory_execution::TrajectoryExecutionDataVector& tedv) {
+bool MoveItVisualizer::doneWithExecution(const moveit_controller_manager::ExecutionStatus& ex_status) {
   ROS_INFO_STREAM("Done");
   boost::lock_guard<boost::mutex> lock(trajectory_execution_mutex_);
-  execution_succeeded_ = (tedv.back().result_ == trajectory_execution::SUCCEEDED 
-                          || tedv.back().result_ == trajectory_execution::HANDLER_REPORTS_FAILURE_BUT_OK 
-                          || tedv.back().result_ == trajectory_execution::HANDLER_REPORTS_FAILURE_BUT_CLOSE_ENOUGH); 
+  execution_succeeded_ = (bool)ex_status;
   trajectory_execution_finished_.notify_all();
   return true;
 } 
@@ -290,18 +288,8 @@ void MoveItVisualizer::executeLastTrajectory() {
   std::string group_name;
   trajectory_msgs::JointTrajectory traj;
   if(pv_->getLastTrajectory(group_name, traj)) {
-    trajectory_execution::TrajectoryExecutionRequest ter;
-    ter.group_name_ = group_name;
-    
-    ter.trajectory_ = traj;
-    ter.failure_time_factor_ = 10000.0;
-    ROS_DEBUG_STREAM("Attempting to execute trajectory for group name " << group_name); 
-
-    std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
-    ter_reqs.push_back(ter);
-
-    trajectory_execution_monitor_->executeTrajectories(ter_reqs,
-                                                       boost::bind(&MoveItVisualizer::doneWithExecution, this, _1));
+	  trajectory_execution_manager_->push(traj);
+	  trajectory_execution_manager_->execute(boost::bind(&MoveItVisualizer::doneWithExecution, this, _1));
   }
 }
 
@@ -322,19 +310,9 @@ void MoveItVisualizer::cycleLastTrajectory() {
   trajectory_msgs::JointTrajectory traj;
   if(pv_->getLastTrajectory(group_name, traj)) {
     while(ros::ok()) {
-      trajectory_execution::TrajectoryExecutionRequest ter;
-      ter.group_name_ = group_name;
-      
-      ter.trajectory_ = traj;
-      ter.trajectory_.header.stamp = ros::Time::now();
-      ter.failure_time_factor_ = 10000.0;
-      ROS_DEBUG_STREAM("Attempting to execute trajectory for group name " << group_name); 
-      
-      std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
-      ter_reqs.push_back(ter);
+  	  trajectory_execution_manager_->push(traj);
+  	  trajectory_execution_manager_->execute(boost::bind(&MoveItVisualizer::doneWithExecution, this, _1));
 
-      trajectory_execution_monitor_->executeTrajectories(ter_reqs,
-                                                         boost::bind(&MoveItVisualizer::doneWithExecution, this, _1));
       boost::unique_lock<boost::mutex> lock(trajectory_execution_mutex_);
       trajectory_execution_finished_.wait(lock);
       if(!execution_succeeded_) {
