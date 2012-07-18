@@ -481,18 +481,6 @@ public:
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr &scene);
   
-  virtual void moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-
-  virtual void addToObject(const std::string &id,
-                           const std::vector<shapes::ShapeConstPtr> &shapes,
-                           const std::vector<Eigen::Affine3d> &poses);
-
-  virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
-
-  virtual void removeObject(const std::string& id);
-
-  virtual void removeAllObjects();
-
 protected:
 
   void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;

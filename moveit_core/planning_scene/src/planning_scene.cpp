@@ -717,31 +717,6 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   getPlanningSceneMsgCollisionMap(scene);
 }
 
-void planning_scene::PlanningScene::moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
-{
-  cworld_->moveShapeInObject(id,shape, pose);
-}
-
-void planning_scene::PlanningScene::addToObject(const std::string &id,
-                                                const std::vector<shapes::ShapeConstPtr> &shapes,
-                                                const std::vector<Eigen::Affine3d> &poses)
-{
-  cworld_->addToObject(id, shapes, poses);
-}
-
-void planning_scene::PlanningScene::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
-{
-  cworld_->addToObject(id, shape, pose);
-}
-
-void planning_scene::PlanningScene::removeObject(const std::string& id){
-  cworld_->removeObject(id);
-}
-
-void planning_scene::PlanningScene::removeAllObjects(){
-  cworld_->clearObjects();
-}
-
 void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotState &state)
 {
   if (parent_)
@@ -784,7 +759,8 @@ void planning_scene::PlanningScene::decoupleParent(void)
     if (!acm_)
       acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
 
-    if(!crobot_unpadded_) {
+    if (!crobot_unpadded_)
+    {
       crobot_unpadded_ = collision_detection_allocator_->allocateRobot(parent_->getCollisionRobotUnpadded());
       crobot_unpadded_const_ = crobot_unpadded_;
     }
@@ -986,7 +962,7 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
     }
  
     shapes::Shape *s = new shapes::Box(map.boxes[i].extents.x, map.boxes[i].extents.y, map.boxes[i].extents.z);
-    addToObject(COLLISION_MAP_NS, shapes::ShapeConstPtr(s), t * p);
+    cworld_->addToObject(COLLISION_MAP_NS, shapes::ShapeConstPtr(s), t * p);
   }
 }
 
@@ -1007,7 +983,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
       p.translation().x() = it.getX();
       p.translation().y() = it.getY();
       p.translation().z() = it.getZ();
-      addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(s), t * p);
+      cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(s), t * p);
     }
   }
 }
@@ -1182,7 +1158,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             ROS_WARN("The collision world already has an object with the same name as the body about to be detached. NOT adding the detached body '%s' to the collision world.", object.object.id.c_str());
           else
           {
-            addToObject(object.object.id, shapes, poses);
+            cworld_->addToObject(object.object.id, shapes, poses);
             ROS_DEBUG("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
           }
           
@@ -1246,7 +1222,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
           ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
           return false;
         }
-        addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
+        cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
       }
     }
     for (std::size_t i = 0 ; i < object.meshes.size() ; ++i)
@@ -1260,7 +1236,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
           ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
           return false;
         }
-        addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
+        cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
       }
     }
     for (std::size_t i = 0 ; i < object.planes.size() ; ++i)
@@ -1274,7 +1250,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
           ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
           return false;
         }
-        addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
+        cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
       }
     }
     return true;
@@ -1282,7 +1258,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
   else
     if (object.operation == moveit_msgs::CollisionObject::REMOVE)
     {
-      removeObject(object.id);
+      cworld_->removeObject(object.id);
       return true;
     }
     else
