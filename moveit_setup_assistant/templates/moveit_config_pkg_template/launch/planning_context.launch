@@ -1,10 +1,11 @@
 <launch>
+  <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
+  <arg name="load_robot_description" default="false"/>
 
   <!-- Load universal robotic description format (URDF) -->
-  <!-- FILL IN THE URDF LOCATION ON THE FOLLOWING LINE AND ENABLE: -->
-  <!-- param name="robot_description" command="$(find xacro)/xacro.py '$(find ROBOT_DESCRIPTION_PKG)/urdf/robot.urdf.xacro'" /-->
+  <param if="$(arg load_robot_description)" name="robot_description" command="$(find [URDF_PACKAGE_NAME])[URDF_RELATIVE_PATH]" />
       
-  <!-- the semantic description that corresponds to the URDF -->
+  <!-- The semantic description that corresponds to the URDF -->
   <param name="robot_description_semantic" textfile="$(find [GENERATED_PACKAGE_NAME])/config/pr2.srdf" />
   
   <!-- Load to the parameter server yaml files -->
