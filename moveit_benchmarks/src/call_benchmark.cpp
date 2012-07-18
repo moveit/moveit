@@ -109,6 +109,8 @@ bool readOptions(const char *filename, BenchmarkOptions &opt)
     declared_options[it->first] = boost::any_cast<std::string>(vm[it->first].value());
   opt.scene = declared_options["scene.name"];
   opt.output = declared_options["scene.output"];
+  if (opt.output.empty())
+    opt.output = std::string(filename) + ".log";
   std::size_t default_run_count = 1;
   if (!declared_options["scene.runs"].empty())
   {
