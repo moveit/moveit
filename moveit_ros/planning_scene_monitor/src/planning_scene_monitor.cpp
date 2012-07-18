@@ -67,56 +67,32 @@ private:
   dynamic_reconfigure::Server<planning_scene_monitor::PlanningSceneMonitorDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
-const std::string PlanningSceneMonitor::SceneConfigBase::DEFAULT_SCENE_TYPE = "default";
-
-struct DefaultSceneConfig : public PlanningSceneMonitor::SceneConfigBase
-{  
-  DefaultSceneConfig(void) : SceneConfigBase("default")
-  {
-  }
-  
-  virtual planning_scene::PlanningScenePtr allocPlanningScene(void)
-  {
-    return planning_scene::PlanningScenePtr(new planning_scene::PlanningScene());
-  }  
-};
-
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf)
-{
-  initialize(planning_scene::PlanningSceneConstPtr(), robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
+{  
+  kinematics_loader_.reset(new planning_models_loader::KinematicModelLoader(robot_description));
+  initialize(planning_scene::PlanningScenePtr());
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf)
 {
-  initialize(parent, robot_description, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
+  kinematics_loader_.reset(new planning_models_loader::KinematicModelLoader(robot_description));
+  initialize(scene);
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf), kinematics_loader_(kml)
 {
-  initialize(planning_scene::PlanningSceneConstPtr(), std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
+  initialize(planning_scene::PlanningScenePtr());
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningSceneConstPtr &parent, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf) :
   nh_("~"), tf_(tf), kinematics_loader_(kml)
 {
-  initialize(parent, std::vector<SceneConfigPtr>(1, SceneConfigPtr(new DefaultSceneConfig())));
-}
-
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::vector<SceneConfigPtr> &configs, const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf):
-  nh_("~"), tf_(tf)
-{  
-  initialize(planning_scene::PlanningSceneConstPtr(), robot_description, configs);
-}
-
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::vector<SceneConfigPtr> &configs, const planning_models_loader::KinematicModelLoaderPtr &kml, const boost::shared_ptr<tf::Transformer> &tf):
-  nh_("~"), tf_(tf), kinematics_loader_(kml)
-{
-  initialize(planning_scene::PlanningSceneConstPtr(), configs);
+  initialize(scene);
 }
 
 planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
@@ -127,13 +103,7 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
   stopSceneMonitor();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::string &robot_description, const std::vector<SceneConfigPtr> &configs)
-{
-  kinematics_loader_.reset(new planning_models_loader::KinematicModelLoader(robot_description));
-  initialize(parent, configs);
-}
-
-void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningSceneConstPtr &parent, const std::vector<SceneConfigPtr> &configs)
+void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr &scene)
 {
   bounds_error_ = std::numeric_limits<double>::epsilon();
   collision_object_subscriber_ = NULL;
@@ -143,28 +113,21 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   
   robot_description_ = kinematics_loader_->getRobotDescription();
   if (kinematics_loader_->getModel())
-  { 
-    planning_scene::PlanningScenePtr first_scene;
-    for (std::size_t i = 0 ; i < configs.size() ; ++i)
+  {
+    scene_ = scene ? scene : planning_scene::PlanningScenePtr(new planning_scene::PlanningScene());
+    if (scene_->isConfigured() || scene_->configure(kinematics_loader_->getURDF(), kinematics_loader_->getSRDF() ? kinematics_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()), kinematics_loader_->getModel()))
     {
-      planning_scene::PlanningScenePtr new_scene = parent ? parent->diff() : configs[i]->allocPlanningScene();
-      if (new_scene->configure(kinematics_loader_->getURDF(), kinematics_loader_->getSRDF() ? kinematics_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()), kinematics_loader_->getModel()))
-      {
-        scenes_[configs[i]->type_] = InternalSceneInfo(new_scene);
-        if (!first_scene)
-        {
-          first_scene = new_scene;
-          configureCollisionMatrix(first_scene);
-          configureDefaultPadding();
-        }
-        else
-          new_scene->getAllowedCollisionMatrix() = first_scene->getAllowedCollisionMatrix();
-        
-        new_scene->getCollisionRobot()->setPadding(default_robot_padd_);
-        new_scene->getCollisionRobot()->setScale(default_robot_scale_);
-      }
-      else
-        ROS_ERROR("Configuration of planning scene failed");
+      scene_const_ = scene_;
+      configureCollisionMatrix(scene_);
+      configureDefaultPadding();
+      
+      scene_->getCollisionRobot()->setPadding(default_robot_padd_);
+      scene_->getCollisionRobot()->setScale(default_robot_scale_);
+    }
+    else
+    {
+      ROS_ERROR("Configuration of planning scene failed");
+      scene_.reset();
     }
   }
   
@@ -180,23 +143,18 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
 
 void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
 {
-  if (!scenes_.empty())
+  if (scene_)
   {
     boost::mutex::scoped_lock slock(scene_update_mutex_);
-    for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-      it->second.ptr_->decoupleParent();
+    scene_->decoupleParent();
     if (flag)
     {
-      for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-      {
-        it->second.parent_scene_ = it->second.ptr_;
-        it->second.ptr_ = it->second.parent_scene_->diff();
-      }
+      parent_scene_ = scene_;
+      scene_ = parent_scene_->diff();
     }
     else
     { 
-      for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-        it->second.parent_scene_.reset();
+      parent_scene_.reset();
       if (publish_planning_scene_)
       {
         ROS_WARN("Diff monitoring was stopped while publishing planning scene diffs. Stopping planning scene diff publisher");
@@ -234,7 +192,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startPublishingPlanningScene(
 void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
 {
   moveit_msgs::PlanningScene msg;
-  scenes_.begin()->second.ptr_->getPlanningSceneMsg(msg);
+  scene_->getPlanningSceneMsg(msg);
   planning_scene_publisher_.publish(msg);
   
   bool have_diff = false;
@@ -249,12 +207,10 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
       if (new_scene_update_)
       {
         rate.reset();
-        scenes_.begin()->second.ptr_->getPlanningSceneDiffMsg(msg);  
-        for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-        {
-          it->second.ptr_->pushDiffs(it->second.parent_scene_);
-          it->second.ptr_->clearDiffs();
-        }
+        scene_->getPlanningSceneDiffMsg(msg);  
+        scene_->pushDiffs(parent_scene_);
+        scene_->clearDiffs();
+        
         new_scene_update_ = false;
         have_diff = true;
       }
@@ -297,13 +253,12 @@ void planning_scene_monitor::PlanningSceneMonitor::processSceneUpdateEvent(void)
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
 {
-  if (!scenes_.empty())
+  if (scene_)
   {
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);  
       last_update_time_ = ros::Time::now();
-      for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-        it->second.ptr_->usePlanningSceneMsg(*scene);
+      scene_->usePlanningSceneMsg(*scene);
     }
     processSceneUpdateEvent();
   }
@@ -311,17 +266,14 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr &world)
 {
-  if (!scenes_.empty())
+  if (scene_)
   {
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
-      for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-      {
-        it->second.ptr_->processCollisionMapMsg(world->collision_map);
-        for (std::size_t i = 0 ; i < world->collision_objects.size() ; ++i)
-          it->second.ptr_->processCollisionObjectMsg(world->collision_objects[i]);
-      }
+      scene_->processCollisionMapMsg(world->collision_map);
+      for (std::size_t i = 0 ; i < world->collision_objects.size() ; ++i)
+        scene_->processCollisionObjectMsg(world->collision_objects[i]);
     }  
     processSceneUpdateEvent();
   }
@@ -329,13 +281,12 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
 
 void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj)
 {
-  if (!scenes_.empty())
+  if (scene_)
   {
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
-      for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-        it->second.ptr_->processCollisionObjectMsg(*obj);
+      scene_->processCollisionObjectMsg(*obj);
     }
     processSceneUpdateEvent();
   }
@@ -343,13 +294,12 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(const
 
 void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj)
 {
-  if (!scenes_.empty())
+  if (scene_)
   {
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
-      for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-        it->second.ptr_->processAttachedCollisionObjectMsg(*obj);
+      scene_->processAttachedCollisionObjectMsg(*obj);
     }
     processSceneUpdateEvent();
   }
@@ -357,13 +307,12 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(const mo
 
 void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map)
 {
-  if (!scenes_.empty())
+  if (scene_)
   {
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);
       last_update_time_ = ros::Time::now();
-      for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-        it->second.ptr_->processCollisionMapMsg(*map);
+      scene_->processCollisionMapMsg(*map);
     }
     processSceneUpdateEvent();
   }
@@ -377,34 +326,6 @@ void planning_scene_monitor::PlanningSceneMonitor::lockScene(void)
 void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
 {
   scene_update_mutex_.unlock();
-}
-
-const planning_scene::PlanningScenePtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(void)
-{ 
-  if (scenes_.size() == 1)
-    return scenes_.begin()->second.ptr_;
-  return getPlanningScene(PlanningSceneMonitor::SceneConfigBase::DEFAULT_SCENE_TYPE);
-}
-
-const planning_scene::PlanningSceneConstPtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(void) const
-{ 
-  if (scenes_.size() == 1)
-    return scenes_.begin()->second.ptr_const_;
-  return getPlanningScene(PlanningSceneMonitor::SceneConfigBase::DEFAULT_SCENE_TYPE);
-}
-
-const planning_scene::PlanningScenePtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(const std::string &type)
-{
-  static const planning_scene::PlanningScenePtr empty;
-  std::map<std::string, InternalSceneInfo>::iterator it = scenes_.find(type);
-  return it != scenes_.end() ? it->second.ptr_ : empty;
-}
-
-const planning_scene::PlanningSceneConstPtr& planning_scene_monitor::PlanningSceneMonitor::getPlanningScene(const std::string &type) const
-{
-  static const planning_scene::PlanningSceneConstPtr empty;
-  std::map<std::string, InternalSceneInfo>::const_iterator it = scenes_.find(type);
-  return it != scenes_.end() ? it->second.ptr_const_ : empty;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string &scene_topic)
@@ -442,7 +363,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, collision_objects_topic, 1024);
     if (tf_)
     {
-      collision_object_filter_ = new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scenes_.begin()->second.ptr_->getPlanningFrame(), 1024);
+      collision_object_filter_ = new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024);
       collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
       ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
     }
@@ -459,7 +380,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     collision_map_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionMap>(root_nh_, collision_map_topic, 2);
     if (tf_)
     {
-      collision_map_filter_ = new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scenes_.begin()->second.ptr_->getPlanningFrame(), 2);
+      collision_map_filter_ = new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2);
       collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
       ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_map_topic.c_str(), collision_map_filter_->getTargetFramesString().c_str());
     }
@@ -504,10 +425,10 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
 void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::string &joint_states_topic, const std::string &attached_objects_topic)
 {
   stopStateMonitor();
-  if (!scenes_.empty())
+  if (scene_)
   {
     if (!current_state_monitor_)
-      current_state_monitor_.reset(new CurrentStateMonitor(scenes_.begin()->second.ptr_->getKinematicModel(), tf_));
+      current_state_monitor_.reset(new CurrentStateMonitor(scene_->getKinematicModel(), tf_));
     current_state_monitor_->setBoundsError(bounds_error_);
     current_state_monitor_->setOnStateUpdateCallback(boost::bind(&PlanningSceneMonitor::onStateUpdate, this, _1));
     current_state_monitor_->startStateMonitor(joint_states_topic);
@@ -572,8 +493,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(v
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);
       const std::map<std::string, double> &v = current_state_monitor_->getCurrentStateValues();
-      for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-        it->second.ptr_->getCurrentState().setStateValues(v);
+      scene_->getCurrentState().setStateValues(v);
       last_update_time_ = ros::Time::now();
     }
     processSceneUpdateEvent();
@@ -648,14 +568,13 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
   if (!tf_)
     return;
   
-  if (!scenes_.empty())
+  if (scene_)
   {
     std::vector<geometry_msgs::TransformStamped> transforms;
-    getUpdatedFrameTransforms(scenes_.begin()->second.ptr_->getKinematicModel(), transforms);
+    getUpdatedFrameTransforms(scene_->getKinematicModel(), transforms);
     {
       boost::mutex::scoped_lock slock(scene_update_mutex_);
-      for (std::map<std::string, InternalSceneInfo>::iterator it = scenes_.begin() ; it != scenes_.end() ; ++it)
-        it->second.ptr_->getTransforms()->setTransforms(transforms);
+      scene_->getTransforms()->setTransforms(transforms);
       last_update_time_ = ros::Time::now();
     }
     processSceneUpdateEvent();
@@ -664,7 +583,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms(void)
 
 void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(const planning_scene::PlanningScenePtr &scene)
 {
-  if (scenes_.empty())
+  if (!scene)
     return;
   collision_detection::AllowedCollisionMatrix &acm = scene->getAllowedCollisionMatrix();
   
