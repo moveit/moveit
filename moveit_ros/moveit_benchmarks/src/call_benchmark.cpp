@@ -53,7 +53,7 @@
 
 #include <fstream>
 
-static const std::string BENCHMARK_SERVICE = "benchmark_service";
+static const std::string BENCHMARK_SERVICE_NAME="benchmark_planning_problem"; // name of the advertised benchmarking service (within the ~ namespace)
 
 struct BenchmarkOptions
 {
@@ -204,8 +204,8 @@ void runBenchmark(const moveit_warehouse::PlanningSceneStorage &pss, const Bench
     req.average_count[i] = opt.plugins[i].runs;
   }
   ros::NodeHandle nh;
-  ros::service::waitForService(BENCHMARK_SERVICE);
-  ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningBenchmark>(BENCHMARK_SERVICE);
+  ros::service::waitForService(BENCHMARK_SERVICE_NAME);
+  ros::ServiceClient benchmark_service_client = nh.serviceClient<moveit_msgs::ComputePlanningBenchmark>(BENCHMARK_SERVICE_NAME);
   
   for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
   {

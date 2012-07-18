@@ -36,7 +36,7 @@
 
 #include <ros/ros.h>
 #include <planning_scene/planning_scene.h>
-#include <robot_model_loader/robot_model_loader.h>
+#include <planning_models_loader/kinematic_model_loader.h>
 #include <pluginlib/class_loader.h>
 #include <planning_interface/planning_interface.h>
 #include <planning_models/conversions.h>
@@ -63,12 +63,11 @@ public:
   BenchmarkService(void)
   {
     // initialize a planning scene
-    robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
-    rml.getRobotDescription();
-    if (rml.getURDF())
+    planning_models_loader::KinematicModelLoader kml(ROBOT_DESCRIPTION);
+    if (kml.getModel())
     {
       scene_.reset(new planning_scene::PlanningScene());
-      scene_->configure(rml.getURDF(), rml.getSRDF() ? rml.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()));
+      scene_->configure(kml.getURDF(), kml.getSRDF() ? kml.getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model()), kml.getModel());
       if (scene_->isConfigured())
       {
         cscene_ = scene_;		
@@ -115,7 +114,7 @@ public:
         ROS_ERROR("Unable to configure planning scene");
     }
     else
-      ROS_ERROR("Unable to load URDF for parameter %s", ROBOT_DESCRIPTION.c_str());
+      ROS_ERROR("Unable to construct planning model for parameter %s", ROBOT_DESCRIPTION.c_str());
   }
   
   bool queryInterfaces(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
@@ -268,7 +267,7 @@ public:
           {
             bool fnd = false;
             for (std::size_t q = 0 ; q < known.size() ; ++q)
-              if (known[q] == req.planner_interfaces[found].planner_ids[k])
+              if (known[q] == req.planner_interfaces[found].planner_ids[k] || mp_req.motion_plan_request.group_name + "[" + known[q] + "]" == req.planner_interfaces[found].planner_ids[k])
               {
                 fnd = true;
                 break;
