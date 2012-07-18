@@ -143,7 +143,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   next_label_->setFont(next_label_font);
   next_label_->setWordWrap(true);
   next_label_->hide(); // only show once the files have been loaded. 
-  next_label_->setText( "Configuration files loaded successfully.\nMove to next screen using the left navigation pane." );
+  next_label_->setText( "Configuration files loaded successfully. Move to next screen using the left navigation pane." );
   
   // Right Image Area ----------------------------------------------
   right_image_ = new QImage();

@@ -141,33 +141,10 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 // ******************************************************************************************
 // Output basic package files
 // ******************************************************************************************
-bool MoveItConfigData::outputPackageFiles( const std::string& template_package_path,
-                                           const std::string& new_package_path,
+bool MoveItConfigData::outputPackageFiles( const std::string& new_package_path,
                                            const std::string& new_package_name  )
 {
-  // Copy CMakeLists.txt
-  std::string template_path = template_package_path + "CMakeLists.txt";
-  std::string file_path = new_package_path + "CMakeLists.txt";
 
-  // Use generic template copy function
-  if( !copyTemplate( template_path, file_path, new_package_name ) )
-    return false;
-
-  // Copy Makefile
-  template_path = template_package_path + "Makefile";
-  file_path = new_package_path + "Makefile";
-
-  // Use generic template copy function
-  if( !copyTemplate( template_path, file_path, new_package_name ) )
-    return false;
-
-  // Copy manifest.xml
-  template_path = template_package_path + "manifest.xml";
-  file_path = new_package_path + "manifest.xml";
-
-  // Use generic template copy function
-  if( !copyTemplate( template_path, file_path, new_package_name ) )
-    return false;
 
   return true; // success
 }
@@ -451,11 +428,10 @@ bool MoveItConfigData::outputBenchmarkServerLaunch( const std::string& file_path
 // Output move group launch file
 // ******************************************************************************************
 bool MoveItConfigData::outputMoveGroupLaunch( const std::string& file_path,
-                                              const std::string& template_package_path,
                                               const std::string& new_package_name  )
 {
   // Path
-  const std::string template_path = template_package_path + "launch/move_group.launch";
+  const std::string template_path = template_package_path_ + "launch/move_group.launch";
 
   // Use generic template copy function
   return copyTemplate( template_path, file_path, new_package_name );
@@ -465,11 +441,10 @@ bool MoveItConfigData::outputMoveGroupLaunch( const std::string& file_path,
 // Output OMPL Planner launch file
 // ******************************************************************************************
 bool MoveItConfigData::outputOMPLPlannerLaunch( const std::string& file_path,
-                                                const std::string& template_package_path,
                                                 const std::string& new_package_name  )
 {
   // Path
-  const std::string template_path = template_package_path + "launch/ompl_planner.launch";
+  const std::string template_path = template_package_path_ + "launch/ompl_planner.launch";
 
   // Only generate this file if it does not exist. This allows user to customize the urdf launch part
   if( fs::is_regular_file( file_path ) )
@@ -485,11 +460,10 @@ bool MoveItConfigData::outputOMPLPlannerLaunch( const std::string& file_path,
 // Output planning context launch file
 // ******************************************************************************************
 bool MoveItConfigData::outputPlanningContextLaunch( const std::string& file_path,
-                                                    const std::string& template_package_path,
                                                     const std::string& new_package_name )
 {
   // Path
-  const std::string template_path = template_package_path + "launch/planning_context.launch";
+  const std::string template_path = template_package_path_ + "launch/planning_context.launch";
 
   // Use generic template copy function
   return copyTemplate( template_path, file_path, new_package_name );
@@ -519,11 +493,10 @@ bool MoveItConfigData::outputWarehouseSettingsLaunch( const std::string& file_pa
 // Output setup assistant launch file
 // ******************************************************************************************
 bool MoveItConfigData::outputSetupAssistantLaunch( const std::string& file_path,
-                                                   const std::string& template_package_path,
                                                    const std::string& new_package_name )
 {
   // Path - named differently so that it doesn't interefere with Setup Assistant's normal launch file
-  const std::string template_path = template_package_path + "launch/edit_configuration_package.launch";
+  const std::string template_path = template_package_path_ + "launch/edit_configuration_package.launch";
 
   // Use generic template copy function
   return copyTemplate( template_path, file_path, new_package_name );
@@ -533,11 +506,10 @@ bool MoveItConfigData::outputSetupAssistantLaunch( const std::string& file_path,
 // Output moveit visualizer launch file
 // ******************************************************************************************
 bool MoveItConfigData::outputMoveItVisualizerLaunch( const std::string& file_path,
-                                                     const std::string& template_package_path,
                                                      const std::string& new_package_name )
 {
   // Path 
-  const std::string template_path = template_package_path + "launch/moveit_visualizer.launch";
+  const std::string template_path = template_package_path_ + "launch/moveit_visualizer.launch";
 
   // Use generic template copy function
   return copyTemplate( template_path, file_path, new_package_name );
@@ -574,6 +546,8 @@ bool MoveItConfigData::copyTemplate( const std::string& template_path, const std
 
   // Replace keywords in string ------------------------------------------------------------
   boost::replace_all( template_string, "[GENERATED_PACKAGE_NAME]", new_package_name );
+  boost::replace_all( template_string, "[URDF_PACKAGE_NAME]", urdf_pkg_name_ );
+  boost::replace_all( template_string, "[URDF_RELATIVE_PATH]", urdf_pkg_relative_path_ );
 
   // Save string to new location -----------------------------------------------------------
   std::ofstream output_stream( output_path.c_str(), std::ios_base::trunc );

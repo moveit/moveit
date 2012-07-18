@@ -1,9 +1,11 @@
 <launch>
 
+  <!-- Debug -->
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
 
+  <!-- Run -->
   <node name="ompl_planning"  launch-prefix="$(arg launch_prefix)" pkg="ompl_interface_ros" type="ompl_planner" respawn="false" output="screen" args="--debug">
     <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/ompl_planning.yaml"/>
     <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/kinematics.yaml"/>

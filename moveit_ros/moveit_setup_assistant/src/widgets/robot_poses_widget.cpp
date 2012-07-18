@@ -313,7 +313,7 @@ void RobotPosesWidget::previewClicked( int row, int column )
     // Only copy the first joint value // TODO: add capability for multi-DOF joints?
     joint_state_map_[ value_it->first ] = value_it->second[0];
 
-    std::cout << "JOINT " << value_it->first << " -- " << value_it->second[0] << std::endl;
+    //std::cout << "JOINT " << value_it->first << " -- " << value_it->second[0] << std::endl;
   }
 
   // Update the joints
