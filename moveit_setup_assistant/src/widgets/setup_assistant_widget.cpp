@@ -208,16 +208,6 @@ void SetupAssistantWidget::moveToScreen( const int index )
   {
     current_index = index;
 
-    // Show Rviz if appropriate
-    /*if( index != 0 )
-      {
-      rviz_container_->show();
-      }
-      else
-      {
-      rviz_container_->hide();
-      // hide the start screen image so that is doesn't mess up the rviz column resizing      
-      }*/
     rviz_container_->show();
 
     // Change screens
@@ -346,8 +336,9 @@ void SetupAssistantWidget::loadRviz()
 
   // Create rviz frame
   rviz_render_panel_ = new rviz::RenderPanel();
-  //rviz_render_panel_->setMinimumWidth( 800 );
+  rviz_render_panel_->setMinimumWidth( 100 );
 
+  /*
   rviz_manager_ = new rviz::VisualizationManager( rviz_render_panel_ );
   rviz_render_panel_->initialize( rviz_manager_->getSceneManager(), rviz_manager_ );
   rviz_manager_->initialize();
@@ -388,24 +379,13 @@ void SetupAssistantWidget::loadRviz()
   {
     orbit_view->zoom(14.0);
   }
-  
+  */
   // Add Rviz to Planning Groups Widget
   QVBoxLayout *rviz_layout = new QVBoxLayout();
   rviz_layout->addWidget( rviz_render_panel_ );
   rviz_container_->setLayout( rviz_layout );
 
   rviz_container_->show(); 
-}
-
-// ******************************************************************************************
-// Show/hide Rviz Frame
-// ******************************************************************************************
-void SetupAssistantWidget::showRviz( bool show )
-{
-  if( show )
-    rviz_container_->show(); 
-  else
-    rviz_container_->hide();
 }
 
 // ******************************************************************************************

@@ -123,7 +123,7 @@ class SetupAssistantWidget : public QWidget
    * Show/hide the Rviz right panel
    * @param show bool - whether to show
    */
-  void showRviz( bool show );
+  //void showRviz( bool show );
 
   // ******************************************************************************************
   // Qt Components

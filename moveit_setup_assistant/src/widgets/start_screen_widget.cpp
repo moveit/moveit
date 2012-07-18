@@ -141,7 +141,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   next_label_ = new QLabel( this );
   QFont next_label_font( "Arial", 12, QFont::Bold );
   next_label_->setFont(next_label_font);
-  //next_label_->setWordWrap(true);
+  next_label_->setWordWrap(true);
   next_label_->hide(); // only show once the files have been loaded. 
   next_label_->setText( "Configuration files loaded successfully. Move to next screen using the left navigation pane." );
   
