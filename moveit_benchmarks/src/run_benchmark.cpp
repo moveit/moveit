@@ -316,7 +316,6 @@ public:
     // benchmark all the planners
     ros::WallTime startTime = ros::WallTime::now();
     boost::progress_display progress(total_n_runs, std::cout);
-    moveit_msgs::MotionPlanDetailedResponse mp_res;
     typedef std::vector<std::map<std::string, std::string> > RunData;
     std::vector<RunData> data;
     std::vector<bool> first(pi.size(), true);
@@ -328,7 +327,8 @@ public:
         RunData runs(average_count[i]);
         for (unsigned int c = 0 ; c < average_count[i] ; ++c)
         {
-          ++progress;
+          ++progress; 
+          moveit_msgs::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
           bool solved = pi[i]->solve(cscene_, mp_req, mp_res);
           double total_time = (ros::WallTime::now() - start).toSec();
