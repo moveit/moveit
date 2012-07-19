@@ -86,98 +86,110 @@ void printOptions(std::ostream &out, const BenchmarkOptions &opt)
 }
 
 bool readOptions(const char *filename, BenchmarkOptions &opt)
-{ 
+{
+  ROS_INFO("Loading '%s'...", filename);
+  
   std::ifstream cfg(filename);
   if (!cfg.good())
   {
-    std::cerr << "Unable to open file '" << filename << "'" << std::endl;
+    ROS_ERROR_STREAM("Unable to open file '" << filename << "'");
     return false;
   }
-  
-  boost::program_options::options_description desc;
-  desc.add_options()
-    ("scene.name", boost::program_options::value<std::string>(), "Scene name")
-    ("scene.runs", boost::program_options::value<std::string>(), "Number of runs")
-    ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
-  
-  boost::program_options::variables_map vm;
-  boost::program_options::parsed_options po = boost::program_options::parse_config_file(cfg, desc, true);
-  cfg.close();
-  boost::program_options::store(po, vm);
-
-  std::map<std::string, std::string> declared_options;
-  for (boost::program_options::variables_map::iterator it = vm.begin() ; it != vm.end() ; ++it)
-    declared_options[it->first] = boost::any_cast<std::string>(vm[it->first].value());
-  opt.scene = declared_options["scene.name"];
-  opt.output = declared_options["scene.output"];
-  if (opt.output.empty())
-    opt.output = std::string(filename) + ".log";
-  std::size_t default_run_count = 1;
-  if (!declared_options["scene.runs"].empty())
+  try
   {
-    try
+    boost::program_options::options_description desc;
+    desc.add_options()
+      ("scene.name", boost::program_options::value<std::string>(), "Scene name")
+      ("scene.runs", boost::program_options::value<std::string>(), "Number of runs")
+      ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file");
+    
+    boost::program_options::variables_map vm;
+    boost::program_options::parsed_options po = boost::program_options::parse_config_file(cfg, desc, true);
+    
+    cfg.close();
+    boost::program_options::store(po, vm);
+    
+    std::map<std::string, std::string> declared_options;
+    for (boost::program_options::variables_map::iterator it = vm.begin() ; it != vm.end() ; ++it)
+      declared_options[it->first] = boost::any_cast<std::string>(vm[it->first].value());
+    opt.scene = declared_options["scene.name"];
+    opt.output = declared_options["scene.output"];
+    if (opt.output.empty())
+      opt.output = std::string(filename) + ".log";
+    std::size_t default_run_count = 1;
+    if (!declared_options["scene.runs"].empty())
     {
-      default_run_count = boost::lexical_cast<std::size_t>(declared_options["scene.runs"]);
-    }
-    catch(boost::bad_lexical_cast &ex)
-    {
-      ROS_WARN("%s", ex.what());
-    }
-  }
-  opt.default_run_count = default_run_count;
-  std::vector<std::string> unr = boost::program_options::collect_unrecognized(po.options, boost::program_options::exclude_positional);
-  boost::scoped_ptr<BenchmarkOptions::PluginOptions> bpo;
-  for (std::size_t i = 0 ; i < unr.size() / 2 ; ++i)
-  {
-    std::string key = boost::to_lower_copy(unr[i * 2]);
-    std::string val = unr[i * 2 + 1];
-    if (key.substr(0, 7) != "plugin.")
-    {
-      ROS_WARN("Unknown option: '%s' = '%s'", key.c_str(), val.c_str());
-      continue;
-    }
-    std::string k = key.substr(7);
-    if (k == "name")
-    {
-      if (bpo)
-        opt.plugins.push_back(*bpo);
-      bpo.reset(new BenchmarkOptions::PluginOptions());
-      bpo->name = val;
-      bpo->runs = default_run_count;
-    }
-    else
-    if (k == "runs")
-    {
-      if (bpo)
+      try
       {
-        try
-        {
-          bpo->runs = boost::lexical_cast<std::size_t>(val);
-        }
-        catch(boost::bad_lexical_cast &ex)
-        {   
-          ROS_WARN("%s", ex.what());
-        }
+        default_run_count = boost::lexical_cast<std::size_t>(declared_options["scene.runs"]);
       }
-      else
-        ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
+      catch(boost::bad_lexical_cast &ex)
+      {
+        ROS_WARN("%s", ex.what());
+      }
     }
-    else
-    if (k == "planners")
+    opt.default_run_count = default_run_count;
+    std::vector<std::string> unr = boost::program_options::collect_unrecognized(po.options, boost::program_options::exclude_positional);
+    boost::scoped_ptr<BenchmarkOptions::PluginOptions> bpo;
+    for (std::size_t i = 0 ; i < unr.size() / 2 ; ++i)
     {
-      if (bpo)
-      {   
-        boost::char_separator<char> sep(" ");
-        boost::tokenizer<boost::char_separator<char> > tok(val, sep);
-        for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
-          bpo->planners.push_back(*beg);
+      std::string key = boost::to_lower_copy(unr[i * 2]);
+      std::string val = unr[i * 2 + 1];
+      if (key.substr(0, 7) != "plugin.")
+      {
+        ROS_WARN("Unknown option: '%s' = '%s'", key.c_str(), val.c_str());
+        continue;
+      }
+      std::string k = key.substr(7);
+      if (k == "name")
+      {
+        if (bpo)
+          opt.plugins.push_back(*bpo);
+        bpo.reset(new BenchmarkOptions::PluginOptions());
+        bpo->name = val;
+        bpo->runs = default_run_count;
       }
       else
-        ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
+        if (k == "runs")
+        {
+          if (bpo)
+          {
+            try
+            {
+              bpo->runs = boost::lexical_cast<std::size_t>(val);
+            }
+            catch(boost::bad_lexical_cast &ex)
+            {   
+              ROS_WARN("%s", ex.what());
+            }
+          }
+          else
+            ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
+        }
+        else
+          if (k == "planners")
+          {
+            if (bpo)
+            {   
+              boost::char_separator<char> sep(" ");
+              boost::tokenizer<boost::char_separator<char> > tok(val, sep);
+              for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+                bpo->planners.push_back(*beg);
+            }
+            else
+              ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
+          }
     }
+    if (bpo)
+      opt.plugins.push_back(*bpo);
   }
-  if (bpo)
-    opt.plugins.push_back(*bpo);
+  
+  catch(...)
+  {
+    ROS_ERROR_STREAM("Unable to parse '" << filename << "'");
+    return false;
+  }
+    
   return true;
 }
 

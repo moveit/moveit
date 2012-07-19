@@ -333,6 +333,7 @@ public:
         for (unsigned int c = 0 ; c < average_count_per_planner_interface[i] ; ++c)
         {
           ++progress; 
+          ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.motion_plan_request.planner_id.c_str());
           moveit_msgs::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
           bool solved = planner_interfaces_to_benchmark[i]->solve(cscene_, mp_req, mp_res);
