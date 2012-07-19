@@ -53,6 +53,12 @@ public:
     return params_;
   }
   
+  void getPlanningAlgorithms(std::vector<std::string> &algs) const
+  {
+    algs.resize(1);
+    algs[0] = "CHOMP";
+  }
+  
 protected:
   
   /** @brief Configure everything using the param server */

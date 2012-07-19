@@ -56,7 +56,7 @@ def read_benchmark_log(dbname, filenames):
     c.execute('PRAGMA FOREIGN_KEYS = ON')
     c.execute("""CREATE TABLE IF NOT EXISTS experiments
         (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(512), totaltime REAL, timelimit REAL, hostname VARCHAR(1024), date DATETIME, setup TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS planner_configs
+    c.execute("""CREATE TABLE IF NOT EXISTS known_planner_configs
         (id INTEGER PRIMARY KEY AUTOINCREMENT, planner_name VARCHAR(512) NOT NULL, settings TEXT)""")
     for filename in filenames:
         print("Processing " + filename)
@@ -90,10 +90,10 @@ def read_benchmark_log(dbname, filenames):
                 settings = settings + logfile.readline() + ';'
 
             # find planner id
-            c.execute("SELECT id FROM planner_configs WHERE (planner_name=? AND settings=?)", (planner_name, settings,))
+            c.execute("SELECT id FROM known_planner_configs WHERE (planner_name=? AND settings=?)", (planner_name, settings,))
             p = c.fetchone()
             if p==None:
-                c.execute("INSERT INTO planner_configs VALUES (?,?,?)", (None, planner_name, settings,))
+                c.execute("INSERT INTO known_planner_configs VALUES (?,?,?)", (None, planner_name, settings,))
                 c.execute('SELECT last_insert_rowid()')
                 planner_id = c.fetchone()[0]
             else:
@@ -119,9 +119,8 @@ def read_benchmark_log(dbname, filenames):
             table_columns = "experimentid INTEGER, plannerid INTEGER"
             for k, v in properties.iteritems():
                 table_columns = table_columns + ', ' + k + ' ' + v
-#            table_columns = table_columns + ", INDEX (experimentid, plannerid)"
             table_columns = table_columns + ", FOREIGN KEY(experimentid) REFERENCES experiments(id) ON DELETE CASCADE ON UPDATE CASCADE"
-            table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES planner_configs(id) ON DELETE CASCADE ON UPDATE CASCADE"
+            table_columns = table_columns + ", FOREIGN KEY(plannerid) REFERENCES known_planner_configs(id) ON DELETE CASCADE ON UPDATE CASCADE"
 
             planner_table = 'planner_%s' % planner_name
             c.execute("CREATE TABLE IF NOT EXISTS `%s` (%s)" %  (planner_table, table_columns))
@@ -200,7 +199,7 @@ def plot_statistics(dbname, fname):
     c.execute('PRAGMA FOREIGN_KEYS = ON')
     c.execute("SELECT name FROM sqlite_master WHERE type='table'")
     table_names = [ str(t[0]) for t in c.fetchall() ]
-    planner_names = [ t for t in table_names if t.startswith('planner_') and t != 'planner_configs' ]
+    planner_names = [ t for t in table_names if t.startswith('planner_') ]
     attributes = []
     types = {}
     experiments = []
@@ -268,7 +267,7 @@ def save_as_mysql(dbname, mysqldump):
     c.execute("SELECT name FROM sqlite_master WHERE type='table'")
     table_names = [ str(t[0]) for t in c.fetchall() ]
     c.close()
-    last = ['experiments', 'planner_configs']
+    last = ['experiments', 'known_planner_configs']
     for table in table_names:
         if table.startswith("sqlite"):
             continue
