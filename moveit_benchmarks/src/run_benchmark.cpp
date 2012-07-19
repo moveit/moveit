@@ -304,7 +304,7 @@ public:
         sst << "    - " << planner_ids_to_benchmark_per_planner_interface[i][k] << std::endl;
       sst << std::endl;
     }
-    ROS_INFO("%s", sst.str().c_str());
+    ROS_INFO("\n%s", sst.str().c_str());
     
     // configure planning context 
     scene_->setPlanningSceneMsg(req.scene);

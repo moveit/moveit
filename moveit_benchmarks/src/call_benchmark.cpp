@@ -59,6 +59,7 @@ struct BenchmarkOptions
 {
   std::string scene;
   std::string output;
+  std::size_t default_run_count;
   
   struct PluginOptions
   {
@@ -123,7 +124,7 @@ bool readOptions(const char *filename, BenchmarkOptions &opt)
       ROS_WARN("%s", ex.what());
     }
   }
-  
+  opt.default_run_count = default_run_count;
   std::vector<std::string> unr = boost::program_options::collect_unrecognized(po.options, boost::program_options::exclude_positional);
   boost::scoped_ptr<BenchmarkOptions::PluginOptions> bpo;
   for (std::size_t i = 0 ; i < unr.size() / 2 ; ++i)
@@ -196,6 +197,7 @@ void runBenchmark(const moveit_warehouse::PlanningSceneStorage &pss, const Bench
   if (planning_queries.empty())
     ROS_WARN("Scene '%s' has no associated queries", opt.scene.c_str());
   req.filename = opt.output;
+  req.default_average_count = opt.default_run_count;
   req.planner_interfaces.resize(opt.plugins.size());
   req.average_count.resize(req.planner_interfaces.size());
   for (std::size_t i = 0 ; i < opt.plugins.size() ; ++i)
