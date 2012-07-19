@@ -52,6 +52,8 @@
 // SA
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include <planning_models/kinematic_model.h> // for joint models, etc
+#include <planning_models/kinematic_state.h>
+#include <planning_scene/planning_scene.h> // for collision stuff
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 // ROS
@@ -91,6 +93,7 @@ class RobotPosesWidget : public SetupScreenWidget
   QVBoxLayout *joint_list_layout_;
   QWidget *pose_list_widget_;
   QWidget *pose_edit_widget_;
+  QLabel *collision_warning_;                            
                                                                                               
 private Q_SLOTS:
 
@@ -111,7 +114,7 @@ private Q_SLOTS:
   void previewClicked( int row, int column );
 
   /// Delete currently editing ite
-  void deleteItem();
+  void deleteSelected();
 
   /// Save editing changes
   void doneEditing();
@@ -156,6 +159,11 @@ private:
 
   /// Remember the publisher for quick publishing later
   ros::Publisher pub_scene_;
+
+  // ******************************************************************************************
+  // Collision Variables
+  // ******************************************************************************************
+  collision_detection::CollisionRequest request;
 
   // ******************************************************************************************
   // Private Functions

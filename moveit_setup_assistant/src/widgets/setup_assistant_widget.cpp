@@ -185,6 +185,8 @@ SetupAssistantWidget::~SetupAssistantWidget()
   }
   delete rviz_render_panel_;
   delete rviz_manager_;
+  delete log_manager_;
+  std::cout << "Done " << std::endl;
 }
 
 // ******************************************************************************************
@@ -236,18 +238,22 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Planning Groups
   pgw_ = new PlanningGroupsWidget( this, config_data_ );
   main_content_->addWidget(pgw_);
+  connect( pgw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
 
   // Robot Poses
   rpw_ = new RobotPosesWidget( this, config_data_ );
   main_content_->addWidget(rpw_);
+  connect( rpw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
 
   // End Effectors
   efw_ = new EndEffectorsWidget( this, config_data_ );
   main_content_->addWidget(efw_);  
+  connect( efw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
 
   // Virtual Joints
   vjw_ = new VirtualJointsWidget( this, config_data_ );
   main_content_->addWidget(vjw_);  
+  connect( vjw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
 
   // Configuration Files
   cfw_ = new ConfigurationFilesWidget( this, config_data_ );
@@ -282,63 +288,14 @@ void SetupAssistantWidget::updateTimer()
 // ******************************************************************************************
 void SetupAssistantWidget::loadRviz()
 {
-  /*
-  // Create rviz frame
-  rviz_frame_ = new rviz::VisualizationPanel();
-  //rviz_frame_->setMinimumWidth( 800 );
-
-  // Sizes for QSplitter - allows the left pane to be hidden
-  QList<int> sizes;
-  sizes.push_back(0);
-  sizes.push_back(1000);
-  rviz_frame_->setSizes(sizes); 
-
-  // Set the fixed and target frame 
-  rviz_frame_->getManager()->setFixedFrame( config_data_->getPlanningScene()->getPlanningFrame() );
-  rviz_frame_->getManager()->setTargetFrame( config_data_->getPlanningScene()->getPlanningFrame() );
-
-  // Add Motion Planning Plugin to Rviz
-  rviz::DisplayWrapper* display_wrapper = rviz_frame_->getManager()->
-  createDisplay( "moveit_rviz_plugin/MotionPlanning","Motion Planning", true );
-  
-  // Get Motion Planning Display Reference
-  moveit_rviz_plugin::PlanningDisplay* planning_display = 
-  dynamic_cast<moveit_rviz_plugin::PlanningDisplay*>( display_wrapper->getDisplay() );
-  
-  // Turn off planned path
-  planning_display->setVisualVisible( false );
-
-  // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
-  planning_display->setPlanningSceneTopic( MOVEIT_PLANNING_SCENE );
-
-  // Set robot description
-  planning_display->setRobotDescription( ROBOT_DESCRIPTION );
-
-  // Set the Orbit View
-  rviz::OrbitViewController* orbit_view = 
-  dynamic_cast<rviz::OrbitViewController*>(rviz_frame_->getManager()->getCurrentViewController());
-
-  if(orbit_view == NULL) 
-  {
-  ROS_WARN_STREAM("Current view controller not orbit");
-  } 
-  else 
-  {
-  orbit_view->zoom(14.0);
-  }
-  
-  // Add Rviz to Planning Groups Widget
-  QVBoxLayout *rviz_layout = new QVBoxLayout();
-  rviz_layout->addWidget( rviz_frame_ );
-  rviz_container_->setLayout( rviz_layout );
-  */
-
+  // Create an instance of Ogre log manager to prevent debug data from being spit out
+  log_manager_ = new Ogre::LogManager();
+  log_manager_->createLog( "Ogre.log", false, false, true );
 
   // Create rviz frame
   rviz_render_panel_ = new rviz::RenderPanel();
-  rviz_render_panel_->setMinimumWidth( 100 );
+  rviz_render_panel_->setMinimumWidth( 200 );
 
-  /*
   rviz_manager_ = new rviz::VisualizationManager( rviz_render_panel_ );
   rviz_render_panel_->initialize( rviz_manager_->getSceneManager(), rviz_manager_ );
   rviz_manager_->initialize();
@@ -379,7 +336,7 @@ void SetupAssistantWidget::loadRviz()
   {
     orbit_view->zoom(14.0);
   }
-  */
+  
   // Add Rviz to Planning Groups Widget
   QVBoxLayout *rviz_layout = new QVBoxLayout();
   rviz_layout->addWidget( rviz_render_panel_ );
@@ -411,26 +368,22 @@ void SetupAssistantWidget::closeEvent( QCloseEvent * event )
 }
 
 // ******************************************************************************************
-// Qt Error Handling 
+// Qt Error Handling - TODO
 // ******************************************************************************************
 bool SetupAssistantWidget::notify( QObject * reciever, QEvent * event )
 {
-  /*  try
-      {
-      return QApplication::notify( reciever, event );
-      }
-      catch( std::Exception& event)
-      {*/
   QMessageBox::critical( this, "Error", "An error occurred and was caught by Qt notify event handler.", QMessageBox::Ok);
 
-  /*  }
-      catch(...)
-      {
-      QMessageBox::warning(0, "An unexpected error occurred", "This is likely a bug.");
-      }*/
   return false; 
 }
 
+// ******************************************************************************************
+// Change the widget modal state based on subwidgets state
+// ******************************************************************************************
+void SetupAssistantWidget::setModalMode( bool isModal )
+{
+  navs_view_->setDisabled( isModal );  
+}
 
 
 } // namespace

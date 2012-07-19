@@ -139,6 +139,22 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 }
 
 // ******************************************************************************************
+// Load the allowed collision matrix from the SRDF's list of link pairs
+// ******************************************************************************************
+void MoveItConfigData::loadAllowedCollisionMatrix()
+{
+  // Clear the allowed collision matrix
+  allowed_collision_matrix_.clear();
+
+  // Update the allowed collision matrix, in case there has been a change
+  for( std::vector<srdf::Model::DisabledCollision>::const_iterator pair_it = srdf_->disabled_collisions_.begin();
+       pair_it != srdf_->disabled_collisions_.end(); ++pair_it )
+  {
+    allowed_collision_matrix_.setEntry( pair_it->link1_, pair_it->link2_, true );
+  }
+}
+
+// ******************************************************************************************
 // Output basic package files
 // ******************************************************************************************
 bool MoveItConfigData::outputPackageFiles( const std::string& new_package_path,

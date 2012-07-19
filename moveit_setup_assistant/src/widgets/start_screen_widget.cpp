@@ -139,11 +139,12 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
 
   // Next step instructions
   next_label_ = new QLabel( this );
-  QFont next_label_font( "Arial", 12, QFont::Bold );
-  next_label_->setFont(next_label_font);
-  next_label_->setWordWrap(true);
+  QFont next_label_font( "Arial", 11, QFont::Bold );
+  next_label_->setFont( next_label_font );
+  //next_label_->setWordWrap(true);
+  next_label_->setText( "Success! Use the left navigation pane to continue." );
+  next_label_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
   next_label_->hide(); // only show once the files have been loaded. 
-  next_label_->setText( "Configuration files loaded successfully. Move to next screen using the left navigation pane." );
   
   // Right Image Area ----------------------------------------------
   right_image_ = new QImage();
@@ -186,8 +187,8 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   
   // Attach bottom layout
   layout->addWidget( next_label_);
+  layout->setAlignment( next_label_, Qt::AlignRight );  
   layout->addLayout( load_files_layout );
-  layout->setAlignment( next_label_, Qt::AlignCenter );  
 
   this->setLayout(layout);
   this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);  
@@ -196,7 +197,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   // Debug mode:
   if( config_data_->debug_ && false )
   {
-    select_mode_->btn_new_->click();
+    //select_mode_->btn_exist_->click();
 
     QTimer *update_timer = new QTimer( this );
     update_timer->setSingleShot( true ); // only run once
@@ -353,6 +354,9 @@ bool StartScreenWidget::loadExistingFiles()
   // Progress Indicator
   progress_bar_->setValue( 60 );
   QApplication::processEvents();
+
+  // Load the allowed collision matrix
+  config_data_->loadAllowedCollisionMatrix();
 
   // Load kinematics yaml file if available --------------------------------------------------
   const std::string kinematics_yaml_path = config_data_->config_pkg_path_ + "config/kinematics.yaml"; 
