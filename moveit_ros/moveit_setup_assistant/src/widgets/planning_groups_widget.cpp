@@ -148,7 +148,7 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   stacked_layout_->addWidget( subgroups_widget_ ); // screen index 4
   stacked_layout_->addWidget( group_edit_widget_ ); // screen index 5
   
-  stacked_layout_->setCurrentIndex( 0 );
+  showMainScreen();
 
   // Finish GUI -----------------------------------------------------------
   
@@ -162,14 +162,6 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
 
   // process the gui
   QApplication::processEvents(); 
-}
-
-// ******************************************************************************************
-// Switch which screen is being shown
-// ******************************************************************************************
-void PlanningGroupsWidget::changeScreen( int index )
-{
-  stacked_layout_->setCurrentIndex( index );
 }
 
 // ******************************************************************************************
@@ -417,7 +409,7 @@ void PlanningGroupsWidget::editSelected()
     loadJointsScreen( plan_group.group_ );
     
     // Switch to screen
-    stacked_layout_->setCurrentIndex( 1 ); // 1 is index of joints
+    changeScreen( 1 ); // 1 is index of joints
   }
   else if( plan_group.type_ == LINK )
   {
@@ -425,7 +417,7 @@ void PlanningGroupsWidget::editSelected()
     loadLinksScreen( plan_group.group_ );
     
     // Switch to screen
-    stacked_layout_->setCurrentIndex( 2 ); 
+    changeScreen( 2 ); 
   }
   else if( plan_group.type_ == CHAIN )
   {
@@ -433,7 +425,7 @@ void PlanningGroupsWidget::editSelected()
     loadChainScreen( plan_group.group_ );
     
     // Switch to screen
-    stacked_layout_->setCurrentIndex( 3 ); 
+    changeScreen( 3 ); 
   }
   else if( plan_group.type_ == SUBGROUP )
   {
@@ -441,7 +433,7 @@ void PlanningGroupsWidget::editSelected()
     loadSubgroupsScreen( plan_group.group_ );
     
     // Switch to screen
-    stacked_layout_->setCurrentIndex( 4 ); 
+    changeScreen( 4 ); 
   }
   else if( plan_group.type_ == GROUP )
   {
@@ -449,7 +441,7 @@ void PlanningGroupsWidget::editSelected()
     loadGroupScreen( plan_group.group_ );
     
     // Switch to screen
-    stacked_layout_->setCurrentIndex( 5 ); 
+    changeScreen( 5 ); 
   }
   else
   {
@@ -751,7 +743,7 @@ void PlanningGroupsWidget::deleteGroup()
   }
 
   // Switch to main screen
-  stacked_layout_->setCurrentIndex( 0 );
+  showMainScreen();
 
   // Reload main screen table
   loadGroupsTree();
@@ -769,7 +761,7 @@ void PlanningGroupsWidget::addGroup()
   loadGroupScreen( NULL ); // NULL indicates this is a new group, not an existing one
     
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 5 ); 
+  changeScreen( 5 ); 
 }
 
 // ******************************************************************************************
@@ -818,7 +810,7 @@ void PlanningGroupsWidget::saveJointsScreen()
   }
   
   // Switch to main screen
-  stacked_layout_->setCurrentIndex( 0 );
+  showMainScreen();
 
   // Reload main screen table
   loadGroupsTree();
@@ -846,7 +838,7 @@ void PlanningGroupsWidget::saveLinksScreen()
   }
   
   // Switch to main screen
-  stacked_layout_->setCurrentIndex( 0 );
+  showMainScreen();
 
   // Reload main screen table
   loadGroupsTree();
@@ -921,7 +913,7 @@ void PlanningGroupsWidget::saveChainScreen()
   }
 
   // Switch to main screen
-  stacked_layout_->setCurrentIndex( 0 );
+  showMainScreen();
 
   // Reload main screen table
   loadGroupsTree();
@@ -1023,7 +1015,7 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
   }
   
   // Switch to main screen
-  stacked_layout_->setCurrentIndex( 0 );
+  showMainScreen();
 
   // Reload main screen table
   loadGroupsTree();
@@ -1141,7 +1133,7 @@ void PlanningGroupsWidget::saveGroupScreenEdit()
     return;
 
   // Switch to main screen
-  stacked_layout_->setCurrentIndex( 0 );
+  showMainScreen();
 }
 
 // ******************************************************************************************
@@ -1157,7 +1149,7 @@ void PlanningGroupsWidget::saveGroupScreenJoints()
   loadJointsScreen( findGroupByName( current_edit_group_ ) );
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 1 ); // 1 is index of joints
+  changeScreen( 1 ); // 1 is index of joints
 }
 
 // ******************************************************************************************
@@ -1173,7 +1165,7 @@ void PlanningGroupsWidget::saveGroupScreenLinks()
   loadLinksScreen( findGroupByName( current_edit_group_ ) );
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 2 ); // 2 is index of links
+  changeScreen( 2 ); // 2 is index of links
 }
 
 // ******************************************************************************************
@@ -1189,7 +1181,7 @@ void PlanningGroupsWidget::saveGroupScreenChain()
   loadChainScreen( findGroupByName( current_edit_group_ ) );
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 3 ); 
+  changeScreen( 3 ); 
 }
 
 // ******************************************************************************************
@@ -1205,7 +1197,7 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
   loadSubgroupsScreen( findGroupByName( current_edit_group_ ) );
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 4 ); 
+  changeScreen( 4 ); 
 }
 
 // ******************************************************************************************
@@ -1214,7 +1206,7 @@ void PlanningGroupsWidget::saveGroupScreenSubgroups()
 void PlanningGroupsWidget::cancelEditing()
 {
   // Switch to main screen
-  stacked_layout_->setCurrentIndex( 0 );
+  showMainScreen();
 }
 
 // ******************************************************************************************
@@ -1223,7 +1215,7 @@ void PlanningGroupsWidget::cancelEditing()
 void PlanningGroupsWidget::focusGiven()
 {
   // Show the current groups screen
-  stacked_layout_->setCurrentIndex( 0 );
+  showMainScreen();
 
   // Load the data to the tree
   loadGroupsTree();
@@ -1241,6 +1233,27 @@ void PlanningGroupsWidget::alterTree( const QString &link )
     groups_tree_->collapseAll();
 }
 
+// ******************************************************************************************
+// Switch to current groups view
+// ******************************************************************************************
+void PlanningGroupsWidget::showMainScreen()
+{
+  stacked_layout_->setCurrentIndex( 0 );
+
+  // Announce that this widget is not in modal mode
+  Q_EMIT isModal( false );
+}
+
+// ******************************************************************************************
+// Switch which screen is being shown
+// ******************************************************************************************
+void PlanningGroupsWidget::changeScreen( int index )
+{
+  stacked_layout_->setCurrentIndex( index );
+
+  // Announce this widget's mode
+  Q_EMIT isModal( index != 0 );
+}
 
 
 } // namespace
@@ -1256,6 +1269,8 @@ PlanGroupType::PlanGroupType( srdf::Model::Group *group, const moveit_setup_assi
   : group_( group ), type_( type )
 { 
 }
+
+
 
 
 

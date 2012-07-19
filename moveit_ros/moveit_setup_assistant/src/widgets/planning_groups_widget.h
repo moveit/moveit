@@ -179,6 +179,10 @@ private:
 
   // Save group screen
   bool saveGroupScreen();
+
+  /// Switch to current groups view
+  void showMainScreen();
+
 };
 
 }

@@ -56,7 +56,15 @@ public:
   /// Command to update GUI
   virtual void focusGiven();
 
+  // ******************************************************************************************
+  // Emitted Signal Functions
+  // ******************************************************************************************
 
+Q_SIGNALS:
+
+  /// Event that is fired when the current screen is in modal view. Essential disabled the left navigation
+  void isModal( bool isModal );
+  
 };
 
 #endif

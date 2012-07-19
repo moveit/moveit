@@ -42,8 +42,7 @@
 #include <urdf/model.h> // to share throughout app
 #include <moveit_setup_assistant/tools/srdf_writer.h> // for writing srdf data
 #include <planning_scene/planning_scene.h> // for getting kinematic model
-//#include <planning_scene_monitor/planning_scene_monitor.h> // for getting monitor
-//#include <planning_models_loader/kinematic_model_loader.h>
+#include <collision_detection/collision_matrix.h> // for figuring out if robot is in collision
 
 namespace moveit_setup_assistant
 {
@@ -128,6 +127,9 @@ public:
   /// Is this application in debug mode?
   bool debug_;
 
+  /// Allowed collision matrix for robot poses
+  collision_detection::AllowedCollisionMatrix allowed_collision_matrix_;
+
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -141,6 +143,8 @@ public:
   /// Provide a shared planning scene
   planning_scene::PlanningScenePtr getPlanningScene();
 
+  /// Load the allowed collision matrix from the SRDF's list of link pairs
+  void loadAllowedCollisionMatrix();
 
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files

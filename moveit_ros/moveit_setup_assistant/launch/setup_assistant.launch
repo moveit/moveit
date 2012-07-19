@@ -1,11 +1,15 @@
+<!-- Launch the MoveIt Setup Assistant, or just use rosrun -->
 <launch>
-  <node 
-	pkg="moveit_setup_assistant" type="setup_assistant" name="moveit_setup_assistant" 
-	args="--urdf_pkg=pr2_moveit_config
-	      --urdf_path=/config/pr2.urdf
-	      --config_pkg=/wg/stor1a/dcoleman/ros/pr2_moveit_config2/
-	      --debug" 
+
+  <!-- Debug Info -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <!-- Run -->
+  <node pkg="moveit_setup_assistant" type="setup_assistant" name="moveit_setup_assistant" 
+	args=""
+	launch-prefix="$(arg launch_prefix)"
         output="screen" />
-<!--         launch-prefix="gdb -ex run - -args "  -->
 
 </launch>

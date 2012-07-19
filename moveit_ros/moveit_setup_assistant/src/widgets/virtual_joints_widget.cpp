@@ -127,6 +127,12 @@ QWidget* VirtualJointsWidget::createContentsWidget()
   controls_layout->addWidget(btn_edit_);
   controls_layout->setAlignment( btn_edit_, Qt::AlignRight );
 
+  // Delete Selected Button
+  btn_delete_ = new QPushButton( "&Delete Selected", this );
+  connect( btn_delete_, SIGNAL(clicked()), this, SLOT( deleteSelected() ) );
+  controls_layout->addWidget( btn_delete_ );
+  controls_layout->setAlignment(btn_delete_, Qt::AlignRight);
+
   // Add VJoint Button
   QPushButton *btn_add = new QPushButton( "&Add Virtual Joint", this );
   btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
@@ -189,12 +195,6 @@ QWidget* VirtualJointsWidget::createEditWidget()
   QHBoxLayout *controls_layout = new QHBoxLayout();
   controls_layout->setContentsMargins( 0, 25, 0, 15 );
 
-  // Delete
-  btn_delete_ = new QPushButton( "&Delete Virtual Joint", this );
-  connect( btn_delete_, SIGNAL(clicked()), this, SLOT( deleteItem() ) );
-  controls_layout->addWidget( btn_delete_ );
-  controls_layout->setAlignment(btn_delete_, Qt::AlignLeft);
-
   // Spacer
   QWidget *spacer = new QWidget( this );
   spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
@@ -232,9 +232,6 @@ void VirtualJointsWidget::showNewScreen()
   // Remember that this is a new vjoint
   current_edit_vjoint_.clear();
 
-  // Hide delete button because this is a new widget
-  btn_delete_->hide();
-
   // Clear previous data
   vjoint_name_field_->setText("");
   parent_name_field_->setText("");
@@ -243,6 +240,9 @@ void VirtualJointsWidget::showNewScreen()
   
   // Switch to screen
   stacked_layout_->setCurrentIndex( 1 ); 
+
+  // Announce that this widget is in modal mode
+  Q_EMIT isModal( true );
 }
 
 // ******************************************************************************************
@@ -333,11 +333,11 @@ void VirtualJointsWidget::edit( const std::string &name )
   }
   joint_type_field_->setCurrentIndex( index );
 
-  // Show delete button because its an existing item
-  btn_delete_->show();
-
   // Switch to screen
   stacked_layout_->setCurrentIndex( 1 ); 
+
+  // Announce that this widget is in modal mode
+  Q_EMIT isModal( true );
 }
 
 // ******************************************************************************************
@@ -436,8 +436,18 @@ srdf::Model::VirtualJoint *VirtualJointsWidget::findVJointByName( const std::str
 // ******************************************************************************************
 // Delete currently editing item
 // ******************************************************************************************
-void VirtualJointsWidget::deleteItem()
+void VirtualJointsWidget::deleteSelected()
 {
+  // Get list of all selected items
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
+
+  // Check that an element was selected
+  if( !selected.size() )
+    return;
+
+  // Get selected name and edit it
+  current_edit_vjoint_ = selected[0]->text().toStdString();
+
   // Confirm user wants to delete group
   if( QMessageBox::question( this, "Confirm Virtual Joint Deletion", 
                              QString("Are you sure you want to delete the virtual joint '")
@@ -464,8 +474,6 @@ void VirtualJointsWidget::deleteItem()
   // Reload main screen table
   loadDataTable();
 
-  // Switch to screen  
-  stacked_layout_->setCurrentIndex( 0 ); 
 }
 
 // ******************************************************************************************
@@ -575,6 +583,9 @@ void VirtualJointsWidget::doneEditing()
 
   // Switch to screen
   stacked_layout_->setCurrentIndex( 0 ); 
+
+  // Announce that this widget is not in modal mode
+  Q_EMIT isModal( false );
 }
 
 // ******************************************************************************************
@@ -584,6 +595,9 @@ void VirtualJointsWidget::cancelEditing()
 {
   // Switch to screen
   stacked_layout_->setCurrentIndex( 0 ); 
+
+  // Announce that this widget is not in modal mode
+  Q_EMIT isModal( false );
 }
 
 // ******************************************************************************************

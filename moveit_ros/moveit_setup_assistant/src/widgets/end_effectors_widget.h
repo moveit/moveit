@@ -105,7 +105,7 @@ private Q_SLOTS:
   void previewClicked( int row, int column );
 
   /// Delete currently editing ite
-  void deleteItem();
+  void deleteSelected();
 
   /// Save editing changes
   void doneEditing();

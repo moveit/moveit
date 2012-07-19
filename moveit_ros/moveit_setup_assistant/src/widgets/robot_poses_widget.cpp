@@ -92,6 +92,16 @@ RobotPosesWidget::RobotPosesWidget( QWidget *parent, moveit_setup_assistant::Mov
 
   // Set the planning scene
   config_data_->getPlanningScene()->setName("MoveIt Planning Scene");  
+
+
+  // Collision Detection initializtion -------------------------------
+
+  // Setup the request
+  request.contacts = true;
+  request.max_contacts = 1;
+  request.max_contacts_per_pair = 1;
+  request.verbose = false;
+  
 }
 
 // ******************************************************************************************
@@ -147,6 +157,12 @@ QWidget* RobotPosesWidget::createContentsWidget()
   controls_layout->addWidget(btn_edit_);
   controls_layout->setAlignment( btn_edit_, Qt::AlignRight );
 
+  // Delete
+  btn_delete_ = new QPushButton( "&Delete Selected", this );
+  connect( btn_delete_, SIGNAL(clicked()), this, SLOT( deleteSelected() ) );
+  controls_layout->addWidget( btn_delete_ );
+  controls_layout->setAlignment(btn_delete_, Qt::AlignRight);
+
   // Add Group Button
   QPushButton *btn_add = new QPushButton( "&Add Pose", this );
   btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
@@ -193,12 +209,20 @@ QWidget* RobotPosesWidget::createEditWidget()
   //pose_name_field_->setMaximumWidth( 300 );
   form_layout->addRow( "Pose Name:", pose_name_field_ );
 
+  // Group name input
   group_name_field_ = new QComboBox( this );
   group_name_field_->setEditable( false );
-  //group_name_field_->setMaximumWidth( 300 );
+  // Connect the signal for changes to the drop down box
   connect( group_name_field_, SIGNAL( currentIndexChanged( const QString & ) ), 
            this, SLOT( loadJointSliders( const QString & ) ) );
+  //group_name_field_->setMaximumWidth( 300 );
   form_layout->addRow( "Planning Group:", group_name_field_ );
+
+  // Indicator that robot is in collision or not
+  collision_warning_ = new QLabel( "<font color='red'><b>Robot in Collision State</b></font>", this );
+  collision_warning_->setTextFormat( Qt::RichText );
+  collision_warning_->hide(); // show later
+  form_layout->addRow( " ", collision_warning_ );
   
   column1->addLayout( form_layout );
   columns_layout->addLayout( column1 );
@@ -214,7 +238,6 @@ QWidget* RobotPosesWidget::createEditWidget()
   scroll_area_->setWidget( joint_list_widget_ );
 
   column2_->addWidget( scroll_area_ );
-  //  column2_->addWidget( joint_list_widget_ );
 
   columns_layout->addLayout( column2_ );
 
@@ -225,12 +248,6 @@ QWidget* RobotPosesWidget::createEditWidget()
 
   QHBoxLayout *controls_layout = new QHBoxLayout();
   controls_layout->setContentsMargins( 0, 25, 0, 15 );
-
-  // Delete
-  btn_delete_ = new QPushButton( "&Delete Pose", this );
-  connect( btn_delete_, SIGNAL(clicked()), this, SLOT( deleteItem() ) );
-  controls_layout->addWidget( btn_delete_ );
-  controls_layout->setAlignment(btn_delete_, Qt::AlignLeft);
 
   // Spacer
   QWidget *spacer = new QWidget( this );
@@ -266,18 +283,21 @@ QWidget* RobotPosesWidget::createEditWidget()
 // ******************************************************************************************
 void RobotPosesWidget::showNewScreen()
 {
+  // Switch to screen - do this before clearEditText()
+  stacked_layout_->setCurrentIndex( 1 ); 
+
   // Remember that this is a new pose
   current_edit_pose_.clear();
-
-  // Hide delete button because this is a new widget
-  btn_delete_->hide();
+  
+  // Manually send the load joint sliders signal
+  if( !group_name_field_->currentText().isEmpty() )
+    loadJointSliders( group_name_field_->currentText() );
 
   // Clear previous data
   pose_name_field_->setText("");
-  group_name_field_->clearEditText(); // actually this just chooses first option
 
-  // Switch to screen
-  stacked_layout_->setCurrentIndex( 1 ); 
+  // Announce that this widget is in modal mode
+  Q_EMIT isModal( true );
 }
 
 // ******************************************************************************************
@@ -285,9 +305,7 @@ void RobotPosesWidget::showNewScreen()
 // ******************************************************************************************
 void RobotPosesWidget::editDoubleClicked( int row, int column )
 {
-  // Get the first column of the row that was double clicked
-  //edit( data_table_->itemAt( 0, row )->text().toStdString() ); // x,y
-
+  // We'll just base the edit on the selection highlight
   editSelected();
 }
 
@@ -404,13 +422,18 @@ void RobotPosesWidget::edit( const std::string &name )
     return;
   }
 
+  // Load joint sliders
   group_name_field_->setCurrentIndex( index );
 
-  // Show delete button because its an existing item
-  btn_delete_->show();
-
-  // Switch to screen
+  // Switch to screen - do this before setCurrentIndex
   stacked_layout_->setCurrentIndex( 1 ); 
+
+  // Announce that this widget is in modal mode
+  Q_EMIT isModal( true );
+
+  // Manually send the load joint sliders signal
+  loadJointSliders( QString( pose->group_.c_str() ) );
+
 }
 
 // ******************************************************************************************
@@ -435,10 +458,19 @@ void RobotPosesWidget::loadGroupsComboBox()
 // ******************************************************************************************
 void RobotPosesWidget::loadJointSliders( const QString &selected )
 {
+  /*  if( !group_name_field_->count() )
+    std::cout << " group name fiend" << std::endl;
+  if( selected.isEmpty() )
+    std::cout << " selected is empty" << std::endl;
+  if( stacked_layout_->currentIndex() == 0)
+  std::cout << " stacked layout is i =0" << std::endl;*/
+
   // Ignore this event if the combo box is empty. This occurs when clearing the combo box and reloading with the
-  // newest groups
-  if( !group_name_field_->count() || selected.isEmpty() )
+  // newest groups. Also ignore if we are not on the edit screen
+  if( !group_name_field_->count() || selected.isEmpty() || stacked_layout_->currentIndex() == 0)
     return;
+
+  //std::cout << "Loading joint sliders " << std::endl;
 
   // Get group name from input
   const std::string group_name = selected.toStdString();
@@ -513,7 +545,7 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
   }
 
   // Copy the width of column 2 and manually calculate height from number of joints
-  joint_list_widget_->resize( 280, num_joints * 70 ); //w, h
+  joint_list_widget_->resize( 300, num_joints * 70 ); //w, h
 
   // Update the robot model in Rviz with newly selected joint values
   publishJoints();
@@ -578,8 +610,18 @@ srdf::Model::GroupState *RobotPosesWidget::findPoseByName( const std::string &na
 // ******************************************************************************************
 // Delete currently editing item
 // ******************************************************************************************
-void RobotPosesWidget::deleteItem()
+void RobotPosesWidget::deleteSelected()
 {
+  // Get list of all selected items
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
+
+  // Check that an element was selected
+  if( !selected.size() )
+    return;
+
+  // Get selected name and edit it
+  current_edit_pose_ = selected[0]->text().toStdString();
+
   // Confirm user wants to delete group
   if( QMessageBox::question( this, "Confirm Pose Deletion", 
                              QString("Are you sure you want to delete the pose '")
@@ -606,8 +648,6 @@ void RobotPosesWidget::deleteItem()
   // Reload main screen table
   loadDataTable();
 
-  // Switch to screen  
-  stacked_layout_->setCurrentIndex( 0 ); 
 }
 
 // ******************************************************************************************
@@ -705,6 +745,9 @@ void RobotPosesWidget::doneEditing()
 
   // Switch to screen
   stacked_layout_->setCurrentIndex( 0 ); 
+
+  // Announce that this widget is done with modal mode
+  Q_EMIT isModal( false );
 }
 
 // ******************************************************************************************
@@ -714,6 +757,9 @@ void RobotPosesWidget::cancelEditing()
 {
   // Switch to screen
   stacked_layout_->setCurrentIndex( 0 ); 
+
+  // Announce that this widget is done with modal mode
+  Q_EMIT isModal( false );
 }
 
 // ******************************************************************************************
@@ -775,8 +821,6 @@ void RobotPosesWidget::focusGiven()
   // Load the avail groups to the combo box
   loadGroupsComboBox();
 
-  // TODO: remove demo
-  //edit( "tuck_right_arm" );
 }
 
 // ******************************************************************************************
@@ -809,6 +853,21 @@ void RobotPosesWidget::publishJoints()
 
   // Publish!
   pub_scene_.publish( psmsg );
+
+  // Decide if current state is in collision
+  collision_detection::CollisionResult result;
+  config_data_->getPlanningScene()->checkSelfCollision( request, result, 
+                                                        config_data_->getPlanningScene()->getCurrentState(), 
+                                                        config_data_->allowed_collision_matrix_ );
+  // Show result notification
+  if( result.contacts.size() )
+  {
+    collision_warning_->show();
+  }
+  else
+  {
+    collision_warning_->hide();
+  }
 }
 
 
@@ -837,15 +896,15 @@ SliderWidget::SliderWidget( QWidget *parent, const planning_models::KinematicMod
   // Row 2 -------------------------------------------------------------
   joint_slider_ = new QSlider( Qt::Horizontal, this );
   joint_slider_->setTickPosition(QSlider::TicksBelow);
-  joint_slider_->setSingleStep( 100 );
-  joint_slider_->setPageStep( 5000 );
+  joint_slider_->setSingleStep( 10 );
+  joint_slider_->setPageStep( 500 );
   joint_slider_->setTickInterval( 1000 );
   joint_slider_->setContentsMargins( 0, 0, 0, 0 );
   row2->addWidget( joint_slider_ );
 
   // Joint Value Box ------------------------------------------------
   joint_value_ = new QLineEdit( this );
-  joint_value_->setMaximumWidth( 50 );
+  joint_value_->setMaximumWidth( 62 );
   joint_value_->setContentsMargins( 0, 0, 0, 0 );
   connect( joint_value_, SIGNAL( editingFinished() ), this, SLOT( changeJointSlider() ) );
   row2->addWidget( joint_value_ );
@@ -908,7 +967,7 @@ void SliderWidget::changeJointValue( int value )
   const double double_value = double( value ) / 10000;
 
   // Set textbox
-  joint_value_->setText( QString( "%1" ).arg( double_value, 0, 'f', 2 ) );
+  joint_value_->setText( QString( "%1" ).arg( double_value, 0, 'f', 4 ) );
   
   // Send event to parent widget
   Q_EMIT jointValueChanged( joint_model_->getName(), double_value );

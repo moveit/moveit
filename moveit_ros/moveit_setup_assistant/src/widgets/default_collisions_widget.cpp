@@ -360,16 +360,16 @@ void DefaultCollisionsWidget::loadCollisionTable()
 
   }
   
-  // Reduce the table size to only the number of used rows. The hiding is a hack so that it resizes correctly
-  collision_table_->setVisible(false);
+  // Reduce the table size to only the number of used rows.
   collision_table_->setRowCount( row ); 
-  collision_table_->setVisible(true);
 
-  // Resize headers
+  // Resize headers. The hiding is a hack so that it resizes correctly
+  collision_table_->setVisible(false);
   collision_table_->resizeColumnToContents(0);
   collision_table_->resizeColumnToContents(1);
   collision_table_->resizeColumnToContents(2);
   collision_table_->resizeColumnToContents(3);
+  collision_table_->setVisible(true);
 
   collision_table_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
 }
@@ -476,7 +476,7 @@ void DefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are flipped 
 }
 
 // ******************************************************************************************
-// Output Link Pairs to SRDF Format
+// Output Link Pairs to SRDF Format and update the collision matrix
 // ******************************************************************************************
 void DefaultCollisionsWidget::linkPairsToSRDF()
 {
@@ -499,6 +499,9 @@ void DefaultCollisionsWidget::linkPairsToSRDF()
       config_data_->srdf_->disabled_collisions_.push_back( dc );
     }
   }
+
+  // Update collision_matrix for robot pose's use
+  config_data_->loadAllowedCollisionMatrix();
 
 }
 
