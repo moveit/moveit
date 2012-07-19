@@ -1,0 +1,16 @@
+<package>
+  <description brief="sbpl_interface">
+
+     sbpl_interface
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/sbpl_interface</url>
+  <depend package="planning_models"/>
+  <depend package="planning_scene_distance_field"/>
+
+</package>
+
+
