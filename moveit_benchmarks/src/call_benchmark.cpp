@@ -140,8 +140,7 @@ bool readOptions(const char *filename, BenchmarkOptions &opt)
     {
       if (bpo)
         opt.plugins.push_back(*bpo);
-      if (!bpo)
-        bpo.reset(new BenchmarkOptions::PluginOptions());
+      bpo.reset(new BenchmarkOptions::PluginOptions());
       bpo->name = val;
       bpo->runs = default_run_count;
     }

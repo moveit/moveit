@@ -73,11 +73,27 @@ public:
              const moveit_msgs::GetMotionPlan::Request &req, 
              moveit_msgs::MotionPlanDetailedResponse &res) const
   {
-    return false;
-    //return ompl_interface_->solve(planning_scene, req, res);
+    moveit_msgs::GetMotionPlan::Response res2;
+    if (chomp_interface_->solve(planning_scene, req, 
+                                chomp_interface_->getParams(),res2))
+    {
+      res.trajectory_start = res2.trajectory_start;
+      res.trajectory.push_back(res2.trajectory);
+      res.description.push_back("plan");
+      res.processing_time.push_back(res2.planning_time);
+      return true;
+    }
+    else
+      return false;
   }
 
   std::string getDescription(void) const { return "CHOMP"; }
+  
+  void getPlanningAlgorithms(std::vector<std::string> &algs) const
+  {
+    algs.resize(1);
+    algs[0] = "CHOMP";
+  }
 
   void terminate(void) const
   {
