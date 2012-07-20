@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "geometric_shapes/shapes.h"
+#include <octomap/octomap.h>
 #include <ros/console.h>
 
 shapes::Shape* shapes::Sphere::clone(void) const
@@ -80,6 +81,16 @@ shapes::Shape* shapes::Mesh::clone(void) const
 shapes::Shape* shapes::Plane::clone(void) const
 {
   return new Plane(a, b, c, d);
+}
+
+shapes::Shape* shapes::OcTree::clone(void) const
+{
+  return new OcTree(octree);
+}
+
+void shapes::OcTree::scaleAndPadd(double scale, double padd)
+{
+  ROS_WARN("OcTrees cannot be scaled or padded");
 }
 
 void shapes::Plane::scaleAndPadd(double scale, double padding)
@@ -201,4 +212,34 @@ void shapes::Mesh::print(std::ostream &out) const
 void shapes::Plane::print(std::ostream &out) const
 {
   out << "Plane[a=" << a << ", b=" << b << ", c=" << c << ", d=" << d << "]" << std::endl;
+}
+
+void shapes::OcTree::print(std::ostream &out) const
+{
+  if (octree)
+  {
+    double minx, miny, minz, maxx, maxy, maxz;
+    octree->getMetricMin(minx, miny, minz);
+    octree->getMetricMax(maxx, maxy, maxz);
+    out << "OcTree[depth = " << octree->getTreeDepth() << ", resolution = " << octree->getResolution() 
+        << " inside box (minx=" << minx << ", miny=" << miny << ", minz=" << minz << ", maxx=" << maxx 
+        << ", maxy=" << maxy << ", maxz=" << maxz << ")]" << std::endl;
+  }
+  else
+    out << "OcTree[NULL]" << std::endl;
+}
+
+bool shapes::Shape::isFixed(void) const
+{
+  return false;
+}
+
+bool shapes::OcTree::isFixed(void) const
+{
+  return true;
+}
+
+bool shapes::Plane::isFixed(void) const
+{
+  return true;
 }

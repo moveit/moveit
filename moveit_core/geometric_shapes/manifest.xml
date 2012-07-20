@@ -18,6 +18,7 @@
   <rosdep name="libqhull" />
   <rosdep name="assimp" />
   <rosdep name="eigen" />
+  <rosdep name="octomap" />
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lgeometric_shapes"/>

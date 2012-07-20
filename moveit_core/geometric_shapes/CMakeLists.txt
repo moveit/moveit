@@ -16,6 +16,11 @@ rosbuild_init()
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(OCTOMAP REQUIRED octomap)
+include_directories(${OCTOMAP_INCLUDE_DIRS})
+link_directories(${OCTOMAP_LIBRARY_DIRS})
+
 find_package(ASSIMP QUIET)
 if (NOT ASSIMP_FOUND)
   pkg_check_modules(ASSIMP assimp)
@@ -41,6 +46,8 @@ else()
   set(IS_ASSIMP3 0) # most likely not
 endif()
 
+find_library(QHULL_LIB qhull)
+
 rosbuild_add_boost_directories()
 
 #set the default path for built libraries to the "lib" directory
@@ -51,7 +58,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/shape_operations.cpp
   src/bodies.cpp
   src/body_operations.cpp)
-target_link_libraries(${PROJECT_NAME} ${ASSIMP_LIBRARIES} qhull)
+target_link_libraries(${PROJECT_NAME} ${ASSIMP_LIBRARIES} ${OCTOMAP_LIBRARIES} ${QHULL_LIB})
 
 
 # Unit tests
