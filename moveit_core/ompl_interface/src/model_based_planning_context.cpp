@@ -469,7 +469,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     ROS_DEBUG("%s: Solving the planning problem once...", name_.c_str());
     ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
     registerTerminationCondition(ptc);
-    result = ompl_simple_setup_.solve(ptc);
+    result = ompl_simple_setup_.solve(ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
     last_plan_time_ = ompl_simple_setup_.getLastPlanComputationTime();
     unregisterTerminationCondition();
   }
@@ -489,7 +489,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 
       ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
       registerTerminationCondition(ptc);
-      result = ompl_parallel_plan_.solve(ptc, 1, count, true);
+      result = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
       unregisterTerminationCondition();
     }
@@ -508,7 +508,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 	else
 	  for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)
 	    ompl_parallel_plan_.addPlanner(og::getDefaultPlanner(ompl_simple_setup_.getGoal()));
-	bool r = ompl_parallel_plan_.solve(ptc, 1, max_planning_threads_, true);
+	bool r = ompl_parallel_plan_.solve(ptc, 1, max_planning_threads_, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
 	result = result && r; 
       }
       n = count % max_planning_threads_;
@@ -521,7 +521,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 	else
 	  for (int i = 0 ; i < n ; ++i)
 	    ompl_parallel_plan_.addPlanner(og::getDefaultPlanner(ompl_simple_setup_.getGoal()));
-	bool r = ompl_parallel_plan_.solve(ptc, 1, n, true);
+	bool r = ompl_parallel_plan_.solve(ptc, 1, n, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
 	result = result && r;
       }
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
