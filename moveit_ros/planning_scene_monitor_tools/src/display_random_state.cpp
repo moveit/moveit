@@ -72,6 +72,12 @@ int main(int argc, char **argv)
   
   do 
   {
+  	if(!psm.getPlanningScene())
+    {
+  		ROS_ERROR("Planning scene did not load properly, exiting...");
+  		break;
+    }
+
     std::cout << "Type a number and hit Enter. That number of ";
     if (valid)
       std::cout << "valid ";
