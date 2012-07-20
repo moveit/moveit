@@ -187,7 +187,8 @@ public:
    *  @param planning_scene_world_topic The topic to listen to for world scene geometry */
   void startWorldGeometryMonitor(const std::string &collision_objects_topic = "collision_object",
                                  const std::string &collision_map_topic = "collision_map",
-                                 const std::string &planning_scene_world_topic = "planning_scene_world");
+                                 const std::string &planning_scene_world_topic = "planning_scene_world",
+                                 const std::string &octomap_topic = "octomap");
 
   /** @brief Stop the world geometry monitor*/
   void stopWorldGeometryMonitor(void);
@@ -234,6 +235,9 @@ protected:
   /** @brief Callback for a new collision map*/
   void collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map);
 
+  /** @brief Callback for a new octomap*/
+  void octomapCallback(const octomap_msgs::OctomapBinaryConstPtr &map);
+
   /** @brief Callback for a new attached object msg*/
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
   
@@ -272,6 +276,9 @@ protected:
 
   message_filters::Subscriber<moveit_msgs::CollisionMap>    *collision_map_subscriber_;
   tf::MessageFilter<moveit_msgs::CollisionMap>              *collision_map_filter_;
+
+  message_filters::Subscriber<octomap_msgs::OctomapBinary>    *octomap_subscriber_;
+  tf::MessageFilter<octomap_msgs::OctomapBinary>              *octomap_filter_;
 
   ros::Subscriber                       attached_collision_object_subscriber_;
   
