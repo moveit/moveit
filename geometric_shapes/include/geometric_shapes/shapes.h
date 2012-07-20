@@ -42,6 +42,11 @@
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 
+namespace octomap
+{
+class OcTree;
+}
+
 /** \brief Definition of various shapes. No properties such as
     position are included. These are simply the descriptions and
     dimensions of shapes. */
@@ -49,7 +54,7 @@ namespace shapes
 {
 
 /** \brief A list of known shape types */
-enum ShapeType { UNKNOWN_SHAPE, SPHERE, CYLINDER, CONE, BOX, PLANE, MESH };
+enum ShapeType { UNKNOWN_SHAPE, SPHERE, CYLINDER, CONE, BOX, PLANE, MESH, OCTREE };
 
 
 /** \brief A basic definition of a shape. Shapes are considered centered at origin */
@@ -79,6 +84,9 @@ public:
   
   /** \brief Scale and padd this shape */
   virtual void scaleAndPadd(double scale, double padd) = 0;
+  
+  /** \brief Return a flag indicating whether this shape can be scaled and/or padded */
+  virtual bool isFixed(void) const;
   
   /** \brief The type of the shape */
   ShapeType type;
@@ -267,10 +275,32 @@ public:
   virtual Shape* clone(void) const;
   virtual void print(std::ostream &out = std::cout) const;
   virtual void scaleAndPadd(double scale, double padd);
+  virtual bool isFixed(void) const;
 
   /** \brief The plane equation is ax + by + cz + d = 0 */
   double a, b, c, d;
 };
+
+/** \brief Representation of an octomap::OcTree as a Shape */
+class OcTree : public Shape
+{
+  OcTree(void) : Shape()
+  {
+    type = OCTREE;
+  }
+  
+  OcTree(const boost::shared_ptr<const octomap::OcTree> &t) : octree(t)
+  {
+  }
+
+  virtual Shape* clone(void) const;
+  virtual void print(std::ostream &out = std::cout) const;
+  virtual void scaleAndPadd(double scale, double padd);
+  virtual bool isFixed(void) const;
+  
+  boost::shared_ptr<const octomap::OcTree> octree;
+};
+
 
 /** \brief Shared pointer to a Shape */
 typedef boost::shared_ptr<Shape> ShapePtr;
