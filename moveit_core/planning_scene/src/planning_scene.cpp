@@ -950,6 +950,9 @@ void planning_scene::PlanningScene::usePlanningSceneMsg(const moveit_msgs::Plann
 
 void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::CollisionMap &map)
 {
+  // each collision map replaces any previous one
+  cworld_->removeObject(COLLISION_MAP_NS);
+
   if (map.boxes.empty())
     return;
   const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
@@ -968,8 +971,11 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
 
 void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::OctomapBinary &map)
 {
+  // each octomap replaces any previous one
+  cworld_->removeObject(OCTOMAP_NS);
+
   if (map.data.empty())
-    return;
+	  return;
   octomap::OcTree om(0.1); /// \TODO this should be a parameter maybe? 
   octomap::octomapMsgToMap(map, om);
   const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id); 
