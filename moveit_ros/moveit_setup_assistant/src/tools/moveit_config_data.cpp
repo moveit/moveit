@@ -220,7 +220,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
   emitter << YAML::Value << YAML::BeginMap;
   
   // Add Planner
-  emitter << YAML::Key << "SBLkConfig1";
+  emitter << YAML::Key << "SBLkConfigDefault";
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "type" << YAML::Value << "geometric::SBL";
   emitter << YAML::EndMap;

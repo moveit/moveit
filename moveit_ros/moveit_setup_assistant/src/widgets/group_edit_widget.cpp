@@ -224,8 +224,7 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
     loader.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
   }
   catch(pluginlib::PluginlibException& ex)
-  {
- 
+  { 
     QMessageBox::warning( this, "Missing Kinematic Solvers", "Exception while creating class loader for kinematic solver plugins");
     ROS_ERROR_STREAM( ex.what() );
     return;

@@ -10,10 +10,10 @@
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
 
   <!-- Load the urdf unless monitor_robot_state is set to true -->
-  <param unless="$(arg monitor_robot_state)" name="robot_description" textfile="$(find [URDF_PACKAGE_NAME])[URDF_RELATIVE_PATH]" />
+  <param unless="$(arg monitor_robot_state)" name="robot_description" textfile="$(find [URDF_PACKAGE_NAME])/[URDF_RELATIVE_PATH]" />
 
   <!-- Reference the planning context -->
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch">
+  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch" />
   
   <!-- Run state_publisher and clock -->
   <node unless="$(arg monitor_robot_state)" pkg="robot_state_publisher" type="state_publisher" name="rob_st_pub" />

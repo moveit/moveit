@@ -363,9 +363,8 @@ bool StartScreenWidget::loadExistingFiles()
   
   if( !config_data_->inputKinematicsYAML( kinematics_yaml_path ) )
   {
-    QMessageBox::critical( this, "Error Loading Files", 
-                           QString("Failed to parse kinematics yaml file at location ").append( kinematics_yaml_path.c_str() ) );
-    return false;
+    QMessageBox::warning( this, "No Kinematic YAML File", 
+                          QString("Failed to parse kinematics yaml file. This file is not critical but any previous kinematic solver settings have been lost. To re-populate this file edit each existing planning group and choose a solver, then save each change. \n\nFile error at location ").append( kinematics_yaml_path.c_str() ) );
   }
 
   // DONE LOADING --------------------------------------------------------------------------
@@ -496,6 +495,7 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
   }
 
   ROS_INFO("Setting Param Server with Robot Description");
+  ROS_WARN("Ignore the following error message 'Failed to contact master'. This is a known issue.");
   nh.setParam("/robot_description", urdf_string); // TODO: fix the rosparam issue with large strings
 
   return true;
