@@ -42,7 +42,7 @@ namespace trajectory_execution_manager
 TrajectoryExecutionManager::TrajectoryExecutionManager(const planning_models::KinematicModelConstPtr &kmodel) : 
   kinematic_model_(kmodel), node_handle_("~")
 {
-  if (!node_handle_.getParam("manage_controllers", manage_controllers_))
+  if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
   initialize();
 }
@@ -72,7 +72,7 @@ void TrajectoryExecutionManager::initialize(void)
   }
 
   std::string controller;
-  if (!node_handle_.getParam("controller_manager", controller))
+  if (!node_handle_.getParam("moveit_controller_manager", controller))
   {
     const std::vector<std::string> &classes = controller_manager_loader_->getDeclaredClasses();
     if (classes.size() == 1)
