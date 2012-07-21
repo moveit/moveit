@@ -184,11 +184,12 @@ public:
   /** @brief Start listening for objects in the world, the collision map and attached collision objects
    *  @param collision_objects_topic The topic on which to listen for collision objects
    *  @param collision_map_topic The topic on which to listen for the collision map
+   *  @param octomap_topic The topic on which to listen for the OctoMap
    *  @param planning_scene_world_topic The topic to listen to for world scene geometry */
   void startWorldGeometryMonitor(const std::string &collision_objects_topic = "collision_object",
                                  const std::string &collision_map_topic = "collision_map",
-                                 const std::string &planning_scene_world_topic = "planning_scene_world",
-                                 const std::string &octomap_topic = "octomap");
+                                 const std::string &octomap_topic = "octomap",
+                                 const std::string &planning_scene_world_topic = "planning_scene_world");
 
   /** @brief Stop the world geometry monitor*/
   void stopWorldGeometryMonitor(void);
