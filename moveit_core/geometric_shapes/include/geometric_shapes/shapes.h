@@ -284,6 +284,7 @@ public:
 /** \brief Representation of an octomap::OcTree as a Shape */
 class OcTree : public Shape
 {
+public:
   OcTree(void) : Shape()
   {
     type = OCTREE;
