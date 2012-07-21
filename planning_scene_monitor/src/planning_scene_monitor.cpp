@@ -369,8 +369,8 @@ void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
 
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
                                                                              const std::string &collision_map_topic,
-                                                                             const std::string &planning_scene_world_topic,
-                                                                             const std::string &octomap_topic)
+                                                                             const std::string &octomap_topic,
+                                                                             const std::string &planning_scene_world_topic)
 {
   stopWorldGeometryMonitor();
   ROS_INFO("Starting world geometry monitor");
