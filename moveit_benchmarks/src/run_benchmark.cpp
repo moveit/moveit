@@ -134,7 +134,6 @@ public:
   {
     rundata["total_time REAL"] = boost::lexical_cast<std::string>(total_time);
     rundata["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
-    
     double L = 0.0;
     double clearance = 0.0;
     double smoothness = 0.0;		
@@ -155,7 +154,7 @@ public:
         // compute path length
         for (std::size_t k = 1 ; k < p.size() ; ++k)
           L += p[k-1]->distance(*p[k]);
-        
+
         // compute correctness and clearance
         collision_detection::CollisionRequest req;
         for (std::size_t k = 0 ; k < p.size() ; ++k)
@@ -164,8 +163,11 @@ public:
           scene_->checkCollisionUnpadded(req, res, *p[k]);
           if (res.collision)
             correct = false;
+          if (!p[k]->satisfiesBounds())
+            correct = false;
           double d = scene_->distanceToCollisionUnpadded(*p[k]);
-          clearance += d;
+          if (d > 0.0) // in case of collision, distance is negative
+            clearance += d;
         }
         clearance /= (double)p.size();
         
@@ -204,7 +206,7 @@ public:
         rundata["path_" + mp_res.description[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
         rundata["path_" + mp_res.description[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
         rundata["path_" + mp_res.description[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
-        rundata["path_" + mp_res.description[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time[j]);
+        rundata["path_" + mp_res.description[j] + "_time REAL"] = boost::lexical_cast<std::string>(mp_res.processing_time[j]);     
         process_time -= mp_res.processing_time[j].toSec();
       }
       if (process_time <= 0.0)
