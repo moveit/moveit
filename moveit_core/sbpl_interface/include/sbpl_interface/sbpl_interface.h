@@ -37,7 +37,6 @@
 
 #include <sbpl/headers.h>
 #include <planning_scene/planning_scene.h>
-#include <sbpl_interface/dummy_environment.h>
 #include <moveit_msgs/GetMotionPlan.h>
 
 namespace sbpl_interface
