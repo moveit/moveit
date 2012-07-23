@@ -131,16 +131,11 @@ private:
     
     if (!solved)
     {
+      action_res.error_code = mres.error_code;
       if (trajectory_processing::isTrajectoryEmpty(mres.trajectory))
-      {
-        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
         action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
-      }
       else
-      {
-	action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
-	action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
-      }
+        action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
       setState(IDLE, 0.0);
       return;
     }
@@ -211,7 +206,7 @@ private:
       {
         if (path_became_invalid)
         {
-          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN; ///\todo change to MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE
           action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
         }
         else
