@@ -44,13 +44,13 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
                                    const planning_scene::PlanningSceneConstPtr& planning_scene,
                                    boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                    boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
-                                   boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor,
+                                   boost::shared_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_manager,
                                    ros::Publisher& marker_publisher) :
   QDialog(parent),
   planning_scene_(planning_scene),
   joint_trajectory_visualization_(new moveit_visualization_ros::JointTrajectoryVisualization(planning_scene,
                                                                                              marker_publisher)),
-  trajectory_execution_monitor_(trajectory_execution_monitor),
+  trajectory_execution_manager_(trajectory_execution_manager),
   grasp_generator_visualization_(new GraspGeneratorVisualization(marker_publisher)),
   place_generator_visualization_(new PlaceGeneratorVisualization(marker_publisher))
 {
@@ -174,16 +174,16 @@ GraspEvaluationVisualizationDialog(QWidget* parent,
   play_grasp_and_place_execution_button_ = new QPushButton("Play full grasp and place execution");
   layout->addWidget(play_grasp_and_place_execution_button_);
 
-  if(trajectory_execution_monitor) {
-    execute_grasp_and_place_button_ = new QPushButton("Execute full grasp and place");
-    layout->addWidget(execute_grasp_and_place_button_);
-    connect(execute_grasp_and_place_button_,
-            SIGNAL(clicked()),
-            this, 
-            SLOT(executeFullGraspAndPlace()));
-  } else {
-    execute_grasp_and_place_button_ = NULL;
-  }
+  // if(trajectory_execution_manager) {
+  //   execute_grasp_and_place_button_ = new QPushButton("Execute full grasp and place");
+  //   layout->addWidget(execute_grasp_and_place_button_);
+  //   connect(execute_grasp_and_place_button_,
+  //           SIGNAL(clicked()),
+  //           this, 
+  //           SLOT(executeFullGraspAndPlace()));
+  // } else {
+  execute_grasp_and_place_button_ = NULL;
+  //}
 
   connect(get_grasps_button, SIGNAL(clicked()), this, SLOT(generateGraspsForObject()));
   connect(generated_grasps_browser_, SIGNAL(valueChanged(int)), this, SLOT(generatedGraspBrowserNumberChanged(int)));
@@ -809,92 +809,92 @@ void GraspEvaluationVisualizationDialog::generateTrajectoryFromJointState(const 
 }
 
 void GraspEvaluationVisualizationDialog::executeFullGraspAndPlace() {
-  std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
+  // std::vector<trajectory_execution::TrajectoryExecutionRequest> ter_reqs;
 
-  std::string end_effector_name = planning_scene_->getKinematicModel()->getJointModelGroup(current_arm_)->getAttachedEndEffectorGroupName();  
-  grasp_place_evaluation::GraspExecutionInfo& ev_grasp = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
+  // std::string end_effector_name = planning_scene_->getKinematicModel()->getJointModelGroup(current_arm_)->getAttachedEndEffectorGroupName();  
+  // grasp_place_evaluation::GraspExecutionInfo& ev_grasp = last_grasp_evaluation_info_[evaluated_grasp_browser_->value()-1];
 
-  grasp_place_evaluation::PlaceExecutionInfo& ev_place = last_place_evaluation_info_[evaluated_place_locations_browser_->value()-1];
+  // grasp_place_evaluation::PlaceExecutionInfo& ev_place = last_place_evaluation_info_[evaluated_place_locations_browser_->value()-1];
 
-  trajectory_execution::TrajectoryExecutionRequest ter;
+  // trajectory_execution::TrajectoryExecutionRequest ter;
 
-  //first we need to open the gripper
-  ter.group_name_ = end_effector_name;
-  generateTrajectoryFromJointState(current_generated_grasps_[evaluated_grasp_browser_->value()-1].pre_grasp_posture,
-                                   ter.trajectory_);
-  ROS_INFO_STREAM("Open joint is " << ter.trajectory_.points[0].positions[0]);
-  ter.failure_ok_ = true;
-  ter.failure_time_factor_ = 2.0;
-  ter_reqs.push_back(ter);
+  // //first we need to open the gripper
+  // ter.group_name_ = end_effector_name;
+  // generateTrajectoryFromJointState(current_generated_grasps_[evaluated_grasp_browser_->value()-1].pre_grasp_posture,
+  //                                  ter.trajectory_);
+  // ROS_INFO_STREAM("Open joint is " << ter.trajectory_.points[0].positions[0]);
+  // ter.failure_ok_ = true;
+  // ter.failure_time_factor_ = 2.0;
+  // ter_reqs.push_back(ter);
 
-  //next we go to pregrasp
-  ter.group_name_ = current_arm_;
-  ter.trajectory_ = last_planned_trajectory_;
-  ter.failure_ok_ = false;
-  ter.failure_time_factor_ = 100.0;
-  ter_reqs.push_back(ter);
+  // //next we go to pregrasp
+  // ter.group_name_ = current_arm_;
+  // ter.trajectory_ = last_planned_trajectory_;
+  // ter.failure_ok_ = false;
+  // ter.failure_time_factor_ = 100.0;
+  // ter_reqs.push_back(ter);
   
-  //approach interpolation
-  ter.group_name_ = current_arm_;
-  ter.trajectory_ = ev_grasp.approach_trajectory_;
-  ter.failure_ok_ = false;
-  ter.failure_time_factor_ = 100.0;
-  ter_reqs.push_back(ter);
+  // //approach interpolation
+  // ter.group_name_ = current_arm_;
+  // ter.trajectory_ = ev_grasp.approach_trajectory_;
+  // ter.failure_ok_ = false;
+  // ter.failure_time_factor_ = 100.0;
+  // ter_reqs.push_back(ter);
 
-  //close gripper
-  ter.group_name_ = end_effector_name;
-  generateTrajectoryFromJointState(current_generated_grasps_[evaluated_grasp_browser_->value()-1].grasp_posture,
-                                   ter.trajectory_);
-  ROS_INFO_STREAM("Close joint is " << ter.trajectory_.points[0].positions[0]);
-  ter.failure_ok_ = true;
-  ter.failure_time_factor_ = 2.0;
-  ter_reqs.push_back(ter);
+  // //close gripper
+  // ter.group_name_ = end_effector_name;
+  // generateTrajectoryFromJointState(current_generated_grasps_[evaluated_grasp_browser_->value()-1].grasp_posture,
+  //                                  ter.trajectory_);
+  // ROS_INFO_STREAM("Close joint is " << ter.trajectory_.points[0].positions[0]);
+  // ter.failure_ok_ = true;
+  // ter.failure_time_factor_ = 2.0;
+  // ter_reqs.push_back(ter);
 
-  //lift interpolation
-  ter.group_name_ = current_arm_;
-  ter.trajectory_ = ev_grasp.lift_trajectory_;
-  ter.failure_ok_ = false;
-  ter.failure_time_factor_ = 100.0;
-  ter_reqs.push_back(ter);
+  // //lift interpolation
+  // ter.group_name_ = current_arm_;
+  // ter.trajectory_ = ev_grasp.lift_trajectory_;
+  // ter.failure_ok_ = false;
+  // ter.failure_time_factor_ = 100.0;
+  // ter_reqs.push_back(ter);
 
-  //plan to pre-place
-  ter.group_name_ = current_arm_;
-  ter.trajectory_ = last_place_planned_trajectory_;
-  ter.failure_ok_ = false;
-  ter.failure_time_factor_ = 100.0;
-  ter_reqs.push_back(ter);
+  // //plan to pre-place
+  // ter.group_name_ = current_arm_;
+  // ter.trajectory_ = last_place_planned_trajectory_;
+  // ter.failure_ok_ = false;
+  // ter.failure_time_factor_ = 100.0;
+  // ter_reqs.push_back(ter);
 
-  //place interpolation
-  ter.group_name_ = current_arm_;
-  ter.trajectory_ = ev_place.approach_trajectory_;
-  ter.failure_ok_ = false;
-  ter.failure_time_factor_ = 100.0;
-  ter_reqs.push_back(ter);
+  // //place interpolation
+  // ter.group_name_ = current_arm_;
+  // ter.trajectory_ = ev_place.approach_trajectory_;
+  // ter.failure_ok_ = false;
+  // ter.failure_time_factor_ = 100.0;
+  // ter_reqs.push_back(ter);
 
-  //open gripper
-  ter.group_name_ = end_effector_name;
-  generateTrajectoryFromJointState(current_generated_grasps_[evaluated_grasp_browser_->value()-1].pre_grasp_posture,
-                                   ter.trajectory_);
-  ter.failure_time_factor_ = 2.0;
-  ter.failure_ok_ = true;
-  ter_reqs.push_back(ter);
+  // //open gripper
+  // ter.group_name_ = end_effector_name;
+  // generateTrajectoryFromJointState(current_generated_grasps_[evaluated_grasp_browser_->value()-1].pre_grasp_posture,
+  //                                  ter.trajectory_);
+  // ter.failure_time_factor_ = 2.0;
+  // ter.failure_ok_ = true;
+  // ter_reqs.push_back(ter);
 
-  //retreat interpolation
-  ter.group_name_ = current_arm_;
-  ter.trajectory_ = ev_place.retreat_trajectory_;
-  ter.failure_ok_ = false;
-  ter.failure_time_factor_ = 100.0;
-  ter_reqs.push_back(ter);
+  // //retreat interpolation
+  // ter.group_name_ = current_arm_;
+  // ter.trajectory_ = ev_place.retreat_trajectory_;
+  // ter.failure_ok_ = false;
+  // ter.failure_time_factor_ = 100.0;
+  // ter_reqs.push_back(ter);
   
-  //plan to return
-  ter.group_name_ = current_arm_;
-  ter.trajectory_ = last_return_from_place_planned_trajectory_;
-  ter.failure_ok_ = false;
-  ter.failure_time_factor_ = 100.0;
-  ter_reqs.push_back(ter);
+  // //plan to return
+  // ter.group_name_ = current_arm_;
+  // ter.trajectory_ = last_return_from_place_planned_trajectory_;
+  // ter.failure_ok_ = false;
+  // ter.failure_time_factor_ = 100.0;
+  // ter_reqs.push_back(ter);
 
-  trajectory_execution_monitor_->executeTrajectories(ter_reqs,
-                                                     boost::bind(&GraspEvaluationVisualizationDialog::doneWithExecution, this));
+  // trajectory_execution_manager_->executeTrajectories(ter_reqs,
+  //                                                    boost::bind(&GraspEvaluationVisualizationDialog::doneWithExecution, this));
 }
 
 void GraspEvaluationVisualizationDialog::disableGeneration() {

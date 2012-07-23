@@ -38,7 +38,7 @@
 #include <moveit_manipulation_visualization/grasp_evaluation_visualization.h>
 #include <moveit_manipulation_visualization/place_generator_visualization.h>
 #include <moveit_manipulation_visualization/place_evaluation_visualization.h>
-#include <trajectory_execution/trajectory_execution_monitor.h>
+#include <trajectory_execution_manager/trajectory_execution_manager.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <planning_models_loader/kinematic_model_loader.h>
 
@@ -59,7 +59,7 @@ class GraspEvaluationVisualizationDialog: public QDialog {
                                      const planning_scene::PlanningSceneConstPtr& planning_scene,
                                      boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                      boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
-                                     boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor,
+                                     boost::shared_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_manager,
                                      ros::Publisher& marker_publisher);
   
   virtual ~GraspEvaluationVisualizationDialog() {};
@@ -144,7 +144,7 @@ protected:
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<moveit_visualization_ros::JointTrajectoryVisualization> joint_trajectory_visualization_;
-  boost::shared_ptr<trajectory_execution::TrajectoryExecutionMonitor> trajectory_execution_monitor_;
+  boost::shared_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_manager_;
 
   std::string current_object_;
   std::string current_arm_;
