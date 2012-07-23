@@ -33,6 +33,8 @@
 *********************************************************************/
 
 #include <sbpl_interface/sbpl_interface.h>
+#include <sbpl_interface/environment_chain3d.h>
+#include <planning_models/conversions.h>
 
 namespace sbpl_interface {
 
@@ -40,9 +42,17 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
                           const moveit_msgs::GetMotionPlan::Request &req, 
                           moveit_msgs::GetMotionPlan::Response &res) const
 {
-  ros::WallTime wt = ros::WallTime::now();
-  DummyEnvironment* dummy_env = new DummyEnvironment();
-  SBPLPlanner *planner = new ARAPlanner(dummy_env, true);
+  planning_models::KinematicState start_state(planning_scene->getCurrentState());
+  planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+
+  ros::WallTime wt = ros::WallTime::now();  
+  EnvironmentChain3D* env_chain = new EnvironmentChain3D(planning_scene);
+  std::cerr << "Created" << std::endl;
+  env_chain->setupForMotionPlan(planning_scene, 
+                                req);
+
+  //DummyEnvironment* dummy_env = new DummyEnvironment();
+  SBPLPlanner *planner = new ARAPlanner(env_chain, true);
   std::cerr << "Creation took " << (ros::WallTime::now()-wt) << std::endl;
   return false;
 }
