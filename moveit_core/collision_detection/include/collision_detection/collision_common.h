@@ -38,6 +38,7 @@
 #define COLLISION_DETECTION_COLLISION_COMMON_
 
 #include <boost/array.hpp>
+#include <boost/function.hpp>
 #include <vector>
 #include <string>
 #include <map>
@@ -98,9 +99,15 @@ namespace collision_detection
     /// The maximum bound of the AABB defining the volume responsible for this partial cost
     boost::array<double, 3> aabb_max;
 
-    /// The partial cost
+    /// The partial cost (the probability of existance for the object there is a collision with)
     double                  cost;
     
+    /// Get the volume of the AABB around the cost source
+    double getVolume(void) const
+    {
+      return (aabb_max[0] - aabb_min[0]) * (aabb_max[1] - aabb_min[1]) * (aabb_max[2] - aabb_min[2]);
+    }
+
     /// Order cost sources so that the most costly source is at the top
     bool operator<(const CostSource &other) const
     {
@@ -114,8 +121,7 @@ namespace collision_detection
     CollisionResult(void) : collision(false),
 			    distance(std::numeric_limits<double>::max()),
 			    direction(0.0, 0.0, 0.0),
-			    contact_count(0),
-                            cost_value(0.0)
+			    contact_count(0)
     {
     }
     typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
@@ -137,10 +143,7 @@ namespace collision_detection
     
     /** \brief A map returning the pairs of ids of the bodies in contact, plus information about the contacts themselves */
     ContactMap           contacts;
-    
-    /** \brief This is the overall cost of the collision. This value is computed only if \e cost was set to true in the CollisionRequest */
-    double               cost_value;
-    
+        
     /** \brief When costs are computed, the individual cost sources are  */
     std::set<CostSource> cost_sources;
   };
@@ -179,6 +182,8 @@ namespace collision_detection
     /** \brief When costs are computed, this value defines how many of the top cost sources should be returned */
     std::size_t max_cost_sources;
     
+    boost::function<bool(const CollisionResult&)> is_done;
+
     /** \brief Flag indicating whether information about detected collisions should be reported */
     bool        verbose;
   };
