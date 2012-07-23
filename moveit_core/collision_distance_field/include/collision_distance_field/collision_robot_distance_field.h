@@ -46,6 +46,14 @@
 namespace collision_detection
 {
 
+static const double DEFAULT_SIZE_X = 3.0;
+static const double DEFAULT_SIZE_Y = 3.0;
+static const double DEFAULT_SIZE_Z = 3.0;
+static const bool DEFAULT_USE_SIGNED_DISTANCE_FIELD = false;
+static const double DEFAULT_RESOLUTION = .02;
+static const double DEFAULT_COLLISION_TOLERANCE = 0.0;
+static const double DEFAULT_MAX_PROPOGATION_DISTANCE = .25;
+
 class CollisionRobotDistanceField : public CollisionRobot
 {
   
@@ -57,13 +65,13 @@ public:
 
   CollisionRobotDistanceField(const planning_models::KinematicModelConstPtr& kmodel, 
                               const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
-                              double size_x = 3.0, 
-                              double size_y = 3.0,
-                              double size_z = 4.0,
-                              bool use_signed_distance_field = false,
-                              double resolution = .02,
-                              double collision_tolerance = 0.0,
-                              double max_propogation_distance = .25,
+                              double size_x = DEFAULT_SIZE_X, 
+                              double size_y = DEFAULT_SIZE_Y,
+                              double size_z = DEFAULT_SIZE_Z,
+                              bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
+                              double resolution = DEFAULT_RESOLUTION,
+                              double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
+                              double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE,
                               double padding = 0.0, 
                               double scale = 1.0);
 

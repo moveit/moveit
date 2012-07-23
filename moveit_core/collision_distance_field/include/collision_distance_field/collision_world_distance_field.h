@@ -143,7 +143,7 @@ public:
 
   void generateEnvironmentDistanceField(bool redo = true);
 
-  boost::shared_ptr<const distance_field::DistanceField> getDistanceField() {
+  boost::shared_ptr<const distance_field::DistanceField> getDistanceField() const {
     return distance_field_cache_entry_->distance_field_;
   }
 
