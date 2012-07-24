@@ -151,8 +151,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     // if we have a decider for allowed contacts, we need to look at all the contacts
     bool exhaustive = true;
     bool enable_contact = true;
-    std::vector<fcl::Contact> contacts;
-    int num_contacts = fcl::collide(o1, o2, std::numeric_limits<int>::max(), exhaustive, enable_contact, contacts);
+    fcl::CollisionResult col_result;
+    int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(exhaustive, std::numeric_limits<int>::max(), enable_contact), col_result);
     if (num_contacts > 0)
     {
       if (cdata->req_->verbose)
@@ -163,7 +163,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
       for (int i = 0 ; i < num_contacts ; ++i)
       {
-        fcl2contact(contacts[i], c);
+        fcl2contact(col_result.contacts[i], c);
         // if the contact is  not allowed, we have a collision
         if (dcf(c) == false)
         {
@@ -205,8 +205,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       // otherwise, we need to compute more things
       bool exhaustive = false;
       bool enable_contact = true;
-      std::vector<fcl::Contact> contacts;
-      int num_contacts = fcl::collide(o1, o2, want_contact_count, exhaustive, enable_contact, contacts);
+      fcl::CollisionResult col_result;
+      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(exhaustive, (int)want_contact_count, enable_contact), col_result);
       if (num_contacts > 0)
       {
         // make sure we don't get more contacts than we want
@@ -236,7 +236,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         for (int i = 0 ; i < num_contacts ; ++i)
         {
           Contact c;
-          fcl2contact(contacts[i], c);
+          fcl2contact(col_result.contacts[i], c);
           cdata->res_->contacts[pc].push_back(c);
           cdata->res_->contact_count++;
         }
@@ -246,8 +246,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     {
       bool exhaustive = false;
       bool enable_contact = false;
-      std::vector<fcl::Contact> contacts;
-      int num_contacts = fcl::collide(o1, o2, 1, exhaustive, enable_contact, contacts);
+      fcl::CollisionResult col_result;
+      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(exhaustive, 1, enable_contact), col_result);
       if (num_contacts > 0)
       {
         cdata->res_->collision = true;
@@ -388,7 +388,9 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
   if (cdata->req_->verbose)
     ROS_DEBUG_STREAM_NAMED("allowed_collisions", "Actually checking collisions between " << cd1->getID() << " and " << cd2->getID());
 
-  double d = fcl::distance(o1, o2);
+  
+  fcl::DistanceResult dist_result;
+  double d = fcl::distance(o1, o2, fcl::DistanceRequest(), dist_result);
 
   if(d < 0)
   {
