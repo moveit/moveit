@@ -32,18 +32,19 @@
 #include <collision_detection/collision_common.h>
 #include <planning_models/conversions.h>
 
+static const unsigned int DEBUG_OVER = 1;
+
 namespace sbpl_interface
 {
 
-EnvironmentChain3D::EnvironmentChain3D(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                       double angle_discretization) :
+EnvironmentChain3D::EnvironmentChain3D(const planning_scene::PlanningSceneConstPtr& planning_scene) : 
   planning_scene_(planning_scene),
-  angle_discretization_(angle_discretization),
   bfs_(NULL),
   state_(planning_scene->getCurrentState()),
   planning_data_(StateID2IndexMapping), 
   goal_constraint_set_(planning_scene->getKinematicModel(),
-                       planning_scene->getTransforms())
+                       planning_scene->getTransforms()),
+  closest_to_goal_(DBL_MAX)
 {
 }
 
@@ -75,11 +76,17 @@ bool EnvironmentChain3D::InitializeEnv(const char* sEnvFile)
 
 int EnvironmentChain3D::GetFromToHeuristic(int FromStateID, int ToStateID)
 {
+  //std::cerr << "Getting heuristic" << std::endl;
   return getEndEffectorHeuristic(FromStateID,ToStateID);
 }
 
 int EnvironmentChain3D::GetGoalHeuristic(int stateID)
 {
+  if(planning_data_.state_ID_to_coord_table_.size() < DEBUG_OVER) {
+    std::cerr << "Getting heur distance from " << stateID << " to " 
+              << planning_data_.goal_hash_entry_->stateID << " " 
+              << GetFromToHeuristic(stateID, planning_data_.goal_hash_entry_->stateID) << std::endl;
+  }
   return GetFromToHeuristic(stateID, planning_data_.goal_hash_entry_->stateID);
 }
 
@@ -115,7 +122,7 @@ void EnvironmentChain3D::PrintState(int stateID, bool bVerbose, FILE* fOut /*=NU
 
 void EnvironmentChain3D::PrintEnv_Config(FILE* fOut)
 {
-  SBPL_ERROR("ERROR in EnvChain... function: PrintEnv_Config is undefined\n");
+  std::cerr <<("ERROR in EnvChain... function: PrintEnv_Config is undefined\n");
   throw new SBPL_Exception();
 }
 
@@ -123,33 +130,58 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
                                   std::vector<int>* succ_idv, 
                                   std::vector<int>* cost_v)
 {
+  //std::cerr << "Calling get succ state " << source_state_ID << std::endl;
+
   succ_idv->clear();
   cost_v->clear();
 
   //From environment_robarm3d.cpp -- //goal state should be absorbing
   if(source_state_ID == planning_data_.goal_hash_entry_->stateID) {
+    std::cerr << "Think we have goal" << std::endl;
     return;
   }
 
   if(source_state_ID > (int)planning_data_.state_ID_to_coord_table_.size()-1) {
     ROS_WARN_STREAM("source id too large");
+    std::cerr << "Source id too large" << std::endl;
     return;
   }
+
+  if(planning_data_.state_ID_to_coord_table_.size() < DEBUG_OVER) {
+    std::cerr << "Expanding " << source_state_ID << std::endl;
+  }
+
   EnvChain3DHashEntry* hash_entry = planning_data_.state_ID_to_coord_table_[source_state_ID];
 
-  std::vector<double> source_joint_angles;
-  convertCoordToJointAngles(hash_entry->coord, source_joint_angles);
+  std::vector<double> source_joint_angles = hash_entry->angles;
+  //convertCoordToJointAngles(hash_entry->coord, source_joint_angles);
 
   std::vector<int> succ_coord;
   std::vector<double> succ_joint_angles;
 
+  // for(unsigned int i = 0; i < source_joint_angles.size(); i++) {
+  //   std::cerr << "Source " << i << " " << source_joint_angles[i] << std::endl;
+  // }
+
   for(unsigned int i = 0; i < possible_actions_.size(); i++) {
     possible_actions_[i]->generateSuccessorState(source_joint_angles, succ_joint_angles);
 
+    double dist = 0.0;
+    for(unsigned int j = 0; j < planning_data_.goal_hash_entry_->angles.size(); j++) {
+      dist += fabs(planning_data_.goal_hash_entry_->angles[j]-succ_joint_angles[j]);
+      //std::cerr << "Succ " << i << " " << j << " " << succ_joint_angles[j] << std::endl;
+    }
+    if(dist < closest_to_goal_) {
+      //std::cerr << "Got dist " << dist << std::endl;
+      closest_to_goal_ = dist;
+    }
+
     convertJointAnglesToCoord(succ_joint_angles, succ_coord);
+    
     joint_state_group_->setStateValues(succ_joint_angles);
 
     if(!joint_state_group_->satisfiesBounds()) {
+      //std::cerr << "Successor doesn't satisfy bounds" << std::endl;
       continue;
     }
     collision_detection::CollisionRequest req;
@@ -160,6 +192,7 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
                                            state_,
                                            gsr_);
     if(res.collision) {
+      //std::cerr << "Successor in collision" << std::endl;
       continue;
     }
 
@@ -167,17 +200,32 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
     
     int xyz[3];
     if(!getGridXYZInt(pose, xyz)) {
+      std::cerr << "Can't get successor x y z" << std::endl;
       continue;
     }
     
     EnvChain3DHashEntry* succ_hash_entry = planning_data_.getHashEntry(succ_coord, i);
     if(!succ_hash_entry) {
-      succ_hash_entry = planning_data_.addHashEntry(succ_coord, xyz, i);
+      succ_hash_entry = planning_data_.addHashEntry(succ_coord, succ_joint_angles, xyz, i);
+    } else {
+      if(planning_data_.state_ID_to_coord_table_.size() < DEBUG_OVER) {
+        std::cerr << "Already have hash entry " << succ_hash_entry->stateID << std::endl;
+      }
     }
 
     kinematic_constraints::ConstraintEvaluationResult con_res = goal_constraint_set_.decide(state_);
     if(con_res.satisfied) {
-      planning_data_.goal_hash_entry_ = succ_hash_entry;
+      //std::cerr << "Goal constraints satisfied" << std::endl;
+      //planning_data_.goal_hash_entry_->coord = succ_hash_entry->coord;
+      //planning_data_.goal_hash_entry_->angles = succ_hash_entry->angles;
+    }
+    //std::cerr << "Adding hash entry" << std::endl;
+    if(planning_data_.state_ID_to_coord_table_.size() < DEBUG_OVER) {
+      std::cerr << std::endl;
+      std::cerr << "Adding " << succ_hash_entry->stateID << std::endl;
+      for(unsigned int j = 0; j < planning_data_.goal_hash_entry_->angles.size(); j++) {
+        std::cerr << "Succ " << j << " " << succ_joint_angles[j] << std::endl;
+      }
     }
     succ_idv->push_back(succ_hash_entry->stateID);
     cost_v->push_back(calculateCost(hash_entry, succ_hash_entry));
@@ -186,25 +234,25 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
 
 void EnvironmentChain3D::GetPreds(int TargetStateID, vector<int>* PredIDV, vector<int>* cost_v)
 {
-  SBPL_ERROR("ERROR in EnvChain... function: GetPreds is undefined\n");
+  std::cerr <<("ERROR in EnvChain... function: GetPreds is undefined\n");
   throw new SBPL_Exception();
 }
 
 bool EnvironmentChain3D::AreEquivalent(int StateID1, int StateID2)
 {
-  SBPL_ERROR("ERROR in EnvChain... function: AreEquivalent is undefined\n");
+  std::cerr <<("ERROR in EnvChain... function: AreEquivalent is undefined\n");
   throw new SBPL_Exception();
 }
 
 void EnvironmentChain3D::SetAllActionsandAllOutcomes(CMDPSTATE* state)
 {
-  SBPL_ERROR("ERROR in EnvChain..function: SetAllActionsandOutcomes is undefined\n");
+  std::cerr <<("ERROR in EnvChain..function: SetAllActionsandOutcomes is undefined\n");
   throw new SBPL_Exception();
 }
 
 void EnvironmentChain3D::SetAllPreds(CMDPSTATE* state)
 {
-  SBPL_ERROR("ERROR in EnvChain... function: SetAllPreds is undefined\n");
+  std::cerr <<("ERROR in EnvChain... function: SetAllPreds is undefined\n");
   throw new SBPL_Exception();
 }
 
@@ -247,6 +295,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
                                    state_,
                                    &planning_scene_->getAllowedCollisionMatrix(),
                                    gsr_);
+  angle_discretization_ = gsr_->dfce_->distance_field_->getResolution();
   bfs_ = new BFS_3D(gsr_->dfce_->distance_field_->getXNumCells(),
                     gsr_->dfce_->distance_field_->getYNumCells(),
                     gsr_->dfce_->distance_field_->getZNumCells());
@@ -256,20 +305,27 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
      world_distance_field->getYNumCells() != gsr_->dfce_->distance_field_->getYNumCells() ||
      world_distance_field->getZNumCells() != gsr_->dfce_->distance_field_->getZNumCells()) {
     ROS_WARN_STREAM("Size mismatch between world and self distance fields");
+    std::cerr << "Size mismatch between world and self distance fields" << std::endl;
     return false;
   }
+  std::cerr << "BFS dimensions are "
+            << world_distance_field->getXNumCells() << " " 
+            << world_distance_field->getYNumCells() << " "
+            << world_distance_field->getZNumCells() << std::endl;
+  unsigned int wall_count = 0;
   for(int i = 0; i < gsr_->dfce_->distance_field_->getXNumCells()-2; i++) {
     for(int j = 0; j < gsr_->dfce_->distance_field_->getYNumCells()-2; j++) {
       for(int k = 0; k < gsr_->dfce_->distance_field_->getZNumCells()-2; k++) {
         if(gsr_->dfce_->distance_field_->getDistanceFromCell(i+1, j+1, k+1) == 0.0 ||
-           world_distance_field->getDistanceFromCell(i+1, j+1, k+1)) {
+           world_distance_field->getDistanceFromCell(i+1, j+1, k+1) == 0.0) {
           bfs_->setWall(i+1, j+1, k+1);
+          wall_count++;
         } 
       }
     }
   }
-
-  std::cerr << "Setting start" << std::endl;
+  std::cerr << "Wall cells are " << wall_count << " of " << 
+    world_distance_field->getXNumCells()*world_distance_field->getYNumCells()*world_distance_field->getZNumCells() << std::endl;
 
   //setting start position
   std::vector<double> start_joint_values;
@@ -278,13 +334,13 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   convertJointAnglesToCoord(start_joint_values, start_coords);
   Eigen::Affine3d start_pose = tip_link_state_->getGlobalLinkTransform();
 
-  std::cerr << "Setting start 1" << std::endl;
-
   int start_xyz[3];
   if(!getGridXYZInt(start_pose, start_xyz)) {
+    std::cerr << "Bad start pose" << std::endl;
     return false;
   }
   planning_data_.start_hash_entry_ = planning_data_.addHashEntry(start_coords,
+                                                                 start_joint_values,
                                                                  start_xyz,
                                                                  0);
 
@@ -295,14 +351,25 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
     goal_vals[mreq.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name] = mreq.motion_plan_request.goal_constraints[0].joint_constraints[i].position;
   }
   goal_state.setStateValues(goal_vals);
-  Eigen::Affine3d goal_pose = goal_state.getLinkState(tip_link_state_->getName())->getGlobalLinkTransform();
+  std::vector<double> goal_joint_values;
+  planning_models::KinematicState::JointStateGroup* goal_joint_state_group = goal_state.getJointStateGroup(planning_group_);
+  goal_joint_state_group->getGroupStateValues(goal_joint_values);
+  std::vector<int> goal_coords;
+  convertJointAnglesToCoord(goal_joint_values, goal_coords);
+  goal_pose_ = goal_state.getLinkState(tip_link_state_->getName())->getGlobalLinkTransform();
   int goal_xyz[3];
-  if(!getGridXYZInt(goal_pose, goal_xyz)) {
+  if(!getGridXYZInt(goal_pose_, goal_xyz)) {
+    std::cerr << "Bad goal pose" << std::endl;
     return false;
   }
+  std::cerr << "Running bfs with goal " << goal_xyz[0] << " " <<  goal_xyz[1] << " " << goal_xyz[2] << std::endl;
   bfs_->run(goal_xyz[0], goal_xyz[1], goal_xyz[2]);
   goal_constraint_set_.clear();
   goal_constraint_set_.add(mreq.motion_plan_request.goal_constraints[0]);
+  planning_data_.goal_hash_entry_ = planning_data_.addHashEntry(goal_coords,
+                                                                goal_joint_values,
+                                                                goal_xyz,
+                                                                0);
   return true;
 }
 
@@ -320,7 +387,8 @@ void EnvironmentChain3D::setMotionPrimitives(const std::string& group_name) {
 int EnvironmentChain3D::calculateCost(EnvChain3DHashEntry* HashEntry1, EnvChain3DHashEntry* HashEntry2)
 {
   //if(prms_.use_uniform_cost_)
-  return .05;//prms_.cost_multiplier_;
+  return 1000.0;
+  //return .05;//prms_.cost_multiplier_;
   //  else
   //   {
   //     // Max's suggestion is to just put a high cost on being close to
@@ -350,7 +418,7 @@ int EnvironmentChain3D::calculateCost(EnvChain3DHashEntry* HashEntry1, EnvChain3
 //   if(FromStateID >= (int)EnvChain.StateID2CoordTable.size() 
 //       || ToStateID >= (int)EnvChain.StateID2CoordTable.size())
 //   {
-//     SBPL_ERROR("ERROR in EnvChain... function: stateID illegal\n");
+//     std::cerr <<("ERROR in EnvChain... function: stateID illegal\n");
 //     throw new SBPL_Exception();
 //   }
 // #endif
@@ -364,18 +432,33 @@ int EnvironmentChain3D::calculateCost(EnvChain3DHashEntry* HashEntry1, EnvChain3
 
 int EnvironmentChain3D::getBFSCostToGoal(int x, int y, int z) const
 {
+  //std::cerr << "Getting cost for " << x << " " << y << " " << z << std::endl;
   //TODO - deal with cost_per_cell
-  return  bfs_->getDistance(x,y,z) * .05;//prms_.cost_per_cell_;
+  return  bfs_->getDistance(x,y,z);
+  //* .05;//prms_.cost_per_cell_;
 }
 
 int EnvironmentChain3D::getEndEffectorHeuristic(int from_stateID, int to_stateID)
 {
   EnvChain3DHashEntry* from_hash_entry = planning_data_.state_ID_to_coord_table_[from_stateID];
-  return getBFSCostToGoal(from_hash_entry->xyz[0], from_hash_entry->xyz[1], from_hash_entry->xyz[2]);
+  EnvChain3DHashEntry* to_hash_entry = planning_data_.state_ID_to_coord_table_[to_stateID];
+  double dist = 0.0;
+  for(unsigned int i = 0; i < from_hash_entry->angles.size(); i++) {
+    dist += fabs(from_hash_entry->angles[i]-to_hash_entry->angles[i]);
+  }
+  return dist*1000;
+  //return getBFSCostToGoal(from_hash_entry->xyz[0], from_hash_entry->xyz[1], from_hash_entry->xyz[2]);
   //else
   //{
   // double x, y, z;
-  // grid_->gridToWorld(FromHashEntry->xyz[0],FromHashEntry->xyz[1],FromHashEntry->xyz[2], x, y, z);
+  // if(!gsr_->dfce_->distance_field_->gridToWorld(from_hash_entry->xyz[0],
+  //                                               from_hash_entry->xyz[1],
+  //                                               from_hash_entry->xyz[2],
+  //                                               x,y,z)) {
+  //   std::cerr << "problem" << std::endl;
+  //   return 1000000;
+  // }
+  // return getEuclideanDistance(x, y, z, goal_pose_.translation().x(), goal_pose_.translation().y(), goal_pose_.translation().z())*1000.0;
   // heur =  getEuclideanDistance(x, y, z, env_chain_config_.goal.xyz[0],env_chain_config_.goal.xyz[1], env_chain_config_.goal.xyz[2]) * prms_.cost_per_meter_;
   //}
 }
@@ -395,6 +478,22 @@ bool EnvironmentChain3D::getGridXYZInt(const Eigen::Affine3d& pose,
                                                 xyz[2])) {
     ROS_WARN_STREAM("Pose out of bounds");
     return false;
+  }
+  return true;
+}
+
+bool EnvironmentChain3D::populateTrajectoryFromStateIDSequence(const std::vector<int>& state_ids,
+                                                               trajectory_msgs::JointTrajectory& traj) const
+{
+  traj.joint_names = joint_state_group_->getJointModelGroup()->getActiveDOFNames();
+  std::vector<std::vector<double> > angle_vector;
+  if(!planning_data_.convertFromStateIDsToAngles(state_ids,
+                                                 angle_vector)) {
+    return false;
+  }
+  traj.points.resize(angle_vector.size());
+  for(unsigned int i = 0; i < angle_vector.size(); i++) {
+    traj.points[i].positions = angle_vector[i];
   }
   return true;
 }

@@ -64,8 +64,7 @@ public:
   /**
    * @brief Default constructor
    */
-  EnvironmentChain3D(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     double angle_discretization=.02);
+  EnvironmentChain3D(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
   /**
    * @brief Destructor
@@ -175,6 +174,13 @@ public:
   bool setupForMotionPlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const moveit_msgs::GetMotionPlan::Request &req);
 
+  const EnvChain3DPlanningData& getPlanningData() const {
+    return planning_data_;
+  }
+
+  bool populateTrajectoryFromStateIDSequence(const std::vector<int>& state_ids,
+                                             trajectory_msgs::JointTrajectory& traj) const;
+
 protected:
   
   bool getGridXYZInt(const Eigen::Affine3d& pose,
@@ -198,6 +204,7 @@ protected:
   EnvChain3DPlanningData planning_data_;
   kinematic_constraints::KinematicConstraintSet goal_constraint_set_;
   std::string planning_group_;
+  Eigen::Affine3d goal_pose_;
 
   void setMotionPrimitives(const std::string& group_name);
   
@@ -207,6 +214,14 @@ protected:
   int calculateCost(EnvChain3DHashEntry* HashEntry1, EnvChain3DHashEntry* HashEntry2);
   int getBFSCostToGoal(int x, int y, int z) const;
   int getEndEffectorHeuristic(int FromStateID, int ToStateID);
+
+  inline double getEuclideanDistance(double x1, double y1, double z1, double x2, double y2, double z2) const
+  {
+    return sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+  }
+
+  //temp
+  double closest_to_goal_;
 };
 
 //angles are counterclockwise from 0 to 360 in radians, 0 is the center of bin 0, ...
@@ -219,6 +234,7 @@ inline void EnvironmentChain3D::convertCoordToJointAngles(const std::vector<int>
 
 inline void EnvironmentChain3D::convertJointAnglesToCoord(const std::vector<double> &angle, std::vector<int> &coord)
 {
+  coord.resize(angle.size());
   for(unsigned int i = 0; i < angle.size(); i++)
   {
     //NOTE: Added 3/1/09
