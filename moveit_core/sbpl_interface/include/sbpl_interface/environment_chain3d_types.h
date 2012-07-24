@@ -91,7 +91,7 @@ struct EnvChain3DPlanningData
   }
 
   ~EnvChain3DPlanningData() {
-    for(unsigned int i = 0; i < coord_to_state_ID_table_.size(); i++) {
+    for(unsigned int i = 0; i < state_ID_to_coord_table_.size(); i++) {
       delete state_ID_to_coord_table_[i];
     }
   }
@@ -125,8 +125,8 @@ struct EnvChain3DPlanningData
     int* entry = new int [NUMOFINDICES_STATEID2IND];
     memset(entry, -1, NUMOFINDICES_STATEID2IND*sizeof(int));
     state_ID_to_index_mapping_.push_back(entry);
-    if(new_hash_entry->stateID != (int)state_ID_to_index_mapping_.size()) {
-      ROS_ERROR_STREAM("Size mismatch between state mappings");
+    if(new_hash_entry->stateID != (int)state_ID_to_index_mapping_.size()-1) {
+      ROS_ERROR_STREAM("Size mismatch between state mappings " << new_hash_entry->stateID << " " << state_ID_to_index_mapping_.size());
     }
     return new_hash_entry;
   }
@@ -150,7 +150,7 @@ struct EnvChain3DPlanningData
       if(state_ids[i] > (int) state_ID_to_coord_table_.size()-1) {
         return false;
       }
-      angle_vector[i] = state_ID_to_coord_table_[i]->angles;
+      angle_vector[i] = state_ID_to_coord_table_[state_ids[i]]->angles;
     }
     return true;
   }
