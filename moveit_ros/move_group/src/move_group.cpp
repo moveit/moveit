@@ -309,13 +309,72 @@ private:
     }
     action_server_->publishFeedback(feedback_);
   }
-
+  
   bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
   {
     ROS_INFO("Received new planning service request...");
     return planning_pipeline_.generatePlan(planning_scene_monitor_->getPlanningScene(), req, res);
   }
-   
+  
+  /// Given a set of locations to point sensors at, this function loops through the known sensors and attempts
+  /// to point one at each point, in a best effort approach. If at least one sensor is succesfully pointed at a target,
+  /// this function returns true
+  bool lookAt(const std::vector<Eigen::Vector3d> &points)
+  {
+    bool result = true;
+    if (!points.empty())
+    {
+      if (sensor_manager_)
+      {
+        std::vector<std::string> names;
+        sensor_manager_->getSensorsList(names);
+        std::vector<bool> used(false, names.size());
+        
+        std::size_t good = 0;
+        for (std::size_t i = 0 ; i < points.size() && good < names.size() ; ++i)
+        {
+          geometry_msgs::PointStamped t;
+          t.header.stamp = planning_scene_monitor_->getLastUpdateTime();
+          t.header.frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
+          t.point.x = points[i].x();
+          t.point.y = points[i].y();
+          t.point.z = points[i].z();
+          for (std::size_t k = 0 ; k < names.size() ; ++k)
+            if (!used[k])
+            {
+              moveit_msgs::RobotTrajectory traj;
+              if (sensor_manager_->pointSensorTo(names[k], t, traj))
+              {
+                if (!trajectory_processing::isTrajectoryEmpty(traj) && trajectory_execution_)
+                {
+                  if (trajectory_execution_->push(traj) && trajectory_execution_->executeAndWait())
+                  {
+                    used[k] = true;
+                    good++;
+                  }
+                }
+                else
+                {
+                  used[k] = true;
+                  good++;
+                }
+              }
+            }
+        }
+        result = good > 0;
+      }
+      else
+        result = false;
+    }
+    return result;
+  }
+  
+  /// Attempt to point a sensor at this given point
+  bool lookAt(const Eigen::Vector3d &point)
+  {
+    return lookAt(std::vector<Eigen::Vector3d>(1, point));
+  }
+  
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorConstPtr planning_scene_monitor_;
