@@ -181,8 +181,10 @@ namespace collision_detection
     
     /** \brief When costs are computed, this value defines how many of the top cost sources should be returned */
     std::size_t max_cost_sources;
-    
-    boost::function<bool(const CollisionResult&)> is_done;
+
+    /** \brief Function call that decides whether collision detection should stop. */
+    boost::function<bool(const CollisionResult&)>
+                is_done;
 
     /** \brief Flag indicating whether information about detected collisions should be reported */
     bool        verbose;
