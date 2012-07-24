@@ -53,13 +53,13 @@ public:
     boost::shared_ptr<distance_field::DistanceField> distance_field_;
   };
   
-  CollisionWorldDistanceField(double size_x = 3.0, 
-                              double size_y = 3.0,
-                              double size_z = 4.0,
-                              bool use_signed_distance_field = false,
-                              double resolution = .02,
-                              double collision_tolerance = 0.0,
-                              double max_propogation_distance = .25);
+  CollisionWorldDistanceField(double size_x = DEFAULT_SIZE_X, 
+                              double size_y = DEFAULT_SIZE_Y,
+                              double size_z = DEFAULT_SIZE_Z,
+                              bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
+                              double resolution = DEFAULT_RESOLUTION,
+                              double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
+                              double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE);
 
   CollisionWorldDistanceField(const CollisionWorldDistanceField &other);
 
