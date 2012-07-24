@@ -1,0 +1,23 @@
+<package>
+  <description brief="occupancy_map_server">
+
+     occupancy_map_server
+
+  </description>
+  <author>Jonathan Binney</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/occupancy_map_server</url>
+
+  <depend package="sensor_msgs"/>
+  <depend package="pcl_ros"/>
+  <depend package="std_msgs"/>
+  <depend package="std_srvs"/>
+
+  <rosdep name="octomap" />
+  <depend package="dynamic_reconfigure"/>
+
+
+</package>
+
+
