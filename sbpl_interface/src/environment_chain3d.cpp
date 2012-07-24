@@ -362,6 +362,10 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
     std::cerr << "Bad goal pose" << std::endl;
     return false;
   }
+  std::vector<std::string> goal_dofs = goal_joint_state_group->getJointModelGroup()->getActiveDOFNames();
+  for(unsigned int i = 0; i < goal_dofs.size(); i++) {
+    ROS_INFO_STREAM("Goal " << goal_dofs[i] << " pos " << goal_joint_values[i]);
+  }
   std::cerr << "Running bfs with goal " << goal_xyz[0] << " " <<  goal_xyz[1] << " " << goal_xyz[2] << std::endl;
   bfs_->run(goal_xyz[0], goal_xyz[1], goal_xyz[2]);
   goal_constraint_set_.clear();
@@ -494,6 +498,9 @@ bool EnvironmentChain3D::populateTrajectoryFromStateIDSequence(const std::vector
   traj.points.resize(angle_vector.size());
   for(unsigned int i = 0; i < angle_vector.size(); i++) {
     traj.points[i].positions = angle_vector[i];
+  }
+  for(unsigned int i = 0; i < traj.points.back().positions.size(); i++) {
+    ROS_INFO_STREAM("Last " << i << " " << traj.points.back().positions[i]);
   }
   return true;
 }

@@ -46,7 +46,7 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
   planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
 
   ros::WallTime wt = ros::WallTime::now();  
-  EnvironmentChain3D* env_chain = new EnvironmentChain3D(planning_scene);
+  boost::shared_ptr<EnvironmentChain3D> env_chain(new EnvironmentChain3D(planning_scene));
   std::cerr << "Created" << std::endl;
   if(!env_chain->setupForMotionPlan(planning_scene, 
                                     req)){
@@ -55,7 +55,7 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
   }
   
   //DummyEnvironment* dummy_env = new DummyEnvironment();
-  SBPLPlanner *planner = new ARAPlanner(env_chain, true);
+  boost::shared_ptr<ARAPlanner> planner(new ARAPlanner(env_chain.get(), true));
   planner->set_initialsolution_eps(100.0);
   planner->set_search_mode(true);
   planner->force_planning_from_scratch();
@@ -67,6 +67,7 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
   wt = ros::WallTime::now();
   bool b_ret = planner->replan(10.0, &solution_state_ids, &solution_cost);
   std::cerr << "B ret is " << b_ret << " planning time " << (ros::WallTime::now()-wt) << std::endl;
+  std::cerr << "Path length is " << solution_state_ids.size() << std::endl;
   if(!b_ret) {
     return false;
   }
