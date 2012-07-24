@@ -514,8 +514,8 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
    collision_detection::CollisionRequest req1;
    collision_detection::CollisionResult res1;
    
-  cworld_->checkCollision(req1, res1, *crobot_, kstate1, *acm_);
-  ASSERT_FALSE(res1.collision);
+   cworld_->checkCollision(req1, res1, *crobot_, kstate1, *acm_);
+   ASSERT_FALSE(res1.collision);
 
   std::vector<Eigen::Affine3d> poses;
   std::vector<shapes::ShapeConstPtr> shapes;
@@ -537,13 +537,10 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
   boost::filesystem::path path(boost::filesystem::current_path());  
   kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/../planning_models/test/kinect.dae"));
   cworld_->addToObject("kinect", kinect_shape, kinect_pose);
-
   collision_detection::CollisionRequest req2;
   collision_detection::CollisionResult res2;
-
   cworld_->checkCollision(req2, res2, *crobot_, kstate1, *acm_);
   ASSERT_TRUE(res2.collision);
-
   for(unsigned int i = 0; i < 5; i++) {
     cworld_->removeObject("shape");
     shapes.clear();
