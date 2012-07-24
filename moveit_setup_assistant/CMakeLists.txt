@@ -19,6 +19,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 find_package(srdfdom REQUIRED)
 include_directories(${srdfdom_INCLUDE_DIRS})
 
+find_library(YAML yaml-cpp REQUIRED)
+
 # Qt Stuff
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
@@ -53,6 +55,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/tools/moveit_config_data.cpp
   src/tools/srdf_writer.cpp
 )
+target_link_libraries(${PROJECT_NAME} ${YAML})
 
 # Main Widgets Library - all screens (navigation options)
 rosbuild_add_library(${PROJECT_NAME}_widgets
@@ -91,6 +94,6 @@ rosbuild_link_boost(${PROJECT_NAME} thread program_options filesystem)
 
 # Link libraries
 rosbuild_add_executable(setup_assistant ${sources} ${headers} ${moc_sources})
-target_link_libraries(setup_assistant ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_secondary_widgets yaml-cpp)
+target_link_libraries(setup_assistant ${QT_LIBRARIES} ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_secondary_widgets)
 
 

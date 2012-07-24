@@ -53,7 +53,6 @@ MoveItVisualizer::MoveItVisualizer() :
   execution_succeeded_(false),
   stop_cycle_requested_(false)
 {
-
   ros::NodeHandle nh;
   ros::NodeHandle loc_nh("~");
 
@@ -160,6 +159,8 @@ MoveItVisualizer::MoveItVisualizer() :
 
   main_window_ = new QWidget;
   main_window_->resize(1500,1000);
+  main_window_->setWindowTitle("MoveIt Visualizer"); // set window title
+
   //InteractiveObjectVisualizationWidget* iov_widget = new InteractiveObjectVisualizationWidget(main_window_);
 
   PrimitiveObjectAdditionDialog* primitive_object_dialog = new PrimitiveObjectAdditionDialog(main_window_);
