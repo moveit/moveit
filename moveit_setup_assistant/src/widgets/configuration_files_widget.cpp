@@ -389,7 +389,7 @@ void ConfigurationFilesWidget::savePackage()
                    "Package that contains all necessary configuration and launch files for MoveIt");
 
     // Copy manifest.xml ------------------------------------------------------------------
-    file_name = "manifext.xml";
+    file_name = "manifest.xml";
     template_path = config_data_->template_package_path_ + file_name;
     file_path = new_package_path + file_name;
 
