@@ -1,5 +1,6 @@
 #include <sbpl_interface/bfs3d/BFS_3D.h>
 #include <boost/thread.hpp>
+#include <iostream>
 
 namespace sbpl_interface{
 
@@ -88,6 +89,7 @@ void BFS_3D::run(int x, int y, int z) {
 
 int BFS_3D::getDistance(int x, int y, int z) {
     int node = getNode(x, y, z);
+    //std::cerr << "Got node " << node << " " << distance_grid[node] << std::endl;
     while (running && distance_grid[node] < 0)
         ;
     return distance_grid[node];
