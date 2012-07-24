@@ -40,6 +40,7 @@
 #include <planning_scene_monitor/trajectory_monitor.h>
 #include <trajectory_execution_manager/trajectory_execution_manager.h>
 #include <planning_pipeline/planning_pipeline.h>
+#include <moveit_sensor_manager/moveit_sensor_manager.h>
 #include <kinematic_constraints/utils.h>
 #include <trajectory_processing/trajectory_tools.h>
 #include <planning_models/conversions.h>

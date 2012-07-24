@@ -1,0 +1,19 @@
+<package>
+  <description brief="moveit_sensor_manager">
+
+     moveit_sensor_manager
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_sensor_manager</url>
+  <depend package="moveit_msgs"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include"/>
+  </export>
+
+</package>
+
+
