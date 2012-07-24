@@ -44,6 +44,8 @@
 #include <kinematic_constraints/utils.h>
 #include <trajectory_processing/trajectory_tools.h>
 #include <planning_models/conversions.h>
+#include <pluginlib/class_loader.h>
+#include <boost/algorithm/string/join.hpp>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";
@@ -69,6 +71,39 @@ public:
     
     if (allow_trajectory_execution)
       trajectory_execution_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
+    
+    // load the sensor manager plugin, if needed
+    if (node_handle_.hasParam("moveit_sensor_manager"))
+    {
+      try
+      {
+        sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>("moveit_sensor_manager", "moveit_sensor_manager::MoveItSensorManager"));
+      }
+      catch(pluginlib::PluginlibException& ex)
+      {
+        ROS_ERROR_STREAM("Exception while creating sensor manager plugin loader: " << ex.what());
+      }
+      if (sensor_manager_loader_)
+      {
+        std::string manager;
+        if (node_handle_.getParam("moveit_sensor_manager", manager))
+          try
+          {
+            sensor_manager_ = sensor_manager_loader_->createInstance(manager);
+          }
+          catch(pluginlib::PluginlibException& ex)
+          {
+            ROS_ERROR_STREAM("Exception while loading sensor manager '" << manager << "': " << ex.what());
+          } 
+      }
+      if (sensor_manager_)
+      {
+        std::vector<std::string> sensors;
+        sensor_manager_->getSensorsList(sensors);
+        ROS_INFO_STREAM("MoveGroup action is aware of the following sensors: " << boost::algorithm::join(sensors, ", "));
+      }
+    }
+    
     planning_pipeline_.displayComputedMotionPlans(true);
     planning_pipeline_.checkSolutionPaths(true);
 
@@ -294,7 +329,10 @@ private:
   moveit_msgs::MoveGroupFeedback feedback_;
   
   ros::ServiceServer plan_service_;
-  
+
+  boost::scoped_ptr<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager> > sensor_manager_loader_;
+  moveit_sensor_manager::MoveItSensorManagerPtr sensor_manager_;
+
   boost::scoped_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_;  
   bool preempt_requested_;
   bool execution_complete_;
