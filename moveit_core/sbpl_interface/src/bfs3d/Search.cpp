@@ -1,4 +1,5 @@
 #include <sbpl_interface/bfs3d/BFS_3D.h>
+#include <iostream>
 
 namespace sbpl_interface{
 
@@ -40,6 +41,7 @@ void BFS_3D::search(int width, int planeSize, int volatile* distance_grid, int* 
         EXPAND_NEIGHBOR(width+1-planeSize);
         EXPAND_NEIGHBOR(width-1-planeSize);
     }
+    std::cerr << "Search thread done" << std::endl;
     running = false;
 }
 }

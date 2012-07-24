@@ -106,13 +106,15 @@ struct EnvChain3DPlanningData
   }
 
   EnvChain3DHashEntry* addHashEntry(const std::vector<int>& coord,
+                                    const std::vector<double>& angles,
                                     const int(&xyz)[3],
                                     int action) 
   {
     EnvChain3DHashEntry* new_hash_entry = new EnvChain3DHashEntry();
     new_hash_entry->stateID = state_ID_to_coord_table_.size();
     new_hash_entry->coord = coord;
-    memcpy(new_hash_entry->xyz, xyz, sizeof(xyz));
+    new_hash_entry->angles = angles;
+    memcpy(new_hash_entry->xyz, xyz, sizeof(int)*3);
     new_hash_entry->action = action;
     state_ID_to_coord_table_.push_back(new_hash_entry);
     unsigned int bin = getHashBin(coord);
@@ -121,7 +123,7 @@ struct EnvChain3DPlanningData
     //have to do for DiscreteSpaceInformation
     //insert into and initialize the mappings
     int* entry = new int [NUMOFINDICES_STATEID2IND];
-    memset(entry, NUMOFINDICES_STATEID2IND, -1);
+    memset(entry, -1, NUMOFINDICES_STATEID2IND*sizeof(int));
     state_ID_to_index_mapping_.push_back(entry);
     if(new_hash_entry->stateID != (int)state_ID_to_index_mapping_.size()) {
       ROS_ERROR_STREAM("Size mismatch between state mappings");
@@ -139,6 +141,18 @@ struct EnvChain3DPlanningData
       }
     }
     return NULL;
+  }
+
+  bool convertFromStateIDsToAngles(const std::vector<int>& state_ids,
+                                   std::vector<std::vector<double> >& angle_vector) const {
+    angle_vector.resize(state_ids.size());
+    for(unsigned int i = 0; i < state_ids.size(); i++) {
+      if(state_ids[i] > (int) state_ID_to_coord_table_.size()-1) {
+        return false;
+      }
+      angle_vector[i] = state_ID_to_coord_table_[i]->angles;
+    }
+    return true;
   }
 
   //internal data from DiscreteSpaceInformation
