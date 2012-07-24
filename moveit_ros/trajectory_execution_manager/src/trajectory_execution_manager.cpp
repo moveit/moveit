@@ -70,28 +70,31 @@ void TrajectoryExecutionManager::initialize(void)
     ROS_FATAL_STREAM("Exception while creating controller manager plugin loader: " << ex.what());
     return;
   }
-
-  std::string controller;
-  if (!node_handle_.getParam("moveit_controller_manager", controller))
-  {
-    const std::vector<std::string> &classes = controller_manager_loader_->getDeclaredClasses();
-    if (classes.size() == 1)
-    {
-      controller = classes[0];
-      ROS_WARN("Parameter '~controller_manager' is not specified but only one matching plugin was found: '%s'. Using that one.", controller.c_str());
-    }
-    else
-      ROS_FATAL("Parameter '~controller_manager' not specified. This is needed to identify the plugin to use for interacting with controllers. No paths can be executed.");
-  }
   
-  try
+  if (controller_manager_loader_)
   {
-    controller_manager_.reset(controller_manager_loader_->createUnmanagedInstance(controller));
+    std::string controller;
+    if (!node_handle_.getParam("moveit_controller_manager", controller))
+    {
+      const std::vector<std::string> &classes = controller_manager_loader_->getDeclaredClasses();
+      if (classes.size() == 1)
+      {
+        controller = classes[0];
+        ROS_WARN("Parameter '~controller_manager' is not specified but only one matching plugin was found: '%s'. Using that one.", controller.c_str());
+      }
+      else
+        ROS_FATAL("Parameter '~controller_manager' not specified. This is needed to identify the plugin to use for interacting with controllers. No paths can be executed.");
+    }
+    
+    try
+    {
+      controller_manager_.reset(controller_manager_loader_->createUnmanagedInstance(controller));
+    }
+    catch(pluginlib::PluginlibException& ex)
+    {
+      ROS_FATAL_STREAM("Exception while loading controller manager '" << controller << "': " << ex.what());
+    } 
   }
-  catch(pluginlib::PluginlibException& ex)
-  {
-    ROS_FATAL_STREAM("Exception while loading controller manager '" << controller << "': " << ex.what());
-  } 
   
   // other configuration steps
   reloadControllerInformation();
