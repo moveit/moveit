@@ -50,6 +50,10 @@ namespace moveit_sensor_manager
 /** \brief Define the frame of reference and the frustum of a sensor (usually this is a visual sensor) */
 struct SensorInfo
 {
+  SensorInfo(void) : min_dist(0.), max_dist(0.0), x_angle(0.0), y_angle(0.0)
+  {
+  }
+  
   /// The name of the frame in which the sensor observation axis is Z and starts at (0,0,0)
   std::string origin_frame;
   
