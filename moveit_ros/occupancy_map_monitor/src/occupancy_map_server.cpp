@@ -31,14 +31,13 @@
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
-#include <occupancy_map_server/occupancy_map_server.h>
+#include <occupancy_map_monitor/occupancy_map_monitor.h>
 
-//using namespace occupancy_map_server;
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "occupancy_map_server");
   boost::shared_ptr<tf::Transformer> listener = boost::make_shared<tf::TransformListener>();
-  occupancy_map_server::OccupancyMapServer server(listener);
+  occupancy_map_monitor::OccupancyMapMonitor server(listener);
   server.run();
 }

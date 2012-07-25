@@ -1,7 +1,7 @@
 <package>
   <description brief="occupancy_map_server">
 
-     occupancy_map_server
+     occupancy_map_monitor
 
   </description>
   <author>Jonathan Binney</author>
