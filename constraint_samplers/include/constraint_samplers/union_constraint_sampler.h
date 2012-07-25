@@ -68,7 +68,7 @@ public:
   
 protected:
 
-  std::vector<ConstraintSamplerPtr>       samplers_;
+  std::vector<ConstraintSamplerPtr> samplers_;
 };
 
 }

@@ -96,7 +96,7 @@ bool constraint_samplers::UnionConstraintSampler::sample(planning_models::Kinema
     if (!samplers_[0]->sample(jsg->getKinematicState()->getJointStateGroup(samplers_[0]->getJointModelGroup()->getName()), ks, max_attempts))
       return false;
   
-  if (samplers_.size() >1)
+  if (samplers_.size() > 1)
   {
     planning_models::KinematicState temp = ks;
     temp.getJointStateGroup(jsg->getName())->copyFrom(jsg);
