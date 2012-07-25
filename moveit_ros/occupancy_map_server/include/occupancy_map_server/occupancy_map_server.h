@@ -38,8 +38,10 @@
 #define MOVEIT_OCCUPANCY_MAP_SERVER_H_
 
 #include <vector>
+#include <string>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
+#include <ros/ros.h>
 #include <tf/tf.h>
 #include <octomap/octomap.h>
 #include <occupancy_map_server/occupancy_map_updater.h>
@@ -47,20 +49,28 @@
 namespace occupancy_map_server
 {
 
-	class OccupancyMapServer
-	{
-	public:
-		OccupancyMapServer(const boost::shared_ptr<tf::Transformer> tf);
-		~OccupancyMapServer(void);
+  class OccupancyMapServer
+  {
+  public:
+    OccupancyMapServer(const boost::shared_ptr<tf::Transformer> tf);
+    ~OccupancyMapServer(void);
 
-		void run(void);
+    void treeUpdateThread(void);
+    void run(void);
+    void publish_markers(void);
 
-	private:
-		octomap::OcTree tree_;
-		boost::mutex tree_mutex_;
+  private:
+    octomap::OcTree tree_;
+    boost::mutex tree_mutex_;
+    boost::thread tree_update_thread_;
 
-		std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
-	};
+    std::string map_frame_;
+
+    std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
+
+    ros::NodeHandle root_nh_;
+    ros::Publisher marker_pub_;
+  };
 
 }
 

@@ -53,64 +53,14 @@ namespace occupancy_map_server
 		/** @brief Constructor
 		 *  @param cond Condition variable used to notify the server when we are ready to update the map
 		 */
-		OccupancyMapUpdater() : active_(false) {};
-
-		/** @brief Set the octree that this object will update
-		 *  @param octree Octree to update
-		 *  @param octree_mutex Mutex that must be held when reading/writing the octree
-		 */
-		void setOctree(octomap::OcTree *tree, boost::mutex *tree_mutex)
-		{
-			tree_ = tree;
-			tree_mutex_ = tree_mutex;
-		}
-
-		/** @brief Lock access to the octree data structure*/
-		bool beginUpdateTree()
-		{
-			if(!tree_ or !tree_mutex_)
-				return false;
-
-			tree_mutex_->lock();
-			return true;
-		}
-
-		/** @brief Unlock access to the octree data structure*/
-		void endUpdateTree()
-		{
-			tree_mutex_->unlock();
-		}
-
-		/** @brief Start updating*/
-		void start()
-		{
-			boost::mutex::scoped_lock _lock(active_mutex_);
-			active_ = true;
-		}
-
-		/** @brief Stop updating*/
-		void stop()
-		{
-			boost::mutex::scoped_lock _lock(active_mutex_);
-			active_ = false;
-		}
-
-		/** @brief Check whether updater is currently active*/
-		bool isActive()
-		{
-			boost::mutex::scoped_lock _lock(active_mutex_);
-			return active_;
-		}
-
-		/** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
-		virtual void initialize() = 0;
-
-	private:
-		octomap::OcTree *tree_;
-		boost::mutex *tree_mutex_;
-
-		bool active_;
-		boost::mutex active_mutex_;
+      OccupancyMapUpdater() {}
+      
+      /** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
+      virtual void initialize(void) = 0;
+      
+      /** @brief Update the octree*/
+      virtual void process(octomap::OcTree *tree) = 0;
+        
 	};
 }
 
