@@ -35,13 +35,17 @@
 /* Author: Jon Binney */
 
 #include <occupancy_map_server/point_cloud_occupancy_map_updater.h>
+#include <tf/tf.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/ros/conversions.h>
 
 namespace occupancy_map_server
 {
-	PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const std::string &map_frame, const std::string &point_cloud_topic, boost::shared_ptr<tf::Transformer> tf) :
-			map_frame_(map_frame), point_cloud_topic_(point_cloud_topic), tf_(tf)
+	PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const std::string &map_frame, const std::string &point_cloud_topic, double max_range, boost::shared_ptr<tf::Transformer> tf) :
+			map_frame_(map_frame), point_cloud_topic_(point_cloud_topic), max_range_(max_range), tf_(tf)
 		{}
 
 	PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater(void)
@@ -63,19 +67,89 @@ namespace occupancy_map_server
 
 	void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg)
 	{
-		if(this->isActive())
-			ROS_DEBUG("Got a point cloud message, updating occupancy map");
-		else
-			ROS_DEBUG("Updater not active; ignoring pointcloud message");
-
-		if(!this->beginUpdateTree())
-		{
-			ROS_ERROR("Updater activated but no octree to update");
-			return;
-		}
-
-		this->endUpdateTree();
-
-		//TODO: update the octree using the point cloud message
+      ROS_DEBUG("Got a point cloud message");
+      last_point_cloud_ = cloud_msg;
 	}
+
+  void PointCloudOccupancyMapUpdater::process(octomap::OcTree *tree)
+  {
+    if(!last_point_cloud_)
+      {
+        ROS_DEBUG("No point cloud to process");
+        return;
+      }
+
+    ROS_INFO("Updating occupancy map with new cloud");
+    sensor_msgs::PointCloud2::ConstPtr cloud;
+    {
+      boost::lock_guard<boost::mutex> _lock(last_point_cloud_mutex_);
+      cloud = last_point_cloud_;
+    }
+    processCloud(tree, cloud);
+    ROS_INFO("Done updating occupancy map");
+
+    last_point_cloud_.reset();
+  }
+
+  void PointCloudOccupancyMapUpdater::processCloud(octomap::OcTree *tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg)
+  {
+    /* get transform for cloud into map frame */
+    tf::StampedTransform map_H_sensor;
+    try
+      {
+        tf_->lookupTransform(map_frame_, cloud_msg->header.frame_id, cloud_msg->header.stamp, map_H_sensor);
+      }
+    catch (tf::TransformException& ex)
+      {
+        ROS_ERROR_STREAM("Transform error of sensor data: " << ex.what() << ", quitting callback");
+        return;
+      }
+
+    /* convert cloud message to pcl cloud object */
+    pcl::PointCloud<pcl::PointXYZ> cloud;
+    pcl::fromROSMsg(*cloud_msg, cloud);
+
+    /* compute sensor origin in map frame */
+    tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
+    octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
+
+    /* do ray tracing to find which cells this point cloud indicates should be free, and which it indicates
+     * should be occupied */
+    octomap::KeySet free_cells, occupied_cells;
+    for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = cloud.begin(); it != cloud.end(); ++it)
+      {
+        /* check for NaN */
+        if(!((it->x == it->x) && (it->y == it->y) && (it->z == it->z)))
+           continue;
+
+        /* transform to map frame */
+        tf::Vector3 point_tf = map_H_sensor * tf::Vector3(it->x, it->y, it->z);
+        octomap::point3d point(point_tf.getX(), point_tf.getY(), point_tf.getZ());
+
+        /* free cells along ray */
+        octomap::KeyRay key_ray;
+        if (tree->computeRayKeys(sensor_origin, point, key_ray))
+            free_cells.insert(key_ray.begin(), key_ray.end());
+
+        /* occupied cell at ray endpoint if ray is shorter than max range */
+        double range = (point - sensor_origin).norm();
+        if(range < max_range_)
+          {
+            octomap::OcTreeKey key;
+            if (tree->genKey(point, key))
+              occupied_cells.insert(key);
+          }
+      }
+
+    /* mark free cells only if not seen occupied in this cloud */
+    for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
+      /* this check seems unnecessary since we would just overwrite them in the next loop? -jbinney */
+      if (occupied_cells.find(*it) == occupied_cells.end())
+        tree->updateNode(*it, false);
+
+    /* now mark all occupied cells */
+    for (octomap::KeySet::iterator it = occupied_cells.begin(), end = free_cells.end(); it != end; it++)
+      tree->updateNode(*it, true);
+  }
+
 }

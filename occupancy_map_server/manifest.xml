@@ -10,9 +10,11 @@
   <url>http://ros.org/wiki/occupancy_map_server</url>
 
   <depend package="sensor_msgs"/>
-  <depend package="pcl_ros"/>
+  <depend package="pcl"/>
   <depend package="std_msgs"/>
   <depend package="std_srvs"/>
+  <depend package="visualization_msgs"/>
+  <depend package="tf"/>
 
   <rosdep name="octomap" />
   <depend package="dynamic_reconfigure"/>
