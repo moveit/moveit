@@ -46,6 +46,7 @@
 #include <planning_models/conversions.h>
 #include <pluginlib/class_loader.h>
 #include <boost/algorithm/string/join.hpp>
+#include <collision_detection/collision_tools.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";
@@ -121,6 +122,9 @@ public:
     action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
     action_server_->start();
     
+    // publisher for cost sources
+    cost_sources_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("display_cost_sources", 100, true);
+
     // start the service server
     plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlanService, this);
   }
@@ -225,8 +229,27 @@ private:
     
     // if we are allowed to look around, see if we have costs that are too high
     //    if (goal->look_around) /// \todo re-enable this when updates to messages are out
-    {
-      
+    {       
+      LockScene lock(planning_scene_monitor_);
+      // determine the sources of cost for this path
+      trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
+      collision_detection::CollisionRequest creq;
+      creq.max_cost_sources = 100;
+      creq.cost = true;   
+      std::set<collision_detection::CostSource> cost_sources;
+      for (std::size_t i = 0 ; i < currently_executed_trajectory_states_.size() ; ++i)
+      {
+        collision_detection::CollisionResult cres;
+        the_scene->checkCollision(creq, cres, *currently_executed_trajectory_states_[i]);
+        cost_sources.insert(cres.cost_sources.begin(), cres.cost_sources.end());
+      }
+      visualization_msgs::MarkerArray arr;
+      collision_detection::getCostMarkers(arr, the_scene->getPlanningFrame(), cost_sources);
+      cost_sources_publisher_.publish(arr);
+      double cost = 0.0;
+      for (std::set<collision_detection::CostSource>::const_iterator it = cost_sources.begin() ; it != cost_sources.end() ; ++it)
+        cost += it->getVolume() * it->cost;
+      ROS_INFO("The total cost of the trajectory is %lf", cost);
     }
     
     // try to execute the trajectory
@@ -473,6 +496,7 @@ private:
   std::vector<planning_models::KinematicStatePtr> currently_executed_trajectory_states_;
   std::size_t currently_executed_trajectory_index_;
   bool new_scene_update_;
+  ros::Publisher cost_sources_publisher_;
   
   planning_pipeline::PlanningPipeline planning_pipeline_;
   
