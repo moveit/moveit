@@ -177,8 +177,8 @@ private:
                                                                             kinematic_constraints::mergeConstraints(mreq.motion_plan_request.goal_constraints[i],
                                                                                                                     mreq.motion_plan_request.path_constraints)))
         {
-          
-          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+          ROS_INFO("Goal constraints are already satisfied. No need to plan or execute any motions");
+	  action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
           action_server_->setSucceeded(action_res, "Requested path and goal constraints are already met.");
           setState(IDLE, 0.0);
           return;
