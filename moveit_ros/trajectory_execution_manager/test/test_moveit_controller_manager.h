@@ -141,6 +141,7 @@ public:
     moveit_controller_manager::MoveItControllerManager::ControllerState state;
     state.active_ = controllers_[name] & ACTIVE;
     state.loaded_ = controllers_[name] & LOADED;
+    state.default_ = false;
     return state;
   }
   
