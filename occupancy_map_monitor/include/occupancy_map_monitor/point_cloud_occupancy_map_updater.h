@@ -34,44 +34,46 @@
 
 /* Author: Jon Binney */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_SERVER_H_
-#define MOVEIT_OCCUPANCY_MAP_SERVER_H_
+#ifndef MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_
+#define MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_
 
-#include <vector>
-#include <string>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
 #include <ros/ros.h>
 #include <tf/tf.h>
-#include <octomap/octomap.h>
-#include <occupancy_map_server/occupancy_map_updater.h>
+#include <tf/message_filter.h>
+#include <message_filters/subscriber.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <occupancy_map_monitor/occupancy_map_updater.h>
+#include <boost/thread.hpp>
 
-namespace occupancy_map_server
+namespace occupancy_map_monitor
 {
+	class PointCloudOccupancyMapUpdater : public OccupancyMapUpdater
+	{
+	public:
+		PointCloudOccupancyMapUpdater(const std::string &map_frame, const std::string &point_cloud_topic, double max_range, boost::shared_ptr<tf::Transformer> tf);
+		~PointCloudOccupancyMapUpdater(void);
 
-  class OccupancyMapServer
-  {
-  public:
-    OccupancyMapServer(const boost::shared_ptr<tf::Transformer> tf);
-    ~OccupancyMapServer(void);
+		virtual void initialize(void);
+		virtual void process(octomap::OcTree *tree);
 
-    void treeUpdateThread(void);
-    void run(void);
-    void publish_markers(void);
+		virtual void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg);
+	  virtual void processCloud(octomap::OcTree *tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg);
 
-  private:
-    octomap::OcTree tree_;
-    boost::mutex tree_mutex_;
-    boost::thread tree_update_thread_;
+	private:
+		ros::NodeHandle root_nh_;
 
-    std::string map_frame_;
+		std::string map_frame_;
 
-    std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
+		std::string point_cloud_topic_;
+		message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
+		tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
+		sensor_msgs::PointCloud2::ConstPtr last_point_cloud_;
+		boost::mutex last_point_cloud_mutex_;
 
-    ros::NodeHandle root_nh_;
-    ros::Publisher marker_pub_;
-  };
+		double max_range_;
 
+		boost::shared_ptr<tf::Transformer> tf_;
+	};
 }
 
-#endif /* MOVEIT_OCCUPANCY_MAP_SERVER_H_ */
+#endif /* MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_ */

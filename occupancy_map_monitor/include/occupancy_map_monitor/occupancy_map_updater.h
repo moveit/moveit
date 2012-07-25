@@ -34,46 +34,34 @@
 
 /* Author: Jon Binney */
 
-#ifndef MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_
-#define MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_
+#ifndef MOVEIT_OCCUPANCY_MAP_UPDATER_H_
+#define MOVEIT_OCCUPANCY_MAP_UPDATER_H_
 
-#include <ros/ros.h>
-#include <tf/tf.h>
-#include <tf/message_filter.h>
-#include <message_filters/subscriber.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <occupancy_map_server/occupancy_map_updater.h>
+#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
+#include <octomap/octomap.h>
 
-namespace occupancy_map_server
+namespace occupancy_map_monitor
 {
-	class PointCloudOccupancyMapUpdater : public OccupancyMapUpdater
+	/**
+	 * @class OccupancyMapUpdater
+	 * Base class for classes which update the occupancy map.
+	 */
+	class OccupancyMapUpdater
 	{
 	public:
-		PointCloudOccupancyMapUpdater(const std::string &map_frame, const std::string &point_cloud_topic, double max_range, boost::shared_ptr<tf::Transformer> tf);
-		~PointCloudOccupancyMapUpdater(void);
-
-		virtual void initialize(void);
-		virtual void process(octomap::OcTree *tree);
-
-		virtual void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg);
-	  virtual void processCloud(octomap::OcTree *tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg);
-
-	private:
-		ros::NodeHandle root_nh_;
-
-		std::string map_frame_;
-
-		std::string point_cloud_topic_;
-		message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
-		tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
-		sensor_msgs::PointCloud2::ConstPtr last_point_cloud_;
-		boost::mutex last_point_cloud_mutex_;
-
-		double max_range_;
-
-		boost::shared_ptr<tf::Transformer> tf_;
+		/** @brief Constructor
+		 *  @param cond Condition variable used to notify the server when we are ready to update the map
+		 */
+      OccupancyMapUpdater() {}
+      
+      /** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
+      virtual void initialize(void) = 0;
+      
+      /** @brief Update the octree*/
+      virtual void process(octomap::OcTree *tree) = 0;
+        
 	};
 }
 
-#endif /* MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_ */
+#endif /* MOVEIT_OCCUPANCY_MAP_UPDATER_H_ */

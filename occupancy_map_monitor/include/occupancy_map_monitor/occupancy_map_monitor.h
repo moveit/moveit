@@ -34,34 +34,44 @@
 
 /* Author: Jon Binney */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_UPDATER_H_
-#define MOVEIT_OCCUPANCY_MAP_UPDATER_H_
+#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_H_
+#define MOVEIT_OCCUPANCY_MAP_MONITOR_H_
 
+#include <vector>
+#include <string>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
+#include <ros/ros.h>
+#include <tf/tf.h>
 #include <octomap/octomap.h>
+#include <occupancy_map_monitor/occupancy_map_updater.h>
 
-namespace occupancy_map_server
+namespace occupancy_map_monitor
 {
-	/**
-	 * @class OccupancyMapUpdater
-	 * Base class for classes which update the occupancy map.
-	 */
-	class OccupancyMapUpdater
-	{
-	public:
-		/** @brief Constructor
-		 *  @param cond Condition variable used to notify the server when we are ready to update the map
-		 */
-      OccupancyMapUpdater() {}
-      
-      /** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
-      virtual void initialize(void) = 0;
-      
-      /** @brief Update the octree*/
-      virtual void process(octomap::OcTree *tree) = 0;
-        
-	};
+
+  class OccupancyMapMonitor
+  {
+  public:
+    OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> tf);
+    ~OccupancyMapMonitor(void);
+
+    void treeUpdateThread(void);
+    void run(void);
+    void publish_markers(void);
+
+  private:
+    octomap::OcTree tree_;
+    boost::mutex tree_mutex_;
+    boost::thread tree_update_thread_;
+
+    std::string map_frame_;
+
+    std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
+
+    ros::NodeHandle root_nh_;
+    ros::Publisher marker_pub_;
+  };
+
 }
 
-#endif /* MOVEIT_OCCUPANCY_MAP_UPDATER_H_ */
+#endif /* MOVEIT_OCCUPANCY_MAP_MONITOR_H_ */

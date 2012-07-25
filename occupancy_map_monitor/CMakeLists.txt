@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE Debug)
+set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
 
@@ -37,12 +37,12 @@ link_directories(${OCTOMAP_LIBRARY_DIRS})
 find_package(Boost REQUIRED thread signals)
 include_directories(${Boost_INCLUDE_DIR})
 
-rosbuild_add_executable(${PROJECT_NAME}
-  	src/occupancy_map_server_main.cpp
-    src/occupancy_map_server.cpp
+rosbuild_add_executable(occupancy_map_server
+  	src/occupancy_map_server.cpp
+    src/occupancy_map_monitor.cpp
     src/point_cloud_occupancy_map_updater.cpp
     )
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${OCTOMAP_LIBRARIES})
+target_link_libraries(occupancy_map_server ${Boost_LIBRARIES})
+target_link_libraries(occupancy_map_server ${OCTOMAP_LIBRARIES})
 
 

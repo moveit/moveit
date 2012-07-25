@@ -34,7 +34,7 @@
 
 /* Author: Jon Binney */
 
-#include <occupancy_map_server/point_cloud_occupancy_map_updater.h>
+#include <occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
 #include <tf/tf.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
@@ -42,7 +42,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/ros/conversions.h>
 
-namespace occupancy_map_server
+namespace occupancy_map_monitor
 {
 	PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const std::string &map_frame, const std::string &point_cloud_topic, double max_range, boost::shared_ptr<tf::Transformer> tf) :
 			map_frame_(map_frame), point_cloud_topic_(point_cloud_topic), max_range_(max_range), tf_(tf)

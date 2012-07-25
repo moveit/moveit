@@ -36,13 +36,13 @@
 
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <occupancy_map_server/occupancy_map_server.h>
-#include <occupancy_map_server/point_cloud_occupancy_map_updater.h>
+#include <occupancy_map_monitor/occupancy_map_monitor.h>
+#include <occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
 
-namespace occupancy_map_server
+namespace occupancy_map_monitor
 {
 
-  OccupancyMapServer::OccupancyMapServer(const boost::shared_ptr<tf::Transformer> tf) :
+  OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> tf) :
       tree_(0.1), map_frame_("base_link")
   {
     /* This will eventually load different updaters depending on config params */
@@ -53,7 +53,7 @@ namespace occupancy_map_server
     marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("occupied_cells", 1);
   }
 
-  void OccupancyMapServer::treeUpdateThread(void)
+  void OccupancyMapMonitor::treeUpdateThread(void)
   {
     ros::Rate r(100);
     while (ros::ok())
@@ -69,7 +69,7 @@ namespace occupancy_map_server
     }
   }
 
-  void OccupancyMapServer::publish_markers(void)
+  void OccupancyMapMonitor::publish_markers(void)
   {
     visualization_msgs::MarkerArray occupied_nodes_arr;
     int tree_depth = tree_.getTreeDepth();
@@ -125,7 +125,7 @@ namespace occupancy_map_server
     marker_pub_.publish(occupied_nodes_arr);
   }
 
-  void OccupancyMapServer::run()
+  void OccupancyMapMonitor::run()
   {
     /* initialize all of the occupancy map updaters */
     std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
@@ -133,13 +133,13 @@ namespace occupancy_map_server
       (*it)->initialize();
 
     /* start a dedicated thread for updating the occupancy map */
-    tree_update_thread_ = boost::thread(&OccupancyMapServer::treeUpdateThread, this);
+    tree_update_thread_ = boost::thread(&OccupancyMapMonitor::treeUpdateThread, this);
 
     /* give control to main ros loop */
     ros::spin();
   }
 
-  OccupancyMapServer::~OccupancyMapServer(void)
+  OccupancyMapMonitor::~OccupancyMapMonitor(void)
   {
   }
 }
