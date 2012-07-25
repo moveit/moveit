@@ -62,16 +62,21 @@ public:
       MONITOR
     };
   
-  MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorConstPtr& psm) : 
+  MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm) : 
     node_handle_("~"), planning_scene_monitor_(psm), trajectory_monitor_(psm->getStateMonitor(), 10.0),
-    planning_pipeline_(psm->getPlanningScene()->getKinematicModel()), state_(IDLE)
+    new_scene_update_(false), planning_pipeline_(psm->getPlanningScene()->getKinematicModel()), state_(IDLE)
   {
+    // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     bool allow_trajectory_execution = true;
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
     
     if (allow_trajectory_execution)
       trajectory_execution_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
     
+    // we want to be notified when new information is available
+    planning_scene_monitor_->setUpdateCallback(boost::bind(&MoveGroupAction::planningSceneUpdatedCallback, this, _1));
+    
+
     // load the sensor manager plugin, if needed
     if (node_handle_.hasParam("moveit_sensor_manager"))
     {
@@ -104,9 +109,11 @@ public:
       }
     }
     
+    // configure the planning pipeline
     planning_pipeline_.displayComputedMotionPlans(true);
     planning_pipeline_.checkSolutionPaths(true);
 
+    // when monitoring trajectories, every added state is passed to this callback
     trajectory_monitor_.setOnStateAddCallback(boost::bind(&MoveGroupAction::newMonitoredStateCallback, this, _1, _2));
     
     // start the action server
@@ -115,7 +122,7 @@ public:
     action_server_->start();
     
     // start the service server
-    plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlan, this);
+    plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlanService, this);
   }
   
   void status(void)
@@ -124,7 +131,20 @@ public:
   }
   
 private:
-
+  
+  struct LockScene
+  {
+    LockScene(const planning_scene_monitor::PlanningSceneMonitorPtr &monitor) : monitor_(monitor.get())
+    {
+      monitor_->lockScene();
+    }
+    ~LockScene(void)
+    {   
+      monitor_->unlockScene();
+    }
+    planning_scene_monitor::PlanningSceneMonitor *monitor_;
+  };
+  
   void preemptCallback(void)
   {
     preempt_requested_ = true;
@@ -146,25 +166,37 @@ private:
     }
     
     // check to see if the desired constraints are already met
-    for (std::size_t i = 0 ; i < mreq.motion_plan_request.goal_constraints.size() ; ++i)
-      if (planning_scene_monitor_->getPlanningScene()->isStateConstrained(mreq.motion_plan_request.start_state,
-                                                                          kinematic_constraints::mergeConstraints(mreq.motion_plan_request.goal_constraints[i],
-                                                                                                                  mreq.motion_plan_request.path_constraints)))
-      {
-        
-        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-        action_server_->setSucceeded(action_res, "Requested path and goal constraints are already met.");
-        setState(IDLE, 0.0);
-        return;
-      }
+    {
+      LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateConstrained() is called
+      for (std::size_t i = 0 ; i < mreq.motion_plan_request.goal_constraints.size() ; ++i)
+        if (planning_scene_monitor_->getPlanningScene()->isStateConstrained(mreq.motion_plan_request.start_state,
+                                                                            kinematic_constraints::mergeConstraints(mreq.motion_plan_request.goal_constraints[i],
+                                                                                                                    mreq.motion_plan_request.path_constraints)))
+        {
+          
+          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+          action_server_->setSucceeded(action_res, "Requested path and goal constraints are already met.");
+          setState(IDLE, 0.0);
+          return;
+        }
+    }
     
-    setState(PLANNING, 0.1);
+    // get the planning scene to be used
+    setState(PLANNING, 0.2);
+    new_scene_update_ = false;
+    planning_scene::PlanningSceneConstPtr the_scene = planning_scene_monitor_->getPlanningScene();
+    if (!planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff))
+    {
+      LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
+      the_scene = planning_scene_monitor_->getPlanningScene()->diff(goal->planning_scene_diff); 
+      new_scene_update_ = false; // set this to false again, just in case an update came in in the meantime
+    }
+
+    // run the motion planner
     moveit_msgs::GetMotionPlan::Response mres;
-    const planning_scene::PlanningSceneConstPtr &the_scene = 
-      planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff) ? planning_scene_monitor_->getPlanningScene() : planning_scene_monitor_->getPlanningScene()->diff(goal->planning_scene_diff);
+    bool solved = computePlan(the_scene, mreq, mres);
     
-    bool solved = planning_pipeline_.generatePlan(the_scene, mreq, mres);
-    
+    // abort if no plan was found
     if (!solved)
     {
       action_res.error_code = mres.error_code;
@@ -176,11 +208,13 @@ private:
       return;
     }
 
+    // fill in results
     action_res.trajectory_start = mres.trajectory_start;
     action_res.planned_trajectory = mres.trajectory;
     if (!goal->plan_only && !trajectory_execution_)
       ROS_WARN_STREAM("Move group asked for execution and was not configured to allow execution");
     
+    // stop if no trajectory execution is needed or can't be done
     if (goal->plan_only || !trajectory_execution_)
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -189,37 +223,59 @@ private:
       return;
     }
     
+    // if we are allowed to look around, see if we have costs that are too high
+    //    if (goal->look_around) /// \todo re-enable this when updates to messages are out
+    {
+      
+    }
+    
+    // try to execute the trajectory
     execution_complete_ = false;
-
     if (trajectory_execution_->push(mres.trajectory))
     {
-      trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
+      if (currently_executed_trajectory_states_.empty())
+      {    
+        LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
+        trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
+      }
       currently_executed_trajectory_index_ = 0;
       setState(MONITOR, trajectory_processing::getTrajectoryDuration(mres.trajectory));
       trajectory_monitor_.startTrajectoryMonitor();
-     
+
+      // start a trajectory execution thread
       trajectory_execution_->execute(boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1));
       
       // wait for path to be done, while checking that the path does not become invalid
       static const ros::WallDuration d(0.01);
       bool path_became_invalid = false;
-      kinematic_constraints::KinematicConstraintSet path_constraints(the_scene->getKinematicModel(), the_scene->getTransforms());
-      path_constraints.add(mreq.motion_plan_request.path_constraints);
+      boost::scoped_ptr<kinematic_constraints::KinematicConstraintSet> path_constraints;
+      {    
+        LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while getTransforms() is called
+        path_constraints.reset(new kinematic_constraints::KinematicConstraintSet(the_scene->getKinematicModel(), the_scene->getTransforms()));
+        path_constraints->add(mreq.motion_plan_request.path_constraints);
+      }
+      
       while (node_handle_.ok() && !execution_complete_ && !preempt_requested_ && !path_became_invalid)
       {
-        d.sleep(); 
-        for (std::size_t i = currently_executed_trajectory_index_ ; i < currently_executed_trajectory_states_.size() ; ++i)
-          if (!the_scene->isStateValid(*currently_executed_trajectory_states_[i], path_constraints, false))
-          {
-            the_scene->isStateValid(*currently_executed_trajectory_states_[i], path_constraints, true);
-            path_became_invalid = true;
-            break;
-          }
+        d.sleep();
+        // check the path if there was an environment update in the meantime
+        if (new_scene_update_)
+        {
+          LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
+          new_scene_update_ = false;
+          for (std::size_t i = currently_executed_trajectory_index_ ; i < currently_executed_trajectory_states_.size() ; ++i)
+            if (!the_scene->isStateValid(*currently_executed_trajectory_states_[i], *path_constraints, false))
+            {
+              the_scene->isStateValid(*currently_executed_trajectory_states_[i], *path_constraints, true);
+              path_became_invalid = true;
+              break;
+            }
+        }
       }
       
       if (preempt_requested_)
       {
-        ROS_INFO("Stopping execution due to preemt request");
+        ROS_INFO("Stopping execution due to preempt request");
         trajectory_execution_->stopExecution();
       }
       else
@@ -228,11 +284,19 @@ private:
           ROS_INFO("Stopping execution because the path to execute became invalid (probably the environment changed)");
           trajectory_execution_->stopExecution();
         }
-
+        else
+          if (!execution_complete_)
+          {    
+            ROS_WARN("Stopping execution due to unknown reason. Possibly the node is about to shut down.");
+            trajectory_execution_->stopExecution();
+          }
+      
+      // because of the way the trajectory monitor works, when this call completes, it is certain that no more calls
+      // are made to the callback associated to the trajectory monitor
       trajectory_monitor_.stopTrajectoryMonitor();
       currently_executed_trajectory_states_.clear();
       trajectory_monitor_.getTrajectory(action_res.executed_trajectory);
-
+      
       if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
       {
         action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -289,6 +353,12 @@ private:
     ROS_DEBUG("Controller seems to be at state %lu of %lu. Trajectory execution manager expects the index to be %d.", currently_executed_trajectory_index_ + 1, currently_executed_trajectory_states_.size(), expected.second);
   }
   
+  void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
+  {
+    if (update_type & (planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY | planning_scene_monitor::PlanningSceneMonitor::UPDATE_TRANSFORMS))
+      new_scene_update_ = true;
+  }
+  
   void setState(MoveGroupState state, double duration)
   {
     state_ = state;
@@ -310,10 +380,31 @@ private:
     action_server_->publishFeedback(feedback_);
   }
   
-  bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+  bool computePlan(const planning_scene::PlanningSceneConstPtr &scene, moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+  {
+    bool solved = false;   
+    LockScene lock(planning_scene_monitor_);
+    
+    try
+    {
+      solved = planning_pipeline_.generatePlan(scene, req, res);
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
+    }
+    catch(...)
+    {
+      ROS_ERROR("Planning pipeline threw an exception");
+    }
+    
+    return solved;
+  }
+  
+  bool computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
   {
     ROS_INFO("Received new planning service request...");
-    return planning_pipeline_.generatePlan(planning_scene_monitor_->getPlanningScene(), req, res);
+    return computePlan(planning_scene_monitor_->getPlanningScene(), req, res);
   }
   
   /// Given a set of locations to point sensors at, this function loops through the known sensors and attempts
@@ -377,10 +468,11 @@ private:
   
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
-  planning_scene_monitor::PlanningSceneMonitorConstPtr planning_scene_monitor_;
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   planning_scene_monitor::TrajectoryMonitor trajectory_monitor_;
   std::vector<planning_models::KinematicStatePtr> currently_executed_trajectory_states_;
   std::size_t currently_executed_trajectory_index_;
+  bool new_scene_update_;
   
   planning_pipeline::PlanningPipeline planning_pipeline_;
   

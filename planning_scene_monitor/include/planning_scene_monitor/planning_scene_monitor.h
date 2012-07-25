@@ -55,7 +55,22 @@ class PlanningSceneMonitor
 {
 public:
   
+  enum SceneUpdateType
+    {
+      /** \brief The state in the monitored scene was updated */
+      UPDATE_STATE = 1,
+
+      /** \brief The maintained set of fixed transforms in the monitored scene was updated */
+      UPDATE_TRANSFORMS = 2,
+
+      /** \brief The geometry of the scene was updated. This includes receiving new maps, collision objects, attached objects, scene geometry, etc. */
+      UPDATE_GEOMETRY = 4,
+
+      /** \brief The entire scene was updated */
+      UPDATE_SCENE = 8 + UPDATE_STATE + UPDATE_TRANSFORMS + UPDATE_GEOMETRY
+    };
   
+    
   /** @brief Constructor
    *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    *  @param tf A pointer to a tf::Transformer
@@ -143,7 +158,8 @@ public:
   }
 
   /** @brief Update the transforms for the frames that are not part of the kinematic model using tf.
-   *  Examples of these frames are the "map" and "odom_combined" transforms.
+   *  Examples of these frames are the "map" and "odom_combined" transforms. This function is automatically called when data that uses transforms is received.
+   *  However, this function should also be called before starting a planning request, for example.
    */
   void updateFrameTransforms(void);
 
@@ -155,13 +171,18 @@ public:
   /** @brief Stop the state monitor*/
   void stopStateMonitor(void);
 
-  /** @brief Update the scene using the monitored state*/
+  /** @brief Update the scene using the monitored state. This function is automatically called when an update to the current state is received (if startStateMonitor() has been called).
+      The updates are throttled to a maximum update frequency however, which is set by setStateUpdateFrequency(). */
   void updateSceneWithCurrentState(void);
 
-  /** @brief Update the scene using the monitored state at a specified frequency, in Hz
-      @param hz the update frequency */
+  /** @brief Update the scene using the monitored state at a specified frequency, in Hz. This function has an effect only when updates from the CurrentStateMonitor are received at a higher frequency.
+      In that case, the updates are throttled down, so that they do not exceed a maximum update frequency specified here.
+      @param hz the update frequency. By default this is 10Hz. */
   void setStateUpdateFrequency(double hz);
 
+  /** @brief Get the maximum frequency (Hz) at which the current state of the planning scene is updated.*/
+  double getStateUpdateFrequency(void);
+  
   /** @brief Sometimes the state reported by the robot is outside bounds (outside safety limits). This parameter specifies the accepted error in bounds.
       If the read value is within \e error distance to the accepted safety limit bounds, the value is actually assumed to be the value of the bound itself,
       instead of being slightly outside bounds. By default this value is machine epsilon. */
@@ -195,7 +216,7 @@ public:
   void stopWorldGeometryMonitor(void);
 
   /** @brief Set the function to be called when an update to the scene is received */
-  void setUpdateCallback(const boost::function<void()> &fn);
+  void setUpdateCallback(const boost::function<void(SceneUpdateType)> &fn);
   
   /** @brief Get the topic names that the monitor is listening to */
   void getMonitoredTopics(std::vector<std::string> &topics) const;
@@ -285,7 +306,7 @@ protected:
   
   CurrentStateMonitorPtr                current_state_monitor_;
   ros::Time                             last_update_time_; /// Last time the state was updated
-  boost::function<void()>               update_callback_;
+  boost::function<void(SceneUpdateType)> update_callback_;
 
   /// the planning scene state is updated at a maximum specified frequency,
   /// and this timestamp is used to implement that functionality
@@ -302,7 +323,7 @@ protected:
 private:
 
   /** @brief This function is called every time there is a change to the planning scene */
-  void processSceneUpdateEvent(void);
+  void processSceneUpdateEvent(SceneUpdateType update_type);
   
   /** @brief */
   void scenePublishingThread(void);
