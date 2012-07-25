@@ -36,6 +36,13 @@
 
 #include "collision_detection/collision_tools.h"
 
+void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id, std::set<CostSource> &cost_sources)
+{
+  std_msgs::ColorRGBA color;
+  color.r = 1.0f; color.g = 0.5f; color.b = 0.0f; color.a = 0.4f;
+  getCostMarkers(arr, frame_id, cost_sources, color, ros::Duration(60.0));
+}
+
 void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
                                                           const std::string& frame_id,
                                                           const CollisionResult::ContactMap &con)
@@ -43,6 +50,40 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
   std_msgs::ColorRGBA color;
   color.r = 1.0f; color.g = 0.0f; color.b = 0.0f; color.a = 0.8f;
   getCollisionMarkersFromContacts(arr, frame_id, con, color, ros::Duration(60.0));
+}
+
+void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr,
+                                         const std::string& frame_id,
+                                         std::set<CostSource> &cost_sources,
+                                         const std_msgs::ColorRGBA& color,
+                                         const ros::Duration& lifetime)
+{
+  int id = 0;
+  for (std::set<CostSource>::iterator it = cost_sources.begin() ; it != cost_sources.end() ; ++it)
+  {
+    visualization_msgs::Marker mk;
+    mk.header.stamp = ros::Time::now();
+    mk.header.frame_id = frame_id;
+    mk.ns = "cost_source";
+    mk.id = id++;
+    mk.type = visualization_msgs::Marker::CUBE;
+    mk.action = visualization_msgs::Marker::ADD;
+    mk.pose.position.x = (it->aabb_max[0] + it->aabb_min[0]) / 2.0;
+    mk.pose.position.y = (it->aabb_max[1] + it->aabb_min[1]) / 2.0;
+    mk.pose.position.z = (it->aabb_max[2] + it->aabb_min[2]) / 2.0;
+    mk.pose.orientation.x = 0.0;
+    mk.pose.orientation.y = 0.0;
+    mk.pose.orientation.z = 0.0;    
+    mk.pose.orientation.w = 1.0;
+    mk.scale.x = it->aabb_max[0] - it->aabb_min[0];
+    mk.scale.y = it->aabb_max[1] - it->aabb_min[1];
+    mk.scale.z = it->aabb_max[2] - it->aabb_min[2];
+    mk.color = color;
+    if (mk.color.a == 0.0)
+      mk.color.a = 1.0;
+    mk.lifetime = lifetime;
+    arr.markers.push_back(mk);
+  }
 }
 
 void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
@@ -54,16 +95,15 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
   
 {
   std::map<std::string, unsigned> ns_counts;
-  for(CollisionResult::ContactMap::const_iterator it = con.begin();
-      it != con.end();
-      it++) {
-    for(unsigned int i = 0; i < it->second.size(); i++) {
-      std::string ns_name = it->second[i].body_name_1+"="+it->second[i].body_name_2;
-      if(ns_counts.find(ns_name) == ns_counts.end()) {
+  for(CollisionResult::ContactMap::const_iterator it = con.begin(); it != con.end(); ++it)
+  {
+    for(unsigned int i = 0; i < it->second.size(); ++i)
+    {
+      std::string ns_name = it->second[i].body_name_1 + "=" + it->second[i].body_name_2;
+      if (ns_counts.find(ns_name) == ns_counts.end())
         ns_counts[ns_name] = 0;
-      } else {
+      else
         ns_counts[ns_name]++;
-      }
       visualization_msgs::Marker mk;
       mk.header.stamp = ros::Time::now();
       mk.header.frame_id = frame_id;
@@ -74,12 +114,14 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
       mk.pose.position.x = it->second[i].pos.x();
       mk.pose.position.y = it->second[i].pos.y();
       mk.pose.position.z = it->second[i].pos.z();
+      mk.pose.orientation.x = 0.0;
+      mk.pose.orientation.y = 0.0;
+      mk.pose.orientation.z = 0.0;    
       mk.pose.orientation.w = 1.0;
-      mk.scale.x = mk.scale.y = mk.scale.z = radius;
+      mk.scale.x = mk.scale.y = mk.scale.z = radius * 2.0;
       mk.color = color;
-      if(mk.color.a == 0.0) {
+      if(mk.color.a == 0.0)
         mk.color.a = 1.0;
-      }
       mk.lifetime = lifetime;
       arr.markers.push_back(mk);
     }
