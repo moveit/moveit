@@ -53,6 +53,17 @@ void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
 void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
                                      const std::string& frame_id,
                                      const CollisionResult::ContactMap &con);
+
+void getCostMarkers(visualization_msgs::MarkerArray& arr,
+                    const std::string& frame_id,
+                    std::set<CostSource> &cost_sources);
+
+void getCostMarkers(visualization_msgs::MarkerArray& arr,
+                    const std::string& frame_id,
+                    std::set<CostSource> &cost_sources,
+                    const std_msgs::ColorRGBA& color,
+                    const ros::Duration& lifetime);
+
 }
 
 #endif
