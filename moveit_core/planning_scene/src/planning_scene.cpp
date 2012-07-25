@@ -952,7 +952,7 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
 {
   // each collision map replaces any previous one
   cworld_->removeObject(COLLISION_MAP_NS);
-
+  
   if (map.boxes.empty())
     return;
   const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
@@ -963,7 +963,7 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
     {
       ROS_ERROR("Failed to convert from pose message to Eigen Affine3f");
     }
- 
+    
     shapes::Shape *s = new shapes::Box(map.boxes[i].extents.x, map.boxes[i].extents.y, map.boxes[i].extents.z);
     cworld_->addToObject(COLLISION_MAP_NS, shapes::ShapeConstPtr(s), t * p);
   }
@@ -973,25 +973,13 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
 {
   // each octomap replaces any previous one
   cworld_->removeObject(OCTOMAP_NS);
-
+  
   if (map.data.empty())
-	  return;
-  octomap::OcTree om(0.1); /// \TODO this should be a parameter maybe? 
-  octomap::octomapMsgToMap(map, om);
-  const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id); 
-  Eigen::Affine3d p; p.setIdentity();
-  for (octomap::OcTree::iterator it = om.begin(om.getTreeDepth()), end = om.end(); it != end; ++it)
-  {
-    if (om.isNodeOccupied(*it))
-    {      
-      double size = it.getSize();
-      shapes::Shape *s = new shapes::Box(size, size, size);
-      p.translation().x() = it.getX();
-      p.translation().y() = it.getY();
-      p.translation().z() = it.getZ();
-      cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(s), t * p);
-    }
-  }
+    return;
+  boost::shared_ptr<octomap::OcTree> om(new octomap::OcTree(0.1)); /// 0.1 is bogus here; overwritten by  next call
+  octomap::octomapMsgToMap(map, *om);
+  const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
+  cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), t);
 }
 
 bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object)

@@ -49,7 +49,7 @@ class ConstraintSampler
 {
 public:
   
-  static const unsigned int DEFAULT_MAX_SAMPLING_ATTEMPTS = 100;
+  static const unsigned int DEFAULT_MAX_SAMPLING_ATTEMPTS = 2;
   
   ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name);
 

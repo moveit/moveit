@@ -39,9 +39,9 @@
 #include <ros/console.h>
 
 void constraint_samplers::visualizeDistribution(const moveit_msgs::Constraints &constr, const planning_scene::PlanningSceneConstPtr &scene, const std::string &group,
-                                                const std::string &link_name, unsigned int attempts, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
+                                                const std::string &link_name, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
 {
-  visualizeDistribution(ConstraintSamplerManager::selectDefaultSampler(scene, group, constr), scene->getCurrentState(), link_name, attempts, sample_count, markers);
+  visualizeDistribution(ConstraintSamplerManager::selectDefaultSampler(scene, group, constr), scene->getCurrentState(), link_name, sample_count, markers);
 }
 
 
@@ -76,7 +76,7 @@ double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sa
 }
 
 void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &sampler, const planning_models::KinematicState &reference_state,
-                                                const std::string &link_name, unsigned int attempts, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
+                                                const std::string &link_name, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
 {
   if (!sampler)
   {
@@ -92,7 +92,7 @@ void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &samp
   color.a = 1.0f;
   for (unsigned int i = 0 ; i < sample_count ; ++i)
   {
-    if (!sampler->sample(ks.getJointStateGroup(sampler->getGroupName()), ks, attempts))
+    if (!sampler->sample(ks.getJointStateGroup(sampler->getGroupName()), ks))
       continue;
     const planning_models::KinematicState::LinkState *ls = ks.getLinkState(link_name);
     if (ls)
