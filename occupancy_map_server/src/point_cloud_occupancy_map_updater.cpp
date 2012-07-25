@@ -113,39 +113,51 @@ namespace occupancy_map_server
     tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
     octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
 
+    ROS_INFO("Looping through points to find free and occupied areas");
+
     /* do ray tracing to find which cells this point cloud indicates should be free, and which it indicates
      * should be occupied */
     octomap::KeySet free_cells, occupied_cells;
-    for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = cloud.begin(); it != cloud.end(); ++it)
-      {
-        /* check for NaN */
-        if(!((it->x == it->x) && (it->y == it->y) && (it->z == it->z)))
-           continue;
+    octomap::KeyRay key_ray;
+    unsigned int row, col;
+    for(row = 0; row < cloud.height; row += 1)
+    {
+        for(col = 0; col < cloud.width; col += 1)
+        {
+            pcl::PointXYZ p = cloud(col, row);
 
-        /* transform to map frame */
-        tf::Vector3 point_tf = map_H_sensor * tf::Vector3(it->x, it->y, it->z);
-        octomap::point3d point(point_tf.getX(), point_tf.getY(), point_tf.getZ());
+            /* check for NaN */
+            if(!((p.x == p.x) && (p.y == p.y) && (p.z == p.z)))
+                continue;
 
-        /* free cells along ray */
-        octomap::KeyRay key_ray;
-        if (tree->computeRayKeys(sensor_origin, point, key_ray))
-            free_cells.insert(key_ray.begin(), key_ray.end());
+            /* transform to map frame */
+            tf::Vector3 point_tf = map_H_sensor * tf::Vector3(p.x, p.y, p.z);
+            octomap::point3d point(point_tf.getX(), point_tf.getY(), point_tf.getZ());
 
-        /* occupied cell at ray endpoint if ray is shorter than max range */
-        double range = (point - sensor_origin).norm();
-        if(range < max_range_)
-          {
-            octomap::OcTreeKey key;
-            if (tree->genKey(point, key))
-              occupied_cells.insert(key);
-          }
-      }
+            /* free cells along ray */
+            if (tree->computeRayKeys(sensor_origin, point, key_ray))
+                free_cells.insert(key_ray.begin(), key_ray.end());
+
+            /* occupied cell at ray endpoint if ray is shorter than max range */
+            double range = (point - sensor_origin).norm();
+            if(range < max_range_)
+            {
+                octomap::OcTreeKey key;
+                if (tree->genKey(point, key))
+                    occupied_cells.insert(key);
+            }
+        }
+    }
+
+    ROS_INFO("Marking free cells in octomap");
 
     /* mark free cells only if not seen occupied in this cloud */
     for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
       /* this check seems unnecessary since we would just overwrite them in the next loop? -jbinney */
       if (occupied_cells.find(*it) == occupied_cells.end())
         tree->updateNode(*it, false);
+
+    ROS_INFO("Marking occupied cells in octomap");
 
     /* now mark all occupied cells */
     for (octomap::KeySet::iterator it = occupied_cells.begin(), end = free_cells.end(); it != end; it++)
