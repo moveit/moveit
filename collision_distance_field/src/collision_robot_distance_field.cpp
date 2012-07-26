@@ -134,6 +134,7 @@ void CollisionRobotDistanceField::generateCollisionCheckingStructures(const std:
   //ros::WallTime n = ros::WallTime::now();
   getGroupStateRepresentation(dfce,state, gsr);
   //ROS_INFO_STREAM("Gsr creation " << (ros::WallTime::now()-n).toSec());
+  ROS_DEBUG_STREAM("Generated group state representation");
 }
 
 void CollisionRobotDistanceField::checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
@@ -336,8 +337,8 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
       if(!gsr->dfce_->intra_group_collision_enabled_[i][j]) continue;
       if(i_is_link && j_is_link && !doBoundingSpheresIntersect(gsr->link_body_decompositions_[i],
                                                                gsr->link_body_decompositions_[j])) {
-        ROS_DEBUG_STREAM("Bounding spheres for " << gsr->dfce_->link_names_[i] << " and " << gsr->dfce_->link_names_[j]
-                         << " don't intersect");
+        //ROS_DEBUG_STREAM("Bounding spheres for " << gsr->dfce_->link_names_[i] << " and " << gsr->dfce_->link_names_[j]
+        //<< " don't intersect");
         continue;
       } else if(!i_is_link || !j_is_link) {
         bool all_ok = true;
