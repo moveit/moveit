@@ -163,7 +163,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
       for (int i = 0 ; i < num_contacts ; ++i)
       {
-        fcl2contact(col_result.contacts[i], c);
+        fcl2contact(col_result.getContact(i), c);
         // if the contact is  not allowed, we have a collision
         if (dcf(c) == false)
         {
@@ -236,7 +236,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         for (int i = 0 ; i < num_contacts ; ++i)
         {
           Contact c;
-          fcl2contact(col_result.contacts[i], c);
+          fcl2contact(col_result.getContact(i), c);
           cdata->res_->contacts[pc].push_back(c);
           cdata->res_->contact_count++;
         }
