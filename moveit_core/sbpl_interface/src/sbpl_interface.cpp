@@ -35,6 +35,8 @@
 #include <sbpl_interface/sbpl_interface.h>
 #include <sbpl_interface/environment_chain3d.h>
 #include <planning_models/conversions.h>
+#include <valgrind/callgrind.h>
+
 
 namespace sbpl_interface {
 
@@ -65,8 +67,13 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
   std::vector<int> solution_state_ids;
   int solution_cost;
   wt = ros::WallTime::now();
+  //CALLGRIND_START_INSTRUMENTATION;
   bool b_ret = planner->replan(10.0, &solution_state_ids, &solution_cost);
-  std::cerr << "B ret is " << b_ret << " planning time " << (ros::WallTime::now()-wt) << std::endl;
+  //CALLGRIND_STOP_INSTRUMENTATION;
+  double el = (ros::WallTime::now()-wt).toSec();
+  std::cerr << "B ret is " << b_ret << " planning time " << el << std::endl;
+  std::cerr << "Total coll checks " << env_chain->getCollChecks() << " hz " << 1.0/(env_chain->getTotalCollCheckDuration()/(env_chain->getCollChecks()*1.0)) << std::endl;
+  std::cerr << "Total time " << env_chain->getTotalCollCheckDuration() << std::endl;
   std::cerr << "Path length is " << solution_state_ids.size() << std::endl;
   if(!b_ret) {
     return false;

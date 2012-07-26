@@ -157,8 +157,6 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req,
     }
     if(!done) {
       getEnvironmentCollisions(req, res, distance_field_cache_entry_->distance_field_, gsr);
-      //boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
-      //getEnvironmentCollisions(req, res, env_distance_field, gsr);
     }
   } catch(...) {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
@@ -352,13 +350,9 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(const CollisionReques
         }
       } 
     } else {
-      bool coll = getCollisionSphereGradients(env_distance_field.get(),
+      bool coll = getCollisionSphereCollision(env_distance_field.get(),
                                               *collision_spheres_1,
                                               *sphere_centers_1,
-                                              gsr->gradients_[i],
-                                              ENVIRONMENT,
-                                              0.0,
-                                              false,
                                               max_propogation_distance_,
                                               false);
       if(coll) {
