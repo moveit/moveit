@@ -181,6 +181,14 @@ public:
   bool populateTrajectoryFromStateIDSequence(const std::vector<int>& state_ids,
                                              trajectory_msgs::JointTrajectory& traj) const;
 
+  unsigned int getCollChecks() const {
+    return coll_checks_;
+  }
+
+  double getTotalCollCheckDuration() const {
+    return total_coll_check_time_.toSec();
+  }
+
 protected:
   
   bool getGridXYZInt(const Eigen::Affine3d& pose,
@@ -205,6 +213,8 @@ protected:
   kinematic_constraints::KinematicConstraintSet goal_constraint_set_;
   std::string planning_group_;
   Eigen::Affine3d goal_pose_;
+  ros::WallDuration total_coll_check_time_;
+  unsigned int coll_checks_;
 
   void setMotionPrimitives(const std::string& group_name);
   
