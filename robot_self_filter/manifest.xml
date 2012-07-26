@@ -1,0 +1,33 @@
+<package>
+  <description brief="robot_self_filter">
+    The robot self filter is a package that allows you to filter out robot body parts from sensor information using the known positions and orientations of these parts. 
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/robot_self_filter</url>
+
+  <depend package="roscpp"/>
+  <depend package="tf"/>
+  <depend package="filters"/>
+  <depend package="sensor_msgs"/>
+  <depend package="visualization_msgs"/>
+  <depend package="geometric_shapes"/>
+  <depend package="urdf"/>
+  <depend package="resource_retriever"/>
+  <depend package="pcl"/>
+  <depend package="common_rosdeps"/>
+
+  <rosdep name="assimp" />
+  <rosdep name="pkg-config" />
+
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lrobot_self_filter" />
+  </export>
+
+  <platform os="ubuntu" version="9.04"/>
+  <platform os="ubuntu" version="9.10"/>
+  <platform os="ubuntu" version="10.04"/>
+</package>
+
+
