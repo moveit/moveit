@@ -31,6 +31,8 @@
 #include <sbpl_interface/environment_chain3d.h>
 #include <collision_detection/collision_common.h>
 #include <planning_models/conversions.h>
+#include <boost/timer.hpp>
+
 
 static const unsigned int DEBUG_OVER = 1;
 
@@ -46,6 +48,7 @@ EnvironmentChain3D::EnvironmentChain3D(const planning_scene::PlanningSceneConstP
                        planning_scene->getTransforms()),
   closest_to_goal_(DBL_MAX)
 {
+  coll_checks_ = 0;
 }
 
 
@@ -184,13 +187,21 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
       //std::cerr << "Successor doesn't satisfy bounds" << std::endl;
       continue;
     }
+    ros::WallTime before_coll = ros::WallTime::now();
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
+    req.group_name = planning_group_;
     hy_world_->checkCollisionDistanceField(req, 
                                            res, 
                                            *hy_robot_->getCollisionRobotDistanceField().get(),
                                            state_,
                                            gsr_);
+    coll_checks_++;
+    //std::cerr << "Elapsed " << t.elapsed() << std::endl;
+    ros::WallDuration dur(ros::WallTime::now()-before_coll);
+    //std::cerr << dur.toSec() << std::endl;
+    //ROS_DEBUG_STREAM("Time " << ros::WallTime::now()-before_coll);
+    total_coll_check_time_ += dur;
     if(res.collision) {
       //std::cerr << "Successor in collision" << std::endl;
       continue;
@@ -203,8 +214,14 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
       std::cerr << "Can't get successor x y z" << std::endl;
       continue;
     }
-    
-    EnvChain3DHashEntry* succ_hash_entry = planning_data_.getHashEntry(succ_coord, i);
+
+    kinematic_constraints::ConstraintEvaluationResult con_res = goal_constraint_set_.decide(state_);
+    EnvChain3DHashEntry* succ_hash_entry;
+    if(con_res.satisfied) {
+      succ_hash_entry = planning_data_.goal_hash_entry_;
+    } else {
+      succ_hash_entry = planning_data_.getHashEntry(succ_coord, i);
+    }
     if(!succ_hash_entry) {
       succ_hash_entry = planning_data_.addHashEntry(succ_coord, succ_joint_angles, xyz, i);
     } else {
@@ -213,12 +230,6 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
       }
     }
 
-    kinematic_constraints::ConstraintEvaluationResult con_res = goal_constraint_set_.decide(state_);
-    if(con_res.satisfied) {
-      //std::cerr << "Goal constraints satisfied" << std::endl;
-      //planning_data_.goal_hash_entry_->coord = succ_hash_entry->coord;
-      //planning_data_.goal_hash_entry_->angles = succ_hash_entry->angles;
-    }
     //std::cerr << "Adding hash entry" << std::endl;
     if(planning_data_.state_ID_to_coord_table_.size() < DEBUG_OVER) {
       std::cerr << std::endl;
@@ -289,43 +300,44 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = planning_group_;
-  hy_world_->getCollisionGradients(req,
-                                   res,
-                                   *hy_robot_->getCollisionRobotDistanceField().get(), 
-                                   state_,
-                                   &planning_scene_->getAllowedCollisionMatrix(),
-                                   gsr_);
-  angle_discretization_ = gsr_->dfce_->distance_field_->getResolution();
-  bfs_ = new BFS_3D(gsr_->dfce_->distance_field_->getXNumCells(),
-                    gsr_->dfce_->distance_field_->getYNumCells(),
-                    gsr_->dfce_->distance_field_->getZNumCells());
+  hy_world_->checkCollisionDistanceField(req, 
+                                         res, 
+                                         *hy_robot_->getCollisionRobotDistanceField().get(),
+                                         state_,
+                                         planning_scene_->getAllowedCollisionMatrix(),
+                                         gsr_);
 
-  boost::shared_ptr<const distance_field::DistanceField> world_distance_field = hy_world_->getCollisionWorldDistanceField()->getDistanceField();
-  if(world_distance_field->getXNumCells() != gsr_->dfce_->distance_field_->getXNumCells() ||
-     world_distance_field->getYNumCells() != gsr_->dfce_->distance_field_->getYNumCells() ||
-     world_distance_field->getZNumCells() != gsr_->dfce_->distance_field_->getZNumCells()) {
-    ROS_WARN_STREAM("Size mismatch between world and self distance fields");
-    std::cerr << "Size mismatch between world and self distance fields" << std::endl;
-    return false;
-  }
-  std::cerr << "BFS dimensions are "
-            << world_distance_field->getXNumCells() << " " 
-            << world_distance_field->getYNumCells() << " "
-            << world_distance_field->getZNumCells() << std::endl;
-  unsigned int wall_count = 0;
-  for(int i = 0; i < gsr_->dfce_->distance_field_->getXNumCells()-2; i++) {
-    for(int j = 0; j < gsr_->dfce_->distance_field_->getYNumCells()-2; j++) {
-      for(int k = 0; k < gsr_->dfce_->distance_field_->getZNumCells()-2; k++) {
-        if(gsr_->dfce_->distance_field_->getDistanceFromCell(i+1, j+1, k+1) == 0.0 ||
-           world_distance_field->getDistanceFromCell(i+1, j+1, k+1) == 0.0) {
-          bfs_->setWall(i+1, j+1, k+1);
-          wall_count++;
-        } 
-      }
-    }
-  }
-  std::cerr << "Wall cells are " << wall_count << " of " << 
-    world_distance_field->getXNumCells()*world_distance_field->getYNumCells()*world_distance_field->getZNumCells() << std::endl;
+  angle_discretization_ = gsr_->dfce_->distance_field_->getResolution();
+  // bfs_ = new BFS_3D(gsr_->dfce_->distance_field_->getXNumCells(),
+  //                   gsr_->dfce_->distance_field_->getYNumCells(),
+  //                   gsr_->dfce_->distance_field_->getZNumCells());
+
+  // boost::shared_ptr<const distance_field::DistanceField> world_distance_field = hy_world_->getCollisionWorldDistanceField()->getDistanceField();
+  // if(world_distance_field->getXNumCells() != gsr_->dfce_->distance_field_->getXNumCells() ||
+  //    world_distance_field->getYNumCells() != gsr_->dfce_->distance_field_->getYNumCells() ||
+  //    world_distance_field->getZNumCells() != gsr_->dfce_->distance_field_->getZNumCells()) {
+  //   ROS_WARN_STREAM("Size mismatch between world and self distance fields");
+  //   std::cerr << "Size mismatch between world and self distance fields" << std::endl;
+  //   return false;
+  // }
+  // std::cerr << "BFS dimensions are "
+  //           << world_distance_field->getXNumCells() << " " 
+  //           << world_distance_field->getYNumCells() << " "
+  //           << world_distance_field->getZNumCells() << std::endl;
+  // unsigned int wall_count = 0;
+  // for(int i = 0; i < gsr_->dfce_->distance_field_->getXNumCells()-2; i++) {
+  //   for(int j = 0; j < gsr_->dfce_->distance_field_->getYNumCells()-2; j++) {
+  //     for(int k = 0; k < gsr_->dfce_->distance_field_->getZNumCells()-2; k++) {
+  //       if(gsr_->dfce_->distance_field_->getDistanceFromCell(i+1, j+1, k+1) == 0.0 ||
+  //          world_distance_field->getDistanceFromCell(i+1, j+1, k+1) == 0.0) {
+  //         bfs_->setWall(i+1, j+1, k+1);
+  //         wall_count++;
+  //       } 
+  //     }
+  //   }
+  // }
+  // std::cerr << "Wall cells are " << wall_count << " of " << 
+  //   world_distance_field->getXNumCells()*world_distance_field->getYNumCells()*world_distance_field->getZNumCells() << std::endl;
 
   //setting start position
   std::vector<double> start_joint_values;
@@ -367,7 +379,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
     ROS_INFO_STREAM("Goal " << goal_dofs[i] << " pos " << goal_joint_values[i]);
   }
   std::cerr << "Running bfs with goal " << goal_xyz[0] << " " <<  goal_xyz[1] << " " << goal_xyz[2] << std::endl;
-  bfs_->run(goal_xyz[0], goal_xyz[1], goal_xyz[2]);
+  //bfs_->run(goal_xyz[0], goal_xyz[1], goal_xyz[2]);
   goal_constraint_set_.clear();
   goal_constraint_set_.add(mreq.motion_plan_request.goal_constraints[0]);
   planning_data_.goal_hash_entry_ = planning_data_.addHashEntry(goal_coords,
@@ -381,8 +393,8 @@ void EnvironmentChain3D::setMotionPrimitives(const std::string& group_name) {
   possible_actions_.clear();
   unsigned int var_count = planning_scene_->getKinematicModel()->getJointModelGroup(group_name)->getVariableCount();
   for(unsigned int i = 0; i < var_count; i++) {
-    boost::shared_ptr<SingleJointMotionPrimitive> sing_pos(new SingleJointMotionPrimitive(i, .02));
-    boost::shared_ptr<SingleJointMotionPrimitive> sing_neg(new SingleJointMotionPrimitive(i, -.02));
+    boost::shared_ptr<SingleJointMotionPrimitive> sing_pos(new SingleJointMotionPrimitive(i, .1));
+    boost::shared_ptr<SingleJointMotionPrimitive> sing_neg(new SingleJointMotionPrimitive(i, -.1));
     possible_actions_.push_back(sing_pos);
     possible_actions_.push_back(sing_neg);
   }
