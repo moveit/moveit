@@ -82,21 +82,21 @@ void bodies::mergeBoundingSpheres(const std::vector<BoundingSphere> &spheres, Bo
         continue;
       Eigen::Vector3d diff = spheres[i].center-mergedSphere.center; 
       double d = diff.norm();
-      ROS_INFO_STREAM("D is " << d);
+      ROS_DEBUG_STREAM("D is " << d);
       if (d + mergedSphere.radius <= spheres[i].radius)
       {
         mergedSphere.center = spheres[i].center;
         mergedSphere.radius = spheres[i].radius;
-        ROS_INFO_STREAM("New sphere is big enough");
+        ROS_DEBUG_STREAM("New sphere is big enough");
       }
       else if (d + spheres[i].radius > mergedSphere.radius)
       {
         Eigen::Vector3d delta = mergedSphere.center - spheres[i].center;
-        ROS_INFO_STREAM("Delta norm " << delta.norm());
+        ROS_DEBUG_STREAM("Delta norm " << delta.norm());
         mergedSphere.radius = (delta.norm() + spheres[i].radius + mergedSphere.radius)/2.0;
         mergedSphere.center = delta.normalized() * (mergedSphere.radius - spheres[i].radius) + spheres[i].center;
       } else {
-        ROS_INFO_STREAM("Merged sphere was big enough");
+        ROS_DEBUG_STREAM("Merged sphere was big enough");
       }
     }
   }
