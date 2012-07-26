@@ -42,6 +42,7 @@
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <occupancy_map_monitor/occupancy_map.h>
 #include <occupancy_map_monitor/occupancy_map_updater.h>
 #include <boost/thread.hpp>
 
@@ -50,29 +51,39 @@ namespace occupancy_map_monitor
 	class PointCloudOccupancyMapUpdater : public OccupancyMapUpdater
 	{
 	public:
-		PointCloudOccupancyMapUpdater(const std::string &map_frame, const std::string &point_cloud_topic, double max_range, boost::shared_ptr<tf::Transformer> tf);
+    PointCloudOccupancyMapUpdater(
+        boost::shared_ptr<tf::Transformer> tf, const std::string &map_frame,
+        const std::string &point_cloud_topic, double max_range, size_t frame_subsample, size_t point_subsample);
 		~PointCloudOccupancyMapUpdater(void);
 
 		virtual void initialize(void);
-		virtual void process(octomap::OcTree *tree);
+    virtual void process(OccMapTreePtr tree);
 
 		virtual void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg);
-	  virtual void processCloud(octomap::OcTree *tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg);
+    virtual void processCloud(OccMapTreePtr tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg);
 
 	private:
 		ros::NodeHandle root_nh_;
 
-		std::string map_frame_;
+    boost::shared_ptr<tf::Transformer> tf_;
 
-		std::string point_cloud_topic_;
-		message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
+    /* params */
+		std::string map_frame_;
+    std::string point_cloud_topic_;
+    double max_range_;
+    size_t frame_subsample_;
+    size_t point_subsample_;
+
+    message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
 		tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
 		sensor_msgs::PointCloud2::ConstPtr last_point_cloud_;
 		boost::mutex last_point_cloud_mutex_;
 
-		double max_range_;
+    /* used to store all cells in the map which a given ray passes through during raycasting.
+      we cache this here because it dynamically pre-allocates a lot of memory in its contsructor */
+    octomap::KeyRay key_ray_;
 
-		boost::shared_ptr<tf::Transformer> tf_;
+
 	};
 }
 

@@ -39,7 +39,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
-#include <octomap/octomap.h>
+#include <occupancy_map_monitor/occupancy_map.h>
 
 namespace occupancy_map_monitor
 {
@@ -59,8 +59,7 @@ namespace occupancy_map_monitor
       virtual void initialize(void) = 0;
       
       /** @brief Update the octree*/
-      virtual void process(octomap::OcTree *tree) = 0;
-        
+      virtual void process(OccMapTreePtr tree) = 0;
 	};
 }
 

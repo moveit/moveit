@@ -27,3 +27,6 @@ msg/_.*\.py$
 # eclipse stuff
 .project
 .cproject
+
+# qcreator stuff
+CMakeLists.txt.user

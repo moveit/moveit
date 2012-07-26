@@ -36,6 +36,7 @@
 
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <occupancy_map_monitor/occupancy_map.h>
 #include <occupancy_map_monitor/occupancy_map_monitor.h>
 #include <occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
 
@@ -43,12 +44,48 @@ namespace occupancy_map_monitor
 {
 
   OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> tf) :
-      tree_(0.1), map_frame_("base_link")
+    nh_("~")
   {
-    /* This will eventually load different updaters depending on config params */
-    boost::shared_ptr<OccupancyMapUpdater> up = boost::make_shared<PointCloudOccupancyMapUpdater>(map_frame_,
-        "/camera/rgb/points", 30.0, tf);
-    map_updaters_.push_back(up);
+    double map_resolution;
+
+    /* load params from param server */
+    nh_.param<std::string>("map_frame", map_frame_, "base_link");
+    nh_.param<double>("map_resolution", map_resolution, 0.1);
+
+    tree_.reset(new octomap::OcTree(map_resolution));
+
+    XmlRpc::XmlRpcValue sensor_list;
+    nh_.getParam("sensors", sensor_list);
+    ROS_ASSERT(sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+    for (int32_t i = 0; i < sensor_list.size(); ++i)
+    {
+      ROS_ASSERT(sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
+      ROS_ASSERT(sensor_list[i].hasMember ("sensor_type"));
+      std::string sensor_type = std::string (sensor_list[i]["sensor_type"]);
+
+      if(sensor_type == "point_cloud_sensor")
+      {
+        ROS_ASSERT(sensor_list[i].hasMember ("point_cloud_topic"));
+        std::string point_cloud_topic = std::string (sensor_list[i]["point_cloud_topic"]);
+
+        ROS_ASSERT(sensor_list[i].hasMember ("max_range"));
+        double max_range = double (sensor_list[i]["max_range"]);
+
+        ROS_ASSERT(sensor_list[i].hasMember ("frame_subsample"));
+        size_t frame_subsample = int (sensor_list[i]["frame_subsample"]);
+
+        ROS_ASSERT(sensor_list[i].hasMember ("point_subsample"));
+        size_t point_subsample = int (sensor_list[i]["point_subsample"]);
+
+        boost::shared_ptr<OccupancyMapUpdater> up = boost::make_shared<PointCloudOccupancyMapUpdater>(
+              tf, map_frame_, point_cloud_topic, max_range, frame_subsample, point_subsample);
+        map_updaters_.push_back(up);
+      }
+      else
+      {
+        ROS_ERROR_STREAM("Ignoring unknown sensor type" << sensor_type << "in occupancy map params");
+      }
+    }
 
     marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("occupied_cells", 1);
   }
@@ -61,7 +98,10 @@ namespace occupancy_map_monitor
       /* run any occupancy map updater which is ready */
       std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
       for (it = map_updaters_.begin(); it != map_updaters_.end(); it++)
-        (*it)->process(&tree_);
+      {
+        boost::lock_guard<boost::mutex> _lock(tree_mutex_);
+        (*it)->process(tree_);
+      }
 
       publish_markers();
 
@@ -69,18 +109,37 @@ namespace occupancy_map_monitor
     }
   }
 
+  OccMapTreePtr OccupancyMapMonitor::getTreePtr()
+  {
+    return tree_;
+  }
+
+  void OccupancyMapMonitor::lockTree()
+  {
+    tree_mutex_.lock();
+  }
+
+  void OccupancyMapMonitor::unlockTree()
+  {
+    tree_mutex_.unlock();
+  }
+
+
+
   void OccupancyMapMonitor::publish_markers(void)
   {
+    boost::lock_guard<boost::mutex> _lock(tree_mutex_);
+
     visualization_msgs::MarkerArray occupied_nodes_arr;
-    int tree_depth = tree_.getTreeDepth();
+    int tree_depth = tree_->getTreeDepth();
 
     /* each array stores all cubes of a different size, one for each depth level */
     occupied_nodes_arr.markers.resize(tree_depth + 1);
 
     /* now, traverse all leaves in the tree */
-    for (octomap::OcTree::iterator it = tree_.begin(tree_depth), end = tree_.end(); it != end; ++it)
+    for (octomap::OcTree::iterator it = tree_->begin(tree_depth), end = tree_->end(); it != end; ++it)
     {
-      if (tree_.isNodeOccupied(*it))
+      if (tree_->isNodeOccupied(*it))
       {
         double x = it.getX();
         double y = it.getY();
@@ -101,7 +160,7 @@ namespace occupancy_map_monitor
     /* finish MarkerArray */
     for (unsigned i = 0; i < occupied_nodes_arr.markers.size(); ++i)
     {
-      double size = tree_.getNodeSize(i);
+      double size = tree_->getNodeSize(i);
 
       occupied_nodes_arr.markers[i].header.frame_id = map_frame_;
       occupied_nodes_arr.markers[i].header.stamp = ros::Time::now();

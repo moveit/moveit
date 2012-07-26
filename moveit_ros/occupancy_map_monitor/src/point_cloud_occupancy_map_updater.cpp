@@ -44,9 +44,11 @@
 
 namespace occupancy_map_monitor
 {
-	PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const std::string &map_frame, const std::string &point_cloud_topic, double max_range, boost::shared_ptr<tf::Transformer> tf) :
-			map_frame_(map_frame), point_cloud_topic_(point_cloud_topic), max_range_(max_range), tf_(tf)
-		{}
+  PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(
+      boost::shared_ptr<tf::Transformer> tf, const std::string &map_frame,
+      const std::string &point_cloud_topic, double max_range,  size_t frame_subsample = 1,  size_t point_subsample = 1)
+    : tf_(tf), map_frame_(map_frame), point_cloud_topic_(point_cloud_topic),  max_range_(max_range), frame_subsample_(frame_subsample), point_subsample_(point_subsample)
+  {}
 
 	PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater(void)
 	{
@@ -71,7 +73,7 @@ namespace occupancy_map_monitor
       last_point_cloud_ = cloud_msg;
 	}
 
-  void PointCloudOccupancyMapUpdater::process(octomap::OcTree *tree)
+  void PointCloudOccupancyMapUpdater::process(OccMapTreePtr tree)
   {
     if(!last_point_cloud_)
       {
@@ -79,19 +81,19 @@ namespace occupancy_map_monitor
         return;
       }
 
-    ROS_INFO("Updating occupancy map with new cloud");
+    ROS_DEBUG("Updating occupancy map with new cloud");
     sensor_msgs::PointCloud2::ConstPtr cloud;
     {
       boost::lock_guard<boost::mutex> _lock(last_point_cloud_mutex_);
       cloud = last_point_cloud_;
     }
     processCloud(tree, cloud);
-    ROS_INFO("Done updating occupancy map");
+    ROS_DEBUG("Done updating occupancy map");
 
     last_point_cloud_.reset();
   }
 
-  void PointCloudOccupancyMapUpdater::processCloud(octomap::OcTree *tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg)
+  void PointCloudOccupancyMapUpdater::processCloud(OccMapTreePtr tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg)
   {
     /* get transform for cloud into map frame */
     tf::StampedTransform map_H_sensor;
@@ -113,16 +115,15 @@ namespace occupancy_map_monitor
     tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
     octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
 
-    ROS_INFO("Looping through points to find free and occupied areas");
+    ROS_DEBUG("Looping through points to find free and occupied areas");
 
     /* do ray tracing to find which cells this point cloud indicates should be free, and which it indicates
      * should be occupied */
     octomap::KeySet free_cells, occupied_cells;
-    octomap::KeyRay key_ray;
     unsigned int row, col;
-    for(row = 0; row < cloud.height; row += 1)
+    for(row = 0; row < cloud.height; row += point_subsample_)
     {
-        for(col = 0; col < cloud.width; col += 1)
+        for(col = 0; col < cloud.width; col += point_subsample_)
         {
             pcl::PointXYZ p = cloud(col, row);
 
@@ -135,8 +136,8 @@ namespace occupancy_map_monitor
             octomap::point3d point(point_tf.getX(), point_tf.getY(), point_tf.getZ());
 
             /* free cells along ray */
-            if (tree->computeRayKeys(sensor_origin, point, key_ray))
-                free_cells.insert(key_ray.begin(), key_ray.end());
+            if (tree->computeRayKeys(sensor_origin, point, key_ray_))
+                free_cells.insert(key_ray_.begin(), key_ray_.end());
 
             /* occupied cell at ray endpoint if ray is shorter than max range */
             double range = (point - sensor_origin).norm();
@@ -149,7 +150,7 @@ namespace occupancy_map_monitor
         }
     }
 
-    ROS_INFO("Marking free cells in octomap");
+    ROS_DEBUG("Marking free cells in octomap");
 
     /* mark free cells only if not seen occupied in this cloud */
     for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
@@ -157,7 +158,7 @@ namespace occupancy_map_monitor
       if (occupied_cells.find(*it) == occupied_cells.end())
         tree->updateNode(*it, false);
 
-    ROS_INFO("Marking occupied cells in octomap");
+    ROS_DEBUG("Marking occupied cells in octomap");
 
     /* now mark all occupied cells */
     for (octomap::KeySet::iterator it = occupied_cells.begin(), end = free_cells.end(); it != end; it++)

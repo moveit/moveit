@@ -43,8 +43,9 @@
 #include <boost/thread.hpp>
 #include <ros/ros.h>
 #include <tf/tf.h>
-#include <octomap/octomap.h>
+#include <occupancy_map_monitor/occupancy_map.h>
 #include <occupancy_map_monitor/occupancy_map_updater.h>
+
 
 namespace occupancy_map_monitor
 {
@@ -55,12 +56,24 @@ namespace occupancy_map_monitor
     OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> tf);
     ~OccupancyMapMonitor(void);
 
-    void treeUpdateThread(void);
+    /** @brief run the monitor. does not return (gives control to main ROS loop) */
     void run(void);
-    void publish_markers(void);
+
+    /** @brief get a pointer to the underlying octree for this monitor. lock the
+     *  tree before reading or writing using this pointer */
+    OccMapTreePtr getTreePtr(void);
+
+    /** @brief lock the underlying octree. it will not be read or written by the
+     *  monitor until unlockTree() is called */
+    void lockTree(void);
+    void unlockTree(void);
+
 
   private:
-    octomap::OcTree tree_;
+    void treeUpdateThread(void);
+    void publish_markers(void);
+
+    OccMapTreePtr tree_;
     boost::mutex tree_mutex_;
     boost::thread tree_update_thread_;
 
@@ -69,6 +82,7 @@ namespace occupancy_map_monitor
     std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
 
     ros::NodeHandle root_nh_;
+    ros::NodeHandle nh_;
     ros::Publisher marker_pub_;
   };
 
