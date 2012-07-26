@@ -34,37 +34,37 @@
 
 /** \author E. Gil Jones */
 
-#ifndef _COLLISION_ROBOT_HYBRID_ROS_H_
-#define _COLLISION_ROBOT_HYBRID_ROS_H_
+#ifndef _COLLISION_ROBOT_DISTANCE_FIELD_ROS_H_
+#define _COLLISION_ROBOT_DISTANCE_FIELD_ROS_H_
 
 #include <ros/ros.h>
 #include <collision_distance_field_ros/collision_distance_field_ros_helpers.h>
-#include <collision_distance_field/hybrid_collision_robot.h>
+#include <collision_distance_field/collision_robot_distance_field.h>
 
 namespace collision_detection {
 
-class CollisionRobotHybridROS : public CollisionRobotHybrid
+class CollisionRobotDistanceFieldROS : public CollisionRobotDistanceField
 {
 public:
   
-  CollisionRobotHybridROS(const planning_models::KinematicModelConstPtr& kmodel, 
-                          double size_x = DEFAULT_SIZE_X, 
-                          double size_y = DEFAULT_SIZE_Y,
-                          double size_z = DEFAULT_SIZE_Z,
-                          bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
-                          double resolution = DEFAULT_RESOLUTION,
-                          double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
-                          double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE,
-                          double padding = 0.0, 
-                          double scale = 1.0) :
-    CollisionRobotHybrid(kmodel)
+  CollisionRobotDistanceFieldROS(const planning_models::KinematicModelConstPtr& kmodel, 
+                                 double size_x = DEFAULT_SIZE_X, 
+                                 double size_y = DEFAULT_SIZE_Y,
+                                 double size_z = DEFAULT_SIZE_Z,
+                                 bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
+                                 double resolution = DEFAULT_RESOLUTION,
+                                 double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
+                                 double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE,
+                                 double padding = 0.0, 
+                                 double scale = 1.0) :
+    CollisionRobotDistanceField(kmodel)
   {
     ros::NodeHandle nh;
     std::map<std::string, std::vector<CollisionSphere> > coll_spheres;
     collision_detection::loadLinkBodySphereDecompositions(nh,
                                                           getKinematicModel(),
                                                           coll_spheres);
-    initializeRobotDistanceField(coll_spheres, size_x, size_y, size_z, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
+    initialize(coll_spheres, size_x, size_y, size_z, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
   }
 };
 
