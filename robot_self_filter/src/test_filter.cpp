@@ -65,7 +65,7 @@ public:
 	delete sf_;
     }
     
-    void gotIntersection(const tf::Vector3 &pt)
+    void gotIntersection(const Eigen::Vector3d &pt)
     {
 	sendPoint(pt.x(), pt.y(), pt.z());
     }
