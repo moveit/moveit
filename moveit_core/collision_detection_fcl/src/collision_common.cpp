@@ -670,8 +670,11 @@ void collision_detection::CollisionData::enableGroup(const planning_models::Kine
 
 void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager *manager)
 {
-  for (std::size_t i = 0 ; i < collision_objects_.size() ; ++i)
-    manager->registerObject(collision_objects_[i].get());
+  std::vector<fcl::CollisionObject*> collision_objects(collision_objects_.size());
+  for(std::size_t i = 0; i < collision_objects_.size(); ++i)
+    collision_objects[i] = collision_objects_[i].get();
+
+  manager->registerObjects(collision_objects);
 }
 
 void collision_detection::FCLObject::unregisterFrom(fcl::BroadPhaseCollisionManager *manager)

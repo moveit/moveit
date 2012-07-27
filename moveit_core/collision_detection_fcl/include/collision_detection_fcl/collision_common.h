@@ -216,8 +216,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 inline void transform2fcl(const Eigen::Affine3d &b, fcl::SimpleTransform &f)
 {
   Eigen::Quaterniond q(b.rotation());
+  //std::cout << "       a" << std::endl;
   f.setTranslation(fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
+  //std::cout << "       b" << std::endl;
   f.setQuatRotation(fcl::SimpleQuaternion(q.w(), q.x(), q.y(), q.z()));
+  //std::cout << "       transform2fcl end" << std::endl;
 }
 
 inline fcl::SimpleTransform transform2fcl(const Eigen::Affine3d &b)
