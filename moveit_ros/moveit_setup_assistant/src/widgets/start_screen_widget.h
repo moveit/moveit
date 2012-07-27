@@ -55,7 +55,7 @@ namespace moveit_setup_assistant
 // Class Prototypes
 class SelectModeWidget;
 class LoadPathWidget;
-class LoadURDFWidget;
+//class LoadURDFWidget;
 
 /**
  * \brief Start screen user interface for MoveIt Configuration Assistant
@@ -82,8 +82,8 @@ class StartScreenWidget : public SetupScreenWidget
   // ******************************************************************************************
   SelectModeWidget *select_mode_;
   LoadPathWidget *stack_path_;
-  LoadURDFWidget *urdf_file_;
-  LoadPathWidget *srdf_file_;
+  LoadPathWidget *urdf_file_;
+  //LoadPathWidget *srdf_file_;
   QPushButton *btn_load_;
   QLabel *next_label_;
   QProgressBar *progress_bar_;
@@ -149,6 +149,9 @@ private:
   /// Put SRDF File on Parameter Server
   bool setSRDFFile( const std::string& srdf_string );
 
+  //// Extract the package/stack name and relative path to urdf from an absolute path name
+  bool extractPackageNameFromPath();
+
   /// Make the full URDF path using the loaded .setup_assistant data
   bool createFullURDFPath();
 
@@ -183,7 +186,7 @@ class SelectModeWidget : public QFrame
 
 };
 
-
+/*
 // ******************************************************************************************
 // ******************************************************************************************
 // Class for selecting urdf package and file
@@ -223,7 +226,7 @@ public:
   /// Get the full robot description path
   const std::string getURDFPackagePath();
 };
-
+*/
 
 }
 

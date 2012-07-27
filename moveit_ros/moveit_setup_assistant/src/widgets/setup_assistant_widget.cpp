@@ -103,10 +103,12 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   main_content_->addWidget(ssw_);
 
   // Pass command arg values to start screen
-  if (args.count("urdf_pkg"))
-    ssw_->urdf_file_->robot_desc_pkg_field_->setText( args["urdf_pkg"].as<std::string>().c_str() );
+  /*  if (args.count("urdf_pkg"))
+      ssw_->urdf_file_->robot_desc_pkg_field_->setText( args["urdf_pkg"].as<std::string>().c_str() );*/
   if (args.count("urdf_path"))
-    ssw_->urdf_file_->relative_urdf_path_field_->setText( args["urdf_path"].as<std::string>().c_str() );
+  {
+    ssw_->urdf_file_->setPath( args["urdf_path"].as<std::string>() );
+  }
   if (args.count("config_pkg"))
   {
     ssw_->stack_path_->setPath( args["config_pkg"].as<std::string>() );

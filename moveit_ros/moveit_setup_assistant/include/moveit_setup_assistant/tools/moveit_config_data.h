@@ -69,6 +69,11 @@ struct GroupMetaData
 };
 
 // ******************************************************************************************
+// Forward Declarations
+// ******************************************************************************************
+//class urdf::Model;
+
+// ******************************************************************************************
 // Class
 // ******************************************************************************************
 class MoveItConfigData
@@ -86,10 +91,10 @@ public:
   /// Full file-system path to urdf
   std::string urdf_path_; 
 
-  /// Name of package containig urdf
+  /// Name of package containig urdf (note: this may be empty b/c user may not have urdf in pkg)
   std::string urdf_pkg_name_; 
 
-  /// Path relative to urdf package
+  /// Path relative to urdf package (note: this may be same as urdf_path_)
   std::string urdf_pkg_relative_path_; 
 
   /// URDF robot model
@@ -149,8 +154,6 @@ public:
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
   // ******************************************************************************************
-  bool outputPackageFiles( const std::string& new_package_path,
-                           const std::string& new_package_name );
   bool outputSetupAssistantFile( const std::string& file_path );
   bool outputOMPLPlanningYAML( const std::string& file_path );
   bool outputKinematicsYAML( const std::string& file_path );
@@ -194,6 +197,16 @@ public:
    * @return bool if the file was read correctly
    */
   bool inputSetupAssistantYAML( const std::string& file_path );
+
+  /**
+   * Helper Function for joining a file path and a file name, or two file paths, etc, 
+   * in a cross-platform way
+   *
+   * @param path1 first half of path
+   * @param path2 second half of path, or filename
+   * @return string resulting combined paths
+   */
+  std::string appendPaths( const std::string &path1, const std::string &path2 );
 
 private:
 
