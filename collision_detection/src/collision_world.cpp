@@ -154,7 +154,7 @@ void collision_detection::CollisionWorld::addToObject(const std::string &id, con
 
 void collision_detection::CollisionWorld::addToObjectInternal(const ObjectPtr &obj, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose)
 {
-  obj->shapes_.push_back(shape);  
+  obj->shapes_.push_back(shape);
   obj->shape_poses_.push_back(pose);
 }
 

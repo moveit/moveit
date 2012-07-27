@@ -70,10 +70,14 @@ namespace collision_detection
   /** \brief Definition of a contact point */
   struct Contact
   {
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     /** \brief contact position */
     Eigen::Vector3d pos;
+
     /** \brief normal unit vector at contact */
     Eigen::Vector3d normal;
+
     /** \brief depth (penetration between bodies) */
     double          depth;
     
@@ -125,6 +129,8 @@ namespace collision_detection
     {
     }
     typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
+    
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     /** \brief Clear a previously stored result */
     void clear(void) { *this = CollisionResult(); }

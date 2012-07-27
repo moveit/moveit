@@ -44,21 +44,20 @@
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(void) : CollisionWorld()
 {
   fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
-  m->tree_init_level = 2;
+  // m->tree_init_level = 2;
   manager_.reset(m);
-  //  manager_.reset(new fcl::SSaPCollisionManager());
 }
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL &other) : CollisionWorld(other)
 {
   fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
-  m->tree_init_level = 2;
+  // m->tree_init_level = 2;
   manager_.reset(m);
-  //  manager_.reset(new fcl::SSaPCollisionManager());
+
   fcl_objs_ = other.fcl_objs_;
   for (std::map<std::string, FCLObject>::iterator it = fcl_objs_.begin() ; it != fcl_objs_.end() ; ++it)
     it->second.registerTo(manager_.get());
-  manager_->update();
+  // manager_->update();
 }
 
 collision_detection::CollisionWorldFCL::~CollisionWorldFCL(void)
@@ -165,7 +164,8 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string &
     if (jt != fcl_objs_.end())
       fcl_objs_.erase(jt);
   }
-  manager_->update();
+  
+  // manager_->update();
 }
 
 void collision_detection::CollisionWorldFCL::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses)
@@ -211,7 +211,7 @@ void collision_detection::CollisionWorldFCL::removeObject(const std::string &id)
     it->second.unregisterFrom(manager_.get());
     it->second.clear();
     fcl_objs_.erase(it);
-    manager_->update();
+    // manager_->update();
   }
 }
 
