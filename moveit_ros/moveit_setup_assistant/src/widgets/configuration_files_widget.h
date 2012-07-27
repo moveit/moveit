@@ -105,7 +105,7 @@ private:
   unsigned int action_num;
 
   /// Total actions - update this whenever a new call to displayAction() is added
-  static const unsigned int action_num_total = 17;
+  static const unsigned int action_num_total = 22; // note: this is worse case number of actions
 
   // ******************************************************************************************
   // Private Functions
@@ -122,6 +122,19 @@ private:
 
   /// Check that no group is empty (without links/joints/etc)
   bool noGroupsEmpty();
+
+  /** 
+   * Copy a template from location <template_path> to location <output_path> and replace package name
+   * 
+   * @param template_path path to template file
+   * @param output_path desired path to copy to
+   * @param new_package_name name of the new package being created, to replace key word in template
+   * 
+   * @return bool if the template was copied correctly
+   */
+  bool copyTemplate( const std::string& template_path, const std::string& output_path, 
+                     const std::string& new_package_name );
+
 
 };
 
