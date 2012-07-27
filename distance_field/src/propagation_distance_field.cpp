@@ -167,7 +167,6 @@ void PropagationDistanceField::updatePointsInField(const std::vector<Eigen::Vect
   else	// !iterative
   {
     reset();
-    object_voxel_locations_.clear();
 
     for( unsigned int i=0; i<points.size(); i++)
     {
@@ -399,6 +398,7 @@ void PropagationDistanceField::propogate()
 void PropagationDistanceField::reset()
 {
   voxel_grid_.reset(PropDistanceFieldVoxel(max_distance_sq_));
+  object_voxel_locations_.clear();
 }
 
 void PropagationDistanceField::initNeighborhoods()
