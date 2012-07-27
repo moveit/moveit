@@ -155,17 +155,6 @@ void MoveItConfigData::loadAllowedCollisionMatrix()
 }
 
 // ******************************************************************************************
-// Output basic package files
-// ******************************************************************************************
-bool MoveItConfigData::outputPackageFiles( const std::string& new_package_path,
-                                           const std::string& new_package_name  )
-{
-
-
-  return true; // success
-}
-
-// ******************************************************************************************
 // Output MoveIt Setup Assistant hidden settings file
 // ******************************************************************************************
 bool MoveItConfigData::outputSetupAssistantFile( const std::string& file_path )
@@ -447,7 +436,7 @@ bool MoveItConfigData::outputMoveGroupLaunch( const std::string& file_path,
                                               const std::string& new_package_name  )
 {
   // Path
-  const std::string template_path = template_package_path_ + "launch/move_group.launch";
+  const std::string template_path = appendPaths( template_package_path_, "launch/move_group.launch" );
 
   // Use generic template copy function
   return copyTemplate( template_path, file_path, new_package_name );
@@ -460,7 +449,7 @@ bool MoveItConfigData::outputOMPLPlannerLaunch( const std::string& file_path,
                                                 const std::string& new_package_name  )
 {
   // Path
-  const std::string template_path = template_package_path_ + "launch/ompl_planner.launch";
+  const std::string template_path = appendPaths( template_package_path_, "launch/ompl_planner.launch" );
 
   // Only generate this file if it does not exist. This allows user to customize the urdf launch part
   if( fs::is_regular_file( file_path ) )
@@ -479,7 +468,7 @@ bool MoveItConfigData::outputPlanningContextLaunch( const std::string& file_path
                                                     const std::string& new_package_name )
 {
   // Path
-  const std::string template_path = template_package_path_ + "launch/planning_context.launch";
+  const std::string template_path = appendPaths( template_package_path_, "launch/planning_context.launch" );
 
   // Use generic template copy function
   return copyTemplate( template_path, file_path, new_package_name );
@@ -512,7 +501,7 @@ bool MoveItConfigData::outputSetupAssistantLaunch( const std::string& file_path,
                                                    const std::string& new_package_name )
 {
   // Path - named differently so that it doesn't interefere with Setup Assistant's normal launch file
-  const std::string template_path = template_package_path_ + "launch/edit_configuration_package.launch";
+  const std::string template_path = appendPaths( template_package_path_, "launch/edit_configuration_package.launch" );
 
   // Use generic template copy function
   return copyTemplate( template_path, file_path, new_package_name );
@@ -525,7 +514,7 @@ bool MoveItConfigData::outputMoveItVisualizerLaunch( const std::string& file_pat
                                                      const std::string& new_package_name )
 {
   // Path 
-  const std::string template_path = template_package_path_ + "launch/moveit_visualizer.launch";
+  const std::string template_path = appendPaths( template_package_path_, "launch/moveit_visualizer.launch" );
 
   // Use generic template copy function
   return copyTemplate( template_path, file_path, new_package_name );
@@ -701,6 +690,16 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
   }
 
   return false; // if it gets to this point an error has occured
+}
+
+// ******************************************************************************************
+// Helper Function for joining a file path and a file name, or two file paths, etc, in a cross-platform way
+// ******************************************************************************************
+std::string MoveItConfigData::appendPaths( const std::string &path1, const std::string &path2 )
+{
+  fs::path result = path1;
+  result /= path2;
+  return result.make_preferred().native().c_str();
 }
 
 
