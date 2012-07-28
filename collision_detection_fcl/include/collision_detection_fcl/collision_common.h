@@ -216,11 +216,8 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 inline void transform2fcl(const Eigen::Affine3d &b, fcl::SimpleTransform &f)
 {
   Eigen::Quaterniond q(b.rotation());
-  //std::cout << "       a" << std::endl;
   f.setTranslation(fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
-  //std::cout << "       b" << std::endl;
   f.setQuatRotation(fcl::SimpleQuaternion(q.w(), q.x(), q.y(), q.z()));
-  //std::cout << "       transform2fcl end" << std::endl;
 }
 
 inline fcl::SimpleTransform transform2fcl(const Eigen::Affine3d &b)
@@ -241,6 +238,19 @@ inline void fcl2contact(const fcl::Contact &fc, Contact &c)
   const CollisionGeometryData *cgd2 = static_cast<const CollisionGeometryData*>(fc.o2->getUserData());
   c.body_name_2 = cgd2->getID();
   c.body_type_2 = cgd2->type;
+}
+
+inline void fcl2costsource(const fcl::CostSource &fcs, CostSource& cs)
+{
+  cs.aabb_min[0] = fcs.aabb_min[0];
+  cs.aabb_min[1] = fcs.aabb_min[1];
+  cs.aabb_min[2] = fcs.aabb_min[2];
+
+  cs.aabb_max[0] = fcs.aabb_max[0];
+  cs.aabb_max[1] = fcs.aabb_max[1];
+  cs.aabb_max[2] = fcs.aabb_max[2];
+  
+  cs.cost = fcs.cost_density;
 }
 
 }

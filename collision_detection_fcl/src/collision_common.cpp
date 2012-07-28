@@ -149,10 +149,12 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   if (dcf)
   {
     // if we have a decider for allowed contacts, we need to look at all the contacts
+    bool enable_cost = cdata->req_->cost;
+    bool num_max_cost_sources = cdata->req_->max_cost_sources;
     bool exhaustive = true;
     bool enable_contact = true;
     fcl::CollisionResult col_result;
-    int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(exhaustive, std::numeric_limits<int>::max(), enable_contact), col_result);
+    int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(exhaustive, std::numeric_limits<size_t>::max(), enable_contact, enable_cost, num_max_cost_sources), col_result);
     if (num_contacts > 0)
     {
       if (cdata->req_->verbose)
@@ -178,7 +180,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
                              cd1->getID().c_str(), cd2->getID().c_str());  
             else
               ROS_DEBUG_NAMED("contact_information", "Found unacceptable contact between '%s' and '%s'. Contact was stored.",
-                             cd1->getID().c_str(), cd2->getID().c_str());  
+                              cd1->getID().c_str(), cd2->getID().c_str());  
 
           }
           else
@@ -197,16 +199,32 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         }
       }
     }
+
+    if(enable_cost)
+    {
+      std::vector<fcl::CostSource> cost_sources;
+      col_result.getCostSources(cost_sources);
+      
+      CostSource cs;
+      for(std::size_t i = 0; i < cost_sources.size(); ++i)
+      {
+        fcl2costsource(cost_sources[i], cs);
+        cdata->res_->cost_sources.insert(cs);
+      }
+    }
   }
   else
   {
     if (want_contact_count > 0)
     {
       // otherwise, we need to compute more things
-      bool exhaustive = false;
+      bool enable_cost = cdata->req_->cost;
+      bool num_max_cost_sources = cdata->req_->max_cost_sources;
+      bool exhaustive = enable_cost; // when cost, must be exhaustive, otherwise not exhaustive
       bool enable_contact = true;
+      
       fcl::CollisionResult col_result;
-      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(exhaustive, (int)want_contact_count, enable_contact), col_result);
+      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(exhaustive, want_contact_count, enable_contact, enable_cost, num_max_cost_sources), col_result);
       if (num_contacts > 0)
       {
         // make sure we don't get more contacts than we want
@@ -241,13 +259,28 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
           cdata->res_->contact_count++;
         }
       }
+
+      if(enable_cost)
+      {
+        std::vector<fcl::CostSource> cost_sources;
+        col_result.getCostSources(cost_sources);
+      
+        CostSource cs;
+        for(std::size_t i = 0; i < cost_sources.size(); ++i)
+        {
+          fcl2costsource(cost_sources[i], cs);
+          cdata->res_->cost_sources.insert(cs);
+        }
+      }
     }
     else
     {
-      bool exhaustive = false;
+      bool enable_cost = cdata->req_->cost;
+      bool num_max_cost_sources = cdata->req_->max_cost_sources;
+      bool exhaustive = enable_cost; // when cost, must be exhaustive, otherwise not exhaustive
       bool enable_contact = false;
       fcl::CollisionResult col_result;
-      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(exhaustive, 1, enable_contact), col_result);
+      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(exhaustive, 1, enable_contact, enable_cost, num_max_cost_sources), col_result);
       if (num_contacts > 0)
       {
         cdata->res_->collision = true;
@@ -259,13 +292,27 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
                           cd1->getID().c_str(), cd2->getID().c_str());
           
       }
+
+      if(enable_cost)
+      {
+        std::vector<fcl::CostSource> cost_sources;
+        col_result.getCostSources(cost_sources);
+      
+        CostSource cs;
+        for(std::size_t i = 0; i < cost_sources.size(); ++i)
+        {
+          fcl2costsource(cost_sources[i], cs);
+          cdata->res_->cost_sources.insert(cs);
+        }
+      }      
     }
   }
   
   if (cdata->res_->collision)
     if (!cdata->req_->contacts || cdata->res_->contact_count >= cdata->req_->max_contacts)
     {
-      cdata->done_ = true;
+      if(!cdata->req_->cost)
+        cdata->done_ = true;
       if (cdata->req_->verbose) 
         ROS_INFO_NAMED("contact_information", "Collision checking is considered complete (collision was found and %d contacts are stored)",
                        (unsigned int)cdata->res_->contact_count);
