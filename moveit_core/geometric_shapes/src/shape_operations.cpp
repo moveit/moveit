@@ -65,6 +65,7 @@ namespace shapes
 
 namespace detail
 {
+
 struct myVertex
 {
   Eigen::Vector3d point;
@@ -343,22 +344,34 @@ Shape* constructShapeFromMsg(const shape_msgs::SolidPrimitive &shape_msg)
   Shape *shape = NULL;
   if (shape_msg.type == shape_msgs::SolidPrimitive::SPHERE)
   {
-    shape = new Sphere(shape_msg.dimensions.x / 2.0);
+    if (shape_msg.dimensions.size() > shape_msgs::SolidPrimitive::SPHERE_RADIUS)
+      shape = new Sphere(shape_msg.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS]);
   }
   else
     if (shape_msg.type == shape_msgs::SolidPrimitive::BOX)
     {
-      shape = new Box(shape_msg.dimensions.x, shape_msg.dimensions.y, shape_msg.dimensions.z);
+      if (shape_msg.dimensions.size() > shape_msgs::SolidPrimitive::BOX_X &&
+          shape_msg.dimensions.size() > shape_msgs::SolidPrimitive::BOX_Y &&
+          shape_msg.dimensions.size() > shape_msgs::SolidPrimitive::BOX_Z)
+        shape = new Box(shape_msg.dimensions[shape_msgs::SolidPrimitive::BOX_X],
+                        shape_msg.dimensions[shape_msgs::SolidPrimitive::BOX_Y],
+                        shape_msg.dimensions[shape_msgs::SolidPrimitive::BOX_Z]);
     }
     else
       if (shape_msg.type == shape_msgs::SolidPrimitive::CYLINDER)
-      {
-        shape = new Cylinder(shape_msg.dimensions.x / 2.0, shape_msg.dimensions.z);
+      {    
+        if (shape_msg.dimensions.size() > shape_msgs::SolidPrimitive::CYLINDER_RADIUS && 
+            shape_msg.dimensions.size() > shape_msgs::SolidPrimitive::CYLINDER_HEIGHT)
+          shape = new Cylinder(shape_msg.dimensions[shape_msgs::SolidPrimitive::CYLINDER_RADIUS],
+                               shape_msg.dimensions[shape_msgs::SolidPrimitive::CYLINDER_HEIGHT]);
       }
       else
         if (shape_msg.type == shape_msgs::SolidPrimitive::CONE)
         {
-          shape = new Cone(shape_msg.dimensions.x / 2.0, shape_msg.dimensions.z);
+          if (shape_msg.dimensions.size() > shape_msgs::SolidPrimitive::CONE_RADIUS && 
+              shape_msg.dimensions.size() > shape_msgs::SolidPrimitive::CONE_HEIGHT)
+            shape = new Cone(shape_msg.dimensions[shape_msgs::SolidPrimitive::CONE_RADIUS],
+                             shape_msg.dimensions[shape_msgs::SolidPrimitive::CONE_HEIGHT]);
         }
   if (shape == NULL)
     ROS_ERROR("Unable to construct shape corresponding to shape_msgect of type %d", (int)shape_msg.type);
@@ -491,8 +504,8 @@ bool constructMsgFromShape(const Shape* shape, ShapeMsg &shape_msg)
   {
     shape_msgs::SolidPrimitive s;
     s.type = shape_msgs::SolidPrimitive::SPHERE;
-    s.dimensions.x = static_cast<const Sphere*>(shape)->radius * 2.0;
-    s.dimensions.y = s.dimensions.z = 0.0;
+    s.dimensions.resize(SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);
+    s.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = static_cast<const Sphere*>(shape)->radius;
     shape_msg = s;
   }
   else
@@ -501,19 +514,20 @@ bool constructMsgFromShape(const Shape* shape, ShapeMsg &shape_msg)
       shape_msgs::SolidPrimitive s;
       s.type = shape_msgs::SolidPrimitive::BOX;
       const double* sz = static_cast<const Box*>(shape)->size;
-      s.dimensions.x = sz[0];
-      s.dimensions.y = sz[1];
-      s.dimensions.z = sz[2]; 
+      s.dimensions.resize(SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
+      s.dimensions[shape_msgs::SolidPrimitive::BOX_X] = sz[0];
+      s.dimensions[shape_msgs::SolidPrimitive::BOX_Y] = sz[1];
+      s.dimensions[shape_msgs::SolidPrimitive::BOX_Z] = sz[2];
       shape_msg = s;
     }
     else
       if (shape->type == CYLINDER)
       { 
         shape_msgs::SolidPrimitive s;
-        s.type = shape_msgs::SolidPrimitive::CYLINDER;
-        s.dimensions.x = static_cast<const Cylinder*>(shape)->radius * 2.0;
-        s.dimensions.y = 0.0;
-        s.dimensions.z = static_cast<const Cylinder*>(shape)->length;
+        s.type = shape_msgs::SolidPrimitive::CYLINDER;  
+        s.dimensions.resize(SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::CYLINDER>::value);
+        s.dimensions[shape_msgs::SolidPrimitive::CYLINDER_RADIUS] = static_cast<const Cylinder*>(shape)->radius;
+        s.dimensions[shape_msgs::SolidPrimitive::CYLINDER_HEIGHT] = static_cast<const Cylinder*>(shape)->length;
         shape_msg = s;
       }
       else
@@ -521,9 +535,9 @@ bool constructMsgFromShape(const Shape* shape, ShapeMsg &shape_msg)
         {   
           shape_msgs::SolidPrimitive s;
           s.type = shape_msgs::SolidPrimitive::CONE;
-          s.dimensions.x = static_cast<const Cone*>(shape)->radius * 2.0; 
-          s.dimensions.y = 0.0;
-          s.dimensions.z = static_cast<const Cone*>(shape)->length;      
+          s.dimensions.resize(SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::CONE>::value);
+          s.dimensions[shape_msgs::SolidPrimitive::CONE_RADIUS] = static_cast<const Cone*>(shape)->radius;
+          s.dimensions[shape_msgs::SolidPrimitive::CONE_HEIGHT] = static_cast<const Cone*>(shape)->length;
           shape_msg = s;
         }
         else

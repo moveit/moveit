@@ -145,8 +145,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     pcm.constraint_region.primitives.resize(1);
     shape_msgs::SolidPrimitive &bv = pcm.constraint_region.primitives[0];
     bv.type = shape_msgs::SolidPrimitive::SPHERE;
-    bv.dimensions.x = tolerance_pos * 2.0;
-    bv.dimensions.y = bv.dimensions.z = 0.0;
+    bv.dimensions.resize(shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);
+    bv.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = tolerance_pos;
     
     pcm.header = pose.header;
     pcm.constraint_region.primitive_poses.resize(1);
@@ -198,9 +198,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     pcm.target_point_offset.z = 0;
     pcm.constraint_region.primitives.resize(1);
     pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
-    pcm.constraint_region.primitives[0].dimensions.x = tolerance * 2.0;
-    pcm.constraint_region.primitives[0].dimensions.y = 0.0;
-    pcm.constraint_region.primitives[0].dimensions.z = 0.0;
+    pcm.constraint_region.primitives[0].dimensions.resize(shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);  
+    pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = tolerance;
     
     pcm.header = point.header;
     pcm.constraint_region.primitive_poses.resize(1);
