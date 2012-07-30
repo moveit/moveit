@@ -699,9 +699,9 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   unsigned int off1;
   unsigned int off2;
 
+  /* compute bounding cylinder */
   double cyl_length;
   double maxdist = -std::numeric_limits<double>::infinity();
-
   if (xdim > ydim && xdim > zdim)
   {
     off1 = 1;
@@ -727,19 +727,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     cyl_length = zdim;
   }
 
-  // Eigen::Vector3d *vertices = new Eigen::Vector3d[mesh->vertex_count];
-  // for(unsigned int i = 0; i < mesh->vertex_count ; ++i)
-  // {
-  //   vertices[i].setX(mesh->vertices[3 * i    ]);
-  //   vertices[i].setY(mesh->vertices[3 * i + 1]);
-  //   vertices[i].setZ(mesh->vertices[3 * i + 2]);
-
-  //   double dista = mesh->vertices[3 * i + off1]-pose1;
-  //   double distb = mesh->vertices[3 * i + off2]-pose2;
-  //   double dist = sqrt(((dista*dista)+(distb*distb)));
-  //   if(dist > maxdist)
-  //     maxdist = dist;
-  // }
+  /* compute convex hull */
   coordT *points = (coordT *)calloc(mesh->vertex_count*3, sizeof(coordT));
   for(unsigned int i = 0; i < mesh->vertex_count ; ++i)
   {
@@ -772,7 +760,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   int num_facets = qh num_facets;
   
   int num_vertices = qh num_vertices;
-  //ROS_INFO_STREAM("Facets " << num_facets << " vertices " << num_vertices);
+  ROS_INFO_STREAM("Facets " << num_facets << " vertices " << num_vertices);
   mesh_data_->vertices_.reserve(num_vertices);
   Eigen::Vector3d sum(0, 0, 0);
 
@@ -804,54 +792,18 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   {
     Eigen::Vector4f planeEquation(facet->normal[0], facet->normal[1], facet->normal[2], facet->offset);
     mesh_data_->planes_.push_back(planeEquation);
+
+    // Needed by FOREACHvertex_i_
+    int vertex_n, vertex_i;
+    FOREACHvertex_i_ ((*facet).vertices)
+    {
+      mesh_data_->triangles_.push_back(vertex->id);
+    }
+
   }
   qh_freeqhull(!qh_ALL);
   int curlong, totlong;
   qh_memfreeshort (&curlong, &totlong);
-  //   for (unsigned int j = 0 ; j < hr.mNumFaces ; ++j)
-  //   {
-  //     const Eigen::Vector3d &p1 = hr.m_OutputVertices[hr.m_Indices[j * 3    ]];
-  //     const Eigen::Vector3d &p2 = hr.m_OutputVertices[hr.m_Indices[j * 3 + 1]];
-  //     const Eigen::Vector3d &p3 = hr.m_OutputVertices[hr.m_Indices[j * 3 + 2]];
-
-  //     Eigen::Vector3d edge1 = (p2 - p1);
-  //     Eigen::Vector3d edge2 = (p3 - p1);
-
-  //     edge1.normalize();
-  //     edge2.normalize();
-
-  //     Eigen::Vector3d planeNormal = edge1.cross(edge2);
-
-  //     if (planeNormal.squaredNorm() > btScalar(1e-6))
-  //     {
-  //       planeNormal.normalize();
-  //       btVector4 planeEquation(planeNormal.getX(), planeNormal.getY(), planeNormal.getZ(), -planeNormal.dot(p1));
-
-  //       unsigned int behindPlane = countVerticesBehindPlane(planeEquation);
-  //       if (behindPlane > 0)
-  //       {
-  //         btVector4 planeEquation2(-planeEquation.getX(), -planeEquation.getY(), -planeEquation.getZ(), -planeEquation.getW());
-  //         unsigned int behindPlane2 = countVerticesBehindPlane(planeEquation2);
-  //         if (behindPlane2 < behindPlane)
-  //         {
-  //           planeEquation.setValue(planeEquation2.getX(), planeEquation2.getY(), planeEquation2.getZ(), planeEquation2.getW());
-  //           behindPlane = behindPlane2;
-  //         }
-  //       }
-
-  //       if (behindPlane > 0)
-  //         ROS_DEBUG("Approximate plane: %d of %d points are behind the plane", behindPlane, (int)mesh_data_->vertices_.size());
-
-  //       mesh_data_->planes_.push_back(planeEquation);
-
-  //       mesh_data_->triangles_.push_back(hr.m_Indices[j * 3 + 0]);
-  //       mesh_data_->triangles_.push_back(hr.m_Indices[j * 3 + 1]);
-  //       mesh_data_->triangles_.push_back(hr.m_Indices[j * 3 + 2]);
-  //     }
-  //   }
-  // }
-  // else
-  //   ROS_ERROR("Unable to compute convex hull.");    
 }
 
 std::vector<double> bodies::ConvexMesh::getDimensions(void) const
