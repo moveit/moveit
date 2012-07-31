@@ -115,9 +115,9 @@ bool PlaceGeneratorDummy::generatePlaceLocations(const planning_scene::PlanningS
     
   } 
 
-  double l = sup.primitives[0].dimensions.x-xex;
-  double w = sup.primitives[0].dimensions.y-yex;
-  double d = sup.primitives[0].dimensions.z/2.0;//+zex/2.0;
+  double l = sup.primitives[0].dimensions[0]-xex;
+  double w = sup.primitives[0].dimensions[1]-yex;
+  double d = sup.primitives[0].dimensions[2]/2.0;//+zex/2.0;
 
   double spacing = .1;
 
