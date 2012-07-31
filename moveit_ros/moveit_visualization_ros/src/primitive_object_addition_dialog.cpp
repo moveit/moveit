@@ -143,16 +143,19 @@ void PrimitiveObjectAdditionDialog::createObjectConfirmedPressed() {
   std::string object_type = collision_object_type_box_->currentText().toStdString();
   if(object_type == "Box") {
     coll.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-    coll.primitives[0].dimensions.x = (float)collision_object_scale_x_box_->value() / 100.0f;
-    coll.primitives[0].dimensions.y = (float)collision_object_scale_y_box_->value() / 100.0f;
-    coll.primitives[0].dimensions.z = (float)collision_object_scale_z_box_->value() / 100.0f;
+    coll.primitives[0].dimensions.resize(3);
+    coll.primitives[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
+    coll.primitives[0].dimensions[1] = (float)collision_object_scale_y_box_->value() / 100.0f;
+    coll.primitives[0].dimensions[2] = (float)collision_object_scale_z_box_->value() / 100.0f;
   } else if (object_type == "Cylinder") {
     coll.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
-    coll.primitives[0].dimensions.x = (float)collision_object_scale_x_box_->value() / 100.0f;
-    coll.primitives[0].dimensions.z = (float)collision_object_scale_z_box_->value() / 100.0f;
+    coll.primitives[0].dimensions.resize(2);
+    coll.primitives[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
+    coll.primitives[0].dimensions[1] = (float)collision_object_scale_z_box_->value() / 100.0f;
   } else if (object_type == "Sphere") {
     coll.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
-    coll.primitives[0].dimensions.x = (float)collision_object_scale_x_box_->value() / 100.0f;
+    coll.primitives[0].dimensions.resize(1);
+    coll.primitives[0].dimensions[0] = (float)collision_object_scale_x_box_->value() / 100.0f;
   }
 
   coll.primitive_poses.resize(1);
