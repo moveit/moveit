@@ -64,7 +64,8 @@ void InteractiveObjectVisualization::addCube(const std::string& name) {
 
   shape_msgs::SolidPrimitive shape;
   shape.type = shape_msgs::SolidPrimitive::BOX;
-  shape.dimensions.x = shape.dimensions.y = shape.dimensions.z = DEFAULT_SCALE;
+  shape.dimensions.resize(3);
+  shape.dimensions[0] = shape.dimensions[1] = shape.dimensions[2] = DEFAULT_SCALE;
 
   moveit_msgs::CollisionObject coll;
   coll.id = name_to_pass;
@@ -87,8 +88,8 @@ void InteractiveObjectVisualization::addSphere(const std::string& name) {
 
   shape_msgs::SolidPrimitive shape;
   shape.type = shape_msgs::SolidPrimitive::SPHERE;
-  shape.dimensions.x = DEFAULT_SCALE;
-  shape.dimensions.y = shape.dimensions.z = 0.0;
+  shape.dimensions.resize(1);
+  shape.dimensions[0] = DEFAULT_SCALE;
   
   moveit_msgs::CollisionObject coll;
   coll.id = name_to_pass;
@@ -111,9 +112,9 @@ void InteractiveObjectVisualization::addCylinder(const std::string& name) {
 
   shape_msgs::SolidPrimitive shape;
   shape.type = shape_msgs::SolidPrimitive::CYLINDER;
-  shape.dimensions.x = DEFAULT_SCALE;
-  shape.dimensions.y = 0.0;
-  shape.dimensions.z = DEFAULT_SCALE;
+  shape.dimensions.resize(2);
+  shape.dimensions[0] = DEFAULT_SCALE;
+  shape.dimensions[1] = DEFAULT_SCALE;
 
   moveit_msgs::CollisionObject coll;
   coll.id = name_to_pass;
@@ -300,14 +301,14 @@ void InteractiveObjectVisualization::growObject(const std::string& name,
     {
       shape = boost::get<shape_msgs::SolidPrimitive>(shape_variant);
       if(shape.type == shape_msgs::SolidPrimitive::BOX) {
-        shape.dimensions.x += fabs(diff.translation().x());
-        shape.dimensions.y += fabs(diff.translation().y());
-        shape.dimensions.z += fabs(diff.translation().z());
+        shape.dimensions[0] += fabs(diff.translation().x());
+        shape.dimensions[1] += fabs(diff.translation().y());
+        shape.dimensions[2] += fabs(diff.translation().z());
       } else if(shape.type == shape_msgs::SolidPrimitive::CYLINDER) {
-        shape.dimensions.x += 2.0 * fmax(fabs(diff.translation().x()), fabs(diff.translation().y()));
-        shape.dimensions.z += fabs(diff.translation().z());
+        shape.dimensions[0] += 2.0 * fmax(fabs(diff.translation().x()), fabs(diff.translation().y()));
+        shape.dimensions[1] += fabs(diff.translation().z());
       } else if(shape.type == shape_msgs::SolidPrimitive::SPHERE) {
-        shape.dimensions.x += 2.0 * fmax(fmax(fabs(diff.translation().x()), fabs(diff.translation().y())), fabs(diff.translation().z()));
+        shape.dimensions[0] += 2.0 * fmax(fmax(fabs(diff.translation().x()), fabs(diff.translation().y())), fabs(diff.translation().z()));
       }
     }
     
@@ -372,23 +373,23 @@ void InteractiveObjectVisualization::shrinkObject(const std::string& name,
       shape = boost::get<shape_msgs::SolidPrimitive>(shape_variant);
 
       if(shape.type == shape_msgs::SolidPrimitive::BOX) {
-        diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions.x+MIN_DIMENSION);
-        diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions.y+MIN_DIMENSION);
-        diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions.z+MIN_DIMENSION);
-        shape.dimensions.x += diff.translation().x();
-        shape.dimensions.y += diff.translation().y();
-        shape.dimensions.z += diff.translation().z();
+        diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
+        diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[1]+MIN_DIMENSION);
+        diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[2]+MIN_DIMENSION);
+        shape.dimensions[0] += diff.translation().x();
+        shape.dimensions[1] += diff.translation().y();
+        shape.dimensions[2] += diff.translation().z();
       } else if(shape.type == shape_msgs::SolidPrimitive::CYLINDER) {
-        diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions.x+MIN_DIMENSION);
-        diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions.x+MIN_DIMENSION);
-        diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions.z+MIN_DIMENSION);
-        shape.dimensions.x += 2.0*fmin(diff.translation().x(), diff.translation().y());
-        shape.dimensions.z += diff.translation().z();
+        diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
+        diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[0]+MIN_DIMENSION);
+        diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[1]+MIN_DIMENSION);
+        shape.dimensions[0] += 2.0*fmin(diff.translation().x(), diff.translation().y());
+        shape.dimensions[1] += diff.translation().z();
       } else if(shape.type == shape_msgs::SolidPrimitive::SPHERE) {
-        diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions.x+MIN_DIMENSION);
-        diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions.x+MIN_DIMENSION);
-        diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions.x+MIN_DIMENSION);
-        shape.dimensions.x += 2.0*fmin(fmin(diff.translation().x(), diff.translation().y()), diff.translation().z());
+        diff.translation().x() = fmax(diff.translation().x(), -shape.dimensions[0]+MIN_DIMENSION);
+        diff.translation().y() = fmax(diff.translation().y(), -shape.dimensions[0]+MIN_DIMENSION);
+        diff.translation().z() = fmax(diff.translation().z(), -shape.dimensions[0]+MIN_DIMENSION);
+        shape.dimensions[0] += 2.0*fmin(fmin(diff.translation().x(), diff.translation().y()), diff.translation().z());
       }
     }
     
@@ -723,7 +724,7 @@ void InteractiveObjectVisualization::makeInteractiveMarkerButton(const moveit_ms
                                  "/"+planning_scene_->getPlanningFrame(),
                                  coll.primitive_poses,
                                  color_to_use,
-                                 coll.primitives[0].dimensions.x*scale,
+                                 coll.primitives[0].dimensions[0]*scale,
                                  false,
                                  false);
     ROS_INFO_STREAM("Made button mass");
@@ -760,22 +761,22 @@ void InteractiveObjectVisualization::makeInteractiveMarkerButton(const moveit_ms
       if(shape_msg.type == shape_msgs::SolidPrimitive::BOX) {
         marker = makeButtonBox(coll.id,
                                pose_stamped,
-                               shape_msg.dimensions.x*scale,
-                               shape_msg.dimensions.y*scale,
-                               shape_msg.dimensions.z*scale,
+                               shape_msg.dimensions[0]*scale,
+                               shape_msg.dimensions[1]*scale,
+                               shape_msg.dimensions[2]*scale,
                                false, 
                                false);
       } else if(shape_msg.type == shape_msgs::SolidPrimitive::CYLINDER) { 
         marker = makeButtonCylinder(coll.id,
                                     pose_stamped,
-                                    shape_msg.dimensions.x*scale,
-                                    shape_msg.dimensions.z*scale,
+                                    shape_msg.dimensions[0]*scale,
+                                    shape_msg.dimensions[1]*scale,
                                     false, 
                                     false);
       } else if(shape_msg.type == shape_msgs::SolidPrimitive::SPHERE) {
         marker = makeButtonSphere(coll.id,
                                   pose_stamped,
-                                  shape_msg.dimensions.x*scale,
+                                  shape_msg.dimensions[0]*scale,
                                   false, 
                                   false);
       }
