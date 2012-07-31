@@ -30,7 +30,8 @@ void make_filtered_marker_array(const OccMapTreeConstPtr &tree, const ros::Time 
       cube_center.x = x;
       cube_center.y = y;
       cube_center.z = z;
-
+      marker_arr.markers[idx].pose.orientation.w = 1.0;
+      
       marker_arr.markers[idx].points.push_back(cube_center);
     }
   }

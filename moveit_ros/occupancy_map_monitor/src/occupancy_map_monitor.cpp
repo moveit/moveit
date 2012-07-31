@@ -44,81 +44,85 @@
 namespace occupancy_map_monitor
 {
 
+
   OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf) :
     nh_("~")
   {
     double map_resolution;
 
     /* load params from param server */
-    nh_.param<std::string>("map_frame", map_frame_, "base_link");
+    nh_.param<std::string>("map_frame", map_frame_, "base_link"); /// \todo CAN't USE pr2 stuff
     nh_.param<double>("map_resolution", map_resolution, 0.1);
 
     tree_.reset(new octomap::OcTree(map_resolution));
 
     XmlRpc::XmlRpcValue sensor_list;
-    nh_.getParam("sensors", sensor_list);
-    ROS_ASSERT(sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
-    for (int32_t i = 0; i < sensor_list.size(); ++i)
+    if (nh_.getParam("sensors", sensor_list))
     {
-      ROS_ASSERT(sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-      ROS_ASSERT(sensor_list[i].hasMember ("sensor_type"));
-      std::string sensor_type = std::string (sensor_list[i]["sensor_type"]);
-
-      if(sensor_type == "point_cloud_sensor")
+      ROS_ASSERT(sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+      for (int32_t i = 0; i < sensor_list.size(); ++i)
       {
-        ROS_ASSERT(sensor_list[i].hasMember("point_cloud_topic"));
-        std::string point_cloud_topic = std::string (sensor_list[i]["point_cloud_topic"]);
-
-        ROS_ASSERT(sensor_list[i].hasMember("max_range"));
-        double max_range = double (sensor_list[i]["max_range"]);
-
-        ROS_ASSERT(sensor_list[i].hasMember("frame_subsample"));
-        size_t frame_subsample = int (sensor_list[i]["frame_subsample"]);
-
-        ROS_ASSERT(sensor_list[i].hasMember("point_subsample"));
-        size_t point_subsample = int (sensor_list[i]["point_subsample"]);
-
-        boost::shared_ptr<OccupancyMapUpdater> up = boost::make_shared<PointCloudOccupancyMapUpdater>(
-              tf, map_frame_, point_cloud_topic, max_range, frame_subsample, point_subsample);
-        up->setNotifyFunction(boost::bind(&OccupancyMapMonitor::updateReady, this));
-        map_updaters_.push_back(up);
-      }
-      else
-      {
-        ROS_ERROR_STREAM("Ignoring unknown sensor type" << sensor_type << "in occupancy map params");
+        ROS_ASSERT(sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
+        ROS_ASSERT(sensor_list[i].hasMember ("sensor_type"));
+        std::string sensor_type = std::string (sensor_list[i]["sensor_type"]);
+        
+        if(sensor_type == "point_cloud_sensor")
+        {
+          ROS_ASSERT(sensor_list[i].hasMember("point_cloud_topic"));
+          std::string point_cloud_topic = std::string (sensor_list[i]["point_cloud_topic"]);
+          
+          ROS_ASSERT(sensor_list[i].hasMember("max_range"));
+          double max_range = double (sensor_list[i]["max_range"]);
+          
+          ROS_ASSERT(sensor_list[i].hasMember("frame_subsample"));
+          size_t frame_subsample = int (sensor_list[i]["frame_subsample"]);
+          
+          ROS_ASSERT(sensor_list[i].hasMember("point_subsample"));
+          size_t point_subsample = int (sensor_list[i]["point_subsample"]);
+          
+          boost::shared_ptr<OccupancyMapUpdater> up(new PointCloudOccupancyMapUpdater(tf, map_frame_, point_cloud_topic, max_range, frame_subsample, point_subsample));
+          up->setNotifyFunction(boost::bind(&OccupancyMapMonitor::updateReady, this, _1));
+          map_updaters_.push_back(up);
+        }
+        else
+        {
+          ROS_ERROR_STREAM("Ignoring unknown sensor type" << sensor_type << "in occupancy map params");
+        }
       }
     }
-
+    
     occupied_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("occupied_cells", 1);
     free_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("free_cells", 1);
   }
 
   void OccupancyMapMonitor::treeUpdateThread(void)
   {
-    ros::Rate r(100);
-    while (ros::ok())
+    std::set<OccupancyMapUpdater*> ready;
+    while (tree_update_thread_)
     {
-      boost::mutex::scoped_lock update_lock(update_mut_);
-      if(update_cond_.timed_wait(update_lock, boost::posix_time::milliseconds(100)))
       {
-        /* run any occupancy map updater which is ready */
-        std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
-        for (it = map_updaters_.begin(); it != map_updaters_.end(); it++)
-        {
-          if((*it)->isUpdateReady())
-          {
-            ROS_DEBUG("Calling updater");
-            boost::lock_guard<boost::mutex> _lock(tree_mutex_);
-            (*it)->process(tree_);
-          }
-        }
+        boost::mutex::scoped_lock update_lock(update_mut_);
+        if (update_cond_.timed_wait(update_lock, boost::posix_time::milliseconds(100)))
+          updates_available_.swap(ready);        
       }
+
+      for (std::set<OccupancyMapUpdater*>::iterator it = ready.begin() ; it != ready.end() ; ++it)
+      {
+        ROS_DEBUG("Calling updater");
+        boost::lock_guard<boost::mutex> _lock(tree_mutex_);
+        (*it)->process(tree_);
+      }
+      ready.clear();
       publish_markers();
     }
   }
 
-  void OccupancyMapMonitor::updateReady(void)
-  {
+  void OccupancyMapMonitor::updateReady(OccupancyMapUpdater *updater)
+  { 
+    {
+      boost::mutex::scoped_lock update_lock(update_mut_);
+      updates_available_.insert(updater);
+    }
     update_cond_.notify_all();
   }
 
@@ -152,17 +156,30 @@ namespace occupancy_map_monitor
 
   void OccupancyMapMonitor::startMonitor()
   {
-    /* initialize all of the occupancy map updaters */
-    std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
-    for (it = map_updaters_.begin(); it != map_updaters_.end(); it++)
-      (*it)->initialize();
-
-    /* start a dedicated thread for updating the occupancy map */
-    tree_update_thread_ = boost::thread(&OccupancyMapMonitor::treeUpdateThread, this);
-
+    if (!tree_update_thread_)
+    {
+      /* initialize all of the occupancy map updaters */
+      std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
+      for (it = map_updaters_.begin(); it != map_updaters_.end(); it++)
+        (*it)->initialize();
+      
+      /* start a dedicated thread for updating the occupancy map */
+      tree_update_thread_.reset(new boost::thread(&OccupancyMapMonitor::treeUpdateThread, this));
+    }
   }
+
+void OccupancyMapMonitor::stopMonitor()
+{ 
+  if (tree_update_thread_)
+  {
+    boost::thread *copy = tree_update_thread_.get();
+    tree_update_thread_.reset();
+    copy->join();
+  }
+}
 
   OccupancyMapMonitor::~OccupancyMapMonitor(void)
   {
+    stopMonitor();
   }
 }

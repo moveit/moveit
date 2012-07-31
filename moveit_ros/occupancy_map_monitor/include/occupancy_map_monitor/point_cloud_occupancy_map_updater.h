@@ -51,18 +51,18 @@ namespace occupancy_map_monitor
   class PointCloudOccupancyMapUpdater : public OccupancyMapUpdater
   {
   public:
-    PointCloudOccupancyMapUpdater(
-      boost::shared_ptr<tf::Transformer> tf, const std::string &map_frame,
-      const std::string &point_cloud_topic, double max_range, size_t frame_subsample, size_t point_subsample);
+    PointCloudOccupancyMapUpdater(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame,
+                                  const std::string &point_cloud_topic, double max_range, size_t frame_subsample, size_t point_subsample);
     virtual ~PointCloudOccupancyMapUpdater(void);
       
     virtual void initialize(void);
     virtual void process(const OccMapTreePtr &tree);
       
-    virtual void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg);
-    virtual void processCloud(OccMapTreePtr tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg);
-      
   private:
+
+    virtual void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);
+    virtual void processCloud(const OccMapTreePtr &tree, const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);
+    
     ros::NodeHandle root_nh_;
       
     boost::shared_ptr<tf::Transformer> tf_;

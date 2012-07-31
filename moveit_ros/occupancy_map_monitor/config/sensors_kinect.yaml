@@ -1,6 +1,6 @@
 sensors:
   - sensor_type: point_cloud_sensor
-    point_cloud_topic: /camera/rgb/points
+    point_cloud_topic: /head_mount_kinect/depth_registered/points
     max_range: 5.0
     frame_subsample: 1
     point_subsample: 1

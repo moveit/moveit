@@ -45,7 +45,7 @@
 #include <tf/tf.h>
 #include <occupancy_map_monitor/occupancy_map.h>
 #include <occupancy_map_monitor/occupancy_map_updater.h>
-
+#include <set>
 
 namespace occupancy_map_monitor
 {
@@ -59,9 +59,8 @@ namespace occupancy_map_monitor
     /** @brief start the monitor (will begin updating the octomap */
     void startMonitor(void);
 
-    /** @brief tells the server an update is ready */
-    void updateReady(void);
-
+    void stopMonitor(void);
+    
     /** @brief get a pointer to the underlying octree for this monitor. lock the
      *  tree before reading or writing using this pointer */
     OccMapTreePtr getTreePtr(void);
@@ -69,21 +68,27 @@ namespace occupancy_map_monitor
     /** @brief lock the underlying octree. it will not be read or written by the
      *  monitor until unlockTree() is called */
     void lockTree(void);
+
+    /** @brief unlock the underlying octree. */
     void unlockTree(void);
-
-
+    
   private:
+
+    /** @brief tells the server an update is ready */
+    void updateReady(OccupancyMapUpdater *updater);
+
     void treeUpdateThread(void);
     void publish_markers(void);
 
     OccMapTreePtr tree_;
     boost::mutex tree_mutex_;
-    boost::thread tree_update_thread_;
+    boost::scoped_ptr<boost::thread> tree_update_thread_;
 
     std::string map_frame_;
 
     std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
-
+    std::set<OccupancyMapUpdater*> updates_available_;
+    
     boost::condition_variable update_cond_;
     boost::mutex update_mut_;
 
