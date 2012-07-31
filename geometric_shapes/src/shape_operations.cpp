@@ -66,35 +66,44 @@ namespace shapes
 namespace detail
 {
 
-struct myVertex
+/// Local representation of a vertex that knows its position in an array (used for sorting)
+struct LocalVertexType
 {
-  Eigen::Vector3d point;
+  LocalVertexType(void) : x(0.0), y(0.0), z(0.0)
+  {
+  }
+  
+  LocalVertexType(const Eigen::Vector3d &v) : x(v.x()), y(v.y()), z(v.z())
+  {
+  }
+  
+  double x,y,z;
   unsigned int index;
 };
 
-struct ltVertexValue
+/// Sorting operator by point value
+struct ltLocalVertexValue
 {
-  bool operator()(const myVertex &p1, const myVertex &p2) const
+  bool operator()(const LocalVertexType &p1, const LocalVertexType &p2) const
   {
-    const Eigen::Vector3d &v1 = p1.point;
-    const Eigen::Vector3d &v2 = p2.point;
-    if (v1.x() < v2.x())
+    if (p1.x < p2.x)
       return true;
-    if (v1.x() > v2.x())
+    if (p1.x > p2.x)
       return false;
-    if (v1.y() < v2.y())
+    if (p1.y < p2.y)
       return true;
-    if (v1.y() > v2.y())
+    if (p1.y > p2.y)
       return false;
-    if (v1.z() < v2.z())
+    if (p1.z < p2.z)
       return true;
     return false;
   }
 };
 
-struct ltVertexIndex
+/// Sorting operator by point index
+struct ltLocalVertexIndex
 {
-  bool operator()(const myVertex &p1, const myVertex &p2) const
+  bool operator()(const LocalVertexType &p1, const LocalVertexType &p2) const
   {
     return p1.index < p2.index;
   }
@@ -102,7 +111,7 @@ struct ltVertexIndex
 
 }
 
-Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &vertices, const std::vector<unsigned int> &triangles)
+Mesh* createMeshFromVertices(const EigenSTL::vector_Vector3d &vertices, const std::vector<unsigned int> &triangles)
 {
   unsigned int nt = triangles.size() / 3;
   Mesh *mesh = new Mesh(vertices.size(), nt);
@@ -129,85 +138,96 @@ Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &vertices, const
   return mesh;
 }
 
-Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &source)
+Mesh* createMeshFromVertices(const EigenSTL::vector_Vector3d &source)
 {
   if (source.size() < 3)
     return NULL;
-
-  std::set<detail::myVertex, detail::ltVertexValue> vertices;
-  std::vector<unsigned int>                         triangles;
-
-  for (unsigned int i = 0 ; i < source.size() / 3 ; ++i)
+  
+  if (source.size() % 3 != 0)
+    ROS_ERROR("The number of vertices to construct a mesh from is not divisible by 3. Probably constructed triangles will not make sense.");
+  
+  std::set<detail::LocalVertexType, detail::ltLocalVertexValue> vertices;
+  std::vector<unsigned int> triangles;
+  
+  unsigned int n = source.size() / 3;
+  for (unsigned int i = 0 ; i < n ; ++i)
   {
     // check if we have new vertices
-    detail::myVertex vt;
-
-    vt.point = source[3 * i];
-    std::set<detail::myVertex, detail::ltVertexValue>::iterator p1 = vertices.find(vt);
+    unsigned int i3 = i * 3;
+    detail::LocalVertexType vt1(source[i3]);
+    std::set<detail::LocalVertexType, detail::ltLocalVertexValue>::iterator p1 = vertices.find(vt1);
     if (p1 == vertices.end())
     {
-      vt.index = vertices.size();
-      vertices.insert(vt);
+      vt1.index = vertices.size();
+      vertices.insert(vt1);
     }
     else
-      vt.index = p1->index;
-    triangles.push_back(vt.index);
-
-    vt.point = source[3 * i + 1];
-    std::set<detail::myVertex, detail::ltVertexValue>::iterator p2 = vertices.find(vt);
+      vt1.index = p1->index;
+    triangles.push_back(vt1.index);
+    
+    detail::LocalVertexType vt2(source[++i3]);
+    std::set<detail::LocalVertexType, detail::ltLocalVertexValue>::iterator p2 = vertices.find(vt2);
     if (p2 == vertices.end())
     {
-      vt.index = vertices.size();
-      vertices.insert(vt);
+      vt2.index = vertices.size();
+      vertices.insert(vt2);
     }
     else
-      vt.index = p2->index;
-    triangles.push_back(vt.index);
-
-    vt.point = source[3 * i + 2];
-    std::set<detail::myVertex, detail::ltVertexValue>::iterator p3 = vertices.find(vt);
+      vt2.index = p2->index;
+    triangles.push_back(vt2.index);
+    
+    detail::LocalVertexType vt3(source[++i3]);
+    std::set<detail::myVertex, detail::ltVertexValue>::iterator p3 = vertices.find(vt3);
     if (p3 == vertices.end())
     {
-      vt.index = vertices.size();
-      vertices.insert(vt);
+      vt3.index = vertices.size();
+      vertices.insert(vt3);
     }
     else
-      vt.index = p3->index;
-
-    triangles.push_back(vt.index);
+      vt3.index = p3->index;
+    
+    triangles.push_back(vt3.index);
   }
 
   // sort our vertices
-  std::vector<detail::myVertex> vt;
-  vt.insert(vt.begin(), vertices.begin(), vertices.end());
-  std::sort(vt.begin(), vt.end(), detail::ltVertexIndex());
+  std::vector<detail::LocalVertexType> vt;
+  vt.insert(vt.end(), vertices.begin(), vertices.end());
+  std::sort(vt.begin(), vt.end(), detail::ltLocalVertexIndex());
 
   // copy the data to a mesh structure
   unsigned int nt = triangles.size() / 3;
 
   Mesh *mesh = new Mesh(vt.size(), nt);
   for (unsigned int i = 0 ; i < vt.size() ; ++i)
-  {
-    mesh->vertices[3 * i    ] = vt[i].point.x();
-    mesh->vertices[3 * i + 1] = vt[i].point.y();
-    mesh->vertices[3 * i + 2] = vt[i].point.z();
+  {    
+    unsigned int i3 = i * 3;
+    mesh->vertices[i3    ] = vt[i].point.x;
+    mesh->vertices[i3 + 1] = vt[i].point.y;
+    mesh->vertices[i3 + 2] = vt[i].point.z;
   }
 
   std::copy(triangles.begin(), triangles.end(), mesh->triangles);
 
   // compute normals
   for (unsigned int i = 0 ; i < nt ; ++i)
-  {
-    Eigen::Vector3d s1 = vt[triangles[i * 3    ]].point - vt[triangles[i * 3 + 1]].point;
-    Eigen::Vector3d s2 = vt[triangles[i * 3 + 1]].point - vt[triangles[i * 3 + 2]].point;
+  { 
+    unsigned int i3 = i * 3;
+    Eigen::Vector3d s1 = vt[triangles[i3    ]].point - vt[triangles[i3 + 1]].point;
+    Eigen::Vector3d s2 = vt[triangles[i3 + 1]].point - vt[triangles[i3 + 2]].point;
     Eigen::Vector3d normal = s1.cross(s2);
     normal.normalize();
-    mesh->normals[3 * i    ] = normal.x();
-    mesh->normals[3 * i + 1] = normal.y();
-    mesh->normals[3 * i + 2] = normal.z();
+    mesh->normals[i3    ] = normal.x();
+    mesh->normals[i3 + 1] = normal.y();
+    mesh->normals[i3 + 2] = normal.z();
   }
 
   return mesh;
+}
+
+Mesh* createMeshFromResource(const std::string& resource)
+{
+  static const Eigen::Vector3d one(1.0, 1.0, 1.0);
+  return createMeshFromResource(resource, one);
 }
 
 Mesh* createMeshFromResource(const std::string& resource, const Eigen::Vector3d &scale)
@@ -240,8 +260,6 @@ Mesh* createMeshFromResource(const std::string& resource, const Eigen::Vector3d 
   {
     hint = resource.substr(pos + 1);
     std::transform(hint.begin(), hint.end(), hint.begin(), ::tolower);
-    
-    // temp hack until everything is stl not stlb
     if (hint.find("stl") != std::string::npos)
       hint = "stl";
   }
@@ -261,16 +279,17 @@ Mesh* createMeshFromResource(const std::string& resource, const Eigen::Vector3d 
   return createMeshFromAsset(scene, scale, resource);
 }
 
-static void extractMeshData(const aiScene *scene, const aiNode *node, aiMatrix4x4 transform, const Eigen::Vector3d &scale,
-                            std::vector<Eigen::Vector3d> &vertices, std::vector<unsigned int> &triangles)
+static void extractMeshData(const aiScene *scene, const aiNode *node, const aiMatrix4x4 &parent_transform, const Eigen::Vector3d &scale,
+                            EigenSTL::vector_Vector3d &vertices, std::vector<unsigned int> &triangles)
 {
+  aiMatrix4x4 transform = parent_transform;
   transform *= node->mTransformation;
   for (unsigned int j = 0 ; j < node->mNumMeshes; ++j)
   {
     const aiMesh* a = scene->mMeshes[node->mMeshes[j]];
     for (unsigned int i = 0 ; i < a->mNumVertices ; ++i)
     {
-      const aiVector3D &v = transform * a->mVertices[i];
+      aiVector3D v = transform * a->mVertices[i];
       vertices.push_back(Eigen::Vector3d(v.x * scale.x(), v.y * scale.y(), v.z * scale.z()));
     }
     for (unsigned int i = 0 ; i < a->mNumFaces ; ++i)
@@ -286,6 +305,12 @@ static void extractMeshData(const aiScene *scene, const aiNode *node, aiMatrix4x
     extractMeshData(scene, node->mChildren[n], transform, scale, vertices, triangles);
 }
 
+Mesh* createMeshFromAsset(const aiScene* scene, const std::string &resource_name)
+{
+  static const Eigen::Vector3d one(1.0, 1.0, 1.0);
+  return createMeshFromAsset(scene, one, resource_name);
+}
+
 Mesh* createMeshFromAsset(const aiScene* scene, const Eigen::Vector3d &scale, const std::string &resource_name)
 {
   if (!scene->HasMeshes())
@@ -293,7 +318,7 @@ Mesh* createMeshFromAsset(const aiScene* scene, const Eigen::Vector3d &scale, co
     ROS_WARN_STREAM("Assimp reports scene in " << resource_name << " has no meshes");
     return NULL;
   }
-  std::vector<Eigen::Vector3d> vertices;
+  EigenSTL::vector_Vector3d vertices;
   std::vector<unsigned int> triangles;
   extractMeshData(scene, scene->mRootNode, aiMatrix4x4(), scale, vertices, triangles);
   if (vertices.empty())
@@ -324,7 +349,7 @@ Shape* constructShapeFromMsg(const shape_msgs::Mesh &shape_msg)
   }
   else
   {
-    std::vector<Eigen::Vector3d> vertices(shape_msg.vertices.size());
+    EigenSTL::vector_Vector3d vertices(shape_msg.vertices.size());
     std::vector<unsigned int> triangles(shape_msg.triangles.size() * 3);
     for (unsigned int i = 0 ; i < shape_msg.vertices.size() ; ++i)
       vertices[i] = Eigen::Vector3d(shape_msg.vertices[i].x, shape_msg.vertices[i].y, shape_msg.vertices[i].z);
