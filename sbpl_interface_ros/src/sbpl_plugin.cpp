@@ -32,6 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
+#include <ros/ros.h>
+
 #include <planning_interface/planning_interface.h>
 #include <planning_scene/planning_scene.h>
 #include <planning_models/kinematic_model.h>
@@ -48,6 +50,8 @@ class SBPLPlanner : public planning_interface::Planner
 public:
   void init(const planning_models::KinematicModelConstPtr& model)
   {
+    ros::NodeHandle nh;
+    display_bfs_publisher_ = nh.advertise<visualization_msgs::Marker>("planning_components_visualization", 10, true);
     sbpl_interface_.reset(new sbpl_interface::SBPLInterface(model));
   }
 
@@ -63,9 +67,10 @@ public:
              const moveit_msgs::GetMotionPlan::Request &req, 
              moveit_msgs::GetMotionPlan::Response &res) const
   {
-    return sbpl_interface_->solve(planning_scene, 
-                                  req, 
-                                  res);
+    bool solve_ok = sbpl_interface_->solve(planning_scene, 
+                                           req, 
+                                           res);
+    return solve_ok;
   }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -101,6 +106,7 @@ public:
   }
      
 private:
+  ros::Publisher display_bfs_publisher_;
   boost::shared_ptr<sbpl_interface::SBPLInterface> sbpl_interface_;
 };
 
