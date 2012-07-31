@@ -39,8 +39,9 @@ include_directories(${Boost_INCLUDE_DIR})
 
 rosbuild_add_executable(occupancy_map_server
   	src/occupancy_map_server.cpp
-    src/occupancy_map_monitor.cpp
-    src/point_cloud_occupancy_map_updater.cpp
+        src/occupancy_map_monitor.cpp
+        src/point_cloud_occupancy_map_updater.cpp
+        src/octomap_markers.cpp
     )
 target_link_libraries(occupancy_map_server ${Boost_LIBRARIES})
 target_link_libraries(occupancy_map_server ${OCTOMAP_LIBRARIES})

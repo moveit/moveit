@@ -39,11 +39,12 @@
 #include <occupancy_map_monitor/occupancy_map.h>
 #include <occupancy_map_monitor/occupancy_map_monitor.h>
 #include <occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
+#include <occupancy_map_monitor/octomap_markers.h>
 
 namespace occupancy_map_monitor
 {
 
-  OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> tf) :
+  OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf) :
     nh_("~")
   {
     double map_resolution;
@@ -65,20 +66,21 @@ namespace occupancy_map_monitor
 
       if(sensor_type == "point_cloud_sensor")
       {
-        ROS_ASSERT(sensor_list[i].hasMember ("point_cloud_topic"));
+        ROS_ASSERT(sensor_list[i].hasMember("point_cloud_topic"));
         std::string point_cloud_topic = std::string (sensor_list[i]["point_cloud_topic"]);
 
-        ROS_ASSERT(sensor_list[i].hasMember ("max_range"));
+        ROS_ASSERT(sensor_list[i].hasMember("max_range"));
         double max_range = double (sensor_list[i]["max_range"]);
 
-        ROS_ASSERT(sensor_list[i].hasMember ("frame_subsample"));
+        ROS_ASSERT(sensor_list[i].hasMember("frame_subsample"));
         size_t frame_subsample = int (sensor_list[i]["frame_subsample"]);
 
-        ROS_ASSERT(sensor_list[i].hasMember ("point_subsample"));
+        ROS_ASSERT(sensor_list[i].hasMember("point_subsample"));
         size_t point_subsample = int (sensor_list[i]["point_subsample"]);
 
         boost::shared_ptr<OccupancyMapUpdater> up = boost::make_shared<PointCloudOccupancyMapUpdater>(
               tf, map_frame_, point_cloud_topic, max_range, frame_subsample, point_subsample);
+        up->setNotifyFunction(boost::bind(&OccupancyMapMonitor::updateReady, this));
         map_updaters_.push_back(up);
       }
       else
@@ -87,7 +89,8 @@ namespace occupancy_map_monitor
       }
     }
 
-    marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("occupied_cells", 1);
+    occupied_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("occupied_cells", 1);
+    free_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("free_cells", 1);
   }
 
   void OccupancyMapMonitor::treeUpdateThread(void)
@@ -95,18 +98,28 @@ namespace occupancy_map_monitor
     ros::Rate r(100);
     while (ros::ok())
     {
-      /* run any occupancy map updater which is ready */
-      std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
-      for (it = map_updaters_.begin(); it != map_updaters_.end(); it++)
+      boost::mutex::scoped_lock update_lock(update_mut_);
+      if(update_cond_.timed_wait(update_lock, boost::posix_time::milliseconds(100)))
       {
-        boost::lock_guard<boost::mutex> _lock(tree_mutex_);
-        (*it)->process(tree_);
+        /* run any occupancy map updater which is ready */
+        std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
+        for (it = map_updaters_.begin(); it != map_updaters_.end(); it++)
+        {
+          if((*it)->isUpdateReady())
+          {
+            ROS_DEBUG("Calling updater");
+            boost::lock_guard<boost::mutex> _lock(tree_mutex_);
+            (*it)->process(tree_);
+          }
+        }
       }
-
       publish_markers();
-
-      r.sleep();
     }
+  }
+
+  void OccupancyMapMonitor::updateReady(void)
+  {
+    update_cond_.notify_all();
   }
 
   OccMapTreePtr OccupancyMapMonitor::getTreePtr()
@@ -124,67 +137,20 @@ namespace occupancy_map_monitor
     tree_mutex_.unlock();
   }
 
-
-
   void OccupancyMapMonitor::publish_markers(void)
   {
     boost::lock_guard<boost::mutex> _lock(tree_mutex_);
 
-    visualization_msgs::MarkerArray occupied_nodes_arr;
-    int tree_depth = tree_->getTreeDepth();
+    visualization_msgs::MarkerArray occupied_nodes_arr, free_nodes_arr;
 
-    /* each array stores all cubes of a different size, one for each depth level */
-    occupied_nodes_arr.markers.resize(tree_depth + 1);
+    make_occupied_cells_marker_array(tree_, ros::Time::now(), map_frame_, "occupied_cells", occupied_nodes_arr);
+    //make_free_cells_marker_array(tree_, ros::Time::now(), map_frame_, "free_cells", free_nodes_arr);
 
-    /* now, traverse all leaves in the tree */
-    for (octomap::OcTree::iterator it = tree_->begin(tree_depth), end = tree_->end(); it != end; ++it)
-    {
-      if (tree_->isNodeOccupied(*it))
-      {
-        double x = it.getX();
-        double y = it.getY();
-        double z = it.getZ();
-
-        unsigned idx = it.getDepth();
-        assert(idx < occupied_nodes_arr.markers.size());
-
-        geometry_msgs::Point cube_center;
-        cube_center.x = x;
-        cube_center.y = y;
-        cube_center.z = z;
-
-        occupied_nodes_arr.markers[idx].points.push_back(cube_center);
-      }
-    }
-
-    /* finish MarkerArray */
-    for (unsigned i = 0; i < occupied_nodes_arr.markers.size(); ++i)
-    {
-      double size = tree_->getNodeSize(i);
-
-      occupied_nodes_arr.markers[i].header.frame_id = map_frame_;
-      occupied_nodes_arr.markers[i].header.stamp = ros::Time::now();
-      occupied_nodes_arr.markers[i].ns = "occupancy_map";
-      occupied_nodes_arr.markers[i].id = i;
-      occupied_nodes_arr.markers[i].type = visualization_msgs::Marker::CUBE_LIST;
-      occupied_nodes_arr.markers[i].scale.x = size;
-      occupied_nodes_arr.markers[i].scale.y = size;
-      occupied_nodes_arr.markers[i].scale.z = size;
-      occupied_nodes_arr.markers[i].color.r = 0.0;
-      occupied_nodes_arr.markers[i].color.g = 0.0;
-      occupied_nodes_arr.markers[i].color.b = 1.0;
-      occupied_nodes_arr.markers[i].color.a = 0.5;
-
-      if (occupied_nodes_arr.markers[i].points.size() > 0)
-        occupied_nodes_arr.markers[i].action = visualization_msgs::Marker::ADD;
-      else
-        occupied_nodes_arr.markers[i].action = visualization_msgs::Marker::DELETE;
-    }
-
-    marker_pub_.publish(occupied_nodes_arr);
+    occupied_marker_pub_.publish(occupied_nodes_arr);
+    //free_marker_pub_.publish(free_nodes_arr);
   }
 
-  void OccupancyMapMonitor::run()
+  void OccupancyMapMonitor::startMonitor()
   {
     /* initialize all of the occupancy map updaters */
     std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
@@ -194,8 +160,6 @@ namespace occupancy_map_monitor
     /* start a dedicated thread for updating the occupancy map */
     tree_update_thread_ = boost::thread(&OccupancyMapMonitor::treeUpdateThread, this);
 
-    /* give control to main ros loop */
-    ros::spin();
   }
 
   OccupancyMapMonitor::~OccupancyMapMonitor(void)

@@ -48,43 +48,43 @@
 
 namespace occupancy_map_monitor
 {
-	class PointCloudOccupancyMapUpdater : public OccupancyMapUpdater
-	{
-	public:
+  class PointCloudOccupancyMapUpdater : public OccupancyMapUpdater
+  {
+  public:
     PointCloudOccupancyMapUpdater(
-        boost::shared_ptr<tf::Transformer> tf, const std::string &map_frame,
-        const std::string &point_cloud_topic, double max_range, size_t frame_subsample, size_t point_subsample);
-		~PointCloudOccupancyMapUpdater(void);
-
-		virtual void initialize(void);
-    virtual void process(OccMapTreePtr tree);
-
-		virtual void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg);
+      boost::shared_ptr<tf::Transformer> tf, const std::string &map_frame,
+      const std::string &point_cloud_topic, double max_range, size_t frame_subsample, size_t point_subsample);
+    virtual ~PointCloudOccupancyMapUpdater(void);
+      
+    virtual void initialize(void);
+    virtual void process(const OccMapTreePtr &tree);
+      
+    virtual void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg);
     virtual void processCloud(OccMapTreePtr tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg);
-
-	private:
-		ros::NodeHandle root_nh_;
-
+      
+  private:
+    ros::NodeHandle root_nh_;
+      
     boost::shared_ptr<tf::Transformer> tf_;
-
+      
     /* params */
-		std::string map_frame_;
+    std::string map_frame_;
     std::string point_cloud_topic_;
     double max_range_;
     size_t frame_subsample_;
     size_t point_subsample_;
-
+      
     message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
-		tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
-		sensor_msgs::PointCloud2::ConstPtr last_point_cloud_;
-		boost::mutex last_point_cloud_mutex_;
-
+    tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
+    sensor_msgs::PointCloud2::ConstPtr last_point_cloud_;
+    boost::mutex last_point_cloud_mutex_;
+      
     /* used to store all cells in the map which a given ray passes through during raycasting.
-      we cache this here because it dynamically pre-allocates a lot of memory in its contsructor */
+       we cache this here because it dynamically pre-allocates a lot of memory in its contsructor */
     octomap::KeyRay key_ray_;
-
-
-	};
+      
+      
+  };
 }
 
 #endif /* MOVEIT_POINTCLOUD_OCCUPANCY_MAP_UPDATER_H_ */

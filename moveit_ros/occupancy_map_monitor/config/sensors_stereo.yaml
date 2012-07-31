@@ -1,0 +1,7 @@
+sensors:
+  - sensor_type: point_cloud_sensor
+    point_cloud_topic: /narrow_stereo/points2
+    max_range: 5.0
+    frame_subsample: 1
+    point_subsample: 1
+

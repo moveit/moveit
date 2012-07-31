@@ -39,28 +39,58 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
+#include <boost/function.hpp>
 #include <occupancy_map_monitor/occupancy_map.h>
 
 namespace occupancy_map_monitor
 {
 	/**
 	 * @class OccupancyMapUpdater
-	 * Base class for classes which update the occupancy map.
-	 */
-	class OccupancyMapUpdater
-	{
-	public:
-		/** @brief Constructor
-		 *  @param cond Condition variable used to notify the server when we are ready to update the map
-		 */
-      OccupancyMapUpdater() {}
-      
-      /** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
-      virtual void initialize(void) = 0;
-      
-      /** @brief Update the octree*/
-      virtual void process(OccMapTreePtr tree) = 0;
-	};
+   * Base class for classes which update the occupancy map.
+   */
+class OccupancyMapUpdater
+{
+public:
+  /** @brief Constructor */
+  OccupancyMapUpdater(void) : update_ready_(false){}
+  virtual ~OccupancyMapUpdater(void) {}
+
+  /** @brief Server calls this
+       *  @param notify_func Function which updater should call when ready to update the map
+       */
+  void setNotifyFunction(boost::function<void()>  notify_func) {notify_func_ = notify_func;}
+
+  /** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
+  virtual void initialize(void) = 0;
+
+  /** @brief Update the map
+       *  @param tree Pointer to octree which represents the occupancy map
+       */
+  virtual void process(const OccMapTreePtr &tree) = 0;
+
+  /**@ Server calls this to check whether an update is ready. */
+  bool isUpdateReady(void)
+  {
+    boost::lock_guard<boost::mutex> _lock(update_ready_mutex_);
+    return update_ready_;
+  }
+
+protected:
+  /** @brief Updater calls this to notify the server that it is ready to modify the map */
+  void notifyUpdateReady(void)
+  {
+    {
+      boost::lock_guard<boost::mutex> _lock(update_ready_mutex_);
+      update_ready_ = true;
+    }
+    notify_func_();
+  }
+
+private:
+  bool update_ready_;
+  boost::mutex update_ready_mutex_;
+  boost::function<void (void)> notify_func_;
+};
 }
 
 #endif /* MOVEIT_OCCUPANCY_MAP_UPDATER_H_ */

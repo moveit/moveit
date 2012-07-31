@@ -191,6 +191,14 @@ bool robot_self_filter::SelfMask::configure(const std::vector<LinkInfo> &links)
       sl.volume = sl.body->computeVolume();
       sl.unscaledBody = bodies::createBodyFromShape(shape);
       bodies_.push_back(sl);
+
+      ROS_INFO("Added link: %s", sl.name.c_str());
+      ROS_INFO("       scale: %f", links[i].scale);
+      ROS_INFO("     padding: %f", links[i].padding);
+      ROS_INFO("      volume: %f", sl.volume);
+      ROS_INFO("  body faces: %d", ((bodies::ConvexMesh *)sl.body)->getTriangles().size());
+      ROS_INFO(" shape faces: %d", ((shapes::Mesh *)shape)->triangle_count);
+
     }
     else
       ROS_WARN("Unable to create point inclusion body for link '%s'", links[i].name.c_str());
@@ -340,6 +348,9 @@ void robot_self_filter::SelfMask::assumeFrame(const std::string &frame_id, const
 
     Eigen::Affine3d transf;
     tf::TransformTFToEigen(tf_transf, transf);
+
+   // ROS_INFO_STREAM("Transform from " << bodies_[i].name << " to " << frame_id << " is:");
+    //ROS_INFO_STREAM(":  " << transf.matrix());
     
     // set it for each body; we also include the offset specified in URDF
     bodies_[i].body->setPose(transf * bodies_[i].constTransf);
@@ -363,12 +374,22 @@ void robot_self_filter::SelfMask::maskAuxContainment(const pcl::PointCloud<pcl::
     //#pragma omp parallel for schedule(dynamic) 
     for (int i = 0 ; i < (int)np ; ++i)
     {
+      //ROS_INFO("Point %d: %6.2f %6.2f %6.2f", i, data_in.points[i].x, data_in.points[i].y, data_in.points[i].z);
       Eigen::Vector3d pt = Eigen::Vector3d(data_in.points[i].x, data_in.points[i].y, data_in.points[i].z);
       int out = OUTSIDE;
       if ((bound.center - pt).squaredNorm() < radiusSquared)
+      {
+          //ROS_INFO("Point in bounding sphere for robot");
           for (unsigned int j = 0 ; out == OUTSIDE && j < bs ; ++j)
-        if (bodies_[j].body->containsPoint(pt))
-            out = INSIDE;
+          {
+              //ROS_INFO("Body %d  of type %d has volume %f", j, bodies_[j].body->getType(), bodies_[j].body->computeVolume());
+              if (bodies_[j].body->containsPoint(pt))
+              {
+                  ROS_INFO("Point %d in link %s", i, bodies_[j].name.c_str());
+                  out = INSIDE;
+              }
+          }
+      }
       
       mask[i] = out;
     }
