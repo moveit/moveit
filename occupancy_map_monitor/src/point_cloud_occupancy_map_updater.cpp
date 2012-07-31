@@ -63,28 +63,36 @@ namespace occupancy_map_monitor
 		point_cloud_filter_ = new tf::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_, map_frame_, 1024);
 		point_cloud_filter_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
 
-		ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", point_cloud_topic_.c_str(), point_cloud_filter_->getTargetFramesString().c_str());
+    ROS_INFO("Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(), point_cloud_filter_->getTargetFramesString().c_str());
 
 	}
 
 	void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg)
 	{
       ROS_DEBUG("Got a point cloud message");
-      last_point_cloud_ = cloud_msg;
+      sensor_msgs::PointCloud2::ConstPtr cloud;
+      {
+        boost::lock_guard<boost::mutex> _lock(last_point_cloud_mutex_);
+        last_point_cloud_ = cloud_msg;
+
+        /* tell the monitor that we are ready to update the map */
+        notifyUpdateReady();
+      }
 	}
 
-  void PointCloudOccupancyMapUpdater::process(OccMapTreePtr tree)
+  void PointCloudOccupancyMapUpdater::process(const OccMapTreePtr &tree)
   {
-    if(!last_point_cloud_)
-      {
-        ROS_DEBUG("No point cloud to process");
-        return;
-      }
-
     ROS_DEBUG("Updating occupancy map with new cloud");
     sensor_msgs::PointCloud2::ConstPtr cloud;
     {
       boost::lock_guard<boost::mutex> _lock(last_point_cloud_mutex_);
+
+      if(!last_point_cloud_)
+        {
+          ROS_DEBUG("No point cloud to process");
+          return;
+        }
+
       cloud = last_point_cloud_;
     }
     processCloud(tree, cloud);

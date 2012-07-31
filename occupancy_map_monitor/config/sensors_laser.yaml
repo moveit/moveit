@@ -1,0 +1,7 @@
+sensors:
+  - sensor_type: point_cloud_sensor
+    point_cloud_topic: /tilt_scan_cloud
+    max_range: 10.0
+    frame_subsample: 1
+    point_subsample: 1
+

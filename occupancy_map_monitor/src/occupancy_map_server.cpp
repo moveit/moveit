@@ -37,7 +37,10 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "occupancy_map_server");
-  boost::shared_ptr<tf::Transformer> listener = boost::make_shared<tf::TransformListener>();
+  boost::shared_ptr<tf::Transformer> listener = boost::make_shared<tf::TransformListener>(ros::Duration(5.0));
   occupancy_map_monitor::OccupancyMapMonitor server(listener);
-  server.run();
+  server.startMonitor();
+
+  /* give control to main ros loop */
+  ros::spin();
 }

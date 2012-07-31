@@ -15,7 +15,7 @@
     <param name="max_range" type="double" value="5.0" />
 
     <!-- sensors used to update the map -->
-    <rosparam command="load" file="$(find occupancy_map_monitor)/config/sensors.yaml" />
+    <rosparam command="load" file="$(find occupancy_map_monitor)/config/sensors_stereo.yaml" />
    </node>
 
 </launch>

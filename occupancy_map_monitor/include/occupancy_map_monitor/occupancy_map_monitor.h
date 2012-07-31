@@ -53,11 +53,14 @@ namespace occupancy_map_monitor
   class OccupancyMapMonitor
   {
   public:
-    OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> tf);
+    OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf);
     ~OccupancyMapMonitor(void);
 
-    /** @brief run the monitor. does not return (gives control to main ROS loop) */
-    void run(void);
+    /** @brief start the monitor (will begin updating the octomap */
+    void startMonitor(void);
+
+    /** @brief tells the server an update is ready */
+    void updateReady(void);
 
     /** @brief get a pointer to the underlying octree for this monitor. lock the
      *  tree before reading or writing using this pointer */
@@ -81,9 +84,13 @@ namespace occupancy_map_monitor
 
     std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
 
+    boost::condition_variable update_cond_;
+    boost::mutex update_mut_;
+
     ros::NodeHandle root_nh_;
     ros::NodeHandle nh_;
-    ros::Publisher marker_pub_;
+    ros::Publisher occupied_marker_pub_;
+    ros::Publisher free_marker_pub_;
   };
 
 }
