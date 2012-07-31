@@ -150,10 +150,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   {
     // if we have a decider for allowed contacts, we need to look at all the contacts
     bool enable_cost = cdata->req_->cost;
-    bool num_max_cost_sources = cdata->req_->max_cost_sources;
+    std::size_t num_max_cost_sources = cdata->req_->max_cost_sources;
     bool enable_contact = true;
     fcl::CollisionResult col_result;
-    int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(std::numeric_limits<size_t>::max(), enable_contact, enable_cost, num_max_cost_sources), col_result);
+    int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(std::numeric_limits<size_t>::max(), enable_contact, num_max_cost_sources, enable_cost), col_result);
     if (num_contacts > 0)
     {
       if (cdata->req_->verbose)
@@ -218,11 +218,11 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     {
       // otherwise, we need to compute more things
       bool enable_cost = cdata->req_->cost;
-      bool num_max_cost_sources = cdata->req_->max_cost_sources;
+      std::size_t num_max_cost_sources = cdata->req_->max_cost_sources;
       bool enable_contact = true;
       
       fcl::CollisionResult col_result;
-      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(want_contact_count, enable_contact, enable_cost, num_max_cost_sources), col_result);
+      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(want_contact_count, enable_contact, num_max_cost_sources, enable_cost), col_result);
       if (num_contacts > 0)
       {
         // make sure we don't get more contacts than we want
@@ -274,10 +274,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
     else
     {
       bool enable_cost = cdata->req_->cost;
-      bool num_max_cost_sources = cdata->req_->max_cost_sources;
+      std::size_t num_max_cost_sources = cdata->req_->max_cost_sources;
       bool enable_contact = false;
       fcl::CollisionResult col_result;
-      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(1, enable_contact, enable_cost, num_max_cost_sources), col_result);
+      int num_contacts = fcl::collide(o1, o2, fcl::CollisionRequest(1, enable_contact, num_max_cost_sources, enable_cost), col_result);
       if (num_contacts > 0)
       {
         cdata->res_->collision = true;
@@ -434,6 +434,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
 
   
   fcl::DistanceResult dist_result;
+  dist_result.update(cdata->res_->distance, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE); // can be faster
   double d = fcl::distance(o1, o2, fcl::DistanceRequest(), dist_result);
 
   if(d < 0)
