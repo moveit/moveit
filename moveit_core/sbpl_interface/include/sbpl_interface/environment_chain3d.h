@@ -56,6 +56,21 @@
 
 namespace sbpl_interface {
 
+struct PlanningStatistics {
+  
+  PlanningStatistics() :
+    total_expansions_(0),
+    coll_checks_(0)
+  {
+  }
+  
+  unsigned int total_expansions_;
+  ros::WallDuration total_expansion_time_;
+  ros::WallDuration total_coll_check_time_;
+  unsigned int coll_checks_;
+  ros::WallDuration total_planning_time_;
+};
+
 /** Environment to be used when planning for a Robotic Arm using the SBPL. */
 class EnvironmentChain3D: public DiscreteSpaceInformation 
 {
@@ -172,7 +187,8 @@ public:
   virtual bool AreEquivalent(int StateID1, int StateID2);
 
   bool setupForMotionPlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                          const moveit_msgs::GetMotionPlan::Request &req);
+                          const moveit_msgs::GetMotionPlan::Request &req,
+                          moveit_msgs::GetMotionPlan::Response& res);
 
   const EnvChain3DPlanningData& getPlanningData() const {
     return planning_data_;
@@ -181,12 +197,17 @@ public:
   bool populateTrajectoryFromStateIDSequence(const std::vector<int>& state_ids,
                                              trajectory_msgs::JointTrajectory& traj) const;
 
-  unsigned int getCollChecks() const {
-    return coll_checks_;
-  }
 
-  double getTotalCollCheckDuration() const {
-    return total_coll_check_time_.toSec();
+  const PlanningStatistics& getPlanningStatistics() const {
+    return planning_statistics_;
+  }
+  
+  bool getPlaneBFSMarker(visualization_msgs::Marker& plane_marker,
+                         double z_val);
+                                              
+  
+  const Eigen::Affine3d& getGoalPose() const {
+    return goal_pose_;
   }
 
 protected:
@@ -201,6 +222,7 @@ protected:
   double angle_discretization_;
   BFS_3D *bfs_;
   
+  std::vector<boost::shared_ptr<JointMotionWrapper> > joint_motion_wrappers_;
   std::vector<boost::shared_ptr<JointMotionPrimitive> > possible_actions_;
   planning_models::KinematicState state_;
   const collision_detection::CollisionWorldHybrid* hy_world_;
@@ -213,8 +235,7 @@ protected:
   kinematic_constraints::KinematicConstraintSet goal_constraint_set_;
   std::string planning_group_;
   Eigen::Affine3d goal_pose_;
-  ros::WallDuration total_coll_check_time_;
-  unsigned int coll_checks_;
+  PlanningStatistics planning_statistics_;
 
   void setMotionPrimitives(const std::string& group_name);
   
@@ -224,6 +245,19 @@ protected:
   int calculateCost(EnvChain3DHashEntry* HashEntry1, EnvChain3DHashEntry* HashEntry2);
   int getBFSCostToGoal(int x, int y, int z) const;
   int getEndEffectorHeuristic(int FromStateID, int ToStateID);
+
+  double getJointDistanceDoubleSum(const std::vector<double>& angles1,
+                                   const std::vector<double>& angles2);
+
+  int getJointDistanceIntegerSum(const std::vector<double>& angles1,
+                                 const std::vector<double>& angles2);
+
+  int getJointDistanceIntegerMax(const std::vector<double>& angles1,
+                                 const std::vector<double>& angles2);
+  
+  // double getJointDistanceMax(const std::vector<double>& angles1,
+  //                            const std::vector<double>& angles2);
+
 
   inline double getEuclideanDistance(double x1, double y1, double z1, double x2, double y2, double z2) const
   {

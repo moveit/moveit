@@ -32,40 +32,40 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef MOVEIT_SBPL_INTERFACE_H_
-#define MOVEIT_SBPL_INTERFACE_H_
+/* Author: E. Gil Jones */
 
-#include <sbpl/headers.h>
-#include <planning_scene/planning_scene.h>
-#include <moveit_msgs/GetMotionPlan.h>
-#include <sbpl_interface/environment_chain3d.h>
+#ifndef MOVEIT_PLANNING_MODELS_ANGLE_UTILS_
+#define MOVEIT_PLANNING_MODELS_ANGLE_UTILS_
 
-namespace sbpl_interface
+#include <planning_models/transforms.h>
+#include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/RobotTrajectory.h>
+
+namespace planning_models
 {
-class SBPLInterface
+
+//copied from geometry/angles/angles.h
+static inline double normalizeAnglePositive(double angle)
 {
-public:
-
-  SBPLInterface(const planning_models::KinematicModelConstPtr& kmodel){}
-  virtual ~SBPLInterface(){}
-
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, 
-             moveit_msgs::GetMotionPlan::Response &res) const;
-
-  const PlanningStatistics& getLastPlanningStatistics() const {
-    return last_planning_statistics_;
-  }
-
-protected:
-
-  PlanningStatistics last_planning_statistics_;
-
-  //DummyEnvironment* dummy_env_;
-  //SBPLPlanner *planner_;
-
-};
-
+  return fmod(fmod(angle, 2.0*M_PI) + 2.0*M_PI, 2.0*M_PI);
 }
+
+static inline double normalizeAngle(double angle)
+{
+  double a = normalizeAnglePositive(angle);
+  if (a > M_PI)
+    a -= 2.0 *M_PI;
+  return a;
+}
+
+static inline double shortestAngularDistance(double start, double end) {
+  double res = normalizeAnglePositive(normalizeAnglePositive(end)-normalizeAnglePositive(start));
+  if(res > M_PI) {
+    res = -(2.0*M_PI-res);
+  }
+  return normalizeAngle(res);
+}
+
+} //namespace planning_models
 
 #endif
