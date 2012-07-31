@@ -228,7 +228,7 @@ private:
     }
     
     // if we are allowed to look around, see if we have costs that are too high
-    //    if (goal->look_around) /// \todo re-enable this when updates to messages are out
+    if (goal->look_around)
     {       
       LockScene lock(planning_scene_monitor_);
       // determine the sources of cost for this path
@@ -329,7 +329,7 @@ private:
       {
         if (path_became_invalid)
         {
-          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN; ///\todo change to MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE
+          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
           action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
         }
         else
