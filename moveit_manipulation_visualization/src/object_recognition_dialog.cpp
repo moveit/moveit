@@ -98,9 +98,9 @@ void ObjectRecognitionDialog::gotTableAndClusters(moveit_manipulation_msgs::Tabl
   planning_models::msgFromPose(table_mat*table_trans, coll.primitive_poses[0]);
   coll.primitives.resize(1);
   coll.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-  coll.primitives[0].dimensions.x = fabs(table.x_max-table.x_min);
-  coll.primitives[0].dimensions.y = fabs(table.y_max-table.y_min);
-  coll.primitives[0].dimensions.z = .1;
+  coll.primitives[0].dimensions[0] = fabs(table.x_max-table.x_min);
+  coll.primitives[0].dimensions[1] = fabs(table.y_max-table.y_min);
+  coll.primitives[0].dimensions[2] = .1;
   QColor col(128, 128, 128, 255);
   Q_EMIT addCollisionObjectRequested(coll, col);
 
@@ -126,9 +126,9 @@ void ObjectRecognitionDialog::gotTableAndClusters(moveit_manipulation_msgs::Tabl
     cluster_obj.primitive_poses.resize(clusters[i].points.size());
     for(unsigned int j = 0; j < clusters[i].points.size(); j++) {
       cluster_obj.primitives[j].type = shape_msgs::SolidPrimitive::BOX;
-      cluster_obj.primitives[j].dimensions.x = .01;
-      cluster_obj.primitives[j].dimensions.y = .01;
-      cluster_obj.primitives[j].dimensions.z = .01;
+      cluster_obj.primitives[j].dimensions[0] = .01;
+      cluster_obj.primitives[j].dimensions[1] = .01;
+      cluster_obj.primitives[j].dimensions[2] = .01;
       cluster_obj.primitive_poses[j].orientation.w = 1.0;
       cluster_obj.primitive_poses[j].position.x = clusters[i].points[j].x;
       cluster_obj.primitive_poses[j].position.y = clusters[i].points[j].y;
