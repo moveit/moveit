@@ -33,6 +33,8 @@
 #define _ENVIRONMENT_CHAIN3D_TYPES_H_
 
 #include <vector>
+#include <planning_models/kinematic_model.h>
+#include <planning_models/angle_utils.h>
 
 namespace sbpl_interface {
 
@@ -170,27 +172,112 @@ struct EnvChain3DPlanningData
 
 };
 
+class JointMotionWrapper {
+public:
+
+  JointMotionWrapper(const planning_models::KinematicModel::JointModel* joint_model) :
+    joint_model_(joint_model)
+  {
+    std::vector<moveit_msgs::JointLimits> limits = joint_model->getLimits();
+    joint_limit_ = limits.front();
+  }
+
+  bool getSuccessorValue(double start,
+                         double delta,
+                         double& end) {
+    end = start+delta;
+    if(joint_limit_.has_position_limits) {
+      if(end < joint_limit_.min_position) {
+        if(fabs(start-joint_limit_.min_position) > std::numeric_limits<double>::epsilon()) {
+          //start not at min limit, so peg the end position
+          end = joint_limit_.min_position;
+        } else {
+          //start already at min limit          
+          return false;
+        }
+      } else if(end > joint_limit_.max_position) {
+        if(fabs(start-joint_limit_.max_position) > std::numeric_limits<double>::epsilon()) {
+          //start not at max limit, so peg the end position
+          end = joint_limit_.max_position;
+        } else {
+          //start already at max limit          
+          return false;
+        }
+      }
+    } else {
+      end = normalizeAngle(end);
+    }
+    return true;
+  }
+
+  bool canGetCloser(double start,
+                    double goal,
+                    double delta) {
+    double start_dist = getDoubleDistance(start,goal);
+    double plus_value = 0.0;
+    double minus_value = 0.0;
+    if(getSuccessorValue(start, delta, plus_value)) {
+      double succ_dist = getDoubleDistance(plus_value, goal);
+      if(succ_dist < start_dist) {
+        return true;
+      }
+    }
+    if(getSuccessorValue(start, -delta, minus_value)) {
+      double succ_dist = getDoubleDistance(minus_value, goal);
+      if(succ_dist < start_dist) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  double getDoubleDistance(double start,
+                           double end)
+  {
+    if(joint_limit_.has_position_limits) {
+      return fabs(end-start);
+    } else {
+      return fabs(planning_models::shortestAngularDistance(start,end));
+    }
+  }  
+  int getIntegerDistance(double start,
+                         double end,
+                         double delta) {
+    if(joint_limit_.has_position_limits) {
+      return ceil((fabs(end-start))/delta);
+    } else {
+      return ceil((fabs(planning_models::shortestAngularDistance(start,end)))/delta);
+    }
+  }
+protected:
+  const planning_models::KinematicModel::JointModel* joint_model_;
+  moveit_msgs::JointLimits joint_limit_;
+};
+
 class JointMotionPrimitive {
 public:
-  virtual void generateSuccessorState(const std::vector<double>& start,
+  virtual bool generateSuccessorState(const std::vector<double>& start,
                                       std::vector<double>& end) = 0;
 };
 
 class SingleJointMotionPrimitive : public JointMotionPrimitive {
 public:
-  SingleJointMotionPrimitive(unsigned int ind,
+  SingleJointMotionPrimitive(const boost::shared_ptr<JointMotionWrapper>& joint_motion_wrapper,
+                             unsigned int ind,
                              double delta) :
+    joint_motion_wrapper_(joint_motion_wrapper),
     ind_(ind),
     delta_(delta)
   {
   }
   
-  virtual void generateSuccessorState(const std::vector<double>& start,
+  virtual bool generateSuccessorState(const std::vector<double>& start,
                                       std::vector<double>& end) {
     end = start;
-    end[ind_] += delta_;
+    return joint_motion_wrapper_->getSuccessorValue(start[ind_], delta_, end[ind_]);
   }
 protected:
+  boost::shared_ptr<JointMotionWrapper> joint_motion_wrapper_;
   unsigned int ind_;
   double delta_;
 };

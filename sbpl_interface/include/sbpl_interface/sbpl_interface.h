@@ -38,6 +38,7 @@
 #include <sbpl/headers.h>
 #include <planning_scene/planning_scene.h>
 #include <moveit_msgs/GetMotionPlan.h>
+#include <sbpl_interface/environment_chain3d.h>
 
 namespace sbpl_interface
 {
@@ -52,7 +53,13 @@ public:
              const moveit_msgs::GetMotionPlan::Request &req, 
              moveit_msgs::GetMotionPlan::Response &res) const;
 
+  const PlanningStatistics& getLastPlanningStatistics() const {
+    return last_planning_statistics_;
+  }
+
 protected:
+
+  PlanningStatistics last_planning_statistics_;
 
   //DummyEnvironment* dummy_env_;
   //SBPLPlanner *planner_;
