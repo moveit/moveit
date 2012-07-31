@@ -44,9 +44,11 @@
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
 
+/** \brief Simple interface to the MoveGroup action */
 namespace move_group_interface
 {
 
+/** \brief Client class for the MoveGroup action */
 class MoveGroup
 {
 public:
@@ -74,12 +76,21 @@ public:
 
   ~MoveGroup(void);
   
-  bool move(bool wait = true);
+  /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
+      This call is blocking (waits for the execution of the trajectory to complete) if \e wait is true. */
+  bool move(bool wait);
 
-  bool move2(unsigned int attempts = 10);
+  /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
+      This call is always blocking (waits for the execution of the trajectory to complete) and attempts to execute the motion
+      multiple times (up to a specified number of \e attempts) as long as the failure error is a recoverable one (e.g., planning
+      failure, environment was changed during execution). */
+  bool move(unsigned int attempts = 10);
 
+  /** \brief Compute a motion plan that takes the group declared in the constructor from the current state to the specified
+      target. No execution is performed. The resulting plan is stored in \e plan*/
   bool plan(Plan &plan);
   
+  /** \brief Stop any trajectory execution, if one is active */
   void stop(void);
   
   void setJointValueTarget(const std::vector<double> &group_variable_values);

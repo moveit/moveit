@@ -246,9 +246,19 @@ public:
       return true;
     else
     {
-      attempt_count++;
-      ROS_INFO_STREAM("Attempt " << attempt_count << " of " << max_attempts << " failed: " << action_client_->getState().toString() << ": " << action_client_->getState().getText());
-      return move2(attempt_count, max_attempts);
+      const moveit_msgs::MoveItErrorCodes &err = action_client_->getResult()->error_code;
+      // under certain conditions we attempt to execute the motion again
+      if (err.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE ||
+          err.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN ||
+          err.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA ||
+          err.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
+      {
+        attempt_count++;
+        ROS_INFO_STREAM("Attempt " << attempt_count << " of " << max_attempts << " failed: " << action_client_->getState().toString() << ": " << action_client_->getState().getText());
+        return move2(attempt_count, max_attempts);
+      }
+      else
+        return false;
     }
   }
   
@@ -318,7 +328,7 @@ bool MoveGroup::move(bool wait)
   return impl_->move(wait);
 }
 
-bool MoveGroup::move2(unsigned int max_attempts)
+bool MoveGroup::move(unsigned int max_attempts)
 {
   return impl_->move2(0, max_attempts);
 }
