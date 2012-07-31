@@ -19,6 +19,9 @@
   <rosdep name="octomap" />
   <depend package="dynamic_reconfigure"/>
 
+  <export>
+    <cpp cflags="`pkg-config --cflags eigen3` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -loccupancy_map_monitor"/>
+  </export>
 
 </package>
 

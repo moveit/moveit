@@ -44,133 +44,127 @@
 
 namespace occupancy_map_monitor
 {
-  PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(
-      boost::shared_ptr<tf::Transformer> tf, const std::string &map_frame,
-      const std::string &point_cloud_topic, double max_range,  size_t frame_subsample = 1,  size_t point_subsample = 1)
-    : tf_(tf), map_frame_(map_frame), point_cloud_topic_(point_cloud_topic),  max_range_(max_range), frame_subsample_(frame_subsample), point_subsample_(point_subsample)
-  {}
+PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame,
+                                                             const std::string &point_cloud_topic, double max_range,  size_t frame_subsample = 1,  size_t point_subsample = 1)
+  : tf_(tf), map_frame_(map_frame), point_cloud_topic_(point_cloud_topic),  max_range_(max_range), frame_subsample_(frame_subsample), point_subsample_(point_subsample)
+{}
 
-	PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater(void)
-	{
-		delete point_cloud_subscriber_;
-		delete point_cloud_filter_;
-	}
+PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater(void)
+{
+  delete point_cloud_subscriber_;
+  delete point_cloud_filter_;
+}
 
-	void PointCloudOccupancyMapUpdater::initialize()
-	{
-		// subscribe to point cloud topic using tf filter
-		point_cloud_subscriber_ = new message_filters::Subscriber<sensor_msgs::PointCloud2>(root_nh_, point_cloud_topic_, 1024);
-		point_cloud_filter_ = new tf::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_, map_frame_, 1024);
-		point_cloud_filter_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
+void PointCloudOccupancyMapUpdater::initialize()
+{
+  // subscribe to point cloud topic using tf filter
+  point_cloud_subscriber_ = new message_filters::Subscriber<sensor_msgs::PointCloud2>(root_nh_, point_cloud_topic_, 1024);
+  point_cloud_filter_ = new tf::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_, map_frame_, 1024);
+  point_cloud_filter_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
+  
+  ROS_INFO("Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(), point_cloud_filter_->getTargetFramesString().c_str());
+}
 
-    ROS_INFO("Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(), point_cloud_filter_->getTargetFramesString().c_str());
-
-	}
-
-	void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg)
-	{
-      ROS_DEBUG("Got a point cloud message");
-      sensor_msgs::PointCloud2::ConstPtr cloud;
-      {
-        boost::lock_guard<boost::mutex> _lock(last_point_cloud_mutex_);
-        last_point_cloud_ = cloud_msg;
-
-        /* tell the monitor that we are ready to update the map */
-        notifyUpdateReady();
-      }
-	}
-
-  void PointCloudOccupancyMapUpdater::process(const OccMapTreePtr &tree)
+void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
+{
+  ROS_DEBUG("Got a point cloud message");
   {
-    ROS_DEBUG("Updating occupancy map with new cloud");
-    sensor_msgs::PointCloud2::ConstPtr cloud;
-    {
-      boost::lock_guard<boost::mutex> _lock(last_point_cloud_mutex_);
+    boost::lock_guard<boost::mutex> _lock(last_point_cloud_mutex_);
+    last_point_cloud_ = cloud_msg;
+  }
+  /* tell the monitor that we are ready to update the map */
+  notifyUpdateReady();
+}
 
-      if(!last_point_cloud_)
-        {
-          ROS_DEBUG("No point cloud to process");
-          return;
-        }
-
-      cloud = last_point_cloud_;
-    }
-    processCloud(tree, cloud);
-    ROS_DEBUG("Done updating occupancy map");
-
+void PointCloudOccupancyMapUpdater::process(const OccMapTreePtr &tree)
+{
+  ROS_DEBUG("Updating occupancy map with new cloud");
+  sensor_msgs::PointCloud2::ConstPtr cloud;
+  {
+    boost::lock_guard<boost::mutex> _lock(last_point_cloud_mutex_);
+    cloud = last_point_cloud_; 
     last_point_cloud_.reset();
   }
-
-  void PointCloudOccupancyMapUpdater::processCloud(OccMapTreePtr tree, sensor_msgs::PointCloud2::ConstPtr cloud_msg)
+  
+  if (cloud)
   {
-    /* get transform for cloud into map frame */
-    tf::StampedTransform map_H_sensor;
-    try
-      {
-        tf_->lookupTransform(map_frame_, cloud_msg->header.frame_id, cloud_msg->header.stamp, map_H_sensor);
-      }
-    catch (tf::TransformException& ex)
-      {
-        ROS_ERROR_STREAM("Transform error of sensor data: " << ex.what() << ", quitting callback");
-        return;
-      }
-
-    /* convert cloud message to pcl cloud object */
-    pcl::PointCloud<pcl::PointXYZ> cloud;
-    pcl::fromROSMsg(*cloud_msg, cloud);
-
-    /* compute sensor origin in map frame */
-    tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
-    octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
-
-    ROS_DEBUG("Looping through points to find free and occupied areas");
-
-    /* do ray tracing to find which cells this point cloud indicates should be free, and which it indicates
-     * should be occupied */
-    octomap::KeySet free_cells, occupied_cells;
-    unsigned int row, col;
-    for(row = 0; row < cloud.height; row += point_subsample_)
-    {
-        for(col = 0; col < cloud.width; col += point_subsample_)
-        {
-            pcl::PointXYZ p = cloud(col, row);
-
-            /* check for NaN */
-            if(!((p.x == p.x) && (p.y == p.y) && (p.z == p.z)))
-                continue;
-
-            /* transform to map frame */
-            tf::Vector3 point_tf = map_H_sensor * tf::Vector3(p.x, p.y, p.z);
-            octomap::point3d point(point_tf.getX(), point_tf.getY(), point_tf.getZ());
-
-            /* free cells along ray */
-            if (tree->computeRayKeys(sensor_origin, point, key_ray_))
-                free_cells.insert(key_ray_.begin(), key_ray_.end());
-
-            /* occupied cell at ray endpoint if ray is shorter than max range */
-            double range = (point - sensor_origin).norm();
-            if(range < max_range_)
-            {
-                octomap::OcTreeKey key;
-                if (tree->genKey(point, key))
-                    occupied_cells.insert(key);
-            }
-        }
-    }
-
-    ROS_DEBUG("Marking free cells in octomap");
-
-    /* mark free cells only if not seen occupied in this cloud */
-    for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
-      /* this check seems unnecessary since we would just overwrite them in the next loop? -jbinney */
-      if (occupied_cells.find(*it) == occupied_cells.end())
-        tree->updateNode(*it, false);
-
-    ROS_DEBUG("Marking occupied cells in octomap");
-
-    /* now mark all occupied cells */
-    for (octomap::KeySet::iterator it = occupied_cells.begin(), end = free_cells.end(); it != end; it++)
-      tree->updateNode(*it, true);
+    processCloud(tree, cloud);
+    ROS_DEBUG("Done updating occupancy map");
   }
+  else  
+    ROS_DEBUG("No point cloud to process");
+}
+
+void PointCloudOccupancyMapUpdater::processCloud(const OccMapTreePtr &tree, const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
+{
+  /* get transform for cloud into map frame */
+  tf::StampedTransform map_H_sensor;
+  try
+  {
+    tf_->lookupTransform(map_frame_, cloud_msg->header.frame_id, cloud_msg->header.stamp, map_H_sensor);
+  }
+  catch (tf::TransformException& ex)
+  {
+    ROS_ERROR_STREAM("Transform error of sensor data: " << ex.what() << ", quitting callback");
+    return;
+  }
+  
+  /* convert cloud message to pcl cloud object */
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::fromROSMsg(*cloud_msg, cloud);
+  
+  /* compute sensor origin in map frame */
+  tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
+  octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
+  
+  ROS_DEBUG("Looping through points to find free and occupied areas");
+  
+  /* do ray tracing to find which cells this point cloud indicates should be free, and which it indicates
+   * should be occupied */
+  octomap::KeySet free_cells, occupied_cells;
+  unsigned int row, col;
+  for(row = 0; row < cloud.height; row += point_subsample_)
+  {
+    for(col = 0; col < cloud.width; col += point_subsample_)
+    {
+      pcl::PointXYZ p = cloud(col, row);
+      
+      /* check for NaN */
+      if(!((p.x == p.x) && (p.y == p.y) && (p.z == p.z)))
+        continue;
+      
+      /* transform to map frame */
+      tf::Vector3 point_tf = map_H_sensor * tf::Vector3(p.x, p.y, p.z);
+      octomap::point3d point(point_tf.getX(), point_tf.getY(), point_tf.getZ());
+      
+      /* free cells along ray */
+      if (tree->computeRayKeys(sensor_origin, point, key_ray_))
+        free_cells.insert(key_ray_.begin(), key_ray_.end());
+      
+      /* occupied cell at ray endpoint if ray is shorter than max range */
+      double range = (point - sensor_origin).norm();
+      if(range < max_range_)
+      {
+        octomap::OcTreeKey key;
+        if (tree->genKey(point, key))
+          occupied_cells.insert(key);
+      }
+    }
+  }
+  
+  ROS_DEBUG("Marking free cells in octomap");
+  
+  /* mark free cells only if not seen occupied in this cloud */
+  for (octomap::KeySet::iterator it = free_cells.begin(), end = free_cells.end(); it != end; ++it)
+    /* this check seems unnecessary since we would just overwrite them in the next loop? -jbinney */
+    if (occupied_cells.find(*it) == occupied_cells.end())
+      tree->updateNode(*it, false);
+  
+  ROS_DEBUG("Marking occupied cells in octomap");
+  
+  /* now mark all occupied cells */
+  for (octomap::KeySet::iterator it = occupied_cells.begin(), end = free_cells.end(); it != end; it++)
+    tree->updateNode(*it, true);
+}
 
 }
