@@ -123,18 +123,8 @@ Mesh* createMeshFromVertices(const EigenSTL::vector_Vector3d &vertices, const st
   }
 
   std::copy(triangles.begin(), triangles.end(), mesh->triangles);
-
-  // compute normals
-  for (unsigned int i = 0 ; i < nt ; ++i)
-  {
-    Eigen::Vector3d s1 = vertices[triangles[i * 3    ]] - vertices[triangles[i * 3 + 1]];
-    Eigen::Vector3d s2 = vertices[triangles[i * 3 + 1]] - vertices[triangles[i * 3 + 2]];
-    Eigen::Vector3d normal = s1.cross(s2);
-    normal.normalize();
-    mesh->normals[3 * i    ] = normal.x();
-    mesh->normals[3 * i + 1] = normal.y();
-    mesh->normals[3 * i + 2] = normal.z();
-  }
+  mesh->computeNormals();
+  
   return mesh;
 }
 
@@ -177,7 +167,7 @@ Mesh* createMeshFromVertices(const EigenSTL::vector_Vector3d &source)
     triangles.push_back(vt2.index);
     
     detail::LocalVertexType vt3(source[++i3]);
-    std::set<detail::myVertex, detail::ltVertexValue>::iterator p3 = vertices.find(vt3);
+    std::set<detail::LocalVertexType, detail::ltLocalVertexValue>::iterator p3 = vertices.find(vt3);
     if (p3 == vertices.end())
     {
       vt3.index = vertices.size();
@@ -201,26 +191,14 @@ Mesh* createMeshFromVertices(const EigenSTL::vector_Vector3d &source)
   for (unsigned int i = 0 ; i < vt.size() ; ++i)
   {    
     unsigned int i3 = i * 3;
-    mesh->vertices[i3    ] = vt[i].point.x;
-    mesh->vertices[i3 + 1] = vt[i].point.y;
-    mesh->vertices[i3 + 2] = vt[i].point.z;
+    mesh->vertices[i3    ] = vt[i].x;
+    mesh->vertices[i3 + 1] = vt[i].y;
+    mesh->vertices[i3 + 2] = vt[i].z;
   }
 
   std::copy(triangles.begin(), triangles.end(), mesh->triangles);
-
-  // compute normals
-  for (unsigned int i = 0 ; i < nt ; ++i)
-  { 
-    unsigned int i3 = i * 3;
-    Eigen::Vector3d s1 = vt[triangles[i3    ]].point - vt[triangles[i3 + 1]].point;
-    Eigen::Vector3d s2 = vt[triangles[i3 + 1]].point - vt[triangles[i3 + 2]].point;
-    Eigen::Vector3d normal = s1.cross(s2);
-    normal.normalize();
-    mesh->normals[i3    ] = normal.x();
-    mesh->normals[i3 + 1] = normal.y();
-    mesh->normals[i3 + 2] = normal.z();
-  }
-
+  mesh->computeNormals();
+  
   return mesh;
 }
 

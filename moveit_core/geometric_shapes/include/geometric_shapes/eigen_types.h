@@ -34,10 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_GEOMETRIC_SHAPES_EIGEN_TYPES_
-#define MOVEIT_GEOMETRIC_SHAPES_EIGEN_TYPES_
+#ifndef GEOMETRIC_SHAPES_EIGEN_TYPES_
+#define GEOMETRIC_SHAPES_EIGEN_TYPES_
 
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <Eigen/StdVector>
 
 /** \brief Typedef's for STL containers of Eigen types. */
@@ -45,6 +46,8 @@ namespace EigenSTL
 {
 
 typedef std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > vector_Vector3d;
+typedef std::vector<Eigen::Vector4f, Eigen::aligned_allocator<Eigen::Vector4f> > vector_Vector4f;
+typedef std::vector<Eigen::Affine3d, Eigen::aligned_allocator<Eigen::Affine3d> > vector_Affine3d;
 
 }
 
