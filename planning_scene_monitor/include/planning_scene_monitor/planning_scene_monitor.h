@@ -43,6 +43,7 @@
 #include <message_filters/subscriber.h>
 #include <planning_scene/planning_scene.h>
 #include <planning_models_loader/kinematic_model_loader.h>
+#include <occupancy_map_monitor/occupancy_map_monitor.h>
 #include "planning_scene_monitor/current_state_monitor.h"
 #include <boost/thread.hpp>
 
@@ -284,24 +285,29 @@ protected:
   /// default attached padding
   double                                default_attached_padd_;
   
+  // variables for planning scene publishing
   ros::Publisher                        planning_scene_publisher_;
   boost::scoped_ptr<boost::thread>      publish_planning_scene_;
   double                                publish_planning_scene_frequency_;
   bool                                  new_scene_update_;
   boost::condition_variable             new_scene_update_condition_;
   
+  // subscribe to various sources of data
   ros::Subscriber                       planning_scene_subscriber_;
   ros::Subscriber                       planning_scene_world_subscriber_;
 
-  message_filters::Subscriber<moveit_msgs::CollisionObject> *collision_object_subscriber_;
-  tf::MessageFilter<moveit_msgs::CollisionObject>           *collision_object_filter_;
+  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_; 
+  boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionObject> >           collision_object_filter_;
+  
+  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionMap> >    collision_map_subscriber_;
+  boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionMap> >              collision_map_filter_;
 
-  message_filters::Subscriber<moveit_msgs::CollisionMap>    *collision_map_subscriber_;
-  tf::MessageFilter<moveit_msgs::CollisionMap>              *collision_map_filter_;
+  boost::scoped_ptr<message_filters::Subscriber<octomap_msgs::OctomapBinary> >  octomap_subscriber_;
+  boost::scoped_ptr<tf::MessageFilter<octomap_msgs::OctomapBinary> >            octomap_filter_;
 
-  message_filters::Subscriber<octomap_msgs::OctomapBinary>    *octomap_subscriber_;
-  tf::MessageFilter<octomap_msgs::OctomapBinary>              *octomap_filter_;
-
+  // include the octomap monitor as well
+  boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
+  
   ros::Subscriber                       attached_collision_object_subscriber_;
   
   CurrentStateMonitorPtr                current_state_monitor_;

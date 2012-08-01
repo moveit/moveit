@@ -106,10 +106,6 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr &scene)
 {
   bounds_error_ = std::numeric_limits<double>::epsilon();
-  collision_object_subscriber_ = NULL;
-  collision_object_filter_ = NULL;
-  collision_map_subscriber_ = NULL;
-  collision_map_filter_ = NULL;
   
   robot_description_ = kinematics_loader_->getRobotDescription();
   if (kinematics_loader_->getModel())
@@ -132,8 +128,10 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   }
   else
   {
-  	ROS_ERROR("Kinematic model not loaded");
+    ROS_ERROR("Kinematic model not loaded");
   }
+
+  octomap_monitor_.reset(new occupancy_map_monitor::OccupancyMapMonitor(tf_));
   
   publish_planning_scene_frequency_ = 2.0;
   new_scene_update_ = false;
@@ -382,10 +380,10 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
   // listen for world geometry updates using message filters
   if (!collision_objects_topic.empty())
   {
-    collision_object_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, collision_objects_topic, 1024);
+    collision_object_subscriber_.reset(new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, collision_objects_topic, 1024));
     if (tf_)
     {
-      collision_object_filter_ = new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024);
+      collision_object_filter_ .reset(new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024));
       collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
       ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
     }
@@ -399,10 +397,10 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
   if (!collision_map_topic.empty())
   {
     // listen to collision map using filters
-    collision_map_subscriber_ = new message_filters::Subscriber<moveit_msgs::CollisionMap>(root_nh_, collision_map_topic, 2);
+    collision_map_subscriber_.reset(new message_filters::Subscriber<moveit_msgs::CollisionMap>(root_nh_, collision_map_topic, 2));
     if (tf_)
     {
-      collision_map_filter_ = new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2);
+      collision_map_filter_.reset(new tf::MessageFilter<moveit_msgs::CollisionMap>(*collision_map_subscriber_, *tf_, scene_->getPlanningFrame(), 2));
       collision_map_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionMapCallback, this, _1));
       ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_map_topic.c_str(), collision_map_filter_->getTargetFramesString().c_str());
     }
@@ -422,10 +420,10 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
   if (!octomap_topic.empty())
   {
     // listen to octomap using filters
-    octomap_subscriber_ = new message_filters::Subscriber<octomap_msgs::OctomapBinary>(root_nh_, octomap_topic, 2);
+    octomap_subscriber_.reset(new message_filters::Subscriber<octomap_msgs::OctomapBinary>(root_nh_, octomap_topic, 2));
     if (tf_)
     {
-      octomap_filter_ = new tf::MessageFilter<octomap_msgs::OctomapBinary>(*octomap_subscriber_, *tf_, scene_->getPlanningFrame(), 2);
+      octomap_filter_.reset(new tf::MessageFilter<octomap_msgs::OctomapBinary>(*octomap_subscriber_, *tf_, scene_->getPlanningFrame(), 2));
       octomap_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::octomapCallback, this, _1));
       ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", octomap_topic.c_str(), octomap_filter_->getTargetFramesString().c_str());
     }
@@ -435,6 +433,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
       ROS_INFO("Listening to '%s'", octomap_topic.c_str());
     }
   }
+  octomap_monitor_->startMonitor();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void)
@@ -443,14 +442,10 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
       collision_map_subscriber_ || collision_map_filter_)
   {
     ROS_INFO("Stopping world geometry monitor");
-    delete collision_object_filter_;
-    delete collision_object_subscriber_;
-    delete collision_map_filter_;
-    delete collision_map_subscriber_;
-    collision_object_subscriber_ = NULL;
-    collision_object_filter_ = NULL;
-    collision_map_subscriber_ = NULL;
-    collision_map_filter_ = NULL;
+    collision_object_filter_.reset();
+    collision_object_subscriber_.reset();
+    collision_map_filter_.reset();
+    collision_map_subscriber_.reset();
     planning_scene_world_subscriber_.shutdown();
   }
   else
@@ -458,7 +453,8 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
     {
       ROS_INFO("Stopping world geometry monitor");
       planning_scene_world_subscriber_.shutdown();
-    }
+    } 
+  octomap_monitor_->stopMonitor();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::string &joint_states_topic, const std::string &attached_objects_topic)
