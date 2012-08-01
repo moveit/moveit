@@ -192,12 +192,12 @@ bool robot_self_filter::SelfMask::configure(const std::vector<LinkInfo> &links)
       sl.unscaledBody = bodies::createBodyFromShape(shape);
       bodies_.push_back(sl);
 
-      ROS_INFO("Added link: %s", sl.name.c_str());
-      ROS_INFO("       scale: %f", links[i].scale);
-      ROS_INFO("     padding: %f", links[i].padding);
-      ROS_INFO("      volume: %f", sl.volume);
-      ROS_INFO("  body faces: %d", ((bodies::ConvexMesh *)sl.body)->getTriangles().size());
-      ROS_INFO(" shape faces: %d", ((shapes::Mesh *)shape)->triangle_count);
+      ROS_DEBUG("Added link: %s", sl.name.c_str());
+      ROS_DEBUG("       scale: %f", links[i].scale);
+      ROS_DEBUG("     padding: %f", links[i].padding);
+      ROS_DEBUG("      volume: %f", sl.volume);
+      ROS_DEBUG("  body faces: %d", ((bodies::ConvexMesh *)sl.body)->getTriangles().size());
+      ROS_DEBUG(" shape faces: %d", ((shapes::Mesh *)shape)->triangle_count);
 
     }
     else
@@ -221,8 +221,6 @@ bool robot_self_filter::SelfMask::configure(const std::vector<LinkInfo> &links)
   for (unsigned int i = 0 ; i < bodies_.size() ; ++i)
     ROS_DEBUG("Self mask includes link %s with volume %f", bodies_[i].name.c_str(), bodies_[i].volume);
     
-  //ROS_INFO("Self filter using %f padding and %f scaling", padd, scale);
-
   return true; 
 }
 
@@ -349,12 +347,15 @@ void robot_self_filter::SelfMask::assumeFrame(const std::string &frame_id, const
     Eigen::Affine3d transf;
     tf::TransformTFToEigen(tf_transf, transf);
 
-   // ROS_INFO_STREAM("Transform from " << bodies_[i].name << " to " << frame_id << " is:");
+    //ROS_INFO_STREAM("Transform from " << bodies_[i].name << " to " << frame_id << " is:");
     //ROS_INFO_STREAM(":  " << transf.matrix());
-    
+
     // set it for each body; we also include the offset specified in URDF
     bodies_[i].body->setPose(transf * bodies_[i].constTransf);
     bodies_[i].unscaledBody->setPose(transf * bodies_[i].constTransf);
+
+    Eigen::Affine3d verify_trans = bodies_[i].body->getPose();
+    //ROS_INFO_STREAM("Translation from " << bodies_[i].name << " to " << frame_id << " is " << verify_trans.translation());
   }
   
   computeBoundingSpheres();
@@ -385,7 +386,7 @@ void robot_self_filter::SelfMask::maskAuxContainment(const pcl::PointCloud<pcl::
               //ROS_INFO("Body %d  of type %d has volume %f", j, bodies_[j].body->getType(), bodies_[j].body->computeVolume());
               if (bodies_[j].body->containsPoint(pt))
               {
-                  ROS_INFO("Point %d in link %s", i, bodies_[j].name.c_str());
+                  ROS_DEBUG("Point %d in link %s", i, bodies_[j].name.c_str());
                   out = INSIDE;
               }
           }
