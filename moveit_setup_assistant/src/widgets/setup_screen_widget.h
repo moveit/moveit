@@ -71,5 +71,3 @@ Q_SIGNALS:
 };
 
 #endif
-
-C++/l finished at Tue Jul 31 19:12:25

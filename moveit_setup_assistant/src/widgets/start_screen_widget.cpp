@@ -399,6 +399,13 @@ bool StartScreenWidget::loadNewFiles()
   // Get URDF file path
   config_data_->urdf_path_ = urdf_file_->getPath();
 
+  // Check that box is filled out
+  if( config_data_->urdf_path_.empty() )
+  {
+    QMessageBox::warning( this, "Error Loading Files", "No robot model file specefied" );
+    return false;
+  }
+
   // Check that this file exits
   if( ! fs::is_regular_file( config_data_->urdf_path_ ) )
   {
