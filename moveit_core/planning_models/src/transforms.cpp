@@ -127,7 +127,7 @@ const Eigen::Affine3d& planning_models::Transforms::getTransform(const std::stri
 
 const Eigen::Affine3d& planning_models::Transforms::getTransform(const planning_models::KinematicState &kstate, const std::string &from_frame) const
 {
-  std::map<std::string, Eigen::Affine3d>::const_iterator it = transforms_.find(from_frame);
+  EigenSTL::StringToAffine3dMap::const_iterator it = transforms_.find(from_frame);
   if (it != transforms_.end())
     return it->second;
   if (kstate.getKinematicModel()->getModelFrame() != target_frame_)
