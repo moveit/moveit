@@ -202,19 +202,19 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
 
     int max_dist = getJointDistanceIntegerMax(succ_joint_angles,
                                               planning_data_.goal_hash_entry_->angles);
-    // if(max_dist*1.0 < closest_to_goal_) {
-    //   std::cerr << "Max integer distance is " << max_dist << std::endl;
-    //   closest_to_goal_ = max_dist*1.0;
-    //   // for(unsigned int j = 0; j < joint_motion_wrappers_.size(); j++) {
-    //   //   if(joint_motion_wrappers_[j]->canGetCloser(succ_joint_angles[j], 
-    //   //                                              planning_data_.goal_hash_entry_->angles[j],
-    //   //                                              LONG_RANGE_JOINT_DIFF)) {
-    //   //     std::cerr << "Joint " << j << " succ " << succ_joint_angles[j] << " "                                                  
-    //   //               << planning_data_.goal_hash_entry_->angles[j] << " can get closer\n";
-    //   //     break;
-    //   //   } 
-    //   // }
-    // }
+    if(max_dist*1.0 < closest_to_goal_) {
+      std::cerr << "Max integer distance is " << max_dist << std::endl;
+      closest_to_goal_ = max_dist*1.0;
+      // for(unsigned int j = 0; j < joint_motion_wrappers_.size(); j++) {
+      //   if(joint_motion_wrappers_[j]->canGetCloser(succ_joint_angles[j], 
+      //                                              planning_data_.goal_hash_entry_->angles[j],
+      //                                              LONG_RANGE_JOINT_DIFF)) {
+      //     std::cerr << "Joint " << j << " succ " << succ_joint_angles[j] << " "                                                  
+      //               << planning_data_.goal_hash_entry_->angles[j] << " can get closer\n";
+      //     break;
+      //   } 
+      // }
+    }
     convertJointAnglesToCoord(succ_joint_angles, succ_coord);
     
     joint_state_group_->setStateValues(succ_joint_angles);
@@ -385,37 +385,37 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
     return false;
   }
   angle_discretization_ = gsr_->dfce_->distance_field_->getResolution();
-  // bfs_ = new BFS_3D(gsr_->dfce_->distance_field_->getXNumCells(),
-  //                   gsr_->dfce_->distance_field_->getYNumCells(),
-  //                   gsr_->dfce_->distance_field_->getZNumCells());
+  bfs_ = new BFS_3D(gsr_->dfce_->distance_field_->getXNumCells(),
+                    gsr_->dfce_->distance_field_->getYNumCells(),
+                    gsr_->dfce_->distance_field_->getZNumCells());
 
-  // boost::shared_ptr<const distance_field::DistanceField> world_distance_field = hy_world_->getCollisionWorldDistanceField()->getDistanceField();
-  // if(world_distance_field->getXNumCells() != gsr_->dfce_->distance_field_->getXNumCells() ||
-  //    world_distance_field->getYNumCells() != gsr_->dfce_->distance_field_->getYNumCells() ||
-  //    world_distance_field->getZNumCells() != gsr_->dfce_->distance_field_->getZNumCells()) {
-  //   ROS_WARN_STREAM("Size mismatch between world and self distance fields");
-  //   std::cerr << "Size mismatch between world and self distance fields" << std::endl;
-  //   mres.error_code.val = moveit_msgs::MoveItErrorCodes::COLLISION_CHECKING_UNAVAILABLE;
-  //   return false;
-  // }
-  // std::cerr << "BFS dimensions are "
-  //           << world_distance_field->getXNumCells() << " " 
-  //           << world_distance_field->getYNumCells() << " "
-  //           << world_distance_field->getZNumCells() << std::endl;
-  // unsigned int wall_count = 0;
-  // for(int i = 0; i < gsr_->dfce_->distance_field_->getXNumCells()-2; i++) {
-  //   for(int j = 0; j < gsr_->dfce_->distance_field_->getYNumCells()-2; j++) {
-  //     for(int k = 0; k < gsr_->dfce_->distance_field_->getZNumCells()-2; k++) {
-  //       if(gsr_->dfce_->distance_field_->getDistanceFromCell(i+1, j+1, k+1) == 0.0 ||
-  //          world_distance_field->getDistanceFromCell(i+1, j+1, k+1) == 0.0) {
-  //         bfs_->setWall(i+1, j+1, k+1);
-  //         wall_count++;
-  //       } 
-  //     }
-  //   }
-  // }
-  // std::cerr << "Wall cells are " << wall_count << " of " << 
-  //   world_distance_field->getXNumCells()*world_distance_field->getYNumCells()*world_distance_field->getZNumCells() << std::endl;
+  boost::shared_ptr<const distance_field::DistanceField> world_distance_field = hy_world_->getCollisionWorldDistanceField()->getDistanceField();
+  if(world_distance_field->getXNumCells() != gsr_->dfce_->distance_field_->getXNumCells() ||
+     world_distance_field->getYNumCells() != gsr_->dfce_->distance_field_->getYNumCells() ||
+     world_distance_field->getZNumCells() != gsr_->dfce_->distance_field_->getZNumCells()) {
+    ROS_WARN_STREAM("Size mismatch between world and self distance fields");
+    std::cerr << "Size mismatch between world and self distance fields" << std::endl;
+    mres.error_code.val = moveit_msgs::MoveItErrorCodes::COLLISION_CHECKING_UNAVAILABLE;
+    return false;
+  }
+  std::cerr << "BFS dimensions are "
+            << world_distance_field->getXNumCells() << " " 
+            << world_distance_field->getYNumCells() << " "
+            << world_distance_field->getZNumCells() << std::endl;
+  unsigned int wall_count = 0;
+  for(int i = 0; i < gsr_->dfce_->distance_field_->getXNumCells()-2; i++) {
+    for(int j = 0; j < gsr_->dfce_->distance_field_->getYNumCells()-2; j++) {
+      for(int k = 0; k < gsr_->dfce_->distance_field_->getZNumCells()-2; k++) {
+        if(gsr_->dfce_->distance_field_->getDistanceFromCell(i+1, j+1, k+1) == 0.0 ||
+           world_distance_field->getDistanceFromCell(i+1, j+1, k+1) == 0.0) {
+          bfs_->setWall(i+1, j+1, k+1);
+          wall_count++;
+        } 
+      }
+    }
+  }
+  std::cerr << "Wall cells are " << wall_count << " of " << 
+    world_distance_field->getXNumCells()*world_distance_field->getYNumCells()*world_distance_field->getZNumCells() << std::endl;
 
   //setting start position
   std::vector<double> start_joint_values;
@@ -474,7 +474,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   }
   //std::cerr << "Running bfs with goal " << goal_xyz[0] << " " <<  goal_xyz[1] << " " << goal_xyz[2] << std::endl;
                                 
-  //bfs_->run(goal_xyz[0], goal_xyz[1], goal_xyz[2]);
+  bfs_->run(goal_xyz[0], goal_xyz[1], goal_xyz[2]);
   // std::cerr << "Got start " << start_xyz[0] << " " <<  start_xyz[1] << " " << start_xyz[2] << " cost " 
   //           << getBFSCostToGoal(start_xyz[0], start_xyz[1], start_xyz[2]) << std::endl;
   goal_constraint_set_.clear();
