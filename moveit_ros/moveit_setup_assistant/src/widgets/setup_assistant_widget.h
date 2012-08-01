@@ -64,7 +64,7 @@
 #include <ros/ros.h>
 #include <boost/program_options.hpp> // for parsing input arguments
 
-// Forward declarations for rviz
+// Forward declarations 
 namespace rviz
 {
 class GridDisplay;
@@ -72,6 +72,10 @@ class RenderPanel;
 class VisualizationManager;
 }
 
+namespace moveit_rviz_plugin
+{
+  class PlanningDisplay;
+}
 
 namespace moveit_setup_assistant
 {
@@ -165,6 +169,13 @@ private Q_SLOTS:
    */
   void setModalMode( bool isModal );
 
+  /**
+   * Highlight a link of the robot
+   *
+   * @param link_name name of link to highlight
+   */
+  void highlightLink( const std::string& link_name );
+
 private:
 
 
@@ -180,10 +191,10 @@ private:
   QStackedLayout *main_content_;
 
   // Rviz Panel
-  //  rviz::VisualizationPanel* rviz_frame_;
   rviz::RenderPanel* rviz_render_panel_;
   rviz::VisualizationManager* rviz_manager_;
   Ogre::LogManager* log_manager_;
+  moveit_rviz_plugin::PlanningDisplay* planning_display_;
 
   // Screen Widgets
   StartScreenWidget *ssw_;
