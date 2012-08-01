@@ -14,12 +14,12 @@
   <depend package="common_rosdeps"/>
   <depend package="shape_msgs"/>
   <depend package="shape_tools"/>
-  <depend package="console_bridge"/>
 
   <rosdep name="libqhull" />
   <rosdep name="assimp" />
   <rosdep name="eigen" />
   <rosdep name="octomap" />
+  <rosdep name="console_bridge"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lgeometric_shapes"/>

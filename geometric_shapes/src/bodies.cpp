@@ -32,11 +32,10 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Ioan Sucan */
+/* Author: Ioan Sucan */
 
 #include "geometric_shapes/bodies.h"
 #include "geometric_shapes/body_operations.h"
-
 
 #include <ros/console.h>
 extern "C"
@@ -74,9 +73,11 @@ static inline double distanceSQR(const Eigen::Vector3d& p, const Eigen::Vector3d
 struct intersc
 {
   intersc(const Eigen::Vector3d &_pt, const double _tm) : pt(_pt), time(_tm) {}
-
+  
   Eigen::Vector3d pt;
-  double    time;
+  double          time;
+  
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 // define order on intersection points
@@ -184,7 +185,7 @@ bool bodies::Sphere::samplePointInside(random_numbers::RandomNumberGenerator &rn
   return false;
 }
 
-bool bodies::Sphere::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
+bool bodies::Sphere::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, EigenSTL::vector_Vector3d *intersections, unsigned int count) const
 {
   if (detail::distanceSQR(center_, origin, dir) > radius2_) return false;
 
@@ -283,7 +284,7 @@ void bodies::Cylinder::updateInternalData(void)
   radiusBSqr_ = length2_ * length2_ + radius2_;
   radiusB_ = sqrt(radiusBSqr_);
 
-  const Eigen::Matrix3d& basis = pose_.rotation();
+  Eigen::Matrix3d basis = pose_.rotation();
   normalB1_ = basis.col(0);
   normalB2_ = basis.col(1);
   normalH_  = basis.col(2);
@@ -338,7 +339,7 @@ void bodies::Cylinder::computeBoundingCylinder(BoundingCylinder &cylinder) const
   cylinder.length = scale_*length_+padding_;
 }
 
-bool bodies::Cylinder::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
+bool bodies::Cylinder::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, EigenSTL::vector_Vector3d *intersections, unsigned int count) const
 {
   if (detail::distanceSQR(center_, origin, dir) > radiusBSqr_) return false;
 
@@ -496,7 +497,7 @@ void bodies::Box::updateInternalData(void)
   radius2_ = length2_ * length2_ + width2_ * width2_ + height2_ * height2_;
   radiusB_ = sqrt(radius2_);
 
-  const Eigen::Matrix3d& basis = pose_.rotation();
+  Eigen::Matrix3d basis = pose_.rotation();
   normalL_ = basis.col(0);
   normalW_ = basis.col(1);
   normalH_ = basis.col(2);
@@ -562,7 +563,7 @@ void bodies::Box::computeBoundingCylinder(BoundingCylinder &cylinder) const
   cylinder.radius = sqrt(a * a + b * b);
 }
 
-bool bodies::Box::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
+bool bodies::Box::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, EigenSTL::vector_Vector3d *intersections, unsigned int count) const
 {
   if (detail::distanceSQR(center_, origin, dir) > radius2_) return false;
 
@@ -835,7 +836,7 @@ void bodies::ConvexMesh::updateInternalData(void)
   else
   {
     if (!scaled_vertices_storage_)
-      scaled_vertices_storage_.reset(new std::vector<Eigen::Vector3d>());
+      scaled_vertices_storage_.reset(new EigenSTL::vector_Vector3d());
     scaled_vertices_ = scaled_vertices_storage_.get();
     scaled_vertices_storage_->resize(mesh_data_->vertices_.size());
     for (unsigned int i = 0 ; i < mesh_data_->vertices_.size() ; ++i)
@@ -848,17 +849,17 @@ void bodies::ConvexMesh::updateInternalData(void)
 }
 const std::vector<unsigned int>& bodies::ConvexMesh::getTriangles(void) const
 {
-  static std::vector<unsigned int> empty;
+  static const std::vector<unsigned int> empty;
   return mesh_data_ ? mesh_data_->triangles_ : empty;
 }
 
-const std::vector<Eigen::Vector3d>& bodies::ConvexMesh::getVertices(void) const
+const EigenSTL::vector_Vector3d& bodies::ConvexMesh::getVertices(void) const
 {
-  static std::vector<Eigen::Vector3d> empty;
+  static const EigenSTL::vector_Vector3d empty;
   return mesh_data_ ? mesh_data_->vertices_ : empty;
 }
 
-const std::vector<Eigen::Vector3d>& bodies::ConvexMesh::getScaledVertices(void) const
+const EigenSTL::vector_Vector3d& bodies::ConvexMesh::getScaledVertices(void) const
 {
   return scaled_vertices_ ? *scaled_vertices_ : getVertices();
 }
@@ -932,7 +933,7 @@ double bodies::ConvexMesh::computeVolume(void) const
   return fabs(volume)/6.0;
 }
 
-bool bodies::ConvexMesh::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
+bool bodies::ConvexMesh::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d& dir, EigenSTL::vector_Vector3d *intersections, unsigned int count) const
 {
   if (!mesh_data_) return false;
   if (detail::distanceSQR(center_, origin, dir) > radiusBSqr_) return false;
@@ -1026,7 +1027,7 @@ bodies::BodyVector::BodyVector(void)
 }
 
 bodies::BodyVector::BodyVector(const std::vector<shapes::Shape*>& shapes,
-                               const std::vector<Eigen::Affine3d>& poses,
+                               const EigenSTL::vector_Affine3d& poses,
                                double padding)
 {
   for(unsigned int i = 0; i < shapes.size(); i++)
@@ -1105,7 +1106,7 @@ bool bodies::BodyVector::containsPoint(const Eigen::Vector3d &p, bool verbose) c
   return containsPoint(p, dummy, verbose);
 }
 
-bool bodies::BodyVector::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::size_t &index, std::vector<Eigen::Vector3d> *intersections, unsigned int count) const
+bool bodies::BodyVector::intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::size_t &index, EigenSTL::vector_Vector3d *intersections, unsigned int count) const
 {
   for (std::size_t i = 0 ; i < bodies_.size() ; ++i)
     if (bodies_[i]->intersectsRay(origin, dir, intersections, count))
