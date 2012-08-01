@@ -130,8 +130,10 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   {
     ROS_ERROR("Kinematic model not loaded");
   }
-
-  octomap_monitor_.reset(new occupancy_map_monitor::OccupancyMapMonitor(tf_));
+  occupancy_map_monitor::OccupancyMapMonitor::Options opt;
+  opt.map_frame = scene_->getPlanningFrame();
+  octomap_monitor_.reset(new occupancy_map_monitor::OccupancyMapMonitor(opt, tf_));
+  octomap_monitor_->setUpdateCallback(boost::bind(&PlanningSceneMonitor::octomapUpdateCallback, this));
   
   publish_planning_scene_frequency_ = 2.0;
   new_scene_update_ = false;
@@ -323,28 +325,16 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::octomapCallback(const octomap_msgs::OctomapBinaryConstPtr &map)
-{
-  if (scene_)
-  {
-    updateFrameTransforms();
-    {
-      boost::mutex::scoped_lock slock(scene_update_mutex_);
-      last_update_time_ = ros::Time::now();
-      scene_->processOctomapMsg(*map);
-    }
-    processSceneUpdateEvent(UPDATE_GEOMETRY);
-  }
-}
-
 void planning_scene_monitor::PlanningSceneMonitor::lockScene(void)
 {
+  octomap_monitor_->lockOcTree();
   scene_update_mutex_.lock();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
 {
   scene_update_mutex_.unlock();
+  octomap_monitor_->unlockOcTree();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string &scene_topic)
@@ -371,7 +361,6 @@ void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor(void)
 
 void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(const std::string &collision_objects_topic,
                                                                              const std::string &collision_map_topic,
-                                                                             const std::string &octomap_topic,
                                                                              const std::string &planning_scene_world_topic)
 {
   stopWorldGeometryMonitor();
@@ -417,22 +406,6 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     ROS_INFO("Listening to '%s' for planning scene world geometry", planning_scene_world_topic.c_str());
   }
 
-  if (!octomap_topic.empty())
-  {
-    // listen to octomap using filters
-    octomap_subscriber_.reset(new message_filters::Subscriber<octomap_msgs::OctomapBinary>(root_nh_, octomap_topic, 2));
-    if (tf_)
-    {
-      octomap_filter_.reset(new tf::MessageFilter<octomap_msgs::OctomapBinary>(*octomap_subscriber_, *tf_, scene_->getPlanningFrame(), 2));
-      octomap_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::octomapCallback, this, _1));
-      ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", octomap_topic.c_str(), octomap_filter_->getTargetFramesString().c_str());
-    }
-    else
-    {
-      octomap_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::octomapCallback, this, _1));
-      ROS_INFO("Listening to '%s'", octomap_topic.c_str());
-    }
-  }
   octomap_monitor_->startMonitor();
 }
 
@@ -496,6 +469,27 @@ void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(const sensor_ms
     last_state_update_ = n;
     updateSceneWithCurrentState();
   }
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::octomapUpdateCallback(void)
+{
+  updateFrameTransforms();
+  {
+    boost::mutex::scoped_lock slock(scene_update_mutex_);
+    last_update_time_ = ros::Time::now();
+    octomap_monitor_->lockOcTree();
+    try
+    {
+      scene_->processOctomapPtr(octomap_monitor_->getOcTreePtr(), Eigen::Affine3d::Identity());
+      octomap_monitor_->unlockOcTree();
+    }
+    catch(...)
+    {
+      octomap_monitor_->unlockOcTree(); // unlock and rethrow
+      throw;
+    }    
+  }
+  processSceneUpdateEvent(UPDATE_GEOMETRY);
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateFrequency(double hz)
