@@ -306,6 +306,7 @@ public:
 
   void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
   void processOctomapMsg(const octomap_msgs::OctomapBinary &map);
+  void processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t);
   bool getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& obj) const;
 
   void getCollisionObjectMarkers(visualization_msgs::MarkerArray& arr,
