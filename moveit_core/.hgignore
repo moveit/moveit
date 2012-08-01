@@ -14,3 +14,9 @@ msg/.*Result\.msg$
 msg/_.*\.py$
 \.pcd$
 .pyc$
+
+.cproject
+.project
+.pydevproject
+_gtest_from_src
+collision_detection_fcl/cmake_install.cmake
