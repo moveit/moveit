@@ -644,7 +644,7 @@ bool bodies::ConvexMesh::containsPoint(const Eigen::Vector3d &p, bool verbose) c
   if (!mesh_data_) return false;
   if (bounding_box_.containsPoint(p))
   {
-    Eigen::Vector3d ip(i_pose_.rotation() * p);
+    Eigen::Vector3d ip(i_pose_ * p);
     ip = mesh_data_->mesh_center_ + (ip - mesh_data_->mesh_center_) * scale_;
     return isPointInsidePlanes(ip);
   }
@@ -760,17 +760,18 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
   int num_facets = qh num_facets;
   
   int num_vertices = qh num_vertices;
-  ROS_INFO_STREAM("Facets " << num_facets << " vertices " << num_vertices);
   mesh_data_->vertices_.reserve(num_vertices);
   Eigen::Vector3d sum(0, 0, 0);
 
   //necessary for FORALLvertices
+  std::map<unsigned int, unsigned int> qhull_vertex_table;
   vertexT * vertex;
   FORALLvertices
   {
     Eigen::Vector3d vert(vertex->point[0],
                          vertex->point[1],
-                         vertex->point[2]); 
+                         vertex->point[2]);
+    qhull_vertex_table[vertex->id] = mesh_data_->vertices_.size();
     sum += vert;
     mesh_data_->vertices_.push_back(vert);
   }
@@ -797,7 +798,7 @@ void bodies::ConvexMesh::useDimensions(const shapes::Shape *shape)
     int vertex_n, vertex_i;
     FOREACHvertex_i_ ((*facet).vertices)
     {
-      mesh_data_->triangles_.push_back(vertex->id);
+      mesh_data_->triangles_.push_back(qhull_vertex_table[vertex->id]);
     }
 
   }
