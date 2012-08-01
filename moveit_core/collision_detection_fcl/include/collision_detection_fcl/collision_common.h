@@ -213,16 +213,16 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const CollisionWorld::Object *obj);
 
-inline void transform2fcl(const Eigen::Affine3d &b, fcl::SimpleTransform &f)
+inline void transform2fcl(const Eigen::Affine3d &b, fcl::Transform3f &f)
 {
   Eigen::Quaterniond q(b.rotation());
   f.setTranslation(fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
-  f.setQuatRotation(fcl::SimpleQuaternion(q.w(), q.x(), q.y(), q.z()));
+  f.setQuatRotation(fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
 }
 
-inline fcl::SimpleTransform transform2fcl(const Eigen::Affine3d &b)
+inline fcl::Transform3f transform2fcl(const Eigen::Affine3d &b)
 {
-  fcl::SimpleTransform t;
+  fcl::Transform3f t;
   transform2fcl(b, t);
   return t;
 }
