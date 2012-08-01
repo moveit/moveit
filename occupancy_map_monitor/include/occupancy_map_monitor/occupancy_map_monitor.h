@@ -50,53 +50,64 @@
 namespace occupancy_map_monitor
 {
 
-  class OccupancyMapMonitor
+class OccupancyMapMonitor
+{
+public:
+  
+  struct Options
   {
-  public:
-    OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf);
-    ~OccupancyMapMonitor(void);
-
-    /** @brief start the monitor (will begin updating the octomap */
-    void startMonitor(void);
-
-    void stopMonitor(void);
-    
-    /** @brief get a pointer to the underlying octree for this monitor. lock the
-     *  tree before reading or writing using this pointer */
-    OccMapTreePtr getTreePtr(void);
-
-    /** @brief lock the underlying octree. it will not be read or written by the
-     *  monitor until unlockTree() is called */
-    void lockTree(void);
-
-    /** @brief unlock the underlying octree. */
-    void unlockTree(void);
-    
-  private:
-
-    /** @brief tells the server an update is ready */
-    void updateReady(OccupancyMapUpdater *updater);
-
-    void treeUpdateThread(void);
-    void publish_markers(void);
-
-    OccMapTreePtr tree_;
-    boost::mutex tree_mutex_;
-    boost::scoped_ptr<boost::thread> tree_update_thread_;
-
-    std::string map_frame_;
-
-    std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
-    std::set<OccupancyMapUpdater*> updates_available_;
-    
-    boost::condition_variable update_cond_;
-    boost::mutex update_mut_;
-
-    ros::NodeHandle root_nh_;
-    ros::NodeHandle nh_;
-    ros::Publisher occupied_marker_pub_;
-    ros::Publisher free_marker_pub_;
+    std::string map_frame;
+    double map_resolution;
   };
+  
+  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf); 
+  OccupancyMapMonitor(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf);
+
+  ~OccupancyMapMonitor(void);
+  
+  /** @brief start the monitor (will begin updating the octomap */
+  void startMonitor(void);
+  
+  void stopMonitor(void);
+  
+  /** @brief get a pointer to the underlying octree for this monitor. lock the
+   *  tree before reading or writing using this pointer */
+  OccMapTreePtr getTreePtr(void);
+  
+  /** @brief lock the underlying octree. it will not be read or written by the
+   *  monitor until unlockTree() is called */
+  void lockTree(void);
+  
+  /** @brief unlock the underlying octree. */
+  void unlockTree(void);
+  
+private:
+
+  void initialize(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf);
+
+  /** @brief tells the server an update is ready */
+  void updateReady(OccupancyMapUpdater *updater);
+  
+  void treeUpdateThread(void);
+  void publish_markers(void);
+  
+  OccMapTreePtr tree_;
+  boost::mutex tree_mutex_;
+  boost::scoped_ptr<boost::thread> tree_update_thread_;
+  
+  std::string map_frame_;
+  
+  std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
+  std::set<OccupancyMapUpdater*> updates_available_;
+  
+  boost::condition_variable update_cond_;
+  boost::mutex update_mut_;
+  
+  ros::NodeHandle root_nh_;
+  ros::NodeHandle nh_;
+  ros::Publisher occupied_marker_pub_;
+  ros::Publisher free_marker_pub_;
+};
 
 }
 
