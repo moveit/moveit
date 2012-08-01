@@ -62,9 +62,14 @@ public:
 
 Q_SIGNALS:
 
-  /// Event that is fired when the current screen is in modal view. Essential disabled the left navigation
+  /// Event for when the current screen is in modal view. Essential disabled the left navigation
   void isModal( bool isModal );
-  
+
+  /// Event for telling rviz to highlight a link of the robot
+  void highlightLink( const std::string& name );
+
 };
 
 #endif
+
+C++/l finished at Tue Jul 31 19:12:25

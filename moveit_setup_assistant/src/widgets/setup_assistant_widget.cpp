@@ -49,16 +49,9 @@
 #include <QMessageBox>
 #include <pluginlib/class_loader.h> // for loading all avail kinematic planners
 // Rviz
-//#include <rviz/default_plugin/marker_display.h>
-//#include <rviz/default_plugin/interactive_marker_display.h>
-#include <rviz/display_wrapper.h>
-#include <rviz/view_controllers/orbit_view_controller.h>
 #include <rviz/render_panel.h>
-#include <rviz/visualization_panel.h>
 #include <rviz/visualization_manager.h>
 #include <moveit_rviz_plugin/planning_display.h>
-
-
 // ROS
 #include <ros/master.h> // for checking if roscore is started
 
@@ -103,8 +96,6 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   main_content_->addWidget(ssw_);
 
   // Pass command arg values to start screen
-  /*  if (args.count("urdf_pkg"))
-      ssw_->urdf_file_->robot_desc_pkg_field_->setText( args["urdf_pkg"].as<std::string>().c_str() );*/
   if (args.count("urdf_path"))
   {
     ssw_->urdf_file_->setPath( args["urdf_path"].as<std::string>() );
@@ -236,27 +227,32 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Self-Collisions
   cdcw_ = new DefaultCollisionsWidget( this, config_data_);
   main_content_->addWidget(cdcw_);
+  connect( cdcw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
 
   // Planning Groups
   pgw_ = new PlanningGroupsWidget( this, config_data_ );
   main_content_->addWidget(pgw_);
   connect( pgw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
+  connect( pgw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
 
   // Robot Poses
   rpw_ = new RobotPosesWidget( this, config_data_ );
   main_content_->addWidget(rpw_);
   connect( rpw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-
+  connect( rpw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  
   // End Effectors
   efw_ = new EndEffectorsWidget( this, config_data_ );
   main_content_->addWidget(efw_);  
   connect( efw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-
+  connect( efw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  
   // Virtual Joints
   vjw_ = new VirtualJointsWidget( this, config_data_ );
   main_content_->addWidget(vjw_);  
   connect( vjw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-
+  connect( vjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  
   // Configuration Files
   cfw_ = new ConfigurationFilesWidget( this, config_data_ );
   main_content_->addWidget(cfw_);  
@@ -304,30 +300,24 @@ void SetupAssistantWidget::loadRviz()
   rviz_manager_->startUpdate();
 
   // Set the fixed and target frame 
-  rviz_manager_->setFixedFrame( config_data_->getPlanningScene()->getPlanningFrame() );
-  rviz_manager_->setTargetFrame( config_data_->getPlanningScene()->getPlanningFrame() );
+  rviz_manager_->setFixedFrame( QString::fromStdString( config_data_->getPlanningScene()->getPlanningFrame() ) );
 
-  // Add Motion Planning Plugin to Rviz
-  rviz::DisplayWrapper* display_wrapper = rviz_manager_->createDisplay( "moveit_rviz_plugin/MotionPlanning",
-                                                                        "Motion Planning", true );
-  ROS_ASSERT( display_wrapper != NULL );
-  
-  // Get Motion Planning Display Reference
-  moveit_rviz_plugin::PlanningDisplay* planning_display = 
-    dynamic_cast<moveit_rviz_plugin::PlanningDisplay*>( display_wrapper->getDisplay() );
-  ROS_ASSERT( planning_display != NULL );
+  // Create the MoveIt Rviz Plugin and attach to display
+  planning_display_ = new moveit_rviz_plugin::PlanningDisplay();
+  planning_display_->setName( "Motion Planning" );
+  rviz_manager_->addDisplay( planning_display_, true );
 
   // Turn off planned path
-  planning_display->setVisualVisible( false );
+  planning_display_->setVisualVisible( false );
 
   // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
-  planning_display->setPlanningSceneTopic( MOVEIT_PLANNING_SCENE );
+  planning_display_->setPlanningSceneTopic( MOVEIT_PLANNING_SCENE );
 
   // Set robot description
-  planning_display->setRobotDescription( ROBOT_DESCRIPTION );
+  planning_display_->setRobotDescription( ROBOT_DESCRIPTION );
 
   // Set the Orbit View
-  rviz::OrbitViewController* orbit_view = 
+  /*rviz::OrbitViewController* orbit_view = 
     dynamic_cast<rviz::OrbitViewController*>(rviz_manager_->getCurrentViewController());
 
   if(orbit_view == NULL) 
@@ -337,7 +327,7 @@ void SetupAssistantWidget::loadRviz()
   else 
   {
     orbit_view->zoom(14.0);
-  }
+    }*/
   
   // Add Rviz to Planning Groups Widget
   QVBoxLayout *rviz_layout = new QVBoxLayout();
@@ -345,6 +335,16 @@ void SetupAssistantWidget::loadRviz()
   rviz_container_->setLayout( rviz_layout );
 
   rviz_container_->show(); 
+}
+
+// ******************************************************************************************
+// Highlight a robot link
+// ******************************************************************************************
+void SetupAssistantWidget::highlightLink( const std::string& link_name )
+{
+  std::cout << "Highlighting link " << link_name << std::endl;
+  
+  planning_display_->setLinkColor( link_name, 255, 0, 0 );  
 }
 
 // ******************************************************************************************
