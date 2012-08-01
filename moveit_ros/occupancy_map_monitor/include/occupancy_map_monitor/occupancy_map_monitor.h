@@ -56,6 +56,10 @@ public:
   
   struct Options
   {
+    Options(void) : map_resolution(0.0)
+    {
+    }
+    
     std::string map_frame;
     double map_resolution;
   };
@@ -70,17 +74,33 @@ public:
   
   void stopMonitor(void);
   
-  /** @brief get a pointer to the underlying octree for this monitor. lock the
-   *  tree before reading or writing using this pointer */
-  OccMapTreePtr getTreePtr(void);
-  
+  /** @brief Get a pointer to the underlying octree for this monitor. Lock the tree before reading or writing using this
+   *  pointer. The value od this pointer stays the same throughout the existance of the monitor instance. */
+  OccMapTreePtr getOcTreePtr(void)
+  {
+    return tree_;
+  }
+
+  /** @brief Get a const pointer to the underlying octree for this monitor. Lock the
+   *  tree before reading this pointer */
+  OccMapTreeConstPtr getOcTreePtr(void) const
+  {
+    return tree_const_;
+  }
+    
   /** @brief lock the underlying octree. it will not be read or written by the
    *  monitor until unlockTree() is called */
-  void lockTree(void);
+  void lockOcTree(void);
   
   /** @brief unlock the underlying octree. */
-  void unlockTree(void);
+  void unlockOcTree(void);
   
+  /** @brief Set the callback to trigger when updates to the maintained octomap are received */
+  void setUpdateCallback(const boost::function<void(void)> &update_callback)
+  {
+    update_callback_ = update_callback;
+  }
+
 private:
 
   void initialize(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf);
@@ -92,6 +112,7 @@ private:
   void publish_markers(void);
   
   OccMapTreePtr tree_;
+  OccMapTreeConstPtr tree_const_;
   boost::mutex tree_mutex_;
   boost::scoped_ptr<boost::thread> tree_update_thread_;
   
@@ -102,6 +123,7 @@ private:
   
   boost::condition_variable update_cond_;
   boost::mutex update_mut_;
+  boost::function<void(void)> update_callback_;
   
   ros::NodeHandle root_nh_;
   ros::NodeHandle nh_;

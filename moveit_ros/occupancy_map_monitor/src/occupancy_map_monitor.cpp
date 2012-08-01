@@ -51,27 +51,30 @@ OccupancyMapMonitor::OccupancyMapMonitor(const Options &opt, const boost::shared
 
 OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf) : nh_("~")
 { 
-  /* load params from param server */
-  Options opt;
-  if (!nh_.getParam("octomap_resolution", opt.map_resolution))
-  {
-    opt.map_resolution = 0.1;
-    ROS_WARN("Resolution not specified for Octomap. Using %lf m", opt.map_resolution);
-  }
-
-  if (!nh_.getParam("octomap_frame", opt.map_frame))
-  {
-    ROS_WARN("No target frame specified for Octomap. No transforms will be applied to received data.");
-  }
-  
+  Options opt; // empty set of options; this will lead to having everything read from the param server
   initialize(opt, tf);
 }
 
-void OccupancyMapMonitor::initialize(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf)
+void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shared_ptr<tf::Transformer> &tf)
 {  
-  tree_.reset(new octomap::OcTree(opt.map_resolution));
+  Options opt = input_opt; // we need to be able to update options
   
-
+  /* load params from param server */
+  if (opt.map_resolution <= 0.0)
+    if (!nh_.getParam("octomap_resolution", opt.map_resolution))
+    {
+      opt.map_resolution = 0.1;
+      ROS_WARN("Resolution not specified for Octomap.");
+    }
+  ROS_DEBUG("Using resolution = %lf m for building octomap", opt.map_resolution);
+  
+  if (opt.map_frame.empty())
+    if (!nh_.getParam("octomap_frame", opt.map_frame))
+      ROS_WARN("No target frame specified for Octomap. No transforms will be applied to received data.");
+  
+  tree_.reset(new octomap::OcTree(opt.map_resolution));
+  tree_const_ = tree_;
+  
   // this should be loaded by the Updater 
   
   XmlRpc::XmlRpcValue sensor_list;
@@ -123,15 +126,19 @@ void OccupancyMapMonitor::treeUpdateThread(void)
       if (update_cond_.timed_wait(update_lock, boost::posix_time::milliseconds(100)))
         updates_available_.swap(ready);        
     }
-    
-    for (std::set<OccupancyMapUpdater*>::iterator it = ready.begin() ; it != ready.end() ; ++it)
+    if (tree_update_thread_ && !ready.empty())
     {
-      ROS_DEBUG("Calling updater");
-      boost::lock_guard<boost::mutex> _lock(tree_mutex_);
-      (*it)->process(tree_);
+      ROS_DEBUG("Calling updaters");
+      {
+        boost::lock_guard<boost::mutex> _lock(tree_mutex_);
+        for (std::set<OccupancyMapUpdater*>::iterator it = ready.begin() ; it != ready.end() ; ++it)
+          (*it)->process(tree_);
+      }
+      if (update_callback_)
+        update_callback_();
+      ready.clear();
+      publish_markers();
     }
-    ready.clear();
-    publish_markers();
   }
 }
 
@@ -144,17 +151,12 @@ void OccupancyMapMonitor::updateReady(OccupancyMapUpdater *updater)
   update_cond_.notify_all();
 }
 
-OccMapTreePtr OccupancyMapMonitor::getTreePtr()
-{
-  return tree_;
-}
-
-void OccupancyMapMonitor::lockTree()
+void OccupancyMapMonitor::lockOcTree(void)
 {
   tree_mutex_.lock();
 }
 
-void OccupancyMapMonitor::unlockTree()
+void OccupancyMapMonitor::unlockOcTree(void)
 {
   tree_mutex_.unlock();
 }
