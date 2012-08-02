@@ -1,0 +1,38 @@
+<package>
+  <description brief="kdl_kinematics_plugin">
+
+     kdl_kinematics_plugin
+
+  </description>
+  <author>Sachin Chitta</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/lcm_arm_kinematics</url>
+  <depend package="orocos_kdl"/>
+  <depend package="kinematics_base"/>
+  <depend package="moveit_msgs"/>
+  <depend package="kinematics_msgs"/>
+  <depend package="kdl"/>
+  <depend package="roscpp"/>
+  <depend package="sensor_msgs"/>
+  <depend package="kdl_parser"/>
+  <depend package="pluginlib"/>  
+  <depend package="angles"/>  
+  <depend package="planning_models"/>  
+  <depend package="srdf"/>  
+  <depend package="robot_model_loader"/>  
+  <depend package="tf_conversions"/>  
+  <depend package="tf"/>  
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lkdl_kinematics_plugin_lib"/>
+    <kinematics_base plugin="${prefix}/kinematics_plugins.xml" />
+  </export>
+
+  <platform os="ubuntu" version="9.04"/>
+  <platform os="ubuntu" version="9.10"/>
+  <platform os="ubuntu" version="10.04"/>
+
+</package>
+
+
