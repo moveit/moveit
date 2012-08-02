@@ -196,9 +196,8 @@ bool robot_self_filter::SelfMask::configure(const std::vector<LinkInfo> &links)
       ROS_DEBUG("       scale: %f", links[i].scale);
       ROS_DEBUG("     padding: %f", links[i].padding);
       ROS_DEBUG("      volume: %f", sl.volume);
-      ROS_DEBUG("  body faces: %d", ((bodies::ConvexMesh *)sl.body)->getTriangles().size());
-      ROS_DEBUG(" shape faces: %d", ((shapes::Mesh *)shape)->triangle_count);
-
+      ROS_DEBUG("  body faces: %d", (int)((bodies::ConvexMesh *)sl.body)->getTriangles().size());
+      ROS_DEBUG(" shape faces: %d", (int)((shapes::Mesh *)shape)->triangle_count);
     }
     else
       ROS_WARN("Unable to create point inclusion body for link '%s'", links[i].name.c_str());
@@ -354,7 +353,7 @@ void robot_self_filter::SelfMask::assumeFrame(const std::string &frame_id, const
     bodies_[i].body->setPose(transf * bodies_[i].constTransf);
     bodies_[i].unscaledBody->setPose(transf * bodies_[i].constTransf);
 
-    Eigen::Affine3d verify_trans = bodies_[i].body->getPose();
+    //Eigen::Affine3d verify_trans = bodies_[i].body->getPose();
     //ROS_INFO_STREAM("Translation from " << bodies_[i].name << " to " << frame_id << " is " << verify_trans.translation());
   }
   

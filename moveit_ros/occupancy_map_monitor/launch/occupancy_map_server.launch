@@ -10,9 +10,8 @@
   -->
 
   <node pkg="occupancy_map_monitor" type="occupancy_map_server" name="occupancy_map_server" respawn="false" output="screen">
-    <param name="map_frame" type="string" value="odom_combined" />
-    <param name="map_resolution" type="double" value="0.1" />
-    <param name="max_range" type="double" value="5.0" />
+    <param name="octomap_frame" type="string" value="base_link" />
+    <param name="octomap_resolution" type="double" value="0.1" />
 
     <!-- sensors used to update the map -->
     <rosparam command="load" file="$(find occupancy_map_monitor)/config/sensors_kinect.yaml" />

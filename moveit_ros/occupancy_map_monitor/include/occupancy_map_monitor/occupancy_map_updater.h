@@ -40,6 +40,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
+#include <ros/ros.h>
 #include <occupancy_map_monitor/occupancy_map.h>
 
 namespace occupancy_map_monitor
@@ -59,6 +60,9 @@ public:
        *  @param notify_func Function which updater should call when ready to update the map
        */
   void setNotifyFunction(const boost::function<void(OccupancyMapUpdater*)> &notify_func) { notify_func_ = notify_func; }
+
+  /** @brief Set updater params using struct that comes from parsing a yaml string*/
+  virtual bool setParams(XmlRpc::XmlRpcValue &params) = 0;
 
   /** @brief Do any necessary setup (subscribe to ros topics, etc.)*/
   virtual void initialize(void) = 0;
