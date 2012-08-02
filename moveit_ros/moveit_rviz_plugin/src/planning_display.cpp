@@ -551,7 +551,11 @@ bool PlanningDisplay::getVisualVisible()
   return robot_->isVisualVisible();
 }
 
-void PlanningDisplay::changedVisualEnabled(){} // TODO ??
+void PlanningDisplay::changedVisualEnabled()
+{
+  robot_->setVisible( visual_enabled_property_->getBool() );
+  context_->queueRender();
+}
 
 // ******************************************************************************************
 // Collision Visible
@@ -567,7 +571,10 @@ bool PlanningDisplay::getCollisionVisible()
   return robot_->isCollisionVisible();
 }
 
-void PlanningDisplay::changedCollisionEnabled(){} // TODO?
+void PlanningDisplay::changedCollisionEnabled()
+{
+  context_->queueRender();
+}
 
 // ******************************************************************************************
 // Set or Unset Link Color - Private Function
