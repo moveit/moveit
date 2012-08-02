@@ -44,15 +44,47 @@
 
 namespace occupancy_map_monitor
 {
-PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame,
-                                                             const std::string &point_cloud_topic, double max_range,  size_t frame_subsample = 1,  size_t point_subsample = 1)
-  : tf_(tf), map_frame_(map_frame), point_cloud_topic_(point_cloud_topic),  max_range_(max_range), frame_subsample_(frame_subsample), point_subsample_(point_subsample)
-{}
+
+
+PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame)
+  : tf_(tf), map_frame_(map_frame)
+{
+}
 
 PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater(void)
 {
   delete point_cloud_subscriber_;
   delete point_cloud_filter_;
+}
+
+bool PointCloudOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
+{
+  if(!params.hasMember("point_cloud_topic"))
+    return false;
+  std::string point_cloud_topic = std::string (params["point_cloud_topic"]);
+
+  if(!params.hasMember("max_range"))
+    return false;
+  double max_range = double (params["max_range"]);
+
+  if(!params.hasMember("frame_subsample"))
+    return false;
+  size_t frame_subsample = int (params["frame_subsample"]);
+
+  if(!params.hasMember("point_subsample"))
+    return false;
+  size_t point_subsample = int (params["point_subsample"]);
+
+  return this->setParams(point_cloud_topic, max_range, frame_subsample, point_subsample);
+}
+
+bool PointCloudOccupancyMapUpdater::setParams(const std::string &point_cloud_topic, double max_range,  size_t frame_subsample,  size_t point_subsample)
+{
+  point_cloud_topic_ = point_cloud_topic;
+  max_range_ = max_range;
+  frame_subsample_ = frame_subsample;
+  point_subsample_ = point_subsample;
+  return true;
 }
 
 void PointCloudOccupancyMapUpdater::initialize()
@@ -82,7 +114,7 @@ void PointCloudOccupancyMapUpdater::process(const OccMapTreePtr &tree)
   sensor_msgs::PointCloud2::ConstPtr cloud;
   {
     boost::lock_guard<boost::mutex> _lock(last_point_cloud_mutex_);
-    cloud = last_point_cloud_; 
+    cloud = last_point_cloud_;
     last_point_cloud_.reset();
   }
   
@@ -91,7 +123,7 @@ void PointCloudOccupancyMapUpdater::process(const OccMapTreePtr &tree)
     processCloud(tree, cloud);
     ROS_DEBUG("Done updating occupancy map");
   }
-  else  
+  else
     ROS_DEBUG("No point cloud to process");
 }
 

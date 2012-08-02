@@ -57,61 +57,69 @@ OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer
 
 void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shared_ptr<tf::Transformer> &tf)
 {  
-  Options opt = input_opt; // we need to be able to update options
+  opt_ = input_opt; // we need to be able to update options
   
   /* load params from param server */
-  if (opt.map_resolution <= 0.0)
-    if (!nh_.getParam("octomap_resolution", opt.map_resolution))
+  if (opt_.map_resolution <= 0.0)
+    if (!nh_.getParam("octomap_resolution", opt_.map_resolution))
     {
-      opt.map_resolution = 0.1;
+      opt_.map_resolution = 0.1;
       ROS_WARN("Resolution not specified for Octomap.");
     }
-  ROS_DEBUG("Using resolution = %lf m for building octomap", opt.map_resolution);
+  ROS_DEBUG("Using resolution = %lf m for building octomap", opt_.map_resolution);
   
-  if (opt.map_frame.empty())
-    if (!nh_.getParam("octomap_frame", opt.map_frame))
+  if (opt_.map_frame.empty())
+    if (!nh_.getParam("octomap_frame", opt_.map_frame))
       ROS_WARN("No target frame specified for Octomap. No transforms will be applied to received data.");
   
-  tree_.reset(new octomap::OcTree(opt.map_resolution));
+  tree_.reset(new octomap::OcTree(opt_.map_resolution));
   tree_const_ = tree_;
-  
-  // this should be loaded by the Updater 
   
   XmlRpc::XmlRpcValue sensor_list;
   if (nh_.getParam("sensors", sensor_list))
   {
-    ROS_ASSERT(sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+    if(!sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
+    {
+      ROS_ERROR("List of sensors must be an array!");
+      return;
+    }
     for (int32_t i = 0; i < sensor_list.size(); ++i)
     {
-      ROS_ASSERT(sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
-      ROS_ASSERT(sensor_list[i].hasMember ("sensor_type"));
+      if(!sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
+      {
+        ROS_ERROR("Params for sensor %d not a struct, ignoring sensor", i);
+        continue;
+      }
+
+      if(!sensor_list[i].hasMember ("sensor_type"))
+      {
+        ROS_ERROR("No sensor type for sensor %d, ignoring sensor", i);
+        continue;
+      }
+
       std::string sensor_type = std::string (sensor_list[i]["sensor_type"]);
-      
+      boost::shared_ptr<OccupancyMapUpdater> up;
       if(sensor_type == "point_cloud_sensor")
       {
-        ROS_ASSERT(sensor_list[i].hasMember("point_cloud_topic"));
-        std::string point_cloud_topic = std::string (sensor_list[i]["point_cloud_topic"]);
-        
-        ROS_ASSERT(sensor_list[i].hasMember("max_range"));
-        double max_range = double (sensor_list[i]["max_range"]);
-        
-        ROS_ASSERT(sensor_list[i].hasMember("frame_subsample"));
-        size_t frame_subsample = int (sensor_list[i]["frame_subsample"]);
-        
-        ROS_ASSERT(sensor_list[i].hasMember("point_subsample"));
-        size_t point_subsample = int (sensor_list[i]["point_subsample"]);
-        
-        boost::shared_ptr<OccupancyMapUpdater> up(new PointCloudOccupancyMapUpdater(tf, opt.map_frame, point_cloud_topic, max_range, frame_subsample, point_subsample));
-        up->setNotifyFunction(boost::bind(&OccupancyMapMonitor::updateReady, this, _1));
-        map_updaters_.push_back(up);
+        up.reset(new PointCloudOccupancyMapUpdater(tf, opt_.map_frame));
       }
       else
       {
-        ROS_ERROR_STREAM("Ignoring unknown sensor type" << sensor_type << "in occupancy map params");
+        ROS_ERROR("Sensor %d has unknown type %s, ignoring sensor", i, sensor_type.c_str());
+        continue;
       }
+
+      /* pass the params struct directly in to the updater */
+      if(!up->setParams(sensor_list[i]))
+      {
+        ROS_ERROR("Failed to load sensor %d of type %s", i, sensor_type.c_str());
+        continue;
+      }
+
+      up->setNotifyFunction(boost::bind(&OccupancyMapMonitor::updateReady, this, _1));
+      map_updaters_.push_back(up);
     }
   }
-  
   occupied_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("occupied_cells", 1);
   free_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("free_cells", 1);
 }
@@ -124,7 +132,7 @@ void OccupancyMapMonitor::treeUpdateThread(void)
     {
       boost::mutex::scoped_lock update_lock(update_mut_);
       if (update_cond_.timed_wait(update_lock, boost::posix_time::milliseconds(100)))
-        updates_available_.swap(ready);        
+        updates_available_.swap(ready);
     }
     if (tree_update_thread_ && !ready.empty())
     {
@@ -167,7 +175,7 @@ void OccupancyMapMonitor::publish_markers(void)
   
   visualization_msgs::MarkerArray occupied_nodes_arr, free_nodes_arr;
   
-  make_occupied_cells_marker_array(tree_, ros::Time::now(), map_frame_, "occupied_cells", occupied_nodes_arr);
+  make_occupied_cells_marker_array(tree_, ros::Time::now(), opt_.map_frame, "occupied_cells", occupied_nodes_arr);
   //make_free_cells_marker_array(tree_, ros::Time::now(), map_frame_, "free_cells", free_nodes_arr);
   
   occupied_marker_pub_.publish(occupied_nodes_arr);

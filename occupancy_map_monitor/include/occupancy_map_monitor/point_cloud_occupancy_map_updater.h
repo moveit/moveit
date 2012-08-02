@@ -51,10 +51,11 @@ namespace occupancy_map_monitor
   class PointCloudOccupancyMapUpdater : public OccupancyMapUpdater
   {
   public:
-    PointCloudOccupancyMapUpdater(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame,
-                                  const std::string &point_cloud_topic, double max_range, size_t frame_subsample, size_t point_subsample);
+    PointCloudOccupancyMapUpdater(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame);
     virtual ~PointCloudOccupancyMapUpdater(void);
       
+    virtual bool setParams(XmlRpc::XmlRpcValue &params);
+    virtual bool setParams(const std::string &point_cloud_topic, double max_range,  size_t frame_subsample = 1,  size_t point_subsample = 1);
     virtual void initialize(void);
     virtual void process(const OccMapTreePtr &tree);
       

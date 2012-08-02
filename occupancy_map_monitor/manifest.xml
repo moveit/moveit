@@ -15,6 +15,7 @@
   <depend package="std_srvs"/>
   <depend package="visualization_msgs"/>
   <depend package="tf"/>
+  <depend package="robot_self_filter"/>
 
   <rosdep name="octomap" />
   <depend package="dynamic_reconfigure"/>

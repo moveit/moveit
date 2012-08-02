@@ -110,14 +110,14 @@ private:
   
   void treeUpdateThread(void);
   void publish_markers(void);
+
+  Options opt_;
   
   OccMapTreePtr tree_;
   OccMapTreeConstPtr tree_const_;
   boost::mutex tree_mutex_;
   boost::scoped_ptr<boost::thread> tree_update_thread_;
-  
-  std::string map_frame_;
-  
+
   std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
   std::set<OccupancyMapUpdater*> updates_available_;
   
