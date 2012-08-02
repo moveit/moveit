@@ -119,6 +119,11 @@ private Q_SLOTS:
    */
   void toggleCheckBox(int j, int i);
 
+  /**
+   * \breif Called when a row is clicked, to highlight links on robot
+   */
+  void previewClicked( int row, int column );
+
   /** 
    * \brief Called when setup assistant navigation switches to this screen
    */

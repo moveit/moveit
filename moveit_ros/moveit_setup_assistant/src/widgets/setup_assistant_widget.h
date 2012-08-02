@@ -176,6 +176,16 @@ private Q_SLOTS:
    */
   void highlightLink( const std::string& link_name );
 
+  /**
+   * Highlight a robot group
+   */
+  void highlightGroup( const std::string& group_name );
+
+  /**
+   * Unhighlight all links of a robot
+   */
+  void unhighlightAll();
+
 private:
 
 
@@ -185,7 +195,7 @@ private:
   QList<QString> nav_name_list_;
   NavigationWidget *navs_view_;
   
-  QWidget *right_frame_;
+  QWidget *middle_frame_;
   QWidget *rviz_container_;
   QSplitter *splitter_;
   QStackedLayout *main_content_;
@@ -198,7 +208,7 @@ private:
 
   // Screen Widgets
   StartScreenWidget *ssw_;
-  DefaultCollisionsWidget *cdcw_;
+  DefaultCollisionsWidget *dcw_;
   PlanningGroupsWidget *pgw_;
   RobotPosesWidget *rpw_;
   EndEffectorsWidget *efw_;

@@ -152,7 +152,6 @@ class PlanningDisplay : public rviz::Display
   void setCollisionVisible( bool visible );
   bool getCollisionVisible();
 
-
   /**
    * \brief
    */
@@ -166,8 +165,9 @@ class PlanningDisplay : public rviz::Display
   float getRobotPathAlpha();
 
   /**
-   * \brief
+   * \brief Set of functions for highlighting parts of a robot
    */
+  void setUnsetLinkColor( const std::string& link_name, float red, float green, float blue, bool set );
   void setLinkColor( const std::string& link_name, float red, float green, float blue );
   void unsetLinkColor( const std::string& link_name );
 
