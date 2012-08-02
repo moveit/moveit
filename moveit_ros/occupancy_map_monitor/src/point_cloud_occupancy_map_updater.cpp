@@ -41,6 +41,7 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/ros/conversions.h>
+#include <robot_self_filter/self_mask.h>
 
 namespace occupancy_map_monitor
 {
@@ -75,21 +76,35 @@ bool PointCloudOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
     return false;
   size_t point_subsample = int (params["point_subsample"]);
 
-  return this->setParams(point_cloud_topic, max_range, frame_subsample, point_subsample);
+  std::vector<robot_self_filter::LinkInfo> links;
+  if(params.hasMember("self_mask"))
+  {
+    ROS_INFO("Configuring self mask");
+    if(!robot_self_filter::createLinksFromParams(params["self_mask"], links))
+    {
+      ROS_ERROR("Failed to load self mask");
+      return false;
+    }
+  }
+
+  return this->setParams(point_cloud_topic, max_range, frame_subsample, point_subsample, links);
 }
 
-bool PointCloudOccupancyMapUpdater::setParams(const std::string &point_cloud_topic, double max_range,  size_t frame_subsample,  size_t point_subsample)
+bool PointCloudOccupancyMapUpdater::setParams(const std::string &point_cloud_topic, double max_range,  size_t frame_subsample,
+                                              size_t point_subsample, const std::vector<robot_self_filter::LinkInfo> links)
 {
   point_cloud_topic_ = point_cloud_topic;
   max_range_ = max_range;
   frame_subsample_ = frame_subsample;
   point_subsample_ = point_subsample;
+
+  self_mask_.reset(new robot_self_filter::SelfMask(*tf_, links));
   return true;
 }
 
 void PointCloudOccupancyMapUpdater::initialize()
 {
-  // subscribe to point cloud topic using tf filter
+  /* subscribe to point cloud topic using tf filter*/
   point_cloud_subscriber_ = new message_filters::Subscriber<sensor_msgs::PointCloud2>(root_nh_, point_cloud_topic_, 1024);
   point_cloud_filter_ = new tf::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_, map_frame_, 1024);
   point_cloud_filter_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
@@ -140,16 +155,19 @@ void PointCloudOccupancyMapUpdater::processCloud(const OccMapTreePtr &tree, cons
     ROS_ERROR_STREAM("Transform error of sensor data: " << ex.what() << ", quitting callback");
     return;
   }
-  
+
   /* convert cloud message to pcl cloud object */
   pcl::PointCloud<pcl::PointXYZ> cloud;
   pcl::fromROSMsg(*cloud_msg, cloud);
-  
+
   /* compute sensor origin in map frame */
   tf::Vector3 sensor_origin_tf = map_H_sensor.getOrigin();
   octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
-  
-  ROS_DEBUG("Looping through points to find free and occupied areas");
+
+  /* mask out points on the robot */
+  std::vector<int> mask;
+  if(self_mask_)
+    self_mask_->maskContainment(cloud, mask);
   
   /* do ray tracing to find which cells this point cloud indicates should be free, and which it indicates
    * should be occupied */
@@ -159,6 +177,10 @@ void PointCloudOccupancyMapUpdater::processCloud(const OccMapTreePtr &tree, cons
   {
     for(col = 0; col < cloud.width; col += point_subsample_)
     {
+      bool self_point = false;
+      if(!mask.empty() && mask[row*cloud.width + col] == robot_self_filter::INSIDE)
+        self_point = true;
+
       pcl::PointXYZ p = cloud(col, row);
       
       /* check for NaN */
@@ -173,13 +195,17 @@ void PointCloudOccupancyMapUpdater::processCloud(const OccMapTreePtr &tree, cons
       if (tree->computeRayKeys(sensor_origin, point, key_ray_))
         free_cells.insert(key_ray_.begin(), key_ray_.end());
       
-      /* occupied cell at ray endpoint if ray is shorter than max range */
-      double range = (point - sensor_origin).norm();
-      if(range < max_range_)
+      /* occupied cell at ray endpoint if ray is shorter than max range and this point
+         isn't on a part of the robot*/
+      if(!self_point)
       {
-        octomap::OcTreeKey key;
-        if (tree->genKey(point, key))
-          occupied_cells.insert(key);
+        double range = (point - sensor_origin).norm();
+        if(range < max_range_)
+        {
+          octomap::OcTreeKey key;
+          if (tree->genKey(point, key))
+            occupied_cells.insert(key);
+        }
       }
     }
   }

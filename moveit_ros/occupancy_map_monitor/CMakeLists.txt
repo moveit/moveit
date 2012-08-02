@@ -42,10 +42,11 @@ rosbuild_add_library(${PROJECT_NAME}
         src/point_cloud_occupancy_map_updater.cpp
         src/octomap_markers.cpp
     )
+target_link_libraries(${PROJECT_NAME} ${OCTOMAP_LIBRARIES} ${Boost_LIBRARIES} robot_self_filter)
 
 rosbuild_add_executable(occupancy_map_server
   	src/occupancy_map_server.cpp)
 
-target_link_libraries(occupancy_map_server ${PROJECT_NAME} ${OCTOMAP_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(occupancy_map_server ${PROJECT_NAME} ${OCTOMAP_LIBRARIES} ${Boost_LIBRARIES} robot_self_filter)
 
 
