@@ -203,17 +203,15 @@ public:
   /** @brief Stop the scene monitor*/
   void stopSceneMonitor(void);
 
-  /** @brief Start listening for objects in the world, the collision map and attached collision objects
+  /** @brief Start listening for objects in the world, the collision map and attached collision objects. Additionally, this function starts the OccupancyMapMonitor as well.
    *  @param collision_objects_topic The topic on which to listen for collision objects
    *  @param collision_map_topic The topic on which to listen for the collision map
-   *  @param octomap_topic The topic on which to listen for the OctoMap
    *  @param planning_scene_world_topic The topic to listen to for world scene geometry */
   void startWorldGeometryMonitor(const std::string &collision_objects_topic = "collision_object",
                                  const std::string &collision_map_topic = "collision_map",
-                                 const std::string &octomap_topic = "octomap",
                                  const std::string &planning_scene_world_topic = "planning_scene_world");
 
-  /** @brief Stop the world geometry monitor*/
+  /** @brief Stop the world geometry monitor */
   void stopWorldGeometryMonitor(void);
 
   /** @brief Set the function to be called when an update to the scene is received */
@@ -258,9 +256,9 @@ protected:
   /** @brief Callback for a new collision map*/
   void collisionMapCallback(const moveit_msgs::CollisionMapConstPtr &map);
 
-  /** @brief Callback for a new octomap*/
-  void octomapCallback(const octomap_msgs::OctomapBinaryConstPtr &map);
-
+  /** @brief Callback for octomap updates */
+  void octomapUpdateCallback(void);
+  
   /** @brief Callback for a new attached object msg*/
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr &obj);
   
