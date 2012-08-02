@@ -94,6 +94,10 @@ private Q_SLOTS:
   /// Move selected data left
   void deselectDataButtonClicked();
 
+  /// Event when data table is clicked
+  void previewClickedData( int row, int column );
+  void previewClickedSelected( int row, int column );
+
 Q_SIGNALS:
 
   // ******************************************************************************************
@@ -105,6 +109,10 @@ Q_SIGNALS:
 
   /// Event sent when user presses cancel button
   void cancelEditing();
+
+  /// Highlight part of robot
+  void previewClicked( std::string name );
+
 
 private:
 
@@ -119,7 +127,7 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
-
+  
 };
 
 } //namespace moveit_setup_assistant

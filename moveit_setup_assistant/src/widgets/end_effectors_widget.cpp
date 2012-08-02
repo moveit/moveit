@@ -252,10 +252,7 @@ void EndEffectorsWidget::editDoubleClicked( int row, int column )
 // ******************************************************************************************
 void EndEffectorsWidget::previewClicked( int row, int column )
 {
-  // TODO: highlight the end effector?
-
-
-  /*  // Get list of all selected items
+  // Get list of all selected items
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
@@ -263,19 +260,13 @@ void EndEffectorsWidget::previewClicked( int row, int column )
     return;
 
   // Find the selected in datastructure
-  srdf::Model::GroupState *effector = findEffectorByName( selected[0]->text().toStdString() );
+  srdf::Model::EndEffector *effector = findEffectorByName( selected[0]->text().toStdString() );
 
-  // Set effector joint values by adding them to the local joint state map
-  for( std::map<std::string, std::vector<double> >::const_iterator value_it = effector->joint_values_.begin();
-       value_it != effector->joint_values_.end(); ++value_it )
-  {
-    // Only copy the first joint value 
-    joint_state_map_[ value_it->first ] = value_it->second[0];
-  }
+  // Unhighlight all links
+  Q_EMIT unhighlightAll();
 
-  // Update the joints
-  publishJoints();
-  */
+  // Highlight group
+  Q_EMIT highlightGroup( effector->component_group_ );
 }
 
 // ******************************************************************************************

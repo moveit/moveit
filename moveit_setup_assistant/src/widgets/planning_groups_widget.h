@@ -63,7 +63,7 @@ enum GroupType {
   SUBGROUP,
   GROUP
 };
-  
+
 // ******************************************************************************************
 // ******************************************************************************************
 // CLASS
@@ -94,6 +94,9 @@ private Q_SLOTS:
   /// Displays data in the link_pairs_ data structure into a QtTableWidget
   void loadGroupsTree();
 
+  /// Highlight the group of whatever element is selected in the tree view
+  void previewSelected();
+
   /// Edit whatever element is selected in the tree view
   void editSelected();
 
@@ -119,6 +122,15 @@ private Q_SLOTS:
 
   /// Called when user clicks link part of bottom left label
   void alterTree( const QString &link );
+
+  /// Called from Double List widget to highlight a link
+  void previewClickedLink( std::string name );
+
+  /// Called from Double List widget to highlight a joint
+  void previewClickedJoint( std::string name );
+
+  /// Called from Double List widget to highlight a subgroup
+  void previewClickedSubgroup( std::string name );
 
 private:
 
@@ -201,7 +213,7 @@ public:
   PlanGroupType() {}
   PlanGroupType( srdf::Model::Group *group, const moveit_setup_assistant::GroupType type );
   virtual ~PlanGroupType() { ; }
-  
+
   // Variables
   srdf::Model::Group *group_;
   moveit_setup_assistant::GroupType type_;
