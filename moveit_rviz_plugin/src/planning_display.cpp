@@ -570,52 +570,65 @@ bool PlanningDisplay::getCollisionVisible()
 void PlanningDisplay::changedCollisionEnabled(){} // TODO?
 
 // ******************************************************************************************
-// Link Color
+// Set or Unset Link Color - Private Function
+// ******************************************************************************************
+void PlanningDisplay::setUnsetLinkColor( const std::string& link_name, float red, float green, float blue, bool set )
+{
+  static rviz::Robot::M_NameToLink robot_links = robot_->getLinks();
+
+  rviz::Robot::M_NameToLink::iterator it = robot_links.find( link_name );
+
+  // Check if link exists
+  if ( it == robot_links.end() )
+    return;
+
+  // Decide which action to perform
+  if( set )
+  {
+    it->second->setColor( red, green, blue );
+  }
+  else
+  {
+    it->second->unsetColor();
+  }
+
+  // Repeat for scene_robot -------------------------------------
+  static rviz::Robot::M_NameToLink scene_robot_links = scene_robot_->getLinks();
+
+  it = scene_robot_links.find( link_name );
+
+  // Check if link exists
+  if ( it == scene_robot_links.end() )
+    return;
+
+  // Decide which action to perform
+  if( set )
+  {
+    it->second->setColor( red, green, blue );
+  }
+  else
+  {
+    it->second->unsetColor();
+  }
+
+  // Render
+  context_->queueRender();
+}
+
+// ******************************************************************************************
+// Set Link Color
 // ******************************************************************************************
 void PlanningDisplay::setLinkColor( const std::string& link_name, float red, float green, float blue )
 {
-  rviz::RobotLink* link = robot_->getLink( link_name );
-
-  // Check if link exists
-  if( link )
-  {
-    link->setColor( red, green, blue );
-    context_->queueRender();
-  }
-
-  // Repeat for scene_robot -------------------------------------
-  link = scene_robot_->getLink( link_name );
-
-  // Check if link exists
-  if( link )
-  {
-    link->setColor( red, green, blue );
-    context_->queueRender();
-  }
-
+  setUnsetLinkColor( link_name, red, green, blue, true );
 }
 
+// ******************************************************************************************
+// Unset Link Color
+// ******************************************************************************************
 void PlanningDisplay::unsetLinkColor( const std::string& link_name )
 {
-  rviz::RobotLink* link = robot_->getLink( link_name );
-
-  // Check if link exists
-  if( link )
-  {
-    link->unsetColor();
-    context_->queueRender();
-  }
-
-  // Repeat for scene_robot -------------------------------------
-  link = scene_robot_->getLink( link_name );
-
-  // Check if link exists
-  if( link )
-  {
-    link->unsetColor();
-    context_->queueRender();
-  }
-
+  setUnsetLinkColor( link_name, 0, 0, 0, false );
 }
 
 // ******************************************************************************************

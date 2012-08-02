@@ -68,6 +68,12 @@ Q_SIGNALS:
   /// Event for telling rviz to highlight a link of the robot
   void highlightLink( const std::string& name );
 
+  /// Event for telling rviz to highlight a group of the robot
+  void highlightGroup( const std::string& name );
+
+  /// Event for telling rviz to unhighlight all links of the robot
+  void unhighlightAll();
+
 };
 
 #endif

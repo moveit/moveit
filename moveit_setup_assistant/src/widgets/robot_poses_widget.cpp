@@ -339,24 +339,11 @@ void RobotPosesWidget::previewClicked( int row, int column )
   publishJoints();
 
 
+  // Unhighlight all links
+  Q_EMIT unhighlightAll();
 
-  // Highlight the selected planning group by looping through the links -----------------------------------------------
-  namespace pm = planning_models;
-
-  const pm::KinematicModel::JointModelGroup *joint_model_group = 
-    config_data_->getKinematicModel()->getJointModelGroup( pose->group_ );
-
-  std::vector<const pm::KinematicModel::LinkModel*> link_models = joint_model_group->getLinkModels();
-
-  // Iterate through the links
-  for( std::vector<const pm::KinematicModel::LinkModel*>::const_iterator link_it = link_models.begin();
-       link_it < link_models.end(); ++link_it )
-  {
-    /*    std::string link_name =  (*link_it)->getName(); // TODO: remove this hack
-          Q_EMIT highlightLink( link_name );*/
-    Q_EMIT highlightLink( (*link_it)->getName() );
-  }
-
+  // Highlight group
+  Q_EMIT highlightGroup( pose->group_ );
 }
 
 // ******************************************************************************************
@@ -392,6 +379,8 @@ void RobotPosesWidget::showDefaultPose()
   // Update the joints
   publishJoints();
 
+  // Unhighlight all links
+  Q_EMIT unhighlightAll();
 }
 
 // ******************************************************************************************
