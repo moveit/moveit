@@ -737,6 +737,13 @@ void ConfigurationFilesWidget::exitSetupAssistant()
 // ******************************************************************************************
 const std::string ConfigurationFilesWidget::getPackageName( std::string package_path )
 {
+  // Remove end slash if there is one
+  if( !package_path.compare( package_path.size() - 1, 1, "/" ) ) // || package_path[ package_path.size() - 1 ] == "\\" )
+  {
+    package_path = package_path.substr( 0, package_path.size() - 1 );
+  }
+
+  // Get the last directory name
   std::string package_name;
   fs::path fs_package_path = package_path;
 
