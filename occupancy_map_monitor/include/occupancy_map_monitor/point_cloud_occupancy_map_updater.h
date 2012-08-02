@@ -42,6 +42,7 @@
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <robot_self_filter/self_mask.h>
 #include <occupancy_map_monitor/occupancy_map.h>
 #include <occupancy_map_monitor/occupancy_map_updater.h>
 #include <boost/thread.hpp>
@@ -55,7 +56,8 @@ namespace occupancy_map_monitor
     virtual ~PointCloudOccupancyMapUpdater(void);
       
     virtual bool setParams(XmlRpc::XmlRpcValue &params);
-    virtual bool setParams(const std::string &point_cloud_topic, double max_range,  size_t frame_subsample = 1,  size_t point_subsample = 1);
+    virtual bool setParams(const std::string &point_cloud_topic, double max_range,  size_t frame_subsample,
+                           size_t point_subsample, const std::vector<robot_self_filter::LinkInfo> see_links);
     virtual void initialize(void);
     virtual void process(const OccMapTreePtr &tree);
       
@@ -83,8 +85,8 @@ namespace occupancy_map_monitor
     /* used to store all cells in the map which a given ray passes through during raycasting.
        we cache this here because it dynamically pre-allocates a lot of memory in its contsructor */
     octomap::KeyRay key_ray_;
-      
-      
+
+    boost::shared_ptr<robot_self_filter::SelfMask> self_mask_;
   };
 }
 

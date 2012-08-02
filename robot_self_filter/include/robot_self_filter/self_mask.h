@@ -42,68 +42,67 @@
 
 namespace robot_self_filter
 {
-    /** \brief The possible values of a mask computed for a point */
-    enum
-    {
-      INSIDE = 0,
-      OUTSIDE = 1,
-      SHADOW = 2,
-    };
+/** \brief The possible values of a mask computed for a point */
+enum
+{
+  INSIDE = 0,
+  OUTSIDE = 1,
+  SHADOW = 2,
+};
 
-    struct LinkInfo
+struct LinkInfo
+{
+  std::string name;
+  double padding;
+  double scale;
+};
+
+/** \brief Computing a mask for a pointcloud that states which points are inside the robot */
+class SelfMask
+{
+protected:
+  struct SeeLink
+  {
+    SeeLink(void)
     {
-      std::string name;
-      double padding;
-      double scale;
-    };
-        
-    /** \brief Computing a mask for a pointcloud that states which points are inside the robot */
-    class SelfMask
-    {	
-      protected:
-    
-        struct SeeLink
-        {
-          SeeLink(void)
-          {
-            body = unscaledBody = NULL;
-          }
-            
-          std::string name;
-          bodies::Body *body;
-          bodies::Body *unscaledBody;
-          Eigen::Affine3d constTransf;
-          double volume;
-        };
-        
-        struct SortBodies
-        {
-          bool operator()(const SeeLink &b1, const SeeLink &b2)
-          {
-            return (b1.volume > b2.volume);
-          }
-        };
-        
-      public:
-      
-        /** \brief Construct the filter */
-        SelfMask(tf::TransformListener &tf, const std::vector<LinkInfo> &links) : tf_(tf)
-        {
-          configure (links);
-        }
-        
-        /** \brief Destructor to clean up */
-        ~SelfMask(void)
-        {
-          freeMemory ();
-        }
-        
-        /** \brief Compute the containment mask (INSIDE or OUTSIDE) for a given pointcloud. If a mask element is INSIDE, the point
+      body = unscaledBody = NULL;
+    }
+
+    std::string name;
+    bodies::Body *body;
+    bodies::Body *unscaledBody;
+    Eigen::Affine3d constTransf;
+    double volume;
+  };
+
+  struct SortBodies
+  {
+    bool operator()(const SeeLink &b1, const SeeLink &b2)
+    {
+      return (b1.volume > b2.volume);
+    }
+  };
+
+public:
+
+  /** \brief Construct the filter */
+  SelfMask(tf::Transformer &tf, const std::vector<LinkInfo> &links) : tf_(tf)
+  {
+    configure (links);
+  }
+
+  /** \brief Destructor to clean up */
+  ~SelfMask(void)
+  {
+    freeMemory ();
+  }
+
+  /** \brief Compute the containment mask (INSIDE or OUTSIDE) for a given pointcloud. If a mask element is INSIDE, the point
             is inside the robot. The point is outside if the mask element is OUTSIDE.
          */
-        void maskContainment (const pcl::PointCloud<pcl::PointXYZ>& data_in, std::vector<int> &mask);
+  void maskContainment (const pcl::PointCloud<pcl::PointXYZ>& data_in, std::vector<int> &mask);
 
-        /** \brief Compute the intersection mask for a given
+  /** \brief Compute the intersection mask for a given
             pointcloud. If a mask element can have one of the values
             INSIDE, OUTSIDE or SHADOW. If the value is SHADOW, the
             point is on a ray behind the robot and should not have
@@ -112,77 +111,79 @@ namespace robot_self_filter
             the origin of the sensor. A callback can be registered for
             the first intersection point on each body.
          */
-        void maskIntersection (const pcl::PointCloud<pcl::PointXYZ>& data_in, const std::string &sensor_frame, const double min_sensor_dist,
-                  std::vector<int> &mask, const boost::function<void(const Eigen::Vector3d&)> &intersectionCallback = NULL);
+  void maskIntersection (const pcl::PointCloud<pcl::PointXYZ>& data_in, const std::string &sensor_frame, const double min_sensor_dist,
+                         std::vector<int> &mask, const boost::function<void(const Eigen::Vector3d&)> &intersectionCallback = NULL);
 
-        /** \brief Compute the intersection mask for a given pointcloud. If a mask
+  /** \brief Compute the intersection mask for a given pointcloud. If a mask
             element can have one of the values INSIDE, OUTSIDE or SHADOW. If the value is SHADOW,
             the point is on a ray behind the robot and should not have
             been seen. If the mask element is INSIDE, the point is inside
             the robot. The origin of the sensor is specified as well.
          */
-        void maskIntersection (const pcl::PointCloud<pcl::PointXYZ>& data_in, const Eigen::Vector3d &sensor_pos, const double min_sensor_dist,
-                  std::vector<int> &mask, const boost::function<void(const Eigen::Vector3d&)> &intersectionCallback = NULL);
-        
-        /** \brief Assume subsequent calls to getMaskX() will be in the frame passed to this function.
-         *   The frame in which the sensor is located is optional */
-        void assumeFrame (const std::string &frame_id, const ros::Time &stamp);
-        
-        /** \brief Assume subsequent calls to getMaskX() will be in the frame passed to this function.
-         *   The frame in which the sensor is located is optional */
-        void assumeFrame (const std::string &frame_id, const ros::Time &stamp, const std::string &sensor_frame, const double min_sensor_dist);
+  void maskIntersection (const pcl::PointCloud<pcl::PointXYZ>& data_in, const Eigen::Vector3d &sensor_pos, const double min_sensor_dist,
+                         std::vector<int> &mask, const boost::function<void(const Eigen::Vector3d&)> &intersectionCallback = NULL);
 
-        /** \brief Assume subsequent calls to getMaskX() will be in the frame passed to this function.
+  /** \brief Assume subsequent calls to getMaskX() will be in the frame passed to this function.
+         *   The frame in which the sensor is located is optional */
+  void assumeFrame (const std::string &frame_id, const ros::Time &stamp);
+
+  /** \brief Assume subsequent calls to getMaskX() will be in the frame passed to this function.
+         *   The frame in which the sensor is located is optional */
+  void assumeFrame (const std::string &frame_id, const ros::Time &stamp, const std::string &sensor_frame, const double min_sensor_dist);
+
+  /** \brief Assume subsequent calls to getMaskX() will be in the frame passed to this function.
          *  Also specify which possition to assume for the sensor (frame is not needed) */
-        void assumeFrame (const std::string &frame_id, const ros::Time &stamp, const Eigen::Vector3d &sensor_pos, const double min_sensor_dist);
-        
-        /** \brief Get the containment mask (INSIDE or OUTSIDE) value for an individual point. No
+  void assumeFrame (const std::string &frame_id, const ros::Time &stamp, const Eigen::Vector3d &sensor_pos, const double min_sensor_dist);
+
+  /** \brief Get the containment mask (INSIDE or OUTSIDE) value for an individual point. No
             setup is performed, assumeFrame() should be called before use */
-        int getMaskContainment (double x, double y, double z) const;
-        
-        /** \brief Get the containment mask (INSIDE or OUTSIDE) value for an individual point. No
+  int getMaskContainment (double x, double y, double z) const;
+
+  /** \brief Get the containment mask (INSIDE or OUTSIDE) value for an individual point. No
             setup is performed, assumeFrame() should be called before use */
-        int getMaskContainment (const Eigen::Vector3d &pt) const;
-        
-        /** \brief Get the intersection mask (INSIDE, OUTSIDE or
+  int getMaskContainment (const Eigen::Vector3d &pt) const;
+
+  /** \brief Get the intersection mask (INSIDE, OUTSIDE or
             SHADOW) value for an individual point. No setup is
             performed, assumeFrame() should be called before use */
-        int getMaskIntersection (double x, double y, double z, const boost::function<void(const Eigen::Vector3d&)> &intersectionCallback = NULL) const;
-        
-        /** \brief Get the intersection mask (INSIDE, OUTSIDE or
+  int getMaskIntersection (double x, double y, double z, const boost::function<void(const Eigen::Vector3d&)> &intersectionCallback = NULL) const;
+
+  /** \brief Get the intersection mask (INSIDE, OUTSIDE or
             SHADOW) value for an individual point. No setup is
             performed, assumeFrame() should be called before use */
-        int getMaskIntersection (const Eigen::Vector3d &pt, const boost::function<void(const Eigen::Vector3d&)> &intersectionCallback = NULL) const;
-        
-        /** \brief Get the set of link names that have been instantiated for self filtering */
-        void getLinkNames (std::vector<std::string> &frames) const;
-      
-      private:
-        /** \brief Free memory. */
-        void freeMemory (void);
+  int getMaskIntersection (const Eigen::Vector3d &pt, const boost::function<void(const Eigen::Vector3d&)> &intersectionCallback = NULL) const;
 
-        /** \brief Configure the filter. */
-        bool configure (const std::vector<LinkInfo> &links);
-        
-        /** \brief Compute bounding spheres for the checked robot links. */
-        void computeBoundingSpheres (void);
-        
-        /** \brief Perform the actual mask computation. */
-        void maskAuxContainment (const pcl::PointCloud<pcl::PointXYZ>& data_in, std::vector<int> &mask);
+  /** \brief Get the set of link names that have been instantiated for self filtering */
+  void getLinkNames (std::vector<std::string> &frames) const;
 
-        /** \brief Perform the actual mask computation. */
-        void maskAuxIntersection (const pcl::PointCloud<pcl::PointXYZ>& data_in, std::vector<int> &mask, const boost::function<void(const Eigen::Vector3d&)> &callback);
-        
-        tf::TransformListener               &tf_;
-        ros::NodeHandle                     nh_;
-        
-        Eigen::Vector3d                     sensor_pos_;
-        double                              min_sensor_dist_;
-        
-        std::vector<SeeLink>                bodies_;
-        std::vector<double>                 bspheresRadius2_;
-        std::vector<bodies::BoundingSphere> bspheres_;
-    };
+private:
+  /** \brief Free memory. */
+  void freeMemory (void);
+
+  /** \brief Configure the filter. */
+  bool configure (const std::vector<LinkInfo> &links);
+
+  /** \brief Compute bounding spheres for the checked robot links. */
+  void computeBoundingSpheres (void);
+
+  /** \brief Perform the actual mask computation. */
+  void maskAuxContainment (const pcl::PointCloud<pcl::PointXYZ>& data_in, std::vector<int> &mask);
+
+  /** \brief Perform the actual mask computation. */
+  void maskAuxIntersection (const pcl::PointCloud<pcl::PointXYZ>& data_in, std::vector<int> &mask, const boost::function<void(const Eigen::Vector3d&)> &callback);
+
+  tf::Transformer                     &tf_;
+  ros::NodeHandle                     nh_;
+
+  Eigen::Vector3d                     sensor_pos_;
+  double                              min_sensor_dist_;
+
+  std::vector<SeeLink>                bodies_;
+  std::vector<double>                 bspheresRadius2_;
+  std::vector<bodies::BoundingSphere> bspheres_;
+};
+
+bool createLinksFromParams(XmlRpc::XmlRpcValue &params, std::vector<LinkInfo> &links);
 }
 
 #endif
