@@ -1,0 +1,21 @@
+<package>
+  <description brief="kinematics_cache">
+
+     kinematics_cache
+
+  </description>
+  <author>Sachin Chitta</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/kinematics_cache</url>
+  <depend package="kinematics_base"/>
+  <depend package="planning_models"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lkinematics_cache"/>
+  </export>
+
+
+</package>
+
+
