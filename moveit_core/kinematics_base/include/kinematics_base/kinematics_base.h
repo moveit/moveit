@@ -56,9 +56,10 @@ public:
       
   /**
    * @brief Given a desired pose of the end-effector, compute the joint angles to reach it
-   * @param ik_link_name - the name of the link for which IK is being computed
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
+   * @param solution the solution vector
+   * @param error_code an error code that encodes the reason for failure or success
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool getPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -72,6 +73,9 @@ public:
    * (or other numerical routines).
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
+   * @param timeout The amount of time (in seconds) available to the solver
+   * @param solution the solution vector
+   * @param error_code an error code that encodes the reason for failure or success
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -86,7 +90,11 @@ public:
    * (or other numerical routines).
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
-   * @param the distance that the redundancy can be from the current position 
+   * @param timeout The amount of time (in seconds) available to the solver
+   * @param redundancy The index of the redundant joint in the solver
+   * @param consistency_limit the distance that the redundancy can be from the current position 
+   * @param solution the solution vector
+   * @param error_code an error code that encodes the reason for failure or success
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -104,6 +112,11 @@ public:
    * (or other numerical routines).
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
+   * @param timeout The amount of time (in seconds) available to the solver
+   * @param solution the solution vector
+   * @param desired_pose_callback A callback function for the desired link pose - could be used, e.g. to check for collisions for the end-effector
+   * @param solution_callback A callback solution for the IK solution
+   * @param error_code an error code that encodes the reason for failure or success
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -120,7 +133,13 @@ public:
    * (or other numerical routines).
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
-   * @param the distance that the redundancy can be from the current position 
+   * @param timeout The amount of time (in seconds) available to the solver
+   * @param redundancy The index of the redundant joint in the solver
+   * @param consistency_limit the distance that the redundancy can be from the current position 
+   * @param solution the solution vector
+   * @param desired_pose_callback A callback function for the desired link pose - could be used, e.g. to check for collisions for the end-effector
+   * @param solution_callback A callback solution for the IK solution
+   * @param error_code an error code that encodes the reason for failure or success
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -135,15 +154,23 @@ public:
     
   /**
    * @brief Given a set of joint angles and a set of links, compute their pose
-   * @param request  - the request contains the joint angles, set of links for which poses are to be computed and a timeout
-   * @param response - the response contains stamped pose information for all the requested links
+   * @param link_names A set of links for which FK needs to be computed
+   * @param joint_angles The state for which FK is being computed
+   * @param poses The resultant set of poses (in the frame returned by getBaseFrame())
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool getPositionFK(const std::vector<std::string> &link_names,
                              const std::vector<double> &joint_angles, 
                              std::vector<geometry_msgs::Pose> &poses) const = 0;
 
-
+  /**
+   * @brief Set the parameters for the solver
+   * @param group_name The group for which this solver is being configured
+   * @param base_frame The base frame in which all input poses are expected. 
+   * This may (or may not) be the root frame of the chain that the solver operates on
+   * @param tip_frame The tip of the chain
+   * @param search_discretization The discretization of the search when the solver steps through the redundancy
+   */
   virtual void setValues(const std::string& group_name,
                          const std::string& base_frame,
                          const std::string& tip_frame,
@@ -156,6 +183,11 @@ public:
 
   /**
    * @brief  Initialization function for the kinematics
+   * @param group_name The group for which this solver is being configured
+   * @param base_frame The base frame in which all input poses are expected. 
+   * This may (or may not) be the root frame of the chain that the solver operates on
+   * @param tip_frame The tip of the chain
+   * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return True if initialization was successful, false otherwise
    */
   virtual bool initialize(const std::string& group_name,
@@ -164,23 +196,24 @@ public:
                           double search_discretization) = 0;
     
   /**
-   * @brief  Return the frame in which the kinematics is operating
-   * @return the string name of the frame in which the kinematics is operating
+   * @brief  Return the name of the group that the solver is operating on
+   * @return The string name of the group that the solver is operating on
    */
   virtual const std::string& getGroupName() const {
     return group_name_;    
   }
     
   /**
-   * @brief  Return the frame in which the kinematics is operating
-   * @return the string name of the frame in which the kinematics is operating
+   * @brief  Return the name of the frame in which the solver is operating
+   * @return The string name of the frame in which the solver is operating
    */
   virtual const std::string& getBaseFrame() const {
     return base_frame_;
   }
 
   /**
-   * @brief  Return the links for which kinematics can be computed
+   * @brief  Return the name of the tip frame of the chain on which the solver is operating
+   * @return The string name of the tip frame of the chain on which the solver is operating
    */
   virtual const std::string& getTipFrame() const {
     return tip_frame_;
@@ -196,10 +229,16 @@ public:
    */
   virtual const std::vector<std::string>& getLinkNames() const = 0;
 
+  /**
+   * @brief  Set the search discretization
+   */
   void setSearchDiscretization(double sd) {
     search_discretization_ = sd;
   }
 
+  /**
+   * @brief  Get the value of the search discretization
+   */
   double getSearchDiscretization() const {
     return search_discretization_;
   }
