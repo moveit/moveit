@@ -38,7 +38,7 @@
 #define COLLISION_DETECTION_FCL_COLLISION_COMMON_
 
 #include "collision_detection/collision_world.h"
-#include <fcl/broad_phase_collision.h>
+#include <fcl/broadphase/broadphase.h>
 #include <fcl/collision.h>
 #include <fcl/distance.h>
 #include <set>

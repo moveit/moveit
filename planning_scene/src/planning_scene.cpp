@@ -679,16 +679,14 @@ void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::Plan
   if (getCollisionWorld()->hasObject(OCTOMAP_NS))
   {
     collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(OCTOMAP_NS);
-    for (std::size_t i = 0 ; i < map->shapes_.size() ; ++i)
+    if (map->shapes_.size() == 1)
     {
-      const shapes::Box *b = static_cast<const shapes::Box*>(map->shapes_[i].get());
-      moveit_msgs::OrientedBoundingBox obb;
-      obb.extents.x = b->size[0]; obb.extents.y = b->size[1]; obb.extents.z = b->size[2];
-      planning_models::msgFromPose(map->shape_poses_[i], obb.pose);
-      // we do not have previous information about the octomap here, so we can only create a CollisionMap
-      // This needs to be changed at some point
-      scene.world.collision_map.boxes.push_back(obb);
+      const shapes::OcTree *o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
+      octomap::octomapMapToMsg(*o->octree, scene.world.octomap);
+      /// \todo this ignores pose information. Need to update the message type
     }
+    else
+      ROS_ERROR("Unexpected number of shapes in octomap collision object");
   }
 }
 
@@ -976,10 +974,37 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
   
   if (map.data.empty())
     return;
-  boost::shared_ptr<octomap::OcTree> om(new octomap::OcTree(0.1)); /// 0.1 is bogus here; overwritten by  next call
+  boost::shared_ptr<octomap::OcTree> om(new octomap::OcTree(0.1)); /// \todo 0.1 is bogus here; overwritten by  next call
   octomap::octomapMsgToMap(map, *om);
   const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
   cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), t);
+}
+
+void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t)
+{ 
+  if (getCollisionWorld()->hasObject(OCTOMAP_NS))
+  {
+    collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(OCTOMAP_NS);
+    if (map->shapes_.size() == 1)
+    {
+      // check to see if we have the same octree pointer & pose.
+      const shapes::OcTree *o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
+      if (o->octree == octree)
+      {
+        // if the pose changed, we update it
+        if (!map->shape_poses_[0].isApprox(t, std::numeric_limits<double>::epsilon() * 100.0))
+        { 
+          shapes::ShapeConstPtr shape = map->shapes_[0];
+          map.reset(); // reset this pointer first so that caching optimizations can be used in CollisionWorld
+          cworld_->moveShapeInObject(OCTOMAP_NS, shape, t);
+        }
+        return;
+      }
+    }
+  }
+  // if the octree pointer changed, update the structure
+  cworld_->removeObject(OCTOMAP_NS); 
+  cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(octree)), t);
 }
 
 bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object)
