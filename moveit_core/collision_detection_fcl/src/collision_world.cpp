@@ -37,7 +37,7 @@
 #include "collision_detection_fcl/collision_world.h"
 #include <fcl/geometric_shape_to_BVH_model.h>
 #include <fcl/traversal_node_bvhs.h>
-#include <fcl/simple_setup.h>
+#include <fcl/traversal_node_setup.h>
 #include <fcl/collision_node.h>
 #include <ros/console.h>
 
