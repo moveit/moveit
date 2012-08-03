@@ -236,8 +236,18 @@ protected:
   std::string planning_group_;
   Eigen::Affine3d goal_pose_;
   PlanningStatistics planning_statistics_;
+  int maximum_distance_for_motion_;
+
+  planning_models::KinematicState interpolation_state_1_;
+  planning_models::KinematicState interpolation_state_2_;
+  planning_models::KinematicState interpolation_state_temp_;
+  planning_models::KinematicState::JointStateGroup* interpolation_joint_state_group_1_;  
+  planning_models::KinematicState::JointStateGroup* interpolation_joint_state_group_2_;
+  planning_models::KinematicState::JointStateGroup* interpolation_joint_state_group_temp_;
+  std::map<int, std::map<int, std::vector<std::vector<double> > > > generated_interpolations_map_;
 
   void setMotionPrimitives(const std::string& group_name);
+  void determineMaximumEndEffectorTravel();
   
   void convertCoordToJointAngles(const std::vector<int> &coord, std::vector<double> &angles);
   void convertJointAnglesToCoord(const std::vector<double> &angle, std::vector<int> &coord);
@@ -259,6 +269,10 @@ protected:
   //                            const std::vector<double>& angles2);
 
 
+  bool interpolateAndCollisionCheck(const std::vector<double> angles1,
+                                    const std::vector<double> angles2,
+                                    std::vector<std::vector<double> >& state_values);
+  
   inline double getEuclideanDistance(double x1, double y1, double z1, double x2, double y2, double z2) const
   {
     return sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
