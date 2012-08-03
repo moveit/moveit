@@ -54,15 +54,18 @@ class MoveGroup
 public:
   
   static const std::string ROBOT_DESCRIPTION;
+  static const std::string JOINT_STATE_TOPIC;
   
   struct Options
   {
     Options(const std::string &group_name) : group_name_(group_name),
-                                             robot_description_(ROBOT_DESCRIPTION)
+                                             robot_description_(ROBOT_DESCRIPTION),
+                                             joint_state_topic_(JOINT_STATE_TOPIC)
     {
     }
     std::string group_name_;
     std::string robot_description_;
+    std::string joint_state_topic_;
   };
   
   struct Plan
@@ -129,10 +132,23 @@ public:
 
   void setRandomTarget(void);
   
-  void setNamedTarget(const std::string &name);
+  /** \brief Set the current joint values to be ones previously remembered by rememberJointValues() or, if not found, that are specified in the SRDF under the name \e name */
+  bool setNamedTarget(const std::string &name);
+
+  /** \brief Remember the current joint values (of the robot being monitored) under \e name. These can be used by setNamedTarget() */
+  void rememberJointValues(const std::string &name);
+
+  /** \brief Remember the specified joint values  under \e name. These can be used by setNamedTarget() */
+  void rememberJointValues(const std::string &name, const std::vector<double> &values);
+
+  const std::map<std::string, std::vector<double> >& getRememberedJointValues(void) const
+  {
+    return remembered_joint_values_;
+  }
   
 private:
-  
+
+  std::map<std::string, std::vector<double> > remembered_joint_values_;
   class MoveGroupImpl;
   MoveGroupImpl *impl_;
   
