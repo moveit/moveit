@@ -35,8 +35,8 @@
 /* Author: Ioan Sucan, Jia Pan */
 
 #include "collision_detection_fcl/collision_common.h"
-#include <fcl/BVH_model.h>
-#include <fcl/geometric_shapes.h>
+#include <fcl/BVH/BVH_model.h>
+#include <fcl/shape/geometric_shapes.h>
 #include <ros/console.h>
 #include <boost/thread/mutex.hpp>
 
