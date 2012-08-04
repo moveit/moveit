@@ -257,13 +257,15 @@ protected:
   int getEndEffectorHeuristic(int FromStateID, int ToStateID);
 
   double getJointDistanceDoubleSum(const std::vector<double>& angles1,
-                                   const std::vector<double>& angles2);
+                                   const std::vector<double>& angles2) const;
 
   int getJointDistanceIntegerSum(const std::vector<double>& angles1,
-                                 const std::vector<double>& angles2);
+                                 const std::vector<double>& angles2,
+                                 double delta) const;
 
   int getJointDistanceIntegerMax(const std::vector<double>& angles1,
-                                 const std::vector<double>& angles2);
+                                 const std::vector<double>& angles2, 
+                                 double delta) const;
   
   // double getJointDistanceMax(const std::vector<double>& angles1,
   //                            const std::vector<double>& angles2);
