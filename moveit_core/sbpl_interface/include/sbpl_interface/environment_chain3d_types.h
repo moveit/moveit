@@ -243,10 +243,16 @@ public:
   int getIntegerDistance(double start,
                          double end,
                          double delta) {
+    double val;
     if(joint_limit_.has_position_limits) {
-      return ceil((fabs(end-start))/delta);
+      val = fabs(end-start)/delta;
     } else {
-      return ceil((fabs(planning_models::shortestAngularDistance(start,end)))/delta);
+      val = fabs(planning_models::shortestAngularDistance(start,end))/delta;
+    }
+    if(val-floor(val) > std::numeric_limits<double>::epsilon()) {
+      return ceil(val);
+    } else {
+      return floor(val);
     }
   }
 protected:
