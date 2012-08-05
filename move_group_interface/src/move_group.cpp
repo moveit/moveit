@@ -543,5 +543,10 @@ void MoveGroup::rememberJointValues(const std::string &name, const std::vector<d
   remembered_joint_values_[name] = values;
 }
 
+void MoveGroup::forgetJointValues(const std::string &name)
+{
+  remembered_joint_values_.erase(name);
+}
+
 
 }

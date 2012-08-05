@@ -141,6 +141,8 @@ public:
   /** \brief Remember the specified joint values  under \e name. These can be used by setNamedTarget() */
   void rememberJointValues(const std::string &name, const std::vector<double> &values);
 
+  void forgetJointValues(const std::string &name);
+  
   const std::map<std::string, std::vector<double> >& getRememberedJointValues(void) const
   {
     return remembered_joint_values_;
