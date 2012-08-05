@@ -292,6 +292,7 @@ public:
   
   OcTree(const boost::shared_ptr<const octomap::OcTree> &t) : octree(t)
   {
+    type = OCTREE;
   }
 
   virtual Shape* clone(void) const;
