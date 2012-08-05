@@ -451,7 +451,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
   {
     scene.world.collision_objects.clear();
     scene.world.collision_map = moveit_msgs::CollisionMap();
-    scene.world.octomap = octomap_msgs::OctomapBinary();
+    scene.world.octomap = octomap_msgs::OctomapBinaryWithPose();
     
     bool do_cmap = false;
     bool do_omap = false;
@@ -682,8 +682,8 @@ void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::Plan
     if (map->shapes_.size() == 1)
     {
       const shapes::OcTree *o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
-      octomap::octomapMapToMsg(*o->octree, scene.world.octomap);
-      /// \todo this ignores pose information. Need to update the message type
+      octomap_msgs::binaryMapToMsgData(*o->octree, scene.world.octomap.data); /// \todo swith to full octomap
+      planning_models::msgFromPose(map->shape_poses_[0], scene.world.octomap.origin);
     }
     else
       ROS_ERROR("Unexpected number of shapes in octomap collision object");
@@ -957,10 +957,10 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
   for (std::size_t i = 0 ; i < map.boxes.size() ; ++i)
   {
     Eigen::Affine3d p;
-    if(!planning_models::poseFromMsg(map.boxes[i].pose, p))
-    {
-      ROS_ERROR("Failed to convert from pose message to Eigen Affine3f");
-    }
+    if (!planning_models::poseFromMsg(map.boxes[i].pose, p))
+      ROS_ERROR("Failed to convert from pose message to Eigen Affine3d");
+    else
+      p.setIdentity();
     
     shapes::Shape *s = new shapes::Box(map.boxes[i].extents.x, map.boxes[i].extents.y, map.boxes[i].extents.z);
     cworld_->addToObject(COLLISION_MAP_NS, shapes::ShapeConstPtr(s), t * p);
@@ -974,10 +974,27 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
   
   if (map.data.empty())
     return;
-  boost::shared_ptr<octomap::OcTree> om(new octomap::OcTree(0.1)); /// \todo 0.1 is bogus here; overwritten by  next call
-  octomap::octomapMsgToMap(map, *om);
+  
+  boost::shared_ptr<octomap::OcTree> om(octomap_msgs::binaryMsgDataToMap(map.data)); /// \todo switch to full octomap
   const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
   cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), t);
+}
+
+void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::OctomapBinaryWithPose &map)
+{
+  // each octomap replaces any previous one
+  cworld_->removeObject(OCTOMAP_NS);
+  
+  if (map.data.empty())
+    return;
+  boost::shared_ptr<octomap::OcTree> om(octomap_msgs::binaryMsgDataToMap(map.data)); /// \todo switch to full octomap
+  const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
+  Eigen::Affine3d p;
+  if (planning_models::poseFromMsg(map.origin, p))
+    p = t * p;
+  else
+    ROS_ERROR("Failed to convert origin of Octomap to Eigen Affine3d");
+  cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), p);
 }
 
 void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t)
