@@ -56,6 +56,8 @@ public:
   
   virtual bool isValid(const ompl::base::State *state) const;
   virtual bool isValid(const ompl::base::State *state, double &dist) const;
+  virtual double cost(const ompl::base::State *state) const;
+  virtual double clearance(const ompl::base::State *state) const;
   
   void setVerbose(bool flag);
   
@@ -72,6 +74,7 @@ protected:
   TSStateStorage                        tss_;
   collision_detection::CollisionRequest collision_request_simple_;
   collision_detection::CollisionRequest collision_request_with_distance_;
+  collision_detection::CollisionRequest collision_request_with_cost_;
   bool                                  verbose_;
 };
 
