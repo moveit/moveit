@@ -43,9 +43,15 @@ ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlann
   ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation()), planning_context_(pc),
   group_name_(pc->getJointModelGroupName()), tss_(pc->getCompleteInitialRobotState()), verbose_(false)
 {
+  specs_.clearanceComputationType = ompl::base::StateValidityCheckerSpecs::APPROXIMATE;
+  specs_.hasValidDirectionComputation = false;
+  
   collision_request_with_distance_.distance = true;
+  collision_request_with_cost_.cost = true;
+
   collision_request_simple_.group_name = planning_context_->getJointModelGroupName();
   collision_request_with_distance_.group_name = planning_context_->getJointModelGroupName();
+  collision_request_with_cost_.group_name = planning_context_->getJointModelGroupName();
 }
 
 void ompl_interface::StateValidityChecker::setVerbose(bool flag)
@@ -65,6 +71,30 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 {
   ompl::tools::Profiler::ScopedBlock sblock("isValid");
   return planning_context_->useStateValidityCache() ? isValidWithCache(state, dist) : isValidWithoutCache(state, dist);
+}
+
+double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state) const
+{ 
+  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+
+  collision_detection::CollisionResult res;
+  planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
+
+  double c = 0.0;
+  for (std::set<collision_detection::CostSource>::const_iterator it = res.cost_sources.begin() ; it != res.cost_sources.end() ; ++it)
+    c += it->cost * it->getVolume();
+  return c;
+}
+
+double ompl_interface::StateValidityChecker::clearance(const ompl::base::State *state) const
+{
+  planning_models::KinematicState *kstate = tss_.getStateStorage();
+  planning_context_->getOMPLStateSpace()->copyToKinematicState(*kstate, state);
+
+  collision_detection::CollisionResult res;
+  planning_context_->getPlanningScene()->checkCollision(collision_request_with_distance_, res, *kstate);
+  return res.collision ? 0.0 : (res.distance < 0.0 ? std::numeric_limits<double>::infinity() : res.distance);
 }
 
 bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base::State *state) const
