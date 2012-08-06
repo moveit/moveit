@@ -304,6 +304,9 @@ private:
 typedef boost::shared_ptr<KinematicState> KinematicStatePtr;
 typedef boost::shared_ptr<const KinematicState> KinematicStateConstPtr;
 
+typedef std::vector<KinematicStatePtr> KinematicTrajectory;
+typedef std::vector<KinematicStateConstPtr> KinematicTrajectoryConst;
+
 }
 
 #endif
