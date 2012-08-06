@@ -477,7 +477,27 @@ public:
                    const moveit_msgs::Constraints& path_constraints,
                    const std::vector<moveit_msgs::Constraints>& goal_constraints,
                    bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
-    
+
+  /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
+  bool isPathValid(const planning_models::KinematicTrajectory &trajectory,
+                   const moveit_msgs::Constraints& path_constraints,
+                   const std::vector<moveit_msgs::Constraints>& goal_constraints,
+                   bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
+
+  /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance, feasibility and constraint satisfaction). It is also checked that the goal constraints are satisfied by the last state on the passed in trajectory. */
+  bool isPathValid(const planning_models::KinematicTrajectory &trajectory,
+                   const moveit_msgs::Constraints& path_constraints,
+                   const moveit_msgs::Constraints& goal_constraints,
+                   bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
+
+  /** \brief Check if a given path is valid. Each state is checked for validity (collision avoidance and feasibility) */
+  bool isPathValid(const planning_models::KinematicTrajectory &trajectory,
+                   bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
+  
+  /** \brief Get the top \e max_costs cost sources for a specified trajectory. The resulting costs are stored in \e costs */
+  void getCostSources(const planning_models::KinematicTrajectory &trajectory, std::size_t max_costs,
+                      std::set<collision_detection::CostSource> &costs) const;
+  
   /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message. */
   static bool isEmpty(const moveit_msgs::PlanningScene &msg);
   
