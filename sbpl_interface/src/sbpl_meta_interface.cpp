@@ -100,7 +100,7 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& plann
   planner_done_condition_.wait(lock);
 
   if(first_done_) {
-    std::cerr << "First done" << std::endl;
+    std::cerr << "FIRST DONE" << std::endl;
     if(first_ok_) {
       std::cerr << "First ok, interrupting second" << std::endl;
       thread2.interrupt();
@@ -112,7 +112,7 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& plann
   if(second_done_) {
     std::cerr << "Second done" << std::endl;
     if(second_ok_) {
-      std::cerr << "First ok, interrupting second" << std::endl;
+      std::cerr << "Second ok, interrupting first" << std::endl;
       thread1.interrupt();
       thread1.join();
     } else {
@@ -127,10 +127,12 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& plann
   }
   if(!first_ok_ && second_ok_) {
     std::cerr << "Sbpl interface no bfs reports time " << sbpl_interface_second_->getLastPlanningStatistics().total_planning_time_ << std::endl;
+    last_planning_statistics_ = sbpl_interface_second_->getLastPlanningStatistics();
     res = res2;
     return true;
   } else if(first_ok_ && !second_ok_) {
     std::cerr << "Sbpl interface bfs reports time " << sbpl_interface_first_->getLastPlanningStatistics().total_planning_time_ << std::endl;
+    last_planning_statistics_ = sbpl_interface_first_->getLastPlanningStatistics();
     res = res1;
     return true;
   }
