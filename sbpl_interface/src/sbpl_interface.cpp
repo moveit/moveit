@@ -34,14 +34,15 @@
 
 #include <sbpl_interface/sbpl_interface.h>
 #include <planning_models/conversions.h>
-#include <valgrind/callgrind.h>
+//#include <valgrind/callgrind.h>
 
 
 namespace sbpl_interface {
 
 bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const moveit_msgs::GetMotionPlan::Request &req, 
-                          moveit_msgs::GetMotionPlan::Response &res) const
+                          moveit_msgs::GetMotionPlan::Response &res,
+                          const PlanningParameters& params) const                           
 {
   (const_cast<SBPLInterface*>(this))->last_planning_statistics_ = PlanningStatistics(); 
   planning_models::KinematicState start_state(planning_scene->getCurrentState());
@@ -49,13 +50,15 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
 
   ros::WallTime wt = ros::WallTime::now();  
   boost::shared_ptr<EnvironmentChain3D> env_chain(new EnvironmentChain3D(planning_scene));
-  std::cerr << "Created" << std::endl;
   if(!env_chain->setupForMotionPlan(planning_scene, 
                                     req,
-                                    res)){
-    std::cerr << "Env chain setup failing" << std::endl;
+                                    res,
+                                    params)){
+    //std::cerr << "Env chain setup failing" << std::endl;
     return false;
   }
+
+  boost::this_thread::interruption_point();
   
   //DummyEnvironment* dummy_env = new DummyEnvironment();
   boost::shared_ptr<ARAPlanner> planner(new ARAPlanner(env_chain.get(), true));
@@ -64,7 +67,7 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
   planner->force_planning_from_scratch();
   planner->set_start(env_chain->getPlanningData().start_hash_entry_->stateID);
   planner->set_goal(env_chain->getPlanningData().goal_hash_entry_->stateID);
-  std::cerr << "Creation took " << (ros::WallTime::now()-wt) << std::endl;
+  //std::cerr << "Creation took " << (ros::WallTime::now()-wt) << std::endl;
   std::vector<int> solution_state_ids;
   int solution_cost;
   wt = ros::WallTime::now();

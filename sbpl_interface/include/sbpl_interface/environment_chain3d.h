@@ -71,6 +71,16 @@ struct PlanningStatistics {
   ros::WallDuration total_planning_time_;
 };
 
+struct PlanningParameters {
+
+  PlanningParameters() : 
+    use_bfs_(true)
+  {
+  }
+
+  bool use_bfs_;
+};
+
 /** Environment to be used when planning for a Robotic Arm using the SBPL. */
 class EnvironmentChain3D: public DiscreteSpaceInformation 
 {
@@ -188,7 +198,8 @@ public:
 
   bool setupForMotionPlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const moveit_msgs::GetMotionPlan::Request &req,
-                          moveit_msgs::GetMotionPlan::Response& res);
+                          moveit_msgs::GetMotionPlan::Response& res,
+                          const PlanningParameters& params);
 
   const EnvChain3DPlanningData& getPlanningData() const {
     return planning_data_;
@@ -236,6 +247,7 @@ protected:
   std::string planning_group_;
   Eigen::Affine3d goal_pose_;
   PlanningStatistics planning_statistics_;
+  PlanningParameters planning_parameters_;
   int maximum_distance_for_motion_;
 
   planning_models::KinematicState interpolation_state_1_;
