@@ -25,6 +25,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/bfs3d/BFS_3D.cpp
   src/bfs3d/Search.cpp
   src/sbpl_interface.cpp
+  src/sbpl_meta_interface.cpp
   src/environment_chain3d.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${SBPL_LIBRARIES})
