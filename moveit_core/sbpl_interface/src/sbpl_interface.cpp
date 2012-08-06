@@ -57,7 +57,7 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
     //std::cerr << "Env chain setup failing" << std::endl;
     return false;
   }
-
+  //std::cerr << "Creation with params " << params.use_bfs_ << " took " << (ros::WallTime::now()-wt).toSec() << std::endl;
   boost::this_thread::interruption_point();
   
   //DummyEnvironment* dummy_env = new DummyEnvironment();
