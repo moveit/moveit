@@ -635,6 +635,12 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
         cg_g = g;
       }
       break;
+    case shapes::OCTREE:
+      {
+        const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
+        cg_g = new fcl::OcTree(g->octree);
+      }
+      break;
     default:
       ROS_ERROR("This shape type (%d) is not supported using FCL yet", (int)shape->type);
       cg_g = NULL;
