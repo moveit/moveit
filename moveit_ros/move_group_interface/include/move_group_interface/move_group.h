@@ -80,9 +80,9 @@ public:
   ~MoveGroup(void);
   
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
-      This call is blocking (waits for the execution of the trajectory to complete) if \e wait is true. */
-  bool move(bool wait);
-
+      This call is not blocking (does not wait for the execution of the trajectory to complete). */
+  bool asyncMove(void);
+  
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is always blocking (waits for the execution of the trajectory to complete) and attempts to execute the motion
       multiple times (up to a specified number of \e attempts) as long as the failure error is a recoverable one (e.g., planning

@@ -255,7 +255,7 @@ public:
     }
   }
   
-  bool move(bool wait)
+  bool move(void)
   {    
     if (!action_client_)
       return false;
@@ -265,19 +265,7 @@ public:
     goal.plan_only = false;
     goal.look_around = true;
     action_client_->sendGoal(goal);
-    if (!wait)
-      return true;
-    if (!action_client_->waitForResult())
-    {
-      ROS_INFO_STREAM("MoveGroup action returned early");
-    }
-    if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-      return true;
-    else
-    {
-      ROS_WARN_STREAM("Fail: " << action_client_->getState().toString() << ": " << action_client_->getState().getText());
-      return false;
-    }
+    return true;
   }
 
   bool move2(unsigned int attempt_count, unsigned int max_attempts)
@@ -369,7 +357,9 @@ private:
 };
 
 MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf)
-{  
+{
+  if (!ros::ok())
+    throw std::runtime_error("ROS does not seem to be running");
   impl_ = new MoveGroupImpl(Options(group_name), tf ? tf : getSharedTF());
 }
 
@@ -383,9 +373,9 @@ MoveGroup::~MoveGroup(void)
   delete impl_;
 }
 
-bool MoveGroup::move(bool wait)
+bool MoveGroup::asyncMove(void)
 {
-  return impl_->move(wait);
+  return impl_->move();
 }
 
 bool MoveGroup::move(unsigned int max_attempts)
