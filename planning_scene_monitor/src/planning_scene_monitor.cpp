@@ -327,8 +327,8 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
 
 void planning_scene_monitor::PlanningSceneMonitor::lockScene(void)
 {
-  octomap_monitor_->lockOcTree();
   scene_update_mutex_.lock();
+  octomap_monitor_->lockOcTree();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
