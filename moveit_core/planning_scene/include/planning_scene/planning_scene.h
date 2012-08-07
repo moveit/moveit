@@ -497,6 +497,10 @@ public:
   /** \brief Get the top \e max_costs cost sources for a specified trajectory. The resulting costs are stored in \e costs */
   void getCostSources(const planning_models::KinematicTrajectory &trajectory, std::size_t max_costs,
                       std::set<collision_detection::CostSource> &costs) const;
+
+  /** \brief Get the top \e max_costs cost sources for a specified trajectory, but only for group \e group_name. The resulting costs are stored in \e costs */
+  void getCostSources(const planning_models::KinematicTrajectory &trajectory, std::size_t max_costs,
+                      const std::string &group_name, std::set<collision_detection::CostSource> &costs) const;
   
   /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message. */
   static bool isEmpty(const moveit_msgs::PlanningScene &msg);

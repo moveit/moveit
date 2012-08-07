@@ -42,6 +42,7 @@
 
 namespace collision_detection
 {
+
 bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void *data)
 {
   CollisionData *cdata = reinterpret_cast<CollisionData*>(data);
@@ -62,14 +63,14 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       return false;
   }
   
+  //  ROS_INFO_STREAM("Id " << cd1->getID() << " " << cd2->getID());
+
   // use the collision matrix (if any) to avoid certain collision checks
   DecideContactFn dcf;
   bool always_allow_collision = false;
   if (cdata->acm_)
   {
     AllowedCollision::Type type;
-    //ROS_INFO_STREAM("Values " << cd1 << " " << cd2);
-    //ROS_INFO_STREAM("Id " << cd1->getID() << " " << cd2->getID());
     bool found = cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), type);
     if (found)
     {
@@ -205,10 +206,12 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       col_result.getCostSources(cost_sources);
       
       CostSource cs;
-      for(std::size_t i = 0; i < cost_sources.size(); ++i)
+      for (std::size_t i = 0; i < cost_sources.size(); ++i)
       {
         fcl2costsource(cost_sources[i], cs);
         cdata->res_->cost_sources.insert(cs);
+	while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
+	  cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
       }
     }
   }
@@ -264,10 +267,12 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         col_result.getCostSources(cost_sources);
       
         CostSource cs;
-        for(std::size_t i = 0; i < cost_sources.size(); ++i)
+        for (std::size_t i = 0; i < cost_sources.size(); ++i)
         {
           fcl2costsource(cost_sources[i], cs);
           cdata->res_->cost_sources.insert(cs);
+ 	  while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
+	    cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
         }
       }
     }
@@ -296,10 +301,12 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         col_result.getCostSources(cost_sources);
       
         CostSource cs;
-        for(std::size_t i = 0; i < cost_sources.size(); ++i)
+        for (std::size_t i = 0; i < cost_sources.size(); ++i)
         {
           fcl2costsource(cost_sources[i], cs);
           cdata->res_->cost_sources.insert(cs);
+ 	  while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
+	    cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
         }
       }      
     }
@@ -318,6 +325,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
                         (unsigned int)cdata->res_->contact_count);
         
     }
+  
+  if (!cdata->done_ && cdata->req_->is_done)
+    cdata->done_ = cdata->req_->is_done(*cdata->res_);
   
   return cdata->done_;
 }
