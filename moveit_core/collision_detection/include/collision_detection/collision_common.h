@@ -115,7 +115,17 @@ namespace collision_detection
     /// Order cost sources so that the most costly source is at the top
     bool operator<(const CostSource &other) const
     {
-      return cost > other.cost;
+      double c1 = cost * getVolume();
+      double c2 = other.cost * other.getVolume();
+      if (c1 > c2)
+	return true;
+      if (c1 < c2)
+	return false;
+      if (cost < other.cost)
+	return false;
+      if (cost > other.cost)
+	return true;
+      return aabb_min < other.aabb_min;
     }
   };
   
@@ -163,6 +173,7 @@ namespace collision_detection
 			     max_contacts(1),
 			     max_contacts_per_pair(1),
                              max_cost_sources(1),
+                             min_cost_density(0.2),
 			     verbose(false)
     {
     }
@@ -187,6 +198,9 @@ namespace collision_detection
     
     /** \brief When costs are computed, this value defines how many of the top cost sources should be returned */
     std::size_t max_cost_sources;
+
+    /** \brief When costs are computed, this is the minimum cost density for a CostSource to be included in the results */
+    double      min_cost_density;
 
     /** \brief Function call that decides whether collision detection should stop. */
     boost::function<bool(const CollisionResult&)>
