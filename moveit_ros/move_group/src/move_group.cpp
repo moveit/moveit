@@ -234,13 +234,19 @@ private:
       // determine the sources of cost for this path
       trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
       collision_detection::CollisionRequest creq;
+      creq.group_name = mreq.motion_plan_request.group_name;
       creq.max_cost_sources = 100;
-      creq.cost = true;   
+      creq.cost = true;
       std::set<collision_detection::CostSource> cost_sources;
       for (std::size_t i = 0 ; i < currently_executed_trajectory_states_.size() ; ++i)
       {
         collision_detection::CollisionResult cres;
         the_scene->checkCollision(creq, cres, *currently_executed_trajectory_states_[i]);
+	/*	ROS_INFO("got  %d cost sources for state %d", cres.cost_sources.size(), i);
+	for (std::set<collision_detection::CostSource>::const_iterator it = cres.cost_sources.begin() ; it != cres.cost_sources.end() ; ++it)
+	  {
+	    ROS_INFO("state %d: Box of volume %lf has cost %lf", i, it->getVolume(), it->cost);
+	    } */
         cost_sources.insert(cres.cost_sources.begin(), cres.cost_sources.end());
       }
       visualization_msgs::MarkerArray arr;
@@ -248,7 +254,10 @@ private:
       cost_sources_publisher_.publish(arr);
       double cost = 0.0;
       for (std::set<collision_detection::CostSource>::const_iterator it = cost_sources.begin() ; it != cost_sources.end() ; ++it)
-        cost += it->getVolume() * it->cost;
+	{
+	  //	  ROS_INFO("Box of volume %lf has cost %lf", it->getVolume(), it->cost);
+	  cost += it->getVolume() * it->cost;
+	}
       ROS_INFO("The total cost of the trajectory is %lf", cost);
     }
     
