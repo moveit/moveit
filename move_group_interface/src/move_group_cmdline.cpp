@@ -116,8 +116,17 @@ int main(int argc, char **argv)
               std::cout << "Remembered specified joint values [" << jvs << " ] under the name '" << name << "'." << std::endl;
             }
             else
-              if (cmd.substr(0, 3) == "del")
-              {      
+              if (cmd.substr(0, 4) == "rand")
+	      {
+		group.setRandomTarget();
+		if (group.move())
+		  std::cout << "Moved to random target" << std::endl;
+		else
+		  std::cout << "Failed while moving to random target." << std::endl;
+	      }
+	      else
+	      if (cmd.substr(0, 3) == "del")
+	      {      
                 std::string name = cmd.substr(3);
                 boost::trim(name);
                 group.forgetJointValues(name);
