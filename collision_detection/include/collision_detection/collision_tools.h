@@ -65,6 +65,8 @@ void getCostMarkers(visualization_msgs::MarkerArray& arr,
                     const std_msgs::ColorRGBA& color,
                     const ros::Duration& lifetime);
 
+double getTotalCost(const std::set<CostSource> &cost_sources);
+
 bool getSensorPositioning(geometry_msgs::Point &point,
                           const std::set<CostSource> &cost_sources,
                           const moveit_sensor_manager::SensorInfo &si);

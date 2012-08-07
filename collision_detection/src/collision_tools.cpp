@@ -139,3 +139,11 @@ bool collision_detection::getSensorPositioning(geometry_msgs::Point &point,
   point.z = (cost_sources.begin()->aabb_max[2] + cost_sources.begin()->aabb_min[2]) / 2.0;  
   return true;
 }
+
+double collision_detection::getTotalCost(const std::set<CostSource> &cost_sources)
+{
+  double cost = 0.0;
+  for (std::set<collision_detection::CostSource>::const_iterator it = cost_sources.begin() ; it != cost_sources.end() ; ++it)
+    cost += it->getVolume() * it->cost;
+  return cost;
+}
