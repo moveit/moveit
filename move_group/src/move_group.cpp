@@ -233,22 +233,8 @@ private:
       LockScene lock(planning_scene_monitor_);
       // determine the sources of cost for this path
       trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
-      collision_detection::CollisionRequest creq;
-      creq.group_name = mreq.motion_plan_request.group_name;
-      creq.max_cost_sources = 100;
-      creq.cost = true;
       std::set<collision_detection::CostSource> cost_sources;
-      for (std::size_t i = 0 ; i < currently_executed_trajectory_states_.size() ; ++i)
-      {
-        collision_detection::CollisionResult cres;
-        the_scene->checkCollision(creq, cres, *currently_executed_trajectory_states_[i]);
-	/*	ROS_INFO("got  %d cost sources for state %d", cres.cost_sources.size(), i);
-	for (std::set<collision_detection::CostSource>::const_iterator it = cres.cost_sources.begin() ; it != cres.cost_sources.end() ; ++it)
-	  {
-	    ROS_INFO("state %d: Box of volume %lf has cost %lf", i, it->getVolume(), it->cost);
-	    } */
-        cost_sources.insert(cres.cost_sources.begin(), cres.cost_sources.end());
-      }
+      the_scene->getCostSources(currently_executed_trajectory_states_, 100, mreq.motion_plan_request.group_name, cost_sources);
       visualization_msgs::MarkerArray arr;
       collision_detection::getCostMarkers(arr, the_scene->getPlanningFrame(), cost_sources);
       cost_sources_publisher_.publish(arr);
