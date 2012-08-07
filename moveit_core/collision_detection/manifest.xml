@@ -15,6 +15,7 @@
   <depend package="visualization_msgs"/>
   <depend package="planning_models"/>
   <depend package="common_rosdeps"/>
+  <depend package="moveit_sensor_manager"/>
   
   <rosdep name="eigen" />
 
