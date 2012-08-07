@@ -19,7 +19,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-set(SOURCE_FILES src/sbpl_plugin.cpp)
+set(SOURCE_FILES src/sbpl_plugin.cpp src/sbpl_meta_plugin.cpp)
 set(LIBRARY_NAME sbpl_planner_plugin)
 include(CMakeDetermineSystem)
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
