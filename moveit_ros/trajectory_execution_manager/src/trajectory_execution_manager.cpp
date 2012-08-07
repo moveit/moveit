@@ -734,14 +734,33 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
     {
       boost::mutex::scoped_lock slock(execution_state_mutex_);
       if (!execution_complete_)
-      {    
+      {
         // time indexing uses this member too, so we lock this mutex as well
         time_index_mutex_.lock();
         current_context_ = part_index;
         time_index_mutex_.unlock();
         active_handles_.resize(context.controllers_.size());
         for (std::size_t i = 0 ; i < context.controllers_.size() ; ++i)
-          active_handles_[i] = controller_manager_->getControllerHandle(context.controllers_[i]);
+        {
+          moveit_controller_manager::MoveItControllerHandlePtr h;
+          try
+          {
+            h = controller_manager_->getControllerHandle(context.controllers_[i]);
+          }
+          catch(...)
+          {     
+            ROS_ERROR("Exception caught when retrieving controller handle");
+          }
+          if (!h)
+          {
+            active_handles_.clear();
+            current_context_ = -1;
+            last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
+            ROS_ERROR("No controller handle for controller '%s'. Aborting.", context.controllers_[i].c_str());
+            return false;
+          }
+          active_handles_[i] = h;
+        }
         handles = active_handles_; // keep a copy for later, to avoid thread safety issues
         for (std::size_t i = 0 ; i < context.trajectory_parts_.size() ; ++i)
         {
