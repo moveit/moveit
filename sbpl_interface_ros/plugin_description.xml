@@ -3,4 +3,8 @@
     <description>
     </description>
   </class>
+  <class name="sbpl_interface_ros/SBPLMetaPlanner" type="sbpl_interface_ros::SBPLMetaPlanner" base_class_type="planning_interface::Planner">
+    <description>
+    </description>
+  </class>
 </library>
