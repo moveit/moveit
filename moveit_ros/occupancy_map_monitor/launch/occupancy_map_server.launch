@@ -14,7 +14,7 @@
     <param name="octomap_resolution" type="double" value="0.1" />
 
     <!-- sensors used to update the map -->
-    <rosparam command="load" file="$(find occupancy_map_monitor)/config/sensors_kinect.yaml" />
+    <rosparam command="load" file="$(find pr2_moveit_config)/config/sensors_kinect.yaml" />
    </node>
 
 </launch>
