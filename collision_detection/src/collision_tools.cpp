@@ -127,3 +127,15 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
     }
   }
 }
+
+bool collision_detection::getSensorPositioning(geometry_msgs::Point &point,
+                                               const std::set<CostSource> &cost_sources,
+                                               const moveit_sensor_manager::SensorInfo &si)
+{
+  if (cost_sources.empty())
+    return false;
+  point.x = (cost_sources.begin()->aabb_max[0] + cost_sources.begin()->aabb_min[0]) / 2.0;
+  point.y = (cost_sources.begin()->aabb_max[1] + cost_sources.begin()->aabb_min[1]) / 2.0;
+  point.z = (cost_sources.begin()->aabb_max[2] + cost_sources.begin()->aabb_min[2]) / 2.0;  
+  return true;
+}

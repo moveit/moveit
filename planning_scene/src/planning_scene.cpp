@@ -1668,8 +1668,16 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
 void planning_scene::PlanningScene::getCostSources(const planning_models::KinematicTrajectory &trajectory, std::size_t max_costs,
                                                    std::set<collision_detection::CostSource> &costs) const
 {
+  getCostSources(trajectory, max_costs, std::string(), costs);
+}
+
+
+void planning_scene::PlanningScene::getCostSources(const planning_models::KinematicTrajectory &trajectory, std::size_t max_costs,
+                                                   const std::string &group_name, std::set<collision_detection::CostSource> &costs) const
+{
   collision_detection::CollisionRequest creq;
   creq.max_cost_sources = max_costs;
+  creq.group_name = group_name;
   creq.cost = true;
   std::set<collision_detection::CostSource> cs;
   for (std::size_t i = 0 ; i < trajectory.size() ; ++i)
@@ -1678,7 +1686,7 @@ void planning_scene::PlanningScene::getCostSources(const planning_models::Kinema
     checkCollision(creq, cres, *trajectory[i]);
     cs.insert(cres.cost_sources.begin(), cres.cost_sources.end());
   }
-
+  
   if (cs.size() <= max_costs)
     costs.swap(cs);
   else
