@@ -236,6 +236,7 @@ public:
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = true;
+    goal.look_around = false;
     action_client_->sendGoal(goal); 
     if (!action_client_->waitForResult())
     {
@@ -262,6 +263,7 @@ public:
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = false;
+    goal.look_around = true;
     action_client_->sendGoal(goal);
     if (!wait)
       return true;
@@ -291,6 +293,7 @@ public:
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = false;
+    goal.look_around = true;
     action_client_->sendGoal(goal);
     if (!action_client_->waitForResult())
     {
