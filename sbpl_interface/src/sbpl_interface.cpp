@@ -97,6 +97,12 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
   }
+  ros::WallTime pre_short = ros::WallTime::now(); 
+  //std::cerr << "Num traj points before " << res.trajectory.joint_trajectory.points.size() << std::endl;
+  trajectory_msgs::JointTrajectory traj = res.trajectory.joint_trajectory;
+  env_chain->attemptShortcut(traj, res.trajectory.joint_trajectory);
+  //std::cerr << "Num traj points after " << res.trajectory.joint_trajectory.points.size() << std::endl;
+  //std::cerr << "Time " << (ros::WallTime::now()-pre_short).toSec() << std::endl;
   //env_chain->getPlaneBFSMarker(mark, env_chain->getGoalPose().translation().z());
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   PlanningStatistics stats = env_chain->getPlanningStatistics();

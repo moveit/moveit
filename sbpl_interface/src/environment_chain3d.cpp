@@ -461,6 +461,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
     for(int i = 0; i < gsr_->dfce_->distance_field_->getXNumCells()-2; i++) {
       for(int j = 0; j < gsr_->dfce_->distance_field_->getYNumCells()-2; j++) {
         for(int k = 0; k < gsr_->dfce_->distance_field_->getZNumCells()-2; k++) {
+          boost::this_thread::interruption_point();
           if(gsr_->dfce_->distance_field_->getDistanceFromCell(i+1, j+1, k+1) == 0.0 ||
              world_distance_field->getDistanceFromCell(i+1, j+1, k+1) == 0.0) {
             bfs_->setWall(i+1, j+1, k+1);
@@ -969,7 +970,83 @@ bool EnvironmentChain3D::interpolateAndCollisionCheck(const std::vector<double> 
   print_first = false;
   return true;
 }
-                        
+
+void EnvironmentChain3D::attemptShortcut(const trajectory_msgs::JointTrajectory& traj_in,
+                                         trajectory_msgs::JointTrajectory& traj_out) 
+{
+  unsigned int last_point_ind = 0;
+  unsigned int current_point_ind = 1;
+  unsigned int last_good_start_ind = 0;
+  unsigned int last_good_end_ind = 1;
+  traj_out = traj_in;
+  traj_out.points.clear();
+  traj_out.points.push_back(traj_in.points.front());
+  std::vector<std::vector<double> > last_good_segment_values;
+  if(traj_in.points.size() == 1) {
+    traj_out = traj_in;
+    return;
+  }
+  std::vector<std::vector<double> > full_shortcut;
+  //std::cerr << "Checking" << std::endl;
+  if(interpolateAndCollisionCheck(traj_in.points.front().positions,
+                                  traj_in.points.back().positions,
+                                  full_shortcut)) {
+    std::cerr << "Full shortcut has " << full_shortcut.size() << " points " << std::endl;
+    traj_out.points.push_back(traj_in.points.front());
+    for(unsigned int i = 0; i < full_shortcut.size(); i++) {
+      trajectory_msgs::JointTrajectoryPoint jtp;
+      jtp.positions = full_shortcut[i];
+      traj_out.points.push_back(jtp);
+    }
+    traj_out.points.push_back(traj_in.points.back());
+    //std::cerr << "Full shortcut worked" << std::endl;
+    return;
+  }
+ 
+  while(1) {
+    //std::cerr << "Checking from " << last_point_ind << " to " << current_point_ind << std::endl;
+    const trajectory_msgs::JointTrajectoryPoint& start_point = traj_in.points[last_point_ind];
+    const trajectory_msgs::JointTrajectoryPoint& end_point = traj_in.points[current_point_ind];
+    std::vector<std::vector<double> > segment_values;
+    //if we can go from start to end then keep going
+    if(interpolateAndCollisionCheck(start_point.positions,
+                                    end_point.positions,
+                                    segment_values)) {
+      last_good_start_ind = last_point_ind;
+      last_good_end_ind = current_point_ind;
+      last_good_segment_values = segment_values;
+      current_point_ind++;
+      //std::cerr << "Interpolation ok" << std::endl;
+    } else {
+      //first case - start and end are separated by single point, so we copy the end in
+      if(last_good_end_ind-last_good_start_ind == 1) {
+        traj_out.points.push_back(traj_in.points[last_good_end_ind]);
+      } else {
+        for(unsigned int i = 0; i < last_good_segment_values.size(); i++) {
+          trajectory_msgs::JointTrajectoryPoint jtp;
+          jtp.positions = last_good_segment_values[i];
+          traj_out.points.push_back(jtp);
+        }
+      }
+      last_good_start_ind = last_good_end_ind;
+      last_point_ind = last_good_end_ind;
+      current_point_ind = last_good_end_ind+1;
+      last_good_segment_values.clear();
+      //std::cerr << "Interpolation not ok" << std::endl;
+    }
+    if(current_point_ind >= traj_in.points.size()) {
+      if(last_good_segment_values.size() > 0) {
+        for(unsigned int i = 0; i < last_good_segment_values.size(); i++) {
+          trajectory_msgs::JointTrajectoryPoint jtp;
+          jtp.positions = last_good_segment_values[i];
+          traj_out.points.push_back(jtp);
+        }
+      }
+      traj_out.points.push_back(traj_in.points.back());
+      break;
+    }
+  }
+}
 
 }
 

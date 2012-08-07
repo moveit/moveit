@@ -221,6 +221,9 @@ public:
     return goal_pose_;
   }
 
+  void attemptShortcut(const trajectory_msgs::JointTrajectory& traj_in,
+                       trajectory_msgs::JointTrajectory& traj_out);
+
 protected:
   
   bool getGridXYZInt(const Eigen::Affine3d& pose,
