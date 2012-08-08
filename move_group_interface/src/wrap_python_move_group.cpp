@@ -171,7 +171,7 @@ void wrap_move_group_interface()
 
 }
 
-BOOST_PYTHON_MODULE(move_group)
+BOOST_PYTHON_MODULE(_move_group)
 {
   using namespace move_group_interface;
   wrap_move_group_interface();
