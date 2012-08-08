@@ -235,10 +235,13 @@ private:
       if (goal->look_around)
       {       
         LockScene lock(planning_scene_monitor_);
-        // determine the sources of cost for this path
+        // convert the path to a sequence of kinematic states
         trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
+        
+        // determine the sources of cost for this path
         std::set<collision_detection::CostSource> cost_sources;
         the_scene->getCostSources(currently_executed_trajectory_states_, 100, mreq.motion_plan_request.group_name, cost_sources);
+
         visualization_msgs::MarkerArray arr;
         collision_detection::getCostMarkers(arr, the_scene->getPlanningFrame(), cost_sources);
         cost_sources_publisher_.publish(arr);

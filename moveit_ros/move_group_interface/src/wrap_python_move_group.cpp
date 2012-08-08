@@ -76,6 +76,7 @@ public:
     static bool once = true;
     if (once)
     {
+      once = false;
       static ros::AsyncSpinner spinner(1);
       spinner.start();
     }
