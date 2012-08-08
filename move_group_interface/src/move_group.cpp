@@ -540,6 +540,11 @@ void MoveGroup::rememberJointValues(const std::string &name)
   rememberJointValues(name, impl_->getCurrentJointValues());
 }
 
+std::vector<double> MoveGroup::getCurrentJointValues(void)
+{
+  return impl_->getCurrentJointValues();
+}
+
 void MoveGroup::rememberJointValues(const std::string &name, const std::vector<double> &values)
 { 
   remembered_joint_values_[name] = values;

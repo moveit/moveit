@@ -41,6 +41,8 @@
 #include <boost/python/return_value_policy.hpp>
 #include <boost/python/stl_iterator.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/suite/indexing/map_indexing_suite.hpp>
+
 #include <boost/shared_ptr.hpp>
 #include <Python.h>
 #include <ros/ros.h>
@@ -104,6 +106,45 @@ public:
   {
   }
   
+  void setJointValueTargetPerJointPythonList(const std::string &joint, bp::list &values)
+  {
+    setJointValueTarget(joint, doubleFromList(values));
+  }
+  
+  void setJointValueTargetPythonList(bp::list &values)
+  {
+    setJointValueTarget(doubleFromList(values));
+  }
+
+  void setJointValueTargetPythonDict(bp::dict &values)
+  {
+    bp::list k = values.keys(); 
+    int l = bp::len(k);
+    std::map<std::string, double> v;
+    for (int i = 0; i < l ; ++i)
+      v[bp::extract<std::string>(k[i])] = bp::extract<double>(values[k[i]]);
+    setJointValueTarget(v);
+  }
+  
+  void rememberJointValuesFromPythonList(const std::string &string, bp::list &values)
+  {
+    rememberJointValues(string, doubleFromList(values));
+  }
+
+  bp::object getCurrentJointValuesList(void)
+  {
+    return listFromDouble(getCurrentJointValues());
+  }
+  
+  bp::dict getRememberedJointValuesPython(void) const
+  {
+    const std::map<std::string, std::vector<double> > &rv = getRememberedJointValues();
+    bp::dict d;
+    for (std::map<std::string, std::vector<double> >::const_iterator it = rv.begin() ; it != rv.end() ; ++it)
+      d[it->first] = listFromDouble(it->second);
+    return d;
+  }
+  
   const char* getEndEffectorLinkCStr(void) const
   {
     return getEndEffectorLink().c_str();
@@ -119,6 +160,25 @@ public:
     return move();
   }
   
+private:
+
+  std::vector<double> doubleFromList(bp::list &values) const
+  {   
+    int l = bp::len(values);
+    std::vector<double> v(l);
+    for (int i = 0; i < l ; ++i)
+      v[i] = bp::extract<double>(values[i]);
+    return v;
+  }
+
+  bp::list listFromDouble(const std::vector<double>& v) const
+  {
+    bp::list l;
+    for (std::size_t i = 0 ; i < v.size() ; ++i)
+      l.append(v[i]);
+    return l;
+  }
+
 };  
   
 void wrap_move_group_interface()
@@ -128,6 +188,7 @@ void wrap_move_group_interface()
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
   MoveGroupClass.def("move", &MoveGroupWrapper::moveSimple);
   MoveGroupClass.def("plan", &MoveGroupWrapper::plan);
+  MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
   MoveGroupClass.def("set_pose_reference_frame", &MoveGroupWrapper::setPoseReferenceFrame);
   
@@ -142,16 +203,9 @@ void wrap_move_group_interface()
   void (MoveGroupWrapper::*setPoseTarget_2)(const geometry_msgs::Pose &) = &MoveGroupWrapper::setPoseTarget;
   MoveGroupClass.def("set_pose_target", setPoseTarget_2);
 
-
-  void (MoveGroupWrapper::*setJointValueTarget_1)(const std::vector<double> &) = &MoveGroupWrapper::setJointValueTarget;
-  MoveGroupClass.def("set_joint_value_target", setJointValueTarget_1);
-
-  void (MoveGroupWrapper::*setJointValueTarget_2)(const std::map<std::string, double> &) = &MoveGroupWrapper::setJointValueTarget;
-  MoveGroupClass.def("set_joint_value_target", setJointValueTarget_2);
-
-  void (MoveGroupWrapper::*setJointValueTarget_3)(const std::string&, const std::vector<double> &) = &MoveGroupWrapper::setJointValueTarget;
-  MoveGroupClass.def("set_joint_value_target", setJointValueTarget_3);
-
+  MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonList);
+  MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonDict);
+  MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPerJointPythonList);
   void (MoveGroupWrapper::*setJointValueTarget_4)(const std::string&, double) = &MoveGroupWrapper::setJointValueTarget;
   MoveGroupClass.def("set_joint_value_target", setJointValueTarget_4);
 
@@ -159,12 +213,14 @@ void wrap_move_group_interface()
   MoveGroupClass.def("set_joint_value_target", setJointValueTarget_5);
 
   MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget); 
-
-  void (MoveGroupWrapper::*rememberJointValues_1)(const std::string&, const std::vector<double> &) = &MoveGroupWrapper::rememberJointValues;
-  MoveGroupClass.def("remember_joint_values", rememberJointValues_1);
+  MoveGroupClass.def("set_random_target", &MoveGroupWrapper::setRandomTarget); 
 
   void (MoveGroupWrapper::*rememberJointValues_2)(const std::string&) = &MoveGroupWrapper::rememberJointValues;
   MoveGroupClass.def("remember_joint_values", rememberJointValues_2);
+  MoveGroupClass.def("remember_joint_values",  &MoveGroupWrapper::rememberJointValuesFromPythonList);
+
+  MoveGroupClass.def("get_current_joint_values",  &MoveGroupWrapper::getCurrentJointValuesList);
+  MoveGroupClass.def("get_remembered_joint_values",  &MoveGroupWrapper::getRememberedJointValuesPython);
 
   MoveGroupClass.def("forget_joint_values", &MoveGroupWrapper::forgetJointValues); 
 }
