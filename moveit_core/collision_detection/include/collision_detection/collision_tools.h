@@ -55,6 +55,8 @@ void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
                                      const std::string& frame_id,
                                      const CollisionResult::ContactMap &con);
 
+
+/// \todo add a class for managing cost sources
 void getCostMarkers(visualization_msgs::MarkerArray& arr,
                     const std::string& frame_id,
                     std::set<CostSource> &cost_sources);
@@ -66,6 +68,11 @@ void getCostMarkers(visualization_msgs::MarkerArray& arr,
                     const ros::Duration& lifetime);
 
 double getTotalCost(const std::set<CostSource> &cost_sources);
+
+void removeCostSources(std::set<CostSource> &cost_sources, const std::set<CostSource> &cost_sources_to_remove, double overlap_fraction);
+void intersectCostSources(std::set<CostSource> &cost_sources, const std::set<CostSource> &a, const std::set<CostSource> &b);
+void removeOverlapping(std::set<CostSource> &cost_sources, double overlap_fraction);
+
 
 bool getSensorPositioning(geometry_msgs::Point &point,
                           const std::set<CostSource> &cost_sources,

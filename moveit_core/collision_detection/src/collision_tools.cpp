@@ -147,3 +147,109 @@ double collision_detection::getTotalCost(const std::set<CostSource> &cost_source
     cost += it->getVolume() * it->cost;
   return cost;
 }
+
+
+void collision_detection::intersectCostSources(std::set<CostSource> &cost_sources, const std::set<CostSource> &a, const std::set<CostSource> &b)
+{
+  cost_sources.clear();
+  CostSource tmp;
+  for (std::set<CostSource>::const_iterator it = a.begin() ; it != a.end() ; ++it)
+    for (std::set<CostSource>::const_iterator jt = b.begin() ; jt != b.end() ; ++jt)
+    {
+      tmp.aabb_min[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
+      tmp.aabb_min[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
+      tmp.aabb_min[2] = std::max(it->aabb_min[2], jt->aabb_min[2]);
+      
+      tmp.aabb_max[0] = std::min(it->aabb_max[0], jt->aabb_max[0]);
+      tmp.aabb_max[1] = std::min(it->aabb_max[1], jt->aabb_max[1]);
+      tmp.aabb_max[2] = std::min(it->aabb_max[2], jt->aabb_max[2]);
+      
+      if (tmp.aabb_min[0] >= tmp.aabb_max[0] || tmp.aabb_min[1] >= tmp.aabb_max[1] || tmp.aabb_min[2] >= tmp.aabb_max[2])
+        continue;
+      tmp.cost = std::max(it->cost, jt->cost);
+      cost_sources.insert(tmp);
+    }
+}
+
+void collision_detection::removeOverlapping(std::set<CostSource> &cost_sources, double overlap_fraction)
+{  
+  double p[3], q[3];
+  for (std::set<CostSource>::iterator it = cost_sources.begin() ; it != cost_sources.end() ; ++it)
+  {
+    double vol = it->getVolume() * overlap_fraction;
+    std::vector<std::set<CostSource>::iterator> remove;
+    std::set<CostSource>::iterator it1 = it;
+    for (std::set<CostSource>::iterator jt = ++it1 ; jt != cost_sources.end() ; ++jt)
+    {
+      p[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
+      p[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
+      p[2] = std::max(it->aabb_min[2], jt->aabb_min[2]);
+      
+      q[0] = std::min(it->aabb_max[0], jt->aabb_max[0]);
+      q[1] = std::min(it->aabb_max[1], jt->aabb_max[1]);
+      q[2] = std::min(it->aabb_max[2], jt->aabb_max[2]);
+      
+      if (p[0] >= q[0] || p[1] >= q[1] || p[2] >= q[2])
+        continue;
+      
+      double intersect_volume = (q[0] - p[0]) * (q[1] - p[1]) * (q[2] - p[2]);
+      if (intersect_volume >= vol)
+        remove.push_back(jt);
+    }
+    for (std::size_t i = 0 ; i < remove.size() ; ++i)
+      cost_sources.erase(remove[i]);
+  }
+}
+
+
+void collision_detection::removeCostSources(std::set<CostSource> &cost_sources, const std::set<CostSource> &cost_sources_to_remove, double overlap_fraction)
+{
+  // remove all the boxes that overlap with the intersection previously computed in \e rem
+  double p[3], q[3];
+  for (std::set<CostSource>::const_iterator jt = cost_sources_to_remove.begin() ; jt != cost_sources_to_remove.end() ; ++jt)
+  {
+    std::vector<std::set<CostSource>::iterator> remove;
+    std::set<CostSource> add;
+    for (std::set<CostSource>::iterator it = cost_sources.begin() ; it != cost_sources.end() ; ++it)
+    {
+      p[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
+      p[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
+      p[2] = std::max(it->aabb_min[2], jt->aabb_min[2]);
+      
+      q[0] = std::min(it->aabb_max[0], jt->aabb_max[0]);
+      q[1] = std::min(it->aabb_max[1], jt->aabb_max[1]);
+      q[2] = std::min(it->aabb_max[2], jt->aabb_max[2]);
+
+      if (p[0] >= q[0] || p[1] >= q[1] || p[2] >= q[2])
+        continue;
+
+      double intersect_volume = (q[0] - p[0]) * (q[1] - p[1]) * (q[2] - p[2]);
+      if (intersect_volume >= it->getVolume() * overlap_fraction)
+        remove.push_back(it);
+      else
+      {
+        // there is some overlap, but not too large, so we split the cost source into multiple ones
+        for (int i = 0 ; i < 3 ; ++i)
+        {
+          // is there a box above axis i in the intersection?
+          if (it->aabb_max[i] > q[i])
+          {
+            CostSource cs = *it;
+            cs.aabb_min[i] = q[i];
+            add.insert(cs);
+          }
+          // is there a box below axis i in the intersection?
+          if (it->aabb_min[i] < p[i])
+          {
+            CostSource cs = *it;
+            cs.aabb_max[i] = p[i];
+            add.insert(cs);
+          }
+        }
+      }
+    }
+    for (std::size_t i = 0 ; i < remove.size() ; ++i)
+      cost_sources.erase(remove[i]);
+    cost_sources.insert(add.begin(), add.end());
+  }
+}
