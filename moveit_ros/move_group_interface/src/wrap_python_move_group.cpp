@@ -44,17 +44,62 @@
 #include <boost/shared_ptr.hpp>
 #include <Python.h>
 #include <ros/ros.h>
+#include <boost/thread.hpp>
 
 namespace bp = boost::python;
 
 namespace move_group_interface
 {
 
-class MoveGroupWrapper : public MoveGroup
+class ROSInitializer
 {
 public:
+  ROSInitializer(void) : self_init_(false)
+  {
+    // ensure we do not accidentally initialize ROS multiple times per process
+    static boost::mutex lock;
+    boost::mutex::scoped_lock slock(lock);
+
+    // if ROS (cpp) is not initialized, we initialize it
+    if (!ros::isInitialized())
+    {
+      char **fake_argv = new char*[1];
+      fake_argv[0] = strdup("move_group_python_wrappers");
+      int fake_argc = 1;
+      ros::init(fake_argc, fake_argv, "move_group_python_wrappers", ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
+      delete[] fake_argv[0];
+      delete[] fake_argv;
+      self_init_ = true;
+    }
+    
+    // once per process, we start a spinner
+    static bool once = true;
+    if (once)
+    {
+      static ros::AsyncSpinner spinner(1);
+      spinner.start();
+    }
+  }
   
-  MoveGroupWrapper(const std::string &group_name) : MoveGroup(group_name)
+  ~ROSInitializer(void)
+  {
+    if (self_init_)
+      if (ros::isInitialized() && !ros::isShuttingDown())
+        ros::shutdown();
+  }
+
+private:
+  bool self_init_;  
+};
+
+class MoveGroupWrapper : protected ROSInitializer,
+                         public MoveGroup
+{
+public:
+
+  // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
+  MoveGroupWrapper(const std::string &group_name) : ROSInitializer(),
+                                                    MoveGroup(group_name)
   {
   }
   
@@ -62,7 +107,7 @@ public:
   {
     return getEndEffectorLink().c_str();
   }  
-
+  
   const char* getPoseReferenceFrameCStr(void) const
   {
     return getPoseReferenceFrame().c_str();
@@ -129,14 +174,4 @@ BOOST_PYTHON_MODULE(move_group)
 {
   using namespace move_group_interface;
   wrap_move_group_interface();
-  
-  char **fake_argv = new char*[1];
-  fake_argv[0] = strdup("move_group_python_wrappers");
-  int fake_argc = 1;
-  ros::init(fake_argc, fake_argv, "move_group_python_wrappers", ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
-  delete[] fake_argv[0];
-  delete[] fake_argv;
-  
-  static ros::AsyncSpinner spinner(1);
-  spinner.start();
 }
