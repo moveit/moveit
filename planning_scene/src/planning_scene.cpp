@@ -38,6 +38,7 @@
 #include <collision_detection_fcl/collision_world.h>
 #include <collision_detection_fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
+#include <collision_detection/collision_tools.h>
 #include <planning_models/conversions.h>
 #include <octomap_msgs/conversions.h>
 #include <ros/console.h>
@@ -1666,25 +1667,29 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
 }
 
 void planning_scene::PlanningScene::getCostSources(const planning_models::KinematicTrajectory &trajectory, std::size_t max_costs,
-                                                   std::set<collision_detection::CostSource> &costs) const
+                                                   std::set<collision_detection::CostSource> &costs, double overlap_fraction) const
 {
-  getCostSources(trajectory, max_costs, std::string(), costs);
+  getCostSources(trajectory, max_costs, std::string(), costs, overlap_fraction);
 }
 
 
 void planning_scene::PlanningScene::getCostSources(const planning_models::KinematicTrajectory &trajectory, std::size_t max_costs,
-                                                   const std::string &group_name, std::set<collision_detection::CostSource> &costs) const
+                                                   const std::string &group_name, std::set<collision_detection::CostSource> &costs,
+                                                   double overlap_fraction) const
 {
   collision_detection::CollisionRequest creq;
   creq.max_cost_sources = max_costs;
   creq.group_name = group_name;
   creq.cost = true;
-  std::set<collision_detection::CostSource> cs;
+  std::set<collision_detection::CostSource> cs; 
+  std::set<collision_detection::CostSource> cs_start;
   for (std::size_t i = 0 ; i < trajectory.size() ; ++i)
   {
     collision_detection::CollisionResult cres;
     checkCollision(creq, cres, *trajectory[i]);
     cs.insert(cres.cost_sources.begin(), cres.cost_sources.end());
+    if (i == 0)
+      cs_start.swap(cres.cost_sources);
   }
   
   if (cs.size() <= max_costs)
@@ -1696,4 +1701,25 @@ void planning_scene::PlanningScene::getCostSources(const planning_models::Kinema
     for (std::set<collision_detection::CostSource>::iterator it = cs.begin() ; i < max_costs ; ++it, ++i)
       costs.insert(*it);
   }
+  
+  collision_detection::removeCostSources(costs, cs_start, overlap_fraction);
+  collision_detection::removeOverlapping(costs, overlap_fraction);
+}
+
+void planning_scene::PlanningScene::getCostSources(const planning_models::KinematicState &state, std::size_t max_costs,
+                                                   std::set<collision_detection::CostSource> &costs) const
+{
+  getCostSources(state, max_costs, std::string(), costs);
+}
+
+void planning_scene::PlanningScene::getCostSources(const planning_models::KinematicState &state, std::size_t max_costs,
+                                                   const std::string &group_name, std::set<collision_detection::CostSource> &costs) const
+{
+  collision_detection::CollisionRequest creq;
+  creq.max_cost_sources = max_costs;
+  creq.group_name = group_name;
+  creq.cost = true;
+  collision_detection::CollisionResult cres;
+  checkCollision(creq, cres, state);
+  cres.cost_sources.swap(costs);
 }
