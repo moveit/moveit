@@ -102,9 +102,18 @@ public:
   {
     kinematic_model_ = getSharedKinematicModel(opt.robot_description_);
     if (!getKinematicModel())
-      ROS_FATAL_STREAM("Unable to construct robot model. Make sure all needed information is on the parameter server.");
+    {
+      std::string error = "Unable to construct robot model. Make sure all needed information is on the parameter server.";
+      ROS_FATAL_STREAM(error);
+      throw std::runtime_error(error);
+    }
+    
     if (!getKinematicModel()->hasJointModelGroup(opt.group_name_))
-      ROS_FATAL_STREAM("Group '" + opt.group_name_ + "' was not found.");
+    {
+      std::string error = "Group '" + opt.group_name_ + "' was not found.";
+      ROS_FATAL_STREAM(error);
+      throw std::runtime_error(error);
+    }
     
     joint_state_target_.reset(new planning_models::KinematicState(getKinematicModel()));
     joint_state_target_->setToDefaultValues();

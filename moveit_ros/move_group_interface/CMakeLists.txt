@@ -36,5 +36,5 @@ include_directories (${PYTHON_INCLUDE_DIRS})
 
 rosbuild_add_library(${PROJECT_NAME}_python src/wrap_python_move_group.cpp)
 target_link_libraries(${PROJECT_NAME}_python ${PROJECT_NAME} ${PYTHON_LIBRARIES})
-set_target_properties(${PROJECT_NAME}_python PROPERTIES OUTPUT_NAME move_group PREFIX "")
+set_target_properties(${PROJECT_NAME}_python PROPERTIES OUTPUT_NAME _move_group PREFIX "")
 rosbuild_link_boost(${PROJECT_NAME}_python thread python)
