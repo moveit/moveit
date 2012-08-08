@@ -119,6 +119,10 @@ public:
 
   const planning_models::KinematicState::JointStateGroup& getJointValueTarget(void) const;
 
+  void setPositionTarget(double x, double y, double z);
+  
+  void setOrientationTarget(double x, double y, double z);
+
   void setPoseTarget(const Eigen::Affine3d &end_effector_pose);
   
   void setPoseTarget(const geometry_msgs::Pose &target);

@@ -542,6 +542,22 @@ const Eigen::Affine3d& MoveGroup::getPoseTarget(void) const
   return impl_->getPoseTarget();
 }
 
+void MoveGroup::setPositionTarget(double x, double y, double z)
+{
+  Eigen::Affine3d target = getPoseTarget();
+  target.translation() = Eigen::Vector3d(x,y,z);
+  setPoseTarget(target);
+}
+
+void MoveGroup::setOrientationTarget(double x, double y, double z)
+{ 
+  Eigen::Affine3d target(Eigen::AngleAxisd(x, Eigen::Vector3d::UnitX())
+                         * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitY())
+                         * Eigen::AngleAxisd(z, Eigen::Vector3d::UnitZ()));
+  target.translation() = getPoseTarget().translation();
+  setPoseTarget(target);
+}
+
 void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)
 {
   impl_->setPoseReferenceFrame(pose_reference_frame);
