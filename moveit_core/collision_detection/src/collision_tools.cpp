@@ -134,9 +134,12 @@ bool collision_detection::getSensorPositioning(geometry_msgs::Point &point,
 {
   if (cost_sources.empty())
     return false;
-  point.x = (cost_sources.begin()->aabb_max[0] + cost_sources.begin()->aabb_min[0]) / 2.0;
-  point.y = (cost_sources.begin()->aabb_max[1] + cost_sources.begin()->aabb_min[1]) / 2.0;
-  point.z = (cost_sources.begin()->aabb_max[2] + cost_sources.begin()->aabb_min[2]) / 2.0;  
+  std::set<CostSource>::const_iterator it = cost_sources.begin();
+  for (std::size_t i = 0 ; i < 4*cost_sources.size()/5 ; ++i)
+    ++it;
+  point.x = (it->aabb_max[0] + it->aabb_min[0]) / 2.0;
+  point.y = (it->aabb_max[1] + it->aabb_min[1]) / 2.0;
+  point.z = (it->aabb_max[2] + it->aabb_min[2]) / 2.0;  
   return true;
 }
 
