@@ -198,9 +198,11 @@ kinematics_plugin_loader::KinematicsLoaderFn kinematics_plugin_loader::Kinematic
       // read the list of plugin names for possible kinematics solvers
       for (std::size_t i = 0 ; i < known_groups.size() ; ++i)
       {
+	      ROS_DEBUG("Looking for param %s ", (known_groups[i].name_ + "/kinematics_solver").c_str());
         std::string ksolver_param_name;
         if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver", ksolver_param_name))
         {
+	        ROS_DEBUG("Found param %s ", ksolver_param_name.c_str());
           std::string ksolver;          
           if (nh.getParam(ksolver_param_name, ksolver))
           {
