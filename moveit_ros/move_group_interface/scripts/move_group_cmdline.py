@@ -48,7 +48,12 @@ def run(group_name):
             print_help()
             continue
         if cmd == "show":
-            print g.get_remembered_joint_values()
+            known = g.get_remembered_joint_values()
+            for k in known.keys():
+                print k + " = [" + " ".join([str(x) for x in known[k]]) + "]"
+            continue
+        if cmd == "id" or cmd == "which":
+            print g.get_name()
             continue
 
         # provide command alias 

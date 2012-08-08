@@ -28,8 +28,6 @@ rosbuild_add_library(${PROJECT_NAME} src/move_group.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
-rosbuild_add_executable(move_group_cmd src/move_group_cmdline.cpp)
-target_link_libraries(move_group_cmd ${PROJECT_NAME})
 
 find_package(PythonLibs)
 include_directories (${PYTHON_INCLUDE_DIRS})

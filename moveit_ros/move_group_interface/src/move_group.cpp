@@ -118,6 +118,7 @@ public:
     joint_state_target_.reset(new planning_models::KinematicState(getKinematicModel()));
     joint_state_target_->setToDefaultValues();
     use_joint_state_target_ = true;
+    can_look_ = true;
     
     const planning_models::KinematicModel::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group)
@@ -198,7 +199,12 @@ public:
   {
     use_joint_state_target_ = false;
   }
-
+  
+  void allowLooking(bool flag)
+  {
+    can_look_ = flag;
+  }
+  
   std::vector<double> getCurrentJointValues(void)
   {
     if (!current_state_monitor_)
@@ -241,7 +247,9 @@ public:
   {
     if (!action_client_)
       return false;
-    
+    if (!action_client_->isServerConnected())
+      return false;
+
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = true;
@@ -268,11 +276,12 @@ public:
   {    
     if (!action_client_)
       return false;
-
+    if (!action_client_->isServerConnected())
+      return false;
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = false;
-    goal.look_around = true;
+    goal.look_around = can_look_;
     action_client_->sendGoal(goal);
     return true;
   }
@@ -280,6 +289,8 @@ public:
   bool move2(unsigned int attempt_count, unsigned int max_attempts)
   {  
     if (!action_client_)
+      return false;
+    if (!action_client_->isServerConnected())
       return false;
 
     if (attempt_count >= max_attempts)
@@ -290,7 +301,7 @@ public:
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = false;
-    goal.look_around = true;
+    goal.look_around = can_look_;
     action_client_->sendGoal(goal);
     if (!action_client_->waitForResult())
     {
@@ -361,6 +372,7 @@ private:
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
   std::string pose_reference_frame_;
+  bool can_look_;
   
   bool use_joint_state_target_;
 };
@@ -380,6 +392,11 @@ MoveGroup::MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer
 MoveGroup::~MoveGroup(void)
 {
   delete impl_;
+}
+
+const std::string& MoveGroup::getName(void) const
+{
+  return impl_->getOptions().group_name_;
 }
 
 bool MoveGroup::asyncMove(void)
@@ -555,5 +572,9 @@ void MoveGroup::forgetJointValues(const std::string &name)
   remembered_joint_values_.erase(name);
 }
 
+void MoveGroup::allowLooking(bool flag)
+{
+  impl_->allowLooking(flag);
+}
 
 }

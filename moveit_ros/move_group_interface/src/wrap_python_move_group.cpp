@@ -155,6 +155,11 @@ public:
     return getPoseReferenceFrame().c_str();
   }
   
+  const char* getNameCStr(void) const
+  {
+    return getName().c_str();
+  }
+  
   bool moveSimple(void)
   {
     return move();
@@ -190,6 +195,9 @@ void wrap_move_group_interface()
   MoveGroupClass.def("plan", &MoveGroupWrapper::plan);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
+  MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);
+  MoveGroupClass.def("allow_looking", &MoveGroupWrapper::allowLooking);
+  
   MoveGroupClass.def("set_pose_reference_frame", &MoveGroupWrapper::setPoseReferenceFrame);
   
   MoveGroupClass.def("set_pose_reference_frame", &MoveGroupWrapper::setPoseReferenceFrame);

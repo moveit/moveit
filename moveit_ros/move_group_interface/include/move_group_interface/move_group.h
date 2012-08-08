@@ -79,6 +79,8 @@ public:
 
   ~MoveGroup(void);
   
+  const std::string& getName(void) const;
+  
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is not blocking (does not wait for the execution of the trajectory to complete). */
   bool asyncMove(void);
@@ -95,6 +97,9 @@ public:
   
   /** \brief Stop any trajectory execution, if one is active */
   void stop(void);
+  
+  /** \brief Specify whether the robot is allowed to look around before moving if it determines it should (default is true) */
+  void allowLooking(bool flag);
   
   void setJointValueTarget(const std::vector<double> &group_variable_values);
 
