@@ -62,7 +62,7 @@ def run(group_name):
             if known.has_key(assign_match.group(2)):
                 g.remember_joint_values(assign_match.group(1), known[assign_match.group(2)])
             else:
-                print "Unknown command: '%s'" % cmd
+                print bcolors.WARNING + "Unknown command: '" + cmd + "'" + bcolors.ENDC
             continue
 
         # see if we have assignment of matlab-like vector syntax
@@ -87,7 +87,7 @@ def run(group_name):
                 except:
                     print bcolors.WARNING + "Unable to parse index or value in '" + cmd +"'" + bcolors.ENDC
             else:
-                print "Unknown command: '%s'" % cmd
+                print bcolors.WARNING + "Unknown command: '" + cmd + "'" + bcolors.ENDC
             continue
 
         clist = cmd.split()
@@ -98,7 +98,7 @@ def run(group_name):
             if known.has_key(cmd):
                 print known[cmd]
             else:
-                print "Unknown command: '%s'" % cmd
+                print bcolors.WARNING + "Unknown command: '" + cmd + "'" + bcolors.ENDC
             continue
 
         # command with one argument
@@ -115,7 +115,7 @@ def run(group_name):
                         if g.move():
                             print bcolors.OKGREEN + "Moved to " + clist[1] + bcolors.ENDC
                         else:
-                            print bcolors.WARNING + "Failed while moving to " + clist[1] + bcolors.ENDC
+                            print bcolors.FAIL + "Failed while moving to " + clist[1] + bcolors.ENDC
                     else:
                         print bcolors.WARNING + clist[1] + " is unknown" + bcolors.ENDC
             elif clist[0] == "record" or clist[0] == "rec":
@@ -124,7 +124,7 @@ def run(group_name):
             elif clist[0] == "del" or clist[0] == "delete":
                 g.forget_joint_values(clist[1])
             else:
-                print "Unknown command: '%s'" % cmd
+                print bcolors.WARNING + "Unknown command: '" + cmd + "'" + bcolors.ENDC
 
         if len(clist) > 2:
             if clist[0] == "set":
@@ -134,13 +134,7 @@ def run(group_name):
                 except:
                     print bcolors.WARNING + "Unable to parse joint value [" + " ".join(clist[2:]) + "]" + bcolors.ENDC
             else:
-                print "Unknown command: '%s'" % cmd
-
-#    g.remember_joint_values("t", [0, 2])
-#    print g.get_remembered_joint_values()
-#    g.forget_joint_values("t")
-#    print g.get_remembered_joint_values()
-#    g.move()
+                print bcolors.WARNING + "Unknown command: '" + cmd + "'" + bcolors.ENDC
 
 if __name__=='__main__':
     rospy.init_node('move_group_interface_cmdline', anonymous=True)
