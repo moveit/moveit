@@ -211,6 +211,9 @@ void wrap_move_group_interface()
   void (MoveGroupWrapper::*setPoseTarget_2)(const geometry_msgs::Pose &) = &MoveGroupWrapper::setPoseTarget;
   MoveGroupClass.def("set_pose_target", setPoseTarget_2);
 
+  MoveGroupClass.def("set_position_target", &MoveGroup::setPositionTarget);
+  MoveGroupClass.def("set_orientation_target", &MoveGroup::setOrientationTarget);
+
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonList);
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonDict);
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPerJointPythonList);
