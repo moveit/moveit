@@ -134,13 +134,15 @@ public:
   
   /** \brief Set the current joint values to be ones previously remembered by rememberJointValues() or, if not found, that are specified in the SRDF under the name \e name */
   bool setNamedTarget(const std::string &name);
-
+  
   /** \brief Remember the current joint values (of the robot being monitored) under \e name. These can be used by setNamedTarget() */
   void rememberJointValues(const std::string &name);
 
   /** \brief Remember the specified joint values  under \e name. These can be used by setNamedTarget() */
   void rememberJointValues(const std::string &name, const std::vector<double> &values);
 
+  std::vector<double> getCurrentJointValues(void);
+  
   void forgetJointValues(const std::string &name);
   
   const std::map<std::string, std::vector<double> >& getRememberedJointValues(void) const
