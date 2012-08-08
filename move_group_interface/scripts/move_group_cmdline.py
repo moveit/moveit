@@ -18,7 +18,7 @@ class bcolors:
 
 def print_help():
     print "Known commands:"
-    print "  help\t show this screen"
+    print "  help\t\t show this screen"
     print "  record <name>\t record the current joint values under the name <name>"
     print
 
@@ -30,8 +30,17 @@ def run(group_name):
 
     while not rospy.is_shutdown():
         sys.stdout.write(bcolors.OKBLUE + '> ' + bcolors.ENDC)
-        cmd = sys.stdin.readline()
+        cmd = ""
+        try:
+            cmd = sys.stdin.readline()
+        except:
+            print
+            break
+        if (cmd == "\n" or cmd == "\r" or cmd == "\r\n" or cmd == "\n\r"):
+            continue
         cmd = cmd.strip()
+        if cmd == "":
+            break
         cmd = cmd.lower()
         if cmd == "q" or cmd == "quit" or cmd == "exit":
             break
