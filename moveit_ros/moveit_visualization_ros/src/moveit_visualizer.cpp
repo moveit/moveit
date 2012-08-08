@@ -128,6 +128,8 @@ MoveItVisualizer::MoveItVisualizer() :
       pv_->addMenuEntry("Stop cycle", boost::bind(&MoveItVisualizer::stopCycle, this));
     }
   }
+  //pv_->setAllStartVisibility(true);
+  //pv_->setAllStartInteractionModes(false);
   pv_->hideAllGroups();
 
   //EGJ: no longer necessary as of visualization 1.8.3

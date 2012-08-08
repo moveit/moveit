@@ -110,6 +110,12 @@ public:
 
   void showAllMarkers();
 
+  void setInteractionEnabled(bool enabled) { interaction_enabled_ = enabled; }
+  bool getInteractionEnabled() const{ return interaction_enabled_; }
+
+  void setVisible(bool visible) { visible_ = visible; if(!visible_) hideAllMarkers(); }
+  bool getVisible() const { return visible_; }
+
   void setGoodBadMode(bool use_good_bad) {
     use_good_bad_ = use_good_bad;
     enable6DOFControls(true);
@@ -201,6 +207,8 @@ protected:
   
   boost::function<void(void)> button_click_callback_;
   bool dof_marker_enabled_;
+  bool interaction_enabled_;
+  bool visible_;
 
   boost::function<void(const std::string&,
                        const planning_models::KinematicState&)> state_changed_callback_;
