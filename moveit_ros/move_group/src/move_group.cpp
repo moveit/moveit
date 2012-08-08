@@ -66,7 +66,7 @@ public:
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm) : 
     node_handle_("~"), planning_scene_monitor_(psm), trajectory_monitor_(psm->getStateMonitor(), 10.0),
     new_scene_update_(false), planning_pipeline_(psm->getPlanningScene()->getKinematicModel()),
-    max_looking_attempts_(3), max_safe_cost_(1.0), state_(IDLE)
+    max_looking_attempts_(3), max_safe_cost_(1.5), state_(IDLE)
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     bool allow_trajectory_execution = true;
@@ -189,6 +189,7 @@ private:
     // get the planning scene to be used
     setState(PLANNING, 0.2);
     unsigned int looking_attempts = 0;
+    double previous_cost = 0.0;
     do
     {
       new_scene_update_ = false;
@@ -240,19 +241,25 @@ private:
         
         // determine the sources of cost for this path
         std::set<collision_detection::CostSource> cost_sources;
-        the_scene->getCostSources(currently_executed_trajectory_states_, 100, mreq.motion_plan_request.group_name, cost_sources);
+        the_scene->getCostSources(currently_executed_trajectory_states_, 100, mreq.motion_plan_request.group_name, cost_sources, 0.8);
 
         visualization_msgs::MarkerArray arr;
         collision_detection::getCostMarkers(arr, the_scene->getPlanningFrame(), cost_sources);
         cost_sources_publisher_.publish(arr);
         double cost = collision_detection::getTotalCost(cost_sources);
-        ROS_DEBUG("The total cost of the trajectory is %lf", cost);
+        ROS_DEBUG("The total cost of the trajectory is %lf.", cost);
+	if (previous_cost > 0.0)
+	  ROS_DEBUG("The change in the trajectory cost is %lf after the perception step.", cost - previous_cost);
         if (cost > max_safe_cost_ && looking_attempts < max_looking_attempts_)
         {
           ++looking_attempts;
           ROS_INFO("The cost of the trajectory is %lf, which is above the maximum safe cost of %lf. Attempt %u (of at most %u) at looking around.", cost, max_safe_cost_, looking_attempts, max_looking_attempts_);
           if (lookAt(cost_sources))
+	  {
+	    ROS_INFO("Sensor was succesfully actuated. Attempting to recompute a motion plan.");
+	    previous_cost = cost;
             continue;
+	  }
           else
             ROS_WARN("Looking around failed.");
         }
@@ -467,7 +474,7 @@ private:
         for (std::size_t i = 0 ; i < points.size() && good < names.size() ; ++i)
         {
           geometry_msgs::PointStamped t;
-          t.header.stamp = planning_scene_monitor_->getLastUpdateTime();
+	  t.header.stamp = ros::Time::now();
           t.header.frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
           t.point.x = points[i].x();
           t.point.y = points[i].y();
@@ -476,6 +483,7 @@ private:
             if (!used[k])
             {
               moveit_msgs::RobotTrajectory traj;
+	      ROS_DEBUG_STREAM("Pointing sensor to:\n" << t);
               if (sensor_manager_->pointSensorTo(names[k], t, traj))
               {
                 if (!trajectory_processing::isTrajectoryEmpty(traj) && trajectory_execution_)
@@ -512,8 +520,9 @@ private:
     for (std::size_t i = 0 ; i < names.size() ; ++i)
       if (collision_detection::getSensorPositioning(point.point, cost_sources, sensor_manager_->getSensorInfo(names[i])))
       {      
-        point.header.stamp = planning_scene_monitor_->getLastUpdateTime();
+        point.header.stamp = ros::Time::now();
         point.header.frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
+	ROS_DEBUG_STREAM("Pointing sensor to:\n" << point);
         moveit_msgs::RobotTrajectory sensor_trajectory;
         if (sensor_manager_->pointSensorTo(names[i], point, sensor_trajectory))
         {
