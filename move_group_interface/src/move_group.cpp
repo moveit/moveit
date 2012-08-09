@@ -205,10 +205,10 @@ public:
     can_look_ = flag;
   }
   
-  std::vector<double> getCurrentJointValues(void)
+  std::pair<bool, bool> getCurrentState(std::vector<double> &values, Eigen::Affine3d &pose)
   {
     if (!current_state_monitor_)
-      return std::vector<double>();
+      return std::make_pair(false, false);
     
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
@@ -238,9 +238,18 @@ public:
         ROS_WARN("Joint values for monitored state are requested but the full state is not known");
     }
     
-    std::vector<double> v;
-    current_state_monitor_->getCurrentState()->getJointStateGroup(opt_.group_name_)->getGroupStateValues(v);
-    return v;
+    planning_models::KinematicStatePtr cs = current_state_monitor_->getCurrentState();
+    cs->getJointStateGroup(opt_.group_name_)->getGroupStateValues(values);
+    if (!end_effector_.empty())
+    {
+      const planning_models::KinematicState::LinkState *ls = cs->getLinkState(end_effector_);
+      if (ls)
+      {
+        pose = ls->getGlobalLinkTransform();
+        return std::make_pair(true,true);
+      }
+    }
+    return std::make_pair(true,false);
   }
   
   bool plan(Plan &plan)
@@ -570,12 +579,38 @@ const std::string& MoveGroup::getPoseReferenceFrame(void) const
 
 void MoveGroup::rememberJointValues(const std::string &name)
 {
-  rememberJointValues(name, impl_->getCurrentJointValues());
+  rememberJointValues(name, getCurrentJointValues());
 }
 
 std::vector<double> MoveGroup::getCurrentJointValues(void)
+{ 
+  std::vector<double> values;
+  Eigen::Affine3d dummy;
+  impl_->getCurrentState(values, dummy);
+  return values;
+}
+
+std::vector<double> MoveGroup::getRandomJointValues(void)
 {
-  return impl_->getCurrentJointValues();
+  std::vector<double> backup;
+  impl_->getJointStateTarget()->getGroupStateValues(backup);
+
+  impl_->getJointStateTarget()->setToRandomValues();
+  std::vector<double> r;
+  impl_->getJointStateTarget()->getGroupStateValues(r);
+
+  impl_->getJointStateTarget()->setStateValues(backup);
+  return r;
+}
+
+Eigen::Affine3d MoveGroup::getCurrentPose(void)
+{  
+  std::vector<double> dummy;
+  Eigen::Affine3d pose;
+  pose.setIdentity();
+  if (!impl_->getCurrentState(dummy, pose).second)
+    ROS_ERROR("Unable to get current pose");
+  return pose;
 }
 
 void MoveGroup::rememberJointValues(const std::string &name, const std::vector<double> &values)
