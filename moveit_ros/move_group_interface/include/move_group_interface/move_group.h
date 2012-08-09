@@ -151,7 +151,11 @@ public:
   void rememberJointValues(const std::string &name, const std::vector<double> &values);
 
   std::vector<double> getCurrentJointValues(void);
-  
+
+  std::vector<double> getRandomJointValues(void);
+
+  Eigen::Affine3d getCurrentPose(void);
+
   void forgetJointValues(const std::string &name);
   
   const std::map<std::string, std::vector<double> >& getRememberedJointValues(void) const

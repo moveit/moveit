@@ -56,14 +56,34 @@ namespace move_group_interface
 class ROSInitializer
 {
 public:
-  ROSInitializer(void) : self_init_(false)
+  
+  ROSInitializer(void)
   {
     // ensure we do not accidentally initialize ROS multiple times per process
     static boost::mutex lock;
     boost::mutex::scoped_lock slock(lock);
-
-    // if ROS (cpp) is not initialized, we initialize it
-    if (!ros::isInitialized())
+    
+    // once per process, we start a spinner
+    static bool once = true;
+    if (once)
+    {
+      once = false;
+      static boost::shared_ptr<InitProxy> proxy;
+      
+      // if ROS (cpp) is not initialized, we initialize it
+      if (!ros::isInitialized())
+        proxy.reset(new InitProxy());
+      
+      static ros::AsyncSpinner spinner(1);
+      spinner.start();
+    }
+  }
+  
+private:
+  
+  struct InitProxy
+  {
+    InitProxy(void)
     {
       char **fake_argv = new char*[1];
       fake_argv[0] = strdup("move_group_python_wrappers");
@@ -71,28 +91,14 @@ public:
       ros::init(fake_argc, fake_argv, "move_group_python_wrappers", ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
       delete[] fake_argv[0];
       delete[] fake_argv;
-      self_init_ = true;
     }
     
-    // once per process, we start a spinner
-    static bool once = true;
-    if (once)
-    {
-      once = false;
-      static ros::AsyncSpinner spinner(1);
-      spinner.start();
-    }
-  }
-  
-  ~ROSInitializer(void)
-  {
-    if (self_init_)
+    ~InitProxy(void)
+    { 
       if (ros::isInitialized() && !ros::isShuttingDown())
         ros::shutdown();
-  }
-
-private:
-  bool self_init_;  
+    }
+  };
 };
 
 class MoveGroupWrapper : protected ROSInitializer,
@@ -131,9 +137,14 @@ public:
     rememberJointValues(string, doubleFromList(values));
   }
 
-  bp::object getCurrentJointValuesList(void)
+  bp::list getCurrentJointValuesList(void)
   {
     return listFromDouble(getCurrentJointValues());
+  }
+  
+  bp::list getRandomJointValuesList(void)
+  {
+    return listFromDouble(getRandomJointValues());
   }
   
   bp::dict getRememberedJointValuesPython(void) const
@@ -143,6 +154,33 @@ public:
     for (std::map<std::string, std::vector<double> >::const_iterator it = rv.begin() ; it != rv.end() ; ++it)
       d[it->first] = listFromDouble(it->second);
     return d;
+  }
+  
+  bp::list getCurrentPosePython(void)
+  {
+    Eigen::Affine3d pose = getCurrentPose();
+    std::vector<double> v(6);
+    v[0] = pose.translation().x();
+    v[1] = pose.translation().y();
+    v[2] = pose.translation().z();
+    
+    Eigen::Vector3d r = pose.rotation().eulerAngles(0, 1, 2); // XYZ
+    v[3] = r(0);
+    v[4] = r(1);
+    v[5] = r(2);
+    return listFromDouble(v);
+  }
+
+  void setPoseTargetPython(bp::list &pose)
+  {
+    std::vector<double> v = doubleFromList(pose);
+    if (v.size() != 6)
+      ROS_ERROR("Pose description expected to consist of 6 values");
+    else
+    {
+      setPositionTarget(v[0], v[1], v[2]);
+      setOrientationTarget(v[3], v[4], v[5]);
+    }
   }
   
   const char* getEndEffectorLinkCStr(void) const
@@ -211,8 +249,11 @@ void wrap_move_group_interface()
   void (MoveGroupWrapper::*setPoseTarget_2)(const geometry_msgs::Pose &) = &MoveGroupWrapper::setPoseTarget;
   MoveGroupClass.def("set_pose_target", setPoseTarget_2);
 
-  MoveGroupClass.def("set_position_target", &MoveGroup::setPositionTarget);
-  MoveGroupClass.def("set_orientation_target", &MoveGroup::setOrientationTarget);
+  MoveGroupClass.def("set_position_target", &MoveGroupWrapper::setPositionTarget);
+  MoveGroupClass.def("set_orientation_target", &MoveGroupWrapper::setOrientationTarget);
+  MoveGroupClass.def("set_pose_target", &MoveGroupWrapper::setPoseTargetPython);
+
+  MoveGroupClass.def("get_current_pose", &MoveGroupWrapper::getCurrentPosePython);
 
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonList);
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonDict);
@@ -228,9 +269,11 @@ void wrap_move_group_interface()
 
   void (MoveGroupWrapper::*rememberJointValues_2)(const std::string&) = &MoveGroupWrapper::rememberJointValues;
   MoveGroupClass.def("remember_joint_values", rememberJointValues_2);
+  
   MoveGroupClass.def("remember_joint_values",  &MoveGroupWrapper::rememberJointValuesFromPythonList);
 
   MoveGroupClass.def("get_current_joint_values",  &MoveGroupWrapper::getCurrentJointValuesList);
+  MoveGroupClass.def("get_random_joint_values",  &MoveGroupWrapper::getRandomJointValuesList);
   MoveGroupClass.def("get_remembered_joint_values",  &MoveGroupWrapper::getRememberedJointValuesPython);
 
   MoveGroupClass.def("forget_joint_values", &MoveGroupWrapper::forgetJointValues); 
