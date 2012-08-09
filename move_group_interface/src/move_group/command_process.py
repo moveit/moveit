@@ -49,7 +49,9 @@ class MoveGroupCommander:
     """
 
     DEFAULT_FILENAME = "move_group.cfg"
-    GO_DIRS = {"up" : (2,1), "down" : (2, -1), "left" : (1, 1), "right" : (1, -1), "forward" : (0, 1), "backward" : (0, -1), "back" : (0, -1)}
+    GO_DIRS = {"up" : (2,1), "down" : (2, -1), "z" : (2, 1),
+               "left" : (1, 1), "right" : (1, -1), "y" : (1, 1),
+               "forward" : (0, 1), "backward" : (0, -1), "back" : (0, -1), "x" : (0, 1) }
 
     def __init__(self):
         self._gdict = {}
@@ -103,12 +105,12 @@ class MoveGroupCommander:
                 f = open(filename, 'w')
                 for gr in self._gdict.keys():
                     f.write("use " + gr + "\n")
-                    known = gdict[gr].get_remembered_joint_values()
+                    known = self._gdict[gr].get_remembered_joint_values()
                     for v in known.keys():
                         f.write(v + " = [" + " ".join([str(x) for x in known[v]]) + "]\n")
                 return (MoveGroupInfoLevel.DEBUG, "OK")
             except:
-                return (MoveGroupInfoLevel.WARN, "Unable to load " + filename)
+                return (MoveGroupInfoLevel.WARN, "Unable to save " + filename)
         else:
             if len(self._group_name) > 0:
                 return self.execute_command(self._gdict[self._group_name], cmd)
@@ -116,11 +118,16 @@ class MoveGroupCommander:
                 return (MoveGroupInfoLevel.INFO, self.get_help() + "\n\nNo groups initialized yet. You must call the 'use' or the 'load' command first.\n")
 
     def execute_command(self, g, cmd):
+        
+        if cmd == "stop":
+            g.stop()
+            return (MoveGroupInfoLevel.DEBUG, "OK")
+
         if cmd == "id":
             return (MoveGroupInfoLevel.INFO, g.get_name())
 
         if cmd == "help":
-            return (MoveGroupInfoLevel.INFO, get_help())
+            return (MoveGroupInfoLevel.INFO, self.get_help())
 
         if cmd == "vars":
             known = g.get_remembered_joint_values()
@@ -232,6 +239,18 @@ class MoveGroupCommander:
                 except:
                     return (MoveGroupInfoLevel.WARN, "Unable to parse distance '" + clist[2] + "'")
  
+        if len(clist) == 4:
+            if clist[0] == "rotate":
+                try:
+                    xyz = [float(x) for x in clist[1:]]
+                    g.set_orientation_target(xyz[0], xyz[1], xyz[2])
+                    if g.move():
+                        return (MoveGroupInfoLevel.SUCCESS, "Rotation complete")
+                    else:
+                        return (MoveGroupInfoLevel.FAIL, "Failed while rotating to " + " ".join(clist[1:]))
+                except:
+                    return (MoveGroupInfoLevel.WARN, "Unable to parse X-Y-Z rotation  values '" + " ".join(clist[1:]) + "'")
+
         return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
 
     def command_show(self, g):
@@ -253,7 +272,7 @@ class MoveGroupCommander:
             pose[dimension_index] = pose[dimension_index] + offset * factor
             g.set_pose_target(pose)
             if g.move():
-                return (MoveGroupInfoLevel.SUCCESS, "Moved " + direction_name + " by " + offset + " m")
+                return (MoveGroupInfoLevel.SUCCESS, "Moved " + direction_name + " by " + str(offset) + " m")
             else:
                 return (MoveGroupInfoLevel.FAIL, "Failed while moving " + direction_name)
         else:
