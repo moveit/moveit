@@ -89,7 +89,6 @@ const std::string disabledReasonToString( DisabledReason reason );
  */
 DisabledReason disabledReasonFromString( const std::string& reason );
 
-
 }
 
 #endif

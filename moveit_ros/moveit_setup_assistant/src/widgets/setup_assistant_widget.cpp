@@ -95,11 +95,11 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   main_content_->addWidget(ssw_);
 
   // Pass command arg values to start screen
-  if (args.count("urdf_path"))
+  if (args.count( "urdf_path" ))
   {
     ssw_->urdf_file_->setPath( args["urdf_path"].as<std::string>() );
   }
-  if (args.count("config_pkg"))
+  if (args.count( "config_pkg" ))
   {
     ssw_->stack_path_->setPath( args["config_pkg"].as<std::string>() );
 
@@ -140,7 +140,6 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   // Add event for switching between screens -------------------------
   connect( navs_view_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(navigationClicked(const QModelIndex&)) );
 
-
   // Final Layout Setup ---------------------------------------------
   this->setLayout(layout);
 
@@ -173,13 +172,13 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
 SetupAssistantWidget::~SetupAssistantWidget()
 {
   if( rviz_manager_ != NULL )
-  {
     rviz_manager_->removeAllDisplays();
-  }
-  delete rviz_render_panel_;
-  delete rviz_manager_;
-  delete log_manager_;
-  std::cout << "Done " << std::endl;
+  if ( rviz_render_panel_ != NULL )
+    delete rviz_render_panel_;
+  if ( rviz_manager_ != NULL )
+    delete rviz_manager_;
+  if ( log_manager_ != NULL )
+    delete log_manager_;
 }
 
 // ******************************************************************************************
@@ -273,7 +272,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Enable all nav buttons -------------------------------------------
   for( int i = 0; i < nav_name_list_.count(); ++i)
   {
-  navs_view_->setEnabled( i, true );
+    navs_view_->setEnabled( i, true );
   }
 
   // Enable navigation

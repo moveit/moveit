@@ -139,22 +139,22 @@ private:
   // ******************************************************************************************
 
   /// Main table for holding groups
-  QTreeWidget *groups_tree_;
+  QTreeWidget* groups_tree_;
 
   /// For changing between table and different add/edit views
-  QStackedLayout *stacked_layout_;
+  QStackedLayout* stacked_layout_;
 
   /// Show and hide edit button
-  QPushButton *btn_edit_;
+  QPushButton* btn_edit_;
 
   // Stacked Layout SUBPAGES -------------------------------------------
 
-  QWidget *groups_tree_widget_;
-  DoubleListWidget *joints_widget_;
-  DoubleListWidget *links_widget_;
-  DoubleListWidget *subgroups_widget_;
-  KinematicChainWidget *chain_widget_;
-  GroupEditWidget *group_edit_widget_;
+  QWidget* groups_tree_widget_;
+  DoubleListWidget* joints_widget_;
+  DoubleListWidget* links_widget_;
+  DoubleListWidget* subgroups_widget_;
+  KinematicChainWidget* chain_widget_;
+  GroupEditWidget* group_edit_widget_;
 
   // ******************************************************************************************
   // Variables
@@ -177,17 +177,17 @@ private:
   QWidget* createContentsWidget();
 
   /// Recursively build the SRDF tree
-  void loadGroupsTreeRecursive( srdf::Model::Group &group_it, QTreeWidgetItem *parent );
+  void loadGroupsTreeRecursive( srdf::Model::Group &group_it, QTreeWidgetItem* parent );
 
   // Convenience function for getting a group pointer
-  srdf::Model::Group * findGroupByName( const std::string &name );
+  srdf::Model::Group*  findGroupByName( const std::string &name );
 
   // Load edit screen
-  void loadJointsScreen( srdf::Model::Group *this_group );
-  void loadLinksScreen( srdf::Model::Group *this_group );
-  void loadChainScreen( srdf::Model::Group *this_group );
-  void loadSubgroupsScreen( srdf::Model::Group *this_group );
-  void loadGroupScreen( srdf::Model::Group *this_group );
+  void loadJointsScreen( srdf::Model::Group* this_group );
+  void loadLinksScreen( srdf::Model::Group* this_group );
+  void loadChainScreen( srdf::Model::Group* this_group );
+  void loadSubgroupsScreen( srdf::Model::Group* this_group );
+  void loadGroupScreen( srdf::Model::Group* this_group );
 
   // Save group screen
   bool saveGroupScreen();
@@ -211,11 +211,11 @@ public:
 
   //  explicit PlanGroupType();
   PlanGroupType() {}
-  PlanGroupType( srdf::Model::Group *group, const moveit_setup_assistant::GroupType type );
+  PlanGroupType( srdf::Model::Group* group, const moveit_setup_assistant::GroupType type );
   virtual ~PlanGroupType() { ; }
 
-  // Variables
-  srdf::Model::Group *group_;
+  srdf::Model::Group* group_;
+
   moveit_setup_assistant::GroupType type_;
 };
 
