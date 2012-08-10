@@ -72,19 +72,8 @@ kinematic_constraints::KinematicConstraint::~KinematicConstraint(void)
 bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointConstraint &jc)
 {
   joint_model_ = kmodel_->getJointModel(jc.joint_name);
-  joint_is_continuous_ = false;
   if (joint_model_)
   {
-    // check if we have to wrap angles when computing distances
-    const planning_models::KinematicModel::RevoluteJointModel *revolute_joint = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model_);
-    if (revolute_joint && revolute_joint->isContinuous())
-    {
-      joint_is_continuous_ = true;
-      joint_position_ = normalizeAngle(jc.position);
-    }
-    else
-      joint_position_ = jc.position;
-    
     // check if the joint has 1 DOF (the only kind we can handle)
     if (joint_model_->getVariableCount() == 0)
     {
@@ -97,8 +86,41 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
         ROS_ERROR_STREAM("Joint '" << jc.joint_name << "' has more than one parameter to constrain. This type of constraint is not supported.");
         joint_model_ = NULL;
       }
+  }
+
+  if (joint_model_)
+  {
+    joint_is_continuous_ = false;
     joint_tolerance_above_ = jc.tolerance_above;
     joint_tolerance_below_ = jc.tolerance_below;
+
+    // check if we have to wrap angles when computing distances
+    const planning_models::KinematicModel::RevoluteJointModel *revolute_joint = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model_);
+    if (revolute_joint && revolute_joint->isContinuous())
+    {
+      joint_is_continuous_ = true;
+      joint_position_ = normalizeAngle(jc.position);
+    }
+    else
+    {
+      joint_position_ = jc.position;
+
+      std::pair<double, double> bounds;
+      joint_model_->getVariableBounds(joint_model_->getName(), bounds);
+      if (bounds.first > joint_position_ + joint_tolerance_above_)
+      {
+	joint_position_ = bounds.first;
+	joint_tolerance_above_ = std::numeric_limits<double>::epsilon();
+	ROS_WARN("Joint %s is constrained to be below the minimum bounds. Assuming minimum bounds instead.", joint_model_->getName().c_str());
+      }
+      else
+	if (bounds.second < joint_position_ - joint_tolerance_below_)
+	{
+	  joint_position_ = bounds.second;
+	  joint_tolerance_below_ = std::numeric_limits<double>::epsilon();
+	  ROS_WARN("Joint %s is constrained to be above the maximum bounds. Assuming maximum bounds instead.", joint_model_->getName().c_str());
+	}
+    }
     
     if (jc.weight <= std::numeric_limits<double>::epsilon())
       ROS_WARN_STREAM("The weight on constraint for joint '" << jc.joint_name << "' should be positive");
