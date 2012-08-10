@@ -40,71 +40,83 @@
 #include <planning_scene_monitor_tools/kinematic_state_joint_state_publisher.h>
 #include <trajectory_execution_manager/trajectory_execution_manager.h>
 
-#include <OGRE/OgreLogManager.h>
-#include <rviz/visualization_panel.h>
-#include <rviz/visualization_manager.h>
 #include <QMenu>
+
+// Forward declarations
+namespace rviz
+{
+    class GridDisplay;
+    class RenderPanel;
+    class VisualizationManager;
+}
 
 namespace moveit_visualization_ros {
 
-class MoveItVisualizer {
+    class MoveItVisualizer {
 
-public:
+    public:
 
-  MoveItVisualizer();
+        MoveItVisualizer();
 
-  ~MoveItVisualizer();
+        ~MoveItVisualizer();
 
-  virtual void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene);
+        /// Helper function for loading the rviz components for the groovy version of Rviz -DTC
+        QWidget* loadRviz();
 
-  void updateToCurrentState();
+        virtual void updatePlanningScene(planning_scene::PlanningSceneConstPtr planning_scene);
 
-  bool doneWithExecution(const moveit_controller_manager::ExecutionStatus& ex_status);
+        void updateToCurrentState();
 
-  void executeLastTrajectory();
+        bool doneWithExecution(const moveit_controller_manager::ExecutionStatus& ex_status);
 
-protected:
+        void executeLastTrajectory();
 
-  void updateSceneCallback();
+    protected:
 
-  void publisherFunction(bool joint_states);
+        void updateSceneCallback();
 
-  void startCycle();
-  void cycleLastTrajectory();
-  void stopCycle();
-  
-  void attachObject(const std::string& name);
+        void publisherFunction(bool joint_states);
 
-  bool first_update_;
+        void startCycle();
+        void cycleLastTrajectory();
+        void stopCycle();
 
-  ros::Publisher vis_marker_array_publisher_;
-  ros::Publisher vis_marker_publisher_;
+        void attachObject(const std::string& name);
 
-  rviz::VisualizationPanel* rviz_frame_;
-  QWidget* main_window_;
-  PlanningGroupSelectionMenu* planning_group_selection_menu_;  
-  QMenu* coll_object_menu_;
-  AttachObjectAdditionDialog* attach_object_addition_dialog_;
-  boost::shared_ptr<tf::TransformListener> transformer_;
+        bool first_update_;
 
-  bool allow_trajectory_execution_;
+        ros::Publisher vis_marker_array_publisher_;
+        ros::Publisher vis_marker_publisher_;
 
-  planning_scene::PlanningSceneConstPtr current_diff_;
+        // Rviz Panel
+        QWidget* rviz_frame_;
+        rviz::RenderPanel* rviz_render_panel_;
+        rviz::VisualizationManager* rviz_manager_;
 
-  boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
-  boost::shared_ptr<KinematicStateJointStatePublisher> joint_state_publisher_;
-  boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
-  boost::shared_ptr<PlanningVisualizationQtWrapper> pv_;
-  boost::shared_ptr<InteractiveObjectVisualizationQtWrapper> iov_;
-  boost::shared_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_manager_;
-  boost::shared_ptr<planning_models_loader::KinematicModelLoader> kinematic_model_loader_;
+        QWidget* main_window_;
+        PlanningGroupSelectionMenu* planning_group_selection_menu_;
+        QMenu* coll_object_menu_;
+        AttachObjectAdditionDialog* attach_object_addition_dialog_;
+        boost::shared_ptr<tf::TransformListener> transformer_;
 
-  bool execution_succeeded_;
-  boost::shared_ptr<boost::thread> cycle_thread_;
-  boost::condition_variable trajectory_execution_finished_;
-  boost::mutex trajectory_execution_mutex_;
-  bool stop_cycle_requested_;
-};
+        bool allow_trajectory_execution_;
+
+        planning_scene::PlanningSceneConstPtr current_diff_;
+
+        boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
+        boost::shared_ptr<KinematicStateJointStatePublisher> joint_state_publisher_;
+        boost::shared_ptr<planning_scene_monitor::PlanningSceneMonitor> planning_scene_monitor_;
+        boost::shared_ptr<PlanningVisualizationQtWrapper> pv_;
+        boost::shared_ptr<InteractiveObjectVisualizationQtWrapper> iov_;
+        boost::shared_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_manager_;
+        boost::shared_ptr<planning_models_loader::KinematicModelLoader> kinematic_model_loader_;
+
+        bool execution_succeeded_;
+        boost::shared_ptr<boost::thread> cycle_thread_;
+        boost::condition_variable trajectory_execution_finished_;
+        boost::mutex trajectory_execution_mutex_;
+        bool stop_cycle_requested_;
+    };
 
 }
 

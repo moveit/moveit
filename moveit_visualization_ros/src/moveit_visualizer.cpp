@@ -36,12 +36,17 @@
 #include <moveit_visualization_ros/moveit_visualizer.h>
 #include <moveit_visualization_ros/primitive_object_addition_dialog.h>
 #include <moveit_visualization_ros/mesh_object_addition_dialog.h>
-#include <rviz/default_plugin/marker_display.h>
-#include <rviz/default_plugin/interactive_marker_display.h>
-#include <rviz/display_wrapper.h>
-#include <rviz/view_controllers/orbit_view_controller.h>
 #include <collision_distance_field_ros/hybrid_collision_robot_ros.h>
 #include <collision_distance_field/hybrid_collision_world.h>
+// Rviz
+#include <rviz/render_panel.h>
+#include <rviz/visualization_manager.h>
+#include <rviz/view_manager.h>
+#include <rviz/tool_manager.h>
+#include <rviz/default_plugin/view_controllers/orbit_view_controller.h>
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/default_plugin/interactive_marker_display.h>
+
 
 static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 
@@ -132,6 +137,12 @@ MoveItVisualizer::MoveItVisualizer() :
   //pv_->setAllStartInteractionModes(false);
   pv_->hideAllGroups();
 
+
+  // Load Rviz
+  QWidget* rviz_frame_ = loadRviz();
+
+
+  /*
   //EGJ: no longer necessary as of visualization 1.8.3
   //but kept as reference
   //Ogre::LogManager* log_manager = new Ogre::LogManager();
@@ -151,6 +162,7 @@ MoveItVisualizer::MoveItVisualizer() :
 
   //programmatic control of rviz to add display types and set viewpoint
   rviz_frame_->getManager()->setFixedFrame(planning_scene_monitor_->getPlanningScene()->getPlanningFrame());
+
   rviz_frame_->getManager()->createDisplay("rviz/RobotModel", "Robot Model", true);
   rviz::DisplayWrapper* marker_display = rviz_frame_->getManager()->createDisplay("rviz/Marker", "Markers", true);
   rviz::MarkerDisplay* md = dynamic_cast<rviz::MarkerDisplay*>(marker_display->getDisplay());
@@ -158,7 +170,8 @@ MoveItVisualizer::MoveItVisualizer() :
   rviz::DisplayWrapper* interactive_marker_display = rviz_frame_->getManager()->createDisplay("rviz/InteractiveMarker", "Interactive Markers", true);
   rviz::InteractiveMarkerDisplay* imd = dynamic_cast<rviz::InteractiveMarkerDisplay*>(interactive_marker_display->getDisplay());
   imd->setMarkerUpdateTopic("interactive_kinematics_visualization/update");
-
+  */
+  
   main_window_ = new QWidget;
   main_window_->resize(1500,1000);
   main_window_->setWindowTitle("MoveIt Visualizer"); // set window title
@@ -228,6 +241,7 @@ MoveItVisualizer::MoveItVisualizer() :
                                                        const std::vector<std::string>&)));
   main_window_->show();
 
+  /*
   rviz::OrbitViewController* orb = dynamic_cast<rviz::OrbitViewController*>(rviz_frame_->getManager()->getCurrentViewController());
   if(orb == NULL) {
     ROS_WARN_STREAM("Current view controller not orbit");
@@ -237,6 +251,7 @@ MoveItVisualizer::MoveItVisualizer() :
     //Ogre::Vector3 p(0,0,.5);
     //orb->lookAt(p);
   }
+  */
 
   planning_scene_monitor_->setUpdateCallback(boost::bind(&MoveItVisualizer::updateSceneCallback, this));
 }
@@ -249,9 +264,51 @@ MoveItVisualizer::~MoveItVisualizer() {
     trajectory_execution_manager_.reset();
   }
   planning_scene_monitor_.reset();
-  delete rviz_frame_;
+  //delete rviz_frame_;
 }
 
+QWidget* MoveItVisualizer::loadRviz()
+{
+  // Create rviz frame
+  rviz_render_panel_ = new rviz::RenderPanel();
+  //  rviz_render_panel_->setMinimumWidth( 200 );
+  rviz_render_panel_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+
+  rviz_manager_ = new rviz::VisualizationManager( rviz_render_panel_ );
+  rviz_render_panel_->initialize( rviz_manager_->getSceneManager(), rviz_manager_ );
+  rviz_manager_->initialize();
+  rviz_manager_->startUpdate();
+
+  // Turn on interactive mode
+  rviz_manager_->getToolManager()->setCurrentTool( rviz_manager_->getToolManager()->getTool(1) );
+  
+  // Set the fixed and target frame
+  rviz_manager_->setFixedFrame( QString::fromStdString( planning_scene_monitor_->getPlanningScene()->getPlanningFrame() ) );
+
+  // Add the robot model
+  rviz_manager_->createDisplay("rviz/RobotModel", "Robot Model", true);
+
+  // Add a marker display
+  rviz::MarkerDisplay* marker_display = new rviz::MarkerDisplay();
+  marker_display->setName( "Markers" );
+  marker_display->subProp( "Marker Topic" )->setValue(QString::fromStdString(VIS_TOPIC_NAME));
+											   //  marker_display->setMarkerTopic(VIS_TOPIC_NAME);
+  rviz_manager_->addDisplay(marker_display, true);
+
+  // Add interactive marker display 
+  rviz::InteractiveMarkerDisplay* interactive_marker_display = new rviz::InteractiveMarkerDisplay();
+  interactive_marker_display->setName( "Interactive Markers" );
+  //  interactive_marker_display->setMarkerUpdateTopic("interactive_kinematics_visualization/update");
+  rviz_manager_->addDisplay(interactive_marker_display, true);  
+  interactive_marker_display->subProp( "Update Topic" )->setValue("interactive_kinematics_visualization/update");
+
+  // Zoom into robot
+  rviz::ViewController* view = rviz_manager_->getViewManager()->getCurrent();
+  view->subProp( "Distance" )->setValue( 4.0f );
+
+  return rviz_render_panel_;
+}
+	
 void MoveItVisualizer::publisherFunction(bool joint_states) { 
   ros::WallRate r(10.0);
 

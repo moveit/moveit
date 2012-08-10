@@ -177,8 +177,6 @@ SetupAssistantWidget::~SetupAssistantWidget()
     delete rviz_render_panel_;
   if ( rviz_manager_ != NULL )
     delete rviz_manager_;
-  if ( log_manager_ != NULL )
-    delete log_manager_;
 }
 
 // ******************************************************************************************
@@ -296,8 +294,8 @@ void SetupAssistantWidget::updateTimer()
 void SetupAssistantWidget::loadRviz()
 {
   // Create an instance of Ogre log manager to prevent debug data from being spit out
-  log_manager_ = new Ogre::LogManager();
-  log_manager_->createLog( "Ogre.log", false, false, true );
+	//  log_manager_ = new Ogre::LogManager();
+	//  log_manager_->createLog( "Ogre.log", false, false, true );
 
   // Create rviz frame
   rviz_render_panel_ = new rviz::RenderPanel();
@@ -343,7 +341,7 @@ void SetupAssistantWidget::loadRviz()
 // ******************************************************************************************
 void SetupAssistantWidget::highlightLink( const std::string& link_name )
 {
-  planning_display_->setLinkColor( link_name, 255, 0, 0 );
+  planning_display_->setLinkColor( link_name, 1, 0, 0 );
 }
 
 // ******************************************************************************************
