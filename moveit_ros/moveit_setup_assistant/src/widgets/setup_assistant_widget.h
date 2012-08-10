@@ -59,7 +59,6 @@
 #include "virtual_joints_widget.h"
 #include "configuration_files_widget.h"
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
-#include <OGRE/OgreLogManager.h> // prevents debug data from being spit out
 // Other
 #include <ros/ros.h>
 #include <boost/program_options.hpp> // for parsing input arguments
@@ -203,7 +202,6 @@ private:
   // Rviz Panel
   rviz::RenderPanel* rviz_render_panel_;
   rviz::VisualizationManager* rviz_manager_;
-  Ogre::LogManager* log_manager_;
   moveit_rviz_plugin::PlanningDisplay* planning_display_;
 
   // Screen Widgets
