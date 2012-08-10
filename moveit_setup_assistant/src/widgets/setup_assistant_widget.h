@@ -74,7 +74,7 @@ class VisualizationManager;
 
 namespace moveit_rviz_plugin
 {
-  class PlanningDisplay;
+class PlanningDisplay;
 }
 
 namespace moveit_setup_assistant
