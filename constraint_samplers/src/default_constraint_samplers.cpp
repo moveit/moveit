@@ -77,13 +77,14 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
     bounds.first = std::max(bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow());
     bounds.second = std::min(bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove());
     if (bounds.first > bounds.second)
-      ROS_WARN_STREAM("The constraints for joint '" << jm->getName() << "' are such that there are no possible values for this joint. Ignoring constraint.");
-    else
     {
-      bounded.insert(jm);        
-      bounds_.push_back(bounds);
-      index_.push_back(vim.find(jm->getName())->second);
+      std::stringstream cs; jc[i].print(cs);
+      ROS_WARN_STREAM("The constraints for joint '" << jm->getName() << "' are such that there are no possible values for this joint. Ignoring constraint: \n" << cs.str());
+      continue;
     }
+    bounded.insert(jm);        
+    bounds_.push_back(bounds);
+    index_.push_back(vim.find(jm->getName())->second);
   }
   
   // get a separate list of joints that are not bounded; we will sample these randomly
@@ -104,7 +105,7 @@ bool constraint_samplers::JointConstraintSampler::sample(planning_models::Kinema
   // enforce the constraints for the constrained components (could be all of them)
   for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
     values_[index_[i]] = random_number_generator_.uniformReal(bounds_[i].first, bounds_[i].second);
-  
+
   // sample the rest of the components
   for (std::size_t i = 0 ; i < unbounded_.size() ; ++i)
   {
@@ -114,7 +115,7 @@ bool constraint_samplers::JointConstraintSampler::sample(planning_models::Kinema
       values_[uindex_[i] + j] = v[j];
   }
   jsg->setStateValues(values_);
-  
+
   // we are always successful
   return true;
 }
