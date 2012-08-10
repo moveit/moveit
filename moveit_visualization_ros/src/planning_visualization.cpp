@@ -155,9 +155,25 @@ void PlanningVisualization::addStateChangedCallback(const boost::function<void(c
 
 void PlanningVisualization::setAllStartChainModes(bool chain) {
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
-      it != group_visualization_map_.end(); 
+      it != group_visualization_map_.end();
       it++) {
     it->second->setChainStartToCurrent(chain);
+  }
+}
+
+void PlanningVisualization::setAllStartInteractionModes(bool interaction_enabled) {
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end();
+      it++) {
+    it->second->setStartInteractionEnabled(interaction_enabled);
+  }
+}
+
+void PlanningVisualization::setAllStartVisibility(bool visible) {
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end();
+      it++) {
+    it->second->setStartVisible(visible);
   }
 }
 
