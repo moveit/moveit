@@ -65,7 +65,8 @@ public:
   
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm) : 
     node_handle_("~"), planning_scene_monitor_(psm), trajectory_monitor_(psm->getStateMonitor(), 10.0),
-    new_scene_update_(false), planning_pipeline_(psm->getPlanningScene()->getKinematicModel()), state_(IDLE)
+    new_scene_update_(false), planning_pipeline_(psm->getPlanningScene()->getKinematicModel()),
+    max_looking_attempts_(3), max_safe_cost_(1.5), state_(IDLE)
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     bool allow_trajectory_execution = true;
@@ -187,168 +188,190 @@ private:
     
     // get the planning scene to be used
     setState(PLANNING, 0.2);
-    new_scene_update_ = false;
-    planning_scene::PlanningSceneConstPtr the_scene = planning_scene_monitor_->getPlanningScene();
-    if (!planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff))
+    unsigned int looking_attempts = 0;
+    double previous_cost = 0.0;
+    do
     {
-      LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
-      the_scene = planning_scene_monitor_->getPlanningScene()->diff(goal->planning_scene_diff); 
-      new_scene_update_ = false; // set this to false again, just in case an update came in in the meantime
-    }
-
-    // run the motion planner
-    moveit_msgs::GetMotionPlan::Response mres;
-    bool solved = computePlan(the_scene, mreq, mres);
-    
-    // abort if no plan was found
-    if (!solved)
-    {
-      action_res.error_code = mres.error_code;
-      if (trajectory_processing::isTrajectoryEmpty(mres.trajectory))
-        action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
-      else
-        action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
-      setState(IDLE, 0.0);
-      return;
-    }
-
-    // fill in results
-    action_res.trajectory_start = mres.trajectory_start;
-    action_res.planned_trajectory = mres.trajectory;
-    if (!goal->plan_only && !trajectory_execution_)
-      ROS_WARN_STREAM("Move group asked for execution and was not configured to allow execution");
-    
-    // stop if no trajectory execution is needed or can't be done
-    if (goal->plan_only || !trajectory_execution_)
-    {
-      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-      action_server_->setSucceeded(action_res, "Solution was found and returned but not executed.");
-      setState(IDLE, 0.0);
-      return;
-    }
-    
-    // if we are allowed to look around, see if we have costs that are too high
-    if (goal->look_around)
-    {       
-      LockScene lock(planning_scene_monitor_);
-      // determine the sources of cost for this path
-      trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
-      collision_detection::CollisionRequest creq;
-      creq.max_cost_sources = 100;
-      creq.cost = true;   
-      std::set<collision_detection::CostSource> cost_sources;
-      for (std::size_t i = 0 ; i < currently_executed_trajectory_states_.size() ; ++i)
+      new_scene_update_ = false;
+      planning_scene::PlanningSceneConstPtr the_scene = planning_scene_monitor_->getPlanningScene();
+      if (!planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff))
       {
-        collision_detection::CollisionResult cres;
-        the_scene->checkCollision(creq, cres, *currently_executed_trajectory_states_[i]);
-        cost_sources.insert(cres.cost_sources.begin(), cres.cost_sources.end());
+        LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
+        the_scene = planning_scene_monitor_->getPlanningScene()->diff(goal->planning_scene_diff); 
+        new_scene_update_ = false; // set this to false again, just in case an update came in in the meantime
       }
-      visualization_msgs::MarkerArray arr;
-      collision_detection::getCostMarkers(arr, the_scene->getPlanningFrame(), cost_sources);
-      cost_sources_publisher_.publish(arr);
-      double cost = 0.0;
-      for (std::set<collision_detection::CostSource>::const_iterator it = cost_sources.begin() ; it != cost_sources.end() ; ++it)
-        cost += it->getVolume() * it->cost;
-      ROS_INFO("The total cost of the trajectory is %lf", cost);
-    }
-    
-    // try to execute the trajectory
-    execution_complete_ = false;
-    if (trajectory_execution_->push(mres.trajectory))
-    {
-      if (currently_executed_trajectory_states_.empty())
-      {    
-        LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
+      
+      // run the motion planner
+      moveit_msgs::GetMotionPlan::Response mres;
+      bool solved = computePlan(the_scene, mreq, mres);
+      
+      // abort if no plan was found
+      if (!solved)
+      {
+        action_res.error_code = mres.error_code;
+        if (trajectory_processing::isTrajectoryEmpty(mres.trajectory))
+          action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
+        else
+          action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
+        setState(IDLE, 0.0);
+        return;
+      }
+      
+      // fill in results
+      action_res.trajectory_start = mres.trajectory_start;
+      action_res.planned_trajectory = mres.trajectory;
+      if (!goal->plan_only && !trajectory_execution_)
+        ROS_WARN_STREAM("Move group asked for execution and was not configured to allow execution");
+      
+      // stop if no trajectory execution is needed or can't be done
+      if (goal->plan_only || !trajectory_execution_)
+      {
+        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+        action_server_->setSucceeded(action_res, "Solution was found and returned but not executed.");
+        setState(IDLE, 0.0);
+        return;
+      }
+      
+      // if we are allowed to look around, see if we have costs that are too high
+      if (goal->look_around)
+      {       
+        LockScene lock(planning_scene_monitor_);
+        // convert the path to a sequence of kinematic states
         trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
-      }
-      currently_executed_trajectory_index_ = 0;
-      setState(MONITOR, trajectory_processing::getTrajectoryDuration(mres.trajectory));
-      trajectory_monitor_.startTrajectoryMonitor();
+        
+        // determine the sources of cost for this path
+        std::set<collision_detection::CostSource> cost_sources;
+        the_scene->getCostSources(currently_executed_trajectory_states_, 100, mreq.motion_plan_request.group_name, cost_sources, 0.8);
 
-      // start a trajectory execution thread
-      trajectory_execution_->execute(boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1));
-      
-      // wait for path to be done, while checking that the path does not become invalid
-      static const ros::WallDuration d(0.01);
-      bool path_became_invalid = false;
-      boost::scoped_ptr<kinematic_constraints::KinematicConstraintSet> path_constraints;
-      {    
-        LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while getTransforms() is called
-        path_constraints.reset(new kinematic_constraints::KinematicConstraintSet(the_scene->getKinematicModel(), the_scene->getTransforms()));
-        path_constraints->add(mreq.motion_plan_request.path_constraints);
-      }
-      
-      while (node_handle_.ok() && !execution_complete_ && !preempt_requested_ && !path_became_invalid)
-      {
-        d.sleep();
-        // check the path if there was an environment update in the meantime
-        if (new_scene_update_)
+        visualization_msgs::MarkerArray arr;
+        collision_detection::getCostMarkers(arr, the_scene->getPlanningFrame(), cost_sources);
+        cost_sources_publisher_.publish(arr);
+        double cost = collision_detection::getTotalCost(cost_sources);
+        ROS_DEBUG("The total cost of the trajectory is %lf.", cost);
+	if (previous_cost > 0.0)
+	  ROS_DEBUG("The change in the trajectory cost is %lf after the perception step.", cost - previous_cost);
+        if (cost > max_safe_cost_ && looking_attempts < max_looking_attempts_)
         {
-          LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
-          new_scene_update_ = false;
-          for (std::size_t i = currently_executed_trajectory_index_ ; i < currently_executed_trajectory_states_.size() ; ++i)
-            if (!the_scene->isStateValid(*currently_executed_trajectory_states_[i], *path_constraints, false))
-            {
-              the_scene->isStateValid(*currently_executed_trajectory_states_[i], *path_constraints, true);
-              path_became_invalid = true;
-              break;
-            }
+          ++looking_attempts;
+          ROS_INFO("The cost of the trajectory is %lf, which is above the maximum safe cost of %lf. Attempt %u (of at most %u) at looking around.", cost, max_safe_cost_, looking_attempts, max_looking_attempts_);
+          if (lookAt(cost_sources))
+	  {
+	    ROS_INFO("Sensor was succesfully actuated. Attempting to recompute a motion plan.");
+	    previous_cost = cost;
+            continue;
+	  }
+          else
+            ROS_WARN("Looking around failed.");
+        }
+
+        if (cost > max_safe_cost_)
+        {
+          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA;
+          action_server_->setAborted(action_res, "Motion plan was found but it seems to be too costly and looking around did not help.");
+          setState(IDLE, 0.0);
+          return;
         }
       }
       
-      if (preempt_requested_)
+      // try to execute the trajectory
+      execution_complete_ = false;
+      if (trajectory_execution_->push(mres.trajectory))
       {
-        ROS_INFO("Stopping execution due to preempt request");
-        trajectory_execution_->stopExecution();
-      }
-      else
-        if (path_became_invalid)
+        if (currently_executed_trajectory_states_.empty())
+        {    
+          LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
+          trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
+        }
+        currently_executed_trajectory_index_ = 0;
+        setState(MONITOR, trajectory_processing::getTrajectoryDuration(mres.trajectory));
+        trajectory_monitor_.startTrajectoryMonitor();
+        
+        // start a trajectory execution thread
+        trajectory_execution_->execute(boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1));
+        
+        // wait for path to be done, while checking that the path does not become invalid
+        static const ros::WallDuration d(0.01);
+        bool path_became_invalid = false;
+        boost::scoped_ptr<kinematic_constraints::KinematicConstraintSet> path_constraints;
+        {    
+          LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while getTransforms() is called
+          path_constraints.reset(new kinematic_constraints::KinematicConstraintSet(the_scene->getKinematicModel(), the_scene->getTransforms()));
+          path_constraints->add(mreq.motion_plan_request.path_constraints);
+        }
+        
+        while (node_handle_.ok() && !execution_complete_ && !preempt_requested_ && !path_became_invalid)
         {
-          ROS_INFO("Stopping execution because the path to execute became invalid (probably the environment changed)");
+          d.sleep();
+          // check the path if there was an environment update in the meantime
+          if (new_scene_update_)
+          {
+            LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
+            new_scene_update_ = false;
+            for (std::size_t i = currently_executed_trajectory_index_ ; i < currently_executed_trajectory_states_.size() ; ++i)
+              if (!the_scene->isStateValid(*currently_executed_trajectory_states_[i], *path_constraints, false))
+              {
+                the_scene->isStateValid(*currently_executed_trajectory_states_[i], *path_constraints, true);
+                path_became_invalid = true;
+                break;
+              }
+          }
+        }
+        
+        if (preempt_requested_)
+        {
+          ROS_INFO("Stopping execution due to preempt request");
           trajectory_execution_->stopExecution();
         }
         else
-          if (!execution_complete_)
-          {    
-            ROS_WARN("Stopping execution due to unknown reason. Possibly the node is about to shut down.");
+          if (path_became_invalid)
+          {
+            ROS_INFO("Stopping execution because the path to execute became invalid (probably the environment changed)");
             trajectory_execution_->stopExecution();
           }
-      
-      // because of the way the trajectory monitor works, when this call completes, it is certain that no more calls
-      // are made to the callback associated to the trajectory monitor
-      trajectory_monitor_.stopTrajectoryMonitor();
-      currently_executed_trajectory_states_.clear();
-      trajectory_monitor_.getTrajectory(action_res.executed_trajectory);
-      
-      if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
-      {
-        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-        action_server_->setSucceeded(action_res, "Solution was found and executed.");
-      } 
-      else
-      {
-        if (path_became_invalid)
+          else
+            if (!execution_complete_)
+            {    
+              ROS_WARN("Stopping execution due to unknown reason. Possibly the node is about to shut down.");
+              trajectory_execution_->stopExecution();
+            }
+        
+        // because of the way the trajectory monitor works, when this call completes, it is certain that no more calls
+        // are made to the callback associated to the trajectory monitor
+        trajectory_monitor_.stopTrajectoryMonitor();
+        currently_executed_trajectory_states_.clear();
+        trajectory_monitor_.getTrajectory(action_res.executed_trajectory);
+        
+        if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
         {
-          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
-          action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
-        }
+          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+          action_server_->setSucceeded(action_res, "Solution was found and executed.");
+        } 
         else
         {
-          if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
-            action_res.error_code.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+          if (path_became_invalid)
+          {
+            action_res.error_code.val = moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
+            action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
+          }
           else
-            action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
-          action_server_->setAborted(action_res, "Solution found but controller failed during execution");
+          {
+            if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
+              action_res.error_code.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+            else
+              action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+            action_server_->setAborted(action_res, "Solution found but controller failed during execution");
+          }
         }
       }
-    }
-    else
-    {
-      ROS_INFO_STREAM("Apparently trajectory initialization failed");
-      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
-      action_server_->setAborted(action_res, "Solution found but could not initiate trajectory execution");
-    }
-    setState(IDLE, 0.0);
+      else
+      {
+        ROS_INFO_STREAM("Apparently trajectory initialization failed");
+        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+        action_server_->setAborted(action_res, "Solution found but could not initiate trajectory execution");
+      }
+      setState(IDLE, 0.0);
+      break;
+    } while (true);
   }
   
   void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus &status)
@@ -434,7 +457,10 @@ private:
   /// to point one at each point, in a best effort approach. If at least one sensor is succesfully pointed at a target,
   /// this function returns true
   bool lookAt(const std::vector<Eigen::Vector3d> &points)
-  {
+  {    
+    if (!sensor_manager_)
+      return false;
+
     bool result = true;
     if (!points.empty())
     {
@@ -448,7 +474,7 @@ private:
         for (std::size_t i = 0 ; i < points.size() && good < names.size() ; ++i)
         {
           geometry_msgs::PointStamped t;
-          t.header.stamp = planning_scene_monitor_->getLastUpdateTime();
+	  t.header.stamp = ros::Time::now();
           t.header.frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
           t.point.x = points[i].x();
           t.point.y = points[i].y();
@@ -457,6 +483,7 @@ private:
             if (!used[k])
             {
               moveit_msgs::RobotTrajectory traj;
+	      ROS_DEBUG_STREAM("Pointing sensor to:\n" << t);
               if (sensor_manager_->pointSensorTo(names[k], t, traj))
               {
                 if (!trajectory_processing::isTrajectoryEmpty(traj) && trajectory_execution_)
@@ -483,6 +510,31 @@ private:
     return result;
   }
   
+  bool lookAt(const std::set<collision_detection::CostSource> &cost_sources)
+  {  
+    if (!sensor_manager_)
+      return false;
+    std::vector<std::string> names;
+    sensor_manager_->getSensorsList(names);
+    geometry_msgs::PointStamped point;
+    for (std::size_t i = 0 ; i < names.size() ; ++i)
+      if (collision_detection::getSensorPositioning(point.point, cost_sources, sensor_manager_->getSensorInfo(names[i])))
+      {      
+        point.header.stamp = ros::Time::now();
+        point.header.frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
+	ROS_DEBUG_STREAM("Pointing sensor to:\n" << point);
+        moveit_msgs::RobotTrajectory sensor_trajectory;
+        if (sensor_manager_->pointSensorTo(names[i], point, sensor_trajectory))
+        {
+          if (!trajectory_processing::isTrajectoryEmpty(sensor_trajectory) && trajectory_execution_)
+            return trajectory_execution_->push(sensor_trajectory) && trajectory_execution_->executeAndWait();
+          else
+            return true;
+        }
+      }
+    return false;
+  }
+  
   /// Attempt to point a sensor at this given point
   bool lookAt(const Eigen::Vector3d &point)
   {
@@ -507,7 +559,9 @@ private:
 
   boost::scoped_ptr<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager> > sensor_manager_loader_;
   moveit_sensor_manager::MoveItSensorManagerPtr sensor_manager_;
-
+  unsigned int max_looking_attempts_;
+  double max_safe_cost_;
+  
   boost::scoped_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_;  
   bool preempt_requested_;
   bool execution_complete_;

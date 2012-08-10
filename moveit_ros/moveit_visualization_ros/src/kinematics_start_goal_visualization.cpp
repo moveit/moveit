@@ -117,7 +117,7 @@ void KinematicsStartGoalVisualization::setGoalState(const planning_models::Kinem
 }
 
 void KinematicsStartGoalVisualization::startOn() {
-  if(!start_chained_) {
+  if(!start_chained_ & start_->getInteractionEnabled()) {
     goal_->disable6DOFControls();
     goal_->setMarkerAlpha(0.25);
     start_->enable6DOFControls();
@@ -135,6 +135,7 @@ void KinematicsStartGoalVisualization::goalOn() {
 }
 
 void KinematicsStartGoalVisualization::hideAllMarkers() {
+  //ROS_INFO("Hiding all markers.");
   if(!start_chained_) {
     start_->hideAllMarkers();
   }
@@ -142,6 +143,7 @@ void KinematicsStartGoalVisualization::hideAllMarkers() {
 }
 
 void KinematicsStartGoalVisualization::showAllMarkers() {
+  //ROS_INFO("Showing all markers.");
   if(!start_chained_) {
     start_->showAllMarkers();
   }
