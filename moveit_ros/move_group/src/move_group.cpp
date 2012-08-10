@@ -66,12 +66,13 @@ public:
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm) : 
     node_handle_("~"), planning_scene_monitor_(psm), trajectory_monitor_(psm->getStateMonitor(), 10.0),
     new_scene_update_(false), planning_pipeline_(psm->getPlanningScene()->getKinematicModel()),
-    max_looking_attempts_(3), max_safe_cost_(1.5), state_(IDLE)
+    max_looking_attempts_(3), max_safe_cost_(0.5), state_(IDLE)
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     bool allow_trajectory_execution = true;
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
-    
+    node_handle_.param("max_safe_path_cost", max_safe_cost_, 0.5);
+
     if (allow_trajectory_execution)
       trajectory_execution_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
     
