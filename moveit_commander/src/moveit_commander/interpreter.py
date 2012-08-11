@@ -33,8 +33,8 @@
 # Author: Ioan Sucan
 
 import roslib
-roslib.load_manifest('move_group_interface')
-from move_group import MoveGroup
+roslib.load_manifest('moveit_commander')
+from moveit_commander import MoveGroupCommander
 import re
 import time
 
@@ -45,9 +45,9 @@ class MoveGroupInfoLevel:
     INFO = 4
     DEBUG = 5
 
-class MoveGroupCommander:
+class MoveGroupCommandInterpreter:
     """
-    Execution of simple commands
+    Interpreter for simple commands
     """
 
     DEFAULT_FILENAME = "move_group.cfg"
@@ -62,12 +62,15 @@ class MoveGroupCommander:
     def get_active_group(self):
         return self._group_name
 
+    def get_loaded_groups(self):
+        return self._gdict.keys()
+
     def execute(self, cmd):
         cmd = self.resolve_command_alias(cmd)
 
         if cmd.startswith("use"):
             if cmd == "use":
-                return (MoveGroupInfoLevel.INFO, "\n".join(self._gdict.keys()))
+                return (MoveGroupInfoLevel.INFO, "\n".join(get_loaded_groups()))
             clist = cmd.split()
             if len(clist) == 2:
                 if clist[0] == "use":
@@ -76,7 +79,7 @@ class MoveGroupCommander:
                         return (MoveGroupInfoLevel.DEBUG, "OK")
                     else:
                         try:
-                            mg = MoveGroup(clist[1])
+                            mg = MoveGroupCommander(clist[1])
                             self._gdict[clist[1]] = mg
                             self._group_name = clist[1]
                             return (MoveGroupInfoLevel.DEBUG, "OK")

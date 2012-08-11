@@ -8,7 +8,7 @@ import os
 
 
 from optparse import OptionParser, OptionGroup
-from moveit_commander import MoveGroupCommander, MoveGroupInfoLevel
+from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel
 
 class bcolors:
     HEADER = '\033[95m'
@@ -31,7 +31,7 @@ def print_message(level, msg):
         print msg
 
 def run_interactive(group_names):
-    c = MoveGroupCommander()
+    c = MoveGroupCommandInterpreter()
     for g in group_names:
         c.execute( "use " + g)
     print
