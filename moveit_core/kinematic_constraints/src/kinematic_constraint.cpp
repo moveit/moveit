@@ -641,11 +641,11 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
   const Eigen::Affine3d &tp = mobile_target_frame_ ? tf_->getTransform(state, target_frame_id_) * target_pose_ : target_pose_;
   
   // transform the points on the disc to the desired target frame
-  const std::vector<Eigen::Vector3d> *points = &points_;
-  boost::scoped_ptr<std::vector<Eigen::Vector3d> > tempPoints;
+  const EigenSTL::vector_Vector3d *points = &points_;
+  boost::scoped_ptr<EigenSTL::vector_Vector3d> tempPoints;
   if (mobile_target_frame_)
   {
-    tempPoints.reset(new std::vector<Eigen::Vector3d>(points_.size()));
+    tempPoints.reset(new EigenSTL::vector_Vector3d(points_.size()));
     for (std::size_t i = 0 ; i < points_.size() ; ++i)
       tempPoints->at(i) = tp*points_[i];
     points = tempPoints.get();

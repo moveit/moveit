@@ -547,7 +547,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
     aco.object.id = ab[i]->getName();
     aco.object.operation = moveit_msgs::CollisionObject::ADD;
     const std::vector<shapes::ShapeConstPtr>& ab_shapes = ab[i]->getShapes();
-    const std::vector<Eigen::Affine3d>& ab_tf = ab[i]->getFixedTransforms();
+    const EigenSTL::vector_Affine3d& ab_tf = ab[i]->getFixedTransforms();
     ShapeVisitorAddToCollisionObject sv(&aco.object);
     for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
     {
@@ -1066,7 +1066,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     if (ls)
     {
       std::vector<shapes::ShapeConstPtr> shapes;
-      std::vector<Eigen::Affine3d> poses;
+      EigenSTL::vector_Affine3d poses;
 
       // we need to add some shapes; if the message is empty, maybe the object is already in the world
       if (object.object.primitives.empty() && object.object.meshes.empty() && object.object.planes.empty())
@@ -1188,7 +1188,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         if (ab)
         {
           std::vector<shapes::ShapeConstPtr> shapes = ab->getShapes();
-          std::vector<Eigen::Affine3d> poses = ab->getGlobalCollisionBodyTransforms();
+          EigenSTL::vector_Affine3d poses = ab->getGlobalCollisionBodyTransforms();
           ls->clearAttachedBody(object.object.id);
           
           if (cworld_->hasObject(object.object.id))
