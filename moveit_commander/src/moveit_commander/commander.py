@@ -52,7 +52,11 @@ class MoveGroupCommander:
     def stop(self):
         """ Stop the current execution, if any """
         self._g.stop()
-        
+
+    def get_joints(self):
+        """ Get the joints of this group """
+        return self._g.get_joints()
+
     def has_end_effector_link(self):
         """ Check if this group has a link that is considered to be an end effector """
         return len(self._g.get_end_effector_link()) > 0
@@ -110,7 +114,9 @@ class MoveGroupCommander:
     def set_named_target(self, name):
         return self._g.set_named_target(name)
 
-    def remember_joint_values(self, name, values):
+    def remember_joint_values(self, name, values = None):
+        if values == None:
+            values = self.get_current_joint_values()
         self._g.remember_joint_values(name, values)
 
     def get_remembered_joint_values(self):
@@ -118,16 +124,13 @@ class MoveGroupCommander:
     
     def forget_joint_values(self, name):
         self._g.forget_joint_values(name)
-      
-    def go(self, joints = True):
-        """ Move the group to the specified target """
-        if type(joints) is bool:
-            return self.go(None, joints)
-        else:
-            return self.go(joints, True)
 
-    def go(self, joints, wait):
+    def go(self, joints = None, wait = True):
         """ Set the target of the group and then move the group to the specified target """
+        if type(joints) is bool:
+            wait = joints
+            joints = None
+
         if not joints == None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
