@@ -164,7 +164,7 @@ void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::
   if (!trajectory.multi_dof_joint_trajectory.points.empty() && !trajectory.multi_dof_joint_trajectory.joint_names.empty())
   {
     moveit_msgs::MultiDOFJointTrajectoryPoint new_start = trajectory.multi_dof_joint_trajectory.points.front();
-    std::vector<Eigen::Affine3d> poses;
+    EigenSTL::vector_Affine3d poses;
     for (std::size_t i = 0 ; i < trajectory.multi_dof_joint_trajectory.joint_names.size() ; ++i)
     {
       const planning_models::KinematicState::JointState *js = prefix.getJointState(trajectory.multi_dof_joint_trajectory.joint_names[i]);

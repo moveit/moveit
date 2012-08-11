@@ -298,7 +298,7 @@ protected:
   Eigen::Vector3d                                   offset_;
   bool                                              has_offset_;
   std::vector<bodies::BodyPtr>                      constraint_region_;
-  std::vector<Eigen::Affine3d>                      constraint_region_pose_;
+  EigenSTL::vector_Affine3d                         constraint_region_pose_;
   bool                                              mobile_frame_;
   std::string                                       constraint_frame_id_;
   const planning_models::KinematicModel::LinkModel *link_model_;
@@ -334,7 +334,7 @@ protected:
   int                                    sensor_view_direction_;
   Eigen::Affine3d                        target_pose_;
   unsigned int                           cone_sides_;
-  std::vector<Eigen::Vector3d>           points_;
+  EigenSTL::vector_Vector3d              points_;
   double                                 target_radius_;
   double                                 max_view_angle_;
   double                                 max_range_angle_;
