@@ -44,6 +44,7 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
                           moveit_msgs::GetMotionPlan::Response &res,
                           const PlanningParameters& params) const                           
 {
+  res.trajectory.joint_trajectory.points.clear();
   (const_cast<SBPLInterface*>(this))->last_planning_statistics_ = PlanningStatistics(); 
   planning_models::KinematicState start_state(planning_scene->getCurrentState());
   planning_models::robotStateToKinematicState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);

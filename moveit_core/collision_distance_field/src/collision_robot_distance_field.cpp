@@ -279,6 +279,7 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
                                               max_propogation_distance_,
                                               0.0);
       if(coll) {
+        ROS_DEBUG_STREAM("Link " << gsr->dfce_->link_names_[i] << " in self collision");
         //if(is_link) {
         //   std::cerr << "Link " << gsr->dfce_->link_names_[i] << " in self collision" << std::endl;
         // } else {
@@ -379,17 +380,17 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
       int num_pair = -1;
       std::string name_1;
       std::string name_2;
+      if(i_is_link) {
+        name_1 = gsr->dfce_->link_names_[i];
+      } else {
+        name_1 = gsr->dfce_->attached_body_names_[i-num_links];        
+      }
+      if(j_is_link) {
+        name_2 = gsr->dfce_->link_names_[j];
+      } else {
+        name_2 = gsr->dfce_->attached_body_names_[j-num_links];        
+      }
       if(req.contacts) {
-        if(i_is_link) {
-          name_1 = gsr->dfce_->link_names_[i];
-        } else {
-          name_1 = gsr->dfce_->attached_body_names_[i-num_links];        
-        }
-        if(j_is_link) {
-          name_2 = gsr->dfce_->link_names_[j];
-        } else {
-          name_2 = gsr->dfce_->attached_body_names_[j-num_links];        
-        }
         collision_detection::CollisionResult::ContactMap::iterator it = res.contacts.find(std::pair<std::string,std::string>(name_1, name_2));
         if(it == res.contacts.end()) {
           num_pair = 0;
@@ -421,6 +422,7 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
           double dist = gradient.norm();
           //std::cerr << "Dist is " << dist << " rad " << (*collision_spheres_1)[k].radius_+(*collision_spheres_2)[l].radius_ << std::endl;
           if(dist < (*collision_spheres_1)[k].radius_+(*collision_spheres_2)[l].radius_) {
+            ROS_DEBUG_STREAM("Intra-group contact between " << name_1 << " and " << name_2);
             res.collision = true;
             if(req.contacts) {
               collision_detection::Contact con;
