@@ -84,7 +84,7 @@ public:
       return false;
     }
 
-    const Eigen::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
+    const Eigen:::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
     Eigen::Quaterniond robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
     visual_position = Ogre::Vector3( robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z() );
     visual_orientation = Ogre::Quaternion( robot_visual_orientation.w(), robot_visual_orientation.x(), robot_visual_orientation.y(), robot_visual_orientation.z() );
@@ -879,7 +879,7 @@ void PlanningDisplay::renderPlanningScene(void)
         const std_msgs::ColorRGBA &c = scene_monitor_->getPlanningScene()->getColor(attached_bodies[i]->getName());
         color.r_ = c.r; color.g_ = c.g; color.b_ = c.b;
       }
-      const std::vector<Eigen::Affine3d> &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
+      const EigenSTL::vector_Affine3d &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
       const std::vector<shapes::ShapeConstPtr> &ab_shapes = attached_bodies[i]->getShapes();
       for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
       {
