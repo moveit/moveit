@@ -243,11 +243,11 @@ void planning_models::KinematicModel::buildJointInfo(void)
 
   for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
   {
-    std::map<LinkModel*, Eigen::Affine3d> associated_transforms;
+    LinkModelToAffine3dMap associated_transforms;
     computeFixedTransforms(link_model_vector_[i], Eigen::Affine3d::Identity(), associated_transforms);
     if (associated_transforms.size() > 1)
     {
-      for (std::map<LinkModel*, Eigen::Affine3d>::iterator it = associated_transforms.begin() ; it != associated_transforms.end() ; ++it)
+      for (LinkModelToAffine3dMap::iterator it = associated_transforms.begin() ; it != associated_transforms.end() ; ++it)
       {
         it->first->associated_fixed_transforms_[link_model_vector_[i]] = it->second.inverse();
         link_model_vector_[i]->associated_fixed_transforms_[it->first] = it->second;
@@ -1148,7 +1148,7 @@ void planning_models::KinematicModel::printModelInfo(std::ostream &out) const
   }
 }
 
-void planning_models::KinematicModel::computeFixedTransforms(LinkModel *link, Eigen::Affine3d transform, std::map<LinkModel*, Eigen::Affine3d> &associated_transforms)
+void planning_models::KinematicModel::computeFixedTransforms(LinkModel *link, const Eigen::Affine3d &transform, LinkModelToAffine3dMap &associated_transforms)
 {
   associated_transforms[link] = transform;
   for (std::size_t i = 0 ; i < link->getChildJointModels().size() ; ++i)

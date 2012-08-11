@@ -34,8 +34,8 @@
 
 /*  Author: Ioan Sucan */
 
-#ifndef MOVEIT_GEOMETRIC_SHAPES_SHAPES_
-#define MOVEIT_GEOMETRIC_SHAPES_SHAPES_
+#ifndef GEOMETRIC_SHAPES_SHAPES_
+#define GEOMETRIC_SHAPES_SHAPES_
 
 #include <cstdlib>
 #include <vector>
@@ -235,6 +235,9 @@ public:
   virtual void scaleAndPadd(double scale, double padd);
   virtual Shape* clone(void) const;
   virtual void print(std::ostream &out = std::cout) const;
+  
+  /** \brief The normals to each triangle can be computed from the vertices using cross products. This function performs this computation and allocates memory for normals if needed */
+  void computeNormals(void);
   
   /** \brief The number of available vertices */
   unsigned int  vertex_count;

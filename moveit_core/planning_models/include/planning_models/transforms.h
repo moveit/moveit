@@ -46,6 +46,7 @@
 
 namespace planning_models
 {
+
 bool quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::Quaterniond &q);
 bool poseFromMsg(const geometry_msgs::Pose &tmsg, Eigen::Affine3d &t);
 void pointFromMsg(const geometry_msgs::Point &pmsg, Eigen::Vector3d &p);
@@ -54,7 +55,7 @@ void msgFromPose(const Eigen::Affine3d &t, geometry_msgs::Transform &tmsg);
 void msgFromPoint(const Eigen::Vector3d &p, geometry_msgs::Point &msg);
 
 typedef std::map<std::string, Eigen::Affine3d, std::less<std::string>, 
-                 Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > EigenAffine3dMapType;
+                 Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > FixedTransformsMap;
 
 /** @brief Provides an implementation of a snapshot of a transform tree that can be easily queried for
     transforming different quantities. Transforms are maintained as a list of transforms to a particular frame.
@@ -94,7 +95,7 @@ public:
    * @brief Return all the transforms
    * @return A map from string names of frames to corresponding Eigen::Affine3ds (w.r.t the planning frame)
    */
-  const EigenAffine3dMapType& getAllTransforms(void) const;
+  const FixedTransformsMap& getAllTransforms(void) const;
 
   /**
    * @brief Get transform for from_frame (w.r.t target frame)
@@ -203,13 +204,13 @@ public:
    */
   void getTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const;
 
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
 private:
 
-  std::string          target_frame_;
-  
-  EigenAffine3dMapType transforms_;
+  std::string        target_frame_;
+  FixedTransformsMap transforms_;
+
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 typedef boost::shared_ptr<Transforms> TransformsPtr;

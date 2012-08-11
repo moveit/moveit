@@ -301,8 +301,11 @@ public:
   void setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn> &allocators);
 
 protected:
-  
-  void computeFixedTransforms(LinkModel *link, Eigen::Affine3d transform, std::map<LinkModel*, Eigen::Affine3d> &associated_transforms);
+
+  typedef std::map<LinkModel*, Eigen::Affine3d, std::less<LinkModel*>, 
+                   Eigen::aligned_allocator<std::pair<const LinkModel*, Eigen::Affine3d> > > LinkModelToAffine3dMap;
+
+  void computeFixedTransforms(LinkModel *link, const Eigen::Affine3d &transform, LinkModelToAffine3dMap &associated_transforms);
   
   /** \brief The name of the model */
   std::string                               model_name_;

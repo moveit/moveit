@@ -289,7 +289,7 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
     if (getParentState()->hasAttachedBody(tip))
     {
       const AttachedBody *ab = getParentState()->getAttachedBody(tip);
-      const std::vector<Eigen::Affine3d> &ab_trans = ab->getFixedTransforms();
+      const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
       if (ab_trans.size() != 1)
       {
         ROS_ERROR("Cannot use an attached body with multiple geometries as a reference frame.");
@@ -303,7 +303,7 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
       const KinematicModel::LinkModel *lm = joint_model_group_->getParentModel()->getLinkModel(tip);
       if (!lm)
         return false;
-      const std::map<const KinematicModel::LinkModel*, Eigen::Affine3d> &fixed_links = lm->getAssociatedFixedTransforms();
+      const KinematicModel::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
       for (std::map<const KinematicModel::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
         if (it->first->getName() == tip_frame)
         {

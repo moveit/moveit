@@ -270,8 +270,8 @@ bool planning_models::KinematicState::updateStateWithLinkAt(const std::string& l
   for(unsigned int i = 1 ; i < child_link_models.size() ; ++i)
     link_state_map_[child_link_models[i]->getName()]->computeTransform();
   
-  const std::map<const KinematicModel::LinkModel*, Eigen::Affine3d> &assoc = kinematic_model_->getLinkModel(link_name)->getAssociatedFixedTransforms();
-  for (std::map<const KinematicModel::LinkModel*, Eigen::Affine3d>::const_iterator it = assoc.begin() ; it != assoc.end() ; ++it)
+  const KinematicModel::LinkModel::AssociatedFixedTransformMap& assoc = kinematic_model_->getLinkModel(link_name)->getAssociatedFixedTransforms();
+  for (KinematicModel::LinkModel::AssociatedFixedTransformMap::const_iterator it = assoc.begin() ; it != assoc.end() ; ++it)
     link_state_map_[it->first->getName()]->updateGivenGlobalLinkTransform(transform * it->second);
   
   return true;
@@ -478,13 +478,12 @@ void planning_models::KinematicState::computeAABB(std::vector<double> &aabb) con
   }
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ; ++it)
   {
-    const std::vector<Eigen::Affine3d> &ts = it->second->getGlobalCollisionBodyTransforms();
+    const EigenSTL::vector_Affine3d &ts = it->second->getGlobalCollisionBodyTransforms();
     const std::vector<shapes::ShapeConstPtr> &ss = it->second->getShapes();
     for (std::size_t i = 0 ; i < ts.size() ; ++i)
     {
-      const Eigen::Affine3d &t = ts[i];
-      const Eigen::Vector3d &e = shapes::computeShapeExtents(ss[i].get());
-      updateAABB(t, e, aabb);
+      Eigen::Vector3d e = shapes::computeShapeExtents(ss[i].get());
+      updateAABB(ts[i], e, aabb);
     }
   }
   if (aabb.empty())
@@ -519,7 +518,7 @@ const Eigen::Affine3d* planning_models::KinematicState::getFrameTransform(const 
 	      kinematic_model_->getModelFrame().c_str(), id.c_str(), id.c_str());
     return NULL;
   }
-  const std::vector<Eigen::Affine3d> &tf = jt->second->getGlobalCollisionBodyTransforms();
+  const EigenSTL::vector_Affine3d &tf = jt->second->getGlobalCollisionBodyTransforms();
   if (tf.empty())
   {
     ROS_ERROR("Attached body '%s' has no geometry associated to it. No transform to return.", id.c_str());

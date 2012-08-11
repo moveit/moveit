@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "geometric_shapes/shapes.h"
+#include "geometric_shapes/eigen_types.h"
 #include <octomap/octomap.h>
 #include <ros/console.h>
 
@@ -242,4 +243,27 @@ bool shapes::OcTree::isFixed(void) const
 bool shapes::Plane::isFixed(void) const
 {
   return true;
+}
+
+void shapes::Mesh::computeNormals(void)
+{ 
+  if (triangle_count && !normals)
+    normals = new double[triangle_count * 3];
+  
+  // compute normals
+  for (unsigned int i = 0 ; i < triangle_count ; ++i)
+  { 
+    unsigned int i3 = i * 3;
+    Eigen::Vector3d s1(vertices[triangles[i3] * 3] - vertices[triangles[i3 + 1] * 3],
+                       vertices[triangles[i3] * 3 + 1] - vertices[triangles[i3 + 1] * 3 + 1],
+                       vertices[triangles[i3] * 3 + 2] - vertices[triangles[i3 + 1] * 3 + 2]);
+    Eigen::Vector3d s2(vertices[triangles[i3 + 1] * 3] - vertices[triangles[i3 + 2] * 3],
+                       vertices[triangles[i3 + 1] * 3 + 1] - vertices[triangles[i3 + 2] * 3 + 1],
+                       vertices[triangles[i3 + 1] * 3 + 2] - vertices[triangles[i3 + 2] * 3 + 2]);
+    Eigen::Vector3d normal = s1.cross(s2);
+    normal.normalize();
+    normals[i3    ] = normal.x();
+    normals[i3 + 1] = normal.y();
+    normals[i3 + 2] = normal.z();
+  }
 }

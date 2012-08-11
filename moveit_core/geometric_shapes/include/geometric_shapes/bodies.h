@@ -34,10 +34,11 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#ifndef MOVEIT_GEOMETRIC_SHAPES_BODIES_
-#define MOVEIT_GEOMETRIC_SHAPES_BODIES_
+#ifndef GEOMETRIC_SHAPES_BODIES_
+#define GEOMETRIC_SHAPES_BODIES_
 
 #include "geometric_shapes/shapes.h"
+#include "geometric_shapes/eigen_types.h"
 #include <boost/scoped_ptr.hpp>
 #include <random_numbers/random_numbers.h>
 #include <vector>
@@ -56,6 +57,8 @@ struct BoundingSphere
 {
   Eigen::Vector3d center;
   double          radius;
+  
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /** \brief Definition of a cylinder */
@@ -64,6 +67,8 @@ struct BoundingCylinder
   Eigen::Affine3d pose;
   double          radius;
   double          length;
+  
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 class Body;
@@ -146,7 +151,8 @@ public:
   /** \brief Check if a point is inside the body */
   bool containsPoint(double x, double y, double z, bool verbose = false) const
   {
-    return containsPoint(Eigen::Vector3d(x, y, z), verbose);
+    Eigen::Vector3d pt(x, y, z);
+    return containsPoint(pt, verbose);
   }
   
   /** \brief Check if a point is inside the body */
@@ -156,7 +162,7 @@ public:
       set of intersections, in order, along the ray. A maximum
       number of intersections can be specified as well. If that
       number is 0, all intersections are returned */
-  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::vector<Eigen::Vector3d> *intersections = NULL, unsigned int count = 0) const = 0;
+  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, EigenSTL::vector_Vector3d *intersections = NULL, unsigned int count = 0) const = 0;
   
   /** \brief Compute the volume of the body. This method includes
       changes induced by scaling and padding */
@@ -209,7 +215,9 @@ protected:
 
   /** \brief The location of the body (position and orientation) */
   Eigen::Affine3d   pose_;
-  
+
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /** \brief Definition of a sphere */
@@ -239,7 +247,7 @@ public:
   virtual bool samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, Eigen::Vector3d &result);
   virtual void computeBoundingSphere(BoundingSphere &sphere) const;
   virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
-  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::vector<Eigen::Vector3d> *intersections = NULL, unsigned int count = 0) const;
+  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, EigenSTL::vector_Vector3d *intersections = NULL, unsigned int count = 0) const;
   
   virtual BodyPtr cloneAt(const Eigen::Affine3d &pose, double padding, double scale) const;
   
@@ -255,6 +263,9 @@ protected:
   Eigen::Vector3d center_;
   double          radiusU_;
   double          radius2_;
+
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /** \brief Definition of a cylinder */
@@ -284,7 +295,7 @@ public:
   virtual bool samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, Eigen::Vector3d &result);
   virtual void computeBoundingSphere(BoundingSphere &sphere) const;
   virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
-  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::vector<Eigen::Vector3d> *intersections = NULL, unsigned int count = 0) const;
+  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, EigenSTL::vector_Vector3d *intersections = NULL, unsigned int count = 0) const;
   
   virtual BodyPtr cloneAt(const Eigen::Affine3d &pose, double padding, double scale) const;
   
@@ -294,8 +305,8 @@ protected:
   virtual void updateInternalData(void);
   
   // shape-dependent data
-  double    length_;
-  double    radius_;
+  double          length_;
+  double          radius_;
   
   // pose/padding/scaling-dependent values & values computed for convenience and fast upcoming computations
   Eigen::Vector3d center_;
@@ -303,13 +314,16 @@ protected:
   Eigen::Vector3d normalB1_;
   Eigen::Vector3d normalB2_;
   
-  double    length2_;
-  double    radiusU_;
-  double    radiusB_;
-  double    radiusBSqr_;
-  double    radius2_;
-  double    d1_;
-  double    d2_;
+  double          length2_;
+  double          radiusU_;
+  double          radiusB_;
+  double          radiusBSqr_;
+  double          radius2_;
+  double          d1_;
+  double          d2_;
+
+public:  
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /** \brief Definition of a box */
@@ -339,7 +353,7 @@ public:
   virtual bool samplePointInside(random_numbers::RandomNumberGenerator &rng, unsigned int max_attempts, Eigen::Vector3d &result);
   virtual void computeBoundingSphere(BoundingSphere &sphere) const;
   virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
-  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::vector<Eigen::Vector3d> *intersections = NULL, unsigned int count = 0) const;
+  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, EigenSTL::vector_Vector3d *intersections = NULL, unsigned int count = 0) const;
   
   virtual BodyPtr cloneAt(const Eigen::Affine3d &pose, double padding, double scale) const;
   
@@ -367,6 +381,9 @@ protected:
   double    height2_;
   double    radiusB_;
   double    radius2_;
+
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /** \brief Definition of a convex mesh. Convex hull is computed for a given shape::Mesh */
@@ -399,11 +416,11 @@ public:
   
   virtual void computeBoundingSphere(BoundingSphere &sphere) const;
   virtual void computeBoundingCylinder(BoundingCylinder &cylinder) const;
-  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::vector<Eigen::Vector3d> *intersections = NULL, unsigned int count = 0) const;
+  virtual bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, EigenSTL::vector_Vector3d *intersections = NULL, unsigned int count = 0) const;
   
   const std::vector<unsigned int>& getTriangles(void) const;
-  const std::vector<Eigen::Vector3d>& getVertices(void) const;
-  const std::vector<Eigen::Vector3d>& getScaledVertices(void) const;
+  const EigenSTL::vector_Vector3d& getVertices(void) const;
+  const EigenSTL::vector_Vector3d& getScaledVertices(void) const;
   
   virtual BodyPtr cloneAt(const Eigen::Affine3d &pose, double padding, double scale) const;
   
@@ -420,14 +437,16 @@ protected:
   
   struct MeshData
   {
-    std::vector<Eigen::Vector4f>    planes_;
-    std::vector<Eigen::Vector3d>    vertices_;
-    std::vector<unsigned int>       triangles_;
-    Eigen::Vector3d                 mesh_center_;
-    double                          mesh_radiusB_;
-    Eigen::Vector3d                 box_offset_;
-    Eigen::Vector3d                 box_size_;
-    BoundingCylinder                bounding_cylinder_;
+    EigenSTL::vector_Vector4f   planes_;
+    EigenSTL::vector_Vector3d   vertices_;
+    std::vector<unsigned int>   triangles_;
+    Eigen::Vector3d             mesh_center_;
+    double                      mesh_radiusB_;
+    Eigen::Vector3d             box_offset_;
+    Eigen::Vector3d             box_size_;
+    BoundingCylinder            bounding_cylinder_;
+    
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   };
   
   // shape-dependent data; keep this in one struct so that a cheap pointer copy can be done in cloneAt()
@@ -443,10 +462,13 @@ protected:
   // pointer to an array of scaled vertices
   // if the padding is 0 & scaling is 1, then there is no need to have scaled vertices; we can just point to the vertices in mesh_data_
   // otherwise, point to scaled_vertices_storage_
-  std::vector<Eigen::Vector3d>     *scaled_vertices_;
+  EigenSTL::vector_Vector3d  *scaled_vertices_;
   
 private:
-  boost::scoped_ptr<std::vector<Eigen::Vector3d> > scaled_vertices_storage_;
+  boost::scoped_ptr<EigenSTL::vector_Vector3d> scaled_vertices_storage_;
+  
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW  
 };
 
 /** @class BodyVector
@@ -459,7 +481,7 @@ public:
   BodyVector(void);
   
   /** \brief Construct a body vector from a vector of shapes, a vector of poses and a padding */
-  BodyVector(const std::vector<shapes::Shape*>& shapes, const std::vector<Eigen::Affine3d>& poses, double padding = 0.0);
+  BodyVector(const std::vector<shapes::Shape*>& shapes, const EigenSTL::vector_Affine3d& poses, double padding = 0.0);
   
   ~BodyVector();
   
@@ -488,7 +510,7 @@ public:
       When the first intersection is found, this function terminates. The index of the body that
       does intersect the ray is set to \e index (unset if no intersections were found). Optionally,
       the intersection points are computed and set to \e intersections (only for the first body that is found to intersect the ray) */
-  bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::size_t &index, std::vector<Eigen::Vector3d> *intersections = NULL, unsigned int count = 0) const;
+  bool intersectsRay(const Eigen::Vector3d& origin, const Eigen::Vector3d &dir, std::size_t &index, EigenSTL::vector_Vector3d *intersections = NULL, unsigned int count = 0) const;
   
   /** \brief Get the \e i<sup>th</sup> body in the vector*/
   const Body* getBody(unsigned int i) const;

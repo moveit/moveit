@@ -44,6 +44,9 @@ public:
   
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
+  typedef std::map<const LinkModel*, Eigen::Affine3d, std::less<const LinkModel*>, 
+                   Eigen::aligned_allocator<std::pair<const LinkModel*, Eigen::Affine3d> > > AssociatedFixedTransformMap;
+
   LinkModel(void);
   ~LinkModel(void);
   
@@ -128,7 +131,7 @@ public:
   }
 
   /** \brief Get the set of links that are attached to this one via fixed transforms */
-  const std::map<const LinkModel*, Eigen::Affine3d> &getAssociatedFixedTransforms(void) const
+  const AssociatedFixedTransformMap& getAssociatedFixedTransforms(void) const
   {
     return associated_fixed_transforms_;
   }
@@ -145,7 +148,7 @@ private:
   std::vector<JointModel*>  child_joint_models_;
 
   /** \brief The set of links that are attached to this one via fixed transforms */
-  std::map<const LinkModel*, Eigen::Affine3d> associated_fixed_transforms_;
+  AssociatedFixedTransformMap associated_fixed_transforms_;
   
   /** \brief The constant transform applied to the link (local) */
   Eigen::Affine3d           joint_origin_transform_;

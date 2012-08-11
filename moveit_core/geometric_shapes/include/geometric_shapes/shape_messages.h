@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_GEOMETRIC_SHAPES_SHAPE_MESSAGES_
-#define MOVEIT_GEOMETRIC_SHAPES_SHAPE_MESSAGES_
+#ifndef GEOMETRIC_SHAPES_SHAPE_MESSAGES_
+#define GEOMETRIC_SHAPES_SHAPE_MESSAGES_
 
 #include <shape_msgs/SolidPrimitive.h>
 #include <shape_msgs/Mesh.h>

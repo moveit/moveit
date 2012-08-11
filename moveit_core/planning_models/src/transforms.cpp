@@ -105,7 +105,7 @@ const std::string& planning_models::Transforms::getTargetFrame(void) const
   return target_frame_;
 }
 
-const planning_models::EigenAffine3dMapType& planning_models::Transforms::getAllTransforms(void) const
+const planning_models::FixedTransformsMap& planning_models::Transforms::getAllTransforms(void) const
 {
   return transforms_;
 }
@@ -117,7 +117,7 @@ bool planning_models::Transforms::isFixedFrame(const std::string &frame) const
 
 const Eigen::Affine3d& planning_models::Transforms::getTransform(const std::string &from_frame) const
 {
-  EigenAffine3dMapType::const_iterator it = transforms_.find(from_frame);
+  FixedTransformsMap::const_iterator it = transforms_.find(from_frame);
   if (it != transforms_.end())
     return it->second;
   ROS_ERROR_STREAM("Unable to transform from frame '" + from_frame + "' to frame '" + target_frame_ + "'");
@@ -127,7 +127,7 @@ const Eigen::Affine3d& planning_models::Transforms::getTransform(const std::stri
 
 const Eigen::Affine3d& planning_models::Transforms::getTransform(const planning_models::KinematicState &kstate, const std::string &from_frame) const
 {
-  std::map<std::string, Eigen::Affine3d>::const_iterator it = transforms_.find(from_frame);
+  FixedTransformsMap::const_iterator it = transforms_.find(from_frame);
   if (it != transforms_.end())
     return it->second;
   if (kstate.getKinematicModel()->getModelFrame() != target_frame_)
@@ -214,7 +214,7 @@ void planning_models::Transforms::getTransforms(std::vector<geometry_msgs::Trans
 {
   transforms.resize(transforms_.size());
   std::size_t i = 0;
-  for (EigenAffine3dMapType::const_iterator it = transforms_.begin() ; it != transforms_.end() ; ++it, ++i)
+  for (FixedTransformsMap::const_iterator it = transforms_.begin() ; it != transforms_.end() ; ++it, ++i)
   {
     transforms[i].child_frame_id = target_frame_;
     transforms[i].header.frame_id = it->first;
