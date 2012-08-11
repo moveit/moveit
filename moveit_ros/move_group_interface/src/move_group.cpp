@@ -613,6 +613,11 @@ Eigen::Affine3d MoveGroup::getCurrentPose(void)
   return pose;
 }
 
+const std::vector<std::string>& MoveGroup::getJoints(void) const
+{
+  return impl_->getJointStateTarget()->getJointModelGroup()->getJointModelNames();
+}
+
 void MoveGroup::rememberJointValues(const std::string &name, const std::vector<double> &values)
 { 
   remembered_joint_values_[name] = values;
