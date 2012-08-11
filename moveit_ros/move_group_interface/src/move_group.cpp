@@ -52,6 +52,7 @@ namespace move_group_interface
 {
 
 const std::string MoveGroup::ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
+const std::string MoveGroup::JOINT_STATE_TOPIC = "joint_states";    // name of the topic where joint states are published
 
 static boost::shared_ptr<tf::Transformer> getSharedTF(void)
 {
@@ -99,28 +100,44 @@ public:
 
   MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf) : opt_(opt), tf_(tf)
   {
-    action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>("move_group", false));
     kinematic_model_ = getSharedKinematicModel(opt.robot_description_);
     if (!getKinematicModel())
-      ROS_FATAL_STREAM("Unable to construct robot model. Make sure all needed information is on the parameter server.");
+    {
+      std::string error = "Unable to construct robot model. Make sure all needed information is on the parameter server.";
+      ROS_FATAL_STREAM(error);
+      throw std::runtime_error(error);
+    }
+    
     if (!getKinematicModel()->hasJointModelGroup(opt.group_name_))
-      ROS_FATAL_STREAM("Group '" + opt.group_name_ + "' was not found.");
+    {
+      std::string error = "Group '" + opt.group_name_ + "' was not found.";
+      ROS_FATAL_STREAM(error);
+      throw std::runtime_error(error);
+    }
     
     joint_state_target_.reset(new planning_models::KinematicState(getKinematicModel()));
     joint_state_target_->setToDefaultValues();
     use_joint_state_target_ = true;
+    can_look_ = true;
     
     const planning_models::KinematicModel::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
-    if (joint_model_group->isChain())
-      end_effector_ = joint_model_group->getLinkModelNames().back();
-    pose_target_.setIdentity();
-    pose_reference_frame_ = getKinematicModel()->getModelFrame();
-
-    trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
-    
-    current_state_monitor_ = getSharedStateMonitor(kinematic_model_, tf_);
-    action_client_->waitForServer();
-    ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
+    if (joint_model_group)
+    {
+      if (joint_model_group->isChain())
+        end_effector_ = joint_model_group->getLinkModelNames().back();
+      pose_target_.setIdentity();
+      pose_reference_frame_ = getKinematicModel()->getModelFrame();
+      
+      trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>("trajectory_execution_event", 1, false);
+      
+      current_state_monitor_ = getSharedStateMonitor(kinematic_model_, tf_);
+      action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>("move_group", false));
+      ROS_INFO_STREAM("Waiting for MoveGroup action server...");
+      action_client_->waitForServer();
+      ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
+    }
+    else
+      ROS_ERROR("Unable to initialize MoveGroup interface.");
   }
 
   const boost::shared_ptr<tf::Transformer>& getTF(void) const
@@ -182,12 +199,70 @@ public:
   {
     use_joint_state_target_ = false;
   }
-
+  
+  void allowLooking(bool flag)
+  {
+    can_look_ = flag;
+  }
+  
+  std::pair<bool, bool> getCurrentState(std::vector<double> &values, Eigen::Affine3d &pose)
+  {
+    if (!current_state_monitor_)
+      return std::make_pair(false, false);
+    
+    // if needed, start the monitor and wait up to 1 second for a full robot state
+    if (!current_state_monitor_->isActive())
+    {
+      current_state_monitor_->startStateMonitor(opt_.joint_state_topic_);
+      double slept_time = 0.0;
+      static const double sleep_step = 0.05;
+      while (!current_state_monitor_->haveCompleteState() && slept_time < 1.0)
+      {
+        ros::Duration(sleep_step).sleep();
+        slept_time += sleep_step;
+      }      
+    }
+    
+    // check to see if we have a fully known state for the joints we want to record
+    std::vector<std::string> missing_joints;
+    if (!current_state_monitor_->haveCompleteState(missing_joints))
+    {
+      std::set<std::string> mj;
+      mj.insert(missing_joints.begin(), missing_joints.end());
+      const std::vector<std::string> &names= getJointStateTarget()->getJointNames();
+      bool ok = true;
+      for (std::size_t i = 0 ; ok && i < names.size() ; ++i)
+        if (mj.find(names[i]) != mj.end())
+          ok = false;
+      if (!ok)
+        ROS_WARN("Joint values for monitored state are requested but the full state is not known");
+    }
+    
+    planning_models::KinematicStatePtr cs = current_state_monitor_->getCurrentState();
+    cs->getJointStateGroup(opt_.group_name_)->getGroupStateValues(values);
+    if (!end_effector_.empty())
+    {
+      const planning_models::KinematicState::LinkState *ls = cs->getLinkState(end_effector_);
+      if (ls)
+      {
+        pose = ls->getGlobalLinkTransform();
+        return std::make_pair(true,true);
+      }
+    }
+    return std::make_pair(true,false);
+  }
+  
   bool plan(Plan &plan)
   {
+    if (!action_client_)
+      return false;
+    if (!action_client_->isServerConnected())
+      return false;
+
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = true;
+    goal.look_around = false;
     action_client_->sendGoal(goal); 
     if (!action_client_->waitForResult())
     {
@@ -206,29 +281,27 @@ public:
     }
   }
   
-  bool move(bool wait)
-  {
+  bool move(void)
+  {    
+    if (!action_client_)
+      return false;
+    if (!action_client_->isServerConnected())
+      return false;
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = false;
+    goal.look_around = can_look_;
     action_client_->sendGoal(goal);
-    if (!wait)
-      return true;
-    if (!action_client_->waitForResult())
-    {
-      ROS_INFO_STREAM("MoveGroup action returned early");
-    }
-    if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-      return true;
-    else
-    {
-      ROS_WARN_STREAM("Fail: " << action_client_->getState().toString() << ": " << action_client_->getState().getText());
-      return false;
-    }
+    return true;
   }
 
   bool move2(unsigned int attempt_count, unsigned int max_attempts)
-  {
+  {  
+    if (!action_client_)
+      return false;
+    if (!action_client_->isServerConnected())
+      return false;
+
     if (attempt_count >= max_attempts)
     {
       ROS_WARN_STREAM("Unable to get to goal after " << max_attempts << " attempts");
@@ -237,6 +310,7 @@ public:
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = false;
+    goal.look_around = can_look_;
     action_client_->sendGoal(goal);
     if (!action_client_->waitForResult())
     {
@@ -264,9 +338,12 @@ public:
   
   void stop(void)
   {
-    std_msgs::String event;
-    event.data = "stop";
-    trajectory_event_publisher_.publish(event);
+    if (trajectory_event_publisher_)
+    {
+      std_msgs::String event;
+      event.data = "stop";
+      trajectory_event_publisher_.publish(event);
+    }
   }
   
   void constructGoal(moveit_msgs::MoveGroupGoal &goal)
@@ -304,12 +381,15 @@ private:
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
   std::string pose_reference_frame_;
+  bool can_look_;
   
   bool use_joint_state_target_;
 };
 
 MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf)
-{  
+{
+  if (!ros::ok())
+    throw std::runtime_error("ROS does not seem to be running");
   impl_ = new MoveGroupImpl(Options(group_name), tf ? tf : getSharedTF());
 }
 
@@ -323,9 +403,14 @@ MoveGroup::~MoveGroup(void)
   delete impl_;
 }
 
-bool MoveGroup::move(bool wait)
+const std::string& MoveGroup::getName(void) const
 {
-  return impl_->move(wait);
+  return impl_->getOptions().group_name_;
+}
+
+bool MoveGroup::asyncMove(void)
+{
+  return impl_->move();
 }
 
 bool MoveGroup::move(unsigned int max_attempts)
@@ -349,10 +434,23 @@ void MoveGroup::setRandomTarget(void)
   impl_->useJointStateTarget();
 }
 
-void MoveGroup::setNamedTarget(const std::string &name)
+bool MoveGroup::setNamedTarget(const std::string &name)
 { 
-  impl_->getJointStateTarget()->setToDefaultState(name);
-  impl_->useJointStateTarget();
+  std::map<std::string, std::vector<double> >::const_iterator it = remembered_joint_values_.find(name);
+  if (it != remembered_joint_values_.end())
+  {
+    setJointValueTarget(it->second);
+    return true;
+  }
+  else
+  {
+    if (impl_->getJointStateTarget()->setToDefaultState(name))
+    {
+      impl_->useJointStateTarget();
+      return true;
+    }
+    return false;
+  }
 }
 
 void MoveGroup::setJointValueTarget(const std::vector<double> &joint_values)
@@ -453,6 +551,22 @@ const Eigen::Affine3d& MoveGroup::getPoseTarget(void) const
   return impl_->getPoseTarget();
 }
 
+void MoveGroup::setPositionTarget(double x, double y, double z)
+{
+  Eigen::Affine3d target = getPoseTarget();
+  target.translation() = Eigen::Vector3d(x,y,z);
+  setPoseTarget(target);
+}
+
+void MoveGroup::setOrientationTarget(double x, double y, double z)
+{ 
+  Eigen::Affine3d target(Eigen::AngleAxisd(x, Eigen::Vector3d::UnitX())
+                         * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitY())
+                         * Eigen::AngleAxisd(z, Eigen::Vector3d::UnitZ()));
+  target.translation() = getPoseTarget().translation();
+  setPoseTarget(target);
+}
+
 void MoveGroup::setPoseReferenceFrame(const std::string &pose_reference_frame)
 {
   impl_->setPoseReferenceFrame(pose_reference_frame);
@@ -463,5 +577,55 @@ const std::string& MoveGroup::getPoseReferenceFrame(void) const
   return impl_->getPoseReferenceFrame();
 }
 
+void MoveGroup::rememberJointValues(const std::string &name)
+{
+  rememberJointValues(name, getCurrentJointValues());
+}
+
+std::vector<double> MoveGroup::getCurrentJointValues(void)
+{ 
+  std::vector<double> values;
+  Eigen::Affine3d dummy;
+  impl_->getCurrentState(values, dummy);
+  return values;
+}
+
+std::vector<double> MoveGroup::getRandomJointValues(void)
+{
+  std::vector<double> backup;
+  impl_->getJointStateTarget()->getGroupStateValues(backup);
+
+  impl_->getJointStateTarget()->setToRandomValues();
+  std::vector<double> r;
+  impl_->getJointStateTarget()->getGroupStateValues(r);
+
+  impl_->getJointStateTarget()->setStateValues(backup);
+  return r;
+}
+
+Eigen::Affine3d MoveGroup::getCurrentPose(void)
+{  
+  std::vector<double> dummy;
+  Eigen::Affine3d pose;
+  pose.setIdentity();
+  if (!impl_->getCurrentState(dummy, pose).second)
+    ROS_ERROR("Unable to get current pose");
+  return pose;
+}
+
+void MoveGroup::rememberJointValues(const std::string &name, const std::vector<double> &values)
+{ 
+  remembered_joint_values_[name] = values;
+}
+
+void MoveGroup::forgetJointValues(const std::string &name)
+{
+  remembered_joint_values_.erase(name);
+}
+
+void MoveGroup::allowLooking(bool flag)
+{
+  impl_->allowLooking(flag);
+}
 
 }

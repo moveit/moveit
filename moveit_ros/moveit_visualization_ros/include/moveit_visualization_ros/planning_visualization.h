@@ -77,7 +77,14 @@ public:
     return cycle_ok_;
   }
 
+  /** If true, start groups always follow the current state of the robot */
   void setAllStartChainModes(bool chain);
+
+  /** If false, all interactive markers are disabled */
+  void setAllStartInteractionModes(bool interaction_enabled);
+
+  /** If false, all interactive markers are disabled */
+  void setAllStartVisibility(bool visible);
 
   std::string getCurrentGroup() const {
     return current_group_;
