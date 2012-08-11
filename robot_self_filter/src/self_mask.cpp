@@ -441,7 +441,7 @@ void robot_self_filter::SelfMask::maskAuxIntersection(const pcl::PointCloud<pcl:
       else
       {
         dir /= lng;
-        std::vector<Eigen::Vector3d> intersections;
+        EigenSTL::vector_Vector3d intersections;
         for (unsigned int j = 0 ; out == OUTSIDE && j < bs ; ++j)
         {
           if (bodies_[j].body->intersectsRay(pt, dir, &intersections, 1))
@@ -507,7 +507,8 @@ int robot_self_filter::SelfMask::getMaskIntersection(const Eigen::Vector3d &pt, 
     {
       dir /= lng;
       
-      std::vector<Eigen::Vector3d> intersections;
+
+      EigenSTL::vector_Vector3d intersections;
       for (unsigned int j = 0 ; out == OUTSIDE && j < bs ; ++j)
         if (bodies_[j].body->intersectsRay(pt, dir, &intersections, 1))
         {
