@@ -32,7 +32,9 @@
 #
 # Author: Ioan Sucan
 
-from _move_group import *
+import roslib
+roslib.load_manifest('move_group_interface')
+from move_group import MoveGroup
 import re
 import time
 
