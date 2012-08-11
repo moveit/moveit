@@ -303,7 +303,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester) {
 
   shape = new shapes::Box(.1,.1,.1);
   std::vector<shapes::ShapeConstPtr> shapes;
-  std::vector<Eigen::Affine3d> poses;
+  EigenSTL::vector_Affine3d poses;
   shapes.push_back(shapes::ShapeConstPtr(shape));
   poses.push_back(Eigen::Affine3d::Identity());
   std::vector<std::string> touch_links;
@@ -365,7 +365,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
   
   shapes[0].reset(shapes::createMeshFromResource("file://"+path.string()+"/../planning_models/test/kinect.dae"));
   
-  std::vector<Eigen::Affine3d> poses;
+  EigenSTL::vector_Affine3d poses;
   poses.push_back(Eigen::Affine3d::Identity());
 
   std::vector<std::string> touch_links;
@@ -434,7 +434,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
   std::vector<std::string> touch_links;
   kstate1.getLinkState("r_gripper_palm_link")->attachBody("kinect", object->shapes_, object->shape_poses_, touch_links);
 
-  std::vector<Eigen::Affine3d> other_poses;
+  EigenSTL::vector_Affine3d other_poses;
   other_poses.push_back(pos2);
 
   // This creates a new set of constant properties for the attached body, which happens to be the same as the one above;
@@ -465,7 +465,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
 
 TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
 {
-  std::vector<Eigen::Affine3d> poses;
+  EigenSTL::vector_Affine3d poses;
   std::vector<shapes::ShapeConstPtr> shapes;
   for(unsigned int i = 0; i < 10000; i++) {
     poses.push_back(Eigen::Affine3d::Identity());
@@ -518,7 +518,7 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
 
   ASSERT_FALSE(res1.collision);
 
-  std::vector<Eigen::Affine3d> poses;
+  EigenSTL::vector_Affine3d poses;
   std::vector<shapes::ShapeConstPtr> shapes;
   for(unsigned int i = 0; i < 5; i++)
   {

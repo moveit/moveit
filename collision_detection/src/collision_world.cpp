@@ -77,7 +77,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
     checkRobotCollision(req, res, robot, state1, state2, acm);
 }
 
-void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses)
+void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses)
 {
   if (shapes.size() != poses.size())
     ROS_ERROR("Number of shapes and number of poses do not match. Not adding this object to collision world.");

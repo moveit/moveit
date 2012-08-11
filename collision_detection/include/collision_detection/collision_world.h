@@ -222,14 +222,16 @@ namespace collision_detection
 
       virtual ~Object(void);
       
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
       /** \brief The id for this object */
-      std::string                               id_;
+      std::string                         id_;
       
       /** \brief An array of shapes */
-      std::vector< shapes::ShapeConstPtr>       shapes_;
+      std::vector< shapes::ShapeConstPtr> shapes_;
       
       /** \brief An array of shape poses */
-      std::vector< Eigen::Affine3d >            shape_poses_;
+      EigenSTL::vector_Affine3d           shape_poses_;
     };
     
     typedef boost::shared_ptr<Object> ObjectPtr;
@@ -262,7 +264,7 @@ namespace collision_detection
         \note This function does NOT call the addToObject() variant that takes a single shape and a single pose as input. */
     virtual void addToObject(const std::string &id,
                              const std::vector<shapes::ShapeConstPtr> &shapes,
-                             const std::vector<Eigen::Affine3d> &poses);
+                             const EigenSTL::vector_Affine3d &poses);
     
     /** \brief Add a shape to an object. If the object already exists, this call will add the shape to the object at the specified pose. Otherwise, the object is created and the specified shape is added. This calls addToObjectInternal(). */
     virtual void addToObject(const std::string &id, const shapes::ShapeConstPtr &shape, const Eigen::Affine3d &pose);
