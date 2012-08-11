@@ -75,7 +75,7 @@ void planning_models::KinematicState::LinkState::updateAttachedBodies(void)
 
 void planning_models::KinematicState::LinkState::attachBody(const std::string &id,
                                                             const std::vector<shapes::ShapeConstPtr> &shapes,
-                                                            const std::vector<Eigen::Affine3d> &attach_trans,
+                                                            const EigenSTL::vector_Affine3d &attach_trans,
                                                             const std::vector<std::string> &touch_links)
 {
   AttachedBody *ab = new AttachedBody(this, id, shapes, attach_trans, touch_links);

@@ -50,7 +50,7 @@ public:
       attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
   AttachedBody(const LinkState *link, const std::string &id,
                const std::vector<shapes::ShapeConstPtr> &shapes,
-               const std::vector<Eigen::Affine3d> &attach_trans,
+               const EigenSTL::vector_Affine3d &attach_trans,
                const std::vector<std::string> &touch_links);
   
   ~AttachedBody(void);
@@ -87,13 +87,13 @@ public:
     return touch_links_;
   }
   
-  const std::vector<Eigen::Affine3d>& getFixedTransforms(void) const
+  const EigenSTL::vector_Affine3d& getFixedTransforms(void) const
   {
     return attach_trans_;
   }
   
   /** \brief Get the global transforms for the collision bodies */
-  const std::vector<Eigen::Affine3d>& getGlobalCollisionBodyTransforms(void) const
+  const EigenSTL::vector_Affine3d& getGlobalCollisionBodyTransforms(void) const
   {
     return global_collision_body_transforms_;
   }
@@ -122,9 +122,9 @@ private:
   std::set<std::string>              touch_links_;
   
   /** \brief The constant transforms applied to the link (needs to be specified by user) */
-  std::vector<Eigen::Affine3d>       attach_trans_;
+  EigenSTL::vector_Affine3d          attach_trans_;
   
   /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
-  std::vector<Eigen::Affine3d>       global_collision_body_transforms_;
+  EigenSTL::vector_Affine3d          global_collision_body_transforms_;
 };
 

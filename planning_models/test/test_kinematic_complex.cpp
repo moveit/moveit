@@ -262,7 +262,7 @@ TEST_F(LoadPlanningModelsPr2, KinematicStateCopy) {
   ks2.setToDefaultValues();
   
   std::vector<shapes::ShapeConstPtr> shapes;
-  std::vector<Eigen::Affine3d> poses;
+  EigenSTL::vector_Affine3d poses;
   shapes::Shape* shape = new shapes::Box(.1,.1,.1);
   shapes.push_back(shapes::ShapeConstPtr(shape));
   poses.push_back(Eigen::Affine3d::Identity());

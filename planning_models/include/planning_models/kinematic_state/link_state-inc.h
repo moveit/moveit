@@ -123,7 +123,7 @@ public:
   */
   void attachBody(const std::string &id,
                   const std::vector<shapes::ShapeConstPtr> &shapes,
-                  const std::vector<Eigen::Affine3d> &attach_trans,
+                  const EigenSTL::vector_Affine3d &attach_trans,
                   const std::vector<std::string> &touch_links);
   
   /**

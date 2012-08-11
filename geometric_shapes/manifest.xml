@@ -11,7 +11,6 @@
   <depend package="resource_retriever"/>
   <depend package="visualization_msgs"/>
   <depend package="random_numbers"/>
-  <depend package="common_rosdeps"/>
   <depend package="shape_msgs"/>
   <depend package="shape_tools"/>
 
@@ -19,6 +18,7 @@
   <rosdep name="assimp" />
   <rosdep name="eigen" />
   <rosdep name="octomap" />
+  <rosdep name="console_bridge"/>
 
   <export>
     <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lgeometric_shapes"/>

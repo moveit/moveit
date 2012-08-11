@@ -42,6 +42,8 @@
 class JointStateGroup
 {
 public:
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   /**
    *  @brief Default constructor

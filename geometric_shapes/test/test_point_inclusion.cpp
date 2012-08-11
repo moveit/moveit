@@ -101,7 +101,7 @@ TEST(SphereRayIntersection, SimpleRay1)
 
     Eigen::Vector3d ray_o(5, 0, 0);
     Eigen::Vector3d ray_d(-1, 0, 0);
-    std::vector<Eigen::Vector3d> p;
+    EigenSTL::vector_Vector3d p;
     bool intersect = sphere->intersectsRay(ray_o, ray_d, &p);
 
     delete sphere;
@@ -119,7 +119,7 @@ TEST(SphereRayIntersection, SimpleRay2)
 
     Eigen::Vector3d ray_o(5, 0, 0);
     Eigen::Vector3d ray_d(1, 0, 0);
-    std::vector<Eigen::Vector3d> p;
+    EigenSTL::vector_Vector3d p;
     bool intersect = sphere->intersectsRay(ray_o, ray_d, &p);
 
     delete sphere;
@@ -200,7 +200,7 @@ TEST(BoxRayIntersection, SimpleRay1)
 
     Eigen::Vector3d ray_o(10, 0.449, 0);
     Eigen::Vector3d ray_d(-1, 0, 0);
-    std::vector<Eigen::Vector3d> p;
+    EigenSTL::vector_Vector3d p;
 
     bool intersect = box->intersectsRay(ray_o, ray_d, &p);
 

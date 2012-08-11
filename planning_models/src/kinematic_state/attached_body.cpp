@@ -38,7 +38,7 @@
 
 planning_models::KinematicState::AttachedBody::AttachedBody(const planning_models::KinematicState::LinkState* parent_link_state,
                                                             const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes,
-                                                            const std::vector<Eigen::Affine3d> &attach_trans,
+                                                            const EigenSTL::vector_Affine3d &attach_trans,
                                                             const std::vector<std::string> &touch_links) :
   parent_link_state_(parent_link_state), id_(id), shapes_(shapes), attach_trans_(attach_trans)
 {

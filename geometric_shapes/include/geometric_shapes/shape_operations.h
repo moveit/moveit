@@ -34,14 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
-#define MOVEIT_GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
+#ifndef GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
+#define GEOMETRIC_SHAPES_SHAPE_OPERATIONS_
 
 #include "geometric_shapes/shapes.h"
 #include "geometric_shapes/shape_messages.h"
+#include "geometric_shapes/eigen_types.h"
 #include <visualization_msgs/Marker.h>
 #include <vector>
-#include <Eigen/Core>
 
 // forward declaration of aiScene (called needs to include assimp)
 class aiScene;
@@ -53,19 +53,25 @@ namespace shapes
     constructed using index values from the triangles
     vector. Triangle k has vertices at index values triangles[3k],
     triangles[3k+1], triangles[3k+2]  */
-shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &vertices, const std::vector<unsigned int> &triangles);
+shapes::Mesh* createMeshFromVertices(const EigenSTL::vector_Vector3d &vertices, const std::vector<unsigned int> &triangles);
 
 /** \brief Load a mesh from a set of vertices. Every 3 vertices
     are considered a triangle. Repeating vertices are identified
     and the set of triangle indices is constructed. The normal at
     each triangle is also computed */
-shapes::Mesh* createMeshFromVertices(const std::vector<Eigen::Vector3d> &source);
+shapes::Mesh* createMeshFromVertices(const EigenSTL::vector_Vector3d &source);
 
 /** \brief Load a mesh from a resource that contains a mesh that can be loaded by assimp */
-shapes::Mesh* createMeshFromResource(const std::string& resource, const Eigen::Vector3d &scale = Eigen::Vector3d(1.0, 1.0, 1.0));
+shapes::Mesh* createMeshFromResource(const std::string& resource);
+
+/** \brief Load a mesh from a resource that contains a mesh that can be loaded by assimp */
+shapes::Mesh* createMeshFromResource(const std::string& resource, const Eigen::Vector3d &scale);
 
 /** \brief Load a mesh from an assimp datastructure */
-shapes::Mesh* createMeshFromAsset(const aiScene* scene, const Eigen::Vector3d &scale = Eigen::Vector3d(1.0, 1.0, 1.0), const std::string &resource_name = std::string());
+shapes::Mesh* createMeshFromAsset(const aiScene* scene, const Eigen::Vector3d &scale, const std::string &resource_name = std::string());
+
+/** \brief Load a mesh from an assimp datastructure */
+shapes::Mesh* createMeshFromAsset(const aiScene* scene, const std::string &resource_name = std::string());
 
 /** \brief Construct the shape that corresponds to the message. Return NULL on failure. */
 Shape* constructShapeFromMsg(const shape_msgs::SolidPrimitive &shape_msg);
