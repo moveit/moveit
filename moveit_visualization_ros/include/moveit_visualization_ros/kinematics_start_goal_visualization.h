@@ -51,6 +51,7 @@ public:
   ~KinematicsStartGoalVisualization() {
   }
 
+  /** brief Returns the kinematic state of the start group */
   const planning_models::KinematicState& getStartState() const {
     if(start_chained_) {
       return planning_scene_->getCurrentState();
@@ -59,22 +60,33 @@ public:
     }
   }
 
+  /** brief Returns the kinematic state of the goal group */
   const planning_models::KinematicState& getGoalState() const {
     return goal_->getState();
   }
 
+  /** brief Sets the kinematic state of the start group */
+  void setStartState(const planning_models::KinematicState& state);
+
+  /** brief Sets the kinematic state of the goal group */
+  void setGoalState(const planning_models::KinematicState& state);
+
+  /** brief Resets the kinematic state of the start and goal groups */
+  void resetStartGoal();
+
+  /** brief Sets a random kinematic state for the start and goal groups */
+  void setRandomStartGoal();
+
   void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
+  /** Resets start state to current state in the planning scene,
+      does nothing if start_chained_ is true. */
   void resetStartState();
 
   void addMenuEntry(const std::string& name, 
                     const boost::function<void(const std::string&)>& callback);
 
-  void setRandomStartGoal();
-  void resetStartGoal();
 
-  void setStartState(const planning_models::KinematicState& state);
-  void setGoalState(const planning_models::KinematicState& state);
 
   void setGoodBadMode(bool use_good_bad) {
     start_->setGoodBadMode(use_good_bad);
@@ -82,9 +94,10 @@ public:
   }
 
   void hideRegularMarkers() {
-    if(!start_chained_) {
-      start_->hideRegularMarkers();
-    }
+    //if(!start_chained_) {
+    //  start_->hideRegularMarkers();
+    //}
+    start_->hideRegularMarkers();
     goal_->hideRegularMarkers();
   }
   void showRegularMarkers() {
@@ -103,6 +116,28 @@ public:
     if(to_chain) {
       start_->hideAllMarkers();
     }
+  }
+
+  void setStartInteractionEnabled(bool enabled)
+  {
+      start_->setInteractionEnabled(enabled);
+  }
+
+
+  void setGoalInteractionEnabled(bool enabled)
+  {
+      goal_->setInteractionEnabled(enabled);
+  }
+
+  void setStartVisible(bool visible)
+  {
+      start_->setVisible(visible);
+  }
+
+
+  void setGoalVisible(bool visible)
+  {
+      goal_->setVisible(visible);
   }
 
   /** brief Activate the controls for the start chain. */

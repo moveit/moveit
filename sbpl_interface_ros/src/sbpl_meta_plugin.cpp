@@ -38,21 +38,21 @@
 #include <planning_scene/planning_scene.h>
 #include <planning_models/kinematic_model.h>
 #include <moveit_msgs/GetMotionPlan.h>
-#include <sbpl_interface/sbpl_interface.h>
+#include <sbpl_interface/sbpl_meta_interface.h>
 
 #include <pluginlib/class_list_macros.h>
 
 namespace sbpl_interface_ros
 {
 
-class SBPLPlanner : public planning_interface::Planner
+class SBPLMetaPlanner : public planning_interface::Planner
 {
 public:
   void init(const planning_models::KinematicModelConstPtr& model)
   {
     ros::NodeHandle nh;
-    display_bfs_publisher_ = nh.advertise<visualization_msgs::Marker>("planning_components_visualization", 10, true);
-    sbpl_interface_.reset(new sbpl_interface::SBPLInterface(model));
+    //display_bfs_publisher_ = nh.advertise<visualization_msgs::Marker>("planning_components_visualization", 10, true);
+    sbpl_meta_interface_.reset(new sbpl_interface::SBPLMetaInterface(model));
   }
 
   bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,
@@ -67,12 +67,9 @@ public:
              const moveit_msgs::GetMotionPlan::Request &req, 
              moveit_msgs::GetMotionPlan::Response &res) const
   {
-    sbpl_interface::PlanningParameters params;
-    params.use_bfs_ = false;
-    bool solve_ok = sbpl_interface_->solve(planning_scene, 
-                                           req, 
-                                           res,
-                                           params);
+    bool solve_ok = sbpl_meta_interface_->solve(planning_scene, 
+                                                req, 
+                                                res);
     return solve_ok;
   }
 
@@ -80,14 +77,10 @@ public:
              const moveit_msgs::GetMotionPlan::Request &req, 
              moveit_msgs::MotionPlanDetailedResponse &res) const
   {
-    sbpl_interface::PlanningParameters params;
-    params.use_bfs_ = false;
-
     moveit_msgs::GetMotionPlan::Response res2;
-    if (sbpl_interface_->solve(planning_scene, 
-                               req, 
-                               res2,
-                               params))
+    if (sbpl_meta_interface_->solve(planning_scene, 
+                                    req, 
+                                    res2))
     {
       res.trajectory_start = res2.trajectory_start;
       res.trajectory.push_back(res2.trajectory);
@@ -99,12 +92,12 @@ public:
       return false;
   }
 
-  std::string getDescription(void) const { return "SBPL"; }
+  std::string getDescription(void) const { return "SBPLMeta"; }
   
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
     algs.resize(1);
-    algs[0] = "SBPL";
+    algs[0] = "SBPLMeta";
   }
 
   void terminate(void) const
@@ -114,11 +107,11 @@ public:
      
 private:
   ros::Publisher display_bfs_publisher_;
-  boost::shared_ptr<sbpl_interface::SBPLInterface> sbpl_interface_;
+  boost::shared_ptr<sbpl_interface::SBPLMetaInterface> sbpl_meta_interface_;
 };
 
 } // ompl_interface_ros
 
-PLUGINLIB_DECLARE_CLASS(sbpl_interface_ros, SBPLPlanner,
-                        sbpl_interface_ros::SBPLPlanner, 
+PLUGINLIB_DECLARE_CLASS(sbpl_interface_ros, SBPLMetaPlanner,
+                        sbpl_interface_ros::SBPLMetaPlanner, 
                         planning_interface::Planner);

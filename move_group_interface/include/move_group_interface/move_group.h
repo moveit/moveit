@@ -54,15 +54,18 @@ class MoveGroup
 public:
   
   static const std::string ROBOT_DESCRIPTION;
+  static const std::string JOINT_STATE_TOPIC;
   
   struct Options
   {
     Options(const std::string &group_name) : group_name_(group_name),
-                                             robot_description_(ROBOT_DESCRIPTION)
+                                             robot_description_(ROBOT_DESCRIPTION),
+                                             joint_state_topic_(JOINT_STATE_TOPIC)
     {
     }
     std::string group_name_;
     std::string robot_description_;
+    std::string joint_state_topic_;
   };
   
   struct Plan
@@ -76,10 +79,12 @@ public:
 
   ~MoveGroup(void);
   
+  const std::string& getName(void) const;
+  
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
-      This call is blocking (waits for the execution of the trajectory to complete) if \e wait is true. */
-  bool move(bool wait);
-
+      This call is not blocking (does not wait for the execution of the trajectory to complete). */
+  bool asyncMove(void);
+  
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is always blocking (waits for the execution of the trajectory to complete) and attempts to execute the motion
       multiple times (up to a specified number of \e attempts) as long as the failure error is a recoverable one (e.g., planning
@@ -92,6 +97,9 @@ public:
   
   /** \brief Stop any trajectory execution, if one is active */
   void stop(void);
+  
+  /** \brief Specify whether the robot is allowed to look around before moving if it determines it should (default is true) */
+  void allowLooking(bool flag);
   
   void setJointValueTarget(const std::vector<double> &group_variable_values);
 
@@ -111,6 +119,10 @@ public:
 
   const planning_models::KinematicState::JointStateGroup& getJointValueTarget(void) const;
 
+  void setPositionTarget(double x, double y, double z);
+  
+  void setOrientationTarget(double x, double y, double z);
+
   void setPoseTarget(const Eigen::Affine3d &end_effector_pose);
   
   void setPoseTarget(const geometry_msgs::Pose &target);
@@ -129,10 +141,31 @@ public:
 
   void setRandomTarget(void);
   
-  void setNamedTarget(const std::string &name);
+  /** \brief Set the current joint values to be ones previously remembered by rememberJointValues() or, if not found, that are specified in the SRDF under the name \e name */
+  bool setNamedTarget(const std::string &name);
+  
+  /** \brief Remember the current joint values (of the robot being monitored) under \e name. These can be used by setNamedTarget() */
+  void rememberJointValues(const std::string &name);
+
+  /** \brief Remember the specified joint values  under \e name. These can be used by setNamedTarget() */
+  void rememberJointValues(const std::string &name, const std::vector<double> &values);
+
+  std::vector<double> getCurrentJointValues(void);
+
+  std::vector<double> getRandomJointValues(void);
+
+  Eigen::Affine3d getCurrentPose(void);
+
+  void forgetJointValues(const std::string &name);
+  
+  const std::map<std::string, std::vector<double> >& getRememberedJointValues(void) const
+  {
+    return remembered_joint_values_;
+  }
   
 private:
-  
+
+  std::map<std::string, std::vector<double> > remembered_joint_values_;
   class MoveGroupImpl;
   MoveGroupImpl *impl_;
   

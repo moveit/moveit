@@ -65,7 +65,10 @@ namespace moveit_visualization_ros
         planning_scene_(planning_scene),
         interactive_marker_server_(interactive_marker_server),
         state_(planning_scene_->getCurrentState()),
-        marker_publisher_(marker_publisher)
+        marker_publisher_(marker_publisher),
+        dof_marker_enabled_(true),
+        interaction_enabled_(true),
+        visible_(true)
     {
         const std::map<std::string, srdf::Model::Group>& group_map
             = planning_scene_->getKinematicModel()->getJointModelGroupConfigMap();
@@ -183,6 +186,8 @@ namespace moveit_visualization_ros
     }
 
     void KinematicsGroupVisualization::showRegularMarkers() {
+        //if(!visible_) return;
+
         regular_markers_hidden_ = false;
         sendCurrentMarkers();
     }
@@ -205,6 +210,8 @@ namespace moveit_visualization_ros
     }
 
     void KinematicsGroupVisualization::showAllMarkers() {
+        //if(!visible_) return;
+
         all_markers_hidden_ = false;
         for(unsigned int i = 0; i < last_marker_array_.markers.size(); i++) {
             last_marker_array_.markers[i].action = visualization_msgs::Marker::ADD;
@@ -259,6 +266,7 @@ namespace moveit_visualization_ros
     }
 
     void KinematicsGroupVisualization::enable6DOFControls(bool load_saved) {
+
         for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
             it != group_to_interactive_marker_names_.end();
             it++) {
@@ -428,6 +436,8 @@ namespace moveit_visualization_ros
 
     void KinematicsGroupVisualization::sendCurrentMarkers()
     {
+        if(!visible_) return;
+
         if(use_good_bad_ && last_solution_changed_) {
             enable6DOFControls(true);
         }
@@ -612,19 +622,25 @@ namespace moveit_visualization_ros
                                                                      bool add_6dof,
                                                                      bool load_saved)
     {
+        if(!visible_) return;
+
         for(std::map<std::string, std::string>::iterator it = group_to_interactive_marker_names_.begin();
             it != group_to_interactive_marker_names_.end();
-            it++) {
+            it++)
+        {
             visualization_msgs::InteractiveMarker marker;
             if(load_saved) {
                 ROS_DEBUG_STREAM("Loading marker " << it->second);
                 marker = saved_markers_[it->second];
                 removeAxisControls(marker);
                 recolorInteractiveMarker(marker, color);
-            } else {
+            }
+            else
+            {
                 ROS_DEBUG_STREAM("Creating marker " << it->second);
                 std::vector<std::string> button_links = ik_solver_->getEndEffectorLinks().at(it->first);
-                if(button_links.empty()) {
+                if(button_links.empty())
+                {
                     button_links.push_back(ik_solver_->getLinkNames().back());
                 }
                 marker = makeMeshButtonFromLinks(it->second,
@@ -642,6 +658,12 @@ namespace moveit_visualization_ros
             }
             marker.description=it->second;
 
+            if(!interaction_enabled_)
+            {
+                for(size_t i = 0; i < marker.controls.size(); ++i)
+                    marker.controls[i].interaction_mode = visualization_msgs::InteractiveMarkerControl::NONE;
+                marker.description = "";
+            }
             // make6DOFMarker(group_name_+"_ik",
             //                ps,
             //                .3,
