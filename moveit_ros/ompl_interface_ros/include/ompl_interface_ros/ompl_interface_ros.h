@@ -34,6 +34,9 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
+#ifndef _MOVEIT_OMPL_INTERFACE_ROS_H_
+#define _MOVEIT_OMPL_INTERFACE_ROS_H_
+
 #include <ompl_interface/ompl_interface.h>
 #include <pluginlib/class_loader.h>
 #include <ros/ros.h>
@@ -76,3 +79,5 @@ namespace ompl_interface_ros
     };
 
 }
+
+#endif

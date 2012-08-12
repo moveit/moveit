@@ -119,7 +119,8 @@ public:
     joint_state_target_->setToDefaultValues();
     use_joint_state_target_ = true;
     can_look_ = true;
-    
+    goal_tolerance_ = std::numeric_limits<double>::epsilon() * 100.0;
+
     const planning_models::KinematicModel::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group)
     {
@@ -346,6 +347,16 @@ public:
     }
   }
   
+  double getGoalTolerance(void) const
+  {
+    return goal_tolerance_;
+  }
+  
+  void setGoalTolerance(double tolerance)
+  {
+    goal_tolerance_ = tolerance;
+  }
+
   void constructGoal(moveit_msgs::MoveGroupGoal &goal)
   {
     goal.request.group_name = opt_.group_name_;
@@ -355,7 +366,7 @@ public:
     if (use_joint_state_target_)
     {    
       goal.request.goal_constraints.resize(1);
-      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(getJointStateTarget());
+      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(getJointStateTarget(), goal_tolerance_);
     }
     else
     {
@@ -364,7 +375,7 @@ public:
       pose.header.frame_id = pose_reference_frame_;
       pose.header.stamp = ros::Time::now();
       goal.request.goal_constraints.resize(1);
-      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(end_effector_, pose);
+      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(end_effector_, pose, goal_tolerance_);
     }    
   }
   
@@ -381,6 +392,7 @@ private:
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
   std::string pose_reference_frame_;
+  double goal_tolerance_;
   bool can_look_;
   
   bool use_joint_state_target_;
@@ -577,6 +589,16 @@ const std::string& MoveGroup::getPoseReferenceFrame(void) const
   return impl_->getPoseReferenceFrame();
 }
 
+double MoveGroup::getGoalTolerance(void) const
+{
+  return impl_->getGoalTolerance();
+}
+  
+void MoveGroup::setGoalTolerance(double tolerance)
+{
+  impl_->setGoalTolerance(tolerance);
+}
+
 void MoveGroup::rememberJointValues(const std::string &name)
 {
   rememberJointValues(name, getCurrentJointValues());
@@ -611,6 +633,11 @@ Eigen::Affine3d MoveGroup::getCurrentPose(void)
   if (!impl_->getCurrentState(dummy, pose).second)
     ROS_ERROR("Unable to get current pose");
   return pose;
+}
+
+const std::vector<std::string>& MoveGroup::getJoints(void) const
+{
+  return impl_->getJointStateTarget()->getJointModelGroup()->getJointModelNames();
 }
 
 void MoveGroup::rememberJointValues(const std::string &name, const std::vector<double> &values)
