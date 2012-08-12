@@ -307,7 +307,7 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(const CollisionReques
     bool is_link = i < gsr->dfce_->link_names_.size();
     if(is_link && !gsr->dfce_->link_has_geometry_[i]) continue;
     const std::vector<CollisionSphere>* collision_spheres_1;
-    const std::vector<Eigen::Vector3d>* sphere_centers_1;
+    const EigenSTL::vector_Vector3d* sphere_centers_1;
     if(is_link) {
       collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
@@ -372,7 +372,7 @@ bool CollisionWorldDistanceField::getEnvironmentProximityGradients(const boost::
     bool is_link = i < gsr->dfce_->link_names_.size();
     if(is_link && !gsr->dfce_->link_has_geometry_[i]) continue;
     const std::vector<CollisionSphere>* collision_spheres_1;
-    const std::vector<Eigen::Vector3d>* sphere_centers_1;
+    const EigenSTL::vector_Vector3d* sphere_centers_1;
     if(is_link) {
       collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
@@ -398,12 +398,12 @@ bool CollisionWorldDistanceField::getEnvironmentProximityGradients(const boost::
 
 void CollisionWorldDistanceField::addToObject(const std::string& id,
                                               const std::vector<shapes::ShapeConstPtr> &shapes, 
-                                              const std::vector<Eigen::Affine3d> &poses)
+                                              const EigenSTL::vector_Affine3d &poses)
 {
   ros::WallTime n = ros::WallTime::now();
   CollisionWorld::addToObject(id, shapes, poses);
-  std::vector<Eigen::Vector3d> add_points;
-  std::vector<Eigen::Vector3d> subtract_points;
+  EigenSTL::vector_Vector3d add_points;
+  EigenSTL::vector_Vector3d subtract_points;
   updateDistanceObject(id, distance_field_cache_entry_, add_points, subtract_points);
   distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
   distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
@@ -416,8 +416,8 @@ void CollisionWorldDistanceField::addToObject(const std::string& id,
 {
   ros::WallTime n = ros::WallTime::now();
   CollisionWorld::addToObject(id, shape, pose);
-  std::vector<Eigen::Vector3d> add_points;
-  std::vector<Eigen::Vector3d> subtract_points;
+  EigenSTL::vector_Vector3d add_points;
+  EigenSTL::vector_Vector3d subtract_points;
   updateDistanceObject(id, distance_field_cache_entry_, add_points, subtract_points);
   distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
   distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
@@ -431,8 +431,8 @@ bool CollisionWorldDistanceField::moveShapeInObject(const std::string &id,
   if (CollisionWorld::moveShapeInObject(id, shape, pose))
   {
     ros::WallTime n = ros::WallTime::now();
-    std::vector<Eigen::Vector3d> add_points;
-    std::vector<Eigen::Vector3d> subtract_points;
+    EigenSTL::vector_Vector3d add_points;
+    EigenSTL::vector_Vector3d subtract_points;
     updateDistanceObject(id, distance_field_cache_entry_, add_points, subtract_points);
     distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
     distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
@@ -445,8 +445,8 @@ bool CollisionWorldDistanceField::moveShapeInObject(const std::string &id,
 bool CollisionWorldDistanceField::removeShapeFromObject(const std::string& id,
                                                         const shapes::ShapeConstPtr& shape) {
   if(CollisionWorld::removeShapeFromObject(id, shape)) {
-    std::vector<Eigen::Vector3d> add_points;
-    std::vector<Eigen::Vector3d> subtract_points;
+    EigenSTL::vector_Vector3d add_points;
+    EigenSTL::vector_Vector3d subtract_points;
     updateDistanceObject(id, distance_field_cache_entry_, add_points, subtract_points);
     distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
   }
@@ -456,8 +456,8 @@ bool CollisionWorldDistanceField::removeShapeFromObject(const std::string& id,
 void CollisionWorldDistanceField::removeObject(const std::string& id)
 {
   CollisionWorld::removeObject(id);
-  std::vector<Eigen::Vector3d> add_points;
-  std::vector<Eigen::Vector3d> subtract_points;
+  EigenSTL::vector_Vector3d add_points;
+  EigenSTL::vector_Vector3d subtract_points;
   updateDistanceObject(id, distance_field_cache_entry_, add_points, subtract_points);
   distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
 }
@@ -470,8 +470,8 @@ void CollisionWorldDistanceField::clearObjects()
 
 void CollisionWorldDistanceField::updateDistanceObject(const std::string& id,
                                                        boost::shared_ptr<CollisionWorldDistanceField::DistanceFieldCacheEntry>& dfce,
-                                                       std::vector<Eigen::Vector3d>& add_points,
-                                                       std::vector<Eigen::Vector3d>& subtract_points)
+                                                       EigenSTL::vector_Vector3d& add_points,
+                                                       EigenSTL::vector_Vector3d& subtract_points)
 {
   std::map<std::string, std::vector<PosedBodyPointDecompositionPtr> >::iterator cur_it = dfce->posed_body_point_decompositions_.find(id);
   if(cur_it != dfce->posed_body_point_decompositions_.end()) {
@@ -526,8 +526,8 @@ CollisionWorldDistanceField::generateDistanceFieldCacheEntry()
                                                                              -(size_z_/2.0), 
                                                                              max_propogation_distance_));
   }
-  std::vector<Eigen::Vector3d> add_points;
-  std::vector<Eigen::Vector3d> subtract_points;
+  EigenSTL::vector_Vector3d add_points;
+  EigenSTL::vector_Vector3d subtract_points;
   for(std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin();
       it != objects_.end();
       it++) 

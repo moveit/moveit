@@ -66,6 +66,7 @@ struct CollisionSphere {
     relative_vec_ = rel;
     radius_ = radius;
   }
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   Eigen::Vector3d relative_vec_;
   double radius_;
@@ -79,11 +80,13 @@ struct GradientInfo
   {
   }
 
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   double closest_distance;
   bool collision;
-  std::vector<Eigen::Vector3d> sphere_locations;
+  EigenSTL::vector_Vector3d sphere_locations;
   std::vector<double> distances;
-  std::vector<Eigen::Vector3d> gradients;
+  EigenSTL::vector_Vector3d gradients;
   std::vector<CollisionType> types;
   std::vector<double> sphere_radii;
   std::string joint_name;
@@ -99,16 +102,16 @@ struct GradientInfo
   }
 };
 
-//determines set of collision spheres given a posed body
+//determines set of collision spheres given a posed body; this is BAD! Allocation erorrs will happen; change this function so it does not return that vector by value
 std::vector<CollisionSphere> determineCollisionSpheres(const bodies::Body* body, Eigen::Affine3d& relativeTransform);
 
 //determines a set of points at the indicated resolution that are inside the supplied body 
-std::vector<Eigen::Vector3d> determineCollisionPoints(const bodies::Body* body, double resolution);
+EigenSTL::vector_Vector3d determineCollisionPoints(const bodies::Body* body, double resolution);
 
 //determines a set of gradients of the given collision spheres in the distance field
 bool getCollisionSphereGradients(const distance_field::DistanceField* distance_field,
                                  const std::vector<CollisionSphere>& sphere_list, 
-                                 const std::vector<Eigen::Vector3d>& sphere_centers,
+                                 const EigenSTL::vector_Vector3d& sphere_centers,
                                  GradientInfo& gradient, 
                                  const CollisionType& type,
                                  double tolerance, 
@@ -118,13 +121,13 @@ bool getCollisionSphereGradients(const distance_field::DistanceField* distance_f
 
 bool getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
                                  const std::vector<CollisionSphere>& sphere_list,
-                                 const std::vector<Eigen::Vector3d>& sphere_centers,
+                                 const EigenSTL::vector_Vector3d& sphere_centers,
                                  double maximum_value,                          
                                  double tolerance);
 
 bool getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
                                  const std::vector<CollisionSphere>& sphere_list,
-                                 const std::vector<Eigen::Vector3d>& sphere_centers,
+                                 const EigenSTL::vector_Vector3d& sphere_centers,
                                  double maximum_value,
                                  double tolerance,
                                  unsigned int num_coll,
@@ -138,6 +141,9 @@ class BodyDecomposition {
   friend class BodyDecompositionVector;
 
 public:
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     
   BodyDecomposition(const shapes::ShapeConstPtr& shape, 
                     double resolution, 
@@ -164,7 +170,7 @@ public:
     return sphere_radii_;
   }
 
-  const std::vector<Eigen::Vector3d>& getCollisionPoints() const
+  const EigenSTL::vector_Vector3d& getCollisionPoints() const
   {
     return relative_collision_points_;
   }
@@ -188,7 +194,7 @@ private:
   bodies::BoundingSphere relative_bounding_sphere_;
   std::vector<double> sphere_radii_;
   std::vector<CollisionSphere> collision_spheres_;
-  std::vector<Eigen::Vector3d> relative_collision_points_;
+  EigenSTL::vector_Vector3d relative_collision_points_;
 };
 
 typedef boost::shared_ptr<BodyDecomposition> BodyDecompositionPtr;
@@ -205,7 +211,7 @@ public:
     return body_decomposition_->getCollisionSpheres();
   }
 
-  const std::vector<Eigen::Vector3d>& getSphereCenters() const 
+  const EigenSTL::vector_Vector3d& getSphereCenters() const 
   {
     return sphere_centers_;
   }
@@ -231,7 +237,7 @@ protected:
 
   BodyDecompositionConstPtr body_decomposition_;
   Eigen::Vector3d posed_bounding_sphere_center_;
-  std::vector<Eigen::Vector3d> sphere_centers_;
+  EigenSTL::vector_Vector3d sphere_centers_;
 };
 
 class PosedBodyPointDecomposition {
@@ -243,7 +249,7 @@ public:
   PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition,
                               const Eigen::Affine3d& pose);
 
-  const std::vector<Eigen::Vector3d>& getCollisionPoints() const
+  const EigenSTL::vector_Vector3d& getCollisionPoints() const
   {
     return posed_collision_points_;
   }
@@ -254,7 +260,7 @@ public:
 protected:
 
   BodyDecompositionConstPtr body_decomposition_;
-  std::vector<Eigen::Vector3d> posed_collision_points_;
+  EigenSTL::vector_Vector3d posed_collision_points_;
 };
 
 typedef boost::shared_ptr<PosedBodyPointDecomposition> PosedBodyPointDecompositionPtr;
@@ -276,7 +282,7 @@ public:
     return collision_spheres_;
   }
 
-  const std::vector<Eigen::Vector3d>& getSphereCenters() const {
+  const EigenSTL::vector_Vector3d& getSphereCenters() const {
     return posed_collision_spheres_;
   }
 
@@ -326,7 +332,7 @@ private:
   PosedBodySphereDecompositionConstPtr empty_ptr_;
   std::vector<PosedBodySphereDecompositionPtr> decomp_vector_;
   std::vector<CollisionSphere> collision_spheres_;
-  std::vector<Eigen::Vector3d> posed_collision_spheres_;
+  EigenSTL::vector_Vector3d posed_collision_spheres_;
   std::vector<double> sphere_radii_;
   std::map<unsigned int, unsigned int> sphere_index_map_;
 };
@@ -339,9 +345,9 @@ public:
   PosedBodyPointDecompositionVector()
   {}
   
-  std::vector<Eigen::Vector3d> getCollisionPoints() const
+  EigenSTL::vector_Vector3d getCollisionPoints() const
   {
-    std::vector<Eigen::Vector3d> ret_points;
+    EigenSTL::vector_Vector3d ret_points;
     for(unsigned int i = 0; i < decomp_vector_.size(); i++) {
       ret_points.insert(ret_points.end(),
                         decomp_vector_[i]->getCollisionPoints().begin(),
@@ -387,7 +393,9 @@ typedef boost::shared_ptr<PosedBodyPointDecompositionVector> PosedBodyPointDecom
 typedef boost::shared_ptr<const PosedBodyPointDecompositionVector> PosedBodyPointDecompositionVectorConstPtr;
 
 struct ProximityInfo 
-{
+{ 
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   std::string link_name;
   std::string attached_object_name;
   double proximity;

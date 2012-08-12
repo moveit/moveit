@@ -60,7 +60,7 @@ public:
   typedef std::vector<float> FloatArray;
   typedef std::vector<int>   IntArray;
 
-  virtual void addPointsToField(const std::vector<Eigen::Vector3d> points);
+  virtual void addPointsToField(const EigenSTL::vector_Vector3d &points);
   virtual void reset();
 
   const float DT_INF;

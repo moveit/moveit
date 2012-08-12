@@ -130,7 +130,7 @@ void CollisionWorldHybrid::checkRobotCollisionDistanceField(const CollisionReque
 
 void CollisionWorldHybrid::addToObject(const std::string &id, 
                                        const std::vector<shapes::ShapeConstPtr> &shapes, 
-                                       const std::vector<Eigen::Affine3d> &poses)
+                                       const EigenSTL::vector_Affine3d &poses)
 {
   CollisionWorldFCL::addToObject(id, shapes, poses);
   cworld_distance_->addToObject(id, shapes, poses);

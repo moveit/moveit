@@ -116,17 +116,17 @@ public:
    * \param iterative Calculate the changes in the object voxels, and propogate the changes outward.
    *        Otherwise, clear the distance map and recalculate the entire voxel map.
    */
-  virtual void updatePointsInField(const std::vector<Eigen::Vector3d>& points, const bool iterative=true);
+  virtual void updatePointsInField(const EigenSTL::vector_Vector3d& points, const bool iterative=true);
 
   /**
    * \brief Add (and expand) a set of points to the distance field.
    */
-  virtual void addPointsToField(const std::vector<Eigen::Vector3d>& points);
+  virtual void addPointsToField(const EigenSTL::vector_Vector3d& points);
 
   /**
    * \brief Incrementally remove the set of points in the distance field.
    */
-  virtual void removePointsFromField(const std::vector<Eigen::Vector3d>& points);
+  virtual void removePointsFromField(const EigenSTL::vector_Vector3d& points);
 
   /**
    * \brief Resets the distance field to the max_distance.
@@ -189,7 +189,7 @@ private:
   void initNeighborhoods();
   static int eucDistSq(int3 point1, int3 point2);
   void print(const VoxelSet & set);
-  void print(const std::vector<Eigen::Vector3d>& points);
+  void print(const EigenSTL::vector_Vector3d& points);
 };
 
 ////////////////////////// inline functions follow ////////////////////////////////////////
@@ -220,9 +220,9 @@ class SignedPropagationDistanceField : public DistanceField
                                  double origin_y, double origin_z, double max_distance);
   virtual ~SignedPropagationDistanceField();
   
-  virtual void addPointsToField(const std::vector<Eigen::Vector3d> &points);
+  virtual void addPointsToField(const EigenSTL::vector_Vector3d &points);
 
-  virtual void removePointsFromField(const std::vector<Eigen::Vector3d> &points)
+  virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points)
   {
     reset();
   }
