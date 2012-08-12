@@ -125,6 +125,12 @@ class MoveGroupCommander:
     def forget_joint_values(self, name):
         self._g.forget_joint_values(name)
 
+    def get_goal_tolerance(self):
+        return self._g.get_goal_tolerance()
+
+    def set_goal_tolerance(self, value):
+        self._g.set_goal_tolerance(value)
+
     def go(self, joints = None, wait = True):
         """ Set the target of the group and then move the group to the specified target """
         if type(joints) is bool:

@@ -153,6 +153,9 @@ class MoveGroupCommandInterpreter:
                 return (MoveGroupInfoLevel.INFO, g.get_end_effector_link())
             else:
                 return (MoveGroupInfoLevel.INFO, "There is no end effector defined")
+            
+        if cmd == "tol":
+            return (MoveGroupInfoLevel.INFO, str(g.get_goal_tolerance()))
 
         # see if we have assignment between variables
         assign_match = re.match(r"^(\w+)\s*=\s*(\w+)$", cmd)
@@ -230,6 +233,12 @@ class MoveGroupCommandInterpreter:
                     return (MoveGroupInfoLevel.INFO, "[" + " ".join([str(x) for x in known[clist[1]]]) + "]")
                 else:
                     return (MoveGroupInfoLevel.WARN, "Joint values for " + clist[1] + " are not known")
+            elif clist[0] == "tol":
+                try:
+                    g.set_goal_tolerance(float(clist[1]))
+                    return (MoveGroupInfoLevel.SUCCESS, "OK")
+                except:
+                    return (MoveGroupInfoLevel.WARN, "Unable to parse tolerance value '" + clist[1] + "'")
             elif clist[0] == "wait":
                 try:
                     time.sleep(float(clist[1]))
