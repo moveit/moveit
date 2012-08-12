@@ -27,18 +27,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Author: Ioan Sucan, Dave Coleman */
-
 #ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_H
 #define MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_H
 
-#include "rviz/helpers/color.h"
 #include "rviz/display.h"
+#include "rviz/selection/forwards.h"
+#include "rviz/properties/forwards.h"
+#include "rviz/helpers/color.h"
 
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
+
 #include <OGRE/OgreMaterial.h>
+
 #include <ros/ros.h>
+
 #include <map>
 
 namespace Ogre
@@ -51,13 +54,7 @@ class ManualObject;
 namespace rviz
 {
 class Robot;
-class RobotLink; //?
 class Shape;
-class Property;
-class StringProperty;
-class BoolProperty;
-class FloatProperty;
-class RosTopicProperty;
 }
 
 namespace moveit_rviz_plugin
@@ -69,60 +66,39 @@ namespace moveit_rviz_plugin
  */
 class PlanningDisplay : public rviz::Display
 {
-  Q_OBJECT
-
-  public:
-
-  /**
-   * \brief Contructor
-   */
+public:
   PlanningDisplay();
-
-  /**
-   * \brief Destructor
-   */
   virtual ~PlanningDisplay();
 
-  /**
-   * \brief Called when plugin is ready to be loaded. Overrides from Display
-   */
   virtual void onInitialize();
-
-  /**
-   * \brief Overrides from Display
-   */
-  virtual void update(float wall_dt, float ros_dt);
-
-  /**
-   * \brief Called to reset plugin
-   */
   virtual void reset();
 
   /**
-   * \brief Robot Description parameter name
+   * \brief Set the robot description parameter
+   * @param description_param The ROS parameter name which contains the robot xml description
    */
-  void setRobotDescription(const std::string &name);
-  const std::string getRobotDescription(void);
+  void setRobotDescription( const std::string& description_param );
+  const std::string& getRobotDescription() { return description_param_; }
+
 
   /**
    * \brief Set the topic to listen on for the JointPath message
    * @param topic The ROS topic
    */
   void setTrajectoryTopic( const std::string& topic );
-  const std::string getTrajectoryTopic();
+  const std::string& getTrajectoryTopic() { return display_trajectory_topic_; }
+
 
   /**
    * \brief Set the amount of time each state should display for
    * @param time The length of time, in seconds
    */
   void setStateDisplayTime( float time );
-  float getStateDisplayTime();
+  float getStateDisplayTime() { return state_display_time_; }
 
-  /**
-   * \brief
-   */
   void setSceneDisplayTime( float time );
-  float getSceneDisplayTime();
+  float getSceneDisplayTime() { return scene_display_time_; }
+
 
   /**
    * \brief Set whether the scene representation should be displayed
@@ -152,86 +128,36 @@ class PlanningDisplay : public rviz::Display
   void setCollisionVisible( bool visible );
   bool getCollisionVisible();
 
-  /**
-   * \brief
-   */
+  const std::string& getPlanningSceneTopic(void) { return planning_scene_topic_; }
   void setPlanningSceneTopic(const std::string &topic);
-  const std::string getPlanningSceneTopic(void);
 
-  /**
-   * \brief
-   */
-  void setRobotPathAlpha( float alpha );
-  float getRobotPathAlpha();
+  void setRobotAlpha( float alpha );
+  float getRobotAlpha() { return robot_path_alpha_; }
 
-  /**
-   * \brief Set of functions for highlighting parts of a robot
-   */
-  void setUnsetLinkColor( const std::string& link_name, float red, float green, float blue, bool set );
-  void setLinkColor( const std::string& link_name, float red, float green, float blue );
-  void unsetLinkColor( const std::string& link_name );
-
-  /**
-   * \brief
-   */
   void setSceneRobotAlpha( float alpha );
-  float getSceneRobotAlpha();
+  float getSceneRobotAlpha() { return robot_scene_alpha_; }
 
-  /**
-   * \brief
-   */
   void setSceneAlpha( float alpha );
-  float getSceneAlpha();
+  float getSceneAlpha() { return scene_alpha_; }
 
-  /**
-   * \brief
-   */
+
+  bool getLoopDisplay() { return loop_display_; }
   void setLoopDisplay(bool loop_display);
-  bool getLoopDisplay();
 
-  /**
-   * \brief
-   */
+  const std::string& getSceneName(void) { return scene_name_; }
   void setSceneName(const std::string &name);
-  const std::string getSceneName(void);
 
-  /**
-   * \brief
-   */
+  const std::string& getRootLinkName(void) { return root_link_name_; }
   void setRootLinkName(const std::string &name);
-  const std::string getRootLinkName(void);
 
+  virtual void update(float wall_dt, float ros_dt);
 
   // Overrides from Display
   virtual void targetFrameChanged() {}
   virtual void fixedFrameChanged();
-
-
-private Q_SLOTS:
-  // ******************************************************************************************
-  // Slot Event Functions
-  // ******************************************************************************************
-  void changedRobotDescription();
-  void changedSceneName();
-  void changedRootLinkName();
-  void changedSceneEnabled();
-  void changedSceneRobotEnabled();
-  void changedRobotSceneAlpha();
-  void changedSceneAlpha();
-  void changedSceneDisplayTime();
-  void changedPlanningSceneTopic();
-  void changedVisualEnabled();
-  void changedCollisionEnabled();
-  void changedRobotPathAlpha();
-  void changedStateDisplayTime();
-  void changedLoopDisplay();
-  void changedTrajectoryTopic();
+  virtual void createProperties();
 
 protected:
-  // ******************************************************************************************
-  // Protected
-  // ******************************************************************************************
-
 
   /**
    * \brief Subscribes to any ROS topics we need to subscribe to
@@ -284,6 +210,21 @@ protected:
 
   ros::Subscriber sub_;
 
+  // values filled in by properties on side panel
+  std::string display_trajectory_topic_;
+  std::string description_param_;             ///< ROS parameter that contains the robot xml description
+  float robot_path_alpha_;
+  float robot_scene_alpha_;
+  float scene_alpha_;
+  bool loop_display_;
+  bool display_scene_;
+  bool display_scene_robot_;
+  float state_display_time_;
+  float scene_display_time_;
+  std::string planning_scene_topic_;
+  std::string scene_name_;
+  std::string root_link_name_;
+
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
   boost::scoped_ptr<ReceivedTrajectoryMessage> displaying_trajectory_message_;
@@ -300,26 +241,26 @@ protected:
   ros::Time last_scene_render_;
 
   // properties to show on side panel
-  rviz::Property* scene_category_;
-  rviz::Property* path_category_;
-  rviz::StringProperty* robot_description_property_;
-  rviz::StringProperty* scene_name_property_;
-  rviz::StringProperty* root_link_name_property_;
-  rviz::BoolProperty* visual_enabled_property_;
-  rviz::BoolProperty* collision_enabled_property_;
-  rviz::BoolProperty* scene_enabled_property_;
-  rviz::BoolProperty* scene_robot_enabled_property_;
-  rviz::FloatProperty* state_display_time_property_;
-  rviz::FloatProperty* scene_display_time_property_;
-  rviz::RosTopicProperty* trajectory_topic_property_;
-  rviz::RosTopicProperty* planning_scene_topic_property_;
-  rviz::FloatProperty* robot_path_alpha_property_;
-  rviz::FloatProperty* robot_scene_alpha_property_;
-  rviz::FloatProperty* scene_alpha_property_;
-  rviz::BoolProperty* loop_display_property_;
+  rviz::CategoryPropertyWPtr scene_category_;
+  rviz::CategoryPropertyWPtr path_category_;
+  rviz::StringPropertyWPtr scene_name_property_;
+  rviz::StringPropertyWPtr root_link_name_property_;
+  rviz::BoolPropertyWPtr visual_enabled_property_;
+  rviz::BoolPropertyWPtr collision_enabled_property_;
+  rviz::BoolPropertyWPtr scene_enabled_property_;
+  rviz::BoolPropertyWPtr scene_robot_enabled_property_;
+  rviz::FloatPropertyWPtr state_display_time_property_;
+  rviz::FloatPropertyWPtr scene_display_time_property_;
+  rviz::StringPropertyWPtr robot_description_property_;
+  rviz::ROSTopicStringPropertyWPtr trajectory_topic_property_;
+  rviz::ROSTopicStringPropertyWPtr planning_scene_topic_property_;
+  rviz::FloatPropertyWPtr robot_path_alpha_property_;
+  rviz::FloatPropertyWPtr robot_scene_alpha_property_;
+  rviz::FloatPropertyWPtr scene_alpha_property_;
+  rviz::BoolPropertyWPtr loop_display_property_;
 
 };
 
 } // namespace moveit_rviz_plugin
 
-#endif
+ #endif

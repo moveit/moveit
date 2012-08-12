@@ -52,8 +52,8 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 
 // Used for loading kinematic model
-static const std::string ROBOT_DESCRIPTION = "robot_description";
-static const std::string MOVEIT_PLANNING_SCENE = "moveit_planning_scene";
+static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string MOVEIT_PLANNING_SCENE="moveit_planning_scene";
 
 // ******************************************************************************************
 // Structs
@@ -197,10 +197,14 @@ private:
   planning_scene::PlanningScenePtr planning_scene_;
 };
 
+// ******************************************************************************************
+// Boost Pointers
+// ******************************************************************************************
+
 /// Create a shared pointer for passing this data object between widgets
 typedef boost::shared_ptr<MoveItConfigData> MoveItConfigDataPtr;
 
 
-} // namespace 
+} // namespace
 
 #endif

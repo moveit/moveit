@@ -64,7 +64,7 @@
 #include <ros/ros.h>
 #include <boost/program_options.hpp> // for parsing input arguments
 
-// Forward declarations 
+// Forward declarations for rviz
 namespace rviz
 {
 class GridDisplay;
@@ -72,10 +72,6 @@ class RenderPanel;
 class VisualizationManager;
 }
 
-namespace moveit_rviz_plugin
-{
-class PlanningDisplay;
-}
 
 namespace moveit_setup_assistant
 {
@@ -169,23 +165,6 @@ private Q_SLOTS:
    */
   void setModalMode( bool isModal );
 
-  /**
-   * Highlight a link of the robot
-   *
-   * @param link_name name of link to highlight
-   */
-  void highlightLink( const std::string& link_name );
-
-  /**
-   * Highlight a robot group
-   */
-  void highlightGroup( const std::string& group_name );
-
-  /**
-   * Unhighlight all links of a robot
-   */
-  void unhighlightAll();
-
 private:
 
 
@@ -195,20 +174,20 @@ private:
   QList<QString> nav_name_list_;
   NavigationWidget *navs_view_;
   
-  QWidget *middle_frame_;
+  QWidget *right_frame_;
   QWidget *rviz_container_;
   QSplitter *splitter_;
   QStackedLayout *main_content_;
 
   // Rviz Panel
+  //  rviz::VisualizationPanel* rviz_frame_;
   rviz::RenderPanel* rviz_render_panel_;
   rviz::VisualizationManager* rviz_manager_;
   Ogre::LogManager* log_manager_;
-  moveit_rviz_plugin::PlanningDisplay* planning_display_;
 
   // Screen Widgets
   StartScreenWidget *ssw_;
-  DefaultCollisionsWidget *dcw_;
+  DefaultCollisionsWidget *cdcw_;
   PlanningGroupsWidget *pgw_;
   RobotPosesWidget *rpw_;
   EndEffectorsWidget *efw_;

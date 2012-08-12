@@ -70,11 +70,8 @@ namespace fs = boost::filesystem;
 StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
   :  SetupScreenWidget( parent ), config_data_( config_data )
 {
-
-  
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout( this );
-
   // Horizontal layout splitter
   QHBoxLayout *hlayout = new QHBoxLayout( );
   // Left side of screen
@@ -146,7 +143,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   next_label_->setFont( next_label_font );
   //next_label_->setWordWrap(true);
   next_label_->setText( "Success! Use the left navigation pane to continue." );
-  //  next_label_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  next_label_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
   next_label_->hide(); // only show once the files have been loaded.
 
   // Right Image Area ----------------------------------------------
@@ -194,7 +191,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   layout->addLayout( load_files_layout );
 
   this->setLayout(layout);
-  //  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 
   // Debug mode:
@@ -207,8 +204,6 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
     connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
     update_timer->start( 100 );
   }
-
-
 }
 
 // ******************************************************************************************
@@ -403,13 +398,6 @@ bool StartScreenWidget::loadNewFiles()
 {
   // Get URDF file path
   config_data_->urdf_path_ = urdf_file_->getPath();
-
-  // Check that box is filled out
-  if( config_data_->urdf_path_.empty() )
-  {
-    QMessageBox::warning( this, "Error Loading Files", "No robot model file specefied" );
-    return false;
-  }
 
   // Check that this file exits
   if( ! fs::is_regular_file( config_data_->urdf_path_ ) )
@@ -875,8 +863,7 @@ SelectModeWidget::SelectModeWidget( QWidget* parent )
   QLabel * widget_instructions = new QLabel(this);
   widget_instructions->setText( "All settings for MoveIt are stored in a Moveit configuration package. Here you have the option to create a new configuration package from scractch, or load an existing one. Note: any changes to a MoveIt configuration package outside this setup assistant will likely be overwritten by this tool." );
   widget_instructions->setWordWrap(true);
-  //widget_instructions->setMinimumWidth(1);
-  widget_instructions->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Preferred );
+  widget_instructions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   layout->addWidget( widget_instructions);
   layout->setAlignment( widget_instructions, Qt::AlignTop);
 
