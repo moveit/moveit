@@ -104,10 +104,10 @@ void PropagationDistanceField::print(const VoxelSet & set)
   ROS_DEBUG_STREAM( "] size=" << set.size() << std::endl );
 }
 
-void PropagationDistanceField::print(const std::vector<Eigen::Vector3d>& points)
+void PropagationDistanceField::print(const EigenSTL::vector_Vector3d& points)
 {
   ROS_DEBUG_STREAM( "[" );
-  std::vector<Eigen::Vector3d>::const_iterator it;
+  EigenSTL::vector_Vector3d::const_iterator it;
   for( it=points.begin(); it!=points.end(); ++it)
   {
     Eigen::Vector3d loc1 = *it;
@@ -117,7 +117,7 @@ void PropagationDistanceField::print(const std::vector<Eigen::Vector3d>& points)
 }
 
 
-void PropagationDistanceField::updatePointsInField(const std::vector<Eigen::Vector3d>& points, bool iterative)
+void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector3d& points, bool iterative)
 {
   VoxelSet points_added;
   VoxelSet points_removed(object_voxel_locations_);
@@ -192,7 +192,7 @@ void PropagationDistanceField::updatePointsInField(const std::vector<Eigen::Vect
     ROS_DEBUG_STREAM( std::endl );
 }
 
-void PropagationDistanceField::addPointsToField(const std::vector<Eigen::Vector3d>& points)
+void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)
 {
   VoxelSet voxel_locs;
 
@@ -220,7 +220,7 @@ void PropagationDistanceField::addPointsToField(const std::vector<Eigen::Vector3
   addNewObstacleVoxels( voxel_locs );
 }
 
-void PropagationDistanceField::removePointsFromField(const std::vector<Eigen::Vector3d>& points)
+void PropagationDistanceField::removePointsFromField(const EigenSTL::vector_Vector3d& points)
 {
   VoxelSet voxel_locs;
 
@@ -538,7 +538,7 @@ int SignedPropagationDistanceField::eucDistSq(int3 point1, int3 point2)
   return dx*dx + dy*dy + dz*dz;
 }
 
-void SignedPropagationDistanceField::addPointsToField(const std::vector<Eigen::Vector3d>& points)
+void SignedPropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)
 {
   // initialize the bucket queue
   positive_bucket_queue_.resize(max_distance_sq_+1);

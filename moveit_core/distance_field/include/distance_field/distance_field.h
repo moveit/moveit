@@ -44,7 +44,7 @@
 #include <visualization_msgs/Marker.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-
+#include <geometric_shapes/eigen_types.h>
 #include <moveit_msgs/CollisionMap.h>
 
 namespace distance_field
@@ -92,9 +92,9 @@ public:
    * correspondingly. Use the reset() function if you need to remove all points and start
    * afresh.
    */
-  virtual void addPointsToField(const std::vector<Eigen::Vector3d> &points)=0;
+  virtual void addPointsToField(const EigenSTL::vector_Vector3d &points)=0;
 
-  virtual void removePointsFromField(const std::vector<Eigen::Vector3d> &points)=0;
+  virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points)=0;
 
   /**
    * \brief Adds the points in a collision map to the distance field.

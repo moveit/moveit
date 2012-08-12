@@ -129,7 +129,7 @@ public:
   
   virtual void addToObject(const std::string &id, 
                            const std::vector<shapes::ShapeConstPtr> &shapes, 
-                           const std::vector<Eigen::Affine3d> &poses);
+                           const EigenSTL::vector_Affine3d &poses);
   
   virtual void addToObject(const std::string &id, 
                            const shapes::ShapeConstPtr &shape, 
@@ -172,8 +172,8 @@ protected:
 
   void updateDistanceObject(const std::string& id,
                             boost::shared_ptr<CollisionWorldDistanceField::DistanceFieldCacheEntry>& dfce,
-                            std::vector<Eigen::Vector3d>& add_points,
-                            std::vector<Eigen::Vector3d>& subtract_points);
+                            EigenSTL::vector_Vector3d& add_points,
+                            EigenSTL::vector_Vector3d& subtract_points);
 
   bool getEnvironmentCollisions(const CollisionRequest& req,
                                 CollisionResult& res,

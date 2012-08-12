@@ -230,7 +230,7 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
     bool is_link = i < gsr->dfce_->link_names_.size();
     if((is_link && !gsr->dfce_->link_has_geometry_[i]) || !gsr->dfce_->self_collision_enabled_[i]) continue;
     const std::vector<CollisionSphere>* collision_spheres_1;
-    const std::vector<Eigen::Vector3d>* sphere_centers_1;
+    const EigenSTL::vector_Vector3d* sphere_centers_1;
     if(is_link) {
       collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
@@ -299,7 +299,7 @@ bool CollisionRobotDistanceField::getSelfProximityGradients(boost::shared_ptr<Gr
     bool is_link = i < gsr->dfce_->link_names_.size();
     if((is_link && !gsr->dfce_->link_has_geometry_[i]) || !gsr->dfce_->self_collision_enabled_[i]) continue;
     const std::vector<CollisionSphere>* collision_spheres_1;
-    const std::vector<Eigen::Vector3d>* sphere_centers_1;
+    const EigenSTL::vector_Vector3d* sphere_centers_1;
     if(is_link) {
       collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
@@ -400,8 +400,8 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
       }
       const std::vector<CollisionSphere>* collision_spheres_1;
       const std::vector<CollisionSphere>* collision_spheres_2;
-      const std::vector<Eigen::Vector3d>* sphere_centers_1;
-      const std::vector<Eigen::Vector3d>* sphere_centers_2;
+      const EigenSTL::vector_Vector3d* sphere_centers_1;
+      const EigenSTL::vector_Vector3d* sphere_centers_2;
       if(i_is_link) {
         collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
         sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
@@ -484,8 +484,8 @@ bool CollisionRobotDistanceField::getIntraGroupProximityGradients(boost::shared_
       if(!gsr->dfce_->intra_group_collision_enabled_[i][j]) continue;
       const std::vector<CollisionSphere>* collision_spheres_1;
       const std::vector<CollisionSphere>* collision_spheres_2;
-      const std::vector<Eigen::Vector3d>* sphere_centers_1;
-      const std::vector<Eigen::Vector3d>* sphere_centers_2;
+      const EigenSTL::vector_Vector3d* sphere_centers_1;
+      const EigenSTL::vector_Vector3d* sphere_centers_2;
       if(i_is_link) {
         collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
         sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
@@ -710,7 +710,7 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
     //TODO - deal with AllowedCollisionMatrix
     //now we need to actually set the points
     //TODO - deal with shifted robot
-    std::vector<Eigen::Vector3d> all_points;
+    EigenSTL::vector_Vector3d all_points;
     for(unsigned int i = 0; i < non_group_link_decompositions.size(); i++) {
       all_points.insert(all_points.end(),
                         non_group_link_decompositions[i]->getCollisionPoints().begin(),

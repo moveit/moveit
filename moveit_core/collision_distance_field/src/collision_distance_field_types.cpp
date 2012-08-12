@@ -57,9 +57,9 @@ std::vector<collision_detection::CollisionSphere> collision_detection::determine
   return css; 
 }
 
-std::vector<Eigen::Vector3d> collision_detection::determineCollisionPoints(const bodies::Body* body, double resolution)
+EigenSTL::vector_Vector3d collision_detection::determineCollisionPoints(const bodies::Body* body, double resolution)
 {
-  std::vector<Eigen::Vector3d> ret_vec;
+  EigenSTL::vector_Vector3d ret_vec;
   bodies::BoundingSphere sphere;
   body->computeBoundingSphere(sphere);
   //ROS_INFO_STREAM("Radius is " << sphere.radius);
@@ -79,7 +79,7 @@ std::vector<Eigen::Vector3d> collision_detection::determineCollisionPoints(const
 
 bool collision_detection::getCollisionSphereGradients(const distance_field::DistanceField* distance_field,
                                                            const std::vector<CollisionSphere>& sphere_list,
-                                                           const std::vector<Eigen::Vector3d>& sphere_centers,
+                                                           const EigenSTL::vector_Vector3d& sphere_centers,
                                                            GradientInfo& gradient, 
                                                            const collision_detection::CollisionType& type,
                                                            double tolerance, 
@@ -122,7 +122,7 @@ bool collision_detection::getCollisionSphereGradients(const distance_field::Dist
 
 bool collision_detection::getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
                                                            const std::vector<CollisionSphere>& sphere_list,
-                                                           const std::vector<Eigen::Vector3d>& sphere_centers,
+                                                           const EigenSTL::vector_Vector3d& sphere_centers,
                                                            double maximum_value,
                                                            double tolerance)
 {
@@ -146,7 +146,7 @@ bool collision_detection::getCollisionSphereCollision(const distance_field::Dist
 
 bool collision_detection::getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
                                                            const std::vector<CollisionSphere>& sphere_list,
-                                                           const std::vector<Eigen::Vector3d>& sphere_centers,
+                                                           const EigenSTL::vector_Vector3d& sphere_centers,
                                                            double maximum_value,
                                                            double tolerance,
                                                            unsigned int num_coll,

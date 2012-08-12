@@ -107,7 +107,7 @@ public:
                                         const AllowedCollisionMatrix &acm,
                                         boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const std::vector<Eigen::Affine3d> &poses);
+  virtual void addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses);
   
   virtual void addToObject(const std::string &id, 
                            const shapes::ShapeConstPtr &shape, 
