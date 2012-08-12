@@ -294,6 +294,9 @@ void wrap_move_group_interface()
   MoveGroupClass.def("get_remembered_joint_values",  &MoveGroupWrapper::getRememberedJointValuesPython);
 
   MoveGroupClass.def("forget_joint_values", &MoveGroupWrapper::forgetJointValues); 
+
+  MoveGroupClass.def("get_goal_tolerance", &MoveGroupWrapper::getGoalTolerance); 
+  MoveGroupClass.def("set_goal_tolerance", &MoveGroupWrapper::setGoalTolerance); 
 }
 
 }
