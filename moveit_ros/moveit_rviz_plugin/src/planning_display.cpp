@@ -498,7 +498,7 @@ void PlanningDisplay::renderPlanningScene(void)
         const std_msgs::ColorRGBA &c = scene_monitor_->getPlanningScene()->getColor(attached_bodies[i]->getName());
         color.r_ = c.r; color.g_ = c.g; color.b_ = c.b; 
       }
-      const EigenSTL::vector_Affine3d &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
+      const std::vector<Eigen::Affine3d> &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
       const std::vector<shapes::ShapeConstPtr> &ab_shapes = attached_bodies[i]->getShapes();
       for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
       {
