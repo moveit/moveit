@@ -47,7 +47,8 @@ class PlanningSceneMonitor::DynamicReconfigureImpl
 { 
 public:
   
-  DynamicReconfigureImpl(PlanningSceneMonitor *owner) : owner_(owner)
+  DynamicReconfigureImpl(PlanningSceneMonitor *owner) : owner_(owner),
+							dynamic_reconfigure_server_(ros::NodeHandle("~/planning_scene_monitor"))
   {
     dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
   }

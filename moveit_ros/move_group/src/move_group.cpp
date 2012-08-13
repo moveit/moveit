@@ -74,9 +74,9 @@ public:
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     bool allow_trajectory_execution = true;
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
-    node_handle_.param("max_safe_path_cost", max_safe_cost_, 0.5);
 
-    dynamic_reconfigure_server_.setCallback(boost::bind(&MoveGroupAction::dynamicReconfigureCallback, this, _1, _2));
+    dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<move_group::MoveGroupDynamicReconfigureConfig>(ros::NodeHandle("~")));
+    dynamic_reconfigure_server_->setCallback(boost::bind(&MoveGroupAction::dynamicReconfigureCallback, this, _1, _2));
     
     if (allow_trajectory_execution)
       trajectory_execution_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
@@ -552,7 +552,6 @@ private:
   {
     max_looking_attempts_ = config.max_looking_attempts;
     max_safe_cost_ = config.max_safe_path_cost;
-    ROS_ERROR("cost = %lf", max_safe_cost_);
   }
   
   ros::NodeHandle root_node_handle_;
@@ -566,7 +565,7 @@ private:
   
   planning_pipeline::PlanningPipeline planning_pipeline_;
   
-  boost::shared_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;
+  boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;
   moveit_msgs::MoveGroupFeedback feedback_;
   
   ros::ServiceServer plan_service_;
@@ -581,7 +580,7 @@ private:
   bool execution_complete_;
   MoveGroupState state_;
 
-  dynamic_reconfigure::Server<move_group::MoveGroupDynamicReconfigureConfig> dynamic_reconfigure_server_;
+  boost::scoped_ptr<dynamic_reconfigure::Server<move_group::MoveGroupDynamicReconfigureConfig> > dynamic_reconfigure_server_;
 };
 
 
