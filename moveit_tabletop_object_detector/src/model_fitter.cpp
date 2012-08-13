@@ -52,7 +52,7 @@ DistanceFieldFitter::~DistanceFieldFitter()
   delete distance_voxel_grid_;
 }
 
-void DistanceFieldFitter::initializeFromEigenVectors(const std::vector<Eigen::Vector3d> &points) 
+void DistanceFieldFitter::initializeFromEigenVectors(const EigenSTL::vector_Vector3d &points) 
 {
   delete distance_voxel_grid_;
   distance_voxel_grid_ = NULL;
@@ -116,11 +116,11 @@ double dist(const Eigen::Vector3d &v0, const Eigen::Vector3d &v1)
 
   The vertices themselves are NOT returned in the set of points.
 */
-std::vector<Eigen::Vector3d> interpolateTriangle(Eigen::Vector3d v0, 
-					   Eigen::Vector3d v1, 
-					   Eigen::Vector3d v2, double min_res)
+EigenSTL::vector_Vector3d interpolateTriangle(Eigen::Vector3d v0, 
+                                              Eigen::Vector3d v1, 
+                                              Eigen::Vector3d v2, double min_res)
 {
-  std::vector<Eigen::Vector3d> vectors;
+  EigenSTL::vector_Vector3d vectors;
 
   //find out the interpolation resolution for the first coordinate
   //based on the size of the 0-1 and 0-2 edges
@@ -170,7 +170,7 @@ std::vector<Eigen::Vector3d> interpolateTriangle(Eigen::Vector3d v0,
 }
 
 void ModelToCloudFitter::sampleMesh(const shape_msgs::Mesh &mesh, 
-				    std::vector<Eigen::Vector3d> &points,
+                                    EigenSTL::vector_Vector3d& points,
 				    double resolution)
 {
   points.reserve(mesh.vertices.size());
@@ -195,15 +195,15 @@ void ModelToCloudFitter::sampleMesh(const shape_msgs::Mesh &mesh,
     Eigen::Vector3d v2( mesh.vertices.at( mesh.triangles.at(i).vertex_indices[2]).x,
 		  mesh.vertices.at( mesh.triangles.at(i).vertex_indices[2]).y,
 		  mesh.vertices.at( mesh.triangles.at(i).vertex_indices[2]).z);
-    std::vector<Eigen::Vector3d> triangleVectors = interpolateTriangle(v0, v1, v2, resolution);
-    points.insert(points.begin(), triangleVectors.begin(), triangleVectors.end());
+    EigenSTL::vector_Vector3d triangle_vectors = interpolateTriangle(v0, v1, v2, resolution);
+    points.insert(points.begin(), triangle_vectors.begin(), triangle_vectors.end());
   }
 }
 
 
 void DistanceFieldFitter::initializeFromMesh(const shape_msgs::Mesh &mesh)
 {
-  std::vector<Eigen::Vector3d> points;
+  EigenSTL::vector_Vector3d points;
   //we use a slightly larger resolution than the distance field, in an attempt to bring
   //down pre-computation time
   sampleMesh(mesh, points,  1.5 * distance_field_resolution_ ); 
