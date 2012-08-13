@@ -11,7 +11,11 @@
   <depend package="move_group_interface"/>
   <depend package="rospy"/>
   <depend package="actionlib"/>
-  <depend package="moveit_msgs"/>
+  <depend package="moveit_msgs"/> 
+
+  <export> 
+    <python path="${prefix}/src/"/>
+  </export>
 
 </package>
 
