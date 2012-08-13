@@ -55,7 +55,7 @@ static const std::string DEFAULT_SCENE_NAME = "(noname)";
 bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningScene &msg)
 {
   return msg.name.empty() && msg.fixed_frame_transforms.empty() && msg.robot_state.multi_dof_joint_state.joint_names.empty() &&
-      msg.robot_state.joint_state.name.empty() && msg.attached_collision_objects.empty() && msg.allowed_collision_matrix.entry_names.empty() &&
+      msg.robot_state.joint_state.name.empty() && msg.robot_state.attached_collision_objects.empty() && msg.allowed_collision_matrix.entry_names.empty() &&
       msg.link_padding.empty() && msg.link_scale.empty() && msg.world.collision_objects.empty() && msg.world.octomap.data.empty() &&
       msg.world.collision_map.boxes.empty();
 }
@@ -429,7 +429,6 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
   else
   {
     scene.robot_state = moveit_msgs::RobotState();
-    scene.attached_collision_objects.clear();
   }
 
   if (acm_)
@@ -532,7 +531,7 @@ private:
 
 void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const
 {
-  scene.attached_collision_objects.clear();
+  scene.robot_state.attached_collision_objects.clear();
   std::vector<const planning_models::KinematicState::AttachedBody*> ab;
   getCurrentState().getAttachedBodies(ab);
 
@@ -562,9 +561,9 @@ void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msg
     }
     if (!aco.object.primitives.empty() || !aco.object.meshes.empty() || !aco.object.planes.empty())
     {
-      scene.attached_collision_objects.push_back(aco);
+      scene.robot_state.attached_collision_objects.push_back(aco);
       if (hasColor(aco.object.id))
-        scene.attached_collision_objects_colors.push_back(getColor(aco.object.id));
+        scene.robot_state.attached_collision_objects_colors.push_back(getColor(aco.object.id));
     }
   }
 }
@@ -726,6 +725,14 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
   }
   else
     planning_models::robotStateToKinematicState(*ftf_, state, *kstate_);
+
+  if (!state.attached_collision_objects.empty())
+    for (std::size_t i = 0 ; i < state.attached_collision_objects.size() ; ++i)
+    {
+      processAttachedCollisionObjectMsg(state.attached_collision_objects[i]);
+      if (state.attached_collision_objects_colors.size() > i)
+        setColor(state.attached_collision_objects[i].object.id, state.attached_collision_objects_colors[i]);
+    }
 }
 
 void planning_scene::PlanningScene::setCurrentState(const planning_models::KinematicState &state)
@@ -827,17 +834,9 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
   // if at least some joints have been specified, we set them
   if (!scene.robot_state.multi_dof_joint_state.joint_names.empty() ||
-      !scene.robot_state.joint_state.name.empty())
+      !scene.robot_state.joint_state.name.empty() ||
+      !scene.robot_state.attached_collision_objects.empty())
     setCurrentState(scene.robot_state);
-
-  if (!scene.attached_collision_objects.empty())
-    for (std::size_t i = 0 ; i < scene.attached_collision_objects.size() ; ++i)
-    {
-      processAttachedCollisionObjectMsg(scene.attached_collision_objects[i]);
-      if (scene.attached_collision_objects_colors.size() > i)
-        setColor(scene.attached_collision_objects[i].object.id, scene.attached_collision_objects_colors[i]);
-    }
-  
 
   // if at least some links are mentioned in the allowed collision matrix, then we have an update
   if (!scene.allowed_collision_matrix.entry_names.empty())
@@ -912,6 +911,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
     configure(urdf_model_, srdf_model_, scene.robot_model_root);
   
   ftf_->setTransforms(scene.fixed_frame_transforms);
+  kstate_->clearAttachedBodies();
   setCurrentState(scene.robot_state);
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene.allowed_collision_matrix));
   crobot_->setPadding(scene.link_padding);
@@ -925,14 +925,6 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
       setColor(scene.world.collision_objects[i].id, scene.world.colors[i]);
     else
       removeColor(scene.world.collision_objects[i].id);
-  }
-  
-  kstate_->clearAttachedBodies();
-  for (std::size_t i = 0 ; i < scene.attached_collision_objects.size() ; ++i)
-  {
-    processAttachedCollisionObjectMsg(scene.attached_collision_objects[i]);
-    if (scene.attached_collision_objects_colors.size() > i)
-      setColor(scene.attached_collision_objects[i].object.id, scene.attached_collision_objects_colors[i]);
   }
   
   processOctomapMsg(scene.world.octomap);
@@ -1111,7 +1103,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(object.object.primitive_poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.object.id.c_str());
+              ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.object.id.c_str());
               return false;
             }
 
@@ -1127,7 +1119,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(object.object.mesh_poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.object.id.c_str());
+              ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.object.id.c_str());
               return false;
             }
 
@@ -1143,7 +1135,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(object.object.plane_poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.object.id.c_str());
+              ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.object.id.c_str());
               return false;
             }
 
@@ -1256,7 +1248,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         Eigen::Affine3d p; 
         if(!planning_models::poseFromMsg(object.primitive_poses[i], p))
         {
-          ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
+          ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.id.c_str());
           return false;
         }
         cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
@@ -1270,7 +1262,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         Eigen::Affine3d p; 
         if(!planning_models::poseFromMsg(object.mesh_poses[i], p))
         {
-          ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
+          ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.id.c_str());
           return false;
         }
         cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
@@ -1284,7 +1276,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         Eigen::Affine3d p; 
         if(!planning_models::poseFromMsg(object.plane_poses[i], p))
         {
-          ROS_ERROR("Failed to convert from pose message to Eigen Affine3f for %s", object.id.c_str());
+          ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.id.c_str());
           return false;
         }
         cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
