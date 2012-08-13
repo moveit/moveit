@@ -39,7 +39,9 @@
 #include <moveit_msgs/GetMotionPlan.h>
 #include <boost/shared_ptr.hpp>
 #include <pluginlib/class_list_macros.h>
-#include <std_msgs/String.h>
+
+#include <dynamic_reconfigure/server.h>
+#include "ompl_interface_ros/OMPLDynamicReconfigureConfig.h"
 
 namespace ompl_interface_ros
 {
@@ -51,13 +53,14 @@ public:
     OMPLPlanner(void) : planning_interface::Planner(),
 			nh_("~")
     {
+      dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle("~/ompl")));
+      dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlanner::dynamicReconfigureCallback, this, _1, _2));
     }
 
     void init(const planning_models::KinematicModelConstPtr& model) 
     {
       ompl_interface_.reset(new OMPLInterfaceROS(model));
       pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
-      debug_link_sub_ = root_nh_.subscribe("ompl_planner_data_link", 1, &OMPLPlanner::newLinkDisplayCallback, this);
     }
 
     bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,
@@ -107,15 +110,6 @@ public:
 
 private:
 
-    void newLinkDisplayCallback(const std_msgs::StringConstPtr &msg)
-    {
-      planner_data_link_name_ = msg->data;
-      if (planner_data_link_name_.empty())
-	ROS_INFO("Not displaying OMPL exploration data structures.");
-      else
-	ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
-    }
-
     void displayPlannerData(const planning_scene::PlanningSceneConstPtr& planning_scene,
 			    const std::string &link_name) const
     {    
@@ -158,9 +152,18 @@ private:
       }
     }
 
+  void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig &config, uint32_t level)
+  {
+    planner_data_link_name_ = config.link_for_exploration_tree;
+    if (planner_data_link_name_.empty())
+      ROS_INFO("Not displaying OMPL exploration data structures.");
+    else
+      ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
+  }
+
   ros::NodeHandle nh_;
-  ros::NodeHandle root_nh_;
-  boost::shared_ptr<OMPLInterfaceROS> ompl_interface_;
+  boost::scoped_ptr<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig> > dynamic_reconfigure_server_;
+  boost::scoped_ptr<OMPLInterfaceROS> ompl_interface_;
   ros::Publisher pub_markers_;
   ros::Subscriber debug_link_sub_;
   std::string planner_data_link_name_;
