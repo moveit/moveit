@@ -185,8 +185,8 @@ int main(int argc, char** argv)
   Eigen::Affine3d trans(Eigen::Translation3d(0.0,0.0,-1.0)*Eigen::Quaterniond::Identity());
   collision_detection::PosedBodyPointDecomposition pbd_box(bd);
   pbd_box.updatePose(trans);
-  std::vector<Eigen::Vector3d> table_points = pbd_box.getCollisionPoints();
-  std::vector<Eigen::Vector3d> sphere_points;
+  EigenSTL::vector_Vector3d table_points = pbd_box.getCollisionPoints();
+  EigenSTL::vector_Vector3d sphere_points;
 
   //ROS_INFO_STREAM("Adding " << table_points.size() << " to field");
 
