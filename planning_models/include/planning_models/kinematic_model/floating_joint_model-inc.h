@@ -71,6 +71,10 @@ public:
   
   /// Normalize the quaternion (warn if norm is 0, and set to identity)
   void normalizeRotation(std::vector<double> &values) const;
+
+  double distanceRotation(const std::vector<double> &values1, const std::vector<double> &values2) const;
+  
+  double distanceTranslation(const std::vector<double> &values1, const std::vector<double> &values2) const;
   
 private:
   

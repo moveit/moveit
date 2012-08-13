@@ -84,6 +84,26 @@ double planning_models::KinematicModel::FloatingJointModel::distance(const std::
     return angular_distance_weight_ * acos(dq) + sqrt(dx*dx + dy*dy + dz * dz);
 }
 
+double planning_models::KinematicModel::FloatingJointModel::distanceTranslation(const std::vector<double> &values1, const std::vector<double> &values2) const
+{
+  assert(values1.size() == 7);
+  assert(values2.size() == 7);
+  double dx = values1[0] - values2[0];
+  double dy = values1[1] - values2[1];
+  double dz = values1[2] - values2[2]; 
+  return sqrt(dx*dx + dy*dy + dz * dz);
+}
+
+double planning_models::KinematicModel::FloatingJointModel::distanceRotation(const std::vector<double> &values1, const std::vector<double> &values2) const
+{
+  double dq = fabs(values1[3] * values2[3] + values1[4] * values2[4] + values1[5] * values2[5] + values1[6] * values2[6]);
+  if (dq + std::numeric_limits<double>::epsilon() >= 1.0)
+    return 0.0;
+  else
+    return acos(dq);
+}
+
+
 void planning_models::KinematicModel::FloatingJointModel::interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const
 {
   // interpolate position

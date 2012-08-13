@@ -1,0 +1,17 @@
+<package>
+  <description brief="kinematics_planner">
+
+     kinematics_planner
+
+  </description>
+  <author>Sachin Chitta</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/kinematics_planner</url>
+  <depend package="kinematics_base"/>
+  <depend package="planning_scene"/>
+  <depend package="planning_models"/>
+
+</package>
+
+

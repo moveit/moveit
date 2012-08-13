@@ -42,7 +42,6 @@
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
 
-#include <geometry_msgs/Point.h>
 #include <boost/shared_ptr.hpp>
 
 namespace kinematics_cache
@@ -56,8 +55,9 @@ namespace kinematics_cache
     struct Options
     {
       unsigned int num_prefix;
-      geometry_msgs::Point origin, workspace_size;
-      double resolution;
+      geometry_msgs::Point origin;
+      boost::array<double,3> workspace_size;
+      boost::array<double,3> resolution;
       unsigned int max_solutions_per_grid_location;      
     };
                
@@ -107,19 +107,19 @@ namespace kinematics_cache
                     const KinematicsCache::Options &opt);    
 
     /** @brief Return the instance of the kinematics solver */
-    kinematics::KinematicsBaseConstPtr& getSolverInstance(void)
+    const kinematics::KinematicsBaseConstPtr& getSolverInstance(void) const
     {
       return kinematics_solver_;
     }
     
     /** @brief Return the instance of the kinematics model */
-    planning_models::KinematicModelConstPtr& getModelInstance(void)
+    const planning_models::KinematicModelConstPtr& getModelInstance(void) const
     {
       return kinematic_model_;
     }
     
     /** @brief Return the cache parameters used for cache construction */
-    const Options& getCacheParameters(void)
+    const Options& getCacheParameters(void) const
     {
       return options_;
     }
@@ -130,7 +130,7 @@ namespace kinematics_cache
     unsigned int getSolutionLocation(unsigned int &grid_index, unsigned int &solution_index) const;
     
     /** @brief Get a solution for the grid index given the solution index */
-    std::vector<double>& getSolution(unsigned int &grid_index, unsigned int solution_index) const;
+    std::vector<double> getSolution(unsigned int grid_index, unsigned int solution_index) const;
     
     /** @brief Add a new solution to the cache at the given location */
     bool addToCache(const geometry_msgs::Pose &pose, const std::vector<double> &joint_values);    
@@ -140,7 +140,7 @@ namespace kinematics_cache
     
     KinematicsCache::Options options_; /** Internal copy of cache parameters */
     geometry_msgs::Point cache_origin_;/** Origin for cache workspace */
-    double cache_resolution_; /** Resolution for grid (in m) */
+    double cache_resolution_x_,cache_resolution_y_,cache_resolution_z_; /** Resolution for grid (in m) */
     unsigned int cache_size_x_, cache_size_y_, cache_size_z_; /** Number of elements in XYZ grid */
     unsigned int max_solutions_per_grid_location_; /** Max number of solutions per grid location */
     unsigned int solution_dimension_; /** Dimension of each solution */
@@ -159,7 +159,7 @@ namespace kinematics_cache
     const planning_models::KinematicModel::JointModelGroup* joint_model_group_; /** Joint model group associated with this cache */
     boost::shared_ptr<planning_models::KinematicState::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
     
-    mutable std::vector<double> solution_local_; /** Local pre-allocated storage */
+    //    mutable std::vector<double> solution_local_; /** Local pre-allocated storage */
   };
     
 }

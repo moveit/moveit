@@ -57,16 +57,18 @@ bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr &kinematics_
   joint_state_group_.reset(new planning_models::KinematicState::JointStateGroup(kinematic_state_.get(),joint_model_group_));
 
   cache_origin_ = opt.origin;
-  cache_resolution_ = opt.resolution;
-  cache_size_x_ = (unsigned int) (opt.workspace_size.x/opt.resolution);
-  cache_size_y_ = (unsigned int) (opt.workspace_size.y/opt.resolution);
-  cache_size_z_ = (unsigned int) (opt.workspace_size.z/opt.resolution);
+  cache_resolution_x_ = opt.resolution[0];
+  cache_resolution_y_ = opt.resolution[1];
+  cache_resolution_z_ = opt.resolution[2];
+
+  cache_size_x_ = (unsigned int) (opt.workspace_size[0]/opt.resolution[0]);
+  cache_size_y_ = (unsigned int) (opt.workspace_size[1]/opt.resolution[1]);
+  cache_size_z_ = (unsigned int) (opt.workspace_size[2]/opt.resolution[2]);
   max_solutions_per_grid_location_ = opt.max_solutions_per_grid_location;
   solution_dimension_ = joint_model_group_->getVariableCount();  
   size_grid_node_ = max_solutions_per_grid_location_ * solution_dimension_;  
   kinematics_cache_size_ = cache_size_x_*cache_size_y_*cache_size_z_;
   kinematics_cache_points_with_solution_ = 0;  
-  solution_local_.resize(solution_dimension_);
   kinematics_cache_vector_.resize(kinematics_cache_size_*size_grid_node_,0.0);    
   num_solutions_vector_.resize(kinematics_cache_size_,0);  
   ROS_INFO("Origin: %f %f %f",cache_origin_.x,cache_origin_.y,cache_origin_.z);
@@ -133,9 +135,9 @@ bool KinematicsCache::addToCache(const geometry_msgs::Pose &pose, const std::vec
 
 bool KinematicsCache::getGridIndex(const geometry_msgs::Pose &pose, unsigned int &grid_index) const
 {
-  int x_index = (int) ((pose.position.x - cache_origin_.x) /cache_resolution_);
-  int y_index = (int) ((pose.position.y - cache_origin_.y) /cache_resolution_);
-  int z_index = (int) ((pose.position.z - cache_origin_.z) /cache_resolution_);
+  int x_index = (int) ((pose.position.x - cache_origin_.x) /cache_resolution_x_);
+  int y_index = (int) ((pose.position.y - cache_origin_.y) /cache_resolution_y_);
+  int z_index = (int) ((pose.position.z - cache_origin_.z) /cache_resolution_z_);
 
   if(x_index >= (int) cache_size_x_ || x_index < 0)
   {    
@@ -203,12 +205,13 @@ bool KinematicsCache::getSolutions(const geometry_msgs::Pose &pose, std::vector<
   return true;
 }
 
-std::vector<double>& KinematicsCache::getSolution(unsigned int &grid_index, unsigned int solution_index) const
-{  
+std::vector<double> KinematicsCache::getSolution(unsigned int grid_index, unsigned int solution_index) const
+{
+  std::vector<double> solution_local(solution_dimension_);
   unsigned int solution_location = getSolutionLocation(grid_index,solution_index);
   for(unsigned int i=0; i < solution_dimension_; ++i)
-    solution_local_[i] = kinematics_cache_vector_[solution_location+i];  
-  return solution_local_;  
+    solution_local[i] = kinematics_cache_vector_[solution_location+i];  
+  return solution_local;  
 }
 
 }
