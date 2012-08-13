@@ -34,7 +34,7 @@
 
 import roslib
 roslib.load_manifest('move_group_interface')
-from move_group import MoveGroup
+from move_group_interface import MoveGroup
 
 class MoveGroupCommander:
     """
