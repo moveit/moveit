@@ -48,6 +48,9 @@
 #include <boost/algorithm/string/join.hpp>
 #include <collision_detection/collision_tools.h>
 
+#include <dynamic_reconfigure/server.h>
+#include "move_group/MoveGroupDynamicReconfigureConfig.h"
+
 static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";
 static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
@@ -73,6 +76,8 @@ public:
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
     node_handle_.param("max_safe_path_cost", max_safe_cost_, 0.5);
 
+    dynamic_reconfigure_server_.setCallback(boost::bind(&MoveGroupAction::dynamicReconfigureCallback, this, _1, _2));
+    
     if (allow_trajectory_execution)
       trajectory_execution_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
     
@@ -541,6 +546,14 @@ private:
   {
     return lookAt(std::vector<Eigen::Vector3d>(1, point));
   }
+
+
+  void dynamicReconfigureCallback(move_group::MoveGroupDynamicReconfigureConfig &config, uint32_t level)
+  {
+    max_looking_attempts_ = config.max_looking_attempts;
+    max_safe_cost_ = config.max_safe_path_cost;
+    ROS_ERROR("cost = %lf", max_safe_cost_);
+  }
   
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
@@ -567,6 +580,8 @@ private:
   bool preempt_requested_;
   bool execution_complete_;
   MoveGroupState state_;
+
+  dynamic_reconfigure::Server<move_group::MoveGroupDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
 
