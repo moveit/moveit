@@ -13,10 +13,6 @@
   <depend package="actionlib"/>
   <depend package="moveit_msgs"/> 
 
-  <export> 
-    <python path="${prefix}/src/"/>
-  </export>
-
 </package>
 
 

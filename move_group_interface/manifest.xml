@@ -23,7 +23,6 @@
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmove_group_interface"/>     
-    <python path="${prefix}/src/:${prefix}/lib/"/>
   </export>
 
 </package>
