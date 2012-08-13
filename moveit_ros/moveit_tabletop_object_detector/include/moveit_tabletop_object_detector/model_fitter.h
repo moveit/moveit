@@ -42,6 +42,8 @@
 #include <algorithm>
 
 #include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <geometric_shapes/eigen_types.h>
 
 #include <geometry_msgs/Point32.h>
 #include <geometry_msgs/Pose.h>
@@ -104,7 +106,9 @@ class ModelToCloudFitter
   //! The id of this model if loaded from the model database
   int model_id_;
 
-  void sampleMesh(const shape_msgs::Mesh &mesh, std::vector<Eigen::Vector3d> &btVectors, double resolution);
+  void sampleMesh(const shape_msgs::Mesh &mesh, 
+                  EigenSTL::vector_Vector3d& points,
+                  double resolution);
 
  public:
 
@@ -146,7 +150,7 @@ class DistanceFieldFitter : public ModelToCloudFitter
   float truncate_value_;
 
   //! Initialize the distance field from a set of vertices
-  void initializeFromEigenVectors(const std::vector<Eigen::Vector3d> &points);
+  void initializeFromEigenVectors(const EigenSTL::vector_Vector3d& points);
 
  public:
   //! Initialize distance voxel grid to NULL and set default values for grid parameters
