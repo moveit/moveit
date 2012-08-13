@@ -34,7 +34,7 @@
 
 import roslib
 roslib.load_manifest('moveit_commander')
-from moveit_commander import MoveGroupCommander
+from moveit_commander import MoveGroupCommander, OMPLDebug
 import re
 import time
 
@@ -58,6 +58,7 @@ class MoveGroupCommandInterpreter:
     def __init__(self):
         self._gdict = {}
         self._group_name = ""
+        self._ompl = OMPLDebug()
 
     def get_active_group(self):
         return self._group_name
@@ -245,10 +246,16 @@ class MoveGroupCommandInterpreter:
                     return (MoveGroupInfoLevel.SUCCESS, clist[1] + " seconds passed")
                 except:
                     return (MoveGroupInfoLevel.WARN, "Unable to wait '" + clist[1] + "' seconds")
+            elif clist[0] == "ompl" and clist[1] == "tree":
+                self._ompl.show_exploration_tree("")
+                return (MoveGroupInfoLevel.INFO, "OK")
             else:
                 return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
 
         if len(clist) == 3:
+            if clist[0] == "ompl" and clist[1] == "tree":
+                self._ompl.show_exploration_tree(clist[2])
+                return (MoveGroupInfoLevel.INFO, "OK")
             if clist[0] == "go" and self.GO_DIRS.has_key(clist[1]):     
                 try:
                     offset = float(clist[2])

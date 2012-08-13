@@ -57,7 +57,7 @@ public:
     {
       ompl_interface_.reset(new OMPLInterfaceROS(model));
       pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
-      debug_link_sub_ = nh_.subscribe("ompl_planner_data_link", 1, &OMPLPlanner::newLinkDisplayCallback, this);
+      debug_link_sub_ = root_nh_.subscribe("ompl_planner_data_link", 1, &OMPLPlanner::newLinkDisplayCallback, this);
     }
 
     bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,
@@ -159,6 +159,7 @@ private:
     }
 
   ros::NodeHandle nh_;
+  ros::NodeHandle root_nh_;
   boost::shared_ptr<OMPLInterfaceROS> ompl_interface_;
   ros::Publisher pub_markers_;
   ros::Subscriber debug_link_sub_;
