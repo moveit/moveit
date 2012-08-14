@@ -34,6 +34,7 @@
 #include <moveit_visualization_ros/interactive_object_visualization_qt_wrapper.h>
 #include <moveit_visualization_ros/interactive_object_visualization_widget.h>
 #include <moveit_visualization_ros/planning_group_selection_menu.h>
+#include <moveit_visualization_ros/planner_selection_menu.h>
 #include <moveit_visualization_ros/planning_scene_file_menu.h>
 #include <moveit_visualization_ros/planning_visualization_qt_wrapper.h>
 #include <moveit_visualization_ros/attach_object_addition_dialog.h>
@@ -95,6 +96,7 @@ namespace moveit_visualization_ros {
 
         QWidget* main_window_;
         PlanningGroupSelectionMenu* planning_group_selection_menu_;
+        PlannerSelectionMenu* planner_selection_menu_;
         QMenu* coll_object_menu_;
         AttachObjectAdditionDialog* attach_object_addition_dialog_;
         boost::shared_ptr<tf::TransformListener> transformer_;

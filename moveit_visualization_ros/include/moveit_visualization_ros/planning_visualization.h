@@ -62,6 +62,8 @@ public:
   
   void selectGroup(const std::string& name);
 
+  void selectPlanner(const std::string& name);
+
   void hideAllGroups();
 
   bool getLastTrajectory(std::string& group_name,
@@ -88,6 +90,10 @@ public:
 
   std::string getCurrentGroup() const {
     return current_group_;
+  }
+
+  std::string getCurrentPlanner() const {
+    return current_planner_;
   }
 
   void setGoalState(const std::string& group_name,
@@ -118,6 +124,7 @@ protected:
   boost::shared_ptr<planning_pipeline::PlanningPipeline> move_group_pipeline_;
 
   std::string current_group_;
+  std::string current_planner_;
   std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> > group_visualization_map_;
   boost::shared_ptr<JointTrajectoryVisualization> joint_trajectory_visualization_;
   ros::Publisher display_traj_publisher_;

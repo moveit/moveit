@@ -154,7 +154,11 @@ MoveItVisualizer::MoveItVisualizer() :
                                                                     planning_scene_monitor_->getPlanningScene()->getKinematicModel());
 
     QHBoxLayout* main_layout = new QHBoxLayout;
+
+    // Create Menu Bar
     QMenuBar* menu_bar = new QMenuBar(main_window_);
+
+    // File Menu
     PlanningSceneFileMenu* planning_scene_file_menu = new PlanningSceneFileMenu(menu_bar);
     QObject::connect(iov_.get(),
                      SIGNAL(updatePlanningSceneSignal(planning_scene::PlanningSceneConstPtr)),
@@ -164,22 +168,43 @@ MoveItVisualizer::MoveItVisualizer() :
                      SIGNAL(planningSceneLoaded(moveit_msgs::PlanningScenePtr)),
                      iov_.get(),
                      SLOT(loadPlanningSceneSignalled(moveit_msgs::PlanningScenePtr)));
-    menu_bar->addMenu(planning_scene_file_menu);
 
+    // Planner menu
+    planner_selection_menu_ = new PlannerSelectionMenu(menu_bar);
+    QObject::connect(planner_selection_menu_,
+                     SIGNAL(plannerSelected(const QString&)),
+                     pv_.get(),
+                     SLOT(newPlannerSelected(const QString&)));
+
+    // Planning Group Menu
     planning_group_selection_menu_ = new PlanningGroupSelectionMenu(menu_bar);
+    // Connect group selection to main program
     QObject::connect(planning_group_selection_menu_,
                      SIGNAL(groupSelected(const QString&)),
                      pv_.get(),
                      SLOT(newGroupSelected(const QString&)));
+    // Connect group selection to planner selection
+    QObject::connect(planning_group_selection_menu_,
+                     SIGNAL(groupSelected(const QString&)),
+                     planner_selection_menu_,
+                     SLOT(newGroupSelected(const QString&)));
     planning_group_selection_menu_->init(planning_scene_monitor_->getPlanningScene()->getSrdfModel());
+
+    // Initialize planner menu after planning group menu so that we know what planning group to inialize to
+    planner_selection_menu_->init(planning_scene_monitor_->getPlanningScene(), pv_->getCurrentGroup());
+
+    // Add menus in order
+    menu_bar->addMenu(planning_scene_file_menu);
     menu_bar->addMenu(planning_group_selection_menu_);
+    menu_bar->addMenu(planner_selection_menu_);
 
+    // Collision Object Menu
     coll_object_menu_ = menu_bar->addMenu("Collision Objects");
-
     QAction* show_primitive_objects_dialog = coll_object_menu_->addAction("Add Primitive Collision Object");
     QObject::connect(show_primitive_objects_dialog, SIGNAL(triggered()), primitive_object_dialog, SLOT(show()));
     QAction* show_mesh_objects_dialog = coll_object_menu_->addAction("Add Mesh Collision Object");
     QObject::connect(show_mesh_objects_dialog, SIGNAL(triggered()), mesh_object_dialog, SLOT(show()));
+
 
     main_layout->setMenuBar(menu_bar);
 
