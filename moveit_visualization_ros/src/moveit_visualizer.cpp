@@ -142,36 +142,6 @@ MoveItVisualizer::MoveItVisualizer() :
     QWidget* rviz_frame_ = loadRviz();
 
 
-    /*
-    //EGJ: no longer necessary as of visualization 1.8.3
-    //but kept as reference
-    //Ogre::LogManager* log_manager = new Ogre::LogManager();
-    //log_manager->createLog( "Ogre.log", false, false, false );
-
-    rviz_frame_ = new rviz::VisualizationPanel;
-
-    //kind of hacky way to do this - this just turns on interactive mode
-    //given the way that the vis manager is creating tools
-    rviz_frame_->getManager()->setCurrentTool(rviz_frame_->getManager()->getTool(1));
-
-    QList<int> sizes;
-    sizes.push_back(0);
-    sizes.push_back(1000);
-
-    rviz_frame_->setSizes(sizes);
-
-    //programmatic control of rviz to add display types and set viewpoint
-    rviz_frame_->getManager()->setFixedFrame(planning_scene_monitor_->getPlanningScene()->getPlanningFrame());
-
-    rviz_frame_->getManager()->createDisplay("rviz/RobotModel", "Robot Model", true);
-    rviz::DisplayWrapper* marker_display = rviz_frame_->getManager()->createDisplay("rviz/Marker", "Markers", true);
-    rviz::MarkerDisplay* md = dynamic_cast<rviz::MarkerDisplay*>(marker_display->getDisplay());
-    md->setMarkerTopic(VIS_TOPIC_NAME);
-    rviz::DisplayWrapper* interactive_marker_display = rviz_frame_->getManager()->createDisplay("rviz/InteractiveMarker", "Interactive Markers", true);
-    rviz::InteractiveMarkerDisplay* imd = dynamic_cast<rviz::InteractiveMarkerDisplay*>(interactive_marker_display->getDisplay());
-    imd->setMarkerUpdateTopic("interactive_kinematics_visualization/update");
-    */
-
     main_window_ = new QWidget;
     main_window_->resize(1500,1000);
     main_window_->setWindowTitle("MoveIt Visualizer"); // set window title
@@ -240,18 +210,6 @@ MoveItVisualizer::MoveItVisualizer() :
                                                          const std::string&,
                                                          const std::vector<std::string>&)));
     main_window_->show();
-
-    /*
-      rviz::OrbitViewController* orb = dynamic_cast<rviz::OrbitViewController*>(rviz_frame_->getManager()->getCurrentViewController());
-      if(orb == NULL) {
-      ROS_WARN_STREAM("Current view controller not orbit");
-      } else {
-      orb->zoom(15.0);
-      //orb->move(10.0, 0, .5);
-      //Ogre::Vector3 p(0,0,.5);
-      //orb->lookAt(p);
-      }
-    */
 
     planning_scene_monitor_->setUpdateCallback(boost::bind(&MoveItVisualizer::updateSceneCallback, this));
 }
