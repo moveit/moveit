@@ -83,7 +83,7 @@ class KinematicsPlanner
                   const kinematics_planner::KinematicsSolverMapConstPtr &kinematics_solver_map,
                   const std::string &group_name);
 
-  /** Solve the planning problem
+  /** @brief Solve the planning problem
    * @param start_request A map from group names to desired start poses
    * @param goal_request A map from group names to desired goal poses
    * @param planning_scene A const reference to the planning scene
@@ -101,7 +101,7 @@ class KinematicsPlanner
              moveit_msgs::RobotTrajectory &robot_trajectory,
              moveit_msgs::MoveItErrorCodes &error_code) const;
 
-  /** Solve the planning problem
+  /** @brief Solve the planning problem
    * @param start_request A map from group names to desired start poses
    * @param goal_request A map from group names to desired goal poses
    * @param planning_scene A const reference to the planning scene
@@ -118,7 +118,27 @@ class KinematicsPlanner
              double timeout,
              moveit_msgs::RobotTrajectory &robot_trajectory,
              moveit_msgs::MoveItErrorCodes &error_code) const;
-      
+
+  /** @brief Set the discretization values
+   * @param discretization_translation Expected discretization (in m) in translation
+   * @param discretization_rotation Expected discretization (in radians) in rotation
+   */
+  void setDiscretization(double discretization_translation, double discretization_rotation)
+  {
+    discretization_translation_ = discretization_translation;
+    discretization_rotation_ = discretization_rotation;    
+  }
+
+  /** @brief Get the discretization values
+   * @param discretization_translation Expected discretization (in m) in translation
+   * @param discretization_rotation Expected discretization (in radians) in rotation
+   */
+  void getDiscretization(double &discretization_translation, double &discretization_rotation) const
+  {
+    discretization_translation = discretization_translation_;
+    discretization_rotation = discretization_rotation_;    
+  }
+        
 private:
 
   std::map<std::string,std::vector<geometry_msgs::Pose> > getInterpolatedPosesMap(const std::map<std::string,geometry_msgs::PoseStamped> &start,
