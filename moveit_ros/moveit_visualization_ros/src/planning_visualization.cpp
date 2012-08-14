@@ -283,7 +283,10 @@ bool PlanningVisualization::generatePlanForScene(const planning_scene::PlanningS
 
   req.motion_plan_request.num_planning_attempts = 1;
   req.motion_plan_request.allowed_planning_time = ros::Duration(3.0);
-  
+
+  // Manually define what planner to use - DTC
+  req.motion_plan_request.planner_id = "geometric::TRRT";
+
   if(!move_group_pipeline_->generatePlan(scene, req, res)) {
     ROS_WARN_STREAM("Response traj " << res.trajectory.joint_trajectory);
     return false;
