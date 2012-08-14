@@ -75,11 +75,23 @@ bool KinematicsPlanner::initialize(const planning_models::KinematicModelConstPtr
   return true;  
 }
 
-
 bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStamped> &start_request,
                               const std::map<std::string,geometry_msgs::PoseStamped> &goal_request,
                               const planning_scene::PlanningSceneConstPtr& planning_scene,
                               const moveit_msgs::Constraints &path_constraints,
+                              double timeout,
+                              moveit_msgs::RobotTrajectory &robot_trajectory,
+                              moveit_msgs::MoveItErrorCodes &error_code) const
+{
+  kinematic_constraints::KinematicConstraintSet kinematic_constraints_set(planning_scene->getKinematicModel(),planning_scene->getTransforms());  
+  kinematic_constraints_set.add(path_constraints);  
+  return solve(start_request,goal_request,planning_scene,kinematic_constraints_set,timeout,robot_trajectory,error_code);
+}
+
+bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStamped> &start_request,
+                              const std::map<std::string,geometry_msgs::PoseStamped> &goal_request,
+                              const planning_scene::PlanningSceneConstPtr& planning_scene,
+                              const kinematic_constraints::KinematicConstraintSet& kinematic_constraint_set,
                               double timeout,
                               moveit_msgs::RobotTrajectory &robot_trajectory,
                               moveit_msgs::MoveItErrorCodes &error_code) const
@@ -101,13 +113,6 @@ bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStam
   
   std::map<std::string,std::vector<geometry_msgs::Pose> > interpolated_poses = getInterpolatedPosesMap(start,goal);  
   unsigned int num_poses = interpolated_poses[group_names_[0]].size();
-
-  // Check end effector locations
-  for(unsigned int i=0; i < num_groups_; ++i)
-  {
-    
-
-  }
     
   kinematics_planner::SolutionTrajectoryMap solutions;
   for(unsigned int i=0; i < num_groups_; ++i)
@@ -148,11 +153,11 @@ bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStam
         success = false;        
         break;
       }      
-      /*      if(!planning_scene->isStateConstrained(kinematic_state,constraint_set))
+      if(!planning_scene->isStateConstrained(kinematic_state,kinematic_constraint_set))
       {
         success = false;        
         break;      
-        } */     
+      } 
     }  
     if(success)
     {

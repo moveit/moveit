@@ -55,6 +55,7 @@
 #include <planning_models/kinematic_model.h>
 #include <planning_models/kinematic_state.h>
 #include <planning_scene/planning_scene.h>
+#include <kinematic_constraints/kinematic_constraint.h>
 
 namespace kinematics_planner
 {
@@ -99,7 +100,25 @@ class KinematicsPlanner
              double timeout,
              moveit_msgs::RobotTrajectory &robot_trajectory,
              moveit_msgs::MoveItErrorCodes &error_code) const;
-    
+
+  /** Solve the planning problem
+   * @param start_request A map from group names to desired start poses
+   * @param goal_request A map from group names to desired goal poses
+   * @param planning_scene A const reference to the planning scene
+   * @param kinematic_constraint_set A pre-allocated instance of KinematicConstraintSet (for efficiency)
+   * @param timeout The total amount of time to be spent in the solve step (in seconds)
+   * @param robot_trajectory The desired robot trajectory
+   * @param error_code An error code
+   * @return False if group_name is invalid or kinematics solvers are not defined for all subgroups
+   */
+  bool solve(const std::map<std::string,geometry_msgs::PoseStamped> &start_request,
+             const std::map<std::string,geometry_msgs::PoseStamped> &goal_request,
+             const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const kinematic_constraints::KinematicConstraintSet& kinematic_constraint_set,
+             double timeout,
+             moveit_msgs::RobotTrajectory &robot_trajectory,
+             moveit_msgs::MoveItErrorCodes &error_code) const;
+      
 private:
 
   std::map<std::string,std::vector<geometry_msgs::Pose> > getInterpolatedPosesMap(const std::map<std::string,geometry_msgs::PoseStamped> &start,
