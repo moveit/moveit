@@ -39,6 +39,7 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QApplication>
+#include <QSplitter>
 // ROS
 #include "configuration_files_widget.h"
 #include <srdfdom/model.h> // use their struct datastructures
@@ -105,15 +106,16 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   layout->addLayout( hlayout1 );
 
   // Generated Files List -------------------------------------------
-  actions_box_ = new QGroupBox( "Generated Files/Folders:", this );
+  QLabel* generated_list = new QLabel( "Generated Files/Folders:", this );
+  layout->addWidget( generated_list );
 
-  QHBoxLayout *hlayout2 = new QHBoxLayout();
+  QSplitter* splitter = new QSplitter( Qt::Horizontal, this );
+  splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   // List Box
   action_list_ = new QListWidget( this );
   action_list_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
   connect( action_list_, SIGNAL( currentRowChanged(int) ), this, SLOT( changeActionDesc(int) ) );
-  hlayout2->addWidget( action_list_ );
 
   // Description
   action_label_ = new QLabel( this );
@@ -126,11 +128,13 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   action_label_->setMinimumWidth( 100 );
   action_label_->setAlignment( Qt::AlignTop );
   action_label_->setOpenExternalLinks(true); // open with web browser
-  hlayout2->addWidget( action_label_ );
+
+  // Add to splitter
+  splitter->addWidget( action_list_ );
+  splitter->addWidget( action_label_ );
 
   // Add Layout
-  actions_box_->setLayout( hlayout2 );
-  layout->addWidget( actions_box_ );
+  layout->addWidget( splitter );
 
   // Bottom row --------------------------------------------------
 
@@ -474,7 +478,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( ompl_file.c_str() ).prepend( qconfig_path ),
-                 "Configures the OMPL (<a href=”http://ompl.kavrakilab.org/”>Open Motion Planning Library</a>) planning plugin. For every planning group defined in the SRDF, a number of planning configurations are specified (under planner_configs). Additionally, default settings for the state space to plan in for a particular group can be specified, such as the collision checking resolution. Each planning configuration specified for a group must be defined under the planner_configs tag. While defining a planner configuration, the only mandatory parameter is “type”, which is the name of the motion planner to be used. Any other planner-specific parameters can be defined but are optional.");
+                 "Configures the OMPL (<a href='http://ompl.kavrakilab.org/'>Open Motion Planning Library</a>) planning plugin. For every planning group defined in the SRDF, a number of planning configurations are specified (under planner_configs). Additionally, default settings for the state space to plan in for a particular group can be specified, such as the collision checking resolution. Each planning configuration specified for a group must be defined under the planner_configs tag. While defining a planner configuration, the only mandatory parameter is 'type', which is the name of the motion planner to be used. Any other planner-specific parameters can be defined but are optional.");
 
   // Create Kinematics Config File -----------------------------------------------------
   const std::string kinematics_file = "kinematics.yaml";
@@ -526,25 +530,25 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "Launches the move_group node that provides the MoveGroup action and other parameters <a href=”http://moveit.ros.org/move_group.html”>MoveGroup action</a>");
+                 "Launches the move_group node that provides the MoveGroup action and other parameters <a href='http://moveit.ros.org/move_group.html'>MoveGroup action</a>");
 
 
   // Create Ompl_Planner Launch File  -----------------------------------------------------
   // Ioan told me to delete this launch file
   /*
-  file_name = "ompl_planner.launch";
-  file_path = config_data_->appendPaths( launch_path, file_name );
-  template_path = config_data_->appendPaths( template_launch_path, file_name );
-  // Use generic template copy function
-  if ( !copyTemplate( template_path, file_path, new_package_name ) )
-  {
+    file_name = "ompl_planner.launch";
+    file_path = config_data_->appendPaths( launch_path, file_name );
+    template_path = config_data_->appendPaths( template_launch_path, file_name );
+    // Use generic template copy function
+    if ( !copyTemplate( template_path, file_path, new_package_name ) )
+    {
     QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
-                           .append( " file at location " ).append( file_path.c_str() ) );
+    .append( " file at location " ).append( file_path.c_str() ) );
     return;
-  }
-  // Feedback
-  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+    }
+    // Feedback
+    displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
+    "TODO" ); // TODO: description
   */
 
   // Create Planning_Context Launch File  -----------------------------------------------------
@@ -576,7 +580,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "Visualize in Rviz the robot’s planning groups running with interactive markers that allow goal states to be set.");
+                 "Visualize in Rviz the robot's planning groups running with interactive markers that allow goal states to be set.");
 
 
   // Create Ompl_Planning_Pipeline Launch File  -----------------------------------------------------
@@ -672,7 +676,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "Launch file for easily re-starting the MoveIt Setup Assistant to edit this robot’s generated configuration package.");
+                 "Launch file for easily re-starting the MoveIt Setup Assistant to edit this robot's generated configuration package.");
 
 
   // -------------------------------------------------------------------------------------------------------------------
