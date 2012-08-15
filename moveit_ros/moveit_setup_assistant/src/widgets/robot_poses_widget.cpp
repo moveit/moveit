@@ -468,19 +468,10 @@ void RobotPosesWidget::loadGroupsComboBox()
 // ******************************************************************************************
 void RobotPosesWidget::loadJointSliders( const QString &selected )
 {
-  /*  if( !group_name_field_->count() )
-      std::cout << " group name fiend" << std::endl;
-      if( selected.isEmpty() )
-      std::cout << " selected is empty" << std::endl;
-      if( stacked_layout_->currentIndex() == 0)
-      std::cout << " stacked layout is i =0" << std::endl;*/
-
   // Ignore this event if the combo box is empty. This occurs when clearing the combo box and reloading with the
   // newest groups. Also ignore if we are not on the edit screen
   if( !group_name_field_->count() || selected.isEmpty() || stacked_layout_->currentIndex() == 0)
     return;
-
-  //std::cout << "Loading joint sliders " << std::endl;
 
   // Get group name from input
   const std::string group_name = selected.toStdString();
@@ -559,6 +550,10 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
 
   // Update the robot model in Rviz with newly selected joint values
   publishJoints();
+
+  // Highlight the planning group
+  Q_EMIT unhighlightAll();
+  Q_EMIT highlightGroup( group_name );
 }
 
 // ******************************************************************************************
