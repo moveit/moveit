@@ -611,7 +611,7 @@ void ConfigurationFilesWidget::savePackage()
 
 
   // Create Moveit_Controller_Manager Launch File  -----------------------------------------------------
-  file_name = robot_name + "moveit_controller_manager.launch";
+  file_name = robot_name + "_moveit_controller_manager.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
   template_path = config_data_->appendPaths( template_launch_path, "moveit_controller_manager.launch" );
   // Use generic template copy function
@@ -627,7 +627,7 @@ void ConfigurationFilesWidget::savePackage()
 
 
   // Create Moveit_Sensor_Manager Launch File  -----------------------------------------------------
-  file_name = robot_name + "moveit_sensor_manager.launch";
+  file_name = robot_name + "_moveit_sensor_manager.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
   template_path = config_data_->appendPaths( template_launch_path, "moveit_sensor_manager.launch" );
   // Use generic template copy function
