@@ -48,7 +48,7 @@ namespace moveit_setup_assistant
 {
 
 // ******************************************************************************************
-// 
+// Constructor
 // ******************************************************************************************
 KinematicChainWidget::KinematicChainWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
   :  QWidget( parent ), config_data_( config_data )
@@ -62,24 +62,9 @@ KinematicChainWidget::KinematicChainWidget( QWidget *parent, moveit_setup_assist
   title_->setFont(group_title_font);
   layout->addWidget( title_ );
   
-  // Simple form -------------------------------------------
-  /* QFormLayout *form_layout = new QFormLayout();
-     form_layout->setContentsMargins( 0, 15, 0, 15 );
-
-     // Name input
-     name_input_ = new QLineEdit( this );
-     name_input_->setMaximumWidth( 400 );
-     form_layout->addRow( "Data Collection Name:", name_input_ );
-  
-     layout->addLayout( form_layout );
-     layout->setAlignment( Qt::AlignTop );
-  */
-
-  
   // Create link tree ------------------------------------------------------
   link_tree_ = new QTreeWidget( this );
   link_tree_->setHeaderLabel( "Robot Links" );
-  //connect(link_tree_, SIGNAL(itemSelectionChanged()), this, SLOT(showTreeLink()));
   layout->addWidget( link_tree_ );
 
   // Create Grid Layout for form --------------------------------------------
@@ -167,10 +152,6 @@ void KinematicChainWidget::setAvailable()
   const planning_models::KinematicModel::JointModel *root_joint = model->getRoot();
 
   addLinktoTreeRecursive( root_joint->getChildLinkModel(), NULL);
-
-  /* link_tree_->expandToDepth(0);
-     link_tree_->header()->setResizeMode(0, QHeaderView::ResizeToContents);
-     link_tree_->header()->setStretchLastSection(false);*/
 
   // Remember that we have loaded the chain
   kinematic_chain_loaded_ = true;
