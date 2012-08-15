@@ -44,7 +44,6 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QList>
-#include <QGroupBox>
 #include "moveit_setup_assistant/tools/moveit_config_data.h"
 #include "header_widget.h"
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
@@ -73,7 +72,6 @@ class ConfigurationFilesWidget : public SetupScreenWidget
   QListWidget *action_list_;
   QLabel *action_label_;
   QLabel *success_label_;
-  QGroupBox *actions_box_;
   QList<QString> action_desc_; // Holds the descriptions explaining all performed actions
 
 private Q_SLOTS:
