@@ -293,10 +293,6 @@ void SetupAssistantWidget::updateTimer()
 // ******************************************************************************************
 void SetupAssistantWidget::loadRviz()
 {
-  // Create an instance of Ogre log manager to prevent debug data from being spit out
-	//  log_manager_ = new Ogre::LogManager();
-	//  log_manager_->createLog( "Ogre.log", false, false, true );
-
   // Create rviz frame
   rviz_render_panel_ = new rviz::RenderPanel();
   rviz_render_panel_->setMinimumWidth( 200 );
@@ -425,6 +421,11 @@ bool SetupAssistantWidget::notify( QObject * reciever, QEvent * event )
 void SetupAssistantWidget::setModalMode( bool isModal )
 {
   navs_view_->setDisabled( isModal );
+  
+  for( int i = 0; i < nav_name_list_.count(); ++i)
+  {
+    navs_view_->setEnabled( i, !isModal );
+  }
 }
 
 
