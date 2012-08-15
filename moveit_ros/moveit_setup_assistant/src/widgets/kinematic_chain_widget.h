@@ -102,6 +102,8 @@ private Q_SLOTS:
   /// Expand/Collapse Tree
   void alterTree( const QString &link );
 
+  /// Highlight the selected link in the kinematic chain
+  void itemSelected();
 
 Q_SIGNALS:
 
@@ -114,6 +116,12 @@ Q_SIGNALS:
 
   /// Event sent when user presses cancel button
   void cancelEditing();
+
+  /// Event for telling rviz to highlight a link of the robot
+  void highlightLink( const std::string& name );
+
+  /// Event for telling rviz to unhighlight all links of the robot
+  void unhighlightAll();
 
 private:
 
