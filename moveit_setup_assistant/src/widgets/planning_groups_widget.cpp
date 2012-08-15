@@ -126,6 +126,8 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   chain_widget_ = new KinematicChainWidget( this, config_data );
   connect( chain_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
   connect( chain_widget_, SIGNAL( doneEditing() ), this, SLOT( saveChainScreen() ) );
+  connect( chain_widget_, SIGNAL( unhighlightAll() ), this, SIGNAL( unhighlightAll() ) );
+  connect( chain_widget_, SIGNAL( highlightLink(const std::string&)), this, SIGNAL(highlightLink(const std::string&)) );
 
   // Subgroups Widget
   subgroups_widget_ = new DoubleListWidget( this, config_data_, "Subgroup", "Subgroup" );

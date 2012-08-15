@@ -61,16 +61,17 @@ KinematicChainWidget::KinematicChainWidget( QWidget *parent, moveit_setup_assist
   QFont group_title_font( "Arial", 12, QFont::Bold );
   title_->setFont(group_title_font);
   layout->addWidget( title_ );
-  
+
   // Create link tree ------------------------------------------------------
   link_tree_ = new QTreeWidget( this );
   link_tree_->setHeaderLabel( "Robot Links" );
+  connect( link_tree_, SIGNAL( itemSelectionChanged() ), this, SLOT( itemSelected() ) );
   layout->addWidget( link_tree_ );
 
   // Create Grid Layout for form --------------------------------------------
   QGridLayout *form_grid = new QGridLayout();
   form_grid->setContentsMargins( 20, 20, 20, 20 ); // left top right bottom
-  
+
   // Row 1: Base Link
   QLabel *base_link_label = new QLabel( "Base Link", this );
   form_grid->addWidget( base_link_label, 0, 0, Qt::AlignRight );
@@ -125,13 +126,13 @@ KinematicChainWidget::KinematicChainWidget( QWidget *parent, moveit_setup_assist
   connect( btn_cancel, SIGNAL(clicked()), this, SIGNAL( cancelEditing() ) );
   controls_layout->addWidget( btn_cancel );
   controls_layout->setAlignment(btn_cancel, Qt::AlignRight);
-  
+
   // Add layout
   layout->addLayout( controls_layout );
 
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
-  
+
   // Remember that we have no loaded the chains yet
   kinematic_chain_loaded_ = false;
 }
@@ -257,6 +258,19 @@ void KinematicChainWidget::alterTree( const QString &link )
     link_tree_->expandAll();
   else
     link_tree_->collapseAll();
+}
+
+// ******************************************************************************************
+// Highlight the currently selected link
+// ******************************************************************************************
+void KinematicChainWidget::itemSelected() 
+{
+  QTreeWidgetItem* item = link_tree_->currentItem();
+  if(item != NULL)
+  {
+    Q_EMIT unhighlightAll();
+    Q_EMIT highlightLink( item->text(0).toStdString() );
+  }
 }
 
 }
