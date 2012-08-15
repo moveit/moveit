@@ -937,7 +937,7 @@ void PlanningGroupsWidget::saveChainScreen()
   // Save the data if there is data to save
   if( !tip.empty() && !base.empty() )
   {
-    searched_group->chains_.push_back( std::pair<std::string,std::string>( tip, base ) );
+    searched_group->chains_.push_back( std::pair<std::string,std::string>( base, tip ) );
   }
 
   // Switch to main screen
