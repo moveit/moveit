@@ -476,7 +476,6 @@ void ConfigurationFilesWidget::savePackage()
   displayAction( QString( ompl_file.c_str() ).prepend( qconfig_path ),
                  "Configures the OMPL planning node for your robot. In addition to some basic parameterization for OMPL it contains two groups per planning group - a <group_name> group and a <group_name>_cartesian group. The <group_name> group is configured to support configuration space planning for your groups - sampling in the joint space in order to reach joint goals. The <group_name>_cartesian group is configured to support task space planning for your robot. This is particularly useful as it allows you to specify path constraints on allowable paths, for instance to instruct the robot to keep its end effector upright while moving a glass. The task space planner likely will not successfully plan for your robot in a reasonable amount of time using the auto-configured nodes, as it requires robust and very fast inverse kinematics, generally from an analytic solver." );
 
-
   // Create Kinematics Config File -----------------------------------------------------
   const std::string kinematics_file = "kinematics.yaml";
   const std::string kinematics_path = config_data_->appendPaths( config_path, kinematics_file );
@@ -531,6 +530,8 @@ void ConfigurationFilesWidget::savePackage()
 
 
   // Create Ompl_Planner Launch File  -----------------------------------------------------
+  // Ioan told me to delete this launch file
+  /*
   file_name = "ompl_planner.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
   template_path = config_data_->appendPaths( template_launch_path, file_name );
@@ -544,7 +545,7 @@ void ConfigurationFilesWidget::savePackage()
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
                  "TODO" ); // TODO: description
-
+  */
 
   // Create Planning_Context Launch File  -----------------------------------------------------
   file_name = "planning_context.launch";
