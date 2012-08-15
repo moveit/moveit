@@ -55,7 +55,7 @@ EndEffectorsWidget::EndEffectorsWidget( QWidget *parent, moveit_setup_assistant:
   // Top Header Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "End Effectors",
-                                           "Setup grippers and other end effectors for this robot",
+                                           "Setup grippers and other end effectors for your robot",
                                            this);
   layout->addWidget( header );
 
