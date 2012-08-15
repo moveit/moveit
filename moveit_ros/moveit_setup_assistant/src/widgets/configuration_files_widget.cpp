@@ -69,7 +69,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   // Top Header Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "Generate Configuration Files",
-                                           "Create the unary stack of configuration files needed to run your robot with MoveIt.",
+                                           "Create or update the configuration files package needed to run your robot with MoveIt.",
                                            this);
   layout->addWidget( header );
 

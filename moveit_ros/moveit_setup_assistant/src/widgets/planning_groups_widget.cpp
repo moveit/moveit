@@ -99,7 +99,7 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
 
   // Top Label Area ------------------------------------------------
   HeaderWidget *header = new HeaderWidget( "Planning Groups",
-                                           "Create and edit planning groups for your robot based on joint collections, link collections, kinematic chains and subgroups. After creating a group, select one of its four sub-elements and choose 'Edit Selected' to then add links/joints/etc. You can also double click elements.",
+                                           "Create and edit planning groups for your robot based on joint collections, link collections, kinematic chains and subgroups.",
                                            this);
   layout->addWidget( header );
 

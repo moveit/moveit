@@ -60,7 +60,7 @@ RobotPosesWidget::RobotPosesWidget( QWidget *parent, moveit_setup_assistant::Mov
   // Top Header Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "Robot Poses",
-                                           "Create poses for robot defined as sets of joint values for particular planning groups. This is useful for things like 'folded arms'.",
+                                           "Create poses for the robot. Poses are defined as sets of joint values for particular planning groups. This is useful for things like <i>folded arms</i>.",
                                            this);
   layout->addWidget( header );
 
