@@ -128,6 +128,9 @@ private Q_SLOTS:
   /// Show the robot in its default joint positions
   void showDefaultPose();
 
+  /// Play through the poses
+  void playPoses();
+
   /** 
    * Call when one of the sliders has its value changed to store its value in kinematic model
    * 
@@ -217,6 +220,11 @@ private:
    * @param name name of pose
    */
   void edit( const std::string &name );
+
+  /**
+   * Show the robot in the current pose
+   */
+  void showPose( srdf::Model::GroupState *pose );
 };
 
 

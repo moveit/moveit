@@ -41,6 +41,7 @@
 #include <QFormLayout>
 #include <QMessageBox>
 #include <QDoubleValidator>
+#include <QApplication>
 
 namespace moveit_setup_assistant
 {
@@ -142,6 +143,14 @@ QWidget* RobotPosesWidget::createContentsWidget()
   connect(btn_default, SIGNAL(clicked()), this, SLOT(showDefaultPose()));
   controls_layout->addWidget(btn_default);
   controls_layout->setAlignment( btn_default, Qt::AlignLeft );
+
+  // Set play button
+  QPushButton *btn_play = new QPushButton( "&MoveIt", this );
+  btn_play->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
+  btn_play->setMaximumWidth(300);
+  connect(btn_play, SIGNAL(clicked()), this, SLOT(playPoses()));
+  controls_layout->addWidget(btn_play);
+  controls_layout->setAlignment( btn_play, Qt::AlignLeft );
 
   // Spacer
   QWidget *spacer = new QWidget( this );
@@ -324,15 +333,20 @@ void RobotPosesWidget::previewClicked( int row, int column )
   // Find the selected in datastructure
   srdf::Model::GroupState *pose = findPoseByName( selected[0]->text().toStdString() );
 
+  showPose( pose );
+}
+
+// ******************************************************************************************
+// Show the robot in the current pose
+// ******************************************************************************************
+void RobotPosesWidget::showPose( srdf::Model::GroupState *pose )
+{
   // Set pose joint values by adding them to the local joint state map
   for( std::map<std::string, std::vector<double> >::const_iterator value_it = pose->joint_values_.begin();
        value_it != pose->joint_values_.end(); ++value_it )
   {
     // Only copy the first joint value // TODO: add capability for multi-DOF joints?
     joint_state_map_[ value_it->first ] = value_it->second[0];
-
-    //std::cout << "JOINT " << value_it->first << " -- " << value_it->second[0] << std::endl;
-
   }
 
   // Update the joints
@@ -381,6 +395,23 @@ void RobotPosesWidget::showDefaultPose()
 
   // Unhighlight all links
   Q_EMIT unhighlightAll();
+}
+
+// ******************************************************************************************
+// Play through the poses
+// ******************************************************************************************
+void RobotPosesWidget::playPoses()
+{
+  // Loop through each pose and play them
+  for( std::vector<srdf::Model::GroupState>::iterator pose_it = config_data_->srdf_->group_states_.begin();
+       pose_it != config_data_->srdf_->group_states_.end(); ++pose_it )
+  {
+    ROS_INFO_STREAM("Showing pose " << pose_it->name_ );
+    showPose( &(*pose_it) );
+
+    QApplication::processEvents();
+    ros::Duration(0.45).sleep();;
+  }
 }
 
 // ******************************************************************************************
