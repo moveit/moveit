@@ -332,12 +332,13 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     return false;
   }
 
-  if(solution.size() != dimension_)
+  if(ik_seed_state.size() != dimension_)
   {
-    ROS_ERROR("Solution vector must have size: %d",dimension_);
+    ROS_ERROR_STREAM("Seed state must have size " << dimension_ << " instead of size " << ik_seed_state.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;    
   }
+  solution.resize(dimension_);
   
   KDL::Frame pose_desired;
   tf::PoseMsgToKDL(ik_pose, pose_desired);
