@@ -233,6 +233,14 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
   while (have_diff && publish_planning_scene_);
 }
 
+const planning_models::KinematicModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getKinematicModel(void) const
+{
+  if (scene_)
+    return scene_->getKinematicModel();
+  static const planning_models::KinematicModelConstPtr empty;
+  return empty;
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vector<std::string> &topics) const
 {
   topics.clear();
