@@ -1,0 +1,23 @@
+<package>
+  <description brief="plan_execution">
+
+     plan_execution
+
+  </description>
+  <author>isucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/plan_execution</url>
+  <depend package="planning_pipeline"/>
+  <depend package="trajectory_execution_manager"/>
+  <depend package="planning_scene_monitor"/>
+  <depend package="moveit_sensor_manager"/>
+  <depend package="moveit_controller_manager"/>
+  <depend package="moveit_msgs"/>
+  <depend package="dynamic_reconfigure"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lplan_execution"/>
+  </export>
+
+</package>
