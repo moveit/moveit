@@ -69,16 +69,13 @@ HeaderWidget::HeaderWidget( const std::string &title, const std::string &instruc
   QLabel *page_instructions = new QLabel( this );
   page_instructions->setText( instructions.c_str() );
   page_instructions->setWordWrap(true);
-  //page_instructions->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
-  page_instructions->setMinimumWidth(1);
   layout->addWidget( page_instructions );
   layout->setAlignment( page_instructions, Qt::AlignTop);    
-
+  
   // Margin on bottom
   layout->setContentsMargins( 0, 0, 0, 0); // last 15
 
-  this->setLayout(layout);
-  //this->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
+  setLayout(layout);
 }
 
 

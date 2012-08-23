@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
 import roslib
-roslib.load_manifest('move_group_interface')
+roslib.load_manifest('moveit_commander')
 import rospy
 import sys
 import os
 
 
 from optparse import OptionParser, OptionGroup
-from move_group import MoveGroupCommander, MoveGroupInfoLevel
+from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel
 
 class bcolors:
     HEADER = '\033[95m'
@@ -31,7 +31,7 @@ def print_message(level, msg):
         print msg
 
 def run_interactive(group_names):
-    c = MoveGroupCommander()
+    c = MoveGroupCommandInterpreter()
     for g in group_names:
         c.execute( "use " + g)
     print

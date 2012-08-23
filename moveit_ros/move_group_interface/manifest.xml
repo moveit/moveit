@@ -22,9 +22,7 @@
   <depend package="eigen_conversions"/>
 
   <export>
-    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmove_group_interface"/>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmove_group_interface"/>     
   </export>
 
 </package>
-
-

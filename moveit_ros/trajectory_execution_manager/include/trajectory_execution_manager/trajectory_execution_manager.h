@@ -180,7 +180,8 @@ private:
   void executeThread(const ExecutionCompleteCallback &callback, bool auto_clear);
   bool executePart(std::size_t part_index);
   
-
+  void stopExecutionInternal(void);
+  
   void receiveEvent(const std_msgs::StringConstPtr &event);
 
   planning_models::KinematicModelConstPtr kinematic_model_;

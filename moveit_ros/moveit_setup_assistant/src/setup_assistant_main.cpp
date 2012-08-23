@@ -47,7 +47,9 @@ int main(int argc, char **argv)
   desc.add_options()
     ("help", "Show help message")
     ("debug", "Run in debug/test mode")
+    //    ("urdf_pkg", po::value<std::string>(), "Optional, pass in name of package containing URDF")
     ("urdf_path", po::value<std::string>(), "Optional, relative path to URDF in URDF package")
+    //("srdf", po::value<std::string>(), "Optional, pass in SRDF to load")
     ("config_pkg", po::value<std::string>(), "Optional, pass in existing config package to load");
 
   // Process options
@@ -60,12 +62,15 @@ int main(int argc, char **argv)
     return 1;
   }
 
+
   ros::NodeHandle nh;
   
   // ROS Spin
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
+  //nh.setParam("/robot_description", "caca");
+  
   // Create Qt Application
   QApplication qtApp(argc, argv);
 

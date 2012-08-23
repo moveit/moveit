@@ -137,6 +137,11 @@ public:
     rememberJointValues(string, doubleFromList(values));
   }
 
+  bp::list getJointsList(void)
+  {
+    return listFromString(getJoints());
+  }
+
   bp::list getCurrentJointValuesList(void)
   {
     return listFromDouble(getCurrentJointValues());
@@ -214,12 +219,23 @@ private:
     return v;
   }
 
-  bp::list listFromDouble(const std::vector<double>& v) const
+  template<typename T>
+  bp::list listFromType(const std::vector<T>& v) const
   {
     bp::list l;
     for (std::size_t i = 0 ; i < v.size() ; ++i)
       l.append(v[i]);
     return l;
+  }
+  
+  bp::list listFromDouble(const std::vector<double>& v) const
+  {
+    return listFromType<double>(v);
+  }
+
+  bp::list listFromString(const std::vector<std::string>& v) const
+  {
+    return listFromType<std::string>(v);
   }
 
 };  
@@ -234,6 +250,7 @@ void wrap_move_group_interface()
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
   MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);
+  MoveGroupClass.def("get_joints", &MoveGroupWrapper::getJointsList);
   MoveGroupClass.def("allow_looking", &MoveGroupWrapper::allowLooking);
   
   MoveGroupClass.def("set_pose_reference_frame", &MoveGroupWrapper::setPoseReferenceFrame);
@@ -277,6 +294,9 @@ void wrap_move_group_interface()
   MoveGroupClass.def("get_remembered_joint_values",  &MoveGroupWrapper::getRememberedJointValuesPython);
 
   MoveGroupClass.def("forget_joint_values", &MoveGroupWrapper::forgetJointValues); 
+
+  MoveGroupClass.def("get_goal_tolerance", &MoveGroupWrapper::getGoalTolerance); 
+  MoveGroupClass.def("set_goal_tolerance", &MoveGroupWrapper::setGoalTolerance); 
 }
 
 }

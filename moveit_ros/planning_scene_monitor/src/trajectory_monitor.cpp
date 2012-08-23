@@ -37,15 +37,25 @@
 #include "planning_scene_monitor/trajectory_monitor.h"
 #include <trajectory_processing/trajectory_tools.h>
 #include <ros/rate.h>
+#include <limits>
 
 planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency) :
-  current_state_monitor_(state_monitor), sampling_frequency_(sampling_frequency)
+  current_state_monitor_(state_monitor), sampling_frequency_(5.0)
 {
+  setSamplingFrequency(sampling_frequency);
 }
 
 planning_scene_monitor::TrajectoryMonitor::~TrajectoryMonitor(void)
 {
   stopTrajectoryMonitor();
+}
+
+void planning_scene_monitor::TrajectoryMonitor::setSamplingFrequency(double sampling_frequency)
+{
+  if (sampling_frequency <= std::numeric_limits<double>::epsilon())
+    ROS_ERROR("The sampling frequency for trajectory states should be positive");
+  else
+    sampling_frequency_ = sampling_frequency;
 }
 
 bool planning_scene_monitor::TrajectoryMonitor::isActive(void) const

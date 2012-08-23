@@ -109,6 +109,8 @@ public:
     return kinematics_loader_;
   }
   
+  const planning_models::KinematicModelConstPtr& getKinematicModel(void) const;
+  
   /** @brief Get the planning scene
    *  @return An instance of the planning scene*/
   const planning_scene::PlanningScenePtr& getPlanningScene(void)
@@ -216,6 +218,12 @@ public:
 
   /** @brief Set the function to be called when an update to the scene is received */
   void setUpdateCallback(const boost::function<void(SceneUpdateType)> &fn);
+
+  /** @brief Get the function to be called when an update to the scene is received */
+  const boost::function<void(SceneUpdateType)>& getUpdateCallback(void)
+  {
+    return update_callback_;
+  }
   
   /** @brief Get the topic names that the monitor is listening to */
   void getMonitoredTopics(std::vector<std::string> &topics) const;

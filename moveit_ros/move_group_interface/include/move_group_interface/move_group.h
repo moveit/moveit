@@ -139,6 +139,12 @@ public:
 
   const std::string& getEndEffectorLink(void) const;
 
+  const std::vector<std::string>& getJoints(void) const;
+
+  double getGoalTolerance(void) const;
+  
+  void setGoalTolerance(double tolerance);
+
   void setRandomTarget(void);
   
   /** \brief Set the current joint values to be ones previously remembered by rememberJointValues() or, if not found, that are specified in the SRDF under the name \e name */

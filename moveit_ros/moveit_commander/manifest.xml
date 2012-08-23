@@ -1,0 +1,18 @@
+<package>
+  <description brief="moveit_commander">
+
+     moveit_commander
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_commander</url>
+  <depend package="move_group_interface"/>
+  <depend package="rospy"/>
+  <depend package="actionlib"/>
+  <depend package="moveit_msgs"/> 
+
+</package>
+
+
