@@ -102,6 +102,7 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor(void)
   stopStateMonitor();
   stopWorldGeometryMonitor();
   stopSceneMonitor();
+  delete reconfigure_impl_;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr &scene)
@@ -143,7 +144,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   last_state_update_ = ros::WallTime::now();
   dt_state_update_ = 0.1;
 
-  reconfigure_impl_.reset(new DynamicReconfigureImpl(this));
+  reconfigure_impl_ = new DynamicReconfigureImpl(this);
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)

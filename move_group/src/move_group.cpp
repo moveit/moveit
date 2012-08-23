@@ -36,20 +36,8 @@
 #include <moveit_msgs/MoveGroupAction.h>
 
 #include <tf/transform_listener.h>
-#include <planning_scene_monitor/planning_scene_monitor.h>
-#include <planning_scene_monitor/trajectory_monitor.h>
-#include <trajectory_execution_manager/trajectory_execution_manager.h>
-#include <planning_pipeline/planning_pipeline.h>
-#include <moveit_sensor_manager/moveit_sensor_manager.h>
-#include <kinematic_constraints/utils.h>
+#include <plan_execution/plan_execution.h>
 #include <trajectory_processing/trajectory_tools.h>
-#include <planning_models/conversions.h>
-#include <pluginlib/class_loader.h>
-#include <boost/algorithm/string/join.hpp>
-#include <collision_detection/collision_tools.h>
-
-#include <dynamic_reconfigure/server.h>
-#include "move_group/MoveGroupDynamicReconfigureConfig.h"
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";
@@ -67,348 +55,99 @@ public:
     };
   
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm) : 
-    node_handle_("~"), planning_scene_monitor_(psm), trajectory_monitor_(psm->getStateMonitor(), 10.0),
-    new_scene_update_(false), planning_pipeline_(psm->getPlanningScene()->getKinematicModel()),
-    max_looking_attempts_(3), max_safe_cost_(0.5), state_(IDLE)
+    node_handle_("~"), planning_scene_monitor_(psm), plan_execution_(psm),
+    state_(IDLE)
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     bool allow_trajectory_execution = true;
     node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
 
-    dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<move_group::MoveGroupDynamicReconfigureConfig>(ros::NodeHandle("~")));
-    dynamic_reconfigure_server_->setCallback(boost::bind(&MoveGroupAction::dynamicReconfigureCallback, this, _1, _2));
-    
-    if (allow_trajectory_execution)
-      trajectory_execution_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getPlanningScene()->getKinematicModel()));
-    
-    // we want to be notified when new information is available
-    planning_scene_monitor_->setUpdateCallback(boost::bind(&MoveGroupAction::planningSceneUpdatedCallback, this, _1));
-    
-
-    // load the sensor manager plugin, if needed
-    if (node_handle_.hasParam("moveit_sensor_manager"))
-    {
-      try
-      {
-        sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>("moveit_sensor_manager", "moveit_sensor_manager::MoveItSensorManager"));
-      }
-      catch(pluginlib::PluginlibException& ex)
-      {
-        ROS_ERROR_STREAM("Exception while creating sensor manager plugin loader: " << ex.what());
-      }
-      if (sensor_manager_loader_)
-      {
-        std::string manager;
-        if (node_handle_.getParam("moveit_sensor_manager", manager))
-          try
-          {
-            sensor_manager_ = sensor_manager_loader_->createInstance(manager);
-          }
-          catch(pluginlib::PluginlibException& ex)
-          {
-            ROS_ERROR_STREAM("Exception while loading sensor manager '" << manager << "': " << ex.what());
-          } 
-      }
-      if (sensor_manager_)
-      {
-        std::vector<std::string> sensors;
-        sensor_manager_->getSensorsList(sensors);
-        ROS_INFO_STREAM("MoveGroup action is aware of the following sensors: " << boost::algorithm::join(sensors, ", "));
-      }
-    }
-    
     // configure the planning pipeline
-    planning_pipeline_.displayComputedMotionPlans(true);
-    planning_pipeline_.checkSolutionPaths(true);
+    plan_execution_.getPlanningPipeline().displayComputedMotionPlans(true);
+    plan_execution_.getPlanningPipeline().checkSolutionPaths(true);
 
-    // when monitoring trajectories, every added state is passed to this callback
-    trajectory_monitor_.setOnStateAddCallback(boost::bind(&MoveGroupAction::newMonitoredStateCallback, this, _1, _2));
-    
+    plan_execution_.displayCostSources(true);
+
     // start the action server
     action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_node_handle_, NODE_NAME, boost::bind(&MoveGroupAction::executeCallback, this, _1), false));
     action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
     action_server_->start();
     
-    // publisher for cost sources
-    cost_sources_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("display_cost_sources", 100, true);
-
     // start the service server
     plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlanService, this);
   }
   
   void status(void)
   {
-    ROS_INFO_STREAM("MoveGroup action running using planning plugin " << planning_pipeline_.getPlannerPluginName());
+    ROS_INFO_STREAM("MoveGroup action running using planning plugin " << plan_execution_.getPlanningPipeline().getPlannerPluginName());
   }
   
 private:
   
-  struct LockScene
-  {
-    LockScene(const planning_scene_monitor::PlanningSceneMonitorPtr &monitor) : monitor_(monitor.get())
-    {
-      monitor_->lockScene();
-    }
-    ~LockScene(void)
-    {   
-      monitor_->unlockScene();
-    }
-    planning_scene_monitor::PlanningSceneMonitor *monitor_;
-  };
-  
   void preemptCallback(void)
   {
-    preempt_requested_ = true;
+    plan_execution_.stop();
   }
   
   void executeCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
-  {   
-    preempt_requested_ = false;
+  {
+    setState(PLANNING, 0.5);
+    
+    if (goal->plan_only)
+      plan_execution_.planOnly(goal->request, goal->planning_scene_diff);
+    else
+    {
+      plan_execution::PlanExecution::Options opt;
+      // set a callback when swithcing from plan to monitor
+      plan_execution_.planAndExecute(goal->request, goal->planning_scene_diff, opt);  
+    }
+    
+    const plan_execution::PlanExecution::Result &res = plan_execution_.getLastResult();
     moveit_msgs::MoveGroupResult action_res;
-    moveit_msgs::GetMotionPlan::Request mreq;
-    mreq.motion_plan_request = goal->request;
-    if (mreq.motion_plan_request.group_name.empty())
-    {
-      ROS_WARN_STREAM("Must specify group in motion plan request");
-      action_res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
-      action_server_->setAborted(action_res, "Must specify group in motion plan request");
-      setState(IDLE, 0.0);
-      return;    
-    }
+    action_res.trajectory_start = res.trajectory_start_;
+    action_res.planned_trajectory = res.planned_trajectory_;
+    action_res.executed_trajectory = res.executed_trajectory_;
+    action_res.error_code = res.error_code_;
+      
     
-    // check to see if the desired constraints are already met
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
-      LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateConstrained() is called
-      for (std::size_t i = 0 ; i < mreq.motion_plan_request.goal_constraints.size() ; ++i)
-        if (planning_scene_monitor_->getPlanningScene()->isStateConstrained(mreq.motion_plan_request.start_state,
-                                                                            kinematic_constraints::mergeConstraints(mreq.motion_plan_request.goal_constraints[i],
-                                                                                                                    mreq.motion_plan_request.path_constraints)))
-        {
-          ROS_INFO("Goal constraints are already satisfied. No need to plan or execute any motions");
-	  action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-          action_server_->setSucceeded(action_res, "Requested path and goal constraints are already met.");
-          setState(IDLE, 0.0);
-          return;
-        }
-    }
-    
-    // get the planning scene to be used
-    setState(PLANNING, 0.2);
-    unsigned int looking_attempts = 0;
-    double previous_cost = 0.0;
-    do
-    {
-      new_scene_update_ = false;
-      planning_scene::PlanningSceneConstPtr the_scene = planning_scene_monitor_->getPlanningScene();
-      if (!planning_scene::PlanningScene::isEmpty(goal->planning_scene_diff))
+      if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
+        action_server_->setSucceeded(action_res, "Requested path and goal constraints are already met.");
+      else
       {
-        LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
-        the_scene = planning_scene_monitor_->getPlanningScene()->diff(goal->planning_scene_diff); 
-        new_scene_update_ = false; // set this to false again, just in case an update came in in the meantime
-      }
-      
-      // run the motion planner
-      moveit_msgs::GetMotionPlan::Response mres;
-      bool solved = computePlan(the_scene, mreq, mres);
-      
-      // abort if no plan was found
-      if (!solved)
-      {
-        action_res.error_code = mres.error_code;
-        if (trajectory_processing::isTrajectoryEmpty(mres.trajectory))
-          action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
+        if (goal->plan_only)
+          action_server_->setSucceeded(action_res, "Motion plan was computed succesfully.");
         else
-          action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
-        setState(IDLE, 0.0);
-        return;
-      }
-      
-      // fill in results
-      action_res.trajectory_start = mres.trajectory_start;
-      action_res.planned_trajectory = mres.trajectory;
-      if (!goal->plan_only && !trajectory_execution_)
-        ROS_WARN_STREAM("Move group asked for execution and was not configured to allow execution");
-      
-      // stop if no trajectory execution is needed or can't be done
-      if (goal->plan_only || !trajectory_execution_)
-      {
-        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-        action_server_->setSucceeded(action_res, "Solution was found and returned but not executed.");
-        setState(IDLE, 0.0);
-        return;
-      }
-      
-      // if we are allowed to look around, see if we have costs that are too high
-      if (goal->look_around)
-      {       
-        LockScene lock(planning_scene_monitor_);
-        // convert the path to a sequence of kinematic states
-        trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
-        
-        // determine the sources of cost for this path
-        std::set<collision_detection::CostSource> cost_sources;
-        the_scene->getCostSources(currently_executed_trajectory_states_, 100, mreq.motion_plan_request.group_name, cost_sources, 0.8);
-
-        visualization_msgs::MarkerArray arr;
-        collision_detection::getCostMarkers(arr, the_scene->getPlanningFrame(), cost_sources);
-        cost_sources_publisher_.publish(arr);
-        double cost = collision_detection::getTotalCost(cost_sources);
-        ROS_DEBUG("The total cost of the trajectory is %lf.", cost);
-	if (previous_cost > 0.0)
-	  ROS_DEBUG("The change in the trajectory cost is %lf after the perception step.", cost - previous_cost);
-        if (cost > max_safe_cost_ && looking_attempts < max_looking_attempts_)
-        {
-          ++looking_attempts;
-          ROS_INFO("The cost of the trajectory is %lf, which is above the maximum safe cost of %lf. Attempt %u (of at most %u) at looking around.", cost, max_safe_cost_, looking_attempts, max_looking_attempts_);
-          if (lookAt(cost_sources))
-	  {
-	    ROS_INFO("Sensor was succesfully actuated. Attempting to recompute a motion plan.");
-	    previous_cost = cost;
-            continue;
-	  }
-          else
-            ROS_WARN("Looking around failed.");
-        }
-
-        if (cost > max_safe_cost_)
-        {
-          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA;
-          action_server_->setAborted(action_res, "Motion plan was found but it seems to be too costly and looking around did not help.");
-          setState(IDLE, 0.0);
-          return;
-        }
-      }
-      
-      // try to execute the trajectory
-      execution_complete_ = false;
-      if (trajectory_execution_->push(mres.trajectory))
-      {
-        if (currently_executed_trajectory_states_.empty())
-        {    
-          LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
-          trajectory_processing::convertToKinematicStates(currently_executed_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
-        }
-        currently_executed_trajectory_index_ = 0;
-        setState(MONITOR, trajectory_processing::getTrajectoryDuration(mres.trajectory));
-        trajectory_monitor_.startTrajectoryMonitor();
-        
-        // start a trajectory execution thread
-        trajectory_execution_->execute(boost::bind(&MoveGroupAction::doneWithTrajectoryExecution, this, _1));
-        
-        // wait for path to be done, while checking that the path does not become invalid
-        static const ros::WallDuration d(0.01);
-        bool path_became_invalid = false;
-        boost::scoped_ptr<kinematic_constraints::KinematicConstraintSet> path_constraints;
-        {    
-          LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while getTransforms() is called
-          path_constraints.reset(new kinematic_constraints::KinematicConstraintSet(the_scene->getKinematicModel(), the_scene->getTransforms()));
-          path_constraints->add(mreq.motion_plan_request.path_constraints);
-        }
-        
-        while (node_handle_.ok() && !execution_complete_ && !preempt_requested_ && !path_became_invalid)
-        {
-          d.sleep();
-          // check the path if there was an environment update in the meantime
-          if (new_scene_update_)
-          {
-            LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateValid() is called
-            new_scene_update_ = false;
-            for (std::size_t i = currently_executed_trajectory_index_ ; i < currently_executed_trajectory_states_.size() ; ++i)
-              if (!the_scene->isStateValid(*currently_executed_trajectory_states_[i], *path_constraints, false))
-              {
-                the_scene->isStateValid(*currently_executed_trajectory_states_[i], *path_constraints, true);
-                path_became_invalid = true;
-                break;
-              }
-          }
-        }
-        
-        if (preempt_requested_)
-        {
-          ROS_INFO("Stopping execution due to preempt request");
-          trajectory_execution_->stopExecution();
-        }
-        else
-          if (path_became_invalid)
-          {
-            ROS_INFO("Stopping execution because the path to execute became invalid (probably the environment changed)");
-            trajectory_execution_->stopExecution();
-          }
-          else
-            if (!execution_complete_)
-            {    
-              ROS_WARN("Stopping execution due to unknown reason. Possibly the node is about to shut down.");
-              trajectory_execution_->stopExecution();
-            }
-        
-        // because of the way the trajectory monitor works, when this call completes, it is certain that no more calls
-        // are made to the callback associated to the trajectory monitor
-        trajectory_monitor_.stopTrajectoryMonitor();
-        currently_executed_trajectory_states_.clear();
-        trajectory_monitor_.getTrajectory(action_res.executed_trajectory);
-        
-        if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
-        {
-          action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
           action_server_->setSucceeded(action_res, "Solution was found and executed.");
-        } 
-        else
-        {
-          if (path_became_invalid)
-          {
-            action_res.error_code.val = moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
-            action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
-          }
-          else
-          {
-            if (trajectory_execution_->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
-              action_res.error_code.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
-            else
-              action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
-            action_server_->setAborted(action_res, "Solution found but controller failed during execution");
-          }
-        }
       }
-      else
-      {
-        ROS_INFO_STREAM("Apparently trajectory initialization failed");
-        action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
-        action_server_->setAborted(action_res, "Solution found but could not initiate trajectory execution");
-      }
-      setState(IDLE, 0.0);
-      break;
-    } while (true);
-  }
-  
-  void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus &status)
-  {
-    execution_complete_ = true;
-  }
-  
-  void newMonitoredStateCallback(const planning_models::KinematicStateConstPtr &state, const ros::Time &stamp)
-  {           
-    // find the index where the distance to the current state starts increasing
-    double dist = currently_executed_trajectory_states_[currently_executed_trajectory_index_]->distance(*state);
-    for (std::size_t i = currently_executed_trajectory_index_ + 1 ; i < currently_executed_trajectory_states_.size() ; ++i)
-    {
-      double d = currently_executed_trajectory_states_[i]->distance(*state);
-      if (d >= dist)
-      {
-        currently_executed_trajectory_index_ = i - 1;
-        break;
-      }
-      else
-        dist = d;
     }
-    std::pair<int, int> expected = trajectory_execution_->getCurrentExpectedTrajectoryIndex();
+    
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
+      action_server_->setAborted(action_res, "Must specify group in motion plan request");
+    
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
+    {
+      if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
+        action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
+      else
+        action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
+    }
+    
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
+      action_server_->setAborted(action_res, "Motion plan was found but it seems to be too costly and looking around did not help.");
 
-    ROS_DEBUG("Controller seems to be at state %lu of %lu. Trajectory execution manager expects the index to be %d.", currently_executed_trajectory_index_ + 1, currently_executed_trajectory_states_.size(), expected.second);
-  }
-  
-  void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
-  {
-    if (update_type & (planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY | planning_scene_monitor::PlanningSceneMonitor::UPDATE_TRANSFORMS))
-      new_scene_update_ = true;
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
+      action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
+
+    
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
+      action_server_->setAborted(action_res, "Solution found but controller failed during execution");
+
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
+      action_server_->setAborted(action_res, "Timeout reached");
+
+    setState(IDLE, 0.0);
   }
   
   void setState(MoveGroupState state, double duration)
@@ -431,15 +170,17 @@ private:
     }
     action_server_->publishFeedback(feedback_);
   }
-  
-  bool computePlan(const planning_scene::PlanningSceneConstPtr &scene, moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+
+  bool computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
   {
+    ROS_INFO("Received new planning service request...");
+
     bool solved = false;   
-    LockScene lock(planning_scene_monitor_);
+    planning_scene_monitor_->lockScene();
     
     try
     {
-      solved = planning_pipeline_.generatePlan(scene, req, res);
+      solved = plan_execution_.getPlanningPipeline().generatePlan(planning_scene_monitor_->getPlanningScene(), req, res);
     }
     catch(std::runtime_error &ex)
     {
@@ -449,138 +190,21 @@ private:
     {
       ROS_ERROR("Planning pipeline threw an exception");
     }
-    
+    planning_scene_monitor_->unlockScene();
+
     return solved;
-  }
-  
-  bool computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
-  {
-    ROS_INFO("Received new planning service request...");
-    return computePlan(planning_scene_monitor_->getPlanningScene(), req, res);
-  }
-  
-  /// Given a set of locations to point sensors at, this function loops through the known sensors and attempts
-  /// to point one at each point, in a best effort approach. If at least one sensor is succesfully pointed at a target,
-  /// this function returns true
-  bool lookAt(const std::vector<Eigen::Vector3d> &points)
-  {    
-    if (!sensor_manager_)
-      return false;
-
-    bool result = true;
-    if (!points.empty())
-    {
-      if (sensor_manager_)
-      {
-        std::vector<std::string> names;
-        sensor_manager_->getSensorsList(names);
-        std::vector<bool> used(false, names.size());
-        
-        std::size_t good = 0;
-        for (std::size_t i = 0 ; i < points.size() && good < names.size() ; ++i)
-        {
-          geometry_msgs::PointStamped t;
-	  t.header.stamp = ros::Time::now();
-          t.header.frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
-          t.point.x = points[i].x();
-          t.point.y = points[i].y();
-          t.point.z = points[i].z();
-          for (std::size_t k = 0 ; k < names.size() ; ++k)
-            if (!used[k])
-            {
-              moveit_msgs::RobotTrajectory traj;
-	      ROS_DEBUG_STREAM("Pointing sensor to:\n" << t);
-              if (sensor_manager_->pointSensorTo(names[k], t, traj))
-              {
-                if (!trajectory_processing::isTrajectoryEmpty(traj) && trajectory_execution_)
-                {
-                  if (trajectory_execution_->push(traj) && trajectory_execution_->executeAndWait())
-                  {
-                    used[k] = true;
-                    good++;
-                  }
-                }
-                else
-                {
-                  used[k] = true;
-                  good++;
-                }
-              }
-            }
-        }
-        result = good > 0;
-      }
-      else
-        result = false;
-    }
-    return result;
-  }
-  
-  bool lookAt(const std::set<collision_detection::CostSource> &cost_sources)
-  {  
-    if (!sensor_manager_)
-      return false;
-    std::vector<std::string> names;
-    sensor_manager_->getSensorsList(names);
-    geometry_msgs::PointStamped point;
-    for (std::size_t i = 0 ; i < names.size() ; ++i)
-      if (collision_detection::getSensorPositioning(point.point, cost_sources, sensor_manager_->getSensorInfo(names[i])))
-      {      
-        point.header.stamp = ros::Time::now();
-        point.header.frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
-	ROS_DEBUG_STREAM("Pointing sensor to:\n" << point);
-        moveit_msgs::RobotTrajectory sensor_trajectory;
-        if (sensor_manager_->pointSensorTo(names[i], point, sensor_trajectory))
-        {
-          if (!trajectory_processing::isTrajectoryEmpty(sensor_trajectory) && trajectory_execution_)
-            return trajectory_execution_->push(sensor_trajectory) && trajectory_execution_->executeAndWait();
-          else
-            return true;
-        }
-      }
-    return false;
-  }
-  
-  /// Attempt to point a sensor at this given point
-  bool lookAt(const Eigen::Vector3d &point)
-  {
-    return lookAt(std::vector<Eigen::Vector3d>(1, point));
-  }
-
-
-  void dynamicReconfigureCallback(move_group::MoveGroupDynamicReconfigureConfig &config, uint32_t level)
-  {
-    max_looking_attempts_ = config.max_looking_attempts;
-    max_safe_cost_ = config.max_safe_path_cost;
   }
   
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  planning_scene_monitor::TrajectoryMonitor trajectory_monitor_;
-  std::vector<planning_models::KinematicStatePtr> currently_executed_trajectory_states_;
-  std::size_t currently_executed_trajectory_index_;
-  bool new_scene_update_;
-  ros::Publisher cost_sources_publisher_;
-  
-  planning_pipeline::PlanningPipeline planning_pipeline_;
-  
+  plan_execution::PlanExecution plan_execution_;
+
   boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;
   moveit_msgs::MoveGroupFeedback feedback_;
   
   ros::ServiceServer plan_service_;
-
-  boost::scoped_ptr<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager> > sensor_manager_loader_;
-  moveit_sensor_manager::MoveItSensorManagerPtr sensor_manager_;
-  unsigned int max_looking_attempts_;
-  double max_safe_cost_;
-  
-  boost::scoped_ptr<trajectory_execution_manager::TrajectoryExecutionManager> trajectory_execution_;  
-  bool preempt_requested_;
-  bool execution_complete_;
   MoveGroupState state_;
-
-  boost::scoped_ptr<dynamic_reconfigure::Server<move_group::MoveGroupDynamicReconfigureConfig> > dynamic_reconfigure_server_;
 };
 
 
