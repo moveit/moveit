@@ -13,11 +13,9 @@
   <depend package="actionlib"/>
   <depend package="pluginlib"/>
   <depend package="tf"/>
-  <depend package="trajectory_execution_manager"/>
-  <depend package="moveit_sensor_manager"/>
+  <depend package="plan_execution"/>
   <depend package="planning_scene_monitor"/>
   <depend package="planning_pipeline"/>
   <depend package="trajectory_processing"/>
-  <depend package="dynamic_reconfigure"/>
   
 </package>

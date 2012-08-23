@@ -343,7 +343,7 @@ private:
   void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
 
   class DynamicReconfigureImpl;
-  boost::scoped_ptr<DynamicReconfigureImpl> reconfigure_impl_;
+  DynamicReconfigureImpl *reconfigure_impl_;
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;

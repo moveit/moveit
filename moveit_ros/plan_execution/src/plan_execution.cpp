@@ -138,7 +138,12 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   trajectory_monitor_.setOnStateAddCallback(boost::bind(&PlanExecution::newMonitoredStateCallback, this, _1, _2));
 
   // start the dynamic-reconfigure server
-  reconfigure_impl_.reset(new DynamicReconfigureImpl(this));
+  reconfigure_impl_ = new DynamicReconfigureImpl(this);
+}
+
+plan_execution::PlanExecution::~PlanExecution(void)
+{
+  delete reconfigure_impl_;
 }
 
 void plan_execution::PlanExecution::displayCostSources(bool flag)
@@ -152,12 +157,28 @@ void plan_execution::PlanExecution::displayCostSources(bool flag)
   display_cost_sources_ = flag;
 }
 
-void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::GetMotionPlan::Request &mreq, const Options &opt)
+void plan_execution::PlanExecution::planOnly(const moveit_msgs::MotionPlanRequest &mreq)
+{
+  planOnly(mreq, planning_scene_monitor_->getPlanningScene());
+}
+
+void plan_execution::PlanExecution::planOnly(const moveit_msgs::MotionPlanRequest &mreq, const moveit_msgs::PlanningScene &scene_diff)
+{
+  planning_scene::PlanningSceneConstPtr the_scene = planning_scene_monitor_->getPlanningScene();
+  if (!planning_scene::PlanningScene::isEmpty(scene_diff))
+  {    
+    LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
+    the_scene = planning_scene_monitor_->getPlanningScene()->diff(scene_diff); 
+  }
+  planOnly(mreq, the_scene);
+}
+
+void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const Options &opt)
 {
   planAndExecute(mreq, planning_scene_monitor_->getPlanningScene(), opt);
 }
 
-void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::GetMotionPlan::Request &mreq, const moveit_msgs::PlanningScene &scene_diff, const Options &opt)
+void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const moveit_msgs::PlanningScene &scene_diff, const Options &opt)
 {
   planning_scene::PlanningSceneConstPtr the_scene = planning_scene_monitor_->getPlanningScene();
   if (!planning_scene::PlanningScene::isEmpty(scene_diff))
@@ -173,13 +194,27 @@ void plan_execution::PlanExecution::stop(void)
   preempt_requested_ = true;
 }
  
-void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::GetMotionPlan::Request &mreq, const planning_scene::PlanningSceneConstPtr &the_scene, const Options &opt)
+void plan_execution::PlanExecution::planOnly(const moveit_msgs::MotionPlanRequest &req, const planning_scene::PlanningSceneConstPtr &the_scene)
+{
+  moveit_msgs::GetMotionPlan::Request mreq;
+  mreq.motion_plan_request = req;
+
+  // run the motion planner
+  moveit_msgs::GetMotionPlan::Response mres;
+  computePlan(the_scene, mreq, mres);
+  result_ = Result();
+  result_.error_code_ = mres.error_code;
+  result_.trajectory_start_ = mres.trajectory_start;
+  result_.planned_trajectory_ = mres.trajectory;  
+}
+
+void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlanRequest &req, const planning_scene::PlanningSceneConstPtr &the_scene, const Options &opt)
 {
   // perform initial configuration steps & various checks
   preempt_requested_ = false;
   result_ = Result();
   
-  if (mreq.motion_plan_request.group_name.empty())
+  if (req.group_name.empty())
   {
     ROS_WARN_STREAM("Must specify group in motion plan request");
     result_.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
@@ -189,10 +224,10 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::GetMotionP
   // check to see if the desired constraints are already met
   {
     LockScene lock(planning_scene_monitor_); // lock the scene so that it does not modify the world representation while isStateConstrained() is called
-    for (std::size_t i = 0 ; i < mreq.motion_plan_request.goal_constraints.size() ; ++i)
-      if (planning_scene_monitor_->getPlanningScene()->isStateConstrained(mreq.motion_plan_request.start_state,
-                                                                          kinematic_constraints::mergeConstraints(mreq.motion_plan_request.goal_constraints[i],
-                                                                                                                  mreq.motion_plan_request.path_constraints)))
+    for (std::size_t i = 0 ; i < req.goal_constraints.size() ; ++i)
+      if (planning_scene_monitor_->getPlanningScene()->isStateConstrained(req.start_state,
+                                                                          kinematic_constraints::mergeConstraints(req.goal_constraints[i],
+                                                                                                                  req.path_constraints)))
       {
         ROS_INFO("Goal constraints are already satisfied. No need to plan or execute any motions");
         result_.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -208,6 +243,9 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::GetMotionP
   double previous_cost = 0.0;
   unsigned int max_look_attempts = opt.look_attempts_ > 0 ? opt.look_attempts_ : default_max_look_attempts_;
   unsigned int look_attempts = 0;
+
+  moveit_msgs::GetMotionPlan::Request mreq;
+  mreq.motion_plan_request = req;
   
   do
   {

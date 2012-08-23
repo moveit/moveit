@@ -86,7 +86,8 @@ public:
   };
 
   PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor);
-
+  ~PlanExecution(void);
+  
   planning_pipeline::PlanningPipeline& getPlanningPipeline(void)
   {
     return planning_pipeline_;
@@ -137,8 +138,11 @@ public:
     return default_max_look_attempts_;
   }
   
-  void planAndExecute(const moveit_msgs::GetMotionPlan::Request &mreq, const Options &opt = Options());
-  void planAndExecute(const moveit_msgs::GetMotionPlan::Request &mreq, const moveit_msgs::PlanningScene &scene_diff, const Options &opt = Options());  
+  void planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const Options &opt = Options());
+  void planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const moveit_msgs::PlanningScene &scene_diff, const Options &opt = Options());  
+
+  void planOnly(const moveit_msgs::MotionPlanRequest &mreq);
+  void planOnly(const moveit_msgs::MotionPlanRequest &mreq, const moveit_msgs::PlanningScene &scene_diff);  
 
   void stop(void);
 
@@ -151,7 +155,8 @@ public:
 
 private:
 
-  void planAndExecute(const moveit_msgs::GetMotionPlan::Request &mreq, const planning_scene::PlanningSceneConstPtr &the_scene, const Options &opt);
+  void planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const planning_scene::PlanningSceneConstPtr &the_scene, const Options &opt);
+  void planOnly(const moveit_msgs::MotionPlanRequest &mreq, const planning_scene::PlanningSceneConstPtr &the_scene);
   bool computePlan(const planning_scene::PlanningSceneConstPtr &scene, const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
   bool lookAt(const std::set<collision_detection::CostSource> &cost_sources);
   void executeAndMonitor(const planning_scene::PlanningSceneConstPtr &the_scene, const moveit_msgs::Constraints &path_constraints);
@@ -184,7 +189,7 @@ private:
   Result result_;
 
   class DynamicReconfigureImpl;
-  boost::scoped_ptr<DynamicReconfigureImpl> reconfigure_impl_;
+  DynamicReconfigureImpl *reconfigure_impl_;
 };
 
 }
