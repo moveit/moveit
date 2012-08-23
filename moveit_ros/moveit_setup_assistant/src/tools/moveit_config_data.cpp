@@ -401,7 +401,6 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
     emitter << YAML::Value << "1.0";
 
     emitter << YAML::EndMap;
-
   }    
 
   emitter << YAML::EndMap;
