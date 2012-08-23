@@ -618,6 +618,20 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::executeAn
   return waitForExecution();
 }
 
+void TrajectoryExecutionManager::stopExecutionInternal(void)
+{
+  // execution_state_mutex_ needs to have been locked by the caller
+  for (std::size_t i = 0 ; i < active_handles_.size() ; ++i)
+    try
+    {
+      active_handles_[i]->cancelExecution();
+    }
+    catch(...)
+    {
+      ROS_ERROR("Exception caught when canceling execution.");
+    }
+}
+
 void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 {
   if (!execution_complete_)
@@ -628,20 +642,13 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
       // we call cancel for all active handles; we know these are not being modified as we loop through them because of the lock
       // we mark execution_complete_ as true ahead of time. Using this flag, executePart() will know that an external trigger to stop has been received
       execution_complete_ = true;
-      for (std::size_t i = 0 ; i < active_handles_.size() ; ++i)
-        try
-        {
-          active_handles_[i]->cancelExecution();
-        }
-        catch(...)
-        {
-          ROS_ERROR("Exception caught when canceling execution.");
-        }
+      stopExecutionInternal();
+      
       // we set the status here; executePart() will not set status when execution_complete_ is true ahead of time
       last_execution_status_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
       execution_state_mutex_.unlock();
       ROS_INFO("Stopped trajectory execution.");
-      
+
       // wait for the execution thread to finish
       execution_thread_->join();
       execution_thread_.reset();
@@ -689,6 +696,8 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
   if (execution_complete_)
   {
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
+    if (callback)
+      callback(last_execution_status_);  
     return;
   }
     
@@ -713,7 +722,7 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
   execution_complete_ = true;
   execution_state_mutex_.unlock();
   execution_complete_condition_.notify_all();
-
+  
   // call user-specified callback
   if (callback)
     callback(last_execution_status_);  
@@ -857,10 +866,15 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
         if (!execution_complete_ && ros::Time::now() - current_time > expected_trajectory_duration)
         {
           ROS_ERROR("Controller is taking too long to execute trajectory (the expected upper bound for the trajectory execution was %lf seconds). Stopping trajectory.", expected_trajectory_duration.toSec());
-          stopExecution(false);
-          // we overwrite the PREEMPTED status set by stopExecution() here
-          last_execution_status_ = moveit_controller_manager::ExecutionStatus::TIMED_OUT;
+          {
+            boost::mutex::scoped_lock slock(execution_state_mutex_);
+            stopExecutionInternal(); // this is trally tricky. we can't call stopExecution() here, so we call the internal function only
+          }
+          last_execution_status_ = moveit_controller_manager::ExecutionStatus::TIMED_OUT; 
+          result = false;
+          break;
         }
+      // if something made the thajectory stop, we stop this thread too
       if (execution_complete_)
       {
         result = false;
@@ -874,7 +888,7 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           result = false;
         }
     }
-    
+
     // clear the active handles
     execution_state_mutex_.lock();
     active_handles_.clear();

@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE RelWithDebInfo)
+#set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
 
@@ -16,46 +16,21 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-# Eigen
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
-# Ogre
-#find_package(PkgConfig REQUIRED)
-#pkg_check_modules(OGRE REQUIRED Ogre)
-#include_directories(SYSTEM ${OGRE_INCLUDE_DIRS})
-#link_directories(${OGRE_LIBRARY_DIRS})
-
-# Qt Stuff
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-add_definitions(-DQT_NO_KEYWORDS)
-include_directories(${CMAKE_BINARY_DIR})
-include_directories(${QT_INCLUDE_DIR})
-
-# Header files that need Qt Moc pre-processing for use with Qt signals, etc:
-set( headers
-  include/moveit_rviz_plugin/planning_display.h
-)
-
-# Convert the Qt Signals and Slots for QWidget events
-qt4_wrap_cpp(MOC_SOURCES ${headers})
-
-# Plugin Source
-set(SOURCE_FILES 
-  src/planning_display.cpp
-)
+set(SOURCE_FILES src/planning_display.cpp src/init.cpp)
 
 include(CMakeDetermineSystem)
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  rosbuild_add_library_module(${PROJECT_NAME} ${SOURCE_FILES} ${MOC_SOURCES})
+  rosbuild_add_library_module(${PROJECT_NAME} ${SOURCE_FILES})
 else(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  rosbuild_add_library(${PROJECT_NAME} ${SOURCE_FILES} ${MOC_SOURCES})
+  rosbuild_add_library(${PROJECT_NAME} ${SOURCE_FILES})
 endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 
-# Link to boost libraries
-rosbuild_link_boost(${PROJECT_NAME} thread)
+find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+include(${QT_USE_FILE})
+add_definitions(-DQT_NO_KEYWORDS)
          
-# Link libraries
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
-
+rosbuild_link_boost(${PROJECT_NAME} thread)

@@ -47,7 +47,8 @@ class PlanningSceneMonitor::DynamicReconfigureImpl
 { 
 public:
   
-  DynamicReconfigureImpl(PlanningSceneMonitor *owner) : owner_(owner)
+  DynamicReconfigureImpl(PlanningSceneMonitor *owner) : owner_(owner),
+							dynamic_reconfigure_server_(ros::NodeHandle("~/planning_scene_monitor"))
   {
     dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
   }
@@ -56,11 +57,11 @@ private:
   
   void dynamicReconfigureCallback(PlanningSceneMonitorDynamicReconfigureConfig &config, uint32_t level)
   {
-    if (config.groups.scene_publisher.publish_planning_scene)
+    if (config.publish_planning_scene)
       owner_->startPublishingPlanningScene();
     else
       owner_->stopPublishingPlanningScene();
-    owner_->setPlanningScenePublishingFrequency(config.groups.scene_publisher.publish_planning_scene_hz);
+    owner_->setPlanningScenePublishingFrequency(config.publish_planning_scene_hz);
   }
   
   PlanningSceneMonitor *owner_;
@@ -195,9 +196,13 @@ void planning_scene_monitor::PlanningSceneMonitor::startPublishingPlanningScene(
 
 void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
 {
+  ROS_DEBUG("Started scene publishing thread ...");
+
+  // publish the full planning scene 
   moveit_msgs::PlanningScene msg;
   scene_->getPlanningSceneMsg(msg);
   planning_scene_publisher_.publish(msg);
+  ROS_DEBUG("Published the full planning scene");
   
   bool have_diff = false;
   do 
@@ -221,11 +226,19 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread(void)
     }
     if (have_diff)
     {
-      planning_scene_publisher_.publish(msg);
-      rate.sleep();
+      planning_scene_publisher_.publish(msg); 
+      rate.sleep(); 
     }
   }
   while (have_diff && publish_planning_scene_);
+}
+
+const planning_models::KinematicModelConstPtr& planning_scene_monitor::PlanningSceneMonitor::getKinematicModel(void) const
+{
+  if (scene_)
+    return scene_->getKinematicModel();
+  static const planning_models::KinematicModelConstPtr empty;
+  return empty;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vector<std::string> &topics) const
@@ -539,6 +552,7 @@ void planning_scene_monitor::PlanningSceneMonitor::setUpdateCallback(const boost
 void planning_scene_monitor::PlanningSceneMonitor::setPlanningScenePublishingFrequency(double hz)
 {
   publish_planning_scene_frequency_ = hz;
+  ROS_DEBUG("Maximum frquency for publishing a planning scene is now %lf Hz", publish_planning_scene_frequency_);
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(const planning_models::KinematicModelConstPtr &kmodel, std::vector<geometry_msgs::TransformStamped> &transforms)

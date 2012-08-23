@@ -32,7 +32,9 @@
 #
 # Author: Ioan Sucan
 
-from _move_group import *
+import roslib
+roslib.load_manifest('moveit_commander')
+from moveit_commander import MoveGroupCommander
 import re
 import time
 
@@ -43,9 +45,9 @@ class MoveGroupInfoLevel:
     INFO = 4
     DEBUG = 5
 
-class MoveGroupCommander:
+class MoveGroupCommandInterpreter:
     """
-    Execution of simple commands
+    Interpreter for simple commands
     """
 
     DEFAULT_FILENAME = "move_group.cfg"
@@ -60,12 +62,15 @@ class MoveGroupCommander:
     def get_active_group(self):
         return self._group_name
 
+    def get_loaded_groups(self):
+        return self._gdict.keys()
+
     def execute(self, cmd):
         cmd = self.resolve_command_alias(cmd)
 
         if cmd.startswith("use"):
             if cmd == "use":
-                return (MoveGroupInfoLevel.INFO, "\n".join(self._gdict.keys()))
+                return (MoveGroupInfoLevel.INFO, "\n".join(self.get_loaded_groups()))
             clist = cmd.split()
             if len(clist) == 2:
                 if clist[0] == "use":
@@ -74,7 +79,7 @@ class MoveGroupCommander:
                         return (MoveGroupInfoLevel.DEBUG, "OK")
                     else:
                         try:
-                            mg = MoveGroup(clist[1])
+                            mg = MoveGroupCommander(clist[1])
                             self._gdict[clist[1]] = mg
                             self._group_name = clist[1]
                             return (MoveGroupInfoLevel.DEBUG, "OK")
@@ -133,6 +138,10 @@ class MoveGroupCommander:
             known = g.get_remembered_joint_values()
             return (MoveGroupInfoLevel.INFO, "[" + " ".join(known.keys()) + "]")
 
+        if cmd == "joints":
+            joints = g.get_joints()
+            return (MoveGroupInfoLevel.INFO, "\n" + "\n".join([str(i) + " = " + joints[i] for i in range(len(joints))]) + "\n")
+
         if cmd == "show":
             return self.command_show(g)
 
@@ -144,6 +153,9 @@ class MoveGroupCommander:
                 return (MoveGroupInfoLevel.INFO, g.get_end_effector_link())
             else:
                 return (MoveGroupInfoLevel.INFO, "There is no end effector defined")
+            
+        if cmd == "tol":
+            return (MoveGroupInfoLevel.INFO, str(g.get_goal_tolerance()))
 
         # see if we have assignment between variables
         assign_match = re.match(r"^(\w+)\s*=\s*(\w+)$", cmd)
@@ -194,13 +206,13 @@ class MoveGroupCommander:
             if clist[0] == "go":
                 if clist[1] == "rand" or clist[1] == "random":
                     g.set_random_target()
-                    if g.move():
+                    if g.go():
                         return (MoveGroupInfoLevel.SUCCESS, "Moved to random target")
                     else:
                         return (MoveGroupInfoLevel.FAIL, "Failed while moving to random target")
                 else:
                     if g.set_named_target(clist[1]):
-                        if g.move():
+                        if g.go():
                             return (MoveGroupInfoLevel.SUCCESS, "Moved to " + clist[1])
                         else:
                             return (MoveGroupInfoLevel.FAIL, "Failed while moving to " + clist[1])
@@ -221,6 +233,12 @@ class MoveGroupCommander:
                     return (MoveGroupInfoLevel.INFO, "[" + " ".join([str(x) for x in known[clist[1]]]) + "]")
                 else:
                     return (MoveGroupInfoLevel.WARN, "Joint values for " + clist[1] + " are not known")
+            elif clist[0] == "tol":
+                try:
+                    g.set_goal_tolerance(float(clist[1]))
+                    return (MoveGroupInfoLevel.SUCCESS, "OK")
+                except:
+                    return (MoveGroupInfoLevel.WARN, "Unable to parse tolerance value '" + clist[1] + "'")
             elif clist[0] == "wait":
                 try:
                     time.sleep(float(clist[1]))
@@ -242,9 +260,8 @@ class MoveGroupCommander:
         if len(clist) == 4:
             if clist[0] == "rotate":
                 try:
-                    xyz = [float(x) for x in clist[1:]]
-                    g.set_orientation_target(xyz[0], xyz[1], xyz[2])
-                    if g.move():
+                    g.set_orientation_target([float(x) for x in clist[1:]])
+                    if g.go():
                         return (MoveGroupInfoLevel.SUCCESS, "Rotation complete")
                     else:
                         return (MoveGroupInfoLevel.FAIL, "Failed while rotating to " + " ".join(clist[1:]))
@@ -267,11 +284,9 @@ class MoveGroupCommander:
         return (MoveGroupInfoLevel.INFO, res)
 
     def command_go_offset(self, g, offset, factor, dimension_index, direction_name):
-        if len(g.get_end_effector_link()) > 0:
-            pose = g.get_current_pose()
-            pose[dimension_index] = pose[dimension_index] + offset * factor
-            g.set_pose_target(pose)
-            if g.move():
+        if g.has_end_effector_link():
+            g.shift_pose_target(dimension_index, factor * offset)
+            if g.go():
                 return (MoveGroupInfoLevel.SUCCESS, "Moved " + direction_name + " by " + str(offset) + " m")
             else:
                 return (MoveGroupInfoLevel.FAIL, "Failed while moving " + direction_name)

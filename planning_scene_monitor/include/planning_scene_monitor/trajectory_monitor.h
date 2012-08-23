@@ -65,6 +65,13 @@ public:
   void clearTrajectory(void);
   
   bool isActive(void) const;
+
+  double getSamplingFrequency(void) const
+  {
+    return sampling_frequency_;
+  }
+  
+  void setSamplingFrequency(double sampling_frequency);
   
   /// Return the current maintained trajectory. This function is not thread safe (hence NOT const), because the trajectory could be modified.
   const std::vector<planning_models::KinematicStateConstPtr>& getTrajectoryStates(void)
