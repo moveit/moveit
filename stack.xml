@@ -2,6 +2,7 @@
   <description brief="moveit_ros">moveit_ros</description>
   <author>Maintained by Ioan Sucan, Sachin Chitta</author>
   <license>BSD</license>  
+
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/moveit_ros</url>
   <depend stack="moveit" /> <!-- planning_scene, kinematics_base, ompl_interface, kinematics_msgs, kinematic_constraints, moveit_msgs -->
