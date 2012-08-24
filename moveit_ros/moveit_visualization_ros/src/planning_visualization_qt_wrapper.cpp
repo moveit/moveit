@@ -56,6 +56,12 @@ void PlanningVisualizationQtWrapper::newGroupSelected(const QString& new_group) 
   selectGroup(new_group.toStdString());
 }
 
+void PlanningVisualizationQtWrapper::newPlannerSelected(const QString& new_planner) {
+
+  ROS_INFO_STREAM("new planner: " << new_planner.toStdString());
+  selectPlanner(new_planner.toStdString());
+}
+
 void PlanningVisualizationQtWrapper::generatePlanRequested(bool play) {
   generatePlan(current_group_, play);
   if(last_trajectory_ok_) {

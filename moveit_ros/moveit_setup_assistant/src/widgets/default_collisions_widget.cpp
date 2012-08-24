@@ -84,7 +84,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
 
   // Top Label Area ------------------------------------------------
   HeaderWidget *header = new HeaderWidget( "Optimize Self-Collision Checking",
-                                           "The Default Self-Collision Matrix Generator will search for pairs of links on the robot that can safely be disabled from collision checking, decreasing motion planning processing time. These pairs of links are disabled they are always in collision, never in collision, collision in the robot's default position and when the links are adjacent to each other on the kinematic chain. Sampling density specifies how many random robot positions to check for self collision. Higher densities require more computation time.",
+                                           "The Default Self-Collision Matrix Generator will search for pairs of links on the robot that can safely be disabled from collision checking, decreasing motion planning processing time. These pairs of links are disabled when they are always in collision, never in collision, in collision in the robot's default position or when the links are adjacent to each other on the kinematic chain. Sampling density specifies how many random robot positions to check for self collision. Higher densities require more computation time.",
                                            this);
   layout_->addWidget( header );
    
@@ -129,7 +129,6 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   btn_generate_->setText("&Generate Collision Matrix");
   btn_generate_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred );
   connect(btn_generate_, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
-  //controls_box_layout->addWidget(btn_generate_);
   layout_->addWidget(btn_generate_);
   layout_->setAlignment( btn_generate_, Qt::AlignRight );
 
@@ -154,7 +153,8 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   collision_table_ = new QTableWidget( this );
   collision_table_->setColumnCount(4);
   collision_table_->setSortingEnabled(true);
-  connect(collision_table_, SIGNAL(cellChanged(int,int)), this, SLOT(toggleCheckBox(int,int)));
+  collision_table_->setSelectionBehavior( QAbstractItemView::SelectRows );
+  connect( collision_table_, SIGNAL( cellClicked( int, int ) ), this, SLOT( previewClicked( int, int ) ) );
   layout_->addWidget(collision_table_);
 
   QStringList header_list;
@@ -533,6 +533,26 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
     // Insert into map
     link_pairs_[ link_pair ] = link_pair_data;
   }
+}
+
+// ******************************************************************************************
+// Preview whatever element is selected
+// ******************************************************************************************
+void DefaultCollisionsWidget::previewClicked( int row, int column )
+{
+  // Get list of all selected items
+  QList<QTableWidgetItem*> selected = collision_table_->selectedItems();
+
+  // Check that an element was selected
+  if( !selected.size() )
+    return;
+
+  // Unhighlight all links
+  Q_EMIT unhighlightAll();
+
+  // Highlight link
+  Q_EMIT highlightLink( selected[0]->text().toStdString() );
+  Q_EMIT highlightLink( selected[1]->text().toStdString() );
 }
 
 // ******************************************************************************************

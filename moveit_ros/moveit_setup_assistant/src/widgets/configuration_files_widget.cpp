@@ -39,6 +39,7 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QApplication>
+#include <QSplitter>
 // ROS
 #include "configuration_files_widget.h"
 #include <srdfdom/model.h> // use their struct datastructures
@@ -68,7 +69,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   // Top Header Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "Generate Configuration Files",
-                                           "Create the unary stack of configuration files needed to run your robot with MoveIt.",
+                                           "Create or update the configuration files package needed to run your robot with MoveIt.",
                                            this);
   layout->addWidget( header );
 
@@ -105,15 +106,16 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   layout->addLayout( hlayout1 );
 
   // Generated Files List -------------------------------------------
-  actions_box_ = new QGroupBox( "Generated Files/Folders:", this );
+  QLabel* generated_list = new QLabel( "Generated Files/Folders:", this );
+  layout->addWidget( generated_list );
 
-  QHBoxLayout *hlayout2 = new QHBoxLayout();
+  QSplitter* splitter = new QSplitter( Qt::Horizontal, this );
+  splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   // List Box
   action_list_ = new QListWidget( this );
   action_list_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
   connect( action_list_, SIGNAL( currentRowChanged(int) ), this, SLOT( changeActionDesc(int) ) );
-  hlayout2->addWidget( action_list_ );
 
   // Description
   action_label_ = new QLabel( this );
@@ -126,11 +128,13 @@ ConfigurationFilesWidget::ConfigurationFilesWidget( QWidget *parent, moveit_setu
   action_label_->setMinimumWidth( 100 );
   action_label_->setAlignment( Qt::AlignTop );
   action_label_->setOpenExternalLinks(true); // open with web browser
-  hlayout2->addWidget( action_label_ );
+
+  // Add to splitter
+  splitter->addWidget( action_list_ );
+  splitter->addWidget( action_label_ );
 
   // Add Layout
-  actions_box_->setLayout( hlayout2 );
-  layout->addWidget( actions_box_ );
+  layout->addWidget( splitter );
 
   // Bottom row --------------------------------------------------
 
@@ -370,7 +374,7 @@ void ConfigurationFilesWidget::savePackage()
     }
     // Feedback
     displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
-                   "Package that contains all necessary configuration and launch files for MoveIt");
+                   "Required ROS package build settings file.");
 
     // Copy Makefile ------------------------------------------------------------------
     file_name = "Makefile";
@@ -386,7 +390,7 @@ void ConfigurationFilesWidget::savePackage()
     }
     // Feedback
     displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
-                   "Package that contains all necessary configuration and launch files for MoveIt");
+                   "Required ROS package build settings file.");
 
     // Copy manifest.xml ------------------------------------------------------------------
     file_name = "manifest.xml";
@@ -402,7 +406,7 @@ void ConfigurationFilesWidget::savePackage()
     }
     // Feedback
     displayAction( QString( file_name.c_str() ).prepend( qnew_package_name ),
-                   "Package that contains all necessary configuration and launch files for MoveIt");
+                   "Required ROS package meta data file.");
 
   }
 
@@ -420,7 +424,7 @@ void ConfigurationFilesWidget::savePackage()
     }
     // Feedback
     displayAction( qconfig_path,
-                   "Folder for storing configuration files");
+                   "Subfolder containing necessary MoveIt configuration files");
   }
 
   // Create launch folder ---------------------------------------------------------------
@@ -437,7 +441,7 @@ void ConfigurationFilesWidget::savePackage()
     }
     // Feedback
     displayAction( qlaunch_path,
-                   "Folder for storing launch files" );
+                   "Subfolder containing MoveIt launch files");
   }
 
   // -------------------------------------------------------------------------------------------------------------------
@@ -457,7 +461,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( srdf_file.c_str() ).prepend( qconfig_path ),
-                 "SRDF ( Robot Description Format) is a representation of semantic information about robots. This format is intended to represent information about the robot that is not in the URDF file, but it is useful for a variety of applications. The intention is to include information that has a semantic aspect to it. <a href='http://www.ros.org/wiki/srdf'>http://www.ros.org/wiki/srdf</a>");
+                 "SRDF (<a href='http://www.ros.org/wiki/srdf'>Semantic Robot Description Format</a>) is a representation of semantic information about robots. This format is intended to represent information about the robot that is not in the URDF file, but it is useful for a variety of applications. The intention is to include information that has a semantic aspect to it.");
   // Select first item in file list for user clue. This may or may not be the srdf file being highlighted
   action_list_->setCurrentRow( 0 );
 
@@ -474,8 +478,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( ompl_file.c_str() ).prepend( qconfig_path ),
-                 "Configures the OMPL planning node for your robot. In addition to some basic parameterization for OMPL it contains two groups per planning group - a <group_name> group and a <group_name>_cartesian group. The <group_name> group is configured to support configuration space planning for your groups - sampling in the joint space in order to reach joint goals. The <group_name>_cartesian group is configured to support task space planning for your robot. This is particularly useful as it allows you to specify path constraints on allowable paths, for instance to instruct the robot to keep its end effector upright while moving a glass. The task space planner likely will not successfully plan for your robot in a reasonable amount of time using the auto-configured nodes, as it requires robust and very fast inverse kinematics, generally from an analytic solver." );
-
+                 "Configures the OMPL (<a href='http://ompl.kavrakilab.org/'>Open Motion Planning Library</a>) planning plugin. For every planning group defined in the SRDF, a number of planning configurations are specified (under planner_configs). Additionally, default settings for the state space to plan in for a particular group can be specified, such as the collision checking resolution. Each planning configuration specified for a group must be defined under the planner_configs tag. While defining a planner configuration, the only mandatory parameter is 'type', which is the name of the motion planner to be used. Any other planner-specific parameters can be defined but are optional.");
 
   // Create Kinematics Config File -----------------------------------------------------
   const std::string kinematics_file = "kinematics.yaml";
@@ -490,7 +493,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( kinematics_file.c_str() ).prepend( qconfig_path ),
-                 "Holds kinematic info" ); // TODO: description
+                 "Specifies which kinematic solver plugin to use for each planning group in the SRDF, as well as the kinematic solver search resolution.");
 
   // Create Joint Limits Config File -----------------------------------------------------
   const std::string joint_limits_file = "joint_limits.yaml";
@@ -505,7 +508,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( joint_limits_file.c_str() ).prepend( qconfig_path ),
-                 "This file contains additional information about joints that appear in your planning groups that is not contained in the URDF, as well as allowing you to set lower limits for velocity and acceleration than those contained in your URDF. As our planners are exclusively kinematic planners, this information is used by our trajectory filtering system to assign reasonable velocities and timing for the trajectory before it is passed to your controllers." );
+                 "Contains additional information about joints that appear in your planning groups that is not contained in the URDF, as well as allowing you to set maximum and minimum limits for velocity and acceleration than those contained in your URDF. This information is used by our trajectory filtering system to assign reasonable velocities and timing for the trajectory before it is passed to the robots controllers.");
 
 
   // -------------------------------------------------------------------------------------------------------------------
@@ -527,24 +530,26 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+                 "Launches the move_group node that provides the MoveGroup action and other parameters <a href='http://moveit.ros.org/move_group.html'>MoveGroup action</a>");
 
 
   // Create Ompl_Planner Launch File  -----------------------------------------------------
-  file_name = "ompl_planner.launch";
-  file_path = config_data_->appendPaths( launch_path, file_name );
-  template_path = config_data_->appendPaths( template_launch_path, file_name );
-  // Use generic template copy function
-  if ( !copyTemplate( template_path, file_path, new_package_name ) )
-  {
+  // Ioan told me to delete this launch file
+  /*
+    file_name = "ompl_planner.launch";
+    file_path = config_data_->appendPaths( launch_path, file_name );
+    template_path = config_data_->appendPaths( template_launch_path, file_name );
+    // Use generic template copy function
+    if ( !copyTemplate( template_path, file_path, new_package_name ) )
+    {
     QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
-                           .append( " file at location " ).append( file_path.c_str() ) );
+    .append( " file at location " ).append( file_path.c_str() ) );
     return;
-  }
-  // Feedback
-  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
-
+    }
+    // Feedback
+    displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
+    "TODO" ); // TODO: description
+  */
 
   // Create Planning_Context Launch File  -----------------------------------------------------
   file_name = "planning_context.launch";
@@ -559,7 +564,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+                 "Loads settings for the ROS parameter server, required for running MoveIt. This includes the SRDF, joints_limits.yaml file, ompl_planning.yaml file, optionally the URDF, etc");
 
 
   // Create Moveit_Visualizer Launch File  -----------------------------------------------------
@@ -575,7 +580,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+                 "Visualize in Rviz the robot's planning groups running with interactive markers that allow goal states to be set.");
 
 
   // Create Ompl_Planning_Pipeline Launch File  -----------------------------------------------------
@@ -591,7 +596,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+                 "Intended to be included in other launch files that require the OMPL planning plugin. Defines the proper plugin name on the parameter server and a default selection of planning request adapters.");
 
 
   // Create Planning_Pipeline Launch File  -----------------------------------------------------
@@ -607,11 +612,11 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+                 "Helper launch file that can choose between different planning pipelines to be loaded.");
 
 
   // Create Moveit_Controller_Manager Launch File  -----------------------------------------------------
-  file_name = robot_name + "moveit_controller_manager.launch";
+  file_name = robot_name + "_moveit_controller_manager.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
   template_path = config_data_->appendPaths( template_launch_path, "moveit_controller_manager.launch" );
   // Use generic template copy function
@@ -623,11 +628,11 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+                 "Placeholder for settings specific to the MoveIt controller manager implemented for you robot.");
 
 
   // Create Moveit_Sensor_Manager Launch File  -----------------------------------------------------
-  file_name = robot_name + "moveit_sensor_manager.launch";
+  file_name = robot_name + "_moveit_sensor_manager.launch";
   file_path = config_data_->appendPaths( launch_path, file_name );
   template_path = config_data_->appendPaths( template_launch_path, "moveit_sensor_manager.launch" );
   // Use generic template copy function
@@ -639,7 +644,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+                 "Placeholder for settings specific to the MoveIt sensor manager implemented for you robot.");
 
 
   // Create Trajectory_Execution Launch File  -----------------------------------------------------
@@ -655,23 +660,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
-
-
-  // Create Trajectory_Execution Launch File  -----------------------------------------------------
-  file_name = "trajectory_execution.launch";
-  file_path = config_data_->appendPaths( launch_path, file_name );
-  template_path = config_data_->appendPaths( template_launch_path, file_name );
-  // Use generic template copy function
-  if ( !copyTemplate( template_path, file_path, new_package_name ) )
-  {
-    QMessageBox::critical( this, "Error Generating Files", QString("Failed to create ").append( file_name.c_str() )
-                           .append( " file at location " ).append( file_path.c_str() ) );
-    return;
-  }
-  // Feedback
-  displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+                 "Loads settings for the ROS parameter server required for executing trajectories using the trajectory_execution_manager::TrajectoryExecutionManager.");
 
 
   // Create Setup_Assistant Launch File  -----------------------------------------------------
@@ -687,7 +676,7 @@ void ConfigurationFilesWidget::savePackage()
   }
   // Feedback
   displayAction( QString( file_name.c_str() ).prepend( qlaunch_path ),
-                 "TODO" ); // TODO: description
+                 "Launch file for easily re-starting the MoveIt Setup Assistant to edit this robot's generated configuration package.");
 
 
   // -------------------------------------------------------------------------------------------------------------------
@@ -708,12 +697,11 @@ void ConfigurationFilesWidget::savePackage()
 
   // Feedback
   displayAction( QString( hidden_file.c_str() ).prepend( qnew_package_name ),
-                 "MoveIt Setup Assistant hidden settings file. Do not edit." );
+                 "MoveIt Setup Assistant hidden settings file. You should not need to edit this file.");
 
 
   // Alert user it completed successfully --------------------------------------------------
   progress_bar_->setValue( 100 );
-  //QMessageBox::information( this, "Complete", "All MoveIt configuration files generated successfully!" );
   success_label_->show();
 }
 
@@ -737,6 +725,13 @@ void ConfigurationFilesWidget::exitSetupAssistant()
 // ******************************************************************************************
 const std::string ConfigurationFilesWidget::getPackageName( std::string package_path )
 {
+  // Remove end slash if there is one
+  if( !package_path.compare( package_path.size() - 1, 1, "/" ) ) // || package_path[ package_path.size() - 1 ] == "\\" )
+  {
+    package_path = package_path.substr( 0, package_path.size() - 1 );
+  }
+
+  // Get the last directory name
   std::string package_name;
   fs::path fs_package_path = package_path;
 
