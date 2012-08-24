@@ -29,57 +29,43 @@
 
 // Author: E. Gil Jones
 
-#ifndef _PLANNING_VISUALIZATION_QT_WRAPPER_H_
-#define _PLANNING_VISUALIZATION_QT_WRAPPER_H_
+#ifndef _PLANNER_SELECTION_MENU_H_
+#define _PLANNER_SELECTION_MENU_H_
 
-#include <QObject>
 #include <QString>
+#include <QMenu>
+#include <QActionGroup>
+#include <planning_scene/planning_scene.h>
 
-#include <moveit_visualization_ros/planning_visualization.h>
- 
+
 namespace moveit_visualization_ros
 {
-
-class PlanningVisualizationQtWrapper : public QObject, public PlanningVisualization
+class PlannerSelectionMenu: public QMenu
 {
   Q_OBJECT
-public:
+  
+  public:
+  
+  PlannerSelectionMenu(QWidget* parent);
 
-  PlanningVisualizationQtWrapper(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                 const boost::shared_ptr<planning_pipeline::PlanningPipeline>& move_group_pipeline,
-                                 boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
-                                 boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
-                                 ros::Publisher& marker_publisher);
+  void init(const planning_scene::PlanningSceneConstPtr& planning_scene,
+            const std::string& group_name);
+                                              
+public Q_SLOTS:
 
-  ~PlanningVisualizationQtWrapper() {
-  }
-
-public Q_SLOTS: 
+  void plannerTriggered(QAction*);
 
   void newGroupSelected(const QString&);
 
-  void newPlannerSelected(const QString&);
-
-  void generatePlanRequested(bool);
-
-  void generatePlanDiffSceneRequested(const std::string&,
-                                      const planning_scene::PlanningSceneConstPtr&,
-                                      const planning_models::KinematicState*);
-
-
-  void setStartStateRequested(const std::string&,
-                            const planning_models::KinematicState*);
-
-  void setGoalStateRequested(const std::string&,
-                             const planning_models::KinematicState*);
-
 Q_SIGNALS:
 
-  void planGenerated(const std::string&,
-                     const trajectory_msgs::JointTrajectory&);
+  void plannerSelected(const QString&);
 
-  void planFailed(moveit_msgs::MoveItErrorCodes& err);
+protected:
+  
+  QActionGroup* action_group_;
 
+  std::vector<std::string> available_planners;
 };
 
 }

@@ -70,8 +70,11 @@ namespace fs = boost::filesystem;
 StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
   :  SetupScreenWidget( parent ), config_data_( config_data )
 {
+
+  
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout( this );
+
   // Horizontal layout splitter
   QHBoxLayout *hlayout = new QHBoxLayout( );
   // Left side of screen
@@ -81,7 +84,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
 
   // Top Label Area ---------------------------------------------------
   HeaderWidget *header = new HeaderWidget( "MoveIt Setup Assistant",
-                                           "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating a planning configuration for your robot. This includes generating a Semantic Robot Description Format (SRDF) file, kinematics configuration file and OMPL planning configuration file. It also involves creating launch files for move groups, OMPL planner, planning contexts and the planning warehouse.",
+                                           "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating a MoveIt configuration package that is required to run MoveIt. This includes generating a Semantic Robot Description Format (SRDF) file, kinematics configuration file and OMPL planning configuration file. It also involves creating launch files for move groups, OMPL planner, planning contexts and the planning warehouse.",
                                            this);
   layout->addWidget( header );
 
@@ -102,7 +105,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
 
   // URDF File Dialog
   urdf_file_ = new LoadPathWidget("Load a URDF or COLLADA Robot Model",
-                                  "Specify the location of an existing Universal Robot Description Format or COLLADA file for your robot. The robot model will be loaded to the parameter server for you. \nNote: an XACRO URDF must first be converted to a regular XML URDF before opening here. To convert a file run the following command: 'rosrun xacro xacro.py model.xacro > model.urdf'.",
+                                  "Specify the location of an existing Universal Robot Description Format or COLLADA file for your robot. The robot model will be loaded to the parameter server for you. \nNote: an XACRO URDF must first be converted to a regular XML URDF before opening here. To convert a file run the following command: <i>rosrun xacro xacro.py model.xacro > model.urdf</i>",
                                   false, true, this); // no directory, load only
   urdf_file_->hide(); // user needs to select option before this is shown
   left_layout->addWidget( urdf_file_ );
@@ -143,7 +146,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   next_label_->setFont( next_label_font );
   //next_label_->setWordWrap(true);
   next_label_->setText( "Success! Use the left navigation pane to continue." );
-  next_label_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  //  next_label_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
   next_label_->hide(); // only show once the files have been loaded.
 
   // Right Image Area ----------------------------------------------
@@ -191,7 +194,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
   layout->addLayout( load_files_layout );
 
   this->setLayout(layout);
-  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  //  this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 
   // Debug mode:
@@ -204,6 +207,8 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
     connect( update_timer, SIGNAL( timeout() ), btn_load_, SLOT( click() ));
     update_timer->start( 100 );
   }
+
+
 }
 
 // ******************************************************************************************
@@ -398,6 +403,13 @@ bool StartScreenWidget::loadNewFiles()
 {
   // Get URDF file path
   config_data_->urdf_path_ = urdf_file_->getPath();
+
+  // Check that box is filled out
+  if( config_data_->urdf_path_.empty() )
+  {
+    QMessageBox::warning( this, "Error Loading Files", "No robot model file specefied" );
+    return false;
+  }
 
   // Check that this file exits
   if( ! fs::is_regular_file( config_data_->urdf_path_ ) )
@@ -861,9 +873,10 @@ SelectModeWidget::SelectModeWidget( QWidget* parent )
 
   // Widget Instructions
   QLabel * widget_instructions = new QLabel(this);
-  widget_instructions->setText( "All settings for MoveIt are stored in a Moveit configuration package. Here you have the option to create a new configuration package from scractch, or load an existing one. Note: any changes to a MoveIt configuration package outside this setup assistant will likely be overwritten by this tool." );
+  widget_instructions->setText( "All settings for MoveIt are stored in a Moveit configuration package. Here you have the option to create a new configuration package, or load an existing one. Note: any changes to a MoveIt configuration package outside this setup assistant will likely be overwritten by this tool." );
   widget_instructions->setWordWrap(true);
-  widget_instructions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  //widget_instructions->setMinimumWidth(1);
+  widget_instructions->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Preferred );
   layout->addWidget( widget_instructions);
   layout->setAlignment( widget_instructions, Qt::AlignTop);
 

@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2012, Willow Garage, Inc.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of the <ORGANIZATION> nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -42,10 +42,10 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
                                              boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                              boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                              ros::Publisher& marker_publisher)
-  : planning_scene_(planning_scene), 
+  : planning_scene_(planning_scene),
     move_group_pipeline_(move_group_pipeline),
     last_start_state_(planning_scene->getCurrentState()),
-    last_trajectory_ok_(false), 
+    last_trajectory_ok_(false),
     cycle_ok_(false)
 {
   //ompl_interface_.getPlanningContextManager().setMaximumSolutionSegmentLength(.1);
@@ -76,12 +76,15 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
   ros::NodeHandle nh;
   display_traj_publisher_ = nh.advertise<moveit_msgs::DisplayTrajectory>("display_trajectory", 1);
 
+
+
+
 }
 
 void PlanningVisualization::updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene) {
   planning_scene_ = planning_scene;
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
-      it != group_visualization_map_.end(); 
+      it != group_visualization_map_.end();
       it++) {
     it->second->updatePlanningScene(planning_scene);
   }
@@ -90,7 +93,7 @@ void PlanningVisualization::updatePlanningScene(const planning_scene::PlanningSc
 
 void PlanningVisualization::resetAllStartAndGoalStates() {
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
-      it != group_visualization_map_.end(); 
+      it != group_visualization_map_.end();
       it++) {
     it->second->resetStartGoal();
   }
@@ -98,18 +101,18 @@ void PlanningVisualization::resetAllStartAndGoalStates() {
 
 void PlanningVisualization::resetAllStartStates() {
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
-      it != group_visualization_map_.end(); 
+      it != group_visualization_map_.end();
       it++) {
     it->second->resetStartState();
   }
 }
 
-void PlanningVisualization::addMenuEntry(const std::string& name, 
+void PlanningVisualization::addMenuEntry(const std::string& name,
                                          const boost::function<void(const std::string&)>& callback)
 {
   //For now adding to all groups
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
-      it != group_visualization_map_.end(); 
+      it != group_visualization_map_.end();
       it++) {
     it->second->addMenuEntry(name, callback);
   }
@@ -117,14 +120,14 @@ void PlanningVisualization::addMenuEntry(const std::string& name,
 
 void PlanningVisualization::hideAllGroups() {
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
-      it != group_visualization_map_.end(); 
+      it != group_visualization_map_.end();
       it++) {
     it->second->hideAllMarkers();
   }
 }
 
 void PlanningVisualization::setGoalState(const std::string& group_name,
-                                         const planning_models::KinematicState& state) 
+                                         const planning_models::KinematicState& state)
 {
   if(group_visualization_map_.find(group_name) == group_visualization_map_.end()) {
     ROS_WARN_STREAM("No group " << group_name << " for setting goal state");
@@ -134,7 +137,7 @@ void PlanningVisualization::setGoalState(const std::string& group_name,
 }
 
 void PlanningVisualization::setStartState(const std::string& group_name,
-                                         const planning_models::KinematicState& state) 
+                                          const planning_models::KinematicState& state)
 {
   if(group_visualization_map_.find(group_name) == group_visualization_map_.end()) {
     ROS_WARN_STREAM("No group " << group_name << " for setting goal state");
@@ -147,7 +150,7 @@ void PlanningVisualization::addStateChangedCallback(const boost::function<void(c
                                                                                const planning_models::KinematicState&)>& callback)
 {
   for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
-      it != group_visualization_map_.end(); 
+      it != group_visualization_map_.end();
       it++) {
     it->second->addStateChangedCallback(callback);
   }
@@ -187,6 +190,20 @@ void PlanningVisualization::selectGroup(const std::string& group) {
   }
   current_group_ = group;
   group_visualization_map_[current_group_]->showAllMarkers();
+}
+
+void PlanningVisualization::selectPlanner(const std::string& planner) {
+  if(current_planner_ == planner) 
+    return;
+  // TODO: not sure what this is suppose to do - error check? - DTC
+  /*  if(planner_visualization_map_.find(planner) == planner_visualization_map_.end()) {
+    ROS_WARN_STREAM("No planner name " << planner);
+  }
+  if(!current_planner_.empty()) {
+    planner_visualization_map_[current_planner_]->hideAllMarkers();
+    }*/
+  current_planner_ = planner;
+  //  planner_visualization_map_[current_planner_]->showAllMarkers();
 }
 
 void PlanningVisualization::generatePlan(const std::string& name, bool play) {
@@ -283,22 +300,27 @@ bool PlanningVisualization::generatePlanForScene(const planning_scene::PlanningS
 
   req.motion_plan_request.num_planning_attempts = 1;
   req.motion_plan_request.allowed_planning_time = ros::Duration(3.0);
-  
+
+  // Manually define what planner to use - DTC
+  req.motion_plan_request.planner_id = getCurrentPlanner();
+
+  ROS_INFO_STREAM("USING MENU PLANNER " << getCurrentPlanner());
+
   if(!move_group_pipeline_->generatePlan(scene, req, res)) {
     ROS_WARN_STREAM("Response traj " << res.trajectory.joint_trajectory);
     return false;
-  } 
+  }
   ret_traj = res.trajectory.joint_trajectory;
   return true;
-}                                         
-                                         
+}
+
 void PlanningVisualization::playLastTrajectory() {
   if(!last_trajectory_ok_) return;
-  
+
   std_msgs::ColorRGBA col;
   col.a = .8;
   col.b = 1.0;
-  
+
   joint_trajectory_visualization_->setTrajectory(last_start_state_,
                                                  last_group_name_,
                                                  last_trajectory_,

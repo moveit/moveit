@@ -216,7 +216,10 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
 
   // Remove all old items
   kinematics_solver_field_->clear();
-  
+
+  // Add none option, the default
+  kinematics_solver_field_->addItem( "None" );  
+
   // load all avail kin planners
   boost::scoped_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > loader;
   try
@@ -240,11 +243,8 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
     kinematics_solver_field_->addItem( plugin_it->c_str() );
   }
 
-  // if no avail planners add none option
-  if( ! kinematics_solver_field_->count() )
-  {
-    kinematics_solver_field_->addItem( "None" );
-  }
+
+
 }
 
 } // namespace
