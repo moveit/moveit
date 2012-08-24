@@ -64,7 +64,11 @@ public:
     unsigned int look_attempts_;
     unsigned int replan_attempts_;
     double max_safe_path_cost_;
-    boost::function<void(const moveit_controller_manager::ExecutionStatus&)> executionCompleteCallback_;
+    
+    boost::function<void(void)> beforePlanCallback_;
+    boost::function<void(void)> beforeLookCallback_;
+    boost::function<void(void)> beforeExecutionCallback_;
+    boost::function<void(void)> doneCallback_;
   };
   
   struct Result
@@ -137,6 +141,26 @@ public:
   {
     return default_max_look_attempts_;
   }
+
+  unsigned int getMaxCostSources(void) const
+  {
+    return max_cost_sources_;
+  }
+  
+  void setMaxCostSources(unsigned int value)
+  {
+    max_cost_sources_ = value;
+  }
+  
+  double getDiscardOverlappingCostSources(void) const
+  {
+    return discard_overlapping_cost_sources_;
+  }
+  
+  void setDiscardOverlappingCostSources(double value)
+  {
+    discard_overlapping_cost_sources_ = value;
+  }
   
   void planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const Options &opt = Options());
   void planAndExecute(const moveit_msgs::MotionPlanRequest &mreq, const moveit_msgs::PlanningScene &scene_diff, const Options &opt = Options());  
@@ -177,9 +201,12 @@ private:
   double default_max_safe_path_cost_;
 
   unsigned int default_max_replan_attempts_;
-
+  double discard_overlapping_cost_sources_;
+  unsigned int max_cost_sources_;
+  
   bool display_cost_sources_;
   ros::Publisher cost_sources_publisher_;
+  
   
   bool preempt_requested_;
   bool new_scene_update_;
