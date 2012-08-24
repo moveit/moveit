@@ -75,8 +75,10 @@ private:
   {
     owner_->setMaxReplanAttempts(config.max_replan_attempts);
     owner_->setMaxSafePathCost(config.max_safe_path_cost);
+    owner_->setMaxCostSources(config.max_cost_sources);
     owner_->setMaxLookAttempts(config.max_look_attempts);
     owner_->setTrajectoryStateRecordingFrequency(config.record_trajectory_state_frequency);
+    owner_->setDiscardOverlappingCostSources(config.discard_overlapping_cost_sources);
   }
   
   PlanExecution *owner_;
@@ -91,8 +93,8 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   trajectory_execution_manager_(planning_scene_monitor_->getKinematicModel()),
   trajectory_monitor_(planning_scene_monitor_->getStateMonitor()),
   default_max_look_attempts_(3), default_max_safe_path_cost_(0.5),
-  default_max_replan_attempts_(5), preempt_requested_(false),
-  new_scene_update_(false)
+  default_max_replan_attempts_(5), discard_overlapping_cost_sources_(0.8),
+  max_cost_sources_(100), preempt_requested_(false), new_scene_update_(false)
 {
   if (planning_scene_monitor_->getUpdateCallback())
     ROS_ERROR("The PlanExecution instance needs to overwrite the update callback for the PlanningSceneMonitor. This means that the existing callback setting will be overwritten.");
@@ -244,12 +246,21 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
   unsigned int max_look_attempts = opt.look_attempts_ > 0 ? opt.look_attempts_ : default_max_look_attempts_;
   unsigned int look_attempts = 0;
 
+  // this flag is set to true when all conditions for looking around are met, and the command is sent.
+  // the intention is for the planning looop not to terminate when having just looked around
+  bool just_looked_around = false;
+  
   moveit_msgs::GetMotionPlan::Request mreq;
   mreq.motion_plan_request = req;
   
   do
   {
     replan_attempts++;
+    just_looked_around = false;
+    ROS_DEBUG("Planning attempt %u", replan_attempts);
+    
+    if (opt.beforePlanCallback_)
+      opt.beforePlanCallback_();
     
     // run the motion planner
     moveit_msgs::GetMotionPlan::Response mres;
@@ -258,7 +269,8 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
     result_.trajectory_start_ = mres.trajectory_start;
     result_.planned_trajectory_ = mres.trajectory;
     
-    // if planning fails in a manner that is not recoverable, we exit the loop
+    // if planning fails in a manner that is not recoverable, we exit the loop,
+    // otherwise, we attempt to continue, if replanning attempts are lefr
     if (result_.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN ||
         result_.error_code_.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
       continue;
@@ -279,8 +291,7 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
       
       // determine the sources of cost for this path
       std::set<collision_detection::CostSource> cost_sources;
-      the_scene->getCostSources(result_.planned_trajectory_states_, 100, mreq.motion_plan_request.group_name, cost_sources, 0.8);
-      // \todo make these params: 100, 0.8
+      the_scene->getCostSources(result_.planned_trajectory_states_, max_cost_sources_, mreq.motion_plan_request.group_name, cost_sources, discard_overlapping_cost_sources_);
 
       if (display_cost_sources_)
       {
@@ -297,11 +308,14 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
       {
         ++look_attempts;
         ROS_INFO("The cost of the trajectory is %lf, which is above the maximum safe cost of %lf. Attempt %u (of at most %u) at looking around.", cost, max_safe_path_cost, look_attempts, max_look_attempts);
+        if (opt.beforeLookCallback_)
+          opt.beforeLookCallback_();
         if (lookAt(cost_sources))
         {
           ROS_INFO("Sensor was succesfully actuated. Attempting to recompute a motion plan.");
           previous_cost = cost;
           replan_attempts--; // this was not a replanning attempt
+          just_looked_around = true;
           continue;
         }
         else
@@ -315,6 +329,9 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
       }
     }
     
+    if (opt.beforeExecutionCallback_)
+      opt.beforeExecutionCallback_();
+    // execute the trajectory, and monitor its execution
     executeAndMonitor(the_scene, mreq.motion_plan_request.path_constraints);
 
     // if we are done, then we exit the loop
@@ -325,7 +342,10 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
     if (result_.error_code_.val != moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE && 
         result_.error_code_.val != moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
       break;
-  } while (opt.replan_ && max_replan_attempts > replan_attempts);
+  } while ((opt.replan_ && max_replan_attempts > replan_attempts) || just_looked_around);
+  
+  if (opt.doneCallback_)
+    opt.doneCallback_();
 }
 
 bool plan_execution::PlanExecution::computePlan(const planning_scene::PlanningSceneConstPtr &scene, const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
@@ -422,10 +442,17 @@ void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::Plan
         result_.error_code_.val = moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
       else
       {
-        if (trajectory_execution_manager_.getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
-          result_.error_code_.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+        if (preempt_requested_)
+        {
+          //          result_.error_code_.val = moveit_msgs::MoveItErrorCodes::PREEMPTED; TODO: enable when new msgs deb is out
+        }
         else
-          result_.error_code_.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+        {
+          if (trajectory_execution_manager_.getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::TIMED_OUT)
+            result_.error_code_.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+          else
+            result_.error_code_.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+        }
       }
     }
   }

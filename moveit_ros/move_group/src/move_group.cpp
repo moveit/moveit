@@ -51,7 +51,8 @@ public:
     {
       IDLE,
       PLANNING,
-      MONITOR
+      MONITOR,
+      LOOK
     };
   
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm) : 
@@ -89,16 +90,37 @@ private:
     plan_execution_.stop();
   }
   
+  void startPlanningCallback(void)
+  { 
+    setState(PLANNING, 0.5);
+  }
+
+  void startExecutionCallback(void)
+  {
+    setState(MONITOR, 1.0);
+  }
+
+  void startLookCallback(void)
+  {
+    setState(LOOK, 1.0);
+  }
+  
   void executeCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
   {
-    setState(PLANNING, 0.5);
+    setState(PLANNING, 0.1);
     
     if (goal->plan_only)
       plan_execution_.planOnly(goal->request, goal->planning_scene_diff);
     else
     {
       plan_execution::PlanExecution::Options opt;
-      // set a callback when swithcing from plan to monitor
+      opt.look_around_ = goal->look_around;
+      //      opt.replan_ = goal->replan;
+      //      opt.replan_attempts_ = goal->replan_attempts;
+      //      opt.look_attempts_ = goal->look_around_attempts;
+      opt.beforePlanCallback_ = boost::bind(&MoveGroupAction::startPlanningCallback, this);
+      opt.beforeExecutionCallback_ = boost::bind(&MoveGroupAction::startExecutionCallback, this);
+      opt.beforeLookCallback_ = boost::bind(&MoveGroupAction::startLookCallback, this);
       plan_execution_.planAndExecute(goal->request, goal->planning_scene_diff, opt);  
     }
     
@@ -122,31 +144,34 @@ private:
           action_server_->setSucceeded(action_res, "Solution was found and executed.");
       }
     }
-    
-    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
-      action_server_->setAborted(action_res, "Must specify group in motion plan request");
-    
-    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
-    {
-      if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
-        action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
+    else
+      if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
+        action_server_->setAborted(action_res, "Must specify group in motion plan request");
+    else
+      if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
+      {
+        if (trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory))
+          action_server_->setAborted(action_res, "No motion plan found. No execution attempted.");
+        else
+          action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
+      }
       else
-        action_server_->setAborted(action_res, "Motion plan was found but it seems to be invalid (possibly due to postprocessing). Not executing.");
-    }
-    
-    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
-      action_server_->setAborted(action_res, "Motion plan was found but it seems to be too costly and looking around did not help.");
-
-    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
-      action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
-
-    
-    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
-      action_server_->setAborted(action_res, "Solution found but controller failed during execution");
-
-    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
-      action_server_->setAborted(action_res, "Timeout reached");
-
+        if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
+          action_server_->setAborted(action_res, "Motion plan was found but it seems to be too costly and looking around did not help.");
+        else
+          if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE)
+            action_server_->setAborted(action_res, "Solution found but the environment changed during execution and the path was aborted");
+          else
+            if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::CONTROL_FAILED)
+              action_server_->setAborted(action_res, "Solution found but controller failed during execution");
+            else
+              if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
+                action_server_->setAborted(action_res, "Timeout reached");
+    /*
+      else
+    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
+      action_server_->setPreempted(action_res, "Preempted");
+    */
     setState(IDLE, 0.0);
   }
   
@@ -157,17 +182,18 @@ private:
     {
     case IDLE:
       feedback_.state = "IDLE";
-      feedback_.time_to_completion = ros::Duration(duration);
       break;
     case PLANNING:
       feedback_.state = "PLANNING";
-      feedback_.time_to_completion = ros::Duration(duration);
       break;
     case MONITOR:
       feedback_.state = "MONITOR";
-      feedback_.time_to_completion = ros::Duration(duration);
       break;
-    }
+    case LOOK:
+      feedback_.state = "LOOK";
+      break;
+    }      
+    feedback_.time_to_completion = ros::Duration(duration);
     action_server_->publishFeedback(feedback_);
   }
 
