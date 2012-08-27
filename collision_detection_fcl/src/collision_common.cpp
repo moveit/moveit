@@ -37,6 +37,7 @@
 #include "collision_detection_fcl/collision_common.h"
 #include <fcl/BVH/BVH_model.h>
 #include <fcl/shape/geometric_shapes.h>
+#include <fcl/octree.h>
 #include <ros/console.h>
 #include <boost/thread/mutex.hpp>
 
