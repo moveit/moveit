@@ -108,7 +108,8 @@ private:
   void executeCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
   {
     setState(PLANNING, 0.1);
-    
+    planning_scene_monitor_->updateFrameTransforms();
+
     if (goal->plan_only || !allow_trajectory_execution_)
     {
       if (!goal->plan_only)
@@ -204,7 +205,8 @@ private:
   bool computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
   {
     ROS_INFO("Received new planning service request...");
-
+    planning_scene_monitor_->updateFrameTransforms();
+    
     bool solved = false;   
     planning_scene_monitor_->lockScene();
     
