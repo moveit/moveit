@@ -203,11 +203,6 @@ public:
     return getName().c_str();
   }
   
-  bool moveSimple(void)
-  {
-    return move();
-  }
-  
 private:
 
   std::vector<double> doubleFromList(bp::list &values) const
@@ -245,7 +240,7 @@ void wrap_move_group_interface()
   bp::class_<MoveGroupWrapper> MoveGroupClass("MoveGroup", bp::init<std::string>());
 
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
-  MoveGroupClass.def("move", &MoveGroupWrapper::moveSimple);
+  MoveGroupClass.def("move", &MoveGroupWrapper::move);
   MoveGroupClass.def("plan", &MoveGroupWrapper::plan);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 

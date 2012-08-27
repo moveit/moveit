@@ -57,11 +57,11 @@ public:
   
   MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm) : 
     node_handle_("~"), planning_scene_monitor_(psm), plan_execution_(psm),
-    state_(IDLE)
+    allow_trajectory_execution_(true), state_(IDLE)
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
-    bool allow_trajectory_execution = true;
-    node_handle_.param("allow_trajectory_execution", allow_trajectory_execution, true);
+    
+    node_handle_.param("allow_trajectory_execution", allow_trajectory_execution_, true);
 
     // configure the planning pipeline
     plan_execution_.getPlanningPipeline().displayComputedMotionPlans(true);
@@ -109,8 +109,12 @@ private:
   {
     setState(PLANNING, 0.1);
     
-    if (goal->plan_only)
+    if (goal->plan_only || !allow_trajectory_execution_)
+    {
+      if (!goal->plan_only)
+        ROS_WARN("This instance of MoveGroup is now allowed to execute trajectories but the goal request has plan_only set to false. Only a motion plan will be computed anyway.");
       plan_execution_.planOnly(goal->request, goal->planning_scene_diff);
+    }
     else
     {
       plan_execution::PlanExecution::Options opt;
@@ -225,7 +229,8 @@ private:
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   plan_execution::PlanExecution plan_execution_;
-
+  bool allow_trajectory_execution_;
+  
   boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > action_server_;
   moveit_msgs::MoveGroupFeedback feedback_;
   

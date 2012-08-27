@@ -250,9 +250,18 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
   // the intention is for the planning looop not to terminate when having just looked around
   bool just_looked_around = false;
   
+  // this flag indicates whether the last lookAt() operation failed. If this operation fails once, we assume that 
+  // maybe some information was gained anyway (the sensor moved part of the way) and we try to plan one more time.
+  // If we have two sensor pointing failures in a row, we fail
+  bool look_around_failed = false;
+  
   moveit_msgs::GetMotionPlan::Request mreq;
   mreq.motion_plan_request = req;
   
+  // run a planning loop for at most the maximum replanning attempts;
+  // re-planning is executed only in case of known types of failures (e.g., environment changed)
+  // there can be a maximum number of looking attempts as well that lead to replanning, if the cost
+  // of the path is above a maximum threshold.
   do
   {
     replan_attempts++;
@@ -310,16 +319,27 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
         ROS_INFO("The cost of the trajectory is %lf, which is above the maximum safe cost of %lf. Attempt %u (of at most %u) at looking around.", cost, max_safe_path_cost, look_attempts, max_look_attempts);
         if (opt.beforeLookCallback_)
           opt.beforeLookCallback_();
-        if (lookAt(cost_sources))
-        {
+
+        bool looked_at_result = lookAt(cost_sources);
+        if (looked_at_result)
           ROS_INFO("Sensor was succesfully actuated. Attempting to recompute a motion plan.");
+        else
+        {
+          if (look_around_failed)
+            ROS_WARN("Looking around seems to keep failing. Giving up.");
+          else
+            ROS_WARN("Looking around seems to have failed. Attempting to recompute a motion plan anyway.");
+        }
+        if (looked_at_result || !look_around_failed)
+        {
           previous_cost = cost;
           replan_attempts--; // this was not a replanning attempt
           just_looked_around = true;
-          continue;
         }
-        else
-          ROS_WARN("Looking around failed.");
+        look_around_failed = !looked_at_result;
+        // if we are unable to look, let this loop continue into the next if statement
+        if (just_looked_around)
+          continue;
       }
       
       if (cost > max_safe_path_cost)
@@ -329,11 +349,14 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
       }
     }
     
-    if (opt.beforeExecutionCallback_)
-      opt.beforeExecutionCallback_();
-    // execute the trajectory, and monitor its execution
-    executeAndMonitor(the_scene, mreq.motion_plan_request.path_constraints);
-
+    if (result_.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+    {
+      if (opt.beforeExecutionCallback_)
+        opt.beforeExecutionCallback_();
+      // execute the trajectory, and monitor its execution
+      executeAndMonitor(the_scene, mreq.motion_plan_request.path_constraints);
+    }
+    
     // if we are done, then we exit the loop
     if (result_.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
       break;
@@ -346,6 +369,8 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
   
   if (opt.doneCallback_)
     opt.doneCallback_();
+  
+  ROS_DEBUG("PlanExecution terminating with error code %d", result_.error_code_.val);
 }
 
 bool plan_execution::PlanExecution::computePlan(const planning_scene::PlanningSceneConstPtr &scene, const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)

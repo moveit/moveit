@@ -86,10 +86,8 @@ public:
   bool asyncMove(void);
   
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
-      This call is always blocking (waits for the execution of the trajectory to complete) and attempts to execute the motion
-      multiple times (up to a specified number of \e attempts) as long as the failure error is a recoverable one (e.g., planning
-      failure, environment was changed during execution). */
-  bool move(unsigned int attempts = 10);
+      This call is always blocking (waits for the execution of the trajectory to complete). */
+  bool move(void);
 
   /** \brief Compute a motion plan that takes the group declared in the constructor from the current state to the specified
       target. No execution is performed. The resulting plan is stored in \e plan*/
