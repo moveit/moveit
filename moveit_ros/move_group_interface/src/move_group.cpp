@@ -282,7 +282,7 @@ public:
     }
   }
   
-  bool move(void)
+  bool asyncMove(void)
   {    
     if (!action_client_)
       return false;
@@ -296,18 +296,13 @@ public:
     return true;
   }
 
-  bool move2(unsigned int attempt_count, unsigned int max_attempts)
+  bool move(void)
   {  
     if (!action_client_)
       return false;
     if (!action_client_->isServerConnected())
       return false;
 
-    if (attempt_count >= max_attempts)
-    {
-      ROS_WARN_STREAM("Unable to get to goal after " << max_attempts << " attempts");
-      return false;
-    }
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = false;
@@ -321,19 +316,8 @@ public:
       return true;
     else
     {
-      const moveit_msgs::MoveItErrorCodes &err = action_client_->getResult()->error_code;
-      // under certain conditions we attempt to execute the motion again
-      if (err.val == moveit_msgs::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE ||
-          err.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN ||
-          err.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA ||
-          err.val == moveit_msgs::MoveItErrorCodes::PLANNING_FAILED)
-      {
-        attempt_count++;
-        ROS_INFO_STREAM("Attempt " << attempt_count << " of " << max_attempts << " failed: " << action_client_->getState().toString() << ": " << action_client_->getState().getText());
-        return move2(attempt_count, max_attempts);
-      }
-      else
-        return false;
+      ROS_INFO_STREAM(action_client_->getState().toString() << ": " << action_client_->getState().getText());
+      return false;
     }
   }
   
@@ -422,12 +406,12 @@ const std::string& MoveGroup::getName(void) const
 
 bool MoveGroup::asyncMove(void)
 {
-  return impl_->move();
+  return impl_->asyncMove();
 }
 
-bool MoveGroup::move(unsigned int max_attempts)
+bool MoveGroup::move(void)
 {
-  return impl_->move2(0, max_attempts);
+  return impl_->move();
 }
     
 bool MoveGroup::plan(Plan &plan)
