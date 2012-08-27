@@ -39,7 +39,6 @@
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <OGRE/OgreMaterial.h>
 #include <ros/ros.h>
-#include <map>
 
 namespace Ogre
 {
@@ -51,13 +50,13 @@ class ManualObject;
 namespace rviz
 {
 class Robot;
-class RobotLink; //?
 class Shape;
 class Property;
 class StringProperty;
 class BoolProperty;
 class FloatProperty;
 class RosTopicProperty;
+class EditableEnumProperty;
 }
 
 namespace moveit_rviz_plugin
@@ -98,113 +97,30 @@ class PlanningDisplay : public rviz::Display
    */
   virtual void reset();
 
+  virtual void fixedFrameChanged();
+  
   /**
    * \brief Robot Description parameter name
    */
   void setRobotDescription(const std::string &name);
   const std::string getRobotDescription(void);
 
-  /**
-   * \brief Set the topic to listen on for the JointPath message
-   * @param topic The ROS topic
-   */
-  void setTrajectoryTopic( const std::string& topic );
-  const std::string getTrajectoryTopic();
-
-  /**
-   * \brief Set the amount of time each state should display for
-   * @param time The length of time, in seconds
-   */
-  void setStateDisplayTime( float time );
-  float getStateDisplayTime();
-
-  /**
-   * \brief
-   */
-  void setSceneDisplayTime( float time );
-  float getSceneDisplayTime();
-
-  /**
-   * \brief Set whether the scene representation should be displayed
-   * @param visible
-   */
-  void setSceneVisible( bool visible );
-  bool getSceneVisible();
-
-  /**
-   * \brief Set whether the scene representation should be displayed
-   * @param visible
-   */
-  void setSceneRobotVisible( bool visible );
-  bool getSceneRobotVisible();
-
-  /**
-   * \brief Set whether the visual mesh representation should be displayed
-   * @param visible
-   */
-  void setVisualVisible( bool visible );
-  bool getVisualVisible();
-
-  /**
-   * \brief Set whether the collision representation should be displayed
-   * @param visible
-   */
-  void setCollisionVisible( bool visible );
-  bool getCollisionVisible();
-
-  /**
-   * \brief
-   */
   void setPlanningSceneTopic(const std::string &topic);
   const std::string getPlanningSceneTopic(void);
 
   /**
-   * \brief
+   * \brief Set whether the visual robot planned path should be displayed
+   * @param visible
    */
-  void setRobotPathAlpha( float alpha );
-  float getRobotPathAlpha();
+  void displayRobotPath( bool visible );
 
   /**
    * \brief Set of functions for highlighting parts of a robot
    */
-  void setUnsetLinkColor( const std::string& link_name, float red, float green, float blue, bool set );
+  
   void setLinkColor( const std::string& link_name, float red, float green, float blue );
   void unsetLinkColor( const std::string& link_name );
 
-  /**
-   * \brief
-   */
-  void setSceneRobotAlpha( float alpha );
-  float getSceneRobotAlpha();
-
-  /**
-   * \brief
-   */
-  void setSceneAlpha( float alpha );
-  float getSceneAlpha();
-
-  /**
-   * \brief
-   */
-  void setLoopDisplay(bool loop_display);
-  bool getLoopDisplay();
-
-  /**
-   * \brief
-   */
-  void setSceneName(const std::string &name);
-  const std::string getSceneName(void);
-
-  /**
-   * \brief
-   */
-  void setRootLinkName(const std::string &name);
-  const std::string getRootLinkName(void);
-
-
-  // Overrides from Display
-  virtual void targetFrameChanged() {}
-  virtual void fixedFrameChanged();
 
 
 private Q_SLOTS:
@@ -220,13 +136,16 @@ private Q_SLOTS:
   void changedSceneAlpha();
   void changedSceneDisplayTime();
   void changedPlanningSceneTopic();
-  void changedVisualEnabled();
-  void changedCollisionEnabled();
+  void changedDisplayPathVisualEnabled();
+  void changedDisplayPathCollisionEnabled();
   void changedRobotPathAlpha();
   void changedStateDisplayTime();
   void changedLoopDisplay();
   void changedTrajectoryTopic();
-
+  void changedQueryStartState();
+  void changedQueryGoalState();
+  void changedPlanningGroup();
+  
 protected:
   // ******************************************************************************************
   // Protected
@@ -234,28 +153,9 @@ protected:
 
 
   /**
-   * \brief Subscribes to any ROS topics we need to subscribe to
-   */
-  void subscribe();
-  /**
-   * \brief Unsubscribes from all ROS topics we're currently subscribed to
-   */
-  void unsubscribe();
-
-  /**
-   * \brief Advertises any ROS topics
-   */
-  void advertise();
-
-  /**
-   * \brief Unadvertises all ROS topics that we have advertised
-   */
-  void unadvertise();
-
-  /**
    * \brief Loads a URDF from our #description_param_
    */
-  void load();
+  void loadRobotModel();
 
   /**
    * \brief ROS callback for an incoming kinematic path message
@@ -270,19 +170,27 @@ protected:
   void renderPlanningScene();
   void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
   void clearRenderedGeometry();
-
+  void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
+  void loadPlanningSceneMonitor();
+  void setLinkColor(rviz::Robot* robot, const std::string& link_name, float red, float green, float blue );
+  void unsetLinkColor(rviz::Robot* robot, const std::string& link_name );
+  void setGroupColor(rviz::Robot* robot, const std::string& group_name, float red, float green, float blue );
+  void unsetGroupColor(rviz::Robot* robot, const std::string& group_name );
+  void unsetAllColors(rviz::Robot* robot);
+  
   // overrides from Display
   virtual void onEnable();
   virtual void onDisable();
 
   struct ReceivedTrajectoryMessage;
 
-  rviz::Robot* robot_;                              ///< Handles actually drawing the robot along motion plans
+  rviz::Robot* query_robot_;                        ///< Handles drawingthe robot at the start / goal configurations
+  rviz::Robot* display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
   rviz::Robot* scene_robot_;                        ///< Handles actually drawing the robot from the planning scene
 
   Ogre::SceneNode* scene_node_;            ///< displays planning scene
 
-  ros::Subscriber sub_;
+  ros::Subscriber trajectory_topic_sub_;
 
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
@@ -292,6 +200,9 @@ protected:
   Ogre::MaterialPtr material_;
   std::string material_name_;
 
+  planning_models::KinematicStatePtr query_start_state_;
+  planning_models::KinematicStatePtr query_goal_state_;
+  
   bool new_display_trajectory_;
   bool animating_path_;
   int current_state_;
@@ -302,11 +213,17 @@ protected:
   // properties to show on side panel
   rviz::Property* scene_category_;
   rviz::Property* path_category_;
+  rviz::Property* plan_category_;
+
+  rviz::EditableEnumProperty* planning_group_property_;
+  rviz::BoolProperty* query_start_state_property_;
+  rviz::BoolProperty* query_goal_state_property_;
+
   rviz::StringProperty* robot_description_property_;
   rviz::StringProperty* scene_name_property_;
   rviz::StringProperty* root_link_name_property_;
-  rviz::BoolProperty* visual_enabled_property_;
-  rviz::BoolProperty* collision_enabled_property_;
+  rviz::BoolProperty* display_path_visual_enabled_property_;
+  rviz::BoolProperty* display_path_collision_enabled_property_;
   rviz::BoolProperty* scene_enabled_property_;
   rviz::BoolProperty* scene_robot_enabled_property_;
   rviz::FloatProperty* state_display_time_property_;
