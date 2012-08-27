@@ -460,26 +460,26 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
       if (changes[i].id_ == COLLISION_MAP_NS)
         do_cmap = true;
       else
-      if (changes[i].id_ == OCTOMAP_NS)
-        do_omap = true;
-      else
-      {
-        if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
-        {
-          addPlanningSceneMsgCollisionObject(scene, changes[i].id_);
-        }
+        if (changes[i].id_ == OCTOMAP_NS)
+          do_omap = true;
         else
-          if (changes[i].type_ == collision_detection::CollisionWorld::Change::REMOVE)
+        {
+          if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
           {
-            moveit_msgs::CollisionObject co;
-            co.header.frame_id = getPlanningFrame();
-            co.id = changes[i].id_;
-            co.operation = moveit_msgs::CollisionObject::REMOVE;
-            scene.world.collision_objects.push_back(co);
+            addPlanningSceneMsgCollisionObject(scene, changes[i].id_);
           }
           else
-            ROS_ERROR("Unknown change on collision world");
-      }
+            if (changes[i].type_ == collision_detection::CollisionWorld::Change::REMOVE)
+            {
+              moveit_msgs::CollisionObject co;
+              co.header.frame_id = getPlanningFrame();
+              co.id = changes[i].id_;
+              co.operation = moveit_msgs::CollisionObject::REMOVE;
+              scene.world.collision_objects.push_back(co);
+            }
+            else
+              ROS_ERROR("Unknown change on collision world");
+        }
     if (do_cmap)
       getPlanningSceneMsgCollisionMap(scene);
     if (do_omap)
@@ -650,7 +650,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObjects(moveit_m
   scene.world.collision_objects.clear();
   const std::vector<std::string> &ns = getCollisionWorld()->getObjectIds();
   for (std::size_t i = 0 ; i < ns.size() ; ++i)
-    if (ns[i] != COLLISION_MAP_NS)
+    if (ns[i] != COLLISION_MAP_NS && ns[i] != OCTOMAP_NS)
       addPlanningSceneMsgCollisionObject(scene, ns[i]);
 }
 
@@ -1031,6 +1031,12 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     return false;
   }
 
+  if (object.object.id == OCTOMAP_NS)
+  {
+    ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", OCTOMAP_NS.c_str());
+    return false;
+  }
+
   if (!kstate_) // there must be a parent in this case
     kstate_.reset(new planning_models::KinematicState(parent_->getCurrentState()));
 
@@ -1211,7 +1217,11 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", COLLISION_MAP_NS.c_str());
     return false;
   }
-  //  collision_detection::AllowedCollisionMatrix& acm = getAllowedCollisionMatrix();
+  if (object.id == OCTOMAP_NS)
+  {
+    ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", OCTOMAP_NS.c_str());
+    return false;
+  }
 
   if (object.operation == moveit_msgs::CollisionObject::ADD)
   {
