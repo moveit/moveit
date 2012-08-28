@@ -213,19 +213,3 @@ void moveit_rviz_plugin::PlanningSceneRender::renderPlanningScene(const planning
     }
   }
 }
-
-/*
-  
-  scene_monitor_->lockScene();
-  ros::Time last_update = scene_monitor_->getLastUpdateTime();
-  scene_monitor_->unlockScene();
-  if (last_update <= last_scene_render_)
-    return;
-
-
-  scene_monitor_->lockScene();
-  last_scene_render_ = scene_monitor_->getLastUpdateTime();
-
-
-  scene_node_->setVisible(scene_enabled_property_->getBool());
-*/
