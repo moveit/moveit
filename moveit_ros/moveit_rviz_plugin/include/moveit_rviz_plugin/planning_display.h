@@ -32,22 +32,19 @@
 #ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_
 #define MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_
 
-#include <rviz/helpers/color.h>
 #include <rviz/display.h>
 
 #include "moveit_rviz_plugin/planning_frame.h"
+#include "moveit_rviz_plugin/planning_scene_render.h"
 
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
-#include <OGRE/OgreMaterial.h>
 #include <ros/ros.h>
 #include <QDockWidget>
 
 namespace Ogre
 {
-class Entity;
 class SceneNode;
-class ManualObject;
 }
 
 namespace rviz
@@ -170,11 +167,9 @@ protected:
    */
   void calculateOffsetPosition();
 
-  void renderPlanningScene();
-  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
-  void clearRenderedGeometry();
   void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void loadPlanningSceneMonitor();
+  void renderPlanningScene();
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, float red, float green, float blue );
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name );
   void setGroupColor(rviz::Robot* robot, const std::string& group_name, float red, float green, float blue );
@@ -193,6 +188,9 @@ protected:
 
   Ogre::SceneNode* scene_node_;            ///< displays planning scene
 
+  // render the planning scene
+  boost::scoped_ptr<PlanningSceneRender> planning_scene_render_;
+  
   PlanningFrame *frame_;
   QDockWidget* frame_dock_;
 
@@ -201,10 +199,6 @@ protected:
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
   boost::scoped_ptr<ReceivedTrajectoryMessage> displaying_trajectory_message_;
-  std::vector<boost::shared_ptr<rviz::Shape> > scene_shapes_;
-  std::vector<Ogre::ManualObject*> manual_objects_;
-  Ogre::MaterialPtr material_;
-  std::string material_name_;
 
   planning_models::KinematicStatePtr query_start_state_;
   planning_models::KinematicStatePtr query_goal_state_;
