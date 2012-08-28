@@ -182,7 +182,8 @@ protected:
 
   struct ReceivedTrajectoryMessage;
 
-  rviz::Robot* query_robot_;                        ///< Handles drawingthe robot at the start / goal configurations
+  rviz::Robot* query_robot_start_;                  ///< Handles drawing the robot at the start configuration
+  rviz::Robot* query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
   rviz::Robot* display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
   rviz::Robot* scene_robot_;                        ///< Handles actually drawing the robot from the planning scene
 
@@ -208,8 +209,8 @@ protected:
   int current_state_;
   float current_state_time_;
   float current_scene_time_;
-  ros::Time last_scene_render_;
-
+  bool planning_scene_needs_render_;
+  
   // properties to show on side panel
   rviz::Property* scene_category_;
   rviz::Property* path_category_;

@@ -40,6 +40,11 @@ class DisplayContext;
 class FrameManager;
 }
 
+namespace Ui
+{
+class MotionPlanningFrame;
+}
+
 namespace moveit_rviz_plugin
 {
 
@@ -48,9 +53,12 @@ class PlanningFrame : public QWidget
 Q_OBJECT
 public:
   PlanningFrame(rviz::DisplayContext *context, QWidget *parent = 0);
-
+  ~PlanningFrame(void);
+  
 protected:
   rviz::DisplayContext* context_;
+  Ui::MotionPlanningFrame *ui_;
+  
 };
   
 }

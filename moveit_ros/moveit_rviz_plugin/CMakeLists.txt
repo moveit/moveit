@@ -38,6 +38,13 @@ set( headers
 # Convert the Qt Signals and Slots for QWidget events
 qt4_wrap_cpp(MOC_SOURCES ${headers})
 
+qt4_wrap_ui(UIC_FILES
+  src/ui/moveit_rviz_plugin_frame.ui
+)
+
+# build is where the UI file outputs (ui_*.h) go.
+include_directories(build)
+
 # Plugin Source
 set(SOURCE_FILES 
   src/planning_frame.cpp
@@ -46,11 +53,12 @@ set(SOURCE_FILES
   src/init.cpp
 )
 
+
 include(CMakeDetermineSystem)
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  rosbuild_add_library_module(${PROJECT_NAME} ${SOURCE_FILES} ${MOC_SOURCES})
+  rosbuild_add_library_module(${PROJECT_NAME} ${SOURCE_FILES} ${MOC_SOURCES} ${UIC_FILES})
 else(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  rosbuild_add_library(${PROJECT_NAME} ${SOURCE_FILES} ${MOC_SOURCES})
+  rosbuild_add_library(${PROJECT_NAME} ${SOURCE_FILES} ${MOC_SOURCES} ${UIC_FILES})
 endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 
 # Link to boost libraries

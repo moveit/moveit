@@ -31,11 +31,17 @@
 
 #include "moveit_rviz_plugin/planning_frame.h"
 #include <rviz/display_context.h>
+#include "ui_moveit_rviz_plugin_frame.h"
 
 moveit_rviz_plugin::PlanningFrame::PlanningFrame(rviz::DisplayContext *context, QWidget *parent) :
   QWidget(parent),
-  context_(context)
+  context_(context),
+  ui_(new Ui::MotionPlanningFrame())
 {
-  
+  ui_->setupUi(this);
+
 }
 
+moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
+{
+}
