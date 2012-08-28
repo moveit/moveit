@@ -20,11 +20,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
-# Ogre
-#find_package(PkgConfig REQUIRED)
-#pkg_check_modules(OGRE REQUIRED Ogre)
-#include_directories(SYSTEM ${OGRE_INCLUDE_DIRS})
-#link_directories(${OGRE_LIBRARY_DIRS})
 
 # Qt Stuff
 find_package(Qt4 REQUIRED)
@@ -36,6 +31,7 @@ include_directories(${QT_INCLUDE_DIR})
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set( headers
   include/moveit_rviz_plugin/planning_display.h
+  include/moveit_rviz_plugin/planning_frame.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
@@ -44,6 +40,7 @@ qt4_wrap_cpp(MOC_SOURCES ${headers})
 # Plugin Source
 set(SOURCE_FILES 
   src/planning_display.cpp
+  src/planning_frame.cpp
 )
 
 include(CMakeDetermineSystem)
@@ -58,4 +55,3 @@ rosbuild_link_boost(${PROJECT_NAME} thread)
          
 # Link libraries
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
-
