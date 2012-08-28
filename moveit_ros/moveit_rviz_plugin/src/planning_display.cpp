@@ -40,6 +40,9 @@
 #include <rviz/properties/float_property.h>
 #include <rviz/properties/ros_topic_property.h>
 #include <rviz/properties/editable_enum_property.h>
+#include <rviz/display_context.h>
+#include <rviz/panel_dock_widget.h>
+#include <rviz/window_manager_interface.h>
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
@@ -79,7 +82,11 @@ struct PlanningDisplay::ReceivedTrajectoryMessage
 // ******************************************************************************************
 PlanningDisplay::PlanningDisplay() :
   Display(),
-  new_display_trajectory_(false), animating_path_(false), current_scene_time_(0.0f)
+  frame_(NULL),
+  frame_dock_(NULL),
+  new_display_trajectory_(false),
+  animating_path_(false),
+  current_scene_time_(0.0f)
 {
   last_scene_render_ = ros::Time::now();
 
@@ -204,6 +211,7 @@ PlanningDisplay::PlanningDisplay() :
 // ******************************************************************************************
 PlanningDisplay::~PlanningDisplay()
 {
+  delete frame_dock_;
 }
 
 // ******************************************************************************************
@@ -225,10 +233,13 @@ void PlanningDisplay::onInitialize()
   query_robot_->setCollisionVisible(false);
   query_robot_->setVisualVisible(true);
   query_robot_->setVisible( query_start_state_property_->getBool() );
-
-
+  
   scene_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
   scene_node_->setVisible(scene_enabled_property_->getBool());
+
+  rviz::WindowManagerInterface* window_context = context_->getWindowManager();
+  frame_ = new PlanningFrame(context_, window_context->getParentWindow());
+  frame_dock_ = window_context->addPane( "Motion Planning", frame_ );
 }
 
 // ******************************************************************************************
@@ -618,6 +629,9 @@ void PlanningDisplay::onEnable()
   scene_node_->setVisible(scene_enabled_property_->getBool());
 
   query_robot_->setVisible(query_start_state_property_->getBool() || query_goal_state_property_->getBool());
+
+  if (frame_dock_)
+    frame_dock_->show();
 }
 
 // ******************************************************************************************
@@ -631,6 +645,8 @@ void PlanningDisplay::onDisable()
   scene_node_->setVisible(false);
   scene_robot_->setVisible(false);
   query_robot_->setVisible(false);
+  if (frame_dock_)
+    frame_dock_->hide();
 }
 
 // ******************************************************************************************

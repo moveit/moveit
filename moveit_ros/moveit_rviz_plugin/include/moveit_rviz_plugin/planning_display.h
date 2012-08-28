@@ -29,16 +29,19 @@
 
 /* Author: Ioan Sucan, Dave Coleman */
 
-#ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_H
-#define MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_H
+#ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_
+#define MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_
 
-#include "rviz/helpers/color.h"
-#include "rviz/display.h"
+#include <rviz/helpers/color.h>
+#include <rviz/display.h>
+
+#include "moveit_rviz_plugin/planning_frame.h"
 
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <OGRE/OgreMaterial.h>
 #include <ros/ros.h>
+#include <QDockWidget>
 
 namespace Ogre
 {
@@ -189,6 +192,9 @@ protected:
   rviz::Robot* scene_robot_;                        ///< Handles actually drawing the robot from the planning scene
 
   Ogre::SceneNode* scene_node_;            ///< displays planning scene
+
+  PlanningFrame *frame_;
+  QDockWidget* frame_dock_;
 
   ros::Subscriber trajectory_topic_sub_;
 
