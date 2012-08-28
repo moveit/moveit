@@ -32,6 +32,7 @@ include_directories(${QT_INCLUDE_DIR})
 set( headers
   include/moveit_rviz_plugin/planning_display.h
   include/moveit_rviz_plugin/planning_frame.h
+  include/moveit_rviz_plugin/planning_scene_render.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
@@ -39,8 +40,10 @@ qt4_wrap_cpp(MOC_SOURCES ${headers})
 
 # Plugin Source
 set(SOURCE_FILES 
-  src/planning_display.cpp
   src/planning_frame.cpp
+  src/planning_scene_render.cpp
+  src/planning_display.cpp
+  src/init.cpp
 )
 
 include(CMakeDetermineSystem)
