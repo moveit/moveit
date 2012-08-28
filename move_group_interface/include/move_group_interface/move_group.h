@@ -98,6 +98,9 @@ public:
   
   /** \brief Specify whether the robot is allowed to look around before moving if it determines it should (default is true) */
   void allowLooking(bool flag);
+
+  /** \brief Specify whether the robot is allowed to replan if it detects changes in the environment */
+  void allowReplanning(bool flag);
   
   void setJointValueTarget(const std::vector<double> &group_variable_values);
 

@@ -120,9 +120,9 @@ private:
     {
       plan_execution::PlanExecution::Options opt;
       opt.look_around_ = goal->look_around;
-      //      opt.replan_ = goal->replan;
-      //      opt.replan_attempts_ = goal->replan_attempts;
-      //      opt.look_attempts_ = goal->look_around_attempts;
+      opt.replan_ = goal->replan;
+      opt.replan_attempts_ = goal->replan_attempts;
+      opt.look_attempts_ = goal->look_around_attempts;
       opt.beforePlanCallback_ = boost::bind(&MoveGroupAction::startPlanningCallback, this);
       opt.beforeExecutionCallback_ = boost::bind(&MoveGroupAction::startExecutionCallback, this);
       opt.beforeLookCallback_ = boost::bind(&MoveGroupAction::startLookCallback, this);
@@ -172,11 +172,11 @@ private:
             else
               if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::TIMED_OUT)
                 action_server_->setAborted(action_res, "Timeout reached");
-    /*
-      else
-    if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
-      action_server_->setPreempted(action_res, "Preempted");
-    */
+              else
+                if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::PREEMPTED)
+                  action_server_->setPreempted(action_res, "Preempted");
+                else
+                  action_server_->setAborted(action_res, "Unknown event");
     setState(IDLE, 0.0);
   }
   

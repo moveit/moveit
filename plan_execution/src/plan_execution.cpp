@@ -469,7 +469,7 @@ void plan_execution::PlanExecution::executeAndMonitor(const planning_scene::Plan
       {
         if (preempt_requested_)
         {
-          //          result_.error_code_.val = moveit_msgs::MoveItErrorCodes::PREEMPTED; TODO: enable when new msgs deb is out
+          result_.error_code_.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
         }
         else
         {

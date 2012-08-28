@@ -119,6 +119,8 @@ public:
     joint_state_target_->setToDefaultValues();
     use_joint_state_target_ = true;
     can_look_ = true;
+    can_replan_ = true;
+    
     goal_tolerance_ = std::numeric_limits<double>::epsilon() * 100.0;
 
     const planning_models::KinematicModel::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
@@ -205,6 +207,11 @@ public:
   {
     can_look_ = flag;
   }
+
+  void allowReplanning(bool flag)
+  {
+    can_replan_ = flag;
+  }
   
   std::pair<bool, bool> getCurrentState(std::vector<double> &values, Eigen::Affine3d &pose)
   {
@@ -264,6 +271,7 @@ public:
     constructGoal(goal);
     goal.plan_only = true;
     goal.look_around = false;
+    goal.replan = false;
     action_client_->sendGoal(goal); 
     if (!action_client_->waitForResult())
     {
@@ -292,6 +300,7 @@ public:
     constructGoal(goal);
     goal.plan_only = false;
     goal.look_around = can_look_;
+    goal.replan = can_replan_;
     action_client_->sendGoal(goal);
     return true;
   }
@@ -306,7 +315,8 @@ public:
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
     goal.plan_only = false;
-    goal.look_around = can_look_;
+    goal.look_around = can_look_;  
+    goal.replan = can_replan_;
     action_client_->sendGoal(goal);
     if (!action_client_->waitForResult())
     {
@@ -378,6 +388,7 @@ private:
   std::string pose_reference_frame_;
   double goal_tolerance_;
   bool can_look_;
+  bool can_replan_;
   
   bool use_joint_state_target_;
 };
@@ -637,6 +648,11 @@ void MoveGroup::forgetJointValues(const std::string &name)
 void MoveGroup::allowLooking(bool flag)
 {
   impl_->allowLooking(flag);
+}
+
+void MoveGroup::allowReplanning(bool flag)
+{
+  impl_->allowReplanning(flag);
 }
 
 }
