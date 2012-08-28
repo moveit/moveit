@@ -247,6 +247,7 @@ void wrap_move_group_interface()
   MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);
   MoveGroupClass.def("get_joints", &MoveGroupWrapper::getJointsList);
   MoveGroupClass.def("allow_looking", &MoveGroupWrapper::allowLooking);
+  MoveGroupClass.def("allow_replanning", &MoveGroupWrapper::allowReplanning);
   
   MoveGroupClass.def("set_pose_reference_frame", &MoveGroupWrapper::setPoseReferenceFrame);
   
