@@ -216,6 +216,8 @@ protected:
 
   planning_models::KinematicStatePtr query_start_state_;
   planning_models::KinematicStatePtr query_goal_state_;
+  bool update_display_start_state_;
+  bool update_display_goal_state_;
   
   bool animating_path_;
   int current_state_;

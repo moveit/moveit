@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>336</height>
+    <width>487</width>
+    <height>311</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,16 +34,36 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0" colspan="2">
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
           <widget class="QLabel" name="label_5">
            <property name="text">
             <string>Planning Algorithm:</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="allow_replanning">
+           <property name="text">
+            <string>Allow Replanning</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
           <widget class="QComboBox" name="planning_algorithm_combo_box"/>
+         </item>
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="allow_looking">
+           <property name="text">
+            <string>Allow Sensor Positioning</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
