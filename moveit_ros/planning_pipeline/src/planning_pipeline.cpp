@@ -94,7 +94,7 @@ void planning_pipeline::PlanningPipeline::configure(const planning_models::Kinem
   if (planner_plugin_name_.empty() && classes.size() > 1)
   {      
     planner_plugin_name_ = classes[0];   
-    ROS_INFO("Multiple planning plugins available. You shuold specify the '~planning_plugin' parameter. Using '%s' for now.", planner_plugin_name_.c_str());
+    ROS_INFO("Multiple planning plugins available. You should specify the '~planning_plugin' parameter. Using '%s' for now.", planner_plugin_name_.c_str());
   }
   try
   {
@@ -107,7 +107,7 @@ void planning_pipeline::PlanningPipeline::configure(const planning_models::Kinem
     std::stringstream ss;
     for (std::size_t i = 0 ; i < classes.size() ; ++i)
       ss << classes[i] << " ";
-    ROS_FATAL_STREAM("Exception while loading planner '" << planner_plugin_name_ << "': " << ex.what() << std::endl
+    ROS_ERROR_STREAM("Exception while loading planner '" << planner_plugin_name_ << "': " << ex.what() << std::endl
                      << "Available plugins: " << ss.str());
   }
   
@@ -199,6 +199,12 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   if (publish_received_requests_)
     received_request_publisher_.publish(req.motion_plan_request);
   adapter_added_state_index.clear();
+
+  if (!planner_instance_)
+  {
+    ROS_ERROR("No planning plugin loaded. Cannot plan.");
+    return false;
+  }
   
   bool solved = false;
   try

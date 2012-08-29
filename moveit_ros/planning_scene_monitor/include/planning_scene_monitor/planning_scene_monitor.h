@@ -216,14 +216,11 @@ public:
   /** @brief Stop the world geometry monitor */
   void stopWorldGeometryMonitor(void);
 
-  /** @brief Set the function to be called when an update to the scene is received */
-  void setUpdateCallback(const boost::function<void(SceneUpdateType)> &fn);
+  /** @brief Add a function to be called when an update to the scene is received */
+  void addUpdateCallback(const boost::function<void(SceneUpdateType)> &fn);
 
-  /** @brief Get the function to be called when an update to the scene is received */
-  const boost::function<void(SceneUpdateType)>& getUpdateCallback(void)
-  {
-    return update_callback_;
-  }
+  /** @brief Clear the functions to be called when an update to the scene is received */
+  void clearUpdateCallbacks(void);
   
   /** @brief Get the topic names that the monitor is listening to */
   void getMonitoredTopics(std::vector<std::string> &topics) const;
@@ -318,7 +315,7 @@ protected:
   
   CurrentStateMonitorPtr                current_state_monitor_;
   ros::Time                             last_update_time_; /// Last time the state was updated
-  boost::function<void(SceneUpdateType)> update_callback_;
+  std::vector<boost::function<void(SceneUpdateType)> > update_callbacks_;
 
   /// the planning scene state is updated at a maximum specified frequency,
   /// and this timestamp is used to implement that functionality
