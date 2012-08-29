@@ -63,6 +63,7 @@ namespace kinematics_planner
 typedef std::map<std::string,const kinematics::KinematicsBaseConstPtr> KinematicsSolverMap;
 typedef boost::shared_ptr<const KinematicsSolverMap> KinematicsSolverMapConstPtr;
 typedef std::map<std::string,std::vector<std::vector<double> > > SolutionTrajectoryMap;
+typedef std::map<std::string,std::vector<double> > SolutionStateMap;
 
 /**
  * @class An interpolated IK planner. Can be used with multiple arms
@@ -119,6 +120,22 @@ class KinematicsPlanner
              moveit_msgs::RobotTrajectory &robot_trajectory,
              moveit_msgs::MoveItErrorCodes &error_code) const;
 
+  /** @brief Solve the planning problem
+   * @param start_request A map from group names to desired poses
+   * @param planning_scene A const reference to the planning scene
+   * @param kinematic_constraint_set A pre-allocated instance of KinematicConstraintSet (for efficiency)
+   * @param timeout The total amount of time to be spent in the solve step (in seconds)
+   * @param robot_trajectory The desired robot trajectory
+   * @param error_code An error code
+   * @return False if group_name is invalid or kinematics solvers are not defined for all subgroups
+   */
+  bool solve(const std::map<std::string,geometry_msgs::PoseStamped> &poses,
+             const planning_scene::PlanningSceneConstPtr &planning_scene,
+             const kinematic_constraints::KinematicConstraintSet &kinematic_constraint_set,
+             double timeout,
+             moveit_msgs::RobotState &solution,
+             moveit_msgs::MoveItErrorCodes &error_code) const;
+
   /** @brief Set the discretization values
    * @param discretization_translation Expected discretization (in m) in translation
    * @param discretization_rotation Expected discretization (in radians) in rotation
@@ -164,6 +181,8 @@ private:
                                                                   const planning_models::KinematicState &kinematic_state,
                                                                   const std::map<std::string,geometry_msgs::PoseStamped> &poses,
                                                                   const std::vector<std::string> &target_frames) const;
+
+  moveit_msgs::RobotState getRobotState(const kinematics_planner::SolutionStateMap &solutions) const;  
   
   moveit_msgs::RobotTrajectory getRobotTrajectory(const  kinematics_planner::SolutionTrajectoryMap &solutions,
                                                   unsigned int num_poses) const;

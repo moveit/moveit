@@ -169,6 +169,69 @@ bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStam
   return false;    
 }
 
+
+bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStamped> &poses,
+                              const planning_scene::PlanningSceneConstPtr& planning_scene,
+                              const kinematic_constraints::KinematicConstraintSet& kinematic_constraint_set,
+                              double timeout,
+                              moveit_msgs::RobotState &robot_state,
+                              moveit_msgs::MoveItErrorCodes &error_code) const
+{
+  ros::WallTime start_time = ros::WallTime::now();  
+  if(!checkRequest(poses))
+  {
+    error_code.val = error_code.INVALID_GROUP_NAME;
+    return false;    
+  }
+
+  planning_models::KinematicState kinematic_state = planning_scene->getCurrentState();
+  std::vector<planning_models::KinematicState::JointStateGroup*> joint_state_groups(num_groups_);
+  for(unsigned int i=0; i < num_groups_; ++i)
+    joint_state_groups[i] = kinematic_state.getJointStateGroup(group_names_[i]);    
+  
+  std::map<std::string,geometry_msgs::PoseStamped> start = transformPoses(planning_scene,kinematic_state,poses,kinematics_base_frames_);
+
+  kinematics_planner::SolutionStateMap solutions;
+  for(unsigned int i=0; i < num_groups_; ++i)
+  {
+    solutions[group_names_[i]].resize(joint_state_groups[i]->getVariableCount());    
+  }
+    
+  while( (ros::WallTime::now()-start_time) <= ros::WallDuration(timeout))
+  {
+    bool success = true;    
+    for(unsigned int i=0; i < num_groups_; ++i)
+      joint_state_groups[i]->setToRandomValues();            
+    for(unsigned int i=0; i < num_groups_; ++i)
+    {
+      std::vector<double> joint_state_values;
+      joint_state_groups[i]->getGroupStateValues(joint_state_values);        
+      const kinematics::KinematicsBaseConstPtr kinematics_solver = kinematics_solvers_[i];        
+      if(!kinematics_solver->getPositionIK((start.find(group_names_[i])->second).pose,
+                                           joint_state_values,
+                                           solutions.find(group_names_[i])->second,
+                                           error_code))
+      {
+        success = false;
+        break;        
+      }
+      joint_state_groups[i]->setStateValues(solutions.find(group_names_[i])->second);        
+    }      
+    if(!success)
+      continue;            
+    if(planning_scene->isStateColliding(kinematic_state) || !planning_scene->isStateConstrained(kinematic_state,kinematic_constraint_set))
+    {
+      continue;      
+    }      
+    robot_state = getRobotState(solutions);      
+    return true;
+  }
+  return false;    
+}
+
+
+
+
 std::map<std::string,geometry_msgs::PoseStamped> KinematicsPlanner::transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
                                                                                    const planning_models::KinematicState &kinematic_state,
                                                                                    const std::map<std::string,geometry_msgs::PoseStamped> &poses,
@@ -221,6 +284,18 @@ moveit_msgs::RobotTrajectory KinematicsPlanner::getRobotTrajectory(const kinemat
     }    
   }   
   return robot_trajectory;  
+}
+
+moveit_msgs::RobotState KinematicsPlanner::getRobotState(const kinematics_planner::SolutionStateMap &solutions) const
+{
+  moveit_msgs::RobotState robot_state;
+  robot_state.joint_state.name = joint_names_;
+  for(unsigned int i=0; i < num_groups_; ++i)
+  {
+    const std::vector<double>& group_solutions = (solutions.find(group_names_[i])->second);      
+    robot_state.joint_state.position.insert(robot_state.joint_state.position.end(),group_solutions.begin(),group_solutions.end());          
+  }   
+  return robot_state;  
 }
 
 bool KinematicsPlanner::checkRequest(const std::map<std::string,geometry_msgs::PoseStamped> &start) const
