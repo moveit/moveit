@@ -237,6 +237,9 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   
   if (solved)
   {
+    unsigned int state_count = std::max(res.trajectory.joint_trajectory.points.size(),
+                                        res.trajectory.multi_dof_joint_trajectory.points.size());
+    ROS_DEBUG("Motion planner reported a solution path with %u states", state_count);
     if (check_solution_paths_)
     {
       std::vector<std::size_t> index;
@@ -268,8 +271,6 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             std::stringstream ss;
             for (std::size_t i = 0 ; i < index.size() ; ++i)
               ss << index[i] << " ";
-            unsigned int state_count = std::max(res.trajectory.joint_trajectory.points.size(),
-                                                res.trajectory.multi_dof_joint_trajectory.points.size());
             ROS_ERROR("Computed path is not valid. Invalid states at index locations: [ %s] out of %u", ss.str().c_str(), state_count);
             
             // call validity checks in verbose mode for the problematic states

@@ -44,6 +44,7 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
 {
   ui_->setupUi(this);
   connect( ui_->plan_button, SIGNAL( clicked() ), this, SLOT( planButtonClicked() ));
+  connect( ui_->set_random_states_button, SIGNAL( clicked() ), this, SLOT( randomStatesButtonClicked() ));
   ui_->tabWidget->setCurrentIndex(0);
 }
 
@@ -98,3 +99,20 @@ void moveit_rviz_plugin::PlanningFrame::planButtonClicked(void)
   }
 }
 
+void moveit_rviz_plugin::PlanningFrame::randomStatesButtonClicked(void)
+{
+  std::string group_name = planning_display_->getCurrentPlanningGroup();
+  
+  planning_models::KinematicStatePtr start(new planning_models::KinematicState(*planning_display_->getQueryStartState()));
+  planning_models::KinematicState::JointStateGroup *jsg = start->getJointStateGroup(group_name);
+  if (jsg)
+    jsg->setToRandomValues();
+  
+  planning_models::KinematicStatePtr goal(new planning_models::KinematicState(*planning_display_->getQueryGoalState()));
+  jsg = goal->getJointStateGroup(group_name);
+  if (jsg)
+    jsg->setToRandomValues();
+  
+  planning_display_->setQueryStartState(start);
+  planning_display_->setQueryGoalState(goal);
+}
