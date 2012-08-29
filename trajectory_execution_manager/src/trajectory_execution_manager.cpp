@@ -85,15 +85,16 @@ void TrajectoryExecutionManager::initialize(void)
       else
         ROS_FATAL("Parameter '~controller_manager' not specified. This is needed to identify the plugin to use for interacting with controllers. No paths can be executed.");
     }
-    
-    try
-    {
-      controller_manager_.reset(controller_manager_loader_->createUnmanagedInstance(controller));
-    }
-    catch(pluginlib::PluginlibException& ex)
-    {
-      ROS_FATAL_STREAM("Exception while loading controller manager '" << controller << "': " << ex.what());
-    } 
+
+    if (!controller.empty())
+      try
+      {
+        controller_manager_.reset(controller_manager_loader_->createUnmanagedInstance(controller));
+      }
+      catch(pluginlib::PluginlibException& ex)
+      {
+        ROS_FATAL_STREAM("Exception while loading controller manager '" << controller << "': " << ex.what());
+      } 
   }
   
   // other configuration steps

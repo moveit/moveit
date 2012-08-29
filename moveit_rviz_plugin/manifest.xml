@@ -17,6 +17,7 @@
   <depend package="moveit_msgs"/>
   <depend package="pluginlib"/>
   <depend package="trajectory_processing"/>
+  <depend package="moveit_warehouse"/>
 
   <export>
     <rviz plugin="${prefix}/lib/plugin_description.xml"/>

@@ -87,7 +87,10 @@ public:
   void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &query_name, const std::string &scene_name) const;
   
   void removePlanningScene(const std::string &scene_name);
+  void removePlanningSceneQuery(const std::string &scene_name, const std::string &query_name);
   void removePlanningSceneQueries(const std::string &scene_name);
+  void removePlanningSceneResults(const std::string &scene_name);
+  void removePlanningSceneResults(const std::string &scene_name, const std::string &query_name);
 
   const std::string& getDatabaseHost(void) const
   {

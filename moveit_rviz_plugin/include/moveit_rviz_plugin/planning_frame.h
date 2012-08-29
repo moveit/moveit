@@ -34,6 +34,7 @@
 
 #include <QWidget>
 #include <plan_execution/plan_execution.h>
+#include <moveit_warehouse/warehouse.h>
 #include <deque>
 #include <boost/thread.hpp>
 
@@ -51,17 +52,6 @@ class MotionPlanningFrame;
 namespace moveit_rviz_plugin
 {
 class PlanningDisplay;
-
-namespace planning_actions
-{
-enum PlanningGUIAction
-  {
-    PLAN,
-    EXECUTE,
-    PLAN_AND_EXECUTE,
-    SET_RANDOM_STATES
-  };
-}
 
 class PlanningFrame : public QWidget
 {
@@ -83,23 +73,38 @@ protected:
   Ui::MotionPlanningFrame *ui_;
   
   boost::scoped_ptr<plan_execution::PlanExecution> plan_execution_;
+  boost::scoped_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
 
 private Q_SLOTS:
 
   void planButtonClicked(void);  
+  void executeButtonClicked(void);
+  void planAndExecuteButtonClicked(void);
   void randomStatesButtonClicked(void);
   void setStartToCurrentButtonClicked(void);
   void setGoalToCurrentButtonClicked(void);
-  void planAndExecuteButtonClicked(void);
-  
+  void databaseConnectButtonClicked(void);
+  void saveSceneButtonClicked(void);
+  void planningSceneItemClicked(void);
+  void saveQueryButtonClicked(void);
+  void deleteSceneButtonClicked(void);
+  void deleteQueryButtonClicked(void);
+
 private:
 
   void computePlanButtonClicked(void);  
+  void computeExecuteButtonClicked(void);
+  void computePlanAndExecuteButtonClicked(void); 
+  void computePlanAndExecuteButtonClickedDisplayHelper(void);
   void computeRandomStatesButtonClicked(void);
   void computeSetStartToCurrentButtonClicked(void);
   void computeSetGoalToCurrentButtonClicked(void);
-  void computePlanAndExecuteButtonClicked(void); 
-  void computePlanAndExecuteButtonClickedDisplayHelper(void);
+  void populatePlanningSceneTreeView(void);
+  void computeDatabaseConnectButtonClicked(void);
+  void computeSaveSceneButtonClicked(void);
+  void computeSaveQueryButtonClicked(void);
+  void computeDeleteSceneButtonClicked(void);
+  void computeDeleteQueryButtonClicked(void);
   
   boost::scoped_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
