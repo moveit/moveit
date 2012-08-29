@@ -48,7 +48,9 @@ namespace occupancy_map_monitor
 
 
 PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame)
-  : tf_(tf), map_frame_(map_frame)
+  : tf_(tf), map_frame_(map_frame),
+    point_cloud_subscriber_(NULL),
+    point_cloud_filter_(NULL)
 {
 }
 
@@ -97,8 +99,8 @@ bool PointCloudOccupancyMapUpdater::setParams(const std::string &point_cloud_top
   max_range_ = max_range;
   frame_subsample_ = frame_subsample;
   point_subsample_ = point_subsample;
-
-  self_mask_.reset(new robot_self_filter::SelfMask(*tf_, links));
+  if (tf_)
+    self_mask_.reset(new robot_self_filter::SelfMask(*tf_, links));
   return true;
 }
 
@@ -106,10 +108,17 @@ void PointCloudOccupancyMapUpdater::initialize()
 {
   /* subscribe to point cloud topic using tf filter*/
   point_cloud_subscriber_ = new message_filters::Subscriber<sensor_msgs::PointCloud2>(root_nh_, point_cloud_topic_, 1024);
-  point_cloud_filter_ = new tf::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_, map_frame_, 1024);
-  point_cloud_filter_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
-  
-  ROS_INFO("Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(), point_cloud_filter_->getTargetFramesString().c_str());
+  if (tf_)
+  {
+    point_cloud_filter_ = new tf::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_, map_frame_, 1024);
+    point_cloud_filter_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
+    ROS_INFO("Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(), point_cloud_filter_->getTargetFramesString().c_str());
+  }
+  else
+  {
+    point_cloud_subscriber_->registerCallback(boost::bind(&PointCloudOccupancyMapUpdater::cloudMsgCallback, this, _1));
+    ROS_INFO("Listening to '%s'", point_cloud_topic_.c_str());
+  }
 }
 
 void PointCloudOccupancyMapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
@@ -144,6 +153,9 @@ void PointCloudOccupancyMapUpdater::process(const OccMapTreePtr &tree)
 
 void PointCloudOccupancyMapUpdater::processCloud(const OccMapTreePtr &tree, const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
 {
+  if (!tf_)
+    return;
+  
   /* get transform for cloud into map frame */
   tf::StampedTransform map_H_sensor;
   try
