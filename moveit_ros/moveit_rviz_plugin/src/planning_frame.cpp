@@ -42,14 +42,28 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   context_(context),
   ui_(new Ui::MotionPlanningFrame())
 {
+  // set up the GUI
   ui_->setupUi(this);
+
+  // connect bottons to actions; each action actually only registers the function pointer for the actual computation,
+  // to keep the GUI more responsive
   connect( ui_->plan_button, SIGNAL( clicked() ), this, SLOT( planButtonClicked() ));
+  connect( ui_->plan_and_execute_button, SIGNAL( clicked() ), this, SLOT( planAndExecuteButtonClicked() ));
   connect( ui_->set_random_states_button, SIGNAL( clicked() ), this, SLOT( randomStatesButtonClicked() ));
+  connect( ui_->set_start_to_current_button, SIGNAL( clicked() ), this, SLOT( setStartToCurrentButtonClicked() ));
+  connect( ui_->set_goal_to_current_button, SIGNAL( clicked() ), this, SLOT( setGoalToCurrentButtonClicked() ));
   ui_->tabWidget->setCurrentIndex(0);
+  
+  // spin a thread that will process user events
+  run_processing_thread_ = true;
+  processing_thread_.reset(new boost::thread(boost::bind(&PlanningFrame::processingThread, this)));
 }
 
 moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
 {
+  run_processing_thread_ = false; 
+  new_action_condition_.notify_all();
+  processing_thread_->join();
 }
 
 void moveit_rviz_plugin::PlanningFrame::enable(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor)
@@ -70,6 +84,23 @@ void moveit_rviz_plugin::PlanningFrame::disable(void)
   hide();
 }
 
+void moveit_rviz_plugin::PlanningFrame::processingThread(void)
+{
+  boost::unique_lock<boost::mutex> ulock(action_lock_);
+
+  while (run_processing_thread_)
+  {
+    while (actions_.empty() && run_processing_thread_)
+      new_action_condition_.wait(ulock);
+    
+    while (!actions_.empty())
+    {
+      actions_.front()();
+      actions_.pop_front();
+    }
+  }
+}
+
 void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq)
 {
   mreq.group_name = planning_display_->getCurrentPlanningGroup();
@@ -87,6 +118,41 @@ void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::Mo
 
 void moveit_rviz_plugin::PlanningFrame::planButtonClicked(void)
 {
+  boost::mutex::scoped_lock slock(action_lock_);
+  actions_.push_back(boost::bind(&PlanningFrame::computePlanButtonClicked, this));
+  new_action_condition_.notify_all();
+}
+
+void moveit_rviz_plugin::PlanningFrame::planAndExecuteButtonClicked(void)
+{
+  boost::mutex::scoped_lock slock(action_lock_);
+  actions_.push_back(boost::bind(&PlanningFrame::computePlanAndExecuteButtonClicked, this));
+  new_action_condition_.notify_all();
+}
+
+void moveit_rviz_plugin::PlanningFrame::randomStatesButtonClicked(void)
+{
+  boost::mutex::scoped_lock slock(action_lock_);
+  actions_.push_back(boost::bind(&PlanningFrame::computeRandomStatesButtonClicked, this));
+  new_action_condition_.notify_all();
+}
+
+void moveit_rviz_plugin::PlanningFrame::setStartToCurrentButtonClicked(void)
+{
+  boost::mutex::scoped_lock slock(action_lock_);
+  actions_.push_back(boost::bind(&PlanningFrame::computeSetStartToCurrentButtonClicked, this));
+  new_action_condition_.notify_all();
+}
+
+void moveit_rviz_plugin::PlanningFrame::setGoalToCurrentButtonClicked(void)
+{
+  boost::mutex::scoped_lock slock(action_lock_);
+  actions_.push_back(boost::bind(&PlanningFrame::computeSetGoalToCurrentButtonClicked, this));
+  new_action_condition_.notify_all();
+}
+
+void moveit_rviz_plugin::PlanningFrame::computePlanButtonClicked(void)
+{
   moveit_msgs::MotionPlanRequest mreq;
   constructPlanningRequest(mreq);
   plan_execution_->planOnly(mreq);
@@ -99,11 +165,46 @@ void moveit_rviz_plugin::PlanningFrame::planButtonClicked(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::randomStatesButtonClicked(void)
+void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClickedDisplayHelper(void)
+{ 
+  const plan_execution::PlanExecution::Result &res = plan_execution_->getLastResult();
+  if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
+  {
+    planning_models::KinematicStatePtr start_state(new planning_models::KinematicState(plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getCurrentState()));
+    planning_models::robotStateToKinematicState(*plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getTransforms(), res.trajectory_start_, *start_state);
+    planning_display_->displayRobotTrajectory(start_state, res.planned_trajectory_states_);
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClicked(void)
+{ 
+  moveit_msgs::MotionPlanRequest mreq;
+  constructPlanningRequest(mreq);
+  plan_execution::PlanExecution::Options opt;
+  opt.replan_ = ui_->allow_replanning->isChecked();
+  opt.look_around_ = ui_->allow_looking->isChecked();
+  opt.beforeExecutionCallback_ = boost::bind(&PlanningFrame::computePlanAndExecuteButtonClickedDisplayHelper, this);
+  plan_execution_->planAndExecute(mreq, opt);
+}
+
+void moveit_rviz_plugin::PlanningFrame::computeSetStartToCurrentButtonClicked(void)
+{    
+  planning_models::KinematicStatePtr current_state(new planning_models::KinematicState(plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getCurrentState()));
+  planning_display_->setQueryStartState(current_state);
+}
+
+void moveit_rviz_plugin::PlanningFrame::computeSetGoalToCurrentButtonClicked(void)
+{    
+  planning_models::KinematicStatePtr current_state(new planning_models::KinematicState(plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getCurrentState()));
+  planning_display_->setQueryGoalState(current_state);
+}
+
+void moveit_rviz_plugin::PlanningFrame::computeRandomStatesButtonClicked(void)
 {
   std::string group_name = planning_display_->getCurrentPlanningGroup();
   
   planning_models::KinematicStatePtr start(new planning_models::KinematicState(*planning_display_->getQueryStartState()));
+  
   planning_models::KinematicState::JointStateGroup *jsg = start->getJointStateGroup(group_name);
   if (jsg)
     jsg->setToRandomValues();

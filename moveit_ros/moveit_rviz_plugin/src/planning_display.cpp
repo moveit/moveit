@@ -74,6 +74,8 @@ PlanningDisplay::PlanningDisplay() :
   Display(),
   frame_(NULL),
   frame_dock_(NULL),
+  update_display_start_state_(false),
+  update_display_goal_state_(false),
   animating_path_(false),
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true)
@@ -408,13 +410,15 @@ void PlanningDisplay::changedQueryGoalState(void)
 void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePtr &start)
 {
   query_start_state_ = start;
-  changedQueryStartState();
+  // we mark the fact that the next call to update() should update the start state 
+  update_display_start_state_ = true;
 }
 
 void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr &goal)
 {
   query_goal_state_ = goal;
-  changedQueryGoalState();
+  // we mark the fact that the next call to update() should update the goal state 
+  update_display_goal_state_ = true;
 }
 
 void PlanningDisplay::changedPlanningGroup(void)
@@ -678,6 +682,18 @@ void PlanningDisplay::onDisable()
 // ******************************************************************************************
 void PlanningDisplay::update(float wall_dt, float ros_dt)
 {
+  if (update_display_start_state_)
+  {
+    update_display_start_state_ = false;
+    changedQueryStartState();
+  }
+  
+  if (update_display_goal_state_)
+  {
+    update_display_goal_state_ = false;
+    changedQueryGoalState();
+  }
+  
   if (!scene_monitor_)
     return;
 

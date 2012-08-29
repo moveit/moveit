@@ -34,6 +34,8 @@
 
 #include <QWidget>
 #include <plan_execution/plan_execution.h>
+#include <deque>
+#include <boost/thread.hpp>
 
 namespace rviz
 {
@@ -49,6 +51,17 @@ class MotionPlanningFrame;
 namespace moveit_rviz_plugin
 {
 class PlanningDisplay;
+
+namespace planning_actions
+{
+enum PlanningGUIAction
+  {
+    PLAN,
+    EXECUTE,
+    PLAN_AND_EXECUTE,
+    SET_RANDOM_STATES
+  };
+}
 
 class PlanningFrame : public QWidget
 {
@@ -75,7 +88,27 @@ private Q_SLOTS:
 
   void planButtonClicked(void);  
   void randomStatesButtonClicked(void);
+  void setStartToCurrentButtonClicked(void);
+  void setGoalToCurrentButtonClicked(void);
+  void planAndExecuteButtonClicked(void);
   
+private:
+
+  void computePlanButtonClicked(void);  
+  void computeRandomStatesButtonClicked(void);
+  void computeSetStartToCurrentButtonClicked(void);
+  void computeSetGoalToCurrentButtonClicked(void);
+  void computePlanAndExecuteButtonClicked(void); 
+  void computePlanAndExecuteButtonClickedDisplayHelper(void);
+  
+  boost::scoped_ptr<boost::thread> processing_thread_;
+  bool run_processing_thread_;
+  
+  boost::mutex action_lock_;
+  boost::condition_variable new_action_condition_;
+  std::deque<boost::function<void(void)> > actions_;
+
+  void processingThread();
 };
   
 }

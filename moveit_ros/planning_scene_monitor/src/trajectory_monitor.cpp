@@ -96,6 +96,9 @@ void planning_scene_monitor::TrajectoryMonitor::clearTrajectory(void)
 
 void planning_scene_monitor::TrajectoryMonitor::recordStates(void)
 {
+  if (!current_state_monitor_)
+    return;
+  
   ros::Rate rate(sampling_frequency_);
   while (record_states_thread_)
   {
