@@ -50,7 +50,6 @@ set(SOURCE_FILES
   src/planning_frame.cpp
   src/planning_scene_render.cpp
   src/planning_display.cpp
-  src/init.cpp
 )
 
 

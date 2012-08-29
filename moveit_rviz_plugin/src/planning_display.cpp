@@ -55,22 +55,17 @@
 namespace moveit_rviz_plugin
 {
 
-// ******************************************************************************************
-// Structs
-// ******************************************************************************************
-struct PlanningDisplay::ReceivedTrajectoryMessage
+PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene)
 {
-  ReceivedTrajectoryMessage(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene) : message_(message)
-  {
-    start_state_.reset(new planning_models::KinematicState(scene->getCurrentState()));
-    planning_models::robotStateToKinematicState(*scene->getTransforms(), message_->trajectory_start, *start_state_);
-    trajectory_processing::convertToKinematicStates(trajectory_, message_->trajectory_start, message_->trajectory, *start_state_, scene->getTransforms());
-  }
+  start_state_.reset(new planning_models::KinematicState(scene->getCurrentState()));
+  planning_models::robotStateToKinematicState(*scene->getTransforms(), message->trajectory_start, *start_state_);
+  trajectory_processing::convertToKinematicStates(trajectory_, message->trajectory_start, message->trajectory, *start_state_, scene->getTransforms());
+}
 
-  moveit_msgs::DisplayTrajectory::ConstPtr message_;
-  planning_models::KinematicStatePtr start_state_;
-  std::vector<planning_models::KinematicStatePtr> trajectory_;
-};
+PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const planning_models::KinematicStatePtr &start_state, const std::vector<planning_models::KinematicStatePtr> &trajectory) :
+  start_state_(start_state), trajectory_(trajectory)
+{
+}
 
 // ******************************************************************************************
 // Base class contructor
@@ -79,7 +74,6 @@ PlanningDisplay::PlanningDisplay() :
   Display(),
   frame_(NULL),
   frame_dock_(NULL),
-  new_display_trajectory_(false),
   animating_path_(false),
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true)
@@ -163,12 +157,12 @@ PlanningDisplay::PlanningDisplay() :
   // Path category ----------------------------------------------------------------------------------------------------
 
   display_path_visual_enabled_property_ =
-    new rviz::BoolProperty( "Show Robot Visual", "", "Indicates whether the geometry of the robot as defined for visualisation purposes should be displayed",
+    new rviz::BoolProperty( "Show Robot Visual", true, "Indicates whether the geometry of the robot as defined for visualisation purposes should be displayed",
                             path_category_,
                             SLOT( changedDisplayPathVisualEnabled() ), this );
 
   display_path_collision_enabled_property_ =
-    new rviz::BoolProperty( "Show Robot Collision", "", "Indicates whether the geometry of the robot as defined for collision detection purposes should be displayed",
+    new rviz::BoolProperty( "Show Robot Collision", false, "Indicates whether the geometry of the robot as defined for collision detection purposes should be displayed",
                             path_category_,
                             SLOT( changedDisplayPathCollisionEnabled() ), this );
 
@@ -205,17 +199,21 @@ PlanningDisplay::PlanningDisplay() :
 PlanningDisplay::~PlanningDisplay()
 {
   delete frame_dock_;
+  delete display_path_robot_;
+  delete scene_robot_;
+  delete query_robot_start_;
+  delete query_robot_goal_;
 }
 
 // ******************************************************************************************
 //
 // ******************************************************************************************
-void PlanningDisplay::onInitialize()
+void PlanningDisplay::onInitialize(void)
 {
   display_path_robot_ = new rviz::Robot(context_, "Planned Path", path_category_ );
-  display_path_robot_->setVisible(true); 
   display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
+  display_path_robot_->setVisible(false); 
 
   scene_robot_ = new rviz::Robot(context_, "Planning Scene", scene_category_ );
   scene_robot_->setCollisionVisible(false);
@@ -238,11 +236,11 @@ void PlanningDisplay::onInitialize()
       plan_category_->childAt(i)->hide();
   
   scene_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
-  scene_node_->setVisible(scene_enabled_property_->getBool());
+  scene_node_->setVisible(scene_enabled_property_->getBool()); 
 
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
-  frame_ = new PlanningFrame(context_, window_context->getParentWindow());
-  frame_dock_ = window_context->addPane( "Motion Planning", frame_ );
+  frame_ = new PlanningFrame(this, context_, window_context->getParentWindow());
+  frame_dock_ = window_context->addPane("Motion Planning", frame_);
 }
 
 // ******************************************************************************************
@@ -251,11 +249,13 @@ void PlanningDisplay::onInitialize()
 void PlanningDisplay::reset()
 {
   planning_scene_render_.reset();
-  loadPlanningSceneMonitor();
-  incoming_trajectory_message_.reset();
+  loadRobotModel();
+  frame_->disable();
+  if (scene_monitor_)
+    frame_->enable(scene_monitor_);
+  trajectory_message_to_display_.reset();
   displaying_trajectory_message_.reset();
   animating_path_ = false;
-  new_display_trajectory_ = false;
 }
 
 // ******************************************************************************************
@@ -416,6 +416,11 @@ void PlanningDisplay::changedPlanningGroup(void)
   }
 }
 
+std::string PlanningDisplay::getCurrentPlanningGroup(void) const
+{
+  return planning_group_property_->getStdString();
+}
+
 // ******************************************************************************************
 // Scene Display Time
 // ******************************************************************************************
@@ -444,18 +449,19 @@ void PlanningDisplay::changedSceneEnabled()
   scene_node_->setVisible( scene_enabled_property_->getBool() );
 }
 
-// ******************************************************************************************
-// Visual Visible
-// ******************************************************************************************
-void PlanningDisplay::displayRobotPath(bool visible)
-{
-  display_path_robot_->setVisible(visible);
+void PlanningDisplay::displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
+                                             const std::vector<planning_models::KinematicStatePtr> &trajectory)
+{  
+  trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(start_state, trajectory));
 }
 
 void PlanningDisplay::changedDisplayPathVisualEnabled()
 {
   if (isEnabled())
+  {
     display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
+    display_path_robot_->setVisible(displaying_trajectory_message_);
+  }
 }
 
 // ******************************************************************************************
@@ -465,7 +471,10 @@ void PlanningDisplay::changedDisplayPathVisualEnabled()
 void PlanningDisplay::changedDisplayPathCollisionEnabled()
 {
   if (isEnabled())
+  {
     display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
+    display_path_robot_->setVisible(displaying_trajectory_message_);
+  }
 }
 
 // ******************************************************************************************
@@ -586,7 +595,7 @@ void PlanningDisplay::loadPlanningSceneMonitor(void)
   scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString()));
   if (scene_monitor_->getPlanningScene())
   {
-    scene_monitor_->setUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
+    scene_monitor_->addUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
     scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
     planning_models::KinematicStatePtr ks(new planning_models::KinematicState(scene_monitor_->getPlanningScene()->getCurrentState()));
     scene_robot_->update(PlanningLinkUpdater(ks));
@@ -622,9 +631,9 @@ void PlanningDisplay::onEnable()
 {
   loadRobotModel();
 
-  display_path_robot_->setVisible(true); 
   display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
+  display_path_robot_->setVisible(displaying_trajectory_message_);
 
   scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
   scene_node_->setVisible(scene_enabled_property_->getBool());
@@ -632,9 +641,9 @@ void PlanningDisplay::onEnable()
   changedPlanningGroup();
   query_robot_start_->setVisible(query_start_state_property_->getBool());
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
-
-  if (frame_dock_)
-    frame_dock_->show();
+  
+  if (scene_monitor_)
+    frame_->enable(scene_monitor_);
 }
 
 // ******************************************************************************************
@@ -648,9 +657,8 @@ void PlanningDisplay::onDisable()
   scene_node_->setVisible(false);
   scene_robot_->setVisible(false);
   query_robot_start_->setVisible(false);
-  query_robot_goal_->setVisible(false);
-  if (frame_dock_)
-    frame_dock_->hide();
+  query_robot_goal_->setVisible(false); 
+  frame_->disable();
 }
 
 // ******************************************************************************************
@@ -661,19 +669,20 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
   if (!scene_monitor_)
     return;
 
-  if (!animating_path_ && !new_display_trajectory_ && loop_display_property_->getBool() && displaying_trajectory_message_)
+  if (!animating_path_ && !trajectory_message_to_display_ && loop_display_property_->getBool() && displaying_trajectory_message_)
   {
     animating_path_ = true;
     current_state_ = -1;
     current_state_time_ = state_display_time_property_->getFloat() + 1.0f;
   }
 
-  if (!animating_path_ && new_display_trajectory_)
+  if (!animating_path_ && trajectory_message_to_display_)
   {
     scene_monitor_->updateFrameTransforms();
-    displaying_trajectory_message_.reset(new ReceivedTrajectoryMessage(incoming_trajectory_message_, scene_monitor_->getPlanningScene()));
+    displaying_trajectory_message_ = trajectory_message_to_display_;
+    display_path_robot_->setVisible(isEnabled());
+    trajectory_message_to_display_.reset();
     animating_path_ = true;
-    new_display_trajectory_ = false;
     current_state_ = -1;
     current_state_time_ = state_display_time_property_->getFloat() + 1.0f;
     PlanningLinkUpdater plu(displaying_trajectory_message_->start_state_);
@@ -754,12 +763,12 @@ void PlanningDisplay::calculateOffsetPosition(void)
 // ******************************************************************************************
 void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
 {
-  incoming_trajectory_message_ = msg;
   if (scene_monitor_)
     if (msg->model_id != scene_monitor_->getPlanningScene()->getKinematicModel()->getName())
       ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
                msg->model_id.c_str(), scene_monitor_->getPlanningScene()->getKinematicModel()->getName().c_str());
-  new_display_trajectory_ = true;
+  
+  trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(msg, scene_monitor_->getPlanningScene()));
 }
 
 // ******************************************************************************************
@@ -772,3 +781,6 @@ void PlanningDisplay::fixedFrameChanged()
 
 
 } // namespace moveit_rviz_plugin
+
+#include <pluginlib/class_list_macros.h>
+PLUGINLIB_DECLARE_CLASS( moveit_rviz_plugin, MotionPlanning, moveit_rviz_plugin::PlanningDisplay, rviz::Display )

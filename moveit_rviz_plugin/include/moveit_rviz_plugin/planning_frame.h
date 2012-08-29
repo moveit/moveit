@@ -33,6 +33,7 @@
 #define MOVEIT_RVIZ_PLUGIN_PLANNING_FRAME_
 
 #include <QWidget>
+#include <plan_execution/plan_execution.h>
 
 namespace rviz
 {
@@ -47,18 +48,33 @@ class MotionPlanningFrame;
 
 namespace moveit_rviz_plugin
 {
+class PlanningDisplay;
 
 class PlanningFrame : public QWidget
 {
 Q_OBJECT
+
 public:
-  PlanningFrame(rviz::DisplayContext *context, QWidget *parent = 0);
+  PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);
   ~PlanningFrame(void);
+
+  void enable(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor);
+  void disable(void);
   
 protected:
+
+  void constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq);
+  
+  PlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;
   Ui::MotionPlanningFrame *ui_;
   
+  boost::scoped_ptr<plan_execution::PlanExecution> plan_execution_;
+
+private Q_SLOTS:
+
+  void planButtonClicked(void);  
+
 };
   
 }

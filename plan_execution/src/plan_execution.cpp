@@ -96,10 +96,8 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   default_max_replan_attempts_(5), discard_overlapping_cost_sources_(0.8),
   max_cost_sources_(100), preempt_requested_(false), new_scene_update_(false)
 {
-  if (planning_scene_monitor_->getUpdateCallback())
-    ROS_ERROR("The PlanExecution instance needs to overwrite the update callback for the PlanningSceneMonitor. This means that the existing callback setting will be overwritten.");
   // we want to be notified when new information is available
-  planning_scene_monitor_->setUpdateCallback(boost::bind(&PlanExecution::planningSceneUpdatedCallback, this, _1));
+  planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanExecution::planningSceneUpdatedCallback, this, _1));
   
   // by default we do not display path cost sources
   display_cost_sources_ = false;
