@@ -118,15 +118,18 @@ class PlanningDisplay : public rviz::Display
   void setLinkColor( const std::string& link_name, float red, float green, float blue );
   void unsetLinkColor( const std::string& link_name );
 
-  const planning_models::KinematicStatePtr& getQueryStartState(void)
+  const planning_models::KinematicStatePtr& getQueryStartState(void) const
   {
     return query_start_state_;
   }
-  
-  const planning_models::KinematicStatePtr& getQueryGoalState(void)
+
+  const planning_models::KinematicStatePtr& getQueryGoalState(void) const
   {
     return query_goal_state_;
   }
+
+  void setQueryStartState(const planning_models::KinematicStatePtr &start);
+  void setQueryGoalState(const planning_models::KinematicStatePtr &goal);  
 
   std::string getCurrentPlanningGroup(void) const;
 

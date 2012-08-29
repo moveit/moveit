@@ -74,7 +74,8 @@ protected:
 private Q_SLOTS:
 
   void planButtonClicked(void);  
-
+  void randomStatesButtonClicked(void);
+  
 };
   
 }

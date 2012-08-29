@@ -405,6 +405,18 @@ void PlanningDisplay::changedQueryGoalState(void)
     query_robot_goal_->setVisible(false);
 }
 
+void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePtr &start)
+{
+  query_start_state_ = start;
+  changedQueryStartState();
+}
+
+void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr &goal)
+{
+  query_goal_state_ = goal;
+  changedQueryGoalState();
+}
+
 void PlanningDisplay::changedPlanningGroup(void)
 {
   unsetAllColors(query_robot_start_);
@@ -690,7 +702,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
   }
 
   if (animating_path_)
-  {
+  { 
     if (current_state_time_ > state_display_time_property_->getFloat())
     {
       ++current_state_;

@@ -205,7 +205,13 @@ void plan_execution::PlanExecution::planOnly(const moveit_msgs::MotionPlanReques
   result_ = Result();
   result_.error_code_ = mres.error_code;
   result_.trajectory_start_ = mres.trajectory_start;
-  result_.planned_trajectory_ = mres.trajectory;  
+  result_.planned_trajectory_ = mres.trajectory; 
+
+  {
+    LockScene lock(planning_scene_monitor_);
+    // convert the path to a sequence of kinematic states
+    trajectory_processing::convertToKinematicStates(result_.planned_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
+  }
 }
 
 void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlanRequest &req, const planning_scene::PlanningSceneConstPtr &the_scene, const Options &opt)
