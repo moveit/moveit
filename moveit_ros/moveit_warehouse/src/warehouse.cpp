@@ -126,8 +126,13 @@ std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(con
 }
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name)
-{   
+{
   std::string id = getMotionPlanRequestName(planning_query, scene_name);
+  
+  // if we are trying to overwrite, we remove the old query first (if it exists).
+  if (!query_name.empty() && id.empty())
+    removePlanningSceneQuery(scene_name, query_name);
+  
   if (id != query_name || id == "")
     addNewPlanningRequest(planning_query, scene_name, query_name);
 }
@@ -338,9 +343,33 @@ void moveit_warehouse::PlanningSceneStorage::removePlanningScene(const std::stri
 
 void moveit_warehouse::PlanningSceneStorage::removePlanningSceneQueries(const std::string &scene_name)
 {
+  removePlanningSceneResults(scene_name);
   mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
-  unsigned int rem = robot_trajectory_collection_->removeMessages(q);
-  ROS_DEBUG("Removed %u RobotTrajectory messages for scene '%s'", rem, scene_name.c_str());
-  rem = motion_plan_request_collection_->removeMessages(q);
+  unsigned int rem = motion_plan_request_collection_->removeMessages(q);
   ROS_DEBUG("Removed %u MotionPlanRequest messages for scene '%s'", rem, scene_name.c_str());
 }
+
+void moveit_warehouse::PlanningSceneStorage::removePlanningSceneQuery(const std::string &scene_name, const std::string &query_name)
+{
+  removePlanningSceneResults(scene_name, query_name);
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  q.append(MOTION_PLAN_REQUEST_ID_NAME, query_name);
+  unsigned int rem = motion_plan_request_collection_->removeMessages(q); 
+  ROS_DEBUG("Removed %u MotionPlanRequest messages for scene '%s', query '%s'", rem, scene_name.c_str(), query_name.c_str());
+}
+
+void moveit_warehouse::PlanningSceneStorage::removePlanningSceneResults(const std::string &scene_name)
+{
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);  
+  unsigned int rem = robot_trajectory_collection_->removeMessages(q);
+  ROS_DEBUG("Removed %u RobotTrajectory messages for scene '%s'", rem, scene_name.c_str());
+}
+
+void moveit_warehouse::PlanningSceneStorage::removePlanningSceneResults(const std::string &scene_name, const std::string &query_name)
+{
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  q.append(MOTION_PLAN_REQUEST_ID_NAME, query_name);
+  unsigned int rem = robot_trajectory_collection_->removeMessages(q); 
+  ROS_DEBUG("Removed %u RobotTrajectory messages for scene '%s', query '%s'", rem, scene_name.c_str(), query_name.c_str());
+}
+

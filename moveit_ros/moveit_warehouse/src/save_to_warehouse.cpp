@@ -129,7 +129,7 @@ int main(int argc, char **argv)
       ROS_INFO(" * %s", names[i].c_str());
   }
   
-  psm.setUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
+  psm.addUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
   boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
   ros::Subscriber mplan_req_sub = nh.subscribe("motion_plan_request", 100, callback);
   std::vector<std::string> topics;

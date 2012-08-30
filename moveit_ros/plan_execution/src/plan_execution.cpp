@@ -96,10 +96,8 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   default_max_replan_attempts_(5), discard_overlapping_cost_sources_(0.8),
   max_cost_sources_(100), preempt_requested_(false), new_scene_update_(false)
 {
-  if (planning_scene_monitor_->getUpdateCallback())
-    ROS_ERROR("The PlanExecution instance needs to overwrite the update callback for the PlanningSceneMonitor. This means that the existing callback setting will be overwritten.");
   // we want to be notified when new information is available
-  planning_scene_monitor_->setUpdateCallback(boost::bind(&PlanExecution::planningSceneUpdatedCallback, this, _1));
+  planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanExecution::planningSceneUpdatedCallback, this, _1));
   
   // by default we do not display path cost sources
   display_cost_sources_ = false;
@@ -207,7 +205,13 @@ void plan_execution::PlanExecution::planOnly(const moveit_msgs::MotionPlanReques
   result_ = Result();
   result_.error_code_ = mres.error_code;
   result_.trajectory_start_ = mres.trajectory_start;
-  result_.planned_trajectory_ = mres.trajectory;  
+  result_.planned_trajectory_ = mres.trajectory; 
+
+  {
+    LockScene lock(planning_scene_monitor_);
+    // convert the path to a sequence of kinematic states
+    trajectory_processing::convertToKinematicStates(result_.planned_trajectory_states_, mres.trajectory_start, mres.trajectory, the_scene->getCurrentState(), the_scene->getTransforms());
+  }
 }
 
 void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlanRequest &req, const planning_scene::PlanningSceneConstPtr &the_scene, const Options &opt)

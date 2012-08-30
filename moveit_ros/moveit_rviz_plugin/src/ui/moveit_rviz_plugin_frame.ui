@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>336</height>
+    <width>617</width>
+    <height>299</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="0" column="0">
+   <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="current_plan">
       <attribute name="title">
@@ -34,26 +34,43 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0" colspan="2">
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Planning Plugin:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="planning_plugin_combo_box"/>
-         </item>
-         <item>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="1" column="0" alignment="Qt::AlignTop">
           <widget class="QLabel" name="label_5">
            <property name="text">
             <string>Planning Algorithm:</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="allow_replanning">
+           <property name="text">
+            <string>Allow Replanning</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2" alignment="Qt::AlignTop">
+          <widget class="QLabel" name="library_label">
+           <property name="text">
+            <string>Planning Library Name</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1" alignment="Qt::AlignTop">
           <widget class="QComboBox" name="planning_algorithm_combo_box"/>
+         </item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="allow_looking">
+           <property name="text">
+            <string>Allow Sensor Positioning</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -68,6 +85,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="execute_button">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Execute</string>
            </property>
@@ -92,16 +112,16 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="set_goal_to_current_button">
+          <widget class="QPushButton" name="set_start_to_current_button">
            <property name="text">
-            <string>Set Goal To Current</string>
+            <string>Set Start To Current</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="set_start_to_current_button">
+          <widget class="QPushButton" name="set_goal_to_current_button">
            <property name="text">
-            <string>Set Start To Current</string>
+            <string>Set Goal To Current</string>
            </property>
           </widget>
          </item>
@@ -114,7 +134,7 @@
        <string>Stored Plans</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0" colspan="2">
+       <item row="0" column="0" colspan="3">
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QLabel" name="label_2">
@@ -126,7 +146,7 @@
          <item>
           <widget class="QLineEdit" name="database_host">
            <property name="text">
-            <string>localhost</string>
+            <string>127.0.0.1</string>
            </property>
           </widget>
          </item>
@@ -147,95 +167,139 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="database_connect_button">
+           <property name="text">
+            <string>Connect</string>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+           <property name="default">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
-       <item row="1" column="0">
+       <item row="2" column="0">
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+          <widget class="QGroupBox" name="groupBox_3">
+           <property name="title">
+            <string>Planning Scenes and Queries</string>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>338</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Select Planning Scene / Planning Query</string>
-           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <item>
+             <widget class="QTreeWidget" name="planning_scene_tree">
+              <property name="cursor" stdset="0">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="headerHidden">
+               <bool>true</bool>
+              </property>
+              <property name="columnCount">
+               <number>1</number>
+              </property>
+              <column>
+               <property name="text">
+                <string>1</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+           </layout>
           </widget>
-         </item>
-         <item>
-          <widget class="QTreeView" name="planning_scenes_treeview"/>
          </item>
         </layout>
        </item>
-       <item row="1" column="1">
+       <item row="2" column="2">
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QPushButton" name="publish_scene">
-           <property name="text">
-            <string>Use and Publish Scene</string>
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
+            <string>Saved Scenes</string>
            </property>
+           <layout class="QGridLayout" name="gridLayout_5">
+            <item row="0" column="0">
+             <widget class="QPushButton" name="load_scene_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Load Scene</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="load_query_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Load Query</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="delete_scene_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Delete Scene</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QPushButton" name="delete_query_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Delete Query</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_8">
-           <property name="text">
-            <string>Use Query</string>
+          <widget class="QGroupBox" name="groupBox_2">
+           <property name="title">
+            <string>Current Scenes</string>
            </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QPushButton" name="save_query_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Save Query</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="save_scene_button">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Save Scene</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_6">
-           <property name="text">
-            <string>Save Scene</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_9">
-           <property name="text">
-            <string>Save Query</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
-       </item>
-       <item row="1" column="2">
-        <layout class="QHBoxLayout" name="horizontalLayout_2"/>
        </item>
       </layout>
      </widget>

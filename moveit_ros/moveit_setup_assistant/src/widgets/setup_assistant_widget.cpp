@@ -311,9 +311,6 @@ void SetupAssistantWidget::loadRviz()
   planning_display_->setName( "Motion Planning" );
   rviz_manager_->addDisplay( planning_display_, true );
 
-  // Turn off planned path
-  planning_display_->displayRobotPath( false );
-
   // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
   planning_display_->setPlanningSceneTopic( MOVEIT_PLANNING_SCENE );
 

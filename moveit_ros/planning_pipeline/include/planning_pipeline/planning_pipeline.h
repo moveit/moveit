@@ -60,7 +60,7 @@ public:
   
   void checkSolutionPaths(bool flag);
   
-  bool getDisplayComputedMotionPlansFlag(void) const
+  bool getDisplayComputedMotionPlans(void) const
   {
     return display_computed_motion_plans_;
   }
@@ -92,6 +92,11 @@ public:
   const std::vector<std::string>& getAdapterPluginNames(void) const
   {
     return adapter_plugin_names_;
+  }
+
+  const planning_interface::PlannerPtr& getPlannerInterface(void)
+  {
+    return planner_instance_;
   }
   
 private:
