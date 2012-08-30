@@ -105,6 +105,7 @@ private:
   void computeSaveQueryButtonClicked(void);
   void computeDeleteSceneButtonClicked(void);
   void computeDeleteQueryButtonClicked(void);
+  void checkPlanningSceneTreeEnabledButtons(void);
   
   boost::scoped_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
