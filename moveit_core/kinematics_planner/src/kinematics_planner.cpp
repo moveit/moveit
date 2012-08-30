@@ -42,38 +42,6 @@
 namespace kinematics_planner
 {
 
-bool KinematicsPlanner::initialize(const planning_models::KinematicModelConstPtr &kinematic_model,
-                                   const kinematics_planner::KinematicsSolverMapConstPtr &kinematics_solver_map,
-                                   const std::string &group_name)
-{
-  group_name_ = group_name;
-  if(!kinematic_model->hasJointModelGroup(group_name))
-  {
-    ROS_ERROR("Group name: %s invalid",group_name.c_str());
-    return false;
-  }  
-
-  const planning_models::KinematicModel::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name_);
-  group_names_ = joint_model_group->getSubgroupNames();
-  if(group_names_.empty())
-    group_names_.push_back(group_name_);
-  num_groups_= group_names_.size();
-
-  for(unsigned int i=0; i < group_names_.size(); ++i)
-  {
-    if(kinematics_solver_map->find(group_names_[i]) == kinematics_solver_map->end())
-    {
-      ROS_ERROR("No kinematics solver found for group %s",group_names_[i].c_str());      
-      return false;      
-    }    
-    kinematics_solvers_.push_back(kinematics_solver_map->find(group_names_[i])->second);    
-    kinematics_base_frames_.push_back(kinematics_solvers_.back()->getBaseFrame());    
-    const std::vector<std::string> joint_names = kinematic_model->getJointModelGroup(group_names_[i])->getJointModelNames();
-    for(unsigned int j=0; j < joint_names.size(); ++j)
-      joint_names_.push_back(joint_names[j]);      
-  }
-  return true;  
-}
 
 bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStamped> &start_request,
                               const std::map<std::string,geometry_msgs::PoseStamped> &goal_request,
@@ -170,104 +138,9 @@ bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStam
 }
 
 
-bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStamped> &poses,
-                              const planning_scene::PlanningSceneConstPtr& planning_scene,
-                              const kinematic_constraints::KinematicConstraintSet& kinematic_constraint_set,
-                              double timeout,
-                              moveit_msgs::RobotState &robot_state,
-                              moveit_msgs::MoveItErrorCodes &error_code) const
-{
-  ros::WallTime start_time = ros::WallTime::now();  
-  if(!checkRequest(poses))
-  {
-    error_code.val = error_code.INVALID_GROUP_NAME;
-    return false;    
-  }
-
-  planning_models::KinematicState kinematic_state = planning_scene->getCurrentState();
-  std::vector<planning_models::KinematicState::JointStateGroup*> joint_state_groups(num_groups_);
-  for(unsigned int i=0; i < num_groups_; ++i)
-    joint_state_groups[i] = kinematic_state.getJointStateGroup(group_names_[i]);    
-  
-  std::map<std::string,geometry_msgs::PoseStamped> start = transformPoses(planning_scene,kinematic_state,poses,kinematics_base_frames_);
-
-  kinematics_planner::SolutionStateMap solutions;
-  for(unsigned int i=0; i < num_groups_; ++i)
-  {
-    solutions[group_names_[i]].resize(joint_state_groups[i]->getVariableCount());    
-  }
-    
-  while( (ros::WallTime::now()-start_time) <= ros::WallDuration(timeout))
-  {
-    bool success = true;    
-    for(unsigned int i=0; i < num_groups_; ++i)
-      joint_state_groups[i]->setToRandomValues();            
-    for(unsigned int i=0; i < num_groups_; ++i)
-    {
-      std::vector<double> joint_state_values;
-      joint_state_groups[i]->getGroupStateValues(joint_state_values);        
-      const kinematics::KinematicsBaseConstPtr kinematics_solver = kinematics_solvers_[i];        
-      if(!kinematics_solver->getPositionIK((start.find(group_names_[i])->second).pose,
-                                           joint_state_values,
-                                           solutions.find(group_names_[i])->second,
-                                           error_code))
-      {
-        success = false;
-        break;        
-      }
-      joint_state_groups[i]->setStateValues(solutions.find(group_names_[i])->second);        
-    }      
-    if(!success)
-      continue;            
-    if(planning_scene->isStateColliding(kinematic_state) || !planning_scene->isStateConstrained(kinematic_state,kinematic_constraint_set))
-    {
-      continue;      
-    }      
-    robot_state = getRobotState(solutions);      
-    return true;
-  }
-  return false;    
-}
 
 
 
-
-std::map<std::string,geometry_msgs::PoseStamped> KinematicsPlanner::transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                                                   const planning_models::KinematicState &kinematic_state,
-                                                                                   const std::map<std::string,geometry_msgs::PoseStamped> &poses,
-                                                                                   const std::vector<std::string> &target_frames) const
-{
-  Eigen::Affine3d eigen_pose, eigen_pose_2;
-  std::map<std::string,geometry_msgs::PoseStamped> result;  
-  for(unsigned int i=0; i < group_names_.size(); ++i)
-  {
-    std::string target_frame = target_frames[i];   
-    bool target_frame_is_root_frame = (target_frame == kinematic_state.getKinematicModel()->getModelFrame());  
-    geometry_msgs::PoseStamped pose_stamped = poses.find(group_names_[i])->second;    
-    planning_models::poseFromMsg(pose_stamped.pose,eigen_pose_2);
-    planning_scene->getTransforms()->transformPose(kinematic_state,pose_stamped.header.frame_id,eigen_pose_2,eigen_pose);
-    if(!target_frame_is_root_frame)
-    {
-      eigen_pose_2 = planning_scene->getTransforms()->getTransform(target_frame);
-      eigen_pose = eigen_pose_2.inverse()*eigen_pose;
-    }    
-    pose_stamped.header.frame_id = target_frame;
-    planning_models::msgFromPose(eigen_pose,pose_stamped.pose);    
-    result[group_names_[i]] = pose_stamped;    
-  }
-  return result;  
-}
-
-std::map<std::string,geometry_msgs::PoseStamped> KinematicsPlanner::transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                                                                   const planning_models::KinematicState &kinematic_state,
-                                                                                   const std::map<std::string,geometry_msgs::PoseStamped> &poses,
-                                                                                   const std::string &target_frame) const
-{
-  std::vector<std::string> target_frames;
-  for(unsigned int i=0; i < group_names_.size(); ++i)
-    target_frames.push_back(target_frame);  
-  return transformPoses(planning_scene,kinematic_state,poses,target_frames);  
-}
 
 moveit_msgs::RobotTrajectory KinematicsPlanner::getRobotTrajectory(const kinematics_planner::SolutionTrajectoryMap &solutions,
                                                                    unsigned int num_poses) const
@@ -284,26 +157,6 @@ moveit_msgs::RobotTrajectory KinematicsPlanner::getRobotTrajectory(const kinemat
     }    
   }   
   return robot_trajectory;  
-}
-
-moveit_msgs::RobotState KinematicsPlanner::getRobotState(const kinematics_planner::SolutionStateMap &solutions) const
-{
-  moveit_msgs::RobotState robot_state;
-  robot_state.joint_state.name = joint_names_;
-  for(unsigned int i=0; i < num_groups_; ++i)
-  {
-    const std::vector<double>& group_solutions = (solutions.find(group_names_[i])->second);      
-    robot_state.joint_state.position.insert(robot_state.joint_state.position.end(),group_solutions.begin(),group_solutions.end());          
-  }   
-  return robot_state;  
-}
-
-bool KinematicsPlanner::checkRequest(const std::map<std::string,geometry_msgs::PoseStamped> &start) const
-{
-  for(unsigned int i=0; i < group_names_.size(); ++i)
-    if(start.find(group_names_[i]) == start.end())
-      return false;
-  return true;  
 }
 
 std::map<std::string,std::vector<geometry_msgs::Pose> > KinematicsPlanner::getInterpolatedPosesMap(const std::map<std::string,geometry_msgs::PoseStamped> &start,
@@ -324,35 +177,6 @@ std::map<std::string,std::vector<geometry_msgs::Pose> > KinematicsPlanner::getIn
                                                    num_segments);
   
   return result;  
-}
-
-std::vector<double> KinematicsPlanner::getFloatingJointValues(const geometry_msgs::Pose &pose) const
-{
-  std::vector<double> values(7);
-  values[0] = pose.position.x;
-  values[1] = pose.position.y;
-  values[2] = pose.position.z;
-  
-  values[3] = pose.orientation.x;
-  values[4] = pose.orientation.y;
-  values[5] = pose.orientation.z;
-  values[6] = pose.orientation.w;
-  return values;  
-}
-
-geometry_msgs::Pose KinematicsPlanner::getPose(const std::vector<double> &values) const
-{
-  geometry_msgs::Pose pose;
-  pose.position.x = values[0];
-  pose.position.y = values[1];
-  pose.position.z = values[2];
-
-  pose.orientation.x = values[3];
-  pose.orientation.y = values[4];
-  pose.orientation.z = values[5];
-  pose.orientation.w = values[6];
-  
-  return pose;  
 }
 
 unsigned int KinematicsPlanner::getNumSegments(const geometry_msgs::Pose &start,
