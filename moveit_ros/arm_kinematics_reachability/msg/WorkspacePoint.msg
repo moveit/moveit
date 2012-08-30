@@ -1,0 +1,4 @@
+string group_name
+geometry_msgs/Pose pose
+moveit_msgs/RobotState robot_state
+moveit_msgs/MoveItErrorCodes solution_code
