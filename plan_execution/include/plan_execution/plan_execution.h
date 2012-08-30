@@ -91,6 +91,11 @@ public:
 
   PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor);
   ~PlanExecution(void);
+
+  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void) const
+  {
+    return planning_scene_monitor_;
+  }
   
   planning_pipeline::PlanningPipeline& getPlanningPipeline(void)
   {

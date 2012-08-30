@@ -263,8 +263,8 @@ void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vecto
 
 void planning_scene_monitor::PlanningSceneMonitor::processSceneUpdateEvent(SceneUpdateType update_type)
 {
-  if (update_callback_)
-    update_callback_(update_type);
+  for (std::size_t i = 0 ; i < update_callbacks_.size() ; ++i)
+    update_callbacks_[i](update_type);
   new_scene_update_ = true;
   new_scene_update_condition_.notify_all();
 }
@@ -545,9 +545,15 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState(v
     ROS_ERROR("State monitor is not active. Unable to set the planning scene state");
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::setUpdateCallback(const boost::function<void(SceneUpdateType)> &fn)
+void planning_scene_monitor::PlanningSceneMonitor::addUpdateCallback(const boost::function<void(SceneUpdateType)> &fn)
 {
-  update_callback_ = fn;
+  if (fn)
+    update_callbacks_.push_back(fn);
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::clearUpdateCallbacks(void)
+{
+  update_callbacks_.clear();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::setPlanningScenePublishingFrequency(double hz)

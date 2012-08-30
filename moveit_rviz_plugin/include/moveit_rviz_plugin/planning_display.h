@@ -72,6 +72,15 @@ class PlanningDisplay : public rviz::Display
 
   public:
 
+  struct TrajectoryMessageToDisplay
+  {
+    TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene);
+    TrajectoryMessageToDisplay(const planning_models::KinematicStatePtr &start_state, const std::vector<planning_models::KinematicStatePtr> &trajectory);
+    
+    planning_models::KinematicStatePtr start_state_;
+    std::vector<planning_models::KinematicStatePtr> trajectory_;
+  };
+
   /**
    * \brief Contructor
    */
@@ -82,10 +91,6 @@ class PlanningDisplay : public rviz::Display
    */
   virtual ~PlanningDisplay();
 
-  /**
-   * \brief Called when plugin is ready to be loaded. Overrides from Display
-   */
-  virtual void onInitialize();
 
   /**
    * \brief Overrides from Display
@@ -96,8 +101,6 @@ class PlanningDisplay : public rviz::Display
    * \brief Called to reset plugin
    */
   virtual void reset();
-
-  virtual void fixedFrameChanged();
   
   /**
    * \brief Robot Description parameter name
@@ -109,20 +112,30 @@ class PlanningDisplay : public rviz::Display
   const std::string getPlanningSceneTopic(void);
 
   /**
-   * \brief Set whether the visual robot planned path should be displayed
-   * @param visible
-   */
-  void displayRobotPath( bool visible );
-
-  /**
    * \brief Set of functions for highlighting parts of a robot
    */
   
   void setLinkColor( const std::string& link_name, float red, float green, float blue );
   void unsetLinkColor( const std::string& link_name );
 
+  const planning_models::KinematicStatePtr& getQueryStartState(void) const
+  {
+    return query_start_state_;
+  }
 
+  const planning_models::KinematicStatePtr& getQueryGoalState(void) const
+  {
+    return query_goal_state_;
+  }
 
+  void setQueryStartState(const planning_models::KinematicStatePtr &start);
+  void setQueryGoalState(const planning_models::KinematicStatePtr &goal);  
+
+  std::string getCurrentPlanningGroup(void) const;
+
+  void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
+                              const std::vector<planning_models::KinematicStatePtr> &trajectory);
+                                                
 private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
@@ -176,11 +189,11 @@ protected:
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name );
   void unsetAllColors(rviz::Robot* robot);
   
-  // overrides from Display
+  // overrides from Display  
+  virtual void onInitialize();
   virtual void onEnable();
   virtual void onDisable();
-
-  struct ReceivedTrajectoryMessage;
+  virtual void fixedFrameChanged();
 
   rviz::Robot* query_robot_start_;                  ///< Handles drawing the robot at the start configuration
   rviz::Robot* query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
@@ -198,13 +211,14 @@ protected:
   ros::Subscriber trajectory_topic_sub_;
 
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
-  moveit_msgs::DisplayTrajectory::ConstPtr incoming_trajectory_message_;
-  boost::scoped_ptr<ReceivedTrajectoryMessage> displaying_trajectory_message_;
+  boost::shared_ptr<TrajectoryMessageToDisplay> displaying_trajectory_message_;
+  boost::shared_ptr<TrajectoryMessageToDisplay> trajectory_message_to_display_;
 
   planning_models::KinematicStatePtr query_start_state_;
   planning_models::KinematicStatePtr query_goal_state_;
+  bool update_display_start_state_;
+  bool update_display_goal_state_;
   
-  bool new_display_trajectory_;
   bool animating_path_;
   int current_state_;
   float current_state_time_;
