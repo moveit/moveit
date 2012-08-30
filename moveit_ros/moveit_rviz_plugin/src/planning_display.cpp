@@ -41,6 +41,7 @@
 #include <rviz/properties/ros_topic_property.h>
 #include <rviz/properties/editable_enum_property.h>
 #include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
 #include <rviz/panel_dock_widget.h>
 #include <rviz/window_manager_interface.h>
 
@@ -211,23 +212,26 @@ PlanningDisplay::~PlanningDisplay()
 //
 // ******************************************************************************************
 void PlanningDisplay::onInitialize(void)
-{
-  display_path_robot_ = new rviz::Robot(context_, "Planned Path", path_category_ );
-  display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
+{  
+  scene_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
+  scene_node_->setVisible(scene_enabled_property_->getBool()); 
+
+  display_path_robot_ = new rviz::Robot(scene_manager_->getRootSceneNode(), context_, "Planned Path", path_category_ );
+  display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   display_path_robot_->setVisible(false); 
 
-  scene_robot_ = new rviz::Robot(context_, "Planning Scene", scene_category_ );
+  scene_robot_ = new rviz::Robot(scene_manager_->getRootSceneNode(), context_, "Planning Scene", scene_category_ );
   scene_robot_->setCollisionVisible(false);
   scene_robot_->setVisualVisible(true);
   scene_robot_->setVisible( scene_robot_enabled_property_->getBool() );
 
-  query_robot_start_ = new rviz::Robot(context_, "Planning Request Start", plan_category_ );
+  query_robot_start_ = new rviz::Robot(scene_manager_->getRootSceneNode(), context_, "Planning Request Start", plan_category_ );
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible( query_start_state_property_->getBool() );
 
-  query_robot_goal_ = new rviz::Robot(context_, "Planning Request Goal", plan_category_ );
+  query_robot_goal_ = new rviz::Robot(scene_manager_->getRootSceneNode(), context_, "Planning Request Goal", plan_category_ );
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
@@ -236,9 +240,6 @@ void PlanningDisplay::onInitialize(void)
   for (int i = 0 ; i < plan_category_->numChildren() ; ++i)
     if (plan_category_->childAt(i)->getNameStd() == "Links")
       plan_category_->childAt(i)->hide();
-  
-  scene_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
-  scene_node_->setVisible(scene_enabled_property_->getBool()); 
 
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
   frame_ = new PlanningFrame(this, context_, window_context->getParentWindow());
@@ -608,9 +609,11 @@ void PlanningDisplay::loadPlanningSceneMonitor(void)
 {
   planning_group_property_->clearOptions();
   scene_monitor_.reset();// this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
-  scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString()));
+  scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
+                                                                        context_->getFrameManager()->getTFClientPtr()));
   if (scene_monitor_->getPlanningScene())
   {
+    scene_monitor_->getPlanningScene()->setName(scene_name_property_->getStdString());
     scene_monitor_->addUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
     scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
     planning_models::KinematicStatePtr ks(new planning_models::KinematicState(scene_monitor_->getPlanningScene()->getCurrentState()));

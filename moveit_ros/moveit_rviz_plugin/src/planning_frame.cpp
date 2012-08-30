@@ -158,6 +158,7 @@ void moveit_rviz_plugin::PlanningFrame::planButtonClicked(void)
 
 void moveit_rviz_plugin::PlanningFrame::executeButtonClicked(void)
 {
+  ui_->execute_button->setEnabled(false);
   boost::mutex::scoped_lock slock(action_lock_);
   actions_.push_back(boost::bind(&PlanningFrame::computeExecuteButtonClicked, this));
   new_action_condition_.notify_all();
@@ -165,6 +166,8 @@ void moveit_rviz_plugin::PlanningFrame::executeButtonClicked(void)
 
 void moveit_rviz_plugin::PlanningFrame::planAndExecuteButtonClicked(void)
 {
+  ui_->plan_and_execute_button->setEnabled(false);
+  ui_->execute_button->setEnabled(false);
   boost::mutex::scoped_lock slock(action_lock_);
   actions_.push_back(boost::bind(&PlanningFrame::computePlanAndExecuteButtonClicked, this));
   new_action_condition_.notify_all();
@@ -226,14 +229,15 @@ void moveit_rviz_plugin::PlanningFrame::deleteQueryButtonClicked(void)
   new_action_condition_.notify_all();
 }
 
-void moveit_rviz_plugin::PlanningFrame::planningSceneItemClicked(void)
+void moveit_rviz_plugin::PlanningFrame::checkPlanningSceneTreeEnabledButtons(void)
 {
   QList<QTreeWidgetItem *> sel = ui_->planning_scene_tree->selectedItems();
   if (sel.empty())
   {
     ui_->load_scene_button->setEnabled(false);
     ui_->load_query_button->setEnabled(false); 
-    ui_->save_query_button->setEnabled(false);
+    ui_->save_query_button->setEnabled(false);  
+    ui_->delete_scene_button->setEnabled(false);
   }
   else
   {
@@ -248,6 +252,7 @@ void moveit_rviz_plugin::PlanningFrame::planningSceneItemClicked(void)
       ui_->load_query_button->setEnabled(false);
       ui_->delete_scene_button->setEnabled(true);
       ui_->delete_query_button->setEnabled(false);
+      ui_->save_query_button->setEnabled(true);
     }
     else
     {
@@ -257,6 +262,11 @@ void moveit_rviz_plugin::PlanningFrame::planningSceneItemClicked(void)
       ui_->delete_query_button->setEnabled(true);
     }
   }
+}
+
+void moveit_rviz_plugin::PlanningFrame::planningSceneItemClicked(void)
+{
+  checkPlanningSceneTreeEnabledButtons();
 }
 
 void moveit_rviz_plugin::PlanningFrame::computePlanButtonClicked(void)
@@ -275,8 +285,7 @@ void moveit_rviz_plugin::PlanningFrame::computePlanButtonClicked(void)
 }
 
 void moveit_rviz_plugin::PlanningFrame::computeExecuteButtonClicked(void)
-{  
-  ui_->execute_button->setEnabled(false);
+{
   const plan_execution::PlanExecution::Result &res = plan_execution_->getLastResult();
   plan_execution_->getTrajectoryExecutionManager().push(res.planned_trajectory_);
   plan_execution_->getTrajectoryExecutionManager().execute();
@@ -290,12 +299,11 @@ void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClickedDispla
     planning_models::KinematicStatePtr start_state(new planning_models::KinematicState(plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getCurrentState()));
     planning_models::robotStateToKinematicState(*plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getTransforms(), res.trajectory_start_, *start_state);
     planning_display_->displayRobotTrajectory(start_state, res.planned_trajectory_states_);
-  }
+  } 
 }
 
 void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClicked(void)
 {    
-  ui_->execute_button->setEnabled(false);
   moveit_msgs::MotionPlanRequest mreq;
   constructPlanningRequest(mreq);
   plan_execution::PlanExecution::Options opt;
@@ -303,6 +311,7 @@ void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClicked(void)
   opt.look_around_ = ui_->allow_looking->isChecked();
   opt.beforeExecutionCallback_ = boost::bind(&PlanningFrame::computePlanAndExecuteButtonClickedDisplayHelper, this);
   plan_execution_->planAndExecute(mreq, opt);
+  ui_->plan_and_execute_button->setEnabled(true);
 }
 
 void moveit_rviz_plugin::PlanningFrame::computeSetStartToCurrentButtonClicked(void)
@@ -339,6 +348,16 @@ void moveit_rviz_plugin::PlanningFrame::computeRandomStatesButtonClicked(void)
 void moveit_rviz_plugin::PlanningFrame::populatePlanningSceneTreeView(void)
 {
   ui_->planning_scene_tree->setUpdatesEnabled(false);
+
+  // remember which items were expanded
+  std::set<std::string> expanded;
+  for (int i = 0 ; i < ui_->planning_scene_tree->topLevelItemCount() ; ++i)
+  {
+    QTreeWidgetItem *it = ui_->planning_scene_tree->topLevelItem(i);
+    if (it->isExpanded())
+      expanded.insert(it->text(0).toStdString());
+  }
+  
   ui_->planning_scene_tree->clear();
   std::vector<std::string> names;
   planning_scene_storage_->getPlanningSceneNames(names);
@@ -351,18 +370,28 @@ void moveit_rviz_plugin::PlanningFrame::populatePlanningSceneTreeView(void)
     QTreeWidgetItem *item = new QTreeWidgetItem(ui_->planning_scene_tree, QStringList(QString::fromStdString(names[i])), 1);
     for (std::size_t j = 0 ; j < query_names.size() ; ++j)
       item->addChild(new QTreeWidgetItem(item, QStringList(QString::fromStdString(query_names[j])), 2));
-    ui_->planning_scene_tree->insertTopLevelItem(0, item);
+    ui_->planning_scene_tree->insertTopLevelItem(ui_->planning_scene_tree->topLevelItemCount(), item);
+    if (expanded.find(names[i]) != expanded.end())
+      ui_->planning_scene_tree->expandItem(item);
   }
-  ui_->planning_scene_tree->setUpdatesEnabled(true);
+  ui_->planning_scene_tree->sortItems(0, Qt::AscendingOrder);
+  ui_->planning_scene_tree->setUpdatesEnabled(true); 
+  checkPlanningSceneTreeEnabledButtons();
 }
 
 void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void)
 {
   if (planning_scene_storage_)
   {
+    ui_->planning_scene_tree->setUpdatesEnabled(false); 
     ui_->planning_scene_tree->clear();
-    planning_scene_storage_.reset();
+    ui_->planning_scene_tree->setUpdatesEnabled(true); 
+
+    ui_->database_connect_button->setUpdatesEnabled(false); 
     ui_->database_connect_button->setText(QString::fromStdString("Connect"));
+    ui_->database_connect_button->setUpdatesEnabled(true); 
+
+    planning_scene_storage_.reset();
     ui_->load_scene_button->setEnabled(false);
     ui_->load_query_button->setEnabled(false);
     ui_->save_query_button->setEnabled(false);
@@ -371,10 +400,12 @@ void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void
     ui_->delete_scene_button->setEnabled(false);
   }
   else
-  {
-    ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
+  {    
     planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(ui_->database_host->text().toStdString(),
                                                                              ui_->database_port->value()));
+    ui_->database_connect_button->setUpdatesEnabled(false); 
+    ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
+    ui_->database_connect_button->setUpdatesEnabled(true); 
     populatePlanningSceneTreeView();
     ui_->save_scene_button->setEnabled(true);
   }

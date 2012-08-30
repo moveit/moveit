@@ -267,6 +267,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
           else
           {
             valid = false;
+            res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;            
+            
             // display error messages
             std::stringstream ss;
             for (std::size_t i = 0 ; i < index.size() ; ++i)
