@@ -44,6 +44,8 @@
 #include <rviz/frame_manager.h>
 #include <rviz/panel_dock_widget.h>
 #include <rviz/window_manager_interface.h>
+#include <rviz/default_plugin/interactive_marker_display.h>
+#include <interactive_markers/interactive_marker_server.h>
 
 #include <OGRE/OgreSceneManager.h>
 
@@ -80,7 +82,9 @@ PlanningDisplay::PlanningDisplay() :
   animating_path_(false),
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true)
-{
+{  
+  int_marker_display_ = new rviz::InteractiveMarkerDisplay();
+
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
                               this,
@@ -91,7 +95,7 @@ PlanningDisplay::PlanningDisplay() :
   path_category_  = new rviz::Property( "Planned Path",   QVariant(), "", this );
   scene_category_ = new rviz::Property( "Planning Scene", QVariant(), "", this );
 
-  // Plannint request category -----------------------------------------------------------------------------------------
+  // Planning request category -----------------------------------------------------------------------------------------
   
   planning_group_property_ = new rviz::EditableEnumProperty("Planning Group", "", "The name of the group of links to plan for (from the ones defined in the SRDF)",
                                                             plan_category_,
@@ -201,9 +205,10 @@ PlanningDisplay::PlanningDisplay() :
 // ******************************************************************************************
 PlanningDisplay::~PlanningDisplay()
 {
+  delete int_marker_display_;
   delete frame_dock_;
   delete display_path_robot_;
-  delete scene_robot_;
+  delete planning_scene_robot_;
   delete query_robot_start_;
   delete query_robot_goal_;
 }
@@ -213,25 +218,27 @@ PlanningDisplay::~PlanningDisplay()
 // ******************************************************************************************
 void PlanningDisplay::onInitialize(void)
 {  
-  scene_node_ = scene_manager_->getRootSceneNode()->createChildSceneNode();
-  scene_node_->setVisible(scene_enabled_property_->getBool()); 
+  Display::onInitialize();
+  
+  planning_scene_node_ = scene_node_->createChildSceneNode();
+  planning_scene_node_->setVisible(scene_enabled_property_->getBool()); 
 
-  display_path_robot_ = new rviz::Robot(scene_manager_->getRootSceneNode(), context_, "Planned Path", path_category_ );
+  display_path_robot_ = new rviz::Robot(scene_node_, context_, "Planned Path", path_category_ );
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   display_path_robot_->setVisible(false); 
 
-  scene_robot_ = new rviz::Robot(scene_manager_->getRootSceneNode(), context_, "Planning Scene", scene_category_ );
-  scene_robot_->setCollisionVisible(false);
-  scene_robot_->setVisualVisible(true);
-  scene_robot_->setVisible( scene_robot_enabled_property_->getBool() );
+  planning_scene_robot_ = new rviz::Robot(scene_node_, context_, "Planning Scene", scene_category_ );
+  planning_scene_robot_->setCollisionVisible(false);
+  planning_scene_robot_->setVisualVisible(true);
+  planning_scene_robot_->setVisible( scene_robot_enabled_property_->getBool() );
 
-  query_robot_start_ = new rviz::Robot(scene_manager_->getRootSceneNode(), context_, "Planning Request Start", plan_category_ );
+  query_robot_start_ = new rviz::Robot(scene_node_, context_, "Planning Request Start", plan_category_ );
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible( query_start_state_property_->getBool() );
 
-  query_robot_goal_ = new rviz::Robot(scene_manager_->getRootSceneNode(), context_, "Planning Request Goal", plan_category_ );
+  query_robot_goal_ = new rviz::Robot(scene_node_, context_, "Planning Request Goal", plan_category_ );
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
@@ -243,7 +250,8 @@ void PlanningDisplay::onInitialize(void)
 
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
   frame_ = new PlanningFrame(this, context_, window_context->getParentWindow());
-  frame_dock_ = window_context->addPane("Motion Planning", frame_);
+  frame_dock_ = window_context->addPane("Motion Planning", frame_);  
+
 }
 
 // ******************************************************************************************
@@ -259,6 +267,7 @@ void PlanningDisplay::reset()
   trajectory_message_to_display_.reset();
   displaying_trajectory_message_.reset();
   animating_path_ = false;
+  Display::reset();
 }
 
 // ******************************************************************************************
@@ -332,7 +341,7 @@ void PlanningDisplay::renderPlanningScene(void)
     }
     planning_scene_needs_render_ = false;
     scene_monitor_->unlockScene();
-    scene_node_->setVisible(scene_enabled_property_->getBool());
+    planning_scene_node_->setVisible(scene_enabled_property_->getBool());
   }
 }
 
@@ -346,7 +355,7 @@ void PlanningDisplay::changedSceneAlpha()
 // ******************************************************************************************
 void PlanningDisplay::changedRobotSceneAlpha()
 {
-  scene_robot_->setAlpha(robot_scene_alpha_property_->getFloat());
+  planning_scene_robot_->setAlpha(robot_scene_alpha_property_->getFloat());
 }
 
 // ******************************************************************************************
@@ -455,7 +464,7 @@ void PlanningDisplay::changedStateDisplayTime(){}
 void PlanningDisplay::changedSceneRobotEnabled(void)
 {
   if (isEnabled())
-    scene_robot_->setVisible( scene_robot_enabled_property_->getBool() );
+    planning_scene_robot_->setVisible( scene_robot_enabled_property_->getBool() );
 }
 
 // ******************************************************************************************
@@ -463,7 +472,7 @@ void PlanningDisplay::changedSceneRobotEnabled(void)
 // ******************************************************************************************
 void PlanningDisplay::changedSceneEnabled()
 {
-  scene_node_->setVisible( scene_enabled_property_->getBool() );
+  planning_scene_node_->setVisible( scene_enabled_property_->getBool() );
 }
 
 void PlanningDisplay::displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
@@ -500,13 +509,13 @@ void PlanningDisplay::changedDisplayPathCollisionEnabled()
 void PlanningDisplay::setLinkColor( const std::string& link_name, float red, float green, float blue )
 {
   setLinkColor(display_path_robot_, link_name, red, green, blue );
-  setLinkColor(scene_robot_, link_name, red, green, blue );
+  setLinkColor(planning_scene_robot_, link_name, red, green, blue );
 }
 
 void PlanningDisplay::unsetLinkColor( const std::string& link_name )
 {
   unsetLinkColor(display_path_robot_, link_name);
-  unsetLinkColor(scene_robot_, link_name);
+  unsetLinkColor(planning_scene_robot_, link_name);
 }
 
 void PlanningDisplay::setGroupColor(rviz::Robot* robot, const std::string& group_name, float red, float green, float blue )
@@ -598,7 +607,7 @@ void PlanningDisplay::loadRobotModel(void)
   urdf::Model descr;
   descr.initXml(doc.RootElement());
   display_path_robot_->load(doc.RootElement(), descr);
-  scene_robot_->load(doc.RootElement(), descr);
+  planning_scene_robot_->load(doc.RootElement(), descr);
   query_robot_start_->load(doc.RootElement(), descr);
   query_robot_goal_->load(doc.RootElement(), descr);
 
@@ -617,7 +626,7 @@ void PlanningDisplay::loadPlanningSceneMonitor(void)
     scene_monitor_->addUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
     scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
     planning_models::KinematicStatePtr ks(new planning_models::KinematicState(scene_monitor_->getPlanningScene()->getCurrentState()));
-    scene_robot_->update(PlanningLinkUpdater(ks));
+    planning_scene_robot_->update(PlanningLinkUpdater(ks));
     query_start_state_ = ks;
     query_goal_state_.reset(new planning_models::KinematicState(*ks));
     
@@ -630,7 +639,7 @@ void PlanningDisplay::loadPlanningSceneMonitor(void)
     changedQueryStartState();
     changedQueryGoalState();
 
-    planning_scene_render_.reset(new PlanningSceneRender(context_, scene_node_, scene_robot_));
+    planning_scene_render_.reset(new PlanningSceneRender(context_, planning_scene_node_, planning_scene_robot_));
   }
   else
     scene_monitor_.reset();
@@ -648,14 +657,16 @@ void PlanningDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::Plannin
 // ******************************************************************************************
 void PlanningDisplay::onEnable()
 {
+  Display::onEnable();
+  
   loadRobotModel();
 
   display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   display_path_robot_->setVisible(displaying_trajectory_message_);
 
-  scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
-  scene_node_->setVisible(scene_enabled_property_->getBool());
+  planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+  planning_scene_node_->setVisible(scene_enabled_property_->getBool());
 
   changedPlanningGroup();
   query_robot_start_->setVisible(query_start_state_property_->getBool());
@@ -673,11 +684,12 @@ void PlanningDisplay::onDisable()
   if (scene_monitor_)
     scene_monitor_->stopSceneMonitor();
   display_path_robot_->setVisible(false);
-  scene_node_->setVisible(false);
-  scene_robot_->setVisible(false);
+  planning_scene_node_->setVisible(false);
+  planning_scene_robot_->setVisible(false);
   query_robot_start_->setVisible(false);
   query_robot_goal_->setVisible(false); 
   frame_->disable();
+  Display::onDisable();
 }
 
 // ******************************************************************************************
@@ -685,6 +697,8 @@ void PlanningDisplay::onDisable()
 // ******************************************************************************************
 void PlanningDisplay::update(float wall_dt, float ros_dt)
 {
+  Display::update(wall_dt, ros_dt);
+  
   if (update_display_start_state_)
   {
     update_display_start_state_ = false;
@@ -779,14 +793,14 @@ void PlanningDisplay::calculateOffsetPosition(void)
   Ogre::Quaternion orientation( q.getW(), q.getX(), q.getY(), q.getZ() );
   display_path_robot_->setPosition(position);
   display_path_robot_->setOrientation(orientation);
-  scene_robot_->setPosition(position);
-  scene_robot_->setOrientation(orientation);
+  planning_scene_robot_->setPosition(position);
+  planning_scene_robot_->setOrientation(orientation);
   query_robot_start_->setPosition(position);
   query_robot_start_->setOrientation(orientation);
   query_robot_goal_->setPosition(position);
   query_robot_goal_->setOrientation(orientation);
-  scene_node_->setPosition(position);
-  scene_node_->setOrientation(orientation);
+  planning_scene_node_->setPosition(position);
+  planning_scene_node_->setOrientation(orientation);
 }
 
 // ******************************************************************************************
@@ -807,6 +821,7 @@ void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajec
 // ******************************************************************************************
 void PlanningDisplay::fixedFrameChanged()
 {
+  Display::fixedFrameChanged();
   calculateOffsetPosition();
 }
 

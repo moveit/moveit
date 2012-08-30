@@ -18,6 +18,7 @@
   <depend package="pluginlib"/>
   <depend package="trajectory_processing"/>
   <depend package="moveit_warehouse"/>
+  <depend package="interactive_markers"/>
 
   <export>
     <rviz plugin="${prefix}/lib/plugin_description.xml"/>

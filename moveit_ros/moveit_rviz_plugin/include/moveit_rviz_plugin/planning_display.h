@@ -57,6 +57,7 @@ class BoolProperty;
 class FloatProperty;
 class RosTopicProperty;
 class EditableEnumProperty;
+class InteractiveMarkerDisplay;
 }
 
 namespace moveit_rviz_plugin
@@ -198,9 +199,9 @@ protected:
   rviz::Robot* query_robot_start_;                  ///< Handles drawing the robot at the start configuration
   rviz::Robot* query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
   rviz::Robot* display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
-  rviz::Robot* scene_robot_;                        ///< Handles actually drawing the robot from the planning scene
+  rviz::Robot* planning_scene_robot_;               ///< Handles actually drawing the robot from the planning scene
 
-  Ogre::SceneNode* scene_node_;            ///< displays planning scene
+  Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene
 
   // render the planning scene
   boost::scoped_ptr<PlanningSceneRender> planning_scene_render_;
@@ -250,6 +251,7 @@ protected:
   rviz::FloatProperty* scene_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
 
+  rviz::InteractiveMarkerDisplay *int_marker_display_;
 };
 
 } // namespace moveit_rviz_plugin
