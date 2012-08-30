@@ -252,6 +252,8 @@ void PlanningDisplay::onInitialize(void)
   frame_ = new PlanningFrame(this, context_, window_context->getParentWindow());
   frame_dock_ = window_context->addPane("Motion Planning", frame_);  
 
+  int_marker_display_->initialize(context_);
+  int_marker_display_->setTopic("planning_display_interactive_marker_topic/update");
 }
 
 // ******************************************************************************************
