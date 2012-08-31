@@ -34,7 +34,7 @@
 #include <ros/ros.h>
 #include <boost/thread.hpp>
 #include <tf/transform_datatypes.h>
-#include <arm_kinematics_reachability/arm_kinematics_reachability.h>
+#include <kinematics_reachability/kinematics_reachability.h>
 
 int main(int argc, char** argv)
 {
@@ -50,8 +50,8 @@ int main(int argc, char** argv)
 
   /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
 region in the workspace for which reachability is to be computed****/
-  arm_kinematics_reachability::ArmKinematicsReachability aw;
-  arm_kinematics_reachability::WorkspacePoints workspace;
+  kinematics_reachability::KinematicsReachability aw;
+  kinematics_reachability::WorkspacePoints workspace;
 
   workspace.position_resolution = 0.05;
   workspace.header.frame_id = root_name;

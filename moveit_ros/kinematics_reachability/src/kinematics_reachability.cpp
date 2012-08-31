@@ -35,20 +35,20 @@
 * Author: Sachin Chitta
 *********************************************************************/
 
-#include <arm_kinematics_reachability/arm_kinematics_reachability.h>
+#include <kinematics_reachability/kinematics_reachability.h>
 
-namespace arm_kinematics_reachability
+namespace kinematics_reachability
 {
 
-ArmKinematicsReachability::ArmKinematicsReachability():node_handle_("~")
+KinematicsReachability::KinematicsReachability():node_handle_("~")
 {
   visualization_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("workspace_markers",0,true);
-  workspace_publisher_ = node_handle_.advertise<arm_kinematics_reachability::WorkspacePoints>("workspace",0,true);
+  workspace_publisher_ = node_handle_.advertise<kinematics_reachability::WorkspacePoints>("workspace",0,true);
   tool_offset_.setIdentity();
   tool_offset_inverse_.setIdentity();
 }
 
-bool ArmKinematicsReachability::getOnlyReachableWorkspace(arm_kinematics_reachability::WorkspacePoints &workspace, const geometry_msgs::Pose &tool_frame_offset)
+bool KinematicsReachability::getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, const geometry_msgs::Pose &tool_frame_offset)
 {
   if(!computeWorkspace(workspace, tool_frame_offset))
     return false;
@@ -56,7 +56,7 @@ bool ArmKinematicsReachability::getOnlyReachableWorkspace(arm_kinematics_reachab
   return true;
 }
 
-bool ArmKinematicsReachability::computeWorkspace(arm_kinematics_reachability::WorkspacePoints &workspace, const geometry_msgs::Pose &tool_frame_offset)
+bool KinematicsReachability::computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, const geometry_msgs::Pose &tool_frame_offset)
 {
   setToolFrameOffset(tool_frame_offset);
   if(!sampleUniform(workspace))
@@ -65,20 +65,20 @@ bool ArmKinematicsReachability::computeWorkspace(arm_kinematics_reachability::Wo
   return true;
 }
 
-bool ArmKinematicsReachability::computeWorkspace(arm_kinematics_reachability::WorkspacePoints &workspace)
+bool KinematicsReachability::computeWorkspace(kinematics_reachability::WorkspacePoints &workspace)
 {
   geometry_msgs::Pose pose;
   pose.orientation.w = 1.0;
   return computeWorkspace(workspace,pose);
 }
 
-bool ArmKinematicsReachability::isActive()
+bool KinematicsReachability::isActive()
 {
   //  return kinematics_solver_.isActive();
   return true;  
 }
 
-void ArmKinematicsReachability::findIKSolutions(arm_kinematics_reachability::WorkspacePoints &workspace)
+void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspacePoints &workspace)
 {
   kinematics_msgs::GetConstraintAwarePositionIK::Request request;
   kinematics_msgs::GetConstraintAwarePositionIK::Response response;
@@ -108,7 +108,7 @@ void ArmKinematicsReachability::findIKSolutions(arm_kinematics_reachability::Wor
   }
 }
 
-void ArmKinematicsReachability::getPositionIndexedArrowMarkers(const arm_kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::getPositionIndexedArrowMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                                                const std::string &marker_namespace,
                                                                visualization_msgs::MarkerArray &marker_array)
 {
@@ -155,7 +155,7 @@ void ArmKinematicsReachability::getPositionIndexedArrowMarkers(const arm_kinemat
   }
 }
 
-void ArmKinematicsReachability::getPositionIndexedMarkers(const arm_kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::getPositionIndexedMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                                           const std::string &marker_namespace,
                                                           visualization_msgs::MarkerArray &marker_array)
 {
@@ -206,9 +206,9 @@ void ArmKinematicsReachability::getPositionIndexedMarkers(const arm_kinematics_r
   }
 }
 
-void ArmKinematicsReachability::getMarkers(const arm_kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                            const std::string &marker_namespace,
-                                           std::vector<const arm_kinematics_reachability::WorkspacePoint*> points,
+                                           std::vector<const kinematics_reachability::WorkspacePoint*> points,
                                            visualization_msgs::MarkerArray &marker_array)
 {
   visualization_msgs::Marker marker;
@@ -243,7 +243,7 @@ void ArmKinematicsReachability::getMarkers(const arm_kinematics_reachability::Wo
   }
 }
 
-void ArmKinematicsReachability::visualize(const arm_kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoints &workspace,
                                           const std::string &marker_namespace)
 {
   visualization_msgs::MarkerArray marker_array;
@@ -251,13 +251,13 @@ void ArmKinematicsReachability::visualize(const arm_kinematics_reachability::Wor
   visualization_publisher_.publish(marker_array);
 }
 
-void ArmKinematicsReachability::setToolFrameOffset(const geometry_msgs::Pose &pose)
+void KinematicsReachability::setToolFrameOffset(const geometry_msgs::Pose &pose)
 {
   tf::poseMsgToTF(pose,tool_offset_);
   tool_offset_inverse_ = tool_offset_.inverse();
 }
 
-void ArmKinematicsReachability::visualizeWithArrows(const arm_kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::visualizeWithArrows(const kinematics_reachability::WorkspacePoints &workspace,
                                                     const std::string &marker_namespace)
 {
   visualization_msgs::MarkerArray marker_array;
@@ -265,29 +265,29 @@ void ArmKinematicsReachability::visualizeWithArrows(const arm_kinematics_reachab
   visualization_publisher_.publish(marker_array);
 }
 
-void ArmKinematicsReachability::publishWorkspace(const arm_kinematics_reachability::WorkspacePoints &workspace)
+void KinematicsReachability::publishWorkspace(const kinematics_reachability::WorkspacePoints &workspace)
 {
   workspace_publisher_.publish(workspace); 
 }
 
-void ArmKinematicsReachability::visualize(const arm_kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoints &workspace,
                                           const std::string &marker_namespace,
                                           const geometry_msgs::Quaternion &orientation)
 {
   visualization_msgs::MarkerArray marker_array;
-  std::vector<const arm_kinematics_reachability::WorkspacePoint*> points = getPointsAtOrientation(workspace,orientation);
+  std::vector<const kinematics_reachability::WorkspacePoint*> points = getPointsAtOrientation(workspace,orientation);
   getMarkers(workspace,marker_namespace,points,marker_array);
   visualization_publisher_.publish(marker_array);
 }
 
-void ArmKinematicsReachability::visualize(const arm_kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoints &workspace,
                                           const std::string &marker_namespace,
                                           const std::vector<geometry_msgs::Quaternion> &orientations)
 {
   visualization_msgs::MarkerArray marker_array;
   for(unsigned int i=0; i < orientations.size(); i++)
   {
-    std::vector<const arm_kinematics_reachability::WorkspacePoint*> points = getPointsAtOrientation(workspace,orientations[i]);
+    std::vector<const kinematics_reachability::WorkspacePoint*> points = getPointsAtOrientation(workspace,orientations[i]);
     std::ostringstream name;
     name << "orientation_" << i;
     std::string marker_name = marker_namespace+name.str();
@@ -296,7 +296,7 @@ void ArmKinematicsReachability::visualize(const arm_kinematics_reachability::Wor
   visualization_publisher_.publish(marker_array);
 }
                                         
-void ArmKinematicsReachability::getDefaultIKRequest(kinematics_msgs::GetConstraintAwarePositionIK::Request &req)
+void KinematicsReachability::getDefaultIKRequest(kinematics_msgs::GetConstraintAwarePositionIK::Request &req)
 {
   kinematics_msgs::GetKinematicSolverInfo::Request request;
   kinematics_msgs::GetKinematicSolverInfo::Response response;
@@ -311,11 +311,11 @@ void ArmKinematicsReachability::getDefaultIKRequest(kinematics_msgs::GetConstrai
     req.ik_request.ik_seed_state.joint_state.position[i] = (response.kinematic_solver_info.limits[i].min_position + response.kinematic_solver_info.limits[i].max_position)/2.0;
 }
 
-void ArmKinematicsReachability::removeUnreachableWorkspace(arm_kinematics_reachability::WorkspacePoints &workspace)
+void KinematicsReachability::removeUnreachableWorkspace(kinematics_reachability::WorkspacePoints &workspace)
 {
   unsigned int remove_counter = 0;
   moveit_msgs::MoveItErrorCodes error_code;
-  std::vector<arm_kinematics_reachability::WorkspacePoint>::iterator it = workspace.points.begin();
+  std::vector<kinematics_reachability::WorkspacePoint>::iterator it = workspace.points.begin();
   while(it != workspace.points.end())
   {
     if(it->solution_code.val != it->solution_code.SUCCESS)
@@ -330,10 +330,10 @@ void ArmKinematicsReachability::removeUnreachableWorkspace(arm_kinematics_reacha
     ROS_DEBUG("Removed %d points from workspace",remove_counter);
 }
 
-std::vector<const arm_kinematics_reachability::WorkspacePoint*> ArmKinematicsReachability::getPointsAtOrientation(const arm_kinematics_reachability::WorkspacePoints &workspace,
+std::vector<const kinematics_reachability::WorkspacePoint*> KinematicsReachability::getPointsAtOrientation(const kinematics_reachability::WorkspacePoints &workspace,
                                                                                                       const geometry_msgs::Quaternion &orientation)
 {
-  std::vector<const arm_kinematics_reachability::WorkspacePoint*> wp;
+  std::vector<const kinematics_reachability::WorkspacePoint*> wp;
   for(unsigned int i = 0; i < workspace.points.size(); i++)
   {
     if(isEqual(workspace.points[i].pose.orientation,orientation))
@@ -342,7 +342,7 @@ std::vector<const arm_kinematics_reachability::WorkspacePoint*> ArmKinematicsRea
   return wp;
 }
 
-bool ArmKinematicsReachability::isEqual(const geometry_msgs::Quaternion &orientation_1, 
+bool KinematicsReachability::isEqual(const geometry_msgs::Quaternion &orientation_1, 
                                         const geometry_msgs::Quaternion &orientation_2)
 {
   tf::Quaternion quat_1,quat_2;
@@ -353,11 +353,11 @@ bool ArmKinematicsReachability::isEqual(const geometry_msgs::Quaternion &orienta
   return false;
 }
 
-std::vector<const arm_kinematics_reachability::WorkspacePoint*> ArmKinematicsReachability::getPointsWithinRange(const arm_kinematics_reachability::WorkspacePoints &workspace,
+std::vector<const kinematics_reachability::WorkspacePoint*> KinematicsReachability::getPointsWithinRange(const kinematics_reachability::WorkspacePoints &workspace,
                                                                                                     const double min_radius,
                                                                                                     const double max_radius)
 {
-  std::vector<const arm_kinematics_reachability::WorkspacePoint*> wp;
+  std::vector<const kinematics_reachability::WorkspacePoint*> wp;
   for(unsigned int i = 0; i < workspace.points.size(); i++)
   {
     tf::Vector3 vector;
@@ -368,7 +368,7 @@ std::vector<const arm_kinematics_reachability::WorkspacePoint*> ArmKinematicsRea
   return wp;
 }
 
-void ArmKinematicsReachability::getNumPoints(const arm_kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::getNumPoints(const kinematics_reachability::WorkspacePoints &workspace,
                                              unsigned int &x_num_points,
                                              unsigned int &y_num_points,
                                              unsigned int &z_num_points)
@@ -385,7 +385,7 @@ void ArmKinematicsReachability::getNumPoints(const arm_kinematics_reachability::
   ROS_INFO("Num points: %d %d %d",x_num_points,y_num_points,z_num_points);
 }
 
-bool ArmKinematicsReachability::sampleUniform(arm_kinematics_reachability::WorkspacePoints &workspace)
+bool KinematicsReachability::sampleUniform(kinematics_reachability::WorkspacePoints &workspace)
 {
   if(workspace.orientations.empty())
   {
@@ -402,7 +402,7 @@ bool ArmKinematicsReachability::sampleUniform(arm_kinematics_reachability::Works
   getNumPoints(workspace,x_num_points,y_num_points,z_num_points);
 
   unsigned int num_rotations = workspace.orientations.size();
-  arm_kinematics_reachability::WorkspacePoint ws_point;
+  kinematics_reachability::WorkspacePoint ws_point;
   geometry_msgs::Pose pose;
 
   for(unsigned int i=0; i < x_num_points; i++)
