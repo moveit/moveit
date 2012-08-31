@@ -40,8 +40,9 @@
 #include <trajectory_processing/trajectory_tools.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
-static const std::string NODE_NAME = "move_group";
-static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
+static const std::string NODE_NAME = "move_group";                   // name of node
+static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
+static const std::string EXECUTE_SERVICE_NAME="execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
 
 class MoveGroupAction
 {
@@ -74,8 +75,9 @@ public:
     action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
     action_server_->start();
     
-    // start the service server
+    // start the service servers
     plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlanService, this);
+    //    execute_service_ = root_node_handle_.advertiseService(EXECUTE_SERVICE_NAME, &MoveGroupAction::executeTrajectoryService, this);
   }
   
   void status(void)
@@ -226,7 +228,39 @@ private:
 
     return solved;
   }
-  
+  /*
+  bool executeTrajectoryService(moveit_msgs::ExecuteKnownTrajectory::Request &req, moveit_msgs::ExecuteKnownTrajectory::Response &res)
+  {
+    ROS_INFO("Received new trajectory execution service request...");
+    plan_execution_.getTrajectoryExecutionManager().clear();
+    if (plan_execution_.getTrajectoryExecutionManager().push(req.trajectory))
+    {
+      plan_execution_.getTrajectoryExecutionManager().execute();
+      if (req.wait_for_execution)
+      {
+        moveit_controller_manager::ExecutionStatus es = plan_execution_.getTrajectoryExecutionManager().waitForExecution();
+        if (es == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
+          res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+        else
+          if (es == moveit_controller_manager::ExecutionStatus::PREEMPTED) 
+            res.error_code.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
+          else
+            if (es == moveit_controller_manager::ExecutionStatus::TIMED_OUT) 
+              res.error_code.val = moveit_msgs::MoveItErrorCodes::TIMED_OUT;
+            else
+              res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
+        return es;
+      }
+      else
+      {
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+        return true;
+      }
+    }
+    else
+      return false;
+  }
+  */
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -237,6 +271,7 @@ private:
   moveit_msgs::MoveGroupFeedback feedback_;
   
   ros::ServiceServer plan_service_;
+  ros::ServiceServer execute_service_;
   MoveGroupState state_;
 };
 
