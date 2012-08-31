@@ -1,13 +1,13 @@
 <package>
-  <description brief="arm_kinematics_reachability">
+  <description brief="kinematics_reachability">
 
-     arm_kinematics_reachability
+     akinematics_reachability
 
   </description>
   <author>Sachin Chitta</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/arm_kinematics_reachability</url>
+  <url>http://ros.org/wiki/kinematics_reachability</url>
   <depend package="kinematics_msgs"/>
   <depend package="tf"/>
 
