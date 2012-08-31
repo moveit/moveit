@@ -42,7 +42,9 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
                                              boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                              boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                              ros::Publisher& marker_publisher)
-  : planning_scene_(planning_scene),
+  : nh_(""),
+    pnh_("~"),
+    planning_scene_(planning_scene),
     move_group_pipeline_(move_group_pipeline),
     last_start_state_(planning_scene->getCurrentState()),
     last_trajectory_ok_(false),
@@ -72,12 +74,7 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
 
   joint_trajectory_visualization_.reset(new JointTrajectoryVisualization(planning_scene,
                                                                          marker_publisher));
-
-  ros::NodeHandle nh;
-  display_traj_publisher_ = nh.advertise<moveit_msgs::DisplayTrajectory>("display_trajectory", 1);
-
-
-
+  display_traj_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_trajectory", 1);
 
 }
 
