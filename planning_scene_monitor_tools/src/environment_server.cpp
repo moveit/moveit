@@ -48,7 +48,7 @@ public:
       parent_scene_ = planning_scene_monitor_.getPlanningScene();
       // this will create a new planning scene whose parent is the current planning scene
       planning_scene_monitor_.monitorDiffs(true);
-      planning_scene_monitor_.setUpdateCallback(boost::bind(&EnvironmentServer::onSceneUpdate, this));
+      planning_scene_monitor_.addUpdateCallback(boost::bind(&EnvironmentServer::onSceneUpdate, this));
       planning_scene_monitor_.startWorldGeometryMonitor();
       planning_scene_monitor_.startStateMonitor();
     }
