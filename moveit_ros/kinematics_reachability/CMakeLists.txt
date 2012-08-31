@@ -29,11 +29,11 @@ rosbuild_genmsg()
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_add_library(${PROJECT_NAME} src/arm_kinematics_reachability.cpp )
+rosbuild_add_library(${PROJECT_NAME} src/kinematics_reachability.cpp )
 
 rosbuild_add_executable(workspace src/main.cpp)
 target_link_libraries(workspace ${PROJECT_NAME})
 
-rosbuild_add_executable(listener src/arm_kinematics_reachability_listener.cpp)
+rosbuild_add_executable(listener src/kinematics_reachability_listener.cpp)
 target_link_libraries(listener ${PROJECT_NAME})
 
