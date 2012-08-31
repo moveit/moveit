@@ -35,14 +35,14 @@
 * Author: Sachin Chitta
 *********************************************************************/
 
-#ifndef ARM_KINEMATICS_REACHABILITY_LISTENER_H
-#define ARM_KINEMATICS_REACHABILITY_LISTENER_H
+#ifndef KINEMATICS_REACHABILITY_LISTENER_H
+#define KINEMATICS_REACHABILITY_LISTENER_H
 
-#include <arm_kinematics_reachability/arm_kinematics_reachability.h>
+#include <kinematics_reachability/kinematics_reachability.h>
 
-namespace arm_kinematics_reachability
+namespace kinematics_reachability
 {
-class ArmKinematicsReachabilityListener : public ArmKinematicsReachability
+class KinematicsReachabilityListener : public KinematicsReachability
 {
 public:
 
@@ -51,9 +51,9 @@ public:
    *  @author Sachin Chitta <sachinc@willowgarage.com>
    *
    */
-  ArmKinematicsReachabilityListener();
+  KinematicsReachabilityListener();
 
-  virtual ~ArmKinematicsReachabilityListener()
+  virtual ~KinematicsReachabilityListener()
   {
   };
 
@@ -62,16 +62,16 @@ public:
     return has_workspace_;
   }
 
-  arm_kinematics_reachability::WorkspacePoints& getWorkspace()
+  kinematics_reachability::WorkspacePoints& getWorkspace()
   {
     return workspace_;
   }
 
 private:
 
-  void workspaceCallback(const arm_kinematics_reachability::WorkspacePointsConstPtr &msg);
+  void workspaceCallback(const kinematics_reachability::WorkspacePointsConstPtr &msg);
   ros::Subscriber workspace_subscriber_;
-  arm_kinematics_reachability::WorkspacePoints workspace_;
+  kinematics_reachability::WorkspacePoints workspace_;
   bool has_workspace_;
 };
 

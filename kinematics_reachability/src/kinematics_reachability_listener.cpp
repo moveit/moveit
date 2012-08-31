@@ -31,17 +31,17 @@
  * Author: Sachin Chitta
  */
 
-#include <arm_kinematics_reachability/arm_kinematics_reachability_listener.h>
+#include <kinematics_reachability/kinematics_reachability_listener.h>
 
-namespace arm_kinematics_reachability
+namespace kinematics_reachability
 {
 
-ArmKinematicsReachabilityListener::ArmKinematicsReachabilityListener():ArmKinematicsReachability(),has_workspace_(false)
+KinematicsReachabilityListener::KinematicsReachabilityListener():KinematicsReachability(),has_workspace_(false)
 {
-  workspace_subscriber_ = node_handle_.subscribe("/workspace_tests/workspace", 1, &arm_kinematics_reachability::ArmKinematicsReachabilityListener::workspaceCallback, this);
+  workspace_subscriber_ = node_handle_.subscribe("/workspace_tests/workspace", 1, &kinematics_reachability::KinematicsReachabilityListener::workspaceCallback, this);
 }
 
-void ArmKinematicsReachabilityListener::workspaceCallback(const arm_kinematics_reachability::WorkspacePointsConstPtr &msg)
+void KinematicsReachabilityListener::workspaceCallback(const kinematics_reachability::WorkspacePointsConstPtr &msg)
 {
   workspace_ = *msg;
   has_workspace_ = true;
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(1); 
   spinner.start();
 
-  arm_kinematics_reachability::ArmKinematicsReachabilityListener listener;
+  kinematics_reachability::KinematicsReachabilityListener listener;
   while(!listener.hasWorkspace() && ros::ok())
   {
     sleep(0.1);

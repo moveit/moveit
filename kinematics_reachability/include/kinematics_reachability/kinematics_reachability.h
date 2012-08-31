@@ -35,8 +35,8 @@
 * Author: Sachin Chitta
 *********************************************************************/
 
-#ifndef ARM_KINEMATICS_REACHABILITY_H_
-#define ARM_KINEMATICS_REACHABILITY_H_
+#ifndef KINEMATICS_REACHABILITY_H_
+#define KINEMATICS_REACHABILITY_H_
 
 // System
 #include <ros/ros.h>
@@ -46,16 +46,16 @@
 // ROS msgs
 #include <kinematics_msgs/GetConstraintAwarePositionIK.h>
 #include <kinematics_msgs/GetKinematicSolverInfo.h>
-#include <arm_kinematics_reachability/WorkspacePoints.h>
-#include <arm_kinematics_reachability/WorkspacePoint.h>
+#include <kinematics_reachability/WorkspacePoints.h>
+#include <kinematics_reachability/WorkspacePoint.h>
 #include <visualization_msgs/MarkerArray.h>
 
 #include <tf/tf.h>
 #include <tf/transform_datatypes.h>
 
-namespace arm_kinematics_reachability
+namespace kinematics_reachability
 {
-class ArmKinematicsReachability
+class KinematicsReachability
 {
 public:
 
@@ -64,39 +64,39 @@ public:
    *  @author Sachin Chitta <sachinc@willowgarage.com>
    *
    */
-  ArmKinematicsReachability();
+  KinematicsReachability();
 
-  virtual ~ArmKinematicsReachability()
+  virtual ~KinematicsReachability()
   {
   };
 
   /**
    * @brief This method computes and returns a discretized reachable workspace for an arm
    */
-  bool computeWorkspace(arm_kinematics_reachability::WorkspacePoints &workspace);
+  bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace);
 
-  bool computeWorkspace(arm_kinematics_reachability::WorkspacePoints &workspace, const geometry_msgs::Pose &tool_frame_offset);
+  bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, const geometry_msgs::Pose &tool_frame_offset);
 
   /**
    * @brief This method visualizes a workspace region for a given arm
    */
-  void visualize(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  void visualize(const kinematics_reachability::WorkspacePoints &workspace,
                  const std::string &marker_namespace);
     
-  bool getOnlyReachableWorkspace(arm_kinematics_reachability::WorkspacePoints &workspace, 
+  bool getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
                                  const geometry_msgs::Pose &tool_frame_offset);
 
-  void publishWorkspace(const arm_kinematics_reachability::WorkspacePoints &workspace);
+  void publishWorkspace(const kinematics_reachability::WorkspacePoints &workspace);
 
-  void visualize(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  void visualize(const kinematics_reachability::WorkspacePoints &workspace,
                  const std::string &marker_namespace,
                  const geometry_msgs::Quaternion &orientation);
 
-  void visualize(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  void visualize(const kinematics_reachability::WorkspacePoints &workspace,
                  const std::string &marker_namespace,
                  const std::vector<geometry_msgs::Quaternion> &orientations);
 
-  void visualizeWithArrows(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  void visualizeWithArrows(const kinematics_reachability::WorkspacePoints &workspace,
                            const std::string &marker_namespace);
 
   bool isActive();
@@ -106,42 +106,42 @@ private:
 
   void setToolFrameOffset(const geometry_msgs::Pose &pose);
 
-  void findIKSolutions(arm_kinematics_reachability::WorkspacePoints &workspace);
+  void findIKSolutions(kinematics_reachability::WorkspacePoints &workspace);
 
   void getDefaultIKRequest(kinematics_msgs::GetConstraintAwarePositionIK::Request &req);
 
-  void removeUnreachableWorkspace(arm_kinematics_reachability::WorkspacePoints &workspace);
+  void removeUnreachableWorkspace(kinematics_reachability::WorkspacePoints &workspace);
 
-  std::vector<const arm_kinematics_reachability::WorkspacePoint*> getPointsAtOrientation(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  std::vector<const kinematics_reachability::WorkspacePoint*> getPointsAtOrientation(const kinematics_reachability::WorkspacePoints &workspace,
                                                                                 const geometry_msgs::Quaternion &orientation);
 
-  std::vector<const arm_kinematics_reachability::WorkspacePoint*> getPointsWithinRange(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  std::vector<const kinematics_reachability::WorkspacePoint*> getPointsWithinRange(const kinematics_reachability::WorkspacePoints &workspace,
                                                                               const double min_radius,
                                                                               const double max_radius);
 
-  void getNumPoints(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  void getNumPoints(const kinematics_reachability::WorkspacePoints &workspace,
                     unsigned int &x_num_points,
                     unsigned int &y_num_points,
                     unsigned int &z_num_points);
   
-  bool sampleUniform(arm_kinematics_reachability::WorkspacePoints &workspace);
+  bool sampleUniform(kinematics_reachability::WorkspacePoints &workspace);
 
-  //  arm_kinematics_constraint_aware::ArmKinematicsConstraintAware kinematics_solver_;
+  //  arm_kinematics_constraint_aware::KinematicsConstraintAware kinematics_solver_;
 
   bool isEqual(const geometry_msgs::Quaternion &orientation_1, 
                const geometry_msgs::Quaternion &orientation_2);
 
-  void getPositionIndexedMarkers(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  void getPositionIndexedMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                  const std::string &marker_namespace,
                                  visualization_msgs::MarkerArray &marker_array);
 
-  void getPositionIndexedArrowMarkers(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  void getPositionIndexedArrowMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                       const std::string &marker_namespace,
                                       visualization_msgs::MarkerArray &marker_array);
 
-  void getMarkers(const arm_kinematics_reachability::WorkspacePoints &workspace,
+  void getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                   const std::string &marker_namespace,
-                  std::vector<const arm_kinematics_reachability::WorkspacePoint*> points,
+                  std::vector<const kinematics_reachability::WorkspacePoint*> points,
                   visualization_msgs::MarkerArray &marker_array);
 
   ros::Publisher visualization_publisher_, workspace_publisher_;
