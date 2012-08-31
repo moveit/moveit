@@ -52,21 +52,21 @@ public:
                         boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematics_plugin_loader,
                         ros::Publisher& marker_publisher);
   
-  void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
+  virtual void updatePlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
-  void resetAllStartStates();
-  void resetAllStartAndGoalStates();
+  virtual void resetAllStartStates();
+  virtual void resetAllStartAndGoalStates();
 
-  void addMenuEntry(const std::string& name, 
+  virtual void addMenuEntry(const std::string& name,
                     const boost::function<void(const std::string&)>& callback);
   
-  void selectGroup(const std::string& name);
+  virtual void selectGroup(const std::string& name);
 
-  void selectPlanner(const std::string& name);
+  virtual void selectPlanner(const std::string& name);
 
-  void hideAllGroups();
+  virtual void hideAllGroups();
 
-  bool getLastTrajectory(std::string& group_name,
+  virtual bool getLastTrajectory(std::string& group_name,
                          trajectory_msgs::JointTrajectory& traj) const
   {
     if(!last_trajectory_ok_) return false;
@@ -75,50 +75,53 @@ public:
     return true;
   }
 
-  bool cycleOk() const {
+  virtual bool cycleOk() const {
     return cycle_ok_;
   }
 
   /** If true, start groups always follow the current state of the robot */
-  void setAllStartChainModes(bool chain);
+  virtual void setAllStartChainModes(bool chain);
 
   /** If false, all interactive markers are disabled */
-  void setAllStartInteractionModes(bool interaction_enabled);
+  virtual void setAllStartInteractionModes(bool interaction_enabled);
 
   /** If false, all interactive markers are disabled */
-  void setAllStartVisibility(bool visible);
+  virtual void setAllStartVisibility(bool visible);
 
-  std::string getCurrentGroup() const {
+  virtual std::string getCurrentGroup() const {
     return current_group_;
   }
 
-  std::string getCurrentPlanner() const {
+  virtual std::string getCurrentPlanner() const {
     return current_planner_;
   }
 
-  void setGoalState(const std::string& group_name,
+  virtual void setGoalState(const std::string& group_name,
                     const planning_models::KinematicState& state);
 
-  void setStartState(const std::string& group_name,
+  virtual void setStartState(const std::string& group_name,
                      const planning_models::KinematicState& state);
 
-  void addStateChangedCallback(const boost::function<void(const std::string&,
+  virtual void addStateChangedCallback(const boost::function<void(const std::string&,
                                                           const planning_models::KinematicState&)>& callback);
 
 protected:
 
-  void generatePlan(const std::string& name, bool play=true);
-  void generateOutAndBackPlan(const std::string& name, bool play=true);
-  bool generatePlanForScene(const planning_scene::PlanningSceneConstPtr& scene,
+  virtual void generatePlan(const std::string& name, bool play=true);
+  virtual void generateOutAndBackPlan(const std::string& name, bool play=true);
+  virtual bool generatePlanForScene(const planning_scene::PlanningSceneConstPtr& scene,
                             const std::string& arm_name,
                             const planning_models::KinematicState* start_state,
                             const planning_models::KinematicState* goal_state,
                             trajectory_msgs::JointTrajectory& traj,
                             moveit_msgs::MoveItErrorCodes& error_code) const;
 
-  void generateRandomStartEnd(const std::string& name);
-  void resetStartGoal(const std::string& name);
-  void playLastTrajectory();
+  virtual void generateRandomStartEnd(const std::string& name);
+  virtual void resetStartGoal(const std::string& name);
+  virtual void playLastTrajectory();
+
+  ros::NodeHandle nh_;
+  ros::NodeHandle pnh_;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<planning_pipeline::PlanningPipeline> move_group_pipeline_;

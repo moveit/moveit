@@ -236,7 +236,7 @@ MoveItVisualizer::MoveItVisualizer() :
                                                          const std::vector<std::string>&)));
     main_window_->show();
 
-    planning_scene_monitor_->setUpdateCallback(boost::bind(&MoveItVisualizer::updateSceneCallback, this));
+    planning_scene_monitor_->addUpdateCallback(boost::bind(&MoveItVisualizer::updateSceneCallback, this));
 }
 
 MoveItVisualizer::~MoveItVisualizer() {
