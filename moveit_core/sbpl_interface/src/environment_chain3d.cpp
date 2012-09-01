@@ -234,11 +234,15 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
     req.group_name = planning_group_;
-    hy_world_->checkCollisionDistanceField(req, 
-                                           res, 
-                                           *hy_robot_->getCollisionRobotDistanceField().get(),
-                                           state_,
-                                           gsr_);
+    if(!planning_parameters_.use_standard_collision_checking_) {
+      hy_world_->checkCollisionDistanceField(req, 
+                                             res, 
+                                             *hy_robot_->getCollisionRobotDistanceField().get(),
+                                             state_,
+                                             gsr_);
+    } else {
+      planning_scene_->checkCollision(req, res, state_);
+    }
     planning_statistics_.coll_checks_++;
     //std::cerr << "Elapsed " << t.elapsed() << std::endl;
     ros::WallDuration dur(ros::WallTime::now()-before_coll);
@@ -253,9 +257,11 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
     Eigen::Affine3d pose = tip_link_state_->getGlobalLinkTransform();
     
     int xyz[3];
-    if(!getGridXYZInt(pose, xyz)) {
-      std::cerr << "Can't get successor x y z" << std::endl;
-      continue;
+    if(!planning_parameters_.use_standard_collision_checking_) {
+      if(!getGridXYZInt(pose, xyz)) {
+        std::cerr << "Can't get successor x y z" << std::endl;
+        continue;
+      }
     }
     int dist;
     if(planning_parameters_.use_bfs_) {
@@ -391,23 +397,26 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
                                             moveit_msgs::GetMotionPlan::Response &mres,
                                             const PlanningParameters& params)
 {
+  std::cerr << "really here " << std::endl;
   planning_scene_ = planning_scene;
   
   planning_group_ = mreq.motion_plan_request.group_name;
   planning_parameters_ = params;
-  
-  hy_world_ = dynamic_cast<const collision_detection::CollisionWorldHybrid*>(planning_scene->getCollisionWorld().get());
-  if(!hy_world_) {
-    ROS_WARN_STREAM("Could not initialize hybrid collision world from planning scene");
-    mres.error_code.val = moveit_msgs::MoveItErrorCodes::COLLISION_CHECKING_UNAVAILABLE;
-    return false;
-  }
-  
-  hy_robot_ = dynamic_cast<const collision_detection::CollisionRobotHybrid*>(planning_scene->getCollisionRobot().get());
-  if(!hy_robot_) {
-    ROS_WARN_STREAM("Could not initialize hybrid collision robot from planning scene");
-    mres.error_code.val = moveit_msgs::MoveItErrorCodes::COLLISION_CHECKING_UNAVAILABLE;
-    return false;
+
+  if(!planning_parameters_.use_standard_collision_checking_) {
+    hy_world_ = dynamic_cast<const collision_detection::CollisionWorldHybrid*>(planning_scene->getCollisionWorld().get());
+    if(!hy_world_) {
+      ROS_WARN_STREAM("Could not initialize hybrid collision world from planning scene");
+      mres.error_code.val = moveit_msgs::MoveItErrorCodes::COLLISION_CHECKING_UNAVAILABLE;
+      return false;
+    }
+    
+    hy_robot_ = dynamic_cast<const collision_detection::CollisionRobotHybrid*>(planning_scene->getCollisionRobot().get());
+    if(!hy_robot_) {
+      ROS_WARN_STREAM("Could not initialize hybrid collision robot from planning scene");
+      mres.error_code.val = moveit_msgs::MoveItErrorCodes::COLLISION_CHECKING_UNAVAILABLE;
+      return false;
+    }
   }
 
   state_ = planning_scene->getCurrentState();
@@ -425,25 +434,37 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   req.group_name = planning_group_;
-  hy_world_->checkCollisionDistanceField(req, 
-                                         res, 
-                                         *hy_robot_->getCollisionRobotDistanceField().get(),
-                                         state_,
-                                         planning_scene_->getAllowedCollisionMatrix(),
-                                         gsr_);
+  if(!planning_parameters_.use_standard_collision_checking_) {
+    hy_world_->checkCollisionDistanceField(req, 
+                                           res, 
+                                           *hy_robot_->getCollisionRobotDistanceField().get(),
+                                           state_,
+                                           planning_scene_->getAllowedCollisionMatrix(),
+                                           gsr_);
+  } else {
+    planning_scene->checkCollision(req, res, state_);
+  }
   if(res.collision) {
     ROS_WARN_STREAM("Start state is in collision.  Can't plan");
     mres.error_code.val = moveit_msgs::MoveItErrorCodes::START_STATE_IN_COLLISION;
     return false;
   }
-  angle_discretization_ = gsr_->dfce_->distance_field_->getResolution();
+  if(!planning_parameters_.use_standard_collision_checking_) {
+    angle_discretization_ = gsr_->dfce_->distance_field_->getResolution();
+  } else {
+    angle_discretization_ = .02;
+  }
   setMotionPrimitives(planning_group_);
 
-  if(planning_parameters_.use_bfs_) {
+  //can only do bfs if not using standard collison checking
+  if(planning_parameters_.use_standard_collision_checking_) {
+    planning_parameters_.use_bfs_ = false;
+  }
+  if(!planning_parameters_.use_standard_collision_checking_ && planning_parameters_.use_bfs_) {
     bfs_ = new BFS_3D(gsr_->dfce_->distance_field_->getXNumCells(),
                       gsr_->dfce_->distance_field_->getYNumCells(),
                       gsr_->dfce_->distance_field_->getZNumCells());
-
+    
     boost::shared_ptr<const distance_field::DistanceField> world_distance_field = hy_world_->getCollisionWorldDistanceField()->getDistanceField();
     if(world_distance_field->getXNumCells() != gsr_->dfce_->distance_field_->getXNumCells() ||
        world_distance_field->getYNumCells() != gsr_->dfce_->distance_field_->getYNumCells() ||
@@ -482,10 +503,16 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   Eigen::Affine3d start_pose = tip_link_state_->getGlobalLinkTransform();
 
   int start_xyz[3];
-  if(!getGridXYZInt(start_pose, start_xyz)) {
-    std::cerr << "Bad start pose" << std::endl;
-    mres.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
-    return false;
+  if(!planning_parameters_.use_standard_collision_checking_) {
+    if(!getGridXYZInt(start_pose, start_xyz)) {
+      std::cerr << "Bad start pose" << std::endl;
+      mres.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+      return false;
+    }
+  } else {
+    start_xyz[0] = 0.0;
+    start_xyz[1] = 0.0;
+    start_xyz[2] = 0.0;
   }
   planning_data_.start_hash_entry_ = planning_data_.addHashEntry(start_coords,
                                                                  start_joint_values,
@@ -499,12 +526,16 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
     goal_vals[mreq.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name] = mreq.motion_plan_request.goal_constraints[0].joint_constraints[i].position;
   }
   goal_state.setStateValues(goal_vals);
-  hy_world_->checkCollisionDistanceField(req, 
-                                         res, 
-                                         *hy_robot_->getCollisionRobotDistanceField().get(),
-                                         goal_state,
-                                         planning_scene_->getAllowedCollisionMatrix(),
-                                         gsr_);
+  if(!planning_parameters_.use_standard_collision_checking_) {
+    hy_world_->checkCollisionDistanceField(req, 
+                                           res, 
+                                           *hy_robot_->getCollisionRobotDistanceField().get(),
+                                           goal_state,
+                                           planning_scene_->getAllowedCollisionMatrix(),
+                                           gsr_);
+  } else {
+    planning_scene->checkCollision(req, res, goal_state);
+  }
   if(res.collision) {
     ROS_WARN_STREAM("Goal state is in collision.  Can't plan");
     mres.error_code.val = moveit_msgs::MoveItErrorCodes::GOAL_IN_COLLISION;
@@ -517,10 +548,16 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   convertJointAnglesToCoord(goal_joint_values, goal_coords);
   goal_pose_ = goal_state.getLinkState(tip_link_state_->getName())->getGlobalLinkTransform();
   int goal_xyz[3];
-  if(!getGridXYZInt(goal_pose_, goal_xyz)) {
-    std::cerr << "Bad goal pose" << std::endl;
-    mres.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
-    return false;
+  if(!planning_parameters_.use_standard_collision_checking_) {
+    if(!getGridXYZInt(goal_pose_, goal_xyz)) {
+      std::cerr << "Bad goal pose" << std::endl;
+      mres.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
+      return false;
+    }
+  } else {
+    goal_xyz[0] = 0.0;
+    goal_xyz[1] = 0.0;
+    goal_xyz[2] = 0.0;
   }
   std::vector<std::string> goal_dofs = goal_joint_state_group->getJointModelGroup()->getActiveDOFNames();
   for(unsigned int i = 0; i < goal_dofs.size(); i++) {
@@ -948,11 +985,15 @@ bool EnvironmentChain3D::interpolateAndCollisionCheck(const std::vector<double> 
                                                     interpolation_joint_state_group_temp_);
     ros::WallTime before_coll = ros::WallTime::now();
     collision_detection::CollisionResult res;
-    hy_world_->checkCollisionDistanceField(req, 
-                                           res, 
-                                           *hy_robot_->getCollisionRobotDistanceField().get(),
-                                           interpolation_state_temp_,
-                                           gsr_);
+    if(!planning_parameters_.use_standard_collision_checking_) {
+      hy_world_->checkCollisionDistanceField(req, 
+                                             res, 
+                                             *hy_robot_->getCollisionRobotDistanceField().get(),
+                                             interpolation_state_temp_,
+                                             gsr_);
+    } else {
+      planning_scene_->checkCollision(req, res, interpolation_state_temp_);
+    }
     planning_statistics_.coll_checks_++;
     ros::WallDuration dur(ros::WallTime::now()-before_coll);
     planning_statistics_.total_coll_check_time_ += dur;
