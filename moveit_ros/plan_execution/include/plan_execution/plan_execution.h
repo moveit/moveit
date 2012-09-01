@@ -34,6 +34,9 @@
 
 /* Author: Ioan Sucan */
 
+#ifndef MOVEIT_PLAN_EXECUTION_PLAN_EXECUTION_
+#define MOVEIT_PLAN_EXECUTION_PLAN_EXECUTION_
+
 #include <planning_pipeline/planning_pipeline.h>
 #include <trajectory_execution_manager/trajectory_execution_manager.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
@@ -225,3 +228,4 @@ private:
 };
 
 }
+#endif

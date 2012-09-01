@@ -50,6 +50,8 @@
 #include <OGRE/OgreSceneManager.h>
 
 #include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
+
 #include <planning_models/conversions.h>
 #include <trajectory_processing/trajectory_tools.h>
 
@@ -57,6 +59,57 @@
 
 namespace moveit_rviz_plugin
 {
+
+void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
+{
+  ROS_INFO("got im feedback");
+}
+
+visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
+                                                     const geometry_msgs::PoseStamped &stamped, 
+                                                     double scale,
+                                                     bool fixed = false)
+{
+  visualization_msgs::InteractiveMarker int_marker;
+  int_marker.header =  stamped.header;
+  int_marker.name = name;
+  int_marker.scale = scale;
+  int_marker.pose = stamped.pose;
+
+  visualization_msgs::InteractiveMarkerControl control;
+
+  if (fixed)
+    control.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
+  control.orientation.w = 1;
+  control.orientation.x = 1;
+  control.orientation.y = 0;
+  control.orientation.z = 0;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker.controls.push_back(control);
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+  
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 1;
+  control.orientation.z = 0;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker.controls.push_back(control);
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+  
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 0;
+  control.orientation.z = 1;
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker.controls.push_back(control);
+  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+  int_marker.controls.push_back(control);
+  
+  return int_marker;
+}
+
 
 PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message, const planning_scene::PlanningScenePtr &scene)
 {
@@ -84,6 +137,7 @@ PlanningDisplay::PlanningDisplay() :
   planning_scene_needs_render_(true)
 {  
   int_marker_display_ = new rviz::InteractiveMarkerDisplay();
+  int_marker_server_ = new interactive_markers::InteractiveMarkerServer("planning_display_interactive_marker_topic");
 
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
@@ -205,6 +259,7 @@ PlanningDisplay::PlanningDisplay() :
 // ******************************************************************************************
 PlanningDisplay::~PlanningDisplay()
 {
+  delete int_marker_server_;
   delete int_marker_display_;
   delete frame_dock_;
   delete display_path_robot_;
@@ -433,14 +488,101 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   update_display_goal_state_ = true;
 }
 
+struct IKMarker
+{
+  std::string group;
+  std::string eef_group;
+  std::string tip_link;
+};
+
+  
 void PlanningDisplay::changedPlanningGroup(void)
 {
   unsetAllColors(query_robot_start_);
   unsetAllColors(query_robot_goal_);
-  if (!planning_group_property_->getStdString().empty())
+  std::string group = planning_group_property_->getStdString();
+  if (!group.empty())
   {
-    setGroupColor(query_robot_start_, planning_group_property_->getStdString(), 0.0f, 1.0f, 0.0f);
-    setGroupColor(query_robot_goal_, planning_group_property_->getStdString(), 1.0f, 0.1f, 0.5f);
+    setGroupColor(query_robot_start_, group, 0.0f, 1.0f, 0.0f);
+    setGroupColor(query_robot_goal_, group, 1.0f, 0.1f, 0.5f);
+    
+    if (scene_monitor_ && scene_monitor_->getKinematicModel())
+    {
+      const planning_models::KinematicModelConstPtr &kmodel = scene_monitor_->getKinematicModel();
+      const planning_models::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
+      const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
+      const boost::shared_ptr<const srdf::Model> &srdf = scene_monitor_->getPlanningScene()->getSrdfModel();
+      if (jmg && srdf)
+      {
+        std::vector<IKMarker> ik_markers_;
+        
+        // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
+        if (smap.first)
+        {  
+          const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
+          for (std::size_t i = 0 ; i < eef.size() ; ++i)
+            if (jmg->hasLinkModel(eef[i].parent_link_) && jmg->canSetStateFromIK(eef[i].parent_link_))
+            {
+              // we found an end-effector for the selected group; we need to add a 6DOF marker
+              IKMarker im;
+              im.group = group;
+              im.tip_link = eef[i].parent_link_;
+              im.eef_group = eef[i].component_group_;
+              ik_markers_.push_back(im);
+              break;
+            }
+        }
+        else
+          if (!smap.second.empty())
+          {
+            const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
+            for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn>::const_iterator it = smap.second.begin() ; 
+                 it != smap.second.end() ; ++it)
+            {
+              for (std::size_t i = 0 ; i < eef.size() ; ++i)
+                if (it->first->hasLinkModel(eef[i].parent_link_) && it->first->canSetStateFromIK(eef[i].parent_link_))
+                {
+                  // we found an end-effector for the selected group; we need to add a 6DOF marker
+                  IKMarker im;
+                  im.group = it->first->getName();
+                  im.tip_link = eef[i].parent_link_;
+                  im.eef_group = eef[i].component_group_;
+                  ik_markers_.push_back(im);
+                  break;
+                }
+            }
+          }
+        
+        for (std::size_t i = 0 ; i < ik_markers_.size() ; ++i)
+        {   
+          if (query_start_state_property_->getBool())
+          {
+            geometry_msgs::PoseStamped pose;
+            pose.header.frame_id = scene_monitor_->getPlanningScene()->getPlanningFrame();
+            pose.header.stamp = ros::Time::now();
+            const planning_models::KinematicState::LinkState *ls = query_start_state_->getLinkState(ik_markers_[i].tip_link);
+            const Eigen::Affine3d &transf = ls->getGlobalLinkTransform();
+            planning_models::msgFromPose(transf, pose.pose);
+            visualization_msgs::InteractiveMarker im = make6DOFMarker("IM_" + ik_markers_[i].tip_link, pose, 0.2);
+            int_marker_server_->insert(im);
+            int_marker_server_->setCallback(im.name, &processFeedback);
+          }
+          if (query_goal_state_property_->getBool())
+          {
+            geometry_msgs::PoseStamped pose;
+            pose.header.frame_id = scene_monitor_->getPlanningScene()->getPlanningFrame();
+            pose.header.stamp = ros::Time::now();
+            const planning_models::KinematicState::LinkState *ls = query_start_state_->getLinkState(ik_markers_[i].tip_link);
+            const Eigen::Affine3d &transf = ls->getGlobalLinkTransform();
+            planning_models::msgFromPose(transf, pose.pose);
+            visualization_msgs::InteractiveMarker im = make6DOFMarker("IM_" + ik_markers_[i].tip_link, pose, 0.2);
+            int_marker_server_->insert(im);
+            int_marker_server_->setCallback(im.name, &processFeedback);
+          }
+        }
+        int_marker_server_->applyChanges();
+      }
+    }
   }
 }
 
@@ -676,13 +818,16 @@ void PlanningDisplay::onEnable()
   
   if (scene_monitor_)
     frame_->enable(scene_monitor_);
+
+  int_marker_display_->setEnabled(true);
 }
 
 // ******************************************************************************************
 // Disable
 // ******************************************************************************************
 void PlanningDisplay::onDisable()
-{
+{ 
+  int_marker_display_->setEnabled(false);
   if (scene_monitor_)
     scene_monitor_->stopSceneMonitor();
   display_path_robot_->setVisible(false);
@@ -826,7 +971,6 @@ void PlanningDisplay::fixedFrameChanged()
   Display::fixedFrameChanged();
   calculateOffsetPosition();
 }
-
 
 } // namespace moveit_rviz_plugin
 

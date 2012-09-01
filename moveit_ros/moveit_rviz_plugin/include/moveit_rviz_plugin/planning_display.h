@@ -60,6 +60,11 @@ class EditableEnumProperty;
 class InteractiveMarkerDisplay;
 }
 
+namespace interactive_markers
+{
+class InteractiveMarkerServer;
+}
+
 namespace moveit_rviz_plugin
 {
 
@@ -250,7 +255,8 @@ protected:
   rviz::FloatProperty* robot_scene_alpha_property_;
   rviz::FloatProperty* scene_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
-
+  
+  interactive_markers::InteractiveMarkerServer* int_marker_server_;
   rviz::InteractiveMarkerDisplay *int_marker_display_;
 };
 

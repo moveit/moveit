@@ -55,7 +55,7 @@ public:
   
   static const std::string ROBOT_DESCRIPTION;
   static const std::string JOINT_STATE_TOPIC;
-  
+
   struct Options
   {
     Options(const std::string &group_name) : group_name_(group_name),
@@ -93,6 +93,10 @@ public:
       target. No execution is performed. The resulting plan is stored in \e plan*/
   bool plan(Plan &plan);
   
+  bool asyncExecute(const Plan &plan);
+  
+  bool execute(const Plan &plan);
+
   /** \brief Stop any trajectory execution, if one is active */
   void stop(void);
   

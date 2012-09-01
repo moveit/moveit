@@ -688,7 +688,10 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForEx
 
 void TrajectoryExecutionManager::clear(void)
 {
-  trajectories_.clear();
+  if (execution_complete_)
+    trajectories_.clear();
+  else
+    ROS_ERROR("Cannot push a new trajectory while another is being executed");
 }
 
 void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &callback, bool auto_clear)
@@ -711,11 +714,7 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
   for (std::size_t i = 0 ; i < trajectories_.size() ; ++i)
     if (!executePart(i) || execution_complete_)
       break;
-  
-  // clear the paths just executed, if needed
-  if (auto_clear)
-    clear();
-  
+
   ROS_DEBUG("Completed trajectory execution with status %s ...", last_execution_status_.asString().c_str());
   
   // notify whoever is waiting for the event of trajectory completion
@@ -723,6 +722,10 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
   execution_complete_ = true;
   execution_state_mutex_.unlock();
   execution_complete_condition_.notify_all();
+
+  // clear the paths just executed, if needed
+  if (auto_clear)
+    clear();
   
   // call user-specified callback
   if (callback)
