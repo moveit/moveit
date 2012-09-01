@@ -134,6 +134,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   else
   {
     ROS_INFO("Unable to solve the planning problem");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
 }
@@ -146,7 +147,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   
   unsigned int attempts = 1;
   double timeout = 0.0;
-  moveit_msgs::MoveItErrorCodes error_code;
+  moveit_msgs::MoveItErrorCodes error_code; // not used
   ModelBasedPlanningContextPtr context = prepareForSolve(req.motion_plan_request, planning_scene, &error_code, &attempts, &timeout);
   if (!context)
     return false;
@@ -188,6 +189,7 @@ bool ompl_interface::OMPLInterface::solve(const planning_scene::PlanningSceneCon
   else
   {
     ROS_INFO("Unable to solve the planning problem");
+    error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
 }
