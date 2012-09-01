@@ -400,7 +400,11 @@ void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void
     ui_->delete_scene_button->setEnabled(false);
   }
   else
-  {    
+  {      
+    ui_->database_connect_button->setUpdatesEnabled(false); 
+    ui_->database_connect_button->setText(QString::fromStdString("Connecting ..."));
+    ui_->database_connect_button->setUpdatesEnabled(true); 
+
     planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(ui_->database_host->text().toStdString(),
                                                                              ui_->database_port->value()));
     ui_->database_connect_button->setUpdatesEnabled(false); 
