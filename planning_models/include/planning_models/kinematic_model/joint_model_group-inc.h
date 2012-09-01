@@ -261,13 +261,15 @@ public:
   {
     return solver_instance_;
   }
-  
+
+  bool canSetStateFromIK(const std::string &tip) const;
+
   /** \brief Return the mapping between the order of the joints in this group and the order of the joints in the kinematics solver */
   const std::vector<unsigned int>& getKinematicsSolverJointBijection(void) const
   {
     return ik_joint_bijection_;
   }
-  
+
   /** \brief Print information about the constructed model */
   void printGroupInfo(std::ostream &out = std::cout) const;
   
