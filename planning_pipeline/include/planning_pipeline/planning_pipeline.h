@@ -31,8 +31,9 @@
 *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
-#ifndef _MOVEIT_PLANNING_PIPELINE_H_
-#define _MOVEIT_PLANNING_PIPELINE_H_
+
+#ifndef MOVEIT_PLANNING_PIPELINE_PLANNING_PIPELINE_
+#define MOVEIT_PLANNING_PIPELINE_PLANNING_PIPELINE_
 
 #include <planning_interface/planning_interface.h>
 #include <planning_request_adapter/planning_request_adapter.h>
@@ -131,4 +132,4 @@ private:
 
 }
 
-#endif // _MOVEIT_PLANNING_PIPELINE_H_
+#endif
