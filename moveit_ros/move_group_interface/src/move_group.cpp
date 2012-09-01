@@ -39,6 +39,7 @@
 #include <planning_models_loader/kinematic_model_loader.h>
 #include <planning_scene_monitor/current_state_monitor.h>
 #include <moveit_msgs/MoveGroupAction.h>
+//#include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <actionlib/client/simple_action_client.h>
 #include <kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -137,6 +138,7 @@ public:
       action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>("move_group", false));
       ROS_INFO_STREAM("Waiting for MoveGroup action server...");
       action_client_->waitForServer();
+      //      execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
@@ -290,22 +292,7 @@ public:
     }
   }
   
-  bool asyncMove(void)
-  {    
-    if (!action_client_)
-      return false;
-    if (!action_client_->isServerConnected())
-      return false;
-    moveit_msgs::MoveGroupGoal goal;
-    constructGoal(goal);
-    goal.plan_only = false;
-    goal.look_around = can_look_;
-    goal.replan = can_replan_;
-    action_client_->sendGoal(goal);
-    return true;
-  }
-
-  bool move(void)
+  bool move(bool wait)
   {  
     if (!action_client_)
       return false;
@@ -318,10 +305,14 @@ public:
     goal.look_around = can_look_;  
     goal.replan = can_replan_;
     action_client_->sendGoal(goal);
+    if (!wait)
+      return true;
+    
     if (!action_client_->waitForResult())
     {
       ROS_INFO_STREAM("MoveGroup action returned early");
     }
+    
     if (action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
       return true;
     else
@@ -329,6 +320,13 @@ public:
       ROS_INFO_STREAM(action_client_->getState().toString() << ": " << action_client_->getState().getText());
       return false;
     }
+  }
+  
+  bool execute(const Plan &plan, bool wait)
+  {
+    //    moveit_msgs::ExecuteKnownTrajectory::Request req;
+    //    moveit_msgs::ExecuteKnownTrajectory::Request res;
+    
   }
   
   void stop(void)
@@ -383,6 +381,7 @@ private:
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > action_client_;
   planning_models::KinematicStatePtr joint_state_target_;
   ros::Publisher trajectory_event_publisher_;
+  ros::ServiceClient execute_service_;
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
   std::string pose_reference_frame_;
@@ -417,14 +416,24 @@ const std::string& MoveGroup::getName(void) const
 
 bool MoveGroup::asyncMove(void)
 {
-  return impl_->asyncMove();
+  return impl_->move(false);
 }
 
 bool MoveGroup::move(void)
 {
-  return impl_->move();
+  return impl_->move(true);
 }
-    
+
+bool MoveGroup::asyncExecute(const Plan &plan)
+{
+  return impl_->execute(plan, false);
+}
+
+bool MoveGroup::execute(const Plan &plan)
+{
+  return impl_->execute(plan, true);
+}
+
 bool MoveGroup::plan(Plan &plan)
 {
   return impl_->plan(plan);
