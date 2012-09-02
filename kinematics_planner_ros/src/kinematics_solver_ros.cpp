@@ -55,6 +55,9 @@ bool KinematicsSolverROS::initialize()
   {
     std::string group_name = it->first;
     std::string tip_name = it->second->getTipFrame();
+
+    ROS_INFO("Group: %s, %s",group_name.c_str(),tip_name.c_str());
+
     kinematics_solver_[tip_name].reset(new kinematics_planner::KinematicsSolver());
     kinematics_solver_[tip_name]->initialize(planning_scene_monitor_->getKinematicModel(),
                                              kinematics_solver_map,
@@ -67,7 +70,7 @@ bool KinematicsSolverROS::initialize()
 bool KinematicsSolverROS::getIK(kinematics_msgs::GetConstraintAwarePositionIK::Request &request,
                                 kinematics_msgs::GetConstraintAwarePositionIK::Response &response)
 {
-  if(kinematics_solver_.find(request.ik_request.ik_link_name) != kinematics_solver_.end())
+  if(kinematics_solver_.find(request.ik_request.ik_link_name) == kinematics_solver_.end())
   {
     ROS_ERROR("Could not find kinematics solver for requested link: %s",request.ik_request.ik_link_name.c_str());    
     response.error_code.val = response.error_code.PLANNING_FAILED;

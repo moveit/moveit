@@ -101,10 +101,10 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     }
     else
     {
-      ROS_DEBUG("No Solution: Point %d of %d",(int) i,(int) workspace.points.size());
+      ROS_ERROR("No Solution: Point %d of %d",(int) i,(int) workspace.points.size());
     }
     if(i%1000 == 0 || workspace.points.size() <= 100)
-      ROS_INFO("At sample %d",i);
+      ROS_INFO("At sample %d, (%f,%f,%f)",i,workspace.points[i].pose.position.x,workspace.points[i].pose.position.y,workspace.points[i].pose.position.z);
   }
 }
 
@@ -397,9 +397,9 @@ bool KinematicsReachability::sampleUniform(kinematics_reachability::WorkspacePoi
   }
 
   double position_resolution = workspace.position_resolution;
-  double x_min = -workspace.parameters.min_corner.x;
-  double y_min = -workspace.parameters.min_corner.y;
-  double z_min = -workspace.parameters.min_corner.z;
+  double x_min = workspace.parameters.min_corner.x;
+  double y_min = workspace.parameters.min_corner.y;
+  double z_min = workspace.parameters.min_corner.z;
 
   unsigned int x_num_points,y_num_points,z_num_points;
   getNumPoints(workspace,x_num_points,y_num_points,z_num_points);
