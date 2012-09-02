@@ -60,6 +60,8 @@ bool KinematicsSolver::initialize(const planning_models::KinematicModelConstPtr 
     group_names_.push_back(group_name_);
   num_groups_= group_names_.size();
 
+  ROS_INFO("Num groups: %d",num_groups_);
+
   for(unsigned int i=0; i < group_names_.size(); ++i)
   {
     if(kinematics_solver_map.find(group_names_[i]) == kinematics_solver_map.end())
@@ -84,7 +86,9 @@ bool KinematicsSolver::solve(const geometry_msgs::PoseStamped &pose,
                              moveit_msgs::MoveItErrorCodes &error_code,
                              const kinematic_constraints::KinematicConstraintSet& kinematic_constraint_set) const
 {
-  return true;  
+  std::map<std::string,geometry_msgs::PoseStamped> goal;
+  goal[group_names_.front()] = pose;
+  return solve(goal,planning_scene,timeout,robot_state,error_code,kinematic_constraint_set);
 }
 
 
