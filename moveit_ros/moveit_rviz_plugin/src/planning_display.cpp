@@ -60,11 +60,6 @@
 namespace moveit_rviz_plugin
 {
 
-void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
-{
-  ROS_INFO("got im feedback");
-}
-
 visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
                                                      const geometry_msgs::PoseStamped &stamped, 
                                                      double scale,
@@ -457,7 +452,8 @@ void PlanningDisplay::changedQueryStartState(void)
     }
   }
   else
-    query_robot_start_->setVisible(false);
+    query_robot_start_->setVisible(false);  
+  publishInteractiveMarkers();
 }
 
 void PlanningDisplay::changedQueryGoalState(void)
@@ -472,6 +468,7 @@ void PlanningDisplay::changedQueryGoalState(void)
   }
   else
     query_robot_goal_->setVisible(false);
+  publishInteractiveMarkers();
 }
 
 void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePtr &start)
@@ -488,14 +485,110 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   update_display_goal_state_ = true;
 }
 
-struct IKMarker
+void PlanningDisplay::decideInteractiveMarkers(void)
 {
-  std::string group;
-  std::string eef_group;
-  std::string tip_link;
-};
-
+  ik_markers_.clear();
+  if (!scene_monitor_ || !scene_monitor_->getKinematicModel())
+    return;
+  std::string group = planning_group_property_->getStdString();
+  if (group.empty())
+    return;
   
+  const planning_models::KinematicModelConstPtr &kmodel = scene_monitor_->getKinematicModel();
+  const planning_models::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
+  const boost::shared_ptr<const srdf::Model> &srdf = scene_monitor_->getPlanningScene()->getSrdfModel();
+  if (!jmg || !srdf)
+    return;
+
+  const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
+  const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
+  
+  // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
+  if (smap.first)
+  {  
+    for (std::size_t i = 0 ; i < eef.size() ; ++i)
+      if (jmg->hasLinkModel(eef[i].parent_link_) && jmg->canSetStateFromIK(eef[i].parent_link_))
+      {
+        // we found an end-effector for the selected group; we need to add a 6DOF marker
+        IKMarker im;
+        im.group = group;
+        im.tip_link = eef[i].parent_link_;
+        im.eef_group = eef[i].component_group_;
+        ik_markers_.push_back(im);
+        break;
+      }
+  }
+  else
+    if (!smap.second.empty())
+    {
+      for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn>::const_iterator it = smap.second.begin() ; 
+           it != smap.second.end() ; ++it)
+      {
+        for (std::size_t i = 0 ; i < eef.size() ; ++i)
+          if (it->first->hasLinkModel(eef[i].parent_link_) && it->first->canSetStateFromIK(eef[i].parent_link_))
+          {
+            // we found an end-effector for the selected group; we need to add a 6DOF marker
+            IKMarker im;
+            im.group = it->first->getName();
+            im.tip_link = eef[i].parent_link_;
+            im.eef_group = eef[i].component_group_;
+            ik_markers_.push_back(im);
+            break;
+          }
+      }
+    }
+}
+
+void PlanningDisplay::publishInteractiveMarkers(void)
+{
+  shown_markers_.clear();
+  int_marker_server_->clear();
+  std::vector<bool> start_goal(2);
+  start_goal[0] = query_start_state_property_->getBool();
+  start_goal[1] = query_goal_state_property_->getBool();
+  for (std::size_t i = 0 ; i < ik_markers_.size() ; ++i)
+    for (int s = 0 ; s < 2 ; ++s)
+      if (start_goal[s])
+      {
+        geometry_msgs::PoseStamped pose;
+        pose.header.frame_id = scene_monitor_->getPlanningScene()->getPlanningFrame();
+        pose.header.stamp = ros::Time::now();
+        const planning_models::KinematicState::LinkState *ls = 
+          s == 0 ? query_start_state_->getLinkState(ik_markers_[i].tip_link) : query_goal_state_->getLinkState(ik_markers_[i].tip_link);
+        const Eigen::Affine3d &transf = ls->getGlobalLinkTransform();
+        planning_models::msgFromPose(transf, pose.pose);
+        std::string marker_name = "IK_" + boost::lexical_cast<std::string>(s) + "_" + ik_markers_[i].tip_link;
+        shown_markers_[marker_name] = i;
+        visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, 0.2);
+        int_marker_server_->insert(im);
+        int_marker_server_->setCallback(im.name, boost::bind(&PlanningDisplay::processInteractiveMarkerFeedback, this, _1));
+      }
+  int_marker_server_->applyChanges();
+}
+
+void PlanningDisplay::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
+{ 
+  std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
+  if (it == shown_markers_.end())
+    return;
+  
+  if (feedback->marker_name[1] == 'K')
+  {
+    bool start = feedback->marker_name[3] == '0'; // start state marker
+    const IKMarker &im = ik_markers_[it->second];
+    if (start)
+    {
+      query_start_state_->getJointStateGroup(im.group)->setFromIK(feedback->pose, im.tip_link, 0.1);
+      update_display_start_state_ = true;
+    }
+    else
+    {
+      query_goal_state_->getJointStateGroup(im.group)->setFromIK(feedback->pose, im.tip_link, 0.1);
+      update_display_goal_state_ = true;
+    }
+  }
+}
+
 void PlanningDisplay::changedPlanningGroup(void)
 {
   unsetAllColors(query_robot_start_);
@@ -505,85 +598,9 @@ void PlanningDisplay::changedPlanningGroup(void)
   {
     setGroupColor(query_robot_start_, group, 0.0f, 1.0f, 0.0f);
     setGroupColor(query_robot_goal_, group, 1.0f, 0.1f, 0.5f);
-    
-    if (scene_monitor_ && scene_monitor_->getKinematicModel())
-    {
-      const planning_models::KinematicModelConstPtr &kmodel = scene_monitor_->getKinematicModel();
-      const planning_models::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
-      const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
-      const boost::shared_ptr<const srdf::Model> &srdf = scene_monitor_->getPlanningScene()->getSrdfModel();
-      if (jmg && srdf)
-      {
-        std::vector<IKMarker> ik_markers_;
-        
-        // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
-        if (smap.first)
-        {  
-          const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
-          for (std::size_t i = 0 ; i < eef.size() ; ++i)
-            if (jmg->hasLinkModel(eef[i].parent_link_) && jmg->canSetStateFromIK(eef[i].parent_link_))
-            {
-              // we found an end-effector for the selected group; we need to add a 6DOF marker
-              IKMarker im;
-              im.group = group;
-              im.tip_link = eef[i].parent_link_;
-              im.eef_group = eef[i].component_group_;
-              ik_markers_.push_back(im);
-              break;
-            }
-        }
-        else
-          if (!smap.second.empty())
-          {
-            const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
-            for (std::map<const planning_models::KinematicModel::JointModelGroup*, planning_models::KinematicModel::SolverAllocatorFn>::const_iterator it = smap.second.begin() ; 
-                 it != smap.second.end() ; ++it)
-            {
-              for (std::size_t i = 0 ; i < eef.size() ; ++i)
-                if (it->first->hasLinkModel(eef[i].parent_link_) && it->first->canSetStateFromIK(eef[i].parent_link_))
-                {
-                  // we found an end-effector for the selected group; we need to add a 6DOF marker
-                  IKMarker im;
-                  im.group = it->first->getName();
-                  im.tip_link = eef[i].parent_link_;
-                  im.eef_group = eef[i].component_group_;
-                  ik_markers_.push_back(im);
-                  break;
-                }
-            }
-          }
-        
-        for (std::size_t i = 0 ; i < ik_markers_.size() ; ++i)
-        {   
-          if (query_start_state_property_->getBool())
-          {
-            geometry_msgs::PoseStamped pose;
-            pose.header.frame_id = scene_monitor_->getPlanningScene()->getPlanningFrame();
-            pose.header.stamp = ros::Time::now();
-            const planning_models::KinematicState::LinkState *ls = query_start_state_->getLinkState(ik_markers_[i].tip_link);
-            const Eigen::Affine3d &transf = ls->getGlobalLinkTransform();
-            planning_models::msgFromPose(transf, pose.pose);
-            visualization_msgs::InteractiveMarker im = make6DOFMarker("IM_" + ik_markers_[i].tip_link, pose, 0.2);
-            int_marker_server_->insert(im);
-            int_marker_server_->setCallback(im.name, &processFeedback);
-          }
-          if (query_goal_state_property_->getBool())
-          {
-            geometry_msgs::PoseStamped pose;
-            pose.header.frame_id = scene_monitor_->getPlanningScene()->getPlanningFrame();
-            pose.header.stamp = ros::Time::now();
-            const planning_models::KinematicState::LinkState *ls = query_start_state_->getLinkState(ik_markers_[i].tip_link);
-            const Eigen::Affine3d &transf = ls->getGlobalLinkTransform();
-            planning_models::msgFromPose(transf, pose.pose);
-            visualization_msgs::InteractiveMarker im = make6DOFMarker("IM_" + ik_markers_[i].tip_link, pose, 0.2);
-            int_marker_server_->insert(im);
-            int_marker_server_->setCallback(im.name, &processFeedback);
-          }
-        }
-        int_marker_server_->applyChanges();
-      }
-    }
   }
+  decideInteractiveMarkers();
+  publishInteractiveMarkers();
 }
 
 std::string PlanningDisplay::getCurrentPlanningGroup(void) const
@@ -756,6 +773,7 @@ void PlanningDisplay::loadRobotModel(void)
   query_robot_goal_->load(doc.RootElement(), descr);
 
   loadPlanningSceneMonitor();
+  decideInteractiveMarkers();
 }
 
 void PlanningDisplay::loadPlanningSceneMonitor(void)
@@ -820,6 +838,7 @@ void PlanningDisplay::onEnable()
     frame_->enable(scene_monitor_);
 
   int_marker_display_->setEnabled(true);
+  publishInteractiveMarkers();
 }
 
 // ******************************************************************************************
@@ -827,6 +846,8 @@ void PlanningDisplay::onEnable()
 // ******************************************************************************************
 void PlanningDisplay::onDisable()
 { 
+  ik_markers_.clear();
+  publishInteractiveMarkers();
   int_marker_display_->setEnabled(false);
   if (scene_monitor_)
     scene_monitor_->stopSceneMonitor();
