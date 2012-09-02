@@ -185,7 +185,7 @@ public:
   bool setFromIK(const Eigen::Affine3d &pose, double timeout);
 
   bool setFromIK(const Eigen::Affine3d &pose, const std::string &tip, double timeout);
-  
+      
 private:
   
   /** \brief The kinematic state this group is part of */

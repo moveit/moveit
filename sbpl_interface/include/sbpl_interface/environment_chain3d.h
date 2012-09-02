@@ -74,11 +74,13 @@ struct PlanningStatistics {
 struct PlanningParameters {
 
   PlanningParameters() : 
-    use_bfs_(true)
+    use_bfs_(true),
+    use_standard_collision_checking_(false)
   {
   }
 
   bool use_bfs_;
+  bool use_standard_collision_checking_;
 };
 
 /** Environment to be used when planning for a Robotic Arm using the SBPL. */

@@ -69,6 +69,12 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
   double xmax = -DBL_MAX;
   double ymax = -DBL_MAX;
   double zmax = -DBL_MAX;
+  double cartesian_x_min = DBL_MAX;
+  double cartesian_y_min = DBL_MAX;
+  double cartesian_z_min = DBL_MAX;
+  double cartesian_x_max = -DBL_MAX;
+  double cartesian_y_max = -DBL_MAX;
+  double cartesian_z_max = -DBL_MAX;
   for(unsigned int i = 0; i < samples; i++) {
     std::vector<double> joint_sample = sampleJointValues(limits);
     if(normalize) {
@@ -83,6 +89,24 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
     Eigen::Affine3d base_pose_in_world = state.getLinkState(solver->getBaseFrame())->getGlobalLinkTransform();
     Eigen::Affine3d tip_pose_in_world = state.getLinkState(solver->getTipFrame())->getGlobalLinkTransform();
     Eigen::Affine3d tip_pose_in_base = base_pose_in_world.inverse()*tip_pose_in_world;
+    if(tip_pose_in_base.translation().x() > cartesian_x_max) {
+      cartesian_x_max = tip_pose_in_base.translation().x();
+    }
+    if(tip_pose_in_base.translation().y() > cartesian_y_max) {
+      cartesian_y_max = tip_pose_in_base.translation().y();
+    }
+    if(tip_pose_in_base.translation().z() > cartesian_z_max) {
+      cartesian_z_max = tip_pose_in_base.translation().z();
+    }
+    if(tip_pose_in_base.translation().x() < cartesian_x_min) {
+      cartesian_x_min = tip_pose_in_base.translation().x();
+    }
+    if(tip_pose_in_base.translation().y() < cartesian_y_min) {
+      cartesian_y_min = tip_pose_in_base.translation().y();
+    }
+    if(tip_pose_in_base.translation().z() < cartesian_z_min) {
+      cartesian_z_min = tip_pose_in_base.translation().z();
+    }
     geometry_msgs::Pose tip_pose_in_base_msg;
     planning_models::msgFromPose(tip_pose_in_base, tip_pose_in_base_msg);
     std::vector<double> solution;
@@ -121,6 +145,13 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
   }
   ROS_INFO_STREAM("Success " << (num_success*1.0)/(samples*1.0) << " diff max " << xmax << " " << ymax << " " << zmax);
   ROS_INFO_STREAM("Wrong solution " << (num_wrong_solution*1.0)/(samples*1.0));
+  ROS_INFO_STREAM("Cartesian limits in base frame " 
+                  << cartesian_x_min << " "
+                  << cartesian_y_min << " "
+                  << cartesian_z_min << " "
+                  << cartesian_x_max << " "
+                  << cartesian_y_max << " "
+                  << cartesian_z_max);
 }
 
 std::vector<double> 

@@ -252,6 +252,25 @@ void planning_models::KinematicModel::JointModelGroup::setSolverAllocators(const
   }
 }
 
+bool planning_models::KinematicModel::JointModelGroup::canSetStateFromIK(const std::string &tip) const
+{
+  const kinematics::KinematicsBaseConstPtr& solver = getSolverInstance();  
+  const std::string &tip_frame = solver->getTipFrame();
+  if (tip != tip_frame)
+  {
+    const KinematicModel::LinkModel *lm = getParentModel()->getLinkModel(tip);
+    if (!lm)
+      return false;
+    const KinematicModel::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+    for (std::map<const KinematicModel::LinkModel*, Eigen::Affine3d>::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+      if (it->first->getName() == tip_frame)
+        return true;
+    return false;
+  }
+  else
+    return true;
+}
+
 void planning_models::KinematicModel::JointModelGroup::printGroupInfo(std::ostream &out) const
 {
   out << "Group '" << name_ << "':" << std::endl;
