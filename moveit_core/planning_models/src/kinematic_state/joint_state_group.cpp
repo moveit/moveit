@@ -283,7 +283,7 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
   }
 
   // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
-  const std::string &tip_frame = solver->getBaseFrame();
+  const std::string &tip_frame = solver->getTipFrame();
   if (tip != tip_frame)
   {
     if (getParentState()->hasAttachedBody(tip))
