@@ -13,6 +13,10 @@
   <depend package="kinematics_msgs"/>
   <depend package="kinematics_base"/>
 
+  <export>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lkinematics_planner_ros `rosboost-cfg --lflags thread`"/>
+  </export>
+
 </package>
 
 
