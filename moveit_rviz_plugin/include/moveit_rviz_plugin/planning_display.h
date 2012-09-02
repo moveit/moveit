@@ -38,6 +38,7 @@
 #include "moveit_rviz_plugin/planning_scene_render.h"
 
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <ros/ros.h>
 #include <QDockWidget>
@@ -169,8 +170,14 @@ protected:
   // ******************************************************************************************
   // Protected
   // ******************************************************************************************
-
-
+  
+  struct IKMarker
+  {
+    std::string group;
+    std::string eef_group;
+    std::string tip_link;
+  };
+  
   /**
    * \brief Loads a URDF from our #description_param_
    */
@@ -181,6 +188,8 @@ protected:
    */
   void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
 
+  void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+  
   /**
    * \brief Set the robot's position, given the target frame and the planning frame
    */
@@ -194,6 +203,9 @@ protected:
   void setGroupColor(rviz::Robot* robot, const std::string& group_name, float red, float green, float blue );
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name );
   void unsetAllColors(rviz::Robot* robot);
+
+  void decideInteractiveMarkers(void);
+  void publishInteractiveMarkers(void);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -230,6 +242,8 @@ protected:
   float current_state_time_;
   float current_scene_time_;
   bool planning_scene_needs_render_;
+  std::vector<IKMarker> ik_markers_;
+  std::map<std::string, std::size_t> shown_markers_;
   
   // properties to show on side panel
   rviz::Property* scene_category_;
