@@ -55,15 +55,15 @@ region in the workspace for which reachability is to be computed****/
   workspace.group_name = "arm";
   
   workspace.position_resolution = 0.2;
-  workspace.header.frame_id = root_name;
+  workspace.header.frame_id = "arm_base_link";
 
-  workspace.parameters.min_corner.x = 0.4;
+  workspace.parameters.min_corner.x = 0.0;
   workspace.parameters.min_corner.y = -0.2;
-  workspace.parameters.min_corner.z = 0.38;
+  workspace.parameters.min_corner.z = -0.02;
 
   workspace.parameters.max_corner.x = 0.8;
   workspace.parameters.max_corner.y = 0.2;
-  workspace.parameters.max_corner.z = 0.42;
+  workspace.parameters.max_corner.z = 0.02;
   
   //SET OF ORIENTATIONS TO TEST FOR REACHABILITY
 
