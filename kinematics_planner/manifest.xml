@@ -13,7 +13,7 @@
   <depend package="planning_models"/>
 
   <export>
-   <cpp cflags="-I${prefix}/include"/>
+    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lkinematics_planner `rosboost-cfg --lflags thread`"/>
   </export>
 
 </package>
