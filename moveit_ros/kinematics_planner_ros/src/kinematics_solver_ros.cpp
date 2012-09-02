@@ -84,9 +84,9 @@ bool KinematicsSolverROS::getIK(kinematics_msgs::GetConstraintAwarePositionIK::R
                                                                           request.timeout.toSec(),
                                                                           response.solution,
                                                                           response.error_code,kinematic_constraint_set);
-  return true;
-  
+  return true;  
 }
+  
 
 }
 

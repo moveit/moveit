@@ -65,6 +65,25 @@ class KinematicsSolverROS
    */
   bool getIK(kinematics_msgs::GetConstraintAwarePositionIK::Request &request,
              kinematics_msgs::GetConstraintAwarePositionIK::Response &response);
+
+  bool isActive()
+  {
+    if(!getKinematicModel())
+    {
+      return false;      
+    }
+    if(!planning_scene_monitor_->getPlanningScene())
+    {
+      return false;
+    }
+    return true;
+  };
+  
+  
+  const planning_models::KinematicModelConstPtr& getKinematicModel()
+  {
+    return planning_scene_monitor_->getKinematicModel();
+  };
   
 private:
 

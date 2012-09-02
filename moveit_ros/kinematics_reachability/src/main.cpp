@@ -50,18 +50,19 @@ int main(int argc, char** argv)
 
   /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
 region in the workspace for which reachability is to be computed****/
-  kinematics_reachability::KinematicsReachability aw;
+  kinematics_reachability::KinematicsReachability reachability_solver;
   kinematics_reachability::WorkspacePoints workspace;
-
-  workspace.position_resolution = 0.05;
+  workspace.group_name = "arm";
+  
+  workspace.position_resolution = 0.2;
   workspace.header.frame_id = root_name;
 
   workspace.parameters.min_corner.x = 0.4;
-  workspace.parameters.min_corner.y = -0.75;
+  workspace.parameters.min_corner.y = -0.2;
   workspace.parameters.min_corner.z = 0.38;
 
   workspace.parameters.max_corner.x = 0.8;
-  workspace.parameters.max_corner.y = 0.75;
+  workspace.parameters.max_corner.y = 0.2;
   workspace.parameters.max_corner.z = 0.42;
   
   //SET OF ORIENTATIONS TO TEST FOR REACHABILITY
@@ -76,7 +77,7 @@ region in the workspace for which reachability is to be computed****/
   quaternion = tf::createQuaternionMsgFromYaw(M_PI);
   workspace.orientations.push_back(quaternion);
   */
-  quaternion = tf::createQuaternionMsgFromYaw(-M_PI/2.0);
+  /*  quaternion = tf::createQuaternionMsgFromYaw(-M_PI/2.0);
   workspace.orientations.push_back(quaternion);
 
   quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,0.0);
@@ -97,20 +98,20 @@ region in the workspace for which reachability is to be computed****/
 
   quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/4.0,-M_PI/4.0);
   workspace.orientations.push_back(quaternion);
-
-  while(!aw.isActive())
+  */
+  while(!reachability_solver.isActive())
   {
     sleep(1.0);
     ROS_INFO("Waiting for planning scene to be set");
   }
-
-  aw.computeWorkspace(workspace);
-  aw.visualize(workspace,"full");
+    
+  reachability_solver.computeWorkspace(workspace);
+  reachability_solver.visualize(workspace,"full");
   //  aw.visualizeWithArrows(workspace,"full");
   //  aw.visualize(workspace,"RPY(0,0,0)",zero_orientation);
   ROS_INFO("Success");
 
-  aw.publishWorkspace(workspace);
+  reachability_solver.publishWorkspace(workspace);
 
   ros::waitForShutdown();
 
