@@ -319,12 +319,8 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
     ROS_ERROR_STREAM("Cannot compute IK for tip reference frame " << tip);
     return false;    
   }
-  
-  // sample a seed
-  random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
-  std::vector<double> seed;
-  joint_model_group_->getRandomValues(rng, seed);
 
+  const std::vector<unsigned int> &bij = joint_model_group_->getKinematicsSolverJointBijection();
   Eigen::Quaterniond quat(pose.rotation());
   Eigen::Vector3d point(pose.translation());
   geometry_msgs::Pose ik_query;
@@ -335,21 +331,45 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
   ik_query.orientation.y = quat.y();
   ik_query.orientation.z = quat.z();
   ik_query.orientation.w = quat.w();
-  
-  // compute the IK solution
-  std::vector<double> ik_sol;
-  moveit_msgs::MoveItErrorCodes error;
-  if (solver->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
+    
+  bool first_seed = true;
+  for (int st = 0 ; st < 2 ; ++st)
   {
-    const std::vector<unsigned int> &bij = joint_model_group_->getKinematicsSolverJointBijection();
-    std::vector<double> solution(bij.size());
-    for (std::size_t i = 0 ; i < bij.size() ; ++i)
-      solution[i] = ik_sol[bij[i]];
-    setStateValues(solution);
-    return true;
+    std::vector<double> seed(bij.size());
+    
+    // the first seed is the initial state
+    if (first_seed)
+    {
+      first_seed = false;
+      std::vector<double> initial_values;
+      getGroupStateValues(initial_values);
+      for (std::size_t i = 0 ; i < bij.size() ; ++i)
+        seed[bij[i]] = initial_values[i];
+    }
+    else
+    {
+      // sample a random seed
+      random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+      std::vector<double> random_values;
+      joint_model_group_->getRandomValues(rng, random_values);
+      for (std::size_t i = 0 ; i < bij.size() ; ++i)
+        seed[bij[i]] = random_values[i];
+    }
+    
+    // compute the IK solution
+    std::vector<double> ik_sol;
+    moveit_msgs::MoveItErrorCodes error;
+    if (solver->searchPositionIK(ik_query, seed, timeout, ik_sol, error))
+    {
+      
+      std::vector<double> solution(bij.size());
+      for (std::size_t i = 0 ; i < bij.size() ; ++i)
+        solution[i] = ik_sol[bij[i]];
+      setStateValues(solution);
+      return true;
+    }
   }
-  else
-    return false;
+  return false;
 }
 
 bool planning_models::KinematicState::JointStateGroup::getJacobian(const std::string &link_name,
