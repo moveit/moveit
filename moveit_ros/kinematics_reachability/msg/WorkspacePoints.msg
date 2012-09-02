@@ -1,6 +1,9 @@
 # std header
 std_msgs/Header header
 
+# group name
+string group_name
+
 # workspace samples
 WorkspacePoint[] points
 

@@ -41,7 +41,6 @@
 // System
 #include <ros/ros.h>
 #include <boost/shared_ptr.hpp>
-//#include <arm_kinematics_constraint_aware/arm_kinematics_constraint_aware.h>
 
 // ROS msgs
 #include <kinematics_msgs/GetConstraintAwarePositionIK.h>
@@ -49,6 +48,9 @@
 #include <kinematics_reachability/WorkspacePoints.h>
 #include <kinematics_reachability/WorkspacePoint.h>
 #include <visualization_msgs/MarkerArray.h>
+
+// MoveIt!
+#include <kinematics_planner_ros/kinematics_solver_ros.h>
 
 #include <tf/tf.h>
 #include <tf/transform_datatypes.h>
@@ -75,7 +77,8 @@ public:
    */
   bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace);
 
-  bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, const geometry_msgs::Pose &tool_frame_offset);
+  bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
+                        const geometry_msgs::Pose &tool_frame_offset);
 
   /**
    * @brief This method visualizes a workspace region for a given arm
@@ -99,8 +102,11 @@ public:
   void visualizeWithArrows(const kinematics_reachability::WorkspacePoints &workspace,
                            const std::string &marker_namespace);
 
-  bool isActive();
-
+  bool isActive()
+  {
+    return kinematics_solver_.isActive();
+  }
+  
 
 private:
 
@@ -108,7 +114,8 @@ private:
 
   void findIKSolutions(kinematics_reachability::WorkspacePoints &workspace);
 
-  void getDefaultIKRequest(kinematics_msgs::GetConstraintAwarePositionIK::Request &req);
+  void getDefaultIKRequest(const std::string &group_name,
+                           kinematics_msgs::GetConstraintAwarePositionIK::Request &req);
 
   void removeUnreachableWorkspace(kinematics_reachability::WorkspacePoints &workspace);
 
@@ -126,7 +133,7 @@ private:
   
   bool sampleUniform(kinematics_reachability::WorkspacePoints &workspace);
 
-  //  arm_kinematics_constraint_aware::KinematicsConstraintAware kinematics_solver_;
+  kinematics_planner_ros::KinematicsSolverROS kinematics_solver_;
 
   bool isEqual(const geometry_msgs::Quaternion &orientation_1, 
                const geometry_msgs::Quaternion &orientation_2);
