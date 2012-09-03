@@ -39,7 +39,7 @@
 #include <planning_models_loader/kinematic_model_loader.h>
 #include <planning_scene_monitor/current_state_monitor.h>
 #include <moveit_msgs/MoveGroupAction.h>
-//#include <moveit_msgs/ExecuteKnownTrajectory.h>
+#include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <actionlib/client/simple_action_client.h>
 #include <kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -138,7 +138,7 @@ public:
       action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>("move_group", false));
       ROS_INFO_STREAM("Waiting for MoveGroup action server...");
       action_client_->waitForServer();
-      //      execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
+      execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
@@ -324,9 +324,14 @@ public:
   
   bool execute(const Plan &plan, bool wait)
   {
-    //    moveit_msgs::ExecuteKnownTrajectory::Request req;
-    //    moveit_msgs::ExecuteKnownTrajectory::Request res;
-    
+    moveit_msgs::ExecuteKnownTrajectory::Request req;
+    moveit_msgs::ExecuteKnownTrajectory::Response res;
+    req.trajectory = plan.trajectory_;
+    req.wait_for_execution = wait;
+    if (execute_service_.call(req, res))
+      return res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+    else
+      return false;
   }
   
   void stop(void)
