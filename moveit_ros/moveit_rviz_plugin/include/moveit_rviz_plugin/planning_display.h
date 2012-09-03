@@ -207,7 +207,7 @@ protected:
 
   void decideInteractiveMarkers(void);
   void publishInteractiveMarkers(void);
-  void computeMarkerScaleAndOffset(IKMarker &ik_marker);
+  void computeMarkerScale(IKMarker &ik_marker);
   
   // overrides from Display  
   virtual void onInitialize();
