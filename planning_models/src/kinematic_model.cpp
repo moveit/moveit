@@ -792,7 +792,8 @@ planning_models::KinematicModel::LinkModel* planning_models::KinematicModel::con
   else
   {
     result->collision_origin_transform_.setIdentity();
-    result->shape_.reset();
+    result->shape_.reset();   
+    result->shape_extents_ = Eigen::Vector3d(0.0, 0.0, 0.0);
   }
 
   if (urdf_link->visual && urdf_link->visual->geometry)
