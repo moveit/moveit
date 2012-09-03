@@ -34,6 +34,7 @@
 
 #include <actionlib/server/simple_action_server.h>
 #include <moveit_msgs/MoveGroupAction.h>
+#include <moveit_msgs/ExecuteKnownTrajectory.h>
 
 #include <tf/transform_listener.h>
 #include <plan_execution/plan_execution.h>
@@ -77,7 +78,7 @@ public:
     
     // start the service servers
     plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlanService, this);
-    //    execute_service_ = root_node_handle_.advertiseService(EXECUTE_SERVICE_NAME, &MoveGroupAction::executeTrajectoryService, this);
+    execute_service_ = root_node_handle_.advertiseService(EXECUTE_SERVICE_NAME, &MoveGroupAction::executeTrajectoryService, this);
   }
   
   void status(void)
@@ -228,7 +229,7 @@ private:
 
     return solved;
   }
-  /*
+
   bool executeTrajectoryService(moveit_msgs::ExecuteKnownTrajectory::Request &req, moveit_msgs::ExecuteKnownTrajectory::Response &res)
   {
     ROS_INFO("Received new trajectory execution service request...");
@@ -260,7 +261,7 @@ private:
     else
       return false;
   }
-  */
+
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
