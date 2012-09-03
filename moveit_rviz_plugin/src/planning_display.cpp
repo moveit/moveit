@@ -284,21 +284,16 @@ void PlanningDisplay::onInitialize(void)
   planning_scene_robot_->setVisualVisible(true);
   planning_scene_robot_->setVisible( scene_robot_enabled_property_->getBool() );
 
-  query_robot_start_ = new rviz::Robot(scene_node_, context_, "Planning Request Start", plan_category_ );
+  query_robot_start_ = new rviz::Robot(scene_node_, context_, "Planning Request Start", NULL );
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible( query_start_state_property_->getBool() );
 
-  query_robot_goal_ = new rviz::Robot(scene_node_, context_, "Planning Request Goal", plan_category_ );
+  query_robot_goal_ = new rviz::Robot(scene_node_, context_, "Planning Request Goal", NULL );
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
-   
-  // hide the "Links" subproperty
-  for (int i = 0 ; i < plan_category_->numChildren() ; ++i)
-    if (plan_category_->childAt(i)->getNameStd() == "Links")
-      plan_category_->childAt(i)->hide();
-
+  
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
   frame_ = new PlanningFrame(this, context_, window_context->getParentWindow());
   frame_dock_ = window_context->addPane("Motion Planning", frame_);  
@@ -486,7 +481,7 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   update_display_goal_state_ = true;
 }
 
-void PlanningDisplay::computeMarkerScaleAndOffset(IKMarker &ik_marker)
+void PlanningDisplay::computeMarkerScale(IKMarker &ik_marker)
 {
   ik_marker.scale = 0.0;  
   
@@ -501,8 +496,7 @@ void PlanningDisplay::computeMarkerScaleAndOffset(IKMarker &ik_marker)
   if (links.empty())
     return;
   
-  Eigen::Vector3d scale(0.0, 0.0, 0.0);
-  Eigen::Vector3d center(0.0, 0.0, 0.0);
+  std::vector<double> scale(3, 0.0);
   std::vector<double> low(3, std::numeric_limits<double>::infinity());
   std::vector<double> hi(3, -std::numeric_limits<double>::infinity());
   planning_models::KinematicState default_state(scene_monitor_->getKinematicModel());
@@ -528,10 +522,7 @@ void PlanningDisplay::computeMarkerScaleAndOffset(IKMarker &ik_marker)
   }
   
   for (int i = 0 ; i < 3 ; ++i)
-  {
     scale[i] = hi[i] - low[i];
-    center[i] = (hi[i] + low[i])/2.0;
-  }
 
   ik_marker.scale = std::max(std::max(scale[0], scale[1]), scale[2]);
 }
@@ -589,7 +580,7 @@ void PlanningDisplay::decideInteractiveMarkers(void)
       }
     }
   for (std::size_t i = 0 ; i < ik_markers_.size() ; ++i)
-    computeMarkerScaleAndOffset(ik_markers_[i]);
+    computeMarkerScale(ik_markers_[i]);
 }
 
 void PlanningDisplay::publishInteractiveMarkers(void)
@@ -647,7 +638,7 @@ void PlanningDisplay::processInteractiveMarkerFeedback(const visualization_msgs:
       }
       catch (tf::TransformException& e)
       {
-        ROS_ERROR( "Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), scene_monitor_->getPlanningScene()->getPlanningFrame().c_str());
+        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), scene_monitor_->getPlanningScene()->getPlanningFrame().c_str());
       }
     }
     if (start)
