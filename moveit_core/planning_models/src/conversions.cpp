@@ -75,7 +75,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
     return false;
   }
   
-  std::vector<Eigen::Affine3d> transf(mjs.joint_names.size());
+  EigenSTL::vector_Affine3d transf(mjs.joint_names.size());
   bool tf_problem = false;
   bool error = false;
   
