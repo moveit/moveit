@@ -60,8 +60,9 @@ public:
       If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying 
       which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
       If these params are not found either, a final attempt is made to look for the param values under /moveit_warehouse/warehouse_*.
-      If no values are found, the defaults are left to be the ones MongoDB uses. */
-  PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0);
+      If no values are found, the defaults are left to be the ones MongoDB uses. 
+      If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
+  PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 0.0);
   
   void addPlanningScene(const moveit_msgs::PlanningScene &scene);
   void addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
@@ -80,6 +81,7 @@ public:
   bool getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name, const ros::Time& time, double margin = 1.0) const;
   bool getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name) const;
 
+  bool getPlanningQuery(MotionPlanRequestWithMetadata &query_m, const std::string &scene_name, const std::string &query_name);
   void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const;  
   void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const;
 
@@ -87,10 +89,10 @@ public:
   void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &query_name, const std::string &scene_name) const;
   
   void removePlanningScene(const std::string &scene_name);
-  void removePlanningSceneQuery(const std::string &scene_name, const std::string &query_name);
-  void removePlanningSceneQueries(const std::string &scene_name);
-  void removePlanningSceneResults(const std::string &scene_name);
-  void removePlanningSceneResults(const std::string &scene_name, const std::string &query_name);
+  void removePlanningQuery(const std::string &scene_name, const std::string &query_name);
+  void removePlanningQueries(const std::string &scene_name);
+  void removePlanningResults(const std::string &scene_name);
+  void removePlanningResults(const std::string &scene_name, const std::string &query_name);
 
   const std::string& getDatabaseHost(void) const
   {
@@ -106,6 +108,7 @@ private:
   
   std::string getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
   std::string addNewPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name);
+  void connectToDatabase(void);
   
   PlanningSceneCollection     planning_scene_collection_;
   MotionPlanRequestCollection motion_plan_request_collection_;

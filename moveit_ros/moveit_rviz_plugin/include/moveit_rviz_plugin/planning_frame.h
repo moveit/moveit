@@ -89,6 +89,8 @@ private Q_SLOTS:
   void saveQueryButtonClicked(void);
   void deleteSceneButtonClicked(void);
   void deleteQueryButtonClicked(void);
+  void loadSceneButtonClicked(void);
+  void loadQueryButtonClicked(void);
 
 private:
 
@@ -106,7 +108,12 @@ private:
   void computeDeleteSceneButtonClicked(void);
   void computeDeleteQueryButtonClicked(void);
   void checkPlanningSceneTreeEnabledButtons(void);
+  void computeLoadSceneButtonClicked(void);
+  void computeLoadQueryButtonClicked(void);
   
+  ros::NodeHandle nh_;
+  ros::Publisher planning_scene_publisher_;
+
   boost::scoped_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
   

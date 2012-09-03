@@ -176,6 +176,7 @@ protected:
     std::string group;
     std::string eef_group;
     std::string tip_link;
+    double scale;
   };
   
   /**
@@ -206,6 +207,7 @@ protected:
 
   void decideInteractiveMarkers(void);
   void publishInteractiveMarkers(void);
+  void computeMarkerScaleAndOffset(IKMarker &ik_marker);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -236,6 +238,7 @@ protected:
   planning_models::KinematicStatePtr query_goal_state_;
   bool update_display_start_state_;
   bool update_display_goal_state_;
+  bool update_offset_transforms_;
   
   bool animating_path_;
   int current_state_;

@@ -59,7 +59,9 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->delete_scene_button, SIGNAL( clicked() ), this, SLOT( deleteSceneButtonClicked() ));
   connect( ui_->delete_query_button, SIGNAL( clicked() ), this, SLOT( deleteQueryButtonClicked() ));
   connect( ui_->planning_scene_tree, SIGNAL( itemSelectionChanged() ), this, SLOT( planningSceneItemClicked() ));
-  
+  connect( ui_->load_scene_button, SIGNAL( clicked() ), this, SLOT( loadSceneButtonClicked() ));
+  connect( ui_->load_query_button, SIGNAL( clicked() ), this, SLOT( loadQueryButtonClicked() ));
+
   ui_->tabWidget->setCurrentIndex(0);
   
   // spin a thread that will process user events
@@ -205,6 +207,20 @@ void moveit_rviz_plugin::PlanningFrame::saveSceneButtonClicked(void)
 {   
   boost::mutex::scoped_lock slock(action_lock_);
   actions_.push_back(boost::bind(&PlanningFrame::computeSaveSceneButtonClicked, this));
+  new_action_condition_.notify_all();
+}
+
+void moveit_rviz_plugin::PlanningFrame::loadSceneButtonClicked(void)
+{   
+  boost::mutex::scoped_lock slock(action_lock_);
+  actions_.push_back(boost::bind(&PlanningFrame::computeLoadSceneButtonClicked, this));
+  new_action_condition_.notify_all();
+}
+
+void moveit_rviz_plugin::PlanningFrame::loadQueryButtonClicked(void)
+{   
+  boost::mutex::scoped_lock slock(action_lock_);
+  actions_.push_back(boost::bind(&PlanningFrame::computeLoadQueryButtonClicked, this));
   new_action_condition_.notify_all();
 }
 
@@ -404,9 +420,19 @@ void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void
     ui_->database_connect_button->setUpdatesEnabled(false); 
     ui_->database_connect_button->setText(QString::fromStdString("Connecting ..."));
     ui_->database_connect_button->setUpdatesEnabled(true); 
-
-    planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(ui_->database_host->text().toStdString(),
-                                                                             ui_->database_port->value()));
+    try
+    {
+      planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(ui_->database_host->text().toStdString(),
+                                                                               ui_->database_port->value(), 5.0));
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("%s", ex.what());  
+      ui_->database_connect_button->setUpdatesEnabled(false); 
+      ui_->database_connect_button->setText(QString::fromStdString("Connect"));
+      ui_->database_connect_button->setUpdatesEnabled(true); 
+      return;
+    }
     ui_->database_connect_button->setUpdatesEnabled(false); 
     ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
     ui_->database_connect_button->setUpdatesEnabled(true); 
@@ -423,6 +449,54 @@ void moveit_rviz_plugin::PlanningFrame::computeSaveSceneButtonClicked(void)
     plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
     planning_scene_storage_->addPlanningScene(msg); 
     populatePlanningSceneTreeView();
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::computeLoadSceneButtonClicked(void)
+{
+  if (planning_scene_storage_)
+  { 
+    QList<QTreeWidgetItem *> sel = ui_->planning_scene_tree->selectedItems();
+    if (!sel.empty())
+    {
+      QTreeWidgetItem *s = sel.front();
+      if (s->type() == 1)
+      {
+        std::string scene = s->text(0).toStdString();
+        moveit_warehouse::PlanningSceneWithMetadata scene_m;
+        if (planning_scene_storage_->getPlanningScene(scene_m, scene))
+        {
+          const std::string& topic = planning_display_->getPlanningSceneTopic();
+          if (!topic.empty())
+          {
+            planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>(topic, 1);
+            planning_scene_publisher_.publish(static_cast<const moveit_msgs::PlanningScene&>(*scene_m));
+          }
+        }
+      }
+    }
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::computeLoadQueryButtonClicked(void)
+{
+  if (planning_scene_storage_)
+  { 
+    QList<QTreeWidgetItem *> sel = ui_->planning_scene_tree->selectedItems();
+    if (!sel.empty())
+    {
+      QTreeWidgetItem *s = sel.front();
+      if (s->type() == 2)
+      {
+        std::string scene = s->parent()->text(0).toStdString();
+        std::string query_name = s->text(0).toStdString();
+        moveit_warehouse::MotionPlanRequestWithMetadata mp;
+        if (planning_scene_storage_->getPlanningQuery(mp, scene, query_name))
+        {
+          // do stuff with mp
+        }
+      }
+    }
   }
 }
 
@@ -491,7 +565,7 @@ void moveit_rviz_plugin::PlanningFrame::computeDeleteQueryButtonClicked(void)
       {
         std::string scene = s->parent()->text(0).toStdString();
         std::string query_name = s->text(0).toStdString();
-        planning_scene_storage_->removePlanningSceneQuery(scene, query_name);
+        planning_scene_storage_->removePlanningQuery(scene, query_name);
         ui_->planning_scene_tree->setUpdatesEnabled(false);
         s->parent()->removeChild(s);  
         ui_->planning_scene_tree->setUpdatesEnabled(true);
