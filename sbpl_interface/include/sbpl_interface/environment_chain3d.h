@@ -88,6 +88,8 @@ class EnvironmentChain3D: public DiscreteSpaceInformation
 {
 public:
 
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   /**
    * @brief Default constructor
    */
