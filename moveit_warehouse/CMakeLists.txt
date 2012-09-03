@@ -18,17 +18,12 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-#uncomment if you have defined services
-#rosbuild_gensrv()
-
 #common commands for building c++ executables and libraries
 rosbuild_add_boost_directories()
 rosbuild_add_library(${PROJECT_NAME} 
   src/warehouse.cpp
   src/warehouse_connector.cpp)
-rosbuild_link_boost(${PROJECT_NAME} system)
+rosbuild_link_boost(${PROJECT_NAME} date_time thread system)
 
 rosbuild_add_executable(warehouse_connector_test test/warehouse_connector_test.cpp)
 target_link_libraries(warehouse_connector_test ${PROJECT_NAME})

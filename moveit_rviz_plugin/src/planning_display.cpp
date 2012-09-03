@@ -127,6 +127,7 @@ PlanningDisplay::PlanningDisplay() :
   frame_dock_(NULL),
   update_display_start_state_(false),
   update_display_goal_state_(false),
+  update_offset_transforms_(false),
   animating_path_(false),
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true)
@@ -161,7 +162,7 @@ PlanningDisplay::PlanningDisplay() :
   // Planning scene category -------------------------------------------------------------------------------------------
 
   scene_name_property_ =
-    new rviz::StringProperty( "Scene Name", "", "Shows the name of the planning scene",
+    new rviz::StringProperty( "Scene Name", "(noname)", "Shows the name of the planning scene",
                               scene_category_,
                               SLOT( changedSceneName() ), this );
 
@@ -204,7 +205,7 @@ PlanningDisplay::PlanningDisplay() :
 
 
   planning_scene_topic_property_ =
-    new rviz::RosTopicProperty( "Planning Scene Topic", "",
+    new rviz::RosTopicProperty( "Planning Scene Topic", "planning_scene",
                                 ros::message_traits::datatype<moveit_msgs::PlanningScene>(),
                                 "The topic on which the moveit_msgs::PlanningScene messages are received",
                                 scene_category_,
@@ -485,6 +486,56 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   update_display_goal_state_ = true;
 }
 
+void PlanningDisplay::computeMarkerScaleAndOffset(IKMarker &ik_marker)
+{
+  ik_marker.scale = 0.0;  
+  
+  if (!scene_monitor_ || !scene_monitor_->getKinematicModel())
+    return;
+  
+  const planning_models::KinematicModel::JointModelGroup *jmg = scene_monitor_->getKinematicModel()->getJointModelGroup(ik_marker.eef_group);
+  if (!jmg)
+    return;
+  
+  const std::vector<std::string> &links = jmg->getLinkModelNames();
+  if (links.empty())
+    return;
+  
+  Eigen::Vector3d scale(0.0, 0.0, 0.0);
+  Eigen::Vector3d center(0.0, 0.0, 0.0);
+  std::vector<double> low(3, std::numeric_limits<double>::infinity());
+  std::vector<double> hi(3, -std::numeric_limits<double>::infinity());
+  planning_models::KinematicState default_state(scene_monitor_->getKinematicModel());
+  default_state.setToDefaultValues();
+  for (std::size_t i = 0 ; i < links.size() ; ++i)
+  {
+    planning_models::KinematicState::LinkState *ls = default_state.getLinkState(links[i]);
+    if (!ls)
+      continue;
+    const Eigen::Vector3d &ext = ls->getLinkModel()->getShapeExtentsAtOrigin();
+
+    Eigen::Vector3d corner1 = ext/2.0;
+    corner1 = ls->getGlobalLinkTransform() * corner1;
+    Eigen::Vector3d corner2 = ext/-2.0;
+    corner2 = ls->getGlobalLinkTransform() * corner2;
+    for (int k = 0 ; k < 3 ; ++k)
+    {
+      if (low[k] > corner2[k])
+        low[k] = corner2[k];
+      if (hi[k] < corner1[k])
+        hi[k] = corner1[k];
+    }
+  }
+  
+  for (int i = 0 ; i < 3 ; ++i)
+  {
+    scale[i] = hi[i] - low[i];
+    center[i] = (hi[i] + low[i])/2.0;
+  }
+
+  ik_marker.scale = std::max(std::max(scale[0], scale[1]), scale[2]);
+}
+
 void PlanningDisplay::decideInteractiveMarkers(void)
 {
   ik_markers_.clear();
@@ -537,6 +588,8 @@ void PlanningDisplay::decideInteractiveMarkers(void)
           }
       }
     }
+  for (std::size_t i = 0 ; i < ik_markers_.size() ; ++i)
+    computeMarkerScaleAndOffset(ik_markers_[i]);
 }
 
 void PlanningDisplay::publishInteractiveMarkers(void)
@@ -555,11 +608,11 @@ void PlanningDisplay::publishInteractiveMarkers(void)
         pose.header.stamp = ros::Time::now();
         const planning_models::KinematicState::LinkState *ls = 
           s == 0 ? query_start_state_->getLinkState(ik_markers_[i].tip_link) : query_goal_state_->getLinkState(ik_markers_[i].tip_link);
-        const Eigen::Affine3d &transf = ls->getGlobalLinkTransform();
+        Eigen::Affine3d transf = ls->getGlobalLinkTransform(); 
         planning_models::msgFromPose(transf, pose.pose);
         std::string marker_name = "IK_" + boost::lexical_cast<std::string>(s) + "_" + ik_markers_[i].tip_link;
         shown_markers_[marker_name] = i;
-        visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, 0.2);
+        visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, ik_markers_[i].scale);
         int_marker_server_->insert(im);
         int_marker_server_->setCallback(im.name, boost::bind(&PlanningDisplay::processInteractiveMarkerFeedback, this, _1));
       }
@@ -571,19 +624,40 @@ void PlanningDisplay::processInteractiveMarkerFeedback(const visualization_msgs:
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
   if (it == shown_markers_.end())
     return;
+  if (!scene_monitor_ || !scene_monitor_->getPlanningScene())
+    return;
+
+  static const double IK_TIMEOUT = 0.1;
   
   if (feedback->marker_name[1] == 'K')
   {
     bool start = feedback->marker_name[3] == '0'; // start state marker
     const IKMarker &im = ik_markers_[it->second];
+    geometry_msgs::Pose target_pose = feedback->pose;
+    if (feedback->header.frame_id != scene_monitor_->getPlanningScene()->getPlanningFrame())
+    {
+      geometry_msgs::PoseStamped tpose;
+      tpose.header = feedback->header;
+      tpose.pose = feedback->pose;
+      try
+      {
+        context_->getTFClient()->transformPose(scene_monitor_->getPlanningScene()->getPlanningFrame(),
+                                               tpose, tpose);
+        target_pose = tpose.pose;
+      }
+      catch (tf::TransformException& e)
+      {
+        ROS_ERROR( "Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), scene_monitor_->getPlanningScene()->getPlanningFrame().c_str());
+      }
+    }
     if (start)
     {
-      query_start_state_->getJointStateGroup(im.group)->setFromIK(feedback->pose, im.tip_link, 0.1);
+      query_start_state_->getJointStateGroup(im.group)->setFromIK(target_pose, im.tip_link, IK_TIMEOUT);
       update_display_start_state_ = true;
     }
     else
     {
-      query_goal_state_->getJointStateGroup(im.group)->setFromIK(feedback->pose, im.tip_link, 0.1);
+      query_goal_state_->getJointStateGroup(im.group)->setFromIK(target_pose, im.tip_link, IK_TIMEOUT);
       update_display_goal_state_ = true;
     }
   }
@@ -836,7 +910,9 @@ void PlanningDisplay::onEnable()
   
   if (scene_monitor_)
     frame_->enable(scene_monitor_);
-
+  
+  update_offset_transforms_ = true;
+  
   int_marker_display_->setEnabled(true);
   publishInteractiveMarkers();
 }
@@ -878,10 +954,13 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     update_display_goal_state_ = false;
     changedQueryGoalState();
   }
-  
+
   if (!scene_monitor_)
     return;
 
+  if (update_offset_transforms_)
+    calculateOffsetPosition();
+  
   if (!animating_path_ && !trajectory_message_to_display_ && loop_display_property_->getBool() && displaying_trajectory_message_)
   {
     animating_path_ = true;
@@ -933,7 +1012,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 // Calculate Offset Position
 // ******************************************************************************************
 void PlanningDisplay::calculateOffsetPosition(void)
-{
+{  
   if (!scene_monitor_)
     return;
 
@@ -969,6 +1048,7 @@ void PlanningDisplay::calculateOffsetPosition(void)
   query_robot_goal_->setOrientation(orientation);
   planning_scene_node_->setPosition(position);
   planning_scene_node_->setOrientation(orientation);
+  update_offset_transforms_ = false;
 }
 
 // ******************************************************************************************
