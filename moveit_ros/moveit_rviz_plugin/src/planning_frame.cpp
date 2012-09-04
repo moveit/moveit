@@ -126,11 +126,11 @@ void moveit_rviz_plugin::PlanningFrame::enable(const planning_models::KinematicM
         for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
           if (desc.planner_ids[i].substr(0, group.length()) == group)
           {
-            std::string id = desc.planner_ids[i].substr(group.length() + 1);
-            if (id.size() > 1)
+            std::string id = desc.planner_ids[i].substr(group.length());
+            if (id.size() > 2)
             {
               id.resize(id.length() - 1);
-              ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id));
+              ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id.substr(1)));
             }
           }
         if (ui_->planning_algorithm_combo_box->count() == 0)
