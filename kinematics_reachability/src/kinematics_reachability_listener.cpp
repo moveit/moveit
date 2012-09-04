@@ -38,7 +38,7 @@ namespace kinematics_reachability
 
 KinematicsReachabilityListener::KinematicsReachabilityListener():KinematicsReachability(),has_workspace_(false)
 {
-  workspace_subscriber_ = node_handle_.subscribe("/workspace_tests/workspace", 1, &kinematics_reachability::KinematicsReachabilityListener::workspaceCallback, this);
+  workspace_subscriber_ = node_handle_.subscribe("workspace", 1, &kinematics_reachability::KinematicsReachabilityListener::workspaceCallback, this);
 }
 
 void KinematicsReachabilityListener::workspaceCallback(const kinematics_reachability::WorkspacePointsConstPtr &msg)
@@ -57,14 +57,17 @@ int main(int argc, char** argv)
   spinner.start();
 
   kinematics_reachability::KinematicsReachabilityListener listener;
+  listener.initialize();
   while(!listener.hasWorkspace() && ros::ok())
   {
-    sleep(0.1);
+    ROS_INFO("Waiting for workspace message");    
+    sleep(1.0);
   }
-
+  ROS_INFO("Got workspace");  
   //  listener.visualize(listener.getWorkspace(),"recorded",listener.getWorkspace().orientations[0]);
   listener.visualize(listener.getWorkspace(),"recorded");
-  ROS_INFO("Success");
+  listener.animateWorkspace(listener.getWorkspace(),
+                            0.1);
   ros::waitForShutdown();
   return(0);
 }

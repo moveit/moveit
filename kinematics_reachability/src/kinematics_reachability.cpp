@@ -42,19 +42,53 @@ namespace kinematics_reachability
 
 KinematicsReachability::KinematicsReachability():node_handle_("~")
 {
+}
+
+bool KinematicsReachability::initialize()
+{
   visualization_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("workspace_markers",0,true);
   workspace_publisher_ = node_handle_.advertise<kinematics_reachability::WorkspacePoints>("workspace",0,true);
+  robot_trajectory_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>("display_state",0,true);
   tool_offset_.setIdentity();
   tool_offset_inverse_.setIdentity();
   if(!kinematics_solver_.initialize())
-    ROS_ERROR("Could not initialize solver");
+  {
+    ROS_ERROR("Could not initialize solver");  
+    return false;    
+  }
+
+  while(!kinematics_solver_.isActive())
+  {
+    ros::Duration sleep_wait(1.0);
+    sleep_wait.sleep();
+  }
   
+  node_handle_.param("cache_origin/x", default_cache_options_.origin.x, 0.0);
+  node_handle_.param("cache_origin/y", default_cache_options_.origin.y, 0.0);
+  node_handle_.param("cache_origin/z", default_cache_options_.origin.z, 0.0);
+
+  node_handle_.param("cache_workspace_size/x", default_cache_options_.workspace_size[0], 2.0);
+  node_handle_.param("cache_workspace_size/y", default_cache_options_.workspace_size[1], 2.0);
+  node_handle_.param("cache_workspace_size/z", default_cache_options_.workspace_size[2], 2.0);
+
+  node_handle_.param("cache_workspace_resolution/x", default_cache_options_.resolution[0], 0.01);
+  node_handle_.param("cache_workspace_resolution/y", default_cache_options_.resolution[1], 0.01);
+  node_handle_.param("cache_workspace_resolution/z", default_cache_options_.resolution[2], 0.01);
+  int tmp;  
+  node_handle_.param("cache_num_solutions_per_point", tmp, 1);
+  default_cache_options_.max_solutions_per_grid_location = (unsigned int) tmp;
+  
+  node_handle_.param<std::string>("cache_filename", cache_filename_, std::string("/home/sachinc/.ros_kinematics.cache"));
+  node_handle_.param<double>("cache_timeout",default_cache_timeout_,10.0);  
+  first_time_ = true;  
+  use_cache_ = false;  
+  ROS_INFO("Initialized: Waiting for request");  
+  return true;  
 }
 
 bool KinematicsReachability::getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
                                                        const geometry_msgs::Pose &tool_frame_offset)
 {
-
   if(!computeWorkspace(workspace, tool_frame_offset))
     return false;
   removeUnreachableWorkspace(workspace);
@@ -64,11 +98,53 @@ bool KinematicsReachability::getOnlyReachableWorkspace(kinematics_reachability::
 bool KinematicsReachability::computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
                                               const geometry_msgs::Pose &tool_frame_offset)
 {
+  if(first_time_)
+  {  
+    if(generateCache(workspace.group_name,default_cache_timeout_,default_cache_options_,cache_filename_))
+      use_cache_ = true;    
+    first_time_ = false;    
+  }
+  
   setToolFrameOffset(tool_frame_offset);
   if(!sampleUniform(workspace))
     return false;
   findIKSolutions(workspace);
   return true;
+}
+
+bool KinematicsReachability::generateCache(const std::string &group_name,
+                                           double timeout,
+                                           const kinematics_cache::KinematicsCache::Options &options,
+                                           const std::string &cache_filename)
+{
+  if(!kinematics_cache_ || kinematics_cache_->getGroupName()!= group_name)
+  {    
+    std::map<std::string,kinematics::KinematicsBasePtr> kinematics_solver_map = kinematics_solver_.getPlanningSceneMonitor()->getKinematicModelLoader()->generateKinematicsSolversMap();
+    if(kinematics_solver_map.find(group_name) == kinematics_solver_map.end())
+    {
+      ROS_ERROR("Group name: %s incorrect",group_name.c_str());      
+      return false;
+    }    
+    kinematics::KinematicsBaseConstPtr kinematics_solver_local = kinematics_solver_map.find(group_name)->second;    
+    kinematics_cache_.reset(new kinematics_cache::KinematicsCache());
+    kinematics_cache_->initialize(kinematics_solver_local,
+                                  kinematics_solver_.getKinematicModel(),
+                                  options);    
+  }  
+  if(!kinematics_cache_->readFromFile(cache_filename))
+  {
+    ROS_INFO("Generating cache map online");    
+    if(!kinematics_cache_->generateCacheMap(timeout))
+    {
+      return false;
+    }          
+    if(!kinematics_cache_->writeToFile(cache_filename))
+    {
+      ROS_ERROR("Could not write to file");
+      return false;      
+    }    
+  }
+  return true;  
 }
 
 bool KinematicsReachability::computeWorkspace(kinematics_reachability::WorkspacePoints &workspace)
@@ -82,9 +158,9 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
 {
   kinematics_msgs::GetConstraintAwarePositionIK::Request request;
   kinematics_msgs::GetConstraintAwarePositionIK::Response response;
-  getDefaultIKRequest(workspace.group_name,request);
   for(unsigned int i=0; i < workspace.points.size(); ++i)
   {
+    getDefaultIKRequest(workspace.group_name,request);
     tf::Pose tmp_pose;
     tf::poseMsgToTF(workspace.points[i].pose,tmp_pose);
     tmp_pose = tmp_pose * tool_offset_inverse_;
@@ -92,12 +168,18 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
 
     request.ik_request.pose_stamped.header = workspace.header;    
     request.ik_request.pose_stamped.pose = workspace.points[i].pose;
+    if(use_cache_)
+    {      
+      if(!updateFromCache(request))
+        continue;      
+    }        
     kinematics_solver_.getIK(request,response);
     workspace.points[i].solution_code = response.error_code;
     if(response.error_code.val == response.error_code.SUCCESS)
     {      
       ROS_DEBUG("Solution   : Point %d of %d",(int) i,(int) workspace.points.size());
       workspace.points[i].robot_state = response.solution;
+      kinematics_cache_->addToCache(workspace.points[i].pose,response.solution.joint_state.position,true);         
     }
     else
     {
@@ -106,7 +188,29 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     if(i%1000 == 0 || workspace.points.size() <= 100)
       ROS_INFO("At sample %d, (%f,%f,%f)",i,workspace.points[i].pose.position.x,workspace.points[i].pose.position.y,workspace.points[i].pose.position.z);
   }
+
+  if(!kinematics_cache_->writeToFile(cache_filename_))
+  {
+    ROS_WARN("Could not write cache to file");
+  }    
 }
+
+bool KinematicsReachability::updateFromCache(kinematics_msgs::GetConstraintAwarePositionIK::Request &request)
+{
+  geometry_msgs::Pose pose = request.ik_request.pose_stamped.pose;
+  double distance_squared = (pose.position.x*pose.position.x + pose.position.y*pose.position.y + pose.position.z*pose.position.z);
+  std::pair<double,double> distances;
+  distances = kinematics_cache_->getMinMaxSquaredDistance();
+ 
+  if(distance_squared >= distances.second)
+    return false;
+  
+  kinematics_cache_->getSolution(request.ik_request.pose_stamped.pose,
+                                 0,
+                                 request.ik_request.ik_seed_state.joint_state.position);
+  return true;  
+}
+
 
 void KinematicsReachability::getPositionIndexedArrowMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                                             const std::string &marker_namespace,
@@ -155,6 +259,22 @@ void KinematicsReachability::getPositionIndexedArrowMarkers(const kinematics_rea
   }
 }
 
+  void KinematicsReachability::getPositionIndex(const kinematics_reachability::WorkspacePoints &workspace,
+						std::vector<unsigned int> &reachable_workspace,
+						std::vector<unsigned int> &unreachable_workspace)
+  {
+    unsigned int x_num_points,y_num_points,z_num_points;
+    getNumPoints(workspace,x_num_points,y_num_points,z_num_points);
+    unsigned int num_workspace_points = x_num_points*y_num_points*z_num_points*workspace.orientations.size();
+    for(unsigned int i=0; i < num_workspace_points; ++i)
+    {
+      if(workspace.points[i].solution_code.val == workspace.points[i].solution_code.SUCCESS)
+	reachable_workspace.push_back(i);
+      else
+	unreachable_workspace.push_back(i);
+    }
+  }
+
 void KinematicsReachability::getPositionIndexedMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                                        const std::string &marker_namespace,
                                                        visualization_msgs::MarkerArray &marker_array)
@@ -200,7 +320,7 @@ void KinematicsReachability::getPositionIndexedMarkers(const kinematics_reachabi
       marker.color.r = 1.0;
       marker.color.g = 0.0;
     }
-      marker.color.a = 1.0;
+    marker.color.a = 1.0;
     marker.color.b = 0.0;
     marker_array.markers.push_back(marker);
   }
@@ -241,6 +361,46 @@ void KinematicsReachability::getMarkers(const kinematics_reachability::Workspace
     marker.color.b = 0.0;
     marker_array.markers.push_back(marker);
   }
+}
+
+moveit_msgs::DisplayTrajectory KinematicsReachability::getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace, 
+									    double dT)
+{
+  moveit_msgs::DisplayTrajectory display_trajectory;
+  if(workspace.points.empty())
+     return display_trajectory;
+
+  std::vector<unsigned int> reachable_workspace, unreachable_workspace;
+  getPositionIndex(workspace,reachable_workspace,unreachable_workspace);
+  ros::Duration time_from_start(0.0);
+  bool first_time(true);  
+  for(unsigned int i=0; i < reachable_workspace.size(); ++i)
+  {
+    if(first_time)
+    {
+        display_trajectory.trajectory.joint_trajectory.joint_names = workspace.points[reachable_workspace[i]].robot_state.joint_state.name;
+        first_time = false;
+    }    
+    trajectory_msgs::JointTrajectoryPoint point;
+    point.positions = workspace.points[reachable_workspace[i]].robot_state.joint_state.position;
+    point.time_from_start = time_from_start;
+    display_trajectory.trajectory.joint_trajectory.points.push_back(point);
+    time_from_start += ros::Duration(dT);
+  }
+
+  return display_trajectory;
+}
+
+void KinematicsReachability::animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace,
+					      double dT)
+{
+  moveit_msgs::DisplayTrajectory display_trajectory = getDisplayTrajectory(workspace, dT);
+  if(display_trajectory.trajectory.joint_trajectory.points.empty())
+  {
+    ROS_WARN("No trajectory to display");
+    return;
+  }  
+  robot_trajectory_publisher_.publish(display_trajectory);
 }
 
 void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoints &workspace,
@@ -385,7 +545,7 @@ void KinematicsReachability::getNumPoints(const kinematics_reachability::Workspa
   y_num_points = (unsigned int) (y_dim/position_resolution) + 1;
   z_num_points = (unsigned int) (z_dim/position_resolution) + 1;
 
-  ROS_INFO("Num points: %d %d %d",x_num_points,y_num_points,z_num_points);
+  ROS_DEBUG("Cache dimension (num grid points) in (x,y,z): %d %d %d",x_num_points,y_num_points,z_num_points);
 }
 
 bool KinematicsReachability::sampleUniform(kinematics_reachability::WorkspacePoints &workspace)
@@ -427,7 +587,7 @@ bool KinematicsReachability::sampleUniform(kinematics_reachability::WorkspacePoi
       }
     }
   }
-  ROS_INFO("Generated %d samples",(int) workspace.points.size());
+  ROS_DEBUG("Generated %d samples for workspace points",(int) workspace.points.size());
   return true;
 }
 

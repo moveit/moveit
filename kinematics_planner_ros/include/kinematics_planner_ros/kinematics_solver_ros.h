@@ -78,13 +78,17 @@ class KinematicsSolverROS
     }
     return true;
   };
-  
-  
-  const planning_models::KinematicModelConstPtr& getKinematicModel()
+    
+  const planning_models::KinematicModelConstPtr& getKinematicModel() const
   {
     return planning_scene_monitor_->getKinematicModel();
   };
-  
+
+  const planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitor()
+  {
+    return planning_scene_monitor_;    
+  }
+    
 private:
 
   ros::ServiceServer get_ik_service_;

@@ -48,9 +48,11 @@
 #include <kinematics_reachability/WorkspacePoints.h>
 #include <kinematics_reachability/WorkspacePoint.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <moveit_msgs/DisplayTrajectory.h>
 
 // MoveIt!
 #include <kinematics_planner_ros/kinematics_solver_ros.h>
+#include <kinematics_cache/kinematics_cache.h>
 
 #include <tf/tf.h>
 #include <tf/transform_datatypes.h>
@@ -72,6 +74,8 @@ public:
   {
   };
 
+  bool initialize();
+  
   /**
    * @brief This method computes and returns a discretized reachable workspace for an arm
    */
@@ -102,11 +106,15 @@ public:
   void visualizeWithArrows(const kinematics_reachability::WorkspacePoints &workspace,
                            const std::string &marker_namespace);
 
+  void animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace,
+			double dT);
+
   bool isActive()
   {
     return kinematics_solver_.isActive();
   }
-  
+
+  moveit_msgs::DisplayTrajectory getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace, double dT);  
 
 private:
 
@@ -151,8 +159,27 @@ private:
                   std::vector<const kinematics_reachability::WorkspacePoint*> points,
                   visualization_msgs::MarkerArray &marker_array);
 
-  ros::Publisher visualization_publisher_, workspace_publisher_;
+  ros::Publisher visualization_publisher_, workspace_publisher_, robot_trajectory_publisher_;
 
+  void getPositionIndex(const kinematics_reachability::WorkspacePoints &workspace,
+			std::vector<unsigned int> &reachable_workspace,
+			std::vector<unsigned int> &unreachable_workspace);
+
+  bool generateCache(const std::string &group_name,
+                     double timeout,
+                     const kinematics_cache::KinematicsCache::Options &options,
+                     const std::string &cache_filename);
+  
+  bool updateFromCache(kinematics_msgs::GetConstraintAwarePositionIK::Request &request);
+  
+
+
+  bool first_time_, use_cache_;  
+  double default_cache_timeout_;
+  std::string cache_filename_;  
+  kinematics_cache::KinematicsCache::Options default_cache_options_;
+  kinematics_cache::KinematicsCachePtr kinematics_cache_;
+  
 protected:
 
   ros::NodeHandle node_handle_;
