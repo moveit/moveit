@@ -40,6 +40,7 @@
 #include <planning_models/kinematic_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
+#include <moveit_msgs/PlannerInterfaceDescription.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
@@ -59,13 +60,14 @@ public:
   struct Options
   {
     Options(const std::string &group_name) : group_name_(group_name),
-                                             robot_description_(ROBOT_DESCRIPTION),
-                                             joint_state_topic_(JOINT_STATE_TOPIC)
+                                             joint_state_topic_(JOINT_STATE_TOPIC),
+                                             robot_description_(ROBOT_DESCRIPTION)
     {
     }
     std::string group_name_;
-    std::string robot_description_;
     std::string joint_state_topic_;
+    std::string robot_description_;
+    planning_models::KinematicModelConstPtr kinematic_model_;
   };
   
   struct Plan
@@ -74,12 +76,14 @@ public:
     moveit_msgs::RobotTrajectory trajectory_;
   };
   
-  MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>()); 
-  MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+  MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(), const ros::Duration &wait_for_server = ros::Duration(0, 0)); 
+  MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(), const ros::Duration &wait_for_server = ros::Duration(0, 0));
 
   ~MoveGroup(void);
   
   const std::string& getName(void) const;
+
+  bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc);
   
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is not blocking (does not wait for the execution of the trajectory to complete). */
@@ -105,6 +109,11 @@ public:
 
   /** \brief Specify whether the robot is allowed to replan if it detects changes in the environment */
   void allowReplanning(bool flag);
+  
+  /** \brief If a different start state should be considered instead of the current state of the robot, this function sets that state */
+  void setStartState(const planning_models::KinematicState &start_state);
+  
+  void setStartStateToCurrentState(void);
   
   void setJointValueTarget(const std::vector<double> &group_variable_values);
 
@@ -166,6 +175,8 @@ public:
   std::vector<double> getRandomJointValues(void);
 
   Eigen::Affine3d getCurrentPose(void);
+
+  planning_models::KinematicStatePtr getCurrentState(void);
 
   void forgetJointValues(const std::string &name);
   

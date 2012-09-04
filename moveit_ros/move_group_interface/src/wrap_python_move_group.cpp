@@ -108,7 +108,7 @@ public:
 
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
   MoveGroupWrapper(const std::string &group_name) : ROSInitializer(),
-                                                    MoveGroup(group_name)
+                                                    MoveGroup(group_name, boost::shared_ptr<tf::Transformer>(), ros::Duration(5, 0))
   {
   }
   

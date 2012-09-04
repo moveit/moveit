@@ -32,6 +32,7 @@
 #include "moveit_rviz_plugin/planning_frame.h"
 #include "moveit_rviz_plugin/planning_display.h"
 #include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
 #include "ui_moveit_rviz_plugin_frame.h"
 #include <kinematic_constraints/utils.h>
 #include <planning_models/conversions.h>
@@ -61,7 +62,8 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->planning_scene_tree, SIGNAL( itemSelectionChanged() ), this, SLOT( planningSceneItemClicked() ));
   connect( ui_->load_scene_button, SIGNAL( clicked() ), this, SLOT( loadSceneButtonClicked() ));
   connect( ui_->load_query_button, SIGNAL( clicked() ), this, SLOT( loadQueryButtonClicked() ));
-
+  connect( ui_->allow_looking, SIGNAL( toggle() ), this, SLOT( allowLookingToggled() ));
+  connect( ui_->allow_replanning, SIGNAL( toggle() ), this, SLOT( allowReplanningToggled() ));
   ui_->tabWidget->setCurrentIndex(0);
   
   // spin a thread that will process user events
@@ -76,34 +78,75 @@ moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
   processing_thread_->join();
 }
 
-void moveit_rviz_plugin::PlanningFrame::enable(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor)
-{  
-  if (planning_scene_monitor)
+void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(const planning_models::KinematicModelConstPtr &kmodel)
+{
+  std::string group = planning_display_->getCurrentPlanningGroup();
+  if (!group.empty() && kmodel)
   {
-    plan_execution_.reset(new plan_execution::PlanExecution(planning_scene_monitor));
-    plan_execution_->getPlanningPipeline().displayComputedMotionPlans(false);
-    plan_execution_->getPlanningPipeline().checkSolutionPaths(true); 
-    plan_execution_->displayCostSources(true);
-
-    const planning_interface::PlannerPtr &planner_interface = plan_execution_->getPlanningPipeline().getPlannerInterface();
-    if (planner_interface)
+    if (move_group_ && move_group_->getName() == group)
+      return;
+    move_group_interface::MoveGroup::Options opt(group);
+    opt.kinematic_model_ = kmodel;
+    opt.robot_description_ = planning_display_->getRobotDescription();
+    try
     {
-      ui_->library_label->setText(QString::fromStdString(planner_interface->getDescription()));
-      std::vector<std::string> algs;
-      planner_interface->getPlanningAlgorithms(algs);
-      ui_->planning_algorithm_combo_box->clear();
-      for (std::size_t i = 0 ; i < algs.size() ; ++i)
+      move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(5, 0)));
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("%s", ex.what());
+    }
+    if (move_group_)
+    {
+      move_group_->allowLooking(ui_->allow_looking->isChecked());
+      move_group_->allowReplanning(ui_->allow_replanning->isChecked());
+    }
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::enable(const planning_models::KinematicModelConstPtr &kmodel)
+{
+  ui_->planning_algorithm_combo_box->clear();  
+  ui_->library_label->setText("");
+
+  // populate the list of known planners
+  std::string group = planning_display_->getCurrentPlanningGroup();
+  if (!group.empty() && kmodel)
+  {
+    changePlanningGroup(kmodel);
+    if (move_group_)
+    {
+      moveit_msgs::PlannerInterfaceDescription desc;
+      if (move_group_->getInterfaceDescription(desc))
       {
-        ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(algs[i]));
+        // set the label for the planning library
+        ui_->library_label->setText(QString::fromStdString(desc.name));
+        
+        // the name of a planner is either "GROUP[planner_id]" or "planner_id"
+        for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
+          if (desc.planner_ids[i].substr(0, group.length()) == group)
+          {
+            std::string id = desc.planner_ids[i].substr(group.length() + 1);
+            if (id.size() > 1)
+            {
+              id.resize(id.length() - 1);
+              ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id));
+            }
+          }
+        if (ui_->planning_algorithm_combo_box->count() == 0)
+          for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
+            ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));
       }
     }
   }
+  
+  // activate the frame
   show();
 }
 
 void moveit_rviz_plugin::PlanningFrame::disable(void)
 {
-  plan_execution_.reset();
+  move_group_.reset();
   hide();
 }
 
@@ -134,6 +177,18 @@ void moveit_rviz_plugin::PlanningFrame::processingThread(void)
       action_lock_.lock();
     }
   }
+}
+
+void moveit_rviz_plugin::PlanningFrame::allowLookingToggled(void)
+{
+  if (move_group_)
+    move_group_->allowLooking(ui_->allow_looking->isChecked());
+}
+
+void moveit_rviz_plugin::PlanningFrame::allowReplanningToggled(void)
+{
+  if (move_group_)
+    move_group_->allowReplanning(ui_->allow_replanning->isChecked());
 }
 
 void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq)
@@ -271,7 +326,8 @@ void moveit_rviz_plugin::PlanningFrame::checkPlanningSceneTreeEnabledButtons(voi
       ui_->save_query_button->setEnabled(true);
     }
     else
-    {
+    {  
+      // if the item is a query
       ui_->load_scene_button->setEnabled(false);
       ui_->load_query_button->setEnabled(true);
       ui_->delete_scene_button->setEnabled(false);
@@ -287,59 +343,50 @@ void moveit_rviz_plugin::PlanningFrame::planningSceneItemClicked(void)
 
 void moveit_rviz_plugin::PlanningFrame::computePlanButtonClicked(void)
 {
-  moveit_msgs::MotionPlanRequest mreq;
-  constructPlanningRequest(mreq);
-  plan_execution_->planOnly(mreq);
-  const plan_execution::PlanExecution::Result &res = plan_execution_->getLastResult();
-  if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
-  {
-    planning_models::KinematicStatePtr start_state(new planning_models::KinematicState(plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getCurrentState()));
-    planning_models::robotStateToKinematicState(*plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getTransforms(), res.trajectory_start_, *start_state);
-    planning_display_->displayRobotTrajectory(start_state, res.planned_trajectory_states_);
+  if (!move_group_)
+    return;
+  
+  move_group_->setStartState(*planning_display_->getQueryStartState());
+  move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
+  current_plan_.reset(new move_group_interface::MoveGroup::Plan());
+  if (move_group_->plan(*current_plan_))
     ui_->execute_button->setEnabled(true);
-  }
+  else
+    current_plan_.reset();
 }
 
 void moveit_rviz_plugin::PlanningFrame::computeExecuteButtonClicked(void)
 {
-  const plan_execution::PlanExecution::Result &res = plan_execution_->getLastResult();
-  plan_execution_->getTrajectoryExecutionManager().push(res.planned_trajectory_);
-  plan_execution_->getTrajectoryExecutionManager().execute();
-}
-
-void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClickedDisplayHelper(void)
-{ 
-  const plan_execution::PlanExecution::Result &res = plan_execution_->getLastResult();
-  if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
-  {
-    planning_models::KinematicStatePtr start_state(new planning_models::KinematicState(plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getCurrentState()));
-    planning_models::robotStateToKinematicState(*plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getTransforms(), res.trajectory_start_, *start_state);
-    planning_display_->displayRobotTrajectory(start_state, res.planned_trajectory_states_);
-  } 
+  if (move_group_ && current_plan_)
+    move_group_->execute(*current_plan_);
 }
 
 void moveit_rviz_plugin::PlanningFrame::computePlanAndExecuteButtonClicked(void)
 {    
-  moveit_msgs::MotionPlanRequest mreq;
-  constructPlanningRequest(mreq);
-  plan_execution::PlanExecution::Options opt;
-  opt.replan_ = ui_->allow_replanning->isChecked();
-  opt.look_around_ = ui_->allow_looking->isChecked();
-  opt.beforeExecutionCallback_ = boost::bind(&PlanningFrame::computePlanAndExecuteButtonClickedDisplayHelper, this);
-  plan_execution_->planAndExecute(mreq, opt);
+  if (!move_group_)
+    return;
+  move_group_->setStartState(*planning_display_->getQueryStartState());
+  move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
+  move_group_->move();
   ui_->plan_and_execute_button->setEnabled(true);
 }
 
 void moveit_rviz_plugin::PlanningFrame::computeSetStartToCurrentButtonClicked(void)
-{    
-  planning_models::KinematicStatePtr current_state(new planning_models::KinematicState(plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getCurrentState()));
-  planning_display_->setQueryStartState(current_state);
+{  
+  if (!move_group_)
+    return;
+  planning_models::KinematicStatePtr s = move_group_->getCurrentState();
+  if (s)
+    planning_display_->setQueryStartState(s);
 }
 
 void moveit_rviz_plugin::PlanningFrame::computeSetGoalToCurrentButtonClicked(void)
-{    
-  planning_models::KinematicStatePtr current_state(new planning_models::KinematicState(plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getCurrentState()));
-  planning_display_->setQueryGoalState(current_state);
+{ 
+  if (!move_group_)
+    return;
+  planning_models::KinematicStatePtr s = move_group_->getCurrentState();
+  if (s)
+    planning_display_->setQueryGoalState(s);
 }
 
 void moveit_rviz_plugin::PlanningFrame::computeRandomStatesButtonClicked(void)
@@ -446,7 +493,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSaveSceneButtonClicked(void)
   if (planning_scene_storage_)
   {
     moveit_msgs::PlanningScene msg;
-    plan_execution_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
+    planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
     planning_scene_storage_->addPlanningScene(msg); 
     populatePlanningSceneTreeView();
   }

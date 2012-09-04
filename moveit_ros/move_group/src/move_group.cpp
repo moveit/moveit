@@ -35,6 +35,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
+#include <moveit_msgs/QueryPlannerInterfaces.h>
 
 #include <tf/transform_listener.h>
 #include <plan_execution/plan_execution.h>
@@ -44,6 +45,7 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of 
 static const std::string NODE_NAME = "move_group";                   // name of node
 static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
 static const std::string EXECUTE_SERVICE_NAME="execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
+static const std::string QUERY_SERVICE_NAME="query_planner_interface"; // name of the advertised query service
 
 class MoveGroupAction
 {
@@ -79,6 +81,7 @@ public:
     // start the service servers
     plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupAction::computePlanService, this);
     execute_service_ = root_node_handle_.advertiseService(EXECUTE_SERVICE_NAME, &MoveGroupAction::executeTrajectoryService, this);
+    query_service_ = root_node_handle_.advertiseService(QUERY_SERVICE_NAME, &MoveGroupAction::queryInterface, this);
   }
   
   void status(void)
@@ -262,6 +265,21 @@ private:
       return false;
   }
 
+  bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
+  {    
+    const planning_interface::PlannerPtr &planner_interface = plan_execution_.getPlanningPipeline().getPlannerInterface();
+    if (planner_interface)
+    {
+      std::vector<std::string> algs;
+      planner_interface->getPlanningAlgorithms(algs);
+      moveit_msgs::PlannerInterfaceDescription pi_desc;
+      pi_desc.name = planner_interface->getDescription();
+      planner_interface->getPlanningAlgorithms(pi_desc.planner_ids);
+      res.planner_interfaces.push_back(pi_desc);
+    }
+    return true;
+  }
+
   ros::NodeHandle root_node_handle_;
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -273,6 +291,8 @@ private:
   
   ros::ServiceServer plan_service_;
   ros::ServiceServer execute_service_;
+  ros::ServiceServer query_service_;
+  
   MoveGroupState state_;
 };
 
