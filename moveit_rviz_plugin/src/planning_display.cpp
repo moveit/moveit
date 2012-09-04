@@ -44,7 +44,7 @@
 #include <rviz/frame_manager.h>
 #include <rviz/panel_dock_widget.h>
 #include <rviz/window_manager_interface.h>
-#include <rviz/default_plugin/interactive_marker_display.h>
+#include <rviz/display_factory.h>
 #include <interactive_markers/interactive_marker_server.h>
 
 #include <OGRE/OgreSceneManager.h>
@@ -132,9 +132,9 @@ PlanningDisplay::PlanningDisplay() :
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true)
 {  
-  int_marker_display_ = new rviz::InteractiveMarkerDisplay();
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer("planning_display_interactive_marker_topic");
-
+  int_marker_display_ = NULL;
+  
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
                               this,
@@ -298,8 +298,9 @@ void PlanningDisplay::onInitialize(void)
   frame_ = new PlanningFrame(this, context_, window_context->getParentWindow());
   frame_dock_ = window_context->addPane("Motion Planning", frame_);  
 
+  int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
   int_marker_display_->initialize(context_);
-  int_marker_display_->setTopic("planning_display_interactive_marker_topic/update");
+  int_marker_display_->subProp("Update Topic")->setValue("planning_display_interactive_marker_topic/update");  
 }
 
 // ******************************************************************************************
@@ -908,6 +909,7 @@ void PlanningDisplay::onEnable()
   update_offset_transforms_ = true;
   
   int_marker_display_->setEnabled(true);
+
   publishInteractiveMarkers();
 }
 
@@ -935,6 +937,8 @@ void PlanningDisplay::onDisable()
 // ******************************************************************************************
 void PlanningDisplay::update(float wall_dt, float ros_dt)
 {
+  int_marker_display_->update(wall_dt, ros_dt);
+  
   Display::update(wall_dt, ros_dt);
   
   if (update_display_start_state_)

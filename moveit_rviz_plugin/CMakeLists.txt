@@ -64,4 +64,4 @@ endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 rosbuild_link_boost(${PROJECT_NAME} thread)
          
 # Link libraries
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} default_plugin)
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})

@@ -58,7 +58,6 @@ class BoolProperty;
 class FloatProperty;
 class RosTopicProperty;
 class EditableEnumProperty;
-class InteractiveMarkerDisplay;
 }
 
 namespace interactive_markers
@@ -279,7 +278,7 @@ protected:
   rviz::BoolProperty* loop_display_property_;
   
   interactive_markers::InteractiveMarkerServer* int_marker_server_;
-  rviz::InteractiveMarkerDisplay *int_marker_display_;
+  rviz::Display *int_marker_display_;
 };
 
 } // namespace moveit_rviz_plugin
