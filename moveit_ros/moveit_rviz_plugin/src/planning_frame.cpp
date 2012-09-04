@@ -110,7 +110,8 @@ void moveit_rviz_plugin::PlanningFrame::enable(const planning_models::KinematicM
 {
   ui_->planning_algorithm_combo_box->clear();  
   ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
-
+  ui_->library_label->setStyleSheet("QLabel { color : red; font: bold }");
+  
   // populate the list of known planners
   std::string group = planning_display_->getCurrentPlanningGroup();
   if (!group.empty() && kmodel)
@@ -123,7 +124,8 @@ void moveit_rviz_plugin::PlanningFrame::enable(const planning_models::KinematicM
       {
         // set the label for the planning library
         ui_->library_label->setText(QString::fromStdString(desc.name));
-        
+        ui_->library_label->setStyleSheet("QLabel { color : green; font: bold }");
+
         // the name of a planner is either "GROUP[planner_id]" or "planner_id"
         for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
           if (desc.planner_ids[i].substr(0, group.length()) == group)
@@ -548,7 +550,22 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadQueryButtonClicked(void)
         moveit_warehouse::MotionPlanRequestWithMetadata mp;
         if (planning_scene_storage_->getPlanningQuery(mp, scene, query_name))
         {
-          // do stuff with mp
+          planning_models::KinematicStatePtr start_state(new planning_models::KinematicState(*planning_display_->getQueryStartState()));
+          planning_models::robotStateToKinematicState(*planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getTransforms(),
+                                                      mp->start_state, *start_state);
+          planning_display_->setQueryStartState(start_state);
+          
+          planning_models::KinematicStatePtr goal_state(new planning_models::KinematicState(*planning_display_->getQueryGoalState()));
+          for (std::size_t i = 0 ; i < mp->goal_constraints.size() ; ++i)
+            if (mp->goal_constraints[i].joint_constraints.size() > 0)
+            {
+              std::map<std::string, double> vals;
+              for (std::size_t j = 0 ; j < mp->goal_constraints[i].joint_constraints.size() ; ++j)
+                vals[mp->goal_constraints[i].joint_constraints[j].joint_name] = mp->goal_constraints[i].joint_constraints[j].position;
+              goal_state->setStateValues(vals);
+              break;
+            }
+          planning_display_->setQueryGoalState(goal_state);
         }
       }
     }
