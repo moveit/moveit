@@ -51,19 +51,21 @@ int main(int argc, char** argv)
   /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
 region in the workspace for which reachability is to be computed****/
   kinematics_reachability::KinematicsReachability reachability_solver;
+  reachability_solver.initialize();
+  
   kinematics_reachability::WorkspacePoints workspace;
   workspace.group_name = "arm";
   
-  workspace.position_resolution = 0.2;
+  workspace.position_resolution = 0.30;
   workspace.header.frame_id = "arm_base_link";
 
-  workspace.parameters.min_corner.x = 0.0;
-  workspace.parameters.min_corner.y = -0.2;
-  workspace.parameters.min_corner.z = -0.02;
+  workspace.parameters.min_corner.x =  -0.9;
+  workspace.parameters.min_corner.y = -0.9;
+  workspace.parameters.min_corner.z = -0.9;
 
-  workspace.parameters.max_corner.x = 0.8;
-  workspace.parameters.max_corner.y = 0.2;
-  workspace.parameters.max_corner.z = 0.02;
+  workspace.parameters.max_corner.x = 0.9;
+  workspace.parameters.max_corner.y = 0.9;
+  workspace.parameters.max_corner.z = 0.9;
   
   //SET OF ORIENTATIONS TO TEST FOR REACHABILITY
 
@@ -71,9 +73,9 @@ region in the workspace for which reachability is to be computed****/
   quaternion.w = 1.0;
   workspace.orientations.push_back(quaternion);
 
+  /*
   quaternion = tf::createQuaternionMsgFromYaw(M_PI/2.0);
   workspace.orientations.push_back(quaternion);
-  /*
   quaternion = tf::createQuaternionMsgFromYaw(M_PI);
   workspace.orientations.push_back(quaternion);
   */
@@ -107,6 +109,10 @@ region in the workspace for which reachability is to be computed****/
     
   reachability_solver.computeWorkspace(workspace);
   reachability_solver.visualize(workspace,"full");
+
+  reachability_solver.animateWorkspace(workspace,
+				       0.1);
+
   //  aw.visualizeWithArrows(workspace,"full");
   //  aw.visualize(workspace,"RPY(0,0,0)",zero_orientation);
   ROS_INFO("Success");

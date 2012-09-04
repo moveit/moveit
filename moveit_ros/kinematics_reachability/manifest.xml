@@ -11,6 +11,7 @@
   <depend package="kinematics_planner_ros"/>
   <depend package="kinematics_msgs"/>
   <depend package="tf"/>
+  <depend package="kinematics_cache"/>
 
 </package>
 
