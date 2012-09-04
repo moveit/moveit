@@ -64,6 +64,8 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->load_query_button, SIGNAL( clicked() ), this, SLOT( loadQueryButtonClicked() ));
   connect( ui_->allow_looking, SIGNAL( toggle() ), this, SLOT( allowLookingToggled() ));
   connect( ui_->allow_replanning, SIGNAL( toggle() ), this, SLOT( allowReplanningToggled() ));
+  connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
+
   ui_->tabWidget->setCurrentIndex(0);
   
   // spin a thread that will process user events
@@ -107,7 +109,7 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(const planning_model
 void moveit_rviz_plugin::PlanningFrame::enable(const planning_models::KinematicModelConstPtr &kmodel)
 {
   ui_->planning_algorithm_combo_box->clear();  
-  ui_->library_label->setText("");
+  ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
 
   // populate the list of known planners
   std::string group = planning_display_->getCurrentPlanningGroup();
@@ -189,6 +191,12 @@ void moveit_rviz_plugin::PlanningFrame::allowReplanningToggled(void)
 {
   if (move_group_)
     move_group_->allowReplanning(ui_->allow_replanning->isChecked());
+}
+
+void moveit_rviz_plugin::PlanningFrame::planningAlgorithmIndexChanged(int index)
+{
+  if (move_group_ && index >= 0)
+    move_group_->setPlannerId(ui_->planning_algorithm_combo_box->itemText(index).toStdString());
 }
 
 void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq)

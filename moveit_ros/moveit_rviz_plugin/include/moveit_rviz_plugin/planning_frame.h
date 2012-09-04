@@ -93,6 +93,9 @@ private Q_SLOTS:
   void deleteQueryButtonClicked(void);
   void loadSceneButtonClicked(void);
   void loadQueryButtonClicked(void);
+  void allowReplanningToggled(void);
+  void allowLookingToggled(void);
+  void planningAlgorithmIndexChanged(int index);
 
 private:
 
@@ -112,8 +115,7 @@ private:
   void checkPlanningSceneTreeEnabledButtons(void);
   void computeLoadSceneButtonClicked(void);
   void computeLoadQueryButtonClicked(void);
-  void allowReplanningToggled(void);
-  void allowLookingToggled(void);
+
   
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
