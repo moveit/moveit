@@ -133,10 +133,6 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   {
     ROS_ERROR("Kinematic model not loaded");
   }
-  occupancy_map_monitor::OccupancyMapMonitor::Options opt;
-  opt.map_frame = scene_->getPlanningFrame();
-  octomap_monitor_.reset(new occupancy_map_monitor::OccupancyMapMonitor(opt, tf_));
-  octomap_monitor_->setUpdateCallback(boost::bind(&PlanningSceneMonitor::octomapUpdateCallback, this));
   
   publish_planning_scene_frequency_ = 2.0;
   new_scene_update_ = false;
@@ -343,13 +339,15 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionMapCallback(const mo
 void planning_scene_monitor::PlanningSceneMonitor::lockScene(void)
 {
   scene_update_mutex_.lock();
-  octomap_monitor_->lockOcTree();
+  if (octomap_monitor_)
+    octomap_monitor_->lockOcTree();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::unlockScene(void)
 {
-  scene_update_mutex_.unlock();
-  octomap_monitor_->unlockOcTree();
+  scene_update_mutex_.unlock();  
+  if (octomap_monitor_)
+    octomap_monitor_->unlockOcTree();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string &scene_topic)
@@ -420,7 +418,15 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
     planning_scene_world_subscriber_ = root_nh_.subscribe(planning_scene_world_topic, 1, &PlanningSceneMonitor::newPlanningSceneWorldCallback, this);
     ROS_INFO("Listening to '%s' for planning scene world geometry", planning_scene_world_topic.c_str());
   }
-
+  
+  if (!octomap_monitor_)
+  {
+    occupancy_map_monitor::OccupancyMapMonitor::Options opt;
+    opt.map_frame = scene_->getPlanningFrame();
+    octomap_monitor_.reset(new occupancy_map_monitor::OccupancyMapMonitor(opt, tf_));
+    octomap_monitor_->setUpdateCallback(boost::bind(&PlanningSceneMonitor::octomapUpdateCallback, this));
+  }
+  
   octomap_monitor_->startMonitor();
 }
 
@@ -442,7 +448,8 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor(void
       ROS_INFO("Stopping world geometry monitor");
       planning_scene_world_subscriber_.shutdown();
     } 
-  octomap_monitor_->stopMonitor();
+  if (octomap_monitor_)
+    octomap_monitor_->stopMonitor();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::string &joint_states_topic, const std::string &attached_objects_topic)
