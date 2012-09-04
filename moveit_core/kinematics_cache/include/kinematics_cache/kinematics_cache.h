@@ -54,7 +54,6 @@ namespace kinematics_cache
 
     struct Options
     {
-      unsigned int num_prefix;
       geometry_msgs::Point origin;
       boost::array<double,3> workspace_size;
       boost::array<double,3> resolution;
@@ -103,7 +102,7 @@ namespace kinematics_cache
      *  @return False if any error occured during initialization
      */
     bool initialize(kinematics::KinematicsBaseConstPtr &solver,
-                    planning_models::KinematicModelConstPtr &kinematic_model,
+                    const planning_models::KinematicModelConstPtr &kinematic_model,
                     const KinematicsCache::Options &opt);    
 
     /** @brief Return the instance of the kinematics solver */
@@ -124,6 +123,23 @@ namespace kinematics_cache
       return options_;
     }
 
+    const std::string getGroupName()
+    {
+      return kinematics_solver_->getGroupName();
+    }
+    
+    /** @brief Add a new solution to the cache at the given location 
+     **/
+    bool addToCache(const geometry_msgs::Pose &pose, 
+		    const std::vector<double> &joint_values,
+                    bool overwrite = false);   
+
+    bool writeToFile(const std::string &filename);
+    
+    bool readFromFile(const std::string &filename);
+
+    std::pair<double,double> getMinMaxSquaredDistance();
+    
   private:    
 
     /** @brief Get the location of a solution given the grid index and solution index */
@@ -131,12 +147,14 @@ namespace kinematics_cache
     
     /** @brief Get a solution for the grid index given the solution index */
     std::vector<double> getSolution(unsigned int grid_index, unsigned int solution_index) const;
-    
-    /** @brief Add a new solution to the cache at the given location */
-    bool addToCache(const geometry_msgs::Pose &pose, const std::vector<double> &joint_values);    
-        
+            
     /** @brief Get the grid index for a given pose */
     bool getGridIndex(const geometry_msgs::Pose &pose, unsigned int &grid_index) const;    
+
+    /** @brief Setup the cache */
+    void setup(const KinematicsCache::Options &opt);    
+
+    void updateDistances(const geometry_msgs::Pose &pose);    
     
     KinematicsCache::Options options_; /** Internal copy of cache parameters */
     geometry_msgs::Point cache_origin_;/** Origin for cache workspace */
@@ -160,7 +178,11 @@ namespace kinematics_cache
     boost::shared_ptr<planning_models::KinematicState::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
     
     //    mutable std::vector<double> solution_local_; /** Local pre-allocated storage */
+
+    double min_squared_distance_, max_squared_distance_;    
   };
+
+typedef boost::shared_ptr<KinematicsCache> KinematicsCachePtr;
     
 }
 
