@@ -36,17 +36,18 @@
 *********************************************************************/
 
 #include <kinematics_cache/kinematics_cache.h>
+#include <fstream>
+#include <iostream>
 
 namespace kinematics_cache
 {
 
-KinematicsCache::KinematicsCache()
-{
-  
+KinematicsCache::KinematicsCache():min_squared_distance_(1e6),max_squared_distance_(0.0)
+{  
 }
 
 bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr &kinematics_solver,
-                                 planning_models::KinematicModelConstPtr &kinematic_model,
+                                 const planning_models::KinematicModelConstPtr &kinematic_model,
                                  const KinematicsCache::Options &opt)
 {
   options_ = opt;  
@@ -56,6 +57,12 @@ bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr &kinematics_
   kinematic_state_.reset(new planning_models::KinematicState(kinematic_model));
   joint_state_group_.reset(new planning_models::KinematicState::JointStateGroup(kinematic_state_.get(),joint_model_group_));
 
+  setup(opt);  
+  return true;  
+}
+
+void KinematicsCache::setup(const KinematicsCache::Options &opt)
+{
   cache_origin_ = opt.origin;
   cache_resolution_x_ = opt.resolution[0];
   cache_resolution_y_ = opt.resolution[1];
@@ -64,18 +71,20 @@ bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr &kinematics_
   cache_size_x_ = (unsigned int) (opt.workspace_size[0]/opt.resolution[0]);
   cache_size_y_ = (unsigned int) (opt.workspace_size[1]/opt.resolution[1]);
   cache_size_z_ = (unsigned int) (opt.workspace_size[2]/opt.resolution[2]);
-  max_solutions_per_grid_location_ = opt.max_solutions_per_grid_location;
+  max_solutions_per_grid_location_ = std::max((unsigned int) 1,opt.max_solutions_per_grid_location);  
   solution_dimension_ = joint_model_group_->getVariableCount();  
   size_grid_node_ = max_solutions_per_grid_location_ * solution_dimension_;  
   kinematics_cache_size_ = cache_size_x_*cache_size_y_*cache_size_z_;
   kinematics_cache_points_with_solution_ = 0;  
   kinematics_cache_vector_.resize(kinematics_cache_size_*size_grid_node_,0.0);    
   num_solutions_vector_.resize(kinematics_cache_size_,0);  
-  ROS_INFO("Origin: %f %f %f",cache_origin_.x,cache_origin_.y,cache_origin_.z);
-  ROS_INFO("Cache size: %d %d %d",cache_size_x_,cache_size_y_,cache_size_z_);  
-  ROS_INFO("Initialized");  
-  return true;  
+  ROS_DEBUG("Origin: %f %f %f",cache_origin_.x,cache_origin_.y,cache_origin_.z);
+  ROS_DEBUG("Cache size (num points x,y,z): %d %d %d",cache_size_x_,cache_size_y_,cache_size_z_);  
+  ROS_DEBUG("Cache resolution: %f %f %f",cache_resolution_x_,cache_resolution_y_,cache_resolution_z_);  
+  ROS_DEBUG("Solutions per grid location: %d",(int) max_solutions_per_grid_location_);  
+  ROS_DEBUG("Solution dimension: %d",(int) solution_dimension_);  
 }
+
 
 bool KinematicsCache::generateCacheMap(double timeout) 
 {
@@ -107,7 +116,7 @@ bool KinematicsCache::generateCacheMap(double timeout)
   return true;  
 }
 
-bool KinematicsCache::addToCache(const geometry_msgs::Pose &pose, const std::vector<double> &joint_values)
+bool KinematicsCache::addToCache(const geometry_msgs::Pose &pose, const std::vector<double> &joint_values, bool overwrite)
 {
   unsigned int grid_index;
   if(!getGridIndex(pose,grid_index))
@@ -116,20 +125,24 @@ bool KinematicsCache::addToCache(const geometry_msgs::Pose &pose, const std::vec
     return false;  
   }  
   unsigned int num_solutions = num_solutions_vector_[grid_index];  
-  if(num_solutions >= max_solutions_per_grid_location_)
+  if(!overwrite && num_solutions >= max_solutions_per_grid_location_)
   {
     ROS_DEBUG("Pose already has max number of solutions");
     return true;    
   }
   if(num_solutions == 0)
     kinematics_cache_points_with_solution_++;    
+  if(overwrite && num_solutions >= max_solutions_per_grid_location_)
+    num_solutions = 0;  
   unsigned int start_index = getSolutionLocation(grid_index,num_solutions);
   for(unsigned int i=0; i < joint_values.size(); ++i)
   {
     //    ROS_INFO("Joint value[%d]: %f, localtion: %d",i,joint_values[i],start_index+i);    
     kinematics_cache_vector_[start_index+i] = joint_values[i];    
   }
-  num_solutions_vector_[grid_index]++;  
+  if(num_solutions_vector_[grid_index] < max_solutions_per_grid_location_)
+    num_solutions_vector_[grid_index]++;  
+  updateDistances(pose);  
   return true;  
 }
 
@@ -214,4 +227,142 @@ std::vector<double> KinematicsCache::getSolution(unsigned int grid_index, unsign
   return solution_local;  
 }
 
+bool KinematicsCache::readFromFile(const std::string &filename)
+{
+  std::ifstream file(filename.c_str());
+  if(!file.is_open())
+  {
+    ROS_WARN("Could not open file: %s",filename.c_str());
+    return false;
+  }
+  std::string group_name;
+  std::getline(file,group_name);
+  if(group_name.empty())
+  {
+    ROS_ERROR("Could not find group_name in file: %s",group_name.c_str());
+    file.close();    
+    return false;
+  }  
+  if(group_name != kinematics_solver_->getGroupName())
+  {
+    ROS_ERROR("Input file group name %s does not match solver group name %s",group_name.c_str(),kinematics_solver_->getGroupName().c_str());
+    file.close();    
+    return false;
+  } 
+
+  std::string line_string;
+  std::getline(file,line_string);
+  std::stringstream line_stream(line_string);  
+  line_stream >> options_.origin.x >>  options_.origin.y >> options_.origin.z;
+  
+  std::getline(file,line_string);  
+  line_stream.clear();
+  line_stream.str("");  
+  line_stream << line_string;
+  line_stream >> options_.workspace_size[0] >> options_.workspace_size[1] >> options_.workspace_size[2];
+
+  std::getline(file,line_string);  
+  line_stream.clear();
+  line_stream.str("");  
+  line_stream << line_string;
+  line_stream >> options_.resolution[0] >> options_.resolution[1] >> options_.resolution[2];
+
+  std::getline(file,line_string);  
+  line_stream.clear();
+  line_stream.str("");  
+  line_stream << line_string;
+  line_stream >> options_.max_solutions_per_grid_location;
+
+  setup(options_);  
+
+  std::getline(file,line_string);  
+  line_stream.clear();
+  line_stream.str("");  
+  line_stream << line_string;
+  line_stream >> min_squared_distance_;
+
+  std::getline(file,line_string);  
+  line_stream.clear();
+  line_stream.str("");  
+  line_stream << line_string;
+  line_stream >> max_squared_distance_;
+
+  std::vector<double> kinematics_cache_vector;
+  std::vector<unsigned int> num_solutions_vector; 
+  std::getline(file,line_string);  
+  std::getline(file,line_string);  
+  line_stream.clear();
+  line_stream.str("");  
+  line_stream << line_string;
+  double d;
+  while(line_stream >> d)
+  {
+    kinematics_cache_vector.push_back(d);
+  }
+  
+  std::getline(file,line_string);  
+  std::getline(file,line_string);  
+  line_stream.clear();
+  line_stream.str("");  
+  line_stream << line_string;
+  unsigned int index           ;
+  while(line_stream >> index)
+  {
+    num_solutions_vector.push_back(index);
+  }
+  
+  file.close();  
+
+  kinematics_cache_vector_ = kinematics_cache_vector;
+  num_solutions_vector_ = num_solutions_vector;
+  ROS_DEBUG("Read %d total points from file: %s",(int) num_solutions_vector_.size(),filename.c_str());  
+  return true;  
+}
+
+bool KinematicsCache::writeToFile(const std::string &filename)
+{
+  ROS_DEBUG("Writing %d total points to file: %s",(int) num_solutions_vector_.size(),filename.c_str());  
+  std::ofstream file;
+  file.open(filename.c_str());
+  if(!file.is_open())
+  {
+    ROS_WARN("Could not open file: %s",filename.c_str());
+    return false;    
+  }
+  if(file.good())
+  {
+    std::string group_name = kinematics_solver_->getGroupName();
+    file << group_name << std::endl;
+    
+    file << options_.origin.x << " " << options_.origin.y << " " << options_.origin.z << std::endl;
+    file << options_.workspace_size[0] << " " << options_.workspace_size[1] << " " << options_.workspace_size[2] << std::endl;
+    file << options_.resolution[0] << " " << options_.resolution[1] << " " << options_.resolution[2] << std::endl;
+    file << options_.max_solutions_per_grid_location << std::endl;
+    file << min_squared_distance_ << std::endl;    
+    file << max_squared_distance_ << std::endl;    
+    file << kinematics_cache_vector_.size() << std::endl;
+    std::copy(kinematics_cache_vector_.begin(), kinematics_cache_vector_.end(), std::ostream_iterator<double>(file," "));
+    file << std::endl;
+    
+    file << num_solutions_vector_.size() << std::endl;  
+    std::copy(num_solutions_vector_.begin(), num_solutions_vector_.end(), std::ostream_iterator<unsigned int>(file," "));
+    file << std::endl;
+  }
+  
+  file.close();
+  return true;  
+}
+
+std::pair<double,double> KinematicsCache::getMinMaxSquaredDistance()
+{
+  return std::pair<double,double>(min_squared_distance_,max_squared_distance_);  
+}
+
+void KinematicsCache::updateDistances(const geometry_msgs::Pose &pose)
+{
+  double distance_squared = (pose.position.x*pose.position.x + pose.position.y*pose.position.y + pose.position.z*pose.position.z);
+  min_squared_distance_ = std::min<double>(distance_squared,min_squared_distance_);
+  max_squared_distance_ = std::max<double>(distance_squared,max_squared_distance_);  
+}
+                                                     
 }
