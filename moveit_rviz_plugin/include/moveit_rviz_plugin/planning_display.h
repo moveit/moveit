@@ -139,7 +139,12 @@ class PlanningDisplay : public rviz::Display
   void setQueryGoalState(const planning_models::KinematicStatePtr &goal);  
 
   std::string getCurrentPlanningGroup(void) const;
-
+  
+  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void)
+  {
+    return scene_monitor_;
+  }
+  
   void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
                               const std::vector<planning_models::KinematicStatePtr> &trajectory);
                                                 

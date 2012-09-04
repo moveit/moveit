@@ -33,7 +33,7 @@
 #define MOVEIT_RVIZ_PLUGIN_PLANNING_FRAME_
 
 #include <QWidget>
-#include <plan_execution/plan_execution.h>
+#include <move_group_interface/move_group.h>
 #include <moveit_warehouse/warehouse.h>
 #include <deque>
 #include <boost/thread.hpp>
@@ -61,7 +61,8 @@ public:
   PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);
   ~PlanningFrame(void);
 
-  void enable(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor);
+  void changePlanningGroup(const planning_models::KinematicModelConstPtr &kmodel);
+  void enable(const planning_models::KinematicModelConstPtr &kmodel);
   void disable(void);
   
 protected:
@@ -72,7 +73,8 @@ protected:
   rviz::DisplayContext* context_;
   Ui::MotionPlanningFrame *ui_;
   
-  boost::scoped_ptr<plan_execution::PlanExecution> plan_execution_;
+  boost::scoped_ptr<move_group_interface::MoveGroup> move_group_;
+  boost::scoped_ptr<move_group_interface::MoveGroup::Plan> current_plan_;
   boost::scoped_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
 
 private Q_SLOTS:
@@ -110,6 +112,8 @@ private:
   void checkPlanningSceneTreeEnabledButtons(void);
   void computeLoadSceneButtonClicked(void);
   void computeLoadQueryButtonClicked(void);
+  void allowReplanningToggled(void);
+  void allowLookingToggled(void);
   
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;

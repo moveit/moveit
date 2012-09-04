@@ -38,8 +38,11 @@
 #include "move_group_interface/move_group.h"
 #include <planning_models_loader/kinematic_model_loader.h>
 #include <planning_scene_monitor/current_state_monitor.h>
+#include <planning_models/conversions.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
+#include <moveit_msgs/QueryPlannerInterfaces.h>
+
 #include <actionlib/client/simple_action_client.h>
 #include <kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -99,12 +102,12 @@ public:
   
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf) : opt_(opt), tf_(tf)
+  MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server) : opt_(opt), tf_(tf)
   {
-    kinematic_model_ = getSharedKinematicModel(opt.robot_description_);
+    kinematic_model_ = opt.kinematic_model_ ? opt.kinematic_model_ : getSharedKinematicModel(opt.robot_description_);
     if (!getKinematicModel())
     {
-      std::string error = "Unable to construct robot model. Make sure all needed information is on the parameter server.";
+      std::string error = "Unable to construct robot model. Please make sure all needed information is on the parameter server.";
       ROS_FATAL_STREAM(error);
       throw std::runtime_error(error);
     }
@@ -137,8 +140,39 @@ public:
       current_state_monitor_ = getSharedStateMonitor(kinematic_model_, tf_);
       action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>("move_group", false));
       ROS_INFO_STREAM("Waiting for MoveGroup action server...");
-      action_client_->waitForServer();
+
+      // in case ROS time is published, wait for the time data to arrive
+      ros::Time start_time = ros::Time::now();
+      while (start_time == ros::Time::now())
+      {
+        ros::WallDuration(0.01).sleep();
+        ros::spinOnce();
+      }
+      
+      // wait for the server (and spin as needed)
+      if (wait_for_server == ros::Duration(0, 0))
+      {
+        while (node_handle_.ok() && !action_client_->isServerConnected())
+        {
+          ros::WallDuration(0.02).sleep();
+          ros::spinOnce();
+        }
+      }
+      else
+      {
+        ros::Time final_time = ros::Time::now() + wait_for_server;
+        while (node_handle_.ok() && !action_client_->isServerConnected() && final_time > ros::Time::now())
+        {
+          ros::WallDuration(0.02).sleep();
+          ros::spinOnce();
+        }
+      }
+      
+      if (!action_client_->isServerConnected())
+        throw std::runtime_error("Unable to connect to action server within allotted time");
+      
       execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
+      query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>("query_planner_interface");
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
@@ -159,10 +193,33 @@ public:
   {
     return kinematic_model_;
   }
+
+  bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc)
+  {
+    moveit_msgs::QueryPlannerInterfaces::Request req;
+    moveit_msgs::QueryPlannerInterfaces::Response res;
+    if (query_service_.call(req, res))
+      if (!res.planner_interfaces.empty())
+      {
+        desc = res.planner_interfaces.front();
+        return true;
+      }
+    return false;
+  }
   
   planning_models::KinematicState::JointStateGroup* getJointStateTarget(void)
   {
     return joint_state_target_->getJointStateGroup(opt_.group_name_);
+  }
+  
+  void setStartState(const planning_models::KinematicState &start_state)
+  {
+    considered_start_state_.reset(new planning_models::KinematicState(start_state));
+  }
+
+  void setStartStateToCurrentState(void)
+  {
+    considered_start_state_.reset();
   }
   
   void setEndEffector(const std::string &end_effector)
@@ -215,7 +272,7 @@ public:
     can_replan_ = flag;
   }
   
-  std::pair<bool, bool> getCurrentState(std::vector<double> &values, Eigen::Affine3d &pose)
+  std::pair<bool, bool> getCurrentState(planning_models::KinematicStatePtr &current_state, std::vector<double> &values, Eigen::Affine3d &pose)
   {
     if (!current_state_monitor_)
       return std::make_pair(false, false);
@@ -248,18 +305,18 @@ public:
         ROS_WARN("Joint values for monitored state are requested but the full state is not known");
     }
     
-    planning_models::KinematicStatePtr cs = current_state_monitor_->getCurrentState();
-    cs->getJointStateGroup(opt_.group_name_)->getGroupStateValues(values);
+    current_state = current_state_monitor_->getCurrentState();
+    current_state->getJointStateGroup(opt_.group_name_)->getGroupStateValues(values);
     if (!end_effector_.empty())
     {
-      const planning_models::KinematicState::LinkState *ls = cs->getLinkState(end_effector_);
+      const planning_models::KinematicState::LinkState *ls = current_state->getLinkState(end_effector_);
       if (ls)
       {
         pose = ls->getGlobalLinkTransform();
-        return std::make_pair(true,true);
+        return std::make_pair(true, true);
       }
     }
-    return std::make_pair(true,false);
+    return std::make_pair(true, false);
   }
   
   bool plan(Plan &plan)
@@ -360,6 +417,9 @@ public:
     goal.request.num_planning_attempts = 1;
     goal.request.allowed_planning_time = ros::Duration(5.0);
 
+    if (considered_start_state_)
+      planning_models::kinematicStateToRobotState(*considered_start_state_, goal.request.start_state);
+    
     if (use_joint_state_target_)
     {    
       goal.request.goal_constraints.resize(1);
@@ -373,7 +433,7 @@ public:
       pose.header.stamp = ros::Time::now();
       goal.request.goal_constraints.resize(1);
       goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(end_effector_, pose, goal_tolerance_);
-    }    
+    }
   }
   
 private:
@@ -384,9 +444,11 @@ private:
   planning_models::KinematicModelConstPtr kinematic_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > action_client_;
+  planning_models::KinematicStatePtr considered_start_state_;
   planning_models::KinematicStatePtr joint_state_target_;
   ros::Publisher trajectory_event_publisher_;
   ros::ServiceClient execute_service_;
+  ros::ServiceClient query_service_;
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
   std::string pose_reference_frame_;
@@ -397,16 +459,16 @@ private:
   bool use_joint_state_target_;
 };
 
-MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf)
+MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
 {
   if (!ros::ok())
     throw std::runtime_error("ROS does not seem to be running");
-  impl_ = new MoveGroupImpl(Options(group_name), tf ? tf : getSharedTF());
+  impl_ = new MoveGroupImpl(Options(group_name), tf ? tf : getSharedTF(), wait_for_server);
 }
 
-MoveGroup::MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf)
+MoveGroup::MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
 {
-  impl_ = new MoveGroupImpl(opt, tf ? tf : getSharedTF());
+  impl_ = new MoveGroupImpl(opt, tf ? tf : getSharedTF(), wait_for_server);
 }
 
 MoveGroup::~MoveGroup(void)
@@ -417,6 +479,11 @@ MoveGroup::~MoveGroup(void)
 const std::string& MoveGroup::getName(void) const
 {
   return impl_->getOptions().group_name_;
+}
+
+bool MoveGroup::getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc) 
+{  
+  return impl_->getInterfaceDescription(desc);  
 }
 
 bool MoveGroup::asyncMove(void)
@@ -447,6 +514,16 @@ bool MoveGroup::plan(Plan &plan)
 void MoveGroup::stop(void)
 {
   impl_->stop();
+}
+
+void MoveGroup::setStartState(const planning_models::KinematicState &start_state)
+{
+  impl_->setStartState(start_state);
+}
+
+void MoveGroup::setStartStateToCurrentState(void)
+{
+  impl_->setStartStateToCurrentState();
 }
 
 void MoveGroup::setRandomTarget(void)
@@ -615,9 +692,10 @@ void MoveGroup::rememberJointValues(const std::string &name)
 
 std::vector<double> MoveGroup::getCurrentJointValues(void)
 { 
+  planning_models::KinematicStatePtr current_state;
   std::vector<double> values;
   Eigen::Affine3d dummy;
-  impl_->getCurrentState(values, dummy);
+  impl_->getCurrentState(current_state, values, dummy);
   return values;
 }
 
@@ -635,11 +713,12 @@ std::vector<double> MoveGroup::getRandomJointValues(void)
 }
 
 Eigen::Affine3d MoveGroup::getCurrentPose(void)
-{  
+{
+  planning_models::KinematicStatePtr current_state;
   std::vector<double> dummy;
   Eigen::Affine3d pose;
   pose.setIdentity();
-  if (!impl_->getCurrentState(dummy, pose).second)
+  if (!impl_->getCurrentState(current_state, dummy, pose).second)
     ROS_ERROR("Unable to get current pose");
   return pose;
 }
@@ -647,6 +726,15 @@ Eigen::Affine3d MoveGroup::getCurrentPose(void)
 const std::vector<std::string>& MoveGroup::getJoints(void) const
 {
   return impl_->getJointStateTarget()->getJointModelGroup()->getJointModelNames();
+}
+
+planning_models::KinematicStatePtr MoveGroup::getCurrentState(void)
+{
+  planning_models::KinematicStatePtr current_state;
+  std::vector<double> dummy1;
+  Eigen::Affine3d dummy2;
+  impl_->getCurrentState(current_state, dummy1, dummy2);
+  return current_state;
 }
 
 void MoveGroup::rememberJointValues(const std::string &name, const std::vector<double> &values)

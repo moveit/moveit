@@ -13,10 +13,9 @@
   <depend package="tf"/>
   <depend package="planning_models"/>
   <depend package="planning_scene_monitor"/>
-  <depend package="plan_execution"/>
+  <depend package="move_group_interface"/>
   <depend package="moveit_msgs"/>
   <depend package="pluginlib"/>
-  <depend package="trajectory_processing"/>
   <depend package="moveit_warehouse"/>
   <depend package="interactive_markers"/>
 

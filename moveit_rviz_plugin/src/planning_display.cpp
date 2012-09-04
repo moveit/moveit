@@ -311,7 +311,7 @@ void PlanningDisplay::reset()
   loadRobotModel();
   frame_->disable();
   if (scene_monitor_)
-    frame_->enable(scene_monitor_);
+    frame_->enable(scene_monitor_->getKinematicModel());
   trajectory_message_to_display_.reset();
   displaying_trajectory_message_.reset();
   animating_path_ = false;
@@ -666,6 +666,8 @@ void PlanningDisplay::changedPlanningGroup(void)
   }
   decideInteractiveMarkers();
   publishInteractiveMarkers();
+  if (scene_monitor_)
+    frame_->changePlanningGroup(scene_monitor_->getKinematicModel());
 }
 
 std::string PlanningDisplay::getCurrentPlanningGroup(void) const
@@ -900,7 +902,7 @@ void PlanningDisplay::onEnable()
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
   
   if (scene_monitor_)
-    frame_->enable(scene_monitor_);
+    frame_->enable(scene_monitor_->getKinematicModel());
   
   update_offset_transforms_ = true;
   

@@ -53,8 +53,8 @@
 #include <fstream>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
-static const std::string BENCHMARK_SERVICE_NAME="benchmark_planning_problem"; // name of the advertised benchmarking service (within the ~ namespace)
-static const std::string QUERY_SERVICE_NAME="query_known_planner_interfaces"; // name of the advertised query service (within the ~ namespace)
+static const std::string BENCHMARK_SERVICE_NAME="benchmark_planning_problem"; // name of the advertised benchmarking service
+static const std::string QUERY_SERVICE_NAME="query_known_planner_interfaces"; // name of the advertised query service
 
 class BenchmarkService
 {
