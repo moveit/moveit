@@ -110,6 +110,8 @@ public:
   /** \brief Specify whether the robot is allowed to replan if it detects changes in the environment */
   void allowReplanning(bool flag);
   
+  void setPlannerId(const std::string &planner_id);
+  
   /** \brief If a different start state should be considered instead of the current state of the robot, this function sets that state */
   void setStartState(const planning_models::KinematicState &start_state);
   

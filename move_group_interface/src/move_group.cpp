@@ -207,6 +207,11 @@ public:
     return false;
   }
   
+  void setPlannerId(const std::string &planner_id)
+  {
+    planner_id_ = planner_id;
+  }
+  
   planning_models::KinematicState::JointStateGroup* getJointStateTarget(void)
   {
     return joint_state_target_->getJointStateGroup(opt_.group_name_);
@@ -361,6 +366,7 @@ public:
     goal.plan_only = false;
     goal.look_around = can_look_;  
     goal.replan = can_replan_;
+
     action_client_->sendGoal(goal);
     if (!wait)
       return true;
@@ -416,6 +422,7 @@ public:
     goal.request.group_name = opt_.group_name_;
     goal.request.num_planning_attempts = 1;
     goal.request.allowed_planning_time = ros::Duration(5.0);
+    goal.request.planner_id = planner_id_;
 
     if (considered_start_state_)
       planning_models::kinematicStateToRobotState(*considered_start_state_, goal.request.start_state);
@@ -451,7 +458,8 @@ private:
   ros::ServiceClient query_service_;
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
-  std::string pose_reference_frame_;
+  std::string pose_reference_frame_; 
+  std::string planner_id_;
   double goal_tolerance_;
   bool can_look_;
   bool can_replan_;
@@ -484,6 +492,11 @@ const std::string& MoveGroup::getName(void) const
 bool MoveGroup::getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc) 
 {  
   return impl_->getInterfaceDescription(desc);  
+}
+
+void MoveGroup::setPlannerId(const std::string &planner_id)
+{
+  impl_->setPlannerId(planner_id);
 }
 
 bool MoveGroup::asyncMove(void)

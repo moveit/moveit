@@ -607,6 +607,7 @@ void PlanningDisplay::publishInteractiveMarkers(void)
         int_marker_server_->insert(im);
         int_marker_server_->setCallback(im.name, boost::bind(&PlanningDisplay::processInteractiveMarkerFeedback, this, _1));
       }
+
   int_marker_server_->applyChanges();
 }
 
