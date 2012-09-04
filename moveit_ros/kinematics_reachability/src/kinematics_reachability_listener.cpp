@@ -68,6 +68,8 @@ int main(int argc, char** argv)
   listener.visualize(listener.getWorkspace(),"recorded");
   listener.animateWorkspace(listener.getWorkspace(),
                             0.1);
+  listener.visualizeWithArrows(listener.getWorkspace(),"full");
+
   ros::waitForShutdown();
   return(0);
 }

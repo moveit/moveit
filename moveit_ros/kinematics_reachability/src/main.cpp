@@ -113,7 +113,7 @@ region in the workspace for which reachability is to be computed****/
   reachability_solver.animateWorkspace(workspace,
 				       0.1);
 
-  //  aw.visualizeWithArrows(workspace,"full");
+  reachability_solver.visualizeWithArrows(workspace,"full");
   //  aw.visualize(workspace,"RPY(0,0,0)",zero_orientation);
   ROS_INFO("Success");
 
