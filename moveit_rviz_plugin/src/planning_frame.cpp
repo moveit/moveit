@@ -62,8 +62,8 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->planning_scene_tree, SIGNAL( itemSelectionChanged() ), this, SLOT( planningSceneItemClicked() ));
   connect( ui_->load_scene_button, SIGNAL( clicked() ), this, SLOT( loadSceneButtonClicked() ));
   connect( ui_->load_query_button, SIGNAL( clicked() ), this, SLOT( loadQueryButtonClicked() ));
-  connect( ui_->allow_looking, SIGNAL( toggle() ), this, SLOT( allowLookingToggled() ));
-  connect( ui_->allow_replanning, SIGNAL( toggle() ), this, SLOT( allowReplanningToggled() ));
+  connect( ui_->allow_looking, SIGNAL( toggled(bool) ), this, SLOT( allowLookingToggled(bool) ));
+  connect( ui_->allow_replanning, SIGNAL( toggled(bool) ), this, SLOT( allowReplanningToggled(bool) ));
   connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
 
   ui_->tabWidget->setCurrentIndex(0);
@@ -190,16 +190,16 @@ void moveit_rviz_plugin::PlanningFrame::processingThread(void)
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::allowLookingToggled(void)
+void moveit_rviz_plugin::PlanningFrame::allowLookingToggled(bool checked)
 {
   if (move_group_)
-    move_group_->allowLooking(ui_->allow_looking->isChecked());
+    move_group_->allowLooking(checked);
 }
 
-void moveit_rviz_plugin::PlanningFrame::allowReplanningToggled(void)
+void moveit_rviz_plugin::PlanningFrame::allowReplanningToggled(bool checked)
 {
   if (move_group_)
-    move_group_->allowReplanning(ui_->allow_replanning->isChecked());
+    move_group_->allowReplanning(checked);
 }
 
 void moveit_rviz_plugin::PlanningFrame::planningAlgorithmIndexChanged(int index)

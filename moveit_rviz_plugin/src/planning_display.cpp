@@ -664,6 +664,32 @@ void PlanningDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::Plannin
   scene_name_property_->setStdString(scene_monitor_->getPlanningScene()->getName());
   root_link_name_property_->setStdString(scene_monitor_->getPlanningScene()->getKinematicModel()->getRootLinkName());
   planning_scene_needs_render_ = true;
+  
+  std::string group = planning_group_property_->getStdString();
+  if (query_start_state_property_->getBool() && !group.empty())
+  {
+    planning_models::KinematicState::JointStateGroup *jsg = query_start_state_->getJointStateGroup(group);
+    if (jsg)
+    {
+      std::map<std::string, double> joint_state_values;
+      jsg->getGroupStateValues(joint_state_values);
+      *query_start_state_ = scene_monitor_->getPlanningScene()->getCurrentState();
+      query_start_state_->getJointStateGroup(group)->setStateValues(joint_state_values);
+    }
+  }
+
+  if (query_goal_state_property_->getBool() && !group.empty())
+  {
+    planning_models::KinematicState::JointStateGroup *jsg = query_goal_state_->getJointStateGroup(group);
+    if (jsg)
+    {
+      std::map<std::string, double> joint_state_values;
+      jsg->getGroupStateValues(joint_state_values);
+      *query_goal_state_ = scene_monitor_->getPlanningScene()->getCurrentState();
+      query_goal_state_->getJointStateGroup(group)->setStateValues(joint_state_values);
+    }
+  }
+  
 }
 
 // ******************************************************************************************

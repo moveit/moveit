@@ -92,8 +92,8 @@ private Q_SLOTS:
   void deleteQueryButtonClicked(void);
   void loadSceneButtonClicked(void);
   void loadQueryButtonClicked(void);
-  void allowReplanningToggled(void);
-  void allowLookingToggled(void);
+  void allowReplanningToggled(bool checked);
+  void allowLookingToggled(bool checked);
   void planningAlgorithmIndexChanged(int index);
 
 private:
