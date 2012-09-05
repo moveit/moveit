@@ -84,16 +84,26 @@ public:
   bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
                         const geometry_msgs::Pose &tool_frame_offset);
 
+  kinematics_reachability::WorkspacePoints computeRedundantSolutions(const std::string &group_name,
+                                                                     const geometry_msgs::PoseStamped &pose_stamped,
+                                                                     double timeout);
+
+  kinematics_reachability::WorkspacePoints computeRedundantSolutions(const std::string &group_name,
+                                                                     const geometry_msgs::PoseStamped &pose_stamped,
+                                                                     double timeout,
+                                                                     const geometry_msgs::Pose &tool_frame_offset);
+
+  bool getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
+                                 const geometry_msgs::Pose &tool_frame_offset);
+
+  void publishWorkspace(const kinematics_reachability::WorkspacePoints &workspace);
+
+
   /**
    * @brief This method visualizes a workspace region for a given arm
    */
   void visualize(const kinematics_reachability::WorkspacePoints &workspace,
                  const std::string &marker_namespace);
-    
-  bool getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
-                                 const geometry_msgs::Pose &tool_frame_offset);
-
-  void publishWorkspace(const kinematics_reachability::WorkspacePoints &workspace);
 
   void visualize(const kinematics_reachability::WorkspacePoints &workspace,
                  const std::string &marker_namespace,
@@ -114,13 +124,18 @@ public:
     return kinematics_solver_.isActive();
   }
 
-  moveit_msgs::DisplayTrajectory getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace, double dT);  
-
 private:
+
+  moveit_msgs::DisplayTrajectory getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace, double dT);  
 
   void setToolFrameOffset(const geometry_msgs::Pose &pose);
 
   void findIKSolutions(kinematics_reachability::WorkspacePoints &workspace);
+
+  void findIK(const std::string &group_name,
+              geometry_msgs::PoseStamped &pose_stamped,
+              moveit_msgs::MoveItErrorCodes &error_code,
+              moveit_msgs::RobotState &robot_state);
 
   void getDefaultIKRequest(const std::string &group_name,
                            kinematics_msgs::GetConstraintAwarePositionIK::Request &req);
@@ -175,7 +190,7 @@ private:
 
 
   bool first_time_, use_cache_;  
-  double default_cache_timeout_;
+  double default_cache_timeout_,kinematics_solver_timeout_;
   std::string cache_filename_;  
   kinematics_cache::KinematicsCache::Options default_cache_options_;
   kinematics_cache::KinematicsCachePtr kinematics_cache_;
