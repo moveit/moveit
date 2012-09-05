@@ -13,6 +13,7 @@
   <depend package="kdl_parser"/>
   <depend package="geometry_msgs"/>
   <depend package="planning_models"/>
+  <depend package="srdf"/>
 
   <export>
     <cpp cflags="`pkg-config --cflags eigen3` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ldynamics_solver"/>

@@ -36,6 +36,9 @@
 
 #include <dynamics_solver/dynamics_solver.h>
 
+//ROSOUT
+#include <ros/console.h>
+
 // KDL
 #include <kdl/jntarray.hpp>
 #include <kdl_parser/kdl_parser.hpp>
