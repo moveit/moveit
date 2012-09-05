@@ -80,8 +80,11 @@ moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
   processing_thread_->join();
 }
 
-void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(const planning_models::KinematicModelConstPtr &kmodel)
+void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
 {
+  if (!planning_display_->getPlanningSceneMonitor())
+    return;
+  const planning_models::KinematicModelConstPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
   if (!group.empty() && kmodel)
   {
@@ -106,17 +109,21 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(const planning_model
   }
 }
 
-void moveit_rviz_plugin::PlanningFrame::enable(const planning_models::KinematicModelConstPtr &kmodel)
+void moveit_rviz_plugin::PlanningFrame::enable(void)
 {
   ui_->planning_algorithm_combo_box->clear();  
   ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
   ui_->library_label->setStyleSheet("QLabel { color : red; font: bold }");
-  
+
+  if (!planning_display_->getPlanningSceneMonitor())
+    return;
+  const planning_models::KinematicModelConstPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModel();
+
   // populate the list of known planners
   std::string group = planning_display_->getCurrentPlanningGroup();
   if (!group.empty() && kmodel)
   {
-    changePlanningGroup(kmodel);
+    changePlanningGroup();
     if (move_group_)
     {
       moveit_msgs::PlannerInterfaceDescription desc;

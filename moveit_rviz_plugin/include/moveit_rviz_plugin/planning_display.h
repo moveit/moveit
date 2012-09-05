@@ -36,9 +36,9 @@
 
 #include "moveit_rviz_plugin/planning_frame.h"
 #include "moveit_rviz_plugin/planning_scene_render.h"
+#include "moveit_rviz_plugin/planning_markers.h"
 
 #include <moveit_msgs/DisplayTrajectory.h>
-#include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <ros/ros.h>
 #include <QDockWidget>
@@ -60,11 +60,6 @@ class RosTopicProperty;
 class EditableEnumProperty;
 }
 
-namespace interactive_markers
-{
-class InteractiveMarkerServer;
-}
-
 namespace moveit_rviz_plugin
 {
 
@@ -76,7 +71,7 @@ class PlanningDisplay : public rviz::Display
 {
   Q_OBJECT
 
-  public:
+public:
 
   struct TrajectoryMessageToDisplay
   {
@@ -136,7 +131,10 @@ class PlanningDisplay : public rviz::Display
 
   void setQueryStartState(const planning_models::KinematicStatePtr &start);
   void setQueryGoalState(const planning_models::KinematicStatePtr &goal);  
-
+  
+  void updateQueryStartState(void);
+  void updateQueryGoalState(void);
+  
   std::string getCurrentPlanningGroup(void) const;
   
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void)
@@ -175,14 +173,6 @@ protected:
   // Protected
   // ******************************************************************************************
   
-  struct IKMarker
-  {
-    std::string group;
-    std::string eef_group;
-    std::string tip_link;
-    double scale;
-  };
-  
   /**
    * \brief Loads a URDF from our #description_param_
    */
@@ -193,8 +183,6 @@ protected:
    */
   void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
 
-  void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
-  
   /**
    * \brief Set the robot's position, given the target frame and the planning frame
    */
@@ -209,9 +197,6 @@ protected:
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name );
   void unsetAllColors(rviz::Robot* robot);
 
-  void decideInteractiveMarkers(void);
-  void publishInteractiveMarkers(void);
-  void computeMarkerScale(IKMarker &ik_marker);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -226,18 +211,21 @@ protected:
 
   Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene
 
-  // render the planning scene
-  boost::scoped_ptr<PlanningSceneRender> planning_scene_render_;
-  
-  PlanningFrame *frame_;
-  QDockWidget* frame_dock_;
-
-  ros::Subscriber trajectory_topic_sub_;
-
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   boost::shared_ptr<TrajectoryMessageToDisplay> displaying_trajectory_message_;
   boost::shared_ptr<TrajectoryMessageToDisplay> trajectory_message_to_display_;
 
+  ros::Subscriber trajectory_topic_sub_;
+
+  // render the planning scene
+  boost::scoped_ptr<PlanningSceneRender> planning_scene_render_;
+  // interactive markers
+  boost::scoped_ptr<PlanningMarkers> markers_;
+
+  // the planning frame
+  PlanningFrame *frame_;
+  QDockWidget *frame_dock_;
+  
   planning_models::KinematicStatePtr query_start_state_;
   planning_models::KinematicStatePtr query_goal_state_;
   bool update_display_start_state_;
@@ -249,8 +237,6 @@ protected:
   float current_state_time_;
   float current_scene_time_;
   bool planning_scene_needs_render_;
-  std::vector<IKMarker> ik_markers_;
-  std::map<std::string, std::size_t> shown_markers_;
   
   // properties to show on side panel
   rviz::Property* scene_category_;
@@ -277,7 +263,6 @@ protected:
   rviz::FloatProperty* scene_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
   
-  interactive_markers::InteractiveMarkerServer* int_marker_server_;
   rviz::Display *int_marker_display_;
 };
 
