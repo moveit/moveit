@@ -29,27 +29,30 @@
 
 /* Author: Ioan Sucan */
 
-#include <rviz/robot/link_updater.h>
-#include <planning_models/kinematic_state.h>
+#include "planning_link_updater.h"
+#include <OGRE/OgreQuaternion.h>
+#include <OGRE/OgreVector3.h>
 
-namespace moveit_rviz_plugin
+bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
+                                                                Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
 {
-
-/** \brief Update the links of an rviz::Robot using a planning_models::KinematicState */
-class PlanningLinkUpdater : public rviz::LinkUpdater
-{
-public:
+  const planning_models::KinematicState::LinkState* link_state = kinematic_state_->getLinkState( link_name );
   
-  PlanningLinkUpdater(const planning_models::KinematicStateConstPtr &state)
-    : kinematic_state_(state)
+  if ( !link_state )
   {
+    return false;
   }
   
-  virtual bool getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
-                                 Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const;
+  const Eigen::Vector3d &robot_visual_position = link_state->getGlobalLinkTransform().translation();
+  Eigen::Quaterniond robot_visual_orientation(link_state->getGlobalLinkTransform().rotation());
+  visual_position = Ogre::Vector3( robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z() );
+  visual_orientation = Ogre::Quaternion( robot_visual_orientation.w(), robot_visual_orientation.x(), robot_visual_orientation.y(), robot_visual_orientation.z() );
   
-private:
-  planning_models::KinematicStateConstPtr kinematic_state_;
-};
-
+  const Eigen::Vector3d &robot_collision_position = link_state->getGlobalCollisionBodyTransform().translation();
+  Eigen::Quaterniond robot_collision_orientation(link_state->getGlobalCollisionBodyTransform().rotation());
+  collision_position = Ogre::Vector3( robot_collision_position.x(), robot_collision_position.y(), robot_collision_position.z() );
+  collision_orientation = Ogre::Quaternion( robot_collision_orientation.w(), robot_collision_orientation.x(), robot_collision_orientation.y(), robot_collision_orientation.z() );
+  
+  return true;
 }
+

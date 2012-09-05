@@ -29,27 +29,61 @@
 
 /* Author: Ioan Sucan */
 
-#include <rviz/robot/link_updater.h>
-#include <planning_models/kinematic_state.h>
+#ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_MARKERS_
+#define MOVEIT_RVIZ_PLUGIN_PLANNING_MARKERS_
+
+#include <visualization_msgs/InteractiveMarkerFeedback.h>
+#include <planning_models/kinematic_model.h>
+
+namespace interactive_markers
+{
+class InteractiveMarkerServer;
+}
+
+namespace rviz
+{
+class DisplayContext;
+}
+
 
 namespace moveit_rviz_plugin
 {
+class PlanningDisplay;
 
-/** \brief Update the links of an rviz::Robot using a planning_models::KinematicState */
-class PlanningLinkUpdater : public rviz::LinkUpdater
+class PlanningMarkers
 {
 public:
-  
-  PlanningLinkUpdater(const planning_models::KinematicStateConstPtr &state)
-    : kinematic_state_(state)
+
+  struct IKMarker
   {
-  }
+    std::string group;
+    std::string eef_group;
+    std::string tip_link;
+    double scale;
+  };
+
+  PlanningMarkers(PlanningDisplay *pdisplay, rviz::DisplayContext *context);
+  ~PlanningMarkers(void);
   
-  virtual bool getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
-                                 Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const;
+  void clear(void);
+  
+  void decideInteractiveMarkers(void);
+  void publishInteractiveMarkers(void);
   
 private:
-  planning_models::KinematicStateConstPtr kinematic_state_;
+  
+  void computeMarkerScale(IKMarker &ik_marker);
+  void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
+
+  PlanningDisplay *planning_display_;  
+  rviz::DisplayContext* context_;
+  
+  std::vector<IKMarker> ik_markers_;
+  std::map<std::string, std::size_t> shown_markers_;
+  interactive_markers::InteractiveMarkerServer* int_marker_server_;
 };
 
+  
 }
+
+#endif

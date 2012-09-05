@@ -41,7 +41,6 @@
 namespace rviz
 {
 class DisplayContext;
-class FrameManager;
 }
 
 namespace Ui
@@ -61,8 +60,8 @@ public:
   PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent = 0);
   ~PlanningFrame(void);
 
-  void changePlanningGroup(const planning_models::KinematicModelConstPtr &kmodel);
-  void enable(const planning_models::KinematicModelConstPtr &kmodel);
+  void changePlanningGroup(void);
+  void enable(void);
   void disable(void);
   
 protected:

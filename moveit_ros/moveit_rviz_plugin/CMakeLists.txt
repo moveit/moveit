@@ -47,11 +47,12 @@ include_directories(build)
 
 # Plugin Source
 set(SOURCE_FILES 
-  src/planning_frame.cpp
+  src/planning_link_updater.cpp
   src/planning_scene_render.cpp
+  src/planning_frame.cpp
+  src/planning_markers.cpp
   src/planning_display.cpp
 )
-
 
 include(CMakeDetermineSystem)
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
