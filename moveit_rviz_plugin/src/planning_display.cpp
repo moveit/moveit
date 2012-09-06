@@ -45,6 +45,7 @@
 #include <rviz/panel_dock_widget.h>
 #include <rviz/window_manager_interface.h>
 #include <rviz/display_factory.h>
+#include <rviz/ogre_helpers/movable_text.h>
 
 #include <OGRE/OgreSceneManager.h>
 
@@ -53,6 +54,8 @@
 
 #include <planning_models/conversions.h>
 #include <trajectory_processing/trajectory_tools.h>
+
+#include <boost/format.hpp>
 
 #include "planning_link_updater.h"
 
@@ -88,6 +91,8 @@ PlanningDisplay::PlanningDisplay() :
   planning_scene_needs_render_(true),
   int_marker_display_(NULL)
 {  
+  text_to_display_ = NULL;
+
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
                               this,
@@ -95,9 +100,24 @@ PlanningDisplay::PlanningDisplay() :
 
   // Category Groups
   plan_category_  = new rviz::Property( "Planning Request",   QVariant(), "", this );
+  metrics_category_ = new rviz::Property( "Planning Metrics", QVariant(), "", this );
   path_category_  = new rviz::Property( "Planned Path",   QVariant(), "", this );
   scene_category_ = new rviz::Property( "Planning Scene", QVariant(), "", this );
 
+
+  // Metrics category -----------------------------------------------------------------------------------------
+  compute_weight_limit_property_ = new rviz::BoolProperty( "Show Weight Limit", false, "Shows the weight limit at a particular pose for an end-effector",
+                                                           metrics_category_,
+                                                           SLOT( changedShowWeightLimit() ), this );
+  
+  show_manipulability_index_property_ = new rviz::BoolProperty( "Show Manipulability Index", false, "Shows the manipulability index for an end-effector",
+                                                                metrics_category_,
+                                                                SLOT( changedShowManipulabilityIndex() ), this );
+  
+  show_manipulability_region_property_ = new rviz::BoolProperty( "Show Manipulability Region", false, "Shows the manipulability region for an end-effector",
+                                                                 metrics_category_,
+                                                                 SLOT( changedShowManipulabilityRegion() ), this );
+  
   // Planning request category -----------------------------------------------------------------------------------------
   
   planning_group_property_ = new rviz::EditableEnumProperty("Planning Group", "", "The name of the group of links to plan for (from the ones defined in the SRDF)",
@@ -222,7 +242,8 @@ void PlanningDisplay::onInitialize(void)
   
   planning_scene_node_ = scene_node_->createChildSceneNode();
   planning_scene_node_->setVisible(scene_enabled_property_->getBool()); 
-
+  text_display_scene_node_ = planning_scene_node_->createChildSceneNode();
+    
   display_path_robot_ = new rviz::Robot(scene_node_, context_, "Planned Path", path_category_ );
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
@@ -266,6 +287,62 @@ void PlanningDisplay::reset()
   animating_path_ = false;
   Display::reset();
 }
+
+void PlanningDisplay::changedShowWeightLimit(void)
+{
+}
+
+void PlanningDisplay::changedShowManipulabilityIndex()
+{
+}
+
+void PlanningDisplay::changedShowManipulabilityRegion()
+{
+}
+
+
+void PlanningDisplay::displayTable(const std::map<std::string, double> &values,
+                                   const Ogre::Vector3 &pos,
+                                   const Ogre::Quaternion &orient)
+{
+  // the line we want to render
+  std::stringstream ss;
+  for (std::map<std::string, double>::const_iterator it = values.begin() ; it != values.end() ; ++it)
+    ss << boost::format("%-10s %-4.2f") % it->first % it->second << std::endl;
+  
+  if (ss.str().empty() && text_to_display_)
+  {
+    delete text_to_display_;
+    text_to_display_ = NULL;
+    return;
+  }
+  
+  if (!text_to_display_)
+  {
+    text_to_display_ = new rviz::MovableText(ss.str());
+    text_to_display_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
+    text_to_display_->setCharacterHeight(0.08);
+    text_to_display_->setColor(Ogre::ColourValue(0.1f, 0.9f, 0.5f, 1.0f)); 
+    text_to_display_->showOnTop();
+    text_display_scene_node_->attachObject(text_to_display_);
+    text_coll_object_ = context_->getSelectionManager()->createHandle();
+    context_->getSelectionManager()->addPickTechnique( text_coll_object_, text_to_display_->getMaterial() );
+    
+    /*
+    // we should add a selection manager at some point
+    SelectionHandlerPtr handler( new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id)) );
+    context_->getSelectionManager()->addObject( coll, handler );;
+    */
+  }
+  text_to_display_->setCaption(ss.str());
+  
+  text_display_scene_node_->setPosition(pos);
+  text_display_scene_node_->setOrientation(orient);
+  
+  // make sure the node is visible
+  text_display_scene_node_->setVisible(true);
+}
+
 
 // ******************************************************************************************
 // Robot Description
@@ -738,7 +815,9 @@ void PlanningDisplay::onEnable()
 // Disable
 // ******************************************************************************************
 void PlanningDisplay::onDisable()
-{
+{ 
+  delete text_to_display_;
+  text_to_display_ = NULL;
   markers_->clear();
   int_marker_display_->setEnabled(false);
   if (scene_monitor_)
@@ -778,6 +857,18 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 
   if (update_offset_transforms_)
     calculateOffsetPosition();
+
+  std::map<std::string, double> text_table;
+  if (compute_weight_limit_property_->getBool())
+    text_table["Sachin"] = 1.0;
+  if (show_manipulability_index_property_->getBool())
+    text_table["really"] = 2.0;
+  if (show_manipulability_region_property_->getBool())
+    text_table["rulZ!"] = 2.0;
+  
+  Ogre::Vector3 position( 0, 0, 2 );
+  Ogre::Quaternion orientation( 1.0, 0.0, 0.0, 0.0 );
+  displayTable(text_table, position, orientation);
   
   if (!animating_path_ && !trajectory_message_to_display_ && loop_display_property_->getBool() && displaying_trajectory_message_)
   {
