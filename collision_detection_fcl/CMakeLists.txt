@@ -18,6 +18,11 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+#find_package(PkgConfig REQUIRED)
+#pkg_check_modules(FCL REQUIRED fcl)
+#include_directories(${FCL_INCLUDE_DIRS})
+#link_directories(${FCL_LIBRARY_DIRS})
+
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME}
   src/collision_common.cpp
