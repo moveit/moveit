@@ -104,7 +104,7 @@ void PlanningMarkers::computeMarkerScale(IKMarker &ik_marker)
 void PlanningMarkers::decideInteractiveMarkers(void)
 {
   ik_markers_.clear();
-
+  
   if (!planning_display_->getPlanningSceneMonitor())
     return;
   const planning_models::KinematicModelConstPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModel();
@@ -120,13 +120,13 @@ void PlanningMarkers::decideInteractiveMarkers(void)
   
   if (!jmg || !srdf)
     return;
-  
+
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
   const std::pair<planning_models::KinematicModel::SolverAllocatorFn, planning_models::KinematicModel::SolverAllocatorMapFn> &smap = jmg->getSolverAllocators();
   
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
   if (smap.first)
-  {  
+  {
     for (std::size_t i = 0 ; i < eef.size() ; ++i)
       if (jmg->hasLinkModel(eef[i].parent_link_) && jmg->canSetStateFromIK(eef[i].parent_link_))
       {
@@ -159,7 +159,10 @@ void PlanningMarkers::decideInteractiveMarkers(void)
       }
     }
   for (std::size_t i = 0 ; i < ik_markers_.size() ; ++i)
+  {
     computeMarkerScale(ik_markers_[i]);
+    ROS_DEBUG("Using interactive marker for end-effector '%s', of scale %lf", ik_markers_[i].eef_group.c_str(), ik_markers_[i].scale);
+  }
 }
 
 void PlanningMarkers::clear(void)
@@ -200,6 +203,7 @@ void PlanningMarkers::publishInteractiveMarkers(void)
         visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, ik_markers_[i].scale);
         int_marker_server_->insert(im);
         int_marker_server_->setCallback(im.name, boost::bind(&PlanningMarkers::processInteractiveMarkerFeedback, this, _1));
+        ROS_DEBUG("Publishing interactive marker %s", marker_name.c_str());
       }
   int_marker_server_->applyChanges();
 }
