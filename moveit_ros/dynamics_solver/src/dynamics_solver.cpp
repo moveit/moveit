@@ -57,32 +57,25 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf
                                 const boost::shared_ptr<const srdf::Model> &srdf_model,
                                 const std::string &group_name)
 {
+  std::string base_name,tip_name;
   urdf_model_ = urdf_model;
   srdf_model_ = srdf_model;
   group_name_ = group_name;
-  const std::vector<srdf::Model::Group> groups = srdf_model_->getGroups();
-  bool found_group = false;    
-  std::string base_name,tip_name;
-  for(unsigned int i=0; i < groups.size(); i++)
+  kinematic_model_.reset(new planning_models::KinematicModel(urdf_model_,srdf_model_));
+  if(!kinematic_model_->hasJointModelGroup(group_name))
   {
-    if(groups[i].name_ == group_name)
-    {
-      if(groups[i].chains_.empty())
-      {
-        ROS_ERROR("SRDF does not contain chain information for group. SRDF must contain chain information to setup group.");
-        return false;
-      }
-      base_name = groups[i].chains_[0].first;
-      tip_name = groups[i].chains_[0].second;
-      found_group = true; // For now assume this is a chain until we get isChain function implemented.
-    }      
-  }
-  if(!found_group)
-  {
-    ROS_ERROR("Did not find the group %s in SRDF",group_name.c_str());
+    ROS_ERROR("Did not find the group %s in robot model",group_name.c_str());
     return false;
+  }  
+  joint_model_group_ = kinematic_model_->getJointModelGroup(group_name);
+  if(!joint_model_group_->isChain())
+  {
+    ROS_ERROR("Group %s is not a chain. Will not initialize dynamics solver",group_name_.c_str());
+    return false;    
   }
-
+  base_name = joint_model_group_->getLinkModelNames().front();
+  tip_name = joint_model_group_->getLinkModelNames().back();
+  
   KDL::Tree tree;
   if (!kdl_parser::treeFromUrdfModel(*urdf_model_, tree)) 
   {
@@ -95,13 +88,6 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf
   num_joints_ = kdl_chain_.getNrOfJoints();
   max_torques_.resize(num_joints_);
 
-  kinematic_model_.reset(new planning_models::KinematicModel(urdf_model_,srdf_model_));
-  if(!kinematic_model_->hasJointModelGroup(group_name))
-  {
-    ROS_ERROR("Did not find the group %s in robot model",group_name.c_str());
-    return false;
-  }  
-  joint_model_group_ = kinematic_model_->getJointModelGroup(group_name);
 
   const std::vector<std::string> joint_model_names = joint_model_group_->getJointModelNames();
   for(unsigned int i=0; i < joint_model_names.size(); i++)

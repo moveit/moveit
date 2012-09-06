@@ -51,24 +51,24 @@ namespace dynamics_solver
 {
 class DynamicsSolver
 {
-    public:
-
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-    DynamicsSolver();
-    
-    bool initialize(const boost::shared_ptr<const urdf::Model> &urdf_model,
-                    const boost::shared_ptr<const srdf::Model> &srdf_model,
-                    const std::string &group_name);
+public:
+  
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  
+  DynamicsSolver();
+  
+  bool initialize(const boost::shared_ptr<const urdf::Model> &urdf_model,                    
+                  const boost::shared_ptr<const srdf::Model> &srdf_model,
+                  const std::string &group_name);
       
-      bool getTorques(const std::vector<double> &joint_angles,
-                      const std::vector<double> &joint_velocities,
-                      const std::vector<double> &joint_accelerations,
-                      const std::vector<geometry_msgs::Wrench> &wrenches,
-                      std::vector<double> &torques) const;
+  bool getTorques(const std::vector<double> &joint_angles,
+                  const std::vector<double> &joint_velocities,
+                  const std::vector<double> &joint_accelerations,
+                  const std::vector<geometry_msgs::Wrench> &wrenches,
+                  std::vector<double> &torques) const;
     
-    bool getMaxPayload(const std::vector<double> &joint_angles,
-                       double &payload) const;
+  bool getMaxPayload(const std::vector<double> &joint_angles,
+                     double &payload) const;
     
 private:
 
@@ -84,6 +84,9 @@ private:
 
   planning_models::KinematicModelPtr kinematic_model_;
   const planning_models::KinematicModel::JointModelGroup* joint_model_group_;
-
 };
+
+typedef boost::shared_ptr<DynamicsSolver> DynamicsSolverPtr;
+typedef boost::shared_ptr<const DynamicsSolver> DynamicsSolverConstPtr;
+
 }

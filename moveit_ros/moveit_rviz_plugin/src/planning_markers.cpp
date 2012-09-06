@@ -239,6 +239,16 @@ void PlanningMarkers::processInteractiveMarkerFeedback(const visualization_msgs:
     {
       planning_display_->getQueryStartState()->getJointStateGroup(im.group)->setFromIK(target_pose, im.tip_link, IK_TIMEOUT);
       planning_display_->updateQueryStartState();
+      double max_payload;      
+      std::vector<double> joint_values;      
+      planning_display_->getQueryStartState()->getJointStateGroup(im.group)->getGroupStateValues(joint_values);      
+      /*      if(planning_display_->getDynamicsSolver(im.group))
+      {
+        if(planning_display_->getDynamicsSolver(im.group)->getMaxPayload(joint_values,max_payload))
+        {
+          // Do nothing for now
+        }    
+      } */     
     }
     else
     {

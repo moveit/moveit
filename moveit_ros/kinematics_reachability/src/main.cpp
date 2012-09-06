@@ -59,32 +59,24 @@ region in the workspace for which reachability is to be computed****/
   workspace.position_resolution = 0.45;
   workspace.header.frame_id = "arm_base_link";
 
-  workspace.parameters.min_corner.x =  -0.5;
-  workspace.parameters.min_corner.y = -0.5;
-  workspace.parameters.min_corner.z = -0.5;
+  workspace.parameters.min_corner.x =  -0.9;
+  workspace.parameters.min_corner.y = -0.9;
+  workspace.parameters.min_corner.z = -0.9;
 
-  workspace.parameters.max_corner.x = 0.5;
-  workspace.parameters.max_corner.y = 0.5;
-  workspace.parameters.max_corner.z = 0.5;
+  workspace.parameters.max_corner.x = 0.9;
+  workspace.parameters.max_corner.y = 0.9;
+  workspace.parameters.max_corner.z = 0.9;
   
   //SET OF ORIENTATIONS TO TEST FOR REACHABILITY
 
   geometry_msgs::Quaternion quaternion;
   quaternion.w = 1.0;
+  workspace.orientations.push_back(quaternion);  
+
+  /*  quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,-M_PI/2.0);
   workspace.orientations.push_back(quaternion);
 
-  quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,-M_PI/2.0,0.0);
-
-  geometry_msgs::Pose tool_offset;
-  tool_offset.orientation = quaternion;
-  
-  /*
-  quaternion = tf::createQuaternionMsgFromYaw(M_PI/2.0);
-  workspace.orientations.push_back(quaternion);
-  quaternion = tf::createQuaternionMsgFromYaw(M_PI);
-  workspace.orientations.push_back(quaternion);
-  */
-  /*  quaternion = tf::createQuaternionMsgFromYaw(-M_PI/2.0);
+  quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,M_PI/2.0);
   workspace.orientations.push_back(quaternion);
 
   quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,0.0);
@@ -92,7 +84,8 @@ region in the workspace for which reachability is to be computed****/
 
   quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,-M_PI/2.0,0.0);
   workspace.orientations.push_back(quaternion);
-
+  */
+  /*
   // The octants
   quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/4.0,M_PI/4.0);
   workspace.orientations.push_back(quaternion);
@@ -112,34 +105,17 @@ region in the workspace for which reachability is to be computed****/
     ROS_INFO("Waiting for planning scene to be set");
   }
     
-  // reachability_solver.computeWorkspace(workspace,tool_offset);
+  reachability_solver.computeWorkspace(workspace);
+  reachability_solver.visualize(workspace,"full");
 
-  geometry_msgs::PoseStamped pose_stamped;
-  pose_stamped.header.frame_id = "arm_base_link";
-  pose_stamped.pose.position.x = 0.5;
-  pose_stamped.pose.orientation = tool_offset.orientation;
-  
-  kinematics_reachability::WorkspacePoints workspace_1;
-  workspace_1  = reachability_solver.computeRedundantSolutions(workspace.group_name,
-                                                               pose_stamped,
-                                                               30.0,
-                                                               tool_offset);
-
-  ROS_INFO("Workspace has %d",workspace_1.points.size());
-  
-  reachability_solver.animateWorkspace(workspace_1,
+  reachability_solver.animateWorkspace(workspace,
 				       0.1);
-  
-  //  reachability_solver.visualize(workspace,"full");
 
-  //  reachability_solver.animateWorkspace(workspace,
-  //				       0.1);
-
-//  reachability_solver.visualizeWithArrows(workspace,"full_arrows");
+  reachability_solver.visualizeWithArrows(workspace,"full_arrows");
   //  aw.visualize(workspace,"RPY(0,0,0)",zero_orientation);
   ROS_INFO("Success");
 
-  //  reachability_solver.publishWorkspace(workspace);
+  reachability_solver.publishWorkspace(workspace);
 
   ros::waitForShutdown();
 

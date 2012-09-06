@@ -78,10 +78,8 @@ bool KinematicsReachability::initialize()
   node_handle_.param("cache_num_solutions_per_point", tmp, 1);
   default_cache_options_.max_solutions_per_grid_location = (unsigned int) tmp;
   
-  node_handle_.param<std::string>("cache_filename", cache_filename_, std::string("/home/sachinc/.ros_kinematics.cache"));
-  node_handle_.param<double>("cache_timeout",default_cache_timeout_,10.0);  
-  node_handle_.param<double>("kinematics_solver_timeout",kinematics_solver_timeout_,5.0);  
-
+  node_handle_.param<std::string>("cache_filename", cache_filename_, std::string("/wg/stor2a/sachinc/.ros_kinematics.cache"));
+  node_handle_.param<double>("cache_timeout",default_cache_timeout_,60.0);  
   first_time_ = true;  
   use_cache_ = false;  
   ROS_INFO("Initialized: Waiting for request");  
@@ -156,75 +154,37 @@ bool KinematicsReachability::computeWorkspace(kinematics_reachability::Workspace
   return computeWorkspace(workspace,pose);
 }
 
-kinematics_reachability::WorkspacePoints KinematicsReachability::computeRedundantSolutions(const std::string &group_name,
-                                                                                           const geometry_msgs::PoseStamped &pose_stamped,
-                                                                                           double timeout)
-{
-  geometry_msgs::Pose tool_offset;
-  tool_offset.orientation.w = 1.0;
-  return computeRedundantSolutions(group_name,pose_stamped,timeout,tool_offset);  
-}
-
-kinematics_reachability::WorkspacePoints KinematicsReachability::computeRedundantSolutions(const std::string &group_name,
-                                                                                           const geometry_msgs::PoseStamped &pose_stamped,
-                                                                                           double timeout,
-                                                                                           const geometry_msgs::Pose &tool_offset)
-{
-    kinematics_reachability::WorkspacePoints workspace;
-    workspace.header = pose_stamped.header;
-    workspace.group_name = group_name;    
-    setToolFrameOffset(tool_offset);
-
-    bool use_cache_old_value = use_cache_;
-    use_cache_ = false;    
-    ros::WallTime start_time = ros::WallTime::now();    
-    while(ros::WallTime::now()-start_time <= ros::WallDuration(timeout) && ros::ok())
-    {
-      moveit_msgs::MoveItErrorCodes error_code;
-      moveit_msgs::RobotState solution;
-      kinematics_reachability::WorkspacePoint point;
-      geometry_msgs::PoseStamped desired_pose = pose_stamped;    
-      findIK(group_name,desired_pose,error_code,solution);
-      point.pose = desired_pose.pose;
-      point.solution_code = error_code;
-      if(error_code.val == error_code.SUCCESS)
-      {
-        ROS_INFO("Succeeded");        
-        point.robot_state = solution;
-      }
-      workspace.points.push_back(point);      
-    }    
-    use_cache_ = use_cache_old_value;    
-    return workspace;    
-}
-
 void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspacePoints &workspace)
 {
+  kinematics_msgs::GetConstraintAwarePositionIK::Request request;
+  kinematics_msgs::GetConstraintAwarePositionIK::Response response;
   for(unsigned int i=0; i < workspace.points.size(); ++i)
   {
-    geometry_msgs::PoseStamped ik_pose;
-    ik_pose.pose = workspace.points[i].pose;
-    ik_pose.header = workspace.header;
+    getDefaultIKRequest(workspace.group_name,request);
+    tf::Pose tmp_pose;
+    tf::poseMsgToTF(workspace.points[i].pose,tmp_pose);
+    tmp_pose = tmp_pose * tool_offset_inverse_;
+    tf::poseTFToMsg(tmp_pose,workspace.points[i].pose);
 
-    moveit_msgs::MoveItErrorCodes error_code;
-    moveit_msgs::RobotState solution;
-    
-    findIK(workspace.group_name,ik_pose,error_code,solution);
-
-    workspace.points[i].pose = ik_pose.pose;    
-    workspace.points[i].solution_code = error_code;
-
-    if(error_code.val == error_code.SUCCESS)
+    request.ik_request.pose_stamped.header = workspace.header;    
+    request.ik_request.pose_stamped.pose = workspace.points[i].pose;
+    if(use_cache_)
+    {      
+      if(!updateFromCache(request))
+        continue;      
+    }        
+    kinematics_solver_.getIK(request,response);
+    workspace.points[i].solution_code = response.error_code;
+    if(response.error_code.val == response.error_code.SUCCESS)
     {      
       ROS_DEBUG("Solution   : Point %d of %d",(int) i,(int) workspace.points.size());
-      workspace.points[i].robot_state = solution;
-      kinematics_cache_->addToCache(workspace.points[i].pose,solution.joint_state.position,true);         
+      workspace.points[i].robot_state = response.solution;
+      kinematics_cache_->addToCache(workspace.points[i].pose,response.solution.joint_state.position,true);         
     }
     else
     {
       ROS_ERROR("No Solution: Point %d of %d",(int) i,(int) workspace.points.size());
     }
-
     if(i%1000 == 0 || workspace.points.size() <= 100)
       ROS_INFO("At sample %d, (%f,%f,%f)",i,workspace.points[i].pose.position.x,workspace.points[i].pose.position.y,workspace.points[i].pose.position.z);
   }
@@ -234,29 +194,6 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     ROS_WARN("Could not write cache to file");
   }    
 }
-
-void KinematicsReachability::findIK(const std::string &group_name,
-                                    geometry_msgs::PoseStamped &pose_stamped,
-                                    moveit_msgs::MoveItErrorCodes &error_code,
-                                    moveit_msgs::RobotState &robot_state)
-{
-  kinematics_msgs::GetConstraintAwarePositionIK::Request request;
-  kinematics_msgs::GetConstraintAwarePositionIK::Response response;
-  getDefaultIKRequest(group_name,request);
-  tf::Pose tmp_pose;
-  tf::poseMsgToTF(pose_stamped.pose,tmp_pose);
-  tmp_pose = tmp_pose * tool_offset_inverse_;
-  tf::poseTFToMsg(tmp_pose,pose_stamped.pose);  
-  request.ik_request.pose_stamped = pose_stamped;
-  if(use_cache_)
-  {      
-    updateFromCache(request);    
-  }        
-  kinematics_solver_.getIK(request,response);
-  error_code = response.error_code;
-  robot_state = response.solution;  
-}
-
 
 bool KinematicsReachability::updateFromCache(kinematics_msgs::GetConstraintAwarePositionIK::Request &request)
 {
@@ -326,10 +263,10 @@ void KinematicsReachability::getPositionIndexedArrowMarkers(const kinematics_rea
 						std::vector<unsigned int> &reachable_workspace,
 						std::vector<unsigned int> &unreachable_workspace)
   {
-    /*    unsigned int x_num_points,y_num_points,z_num_points;
+    unsigned int x_num_points,y_num_points,z_num_points;
     getNumPoints(workspace,x_num_points,y_num_points,z_num_points);
-    unsigned int num_workspace_points = x_num_points*y_num_points*z_num_points*workspace.orientations.size();*/
-    for(unsigned int i=0; i < workspace.points.size(); ++i)
+    unsigned int num_workspace_points = x_num_points*y_num_points*z_num_points*workspace.orientations.size();
+    for(unsigned int i=0; i < num_workspace_points; ++i)
     {
       if(workspace.points[i].solution_code.val == workspace.points[i].solution_code.SUCCESS)
 	reachable_workspace.push_back(i);
@@ -431,11 +368,8 @@ moveit_msgs::DisplayTrajectory KinematicsReachability::getDisplayTrajectory(cons
 {
   moveit_msgs::DisplayTrajectory display_trajectory;
   if(workspace.points.empty())
-  {    
-    ROS_WARN("No points in trajectory to display");    
-    return display_trajectory;
-  }
-  
+     return display_trajectory;
+
   std::vector<unsigned int> reachable_workspace, unreachable_workspace;
   getPositionIndex(workspace,reachable_workspace,unreachable_workspace);
   ros::Duration time_from_start(0.0);
@@ -534,7 +468,7 @@ void KinematicsReachability::getDefaultIKRequest(const std::string &group_name,
   planning_models::KinematicState::JointStateGroup joint_state_group(&kinematic_state,(const planning_models::KinematicModel::JointModelGroup*) joint_model_group);
   joint_state_group.setToRandomValues();
   
-  req.timeout = ros::Duration(kinematics_solver_timeout_);
+  req.timeout = ros::Duration(5.0);
   req.ik_request.ik_link_name = joint_model_group->getLinkModelNames().back();
   req.ik_request.ik_seed_state.joint_state.name = joint_model_group->getJointModelNames();
   joint_state_group.getGroupStateValues(req.ik_request.ik_seed_state.joint_state.position);  

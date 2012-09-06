@@ -41,41 +41,45 @@
 namespace kinematics_metrics
 {
 
-bool KinematicsMetrics::checkState(const planning_models::KinematicState &kinematic_state)
+bool KinematicsMetrics::checkState(const planning_models::KinematicState &kinematic_state,
+                                   const std::string &group_name) const
 {
-  if(!kinematic_state.hasJointStateGroup(group_name_))
+  if(!kinematic_state.hasJointStateGroup(group_name))
     return false;  
   return true;
 }
 
-Eigen::MatrixXd KinematicsMetrics::getJacobian(const planning_models::KinematicState &kinematic_state)
+Eigen::MatrixXd KinematicsMetrics::getJacobian(const planning_models::KinematicState &kinematic_state,
+                                               const std::string &group_name) const
 {
   Eigen::MatrixXd jacobian;
   Eigen::Vector3d reference_point_position(0.0,0.0,0.0);
-  std::string link_name = kinematic_state.getKinematicModel()->getJointModelGroup(group_name_)->getLinkModelNames().back();  
-  kinematic_state.getJointStateGroup(group_name_)->getJacobian(link_name,reference_point_position,jacobian);
+  std::string link_name = kinematic_state.getKinematicModel()->getJointModelGroup(group_name)->getLinkModelNames().back();  
+  kinematic_state.getJointStateGroup(group_name)->getJacobian(link_name,reference_point_position,jacobian);
   return jacobian;
 }
 
 bool KinematicsMetrics::getManipulabilityIndex(const planning_models::KinematicState &kinematic_state, 
-                                               double &manipulability_index)
+                                               const std::string &group_name,
+                                               double &manipulability_index) const
 {
-  if(!checkState(kinematic_state))
+  if(!checkState(kinematic_state,group_name))
     return false;  
-  Eigen::MatrixXd jacobian = getJacobian(kinematic_state);  
+  Eigen::MatrixXd jacobian = getJacobian(kinematic_state,group_name);  
   Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
   // Get manipulability index
-  manipulability_index = matrix.determinant();
+  manipulability_index = sqrt(matrix.determinant());
   return true;  
 }
 
 bool KinematicsMetrics::getManipulabilityEllipsoid(const planning_models::KinematicState &kinematic_state,
+                                                   const std::string &group_name,
                                                    Eigen::MatrixXcd &eigen_values,
-                                                   Eigen::MatrixXcd &eigen_vectors)
+                                                   Eigen::MatrixXcd &eigen_vectors) const
 {
-  if(!checkState(kinematic_state))
+  if(!checkState(kinematic_state,group_name))
     return false;  
-  Eigen::MatrixXd jacobian = getJacobian(kinematic_state);  
+  Eigen::MatrixXd jacobian = getJacobian(kinematic_state,group_name);  
   Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
   Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(matrix);
   eigen_values = eigensolver.eigenvalues();
@@ -83,18 +87,4 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const planning_models::Kinema
   return true;  
 }
     
-bool KinematicsMetrics::initialize(const planning_models::KinematicModelConstPtr &kinematic_model,
-                                   const std::string &group_name)
-{
-  if(!kinematic_model_->hasJointModelGroup(group_name))
-  {
-    ROS_ERROR("Kinematic model does not have group: %s",group_name.c_str());
-    return false;
-  }  
-  kinematic_model_ = kinematic_model;
-  group_name_ = group_name;
-  return true;  
-}
-
-
 } // namespace

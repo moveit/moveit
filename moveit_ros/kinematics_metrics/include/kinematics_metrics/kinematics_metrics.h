@@ -49,41 +49,37 @@ namespace kinematics_metrics
  */
 class KinematicsMetrics
 {
-public:
-  
+public:  
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  
-  
+    
   /** @class
    *  @brief Kinematics metrics
    */
-  KinematicsMetrics();    
+  KinematicsMetrics(const planning_models::KinematicModelConstPtr &kinematic_model):kinematic_model_(kinematic_model){};    
   
   bool getManipulabilityIndex(const planning_models::KinematicState &kinematic_state, 
-                              double &manipulability_index);
-  
-  
+                              const std::string &group_name,
+                              double &manipulability_index) const;
+    
   bool getManipulabilityEllipsoid(const planning_models::KinematicState &kinematic_state,
+                                  const std::string &group_name,
                                   Eigen::MatrixXcd &eigen_values,
-                                  Eigen::MatrixXcd &eigen_vectors);
-  
-  bool getMaxPayload(const planning_models::KinematicState &kinematic_state, 
-                     double &max_payload);
-  
-  bool initialize(const planning_models::KinematicModelConstPtr &kinematic_model,
-                  const std::string &group_name);
-  
+                                  Eigen::MatrixXcd &eigen_vectors) const;
+      
 protected:
   
   planning_models::KinematicModelConstPtr kinematic_model_;
   
-  std::string group_name_;
+  bool checkState(const planning_models::KinematicState &kinematic_state,
+                  const std::string &group_name) const;
   
-  bool checkState(const planning_models::KinematicState &kinematic_state);
-  
-  Eigen::MatrixXd getJacobian(const planning_models::KinematicState &kinematic_state);
+  Eigen::MatrixXd getJacobian(const planning_models::KinematicState &kinematic_state,
+                              const std::string &group_name) const;
   
 };
+
+typedef boost::shared_ptr<KinematicsMetrics> KinematicsMetricsPtr;
+typedef boost::shared_ptr<const KinematicsMetrics> KinematicsMetricsConstPtr;
 
 }
 
