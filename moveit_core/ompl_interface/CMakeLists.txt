@@ -48,7 +48,7 @@ rosbuild_add_library(${PROJECT_NAME}
 )
 
 rosbuild_add_openmp_flags(${PROJECT_NAME})
-#target_link_libraries(${PROJECT_NAME} ${OMPL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${OMPL_LIBRARIES})
 rosbuild_link_boost(${PROJECT_NAME} thread date_time serialization system filesystem)
 
 rosbuild_add_gtest(test_state_space test/test_state_space.cpp) 
