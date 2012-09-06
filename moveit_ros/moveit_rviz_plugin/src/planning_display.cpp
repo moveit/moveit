@@ -247,9 +247,9 @@ void PlanningDisplay::onInitialize(void)
   frame_ = new PlanningFrame(this, context_, window_context->getParentWindow());
   frame_dock_ = window_context->addPane("Motion Planning", frame_);  
 
-  int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
-  int_marker_display_->initialize(context_);
-  int_marker_display_->subProp("Update Topic")->setValue("planning_display_interactive_marker_topic/update");
+  //  int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
+  //  int_marker_display_->initialize(context_);
+  //  int_marker_display_->subProp("Update Topic")->setValue("planning_display_interactive_marker_topic/update");
 
   markers_.reset(new PlanningMarkers(this, context_));
 }
@@ -628,6 +628,7 @@ void PlanningDisplay::loadRobotModel(void)
   markers_->decideInteractiveMarkers();
 
   kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(scene_monitor_->getKinematicModel()));  
+  /*
   const std::vector<std::string> &groups = scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroupNames();
   for(unsigned int i=0; i < groups.size(); ++i)
   {
@@ -640,7 +641,7 @@ void PlanningDisplay::loadRobotModel(void)
         dynamics_solver_[groups[i]].reset();      
     }    
   }
-  
+  */  
 }
 
 void PlanningDisplay::loadPlanningSceneMonitor(void)
@@ -728,7 +729,7 @@ void PlanningDisplay::onEnable()
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
   frame_->enable();
   update_offset_transforms_ = true;
-  int_marker_display_->setEnabled(true);
+  //  int_marker_display_->setEnabled(true);
 
   markers_->publishInteractiveMarkers();
 }
@@ -739,7 +740,7 @@ void PlanningDisplay::onEnable()
 void PlanningDisplay::onDisable()
 {
   markers_->clear();
-  int_marker_display_->setEnabled(false);
+  //  int_marker_display_->setEnabled(false);
   if (scene_monitor_)
     scene_monitor_->stopSceneMonitor();
   display_path_robot_->setVisible(false);
@@ -756,7 +757,7 @@ void PlanningDisplay::onDisable()
 // ******************************************************************************************
 void PlanningDisplay::update(float wall_dt, float ros_dt)
 {
-  int_marker_display_->update(wall_dt, ros_dt);
+  //  int_marker_display_->update(wall_dt, ros_dt);
   
   Display::update(wall_dt, ros_dt);
   

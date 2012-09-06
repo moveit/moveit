@@ -47,7 +47,6 @@ robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_
     if (nh.getParam(robot_description_, content))
     {
       urdf::Model *umodel = new urdf::Model();
-      urdf_model_.reset(umodel);      
       urdf_.reset(umodel);
       if (umodel->initString(content))
       {
