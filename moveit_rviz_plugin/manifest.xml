@@ -18,6 +18,8 @@
   <depend package="pluginlib"/>
   <depend package="moveit_warehouse"/>
   <depend package="interactive_markers"/>
+  <depend package="kinematics_metrics"/>
+  <depend package="dynamics_solver"/>
 
   <export>
     <rviz plugin="${prefix}/lib/plugin_description.xml"/>

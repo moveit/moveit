@@ -40,6 +40,8 @@
 
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
+#include <kinematics_metrics/kinematics_metrics.h>
+#include <dynamics_solver/dynamics_solver.h>
 #include <ros/ros.h>
 #include <QDockWidget>
 
@@ -141,6 +143,16 @@ public:
   {
     return scene_monitor_;
   }
+
+  const kinematics_metrics::KinematicsMetricsPtr& getKinematicsMetrics(void)
+  {
+    return kinematics_metrics_;
+  }
+
+  const dynamics_solver::DynamicsSolverPtr& getDynamicsSolver(const std::string &group)
+  {
+    return dynamics_solver_.find(group)->second;    
+  }
   
   void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
                               const std::vector<planning_models::KinematicStatePtr> &trajectory);
@@ -237,6 +249,11 @@ protected:
   float current_state_time_;
   float current_scene_time_;
   bool planning_scene_needs_render_;
+
+  //Metric calculations
+  kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;  
+  std::map<std::string,dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
+  
   
   // properties to show on side panel
   rviz::Property* scene_category_;

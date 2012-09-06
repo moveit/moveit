@@ -626,6 +626,21 @@ void PlanningDisplay::loadRobotModel(void)
 
   loadPlanningSceneMonitor();
   markers_->decideInteractiveMarkers();
+
+  kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(scene_monitor_->getKinematicModel()));  
+  const std::vector<std::string> &groups = scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroupNames();
+  for(unsigned int i=0; i < groups.size(); ++i)
+  {
+    if(scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(groups[i])->isChain()) 
+    {
+      dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver());
+      if(!dynamics_solver_[groups[i]]->initialize(scene_monitor_->getKinematicModelLoader()->getURDFModel(),
+                                                  scene_monitor_->getKinematicModelLoader()->getSRDF(),
+                                                  groups[i]))
+        dynamics_solver_[groups[i]].reset();      
+    }    
+  }
+  
 }
 
 void PlanningDisplay::loadPlanningSceneMonitor(void)
