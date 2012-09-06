@@ -33,6 +33,7 @@
 #define MOVEIT_RVIZ_PLUGIN_PLANNING_DISPLAY_
 
 #include <rviz/display.h>
+#include <rviz/selection/selection_manager.h>
 
 #include "moveit_rviz_plugin/planning_frame.h"
 #include "moveit_rviz_plugin/planning_scene_render.h"
@@ -60,6 +61,7 @@ class BoolProperty;
 class FloatProperty;
 class RosTopicProperty;
 class EditableEnumProperty;
+class MovableText;
 }
 
 namespace moveit_rviz_plugin
@@ -179,6 +181,9 @@ private Q_SLOTS:
   void changedQueryStartState();
   void changedQueryGoalState();
   void changedPlanningGroup();
+  void changedShowWeightLimit();
+  void changedShowManipulabilityIndex();
+  void changedShowManipulabilityRegion();
   
 protected:
   // ******************************************************************************************
@@ -208,7 +213,7 @@ protected:
   void setGroupColor(rviz::Robot* robot, const std::string& group_name, float red, float green, float blue );
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name );
   void unsetAllColors(rviz::Robot* robot);
-
+  void displayTable(const std::map<std::string, double> &values, const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -222,7 +227,8 @@ protected:
   rviz::Robot* planning_scene_robot_;               ///< Handles actually drawing the robot from the planning scene
 
   Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene
-
+  Ogre::SceneNode* text_display_scene_node_;
+  
   planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
   boost::shared_ptr<TrajectoryMessageToDisplay> displaying_trajectory_message_;
   boost::shared_ptr<TrajectoryMessageToDisplay> trajectory_message_to_display_;
@@ -234,6 +240,9 @@ protected:
   // interactive markers
   boost::scoped_ptr<PlanningMarkers> markers_;
 
+  rviz::MovableText *text_to_display_;
+  rviz::CollObjectHandle text_coll_object_;
+    
   // the planning frame
   PlanningFrame *frame_;
   QDockWidget *frame_dock_;
@@ -259,7 +268,8 @@ protected:
   rviz::Property* scene_category_;
   rviz::Property* path_category_;
   rviz::Property* plan_category_;
-
+  rviz::Property* metrics_category_;
+  
   rviz::EditableEnumProperty* planning_group_property_;
   rviz::BoolProperty* query_start_state_property_;
   rviz::BoolProperty* query_goal_state_property_;
@@ -279,6 +289,9 @@ protected:
   rviz::FloatProperty* robot_scene_alpha_property_;
   rviz::FloatProperty* scene_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
+  rviz::BoolProperty* compute_weight_limit_property_;
+  rviz::BoolProperty* show_manipulability_index_property_;
+  rviz::BoolProperty* show_manipulability_region_property_;
   
   rviz::Display *int_marker_display_;
 };
