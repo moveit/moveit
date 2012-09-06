@@ -39,6 +39,7 @@
 
 #include <planning_models/kinematic_model.h>
 #include <moveit_msgs/RobotTrajectory.h>
+#include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
 #include <ros/ros.h>
 #include <moveit_controller_manager/moveit_controller_manager.h>
@@ -119,6 +120,30 @@ public:
   /// Start the execution of pushed trajectories; this does not wait for completion, but calls a callback when done.
   void execute(const ExecutionCompleteCallback &callback = ExecutionCompleteCallback(), bool auto_clear = true);
   
+  /// Add a trajectory for future execution. Optionally specify a controller to use for the trajectory. If no controller is specified, a default is used.
+  bool pushAndExecute(const moveit_msgs::RobotTrajectory &trajectory, const std::string &controller = "");
+
+  /// Add a trajectory for future execution. Optionally specify a controller to use for the trajectory. If no controller is specified, a default is used.
+  bool pushAndExecute(const trajectory_msgs::JointTrajectory &trajectory, const std::string &controller = "");
+
+  /// Add a trajectory that consists of a single state for future execution. Optionally specify a controller to use for the trajectory. If no controller is specified, a default is used.
+  bool pushAndExecute(const sensor_msgs::JointState &state, const std::string &controller = "");
+
+  /// Add a trajectory for future execution. Optionally specify a set of controllers to consider using for the trajectory. Multiple controllers can be used simultaneously
+  /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the already loaded ones.
+  /// If no controller is specified, a default is used.
+  bool pushAndExecute(const trajectory_msgs::JointTrajectory &trajectory, const std::vector<std::string> &controllers);
+
+  /// Add a trajectory for future execution. Optionally specify a set of controllers to consider using for the trajectory. Multiple controllers can be used simultaneously
+  /// to execute the different parts of the trajectory. If multiple controllers can be used, preference is given to the already loaded ones.
+  /// If no controller is specified, a default is used.
+  bool pushAndExecute(const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
+
+  /// Add a trajectory that consists of a single state for future execution. Optionally specify a set of controllers to consider using for the trajectory.
+  /// Multiple controllers can be used simultaneously to execute the different parts of the trajectory. If multiple controllers can be used, preference
+  /// is given to the already loaded ones. If no controller is specified, a default is used.
+  bool pushAndExecute(const sensor_msgs::JointState &state, const std::vector<std::string> &controllers);
+
   /// Wait until the execution is complete
   moveit_controller_manager::ExecutionStatus waitForExecution(void);
   

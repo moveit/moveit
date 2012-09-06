@@ -183,6 +183,94 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory &trajec
   return false;
 }
 
+bool TrajectoryExecutionManager::pushAndExecute(const moveit_msgs::RobotTrajectory &trajectory, const std::string &controller)
+{
+  if (controller.empty())
+    return pushAndExecute(trajectory, std::vector<std::string>());
+  else    
+    return pushAndExecute(trajectory, std::vector<std::string>(1, controller));    
+}  
+
+bool TrajectoryExecutionManager::pushAndExecute(const trajectory_msgs::JointTrajectory &trajectory, const std::string &controller)
+{
+  if (controller.empty())
+    return pushAndExecute(trajectory, std::vector<std::string>());
+  else    
+    return pushAndExecute(trajectory, std::vector<std::string>(1, controller));
+}
+
+bool TrajectoryExecutionManager::pushAndExecute(const sensor_msgs::JointState &state, const std::string &controller)
+{
+  if (controller.empty())
+    return pushAndExecute(state, std::vector<std::string>());
+  else    
+    return pushAndExecute(state, std::vector<std::string>(1, controller));
+}
+
+bool TrajectoryExecutionManager::pushAndExecute(const trajectory_msgs::JointTrajectory &trajectory, const std::vector<std::string> &controllers)
+{
+  moveit_msgs::RobotTrajectory traj;
+  traj.joint_trajectory = trajectory;
+  return pushAndExecute(traj, controllers);
+}
+
+bool TrajectoryExecutionManager::pushAndExecute(const sensor_msgs::JointState &state, const std::vector<std::string> &controllers)
+{
+  moveit_msgs::RobotTrajectory traj;
+  traj.joint_trajectory.header = state.header;
+  traj.joint_trajectory.joint_names = state.name;
+  traj.joint_trajectory.points.resize(1);
+  traj.joint_trajectory.points[0].positions = state.position;
+  traj.joint_trajectory.points[0].velocities = state.velocity;
+  traj.joint_trajectory.points[0].time_from_start = ros::Duration(0, 0);
+  return pushAndExecute(traj, controllers);
+}
+
+bool TrajectoryExecutionManager::pushAndExecute(const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers)
+{
+  if (!execution_complete_)
+  {
+    ROS_ERROR("Cannot push & execute a new trajectory while another is being executed");
+    return false;
+  }
+
+  return false;
+  
+  /*  
+  TrajectoryExecutionContext context;
+  if (configure(context, trajectory, controllers))
+  {
+    {
+      boost::mutex::scoped_lock slock(continuous_execution_lock_);
+      continuous_execution_queue_.push_back(context);
+      if (!continuous_execution_thread_)
+        continuous_execution_thread_.reset(new boost::thread(boost::bind(&TrajectoryExecutionManager::continuousExecutionThread, this)));
+    }
+    continuous_execution_condition_.notify_all();
+    
+      
+  }
+  else
+    return false; 
+  */
+}
+/*
+void TrajectoryExecutionManager::continuousExecutionThread(void)
+{
+  while (run_continuous_execution_thread_)
+  {
+    boost::unique_lock<boost::mutex> ulock(continuous_execution_lock_);
+    while (continuous_execution_queue_.empty() && run_continuous_execution_thread_)
+      continuous_execution_condition_.wait(ulock);
+    while (!continuous_execution_queue_.empty())
+    {
+      TrajectoryExecutionContext context = continuous_execution_queue_.front();
+      continuous_execution_queue_.pop_front();
+      // now send stuff to controllers
+    }
+  }
+}
+*/
 void TrajectoryExecutionManager::reloadControllerInformation(void)
 {
   known_controllers_.clear();
