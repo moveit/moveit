@@ -1,0 +1,7 @@
+<launch>
+
+<node pkg="kinematics_reachability" type="listener" name="arm_workspace_tests" output="screen">
+ <param name="cache_filename" value="$(env ROS_LOG_DIR)/kinematics_workspace.cache"/>
+</node>
+
+</launch>

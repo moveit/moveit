@@ -43,9 +43,9 @@ int main(int argc, char** argv)
   spinner.start();
 
   ros::NodeHandle node_handle("~");
-  std::string group_name, root_name;
+  std::string group_name, frame_id;
   node_handle.param<std::string>("group", group_name, std::string());
-  node_handle.param<std::string>(group_name+"/root_name", root_name, std::string());
+  node_handle.param<std::string>("frame_id", frame_id, std::string());
   ros::NodeHandle root_handle;
 
   /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
@@ -56,10 +56,10 @@ region in the workspace for which reachability is to be computed****/
  
   
   kinematics_reachability::WorkspacePoints workspace;
-  workspace.group_name = "arm";
+  workspace.group_name = group_name;
   
   workspace.position_resolution = 0.45;
-  workspace.header.frame_id = "arm_base_link";
+  workspace.header.frame_id = frame_id;
 
   workspace.parameters.min_corner.x =  -0.9;
   workspace.parameters.min_corner.y = -0.9;
