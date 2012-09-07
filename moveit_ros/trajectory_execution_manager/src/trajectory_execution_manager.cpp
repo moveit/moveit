@@ -53,12 +53,20 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const planning_models::Ki
   initialize();
 }
 
+TrajectoryExecutionManager::~TrajectoryExecutionManager(void)
+{
+  run_continuous_execution_thread_ = false;
+  stopExecution(true);
+}
+
 void TrajectoryExecutionManager::initialize(void)
 {
   verbose_ = false;
   execution_complete_ = true;
+  stop_continuous_execution_ = false;
   current_context_ = -1;
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
+  run_continuous_execution_thread_ = true;
   
   // load the controller manager plugin
   try
@@ -163,23 +171,29 @@ bool TrajectoryExecutionManager::push(const moveit_msgs::RobotTrajectory &trajec
     return false;
   }
   
-  TrajectoryExecutionContext context;
-  if (configure(context, trajectory, controllers))
+  TrajectoryExecutionContext *context = new TrajectoryExecutionContext();
+  if (configure(*context, trajectory, controllers))
   {
     if (verbose_)
     {
       std::stringstream ss;
       ss << "Pushed trajectory for execution using controllers [ ";
-      for (std::size_t i = 0 ; i < context.controllers_.size() ; ++i)
-        ss << context.controllers_[i] << " ";
+      for (std::size_t i = 0 ; i < context->controllers_.size() ; ++i)
+        ss << context->controllers_[i] << " ";
       ss << "]:" << std::endl;
-      for (std::size_t i = 0 ; i < context.trajectory_parts_.size() ; ++i)
-        ss << context.trajectory_parts_[i] << std::endl;
+      for (std::size_t i = 0 ; i < context->trajectory_parts_.size() ; ++i)
+        ss << context->trajectory_parts_[i] << std::endl;
       ROS_INFO("%s", ss.str().c_str());
     }
     trajectories_.push_back(context);
     return true;
   }
+  else
+  {
+    delete context;
+    last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
+  }
+  
   return false;
 }
 
@@ -234,43 +248,160 @@ bool TrajectoryExecutionManager::pushAndExecute(const moveit_msgs::RobotTrajecto
     return false;
   }
 
-  return false;
-  
-  /*  
-  TrajectoryExecutionContext context;
-  if (configure(context, trajectory, controllers))
+  TrajectoryExecutionContext *context = new TrajectoryExecutionContext();
+  if (configure(*context, trajectory, controllers))
   {
     {
-      boost::mutex::scoped_lock slock(continuous_execution_lock_);
+      boost::mutex::scoped_lock slock(continuous_execution_mutex_);
       continuous_execution_queue_.push_back(context);
       if (!continuous_execution_thread_)
         continuous_execution_thread_.reset(new boost::thread(boost::bind(&TrajectoryExecutionManager::continuousExecutionThread, this)));
     }
-    continuous_execution_condition_.notify_all();
-    
-      
+    last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
+    continuous_execution_condition_.notify_all();  
+    return true;
   }
   else
+  {
+    delete context;   
+    last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
     return false; 
-  */
+  }
 }
-/*
+
 void TrajectoryExecutionManager::continuousExecutionThread(void)
 {
+  std::set<moveit_controller_manager::MoveItControllerHandlePtr> used_handles;
   while (run_continuous_execution_thread_)
   {
-    boost::unique_lock<boost::mutex> ulock(continuous_execution_lock_);
-    while (continuous_execution_queue_.empty() && run_continuous_execution_thread_)
-      continuous_execution_condition_.wait(ulock);
+    if (!stop_continuous_execution_)
+    {
+      boost::unique_lock<boost::mutex> ulock(continuous_execution_mutex_);
+      while (continuous_execution_queue_.empty() && run_continuous_execution_thread_ && !stop_continuous_execution_)
+        continuous_execution_condition_.wait(ulock);
+    }
+    
+    if (stop_continuous_execution_ || !run_continuous_execution_thread_)
+    {
+      for (std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator uit = used_handles.begin() ; uit != used_handles.end() ; ++uit)   
+        if ((*uit)->getLastExecutionStatus() == moveit_controller_manager::ExecutionStatus::RUNNING)
+          (*uit)->cancelExecution();
+      used_handles.clear();
+      while (!continuous_execution_queue_.empty())
+      {
+        TrajectoryExecutionContext *context = continuous_execution_queue_.front();
+        continuous_execution_queue_.pop_front();
+        delete context;
+      }
+      stop_continuous_execution_ = false;
+      continue;
+    }
+
     while (!continuous_execution_queue_.empty())
     {
-      TrajectoryExecutionContext context = continuous_execution_queue_.front();
-      continuous_execution_queue_.pop_front();
+      TrajectoryExecutionContext *context = NULL;
+      {
+        boost::mutex::scoped_lock slock(continuous_execution_mutex_);
+        if (continuous_execution_queue_.empty())
+          break;
+        context = continuous_execution_queue_.front();
+        continuous_execution_queue_.pop_front();
+      }
+
+      // remove handles we no longer need
+      std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator uit = used_handles.begin();
+      while (uit != used_handles.end())
+        if ((*uit)->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::RUNNING)
+        {
+          std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator uit2 = ++uit;
+          used_handles.erase(uit);
+          uit = uit2;
+        }
+        else
+          ++uit;
+      
       // now send stuff to controllers
+      
+      // first make sure desired controllers are active
+      if (areControllersActive(context->controllers_))
+      {
+        // get the controller handles needed to execute the new trajectory
+        std::vector<moveit_controller_manager::MoveItControllerHandlePtr> handles(context->controllers_.size());
+        for (std::size_t i = 0 ; i < context->controllers_.size() ; ++i)
+        {
+          moveit_controller_manager::MoveItControllerHandlePtr h;
+          try
+          {
+            h = controller_manager_->getControllerHandle(context->controllers_[i]);
+          }
+          catch(...)
+          {     
+            ROS_ERROR("Exception caught when retrieving controller handle");
+          }
+          if (!h)
+          {
+            last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
+            ROS_ERROR("No controller handle for controller '%s'. Aborting.", context->controllers_[i].c_str());
+            handles.clear();
+            break;
+          }
+          handles[i] = h;
+        }
+        
+        if (stop_continuous_execution_ || !run_continuous_execution_thread_)
+        {
+          delete context;
+          break;
+        }
+        
+        // push all trajectories to all controllers simultaneously
+        if (!handles.empty())
+          for (std::size_t i = 0 ; i < context->trajectory_parts_.size() ; ++i)
+          {
+            bool ok = false;
+            try
+            {
+              ok = handles[i]->sendTrajectory(context->trajectory_parts_[i]);
+            }
+            catch(...)
+            {
+              ROS_ERROR("Exception caught when sending trajectory to controller");
+            }
+            if (!ok)
+            {
+              for (std::size_t j = 0 ; j < i ; ++j)
+                try
+                {
+                  handles[j]->cancelExecution();
+                }
+                catch(...)
+                {
+                  ROS_ERROR("Exception caught when canceling execution");
+                }
+              ROS_ERROR("Failed to send trajectory part %lu of %lu to controller %s", i + 1, context->trajectory_parts_.size(), handles[i]->getName().c_str());
+              if (i > 0)
+                ROS_ERROR("Cancelling previously sent trajectory parts");  
+              last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
+              handles.clear();
+              break;
+            }
+          }
+        delete context;
+        
+        // remember which handles we used
+        for (std::size_t i = 0 ; i < handles.size() ; ++i)
+          used_handles.insert(handles[i]);
+      }
+      else
+      {
+        ROS_ERROR("Not all needed controllers are active. Cannot push and execute. You can try calling ensureActiveControllers() before pushAndExecute()"); 
+        last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
+        delete context;
+      }
     }
   }
 }
-*/
+
 void TrajectoryExecutionManager::reloadControllerInformation(void)
 {
   known_controllers_.clear();
@@ -492,6 +623,10 @@ bool TrajectoryExecutionManager::findControllers(const std::set<std::string> &ac
   return true;
 }
 
+bool TrajectoryExecutionManager::isControllerActive(const std::string &controller)
+{
+  return areControllersActive(std::vector<std::string>(1, controller));
+}
 
 bool TrajectoryExecutionManager::areControllersActive(const std::vector<std::string> &controllers)
 {
@@ -722,7 +857,10 @@ void TrajectoryExecutionManager::stopExecutionInternal(void)
 }
 
 void TrajectoryExecutionManager::stopExecution(bool auto_clear)
-{
+{ 
+  stop_continuous_execution_ = true;
+  continuous_execution_condition_.notify_all();
+
   if (!execution_complete_)
   {
     execution_state_mutex_.lock();
@@ -777,7 +915,19 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::waitForEx
 void TrajectoryExecutionManager::clear(void)
 {
   if (execution_complete_)
+  {
+    for (std::size_t i = 0 ; i < trajectories_.size() ; ++i)
+      delete trajectories_[i];
     trajectories_.clear();
+    {
+      boost::mutex::scoped_lock slock(continuous_execution_mutex_);
+      while (!continuous_execution_queue_.empty())
+      {
+        delete continuous_execution_queue_.front();
+        continuous_execution_queue_.pop_front();
+      }
+    }
+  }
   else
     ROS_ERROR("Cannot push a new trajectory while another is being executed");
 }
@@ -822,7 +972,7 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
 
 bool TrajectoryExecutionManager::executePart(std::size_t part_index)
 {
-  TrajectoryExecutionContext &context = trajectories_[part_index];
+  TrajectoryExecutionContext &context = *trajectories_[part_index];
 
   // first make sure desired controllers are active
   if (ensureActiveControllers(context.controllers_))
@@ -1010,7 +1160,7 @@ std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryInde
   return std::make_pair((int)current_context_, pos);
 }
 
-const std::vector<TrajectoryExecutionManager::TrajectoryExecutionContext>& TrajectoryExecutionManager::getTrajectories(void) const
+const std::vector<TrajectoryExecutionManager::TrajectoryExecutionContext*>& TrajectoryExecutionManager::getTrajectories(void) const
 {
   return trajectories_;
 }
@@ -1146,6 +1296,5 @@ bool TrajectoryExecutionManager::ensureActiveControllers(const std::vector<std::
     return std::includes(originally_active.begin(), originally_active.end(), controllers.begin(), controllers.end());
   }
 }
-
 
 }
