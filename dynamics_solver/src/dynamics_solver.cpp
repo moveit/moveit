@@ -91,8 +91,14 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf
 
   const std::vector<std::string> joint_model_names = joint_model_group_->getJointModelNames();
   for(unsigned int i=0; i < joint_model_names.size(); i++)
-    max_torques_.push_back(urdf_model_->getJoint(joint_model_names[i])->limits->effort);
-
+  {
+    const urdf::Joint* ujoint = urdf_model_->getJoint(joint_model_names[i]).get();
+    if (ujoint->limits)
+      max_torques_.push_back(ujoint->limits->effort);
+    else
+      max_torques_.push_back(0.0);
+  }
+  
   KDL::Vector gravity(0.0,0.0,9.81);//Not sure if KDL expects the negative of this
   chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_,gravity));
   return true;
