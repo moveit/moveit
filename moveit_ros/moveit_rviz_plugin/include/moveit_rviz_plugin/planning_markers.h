@@ -74,7 +74,8 @@ private:
   
   void computeMarkerScale(IKMarker &ik_marker);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
-
+  void updateMetrics(std::map<std::string,double> &metrics, const IKMarker &im, bool start_state);
+  
   PlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;
   

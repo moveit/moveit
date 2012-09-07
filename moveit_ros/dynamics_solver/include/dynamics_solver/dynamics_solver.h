@@ -68,13 +68,16 @@ public:
                   std::vector<double> &torques) const;
     
   bool getMaxPayload(const std::vector<double> &joint_angles,
-                     double &payload) const;
+                     double &payload,
+                     unsigned int &joint_saturated) const;
     
 private:
 
   boost::shared_ptr<KDL::ChainIdSolver_RNE> chain_id_solver_;
   KDL::Chain kdl_chain_;
-  double findMaxTorqueMultiplier(const std::vector<double> &joint_torques) const;
+  double findMaxTorqueMultiplier(const std::vector<double> &joint_torques, 
+                                 const std::vector<double> &zero_torques,
+                                 unsigned int &joint_saturated) const;  
   boost::shared_ptr<const urdf::Model> urdf_model_;
   boost::shared_ptr<const srdf::Model> srdf_model_;
 

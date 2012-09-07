@@ -81,10 +81,25 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const planning_models::Kinema
     return false;  
   Eigen::MatrixXd jacobian = getJacobian(kinematic_state,group_name);  
   Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
-  Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(matrix);
+  Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(matrix.block(0,0,3,3));
   eigen_values = eigensolver.eigenvalues();
   eigen_vectors = eigensolver.eigenvectors();
   return true;  
 }
-    
+
+bool KinematicsMetrics::getConditionNumber(const planning_models::KinematicState &kinematic_state,
+                                           const std::string &group_name,
+                                           double &condition_number)
+{
+  if(!checkState(kinematic_state,group_name))
+    return false;  
+  Eigen::MatrixXd jacobian = getJacobian(kinematic_state,group_name);  
+  Eigen::MatrixXd matrix = jacobian*jacobian.transpose();  
+  Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(matrix);
+  Eigen::MatrixXcd eigen_values = eigensolver.eigenvalues();
+  Eigen::MatrixXcd eigen_vectors = eigensolver.eigenvectors();
+  condition_number = eigen_values.real().maxCoeff()/eigen_values.real().minCoeff();  
+  return true;  
+}
+
 } // namespace

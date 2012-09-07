@@ -158,7 +158,9 @@ public:
   
   void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
                               const std::vector<planning_models::KinematicStatePtr> &trajectory);
-                                                
+
+  void setMetrics(const std::map<std::string,double> &metrics);
+                                                        
 private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
@@ -294,6 +296,8 @@ protected:
   rviz::BoolProperty* show_manipulability_region_property_;
   
   rviz::Display *int_marker_display_;
+
+  std::map<std::string,double> metrics_table_;  
 };
 
 } // namespace moveit_rviz_plugin

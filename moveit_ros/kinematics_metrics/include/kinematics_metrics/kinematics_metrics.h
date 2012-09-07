@@ -65,7 +65,11 @@ public:
                                   const std::string &group_name,
                                   Eigen::MatrixXcd &eigen_values,
                                   Eigen::MatrixXcd &eigen_vectors) const;
-      
+  
+  bool getConditionNumber(const planning_models::KinematicState &kinematic_state,
+                          const std::string &group_name,
+                          double &condition_number);
+
 protected:
   
   planning_models::KinematicModelConstPtr kinematic_model_;
