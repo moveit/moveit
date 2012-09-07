@@ -77,48 +77,124 @@ public:
   bool initialize();
   
   /**
-   * @brief This method computes and returns a discretized reachable workspace for an arm
+   * @brief This method computes and returns a discretized workspace for an arm (including the reachable 
+   * and unreachable parts of the grid that is explored)
+   * @param workspace The user is expected to fill up this message with parameters defining the workspace. The method will 
+   * then populate the workspace points
+   * The parameters that the user is expected to fill up include
+   * workspace.parameters - specify the bounding box for the workspace
+   * workspace.orientations - specify a set of orientations to explore 
+   * workspace.position_resolution - the resolution (in m) for the grid to explore the workspace
+   * workspace.header.frame_id - The base frame of the arm
+   * workspace.group_name - The name of the group that you are exploring
    */
   bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace);
 
+  /**
+   * @brief This method computes and returns a discretized reachable workspace for an arm
+   * @param workspace The user is expected to fill up this message with parameters defining the workspace. The method will 
+   * then populate the workspace points
+   * The parameters that the user is expected to fill up include
+   * workspace.parameters - specify the bounding box for the workspace
+   * workspace.orientations - specify a set of orientations to explore 
+   * workspace.position_resolution - the resolution (in m) for the grid to explore the workspace
+   * workspace.header.frame_id - The base frame of the arm
+   * workspace.group_name - The name of the group that you are exploring
+   * @param tool_frame_offset The offset from the end-effector link of the arm to the desired tool frame (e.g. a gripper tool frame)
+   */
   bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
                         const geometry_msgs::Pose &tool_frame_offset);
 
+  /**
+   * @brief This method computes and returns a set of redundant solutions for a particular pose of the arm
+   * @param group_name The name of the group to explore the redundant solution space for
+   * @param pose_stamped The pose of the arm for which to explore the redundant workspace
+   * @param timeout The time (in seconds) to spend on exploring the redundant space
+   */
   kinematics_reachability::WorkspacePoints computeRedundantSolutions(const std::string &group_name,
                                                                      const geometry_msgs::PoseStamped &pose_stamped,
                                                                      double timeout);
 
+  /**
+   * @brief This method computes and returns a set of redundant solutions for a particular pose of the arm
+   * @param group_name The name of the group to explore the redundant solution space for
+   * @param pose_stamped The pose of the arm for which to explore the redundant workspace
+   * @param timeout The time (in seconds) to spend on exploring the redundant space
+   * @param tool_frame_offset The offset from the end-effector link of the arm to the desired tool frame (e.g. a gripper tool frame)
+   */
   kinematics_reachability::WorkspacePoints computeRedundantSolutions(const std::string &group_name,
                                                                      const geometry_msgs::PoseStamped &pose_stamped,
                                                                      double timeout,
                                                                      const geometry_msgs::Pose &tool_frame_offset);
 
+  /**
+   * @brief This method computes and returns only the discretized reachable workspace for an arm
+   * @param workspace The user is expected to fill up this message with parameters defining the workspace. The method will 
+   * then populate the workspace points
+   * The parameters that the user is expected to fill up include
+   * workspace.parameters - specify the bounding box for the workspace
+   * workspace.orientations - specify a set of orientations to explore 
+   * workspace.position_resolution - the resolution (in m) for the grid to explore the workspace
+   * workspace.header.frame_id - The base frame of the arm
+   * workspace.group_name - The name of the group that you are exploring
+   * @param tool_frame_offset The offset from the end-effector link of the arm to the desired tool frame (e.g. a gripper tool frame)
+   */
   bool getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
                                  const geometry_msgs::Pose &tool_frame_offset);
 
+  /**
+   * @brief This method publishes (on a topic) the workspace
+   * @param workspace The workspace message to publish
+   */
   void publishWorkspace(const kinematics_reachability::WorkspacePoints &workspace);
 
 
   /**
-   * @brief This method visualizes a workspace region for a given arm
+   * @brief This method visualizes the workspace by publishing it to rviz
+   * @param workspace The workspace message to visualize
+   * @param marker_namespace The namespace in which the markers are visualized
    */
   void visualize(const kinematics_reachability::WorkspacePoints &workspace,
                  const std::string &marker_namespace);
 
+  /**
+   * @brief This method visualizes the workspace by publishing it to rviz
+   * @param workspace The workspace message to visualize
+   * @param marker_namespace The namespace in which the markers are visualized
+   * @param orientation The particular orientation to visualize
+   */
   void visualize(const kinematics_reachability::WorkspacePoints &workspace,
                  const std::string &marker_namespace,
                  const geometry_msgs::Quaternion &orientation);
 
+  /**
+   * @brief This method visualizes the workspace by publishing it to rviz
+   * @param workspace The workspace message to visualize
+   * @param marker_namespace The namespace in which the markers are visualized
+   * @param orientation The particular set of orientations to visualize
+   */
   void visualize(const kinematics_reachability::WorkspacePoints &workspace,
                  const std::string &marker_namespace,
                  const std::vector<geometry_msgs::Quaternion> &orientations);
 
+  /**
+   * @brief This method visualizes the workspace by publishing it to rviz using a set of arrows
+   * @param workspace The workspace message to visualize
+   * @param marker_namespace The namespace in which the markers are visualized
+   */
   void visualizeWithArrows(const kinematics_reachability::WorkspacePoints &workspace,
                            const std::string &marker_namespace);
 
-  void animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace,
-			double dT);
+  /**
+   * @brief This method visualizes the workspace by publishing it to rviz using a set of arrows
+   * @param workspace The workspace message to visualize
+   * @param marker_namespace The namespace in which the markers are visualized
+   */
+  void animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace);
 
+  /**
+   * @brief Check whether this node is active
+   */
   bool isActive()
   {
     return kinematics_solver_.isActive();
@@ -126,7 +202,7 @@ public:
 
 private:
 
-  moveit_msgs::DisplayTrajectory getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace, double dT);  
+  moveit_msgs::DisplayTrajectory getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace);  
 
   void setToolFrameOffset(const geometry_msgs::Pose &pose);
 

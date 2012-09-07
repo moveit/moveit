@@ -66,8 +66,7 @@ int main(int argc, char** argv)
   ROS_INFO("Got workspace");  
   //  listener.visualize(listener.getWorkspace(),"recorded",listener.getWorkspace().orientations[0]);
   listener.visualize(listener.getWorkspace(),"recorded");
-  listener.animateWorkspace(listener.getWorkspace(),
-                            0.1);
+  listener.animateWorkspace(listener.getWorkspace());
   listener.visualizeWithArrows(listener.getWorkspace(),"full");
 
   ros::waitForShutdown();
