@@ -78,7 +78,11 @@ bool KinematicsReachability::initialize()
   node_handle_.param("cache_num_solutions_per_point", tmp, 1);
   default_cache_options_.max_solutions_per_grid_location = (unsigned int) tmp;
   
-  node_handle_.param<std::string>("cache_filename", cache_filename_, std::string("/wg/stor2a/sachinc/.ros_kinematics.cache"));
+  if(!node_handle_.getParam("cache_filename", cache_filename_))
+  {
+    ROS_ERROR("Must specify cache_filename");
+    return false;
+  }  
   node_handle_.param<double>("cache_timeout",default_cache_timeout_,60.0);  
   first_time_ = true;  
   use_cache_ = false;  
@@ -363,8 +367,7 @@ void KinematicsReachability::getMarkers(const kinematics_reachability::Workspace
   }
 }
 
-moveit_msgs::DisplayTrajectory KinematicsReachability::getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace, 
-									    double dT)
+moveit_msgs::DisplayTrajectory KinematicsReachability::getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace)
 {
   moveit_msgs::DisplayTrajectory display_trajectory;
   if(workspace.points.empty())
@@ -385,16 +388,15 @@ moveit_msgs::DisplayTrajectory KinematicsReachability::getDisplayTrajectory(cons
     point.positions = workspace.points[reachable_workspace[i]].robot_state.joint_state.position;
     point.time_from_start = time_from_start;
     display_trajectory.trajectory.joint_trajectory.points.push_back(point);
-    time_from_start += ros::Duration(dT);
+    //    time_from_start += ros::Duration(dT);
   }
 
   return display_trajectory;
 }
 
-void KinematicsReachability::animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace,
-					      double dT)
+void KinematicsReachability::animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace)
 {
-  moveit_msgs::DisplayTrajectory display_trajectory = getDisplayTrajectory(workspace, dT);
+  moveit_msgs::DisplayTrajectory display_trajectory = getDisplayTrajectory(workspace);
   if(display_trajectory.trajectory.joint_trajectory.points.empty())
   {
     ROS_WARN("No trajectory to display");

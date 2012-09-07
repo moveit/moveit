@@ -51,7 +51,9 @@ int main(int argc, char** argv)
   /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
 region in the workspace for which reachability is to be computed****/
   kinematics_reachability::KinematicsReachability reachability_solver;
-  reachability_solver.initialize();
+  if(!reachability_solver.initialize())
+    return 0;
+ 
   
   kinematics_reachability::WorkspacePoints workspace;
   workspace.group_name = "arm";
@@ -108,8 +110,7 @@ region in the workspace for which reachability is to be computed****/
   reachability_solver.computeWorkspace(workspace);
   reachability_solver.visualize(workspace,"full");
 
-  reachability_solver.animateWorkspace(workspace,
-				       0.1);
+  reachability_solver.animateWorkspace(workspace);
 
   reachability_solver.visualizeWithArrows(workspace,"full_arrows");
   //  aw.visualize(workspace,"RPY(0,0,0)",zero_orientation);
