@@ -58,17 +58,21 @@ int main(int argc, char** argv)
 
   kinematics_reachability::KinematicsReachabilityListener listener;
   listener.initialize();
+  ROS_INFO("Waiting for workspace message");    
   while(!listener.hasWorkspace() && ros::ok())
   {
-    ROS_INFO("Waiting for workspace message");    
-    sleep(1.0);
+    ROS_DEBUG("Waiting for workspace message");    
+    sleep(0.1);
   }
   ROS_INFO("Got workspace");  
   //  listener.visualize(listener.getWorkspace(),"recorded",listener.getWorkspace().orientations[0]);
-  listener.visualize(listener.getWorkspace(),"recorded");
-  listener.animateWorkspace(listener.getWorkspace());
-  listener.visualizeWithArrows(listener.getWorkspace(),"full");
-
+  if(listener.hasWorkspace())
+  {
+    listener.visualize(listener.getWorkspace(),"recorded");
+    listener.animateWorkspace(listener.getWorkspace());
+    listener.visualizeWithArrows(listener.getWorkspace(),"full");
+  }
+  
   ros::waitForShutdown();
   return(0);
 }

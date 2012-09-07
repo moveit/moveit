@@ -232,8 +232,6 @@ private:
   
   bool sampleUniform(kinematics_reachability::WorkspacePoints &workspace);
 
-  kinematics_planner_ros::KinematicsSolverROS kinematics_solver_;
-
   bool isEqual(const geometry_msgs::Quaternion &orientation_1, 
                const geometry_msgs::Quaternion &orientation_2);
 
@@ -263,13 +261,12 @@ private:
   
   bool updateFromCache(kinematics_msgs::GetConstraintAwarePositionIK::Request &request);
   
-
-
   bool first_time_, use_cache_;  
-  double default_cache_timeout_,kinematics_solver_timeout_;
   std::string cache_filename_;  
-  kinematics_cache::KinematicsCache::Options default_cache_options_;
+  double default_cache_timeout_,kinematics_solver_timeout_;
   kinematics_cache::KinematicsCachePtr kinematics_cache_;
+  kinematics_planner_ros::KinematicsSolverROS kinematics_solver_;
+  kinematics_cache::KinematicsCache::Options default_cache_options_;
   
 protected:
 

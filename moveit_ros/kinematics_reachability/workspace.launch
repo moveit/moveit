@@ -2,6 +2,8 @@
 
 <node pkg="kinematics_reachability" type="workspace" name="arm_workspace_tests" output="screen">
  <param name="cache_filename" value="$(env ROS_LOG_DIR)/kinematics_workspace.cache"/>
+ <param name="group" value="arm"/>
+ <param name="frame_id" value="arm_base_link"/>
 </node>
 
 </launch>
