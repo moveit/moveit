@@ -170,48 +170,37 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   std::vector<geometry_msgs::Wrench> wrenches(num_joints_);
   if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,zero_torques))
     return false;
-
+  for(unsigned int i=0; i < num_joints_; ++i)
+  {
+    if(fabs(zero_torques[i]) >= max_torques_[i])
+    {
+      payload = 0.0;
+      joint_saturated = i;      
+      return true;
+    }    
+  }
+  
   wrenches.back().force.z = 1.0;
   if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,torques))
     return false;
 
-  std::vector<double> joint_payload_max;  
+  double min_payload = std::numeric_limits<double>::max();
   for(unsigned int i=0; i < num_joints_; ++i)
   {
-    double payload_max = fabs(std::max<double>(max_torques_[i]-zero_torques[i],-max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]));
-    joint_payload_max.push_back(payload_max);    
-    ROS_DEBUG("Joint: %d, Torque: %f, Max: %f, Gravity: %f",i,torques[i],max_torques_[i],zero_torques[i]);
-    ROS_INFO("Joint: %d, Payload: %f",i,payload_max);    
+    double payload_joint = std::max<double>((max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]),(-max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]));
+    ROS_DEBUG("Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f",i,torques[i],max_torques_[i],zero_torques[i]);
+    ROS_DEBUG("Joint: %d, Payload Allowed (N): %f",i,payload_joint);
+    if(payload_joint < min_payload)
+    {
+      min_payload = payload_joint;
+      joint_saturated = i;
+    }    
   }  
-  payload = *std::max_element(joint_payload_max.begin(),joint_payload_max.end());  
+  payload = min_payload/9.81;  
+  ROS_INFO("Max payload (kg): %f",payload);
   return true;
 }
 
-double DynamicsSolver::findMaxTorqueMultiplier(const std::vector<double> &joint_torques, 
-                                               const std::vector<double> &zero_torques,
-                                               unsigned int &joint_saturated) const
-{
-  std::vector<double> remaining_torques;
-  for(unsigned int i=0; i < num_joints_; ++i)
-  {
-    remaining_torques.push_back(fabs(max_torques_[i])-fabs(zero_torques[i]));    
-  }  
-  double multiplier = 0.0;
-  for(unsigned int i=0; i < num_joints_; ++i)
-  {
-    double payload_torque = fabs(joint_torques[i]) - fabs(zero_torques[i]);    
-    if((payload_torque/remaining_torques[i]) > multiplier)
-    {
-      multiplier = fabs(joint_torques[i]/remaining_torques[i]);
-      joint_saturated = i;      
-    }    
-  }
-  if(multiplier == 0.0)
-    multiplier = 1.0;
-  else
-    multiplier = 1.0/multiplier;
-  return multiplier;
-}
 }
 /*
 int ChainIdSolver_RNE::CartToJnt(const JntArray &q, const JntArray &q_dot, const JntArray &q_dotdot, const Wrenches& f_ext,JntArray &torques)
