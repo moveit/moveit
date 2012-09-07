@@ -705,20 +705,24 @@ void PlanningDisplay::loadRobotModel(void)
   markers_->decideInteractiveMarkers();
 
   kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(scene_monitor_->getKinematicModel()));  
-  /*
+
+  boost::shared_ptr<urdf::Model> urdf_model;
+  urdf_model.reset(new urdf::Model());  
+  urdf_model->initXml(doc.RootElement());
+  
   const std::vector<std::string> &groups = scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroupNames();
   for(unsigned int i=0; i < groups.size(); ++i)
   {
     if(scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(groups[i])->isChain()) 
     {
       dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver());
-      if(!dynamics_solver_[groups[i]]->initialize(scene_monitor_->getKinematicModelLoader()->getURDFModel(),
+      if(!dynamics_solver_[groups[i]]->initialize(urdf_model,
                                                   scene_monitor_->getKinematicModelLoader()->getSRDF(),
                                                   groups[i]))
         dynamics_solver_[groups[i]].reset();      
     }    
   }
-  */  
+    
 }
 
 void PlanningDisplay::loadPlanningSceneMonitor(void)
@@ -860,12 +864,18 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 
   std::map<std::string, double> text_table;
   if (compute_weight_limit_property_->getBool())
-    text_table["Sachin"] = 1.0;
+  {    
+    if(metrics_table_.find("max_payload")!=metrics_table_.end())
+      text_table["max_payload"] = metrics_table_["max_payload"];
+    if(metrics_table_.find("saturated_joint")!=metrics_table_.end())
+      text_table["saturated_joint(max payload)"] = metrics_table_["saturated_joint"];
+  }  
   if (show_manipulability_index_property_->getBool())
-    text_table["really"] = 2.0;
+    if(metrics_table_.find("manipulability_index")!=metrics_table_.end())
+      text_table["manipulability_index"] = metrics_table_["manipulability_index"];
   if (show_manipulability_region_property_->getBool())
-    text_table["rulZ!"] = 2.0;
-  
+    if(metrics_table_.find("condition_number")!=metrics_table_.end())
+      text_table["condition_number"] = metrics_table_["condition_number"];  
   Ogre::Vector3 position( 0, 0, 2 );
   Ogre::Quaternion orientation( 1.0, 0.0, 0.0, 0.0 );
   displayTable(text_table, position, orientation);
@@ -981,6 +991,15 @@ void PlanningDisplay::fixedFrameChanged()
   Display::fixedFrameChanged();
   calculateOffsetPosition();
 }
+
+// ******************************************************************************************
+// Set metrics
+// ******************************************************************************************
+void PlanningDisplay::setMetrics(const std::map<std::string,double> &metrics)
+{
+  metrics_table_ = metrics;  
+}
+
 
 } // namespace moveit_rviz_plugin
 

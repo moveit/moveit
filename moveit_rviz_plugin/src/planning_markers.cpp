@@ -243,24 +243,78 @@ void PlanningMarkers::processInteractiveMarkerFeedback(const visualization_msgs:
     {
       planning_display_->getQueryStartState()->getJointStateGroup(im.group)->setFromIK(target_pose, im.tip_link, IK_TIMEOUT);
       planning_display_->updateQueryStartState();
-      double max_payload;      
-      std::vector<double> joint_values;      
-      planning_display_->getQueryStartState()->getJointStateGroup(im.group)->getGroupStateValues(joint_values);      
-      /*      if(planning_display_->getDynamicsSolver(im.group))
-      {
-        if(planning_display_->getDynamicsSolver(im.group)->getMaxPayload(joint_values,max_payload))
-        {
-          // Do nothing for now
-        }    
-      } */     
+      std::map<std::string,double> metrics;      
+      updateMetrics(metrics,im,true);
+      planning_display_->setMetrics(metrics);
     }
     else
     {
       planning_display_->getQueryGoalState()->getJointStateGroup(im.group)->setFromIK(target_pose, im.tip_link, IK_TIMEOUT);
       planning_display_->updateQueryGoalState();
+      std::map<std::string,double> metrics;      
+      updateMetrics(metrics,im,false);
+      planning_display_->setMetrics(metrics);
     }
   }
 }
+
+void PlanningMarkers::updateMetrics(std::map<std::string,double> &metrics, const IKMarker &im, bool start_state)
+{  
+  std::vector<double> joint_values;      
+  if(start_state)
+    planning_display_->getQueryStartState()->getJointStateGroup(im.group)->getGroupStateValues(joint_values);      
+  else
+    planning_display_->getQueryGoalState()->getJointStateGroup(im.group)->getGroupStateValues(joint_values);      
+
+  // Max payload
+  double max_payload;      
+  unsigned int saturated_joint;      
+  if(planning_display_->getDynamicsSolver(im.group))
+  {
+    if(planning_display_->getDynamicsSolver(im.group)->getMaxPayload(joint_values,max_payload,saturated_joint))
+    {
+      metrics["max_payload"] = max_payload;      
+      metrics["saturated_joint"] = saturated_joint;      
+    }    
+  } 
+
+  double manipulability_index, condition_number;      
+  if(planning_display_->getKinematicsMetrics())
+  {
+    if(start_state)
+    {
+      if(planning_display_->getKinematicsMetrics()->getManipulabilityIndex(*planning_display_->getQueryStartState(),
+                                                                           im.group,
+                                                                           manipulability_index))
+      {
+        metrics["manipulability_index"] = manipulability_index;
+      }
+      if(planning_display_->getKinematicsMetrics()->getConditionNumber(*planning_display_->getQueryStartState(),
+                                                                       im.group,
+                                                                       condition_number))
+      {
+        metrics["condition_number"] = condition_number;
+      }
+    }
+    else
+    {
+      if(planning_display_->getKinematicsMetrics()->getManipulabilityIndex(*planning_display_->getQueryGoalState(),
+                                                                           im.group,
+                                                                           manipulability_index))
+      {
+        metrics["manipulability_index"] = manipulability_index;
+      }
+      if(planning_display_->getKinematicsMetrics()->getConditionNumber(*planning_display_->getQueryStartState(),
+                                                                       im.group,
+                                                                       condition_number))
+      {
+        metrics["condition_number"] = condition_number;
+      }
+    }
+  }
+}
+
+
 
 visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
                                                      const geometry_msgs::PoseStamped &stamped, 

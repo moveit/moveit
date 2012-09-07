@@ -73,8 +73,9 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf
     ROS_ERROR("Group %s is not a chain. Will not initialize dynamics solver",group_name_.c_str());
     return false;    
   }
-  base_name = joint_model_group_->getLinkModelNames().front();
+  base_name = joint_model_group_->getLinkModels().front()->getParentJointModel()->getParentLinkModel()->getName();
   tip_name = joint_model_group_->getLinkModelNames().back();
+  ROS_INFO("Base name: %s, Tip name: %s",base_name.c_str(),tip_name.c_str());
   
   KDL::Tree tree;
   if (!kdl_parser::treeFromUrdfModel(*urdf_model_, tree)) 
@@ -86,7 +87,6 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf
     ROS_ERROR("Could not initialize chain object");
   }
   num_joints_ = kdl_chain_.getNrOfJoints();
-  max_torques_.resize(num_joints_);
 
 
   const std::vector<std::string> joint_model_names = joint_model_group_->getJointModelNames();
@@ -149,37 +149,62 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles,
   }
   chain_id_solver_->CartToJnt(kdl_angles,kdl_velocities,kdl_accelerations,kdl_wrenches,kdl_torques);
 
-  for(unsigned int i=0; i < num_joints_; i++)
+  for(unsigned int i=0; i < num_joints_; ++i)
     torques[i] = kdl_torques(i);
 
   return true;
 }
 
 bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
-                                   double &payload) const
+                                   double &payload,
+                                   unsigned int &joint_saturated) const
 {
   if(joint_angles.size() != num_joints_)
   {
     ROS_ERROR("Joint angles vector should be size %d",num_joints_);
     return false;
   }
-  std::vector<double> joint_velocities(num_joints_,0.0), joint_accelerations(num_joints_,0.0), torques(num_joints_,0.0);
+  std::vector<double> joint_velocities(num_joints_,0.0), joint_accelerations(num_joints_,0.0);
+  std::vector<double> torques(num_joints_,0.0), zero_torques(num_joints_,0.0);
+
   std::vector<geometry_msgs::Wrench> wrenches(num_joints_);
-  wrenches.back().force.z = -1.0;
+  if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,zero_torques))
+    return false;
+
+  wrenches.back().force.z = 1.0;
   if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,torques))
     return false;
-  double multiplier = findMaxTorqueMultiplier(torques);
-  payload = fabs(multiplier);
+
+  std::vector<double> joint_payload_max;  
+  for(unsigned int i=0; i < num_joints_; ++i)
+  {
+    double payload_max = fabs(std::max<double>(max_torques_[i]-zero_torques[i],-max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]));
+    joint_payload_max.push_back(payload_max);    
+    ROS_DEBUG("Joint: %d, Torque: %f, Max: %f, Gravity: %f",i,torques[i],max_torques_[i],zero_torques[i]);
+    ROS_INFO("Joint: %d, Payload: %f",i,payload_max);    
+  }  
+  payload = *std::max_element(joint_payload_max.begin(),joint_payload_max.end());  
   return true;
 }
 
-double DynamicsSolver::findMaxTorqueMultiplier(const std::vector<double> &joint_torques) const
+double DynamicsSolver::findMaxTorqueMultiplier(const std::vector<double> &joint_torques, 
+                                               const std::vector<double> &zero_torques,
+                                               unsigned int &joint_saturated) const
 {
-  double multiplier = 0.0;
-  for(unsigned int i=0; i < num_joints_; i++)
+  std::vector<double> remaining_torques;
+  for(unsigned int i=0; i < num_joints_; ++i)
   {
-    if(fabs(joint_torques[i]/max_torques_[i]) > multiplier)
-      multiplier = fabs(joint_torques[i]/max_torques_[i]);
+    remaining_torques.push_back(fabs(max_torques_[i])-fabs(zero_torques[i]));    
+  }  
+  double multiplier = 0.0;
+  for(unsigned int i=0; i < num_joints_; ++i)
+  {
+    double payload_torque = fabs(joint_torques[i]) - fabs(zero_torques[i]);    
+    if((payload_torque/remaining_torques[i]) > multiplier)
+    {
+      multiplier = fabs(joint_torques[i]/remaining_torques[i]);
+      joint_saturated = i;      
+    }    
   }
   if(multiplier == 0.0)
     multiplier = 1.0;
