@@ -49,6 +49,7 @@
 #include <kinematics_reachability/WorkspacePoint.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <std_msgs/ColorRGBA.h>
 
 // MoveIt!
 #include <kinematics_planner_ros/kinematics_solver_ros.h>
@@ -88,7 +89,8 @@ public:
    * workspace.header.frame_id - The base frame of the arm
    * workspace.group_name - The name of the group that you are exploring
    */
-  bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace);
+  bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace,
+                        bool visualize = false);
 
   /**
    * @brief This method computes and returns a discretized reachable workspace for an arm
@@ -103,7 +105,8 @@ public:
    * @param tool_frame_offset The offset from the end-effector link of the arm to the desired tool frame (e.g. a gripper tool frame)
    */
   bool computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
-                        const geometry_msgs::Pose &tool_frame_offset);
+                        const geometry_msgs::Pose &tool_frame_offset,
+                        bool visualize = false);
 
   /**
    * @brief This method computes and returns a set of redundant solutions for a particular pose of the arm
@@ -111,10 +114,12 @@ public:
    * @param pose_stamped The pose of the arm for which to explore the redundant workspace
    * @param timeout The time (in seconds) to spend on exploring the redundant space
    */
+  
   kinematics_reachability::WorkspacePoints computeRedundantSolutions(const std::string &group_name,
                                                                      const geometry_msgs::PoseStamped &pose_stamped,
-                                                                     double timeout);
-
+                                                                     double timeout,
+                                                                     bool visualize = false);
+  
   /**
    * @brief This method computes and returns a set of redundant solutions for a particular pose of the arm
    * @param group_name The name of the group to explore the redundant solution space for
@@ -122,11 +127,13 @@ public:
    * @param timeout The time (in seconds) to spend on exploring the redundant space
    * @param tool_frame_offset The offset from the end-effector link of the arm to the desired tool frame (e.g. a gripper tool frame)
    */
+  
   kinematics_reachability::WorkspacePoints computeRedundantSolutions(const std::string &group_name,
                                                                      const geometry_msgs::PoseStamped &pose_stamped,
                                                                      double timeout,
-                                                                     const geometry_msgs::Pose &tool_frame_offset);
-
+                                                                     const geometry_msgs::Pose &tool_frame_offset,
+                                                                     bool visualize = false);
+  
   /**
    * @brief This method computes and returns only the discretized reachable workspace for an arm
    * @param workspace The user is expected to fill up this message with parameters defining the workspace. The method will 
@@ -140,7 +147,8 @@ public:
    * @param tool_frame_offset The offset from the end-effector link of the arm to the desired tool frame (e.g. a gripper tool frame)
    */
   bool getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
-                                 const geometry_msgs::Pose &tool_frame_offset);
+                                 const geometry_msgs::Pose &tool_frame_offset,
+                                 bool visualize = false);
 
   /**
    * @brief This method publishes (on a topic) the workspace
@@ -202,11 +210,15 @@ public:
 
 private:
 
-  moveit_msgs::DisplayTrajectory getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace);  
+  bool getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace, 
+                            moveit_msgs::DisplayTrajectory &display_trajectory);  
+
+  bool getDisplayTrajectory(const kinematics_reachability::WorkspacePoint &workspace_point,
+                            moveit_msgs::DisplayTrajectory &display_trajectory);
 
   void setToolFrameOffset(const geometry_msgs::Pose &pose);
 
-  void findIKSolutions(kinematics_reachability::WorkspacePoints &workspace);
+  void findIKSolutions(kinematics_reachability::WorkspacePoints &workspace, bool visualize = false);
 
   void findIK(const std::string &group_name,
               geometry_msgs::PoseStamped &pose_stamped,
@@ -243,6 +255,17 @@ private:
                                       const std::string &marker_namespace,
                                       visualization_msgs::MarkerArray &marker_array);
 
+  visualization_msgs::Marker getSphereMarker(const kinematics_reachability::WorkspacePoint &point,
+                                             const std_msgs::Header &header,
+                                             unsigned int marker_id,
+                                             const std::string &marker_namespace,
+                                             bool evaluating = false);
+  
+  visualization_msgs::Marker getArrowMarker(const kinematics_reachability::WorkspacePoint &point,
+                                            const std_msgs::Header &header,
+                                            unsigned int marker_id,
+                                            const std::string &marker_namespace);
+  
   void getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                   const std::string &marker_namespace,
                   std::vector<const kinematics_reachability::WorkspacePoint*> points,
@@ -267,11 +290,28 @@ private:
   kinematics_cache::KinematicsCachePtr kinematics_cache_;
   kinematics_planner_ros::KinematicsSolverROS kinematics_solver_;
   kinematics_cache::KinematicsCache::Options default_cache_options_;
+  std_msgs::ColorRGBA reachable_color_, unreachable_color_, evaluating_color_;
   
+  void visualizeWorkspaceSamples(const kinematics_reachability::WorkspacePoints &workspace,
+                                 const std::string &marker_namespace);
+
+  void initializeColor(const std::string &color_name,
+                       std_msgs::ColorRGBA &color_msg,
+                       double default_r,
+                       double default_g,
+                       double default_b);  
+
+  void visualize(const kinematics_reachability::WorkspacePoint &workspace_point,
+                 const std_msgs::Header &header,
+                 unsigned int marker_id,
+                 const std::string &marker_namespace,
+                 bool evaluating = false);
+
 protected:
 
   ros::NodeHandle node_handle_;
   tf::Pose tool_offset_, tool_offset_inverse_;
+  geometry_msgs::Vector3 arrow_marker_scale_, sphere_marker_scale_;  
 };
 
 }
