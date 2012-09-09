@@ -143,7 +143,7 @@ public:
   
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor(void)
   {
-    return scene_monitor_;
+    return planning_scene_monitor_;
   }
 
   const kinematics_metrics::KinematicsMetricsPtr& getKinematicsMetrics(void)
@@ -216,6 +216,7 @@ protected:
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name );
   void unsetAllColors(rviz::Robot* robot);
   void displayTable(const std::map<std::string, double> &values, const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
+  void getContactLinks(const planning_models::KinematicState &state, std::vector<std::string> &links);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -228,10 +229,11 @@ protected:
   rviz::Robot* display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
   rviz::Robot* planning_scene_robot_;               ///< Handles actually drawing the robot from the planning scene
 
-  Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene
-  Ogre::SceneNode* text_display_scene_node_;
+  Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
+  Ogre::SceneNode* rendered_geometry_node_;         ///< displays planning scene geometry
+  Ogre::SceneNode* text_display_scene_node_;        ///< displays texts
   
-  planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   boost::shared_ptr<TrajectoryMessageToDisplay> displaying_trajectory_message_;
   boost::shared_ptr<TrajectoryMessageToDisplay> trajectory_message_to_display_;
 
@@ -251,6 +253,8 @@ protected:
   
   planning_models::KinematicStatePtr query_start_state_;
   planning_models::KinematicStatePtr query_goal_state_;
+  std::vector<std::string> collision_links_start_;
+  std::vector<std::string> collision_links_goal_;
   bool update_display_start_state_;
   bool update_display_goal_state_;
   bool update_offset_transforms_;

@@ -91,8 +91,6 @@ PlanningDisplay::PlanningDisplay() :
   planning_scene_needs_render_(true),
   int_marker_display_(NULL)
 {  
-  text_to_display_ = NULL;
-
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
                               this,
@@ -228,6 +226,7 @@ PlanningDisplay::PlanningDisplay() :
 // ******************************************************************************************
 PlanningDisplay::~PlanningDisplay()
 {
+  delete text_to_display_;
   delete int_marker_display_;
   delete frame_dock_;
   delete display_path_robot_;
@@ -240,26 +239,30 @@ void PlanningDisplay::onInitialize(void)
 {  
   Display::onInitialize();
   
+  // the scene node that contains everything
   planning_scene_node_ = scene_node_->createChildSceneNode();
-  planning_scene_node_->setVisible(scene_enabled_property_->getBool()); 
+  
+  rendered_geometry_node_ = planning_scene_node_->createChildSceneNode();
+  rendered_geometry_node_->setVisible(scene_enabled_property_->getBool()); 
+
   text_display_scene_node_ = planning_scene_node_->createChildSceneNode();
     
-  display_path_robot_ = new rviz::Robot(scene_node_, context_, "Planned Path", path_category_ );
+  display_path_robot_ = new rviz::Robot(planning_scene_node_, context_, "Planned Path", path_category_ );
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   display_path_robot_->setVisible(false); 
 
-  planning_scene_robot_ = new rviz::Robot(scene_node_, context_, "Planning Scene", scene_category_ );
+  planning_scene_robot_ = new rviz::Robot(planning_scene_node_, context_, "Planning Scene", scene_category_ );
   planning_scene_robot_->setCollisionVisible(false);
   planning_scene_robot_->setVisualVisible(true);
   planning_scene_robot_->setVisible( scene_robot_enabled_property_->getBool() );
 
-  query_robot_start_ = new rviz::Robot(scene_node_, context_, "Planning Request Start", NULL );
+  query_robot_start_ = new rviz::Robot(planning_scene_node_, context_, "Planning Request Start", NULL );
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible( query_start_state_property_->getBool() );
 
-  query_robot_goal_ = new rviz::Robot(scene_node_, context_, "Planning Request Goal", NULL );
+  query_robot_goal_ = new rviz::Robot(planning_scene_node_, context_, "Planning Request Goal", NULL );
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
@@ -273,6 +276,22 @@ void PlanningDisplay::onInitialize(void)
   int_marker_display_->subProp("Update Topic")->setValue("planning_display_interactive_marker_topic/update");
 
   markers_.reset(new PlanningMarkers(this, context_));
+
+  text_to_display_ = new rviz::MovableText("EMPTY");
+  text_to_display_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
+  text_to_display_->setCharacterHeight(0.08);
+  text_to_display_->setColor(Ogre::ColourValue(0.1f, 0.9f, 0.5f, 1.0f)); 
+  text_to_display_->showOnTop();
+  text_display_scene_node_->attachObject(text_to_display_);
+  text_coll_object_ = context_->getSelectionManager()->createHandle();
+  context_->getSelectionManager()->addPickTechnique( text_coll_object_, text_to_display_->getMaterial() );
+    /*
+  // we should add a selection manager at some point
+  SelectionHandlerPtr handler( new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id)) );
+  context_->getSelectionManager()->addObject( coll, handler );;
+    */ 
+
+  text_to_display_->setVisible(false);
 }
 
 void PlanningDisplay::reset()
@@ -280,7 +299,7 @@ void PlanningDisplay::reset()
   planning_scene_render_.reset();
   loadRobotModel();
   frame_->disable();
-  if (scene_monitor_)
+  if (planning_scene_monitor_)
     frame_->enable();
   trajectory_message_to_display_.reset();
   displaying_trajectory_message_.reset();
@@ -309,38 +328,19 @@ void PlanningDisplay::displayTable(const std::map<std::string, double> &values,
   std::stringstream ss;
   for (std::map<std::string, double>::const_iterator it = values.begin() ; it != values.end() ; ++it)
     ss << boost::format("%-10s %-4.2f") % it->first % it->second << std::endl;
-  
-  if (ss.str().empty() && text_to_display_)
+
+  if (ss.str().empty())
   {
-    delete text_to_display_;
-    text_to_display_ = NULL;
+    text_to_display_->setVisible(false);
     return;
   }
   
-  if (!text_to_display_)
-  {
-    text_to_display_ = new rviz::MovableText(ss.str());
-    text_to_display_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
-    text_to_display_->setCharacterHeight(0.08);
-    text_to_display_->setColor(Ogre::ColourValue(0.1f, 0.9f, 0.5f, 1.0f)); 
-    text_to_display_->showOnTop();
-    text_display_scene_node_->attachObject(text_to_display_);
-    text_coll_object_ = context_->getSelectionManager()->createHandle();
-    context_->getSelectionManager()->addPickTechnique( text_coll_object_, text_to_display_->getMaterial() );
-    
-    /*
-    // we should add a selection manager at some point
-    SelectionHandlerPtr handler( new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id)) );
-    context_->getSelectionManager()->addObject( coll, handler );;
-    */
-  }
   text_to_display_->setCaption(ss.str());
-  
   text_display_scene_node_->setPosition(pos);
   text_display_scene_node_->setOrientation(orient);
   
   // make sure the node is visible
-  text_display_scene_node_->setVisible(true);
+  text_to_display_->setVisible(true);
 }
 
 
@@ -369,8 +369,8 @@ void PlanningDisplay::changedRobotDescription()
 // ******************************************************************************************
 void PlanningDisplay::changedSceneName(void)
 {
-  if (scene_monitor_ && scene_monitor_->getPlanningScene())
-    scene_monitor_->getPlanningScene()->setName(scene_name_property_->getStdString());
+  if (planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene())
+    planning_scene_monitor_->getPlanningScene()->setName(scene_name_property_->getStdString());
 }
 
 // ******************************************************************************************
@@ -378,8 +378,8 @@ void PlanningDisplay::changedSceneName(void)
 // ******************************************************************************************
 void PlanningDisplay::changedRootLinkName()
 {  
-  if (scene_monitor_ && scene_monitor_->getPlanningScene())
-    root_link_name_property_->setStdString( scene_monitor_->getPlanningScene()->getKinematicModel()->getRootLinkName() );
+  if (planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene())
+    root_link_name_property_->setStdString( planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getRootLinkName() );
 }
 
 // ******************************************************************************************
@@ -402,10 +402,10 @@ void PlanningDisplay::renderPlanningScene(void)
 {
   if (planning_scene_render_ && planning_scene_needs_render_)
   {
-    scene_monitor_->lockScene();
+    planning_scene_monitor_->lockScene();
     try
     {
-      planning_scene_render_->renderPlanningScene(scene_monitor_->getPlanningScene(),
+      planning_scene_render_->renderPlanningScene(planning_scene_monitor_->getPlanningScene(),
                                                   scene_alpha_property_->getFloat(),
                                                   robot_scene_alpha_property_->getFloat());
     }
@@ -414,8 +414,8 @@ void PlanningDisplay::renderPlanningScene(void)
       ROS_ERROR("Exception thrown while rendering planning scene");
     }
     planning_scene_needs_render_ = false;
-    scene_monitor_->unlockScene();
-    planning_scene_node_->setVisible(scene_enabled_property_->getBool());
+    planning_scene_monitor_->unlockScene();
+    rendered_geometry_node_->setVisible(scene_enabled_property_->getBool());
   }
 }
 
@@ -459,8 +459,30 @@ const std::string PlanningDisplay::getPlanningSceneTopic(void)
 
 void PlanningDisplay::changedPlanningSceneTopic(void)
 {
-  if (scene_monitor_)
-    scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
+  if (planning_scene_monitor_)
+    planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
+}
+
+void PlanningDisplay::getContactLinks(const planning_models::KinematicState &state, std::vector<std::string> &links)
+{
+  links.clear();
+  if (planning_scene_monitor_)
+  {
+    collision_detection::CollisionRequest req;
+    collision_detection::CollisionResult res;
+    req.contacts = true;
+    req.max_contacts = 10;
+    req.max_contacts_per_pair = 1;
+    planning_scene_monitor_->getPlanningScene()->checkCollision(req, res, state);
+    for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
+      for (std::size_t j = 0 ; j < it->second.size() ; ++j)
+      {
+        if (it->second[j].body_type_1 == collision_detection::BodyTypes::ROBOT_LINK)
+          links.push_back(it->second[j].body_name_1);
+        if (it->second[j].body_type_2 == collision_detection::BodyTypes::ROBOT_LINK)
+          links.push_back(it->second[j].body_name_2);
+      }
+  }
 }
 
 void PlanningDisplay::changedQueryStartState(void)
@@ -470,7 +492,22 @@ void PlanningDisplay::changedQueryStartState(void)
     if (isEnabled())
     {
       query_robot_start_->update(PlanningLinkUpdater(query_start_state_));
-      query_robot_start_->setVisible(true);
+      query_robot_start_->setVisible(true);  
+
+      const planning_models::KinematicModel::JointModelGroup *jmg = NULL;
+      std::string group = planning_group_property_->getStdString();
+      if (!group.empty())
+        jmg = planning_scene_monitor_->getKinematicModel()->getJointModelGroup(group);
+      
+      for (std::size_t i = 0 ; i < collision_links_start_.size() ; ++i)
+        if (jmg && jmg->hasLinkModel(collision_links_start_[i]))
+          setLinkColor(query_robot_start_, collision_links_start_[i], 0.0f, 1.0f, 0.0f);
+        else
+          unsetLinkColor(query_robot_start_, collision_links_start_[i]);
+
+      getContactLinks(*query_start_state_, collision_links_start_);
+      for (std::size_t i = 0 ; i < collision_links_start_.size() ; ++i)
+        setLinkColor(query_robot_start_, collision_links_start_[i], 1.0f, 0.0f, 0.0f);
     }
   }
   else
@@ -485,7 +522,22 @@ void PlanningDisplay::changedQueryGoalState(void)
     if (isEnabled())
     {
       query_robot_goal_->update(PlanningLinkUpdater(query_goal_state_));
-      query_robot_goal_->setVisible(true);
+      query_robot_goal_->setVisible(true);  
+
+      const planning_models::KinematicModel::JointModelGroup *jmg = NULL;
+      std::string group = planning_group_property_->getStdString();
+      if (!group.empty())
+        jmg = planning_scene_monitor_->getKinematicModel()->getJointModelGroup(group);
+      
+      for (std::size_t i = 0 ; i < collision_links_goal_.size() ; ++i)
+        if (jmg && jmg->hasLinkModel(collision_links_goal_[i]))
+          setLinkColor(query_robot_goal_, collision_links_goal_[i], 1.0f, 0.5f, 0.0f);
+        else
+          unsetLinkColor(query_robot_goal_, collision_links_goal_[i]);
+      
+      getContactLinks(*query_goal_state_, collision_links_goal_);
+      for (std::size_t i = 0 ; i < collision_links_goal_.size() ; ++i)
+        setLinkColor(query_robot_goal_, collision_links_goal_[i], 1.0f, 0.0f, 0.0f);
     }
   }
   else
@@ -525,7 +577,11 @@ void PlanningDisplay::changedPlanningGroup(void)
   if (!group.empty())
   {
     setGroupColor(query_robot_start_, group, 0.0f, 1.0f, 0.0f);
-    setGroupColor(query_robot_goal_, group, 1.0f, 0.1f, 0.5f);
+    setGroupColor(query_robot_goal_, group, 1.0f, 0.5f, 0.0f);
+    for (std::size_t i = 0 ; i < collision_links_start_.size() ; ++i)
+      setLinkColor(query_robot_start_, collision_links_start_[i], 1.0f, 0.0f, 0.0f);
+    for (std::size_t i = 0 ; i < collision_links_goal_.size() ; ++i)
+      setLinkColor(query_robot_goal_, collision_links_start_[i], 1.0f, 0.0f, 0.0f);
   }
   markers_->decideInteractiveMarkers();
   markers_->publishInteractiveMarkers();
@@ -562,7 +618,7 @@ void PlanningDisplay::changedSceneRobotEnabled(void)
 // ******************************************************************************************
 void PlanningDisplay::changedSceneEnabled()
 {
-  planning_scene_node_->setVisible( scene_enabled_property_->getBool() );
+  rendered_geometry_node_->setVisible( scene_enabled_property_->getBool() );
 }
 
 void PlanningDisplay::displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
@@ -610,10 +666,10 @@ void PlanningDisplay::unsetLinkColor( const std::string& link_name )
 
 void PlanningDisplay::setGroupColor(rviz::Robot* robot, const std::string& group_name, float red, float green, float blue )
 {
-  if (scene_monitor_ && scene_monitor_->getPlanningScene())
+  if (planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene())
   {
     const planning_models::KinematicModel::JointModelGroup *jmg = 
-      scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name);
+      planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name);
     if (jmg)
     {
       const std::vector<std::string> &links = jmg->getLinkModelNames();
@@ -625,9 +681,9 @@ void PlanningDisplay::setGroupColor(rviz::Robot* robot, const std::string& group
 
 void PlanningDisplay::unsetAllColors(rviz::Robot* robot)
 { 
-  if (scene_monitor_ && scene_monitor_->getPlanningScene())
+  if (planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene())
   {
-    const std::vector<std::string> &links = scene_monitor_->getPlanningScene()->getKinematicModel()->getLinkModelNamesWithCollisionGeometry();
+    const std::vector<std::string> &links = planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getLinkModelNamesWithCollisionGeometry();
     for (std::size_t i = 0 ; i < links.size() ; ++i)
       unsetLinkColor(robot, links[i]);
   }
@@ -635,10 +691,10 @@ void PlanningDisplay::unsetAllColors(rviz::Robot* robot)
 
 void PlanningDisplay::unsetGroupColor(rviz::Robot* robot, const std::string& group_name )
 {
-  if (scene_monitor_ && scene_monitor_->getPlanningScene())
+  if (planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene())
   {
     const planning_models::KinematicModel::JointModelGroup *jmg = 
-      scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name);
+      planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(group_name);
     if (jmg)
     {
       const std::vector<std::string> &links = jmg->getLinkModelNames();
@@ -704,20 +760,20 @@ void PlanningDisplay::loadRobotModel(void)
   loadPlanningSceneMonitor();
   markers_->decideInteractiveMarkers();
 
-  kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(scene_monitor_->getKinematicModel()));  
+  kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(planning_scene_monitor_->getKinematicModel()));  
 
   boost::shared_ptr<urdf::Model> urdf_model;
   urdf_model.reset(new urdf::Model());  
   urdf_model->initXml(doc.RootElement());
   
-  const std::vector<std::string> &groups = scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroupNames();
+  const std::vector<std::string> &groups = planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroupNames();
   for(unsigned int i=0; i < groups.size(); ++i)
   {
-    if(scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(groups[i])->isChain()) 
+    if(planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroup(groups[i])->isChain()) 
     {
       dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver());
       if(!dynamics_solver_[groups[i]]->initialize(urdf_model,
-                                                  scene_monitor_->getKinematicModelLoader()->getSRDF(),
+                                                  planning_scene_monitor_->getKinematicModelLoader()->getSRDF(),
                                                   groups[i]))
         dynamics_solver_[groups[i]].reset();      
     }    
@@ -728,20 +784,20 @@ void PlanningDisplay::loadRobotModel(void)
 void PlanningDisplay::loadPlanningSceneMonitor(void)
 {
   planning_group_property_->clearOptions();
-  scene_monitor_.reset();// this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
-  scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
+  planning_scene_monitor_.reset();// this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
+  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
                                                                         context_->getFrameManager()->getTFClientPtr()));
-  if (scene_monitor_->getPlanningScene())
+  if (planning_scene_monitor_->getPlanningScene())
   {
-    scene_monitor_->getPlanningScene()->setName(scene_name_property_->getStdString());
-    scene_monitor_->addUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
-    scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
-    planning_models::KinematicStatePtr ks(new planning_models::KinematicState(scene_monitor_->getPlanningScene()->getCurrentState()));
+    planning_scene_monitor_->getPlanningScene()->setName(scene_name_property_->getStdString());
+    planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
+    planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
+    planning_models::KinematicStatePtr ks(new planning_models::KinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState()));
     planning_scene_robot_->update(PlanningLinkUpdater(ks));
     query_start_state_ = ks;
     query_goal_state_.reset(new planning_models::KinematicState(*ks));
     
-    const std::vector<std::string> &groups = scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroupNames();
+    const std::vector<std::string> &groups = planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getJointModelGroupNames();
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
       planning_group_property_->addOptionStd(groups[i]);
     planning_group_property_->sortOptions();
@@ -750,16 +806,16 @@ void PlanningDisplay::loadPlanningSceneMonitor(void)
     changedQueryStartState();
     changedQueryGoalState();
 
-    planning_scene_render_.reset(new PlanningSceneRender(context_, planning_scene_node_, planning_scene_robot_));
+    planning_scene_render_.reset(new PlanningSceneRender(context_, rendered_geometry_node_, planning_scene_robot_));
   }
   else
-    scene_monitor_.reset();
+    planning_scene_monitor_.reset();
 }
 
 void PlanningDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
-  scene_name_property_->setStdString(scene_monitor_->getPlanningScene()->getName());
-  root_link_name_property_->setStdString(scene_monitor_->getPlanningScene()->getKinematicModel()->getRootLinkName());
+  scene_name_property_->setStdString(planning_scene_monitor_->getPlanningScene()->getName());
+  root_link_name_property_->setStdString(planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getRootLinkName());
   planning_scene_needs_render_ = true;
   
   std::string group = planning_group_property_->getStdString();
@@ -770,7 +826,7 @@ void PlanningDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::Plannin
     {
       std::map<std::string, double> joint_state_values;
       jsg->getGroupStateValues(joint_state_values);
-      *query_start_state_ = scene_monitor_->getPlanningScene()->getCurrentState();
+      *query_start_state_ = planning_scene_monitor_->getPlanningScene()->getCurrentState();
       query_start_state_->getJointStateGroup(group)->setStateValues(joint_state_values);
     }
   }
@@ -782,7 +838,7 @@ void PlanningDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::Plannin
     {
       std::map<std::string, double> joint_state_values;
       jsg->getGroupStateValues(joint_state_values);
-      *query_goal_state_ = scene_monitor_->getPlanningScene()->getCurrentState();
+      *query_goal_state_ = planning_scene_monitor_->getPlanningScene()->getCurrentState();
       query_goal_state_->getJointStateGroup(group)->setStateValues(joint_state_values);
     }
   }
@@ -803,7 +859,7 @@ void PlanningDisplay::onEnable()
   display_path_robot_->setVisible(displaying_trajectory_message_);
 
   planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
-  planning_scene_node_->setVisible(scene_enabled_property_->getBool());
+  rendered_geometry_node_->setVisible(scene_enabled_property_->getBool());
 
   changedPlanningGroup();
   query_robot_start_->setVisible(query_start_state_property_->getBool());
@@ -820,18 +876,17 @@ void PlanningDisplay::onEnable()
 // ******************************************************************************************
 void PlanningDisplay::onDisable()
 { 
-  delete text_to_display_;
-  text_to_display_ = NULL;
   markers_->clear();
   int_marker_display_->setEnabled(false);
-  if (scene_monitor_)
-    scene_monitor_->stopSceneMonitor();
+  if (planning_scene_monitor_)
+    planning_scene_monitor_->stopSceneMonitor();
   display_path_robot_->setVisible(false);
-  planning_scene_node_->setVisible(false);
+  rendered_geometry_node_->setVisible(false);
   planning_scene_robot_->setVisible(false);
   query_robot_start_->setVisible(false);
   query_robot_goal_->setVisible(false); 
-  frame_->disable();
+  frame_->disable(); 
+  text_to_display_->setVisible(false);
   Display::onDisable();
 }
 
@@ -856,7 +911,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
     changedQueryGoalState();
   }
 
-  if (!scene_monitor_)
+  if (!planning_scene_monitor_)
     return;
 
   if (update_offset_transforms_)
@@ -889,7 +944,7 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 
   if (!animating_path_ && trajectory_message_to_display_)
   {
-    scene_monitor_->updateFrameTransforms();
+    planning_scene_monitor_->updateFrameTransforms();
     displaying_trajectory_message_ = trajectory_message_to_display_;
     display_path_robot_->setVisible(isEnabled());
     trajectory_message_to_display_.reset();
@@ -932,17 +987,17 @@ void PlanningDisplay::update(float wall_dt, float ros_dt)
 // ******************************************************************************************
 void PlanningDisplay::calculateOffsetPosition(void)
 {  
-  if (!scene_monitor_)
+  if (!planning_scene_monitor_)
     return;
 
   ros::Time stamp;
   std::string err_string;
-  if (context_->getTFClient()->getLatestCommonTime(fixed_frame_.toStdString(), scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
+  if (context_->getTFClient()->getLatestCommonTime(fixed_frame_.toStdString(), planning_scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp, &err_string) != tf::NO_ERROR)
     return;
 
-  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), stamp, scene_monitor_->getPlanningScene()->getPlanningFrame());
+  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), stamp, planning_scene_monitor_->getPlanningScene()->getPlanningFrame());
 
-  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp))
+  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), planning_scene_monitor_->getPlanningScene()->getPlanningFrame(), stamp))
   {
     try
     {
@@ -957,14 +1012,6 @@ void PlanningDisplay::calculateOffsetPosition(void)
   Ogre::Vector3 position(pose.getOrigin().x(), pose.getOrigin().y(), pose.getOrigin().z());
   const tf::Quaternion &q = pose.getRotation();
   Ogre::Quaternion orientation( q.getW(), q.getX(), q.getY(), q.getZ() );
-  display_path_robot_->setPosition(position);
-  display_path_robot_->setOrientation(orientation);
-  planning_scene_robot_->setPosition(position);
-  planning_scene_robot_->setOrientation(orientation);
-  query_robot_start_->setPosition(position);
-  query_robot_start_->setOrientation(orientation);
-  query_robot_goal_->setPosition(position);
-  query_robot_goal_->setOrientation(orientation);
   planning_scene_node_->setPosition(position);
   planning_scene_node_->setOrientation(orientation);
   update_offset_transforms_ = false;
@@ -975,12 +1022,12 @@ void PlanningDisplay::calculateOffsetPosition(void)
 // ******************************************************************************************
 void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
 {
-  if (scene_monitor_)
-    if (msg->model_id != scene_monitor_->getPlanningScene()->getKinematicModel()->getName())
+  if (planning_scene_monitor_)
+    if (msg->model_id != planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getName())
       ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
-               msg->model_id.c_str(), scene_monitor_->getPlanningScene()->getKinematicModel()->getName().c_str());
+               msg->model_id.c_str(), planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getName().c_str());
   
-  trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(msg, scene_monitor_->getPlanningScene()));
+  trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(msg, planning_scene_monitor_->getPlanningScene()));
 }
 
 // ******************************************************************************************
@@ -989,7 +1036,8 @@ void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajec
 void PlanningDisplay::fixedFrameChanged()
 {
   Display::fixedFrameChanged();
-  calculateOffsetPosition();
+  calculateOffsetPosition();  
+  markers_->publishInteractiveMarkers();
 }
 
 // ******************************************************************************************
