@@ -145,9 +145,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         have = cdata->res_->contacts.find(cp) != cdata->res_->contacts.end() ? cdata->res_->contacts[cp].size() : 0;
       }
       if (have < cdata->req_->max_contacts_per_pair)
-        want_contact_count = cdata->req_->max_contacts_per_pair - have;
+        want_contact_count = std::min(cdata->req_->max_contacts_per_pair - have, cdata->req_->max_contacts - cdata->res_->contact_count);
     }
-  
+
   if (dcf)
   {
     // if we have a decider for allowed contacts, we need to look at all the contacts
@@ -211,8 +211,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
       {
         fcl2costsource(cost_sources[i], cs);
         cdata->res_->cost_sources.insert(cs);
-	while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
-	  cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
+        while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
+          cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
       }
     }
   }
@@ -272,8 +272,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         {
           fcl2costsource(cost_sources[i], cs);
           cdata->res_->cost_sources.insert(cs);
- 	  while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
-	    cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
+          while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
+            cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
         }
       }
     }
@@ -306,12 +306,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
         {
           fcl2costsource(cost_sources[i], cs);
           cdata->res_->cost_sources.insert(cs);
- 	  while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
-	    cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
+          while (cdata->res_->cost_sources.size() > cdata->req_->max_cost_sources)
+            cdata->res_->cost_sources.erase(--cdata->res_->cost_sources.end());
         }
       }      
     }
   }
+
   
   if (cdata->res_->collision)
     if (!cdata->req_->contacts || cdata->res_->contact_count >= cdata->req_->max_contacts)
