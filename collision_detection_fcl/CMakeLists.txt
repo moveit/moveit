@@ -18,10 +18,10 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-#find_package(PkgConfig REQUIRED)
-#pkg_check_modules(FCL REQUIRED fcl)
-#include_directories(${FCL_INCLUDE_DIRS})
-#link_directories(${FCL_LIBRARY_DIRS})
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FCL REQUIRED fcl)
+include_directories(${FCL_INCLUDE_DIRS})
+link_directories(${FCL_LIBRARY_DIRS})
 
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME}
@@ -30,7 +30,7 @@ rosbuild_add_library(${PROJECT_NAME}
   src/collision_world.cpp
 )
 
-#target_link_libraries(${PROJECT_NAME} ${FCL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${FCL_LIBRARIES})
 rosbuild_link_boost(${PROJECT_NAME} thread)
 
 rosbuild_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)

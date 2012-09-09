@@ -9,13 +9,14 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/collision_detection_fcl</url>
   <depend package="collision_detection"/>
-  <depend package="fcl"/>
   <depend package="rosconsole"/>
   <depend package="planning_models"/>
   <depend package="geometric_shapes"/>
 
+  <rosdep name="fcl" /> 
+
   <export>
-    <cpp cflags="-I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lcollision_detection_fcl `rosboost-cfg --lflags thread`"/>
+    <cpp cflags="`pkg-config --cflags fcl` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lcollision_detection_fcl `pkg-config --libs fcl` `rosboost-cfg --lflags thread`"/>
   </export>
 
 </package>
