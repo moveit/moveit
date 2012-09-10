@@ -35,8 +35,6 @@
 #include <QWidget>
 #include <move_group_interface/move_group.h>
 #include <moveit_warehouse/warehouse.h>
-#include <deque>
-#include <boost/thread.hpp>
 
 namespace rviz
 {
@@ -115,20 +113,11 @@ private:
   void computeLoadSceneButtonClicked(void);
   void computeLoadQueryButtonClicked(void);
 
-  
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
-
-  boost::scoped_ptr<boost::thread> processing_thread_;
-  bool run_processing_thread_;
   
-  boost::mutex action_lock_;
-  boost::condition_variable new_action_condition_;
-  std::deque<boost::function<void(void)> > actions_;
-
-  void processingThread();
 };
-  
+
 }
 
 #endif

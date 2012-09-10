@@ -388,21 +388,6 @@ void PlanningDisplay::displayTable(const std::map<std::string, double> &values,
   text_to_display_->setVisible(true);
 }
 
-
-// ******************************************************************************************
-// Robot Description
-// ******************************************************************************************
-void PlanningDisplay::setRobotDescription(const std::string &name)
-{
-  robot_description_property_->setStdString( name );
-  changedRobotDescription();
-}
-
-const std::string PlanningDisplay::getRobotDescription(void)
-{
-  return robot_description_property_->getStdString();
-}
-
 void PlanningDisplay::changedRobotDescription()
 {
   if (isEnabled())
@@ -486,20 +471,6 @@ void PlanningDisplay::changedTrajectoryTopic(void)
   trajectory_topic_sub_.shutdown();
   if (!trajectory_topic_property_->getStdString().empty())
     trajectory_topic_sub_ = update_nh_.subscribe(trajectory_topic_property_->getStdString(), 2, &PlanningDisplay::incomingDisplayTrajectory, this);
-}
-
-// ******************************************************************************************
-// Planning Scene Topic
-// ******************************************************************************************
-void PlanningDisplay::setPlanningSceneTopic(const std::string &topic)
-{
-  planning_scene_topic_property_->setStdString( topic );
-  changedPlanningSceneTopic();
-}
-
-const std::string PlanningDisplay::getPlanningSceneTopic(void)
-{
-  return planning_scene_topic_property_->getStdString();
 }
 
 void PlanningDisplay::changedPlanningSceneTopic(void)

@@ -67,17 +67,10 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
 
   ui_->tabWidget->setCurrentIndex(0);
-  
-  // spin a thread that will process user events
-  run_processing_thread_ = true;
-  processing_thread_.reset(new boost::thread(boost::bind(&PlanningFrame::processingThread, this)));
 }
 
 moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
 {
-  run_processing_thread_ = false; 
-  new_action_condition_.notify_all();
-  processing_thread_->join();
 }
 
 void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
@@ -92,7 +85,7 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
       return;
     move_group_interface::MoveGroup::Options opt(group);
     opt.kinematic_model_ = kmodel;
-    opt.robot_description_ = planning_display_->getRobotDescription();
+    opt.robot_description_.clear();
     try
     {
       move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(5, 0)));
@@ -161,35 +154,6 @@ void moveit_rviz_plugin::PlanningFrame::disable(void)
   hide();
 }
 
-void moveit_rviz_plugin::PlanningFrame::processingThread(void)
-{
-  boost::unique_lock<boost::mutex> ulock(action_lock_);
-
-  while (run_processing_thread_)
-  {
-    while (actions_.empty() && run_processing_thread_)
-      new_action_condition_.wait(ulock);
-    
-    while (!actions_.empty())
-    {
-      boost::function<void(void)> fn = actions_.front();
-      actions_.pop_front();
-      
-      // make sure we are unlocked while we process the event
-      action_lock_.unlock();
-      try
-      {
-        fn();
-      }
-      catch(...)
-      {
-        ROS_ERROR("Exception caught while processing event");
-      }
-      action_lock_.lock();
-    }
-  }
-}
-
 void moveit_rviz_plugin::PlanningFrame::allowLookingToggled(bool checked)
 {
   if (move_group_)
@@ -225,96 +189,70 @@ void moveit_rviz_plugin::PlanningFrame::constructPlanningRequest(moveit_msgs::Mo
 
 void moveit_rviz_plugin::PlanningFrame::planButtonClicked(void)
 {
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computePlanButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computePlanButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::executeButtonClicked(void)
 {
   ui_->execute_button->setEnabled(false);
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeExecuteButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeExecuteButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::planAndExecuteButtonClicked(void)
 {
   ui_->plan_and_execute_button->setEnabled(false);
   ui_->execute_button->setEnabled(false);
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computePlanAndExecuteButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computePlanAndExecuteButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::randomStatesButtonClicked(void)
 {
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeRandomStatesButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeRandomStatesButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::setStartToCurrentButtonClicked(void)
-{
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeSetStartToCurrentButtonClicked, this));
-  new_action_condition_.notify_all();
+{ 
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeSetStartToCurrentButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::setGoalToCurrentButtonClicked(void)
 {
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeSetGoalToCurrentButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeSetGoalToCurrentButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::databaseConnectButtonClicked(void)
 {   
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::saveSceneButtonClicked(void)
 {   
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeSaveSceneButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeSaveSceneButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::loadSceneButtonClicked(void)
 {   
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeLoadSceneButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeLoadSceneButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::loadQueryButtonClicked(void)
 {   
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeLoadQueryButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeLoadQueryButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::saveQueryButtonClicked(void)
 {   
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeSaveQueryButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeSaveQueryButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::deleteSceneButtonClicked(void)
 {   
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeDeleteSceneButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeDeleteSceneButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::deleteQueryButtonClicked(void)
 {   
-  boost::mutex::scoped_lock slock(action_lock_);
-  actions_.push_back(boost::bind(&PlanningFrame::computeDeleteQueryButtonClicked, this));
-  new_action_condition_.notify_all();
+  planning_display_->getBackgroundProcessor().addJob(boost::bind(&PlanningFrame::computeDeleteQueryButtonClicked, this));
 }
 
 void moveit_rviz_plugin::PlanningFrame::checkPlanningSceneTreeEnabledButtons(void)
@@ -530,7 +468,7 @@ void moveit_rviz_plugin::PlanningFrame::computeLoadSceneButtonClicked(void)
         moveit_warehouse::PlanningSceneWithMetadata scene_m;
         if (planning_scene_storage_->getPlanningScene(scene_m, scene))
         {
-          const std::string& topic = planning_display_->getPlanningSceneTopic();
+          std::string topic = planning_display_->subProp("Planning Scene")->subProp("Planning Scene Topic")->getValue().toString().toStdString();
           if (!topic.empty())
           {
             planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>(topic, 1);
