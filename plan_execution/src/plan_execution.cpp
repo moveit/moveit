@@ -245,7 +245,7 @@ void plan_execution::PlanExecution::planAndExecute(const moveit_msgs::MotionPlan
   unsigned int max_replan_attempts = opt.replan_attempts_ > 0 ? opt.replan_attempts_ : default_max_replan_attempts_;
   unsigned int replan_attempts = 0;
 
-  double max_safe_path_cost = opt.max_safe_path_cost_ >= 0.0 ? opt.max_safe_path_cost_ : default_max_safe_path_cost_;
+  double max_safe_path_cost = opt.max_safe_path_cost_ > std::numeric_limits<double>::epsilon() ? opt.max_safe_path_cost_ : default_max_safe_path_cost_;
   double previous_cost = 0.0;
   unsigned int max_look_attempts = opt.look_attempts_ > 0 ? opt.look_attempts_ : default_max_look_attempts_;
   unsigned int look_attempts = 0;
