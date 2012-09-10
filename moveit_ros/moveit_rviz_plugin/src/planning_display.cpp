@@ -40,6 +40,7 @@
 #include <rviz/properties/float_property.h>
 #include <rviz/properties/ros_topic_property.h>
 #include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/color_property.h>
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
 #include <rviz/panel_dock_widget.h>
@@ -126,10 +127,21 @@ PlanningDisplay::PlanningDisplay() :
                                                         plan_category_,
                                                         SLOT( changedQueryStartState() ), this );
   
-  query_goal_state_property_ = new rviz::BoolProperty( "Query Goal State", true, "Shows the start state for the motion planning query",
+  query_start_color_property_ = new rviz::ColorProperty("Start State Color", QColor(0, 255, 0), "The highlight color for the start state",
+                                                        plan_category_,
+                                                        SLOT( changedQueryStartColor() ), this);
+  
+  query_goal_state_property_ = new rviz::BoolProperty( "Query Goal State", true, "Shows the goal state for the motion planning query",
                                                        plan_category_,
                                                        SLOT( changedQueryGoalState() ), this );
   
+  query_goal_color_property_ = new rviz::ColorProperty( "Goal State Color", QColor(250, 128, 0), "The highlight color for the goal state",
+                                                       plan_category_,
+                                                       SLOT( changedQueryGoalColor() ), this );
+
+  query_colliding_link_color_property_ = new rviz::ColorProperty( "Colliding Link Color", QColor(255, 0, 0), "The highlight color for colliding links",
+                                                                  plan_category_,
+                                                                  SLOT( changedQueryCollidingLinkColor() ), this );
   // Planning scene category -------------------------------------------------------------------------------------------
 
   scene_name_property_ =
@@ -280,16 +292,18 @@ void PlanningDisplay::onInitialize(void)
   text_to_display_ = new rviz::MovableText("EMPTY");
   text_to_display_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
   text_to_display_->setCharacterHeight(0.08);
-  text_to_display_->setColor(Ogre::ColourValue(0.1f, 0.9f, 0.5f, 1.0f)); 
   text_to_display_->showOnTop();
+  text_display_for_start_ = false;
   text_display_scene_node_->attachObject(text_to_display_);
+  
+  /*
   text_coll_object_ = context_->getSelectionManager()->createHandle();
   context_->getSelectionManager()->addPickTechnique( text_coll_object_, text_to_display_->getMaterial() );
-    /*
+  
   // we should add a selection manager at some point
   SelectionHandlerPtr handler( new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id)) );
   context_->getSelectionManager()->addObject( coll, handler );;
-    */ 
+  */ 
 
   text_to_display_->setVisible(false);
 }
@@ -308,30 +322,49 @@ void PlanningDisplay::reset()
 }
 
 void PlanningDisplay::changedShowWeightLimit(void)
-{   
-  if (query_goal_state_property_->getBool())
-    displayMetrics(false);
-  if (query_start_state_property_->getBool())
-    displayMetrics(true);
+{
+  if (text_display_for_start_)
+  {
+    if (query_start_state_property_->getBool())
+      displayMetrics(true);
+  }
+  else
+  {
+    if (query_goal_state_property_->getBool())
+      displayMetrics(false);
+  }
 }
 
 void PlanningDisplay::changedShowManipulabilityIndex(void)
 {
-  if (query_goal_state_property_->getBool())
-    displayMetrics(false);
-  if (query_start_state_property_->getBool())
-    displayMetrics(true);
+  if (text_display_for_start_)
+  {
+    if (query_start_state_property_->getBool())
+      displayMetrics(true);
+  }
+  else
+  {
+    if (query_goal_state_property_->getBool())
+      displayMetrics(false);
+  }
 }
 
 void PlanningDisplay::changedShowManipulabilityRegion(void)
 {
-  if (query_goal_state_property_->getBool())
-    displayMetrics(false);
-  if (query_start_state_property_->getBool())
-    displayMetrics(true);
+  if (text_display_for_start_)
+  {
+    if (query_start_state_property_->getBool())
+      displayMetrics(true);
+  }
+  else
+  {
+    if (query_goal_state_property_->getBool())
+      displayMetrics(false);
+  }
 }
 
 void PlanningDisplay::displayTable(const std::map<std::string, double> &values,
+                                   const Ogre::ColourValue &color,
                                    const Ogre::Vector3 &pos,
                                    const Ogre::Quaternion &orient)
 {
@@ -339,7 +372,7 @@ void PlanningDisplay::displayTable(const std::map<std::string, double> &values,
   std::stringstream ss;
   for (std::map<std::string, double>::const_iterator it = values.begin() ; it != values.end() ; ++it)
     ss << boost::format("%-10s %-4.2f") % it->first % it->second << std::endl;
-
+  
   if (ss.str().empty())
   {
     text_to_display_->setVisible(false);
@@ -347,6 +380,7 @@ void PlanningDisplay::displayTable(const std::map<std::string, double> &values,
   }
   
   text_to_display_->setCaption(ss.str());
+  text_to_display_->setColor(color);
   text_display_scene_node_->setPosition(pos);
   text_display_scene_node_->setOrientation(orient);
   
@@ -474,28 +508,6 @@ void PlanningDisplay::changedPlanningSceneTopic(void)
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
 }
 
-void PlanningDisplay::getContactLinks(const planning_models::KinematicState &state, std::vector<std::string> &links)
-{
-  links.clear();
-  if (planning_scene_monitor_)
-  {
-    collision_detection::CollisionRequest req;
-    collision_detection::CollisionResult res;
-    req.contacts = true;
-    req.max_contacts = 10;
-    req.max_contacts_per_pair = 1;
-    planning_scene_monitor_->getPlanningScene()->checkCollision(req, res, state);
-    for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
-      for (std::size_t j = 0 ; j < it->second.size() ; ++j)
-      {
-        if (it->second[j].body_type_1 == collision_detection::BodyTypes::ROBOT_LINK)
-          links.push_back(it->second[j].body_name_1);
-        if (it->second[j].body_type_2 == collision_detection::BodyTypes::ROBOT_LINK)
-          links.push_back(it->second[j].body_name_2);
-      }
-  }
-}
-
 static void copyItemIfExists(const std::map<std::string, double> &source, std::map<std::string, double> &dest, const std::string &key)
 {
   std::map<std::string, double>::const_iterator it = source.find(key);
@@ -537,7 +549,11 @@ void PlanningDisplay::displayMetrics(bool start)
         position[1] = t.y();
         position[2] = t.z() + 0.2;
       }
-      displayTable(text_table, position, orientation);
+      if (start)
+        displayTable(text_table, query_start_color_property_->getOgreColor(), position, orientation);
+      else
+        displayTable(text_table, query_goal_color_property_->getOgreColor(), position, orientation);
+      text_display_for_start_ = start;
     }
 }
 
@@ -551,23 +567,10 @@ void PlanningDisplay::changedQueryStartState(void)
       query_robot_start_->update(PlanningLinkUpdater(query_start_state_));
       query_robot_start_->setVisible(true);  
       
-
       // update link colors
-      const planning_models::KinematicModel::JointModelGroup *jmg = NULL;
-      std::string group = planning_group_property_->getStdString();
-      if (!group.empty())
-        jmg = planning_scene_monitor_->getKinematicModel()->getJointModelGroup(group);
+      planning_scene_monitor_->getPlanningScene()->getCollidingLinks(collision_links_start_, *query_start_state_);
+      updateLinkColors();
       
-      for (std::size_t i = 0 ; i < collision_links_start_.size() ; ++i)
-        if (jmg && jmg->hasLinkModel(collision_links_start_[i]))
-          setLinkColor(query_robot_start_, collision_links_start_[i], 0.0f, 1.0f, 0.0f);
-        else
-          unsetLinkColor(query_robot_start_, collision_links_start_[i]);
-      
-      getContactLinks(*query_start_state_, collision_links_start_);
-      for (std::size_t i = 0 ; i < collision_links_start_.size() ; ++i)
-        setLinkColor(query_robot_start_, collision_links_start_[i], 1.0f, 0.0f, 0.0f);
-
       // update metrics text 
       displayMetrics(true);
     }
@@ -575,6 +578,11 @@ void PlanningDisplay::changedQueryStartState(void)
   else
     query_robot_start_->setVisible(false);  
   robot_interaction_->publishInteractiveMarkers();
+}
+
+void PlanningDisplay::changedQueryStartColor(void)
+{
+  changedQueryStartState();
 }
 
 void PlanningDisplay::changedQueryGoalState(void)
@@ -587,23 +595,10 @@ void PlanningDisplay::changedQueryGoalState(void)
       query_robot_goal_->update(PlanningLinkUpdater(query_goal_state_));
       query_robot_goal_->setVisible(true);  
 
-
       // update link colors
-      const planning_models::KinematicModel::JointModelGroup *jmg = NULL;
-      std::string group = planning_group_property_->getStdString();
-      if (!group.empty())
-        jmg = planning_scene_monitor_->getKinematicModel()->getJointModelGroup(group);
+      planning_scene_monitor_->getPlanningScene()->getCollidingLinks(collision_links_goal_, *query_goal_state_);
+      updateLinkColors();
       
-      for (std::size_t i = 0 ; i < collision_links_goal_.size() ; ++i)
-        if (jmg && jmg->hasLinkModel(collision_links_goal_[i]))
-          setLinkColor(query_robot_goal_, collision_links_goal_[i], 1.0f, 0.5f, 0.0f);
-        else
-          unsetLinkColor(query_robot_goal_, collision_links_goal_[i]);
-      
-      getContactLinks(*query_goal_state_, collision_links_goal_);
-      for (std::size_t i = 0 ; i < collision_links_goal_.size() ; ++i)
-        setLinkColor(query_robot_goal_, collision_links_goal_[i], 1.0f, 0.0f, 0.0f);
-
       // update metrics text 
       displayMetrics(false);
     }
@@ -611,6 +606,17 @@ void PlanningDisplay::changedQueryGoalState(void)
   else
     query_robot_goal_->setVisible(false);
   robot_interaction_->publishInteractiveMarkers();
+}
+
+void PlanningDisplay::changedQueryGoalColor(void)
+{
+  changedQueryGoalState();
+}
+
+void PlanningDisplay::changedQueryCollidingLinkColor(void)
+{
+  changedQueryStartState();
+  changedQueryGoalState();
 }
 
 void PlanningDisplay::updateQueryStartState(void)
@@ -643,22 +649,27 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   updateQueryGoalState();
 }
 
-void PlanningDisplay::changedPlanningGroup(void)
-{
+void PlanningDisplay::updateLinkColors(void)
+{  
   unsetAllColors(query_robot_start_);
   unsetAllColors(query_robot_goal_);
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
   {
-    setGroupColor(query_robot_start_, group, 0.0f, 1.0f, 0.0f);
-    setGroupColor(query_robot_goal_, group, 1.0f, 0.5f, 0.0f);
+    setGroupColor(query_robot_start_, group, query_start_color_property_->getColor());
+    setGroupColor(query_robot_goal_, group, query_goal_color_property_->getColor());
     for (std::size_t i = 0 ; i < collision_links_start_.size() ; ++i)
-      setLinkColor(query_robot_start_, collision_links_start_[i], 1.0f, 0.0f, 0.0f);
+      setLinkColor(query_robot_start_, collision_links_start_[i], query_colliding_link_color_property_->getColor());
     for (std::size_t i = 0 ; i < collision_links_goal_.size() ; ++i)
-      setLinkColor(query_robot_goal_, collision_links_start_[i], 1.0f, 0.0f, 0.0f);
+      setLinkColor(query_robot_goal_, collision_links_goal_[i], query_colliding_link_color_property_->getColor());
   }
+}
+
+void PlanningDisplay::changedPlanningGroup(void)
+{
   robot_interaction_->decideActiveComponents();
   robot_interaction_->computeMetrics();
+  updateLinkColors();
   robot_interaction_->publishInteractiveMarkers();
   frame_->changePlanningGroup();
 }
@@ -727,19 +738,19 @@ void PlanningDisplay::changedDisplayPathCollisionEnabled()
 // ******************************************************************************************
 // Set or Unset Link Color - Private Function
 // ******************************************************************************************
-void PlanningDisplay::setLinkColor( const std::string& link_name, float red, float green, float blue )
+void PlanningDisplay::setLinkColor(const std::string& link_name, const QColor &color)
 {
-  setLinkColor(display_path_robot_, link_name, red, green, blue );
-  setLinkColor(planning_scene_robot_, link_name, red, green, blue );
+  setLinkColor(display_path_robot_, link_name, color );
+  setLinkColor(planning_scene_robot_, link_name, color );
 }
 
-void PlanningDisplay::unsetLinkColor( const std::string& link_name )
+void PlanningDisplay::unsetLinkColor(const std::string& link_name)
 {
   unsetLinkColor(display_path_robot_, link_name);
   unsetLinkColor(planning_scene_robot_, link_name);
 }
 
-void PlanningDisplay::setGroupColor(rviz::Robot* robot, const std::string& group_name, float red, float green, float blue )
+void PlanningDisplay::setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color)
 {
   if (planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene())
   {
@@ -749,7 +760,7 @@ void PlanningDisplay::setGroupColor(rviz::Robot* robot, const std::string& group
     {
       const std::vector<std::string> &links = jmg->getLinkModelNames();
       for (std::size_t i = 0 ; i < links.size() ; ++i)
-        setLinkColor(robot, links[i], red, green, blue);
+        setLinkColor(robot, links[i], color);
     }
   }
 }
@@ -782,13 +793,13 @@ void PlanningDisplay::unsetGroupColor(rviz::Robot* robot, const std::string& gro
 // ******************************************************************************************
 // Set Link Color
 // ******************************************************************************************
-void PlanningDisplay::setLinkColor(rviz::Robot* robot,  const std::string& link_name, float red, float green, float blue )
+void PlanningDisplay::setLinkColor(rviz::Robot* robot,  const std::string& link_name, const QColor &color )
 {
   rviz::RobotLink *link = robot->getLink(link_name);
   
   // Check if link exists
   if (link)
-    link->setColor( red, green, blue );
+    link->setColor( color.redF(), color.greenF(), color.blueF() );
 }
 
 // ******************************************************************************************
