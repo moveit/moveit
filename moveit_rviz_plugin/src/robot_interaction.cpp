@@ -208,9 +208,7 @@ void RobotInteraction::publishInteractiveMarkers(void)
           s == 0 ?
           planning_display_->getQueryStartState()->getLinkState(active_eef_[i].tip_link) :
           planning_display_->getQueryGoalState()->getLinkState(active_eef_[i].tip_link);
-        
-        Eigen::Affine3d transf = ls->getGlobalLinkTransform(); 
-        planning_models::msgFromPose(transf, pose.pose);
+        planning_models::msgFromPose(ls->getGlobalLinkTransform(), pose.pose);
         
         std::string marker_name = "IK_" + boost::lexical_cast<std::string>(s) + "_" + active_eef_[i].tip_link;
         shown_markers_[marker_name] = i;

@@ -35,6 +35,7 @@
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
 
+#include "moveit_rviz_plugin/background_processing.h"
 #include "moveit_rviz_plugin/planning_frame.h"
 #include "moveit_rviz_plugin/planning_scene_render.h"
 #include "moveit_rviz_plugin/robot_interaction.h"
@@ -108,15 +109,11 @@ public:
    */
   virtual void reset();
   
-  /**
-   * \brief Robot Description parameter name
-   */
-  void setRobotDescription(const std::string &name);
-  const std::string getRobotDescription(void);
-
-  void setPlanningSceneTopic(const std::string &topic);
-  const std::string getPlanningSceneTopic(void);
-
+  BackgroundProcessing& getBackgroundProcessor(void)
+  {
+    return background_process_;
+  }
+  
   /**
    * \brief Set of functions for highlighting parts of a robot
    */
@@ -228,6 +225,8 @@ protected:
   virtual void onDisable();
   virtual void fixedFrameChanged();
 
+  BackgroundProcessing background_process_;
+  
   rviz::Robot* query_robot_start_;                  ///< Handles drawing the robot at the start configuration
   rviz::Robot* query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
   rviz::Robot* display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
