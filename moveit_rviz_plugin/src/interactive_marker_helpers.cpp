@@ -32,6 +32,35 @@
 namespace moveit_rviz_plugin
 {
 
+void addErrorMarker(visualization_msgs::InteractiveMarker &im)
+{
+  // create a grey box marker
+  visualization_msgs::Marker err;
+  err.type = visualization_msgs::Marker::MESH_RESOURCE;
+  err.scale.x = 0.002 * im.scale;
+  err.scale.y = 0.002 * im.scale;
+  err.scale.z = 0.002 * im.scale;
+  err.mesh_resource = "package://moveit_rviz_plugin/res/access-denied.dae";
+  err.ns = "moveit_rviz_plugin_error";
+  err.id = 1;
+  err.action = visualization_msgs::Marker::ADD;
+  err.header = im.header;
+  err.pose = im.pose;  
+  err.pose.orientation.x = err.pose.orientation.y = 0.7071067811865476;
+  err.pose.orientation.z = err.pose.orientation.w = 0.0;
+  err.color.r = 1.0f;
+  err.color.g = 0.0f;
+  err.color.b = 0.0f;
+  err.color.a = 1.0f;
+  
+  visualization_msgs::InteractiveMarkerControl err_control;
+  err_control.always_visible = false;
+  err_control.markers.push_back(err);
+
+  // add the control to the interactive marker
+  im.controls.push_back(err_control);
+}
+
 visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
                                                      const geometry_msgs::PoseStamped &stamped, 
                                                      double scale,

@@ -638,6 +638,7 @@ void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePt
   if (!group.empty())
     robot_interaction_->computeMetrics(true, group);
   updateQueryStartState();
+  context_->queueRender();
 }
 
 void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr &goal)
@@ -647,6 +648,7 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   if (!group.empty())
     robot_interaction_->computeMetrics(false, group);
   updateQueryGoalState();
+  context_->queueRender();
 }
 
 void PlanningDisplay::updateLinkColors(void)
@@ -980,7 +982,7 @@ void PlanningDisplay::onDisable()
 void PlanningDisplay::update(float wall_dt, float ros_dt)
 {
   int_marker_display_->update(wall_dt, ros_dt);
-  
+
   Display::update(wall_dt, ros_dt);
   
   if (update_display_start_state_)
