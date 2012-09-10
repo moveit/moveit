@@ -29,11 +29,11 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_RVIZ_PLUGIN_PLANNING_MARKERS_
-#define MOVEIT_RVIZ_PLUGIN_PLANNING_MARKERS_
+#ifndef MOVEIT_RVIZ_PLUGIN_ROBOT_INTERACTION_
+#define MOVEIT_RVIZ_PLUGIN_ROBOT_INTERACTION_
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
-#include <planning_models/kinematic_model.h>
+#include <planning_models/kinematic_state.h>
 
 namespace interactive_markers
 {
@@ -50,11 +50,13 @@ namespace moveit_rviz_plugin
 {
 class PlanningDisplay;
 
-class PlanningMarkers
+class RobotInteraction
 {
 public:
-
-  struct IKMarker
+  
+  static const std::string INTERACTIVE_MARKER_TOPIC;
+  
+  struct EndEffector
   {
     std::string group;
     std::string eef_group;
@@ -62,26 +64,61 @@ public:
     double scale;
   };
 
-  PlanningMarkers(PlanningDisplay *pdisplay, rviz::DisplayContext *context);
-  ~PlanningMarkers(void);
+  struct VirtualJoint
+  { 
+    std::string connecting_link;
+    std::string joint_name;
+    double scale;
+  };
+  
+  RobotInteraction(PlanningDisplay *pdisplay, rviz::DisplayContext *context);
+  ~RobotInteraction(void);
+  
+
+  void decideActiveComponents(void);
+  void decideActiveEndEffectors(void);
+  void decideActiveVirtualJoints(void);
   
   void clear(void);
   
-  void decideInteractiveMarkers(void);
   void publishInteractiveMarkers(void);
+  void computeMetrics(void);
+  void computeMetrics(bool start, const std::string &group);
+
+  const std::map<std::string, double>& getComputedMetrics(bool start, const std::string &group)
+  {
+    return computed_metrics_[std::make_pair(start, group)];
+  }
+  
+  const std::vector<EndEffector>& getActiveEndEffectors(void) const
+  {
+    return active_eef_;
+  }
+
+  const std::vector<VirtualJoint>& getActiveVirtualJoints(void) const
+  {
+    return active_vj_;
+  }
   
 private:
   
-  void computeMarkerScale(IKMarker &ik_marker);
+  // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
+  double computeGroupScale(const std::string &group);    
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
-  void updateMetrics(std::map<std::string,double> &metrics, const IKMarker &im, bool start_state);
+  void computeMetricsInternal(std::map<std::string, double> &metrics, const EndEffector &eef, const planning_models::KinematicState &state);
   
   PlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;
   
-  std::vector<IKMarker> ik_markers_;
+  std::vector<EndEffector> active_eef_;
+  std::vector<VirtualJoint> active_vj_;
+  
+  /// The metrics are pairs of name-value for each of the active end effectors, for both start & goal states.
+  /// computed_metrics_[std::make_pair(IS_START_STATE, GROUP_NAME)] = a map of key-value pairs
+  std::map<std::pair<bool, std::string>, std::map<std::string, double> > computed_metrics_;
+  
   std::map<std::string, std::size_t> shown_markers_;
-  interactive_markers::InteractiveMarkerServer* int_marker_server_;
+  interactive_markers::InteractiveMarkerServer *int_marker_server_;
 };
 
   

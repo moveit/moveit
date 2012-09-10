@@ -37,7 +37,7 @@
 
 #include "moveit_rviz_plugin/planning_frame.h"
 #include "moveit_rviz_plugin/planning_scene_render.h"
-#include "moveit_rviz_plugin/planning_markers.h"
+#include "moveit_rviz_plugin/robot_interaction.h"
 
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
@@ -153,14 +153,12 @@ public:
 
   const dynamics_solver::DynamicsSolverPtr& getDynamicsSolver(const std::string &group)
   {
-    return dynamics_solver_.find(group)->second;    
+    return dynamics_solver_[group];
   }
   
   void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
                               const std::vector<planning_models::KinematicStatePtr> &trajectory);
 
-  void setMetrics(const std::map<std::string,double> &metrics);
-                                                        
 private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
@@ -216,6 +214,7 @@ protected:
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name );
   void unsetAllColors(rviz::Robot* robot);
   void displayTable(const std::map<std::string, double> &values, const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
+  void displayMetrics(bool start);
   void getContactLinks(const planning_models::KinematicState &state, std::vector<std::string> &links);
   
   // overrides from Display  
@@ -241,8 +240,8 @@ protected:
 
   // render the planning scene
   boost::scoped_ptr<PlanningSceneRender> planning_scene_render_;
-  // interactive markers
-  boost::scoped_ptr<PlanningMarkers> markers_;
+  // robot interaction
+  boost::scoped_ptr<RobotInteraction> robot_interaction_;
 
   rviz::MovableText *text_to_display_;
   rviz::CollObjectHandle text_coll_object_;
@@ -267,7 +266,7 @@ protected:
 
   //Metric calculations
   kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;  
-  std::map<std::string,dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
+  std::map<std::string, dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
   
   
   // properties to show on side panel
@@ -300,8 +299,6 @@ protected:
   rviz::BoolProperty* show_manipulability_region_property_;
   
   rviz::Display *int_marker_display_;
-
-  std::map<std::string,double> metrics_table_;  
 };
 
 } // namespace moveit_rviz_plugin
