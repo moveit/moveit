@@ -313,9 +313,9 @@ void TrajectoryExecutionManager::continuousExecutionThread(void)
       while (uit != used_handles.end())
         if ((*uit)->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::RUNNING)
         {
-          std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator uit2 = ++uit;
-          used_handles.erase(uit);
-          uit = uit2;
+          std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator toErase = uit;
+          ++uit;
+          used_handles.erase(toErase);
         }
         else
           ++uit;
