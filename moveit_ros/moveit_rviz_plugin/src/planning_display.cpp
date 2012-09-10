@@ -556,7 +556,7 @@ void PlanningDisplay::changedQueryStartState(void)
   }
   else
     query_robot_start_->setVisible(false);  
-  robot_interaction_->publishInteractiveMarkers();
+  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
 }
 
 void PlanningDisplay::changedQueryStartColor(void)
@@ -584,7 +584,7 @@ void PlanningDisplay::changedQueryGoalState(void)
   }
   else
     query_robot_goal_->setVisible(false);
-  robot_interaction_->publishInteractiveMarkers();
+  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
 }
 
 void PlanningDisplay::changedQueryGoalColor(void)
@@ -649,7 +649,7 @@ void PlanningDisplay::changedPlanningGroup(void)
   robot_interaction_->decideActiveComponents();
   robot_interaction_->computeMetrics();
   updateLinkColors();
-  robot_interaction_->publishInteractiveMarkers();
+  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
   frame_->changePlanningGroup();
 }
 
@@ -932,7 +932,7 @@ void PlanningDisplay::onEnable()
   addMainLoopJob(boost::bind(&PlanningDisplay::calculateOffsetPosition, this));
   
   int_marker_display_->setEnabled(true);
-  robot_interaction_->publishInteractiveMarkers();
+  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
 }
 
 // ******************************************************************************************
@@ -1090,11 +1090,11 @@ void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajec
 // ******************************************************************************************
 // Fixed Frame Changed
 // ******************************************************************************************
-void PlanningDisplay::fixedFrameChanged()
+void PlanningDisplay::fixedFrameChanged(void)
 {
   Display::fixedFrameChanged();
   calculateOffsetPosition();  
-  robot_interaction_->publishInteractiveMarkers();
+  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
 }
 
 
