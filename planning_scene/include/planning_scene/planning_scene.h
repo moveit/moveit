@@ -259,11 +259,24 @@ public:
                           const planning_models::KinematicState &kstate) const;
 
   /** \brief Check whether a specified state (\e kstate) is in self collision, with respect to a given
-      allowd collision matrix (\e acm) */
+      allowed collision matrix (\e acm) */
   void checkSelfCollision(const collision_detection::CollisionRequest& req,
                           collision_detection::CollisionResult &res,
                           const planning_models::KinematicState &kstate,
                           const collision_detection::AllowedCollisionMatrix& acm) const;
+  
+  /** \brief Get the names of the links that are involved in collisions for the current state */
+  void getCollidingLinks(std::vector<std::string> &links) const;
+  
+  /** \brief Get the names of the links that are involved in collisions for the state \e kstate */
+  void getCollidingLinks(std::vector<std::string> &links,
+                         const planning_models::KinematicState &kstate) const;
+  
+  /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
+      allowed collision matrix (\e acm) */
+  void getCollidingLinks(std::vector<std::string> &links,
+                         const planning_models::KinematicState &kstate,
+                         const collision_detection::AllowedCollisionMatrix& acm) const;
   
   /** \brief The distance between the robot model at state \e kstate to the nearest collision */
   double distanceToCollision(const planning_models::KinematicState &kstate) const;
