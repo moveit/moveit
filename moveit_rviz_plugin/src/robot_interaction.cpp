@@ -230,11 +230,12 @@ void RobotInteraction::publishInteractiveMarkers(void)
   int_marker_server_->applyChanges();
 }
 
-void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
-{
+void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback)
+{ 
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
   if (it == shown_markers_.end())
     return;
+
   if (!planning_display_->getPlanningSceneMonitor())
     return;
 
@@ -293,6 +294,11 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
       planning_display_->updateQueryGoalState();
     }
   } 
+}
+
+void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
+{
+  planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeProcessInteractiveMarkerFeedback, this, feedback));
 }
 
 void RobotInteraction::computeMetrics(void)

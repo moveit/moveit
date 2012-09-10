@@ -105,6 +105,8 @@ private:
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupScale(const std::string &group);    
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
+  void computeProcessInteractiveMarkerFeedback(visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback);
+  
   void computeMetricsInternal(std::map<std::string, double> &metrics, const EndEffector &eef, const planning_models::KinematicState &state);
   
   PlanningDisplay *planning_display_;  
