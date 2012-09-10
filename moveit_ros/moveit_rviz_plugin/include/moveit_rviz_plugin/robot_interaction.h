@@ -117,6 +117,9 @@ private:
   /// computed_metrics_[std::make_pair(IS_START_STATE, GROUP_NAME)] = a map of key-value pairs
   std::map<std::pair<bool, std::string>, std::map<std::string, double> > computed_metrics_;
   
+  std::set<std::string> invalid_start_state_;
+  std::set<std::string> invalid_goal_state_;
+  
   std::map<std::string, std::size_t> shown_markers_;
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
 };

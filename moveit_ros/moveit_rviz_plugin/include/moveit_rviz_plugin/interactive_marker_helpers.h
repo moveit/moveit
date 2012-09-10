@@ -41,6 +41,8 @@ visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
                                                      double scale,
                                                      bool fixed = false);
 
+void addErrorMarker(visualization_msgs::InteractiveMarker &im);
+
 }
 
 #endif

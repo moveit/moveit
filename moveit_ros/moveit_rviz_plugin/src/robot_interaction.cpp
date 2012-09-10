@@ -177,6 +177,9 @@ void RobotInteraction::decideActiveEndEffectors(void)
 
 void RobotInteraction::clear(void)
 {
+  invalid_start_state_.clear();
+  invalid_goal_state_.clear();
+  
   active_eef_.clear();
   active_vj_.clear();
   shown_markers_.clear();
@@ -212,6 +215,17 @@ void RobotInteraction::publishInteractiveMarkers(void)
         std::string marker_name = "IK_" + boost::lexical_cast<std::string>(s) + "_" + active_eef_[i].tip_link;
         shown_markers_[marker_name] = i;
         visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, active_eef_[i].scale);
+        if (s == 0)
+        {
+          if (invalid_start_state_.find(active_eef_[i].tip_link) != invalid_start_state_.end())
+            addErrorMarker(im);
+        }
+        else
+        {
+          if (invalid_goal_state_.find(active_eef_[i].tip_link) != invalid_goal_state_.end())
+            addErrorMarker(im);
+        }
+        
         int_marker_server_->insert(im);
         int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
         ROS_DEBUG("Publishing interactive marker %s", marker_name.c_str());
@@ -220,12 +234,19 @@ void RobotInteraction::publishInteractiveMarkers(void)
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
-{ 
+{
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
   if (it == shown_markers_.end())
     return;
   if (!planning_display_->getPlanningSceneMonitor())
     return;
+
+  if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+  {
+    invalid_start_state_.clear();
+    invalid_goal_state_.clear();
+  }
+  
   std::string planning_frame = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningFrame();
 
   static const double IK_TIMEOUT = 0.1;
@@ -252,17 +273,29 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
     }
     if (start)
     {
-      planning_display_->getQueryStartState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT);
-      computeMetricsInternal(computed_metrics_[std::make_pair(true, ee.group)], ee, *planning_display_->getQueryStartState());
+      if (planning_display_->getQueryStartState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT))
+      {
+        computeMetricsInternal(computed_metrics_[std::make_pair(true, ee.group)], ee, *planning_display_->getQueryStartState());
+        invalid_start_state_.erase(ee.tip_link);
+      }
+      else
+        if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+          invalid_start_state_.insert(ee.tip_link);
       planning_display_->updateQueryStartState();
     }
     else
     {
-      planning_display_->getQueryGoalState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT);
-      computeMetricsInternal(computed_metrics_[std::make_pair(false, ee.group)], ee, *planning_display_->getQueryGoalState());
+      if (planning_display_->getQueryGoalState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT))
+      {
+        computeMetricsInternal(computed_metrics_[std::make_pair(false, ee.group)], ee, *planning_display_->getQueryGoalState());
+        invalid_goal_state_.erase(ee.tip_link);
+      }
+      else  
+        if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+          invalid_goal_state_.insert(ee.tip_link);
       planning_display_->updateQueryGoalState();
     }
-  }
+  } 
 }
 
 void RobotInteraction::computeMetrics(void)
