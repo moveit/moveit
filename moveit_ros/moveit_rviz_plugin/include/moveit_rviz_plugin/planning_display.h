@@ -109,10 +109,11 @@ public:
    */
   virtual void reset();
   
-  BackgroundProcessing& getBackgroundProcessor(void)
-  {
-    return background_process_;
-  }
+  // pass the execution of this function call to a separate thread that runs in the background
+  void addBackgroundJob(const boost::function<void(void)> &job);
+
+  // queue the execution of this function for the next time the main update() loop gets called
+  void addMainLoopJob(const boost::function<void(void)> &job);
   
   /**
    * \brief Set of functions for highlighting parts of a robot
@@ -218,7 +219,9 @@ protected:
                     const Ogre::ColourValue &color, const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
   void displayMetrics(bool start);
   void updateLinkColors(void);
+  void executeMainLoopJobs(void);
   
+
   // overrides from Display  
   virtual void onInitialize();
   virtual void onEnable();
@@ -226,6 +229,8 @@ protected:
   virtual void fixedFrameChanged();
 
   BackgroundProcessing background_process_;
+  std::deque<boost::function<void(void)> > main_loop_jobs_;
+  boost::mutex main_loop_jobs_lock_;
   
   rviz::Robot* query_robot_start_;                  ///< Handles drawing the robot at the start configuration
   rviz::Robot* query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
@@ -259,10 +264,7 @@ protected:
   planning_models::KinematicStatePtr query_goal_state_;
   std::vector<std::string> collision_links_start_;
   std::vector<std::string> collision_links_goal_;
-  bool update_display_start_state_;
-  bool update_display_goal_state_;
-  bool update_offset_transforms_;
-  
+
   bool animating_path_;
   int current_state_;
   float current_state_time_;
