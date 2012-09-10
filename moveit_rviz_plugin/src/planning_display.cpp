@@ -84,9 +84,6 @@ PlanningDisplay::PlanningDisplay() :
   Display(),
   frame_(NULL),
   frame_dock_(NULL),
-  update_display_start_state_(false),
-  update_display_goal_state_(false),
-  update_offset_transforms_(false),
   animating_path_(false),
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true),
@@ -319,6 +316,17 @@ void PlanningDisplay::reset()
   displaying_trajectory_message_.reset();
   animating_path_ = false;
   Display::reset();
+}
+
+void PlanningDisplay::addBackgroundJob(const boost::function<void(void)> &job)
+{
+  background_process_.addJob(job);
+}
+
+void PlanningDisplay::addMainLoopJob(const boost::function<void(void)> &job)
+{
+  boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
+  main_loop_jobs_.push_back(job);
 }
 
 void PlanningDisplay::changedShowWeightLimit(void)
@@ -592,14 +600,12 @@ void PlanningDisplay::changedQueryCollidingLinkColor(void)
 
 void PlanningDisplay::updateQueryStartState(void)
 {
-  // we mark the fact that the next call to update() should update the start state 
-  update_display_start_state_ = true;
+  addMainLoopJob(boost::bind(&PlanningDisplay::changedQueryStartState, this));  
 }
 
 void PlanningDisplay::updateQueryGoalState(void)
 { 
-  // we mark the fact that the next call to update() should update the goal state 
-  update_display_goal_state_ = true;
+  addMainLoopJob(boost::bind(&PlanningDisplay::changedQueryGoalState, this));  
 }
 
 void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePtr &start)
@@ -922,9 +928,10 @@ void PlanningDisplay::onEnable()
   query_robot_start_->setVisible(query_start_state_property_->getBool());
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
   frame_->enable();
-  update_offset_transforms_ = true;
+  
+  addMainLoopJob(boost::bind(&PlanningDisplay::calculateOffsetPosition, this));
+  
   int_marker_display_->setEnabled(true);
-
   robot_interaction_->publishInteractiveMarkers();
 }
 
@@ -947,33 +954,45 @@ void PlanningDisplay::onDisable()
   Display::onDisable();
 }
 
+void PlanningDisplay::executeMainLoopJobs(void)
+{  
+  main_loop_jobs_lock_.lock();
+  while (!main_loop_jobs_.empty())
+  {
+    boost::function<void(void)> fn = main_loop_jobs_.front();
+    main_loop_jobs_.pop_front();
+    main_loop_jobs_lock_.unlock();
+    try
+    {
+      fn();
+    }   
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("Exception caught executing main loop job: %s", ex.what());
+    }
+    catch(...)
+    {
+      ROS_ERROR("Exception caught executing main loop job");
+    }
+    main_loop_jobs_lock_.lock();
+  }
+  main_loop_jobs_lock_.unlock();
+}
+
 // ******************************************************************************************
 // Update
 // ******************************************************************************************
 void PlanningDisplay::update(float wall_dt, float ros_dt)
 {
   int_marker_display_->update(wall_dt, ros_dt);
-
+  
   Display::update(wall_dt, ros_dt);
   
-  if (update_display_start_state_)
-  {
-    update_display_start_state_ = false;
-    changedQueryStartState();
-  }
+  executeMainLoopJobs();
   
-  if (update_display_goal_state_)
-  {
-    update_display_goal_state_ = false;
-    changedQueryGoalState();
-  }
-
   if (!planning_scene_monitor_)
     return;
 
-  if (update_offset_transforms_)
-    calculateOffsetPosition();
-  
   if (!animating_path_ && !trajectory_message_to_display_ && loop_display_property_->getBool() && displaying_trajectory_message_)
   {
     animating_path_ = true;
@@ -1053,7 +1072,6 @@ void PlanningDisplay::calculateOffsetPosition(void)
   Ogre::Quaternion orientation( q.getW(), q.getX(), q.getY(), q.getZ() );
   planning_scene_node_->setPosition(position);
   planning_scene_node_->setOrientation(orientation);
-  update_offset_transforms_ = false;
 }
 
 // ******************************************************************************************

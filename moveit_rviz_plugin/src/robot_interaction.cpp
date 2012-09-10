@@ -223,7 +223,6 @@ void RobotInteraction::publishInteractiveMarkers(void)
           if (invalid_goal_state_.find(active_eef_[i].tip_link) != invalid_goal_state_.end())
             addErrorMarker(im);
         }
-        
         int_marker_server_->insert(im);
         int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
         ROS_DEBUG("Publishing interactive marker %s", marker_name.c_str());
