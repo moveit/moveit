@@ -375,6 +375,40 @@ void planning_scene::PlanningScene::checkSelfCollision(const collision_detection
   getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
 }
 
+void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links) const
+{
+  getCollidingLinks(links, getCurrentState());
+}
+
+
+void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
+                                                      const planning_models::KinematicState &kstate) const
+{
+  getCollidingLinks(links, kstate, getAllowedCollisionMatrix());
+}
+
+
+void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
+                                                      const planning_models::KinematicState &kstate,
+                                                      const collision_detection::AllowedCollisionMatrix& acm) const
+{ 
+  collision_detection::CollisionRequest req;
+  req.contacts = true;
+  req.max_contacts = getKinematicModel()->getLinkModelsWithCollisionGeometry().size() + 1;
+  req.max_contacts_per_pair = 1;
+  collision_detection::CollisionResult res;
+  checkCollision(req, res, kstate, acm);
+  links.clear();
+  for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin() ; it != res.contacts.end() ; ++it)
+    for (std::size_t j = 0 ; j < it->second.size() ; ++j)
+    {
+      if (it->second[j].body_type_1 == collision_detection::BodyTypes::ROBOT_LINK)
+        links.push_back(it->second[j].body_name_1);
+      if (it->second[j].body_type_2 == collision_detection::BodyTypes::ROBOT_LINK)
+        links.push_back(it->second[j].body_name_2);
+    }
+}
+
 const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::getCollisionRobot(void)
 {
   if (!crobot_)
