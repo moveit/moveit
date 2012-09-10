@@ -61,6 +61,7 @@ class BoolProperty;
 class FloatProperty;
 class RosTopicProperty;
 class EditableEnumProperty;
+class ColorProperty;
 class MovableText;
 }
 
@@ -120,8 +121,8 @@ public:
    * \brief Set of functions for highlighting parts of a robot
    */
   
-  void setLinkColor( const std::string& link_name, float red, float green, float blue );
-  void unsetLinkColor( const std::string& link_name );
+  void setLinkColor(const std::string& link_name, const QColor &color);
+  void unsetLinkColor(const std::string& link_name);
 
   const planning_models::KinematicStatePtr& getQueryStartState(void) const
   {
@@ -180,6 +181,9 @@ private Q_SLOTS:
   void changedTrajectoryTopic();
   void changedQueryStartState();
   void changedQueryGoalState();
+  void changedQueryStartColor();
+  void changedQueryGoalColor();
+  void changedQueryCollidingLinkColor();
   void changedPlanningGroup();
   void changedShowWeightLimit();
   void changedShowManipulabilityIndex();
@@ -208,14 +212,15 @@ protected:
   void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void loadPlanningSceneMonitor();
   void renderPlanningScene();
-  void setLinkColor(rviz::Robot* robot, const std::string& link_name, float red, float green, float blue );
-  void unsetLinkColor(rviz::Robot* robot, const std::string& link_name );
-  void setGroupColor(rviz::Robot* robot, const std::string& group_name, float red, float green, float blue );
-  void unsetGroupColor(rviz::Robot* robot, const std::string& group_name );
+  void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
+  void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
+  void setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color);
+  void unsetGroupColor(rviz::Robot* robot, const std::string& group_name);
   void unsetAllColors(rviz::Robot* robot);
-  void displayTable(const std::map<std::string, double> &values, const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
+  void displayTable(const std::map<std::string, double> &values,
+                    const Ogre::ColourValue &color, const Ogre::Vector3 &pos, const Ogre::Quaternion &orient);
   void displayMetrics(bool start);
-  void getContactLinks(const planning_models::KinematicState &state, std::vector<std::string> &links);
+  void updateLinkColors(void);
   
   // overrides from Display  
   virtual void onInitialize();
@@ -231,6 +236,7 @@ protected:
   Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
   Ogre::SceneNode* rendered_geometry_node_;         ///< displays planning scene geometry
   Ogre::SceneNode* text_display_scene_node_;        ///< displays texts
+  bool text_display_for_start_;                     ///< indicates whether the text display is for the start state or not
   
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   boost::shared_ptr<TrajectoryMessageToDisplay> displaying_trajectory_message_;
@@ -278,6 +284,9 @@ protected:
   rviz::EditableEnumProperty* planning_group_property_;
   rviz::BoolProperty* query_start_state_property_;
   rviz::BoolProperty* query_goal_state_property_;
+  rviz::ColorProperty* query_start_color_property_;
+  rviz::ColorProperty* query_goal_color_property_;
+  rviz::ColorProperty* query_colliding_link_color_property_;
 
   rviz::StringProperty* robot_description_property_;
   rviz::StringProperty* scene_name_property_;
