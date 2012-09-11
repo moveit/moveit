@@ -37,10 +37,6 @@
 #include "moveit_warehouse/warehouse.h"
 #include <ros/ros.h>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread.hpp>
-#include <limits>
-
 static const std::string DATABASE_NAME = "moveit_planning_scenes";
 
 static const std::string PLANNING_SCENE_ID_NAME = "planning_scene_id";
@@ -76,26 +72,10 @@ moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &
     }
   }
   ROS_INFO("Connecting to MongoDB on host '%s' port '%u'...", db_host_.c_str(), db_port_);
-  if (wait_seconds > std::numeric_limits<double>::epsilon())
-  {
-    boost::thread connect_thread(boost::bind(&PlanningSceneStorage::connectToDatabase, this));
-    unsigned long seconds = (unsigned long)wait_seconds;
-    if (!connect_thread.timed_join(boost::posix_time::seconds(seconds) + boost::posix_time::milliseconds((unsigned long)((wait_seconds - seconds) * 1000.0))))
-    {
-      connect_thread.interrupt();
-      throw std::runtime_error("Unable to connect to MongoDB");
-    }
-  }
-  else
-    connectToDatabase();
+  planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene", db_host_, db_port_, wait_seconds));
+  motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request", db_host_, db_port_, wait_seconds));
+  robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory", db_host_, db_port_, wait_seconds));
   ROS_INFO("Connected to MongoDB on host '%s' port '%u'.", db_host_.c_str(), db_port_);
-}
-
-void moveit_warehouse::PlanningSceneStorage::connectToDatabase(void)
-{
-  planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene", db_host_, db_port_));
-  motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request", db_host_, db_port_));
-  robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory", db_host_, db_port_));    
 }
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)
