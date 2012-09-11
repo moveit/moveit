@@ -59,7 +59,10 @@ namespace kinematic_constraints
 
     moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose, double tolerance_pos = 1e-3, double tolerance_angle = 1e-2);
     moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::QuaternionStamped &quat, double tolerance = 1e-2);
-    moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PointStamped &point, double tolerance = 1e-3);
+
+
+    moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::Point &reference_point, const geometry_msgs::PointStamped &goal_point, double tolerance = 1e-3);
+    moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PointStamped &goal_point, double tolerance = 1e-3);
 }
 
 #endif
