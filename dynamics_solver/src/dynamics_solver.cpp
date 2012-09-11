@@ -57,7 +57,6 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf
                                 const boost::shared_ptr<const srdf::Model> &srdf_model,
                                 const std::string &group_name)
 {
-  std::string base_name,tip_name;
   urdf_model_ = urdf_model;
   srdf_model_ = srdf_model;
   group_name_ = group_name;
@@ -73,21 +72,23 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf
     ROS_ERROR("Group %s is not a chain. Will not initialize dynamics solver",group_name_.c_str());
     return false;    
   }
-  base_name = joint_model_group_->getLinkModels().front()->getParentJointModel()->getParentLinkModel()->getName();
-  tip_name = joint_model_group_->getLinkModelNames().back();
-  ROS_INFO("Base name: %s, Tip name: %s",base_name.c_str(),tip_name.c_str());
+  base_name_ = joint_model_group_->getLinkModels().front()->getParentJointModel()->getParentLinkModel()->getName();
+  tip_name_ = joint_model_group_->getLinkModelNames().back();
+  ROS_INFO("Base name: %s, Tip name: %s",base_name_.c_str(),tip_name_.c_str());
   
   KDL::Tree tree;
   if (!kdl_parser::treeFromUrdfModel(*urdf_model_, tree)) 
   {
     ROS_ERROR("Could not initialize tree object");
   }
-  if (!tree.getChain(base_name, tip_name, kdl_chain_)) 
+  if (!tree.getChain(base_name_, tip_name_, kdl_chain_)) 
   {
     ROS_ERROR("Could not initialize chain object");
   }
   num_joints_ = kdl_chain_.getNrOfJoints();
 
+  kinematic_state_.reset(new planning_models::KinematicState(kinematic_model_));  
+  joint_state_group_ = kinematic_state_->getJointStateGroup(joint_model_group_->getName());
 
   const std::vector<std::string> joint_model_names = joint_model_group_->getJointModelNames();
   for(unsigned int i=0; i < joint_model_names.size(); i++)
@@ -185,8 +186,15 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
       return true;
     }    
   }
-  
+
+  joint_state_group_->setStateValues(joint_angles);
+  const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
+  const Eigen::Affine3d* tip_frame = kinematic_state_->getFrameTransform(tip_name_);
+  Eigen::Affine3d transform = base_frame->inverse()*(*tip_frame);  
   wrenches.back().force.z = 1.0;
+  wrenches.back().force = transformVector(transform,wrenches.back().force);
+  wrenches.back().torque = transformVector(transform,wrenches.back().torque);  
+
   if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,torques))
     return false;
 
@@ -206,6 +214,22 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   ROS_INFO("Max payload (kg): %f",payload);
   return true;
 }
+
+geometry_msgs::Vector3 DynamicsSolver::transformVector(const Eigen::Affine3d &transform, 
+                                                       const geometry_msgs::Vector3 &vector) const
+{
+  Eigen::Vector3d p;
+  p = Eigen::Vector3d(vector.x,vector.y,vector.z);
+  p = transform*p;  
+
+  geometry_msgs::Vector3 result;
+  result.x = p.x();
+  result.y = p.y();
+  result.z = p.z();  
+  
+  return result;  
+}
+
 
 }
 /*

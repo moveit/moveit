@@ -107,11 +107,10 @@ region in the workspace for which reachability is to be computed****/
     ROS_INFO("Waiting for planning scene to be set");
   }
     
-  reachability_solver.computeWorkspace(workspace,true);
-  /*  reachability_solver.visualize(workspace,"full");
-
+  reachability_solver.computeWorkspace(workspace);
+  reachability_solver.visualize(workspace,"full");
   reachability_solver.animateWorkspace(workspace);
-
+  /*
   reachability_solver.visualizeWithArrows(workspace,"full_arrows");*/
   //  aw.visualize(workspace,"RPY(0,0,0)",zero_orientation);
   ROS_INFO("Success");
