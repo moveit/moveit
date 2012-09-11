@@ -46,6 +46,8 @@
 #include <urdf/model.h>
 #include <srdf/model.h>
 #include <planning_models/kinematic_model.h>
+#include <planning_models/kinematic_state.h>
+#include <geometry_msgs/Vector3.h>
 
 namespace dynamics_solver
 {
@@ -78,12 +80,19 @@ private:
   boost::shared_ptr<const urdf::Model> urdf_model_;
   boost::shared_ptr<const srdf::Model> srdf_model_;
 
-  std::string group_name_;
+  std::string group_name_, base_name_, tip_name_;
   unsigned int num_joints_;
   std::vector<double> max_torques_;
 
   planning_models::KinematicModelPtr kinematic_model_;
   const planning_models::KinematicModel::JointModelGroup* joint_model_group_;
+
+  geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform, 
+                                         const geometry_msgs::Vector3 &vector) const;
+
+  planning_models::KinematicStatePtr kinematic_state_;
+  planning_models::KinematicState::JointStateGroup* joint_state_group_;
+  
 };
 
 typedef boost::shared_ptr<DynamicsSolver> DynamicsSolverPtr;
