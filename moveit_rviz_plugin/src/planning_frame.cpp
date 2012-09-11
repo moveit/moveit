@@ -401,23 +401,19 @@ void moveit_rviz_plugin::PlanningFrame::populatePlanningSceneTreeView(void)
   checkPlanningSceneTreeEnabledButtons();
 }
 
-void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void)
-{
-  if (planning_scene_storage_)
+void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
+{  
+  if (mode == 1)
   {
     ui_->planning_scene_tree->setUpdatesEnabled(false); 
     ui_->planning_scene_tree->clear();
     ui_->planning_scene_tree->setUpdatesEnabled(true); 
-
+    
     ui_->database_connect_button->setUpdatesEnabled(false); 
     ui_->database_connect_button->setText(QString::fromStdString("Connect")); 
-    //    ui_->database_connect_button->setStyleSheet("color : black");
+    ui_->database_connect_button->setStyleSheet("QPushButton { color : green }");
     ui_->database_connect_button->setUpdatesEnabled(true); 
-    //    ui_->database_host->setUpdatesEnabled(false); 
-    //    ui_->database_host->setStyleSheet("color : black");
-    //    ui_->database_host->setUpdatesEnabled(true); 
-
-    planning_scene_storage_.reset();
+    
     ui_->load_scene_button->setEnabled(false);
     ui_->load_query_button->setEnabled(false);
     ui_->save_query_button->setEnabled(false);
@@ -425,35 +421,55 @@ void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void
     ui_->delete_query_button->setEnabled(false);
     ui_->delete_scene_button->setEnabled(false);
   }
-  else
-  {      
+  else  
+  if (mode == 2)
+  {   
     ui_->database_connect_button->setUpdatesEnabled(false); 
     ui_->database_connect_button->setText(QString::fromStdString("Connecting ..."));
-    //    ui_->database_connect_button->setStyleSheet("color : brown");
     ui_->database_connect_button->setUpdatesEnabled(true); 
+  }
+  else  
+  if (mode == 3)
+  {   
+    ui_->database_connect_button->setUpdatesEnabled(false); 
+    ui_->database_connect_button->setText(QString::fromStdString("Connect"));   
+    ui_->database_connect_button->setStyleSheet("QPushButton { color : green }");
+    ui_->database_connect_button->setUpdatesEnabled(true); 
+  }
+  else
+  if (mode == 4)
+  {
+    ui_->database_connect_button->setUpdatesEnabled(false); 
+    ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
+    ui_->database_connect_button->setStyleSheet("QPushButton { color : red }");
+    ui_->database_connect_button->setUpdatesEnabled(true); 
+    ui_->save_scene_button->setEnabled(true);
+    populatePlanningSceneTreeView();
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void)
+{
+  if (planning_scene_storage_)
+  {
+    planning_scene_storage_.reset();
+    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 1));
+  }
+  else
+  {      
+    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 2));
     try
     {
       planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(ui_->database_host->text().toStdString(),
                                                                                ui_->database_port->value(), 5.0));
     }
     catch(std::runtime_error &ex)
-    {
+    { 
+      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 3));
       ROS_ERROR("%s", ex.what());  
-      ui_->database_connect_button->setUpdatesEnabled(false); 
-      ui_->database_connect_button->setText(QString::fromStdString("Connect"));   
-      //      ui_->database_connect_button->setStyleSheet("color : black");
-      ui_->database_connect_button->setUpdatesEnabled(true); 
       return;
     }     
-    //    ui_->database_host->setUpdatesEnabled(false); 
-    //    ui_->database_host->setStyleSheet("color : green");
-    //    ui_->database_host->setUpdatesEnabled(true); 
-    ui_->database_connect_button->setUpdatesEnabled(false); 
-    ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
-    //    ui_->database_connect_button->setStyleSheet("color : red");
-    ui_->database_connect_button->setUpdatesEnabled(true); 
-    ui_->save_scene_button->setEnabled(true);
-    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
+    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 4));
   }
 }
 

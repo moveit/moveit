@@ -106,6 +106,7 @@ private:
   void computeSetGoalToCurrentButtonClicked(void);
   void populatePlanningSceneTreeView(void);
   void computeDatabaseConnectButtonClicked(void);
+  void computeDatabaseConnectButtonClickedHelper(int mode);
   void computeSaveSceneButtonClicked(void);
   void computeSaveQueryButtonClicked(void);
   void computeDeleteSceneButtonClicked(void);
