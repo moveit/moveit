@@ -364,7 +364,11 @@ void moveit_rviz_plugin::PlanningFrame::computeRandomStatesButtonClicked(void)
 }
 
 void moveit_rviz_plugin::PlanningFrame::populatePlanningSceneTreeView(void)
-{
+{  
+  boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage = planning_scene_storage_;
+  if (!planning_scene_storage)
+    return;
+  
   ui_->planning_scene_tree->setUpdatesEnabled(false);
 
   // remember which items were expanded
@@ -378,13 +382,13 @@ void moveit_rviz_plugin::PlanningFrame::populatePlanningSceneTreeView(void)
   
   ui_->planning_scene_tree->clear();
   std::vector<std::string> names;
-  planning_scene_storage_->getPlanningSceneNames(names);
+  planning_scene_storage->getPlanningSceneNames(names);
   
   for (std::size_t i = 0; i < names.size(); ++i)
   {
     std::vector<moveit_warehouse::MotionPlanRequestWithMetadata> planning_queries;
     std::vector<std::string> query_names;
-    planning_scene_storage_->getPlanningQueries(planning_queries, query_names, names[i]);
+    planning_scene_storage->getPlanningQueries(planning_queries, query_names, names[i]);
     QTreeWidgetItem *item = new QTreeWidgetItem(ui_->planning_scene_tree, QStringList(QString::fromStdString(names[i])), 1);
     for (std::size_t j = 0 ; j < query_names.size() ; ++j)
       item->addChild(new QTreeWidgetItem(item, QStringList(QString::fromStdString(query_names[j])), 2));
@@ -406,8 +410,12 @@ void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void
     ui_->planning_scene_tree->setUpdatesEnabled(true); 
 
     ui_->database_connect_button->setUpdatesEnabled(false); 
-    ui_->database_connect_button->setText(QString::fromStdString("Connect"));
+    ui_->database_connect_button->setText(QString::fromStdString("Connect")); 
+    //    ui_->database_connect_button->setStyleSheet("color : black");
     ui_->database_connect_button->setUpdatesEnabled(true); 
+    //    ui_->database_host->setUpdatesEnabled(false); 
+    //    ui_->database_host->setStyleSheet("color : black");
+    //    ui_->database_host->setUpdatesEnabled(true); 
 
     planning_scene_storage_.reset();
     ui_->load_scene_button->setEnabled(false);
@@ -421,6 +429,7 @@ void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void
   {      
     ui_->database_connect_button->setUpdatesEnabled(false); 
     ui_->database_connect_button->setText(QString::fromStdString("Connecting ..."));
+    //    ui_->database_connect_button->setStyleSheet("color : brown");
     ui_->database_connect_button->setUpdatesEnabled(true); 
     try
     {
@@ -431,15 +440,20 @@ void moveit_rviz_plugin::PlanningFrame::computeDatabaseConnectButtonClicked(void
     {
       ROS_ERROR("%s", ex.what());  
       ui_->database_connect_button->setUpdatesEnabled(false); 
-      ui_->database_connect_button->setText(QString::fromStdString("Connect"));
+      ui_->database_connect_button->setText(QString::fromStdString("Connect"));   
+      //      ui_->database_connect_button->setStyleSheet("color : black");
       ui_->database_connect_button->setUpdatesEnabled(true); 
       return;
-    }
+    }     
+    //    ui_->database_host->setUpdatesEnabled(false); 
+    //    ui_->database_host->setStyleSheet("color : green");
+    //    ui_->database_host->setUpdatesEnabled(true); 
     ui_->database_connect_button->setUpdatesEnabled(false); 
     ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
+    //    ui_->database_connect_button->setStyleSheet("color : red");
     ui_->database_connect_button->setUpdatesEnabled(true); 
-    populatePlanningSceneTreeView();
     ui_->save_scene_button->setEnabled(true);
+    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
   }
 }
 
@@ -450,7 +464,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSaveSceneButtonClicked(void)
     moveit_msgs::PlanningScene msg;
     planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
     planning_scene_storage_->addPlanningScene(msg); 
-    populatePlanningSceneTreeView();
+    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
   }
 }
 
@@ -541,7 +555,7 @@ void moveit_rviz_plugin::PlanningFrame::computeSaveQueryButtonClicked(void)
         std::string query_name = s->text(0).toStdString();
         planning_scene_storage_->addPlanningRequest(mreq, scene, query_name);
       }
-      populatePlanningSceneTreeView();
+      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
     }
   }
 }
@@ -564,10 +578,17 @@ void moveit_rviz_plugin::PlanningFrame::computeDeleteSceneButtonClicked(void)
         // if we selected a query name, then we overwrite that query
         std::string scene = s->parent()->text(0).toStdString();
         planning_scene_storage_->removePlanningScene(scene);  
-      } 
-      populatePlanningSceneTreeView();
+      }
+      planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
     }
   }
+}
+
+void moveit_rviz_plugin::PlanningFrame::computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s)
+{     
+  ui_->planning_scene_tree->setUpdatesEnabled(false);
+  s->parent()->removeChild(s);  
+  ui_->planning_scene_tree->setUpdatesEnabled(true);
 }
 
 void moveit_rviz_plugin::PlanningFrame::computeDeleteQueryButtonClicked(void)
@@ -582,10 +603,8 @@ void moveit_rviz_plugin::PlanningFrame::computeDeleteQueryButtonClicked(void)
       {
         std::string scene = s->parent()->text(0).toStdString();
         std::string query_name = s->text(0).toStdString();
-        planning_scene_storage_->removePlanningQuery(scene, query_name);
-        ui_->planning_scene_tree->setUpdatesEnabled(false);
-        s->parent()->removeChild(s);  
-        ui_->planning_scene_tree->setUpdatesEnabled(true);
+        planning_scene_storage_->removePlanningQuery(scene, query_name); 
+        planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::computeDeleteQueryButtonClickedHelper, this, s));
       }
     }
   }

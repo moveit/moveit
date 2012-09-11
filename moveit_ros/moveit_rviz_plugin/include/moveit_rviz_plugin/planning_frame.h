@@ -33,6 +33,7 @@
 #define MOVEIT_RVIZ_PLUGIN_PLANNING_FRAME_
 
 #include <QWidget>
+#include <QTreeWidgetItem>
 #include <move_group_interface/move_group.h>
 #include <moveit_warehouse/warehouse.h>
 
@@ -70,9 +71,9 @@ protected:
   rviz::DisplayContext* context_;
   Ui::MotionPlanningFrame *ui_;
   
-  boost::scoped_ptr<move_group_interface::MoveGroup> move_group_;
-  boost::scoped_ptr<move_group_interface::MoveGroup::Plan> current_plan_;
-  boost::scoped_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
+  boost::shared_ptr<move_group_interface::MoveGroup> move_group_;
+  boost::shared_ptr<move_group_interface::MoveGroup::Plan> current_plan_;
+  boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
 
 private Q_SLOTS:
 
@@ -109,10 +110,11 @@ private:
   void computeSaveQueryButtonClicked(void);
   void computeDeleteSceneButtonClicked(void);
   void computeDeleteQueryButtonClicked(void);
+  void computeDeleteQueryButtonClickedHelper(QTreeWidgetItem *s);
   void checkPlanningSceneTreeEnabledButtons(void);
   void computeLoadSceneButtonClicked(void);
   void computeLoadQueryButtonClicked(void);
-
+  
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   
