@@ -187,23 +187,32 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
     return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::PointStamped &point, double tolerance)
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::PointStamped &goal_point, double tolerance)
+{
+    geometry_msgs::Point p;
+    p.x = 0;
+    p.y = 0;
+    p.z = 0;
+    return constructGoalConstraints(link_name, p, goal_point, tolerance );
+}
+
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::Point &reference_point, const geometry_msgs::PointStamped &goal_point, double tolerance)
 {
     moveit_msgs::Constraints goal;
     goal.position_constraints.resize(1);
     moveit_msgs::PositionConstraint &pcm = goal.position_constraints[0];
     pcm.link_name = link_name;
-    pcm.target_point_offset.x = 0;
-    pcm.target_point_offset.y = 0;
-    pcm.target_point_offset.z = 0;
+    pcm.target_point_offset.x = reference_point.x;
+    pcm.target_point_offset.y = reference_point.y;
+    pcm.target_point_offset.z = reference_point.z;
     pcm.constraint_region.primitives.resize(1);
     pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
-    pcm.constraint_region.primitives[0].dimensions.resize(shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);  
+    pcm.constraint_region.primitives[0].dimensions.resize(shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);
     pcm.constraint_region.primitives[0].dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = tolerance;
-    
-    pcm.header = point.header;
+
+    pcm.header = goal_point.header;
     pcm.constraint_region.primitive_poses.resize(1);
-    pcm.constraint_region.primitive_poses[0].position = point.point;
+    pcm.constraint_region.primitive_poses[0].position = goal_point.point;
 
     // orientation of constraint region does not affect anything, since it is a sphere
     pcm.constraint_region.primitive_poses[0].orientation.x = 0.0;
