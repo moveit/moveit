@@ -8,7 +8,6 @@
   <url>http://www.ros.org/wiki/urdf</url>
 
   <depend package="rosconsole" />
-  <depend package="geometric_shapes"/>
   <depend package="shape_tools"/>
   <depend package="resource_retriever"/>
   <depend package="kinematics_base"/>
@@ -16,10 +15,8 @@
   <depend package="shape_msgs"/>
   <depend package="moveit_msgs"/>
   <depend package="geometry_msgs"/>
-  <depend package="common_rosdeps"/>
   <depend package="eigen_conversions"/>
-
-
+  
   <depend package="urdf_interface"/>
   <depend package="urdf_parser"/>
 

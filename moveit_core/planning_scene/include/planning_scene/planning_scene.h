@@ -46,7 +46,6 @@
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
-#include <octomap_msgs/OctomapBinary.h>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
@@ -319,8 +318,8 @@ public:
   bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject &object);
 
   void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
-  void processOctomapMsg(const octomap_msgs::OctomapBinaryWithPose &map);
-  void processOctomapMsg(const octomap_msgs::OctomapBinary &map);
+  void processOctomapMsg(const octomap_msgs::OctomapWithPose &map);
+  void processOctomapMsg(const octomap_msgs::Octomap &map);
   void processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t);
   bool getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& obj) const;
 

@@ -9,12 +9,9 @@ rosbuild_add_boost_directories()
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 
-find_package(srdfdom REQUIRED)
-include_directories(${srdfdom_INCLUDE_DIRS})
-
-#pkg_check_modules(urdfdom REQUIRED urdfdom)
-#include_directories(${urdfdom_INCLUDE_DIRS})
-#link_directories(${urdfdom_LIBRARY_DIRS})
+find_package(catkin COMPONENTS urdfdom srdfdom geometric_shapes eigen_stl_containers REQUIRED)
+include_directories(${catkin_INCLUDE_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -38,14 +35,14 @@ rosbuild_add_library(${PROJECT_NAME}
   src/kinematic_state/joint_state_group.cpp
   src/transforms.cpp
   src/conversions.cpp)
-target_link_libraries(${PROJECT_NAME} ${srdfdom_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 # Unit tests
 rosbuild_add_gtest(test_kinematic test/test_kinematic.cpp)
-target_link_libraries(test_kinematic ${PROJECT_NAME} ${urdfdom_LIBRARIES})
+target_link_libraries(test_kinematic ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 rosbuild_add_gtest(test_kinematic_complex test/test_kinematic_complex.cpp)
-target_link_libraries(test_kinematic_complex ${PROJECT_NAME} ${urdfdom_LIBRARIES})
+target_link_libraries(test_kinematic_complex ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 rosbuild_add_gtest(test_transforms test/test_transforms.cpp)
-target_link_libraries(test_transforms ${PROJECT_NAME} ${urdfdom_LIBRARIES})
+target_link_libraries(test_transforms ${PROJECT_NAME} ${catkin_LIBRARIES})
