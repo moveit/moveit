@@ -153,6 +153,12 @@ public:
     goal_->addStateChangedCallback(callback);
   }
 
+//  const KinematicsGroupVisualization* getStartGroupVisualization() const { return start_.get(); }
+//  const KinematicsGroupVisualization* getGoalGroupVisualization() const  { return goal_.get(); }
+
+  geometry_msgs::PoseStamped getStartInteractiveMarkerPose() const { return start_->getInteractiveMarkerPose(); }
+  geometry_msgs::PoseStamped getGoalInteractiveMarkerPose() const { return goal_->getInteractiveMarkerPose(); }
+
 protected:
 
   planning_scene::PlanningSceneConstPtr planning_scene_;

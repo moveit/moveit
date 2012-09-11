@@ -97,6 +97,9 @@ public:
     }
   }
 
+  // aleeper: I just want to query the pose of the end effector; is there a better way to do this?
+  const geometry_msgs::PoseStamped& getInteractiveMarkerPose() const { return last_6dof_marker_pose_; }
+
   void updateEndEffectorState(const geometry_msgs::Pose& pose);
 
   void updateEndEffectorState(const std::string& subgroup_name,
@@ -196,6 +199,7 @@ protected:
 
   std::map<std::string, geometry_msgs::Pose> last_poses_;
   visualization_msgs::MarkerArray last_marker_array_;
+  geometry_msgs::PoseStamped last_6dof_marker_pose_;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> interactive_marker_server_;
