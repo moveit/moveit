@@ -39,6 +39,7 @@
 #include <collision_detection_fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
 #include <collision_detection/collision_tools.h>
+#include <ros/console.h>
 #include <planning_models/conversions.h>
 #include <octomap_msgs/conversions.h>
 #include <ros/console.h>
@@ -56,7 +57,7 @@ bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningScene &ms
 {
   return msg.name.empty() && msg.fixed_frame_transforms.empty() && msg.robot_state.multi_dof_joint_state.joint_names.empty() &&
       msg.robot_state.joint_state.name.empty() && msg.robot_state.attached_collision_objects.empty() && msg.allowed_collision_matrix.entry_names.empty() &&
-      msg.link_padding.empty() && msg.link_scale.empty() && msg.world.collision_objects.empty() && msg.world.octomap.data.empty() &&
+      msg.link_padding.empty() && msg.link_scale.empty() && msg.world.collision_objects.empty() && msg.world.octomap.octomap.data.empty() &&
       msg.world.collision_map.boxes.empty();
 }
 
@@ -485,7 +486,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
   {
     scene.world.collision_objects.clear();
     scene.world.collision_map = moveit_msgs::CollisionMap();
-    scene.world.octomap = octomap_msgs::OctomapBinaryWithPose();
+    scene.world.octomap = octomap_msgs::OctomapWithPose();
     
     bool do_cmap = false;
     bool do_omap = false;
@@ -708,8 +709,9 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs:
 
 void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const
 {  
+  /*
   scene.world.octomap.header.frame_id = getPlanningFrame();
-  scene.world.octomap.data.clear();
+  scene.world.octomap.octomap.data.clear();
   if (getCollisionWorld()->hasObject(OCTOMAP_NS))
   {
     collision_detection::CollisionWorld::ObjectConstPtr map = getCollisionWorld()->getObject(OCTOMAP_NS);
@@ -722,6 +724,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::Plan
     else
       ROS_ERROR("Unexpected number of shapes in octomap collision object");
   }
+  */
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene &scene) const
@@ -994,24 +997,26 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
   }
 }
 
-void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::OctomapBinary &map)
+void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octomap &map)
 {
   // each octomap replaces any previous one
   cworld_->removeObject(OCTOMAP_NS);
-  
+  /*
   if (map.data.empty())
     return;
   
   boost::shared_ptr<octomap::OcTree> om(octomap_msgs::binaryMsgDataToMap(map.data)); /// \todo switch to full octomap
   const Eigen::Affine3d &t = getTransforms()->getTransform(getCurrentState(), map.header.frame_id);
   cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), t);
+  */
 }
 
-void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::OctomapBinaryWithPose &map)
+void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose &map)
 {
   // each octomap replaces any previous one
   cworld_->removeObject(OCTOMAP_NS);
-  
+
+  /*
   if (map.data.empty())
     return;
   boost::shared_ptr<octomap::OcTree> om(octomap_msgs::binaryMsgDataToMap(map.data)); /// \todo switch to full octomap
@@ -1022,6 +1027,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
   else
     ROS_ERROR("Failed to convert origin of Octomap to Eigen Affine3d");
   cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), p);
+  */
 }
 
 void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t)

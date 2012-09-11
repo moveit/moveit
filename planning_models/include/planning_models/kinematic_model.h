@@ -37,7 +37,7 @@
 #ifndef MOVEIT_PLANNING_MODELS_KINEMATIC_MODEL_
 #define MOVEIT_PLANNING_MODELS_KINEMATIC_MODEL_
 
-#include <urdf_interface/model.h>
+#include <urdf_model/model.h>
 #include <srdfdom/model.h>
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/shape_messages.h>

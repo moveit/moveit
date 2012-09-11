@@ -42,7 +42,7 @@
 #include <std_msgs/ColorRGBA.h>
 #include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <geometric_shapes/eigen_types.h>
+#include <eigen_stl_containers/eigen_stl_containers.h>
 #include <set>
 
 namespace planning_models

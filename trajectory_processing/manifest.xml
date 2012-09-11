@@ -10,7 +10,6 @@
   <url>http://ros.org/wiki/trajectory_processing</url>
   <depend package="planning_models"/>
   <depend package="moveit_msgs"/>
-  <depend package="angles"/>
   <depend package="planning_scene"/>
 
   <export>
