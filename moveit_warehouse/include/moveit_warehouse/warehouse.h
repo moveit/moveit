@@ -62,7 +62,7 @@ public:
       If these params are not found either, a final attempt is made to look for the param values under /moveit_warehouse/warehouse_*.
       If no values are found, the defaults are left to be the ones MongoDB uses. 
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
-  PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 0.0);
+  PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
   
   void addPlanningScene(const moveit_msgs::PlanningScene &scene);
   void addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
@@ -108,7 +108,6 @@ private:
   
   std::string getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
   std::string addNewPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name);
-  void connectToDatabase(void);
   
   PlanningSceneCollection     planning_scene_collection_;
   MotionPlanRequestCollection motion_plan_request_collection_;
