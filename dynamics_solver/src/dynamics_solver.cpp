@@ -190,10 +190,13 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   joint_state_group_->setStateValues(joint_angles);
   const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
   const Eigen::Affine3d* tip_frame = kinematic_state_->getFrameTransform(tip_name_);
-  Eigen::Affine3d transform = base_frame->inverse()*(*tip_frame);  
+  Eigen::Affine3d transform = tip_frame->inverse()*(*base_frame);  
   wrenches.back().force.z = 1.0;
   wrenches.back().force = transformVector(transform,wrenches.back().force);
   wrenches.back().torque = transformVector(transform,wrenches.back().torque);  
+
+  ROS_DEBUG("New wrench (local frame): %f %f %f",wrenches.back().force.x,wrenches.back().force.y,wrenches.back().force.z);
+  
 
   if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,torques))
     return false;
@@ -220,7 +223,7 @@ geometry_msgs::Vector3 DynamicsSolver::transformVector(const Eigen::Affine3d &tr
 {
   Eigen::Vector3d p;
   p = Eigen::Vector3d(vector.x,vector.y,vector.z);
-  p = transform*p;  
+  p = transform.rotation()*p;  
 
   geometry_msgs::Vector3 result;
   result.x = p.x();
