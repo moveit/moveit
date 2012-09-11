@@ -605,6 +605,8 @@ namespace moveit_visualization_ros
             //setting this so that we save it correctly
             interactive_marker_server_->setPose(feedback->marker_name, feedback->pose);
             interactive_marker_server_->applyChanges();
+            last_6dof_marker_pose_.header = feedback->header;
+            last_6dof_marker_pose_.pose = feedback->pose;
         }
         break;
         case visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK:
