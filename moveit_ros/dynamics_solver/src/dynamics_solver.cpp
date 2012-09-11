@@ -74,7 +74,7 @@ bool DynamicsSolver::initialize(const boost::shared_ptr<const urdf::Model> &urdf
   }
   base_name_ = joint_model_group_->getLinkModels().front()->getParentJointModel()->getParentLinkModel()->getName();
   tip_name_ = joint_model_group_->getLinkModelNames().back();
-  ROS_INFO("Base name: %s, Tip name: %s",base_name_.c_str(),tip_name_.c_str());
+  ROS_DEBUG("Base name: %s, Tip name: %s",base_name_.c_str(),tip_name_.c_str());
   
   KDL::Tree tree;
   if (!kdl_parser::treeFromUrdfModel(*urdf_model_, tree)) 
@@ -214,7 +214,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
     }    
   }  
   payload = min_payload/9.81;  
-  ROS_INFO("Max payload (kg): %f",payload);
+  ROS_DEBUG("Max payload (kg): %f",payload);
   return true;
 }
 
