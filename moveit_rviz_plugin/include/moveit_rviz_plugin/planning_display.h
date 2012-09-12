@@ -288,7 +288,6 @@ protected:
   //Metric calculations
   kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;  
   std::map<std::string, dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
-  double metrics_payload_;
      
   // properties to show on side panel
   rviz::Property* scene_category_;
@@ -328,6 +327,7 @@ protected:
   rviz::FloatProperty* metrics_set_payload_property_;
   
   rviz::Display *int_marker_display_;
+  double metrics_payload_;
 };
 
 } // namespace moveit_rviz_plugin
