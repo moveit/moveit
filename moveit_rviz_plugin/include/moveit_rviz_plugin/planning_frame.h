@@ -94,7 +94,8 @@ private Q_SLOTS:
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
   void planningAlgorithmIndexChanged(int index);
-
+  void importSceneButtonClicked(void);
+  
 private:
 
   void computePlanButtonClicked(void);  

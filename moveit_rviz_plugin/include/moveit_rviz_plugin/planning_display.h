@@ -161,10 +161,11 @@ public:
   }  
 
   void showPlanningFrame(bool show);
+  void queueRenderSceneGeometry(void);
   
   void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
                               const std::vector<planning_models::KinematicStatePtr> &trajectory);
-
+                                                                                                
 private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions

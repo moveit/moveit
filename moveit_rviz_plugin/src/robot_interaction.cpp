@@ -108,7 +108,48 @@ double RobotInteraction::computeGroupScale(const std::string &group)
 
 void RobotInteraction::decideActiveVirtualJoints(void)
 { 
-  active_vj_.clear();  
+  active_vj_.clear();
+  if (!planning_display_->getPlanningSceneMonitor())
+    return;
+  const planning_models::KinematicModelConstPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModel();
+  if (!kmodel)
+    return;
+  
+  std::string group = planning_display_->getCurrentPlanningGroup();
+  if (group.empty())
+    return;
+  
+  const boost::shared_ptr<const srdf::Model> &srdf = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getSrdfModel();
+  const planning_models::KinematicModel::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
+  
+  if (!jmg || !srdf)
+    return;
+  
+  if (!jmg->hasJointModel(kmodel->getRootJointName()))
+    return;
+
+  planning_models::KinematicState default_state(kmodel);
+  default_state.setToDefaultValues();
+  std::vector<double> aabb;
+  default_state.computeAABB(aabb);
+  
+  const std::vector<srdf::Model::VirtualJoint> &vj = srdf->getVirtualJoints();
+  for (std::size_t i = 0 ; i < vj.size() ; ++i)
+    if (vj[i].name_ == kmodel->getRootJointName())
+    {
+      if (vj[i].type_ == "planar" || vj[i].type_ == "floating")
+      {
+        VirtualJoint v;
+        v.connecting_link = vj[i].child_link_;
+        v.joint_name = vj[i].name_;
+        if (vj[i].type_ == "planar")
+          v.dof = 3;
+        else
+          v.dof = 6;
+        v.scale = std::max(aabb[1] - aabb[0], aabb[3] - aabb[1]);
+        active_vj_.push_back(v);
+      }
+    }
 }
 
 void RobotInteraction::decideActiveEndEffectors(void)
@@ -227,10 +268,35 @@ void RobotInteraction::publishInteractiveMarkers(void)
         }
         int_marker_server_->insert(im);
         int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
-        ROS_DEBUG("Publishing interactive marker %s", marker_name.c_str());
+        ROS_DEBUG("Publishing interactive marker %s (scale = %lf)", marker_name.c_str(), active_eef_[i].scale);
       }
+
+  for (std::size_t i = 0 ; i < active_vj_.size() ; ++i)
+    for (int s = 0 ; s < 2 ; ++s)
+      if (start_goal[s])
+        if (active_vj_[i].dof == 3)
+        {
+          geometry_msgs::PoseStamped pose;
+          pose.header.frame_id = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningFrame();
+          pose.header.stamp = ros::Time::now();
+          
+          const planning_models::KinematicState::LinkState *ls = 
+            s == 0 ?
+            planning_display_->getQueryStartState()->getLinkState(active_vj_[i].connecting_link) :
+            planning_display_->getQueryGoalState()->getLinkState(active_vj_[i].connecting_link);
+          planning_models::msgFromPose(ls->getGlobalLinkTransform(), pose.pose);
+          
+          std::string marker_name = "XY_" + boost::lexical_cast<std::string>(s) + "_" + active_vj_[i].connecting_link;
+          shown_markers_[marker_name] = i;
+          visualization_msgs::InteractiveMarker im = make3DOFMarker(marker_name, pose, active_vj_[i].scale);
+          
+          int_marker_server_->insert(im);
+          int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
+          ROS_DEBUG("Publishing interactive marker %s (scale = %lf)", marker_name.c_str(), active_vj_[i].scale);
+        }
+  
   int_marker_server_->applyChanges();
-  //  ROS_INFO("Spend %0.5lf s to publish markers", (ros::WallTime::now() - start).toSec());
+  //  ROS_INFO("Spent %0.5lf s to publish markers", (ros::WallTime::now() - start).toSec());
 }
 
 void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback)
@@ -251,32 +317,53 @@ void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msg
   }
   
   std::string planning_frame = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningFrame();
+  geometry_msgs::PoseStamped tpose;
+  tpose.header = feedback->header;
+  tpose.pose = feedback->pose;
+  if (feedback->header.frame_id != planning_frame)
+  {
+    try
+    {
+      context_->getTFClient()->transformPose(planning_frame, tpose, tpose);
+    }
+    catch (tf::TransformException& e)
+    {
+      ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame.c_str());
+    }
+  }
 
   static const double IK_TIMEOUT = 0.1;
+  
+  if (feedback->marker_name[1] == 'Y')
+  {  
+    bool start = feedback->marker_name[3] == '0'; // start state marker
+    const VirtualJoint &vj = active_vj_[it->second];
+    std::map<std::string, double> vals;
+    vals[ vj.joint_name + "/x"] = tpose.pose.position.x;
+    vals[ vj.joint_name + "/y"] = tpose.pose.position.y;
+    vals[ vj.joint_name + "/theta"] = tf::getYaw(tpose.pose.orientation);
+
+    if (start)
+    {
+      planning_display_->getQueryStartState()->getJointState(vj.joint_name)->setVariableValues(vals);
+      planning_display_->getQueryStartState()->updateLinkTransforms();
+      planning_display_->updateQueryStartState();
+    }
+    else
+    {
+      planning_display_->getQueryGoalState()->getJointState(vj.joint_name)->setVariableValues(vals);
+      planning_display_->getQueryGoalState()->updateLinkTransforms();
+      planning_display_->updateQueryGoalState();
+    }
+  }
   
   if (feedback->marker_name[1] == 'K')
   {
     bool start = feedback->marker_name[3] == '0'; // start state marker
     const EndEffector &ee = active_eef_[it->second];
-    geometry_msgs::Pose target_pose = feedback->pose;
-    if (feedback->header.frame_id != planning_frame)
-    {
-      geometry_msgs::PoseStamped tpose;
-      tpose.header = feedback->header;
-      tpose.pose = feedback->pose;
-      try
-      {
-        context_->getTFClient()->transformPose(planning_frame, tpose, tpose);
-        target_pose = tpose.pose;
-      }
-      catch (tf::TransformException& e)
-      {
-        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame.c_str());
-      }
-    }
     if (start)
     {
-      if (planning_display_->getQueryStartState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT))
+      if (planning_display_->getQueryStartState()->getJointStateGroup(ee.group)->setFromIK(tpose.pose, ee.tip_link, IK_TIMEOUT))
       {
         //        planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeMetrics, this, true, ee.group));
         computeMetricsInternal(computed_metrics_[std::make_pair(true, ee.group)], ee, *planning_display_->getQueryStartState(), planning_display_->getPayload());
@@ -289,7 +376,7 @@ void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msg
     }
     else
     {
-      if (planning_display_->getQueryGoalState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT))
+      if (planning_display_->getQueryGoalState()->getJointStateGroup(ee.group)->setFromIK(tpose.pose, ee.tip_link, IK_TIMEOUT))
       {  
         //        planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeMetrics, this, false, ee.group));
         computeMetricsInternal(computed_metrics_[std::make_pair(false, ee.group)], ee, *planning_display_->getQueryGoalState(),planning_display_->getPayload());
