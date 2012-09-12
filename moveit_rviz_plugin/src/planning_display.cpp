@@ -987,6 +987,8 @@ void PlanningDisplay::onEnable()
   planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
   rendered_geometry_node_->setVisible(scene_enabled_property_->getBool());
 
+  text_to_display_->setVisible(false);
+
   changedPlanningGroup();
   query_robot_start_->setVisible(query_start_state_property_->getBool());
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
