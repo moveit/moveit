@@ -279,7 +279,7 @@ void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msg
       if (planning_display_->getQueryStartState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT))
       {
         //        planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeMetrics, this, true, ee.group));
-        computeMetricsInternal(computed_metrics_[std::make_pair(true, ee.group)], ee, *planning_display_->getQueryStartState());
+        computeMetricsInternal(computed_metrics_[std::make_pair(true, ee.group)], ee, *planning_display_->getQueryStartState(), planning_display_->getPayload());
         invalid_start_state_.erase(ee.tip_link);
       }
       else
@@ -292,7 +292,7 @@ void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msg
       if (planning_display_->getQueryGoalState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT))
       {  
         //        planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeMetrics, this, false, ee.group));
-        computeMetricsInternal(computed_metrics_[std::make_pair(false, ee.group)], ee, *planning_display_->getQueryGoalState());
+        computeMetricsInternal(computed_metrics_[std::make_pair(false, ee.group)], ee, *planning_display_->getQueryGoalState(),planning_display_->getPayload());
         invalid_goal_state_.erase(ee.tip_link);
       }
       else  
@@ -309,28 +309,28 @@ void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs
   planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeProcessInteractiveMarkerFeedback, this, feedback));
 }
 
-void RobotInteraction::computeMetrics(void)
+void RobotInteraction::computeMetrics(double payload)
 {
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
-    computeMetricsInternal(computed_metrics_[std::make_pair(true, active_eef_[i].group)], active_eef_[i], *planning_display_->getQueryStartState());
-    computeMetricsInternal(computed_metrics_[std::make_pair(false, active_eef_[i].group)], active_eef_[i], *planning_display_->getQueryGoalState());
+    computeMetricsInternal(computed_metrics_[std::make_pair(true, active_eef_[i].group)], active_eef_[i], *planning_display_->getQueryStartState(), payload);
+    computeMetricsInternal(computed_metrics_[std::make_pair(false, active_eef_[i].group)], active_eef_[i], *planning_display_->getQueryGoalState(), payload);
   }
 }  
 
-void RobotInteraction::computeMetrics(bool start, const std::string &group)
+void RobotInteraction::computeMetrics(bool start, const std::string &group, double payload)
 {
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
     if (active_eef_[i].group == group)
       computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], active_eef_[i],
-                             start ? *planning_display_->getQueryStartState() : *planning_display_->getQueryGoalState());
+                             start ? *planning_display_->getQueryStartState() : *planning_display_->getQueryGoalState(), payload);
   if (start)
     planning_display_->updateQueryStartState();
   else
     planning_display_->updateQueryGoalState();
 }
 
-void RobotInteraction::computeMetricsInternal(std::map<std::string, double> &metrics, const EndEffector &ee, const planning_models::KinematicState &state)
+void RobotInteraction::computeMetricsInternal(std::map<std::string, double> &metrics, const EndEffector &ee, const planning_models::KinematicState &state, double payload)
 { 
   metrics.clear();
   
@@ -345,7 +345,19 @@ void RobotInteraction::computeMetricsInternal(std::map<std::string, double> &met
     {
       metrics["max_payload"] = max_payload;      
       metrics["saturated_joint"] = saturated_joint;      
-    }    
+    } 
+    std::vector<double> joint_torques;
+    joint_torques.resize(joint_values.size());    
+    if(planning_display_->getDynamicsSolver(ee.group)->getPayloadTorques(joint_values, payload, joint_torques))
+    {
+      for(unsigned int i=0; i < joint_torques.size(); ++i)
+      {
+        std::stringstream stream;
+        stream << "torque[" << i << "]";        
+        metrics[stream.str()] = joint_torques[i];
+      }      
+    }
+    
   } 
   
   if (planning_display_->getKinematicsMetrics())

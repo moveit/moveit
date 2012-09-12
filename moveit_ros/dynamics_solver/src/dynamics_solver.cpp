@@ -218,6 +218,38 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   return true;
 }
 
+bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
+                                       double &payload,
+                                       std::vector<double> &joint_torques) const
+{
+  if(joint_angles.size() != num_joints_)
+  {
+    ROS_ERROR("Joint angles vector should be size %d",num_joints_);
+    return false;
+  }
+  if(joint_torques.size() != num_joints_)
+  {
+    ROS_ERROR("Joint torques vector should be size %d",num_joints_);
+    return false;
+  }
+  std::vector<double> joint_velocities(num_joints_,0.0), joint_accelerations(num_joints_,0.0);
+  std::vector<geometry_msgs::Wrench> wrenches(num_joints_);
+
+  joint_state_group_->setStateValues(joint_angles);
+  const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
+  const Eigen::Affine3d* tip_frame = kinematic_state_->getFrameTransform(tip_name_);
+  Eigen::Affine3d transform = tip_frame->inverse()*(*base_frame);  
+  wrenches.back().force.z = 1.0;
+  wrenches.back().force = transformVector(transform,wrenches.back().force);
+  wrenches.back().torque = transformVector(transform,wrenches.back().torque);  
+
+  ROS_DEBUG("New wrench (local frame): %f %f %f",wrenches.back().force.x,wrenches.back().force.y,wrenches.back().force.z);
+  
+  if(!getTorques(joint_angles,joint_velocities,joint_accelerations,wrenches,joint_torques))
+    return false;
+  return true;
+}
+
 geometry_msgs::Vector3 DynamicsSolver::transformVector(const Eigen::Affine3d &transform, 
                                                        const geometry_msgs::Vector3 &vector) const
 {
