@@ -174,14 +174,14 @@ QWidget* EndEffectorsWidget::createEditWidget()
   // Parent Link input
   parent_name_field_ = new QComboBox( this );
   parent_name_field_->setEditable( false );
-  form_layout->addRow( "Parent Link:", parent_name_field_ );
+  form_layout->addRow( "Parent Link (usually part of the arm):", parent_name_field_ );
 
   // Group input
   group_name_field_ = new QComboBox( this );
   group_name_field_->setEditable( false );
   //connect( group_name_field_, SIGNAL( currentIndexChanged( const QString & ) ), 
   //         this, SLOT( loadJointSliders( const QString & ) ) );
-  form_layout->addRow( "Planning Group:", group_name_field_ );
+  form_layout->addRow( "End Effector Group:", group_name_field_ );
   
   layout->addLayout( form_layout );
 
