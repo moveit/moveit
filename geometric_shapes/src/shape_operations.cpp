@@ -265,6 +265,7 @@ static void extractMeshData(const aiScene *scene, const aiNode *node, const aiMa
   for (unsigned int j = 0 ; j < node->mNumMeshes; ++j)
   {
     const aiMesh* a = scene->mMeshes[node->mMeshes[j]];
+    unsigned int offset = vertices.size();    
     for (unsigned int i = 0 ; i < a->mNumVertices ; ++i)
     {
       aiVector3D v = transform * a->mVertices[i];
@@ -273,9 +274,9 @@ static void extractMeshData(const aiScene *scene, const aiNode *node, const aiMa
     for (unsigned int i = 0 ; i < a->mNumFaces ; ++i)
       if (a->mFaces[i].mNumIndices == 3)
       {
-        triangles.push_back(a->mFaces[i].mIndices[0]);
-        triangles.push_back(a->mFaces[i].mIndices[1]);
-        triangles.push_back(a->mFaces[i].mIndices[2]);
+        triangles.push_back(offset + a->mFaces[i].mIndices[0]);
+        triangles.push_back(offset + a->mFaces[i].mIndices[1]);
+        triangles.push_back(offset + a->mFaces[i].mIndices[2]);
       }
   }
   
