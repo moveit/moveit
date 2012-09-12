@@ -188,7 +188,9 @@ void RobotInteraction::clear(void)
 }
 
 void RobotInteraction::publishInteractiveMarkers(void)
-{
+{ 
+  //  ros::WallTime start = ros::WallTime::now();
+
   shown_markers_.clear();
   int_marker_server_->clear();
   
@@ -228,10 +230,13 @@ void RobotInteraction::publishInteractiveMarkers(void)
         ROS_DEBUG("Publishing interactive marker %s", marker_name.c_str());
       }
   int_marker_server_->applyChanges();
+  //  ROS_INFO("Spend %0.5lf s to publish markers", (ros::WallTime::now() - start).toSec());
 }
 
 void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback)
-{ 
+{   
+  //  ros::WallTime start = ros::WallTime::now();
+
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(feedback->marker_name);
   if (it == shown_markers_.end())
     return;
@@ -273,6 +278,7 @@ void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msg
     {
       if (planning_display_->getQueryStartState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT))
       {
+        //        planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeMetrics, this, true, ee.group));
         computeMetricsInternal(computed_metrics_[std::make_pair(true, ee.group)], ee, *planning_display_->getQueryStartState());
         invalid_start_state_.erase(ee.tip_link);
       }
@@ -284,7 +290,8 @@ void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msg
     else
     {
       if (planning_display_->getQueryGoalState()->getJointStateGroup(ee.group)->setFromIK(target_pose, ee.tip_link, IK_TIMEOUT))
-      {
+      {  
+        //        planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeMetrics, this, false, ee.group));
         computeMetricsInternal(computed_metrics_[std::make_pair(false, ee.group)], ee, *planning_display_->getQueryGoalState());
         invalid_goal_state_.erase(ee.tip_link);
       }
@@ -294,6 +301,7 @@ void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msg
       planning_display_->updateQueryGoalState();
     }
   } 
+  //  ROS_INFO("Spend %0.5lf s to process IM feedback", (ros::WallTime::now() - start).toSec());
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
@@ -316,6 +324,10 @@ void RobotInteraction::computeMetrics(bool start, const std::string &group)
     if (active_eef_[i].group == group)
       computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], active_eef_[i],
                              start ? *planning_display_->getQueryStartState() : *planning_display_->getQueryGoalState());
+  if (start)
+    planning_display_->updateQueryStartState();
+  else
+    planning_display_->updateQueryGoalState();
 }
 
 void RobotInteraction::computeMetricsInternal(std::map<std::string, double> &metrics, const EndEffector &ee, const planning_models::KinematicState &state)

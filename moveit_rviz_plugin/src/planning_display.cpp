@@ -128,6 +128,12 @@ PlanningDisplay::PlanningDisplay() :
   query_start_color_property_ = new rviz::ColorProperty("Start State Color", QColor(0, 255, 0), "The highlight color for the start state",
                                                         plan_category_,
                                                         SLOT( changedQueryStartColor() ), this);
+  query_start_alpha_property_ =
+    new rviz::FloatProperty( "Start State Alpha", 1.0f, "Specifies the alpha for the robot links",
+                             plan_category_,
+                             SLOT( changedQueryStartAlpha() ), this );
+  query_start_alpha_property_->setMin( 0.0 );
+  query_start_alpha_property_->setMax( 1.0 );
   
   query_goal_state_property_ = new rviz::BoolProperty( "Query Goal State", true, "Shows the goal state for the motion planning query",
                                                        plan_category_,
@@ -136,6 +142,13 @@ PlanningDisplay::PlanningDisplay() :
   query_goal_color_property_ = new rviz::ColorProperty( "Goal State Color", QColor(250, 128, 0), "The highlight color for the goal state",
                                                        plan_category_,
                                                        SLOT( changedQueryGoalColor() ), this );
+
+  query_goal_alpha_property_ =
+    new rviz::FloatProperty( "Goal State Alpha", 1.0f, "Specifies the alpha for the robot links",
+                             plan_category_,
+                             SLOT( changedQueryGoalAlpha() ), this );
+  query_goal_alpha_property_->setMin( 0.0 );
+  query_goal_alpha_property_->setMax( 1.0 );
 
   query_colliding_link_color_property_ = new rviz::ColorProperty( "Colliding Link Color", QColor(255, 0, 0), "The highlight color for colliding links",
                                                                   plan_category_,
@@ -222,6 +235,11 @@ PlanningDisplay::PlanningDisplay() :
                             path_category_,
                             SLOT( changedLoopDisplay() ), this );
 
+  trail_display_property_ =
+    new rviz::BoolProperty( "Show Trail", false, "Show a path trail",
+                            path_category_,
+                            SLOT( changedShowTrail() ), this );
+    
   trajectory_topic_property_ =
     new rviz::RosTopicProperty( "Trajectory Topic", "",
                                 ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
@@ -306,12 +324,21 @@ void PlanningDisplay::onInitialize(void)
   */ 
 }
 
-void PlanningDisplay::reset()
-{
+void PlanningDisplay::reset(void)
+{ 
+  clearTrajectoryTrail();
+  robot_interaction_->clear();
   planning_scene_render_.reset();
+  text_to_display_->setVisible(false);
+    
+  display_path_robot_->clear();
+  planning_scene_robot_->clear();
+  query_robot_start_->clear();
+  query_robot_goal_->clear();
+
   loadRobotModel();
   frame_->disable();
-  if (planning_scene_monitor_ && show_planning_frame_)
+  if (show_planning_frame_)
     frame_->enable();
   trajectory_message_to_display_.reset();
   displaying_trajectory_message_.reset();
@@ -400,7 +427,7 @@ void PlanningDisplay::displayTable(const std::map<std::string, double> &values,
 void PlanningDisplay::changedRobotDescription()
 {
   if (isEnabled())
-    loadRobotModel();
+    reset();
 }
 
 // ******************************************************************************************
@@ -421,10 +448,29 @@ void PlanningDisplay::changedRootLinkName()
     root_link_name_property_->setStdString( planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getRootLinkName() );
 }
 
-// ******************************************************************************************
-// Loop Display
-// ******************************************************************************************
+void PlanningDisplay::clearTrajectoryTrail(void)
+{
+  for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
+    delete trajectory_trail_[i];
+  trajectory_trail_.clear();
+}
+
 void PlanningDisplay::changedLoopDisplay(){}
+
+void PlanningDisplay::changedShowTrail(void)
+{
+  clearTrajectoryTrail();
+  boost::shared_ptr<TrajectoryMessageToDisplay> t = trajectory_message_to_display_;
+  if (!t)
+    t = displaying_trajectory_message_;
+  if (!t)
+    return;
+  /*
+  trajectory_trail_.resize(t->trajectory_.size());
+  for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
+  {
+  }*/
+}
 
 // ******************************************************************************************
 // Robot Path Alpha
@@ -539,6 +585,9 @@ void PlanningDisplay::displayMetrics(bool start)
 
 void PlanningDisplay::changedQueryStartState(void)
 {
+  if (!planning_scene_monitor_)
+    return;
+
   if (query_start_state_property_->getBool())
   {
     if (isEnabled())
@@ -556,7 +605,8 @@ void PlanningDisplay::changedQueryStartState(void)
     }
   }
   else
-    query_robot_start_->setVisible(false);  
+    query_robot_start_->setVisible(false);
+  context_->queueRender();
   addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
 }
 
@@ -565,8 +615,15 @@ void PlanningDisplay::changedQueryStartColor(void)
   changedQueryStartState();
 }
 
+void PlanningDisplay::changedQueryStartAlpha(void)
+{
+  query_robot_start_->setAlpha(query_start_alpha_property_->getFloat());
+}
+
 void PlanningDisplay::changedQueryGoalState(void)
 {
+  if (!planning_scene_monitor_)
+    return;  
   if (query_goal_state_property_->getBool())
   {
     if (isEnabled())
@@ -585,12 +642,18 @@ void PlanningDisplay::changedQueryGoalState(void)
   }
   else
     query_robot_goal_->setVisible(false);
+  context_->queueRender();
   addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
 }
 
 void PlanningDisplay::changedQueryGoalColor(void)
 {
   changedQueryGoalState();
+}
+
+void PlanningDisplay::changedQueryGoalAlpha(void)
+{
+  query_robot_goal_->setAlpha(query_goal_alpha_property_->getFloat());
 }
 
 void PlanningDisplay::changedQueryCollidingLinkColor(void)
@@ -602,11 +665,13 @@ void PlanningDisplay::changedQueryCollidingLinkColor(void)
 void PlanningDisplay::updateQueryStartState(void)
 {
   addMainLoopJob(boost::bind(&PlanningDisplay::changedQueryStartState, this));  
+  context_->queueRender();
 }
 
 void PlanningDisplay::updateQueryGoalState(void)
 { 
   addMainLoopJob(boost::bind(&PlanningDisplay::changedQueryGoalState, this));  
+  context_->queueRender();
 }
 
 void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePtr &start)
@@ -616,7 +681,6 @@ void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePt
   if (!group.empty())
     robot_interaction_->computeMetrics(true, group);
   updateQueryStartState();
-  context_->queueRender();
 }
 
 void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr &goal)
@@ -626,7 +690,6 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   if (!group.empty())
     robot_interaction_->computeMetrics(false, group);
   updateQueryGoalState();
-  context_->queueRender();
 }
 
 void PlanningDisplay::updateLinkColors(void)
@@ -798,66 +861,22 @@ void PlanningDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& link
 // Load
 // ******************************************************************************************
 void PlanningDisplay::loadRobotModel(void)
-{
-  std::string content;
-  if (!update_nh_.getParam(robot_description_property_->getStdString(), content))
-  {
-    std::string loc;
-    if (update_nh_.searchParam(robot_description_property_->getStdString(), loc))
-    {
-      update_nh_.getParam(loc, content);
-    }
-  }
-
-  TiXmlDocument doc;
-  doc.Parse(content.c_str());
-  if (!doc.RootElement())
-  {
-    return;
-  }
-
-  urdf::Model descr;
-  descr.initXml(doc.RootElement());
-  display_path_robot_->load(doc.RootElement(), descr);
-  planning_scene_robot_->load(doc.RootElement(), descr);
-  query_robot_start_->load(doc.RootElement(), descr);
-  query_robot_goal_->load(doc.RootElement(), descr);
-
-  loadPlanningSceneMonitor();
-  robot_interaction_->decideActiveComponents();
-  robot_interaction_->computeMetrics();
-
-  kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(planning_scene_monitor_->getKinematicModel()));  
-
-  boost::shared_ptr<urdf::Model> urdf_model;
-  urdf_model.reset(new urdf::Model());  
-  urdf_model->initXml(doc.RootElement());
-  /// \todo Use ModelInterface when new kdl_parser is available
-  const std::vector<std::string> &groups = planning_scene_monitor_->getKinematicModel()->getJointModelGroupNames();
-  for(std::size_t i = 0 ; i < groups.size() ; ++i)
-    if (planning_scene_monitor_->getKinematicModel()->getJointModelGroup(groups[i])->isChain()) 
-    {
-      dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver());
-      if (!dynamics_solver_[groups[i]]->initialize(urdf_model,
-                                                   planning_scene_monitor_->getKinematicModelLoader()->getSRDF(),
-                                                   groups[i]))
-        dynamics_solver_[groups[i]].reset();
-    }
-}
-
-void PlanningDisplay::loadPlanningSceneMonitor(void)
-{
+{  
   planning_group_property_->clearOptions();
   planning_scene_monitor_.reset(); // this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
-                                                                        context_->getFrameManager()->getTFClientPtr()));
+                                                                                 context_->getFrameManager()->getTFClientPtr()));
   if (planning_scene_monitor_->getPlanningScene())
-  {
+  {  
+    display_path_robot_->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
+    planning_scene_robot_->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
+    query_robot_start_->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
+    query_robot_goal_->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
+
     planning_scene_monitor_->getPlanningScene()->setName(scene_name_property_->getStdString());
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
     planning_models::KinematicStatePtr ks(new planning_models::KinematicState(planning_scene_monitor_->getPlanningScene()->getCurrentState()));
-    planning_scene_robot_->update(PlanningLinkUpdater(ks));
     query_start_state_ = ks;
     query_goal_state_.reset(new planning_models::KinematicState(*ks));
     
@@ -867,13 +886,56 @@ void PlanningDisplay::loadPlanningSceneMonitor(void)
     planning_group_property_->sortOptions();
     if (!groups.empty() && planning_group_property_->getStdString().empty())
       planning_group_property_->setStdString(groups[0]);
-    changedQueryStartState();
-    changedQueryGoalState();
-
     planning_scene_render_.reset(new PlanningSceneRender(context_, rendered_geometry_node_, planning_scene_robot_));
+
+    planning_scene_robot_->update(PlanningLinkUpdater(ks));
+    kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(planning_scene_monitor_->getKinematicModel()));  
+    
+    robot_interaction_->decideActiveComponents();
+    robot_interaction_->computeMetrics();
+    
+    ///////// should not need this
+    std::string content;
+    if (!update_nh_.getParam(robot_description_property_->getStdString(), content))
+    {
+      std::string loc;
+      if (update_nh_.searchParam(robot_description_property_->getStdString(), loc))
+        update_nh_.getParam(loc, content);
+    }
+    TiXmlDocument doc;
+    doc.Parse(content.c_str());
+    urdf::Model descr;
+    descr.initXml(doc.RootElement());
+    boost::shared_ptr<urdf::Model> urdf_model;
+    urdf_model.reset(new urdf::Model());  
+    urdf_model->initXml(doc.RootElement());
+    /// \todo Use ModelInterface when new kdl_parser is available
+    ///////// 
+    
+    
+    for (std::size_t i = 0 ; i < groups.size() ; ++i)
+      if (planning_scene_monitor_->getKinematicModel()->getJointModelGroup(groups[i])->isChain()) 
+      {
+        dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver());
+        if (!dynamics_solver_[groups[i]]->initialize(urdf_model,
+                                                     planning_scene_monitor_->getKinematicModelLoader()->getSRDF(),
+                                                     groups[i]))
+        {
+          dynamics_solver_[groups[i]].reset();
+          dynamics_solver_.erase(groups[i]);
+        }
+      }  
+    
+    changedQueryStartState();
+    changedQueryGoalState(); 
+    
+    setStatus( rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully" );
   }
   else
+  {
     planning_scene_monitor_.reset();
+    setStatus( rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded" );
+  }
 }
 
 void PlanningDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
@@ -1108,7 +1170,7 @@ void PlanningDisplay::fixedFrameChanged(void)
 {
   Display::fixedFrameChanged();
   calculateOffsetPosition();  
-  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
+  changedPlanningGroup();
 }
 
 
