@@ -155,6 +155,8 @@ public:
     return dynamics_solver_[group];
   }
   
+  void showPlanningFrame(bool show);
+  
   void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
                               const std::vector<planning_models::KinematicStatePtr> &trajectory);
 
@@ -176,11 +178,14 @@ private Q_SLOTS:
   void changedRobotPathAlpha();
   void changedStateDisplayTime();
   void changedLoopDisplay();
+  void changedShowTrail();
   void changedTrajectoryTopic();
   void changedQueryStartState();
   void changedQueryGoalState();
   void changedQueryStartColor();
   void changedQueryGoalColor();
+  void changedQueryStartAlpha();
+  void changedQueryGoalAlpha();
   void changedQueryCollidingLinkColor();
   void changedPlanningGroup();
   void changedShowWeightLimit();
@@ -208,7 +213,6 @@ protected:
   void calculateOffsetPosition();
 
   void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  void loadPlanningSceneMonitor();
   void renderPlanningScene();
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
@@ -220,6 +224,7 @@ protected:
   void displayMetrics(bool start);
   void updateLinkColors(void);
   void executeMainLoopJobs(void);
+  void clearTrajectoryTrail();
   
 
   // overrides from Display  
@@ -245,7 +250,8 @@ protected:
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   boost::shared_ptr<TrajectoryMessageToDisplay> displaying_trajectory_message_;
   boost::shared_ptr<TrajectoryMessageToDisplay> trajectory_message_to_display_;
-
+  std::vector<rviz::Robot*> trajectory_trail_;
+  
   ros::Subscriber trajectory_topic_sub_;
 
   // render the planning scene
@@ -259,6 +265,7 @@ protected:
   // the planning frame
   PlanningFrame *frame_;
   QDockWidget *frame_dock_;
+  bool show_planning_frame_;
   
   planning_models::KinematicStatePtr query_start_state_;
   planning_models::KinematicStatePtr query_goal_state_;
@@ -286,7 +293,9 @@ protected:
   rviz::BoolProperty* query_start_state_property_;
   rviz::BoolProperty* query_goal_state_property_;
   rviz::ColorProperty* query_start_color_property_;
-  rviz::ColorProperty* query_goal_color_property_;
+  rviz::ColorProperty* query_goal_color_property_;  
+  rviz::FloatProperty* query_start_alpha_property_;
+  rviz::FloatProperty* query_goal_alpha_property_;
   rviz::ColorProperty* query_colliding_link_color_property_;
 
   rviz::StringProperty* robot_description_property_;
@@ -304,6 +313,7 @@ protected:
   rviz::FloatProperty* robot_scene_alpha_property_;
   rviz::FloatProperty* scene_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
+  rviz::BoolProperty* trail_display_property_;
   rviz::BoolProperty* compute_weight_limit_property_;
   rviz::BoolProperty* show_manipulability_index_property_;
   rviz::BoolProperty* show_manipulability_region_property_;
