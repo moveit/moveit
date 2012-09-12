@@ -5,3 +5,6 @@ catkin_project(${PROJECT_NAME}
   INCLUDE_DIRS include  
   DEPENDS planning_scene
   )
+
+install(DIRECTORY include/
+  DESTINATION include)

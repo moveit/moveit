@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(ompl_interface)
 
-catkin_project(${PROJECT_NAME}
-  INCLUDE_DIRS include  
-  LIBRARIES ${PROJECT_NAME}
-  DEPENDS planning_scene constraint_samplers
-  )
-
 include_directories(include)
 
 find_package(Boost REQUIRED thread date_time serialization system filesystem)
@@ -25,6 +19,12 @@ link_directories(${planning_scene_LIBRARY_DIRS})
 find_package(constraint_samplers REQUIRED)
 include_directories(${constraint_samplers_INCLUDE_DIRS})
 link_directories(${constraint_samplers_LIBRARY_DIRS})
+
+catkin_project(${PROJECT_NAME}
+  INCLUDE_DIRS include  
+  LIBRARIES ${PROJECT_NAME}
+  DEPENDS planning_scene constraint_samplers
+  )
 
 add_library(${PROJECT_NAME}
   src/ompl_interface.cpp
@@ -52,6 +52,11 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${OMPL_LIBRARIES} ${constraint_samplers_LIBRARIES} ${planning_scene_LIBRARIES} ${Boost_LIBRARIES})
+
+install(TARGETS ${PROJECT_NAME}
+  LIBRARY DESTINATION lib)
+install(DIRECTORY include/
+  DESTINATION include)
 
 catkin_add_gtest(test_state_space test/test_state_space.cpp) 
 target_link_libraries(test_state_space ${PROJECT_NAME} ompl)
