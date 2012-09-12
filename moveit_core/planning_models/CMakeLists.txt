@@ -22,14 +22,11 @@ find_package(catkin COMPONENTS
   random_numbers
   console_bridge
   visualization_msgs
+  kinematics_base
   REQUIRED)
 
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
-
-find_package(kinematics_base REQUIRED)
-include_directories(${kinematics_base_INCLUDE_DIRS})
-link_directories(${kinematics_base_LIBRARY_DIRS})
 
 catkin_project(${PROJECT_NAME}
   INCLUDE_DIRS include  
@@ -54,7 +51,7 @@ add_library(${PROJECT_NAME}
   src/kinematic_state/joint_state_group.cpp
   src/transforms.cpp
   src/conversions.cpp)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinematics_base_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
