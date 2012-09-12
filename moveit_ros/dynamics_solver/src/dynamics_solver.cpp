@@ -239,7 +239,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
   const Eigen::Affine3d* base_frame = kinematic_state_->getFrameTransform(base_name_);
   const Eigen::Affine3d* tip_frame = kinematic_state_->getFrameTransform(tip_name_);
   Eigen::Affine3d transform = tip_frame->inverse()*(*base_frame);  
-  wrenches.back().force.z = 1.0;
+  wrenches.back().force.z = payload * 9.81;
   wrenches.back().force = transformVector(transform,wrenches.back().force);
   wrenches.back().torque = transformVector(transform,wrenches.back().torque);  
 
@@ -263,6 +263,11 @@ geometry_msgs::Vector3 DynamicsSolver::transformVector(const Eigen::Affine3d &tr
   result.z = p.z();  
   
   return result;  
+}
+
+const std::vector<double>& DynamicsSolver::getMaxTorques() const
+{  
+  return max_torques_;  
 }
 
 

@@ -76,6 +76,8 @@ public:
   bool getPayloadTorques(const std::vector<double> &joint_angles,
                          double &payload,
                          std::vector<double> &joint_torques) const;
+
+  const std::vector<double>& getMaxTorques() const;  
     
 private:
 

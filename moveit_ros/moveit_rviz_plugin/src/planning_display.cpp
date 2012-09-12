@@ -88,7 +88,8 @@ PlanningDisplay::PlanningDisplay() :
   animating_path_(false),
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true),
-  int_marker_display_(NULL)
+  int_marker_display_(NULL),
+  metrics_payload_(1.0)
 {  
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
@@ -427,6 +428,16 @@ void PlanningDisplay::changedShowJointTorques(void)
 void PlanningDisplay::changedMetricsSetPayload(void)
 {
   metrics_payload_ = metrics_set_payload_property_->getFloat();
+  if (text_display_for_start_)
+  {
+    if (query_start_state_property_->getBool())
+      displayMetrics(true);
+  }
+  else
+  {
+    if (query_goal_state_property_->getBool())
+      displayMetrics(false);
+  }
 }
 
 void PlanningDisplay::displayTable(const std::map<std::string, double> &values,
