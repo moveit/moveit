@@ -1,30 +1,27 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8)
+project(constraint_samplers)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE Release)
+catkin_project(${PROJECT_NAME}
+  INCLUDE_DIRS include  
+  LIBRARIES ${PROJECT_NAME}
+  DEPENDS planning_models kinematic_constraints
+  )
 
-rosbuild_init()
+include_directories(include)
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+find_package(Boost REQUIRED thread)
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIRS})
 
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-#uncomment if you have defined services
-#rosbuild_gensrv()
+find_package(planning_scene REQUIRED)
+include_directories(${planning_scene_INCLUDE_DIRS})
+link_directories(${planning_scene_LIBRARY_DIRS})
 
-rosbuild_add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME}
   src/constraint_sampler.cpp
   src/default_constraint_samplers.cpp
   src/union_constraint_sampler.cpp
   src/constraint_sampler_manager.cpp
   src/constraint_sampler_tools.cpp
 )
+target_link_libraries(${PROJECT_NAME} ${planning_scene_LIBRARIES} ${Boost_LIBRARIES})

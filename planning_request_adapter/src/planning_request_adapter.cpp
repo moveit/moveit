@@ -34,6 +34,7 @@
 
 #include <planning_request_adapter/planning_request_adapter.h>
 #include <planning_models/conversions.h>
+#include <console_bridge/console.h>
 #include <boost/bind.hpp>
 #include <algorithm>
 
@@ -84,7 +85,7 @@ static bool callAdapter1(const PlanningRequestAdapter *adapter,
   }
   catch(...)
   {
-    ROS_ERROR("Exception caught executing adapter '%s'", adapter->getDescription().c_str());
+    logError("Exception caught executing adapter '%s'", adapter->getDescription().c_str());
     added_path_index.clear();
     return planner->solve(planning_scene, req, res);
   }
@@ -103,7 +104,7 @@ static bool callAdapter2(const PlanningRequestAdapter *adapter,
   }
   catch(...)
   {    
-    ROS_ERROR("Exception caught executing adapter '%s'", adapter->getDescription().c_str());
+    logError("Exception caught executing adapter '%s'", adapter->getDescription().c_str());
     added_path_index.clear();
     return planner(planning_scene, req, res);
   }

@@ -1,30 +1,34 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8)
+project(planning_scene)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+catkin_project(${PROJECT_NAME}
+  INCLUDE_DIRS include  
+  LIBRARIES ${PROJECT_NAME}
+  DEPENDS collision_detection kinematic_constraints 
+  )
 
-rosbuild_init()
+include_directories(include)
 
-rosbuild_add_boost_directories()
-
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+find_package(Boost REQUIRED thread date_time)
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(OCTOMAP REQUIRED octomap)
 include_directories(${OCTOMAP_INCLUDE_DIRS})
 link_directories(${OCTOMAP_LIBRARY_DIRS})
 
-rosbuild_add_library(${PROJECT_NAME} src/planning_scene.cpp)
-target_link_libraries(${PROJECT_NAME} ${OCTOMAP_LIBRARIES})
+find_package(collision_detection_fcl REQUIRED)
+include_directories(${collision_detection_fcl_INCLUDE_DIRS})
+link_directories(${collision_detection_fcl_LIBRARY_DIRS})
 
-rosbuild_add_gtest(test_planning_scene test/test_planning_scene.cpp)
+find_package(kinematic_constraints REQUIRED)
+include_directories(${kinematic_constraints_INCLUDE_DIRS})
+link_directories(${kinematic_constraints_LIBRARY_DIRS})
+
+add_library(${PROJECT_NAME} src/planning_scene.cpp)
+target_link_libraries(${PROJECT_NAME} ${collision_detection_fcl_LIBRARIES}
+  ${kinematic_constraints_LIBRARIES} ${OCTOMAP_LIBRARIES} ${Boost_LIBRARIES})
+
+catkin_add_gtest(test_planning_scene test/test_planning_scene.cpp)
 target_link_libraries(test_planning_scene ${PROJECT_NAME})

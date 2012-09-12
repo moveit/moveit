@@ -37,8 +37,8 @@
 #ifndef DF_VOXEL_GRID_H_
 #define DF_VOXEL_GRID_H_
 
-#include <ros/ros.h>
 #include <algorithm>
+#include <cmath>
 
 namespace distance_field
 {
@@ -278,7 +278,7 @@ inline void VoxelGrid<T>::setCell(int x, int y, int z, T& obj)
 template<typename T>
 inline int VoxelGrid<T>::getCellFromLocation(Dimension dim, double loc) const
 {
-  return int(round((loc-origin_[dim])/resolution_[dim]));
+  return int(floor((loc-origin_[dim])/resolution_[dim] + 0.5));
 }
 
 template<typename T>
