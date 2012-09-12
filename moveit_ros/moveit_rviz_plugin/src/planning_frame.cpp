@@ -73,8 +73,8 @@ moveit_rviz_plugin::PlanningFrame::~PlanningFrame(void)
 {
 }
 
-void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
-{
+void moveit_rviz_plugin::PlanningFrame::changePlanningGroupHelper(void)
+{ 
   if (!planning_display_->getPlanningSceneMonitor())
     return;
   const planning_models::KinematicModelConstPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModel();
@@ -98,8 +98,41 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
     {
       move_group_->allowLooking(ui_->allow_looking->isChecked());
       move_group_->allowReplanning(ui_->allow_replanning->isChecked());
+      moveit_msgs::PlannerInterfaceDescription desc;
+      if (move_group_->getInterfaceDescription(desc))
+        planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlannersList, this, desc));
     }
   }
+}
+
+void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
+{
+  planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::changePlanningGroupHelper, this));
+}
+
+void moveit_rviz_plugin::PlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
+{ 
+  std::string group = planning_display_->getCurrentPlanningGroup();
+
+  // set the label for the planning library
+  ui_->library_label->setText(QString::fromStdString(desc.name));
+  ui_->library_label->setStyleSheet("QLabel { color : green; font: bold }");
+  
+  // the name of a planner is either "GROUP[planner_id]" or "planner_id"
+  if (!group.empty())
+    for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
+      if (desc.planner_ids[i].substr(0, group.length()) == group)
+      {
+        std::string id = desc.planner_ids[i].substr(group.length());
+        if (id.size() > 2)
+        {
+          id.resize(id.length() - 1);
+          ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id.substr(1)));
+        }
+      }
+  if (ui_->planning_algorithm_combo_box->count() == 0)
+    for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
+      ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));  
 }
 
 void moveit_rviz_plugin::PlanningFrame::enable(void)
@@ -107,42 +140,8 @@ void moveit_rviz_plugin::PlanningFrame::enable(void)
   ui_->planning_algorithm_combo_box->clear();  
   ui_->library_label->setText("NO PLANNING LIBRARY LOADED");
   ui_->library_label->setStyleSheet("QLabel { color : red; font: bold }");
-
-  if (!planning_display_->getPlanningSceneMonitor())
-    return;
-  const planning_models::KinematicModelConstPtr &kmodel = planning_display_->getPlanningSceneMonitor()->getKinematicModel();
-
-  // populate the list of known planners
-  std::string group = planning_display_->getCurrentPlanningGroup();
-  if (!group.empty() && kmodel)
-  {
-    changePlanningGroup();
-    if (move_group_)
-    {
-      moveit_msgs::PlannerInterfaceDescription desc;
-      if (move_group_->getInterfaceDescription(desc))
-      {
-        // set the label for the planning library
-        ui_->library_label->setText(QString::fromStdString(desc.name));
-        ui_->library_label->setStyleSheet("QLabel { color : green; font: bold }");
-
-        // the name of a planner is either "GROUP[planner_id]" or "planner_id"
-        for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
-          if (desc.planner_ids[i].substr(0, group.length()) == group)
-          {
-            std::string id = desc.planner_ids[i].substr(group.length());
-            if (id.size() > 2)
-            {
-              id.resize(id.length() - 1);
-              ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id.substr(1)));
-            }
-          }
-        if (ui_->planning_algorithm_combo_box->count() == 0)
-          for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
-            ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));
-      }
-    }
-  }
+  
+  changePlanningGroup();
   
   // activate the frame
   show();

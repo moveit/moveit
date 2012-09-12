@@ -84,6 +84,7 @@ PlanningDisplay::PlanningDisplay() :
   Display(),
   frame_(NULL),
   frame_dock_(NULL),
+  show_planning_frame_(true),
   animating_path_(false),
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true),
@@ -277,8 +278,9 @@ void PlanningDisplay::onInitialize(void)
   query_robot_goal_->setVisible( query_goal_state_property_->getBool() );
   
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
-  frame_ = new PlanningFrame(this, context_, window_context->getParentWindow());
-  frame_dock_ = window_context->addPane("Motion Planning", frame_);  
+  frame_ = new PlanningFrame(this, context_, window_context ? window_context->getParentWindow() : NULL);
+  if (window_context)
+    frame_dock_ = window_context->addPane("Motion Planning", frame_);  
 
   int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
   int_marker_display_->initialize(context_);
@@ -290,6 +292,7 @@ void PlanningDisplay::onInitialize(void)
   text_to_display_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
   text_to_display_->setCharacterHeight(0.08);
   text_to_display_->showOnTop();
+  text_to_display_->setVisible(false);
   text_display_for_start_ = false;
   text_display_scene_node_->attachObject(text_to_display_);
   
@@ -301,8 +304,6 @@ void PlanningDisplay::onInitialize(void)
   SelectionHandlerPtr handler( new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id)) );
   context_->getSelectionManager()->addObject( coll, handler );;
   */ 
-
-  text_to_display_->setVisible(false);
 }
 
 void PlanningDisplay::reset()
@@ -310,7 +311,7 @@ void PlanningDisplay::reset()
   planning_scene_render_.reset();
   loadRobotModel();
   frame_->disable();
-  if (planning_scene_monitor_)
+  if (planning_scene_monitor_ && show_planning_frame_)
     frame_->enable();
   trajectory_message_to_display_.reset();
   displaying_trajectory_message_.reset();
@@ -927,7 +928,8 @@ void PlanningDisplay::onEnable()
   changedPlanningGroup();
   query_robot_start_->setVisible(query_start_state_property_->getBool());
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
-  frame_->enable();
+  if (show_planning_frame_)
+    frame_->enable();
   
   addMainLoopJob(boost::bind(&PlanningDisplay::calculateOffsetPosition, this));
   
@@ -952,6 +954,18 @@ void PlanningDisplay::onDisable()
   frame_->disable(); 
   text_to_display_->setVisible(false);
   Display::onDisable();
+}
+
+void PlanningDisplay::showPlanningFrame(bool show)
+{
+  if (frame_)
+  {
+    if (show)
+      frame_->enable();
+    else
+      frame_->disable();
+  }
+  show_planning_frame_ = show;
 }
 
 void PlanningDisplay::executeMainLoopJobs(void)

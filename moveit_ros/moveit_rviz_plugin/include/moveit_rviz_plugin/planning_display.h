@@ -155,6 +155,8 @@ public:
     return dynamics_solver_[group];
   }
   
+  void showPlanningFrame(bool show);
+  
   void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
                               const std::vector<planning_models::KinematicStatePtr> &trajectory);
 
@@ -259,6 +261,7 @@ protected:
   // the planning frame
   PlanningFrame *frame_;
   QDockWidget *frame_dock_;
+  bool show_planning_frame_;
   
   planning_models::KinematicStatePtr query_start_state_;
   planning_models::KinematicStatePtr query_goal_state_;

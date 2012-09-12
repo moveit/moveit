@@ -115,6 +115,8 @@ private:
   void checkPlanningSceneTreeEnabledButtons(void);
   void computeLoadSceneButtonClicked(void);
   void computeLoadQueryButtonClicked(void);
+  void populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc);
+  void changePlanningGroupHelper(void);
   
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
