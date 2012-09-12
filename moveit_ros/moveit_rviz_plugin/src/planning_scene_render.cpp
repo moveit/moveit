@@ -129,7 +129,7 @@ void moveit_rviz_plugin::PlanningSceneRender::renderShape(Ogre::SceneNode *node,
           for (int k = 0 ; k < 3 ; ++k)
           {
             unsigned int vi = 3 * mesh->triangles[i3 + k];
-            const Eigen::Vector3d &v = p * Eigen::Vector3d(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
+            Eigen::Vector3d v = p * Eigen::Vector3d(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
             manual_object->position(v.x(), v.y(), v.z());
           }
         }
