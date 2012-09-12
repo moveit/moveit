@@ -367,9 +367,16 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
     }
   }
   
-  for(int i=0; i < (int) max_search_iterations; i++)
+  for(int i=0; i < (int) max_search_iterations; ++i)
   {
+    if(timedOut(n1,timeout))
+    {
+      ROS_DEBUG("IK timed out");
+      error_code.val = error_code.TIMED_OUT;
+      return false;      
+    }    
     int ik_valid = ik_solver_pos_->CartToJnt(jnt_pos_in_,pose_desired,jnt_pos_out_);                     
+    ROS_DEBUG("Iteration: %d, time: %f, Timeout: %f",i,(ros::WallTime::now()-n1).toSec(),timeout);    
     if(check_consistency) 
     {
       getRandomConfiguration(jnt_seed_state_, redundancy, consistency_limit, jnt_pos_in_);
@@ -395,12 +402,6 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
       ROS_DEBUG_STREAM("Solved after " << i+1 << " iterations");
       return true;
     }
-    if(timedOut(n1,timeout))
-    {
-      ROS_ERROR("IK timed out");
-      error_code.val = error_code.TIMED_OUT;
-      return false;      
-    }    
   }
   ROS_DEBUG("An IK that satisifes the constraints and is collision free could not be found");   
   error_code.val = error_code.NO_IK_SOLUTION;
