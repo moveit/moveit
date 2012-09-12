@@ -59,9 +59,13 @@ bool KinematicsSolverROS::initialize()
     ROS_INFO("Group: %s, %s",group_name.c_str(),tip_name.c_str());
 
     kinematics_solver_[tip_name].reset(new kinematics_planner::KinematicsSolver());
-    kinematics_solver_[tip_name]->initialize(planning_scene_monitor_->getKinematicModel(),
-                                             kinematics_solver_map,
-                                             group_name);    
+    if(!kinematics_solver_[tip_name]->initialize(planning_scene_monitor_->getKinematicModel(),
+                                                 kinematics_solver_map,
+                                                 group_name))
+    {
+      ROS_WARN("Will not solve IK for group %s",group_name.c_str());
+      kinematics_solver_[tip_name].reset();      
+    }    
   }
   get_ik_service_ = node_handle_.advertiseService(IK_WITH_COLLISION_SERVICE,&KinematicsSolverROS::getIK,this);
   return true;  
