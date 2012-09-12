@@ -218,7 +218,7 @@ PlanningDisplay::PlanningDisplay() :
                             SLOT( changedDisplayPathCollisionEnabled() ), this );
 
   robot_path_alpha_property_ =
-    new rviz::FloatProperty( "Robot Alpha", 0.75f, "Specifies the alpha for the robot links",
+    new rviz::FloatProperty( "Robot Alpha", 0.5f, "Specifies the alpha for the robot links",
                              path_category_,
                              SLOT( changedRobotPathAlpha() ), this );
   robot_path_alpha_property_->setMin( 0.0 );
@@ -254,6 +254,7 @@ PlanningDisplay::PlanningDisplay() :
 // ******************************************************************************************
 PlanningDisplay::~PlanningDisplay()
 {
+  clearTrajectoryTrail();
   delete text_to_display_;
   delete int_marker_display_;
   delete frame_dock_;
@@ -455,21 +456,32 @@ void PlanningDisplay::clearTrajectoryTrail(void)
   trajectory_trail_.clear();
 }
 
-void PlanningDisplay::changedLoopDisplay(){}
+void PlanningDisplay::changedLoopDisplay()
+{
+}
 
 void PlanningDisplay::changedShowTrail(void)
 {
   clearTrajectoryTrail();
+  if (!trail_display_property_->getBool() || !planning_scene_monitor_)
+    return;
   boost::shared_ptr<TrajectoryMessageToDisplay> t = trajectory_message_to_display_;
   if (!t)
     t = displaying_trajectory_message_;
   if (!t)
     return;
-  /*
+  
   trajectory_trail_.resize(t->trajectory_.size());
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
-  {
-  }*/
+  {  
+    rviz::Robot *r = new rviz::Robot(planning_scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), NULL); 
+    r->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
+    r->setVisualVisible(display_path_visual_enabled_property_->getBool() );
+    r->setCollisionVisible(display_path_collision_enabled_property_->getBool() );
+    r->update(PlanningLinkUpdater(t->trajectory_[i]));
+    r->setVisible(true);
+    trajectory_trail_[i] = r;
+  }
 }
 
 // ******************************************************************************************
@@ -478,6 +490,8 @@ void PlanningDisplay::changedShowTrail(void)
 void PlanningDisplay::changedRobotPathAlpha()
 {
   display_path_robot_->setAlpha(robot_path_alpha_property_->getFloat());
+  for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
+    trajectory_trail_[i]->setAlpha(robot_path_alpha_property_->getFloat());
 }
 
 // ******************************************************************************************
@@ -762,6 +776,8 @@ void PlanningDisplay::changedDisplayPathVisualEnabled()
   {
     display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
     display_path_robot_->setVisible(displaying_trajectory_message_);
+    for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
+      trajectory_trail_[i]->setVisualVisible( display_path_visual_enabled_property_->getBool() );
   }
 }
 
@@ -775,6 +791,8 @@ void PlanningDisplay::changedDisplayPathCollisionEnabled()
   {
     display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
     display_path_robot_->setVisible(displaying_trajectory_message_);
+    for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
+      trajectory_trail_[i]->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   }
 }
 
@@ -783,13 +801,11 @@ void PlanningDisplay::changedDisplayPathCollisionEnabled()
 // ******************************************************************************************
 void PlanningDisplay::setLinkColor(const std::string& link_name, const QColor &color)
 {
-  setLinkColor(display_path_robot_, link_name, color );
   setLinkColor(planning_scene_robot_, link_name, color );
 }
 
 void PlanningDisplay::unsetLinkColor(const std::string& link_name)
 {
-  unsetLinkColor(display_path_robot_, link_name);
   unsetLinkColor(planning_scene_robot_, link_name);
 }
 
@@ -983,7 +999,13 @@ void PlanningDisplay::onEnable()
   display_path_robot_->setVisualVisible( display_path_visual_enabled_property_->getBool() );
   display_path_robot_->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
   display_path_robot_->setVisible(displaying_trajectory_message_);
-
+  for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
+  {
+    trajectory_trail_[i]->setVisualVisible( display_path_visual_enabled_property_->getBool() );
+    trajectory_trail_[i]->setCollisionVisible( display_path_collision_enabled_property_->getBool() );
+    trajectory_trail_[i]->setVisible(true);
+  }
+  
   planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
   rendered_geometry_node_->setVisible(scene_enabled_property_->getBool());
 
@@ -1010,7 +1032,11 @@ void PlanningDisplay::onDisable()
   int_marker_display_->setEnabled(false);
   if (planning_scene_monitor_)
     planning_scene_monitor_->stopSceneMonitor();
+  
   display_path_robot_->setVisible(false);
+  for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
+    trajectory_trail_[i]->setVisible(false);
+  
   rendered_geometry_node_->setVisible(false);
   planning_scene_robot_->setVisible(false);
   query_robot_start_->setVisible(false);
@@ -1163,6 +1189,9 @@ void PlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajec
                msg->model_id.c_str(), planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getName().c_str());
   
   trajectory_message_to_display_.reset(new TrajectoryMessageToDisplay(msg, planning_scene_monitor_->getPlanningScene()));
+
+  if (trail_display_property_->getBool())
+    changedShowTrail();
 }
 
 // ******************************************************************************************
