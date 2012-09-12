@@ -72,6 +72,10 @@ public:
   bool getMaxPayload(const std::vector<double> &joint_angles,
                      double &payload,
                      unsigned int &joint_saturated) const;
+
+  bool getPayloadTorques(const std::vector<double> &joint_angles,
+                         double &payload,
+                         std::vector<double> &joint_torques) const;
     
 private:
 

@@ -114,6 +114,16 @@ PlanningDisplay::PlanningDisplay() :
   show_manipulability_region_property_ = new rviz::BoolProperty( "Show Manipulability Region", false, "Shows the manipulability region for an end-effector",
                                                                  metrics_category_,
                                                                  SLOT( changedShowManipulabilityRegion() ), this );
+
+  show_joint_torques_property_ = new rviz::BoolProperty( "Show Joint Torques", false, "Shows the joint torques for a given configuration and payload",
+                                                                 metrics_category_,
+                                                                 SLOT( changedShowJointTorques() ), this );
+
+  metrics_set_payload_property_ =
+    new rviz::FloatProperty( "Payload (kg)", 1.0f, "Specify the payload at the end effector",
+                             metrics_category_,
+                             SLOT( changedMetricsSetPayload() ), this );
+  metrics_set_payload_property_->setMin( 0.0 );
   
   // Planning request category -----------------------------------------------------------------------------------------
   
@@ -400,6 +410,25 @@ void PlanningDisplay::changedShowManipulabilityRegion(void)
   }
 }
 
+void PlanningDisplay::changedShowJointTorques(void)
+{
+  if (text_display_for_start_)
+  {
+    if (query_start_state_property_->getBool())
+      displayMetrics(true);
+  }
+  else
+  {
+    if (query_goal_state_property_->getBool())
+      displayMetrics(false);
+  }
+}
+
+void PlanningDisplay::changedMetricsSetPayload(void)
+{
+  metrics_payload_ = metrics_set_payload_property_->getFloat();
+}
+
 void PlanningDisplay::displayTable(const std::map<std::string, double> &values,
                                    const Ogre::ColourValue &color,
                                    const Ogre::Vector3 &pos,
@@ -565,7 +594,7 @@ void PlanningDisplay::displayMetrics(bool start)
     {
       Ogre::Vector3 position(0.0, 0.0, 0.0);
       std::map<std::string, double> text_table; 
-      const std::map<std::string, double> &metrics_table = robot_interaction_->getComputedMetrics(start, eef[i].group);
+      const std::map<std::string, double> &metrics_table = robot_interaction_->getComputedMetrics(start, eef[i].group, getPayload());
       
       if (compute_weight_limit_property_->getBool())
       {    
@@ -576,6 +605,16 @@ void PlanningDisplay::displayMetrics(bool start)
         copyItemIfExists(metrics_table, text_table, "manipulability_index");
       if (show_manipulability_region_property_->getBool())
         copyItemIfExists(metrics_table, text_table, "condition_number");
+      if (show_joint_torques_property_->getBool())
+      {
+        for(unsigned int j=0; j < planning_scene_monitor_->getKinematicModel()->getJointModelGroup(eef[i].group)->getJointModelNames().size(); ++j)
+        {
+          std::stringstream stream;
+          stream << "torque[" << j << "]";          
+          copyItemIfExists(metrics_table, text_table, stream.str());          
+        }
+      }
+      
       
       const planning_models::KinematicState::LinkState *ls = NULL;
       const planning_models::KinematicModel::JointModelGroup *jmg = planning_scene_monitor_->getKinematicModel()->getJointModelGroup(eef[i].group);
@@ -693,7 +732,7 @@ void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePt
   query_start_state_ = start; 
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
-    robot_interaction_->computeMetrics(true, group);
+    robot_interaction_->computeMetrics(true, group, getPayload());
   updateQueryStartState();
 }
 
@@ -702,7 +741,7 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   query_goal_state_ = goal;
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
-    robot_interaction_->computeMetrics(false, group);
+    robot_interaction_->computeMetrics(false, group, getPayload());
   updateQueryGoalState();
 }
 
@@ -725,7 +764,7 @@ void PlanningDisplay::updateLinkColors(void)
 void PlanningDisplay::changedPlanningGroup(void)
 {
   robot_interaction_->decideActiveComponents();
-  robot_interaction_->computeMetrics();
+  robot_interaction_->computeMetrics(getPayload());
   updateLinkColors();
   addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
   frame_->changePlanningGroup();
@@ -908,7 +947,7 @@ void PlanningDisplay::loadRobotModel(void)
     kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(planning_scene_monitor_->getKinematicModel()));  
     
     robot_interaction_->decideActiveComponents();
-    robot_interaction_->computeMetrics();
+    robot_interaction_->computeMetrics(getPayload());
     
     ///////// should not need this
     std::string content;

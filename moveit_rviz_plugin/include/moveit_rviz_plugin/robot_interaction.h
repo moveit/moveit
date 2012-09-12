@@ -82,10 +82,10 @@ public:
   void clear(void);
   
   void publishInteractiveMarkers(void);
-  void computeMetrics(void);
-  void computeMetrics(bool start, const std::string &group);
+  void computeMetrics(double payload);
+  void computeMetrics(bool start, const std::string &group, double payload);
 
-  const std::map<std::string, double>& getComputedMetrics(bool start, const std::string &group)
+  const std::map<std::string, double>& getComputedMetrics(bool start, const std::string &group, double payload)
   {
     return computed_metrics_[std::make_pair(start, group)];
   }
@@ -107,7 +107,7 @@ private:
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
   void computeProcessInteractiveMarkerFeedback(visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback);
   
-  void computeMetricsInternal(std::map<std::string, double> &metrics, const EndEffector &eef, const planning_models::KinematicState &state);
+  void computeMetricsInternal(std::map<std::string, double> &metrics, const EndEffector &eef, const planning_models::KinematicState &state, double payload);
   
   PlanningDisplay *planning_display_;  
   rviz::DisplayContext* context_;

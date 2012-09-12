@@ -154,7 +154,12 @@ public:
   {
     return dynamics_solver_[group];
   }
-  
+
+  double getPayload() const
+  {
+    return metrics_payload_;
+  }  
+
   void showPlanningFrame(bool show);
   
   void displayRobotTrajectory(const planning_models::KinematicStatePtr &start_state,
@@ -191,6 +196,8 @@ private Q_SLOTS:
   void changedShowWeightLimit();
   void changedShowManipulabilityIndex();
   void changedShowManipulabilityRegion();
+  void changedShowJointTorques();
+  void changedMetricsSetPayload();
   
 protected:
   // ******************************************************************************************
@@ -281,8 +288,8 @@ protected:
   //Metric calculations
   kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;  
   std::map<std::string, dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
-  
-  
+  double metrics_payload_;
+     
   // properties to show on side panel
   rviz::Property* scene_category_;
   rviz::Property* path_category_;
@@ -317,6 +324,8 @@ protected:
   rviz::BoolProperty* compute_weight_limit_property_;
   rviz::BoolProperty* show_manipulability_index_property_;
   rviz::BoolProperty* show_manipulability_region_property_;
+  rviz::BoolProperty* show_joint_torques_property_;
+  rviz::FloatProperty* metrics_set_payload_property_;
   
   rviz::Display *int_marker_display_;
 };
