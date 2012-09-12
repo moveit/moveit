@@ -42,7 +42,7 @@
 #include <vector>
 #include <list>
 #include <ros/ros.h>
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 #include <set>
 
 namespace distance_field

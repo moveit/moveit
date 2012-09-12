@@ -38,7 +38,6 @@
 #define COLLISION_DETECTION_COLLISION_TOOLS_
 
 #include "collision_detection/collision_common.h"
-#include <moveit_sensor_manager/moveit_sensor_manager.h>
 #include <visualization_msgs/MarkerArray.h>
 
 namespace collision_detection
@@ -75,8 +74,7 @@ void removeOverlapping(std::set<CostSource> &cost_sources, double overlap_fracti
 
 
 bool getSensorPositioning(geometry_msgs::Point &point,
-                          const std::set<CostSource> &cost_sources,
-                          const moveit_sensor_manager::SensorInfo &si);
+                          const std::set<CostSource> &cost_sources);
 
 }
 

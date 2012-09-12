@@ -14,7 +14,6 @@
   <depend package="moveit_msgs"/>
   <depend package="visualization_msgs"/>
   <depend package="planning_models"/>
-  <depend package="moveit_sensor_manager"/>
   
   <rosdep name="eigen" />
 

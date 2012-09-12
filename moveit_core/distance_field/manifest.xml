@@ -15,7 +15,6 @@ closest obstacle. The VoxelGrid class can also be used as a generic, templatized
 
   <depend package="visualization_msgs" />
   <depend package="moveit_msgs" />
-  <depend package="geometric_shapes" />
   <depend package="rosconsole" />
 
   <rosdep name="eigen" />
@@ -24,9 +23,6 @@ closest obstacle. The VoxelGrid class can also be used as a generic, templatized
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ldistance_field"/>
   </export>
 
-  <platform os="ubuntu" version="9.04"/>
-  <platform os="ubuntu" version="9.10"/>
-  <platform os="ubuntu" version="10.04"/>
 </package>
 
 

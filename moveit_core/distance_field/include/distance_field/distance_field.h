@@ -40,12 +40,11 @@
 #include <distance_field/voxel_grid.h>
 #include <vector>
 #include <list>
-#include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <geometric_shapes/eigen_types.h>
 #include <moveit_msgs/CollisionMap.h>
+#include <eigen_stl_containers/eigen_stl_containers.h>
 
 namespace distance_field
 {

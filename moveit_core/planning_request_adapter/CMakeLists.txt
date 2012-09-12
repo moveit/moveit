@@ -1,20 +1,21 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8)
+project(planning_request_adapter)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE Debug)
+catkin_project(${PROJECT_NAME}
+  INCLUDE_DIRS include  
+  LIBRARIES ${PROJECT_NAME}
+  DEPENDS planning_interface
+  )
 
-rosbuild_init()
+include_directories(include)
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+find_package(Boost REQUIRED)
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIRS})
 
-#common commands for building c++ executables and libraries
-rosbuild_add_library(${PROJECT_NAME} src/planning_request_adapter.cpp)
+find_package(planning_interface REQUIRED)
+include_directories(${planning_interface_INCLUDE_DIRS})
+link_directories(${planning_interface_LIBRARY_DIRS})
+
+add_library(${PROJECT_NAME} src/planning_request_adapter.cpp)
+target_link_libraries(${PROJECT_NAME} ${planning_interface_LIBRARIES} ${Boost_LIBRARIES})

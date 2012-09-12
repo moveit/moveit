@@ -1,24 +1,43 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8)
+project(planning_models)
 
-set(ROS_BUILD_TYPE Release)
+catkin_project(${PROJECT_NAME}
+  INCLUDE_DIRS include  
+  LIBRARIES ${PROJECT_NAME}
+  DEPENDS kinematics_base geometric_shapes shape_tools eigen_stl_containers moveit_msgs visualization_msgs random_numbers Eigen
+  )
 
-rosbuild_init()
-rosbuild_add_boost_directories()
+include_directories(include)
 
 find_package(Eigen REQUIRED)
-include_directories(${EIGEN_INCLUDE_DIRS})
+include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
-find_package(catkin COMPONENTS urdfdom srdfdom geometric_shapes eigen_stl_containers REQUIRED)
+find_package(Boost REQUIRED thread)
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIRS})
+
+find_package(catkin COMPONENTS 
+  moveit_msgs 
+  resource_retriever
+  urdfdom
+  srdfdom
+  geometric_shapes
+  shape_tools 
+  eigen_stl_containers 
+  eigen_conversions
+  random_numbers
+  console_bridge
+  visualization_msgs
+  REQUIRED)
+
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+find_package(kinematics_base REQUIRED)
+include_directories(${kinematics_base_INCLUDE_DIRS})
+link_directories(${kinematics_base_LIBRARY_DIRS})
 
-rosbuild_add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME}
   src/kinematic_model.cpp
   src/kinematic_model/joint_model.cpp
   src/kinematic_model/fixed_joint_model.cpp
@@ -35,14 +54,14 @@ rosbuild_add_library(${PROJECT_NAME}
   src/kinematic_state/joint_state_group.cpp
   src/transforms.cpp
   src/conversions.cpp)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinematics_base_LIBRARIES})
 
 # Unit tests
-rosbuild_add_gtest(test_kinematic test/test_kinematic.cpp)
-target_link_libraries(test_kinematic ${PROJECT_NAME} ${catkin_LIBRARIES})
+catkin_add_gtest(test_kinematic test/test_kinematic.cpp)
+target_link_libraries(test_kinematic ${PROJECT_NAME})
 
-rosbuild_add_gtest(test_kinematic_complex test/test_kinematic_complex.cpp)
-target_link_libraries(test_kinematic_complex ${PROJECT_NAME} ${catkin_LIBRARIES})
+catkin_add_gtest(test_kinematic_complex test/test_kinematic_complex.cpp)
+target_link_libraries(test_kinematic_complex ${PROJECT_NAME}})
 
-rosbuild_add_gtest(test_transforms test/test_transforms.cpp)
-target_link_libraries(test_transforms ${PROJECT_NAME} ${catkin_LIBRARIES})
+catkin_add_gtest(test_transforms test/test_transforms.cpp)
+target_link_libraries(test_transforms ${PROJECT_NAME})

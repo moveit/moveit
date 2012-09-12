@@ -129,8 +129,7 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
 }
 
 bool collision_detection::getSensorPositioning(geometry_msgs::Point &point,
-                                               const std::set<CostSource> &cost_sources,
-                                               const moveit_sensor_manager::SensorInfo &si)
+                                               const std::set<CostSource> &cost_sources)
 {
   if (cost_sources.empty())
     return false;

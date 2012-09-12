@@ -48,6 +48,7 @@
 
 #include <distance_field/distance_field.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <ros/console.h>
 
 namespace collision_detection
 {
