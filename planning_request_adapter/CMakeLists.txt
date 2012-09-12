@@ -17,5 +17,16 @@ find_package(planning_interface REQUIRED)
 include_directories(${planning_interface_INCLUDE_DIRS})
 link_directories(${planning_interface_LIBRARY_DIRS})
 
+catkin_project(${PROJECT_NAME}
+  INCLUDE_DIRS include  
+  LIBRARIES ${PROJECT_NAME}
+  DEPENDS planning_interface
+  )
+
 add_library(${PROJECT_NAME} src/planning_request_adapter.cpp)
 target_link_libraries(${PROJECT_NAME} ${planning_interface_LIBRARIES} ${Boost_LIBRARIES})
+
+install(TARGETS ${PROJECT_NAME}
+  LIBRARY DESTINATION lib)
+install(DIRECTORY include/
+  DESTINATION include)

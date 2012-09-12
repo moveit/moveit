@@ -30,5 +30,10 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} ${collision_detection_LIBRARIES} ${FCL_LIBRARIES} ${Boost_LIBRARIES})
 
+install(TARGETS ${PROJECT_NAME}
+  LIBRARY DESTINATION lib)
+install(DIRECTORY include/
+  DESTINATION include)
+
 catkin_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
 target_link_libraries(test_fcl_collision_detection ${PROJECT_NAME} ${Boost_LIBRARIES})

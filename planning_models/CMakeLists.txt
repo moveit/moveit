@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(planning_models)
 
-catkin_project(${PROJECT_NAME}
-  INCLUDE_DIRS include  
-  LIBRARIES ${PROJECT_NAME}
-  DEPENDS kinematics_base geometric_shapes shape_tools eigen_stl_containers moveit_msgs visualization_msgs random_numbers Eigen
-  )
-
 include_directories(include)
 
 find_package(Eigen REQUIRED)
@@ -37,6 +31,12 @@ find_package(kinematics_base REQUIRED)
 include_directories(${kinematics_base_INCLUDE_DIRS})
 link_directories(${kinematics_base_LIBRARY_DIRS})
 
+catkin_project(${PROJECT_NAME}
+  INCLUDE_DIRS include  
+  LIBRARIES ${PROJECT_NAME}
+  DEPENDS kinematics_base geometric_shapes shape_tools eigen_stl_containers moveit_msgs visualization_msgs random_numbers Eigen
+  )
+
 add_library(${PROJECT_NAME}
   src/kinematic_model.cpp
   src/kinematic_model/joint_model.cpp
@@ -55,6 +55,9 @@ add_library(${PROJECT_NAME}
   src/transforms.cpp
   src/conversions.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${kinematics_base_LIBRARIES})
+
+install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
+install(DIRECTORY include/ DESTINATION include)
 
 # Unit tests
 catkin_add_gtest(test_kinematic test/test_kinematic.cpp)
