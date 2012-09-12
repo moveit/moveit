@@ -10,9 +10,12 @@ find_package(Boost REQUIRED thread)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
-find_package(planning_models REQUIRED)
-include_directories(${planning_models_INCLUDE_DIRS})
-link_directories(${planning_models_LIBRARY_DIRS})
+find_package(catkin COMPONENTS 
+  planning_models
+  REQUIRED)
+
+include_directories(${catkin_INCLUDE_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 catkin_project(${PROJECT_NAME}
   INCLUDE_DIRS include  
@@ -29,7 +32,7 @@ add_library(${PROJECT_NAME}
   src/allvalid/collision_world.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} ${planning_models_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib)

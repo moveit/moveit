@@ -18,9 +18,11 @@ pkg_check_modules(FCL REQUIRED fcl)
 include_directories(${FCL_INCLUDE_DIRS})
 link_directories(${FCL_LIBRARY_DIRS})
 
-find_package(collision_detection REQUIRED)
-include_directories(${collision_detection_INCLUDE_DIRS})
-link_directories(${collision_detection_LIBRARY_DIRS})
+find_package(catkin COMPONENTS 
+  collision_detection
+  REQUIRED)
+include_directories(${catkin_INCLUDE_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 add_library(${PROJECT_NAME}
   src/collision_common.cpp
@@ -28,7 +30,7 @@ add_library(${PROJECT_NAME}
   src/collision_world.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} ${collision_detection_LIBRARIES} ${FCL_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${FCL_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib)
