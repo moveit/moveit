@@ -308,14 +308,21 @@ void SetupAssistantWidget::loadRviz()
 
   // Create the MoveIt Rviz Plugin and attach to display
   planning_display_ = new moveit_rviz_plugin::PlanningDisplay();
-  planning_display_->setName( "Motion Planning" );
+  planning_display_->setName( "Motion Planning" );  
+  planning_display_->showPlanningFrame(false);
+
   rviz_manager_->addDisplay( planning_display_, true );
 
   // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
-  planning_display_->setPlanningSceneTopic( MOVEIT_PLANNING_SCENE );
+  planning_display_->subProp("Planning Scene")->subProp("Planning Scene Topic")->setValue(QString::fromStdString( MOVEIT_PLANNING_SCENE ));
 
   // Set robot description
-  planning_display_->setRobotDescription( ROBOT_DESCRIPTION );
+  planning_display_->subProp("Robot Description")->setValue(QString::fromStdString( ROBOT_DESCRIPTION ));
+
+  // do not display query start & goal states
+  planning_display_->subProp("Planning Request")->subProp("Query Start State")->setValue(false);
+  planning_display_->subProp("Planning Request")->subProp("Query Goal State")->setValue(false);
+  
 
   // Zoom into robot
   rviz::ViewController* view = rviz_manager_->getViewManager()->getCurrent();
@@ -334,7 +341,7 @@ void SetupAssistantWidget::loadRviz()
 // ******************************************************************************************
 void SetupAssistantWidget::highlightLink( const std::string& link_name )
 {
-  planning_display_->setLinkColor( link_name, 1, 0, 0 );
+  planning_display_->setLinkColor( link_name, QColor(255, 0, 0) );
 }
 
 // ******************************************************************************************
