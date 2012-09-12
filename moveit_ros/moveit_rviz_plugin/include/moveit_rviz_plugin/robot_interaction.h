@@ -68,6 +68,7 @@ public:
   { 
     std::string connecting_link;
     std::string joint_name;
+    unsigned int dof;
     double scale;
   };
   

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>617</width>
-    <height>299</height>
+    <width>577</width>
+    <height>272</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,11 +26,11 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="current_plan">
       <attribute name="title">
-       <string>Current Plan</string>
+       <string>Current Context</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0" colspan="2">
@@ -75,7 +75,7 @@
         </layout>
        </item>
        <item row="1" column="0">
-        <layout class="QVBoxLayout" name="verticalLayout_4">
+        <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <widget class="QPushButton" name="plan_button">
            <property name="text">
@@ -103,18 +103,18 @@
         </layout>
        </item>
        <item row="1" column="1">
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="QPushButton" name="set_random_states_button">
-           <property name="text">
-            <string>Set Random</string>
-           </property>
-          </widget>
-         </item>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
           <widget class="QPushButton" name="set_start_to_current_button">
            <property name="text">
             <string>Set Start To Current</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="set_random_states_button">
+           <property name="text">
+            <string>Set Random Query</string>
            </property>
           </widget>
          </item>
@@ -131,7 +131,7 @@
      </widget>
      <widget class="QWidget" name="stored_plans">
       <attribute name="title">
-       <string>Stored Plans</string>
+       <string>Warehouse</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0" colspan="3">
@@ -305,6 +305,24 @@
         </layout>
        </item>
       </layout>
+     </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Import</string>
+      </attribute>
+      <widget class="QPushButton" name="import_scene_button">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>263</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Import Scene</string>
+       </property>
+      </widget>
      </widget>
     </widget>
    </item>

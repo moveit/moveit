@@ -36,6 +36,8 @@
 #include "ui_moveit_rviz_plugin_frame.h"
 #include <kinematic_constraints/utils.h>
 #include <planning_models/conversions.h>
+#include <geometric_shapes/shape_operations.h>
+#include <QFileDialog>
 
 moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent) :
   QWidget(parent),
@@ -65,7 +67,8 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->allow_looking, SIGNAL( toggled(bool) ), this, SLOT( allowLookingToggled(bool) ));
   connect( ui_->allow_replanning, SIGNAL( toggled(bool) ), this, SLOT( allowReplanningToggled(bool) ));
   connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
-
+  connect( ui_->import_scene_button, SIGNAL( clicked() ), this, SLOT( importSceneButtonClicked() ));
+  
   ui_->tabWidget->setCurrentIndex(0);
 }
 
@@ -110,6 +113,24 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::changePlanningGroupHelper, this));
 }
 
+void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
+{ 
+  std::string path = QFileDialog::getOpenFileName(this, "Import Scene").toStdString();
+  if (!path.empty() && planning_display_->getPlanningSceneMonitor())
+  {
+    shapes::Mesh *mesh = shapes::createMeshFromResource("file://" + path);
+    if (mesh)
+    {
+      shapes::ShapeConstPtr shape(mesh);
+      Eigen::Affine3d pose;
+      pose.setIdentity();
+      planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld()->removeObject("rviz_loaded_mesh");
+      planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld()->addToObject("rviz_loaded_mesh", shape, pose);
+      planning_display_->queueRenderSceneGeometry();
+    }
+  }
+}
+
 void moveit_rviz_plugin::PlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
 { 
   std::string group = planning_display_->getCurrentPlanningGroup();
@@ -118,19 +139,23 @@ void moveit_rviz_plugin::PlanningFrame::populatePlannersList(const moveit_msgs::
   ui_->library_label->setText(QString::fromStdString(desc.name));
   ui_->library_label->setStyleSheet("QLabel { color : green; font: bold }");
   
+  bool found_group = false;
   // the name of a planner is either "GROUP[planner_id]" or "planner_id"
   if (!group.empty())
     for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
-      if (desc.planner_ids[i].substr(0, group.length()) == group)
-      {
-        std::string id = desc.planner_ids[i].substr(group.length());
-        if (id.size() > 2)
+      if (desc.planner_ids[i] == group)
+        found_group = true;
+      else
+        if (desc.planner_ids[i].substr(0, group.length()) == group)
         {
-          id.resize(id.length() - 1);
-          ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id.substr(1)));
+          std::string id = desc.planner_ids[i].substr(group.length());
+          if (id.size() > 2)
+          {
+            id.resize(id.length() - 1);
+            ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id.substr(1)));
+          }
         }
-      }
-  if (ui_->planning_algorithm_combo_box->count() == 0)
+  if (ui_->planning_algorithm_combo_box->count() == 0 && !found_group)
     for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
       ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));  
 }

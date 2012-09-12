@@ -41,6 +41,11 @@ visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
                                                      double scale,
                                                      bool fixed = false);
 
+visualization_msgs::InteractiveMarker make3DOFMarker(const std::string& name,
+                                                     const geometry_msgs::PoseStamped &stamped, 
+                                                     double scale,
+                                                     bool fixed = false);
+
 void addErrorMarker(visualization_msgs::InteractiveMarker &im);
 
 }

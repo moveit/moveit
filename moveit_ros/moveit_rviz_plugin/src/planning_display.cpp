@@ -1133,6 +1133,11 @@ void PlanningDisplay::executeMainLoopJobs(void)
   main_loop_jobs_lock_.unlock();
 }
 
+void PlanningDisplay::queueRenderSceneGeometry(void)
+{
+  planning_scene_needs_render_ = true;
+}
+
 // ******************************************************************************************
 // Update
 // ******************************************************************************************
