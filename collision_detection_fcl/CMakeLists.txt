@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(collision_detection_fcl)
 
-catkin_project(${PROJECT_NAME}
-  INCLUDE_DIRS include  
-  LIBRARIES ${PROJECT_NAME}
-  DEPENDS collision_detection
-  )
-
 include_directories(include)
 
 find_package(Boost REQUIRED thread system filesystem)
@@ -23,6 +17,12 @@ find_package(catkin COMPONENTS
   REQUIRED)
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
+
+catkin_project(${PROJECT_NAME}
+  INCLUDE_DIRS include  
+  LIBRARIES ${PROJECT_NAME}
+  DEPENDS collision_detection
+  )
 
 add_library(${PROJECT_NAME}
   src/collision_common.cpp
