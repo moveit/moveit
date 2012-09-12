@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE RelWithDebInfo)
+set(ROS_BUILD_TYPE Debug)
 
 rosbuild_init()
 
@@ -20,6 +20,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
+pkg_check_modules(OGRE OGRE)
+include_directories(SYSTEM ${OGRE_INCLUDE_DIRS} )
+link_directories( ${OGRE_LIBRARY_DIRS} )
 
 # Qt Stuff
 find_package(Qt4 REQUIRED)
@@ -67,4 +70,4 @@ endif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 rosbuild_link_boost(${PROJECT_NAME} thread)
          
 # Link libraries
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${OGRE_LIBRARIES} ${QT_LIBRARIES})
