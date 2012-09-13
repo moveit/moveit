@@ -105,8 +105,8 @@ void moveit_rviz_plugin::PlanningSceneRender::renderShape(Ogre::SceneNode *node,
           material_->setReceiveShadows(true);
           material_->getTechnique(0)->setLightingEnabled(true);
           material_->setCullingMode(Ogre::CULL_NONE);
-          material_->getTechnique(0)->setAmbient(color.r_, color.g_, color.b_);
-          material_->getTechnique(0)->setDiffuse(0, 0, 0, alpha);
+          material_->getTechnique(0)->setAmbient(color.r_ * 0.2f, color.g_ * 0.2f, color.b_ * 0.2f);
+          material_->getTechnique(0)->setDiffuse(color.r_, color.g_, color.b_, alpha);
           if (alpha < 0.9998)
           {
             material_->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
