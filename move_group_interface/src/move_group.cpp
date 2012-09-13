@@ -122,8 +122,8 @@ public:
     joint_state_target_.reset(new planning_models::KinematicState(getKinematicModel()));
     joint_state_target_->setToDefaultValues();
     use_joint_state_target_ = true;
-    can_look_ = true;
-    can_replan_ = true;
+    can_look_ = false;
+    can_replan_ = false;
     
     goal_tolerance_ = std::numeric_limits<double>::epsilon() * 100.0;
 
