@@ -30,5 +30,5 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_library(kinematics_cache_ros_lib src/kinematics_cache_ros.cpp)
-rosbuild_add_executable(example src/example.cpp)
-target_link_libraries(example kinematics_cache_ros_lib)
+#rosbuild_add_executable(example src/example.cpp)
+#target_link_libraries(example kinematics_cache_ros_lib)
