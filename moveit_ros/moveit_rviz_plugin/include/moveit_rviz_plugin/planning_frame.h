@@ -95,6 +95,8 @@ private Q_SLOTS:
   void allowLookingToggled(bool checked);
   void planningAlgorithmIndexChanged(int index);
   void importSceneButtonClicked(void);
+  void clearSceneButtonClicked(void);
+  void sceneScaleChanged(int value);
   
 private:
 
@@ -122,6 +124,7 @@ private:
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   
+  std::map<std::string, shapes::ShapeConstPtr> loaded_resources_;
 };
 
 }
