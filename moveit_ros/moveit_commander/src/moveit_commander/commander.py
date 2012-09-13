@@ -131,6 +131,12 @@ class MoveGroupCommander:
     def set_goal_tolerance(self, value):
         self._g.set_goal_tolerance(value)
 
+    def allow_looking(self, value):
+        self._g.allow_looking(value)
+
+    def allow_replanning(self, value):
+        self._g.allow_replanning(value)
+
     def go(self, joints = None, wait = True):
         """ Set the target of the group and then move the group to the specified target """
         if type(joints) is bool:

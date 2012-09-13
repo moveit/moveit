@@ -256,7 +256,18 @@ class MoveGroupCommandInterpreter:
                     return self.command_go_offset(g, offset, factor, axis, clist[1])
                 except:
                     return (MoveGroupInfoLevel.WARN, "Unable to parse distance '" + clist[2] + "'")
- 
+            elif clist[0] == "allow" and (clist[1] == "look" or clist[1] == "looking"):
+                if clist[2] == "1" or clist[2] == "true" or clist[2] == "T" or clist[2] == "True":
+                    g.allow_looking(True)
+                else:
+                    g.allow_looking(False)
+                return (MoveGroupInfoLevel.OK, "OK")
+            elif clist[0] == "allow" and (clist[1] == "replan" or clist[1] == "replanning"):
+                if clist[2] == "1" or clist[2] == "true" or clist[2] == "T" or clist[2] == "True":
+                    g.allow_replanning(True)
+                else:
+                    g.allow_replanning(False)
+                return (MoveGroupInfoLevel.OK, "OK")
         if len(clist) == 4:
             if clist[0] == "rotate":
                 try:
