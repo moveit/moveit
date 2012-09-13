@@ -786,9 +786,11 @@ void KinematicsReachability::visualizeWithArrows(const kinematics_reachability::
   visualization_publisher_.publish(marker_array);
 }
 
-void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachability::WorkspacePoints &workspace,
+void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachability::WorkspacePoints &workspace_in,
                                                        const std::string &marker_namespace)
 {
+  kinematics_reachability::WorkspacePoints workspace = workspace_in;
+  
   visualization_msgs::MarkerArray marker_array;
   visualization_msgs::Marker marker;
   marker.type = marker.CUBE;
@@ -812,6 +814,9 @@ void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachabi
   marker.scale.z = std::fabs(workspace.parameters.min_corner.z - workspace.parameters.max_corner.z);
   marker.id = 0; 
   marker_array.markers.push_back(marker);
+  
+  if(workspace.points.empty())
+    sampleUniform(workspace);
   
   for(unsigned int i=0; i < workspace.points.size(); ++i)
   {

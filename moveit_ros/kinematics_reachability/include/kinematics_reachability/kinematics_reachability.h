@@ -201,6 +201,14 @@ public:
   void animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace);
 
   /**
+   * @brief This method visualizes just the points in the workspace and the boundary of the workspace.
+   * @param workspace The workspace message to visualize
+   * @param marker_namespace The namespace in which the markers are visualized
+   */
+  void visualizeWorkspaceSamples(const kinematics_reachability::WorkspacePoints &workspace,
+                                 const std::string &marker_namespace);
+
+  /**
    * @brief Check whether this node is active
    */
   bool isActive()
@@ -242,8 +250,6 @@ private:
                     unsigned int &y_num_points,
                     unsigned int &z_num_points);
   
-  bool sampleUniform(kinematics_reachability::WorkspacePoints &workspace);
-
   bool isEqual(const geometry_msgs::Quaternion &orientation_1, 
                const geometry_msgs::Quaternion &orientation_2);
 
@@ -292,14 +298,17 @@ private:
   kinematics_cache::KinematicsCache::Options default_cache_options_;
   std_msgs::ColorRGBA reachable_color_, unreachable_color_, evaluating_color_;
   
-  void visualizeWorkspaceSamples(const kinematics_reachability::WorkspacePoints &workspace,
-                                 const std::string &marker_namespace);
-
   void initializeColor(const std::string &color_name,
                        std_msgs::ColorRGBA &color_msg,
                        double default_r,
                        double default_g,
                        double default_b);  
+  /**
+   * @brief This method creates the samples inside the workspace to explore
+   * @param workspace The message containing workspace parameters to use for sampling
+   */
+  bool sampleUniform(kinematics_reachability::WorkspacePoints &workspace);
+
 
   void visualize(const kinematics_reachability::WorkspacePoint &workspace_point,
                  const std_msgs::Header &header,
