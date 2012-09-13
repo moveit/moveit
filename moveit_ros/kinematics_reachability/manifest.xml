@@ -12,6 +12,14 @@
   <depend package="kinematics_msgs"/>
   <depend package="tf"/>
   <depend package="kinematics_cache"/>
+  <!-- rosbuild1 -->
+  <depend package="qt_build"/>
+  <depend package="roscpp"/>
+
+  <rosbuild2>
+    <depend package="qt_build"/>
+    <depend package="roscpp"/>
+  </rosbuild2>
 
 </package>
 
