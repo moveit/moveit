@@ -102,7 +102,7 @@ void moveit_rviz_plugin::PlanningSceneRender::renderShape(Ogre::SceneNode *node,
         {
           material_name_ = "Planning Display Mesh Material";
           material_ = Ogre::MaterialManager::getSingleton().create( material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
-          material_->setReceiveShadows(false);
+          material_->setReceiveShadows(true);
           material_->getTechnique(0)->setLightingEnabled(true);
           material_->setCullingMode(Ogre::CULL_NONE);
           material_->getTechnique(0)->setAmbient(color.r_, color.g_, color.b_);
@@ -123,14 +123,20 @@ void moveit_rviz_plugin::PlanningSceneRender::renderShape(Ogre::SceneNode *node,
         Ogre::ManualObject *manual_object = context_->getSceneManager()->createManualObject(name);
         manual_object->estimateVertexCount(mesh->triangle_count * 3);
         manual_object->begin(material_name_, Ogre::RenderOperation::OT_TRIANGLE_LIST);
+        Eigen::Vector3d normal(0.0, 0.0, 0.0);
         for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
         {
           unsigned int i3 = i * 3;
+          if (mesh->normals)
+            for (int k = 0 ; k < 3 ; ++k)
+              normal[k] = mesh->normals[i3 + k];
           for (int k = 0 ; k < 3 ; ++k)
           {
             unsigned int vi = 3 * mesh->triangles[i3 + k];
             Eigen::Vector3d v = p * Eigen::Vector3d(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
             manual_object->position(v.x(), v.y(), v.z());
+            if (mesh->normals)
+              manual_object->normal(normal.x(), normal.y(), normal.z());
           }
         }
         manual_object->end();
