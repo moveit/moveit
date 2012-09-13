@@ -42,16 +42,17 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "kinematics_cache");
   kinematics_cache::KinematicsCache::Options opt;
-  opt.num_prefix = 1;
   opt.origin.x = 0.0;
   opt.origin.y = -1.0;
   opt.origin.z = -1.0;
   
-  opt.workspace_size.x = 2.0;
-  opt.workspace_size.y = 2.0;
-  opt.workspace_size.z = 2.0;
+  opt.workspace_size[0] = 2.0;
+  opt.workspace_size[1] = 2.0;
+  opt.workspace_size[2] = 2.0;
     
-  opt.resolution = 0.01;  
+  opt.resolution[0] = 0.01;  
+  opt.resolution[1] = 0.01;  
+  opt.resolution[2] = 0.01;  
   opt.max_solutions_per_grid_location = 2;
 
   kinematics_cache_ros::KinematicsCacheROS pr2_kinematics_cache;  
