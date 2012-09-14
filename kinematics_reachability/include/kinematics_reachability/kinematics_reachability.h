@@ -108,6 +108,11 @@ public:
                         const geometry_msgs::Pose &tool_frame_offset,
                         bool visualize = false);
 
+  bool computeWorkspaceFK(kinematics_reachability::WorkspacePoints &workspace,
+                          const geometry_msgs::Pose &tool_frame_offset,
+                          double timeout);
+  
+
   /**
    * @brief This method computes and returns a set of redundant solutions for a particular pose of the arm
    * @param group_name The name of the group to explore the redundant solution space for
@@ -216,6 +221,9 @@ public:
     return kinematics_solver_.isActive();
   }
 
+  void visualizeUnOrdered(const kinematics_reachability::WorkspacePoints &workspace,
+                          const std::string &marker_namespace);  
+
 private:
 
   bool getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace, 
@@ -275,6 +283,10 @@ private:
   void getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                   const std::string &marker_namespace,
                   std::vector<const kinematics_reachability::WorkspacePoint*> points,
+                  visualization_msgs::MarkerArray &marker_array);
+
+  void getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
+                  const std::string &marker_namespace,
                   visualization_msgs::MarkerArray &marker_array);
 
   ros::Publisher visualization_publisher_, workspace_publisher_, robot_trajectory_publisher_;

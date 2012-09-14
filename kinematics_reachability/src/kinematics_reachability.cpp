@@ -70,7 +70,6 @@ bool KinematicsReachability::initialize()
   node_handle_.param("cache_workspace_size/x", default_cache_options_.workspace_size[0], 2.0);
   node_handle_.param("cache_workspace_size/y", default_cache_options_.workspace_size[1], 2.0);
   node_handle_.param("cache_workspace_size/z", default_cache_options_.workspace_size[2], 2.0);
-
   node_handle_.param("cache_workspace_resolution/x", default_cache_options_.resolution[0], 0.01);
   node_handle_.param("cache_workspace_resolution/y", default_cache_options_.resolution[1], 0.01);
   node_handle_.param("cache_workspace_resolution/z", default_cache_options_.resolution[2], 0.01);
@@ -155,6 +154,54 @@ bool KinematicsReachability::computeWorkspace(kinematics_reachability::Workspace
   geometry_msgs::Pose pose;
   pose.orientation.w = 1.0;
   return computeWorkspace(workspace,pose,visualize);
+}
+
+bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::WorkspacePoints &workspace,
+                                                const geometry_msgs::Pose &tool_frame_offset,
+                                                double timeout)
+{
+  if(!kinematics_solver_.getKinematicsSolver(workspace.group_name))
+  {
+    ROS_ERROR("Could not find group: %s",workspace.group_name.c_str());
+    return false;    
+  }
+  
+  std::map<std::string,kinematics::KinematicsBaseConstPtr> my_solver_map = kinematics_solver_.getKinematicsSolver(workspace.group_name)->getKinematicsSolverMap();
+  kinematics::KinematicsBaseConstPtr my_solver = my_solver_map.find(workspace.group_name)->second;  
+  ros::WallTime start_time = ros::WallTime::now();  
+  std::vector<std::string> fk_names;
+  std::vector<double> fk_values;  
+  std::vector<geometry_msgs::Pose> poses;    
+
+  fk_names.push_back(my_solver->getTipFrame());
+  fk_values.resize(my_solver->getJointNames().size(),0.0);
+  poses.resize(1);    
+
+  planning_models::KinematicState kinematic_state = kinematics_solver_.getPlanningSceneMonitor()->getPlanningScene()->getCurrentState();
+  planning_models::KinematicState::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(workspace.group_name);  
+  moveit_msgs::MoveItErrorCodes error_code;
+  
+  while((ros::WallTime::now()-start_time).toSec() <= timeout)
+  {
+    joint_state_group->setToRandomValues();
+    joint_state_group->getGroupStateValues(fk_values);    
+    if(!my_solver->getPositionFK(fk_names,fk_values,poses))
+    {
+      ROS_ERROR("Fk failed");      
+      return false;    
+    }    
+    kinematics_reachability::WorkspacePoint point;
+    point.pose = poses[0];    
+    point.robot_state.joint_state.position = fk_values;
+    point.robot_state.joint_state.name = my_solver->getJointNames();
+    point.solution_code.val = point.solution_code.SUCCESS;
+    if(!kinematics_solver_.getKinematicsSolver(workspace.group_name)->isValid(kinematic_state,kinematics_solver_.getPlanningSceneMonitor()->getPlanningScene(),error_code))
+    {
+      point.solution_code.val = point.solution_code.NO_IK_SOLUTION;
+    }    
+    workspace.points.push_back(point);    
+  }
+  return true;  
 }
 
 bool KinematicsReachability::getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
@@ -269,7 +316,6 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     ROS_WARN("Could not write cache to file");
   }    
 }
-
 
 void KinematicsReachability::findIK(const std::string &group_name,
                                     geometry_msgs::PoseStamped &pose_stamped,
@@ -539,6 +585,17 @@ void KinematicsReachability::getMarkers(const kinematics_reachability::Workspace
   }
 }
 
+void KinematicsReachability::getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
+                                        const std::string &marker_namespace,
+                                        visualization_msgs::MarkerArray &marker_array)
+{
+  for(unsigned int i=0; i < workspace.points.size(); ++i)
+  {
+    visualization_msgs::Marker marker = getSphereMarker(workspace.points[i],workspace.header,i,marker_namespace);    
+    marker_array.markers.push_back(marker);
+  }
+}
+
 void KinematicsReachability::getPositionIndexedMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                                        const std::string &marker_namespace,
                                                        visualization_msgs::MarkerArray &marker_array)
@@ -717,6 +774,14 @@ void KinematicsReachability::visualize(const kinematics_reachability::WorkspaceP
 {
   visualization_msgs::MarkerArray marker_array;
   getPositionIndexedMarkers(workspace,marker_namespace,marker_array);
+  visualization_publisher_.publish(marker_array);
+}
+
+void KinematicsReachability::visualizeUnOrdered(const kinematics_reachability::WorkspacePoints &workspace,
+                                                const std::string &marker_namespace)
+{
+  visualization_msgs::MarkerArray marker_array;
+  getMarkers(workspace,marker_namespace,marker_array);
   visualization_publisher_.publish(marker_array);
 }
 

@@ -107,8 +107,11 @@ region in the workspace for which reachability is to be computed****/
     ROS_INFO("Waiting for planning scene to be set");
   }
     
-  reachability_solver.computeWorkspace(workspace);
-  reachability_solver.visualize(workspace,"full");
+  geometry_msgs::Pose tool_frame_offset;
+  tool_frame_offset.orientation.w = 1.0;
+  
+  reachability_solver.computeWorkspaceFK(workspace, tool_frame_offset, 10.0);
+  reachability_solver.visualizeUnOrdered(workspace,"full");
   reachability_solver.animateWorkspace(workspace);
   /*
   reachability_solver.visualizeWithArrows(workspace,"full_arrows");*/
