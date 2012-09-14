@@ -8,8 +8,6 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin COMPONENTS 
-  planning_models
-  collision_detection 
   collision_detection_fcl
   REQUIRED)
 
