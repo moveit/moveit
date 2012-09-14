@@ -99,6 +99,20 @@ bool KinematicsSolver::solve(const geometry_msgs::PoseStamped &pose,
   return solve(goal,planning_scene,timeout,robot_state,error_code,kinematic_constraint_set);
 }
 
+bool KinematicsSolver::isValid(const planning_models::KinematicState &kinematic_state,
+                               const planning_scene::PlanningSceneConstPtr& planning_scene,
+                               moveit_msgs::MoveItErrorCodes &error_code) const
+{
+  if(planning_scene->isStateColliding(kinematic_state))
+  {
+    return false;    
+  }      
+  /*  if(!planning_scene->isStateConstrained(kinematic_state,kinematic_constraint_set))
+  {
+    return false;    
+    } */
+  return true;  
+}
 
 bool KinematicsSolver::solve(const std::map<std::string,geometry_msgs::PoseStamped> &poses,
                              const planning_scene::PlanningSceneConstPtr& planning_scene,
