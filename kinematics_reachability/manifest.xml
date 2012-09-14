@@ -21,6 +21,10 @@
     <depend package="roscpp"/>
   </rosbuild2>
 
+  <export>
+    <cpp cflags="`pkg-config --cflags kinematics_reachability`"/>
+  </export>
+
 </package>
 
 
