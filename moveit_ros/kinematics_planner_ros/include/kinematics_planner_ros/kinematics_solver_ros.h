@@ -87,13 +87,24 @@ class KinematicsSolverROS
   const planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitor()
   {
     return planning_scene_monitor_;    
-  }
-    
+  };
+      
+  const kinematics_planner::KinematicsSolverPtr& getKinematicsSolver(const std::string &group_name)
+  {
+    if(kinematics_solver_group_name_map_.find(group_name) != kinematics_solver_group_name_map_.end())
+    {
+      return kinematics_solver_group_name_map_.find(group_name)->second;
+    }
+    return kinematics_planner::KinematicsSolverPtr();    
+  };
+      
 private:
 
   ros::ServiceServer get_ik_service_;
   
   std::map<std::string,kinematics_planner::KinematicsSolverPtr> kinematics_solver_;
+
+  std::map<std::string,kinematics_planner::KinematicsSolverPtr> kinematics_solver_group_name_map_;
 
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   

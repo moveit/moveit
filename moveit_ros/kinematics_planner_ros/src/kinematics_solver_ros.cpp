@@ -66,6 +66,10 @@ bool KinematicsSolverROS::initialize()
       ROS_WARN("Will not solve IK for group %s",group_name.c_str());
       kinematics_solver_[tip_name].reset();      
     }    
+    else
+    {
+      kinematics_solver_group_name_map_[group_name] = kinematics_solver_[tip_name];
+    }    
   }
   get_ik_service_ = node_handle_.advertiseService(IK_WITH_COLLISION_SERVICE,&KinematicsSolverROS::getIK,this);
   return true;  
