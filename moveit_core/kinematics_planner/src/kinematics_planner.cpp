@@ -137,11 +137,6 @@ bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStam
   return false;    
 }
 
-
-
-
-
-
 moveit_msgs::RobotTrajectory KinematicsPlanner::getRobotTrajectory(const kinematics_planner::SolutionTrajectoryMap &solutions,
                                                                    unsigned int num_poses) const
 {
