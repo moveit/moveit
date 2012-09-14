@@ -4,10 +4,9 @@
 #include <tf/transform_datatypes.h>
 #include <iostream>
 #include "angles/angles.h"
+
 #include <kinematics_reachability/kinematics_reachability.h>
 
-
-kinematics_reachability::WorkspacePoints workspace;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
