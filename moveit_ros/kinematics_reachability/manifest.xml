@@ -22,7 +22,7 @@
   </rosbuild2>
 
   <export>
-    <cpp cflags="`pkg-config --cflags kinematics_reachability`"/>
+   <cpp cflags="-I${prefix}/include -I${prefix}/msg_gen/cpp/include"/>
   </export>
 
 </package>
