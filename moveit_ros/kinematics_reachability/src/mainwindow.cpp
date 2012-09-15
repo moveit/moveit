@@ -1,11 +1,9 @@
+#include <ros/ros.h>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <ros/ros.h>
 #include <tf/transform_datatypes.h>
 #include <iostream>
 #include "angles/angles.h"
-
-#include <kinematics_reachability/kinematics_reachability.h>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -47,7 +45,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->name_label->setText(group_name.c_str());
     ui->frame_id_label->setText(frame_id.c_str());
 
-
+    if(!reachability_solver_.initialize())
+      ROS_ERROR("Could not initialize reachability solver");
+    workspace_.group_name = group_name;
+    workspace_.header.frame_id = frame_id;    
 }
 
 MainWindow::~MainWindow()
@@ -75,121 +76,28 @@ void MainWindow::addRow()
 
     geometry_msgs::Quaternion quaternion;
     quaternion = tf::createQuaternionMsgFromRollPitchYaw(angles::from_degrees(arm_roll.toDouble()),angles::from_degrees(arm_pitch.toDouble()),angles::from_degrees(arm_yaw.toDouble()));
-    workspace.orientations.push_back(quaternion);
+    workspace_.orientations.push_back(quaternion);
     
 }
 
 void MainWindow::compute()
 {
-
-    geometry_msgs::Pose tool_frame_offset;
-
-    double offset_roll = 0;
-    double offset_pitch = 0;
-    double offset_yaw = 0;
-
-    double offset_x = 0; 
-    double offset_y = 0;
-    double offset_z = 0;
-    
-    double resolution = ui->edit_text_resolution->text().toDouble();
-
-    MainWindow::setBoundaries(workspace);
- 
-    bool checked = ui->tool_offset_enabled->isChecked();
-
-    if (checked)
-    {
-
-        offset_roll = angles::from_degrees(ui->edit_text_offset_roll->text().toDouble());
-        offset_pitch = angles::from_degrees(ui->edit_text_offset_pitch->text().toDouble());
-        offset_yaw = angles::from_degrees(ui->edit_text_offset_yaw->text().toDouble());
-
-        offset_x = ui->edit_text_offset_x->text().toDouble(); 
-        offset_y = ui->edit_text_offset_y->text().toDouble();
-        offset_z = ui->edit_text_offset_z->text().toDouble();
-    }
-
-    //Get values for names
-    /*
-    std::string name = ui->lineEdit->text().toStdString();
-    std::string root_name = ui->lineEdit_2->text().toStdString();
-    std::string tip_name = ui->lineEdit_3->text().toStdString();
-    */
-
-
-    MainWindow::close();
-
-    /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
-    region in the workspace for which reachability is to be computed****/
-    kinematics_reachability::KinematicsReachability reachability_solver;
-    if(!reachability_solver.initialize())
-        return;
-
-    workspace.group_name = "arm";
-
-    workspace.position_resolution = resolution;
-    workspace.header.frame_id = "arm_base_link";
-
-    //SET OF ORIENTATIONS TO TEST FOR REACHABILITY
-
-    //geometry_msgs::Quaternion quaternion;
-    //quaternion.w = 1.0;
-    //workspace.orientations.push_back(quaternion);  
-
-    /*  quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,-M_PI/2.0);
-    workspace.orientations.push_back(quaternion);
-
-    quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,M_PI/2.0);
-    workspace.orientations.push_back(quaternion);
-
-    quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/2.0,0.0);
-    workspace.orientations.push_back(quaternion);
-
-    quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,-M_PI/2.0,0.0);
-    workspace.orientations.push_back(quaternion);
-    */
-    /*
-    // The octants
-    quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/4.0,M_PI/4.0);
-    workspace.orientations.push_back(quaternion);
-
-    quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,-M_PI/4.0,M_PI/4.0);
-    workspace.orientations.push_back(quaternion);
-
-    quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,-M_PI/4.0,-M_PI/4.0);
-    workspace.orientations.push_back(quaternion);
-
-    quaternion = tf::createQuaternionMsgFromRollPitchYaw(0.0,M_PI/4.0,-M_PI/4.0);
-    workspace.orientations.push_back(quaternion);
-    */
-    while(!reachability_solver.isActive())
-    {
-        sleep(1.0);
-        ROS_INFO("Waiting for planning scene to be set");
-    }
-      
- 
-    tool_frame_offset.orientation = tf::createQuaternionMsgFromRollPitchYaw(offset_roll,offset_pitch,offset_yaw);
-    tool_frame_offset.position.x = offset_x;
-    tool_frame_offset.position.y = offset_y;
-    tool_frame_offset.position.z = offset_z;
-
-    reachability_solver.computeWorkspace(workspace, tool_frame_offset, true);
-    
-    reachability_solver.visualize(workspace,"full");
-
-    reachability_solver.animateWorkspace(workspace);
-
-    reachability_solver.visualizeWithArrows(workspace,"full_arrows");
-    //  aw.visualize(workspace,"RPY(0,0,0)",zero_orientation);
-    ROS_INFO("Success");
-
-    reachability_solver.publishWorkspace(workspace);
-
-
-    ros::waitForShutdown();
-
+  MainWindow::setBoundaries(workspace_);
+  workspace_.points.clear();  
+  //    MainWindow::close();
+  /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
+        region in the workspace for which reachability is to be computed****/
+  while(!reachability_solver_.isActive())
+  {
+    sleep(1.0);
+    ROS_INFO("Waiting for planning scene to be set");
+  }          
+  reachability_solver_.computeWorkspace(workspace_, true);
+  reachability_solver_.visualize(workspace_,"full");
+  reachability_solver_.animateWorkspace(workspace_);
+  ROS_INFO("Success");  
+  reachability_solver_.publishWorkspace(workspace_);
+  //    ros::waitForShutdown();  
 }
 
 void MainWindow::showOffset(bool checked)
@@ -208,15 +116,9 @@ void MainWindow::showOffset(bool checked)
     ui->label_offset_yaw->setVisible(checked);
 }
 
-
-
 void MainWindow::visualiseWorkspace()
 {
-    kinematics_reachability::KinematicsReachability reachability_solver;
-    if(!reachability_solver.initialize())
-        return;
-    kinematics_reachability::WorkspacePoints sample_workspace;
-
+  /*    kinematics_reachability::WorkspacePoints sample_workspace;
     sample_workspace.group_name = "arm";
 
     double resolution = ui->edit_text_resolution->text().toDouble();
@@ -230,16 +132,15 @@ void MainWindow::visualiseWorkspace()
     quaternion.w = 1.0;
     sample_workspace.orientations.push_back(quaternion);
 
-    while(!reachability_solver.isActive())
+    while(!reachability_solver_.isActive())
     {
         sleep(1.0);
         ROS_INFO("Waiting for planning scene to be set");
     }
-
-    reachability_solver.visualizeWorkspaceSamples(sample_workspace, "samples");
-
+*/
+    MainWindow::setBoundaries(workspace_);
+    reachability_solver_.visualizeWorkspaceSamples(workspace_);
     ROS_INFO("Samples visualised.");
-
 }
 
 void MainWindow::setBoundaries(kinematics_reachability::WorkspacePoints &w)
@@ -264,4 +165,32 @@ void MainWindow::setBoundaries(kinematics_reachability::WorkspacePoints &w)
     w.parameters.max_corner.y = max_corner_y;
     w.parameters.max_corner.z = max_corner_z;
 
+    double resolution = ui->edit_text_resolution->text().toDouble();
+    w.position_resolution = resolution;
+
+    geometry_msgs::Pose tool_frame_offset;
+    double offset_roll = 0;
+    double offset_pitch = 0;
+    double offset_yaw = 0;
+
+    double offset_x = 0; 
+    double offset_y = 0;
+    double offset_z = 0;
+
+    bool checked = ui->tool_offset_enabled->isChecked();
+    if (checked)
+    {
+      offset_roll = angles::from_degrees(ui->edit_text_offset_roll->text().toDouble());
+      offset_pitch = angles::from_degrees(ui->edit_text_offset_pitch->text().toDouble());
+      offset_yaw = angles::from_degrees(ui->edit_text_offset_yaw->text().toDouble());
+
+      offset_x = ui->edit_text_offset_x->text().toDouble(); 
+      offset_y = ui->edit_text_offset_y->text().toDouble();
+      offset_z = ui->edit_text_offset_z->text().toDouble();
+    }
+    tool_frame_offset.orientation = tf::createQuaternionMsgFromRollPitchYaw(offset_roll,offset_pitch,offset_yaw);
+    tool_frame_offset.position.x = offset_x;
+    tool_frame_offset.position.y = offset_y;
+    tool_frame_offset.position.z = offset_z;
+    w.tool_frame_offset = tool_frame_offset;    
 }

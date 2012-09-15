@@ -3,7 +3,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <kinematics_reachability/WorkspacePoints.h>
+#include <kinematics_reachability/kinematics_reachability.h>
 
 namespace Ui {
 class MainWindow;
@@ -25,7 +25,8 @@ private Q_SLOTS:
 
 private:
     Ui::MainWindow *ui;
-    kinematics_reachability::WorkspacePoints workspace;
+    kinematics_reachability::WorkspacePoints workspace_;
+    kinematics_reachability::KinematicsReachability reachability_solver_;
     void setBoundaries(kinematics_reachability::WorkspacePoints &w);
 };
 

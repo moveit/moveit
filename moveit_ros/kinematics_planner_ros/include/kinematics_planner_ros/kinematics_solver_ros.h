@@ -95,7 +95,7 @@ class KinematicsSolverROS
     {
       return kinematics_solver_group_name_map_.find(group_name)->second;
     }
-    return kinematics_planner::KinematicsSolverPtr();    
+    return empty_ptr_;    
   };
       
 private:
@@ -107,6 +107,8 @@ private:
   std::map<std::string,kinematics_planner::KinematicsSolverPtr> kinematics_solver_group_name_map_;
 
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  
+  kinematics_planner::KinematicsSolverPtr empty_ptr_;
   
   ros::NodeHandle node_handle_;  
 };
