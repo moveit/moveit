@@ -15,24 +15,39 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     //Hide tool offset on startup
-    ui->lineEdit_10->hide();
-    ui->lineEdit_11->hide();
-    ui->lineEdit_12->hide();
-    ui->label_12->hide();
-    ui->label_13->hide();
-    ui->label_14->hide();
-    ui->lineEdit_13->hide();
-    ui->lineEdit_14->hide();
-    ui->lineEdit_15->hide();
-    ui->label_16->hide();
-    ui->label_17->hide();
-    ui->label_18->hide();
+    ui->edit_text_offset_x->hide();
+    ui->edit_text_offset_y->hide();
+    ui->edit_text_offset_z->hide();
+    ui->label_offset_x->hide();
+    ui->label_offset_y->hide();
+    ui->label_offset_z->hide();
+    ui->edit_text_offset_roll->hide();
+    ui->edit_text_offset_pitch->hide();
+    ui->edit_text_offset_yaw->hide();
+    ui->label_offset_roll->hide();
+    ui->label_offset_pitch->hide();
+    ui->label_offset_yaw->hide();
 
     //Set default text in name fields
-    ui->lineEdit->setText("");
-    ui->lineEdit_2->setText("");
-    ui->lineEdit_3->setText("");
+    ui->frame_id_label->setText("");
+    ui->name_label->setText("");
     
+    ros::AsyncSpinner spinner(2); 
+    spinner.start();
+
+    ros::NodeHandle node_handle("~");
+    std::string group_name, frame_id;
+    node_handle.param<std::string>("group", group_name, std::string());
+    node_handle.param<std::string>("frame_id", frame_id, std::string());
+
+    ROS_INFO("Group name: %s",group_name.c_str());
+    ROS_INFO("Frame id: %s",frame_id.c_str());
+   
+    //Set from ROS parameters
+    ui->name_label->setText(group_name.c_str());
+    ui->frame_id_label->setText(frame_id.c_str());
+
+
 }
 
 MainWindow::~MainWindow()
@@ -40,23 +55,23 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::add_row()
+void MainWindow::addRow()
 {
-    ui->tableWidget->setColumnCount(3);
-    ui->tableWidget->setHorizontalHeaderLabels(QString("Roll;Pitch;Yaw").split(";"));
-    ui->tableWidget->insertRow(ui->tableWidget->rowCount());
+    ui->table_widget->setColumnCount(3);
+    ui->table_widget->setHorizontalHeaderLabels(QString("Roll;Pitch;Yaw").split(";"));
+    ui->table_widget->insertRow(ui->table_widget->rowCount());
 
-    QString arm_roll = ui->lineEdit_7->text();
-    QString arm_pitch = ui->lineEdit_8->text();
-    QString arm_yaw = ui->lineEdit_9->text();
+    QString arm_roll = ui->edit_text_roll->text();
+    QString arm_pitch = ui->edit_text_pitch->text();
+    QString arm_yaw = ui->edit_text_yaw->text();
 
-    ui->tableWidget->setItem(ui->tableWidget->rowCount() -1, 0, new QTableWidgetItem(arm_roll));
-    ui->tableWidget->setItem(ui->tableWidget->rowCount() -1, 1, new QTableWidgetItem(arm_pitch));
-    ui->tableWidget->setItem(ui->tableWidget->rowCount() -1, 2, new QTableWidgetItem(arm_yaw));
+    ui->table_widget->setItem(ui->table_widget->rowCount() -1, 0, new QTableWidgetItem(arm_roll));
+    ui->table_widget->setItem(ui->table_widget->rowCount() -1, 1, new QTableWidgetItem(arm_pitch));
+    ui->table_widget->setItem(ui->table_widget->rowCount() -1, 2, new QTableWidgetItem(arm_yaw));
 
-    ui->lineEdit_7->clear();
-    ui->lineEdit_8->clear();
-    ui->lineEdit_9->clear();
+    ui->edit_text_roll->clear();
+    ui->edit_text_pitch->clear();
+    ui->edit_text_yaw->clear();
 
     geometry_msgs::Quaternion quaternion;
     quaternion = tf::createQuaternionMsgFromRollPitchYaw(angles::from_degrees(arm_roll.toDouble()),angles::from_degrees(arm_pitch.toDouble()),angles::from_degrees(arm_yaw.toDouble()));
@@ -77,32 +92,22 @@ void MainWindow::compute()
     double offset_y = 0;
     double offset_z = 0;
     
-    double resolution = ui->lineEdit_6->text().toDouble();
+    double resolution = ui->edit_text_resolution->text().toDouble();
+
+    MainWindow::setBoundaries(workspace);
  
-    double origin_x = ui->lineEdit_4->text().toDouble();
-    double origin_y = ui->lineEdit_5->text().toDouble();
-    double origin_z = ui->lineEdit_16->text().toDouble();
-
-    double min_corner_x = origin_x - (ui->lineEdit_17->text().toDouble()/2.0);
-    double min_corner_y = origin_y - (ui->lineEdit_18->text().toDouble()/2.0);
-    double min_corner_z = origin_z - (ui->lineEdit_19->text().toDouble()/2.0);
-
-    double max_corner_x = origin_x + (ui->lineEdit_17->text().toDouble()/2.0);
-    double max_corner_y = origin_y + (ui->lineEdit_18->text().toDouble()/2.0);
-    double max_corner_z = origin_z + (ui->lineEdit_19->text().toDouble()/2.0);
-
-    bool checked = ui->checkBox->isChecked();
+    bool checked = ui->tool_offset_enabled->isChecked();
 
     if (checked)
     {
 
-        offset_roll = angles::from_degrees(ui->lineEdit_13->text().toDouble());
-        offset_pitch = angles::from_degrees(ui->lineEdit_14->text().toDouble());
-        offset_yaw = angles::from_degrees(ui->lineEdit_15->text().toDouble());
+        offset_roll = angles::from_degrees(ui->edit_text_offset_roll->text().toDouble());
+        offset_pitch = angles::from_degrees(ui->edit_text_offset_pitch->text().toDouble());
+        offset_yaw = angles::from_degrees(ui->edit_text_offset_yaw->text().toDouble());
 
-        offset_x = ui->lineEdit_10->text().toDouble(); 
-        offset_y = ui->lineEdit_11->text().toDouble();
-        offset_z = ui->lineEdit_12->text().toDouble();
+        offset_x = ui->edit_text_offset_x->text().toDouble(); 
+        offset_y = ui->edit_text_offset_y->text().toDouble();
+        offset_z = ui->edit_text_offset_z->text().toDouble();
     }
 
     //Get values for names
@@ -112,16 +117,8 @@ void MainWindow::compute()
     std::string tip_name = ui->lineEdit_3->text().toStdString();
     */
 
-    MainWindow::close();    
 
-    ros::AsyncSpinner spinner(2); 
-    spinner.start();
-
-    ros::NodeHandle node_handle("~");
-    std::string group_name, root_name;
-    node_handle.param<std::string>("group", group_name, std::string());
-    node_handle.param<std::string>(group_name+"/root_name", root_name, std::string());
-    ros::NodeHandle root_handle;
+    MainWindow::close();
 
     /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
     region in the workspace for which reachability is to be computed****/
@@ -133,14 +130,6 @@ void MainWindow::compute()
 
     workspace.position_resolution = resolution;
     workspace.header.frame_id = "arm_base_link";
-
-    workspace.parameters.min_corner.x = min_corner_x;
-    workspace.parameters.min_corner.y = min_corner_y;
-    workspace.parameters.min_corner.z = min_corner_z;
-
-    workspace.parameters.max_corner.x = max_corner_x;
-    workspace.parameters.max_corner.y = max_corner_y;
-    workspace.parameters.max_corner.z = max_corner_z;
 
     //SET OF ORIENTATIONS TO TEST FOR REACHABILITY
 
@@ -198,30 +187,30 @@ void MainWindow::compute()
 
     reachability_solver.publishWorkspace(workspace);
 
+
     ros::waitForShutdown();
 
-    return;
 }
 
-void MainWindow::show_offset(bool checked)
+void MainWindow::showOffset(bool checked)
 {
-    ui->lineEdit_10->setVisible(checked);
-    ui->lineEdit_11->setVisible(checked);
-    ui->lineEdit_12->setVisible(checked);
-    ui->label_12->setVisible(checked);
-    ui->label_13->setVisible(checked);
-    ui->label_14->setVisible(checked);
-    ui->lineEdit_13->setVisible(checked);
-    ui->lineEdit_14->setVisible(checked);
-    ui->lineEdit_15->setVisible(checked);
-    ui->label_16->setVisible(checked);
-    ui->label_17->setVisible(checked);
-    ui->label_18->setVisible(checked);
+    ui->edit_text_offset_x->setVisible(checked);
+    ui->edit_text_offset_y->setVisible(checked);
+    ui->edit_text_offset_z->setVisible(checked);
+    ui->label_offset_x->setVisible(checked);
+    ui->label_offset_y->setVisible(checked);
+    ui->label_offset_z->setVisible(checked);
+    ui->edit_text_offset_roll->setVisible(checked);
+    ui->edit_text_offset_pitch->setVisible(checked);
+    ui->edit_text_offset_yaw->setVisible(checked);
+    ui->label_offset_roll->setVisible(checked);
+    ui->label_offset_pitch->setVisible(checked);
+    ui->label_offset_yaw->setVisible(checked);
 }
 
 
 
-void MainWindow::visualise_workspace()
+void MainWindow::visualiseWorkspace()
 {
     kinematics_reachability::KinematicsReachability reachability_solver;
     if(!reachability_solver.initialize())
@@ -230,30 +219,12 @@ void MainWindow::visualise_workspace()
 
     sample_workspace.group_name = "arm";
 
-    double resolution = ui->lineEdit_6->text().toDouble();
+    double resolution = ui->edit_text_resolution->text().toDouble();
 
     sample_workspace.position_resolution = resolution;
     sample_workspace.header.frame_id = "arm_base_link";
 
-    double origin_x = ui->lineEdit_4->text().toDouble();
-    double origin_y = ui->lineEdit_5->text().toDouble();
-    double origin_z = ui->lineEdit_16->text().toDouble();
-
-    double min_corner_x = origin_x - (ui->lineEdit_17->text().toDouble()/2.0);
-    double min_corner_y = origin_y - (ui->lineEdit_18->text().toDouble()/2.0);
-    double min_corner_z = origin_z - (ui->lineEdit_19->text().toDouble()/2.0);
-
-    double max_corner_x = origin_x + (ui->lineEdit_17->text().toDouble()/2.0);
-    double max_corner_y = origin_y + (ui->lineEdit_18->text().toDouble()/2.0);
-    double max_corner_z = origin_z + (ui->lineEdit_19->text().toDouble()/2.0);
-
-    sample_workspace.parameters.min_corner.x = min_corner_x;
-    sample_workspace.parameters.min_corner.y = min_corner_y;
-    sample_workspace.parameters.min_corner.z = min_corner_z;
-
-    sample_workspace.parameters.max_corner.x = max_corner_x;
-    sample_workspace.parameters.max_corner.y = max_corner_y;
-    sample_workspace.parameters.max_corner.z = max_corner_z;
+    MainWindow::setBoundaries(sample_workspace);
 
     geometry_msgs::Quaternion quaternion;
     quaternion.w = 1.0;
@@ -266,4 +237,31 @@ void MainWindow::visualise_workspace()
     }
 
     reachability_solver.visualizeWorkspaceSamples(sample_workspace, "samples");
+
+    ROS_INFO("Samples visualised.");
+
+}
+
+void MainWindow::setBoundaries(kinematics_reachability::WorkspacePoints &w)
+{
+    double origin_x = ui->edit_text_origin_x->text().toDouble();
+    double origin_y = ui->edit_text_origin_y->text().toDouble();
+    double origin_z = ui->edit_text_origin_z->text().toDouble();
+
+    double min_corner_x = origin_x - (ui->edit_text_size_x->text().toDouble()/2.0);
+    double min_corner_y = origin_y - (ui->edit_text_size_y->text().toDouble()/2.0);
+    double min_corner_z = origin_z - (ui->edit_text_size_z->text().toDouble()/2.0);
+
+    double max_corner_x = origin_x + (ui->edit_text_size_x->text().toDouble()/2.0);
+    double max_corner_y = origin_y + (ui->edit_text_size_y->text().toDouble()/2.0);
+    double max_corner_z = origin_z + (ui->edit_text_size_z->text().toDouble()/2.0);
+
+    w.parameters.min_corner.x = min_corner_x;
+    w.parameters.min_corner.y = min_corner_y;
+    w.parameters.min_corner.z = min_corner_z;
+
+    w.parameters.max_corner.x = max_corner_x;
+    w.parameters.max_corner.y = max_corner_y;
+    w.parameters.max_corner.z = max_corner_z;
+
 }
