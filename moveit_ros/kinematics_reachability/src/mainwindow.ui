@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>477</width>
+    <width>442</width>
     <height>828</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
      <rect>
       <x>60</x>
       <y>190</y>
-      <width>361</width>
+      <width>321</width>
       <height>29</height>
      </rect>
     </property>
@@ -32,7 +32,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_7"/>
+      <widget class="QLineEdit" name="edit_text_roll"/>
      </item>
      <item>
       <widget class="QLabel" name="label_9">
@@ -42,7 +42,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_8"/>
+      <widget class="QLineEdit" name="edit_text_pitch"/>
      </item>
      <item>
       <widget class="QLabel" name="label_10">
@@ -52,7 +52,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_9"/>
+      <widget class="QLineEdit" name="edit_text_yaw"/>
      </item>
      <item>
       <spacer name="horizontalSpacer">
@@ -68,13 +68,26 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="add_button">
        <property name="text">
         <string>+</string>
        </property>
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>41</x>
+      <y>51</y>
+      <width>64</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Frame ID:</string>
+    </property>
    </widget>
    <widget class="QLabel" name="label_7">
     <property name="geometry">
@@ -89,22 +102,35 @@
      <string>Orientation:</string>
     </property>
    </widget>
-   <widget class="QTableWidget" name="tableWidget">
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>41</x>
+      <y>21</y>
+      <width>43</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Name:</string>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="table_widget">
     <property name="geometry">
      <rect>
       <x>60</x>
       <y>220</y>
-      <width>361</width>
+      <width>321</width>
       <height>141</height>
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="compute_button">
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>680</y>
-      <width>381</width>
+      <y>690</y>
+      <width>341</width>
       <height>27</height>
      </rect>
     </property>
@@ -135,7 +161,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>470</y>
+      <y>480</y>
       <width>81</width>
       <height>17</height>
      </rect>
@@ -154,8 +180,8 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>610</y>
-      <width>213</width>
+      <y>620</y>
+      <width>171</width>
       <height>29</height>
      </rect>
     </property>
@@ -168,15 +194,15 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_6"/>
+      <widget class="QLineEdit" name="edit_text_resolution"/>
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="pushButton_3">
+   <widget class="QPushButton" name="visualise_button">
     <property name="geometry">
      <rect>
-      <x>300</x>
-      <y>610</y>
+      <x>260</x>
+      <y>620</y>
       <width>121</width>
       <height>27</height>
      </rect>
@@ -189,107 +215,41 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>430</y>
+      <y>440</y>
       <width>261</width>
       <height>29</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_8">
      <item>
-      <widget class="QLabel" name="label_16">
+      <widget class="QLabel" name="label_offset_roll">
        <property name="text">
         <string>R:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_13"/>
+      <widget class="QLineEdit" name="edit_text_offset_roll"/>
      </item>
      <item>
-      <widget class="QLabel" name="label_17">
+      <widget class="QLabel" name="label_offset_pitch">
        <property name="text">
         <string>P:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_14"/>
+      <widget class="QLineEdit" name="edit_text_offset_pitch"/>
      </item>
      <item>
-      <widget class="QLabel" name="label_18">
+      <widget class="QLabel" name="label_offset_yaw">
        <property name="text">
         <string>Y:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_15"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>80</y>
-      <width>204</width>
-      <height>29</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Tip Name:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEdit_3"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>50</y>
-      <width>216</width>
-      <height>29</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Root Name:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEdit_2"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>20</y>
-      <width>180</width>
-      <height>29</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Name:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="edit_text_offset_yaw"/>
      </item>
     </layout>
    </widget>
@@ -297,7 +257,7 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>370</y>
+      <y>380</y>
       <width>176</width>
       <height>23</height>
      </rect>
@@ -311,7 +271,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBox">
+      <widget class="QCheckBox" name="tool_offset_enabled">
        <property name="text">
         <string/>
        </property>
@@ -323,41 +283,41 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>400</y>
+      <y>410</y>
       <width>261</width>
       <height>29</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
-      <widget class="QLabel" name="label_12">
+      <widget class="QLabel" name="label_offset_x">
        <property name="text">
         <string>X:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_10"/>
+      <widget class="QLineEdit" name="edit_text_offset_x"/>
      </item>
      <item>
-      <widget class="QLabel" name="label_13">
+      <widget class="QLabel" name="label_offset_y">
        <property name="text">
         <string>Y:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_11"/>
+      <widget class="QLineEdit" name="edit_text_offset_y"/>
      </item>
      <item>
-      <widget class="QLabel" name="label_14">
+      <widget class="QLabel" name="label_offset_z">
        <property name="text">
         <string>Z:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_12"/>
+      <widget class="QLineEdit" name="edit_text_offset_z"/>
      </item>
     </layout>
    </widget>
@@ -365,8 +325,8 @@
     <property name="geometry">
      <rect>
       <x>110</x>
-      <y>500</y>
-      <width>311</width>
+      <y>510</y>
+      <width>271</width>
       <height>20</height>
      </rect>
     </property>
@@ -407,8 +367,8 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>520</y>
-      <width>361</width>
+      <y>530</y>
+      <width>321</width>
       <height>66</height>
      </rect>
     </property>
@@ -436,10 +396,10 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="QLineEdit" name="lineEdit_4"/>
+          <widget class="QLineEdit" name="edit_text_origin_x"/>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_17"/>
+          <widget class="QLineEdit" name="edit_text_size_x"/>
          </item>
         </layout>
        </item>
@@ -459,10 +419,10 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QLineEdit" name="lineEdit_5"/>
+          <widget class="QLineEdit" name="edit_text_origin_y"/>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_18"/>
+          <widget class="QLineEdit" name="edit_text_size_y"/>
          </item>
         </layout>
        </item>
@@ -482,10 +442,10 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QLineEdit" name="lineEdit_16"/>
+          <widget class="QLineEdit" name="edit_text_origin_z"/>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_19"/>
+          <widget class="QLineEdit" name="edit_text_size_z"/>
          </item>
         </layout>
        </item>
@@ -493,16 +453,49 @@
      </item>
     </layout>
    </widget>
+   <widget class="QLabel" name="frame_id_label">
+    <property name="geometry">
+     <rect>
+      <x>129</x>
+      <y>51</y>
+      <width>161</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="name_label">
+    <property name="geometry">
+     <rect>
+      <x>129</x>
+      <y>21</y>
+      <width>161</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>477</width>
+     <width>442</width>
      <height>25</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuMoveIt_Kinematics_Tool">
+    <property name="title">
+     <string>MoveIt! Kinematics Tool</string>
+    </property>
+    <addaction name="actionSave_Current"/>
+   </widget>
+   <addaction name="menuMoveIt_Kinematics_Tool"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -513,51 +506,56 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionSave_Current">
+   <property name="text">
+    <string>Save Current</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections>
   <connection>
-   <sender>pushButton</sender>
+   <sender>add_button</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>add_row()</slot>
+   <slot>addRow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>404</x>
+     <x>379</x>
      <y>246</y>
     </hint>
     <hint type="destinationlabel">
-     <x>476</x>
+     <x>441</x>
      <y>305</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_2</sender>
+   <sender>compute_button</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>compute()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>99</x>
-     <y>719</y>
+     <y>729</y>
     </hint>
     <hint type="destinationlabel">
-     <x>476</x>
+     <x>441</x>
      <y>481</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>checkBox</sender>
+   <sender>tool_offset_enabled</sender>
    <signal>clicked(bool)</signal>
    <receiver>MainWindow</receiver>
-   <slot>show_offset(bool)</slot>
+   <slot>showOffset(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>227</x>
-     <y>427</y>
+     <y>437</y>
     </hint>
     <hint type="destinationlabel">
      <x>370</x>
@@ -566,26 +564,26 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_3</sender>
+   <sender>visualise_button</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>visualise_workspace()</slot>
+   <slot>visualiseWorkspace()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>408</x>
-     <y>659</y>
+     <x>368</x>
+     <y>669</y>
     </hint>
     <hint type="destinationlabel">
-     <x>454</x>
+     <x>441</x>
      <y>634</y>
     </hint>
    </hints>
   </connection>
  </connections>
  <slots>
-  <slot>add_row()</slot>
+  <slot>addRow()</slot>
   <slot>compute()</slot>
-  <slot>show_offset(bool)</slot>
-  <slot>visualise_workspace()</slot>
+  <slot>showOffset(bool)</slot>
+  <slot>visualiseWorkspace()</slot>
  </slots>
 </ui>

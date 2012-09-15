@@ -18,15 +18,15 @@ public:
     ~MainWindow();
     
 private Q_SLOTS:
-    void add_row();
+    void addRow();
     void compute();
-    void show_offset(bool checked);
-    void visualise_workspace();
+    void showOffset(bool checked);
+    void visualiseWorkspace();
 
 private:
     Ui::MainWindow *ui;
-  kinematics_reachability::WorkspacePoints workspace;
-
+    kinematics_reachability::WorkspacePoints workspace;
+    void setBoundaries(kinematics_reachability::WorkspacePoints &w);
 };
 
 #endif // MAINWINDOW_H

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Thu Sep 13 12:13:25 2012
+** Created: Fri Sep 14 15:42:01 2012
 **      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -20,6 +20,7 @@
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
 #include <QtGui/QMainWindow>
+#include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
 #include <QtGui/QPushButton>
 #include <QtGui/QSpacerItem>
@@ -34,82 +35,76 @@ QT_BEGIN_NAMESPACE
 class Ui_MainWindow
 {
 public:
+    QAction *actionSave_Current;
     QWidget *centralWidget;
     QWidget *layoutWidget;
     QHBoxLayout *horizontalLayout;
     QLabel *label_8;
-    QLineEdit *lineEdit_7;
+    QLineEdit *edit_text_roll;
     QLabel *label_9;
-    QLineEdit *lineEdit_8;
+    QLineEdit *edit_text_pitch;
     QLabel *label_10;
-    QLineEdit *lineEdit_9;
+    QLineEdit *edit_text_yaw;
     QSpacerItem *horizontalSpacer;
-    QPushButton *pushButton;
+    QPushButton *add_button;
+    QLabel *label_2;
     QLabel *label_7;
-    QTableWidget *tableWidget;
-    QPushButton *pushButton_2;
+    QLabel *label;
+    QTableWidget *table_widget;
+    QPushButton *compute_button;
     QLabel *label_15;
     QLabel *label_4;
     QWidget *widget;
     QHBoxLayout *horizontalLayout_2;
     QLabel *label_6;
-    QLineEdit *lineEdit_6;
-    QPushButton *pushButton_3;
+    QLineEdit *edit_text_resolution;
+    QPushButton *visualise_button;
     QWidget *layoutWidget_2;
     QHBoxLayout *horizontalLayout_8;
-    QLabel *label_16;
-    QLineEdit *lineEdit_13;
-    QLabel *label_17;
-    QLineEdit *lineEdit_14;
-    QLabel *label_18;
-    QLineEdit *lineEdit_15;
+    QLabel *label_offset_roll;
+    QLineEdit *edit_text_offset_roll;
+    QLabel *label_offset_pitch;
+    QLineEdit *edit_text_offset_pitch;
+    QLabel *label_offset_yaw;
+    QLineEdit *edit_text_offset_yaw;
     QWidget *widget1;
-    QHBoxLayout *horizontalLayout_4;
-    QLabel *label_3;
-    QLineEdit *lineEdit_3;
-    QWidget *widget2;
-    QHBoxLayout *horizontalLayout_5;
-    QLabel *label_2;
-    QLineEdit *lineEdit_2;
-    QWidget *widget3;
-    QHBoxLayout *horizontalLayout_6;
-    QLabel *label;
-    QLineEdit *lineEdit;
-    QWidget *widget4;
     QHBoxLayout *horizontalLayout_3;
     QLabel *label_11;
-    QCheckBox *checkBox;
-    QWidget *widget5;
+    QCheckBox *tool_offset_enabled;
+    QWidget *widget2;
     QHBoxLayout *horizontalLayout_7;
-    QLabel *label_12;
-    QLineEdit *lineEdit_10;
-    QLabel *label_13;
-    QLineEdit *lineEdit_11;
-    QLabel *label_14;
-    QLineEdit *lineEdit_12;
-    QWidget *widget6;
+    QLabel *label_offset_x;
+    QLineEdit *edit_text_offset_x;
+    QLabel *label_offset_y;
+    QLineEdit *edit_text_offset_y;
+    QLabel *label_offset_z;
+    QLineEdit *edit_text_offset_z;
+    QWidget *widget3;
     QHBoxLayout *horizontalLayout_9;
     QLabel *label_20;
     QLabel *label_21;
     QLabel *label_22;
-    QWidget *widget7;
+    QWidget *widget4;
     QHBoxLayout *horizontalLayout_11;
     QVBoxLayout *verticalLayout_4;
     QLabel *label_5;
     QLabel *label_19;
     QHBoxLayout *horizontalLayout_10;
     QVBoxLayout *verticalLayout_3;
-    QLineEdit *lineEdit_4;
-    QLineEdit *lineEdit_17;
+    QLineEdit *edit_text_origin_x;
+    QLineEdit *edit_text_size_x;
     QSpacerItem *horizontalSpacer_2;
     QVBoxLayout *verticalLayout_2;
-    QLineEdit *lineEdit_5;
-    QLineEdit *lineEdit_18;
+    QLineEdit *edit_text_origin_y;
+    QLineEdit *edit_text_size_y;
     QSpacerItem *horizontalSpacer_3;
     QVBoxLayout *verticalLayout;
-    QLineEdit *lineEdit_16;
-    QLineEdit *lineEdit_19;
+    QLineEdit *edit_text_origin_z;
+    QLineEdit *edit_text_size_z;
+    QLabel *frame_id_label;
+    QLabel *name_label;
     QMenuBar *menuBar;
+    QMenu *menuMoveIt_Kinematics_Tool;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
 
@@ -117,12 +112,14 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(477, 828);
+        MainWindow->resize(442, 828);
+        actionSave_Current = new QAction(MainWindow);
+        actionSave_Current->setObjectName(QString::fromUtf8("actionSave_Current"));
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         layoutWidget = new QWidget(centralWidget);
         layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(60, 190, 361, 29));
+        layoutWidget->setGeometry(QRect(60, 190, 321, 29));
         horizontalLayout = new QHBoxLayout(layoutWidget);
         horizontalLayout->setSpacing(6);
         horizontalLayout->setContentsMargins(11, 11, 11, 11);
@@ -133,49 +130,55 @@ public:
 
         horizontalLayout->addWidget(label_8);
 
-        lineEdit_7 = new QLineEdit(layoutWidget);
-        lineEdit_7->setObjectName(QString::fromUtf8("lineEdit_7"));
+        edit_text_roll = new QLineEdit(layoutWidget);
+        edit_text_roll->setObjectName(QString::fromUtf8("edit_text_roll"));
 
-        horizontalLayout->addWidget(lineEdit_7);
+        horizontalLayout->addWidget(edit_text_roll);
 
         label_9 = new QLabel(layoutWidget);
         label_9->setObjectName(QString::fromUtf8("label_9"));
 
         horizontalLayout->addWidget(label_9);
 
-        lineEdit_8 = new QLineEdit(layoutWidget);
-        lineEdit_8->setObjectName(QString::fromUtf8("lineEdit_8"));
+        edit_text_pitch = new QLineEdit(layoutWidget);
+        edit_text_pitch->setObjectName(QString::fromUtf8("edit_text_pitch"));
 
-        horizontalLayout->addWidget(lineEdit_8);
+        horizontalLayout->addWidget(edit_text_pitch);
 
         label_10 = new QLabel(layoutWidget);
         label_10->setObjectName(QString::fromUtf8("label_10"));
 
         horizontalLayout->addWidget(label_10);
 
-        lineEdit_9 = new QLineEdit(layoutWidget);
-        lineEdit_9->setObjectName(QString::fromUtf8("lineEdit_9"));
+        edit_text_yaw = new QLineEdit(layoutWidget);
+        edit_text_yaw->setObjectName(QString::fromUtf8("edit_text_yaw"));
 
-        horizontalLayout->addWidget(lineEdit_9);
+        horizontalLayout->addWidget(edit_text_yaw);
 
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         horizontalLayout->addItem(horizontalSpacer);
 
-        pushButton = new QPushButton(layoutWidget);
-        pushButton->setObjectName(QString::fromUtf8("pushButton"));
+        add_button = new QPushButton(layoutWidget);
+        add_button->setObjectName(QString::fromUtf8("add_button"));
 
-        horizontalLayout->addWidget(pushButton);
+        horizontalLayout->addWidget(add_button);
 
+        label_2 = new QLabel(centralWidget);
+        label_2->setObjectName(QString::fromUtf8("label_2"));
+        label_2->setGeometry(QRect(41, 51, 64, 17));
         label_7 = new QLabel(centralWidget);
         label_7->setObjectName(QString::fromUtf8("label_7"));
         label_7->setGeometry(QRect(60, 160, 91, 17));
-        tableWidget = new QTableWidget(centralWidget);
-        tableWidget->setObjectName(QString::fromUtf8("tableWidget"));
-        tableWidget->setGeometry(QRect(60, 220, 361, 141));
-        pushButton_2 = new QPushButton(centralWidget);
-        pushButton_2->setObjectName(QString::fromUtf8("pushButton_2"));
-        pushButton_2->setGeometry(QRect(40, 680, 381, 27));
+        label = new QLabel(centralWidget);
+        label->setObjectName(QString::fromUtf8("label"));
+        label->setGeometry(QRect(41, 21, 43, 17));
+        table_widget = new QTableWidget(centralWidget);
+        table_widget->setObjectName(QString::fromUtf8("table_widget"));
+        table_widget->setGeometry(QRect(60, 220, 321, 141));
+        compute_button = new QPushButton(centralWidget);
+        compute_button->setObjectName(QString::fromUtf8("compute_button"));
+        compute_button->setGeometry(QRect(40, 690, 341, 27));
         label_15 = new QLabel(centralWidget);
         label_15->setObjectName(QString::fromUtf8("label_15"));
         label_15->setGeometry(QRect(40, 130, 66, 17));
@@ -185,11 +188,11 @@ public:
         label_15->setFont(font);
         label_4 = new QLabel(centralWidget);
         label_4->setObjectName(QString::fromUtf8("label_4"));
-        label_4->setGeometry(QRect(40, 470, 81, 17));
+        label_4->setGeometry(QRect(40, 480, 81, 17));
         label_4->setFont(font);
         widget = new QWidget(centralWidget);
         widget->setObjectName(QString::fromUtf8("widget"));
-        widget->setGeometry(QRect(60, 610, 213, 29));
+        widget->setGeometry(QRect(60, 620, 171, 29));
         horizontalLayout_2 = new QHBoxLayout(widget);
         horizontalLayout_2->setSpacing(6);
         horizontalLayout_2->setContentsMargins(11, 11, 11, 11);
@@ -200,192 +203,138 @@ public:
 
         horizontalLayout_2->addWidget(label_6);
 
-        lineEdit_6 = new QLineEdit(widget);
-        lineEdit_6->setObjectName(QString::fromUtf8("lineEdit_6"));
+        edit_text_resolution = new QLineEdit(widget);
+        edit_text_resolution->setObjectName(QString::fromUtf8("edit_text_resolution"));
 
-        horizontalLayout_2->addWidget(lineEdit_6);
+        horizontalLayout_2->addWidget(edit_text_resolution);
 
-        pushButton_3 = new QPushButton(centralWidget);
-        pushButton_3->setObjectName(QString::fromUtf8("pushButton_3"));
-        pushButton_3->setGeometry(QRect(300, 610, 121, 27));
+        visualise_button = new QPushButton(centralWidget);
+        visualise_button->setObjectName(QString::fromUtf8("visualise_button"));
+        visualise_button->setGeometry(QRect(260, 620, 121, 27));
         layoutWidget_2 = new QWidget(centralWidget);
         layoutWidget_2->setObjectName(QString::fromUtf8("layoutWidget_2"));
-        layoutWidget_2->setGeometry(QRect(60, 430, 261, 29));
+        layoutWidget_2->setGeometry(QRect(60, 440, 261, 29));
         horizontalLayout_8 = new QHBoxLayout(layoutWidget_2);
         horizontalLayout_8->setSpacing(6);
         horizontalLayout_8->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
         horizontalLayout_8->setContentsMargins(0, 0, 0, 0);
-        label_16 = new QLabel(layoutWidget_2);
-        label_16->setObjectName(QString::fromUtf8("label_16"));
+        label_offset_roll = new QLabel(layoutWidget_2);
+        label_offset_roll->setObjectName(QString::fromUtf8("label_offset_roll"));
 
-        horizontalLayout_8->addWidget(label_16);
+        horizontalLayout_8->addWidget(label_offset_roll);
 
-        lineEdit_13 = new QLineEdit(layoutWidget_2);
-        lineEdit_13->setObjectName(QString::fromUtf8("lineEdit_13"));
+        edit_text_offset_roll = new QLineEdit(layoutWidget_2);
+        edit_text_offset_roll->setObjectName(QString::fromUtf8("edit_text_offset_roll"));
 
-        horizontalLayout_8->addWidget(lineEdit_13);
+        horizontalLayout_8->addWidget(edit_text_offset_roll);
 
-        label_17 = new QLabel(layoutWidget_2);
-        label_17->setObjectName(QString::fromUtf8("label_17"));
+        label_offset_pitch = new QLabel(layoutWidget_2);
+        label_offset_pitch->setObjectName(QString::fromUtf8("label_offset_pitch"));
 
-        horizontalLayout_8->addWidget(label_17);
+        horizontalLayout_8->addWidget(label_offset_pitch);
 
-        lineEdit_14 = new QLineEdit(layoutWidget_2);
-        lineEdit_14->setObjectName(QString::fromUtf8("lineEdit_14"));
+        edit_text_offset_pitch = new QLineEdit(layoutWidget_2);
+        edit_text_offset_pitch->setObjectName(QString::fromUtf8("edit_text_offset_pitch"));
 
-        horizontalLayout_8->addWidget(lineEdit_14);
+        horizontalLayout_8->addWidget(edit_text_offset_pitch);
 
-        label_18 = new QLabel(layoutWidget_2);
-        label_18->setObjectName(QString::fromUtf8("label_18"));
+        label_offset_yaw = new QLabel(layoutWidget_2);
+        label_offset_yaw->setObjectName(QString::fromUtf8("label_offset_yaw"));
 
-        horizontalLayout_8->addWidget(label_18);
+        horizontalLayout_8->addWidget(label_offset_yaw);
 
-        lineEdit_15 = new QLineEdit(layoutWidget_2);
-        lineEdit_15->setObjectName(QString::fromUtf8("lineEdit_15"));
+        edit_text_offset_yaw = new QLineEdit(layoutWidget_2);
+        edit_text_offset_yaw->setObjectName(QString::fromUtf8("edit_text_offset_yaw"));
 
-        horizontalLayout_8->addWidget(lineEdit_15);
+        horizontalLayout_8->addWidget(edit_text_offset_yaw);
 
         widget1 = new QWidget(centralWidget);
         widget1->setObjectName(QString::fromUtf8("widget1"));
-        widget1->setGeometry(QRect(40, 80, 204, 29));
-        horizontalLayout_4 = new QHBoxLayout(widget1);
-        horizontalLayout_4->setSpacing(6);
-        horizontalLayout_4->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
-        horizontalLayout_4->setContentsMargins(0, 0, 0, 0);
-        label_3 = new QLabel(widget1);
-        label_3->setObjectName(QString::fromUtf8("label_3"));
-
-        horizontalLayout_4->addWidget(label_3);
-
-        lineEdit_3 = new QLineEdit(widget1);
-        lineEdit_3->setObjectName(QString::fromUtf8("lineEdit_3"));
-
-        horizontalLayout_4->addWidget(lineEdit_3);
-
-        widget2 = new QWidget(centralWidget);
-        widget2->setObjectName(QString::fromUtf8("widget2"));
-        widget2->setGeometry(QRect(40, 50, 216, 29));
-        horizontalLayout_5 = new QHBoxLayout(widget2);
-        horizontalLayout_5->setSpacing(6);
-        horizontalLayout_5->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
-        horizontalLayout_5->setContentsMargins(0, 0, 0, 0);
-        label_2 = new QLabel(widget2);
-        label_2->setObjectName(QString::fromUtf8("label_2"));
-
-        horizontalLayout_5->addWidget(label_2);
-
-        lineEdit_2 = new QLineEdit(widget2);
-        lineEdit_2->setObjectName(QString::fromUtf8("lineEdit_2"));
-
-        horizontalLayout_5->addWidget(lineEdit_2);
-
-        widget3 = new QWidget(centralWidget);
-        widget3->setObjectName(QString::fromUtf8("widget3"));
-        widget3->setGeometry(QRect(40, 20, 180, 29));
-        horizontalLayout_6 = new QHBoxLayout(widget3);
-        horizontalLayout_6->setSpacing(6);
-        horizontalLayout_6->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_6->setObjectName(QString::fromUtf8("horizontalLayout_6"));
-        horizontalLayout_6->setContentsMargins(0, 0, 0, 0);
-        label = new QLabel(widget3);
-        label->setObjectName(QString::fromUtf8("label"));
-
-        horizontalLayout_6->addWidget(label);
-
-        lineEdit = new QLineEdit(widget3);
-        lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
-
-        horizontalLayout_6->addWidget(lineEdit);
-
-        widget4 = new QWidget(centralWidget);
-        widget4->setObjectName(QString::fromUtf8("widget4"));
-        widget4->setGeometry(QRect(60, 370, 176, 23));
-        horizontalLayout_3 = new QHBoxLayout(widget4);
+        widget1->setGeometry(QRect(60, 380, 176, 23));
+        horizontalLayout_3 = new QHBoxLayout(widget1);
         horizontalLayout_3->setSpacing(6);
         horizontalLayout_3->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
         horizontalLayout_3->setContentsMargins(0, 0, 0, 0);
-        label_11 = new QLabel(widget4);
+        label_11 = new QLabel(widget1);
         label_11->setObjectName(QString::fromUtf8("label_11"));
 
         horizontalLayout_3->addWidget(label_11);
 
-        checkBox = new QCheckBox(widget4);
-        checkBox->setObjectName(QString::fromUtf8("checkBox"));
+        tool_offset_enabled = new QCheckBox(widget1);
+        tool_offset_enabled->setObjectName(QString::fromUtf8("tool_offset_enabled"));
 
-        horizontalLayout_3->addWidget(checkBox);
+        horizontalLayout_3->addWidget(tool_offset_enabled);
 
-        widget5 = new QWidget(centralWidget);
-        widget5->setObjectName(QString::fromUtf8("widget5"));
-        widget5->setGeometry(QRect(60, 400, 261, 29));
-        horizontalLayout_7 = new QHBoxLayout(widget5);
+        widget2 = new QWidget(centralWidget);
+        widget2->setObjectName(QString::fromUtf8("widget2"));
+        widget2->setGeometry(QRect(60, 410, 261, 29));
+        horizontalLayout_7 = new QHBoxLayout(widget2);
         horizontalLayout_7->setSpacing(6);
         horizontalLayout_7->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
         horizontalLayout_7->setContentsMargins(0, 0, 0, 0);
-        label_12 = new QLabel(widget5);
-        label_12->setObjectName(QString::fromUtf8("label_12"));
+        label_offset_x = new QLabel(widget2);
+        label_offset_x->setObjectName(QString::fromUtf8("label_offset_x"));
 
-        horizontalLayout_7->addWidget(label_12);
+        horizontalLayout_7->addWidget(label_offset_x);
 
-        lineEdit_10 = new QLineEdit(widget5);
-        lineEdit_10->setObjectName(QString::fromUtf8("lineEdit_10"));
+        edit_text_offset_x = new QLineEdit(widget2);
+        edit_text_offset_x->setObjectName(QString::fromUtf8("edit_text_offset_x"));
 
-        horizontalLayout_7->addWidget(lineEdit_10);
+        horizontalLayout_7->addWidget(edit_text_offset_x);
 
-        label_13 = new QLabel(widget5);
-        label_13->setObjectName(QString::fromUtf8("label_13"));
+        label_offset_y = new QLabel(widget2);
+        label_offset_y->setObjectName(QString::fromUtf8("label_offset_y"));
 
-        horizontalLayout_7->addWidget(label_13);
+        horizontalLayout_7->addWidget(label_offset_y);
 
-        lineEdit_11 = new QLineEdit(widget5);
-        lineEdit_11->setObjectName(QString::fromUtf8("lineEdit_11"));
+        edit_text_offset_y = new QLineEdit(widget2);
+        edit_text_offset_y->setObjectName(QString::fromUtf8("edit_text_offset_y"));
 
-        horizontalLayout_7->addWidget(lineEdit_11);
+        horizontalLayout_7->addWidget(edit_text_offset_y);
 
-        label_14 = new QLabel(widget5);
-        label_14->setObjectName(QString::fromUtf8("label_14"));
+        label_offset_z = new QLabel(widget2);
+        label_offset_z->setObjectName(QString::fromUtf8("label_offset_z"));
 
-        horizontalLayout_7->addWidget(label_14);
+        horizontalLayout_7->addWidget(label_offset_z);
 
-        lineEdit_12 = new QLineEdit(widget5);
-        lineEdit_12->setObjectName(QString::fromUtf8("lineEdit_12"));
+        edit_text_offset_z = new QLineEdit(widget2);
+        edit_text_offset_z->setObjectName(QString::fromUtf8("edit_text_offset_z"));
 
-        horizontalLayout_7->addWidget(lineEdit_12);
+        horizontalLayout_7->addWidget(edit_text_offset_z);
 
-        widget6 = new QWidget(centralWidget);
-        widget6->setObjectName(QString::fromUtf8("widget6"));
-        widget6->setGeometry(QRect(110, 500, 311, 20));
-        horizontalLayout_9 = new QHBoxLayout(widget6);
+        widget3 = new QWidget(centralWidget);
+        widget3->setObjectName(QString::fromUtf8("widget3"));
+        widget3->setGeometry(QRect(110, 510, 271, 20));
+        horizontalLayout_9 = new QHBoxLayout(widget3);
         horizontalLayout_9->setSpacing(6);
         horizontalLayout_9->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_9->setObjectName(QString::fromUtf8("horizontalLayout_9"));
         horizontalLayout_9->setContentsMargins(0, 0, 0, 0);
-        label_20 = new QLabel(widget6);
+        label_20 = new QLabel(widget3);
         label_20->setObjectName(QString::fromUtf8("label_20"));
         label_20->setAlignment(Qt::AlignCenter);
 
         horizontalLayout_9->addWidget(label_20);
 
-        label_21 = new QLabel(widget6);
+        label_21 = new QLabel(widget3);
         label_21->setObjectName(QString::fromUtf8("label_21"));
         label_21->setAlignment(Qt::AlignCenter);
 
         horizontalLayout_9->addWidget(label_21);
 
-        label_22 = new QLabel(widget6);
+        label_22 = new QLabel(widget3);
         label_22->setObjectName(QString::fromUtf8("label_22"));
         label_22->setAlignment(Qt::AlignCenter);
 
         horizontalLayout_9->addWidget(label_22);
 
-        widget7 = new QWidget(centralWidget);
-        widget7->setObjectName(QString::fromUtf8("widget7"));
-        widget7->setGeometry(QRect(60, 520, 361, 66));
-        horizontalLayout_11 = new QHBoxLayout(widget7);
+        widget4 = new QWidget(centralWidget);
+        widget4->setObjectName(QString::fromUtf8("widget4"));
+        widget4->setGeometry(QRect(60, 530, 321, 66));
+        horizontalLayout_11 = new QHBoxLayout(widget4);
         horizontalLayout_11->setSpacing(6);
         horizontalLayout_11->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_11->setObjectName(QString::fromUtf8("horizontalLayout_11"));
@@ -393,12 +342,12 @@ public:
         verticalLayout_4 = new QVBoxLayout();
         verticalLayout_4->setSpacing(6);
         verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
-        label_5 = new QLabel(widget7);
+        label_5 = new QLabel(widget4);
         label_5->setObjectName(QString::fromUtf8("label_5"));
 
         verticalLayout_4->addWidget(label_5);
 
-        label_19 = new QLabel(widget7);
+        label_19 = new QLabel(widget4);
         label_19->setObjectName(QString::fromUtf8("label_19"));
 
         verticalLayout_4->addWidget(label_19);
@@ -412,15 +361,15 @@ public:
         verticalLayout_3 = new QVBoxLayout();
         verticalLayout_3->setSpacing(6);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
-        lineEdit_4 = new QLineEdit(widget7);
-        lineEdit_4->setObjectName(QString::fromUtf8("lineEdit_4"));
+        edit_text_origin_x = new QLineEdit(widget4);
+        edit_text_origin_x->setObjectName(QString::fromUtf8("edit_text_origin_x"));
 
-        verticalLayout_3->addWidget(lineEdit_4);
+        verticalLayout_3->addWidget(edit_text_origin_x);
 
-        lineEdit_17 = new QLineEdit(widget7);
-        lineEdit_17->setObjectName(QString::fromUtf8("lineEdit_17"));
+        edit_text_size_x = new QLineEdit(widget4);
+        edit_text_size_x->setObjectName(QString::fromUtf8("edit_text_size_x"));
 
-        verticalLayout_3->addWidget(lineEdit_17);
+        verticalLayout_3->addWidget(edit_text_size_x);
 
 
         horizontalLayout_10->addLayout(verticalLayout_3);
@@ -432,15 +381,15 @@ public:
         verticalLayout_2 = new QVBoxLayout();
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
-        lineEdit_5 = new QLineEdit(widget7);
-        lineEdit_5->setObjectName(QString::fromUtf8("lineEdit_5"));
+        edit_text_origin_y = new QLineEdit(widget4);
+        edit_text_origin_y->setObjectName(QString::fromUtf8("edit_text_origin_y"));
 
-        verticalLayout_2->addWidget(lineEdit_5);
+        verticalLayout_2->addWidget(edit_text_origin_y);
 
-        lineEdit_18 = new QLineEdit(widget7);
-        lineEdit_18->setObjectName(QString::fromUtf8("lineEdit_18"));
+        edit_text_size_y = new QLineEdit(widget4);
+        edit_text_size_y->setObjectName(QString::fromUtf8("edit_text_size_y"));
 
-        verticalLayout_2->addWidget(lineEdit_18);
+        verticalLayout_2->addWidget(edit_text_size_y);
 
 
         horizontalLayout_10->addLayout(verticalLayout_2);
@@ -452,15 +401,15 @@ public:
         verticalLayout = new QVBoxLayout();
         verticalLayout->setSpacing(6);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
-        lineEdit_16 = new QLineEdit(widget7);
-        lineEdit_16->setObjectName(QString::fromUtf8("lineEdit_16"));
+        edit_text_origin_z = new QLineEdit(widget4);
+        edit_text_origin_z->setObjectName(QString::fromUtf8("edit_text_origin_z"));
 
-        verticalLayout->addWidget(lineEdit_16);
+        verticalLayout->addWidget(edit_text_origin_z);
 
-        lineEdit_19 = new QLineEdit(widget7);
-        lineEdit_19->setObjectName(QString::fromUtf8("lineEdit_19"));
+        edit_text_size_z = new QLineEdit(widget4);
+        edit_text_size_z->setObjectName(QString::fromUtf8("edit_text_size_z"));
 
-        verticalLayout->addWidget(lineEdit_19);
+        verticalLayout->addWidget(edit_text_size_z);
 
 
         horizontalLayout_10->addLayout(verticalLayout);
@@ -468,10 +417,18 @@ public:
 
         horizontalLayout_11->addLayout(horizontalLayout_10);
 
+        frame_id_label = new QLabel(centralWidget);
+        frame_id_label->setObjectName(QString::fromUtf8("frame_id_label"));
+        frame_id_label->setGeometry(QRect(129, 51, 161, 27));
+        name_label = new QLabel(centralWidget);
+        name_label->setObjectName(QString::fromUtf8("name_label"));
+        name_label->setGeometry(QRect(129, 21, 161, 27));
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 477, 25));
+        menuBar->setGeometry(QRect(0, 0, 442, 25));
+        menuMoveIt_Kinematics_Tool = new QMenu(menuBar);
+        menuMoveIt_Kinematics_Tool->setObjectName(QString::fromUtf8("menuMoveIt_Kinematics_Tool"));
         MainWindow->setMenuBar(menuBar);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QString::fromUtf8("mainToolBar"));
@@ -480,11 +437,14 @@ public:
         statusBar->setObjectName(QString::fromUtf8("statusBar"));
         MainWindow->setStatusBar(statusBar);
 
+        menuBar->addAction(menuMoveIt_Kinematics_Tool->menuAction());
+        menuMoveIt_Kinematics_Tool->addAction(actionSave_Current);
+
         retranslateUi(MainWindow);
-        QObject::connect(pushButton, SIGNAL(clicked()), MainWindow, SLOT(add_row()));
-        QObject::connect(pushButton_2, SIGNAL(clicked()), MainWindow, SLOT(compute()));
-        QObject::connect(checkBox, SIGNAL(clicked(bool)), MainWindow, SLOT(show_offset(bool)));
-        QObject::connect(pushButton_3, SIGNAL(clicked()), MainWindow, SLOT(visualise_workspace()));
+        QObject::connect(add_button, SIGNAL(clicked()), MainWindow, SLOT(addRow()));
+        QObject::connect(compute_button, SIGNAL(clicked()), MainWindow, SLOT(compute()));
+        QObject::connect(tool_offset_enabled, SIGNAL(clicked(bool)), MainWindow, SLOT(showOffset(bool)));
+        QObject::connect(visualise_button, SIGNAL(clicked()), MainWindow, SLOT(visualiseWorkspace()));
 
         QMetaObject::connectSlotsByName(MainWindow);
     } // setupUi
@@ -492,32 +452,35 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+        actionSave_Current->setText(QApplication::translate("MainWindow", "Save Current", 0, QApplication::UnicodeUTF8));
         label_8->setText(QApplication::translate("MainWindow", "R:", 0, QApplication::UnicodeUTF8));
         label_9->setText(QApplication::translate("MainWindow", "P:", 0, QApplication::UnicodeUTF8));
         label_10->setText(QApplication::translate("MainWindow", "Y:", 0, QApplication::UnicodeUTF8));
-        pushButton->setText(QApplication::translate("MainWindow", "+", 0, QApplication::UnicodeUTF8));
+        add_button->setText(QApplication::translate("MainWindow", "+", 0, QApplication::UnicodeUTF8));
+        label_2->setText(QApplication::translate("MainWindow", "Frame ID:", 0, QApplication::UnicodeUTF8));
         label_7->setText(QApplication::translate("MainWindow", "Orientation:", 0, QApplication::UnicodeUTF8));
-        pushButton_2->setText(QApplication::translate("MainWindow", "Compute", 0, QApplication::UnicodeUTF8));
+        label->setText(QApplication::translate("MainWindow", "Name:", 0, QApplication::UnicodeUTF8));
+        compute_button->setText(QApplication::translate("MainWindow", "Compute", 0, QApplication::UnicodeUTF8));
         label_15->setText(QApplication::translate("MainWindow", "Arm:", 0, QApplication::UnicodeUTF8));
         label_4->setText(QApplication::translate("MainWindow", "Workspace", 0, QApplication::UnicodeUTF8));
         label_6->setText(QApplication::translate("MainWindow", "Resolution:", 0, QApplication::UnicodeUTF8));
-        pushButton_3->setText(QApplication::translate("MainWindow", "Visualise Points", 0, QApplication::UnicodeUTF8));
-        label_16->setText(QApplication::translate("MainWindow", "R:", 0, QApplication::UnicodeUTF8));
-        label_17->setText(QApplication::translate("MainWindow", "P:", 0, QApplication::UnicodeUTF8));
-        label_18->setText(QApplication::translate("MainWindow", "Y:", 0, QApplication::UnicodeUTF8));
-        label_3->setText(QApplication::translate("MainWindow", "Tip Name:", 0, QApplication::UnicodeUTF8));
-        label_2->setText(QApplication::translate("MainWindow", "Root Name:", 0, QApplication::UnicodeUTF8));
-        label->setText(QApplication::translate("MainWindow", "Name:", 0, QApplication::UnicodeUTF8));
+        visualise_button->setText(QApplication::translate("MainWindow", "Visualise Points", 0, QApplication::UnicodeUTF8));
+        label_offset_roll->setText(QApplication::translate("MainWindow", "R:", 0, QApplication::UnicodeUTF8));
+        label_offset_pitch->setText(QApplication::translate("MainWindow", "P:", 0, QApplication::UnicodeUTF8));
+        label_offset_yaw->setText(QApplication::translate("MainWindow", "Y:", 0, QApplication::UnicodeUTF8));
         label_11->setText(QApplication::translate("MainWindow", "Tool Offset (optional):", 0, QApplication::UnicodeUTF8));
-        checkBox->setText(QString());
-        label_12->setText(QApplication::translate("MainWindow", "X:", 0, QApplication::UnicodeUTF8));
-        label_13->setText(QApplication::translate("MainWindow", "Y:", 0, QApplication::UnicodeUTF8));
-        label_14->setText(QApplication::translate("MainWindow", "Z:", 0, QApplication::UnicodeUTF8));
+        tool_offset_enabled->setText(QString());
+        label_offset_x->setText(QApplication::translate("MainWindow", "X:", 0, QApplication::UnicodeUTF8));
+        label_offset_y->setText(QApplication::translate("MainWindow", "Y:", 0, QApplication::UnicodeUTF8));
+        label_offset_z->setText(QApplication::translate("MainWindow", "Z:", 0, QApplication::UnicodeUTF8));
         label_20->setText(QApplication::translate("MainWindow", "X", 0, QApplication::UnicodeUTF8));
         label_21->setText(QApplication::translate("MainWindow", "Y", 0, QApplication::UnicodeUTF8));
         label_22->setText(QApplication::translate("MainWindow", "Z", 0, QApplication::UnicodeUTF8));
         label_5->setText(QApplication::translate("MainWindow", "Origin:", 0, QApplication::UnicodeUTF8));
         label_19->setText(QApplication::translate("MainWindow", "Size:", 0, QApplication::UnicodeUTF8));
+        frame_id_label->setText(QString());
+        name_label->setText(QString());
+        menuMoveIt_Kinematics_Tool->setTitle(QApplication::translate("MainWindow", "MoveIt! Kinematics Tool", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
