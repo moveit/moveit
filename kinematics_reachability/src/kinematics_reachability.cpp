@@ -85,9 +85,9 @@ bool KinematicsReachability::initialize()
   node_handle_.param<double>("cache_timeout",default_cache_timeout_,60.0);  
 
   // Visualization
-  node_handle_.param("arrow_marker_scale/x", arrow_marker_scale_.x, 0.08);
-  node_handle_.param("arrow_marker_scale/y", arrow_marker_scale_.y, 0.02);
-  node_handle_.param("arrow_marker_scale/z", arrow_marker_scale_.z, 0.02);
+  node_handle_.param("arrow_marker_scale/x", arrow_marker_scale_.x, 0.10);
+  node_handle_.param("arrow_marker_scale/y", arrow_marker_scale_.y, 0.04);
+  node_handle_.param("arrow_marker_scale/z", arrow_marker_scale_.z, 0.04);
 
   double sphere_marker_radius;
   node_handle_.param("sphere_marker_radius", sphere_marker_radius, 0.02);
@@ -128,7 +128,6 @@ void KinematicsReachability::initializeColor(const std::string &color_name,
 
 
 bool KinematicsReachability::computeWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
-                                              const geometry_msgs::Pose &tool_frame_offset,
                                               bool visualize)
 {
   if(first_time_)
@@ -138,26 +137,17 @@ bool KinematicsReachability::computeWorkspace(kinematics_reachability::Workspace
     first_time_ = false;    
   }
   
-  setToolFrameOffset(tool_frame_offset);
+  setToolFrameOffset(workspace.tool_frame_offset);
   if(!sampleUniform(workspace))
     return false;
   if(visualize)
-    visualizeWorkspaceSamples(workspace,"online");
+    visualizeWorkspaceSamples(workspace);
   
   findIKSolutions(workspace,visualize);
   return true;
 }
 
-bool KinematicsReachability::computeWorkspace(kinematics_reachability::WorkspacePoints &workspace,
-                                              bool visualize)
-{
-  geometry_msgs::Pose pose;
-  pose.orientation.w = 1.0;
-  return computeWorkspace(workspace,pose,visualize);
-}
-
 bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::WorkspacePoints &workspace,
-                                                const geometry_msgs::Pose &tool_frame_offset,
                                                 double timeout)
 {
   if(!kinematics_solver_.getKinematicsSolver(workspace.group_name))
@@ -205,10 +195,9 @@ bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::Workspa
 }
 
 bool KinematicsReachability::getOnlyReachableWorkspace(kinematics_reachability::WorkspacePoints &workspace, 
-                                                       const geometry_msgs::Pose &tool_frame_offset,
                                                        bool visualize)
 {
-  if(!computeWorkspace(workspace, tool_frame_offset,visualize))
+  if(!computeWorkspace(workspace, visualize))
     return false;
   removeUnreachableWorkspace(workspace);
   return true;
@@ -224,34 +213,22 @@ kinematics_reachability::WorkspacePoints KinematicsReachability::computeRedundan
                                                                                            double timeout,
                                                                                            bool visualize_workspace)
 {
-  geometry_msgs::Pose tool_offset;
-  tool_offset.orientation.w = 1.0;
-  return computeRedundantSolutions(group_name,pose_stamped,timeout,tool_offset);  
-}
-
-kinematics_reachability::WorkspacePoints KinematicsReachability::computeRedundantSolutions(const std::string &group_name,
-                                                                                           const geometry_msgs::PoseStamped &pose_stamped,
-                                                                                           double timeout,
-                                                                                           const geometry_msgs::Pose &tool_offset,
-                                                                                           bool visualize_workspace)
-{
     kinematics_reachability::WorkspacePoints workspace;
     workspace.header = pose_stamped.header;
     workspace.group_name = group_name;    
-    setToolFrameOffset(tool_offset);
+    setToolFrameOffset(workspace.tool_frame_offset);
 
     bool use_cache_old_value = use_cache_;
     use_cache_ = false;    
     ros::WallTime start_time = ros::WallTime::now();    
-    unsigned int counter =0;    
     while(ros::WallTime::now()-start_time <= ros::WallDuration(timeout) && ros::ok())
     {
       moveit_msgs::MoveItErrorCodes error_code;
       moveit_msgs::RobotState solution;
       kinematics_reachability::WorkspacePoint point;
       geometry_msgs::PoseStamped desired_pose = pose_stamped;    
-      findIK(group_name,desired_pose,error_code,solution);
-      point.pose = desired_pose.pose;
+      findIK(group_name,pose_stamped,error_code,solution);
+      point.pose = pose_stamped.pose;
       point.solution_code = error_code;
       if(error_code.val == error_code.SUCCESS)
       {
@@ -259,8 +236,7 @@ kinematics_reachability::WorkspacePoints KinematicsReachability::computeRedundan
         point.robot_state = solution;
         if(visualize_workspace)
         {
-          visualize(point,workspace.header,counter,"");        
-          counter++;          
+          visualize(workspace,"");        
         }      
       }
       workspace.points.push_back(point);      
@@ -275,12 +251,6 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
 {  
   for(unsigned int i=0; i < workspace.points.size(); ++i)
   {
-    // Show the point being evaluated
-    if(visualize_workspace)
-    {
-      visualize(workspace.points[i],workspace.header,i,"online",true);      
-    }    
-
     geometry_msgs::PoseStamped ik_pose;
     ik_pose.pose = workspace.points[i].pose;
     ik_pose.header = workspace.header;
@@ -288,8 +258,6 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     moveit_msgs::RobotState solution;
     
     findIK(workspace.group_name,ik_pose,error_code,solution);
-
-    workspace.points[i].pose = ik_pose.pose;    
     workspace.points[i].solution_code = error_code;
 
     if(error_code.val == error_code.SUCCESS)
@@ -304,7 +272,8 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     }
     if(visualize_workspace)
     {
-      visualize(workspace.points[i],workspace.header,i,"online");
+      visualize(workspace,"online");
+      animateWorkspace(workspace,i);      
     }
     
     if(i%1000 == 0 || workspace.points.size() <= 100)
@@ -318,7 +287,7 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
 }
 
 void KinematicsReachability::findIK(const std::string &group_name,
-                                    geometry_msgs::PoseStamped &pose_stamped,
+                                    const geometry_msgs::PoseStamped &pose_stamped,
                                     moveit_msgs::MoveItErrorCodes &error_code,
                                     moveit_msgs::RobotState &robot_state)
 {
@@ -326,10 +295,11 @@ void KinematicsReachability::findIK(const std::string &group_name,
   kinematics_msgs::GetConstraintAwarePositionIK::Response response;
   getDefaultIKRequest(group_name,request);
   tf::Pose tmp_pose;
+  geometry_msgs::PoseStamped transformed_pose = pose_stamped;  
   tf::poseMsgToTF(pose_stamped.pose,tmp_pose);
   tmp_pose = tmp_pose * tool_offset_inverse_;
-  tf::poseTFToMsg(tmp_pose,pose_stamped.pose);  
-  request.ik_request.pose_stamped = pose_stamped;
+  tf::poseTFToMsg(tmp_pose,transformed_pose.pose);  
+  request.ik_request.pose_stamped = transformed_pose;
   if(use_cache_)
   {      
     if(!updateFromCache(request))
@@ -474,29 +444,29 @@ void KinematicsReachability::removeUnreachableWorkspace(kinematics_reachability:
     ROS_DEBUG("Removed %d points from workspace",remove_counter);
 }
 
-std::vector<const kinematics_reachability::WorkspacePoint*> KinematicsReachability::getPointsAtOrientation(const kinematics_reachability::WorkspacePoints &workspace,
+std::vector<unsigned int> KinematicsReachability::getPointsAtOrientation(const kinematics_reachability::WorkspacePoints &workspace,
                                                                                                            const geometry_msgs::Quaternion &orientation)
 {
-  std::vector<const kinematics_reachability::WorkspacePoint*> wp;
+  std::vector<unsigned int> wp;
   for(unsigned int i = 0; i < workspace.points.size(); ++i)
   {
     if(isEqual(workspace.points[i].pose.orientation,orientation))
-      wp.push_back(&(workspace.points[i]));
+      wp.push_back(i);
   }
   return wp;
 }
 
-std::vector<const kinematics_reachability::WorkspacePoint*> KinematicsReachability::getPointsWithinRange(const kinematics_reachability::WorkspacePoints &workspace,
-                                                                                                         const double min_radius,
-                                                                                                         const double max_radius)
+std::vector<unsigned int> KinematicsReachability::getPointsWithinRange(const kinematics_reachability::WorkspacePoints &workspace,
+                                                                       const double min_radius,
+                                                                       const double max_radius)
 {
-  std::vector<const kinematics_reachability::WorkspacePoint*> wp;
+  std::vector<unsigned int> wp;
   for(unsigned int i = 0; i < workspace.points.size(); ++i)
   {
     tf::Vector3 vector;
     tf::pointMsgToTF(workspace.points[i].pose.position,vector);
     if(vector.length() >= min_radius && vector.length() <= max_radius)
-      wp.push_back(&(workspace.points[i]));
+      wp.push_back(i);
   }
   return wp;
 }
@@ -527,7 +497,7 @@ bool KinematicsReachability::sampleUniform(kinematics_reachability::WorkspacePoi
     ROS_ERROR("Must specify at least one orientation");
     return false;
   }
-
+  workspace.ordered = true;  
   double position_resolution = workspace.position_resolution;
   double x_min = workspace.parameters.min_corner.x;
   double y_min = workspace.parameters.min_corner.y;
@@ -575,150 +545,145 @@ void KinematicsReachability::setToolFrameOffset(const geometry_msgs::Pose &pose)
 
 void KinematicsReachability::getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
                                         const std::string &marker_namespace,
-                                        std::vector<const kinematics_reachability::WorkspacePoint*> points,
+                                        const std::vector<unsigned int> &points,
                                         visualization_msgs::MarkerArray &marker_array)
 {
-  for(unsigned int i=0; i < points.size(); ++i)
-  {
-    visualization_msgs::Marker marker = getSphereMarker(*points[i],workspace.header,i,marker_namespace);    
-    marker_array.markers.push_back(marker);
-  }
+  std::vector<moveit_msgs::MoveItErrorCodes> error_codes(3);
+  error_codes[0].val = error_codes[0].SUCCESS;  
+  error_codes[1].val = error_codes[1].PLANNING_FAILED;  
+  error_codes[2].val = error_codes[2].NO_IK_SOLUTION;  
+
+  std::vector<unsigned int> marker_ids(3);
+  marker_ids[0] = 0;
+  marker_ids[1] = 1;
+  marker_ids[2] = 2;
+
+  std::vector<std_msgs::ColorRGBA> colors(3);
+  colors[0] = reachable_color_;
+  colors[1] = evaluating_color_;
+  colors[2] = unreachable_color_;
+  
+  std::vector<visualization_msgs::Marker> markers = getSphereMarker(workspace,marker_namespace,points,colors,error_codes,marker_ids);    
+  for(unsigned int i=0; i < markers.size(); ++i)
+    marker_array.markers.push_back(markers[i]);  
 }
 
-void KinematicsReachability::getMarkers(const kinematics_reachability::WorkspacePoints &workspace,
-                                        const std::string &marker_namespace,
-                                        visualization_msgs::MarkerArray &marker_array)
+std::vector<visualization_msgs::Marker> KinematicsReachability::getSphereMarker(const kinematics_reachability::WorkspacePoints &workspace,
+                                                                                const std::string &marker_namespace,
+                                                                                const std::vector<unsigned int> &indices,
+                                                                                const std::vector<std_msgs::ColorRGBA> &colors,
+                                                                                const std::vector<moveit_msgs::MoveItErrorCodes> &error_codes,
+                                                                                const std::vector<unsigned int> &marker_id)
 {
-  for(unsigned int i=0; i < workspace.points.size(); ++i)
+  std::vector<visualization_msgs::Marker> markers;
+  if(marker_id.size() != error_codes.size() || colors.size() != error_codes.size())
+    return markers;
+  markers.resize(marker_id.size());
+  
+  for(unsigned int i=0; i < markers.size(); ++i)
   {
-    visualization_msgs::Marker marker = getSphereMarker(workspace.points[i],workspace.header,i,marker_namespace);    
-    marker_array.markers.push_back(marker);
-  }
-}
-
-void KinematicsReachability::getPositionIndexedMarkers(const kinematics_reachability::WorkspacePoints &workspace,
-                                                       const std::string &marker_namespace,
-                                                       visualization_msgs::MarkerArray &marker_array)
-{
-  unsigned int x_num_points,y_num_points,z_num_points;
-  getNumPoints(workspace,x_num_points,y_num_points,z_num_points);
-  unsigned int num_rotations = workspace.orientations.size();
-  unsigned int num_positions = x_num_points*y_num_points*z_num_points;
-
-  for(unsigned int i=0; i < num_positions; ++i)
-  {
-    unsigned int start_index = i*num_rotations;
-    unsigned int end_index = (i+1)*num_rotations;
-    unsigned int num_solutions = 0;
-    moveit_msgs::MoveItErrorCodes error_code;
-    for(unsigned int j = start_index; j < end_index; ++j)
-    {
-      if(workspace.points[j].solution_code.val == workspace.points[j].solution_code.SUCCESS)
-        num_solutions++;
-    }
-    double color_scale = num_solutions/(double) num_rotations;
-    visualization_msgs::Marker marker = getSphereMarker(workspace.points[start_index],
-                                                        workspace.header,
-                                                        i,
-                                                        marker_namespace);    
-    if(num_solutions > 0)    
-    {
-      marker.ns = marker_namespace + "/reachable";
-      marker.color.g = color_scale;
-    }
-    marker_array.markers.push_back(marker);
-  }
-}
-
-void KinematicsReachability::getPositionIndexedArrowMarkers(const kinematics_reachability::WorkspacePoints &workspace,
-                                                            const std::string &marker_namespace,
-                                                            visualization_msgs::MarkerArray &marker_array)
-{
-  unsigned int x_num_points,y_num_points,z_num_points;
-  getNumPoints(workspace,x_num_points,y_num_points,z_num_points);
-  unsigned int num_rotations = workspace.orientations.size();
-  unsigned int num_positions = x_num_points*y_num_points*z_num_points;
-
-  visualization_msgs::Marker marker;
-  marker.type = marker.ARROW;
-  marker.action = 0;
-  for(unsigned int i=0; i < num_positions; ++i)
-  {
-    unsigned int start_index = i*num_rotations;
-    unsigned int end_index = (i+1)*num_rotations;
-    moveit_msgs::MoveItErrorCodes error_code;
-    for(unsigned int j = start_index; j < end_index; ++j)
-    {
-      visualization_msgs::Marker marker = getArrowMarker(workspace.points[j],workspace.header,j,marker_namespace);      
-      marker_array.markers.push_back(marker);
-    }
-  }
-}
-
-visualization_msgs::Marker KinematicsReachability::getSphereMarker(const kinematics_reachability::WorkspacePoint &point,
-                                                                   const std_msgs::Header &header,
-                                                                   unsigned int marker_id,
-                                                                   const std::string &marker_namespace,
-                                                                   bool evaluating)
-{
-  visualization_msgs::Marker marker;
-  marker.type = marker.SPHERE;
-  marker.action = 0;
-
-  if(evaluating)
-  {
-    marker.ns = marker_namespace + "/evaluating";
-    marker.color = evaluating_color_;        
-  }
-  else
-  {    
-    if(point.solution_code.val == point.solution_code.SUCCESS)
-    {
-      marker.ns = marker_namespace + "/reachable";
-      marker.color = reachable_color_;    
-    }
-    else
-    {
-      marker.color = unreachable_color_;    
-      marker.ns = marker_namespace + "/unreachable";
-    }
+    markers[i].type = markers[i].SPHERE_LIST;
+    markers[i].action = 0;
+    markers[i].pose.orientation.w = 1.0;  
+    markers[i].ns = marker_namespace;
+    markers[i].header = workspace.header;
+    markers[i].scale = sphere_marker_scale_;
+    markers[i].id = marker_id[i];
+    markers[i].color = colors[i];
   }
   
-  marker.header = header;
-  marker.pose = point.pose;  
-  marker.scale = sphere_marker_scale_;
-  marker.id = marker_id;
-  return marker;  
-}
-
-visualization_msgs::Marker KinematicsReachability::getArrowMarker(const kinematics_reachability::WorkspacePoint &point,
-                                                                  const std_msgs::Header &header,
-                                                                  unsigned int marker_id,
-                                                                  const std::string &marker_namespace)
-{
-  visualization_msgs::Marker marker;
-  marker.type = marker.ARROW;
-  marker.action = 0;
-  if(point.solution_code.val == point.solution_code.SUCCESS)
+  if(indices.empty())
   {
-    marker.color = reachable_color_;    
-    marker.ns = marker_namespace + "/reachable";
+    for(unsigned int i=0; i < workspace.points.size(); ++i)
+    {
+      geometry_msgs::Point point = workspace.points[i].pose.position;
+      for(unsigned int j=0; j < error_codes.size(); ++j)
+      {
+        if(workspace.points[i].solution_code.val == error_codes[j].val)
+        {
+          markers[j].colors.push_back(colors[j]);
+          markers[j].points.push_back(point);        
+        }
+      }      
+    }    
   }
   else
   {
-    marker.color = unreachable_color_;
-    marker.ns = marker_namespace + "/unreachable";
+    for(unsigned int i=0; i < indices.size(); ++i)
+    {
+      if(indices[i] >= workspace.points.size())
+      {
+        ROS_WARN("Invalid point: %d",indices[i]);
+        continue;        
+      }
+      geometry_msgs::Point point = workspace.points[indices[i]].pose.position;
+      for(unsigned int j=0; j < error_codes.size(); ++j)
+      {
+        if(workspace.points[indices[i]].solution_code.val == error_codes[j].val)
+        {
+          markers[j].colors.push_back(colors[j]);
+          markers[j].points.push_back(point);        
+        }
+      }      
+    }    
+  }  
+  return markers;  
+}
+
+std_msgs::ColorRGBA KinematicsReachability::getMarkerColor(const kinematics_reachability::WorkspacePoint &workspace_point)
+{
+  if(workspace_point.solution_code.val == workspace_point.solution_code.SUCCESS)
+  {
+    return reachable_color_;    
   }
-  marker.header = header;
-  marker.pose = point.pose;
-  marker.header.stamp = ros::Time::now();
+  else if(workspace_point.solution_code.val == workspace_point.solution_code.NO_IK_SOLUTION)
+  {
+    return unreachable_color_;    
+  }
+  else
+  {
+    return evaluating_color_;    
+  }    
+}
+
+void KinematicsReachability::getArrowMarkers(const kinematics_reachability::WorkspacePoints &workspace,
+                                             const std::string &marker_namespace,
+                                             const std::vector<unsigned int> &points,
+                                             visualization_msgs::MarkerArray &marker_array)
+{
+  visualization_msgs::Marker marker;
   
-  //     marker.scale.x = 0.08;
-  //      marker.scale.y = 0.01;
-  //      marker.scale.z = 0.01;      
+  marker.type = marker.ARROW;
+  marker.action = 0;
+  marker.ns = marker_namespace;
+  marker.header = workspace.header;
   marker.scale = arrow_marker_scale_;
-  marker.id = marker_id;
-  return marker;  
+  
+  if(points.empty())
+  {
+    for(unsigned int i=0; i < workspace.points.size(); ++i)
+    {
+      marker.pose = workspace.points[i].pose;    
+      marker.id = i+4;    
+      marker.color = getMarkerColor(workspace.points[i]);    
+      marker_array.markers.push_back(marker);    
+    }    
+  }
+  else
+  {
+    for(unsigned int i=0; i < points.size(); ++i)
+    {
+      if(points[i] >= workspace.points.size())
+      {
+        ROS_WARN("Invalid point: %d",points[i]);
+        continue;        
+      }
+      marker.pose = workspace.points[points[i]].pose;    
+      marker.id = points[i];    
+      marker.color = getMarkerColor(workspace.points[points[i]]);    
+      marker_array.markers.push_back(marker);    
+    }    
+  }
 }
 
 bool KinematicsReachability::getDisplayTrajectory(const kinematics_reachability::WorkspacePoints &workspace,
@@ -769,62 +734,28 @@ void KinematicsReachability::animateWorkspace(const kinematics_reachability::Wor
   ROS_INFO("Animating trajectory");  
 }
 
+void KinematicsReachability::animateWorkspace(const kinematics_reachability::WorkspacePoints &workspace,
+                                              unsigned int index)
+{
+  moveit_msgs::DisplayTrajectory display_trajectory;
+  if (index >= workspace.points.size() ||   
+      workspace.points[index].solution_code.val != workspace.points[index].solution_code.SUCCESS ||
+      !getDisplayTrajectory(workspace.points[index],display_trajectory))
+  {
+    ROS_DEBUG("No trajectory to display");
+    return;
+  }  
+  robot_trajectory_publisher_.publish(display_trajectory);
+}
+
 void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoints &workspace,
                                        const std::string &marker_namespace)
 {
   visualization_msgs::MarkerArray marker_array;
-  getPositionIndexedMarkers(workspace,marker_namespace,marker_array);
-  visualization_publisher_.publish(marker_array);
-}
-
-void KinematicsReachability::visualizeUnOrdered(const kinematics_reachability::WorkspacePoints &workspace,
-                                                const std::string &marker_namespace)
-{
-  visualization_msgs::MarkerArray marker_array;
-  getMarkers(workspace,marker_namespace,marker_array);
-  visualization_publisher_.publish(marker_array);
-}
-
-void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoints &workspace,
-                                       const std::string &marker_namespace,
-                                       const geometry_msgs::Quaternion &orientation)
-{
-  visualization_msgs::MarkerArray marker_array;
-  std::vector<const kinematics_reachability::WorkspacePoint*> points = getPointsAtOrientation(workspace,orientation);
+  std::vector<unsigned int> points;  
   getMarkers(workspace,marker_namespace,points,marker_array);
+  getArrowMarkers(workspace,marker_namespace,points,marker_array);
   visualization_publisher_.publish(marker_array);
-}
-
-void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoint &workspace_point,
-                                       const std_msgs::Header &header,
-                                       unsigned int marker_id,
-                                       const std::string &marker_namespace,
-                                       bool evaluating)
-{
-  if(workspace_point.solution_code.val == workspace_point.solution_code.SUCCESS)
-  {
-    ROS_DEBUG("Publishing successful state");      
-    moveit_msgs::DisplayTrajectory display_trajectory;  
-    getDisplayTrajectory(workspace_point,display_trajectory);
-    robot_trajectory_publisher_.publish(display_trajectory);
-  }    
-
-  if(!marker_namespace.empty())
-  {
-    visualization_msgs::MarkerArray marker_array;
-    visualization_msgs::Marker marker = getSphereMarker(workspace_point,header,marker_id,marker_namespace,evaluating);
-    marker_array.markers.push_back(marker);    
-    if(!evaluating)
-    {
-      visualization_msgs::Marker delete_marker;
-      delete_marker.header = header;    
-      delete_marker.ns = marker_namespace + "/evaluating";
-      delete_marker.id = marker_id;    
-      delete_marker.action = 2;
-      marker_array.markers.push_back(delete_marker);  
-    }
-    visualization_publisher_.publish(marker_array);
-  }  
 }
 
 void KinematicsReachability::visualize(const kinematics_reachability::WorkspacePoints &workspace,
@@ -834,7 +765,7 @@ void KinematicsReachability::visualize(const kinematics_reachability::WorkspaceP
   visualization_msgs::MarkerArray marker_array;
   for(unsigned int i=0; i < orientations.size(); ++i)
   {
-    std::vector<const kinematics_reachability::WorkspacePoint*> points = getPointsAtOrientation(workspace,orientations[i]);
+    std::vector<unsigned int> points = getPointsAtOrientation(workspace,orientations[i]);
     std::ostringstream name;
     name << "orientation_" << i;
     std::string marker_name = marker_namespace+name.str();
@@ -847,12 +778,12 @@ void KinematicsReachability::visualizeWithArrows(const kinematics_reachability::
                                                  const std::string &marker_namespace)
 {
   visualization_msgs::MarkerArray marker_array;
-  getPositionIndexedArrowMarkers(workspace,marker_namespace,marker_array);
+  std::vector<unsigned int> points;  
+  getArrowMarkers(workspace,marker_namespace,points,marker_array);
   visualization_publisher_.publish(marker_array);
 }
 
-void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachability::WorkspacePoints &workspace_in,
-                                                       const std::string &marker_namespace)
+void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachability::WorkspacePoints &workspace_in)
 {
   kinematics_reachability::WorkspacePoints workspace = workspace_in;
   
@@ -866,7 +797,7 @@ void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachabi
   marker.color.b = 0.5;
   marker.color.a = 0.2;
   
-  marker.ns = marker_namespace + "/boundary";
+  marker.ns = "samples";
   marker.header = workspace.header;
 
   marker.pose.position.x = (workspace.parameters.min_corner.x + workspace.parameters.max_corner.x)/2.0;
@@ -877,19 +808,22 @@ void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachabi
   marker.scale.x = std::fabs(workspace.parameters.min_corner.x - workspace.parameters.max_corner.x);
   marker.scale.y = std::fabs(workspace.parameters.min_corner.y - workspace.parameters.max_corner.y);
   marker.scale.z = std::fabs(workspace.parameters.min_corner.z - workspace.parameters.max_corner.z);
-  marker.id = 0; 
+  marker.id = 3; 
   marker_array.markers.push_back(marker);
   
   if(workspace.points.empty())
     sampleUniform(workspace);
+
+  std::vector<unsigned int> indices;  
+  std::vector<moveit_msgs::MoveItErrorCodes> error_code(1); 
+  std::vector<std_msgs::ColorRGBA> colors;
+  colors.push_back(evaluating_color_);
+  std::vector<unsigned int> marker_ids;
+  marker_ids.push_back(1);  
+ 
+  std::vector<visualization_msgs::Marker> marker_points = getSphereMarker(workspace,"samples",indices,colors,error_code,marker_ids);      
+  marker_array.markers.push_back(marker_points[0]);
   
-  for(unsigned int i=0; i < workspace.points.size(); ++i)
-  {
-    visualization_msgs::Marker marker_point = getSphereMarker(workspace.points[i],workspace.header,i,marker_namespace);    
-    marker.ns = marker_namespace + "evaluating";    
-    marker_point.color = evaluating_color_;
-    marker_array.markers.push_back(marker_point);    
-  }
   ROS_INFO("Publishing initial set of markers");  
   visualization_publisher_.publish(marker_array);  
 }
