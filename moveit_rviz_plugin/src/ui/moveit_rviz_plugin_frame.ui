@@ -26,106 +26,141 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="current_plan">
       <attribute name="title">
        <string>Current Context</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0" colspan="2">
-        <layout class="QGridLayout" name="gridLayout_4">
-         <item row="1" column="0" alignment="Qt::AlignTop">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>Planning Algorithm:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="allow_replanning">
-           <property name="text">
-            <string>Allow Replanning</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0" colspan="2" alignment="Qt::AlignTop">
-          <widget class="QLabel" name="library_label">
-           <property name="text">
-            <string>Planning Library Name</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1" alignment="Qt::AlignTop">
-          <widget class="QComboBox" name="planning_algorithm_combo_box"/>
-         </item>
-         <item row="2" column="1">
-          <widget class="QCheckBox" name="allow_looking">
-           <property name="text">
-            <string>Allow Sensor Positioning</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
        <item row="1" column="0">
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="QPushButton" name="plan_button">
-           <property name="text">
-            <string>Plan</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="execute_button">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Execute</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="plan_and_execute_button">
-           <property name="text">
-            <string>Plan and Execute</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QGroupBox" name="">
+         <property name="title">
+          <string/>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QCheckBox" name="allow_replanning">
+            <property name="text">
+             <string>Allow Replanning</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="allow_looking">
+            <property name="text">
+             <string>Allow Sensor Positioning</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="plan_button">
+            <property name="text">
+             <string>Plan</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="execute_button">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Execute</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="plan_and_execute_button">
+            <property name="text">
+             <string>Plan and Execute</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="2">
+        <widget class="QGroupBox" name="">
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QLabel" name="library_label">
+            <property name="text">
+             <string>Planning Library Name</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="planning_algorithm_combo_box"/>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item row="1" column="1">
-        <layout class="QVBoxLayout" name="verticalLayout_4">
-         <item>
-          <widget class="QPushButton" name="set_random_states_button">
-           <property name="text">
-            <string>Set Random Query</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="set_start_to_current_button">
-           <property name="text">
-            <string>Set Start To Current</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="set_goal_to_current_button">
-           <property name="text">
-            <string>Set Goal To Current</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QGroupBox" name="">
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QPushButton" name="publish_current_scene_button">
+            <property name="text">
+             <string>Publish Current Scene</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="set_random_states_button">
+            <property name="text">
+             <string>Set Random Query</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="set_start_to_current_button">
+            <property name="text">
+             <string>Set Start To Current</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="set_goal_to_current_button">
+            <property name="text">
+             <string>Set Goal To Current</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>

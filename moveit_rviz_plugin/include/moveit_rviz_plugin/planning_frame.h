@@ -109,7 +109,8 @@ private Q_SLOTS:
   void objectRXValueChanged(double v);
   void objectRYValueChanged(double v);
   void objectRZValueChanged(double v);
-    
+  void publishSceneButtonClicked(void);
+  
 private:
 
   void computePlanButtonClicked(void);  
