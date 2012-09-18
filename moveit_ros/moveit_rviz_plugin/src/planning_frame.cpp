@@ -79,7 +79,7 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->object_rx, SIGNAL( valueChanged(double) ), this, SLOT( objectRXValueChanged(double) ));
   connect( ui_->object_ry, SIGNAL( valueChanged(double) ), this, SLOT( objectRYValueChanged(double) ));
   connect( ui_->object_rz, SIGNAL( valueChanged(double) ), this, SLOT( objectRZValueChanged(double) ));
-
+  connect( ui_->publish_current_scene_button, SIGNAL( clicked() ), this, SLOT( publishSceneButtonClicked() ));
   connect( ui_->collision_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedCollisionObjectChanged() ));
   
   ui_->tabWidget->setCurrentIndex(0);
@@ -124,6 +124,21 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroupHelper(void)
 void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
 {
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::changePlanningGroupHelper, this));
+}
+
+void moveit_rviz_plugin::PlanningFrame::publishSceneButtonClicked(void)
+{
+  if (planning_display_->getPlanningSceneMonitor())
+  {
+    std::string topic = planning_display_->subProp("Planning Scene")->subProp("Planning Scene Topic")->getValue().toString().toStdString();
+    if (!topic.empty())
+    {
+      planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>(topic, 1);
+      moveit_msgs::PlanningScene msg;
+      planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
+      planning_scene_publisher_.publish(msg);
+    }
+  }
 }
 
 void moveit_rviz_plugin::PlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
