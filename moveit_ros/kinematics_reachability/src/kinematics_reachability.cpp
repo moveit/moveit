@@ -40,6 +40,8 @@
 namespace kinematics_reachability
 {
 
+const static unsigned int ARROW_MARKER_OFFSET = 4;
+
 KinematicsReachability::KinematicsReachability():node_handle_("~")
 {
 }
@@ -272,7 +274,7 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
     }
     if(visualize_workspace)
     {
-      visualize(workspace,"online");
+      visualize(workspace,"solutions");
       animateWorkspace(workspace,i);      
     }
     
@@ -413,10 +415,7 @@ void KinematicsReachability::getPositionIndex(const kinematics_reachability::Wor
                                               std::vector<unsigned int> &reachable_workspace,
                                               std::vector<unsigned int> &unreachable_workspace)
 {
-  unsigned int x_num_points,y_num_points,z_num_points;
-  getNumPoints(workspace,x_num_points,y_num_points,z_num_points);
-  unsigned int num_workspace_points = x_num_points*y_num_points*z_num_points*workspace.orientations.size();
-  for(unsigned int i=0; i < num_workspace_points; ++i)
+  for(unsigned int i=0; i < workspace.points.size(); ++i)
   {
     if(workspace.points[i].solution_code.val == workspace.points[i].solution_code.SUCCESS)
       reachable_workspace.push_back(i);
@@ -524,6 +523,7 @@ bool KinematicsReachability::sampleUniform(kinematics_reachability::WorkspacePoi
           tf::Vector3 point(pose.position.x,pose.position.y,pose.position.z);
           tf::pointTFToMsg(point,ws_point.pose.position);
           ws_point.pose.orientation = workspace.orientations[m];
+          ws_point.solution_code.val = ws_point.solution_code.PLANNING_FAILED;          
           workspace.points.push_back(ws_point);
         }
       }
@@ -664,7 +664,7 @@ void KinematicsReachability::getArrowMarkers(const kinematics_reachability::Work
     for(unsigned int i=0; i < workspace.points.size(); ++i)
     {
       marker.pose = workspace.points[i].pose;    
-      marker.id = i+4;    
+      marker.id = i+ARROW_MARKER_OFFSET;    
       marker.color = getMarkerColor(workspace.points[i]);    
       marker_array.markers.push_back(marker);    
     }    
@@ -820,9 +820,14 @@ void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachabi
   colors.push_back(evaluating_color_);
   std::vector<unsigned int> marker_ids;
   marker_ids.push_back(1);  
- 
-  std::vector<visualization_msgs::Marker> marker_points = getSphereMarker(workspace,"samples",indices,colors,error_code,marker_ids);      
+
+  getMarkers(workspace,"samples",indices,marker_array);
+
+  /*  std::vector<visualization_msgs::Marker> marker_points = getSphereMarker(workspace,"samples",indices,colors,error_code,marker_ids);      
   marker_array.markers.push_back(marker_points[0]);
+  */
+
+  getArrowMarkers(workspace,"samples",indices,marker_array);
   
   ROS_INFO("Publishing initial set of markers");  
   visualization_publisher_.publish(marker_array);  

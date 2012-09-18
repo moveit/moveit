@@ -29,9 +29,6 @@ MainWindow::MainWindow(QWidget *parent) :
     //Set default text in name fields
     ui->frame_id_label->setText("");
     ui->name_label->setText("");
-    
-    ros::AsyncSpinner spinner(2); 
-    spinner.start();
 
     ros::NodeHandle node_handle("~");
     std::string group_name, frame_id;
@@ -49,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent) :
       ROS_ERROR("Could not initialize reachability solver");
     workspace_.group_name = group_name;
     workspace_.header.frame_id = frame_id;    
+
+    workspace_subscriber_ = node_handle.subscribe("workspace_recorded", 1, &MainWindow::bagCallback, this);
 }
 
 MainWindow::~MainWindow()
@@ -82,8 +81,8 @@ void MainWindow::addRow()
 
 void MainWindow::compute()
 {
-  MainWindow::setBoundaries(workspace_);
   workspace_.points.clear();  
+  MainWindow::setBoundaries(workspace_);
   //    MainWindow::close();
   /**** WORKSPACE PARAMETERS - These are the parameters you need to change to specify a different 
         region in the workspace for which reachability is to be computed****/
@@ -93,10 +92,10 @@ void MainWindow::compute()
     ROS_INFO("Waiting for planning scene to be set");
   }          
   reachability_solver_.computeWorkspace(workspace_, true);
-  reachability_solver_.visualize(workspace_,"full");
+  reachability_solver_.visualize(workspace_,"solutions");
   reachability_solver_.animateWorkspace(workspace_);
-  ROS_INFO("Success");  
   reachability_solver_.publishWorkspace(workspace_);
+  ROS_INFO("Success");  
   //    ros::waitForShutdown();  
 }
 
@@ -118,26 +117,6 @@ void MainWindow::showOffset(bool checked)
 
 void MainWindow::visualiseWorkspace()
 {
-  /*    kinematics_reachability::WorkspacePoints sample_workspace;
-    sample_workspace.group_name = "arm";
-
-    double resolution = ui->edit_text_resolution->text().toDouble();
-
-    sample_workspace.position_resolution = resolution;
-    sample_workspace.header.frame_id = "arm_base_link";
-
-    MainWindow::setBoundaries(sample_workspace);
-
-    geometry_msgs::Quaternion quaternion;
-    quaternion.w = 1.0;
-    sample_workspace.orientations.push_back(quaternion);
-
-    while(!reachability_solver_.isActive())
-    {
-        sleep(1.0);
-        ROS_INFO("Waiting for planning scene to be set");
-    }
-*/
     MainWindow::setBoundaries(workspace_);
     reachability_solver_.visualizeWorkspaceSamples(workspace_);
     ROS_INFO("Samples visualised.");
@@ -193,4 +172,19 @@ void MainWindow::setBoundaries(kinematics_reachability::WorkspacePoints &w)
     tool_frame_offset.position.y = offset_y;
     tool_frame_offset.position.z = offset_z;
     w.tool_frame_offset = tool_frame_offset;    
+}
+
+void MainWindow::setUI(const kinematics_reachability::WorkspacePoints &workspace)
+{
+ 
+}
+
+void MainWindow::bagCallback(const kinematics_reachability::WorkspacePointsConstPtr &msg)
+{
+  workspace_ = *msg;
+  setUI(workspace_);  
+  reachability_solver_.visualizeWorkspaceSamples(workspace_);
+  reachability_solver_.visualize(workspace_,"bag");
+  reachability_solver_.animateWorkspace(workspace_);
+  ROS_INFO("Samples visualised.");
 }
