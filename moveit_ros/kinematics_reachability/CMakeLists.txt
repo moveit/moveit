@@ -23,6 +23,12 @@ SET(mainwindow_HEADERS src/mainwindow.h)
 
 QT4_WRAP_CPP(mainwindow_HEADERS_MOC ${mainwindow_HEADERS})
 
+qt4_wrap_ui(UIC_FILES
+  src/mainwindow.ui
+)
+# build is where the UI file outputs (ui_*.h) go.
+include_directories(build)
+
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
@@ -54,9 +60,9 @@ QT4_WRAP_CPP(QT_MOC_HPP ${QT_MOC})
 
 file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*.cpp)
 
-rosbuild_add_library(${PROJECT_NAME} src/kinematics_reachability.cpp )
+rosbuild_add_library(${PROJECT_NAME} src/kinematics_reachability.cpp)
 
-rosbuild_add_executable(workspace_gui ${mainwindow_SOURCES} ${mainwindow_HEADERS_MOC})
+rosbuild_add_executable(workspace_gui ${mainwindow_SOURCES} ${mainwindow_HEADERS_MOC} ${UIC_FILES})
 rosbuild_add_executable(workspace src/main.cpp)
 target_link_libraries(workspace ${PROJECT_NAME})
 target_link_libraries(workspace_gui ${PROJECT_NAME})
