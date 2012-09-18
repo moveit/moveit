@@ -366,7 +366,8 @@ void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msg
       if (planning_display_->getQueryStartState()->getJointStateGroup(ee.group)->setFromIK(tpose.pose, ee.tip_link, IK_TIMEOUT))
       {
         //        planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeMetrics, this, true, ee.group));
-        computeMetricsInternal(computed_metrics_[std::make_pair(true, ee.group)], ee, *planning_display_->getQueryStartState(), planning_display_->getPayload());
+        computeMetricsInternal(computed_metrics_[std::make_pair(true, ee.group)], ee, *planning_display_->getQueryStartState(),
+                               planning_display_->subProp("Planning Metrics")->subProp("Payload")->getValue().toFloat());
         invalid_start_state_.erase(ee.tip_link);
       }
       else
@@ -379,7 +380,8 @@ void RobotInteraction::computeProcessInteractiveMarkerFeedback(visualization_msg
       if (planning_display_->getQueryGoalState()->getJointStateGroup(ee.group)->setFromIK(tpose.pose, ee.tip_link, IK_TIMEOUT))
       {  
         //        planning_display_->addBackgroundJob(boost::bind(&RobotInteraction::computeMetrics, this, false, ee.group));
-        computeMetricsInternal(computed_metrics_[std::make_pair(false, ee.group)], ee, *planning_display_->getQueryGoalState(),planning_display_->getPayload());
+        computeMetricsInternal(computed_metrics_[std::make_pair(false, ee.group)], ee, *planning_display_->getQueryGoalState(),
+                               planning_display_->subProp("Planning Metrics")->subProp("Payload")->getValue().toFloat());
         invalid_goal_state_.erase(ee.tip_link);
       }
       else  

@@ -88,8 +88,7 @@ PlanningDisplay::PlanningDisplay() :
   animating_path_(false),
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true),
-  int_marker_display_(NULL),
-  metrics_payload_(1.0)
+  int_marker_display_(NULL)
 {  
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
@@ -121,7 +120,7 @@ PlanningDisplay::PlanningDisplay() :
                                                                  SLOT( changedShowJointTorques() ), this );
 
   metrics_set_payload_property_ =
-    new rviz::FloatProperty( "Payload (kg)", 1.0f, "Specify the payload at the end effector",
+    new rviz::FloatProperty( "Payload", 1.0f, "Specify the payload at the end effector (kg)",
                              metrics_category_,
                              SLOT( changedMetricsSetPayload() ), this );
   metrics_set_payload_property_->setMin( 0.0 );
@@ -202,6 +201,13 @@ PlanningDisplay::PlanningDisplay() :
   scene_alpha_property_->setMin( 0.0 );
   scene_alpha_property_->setMax( 1.0 );
 
+  scene_color_property_ = new rviz::ColorProperty( "Scene Color", QColor(50, 230, 50), "The color for the planning scene obstacles (if a color is not defined)",
+                                                   scene_category_,
+                                                   SLOT( changedSceneColor() ), this );
+  attached_body_color_property_ = new rviz::ColorProperty( "Attached Body Color", QColor(150, 50, 150), "The color for the attached bodies",
+                                                           scene_category_,
+                                                           SLOT( changedAttachedBodyColor() ), this );
+  
   scene_display_time_property_ =
     new rviz::FloatProperty( "Scene Display Time", 0.2f, "The amount of wall-time to wait in between rendering updates to the planning scene (if any)",
                              scene_category_,
@@ -369,6 +375,16 @@ void PlanningDisplay::addMainLoopJob(const boost::function<void(void)> &job)
   main_loop_jobs_.push_back(job);
 }
 
+void PlanningDisplay::changedAttachedBodyColor(void)
+{
+  queueRenderSceneGeometry();
+}
+
+void PlanningDisplay::changedSceneColor(void)
+{
+  queueRenderSceneGeometry();
+}
+
 void PlanningDisplay::changedShowWeightLimit(void)
 {
   if (text_display_for_start_)
@@ -427,7 +443,6 @@ void PlanningDisplay::changedShowJointTorques(void)
 
 void PlanningDisplay::changedMetricsSetPayload(void)
 {
-  metrics_payload_ = metrics_set_payload_property_->getFloat();
   if (text_display_for_start_)
   {
     if (query_start_state_property_->getBool())
@@ -541,10 +556,16 @@ void PlanningDisplay::renderPlanningScene(void)
 {
   if (planning_scene_render_ && planning_scene_needs_render_)
   {
+    QColor color = scene_color_property_->getColor();
+    rviz::Color env_color(color.redF(), color.greenF(), color.blueF());
+    color = attached_body_color_property_->getColor();
+    rviz::Color attached_color(color.redF(), color.greenF(), color.blueF());
+    
     planning_scene_monitor_->lockScene();
     try
     {
       planning_scene_render_->renderPlanningScene(planning_scene_monitor_->getPlanningScene(),
+                                                  env_color, attached_color,
                                                   scene_alpha_property_->getFloat(),
                                                   robot_scene_alpha_property_->getFloat());
     }
@@ -560,7 +581,7 @@ void PlanningDisplay::renderPlanningScene(void)
 
 void PlanningDisplay::changedSceneAlpha()
 {
-  renderPlanningScene();
+  queueRenderSceneGeometry();
 }
 
 // ******************************************************************************************
@@ -605,7 +626,8 @@ void PlanningDisplay::displayMetrics(bool start)
     {
       Ogre::Vector3 position(0.0, 0.0, 0.0);
       std::map<std::string, double> text_table; 
-      const std::map<std::string, double> &metrics_table = robot_interaction_->getComputedMetrics(start, eef[i].group, getPayload());
+      const std::map<std::string, double> &metrics_table = robot_interaction_->getComputedMetrics(start, eef[i].group,
+                                                                                                  metrics_set_payload_property_->getFloat());
       
       if (compute_weight_limit_property_->getBool())
       {    
@@ -743,7 +765,7 @@ void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePt
   query_start_state_ = start; 
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
-    robot_interaction_->computeMetrics(true, group, getPayload());
+    robot_interaction_->computeMetrics(true, group, metrics_set_payload_property_->getFloat());
   updateQueryStartState();
 }
 
@@ -752,7 +774,7 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   query_goal_state_ = goal;
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
-    robot_interaction_->computeMetrics(false, group, getPayload());
+    robot_interaction_->computeMetrics(false, group, metrics_set_payload_property_->getFloat());
   updateQueryGoalState();
 }
 
@@ -775,7 +797,7 @@ void PlanningDisplay::updateLinkColors(void)
 void PlanningDisplay::changedPlanningGroup(void)
 {
   robot_interaction_->decideActiveComponents();
-  robot_interaction_->computeMetrics(getPayload());
+  robot_interaction_->computeMetrics(metrics_set_payload_property_->getFloat());
   updateLinkColors();
   addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
   frame_->changePlanningGroup();
@@ -958,7 +980,7 @@ void PlanningDisplay::loadRobotModel(void)
     kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(planning_scene_monitor_->getKinematicModel()));  
     
     robot_interaction_->decideActiveComponents();
-    robot_interaction_->computeMetrics(getPayload());
+    robot_interaction_->computeMetrics(metrics_set_payload_property_->getFloat());
     
     ///////// should not need this
     std::string content;
@@ -1020,6 +1042,7 @@ void PlanningDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::Plannin
       jsg->getGroupStateValues(joint_state_values);
       *query_start_state_ = planning_scene_monitor_->getPlanningScene()->getCurrentState();
       query_start_state_->getJointStateGroup(group)->setStateValues(joint_state_values);
+      updateQueryStartState();
     }
   }
 
@@ -1032,9 +1055,12 @@ void PlanningDisplay::sceneMonitorReceivedUpdate(planning_scene_monitor::Plannin
       jsg->getGroupStateValues(joint_state_values);
       *query_goal_state_ = planning_scene_monitor_->getPlanningScene()->getCurrentState();
       query_goal_state_->getJointStateGroup(group)->setStateValues(joint_state_values);
+      updateQueryGoalState();
     }
   }
   
+  if (frame_)
+    frame_->sceneUpdate(update_type);
 }
 
 // ******************************************************************************************

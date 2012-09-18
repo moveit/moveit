@@ -58,7 +58,9 @@ class PlanningSceneRender
 public:
   PlanningSceneRender(rviz::DisplayContext *context, Ogre::SceneNode *node, rviz::Robot *robot);
  
-  void renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, float scene_alpha, float robot_alpha);
+  void renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
+                           const rviz::Color &env_color, rviz::Color &attached_color,
+                           float scene_alpha, float robot_alpha);
   void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p, const rviz::Color &color, float alpha);
   void clear(void);
   
