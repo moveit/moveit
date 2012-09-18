@@ -173,11 +173,10 @@ void moveit_rviz_plugin::PlanningSceneRender::renderShape(Ogre::SceneNode *node,
 // ******************************************************************************************
 // Render Planning Scene
 // ******************************************************************************************
-void moveit_rviz_plugin::PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, float scene_alpha, float robot_alpha)
+void moveit_rviz_plugin::PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene, 
+                                                                  const rviz::Color &env_color, rviz::Color &attached_color,
+                                                                  float scene_alpha, float robot_alpha)
 {
-  static rviz::Color env_color(0.2f, 0.9f, 0.2f);
-  static rviz::Color attached_color(0.6f, 0.6f, 0.6f);
-
   if (!scene)
     return;
 

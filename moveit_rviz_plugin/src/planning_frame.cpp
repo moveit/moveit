@@ -70,7 +70,18 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->import_scene_button, SIGNAL( clicked() ), this, SLOT( importSceneButtonClicked() ));
   connect( ui_->clear_scene_button, SIGNAL( clicked() ), this, SLOT( clearSceneButtonClicked() ));
   connect( ui_->scene_scale, SIGNAL( valueChanged(int) ), this, SLOT( sceneScaleChanged(int) ));
+  connect( ui_->scene_scale, SIGNAL( sliderPressed() ), this, SLOT( sceneScaleStartChange() ));
+  connect( ui_->scene_scale, SIGNAL( sliderReleased() ), this, SLOT( sceneScaleEndChange() ));
+  connect( ui_->remove_object_button, SIGNAL( clicked() ), this, SLOT( removeObjectButtonClicked() ));
+  connect( ui_->object_x, SIGNAL( valueChanged(double) ), this, SLOT( objectXValueChanged(double) ));
+  connect( ui_->object_y, SIGNAL( valueChanged(double) ), this, SLOT( objectYValueChanged(double) ));
+  connect( ui_->object_z, SIGNAL( valueChanged(double) ), this, SLOT( objectZValueChanged(double) ));
+  connect( ui_->object_rx, SIGNAL( valueChanged(double) ), this, SLOT( objectRXValueChanged(double) ));
+  connect( ui_->object_ry, SIGNAL( valueChanged(double) ), this, SLOT( objectRYValueChanged(double) ));
+  connect( ui_->object_rz, SIGNAL( valueChanged(double) ), this, SLOT( objectRZValueChanged(double) ));
 
+  connect( ui_->collision_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedCollisionObjectChanged() ));
+  
   ui_->tabWidget->setCurrentIndex(0);
 }
 
@@ -115,22 +126,93 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroup(void)
   planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::changePlanningGroupHelper, this));
 }
 
+void moveit_rviz_plugin::PlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
+{
+  if (update_type & planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY)
+    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populateCollisionObjectsList, this));
+}
+
+void moveit_rviz_plugin::PlanningFrame::populateCollisionObjectsList(void)
+{
+  ui_->collision_objects_list->setUpdatesEnabled(false);
+  ui_->collision_objects_list->clear();
+  
+  if (planning_display_->getPlanningSceneMonitor())
+  {
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    const std::vector<std::string>& objects = world->getObjectIds();
+    for (std::size_t i = 0 ; i < objects.size() ; ++i)
+      ui_->collision_objects_list->addItem(QString::fromStdString(objects[i]));
+  }
+  ui_->collision_objects_list->setUpdatesEnabled(true);
+}
+
 void moveit_rviz_plugin::PlanningFrame::importSceneButtonClicked(void)
 { 
   std::string path = QFileDialog::getOpenFileName(this, "Import Scene").toStdString();
   if (!path.empty() && planning_display_->getPlanningSceneMonitor())
   {
-    shapes::Mesh *mesh = shapes::createMeshFromResource("file://" + path);
+    path = "file://" + path;
+    shapes::Mesh *mesh = shapes::createMeshFromResource(path);
     if (mesh)
     {
+      std::size_t slash = path.find_last_of("/");
+      std::string name = path.substr(slash + 1);
       shapes::ShapeConstPtr shape(mesh);
-      loaded_resources_["rviz_loaded_mesh"] = shape;
       Eigen::Affine3d pose;
       pose.setIdentity();
       collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
-      world->removeObject("rviz_loaded_mesh");
-      world->addToObject("rviz_loaded_mesh", shape, pose);
+      world->removeObject(name);
+      world->addToObject(name, shape, pose);
+      populateCollisionObjectsList();
       planning_display_->queueRenderSceneGeometry();
+    }
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::removeObjectButtonClicked(void)
+{
+  QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
+  if (sel.empty())
+    return;
+  if (planning_display_->getPlanningSceneMonitor())
+  {    
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    for (int i = 0 ; i < sel.count() ; ++i)
+      world->removeObject(sel[i]->text().toStdString());
+    populateCollisionObjectsList();
+    planning_display_->queueRenderSceneGeometry(); 
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::selectedCollisionObjectChanged(void)
+{
+  QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
+  if (sel.empty())
+  {
+    ui_->object_x->setValue(0.0);
+    ui_->object_y->setValue(0.0);
+    ui_->object_z->setValue(0.0);
+    ui_->object_rx->setValue(0.0);
+    ui_->object_ry->setValue(0.0);
+    ui_->object_rz->setValue(0.0);
+  }
+  else
+  {
+    if (planning_display_->getPlanningSceneMonitor())
+    {    
+      collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+      collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
+      if (obj && obj->shapes_.size() == 1)
+      {
+        ui_->object_x->setValue(obj->shape_poses_[0].translation()[0]);
+        ui_->object_y->setValue(obj->shape_poses_[0].translation()[1]);
+        ui_->object_z->setValue(obj->shape_poses_[0].translation()[2]);
+        Eigen::Vector3d xyz = obj->shape_poses_[0].rotation().eulerAngles(0, 1, 2);
+        ui_->object_rx->setValue(xyz[0]);
+        ui_->object_ry->setValue(xyz[1]);
+        ui_->object_rz->setValue(xyz[2]);
+      }
     }
   }
 }
@@ -139,30 +221,107 @@ void moveit_rviz_plugin::PlanningFrame::clearSceneButtonClicked(void)
 {    
   if (planning_display_->getPlanningSceneMonitor())
   {
-    planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld()->removeObject("rviz_loaded_mesh");
+    planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld()->clearObjects(); 
+    populateCollisionObjectsList();
     planning_display_->queueRenderSceneGeometry(); 
-    loaded_resources_.erase("rviz_loaded_mesh");
   }
+}
+
+void moveit_rviz_plugin::PlanningFrame::objectXValueChanged(double value)
+{
+  objectPoseValueChanged(0, value);
+}
+
+void moveit_rviz_plugin::PlanningFrame::objectYValueChanged(double value)
+{
+  objectPoseValueChanged(1, value);
+}
+
+void moveit_rviz_plugin::PlanningFrame::objectZValueChanged(double value)
+{
+  objectPoseValueChanged(2, value);
+}
+
+void moveit_rviz_plugin::PlanningFrame::objectRXValueChanged(double value)
+{
+  objectPoseValueChanged(3, value);
+}
+
+void moveit_rviz_plugin::PlanningFrame::objectRYValueChanged(double value)
+{
+  objectPoseValueChanged(4, value);
+}
+
+void moveit_rviz_plugin::PlanningFrame::objectRZValueChanged(double value)
+{
+  objectPoseValueChanged(5, value);
+}
+
+void moveit_rviz_plugin::PlanningFrame::objectPoseValueChanged(int index, double value)
+{
+  QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
+  if (sel.empty())
+    return;
+  if (planning_display_->getPlanningSceneMonitor())
+  {
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(sel[0]->text().toStdString());
+    if (obj && obj->shapes_.size() == 1)
+    {
+      Eigen::Affine3d p = obj->shape_poses_[0];
+      if (index < 3)
+        p.translation()[index] = value;
+      else
+      {
+        Eigen::Vector3d xyz = obj->shape_poses_[0].rotation().eulerAngles(0, 1, 2);
+        xyz[index - 3] = value;
+        p = Eigen::Translation3d(p.translation()) * 
+          Eigen::AngleAxisd(xyz[0], Eigen::Vector3d::UnitX()) * 
+          Eigen::AngleAxisd(xyz[1], Eigen::Vector3d::UnitY()) * 
+          Eigen::AngleAxisd(xyz[2], Eigen::Vector3d::UnitZ());
+      }
+      world->moveShapeInObject(obj->id_, obj->shapes_[0], p);  
+      planning_display_->queueRenderSceneGeometry(); 
+    }
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::sceneScaleStartChange(void)
+{
+  QList<QListWidgetItem *> sel = ui_->collision_objects_list->selectedItems();
+  if (sel.empty())
+    return;
+  if (planning_display_->getPlanningSceneMonitor())
+  {
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    scaled_object_ = world->getObject(sel[0]->text().toStdString());
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::sceneScaleEndChange(void)
+{
+  scaled_object_.reset();
+  ui_->scene_scale->setSliderPosition(100);
 }
 
 void moveit_rviz_plugin::PlanningFrame::sceneScaleChanged(int value)
 {
-  if (planning_display_->getPlanningSceneMonitor())
-  {      
+  if (scaled_object_ && planning_display_->getPlanningSceneMonitor())
+  {
     collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
-    collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject("rviz_loaded_mesh");
-    if (obj &&  obj->shapes_.size() == 1)
+    if (world->hasObject(scaled_object_->id_))
     {
-      std::map<std::string, shapes::ShapeConstPtr>::const_iterator it = loaded_resources_.find(obj->id_);
-      if (it != loaded_resources_.end())
+      world->removeObject(scaled_object_->id_);
+      for (std::size_t i = 0 ; i < scaled_object_->shapes_.size() ; ++i)
       {
-        shapes::Shape *s = it->second->clone();
+        shapes::Shape *s = scaled_object_->shapes_[i]->clone();
         s->scale((double)value / 100.0);
-        world->removeObject(obj->id_);
-        world->addToObject(obj->id_, shapes::ShapeConstPtr(s), obj->shape_poses_[0]);
-        planning_display_->queueRenderSceneGeometry(); 
+        world->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s), scaled_object_->shape_poses_[i]);
       }
+      planning_display_->queueRenderSceneGeometry(); 
     }
+    else
+      scaled_object_.reset();
   }
 }
 

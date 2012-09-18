@@ -155,11 +155,6 @@ public:
     return dynamics_solver_[group];
   }
 
-  double getPayload() const
-  {
-    return metrics_payload_;
-  }  
-
   void showPlanningFrame(bool show);
   void queueRenderSceneGeometry(void);
   
@@ -177,6 +172,8 @@ private Q_SLOTS:
   void changedSceneRobotEnabled();
   void changedRobotSceneAlpha();
   void changedSceneAlpha();
+  void changedSceneColor();
+  void changedAttachedBodyColor();
   void changedSceneDisplayTime();
   void changedPlanningSceneTopic();
   void changedDisplayPathVisualEnabled();
@@ -319,6 +316,8 @@ protected:
   rviz::FloatProperty* robot_path_alpha_property_;
   rviz::FloatProperty* robot_scene_alpha_property_;
   rviz::FloatProperty* scene_alpha_property_;
+  rviz::ColorProperty* scene_color_property_;
+  rviz::ColorProperty* attached_body_color_property_;
   rviz::BoolProperty* loop_display_property_;
   rviz::BoolProperty* trail_display_property_;
   rviz::BoolProperty* compute_weight_limit_property_;
@@ -328,7 +327,6 @@ protected:
   rviz::FloatProperty* metrics_set_payload_property_;
   
   rviz::Display *int_marker_display_;
-  double metrics_payload_;
 };
 
 } // namespace moveit_rviz_plugin

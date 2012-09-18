@@ -36,6 +36,7 @@
 #include <QTreeWidgetItem>
 #include <move_group_interface/move_group.h>
 #include <moveit_warehouse/warehouse.h>
+#include <planning_scene_monitor/planning_scene_monitor.h>
 
 namespace rviz
 {
@@ -62,6 +63,7 @@ public:
   void changePlanningGroup(void);
   void enable(void);
   void disable(void);
+  void sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   
 protected:
 
@@ -97,7 +99,17 @@ private Q_SLOTS:
   void importSceneButtonClicked(void);
   void clearSceneButtonClicked(void);
   void sceneScaleChanged(int value);
-  
+  void sceneScaleStartChange(void);
+  void sceneScaleEndChange(void);
+  void removeObjectButtonClicked(void);
+  void selectedCollisionObjectChanged(void);
+  void objectXValueChanged(double v);
+  void objectYValueChanged(double v);
+  void objectZValueChanged(double v);
+  void objectRXValueChanged(double v);
+  void objectRYValueChanged(double v);
+  void objectRZValueChanged(double v);
+    
 private:
 
   void computePlanButtonClicked(void);  
@@ -120,11 +132,13 @@ private:
   void computeLoadQueryButtonClicked(void);
   void populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc);
   void changePlanningGroupHelper(void);
+  void populateCollisionObjectsList(void);
+  void objectPoseValueChanged(int index, double value);
   
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   
-  std::map<std::string, shapes::ShapeConstPtr> loaded_resources_;
+  collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
 };
 
 }
