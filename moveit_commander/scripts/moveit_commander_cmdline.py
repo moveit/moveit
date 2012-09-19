@@ -3,6 +3,7 @@
 import roslib
 roslib.load_manifest('moveit_commander')
 import rospy
+import readline
 import sys
 import os
 
@@ -18,6 +19,31 @@ class bcolors:
     FAIL = '\033[91m'
     ENDC = '\033[0m'
 
+class SimpleCompleter(object):
+    
+    def __init__(self, options):
+        self.options = sorted(options)
+        return
+
+    def complete(self, text, state):
+        response = None
+        if state == 0:
+            # This is the first time for this text, so build a match list.
+            if text:
+                self.matches = [s 
+                                for s in self.options
+                                if s and s.startswith(text)]
+            else:
+                self.matches = self.options[:]
+        
+        # Return the state'th item from the match list,
+        # if we have that many.
+        try:
+            response = self.matches[state]
+        except IndexError:
+            response = None
+        return response
+
 def print_message(level, msg):
     if level == MoveGroupInfoLevel.FAIL:
         print bcolors.FAIL + msg + bcolors.ENDC
@@ -31,18 +57,19 @@ def print_message(level, msg):
         print msg
 
 def run_interactive(group_names):
-    c = MoveGroupCommandInterpreter()
+    c = MoveGroupCommandInterpreter()   
+    readline.set_completer(SimpleCompleter(c.get_keywords()).complete)
     for g in group_names:
         c.execute( "use " + g)
     print
     print bcolors.HEADER + "Waiting for commands. Type 'help' to get a list of known commands." + bcolors.ENDC
     print
+    readline.parse_and_bind('tab: complete')
 
     while not rospy.is_shutdown():
-        sys.stdout.write(bcolors.OKBLUE + c.get_active_group() + '> ' + bcolors.ENDC)
         cmd = ""
-        try:
-            cmd = sys.stdin.readline()
+        try:  
+            cmd = raw_input(bcolors.OKBLUE + c.get_active_group() + '> ' + bcolors.ENDC)
         except:
             print
             break
