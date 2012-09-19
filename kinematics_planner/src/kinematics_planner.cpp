@@ -118,11 +118,13 @@ bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStam
         break;            
       if(planning_scene->isStateColliding(kinematic_state))
       {
+        error_code.val = error_code.GOAL_IN_COLLISION;
         success = false;        
         break;
       }      
       if(!planning_scene->isStateConstrained(kinematic_state,kinematic_constraint_set))
       {
+        error_code.val = error_code.GOAL_IN_COLLISION;
         success = false;        
         break;      
       } 
@@ -136,11 +138,6 @@ bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStam
   }
   return false;    
 }
-
-
-
-
-
 
 moveit_msgs::RobotTrajectory KinematicsPlanner::getRobotTrajectory(const kinematics_planner::SolutionTrajectoryMap &solutions,
                                                                    unsigned int num_poses) const

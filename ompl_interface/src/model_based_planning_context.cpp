@@ -296,6 +296,7 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
     traj.joint_trajectory.points.resize(pg.getStateCount());
   if (!mdof.empty())
     traj.multi_dof_joint_trajectory.points.resize(pg.getStateCount());
+
   for (std::size_t i = 0 ; i < pg.getStateCount() ; ++i)
   {
     spec_.state_space_->copyToKinematicState(ks, pg.getState(i));
@@ -311,8 +312,8 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
       traj.multi_dof_joint_trajectory.points[i].poses.resize(mdof.size());
       for (std::size_t j = 0 ; j < mdof.size() ; ++j)
       {
-	planning_models::msgFromPose(ks.getJointState(mdof[j]->getName())->getVariableTransform(),
-				     traj.multi_dof_joint_trajectory.points[i].poses[j]);
+        planning_models::msgFromPose(ks.getJointState(mdof[j]->getName())->getVariableTransform(),
+                                     traj.multi_dof_joint_trajectory.points[i].poses[j]);
       }
       traj.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
     }
