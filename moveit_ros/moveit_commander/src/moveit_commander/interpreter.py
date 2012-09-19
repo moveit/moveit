@@ -67,7 +67,16 @@ class MoveGroupCommandInterpreter:
 
     def execute(self, cmd):
         cmd = self.resolve_command_alias(cmd)
+        (info, text) = self.execute_generic_command(cmd)
+        if info != None and text != None:
+            return (info, text)
+        else:
+            if len(self._group_name) > 0:
+                return self.execute_group_command(self._gdict[self._group_name], cmd)
+            else:
+                return (MoveGroupInfoLevel.INFO, self.get_help() + "\n\nNo groups initialized yet. You must call the 'use' or the 'load' command first.\n")
 
+    def execute_generic_command(self, cmd):
         if cmd.startswith("use"):
             if cmd == "use":
                 return (MoveGroupInfoLevel.INFO, "\n".join(self.get_loaded_groups()))
@@ -117,12 +126,9 @@ class MoveGroupCommandInterpreter:
             except:
                 return (MoveGroupInfoLevel.WARN, "Unable to save " + filename)
         else:
-            if len(self._group_name) > 0:
-                return self.execute_command(self._gdict[self._group_name], cmd)
-            else:
-                return (MoveGroupInfoLevel.INFO, self.get_help() + "\n\nNo groups initialized yet. You must call the 'use' or the 'load' command first.\n")
+            return (None, None)
 
-    def execute_command(self, g, cmd):
+    def execute_group_command(self, g, cmd):
         
         if cmd == "stop":
             g.stop()
@@ -233,7 +239,7 @@ class MoveGroupCommandInterpreter:
                     return (MoveGroupInfoLevel.INFO, "[" + " ".join([str(x) for x in known[clist[1]]]) + "]")
                 else:
                     return (MoveGroupInfoLevel.WARN, "Joint values for " + clist[1] + " are not known")
-            elif clist[0] == "tol":
+            elif clist[0] == "tol" or clist[0] == "tolerance":
                 try:
                     g.set_goal_tolerance(float(clist[1]))
                     return (MoveGroupInfoLevel.SUCCESS, "OK")
@@ -332,3 +338,7 @@ class MoveGroupCommandInterpreter:
         res.append("  x = [v1 v2...] assign a vector of values to x")
         return "\n".join(res)
 
+    def get_keywords(self):
+        return ['go', 'up', 'down', 'left', 'right', 'backward', 'forward', 'help', 'record', 'show', 'wait', 'delete',
+                'current', 'use', 'load', 'save', 'allow', 'replanning', 'looking', 'random', 
+                'vars', 'joints', 'tolerance']
