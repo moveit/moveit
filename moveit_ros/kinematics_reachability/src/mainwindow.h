@@ -24,16 +24,19 @@ private Q_SLOTS:
   void visualiseWorkspace();
   
 private:
-  Ui::MainWindow *ui;
+  Ui::MainWindow *ui_;
   kinematics_reachability::WorkspacePoints workspace_;
   kinematics_reachability::KinematicsReachability reachability_solver_;
   ros::Subscriber workspace_subscriber_;
+  ros::Subscriber progress_subscriber_;
 
 
-  void setBoundaries(kinematics_reachability::WorkspacePoints &w);
+  void setBoundaries(kinematics_reachability::WorkspacePoints &workspace);
   void setUI(const kinematics_reachability::WorkspacePoints &workspace);
   void bagCallback(const kinematics_reachability::WorkspacePointsConstPtr &msg);
-
+  void updateProgressBar(const kinematics_reachability::ProgressConstPtr &msg);
+  void addRow(QString roll, QString pitch, QString yaw);
+  void loadBoundaries(kinematics_reachability::WorkspacePoints workspace);
 };
 
 #endif // MAINWINDOW_H

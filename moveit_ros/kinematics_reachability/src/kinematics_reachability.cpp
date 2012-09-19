@@ -51,6 +51,7 @@ bool KinematicsReachability::initialize()
   visualization_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("workspace_markers",0,true);
   workspace_publisher_ = node_handle_.advertise<kinematics_reachability::WorkspacePoints>("workspace",0,true);
   robot_trajectory_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>("display_state",0,true);
+  progress_publisher_ = node_handle_.advertise<kinematics_reachability::Progress>("planner_progress", 0, false);
   tool_offset_.setIdentity();
   tool_offset_inverse_.setIdentity();
   if(!kinematics_solver_.initialize())
@@ -278,8 +279,16 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
       animateWorkspace(workspace,i);      
     }
     
-    if(i%1000 == 0 || workspace.points.size() <= 100)
+
+    if(i%1000 == 0 || workspace.points.size() <= 1000)
+    {
       ROS_INFO("At sample %d, (%f,%f,%f)",i,workspace.points[i].pose.position.x,workspace.points[i].pose.position.y,workspace.points[i].pose.position.z);
+      kinematics_reachability::Progress progress;
+      progress.current = (int) i;
+      progress.total = (int) workspace.points.size();
+      progress_publisher_.publish(progress);
+      ros::spinOnce();
+    }
   }
 
   if(!kinematics_cache_->writeToFile(cache_filename_))
