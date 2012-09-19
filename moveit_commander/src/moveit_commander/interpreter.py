@@ -60,16 +60,19 @@ class MoveGroupCommandInterpreter:
         self._group_name = ""
 
     def get_active_group(self):
-        return self._group_name
+        if len(self._group_name) > 0:
+            return self._gdict[self._group_name]
+        else:
+            return None
 
     def get_loaded_groups(self):
         return self._gdict.keys()
 
     def execute(self, cmd):
         cmd = self.resolve_command_alias(cmd)
-        (info, text) = self.execute_generic_command(cmd)
-        if info != None and text != None:
-            return (info, text)
+        result = self.execute_generic_command(cmd)
+        if result != None:
+            return result
         else:
             if len(self._group_name) > 0:
                 return self.execute_group_command(self._gdict[self._group_name], cmd)
@@ -126,7 +129,7 @@ class MoveGroupCommandInterpreter:
             except:
                 return (MoveGroupInfoLevel.WARN, "Unable to save " + filename)
         else:
-            return (None, None)
+            return None
 
     def execute_group_command(self, g, cmd):
         
@@ -339,6 +342,18 @@ class MoveGroupCommandInterpreter:
         return "\n".join(res)
 
     def get_keywords(self):
-        return ['go', 'up', 'down', 'left', 'right', 'backward', 'forward', 'help', 'record', 'show', 'wait', 'delete',
-                'current', 'use', 'load', 'save', 'allow', 'replanning', 'looking', 'random', 
-                'vars', 'joints', 'tolerance']
+        return {'go':['up', 'down', 'left', 'right', 'backward', 'forward', 'random', '_VAR'],
+                'help':[],
+                'record':['_VAR'],
+                'show':['_VAR'],
+                'wait':[],
+                'delete':['_VAR'],
+                'current':[],
+                'use':['_GROUP'],
+                'load':[],
+                'save':[],
+                'allow':['replanning', 'looking'],
+                'vars':[],
+                'joints':[],
+                'tolerance':[],
+                'id':[]}
