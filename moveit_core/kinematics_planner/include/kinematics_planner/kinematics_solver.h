@@ -113,6 +113,20 @@ class KinematicsSolver
              moveit_msgs::RobotState &solution,
              moveit_msgs::MoveItErrorCodes &error_code,
              const kinematic_constraints::KinematicConstraintSet& kinematic_constraint_set) const;
+  
+  std::map<std::string,kinematics::KinematicsBaseConstPtr> getKinematicsSolverMap()
+  {
+    std::map<std::string, kinematics::KinematicsBaseConstPtr> kinematics_solver_map;
+    for(unsigned int i=0; i < group_names_.size(); ++i)
+    {
+      kinematics_solver_map[group_names_[i]] = kinematics_solvers_[i];
+    }
+    return kinematics_solver_map;
+  }    
+
+  bool isValid(const planning_models::KinematicState &kinematic_state,
+               const planning_scene::PlanningSceneConstPtr& planning_scene,
+               moveit_msgs::MoveItErrorCodes &error_code) const;
         
 protected:
 
