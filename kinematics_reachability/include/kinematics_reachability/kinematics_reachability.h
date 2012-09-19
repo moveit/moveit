@@ -50,6 +50,7 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <std_msgs/ColorRGBA.h>
+#include <kinematics_reachability/Progress.h>
 
 // MoveIt!
 #include <kinematics_planner_ros/kinematics_solver_ros.h>
@@ -240,7 +241,7 @@ private:
   bool isEqual(const geometry_msgs::Quaternion &orientation_1, 
                const geometry_msgs::Quaternion &orientation_2);
 
-  ros::Publisher visualization_publisher_, workspace_publisher_, robot_trajectory_publisher_;
+  ros::Publisher visualization_publisher_, workspace_publisher_, robot_trajectory_publisher_, progress_publisher_;
 
   void getPositionIndex(const kinematics_reachability::WorkspacePoints &workspace,
 			std::vector<unsigned int> &reachable_workspace,
