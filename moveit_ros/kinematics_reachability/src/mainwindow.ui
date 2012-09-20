@@ -526,6 +526,29 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>edit_text_roll</tabstop>
+  <tabstop>edit_text_pitch</tabstop>
+  <tabstop>edit_text_yaw</tabstop>
+  <tabstop>add_button</tabstop>
+  <tabstop>edit_text_offset_x</tabstop>
+  <tabstop>edit_text_offset_y</tabstop>
+  <tabstop>edit_text_offset_z</tabstop>
+  <tabstop>edit_text_offset_roll</tabstop>
+  <tabstop>edit_text_offset_pitch</tabstop>
+  <tabstop>edit_text_offset_yaw</tabstop>
+  <tabstop>edit_text_origin_x</tabstop>
+  <tabstop>edit_text_origin_y</tabstop>
+  <tabstop>edit_text_origin_z</tabstop>
+  <tabstop>edit_text_size_x</tabstop>
+  <tabstop>edit_text_size_y</tabstop>
+  <tabstop>edit_text_size_z</tabstop>
+  <tabstop>edit_text_resolution</tabstop>
+  <tabstop>visualise_button</tabstop>
+  <tabstop>compute_button</tabstop>
+  <tabstop>tool_offset_enabled</tabstop>
+  <tabstop>table_widget</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -552,7 +575,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>99</x>
-     <y>699</y>
+     <y>709</y>
     </hint>
     <hint type="destinationlabel">
      <x>441</x>
@@ -595,6 +618,8 @@
  </connections>
  <slots>
   <signal>progress_points()</signal>
+  <signal>maxProgressSignal(int)</signal>
+  <signal>currentProgressSignal(int)</signal>
   <slot>addRow()</slot>
   <slot>compute()</slot>
   <slot>showOffset(bool)</slot>
