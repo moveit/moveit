@@ -46,8 +46,6 @@
 
 namespace kinematics_cache
 {
-  std::vector<double> kinematics_cache_map_;
-
   class KinematicsCache 
   {
     public:

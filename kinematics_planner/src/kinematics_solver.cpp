@@ -54,8 +54,13 @@ bool KinematicsSolver::initialize(const planning_models::KinematicModelConstPtr 
     return false;
   }  
 
-  const planning_models::KinematicModel::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name_);
-  group_names_ = joint_model_group->getSubgroupNames();
+  /*const planning_models::KinematicModel::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup(group_name_);
+    group_names_ = joint_model_group->getSubgroupNames();
+    for(unsigned int i=0; i < group_names_.size(); ++i)
+    {
+    ROS_INFO("Sub group names: %d %s",i,group_names_[i].c_str());
+    }*/
+  
   if(group_names_.empty())
     group_names_.push_back(group_name_);
   num_groups_= group_names_.size();
@@ -66,11 +71,14 @@ bool KinematicsSolver::initialize(const planning_models::KinematicModelConstPtr 
   {
     if(kinematics_solver_map.find(group_names_[i]) == kinematics_solver_map.end())
     {
-      ROS_ERROR("No kinematics solver found for group %s",group_names_[i].c_str());      
+      ROS_WARN("No kinematics solver found for group %s",group_names_[i].c_str());      
       return false;      
     }    
     kinematics_solvers_.push_back(kinematics_solver_map.find(group_names_[i])->second);    
     kinematics_base_frames_.push_back(kinematics_solvers_.back()->getBaseFrame());    
+    ROS_INFO("Adding group %s with base frame %s",group_names_[i].c_str(),kinematics_solvers_.back()->getBaseFrame().c_str());
+    
+
     const std::vector<std::string> joint_names = kinematic_model->getJointModelGroup(group_names_[i])->getJointModelNames();
     for(unsigned int j=0; j < joint_names.size(); ++j)
       joint_names_.push_back(joint_names[j]);      
@@ -91,6 +99,20 @@ bool KinematicsSolver::solve(const geometry_msgs::PoseStamped &pose,
   return solve(goal,planning_scene,timeout,robot_state,error_code,kinematic_constraint_set);
 }
 
+bool KinematicsSolver::isValid(const planning_models::KinematicState &kinematic_state,
+                               const planning_scene::PlanningSceneConstPtr& planning_scene,
+                               moveit_msgs::MoveItErrorCodes &error_code) const
+{
+  if(planning_scene->isStateColliding(kinematic_state))
+  {
+    return false;    
+  }      
+  /*  if(!planning_scene->isStateConstrained(kinematic_state,kinematic_constraint_set))
+  {
+    return false;    
+    } */
+  return true;  
+}
 
 bool KinematicsSolver::solve(const std::map<std::string,geometry_msgs::PoseStamped> &poses,
                              const planning_scene::PlanningSceneConstPtr& planning_scene,
