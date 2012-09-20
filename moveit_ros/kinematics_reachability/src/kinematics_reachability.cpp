@@ -50,6 +50,7 @@ bool KinematicsReachability::initialize()
 {
   visualization_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("workspace_markers",0,true);
   workspace_publisher_ = node_handle_.advertise<kinematics_reachability::WorkspacePoints>("workspace",0,true);
+  boundary_publisher_ = node_handle_.advertise<kinematics_reachability::WorkspacePoints>("workspace_boundary",0,true);
   robot_trajectory_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>("display_state",0,true);
   progress_publisher_ = node_handle_.advertise<kinematics_reachability::Progress>("planner_progress", 0, false);
   tool_offset_.setIdentity();
@@ -846,6 +847,7 @@ void KinematicsReachability::visualizeWorkspaceSamples(const kinematics_reachabi
   
   ROS_INFO("Publishing initial set of markers");  
   visualization_publisher_.publish(marker_array);  
+  boundary_publisher_.publish(workspace);  
 }
 
 } // namespace
