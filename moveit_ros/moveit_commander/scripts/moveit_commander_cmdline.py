@@ -74,18 +74,7 @@ def print_message(level, msg):
         print msg
 
 def get_context_keywords(interpreter):
-    kw = interpreter.get_keywords()
-    ivars = []
-    if interpreter.get_active_group() != None:
-        ivars = interpreter.get_active_group().get_remembered_joint_values().keys()
-    groups = interpreter.get_loaded_groups()
-    for k in kw.keys():
-        if '_VAR' in kw[k]:
-            kw[k].remove('_VAR')
-            kw[k] = kw[k] + ivars
-        if '_GROUP' in kw[k]:
-            kw[k].remove('_GROUP')
-            kw[k] = kw[k] + groups
+    kw = interpreter.get_keywords()            
     kw["quit"] = []
     return kw
 

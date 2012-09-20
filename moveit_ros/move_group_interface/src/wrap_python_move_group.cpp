@@ -128,6 +128,11 @@ public:
     return listFromDouble(v);
   }
 
+  bp::list getKnownConstraintsList(void) const
+  {
+    return listFromString(getKnownConstraints());
+  }
+  
   void setPoseTargetPython(bp::list &pose)
   {
     std::vector<double> v = doubleFromList(pose);
@@ -246,7 +251,15 @@ void wrap_move_group_interface()
 
   MoveGroupClass.def("get_goal_tolerance", &MoveGroupWrapper::getGoalTolerance); 
   MoveGroupClass.def("set_goal_tolerance", &MoveGroupWrapper::setGoalTolerance); 
+
+  MoveGroupClass.def("set_path_constraints", &MoveGroupWrapper::setPathConstraints); 
+  MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints); 
+  MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
 }
+
+
+
+
 
 }
 

@@ -14,6 +14,7 @@
   <depend package="planning_models_loader"/>
   <depend package="constraint_samplers"/>
   <depend package="planning_request_adapter_plugins"/>
+  <depend package="moveit_warehouse"/>
   <depend package="roscpp"/>
   <depend package="std_msgs"/>
   <depend package="moveit_msgs"/>
