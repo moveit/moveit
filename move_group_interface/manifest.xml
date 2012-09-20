@@ -20,6 +20,7 @@
   <depend package="kinematics_msgs"/>
   <depend package="planning_scene_monitor"/>
   <depend package="eigen_conversions"/>
+  <depend package="py_bindings_tools"/>
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmove_group_interface"/>     
