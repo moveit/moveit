@@ -105,6 +105,7 @@ bool KinematicsSolver::isValid(const planning_models::KinematicState &kinematic_
 {
   if(planning_scene->isStateColliding(kinematic_state))
   {
+    error_code.val = error_code.GOAL_IN_COLLISION;    
     return false;    
   }      
   /*  if(!planning_scene->isStateConstrained(kinematic_state,kinematic_constraint_set))
@@ -171,11 +172,14 @@ bool KinematicsSolver::solve(const std::map<std::string,geometry_msgs::PoseStamp
 
     planning_scene->checkCollision(collision_request,collision_result,kinematic_state);    
     if(collision_result.collision || !planning_scene->isStateConstrained(kinematic_state,kinematic_constraint_set))
+    {
+      error_code.val = error_code.GOAL_IN_COLLISION;      
       continue;      
-
+    }    
     robot_state = getRobotState(solutions);      
     return true;
   }
+
   return false;    
 }
 
