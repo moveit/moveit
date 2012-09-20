@@ -57,14 +57,14 @@ public:
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
   ConstraintsStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
   
-  void addConstraints(const moveit_msgs::Constraints &msg);
-  bool hasConstraints(const std::string &name) const;
-  void getKnownConstraints(std::vector<std::string> &names) const;
-
+  void addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot = "", const std::string &group = "");
+  bool hasConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "") const;
+  void getKnownConstraints(std::vector<std::string> &names, const std::string &robot = "", const std::string &group = "") const;
+  
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getConstraints(ConstraintsWithMetadata &msg_m, const std::string &name) const;
-
-  void removeConstraints(const std::string &scene_name);
+  bool getConstraints(ConstraintsWithMetadata &msg_m, const std::string &name, const std::string &robot = "", const std::string &group = "") const;
+  
+  void removeConstraints(const std::string &scene_name, const std::string &robot = "", const std::string &group = "");
   
 private:
   
