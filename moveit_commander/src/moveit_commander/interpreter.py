@@ -60,16 +60,19 @@ class MoveGroupCommandInterpreter:
         self._group_name = ""
 
     def get_active_group(self):
-        return self._group_name
+        if len(self._group_name) > 0:
+            return self._gdict[self._group_name]
+        else:
+            return None
 
     def get_loaded_groups(self):
         return self._gdict.keys()
 
     def execute(self, cmd):
         cmd = self.resolve_command_alias(cmd)
-        (info, text) = self.execute_generic_command(cmd)
-        if info != None and text != None:
-            return (info, text)
+        result = self.execute_generic_command(cmd)
+        if result != None:
+            return result
         else:
             if len(self._group_name) > 0:
                 return self.execute_group_command(self._gdict[self._group_name], cmd)
@@ -126,7 +129,7 @@ class MoveGroupCommandInterpreter:
             except:
                 return (MoveGroupInfoLevel.WARN, "Unable to save " + filename)
         else:
-            return (None, None)
+            return None
 
     def execute_group_command(self, g, cmd):
         
@@ -322,6 +325,8 @@ class MoveGroupCommandInterpreter:
         res.append("Known commands:")
         res.append("  help\t\t show this screen")
         res.append("  id|which\t display the name of the group that is operated on")
+        res.append("  load [<file>]\t load a set of interpreted commands from a file")
+        res.append("  save [<file>]\t save the currently known variables as a set of commands")
         res.append("  use <name>\t switch to using the group named <name> (and load it if necessary)")
         res.append("  use|groups\t show the group names that are already loaded")
         res.append("  vars\t\t display the names of the known states")
@@ -331,7 +336,9 @@ class MoveGroupCommandInterpreter:
         res.append("  delete <name>\t forget the joint values under the name <name>")
         res.append("  current\t show the current state of the active group")
         res.append("  go <name>\t plan and execute a motion to the state <name>")
+        res.append("  go <dir> <dx>|\t plan and execute a motion in direction up|down|left|right|forward|backward for distance <dx>")
         res.append("  go rand\t plan and execute a motion to a random state")
+        res.append("  constrain <name>\t use the constraint <name> as a path constraint")
         res.append("  wait <dt>\t sleep for <dt> seconds")
         res.append("  x = y\t\t assign the value of y to x")
         res.append("  x[idx] = val\t assign a value to dimension idx of x")
@@ -339,6 +346,25 @@ class MoveGroupCommandInterpreter:
         return "\n".join(res)
 
     def get_keywords(self):
-        return ['go', 'up', 'down', 'left', 'right', 'backward', 'forward', 'help', 'record', 'show', 'wait', 'delete',
-                'current', 'use', 'load', 'save', 'allow', 'replanning', 'looking', 'random', 
-                'vars', 'joints', 'tolerance']
+        known_vars = []
+        known_constr = []
+        if self.get_active_group() != None:
+            known_vars = self.get_active_group().get_remembered_joint_values().keys()
+            known_constr = self.get_active_group().get_known_constraints()
+        groups = self.get_loaded_groups()
+        return {'go':['up', 'down', 'left', 'right', 'backward', 'forward', 'random'] + known_vars,
+                'help':[],
+                'record':known_vars,
+                'show':known_vars,
+                'wait':[],
+                'delete':known_vars,
+                'current':[],
+                'use':groups,
+                'load':[],
+                'save':[],
+                'allow':['replanning', 'looking'],
+                'constrain':known_constr,
+                'vars':[],
+                'joints':[],
+                'tolerance':[],
+                'id':[]}

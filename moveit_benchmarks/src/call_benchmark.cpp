@@ -41,7 +41,7 @@
 #include <planning_interface/planning_interface.h>
 #include <planning_models/conversions.h>
 
-#include <moveit_warehouse/warehouse.h>
+#include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit_msgs/ComputePlanningBenchmark.h>
 
 #include <boost/tokenizer.hpp>

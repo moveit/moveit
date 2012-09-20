@@ -44,6 +44,7 @@
 #include <moveit_msgs/QueryPlannerInterfaces.h>
 
 #include <actionlib/client/simple_action_client.h>
+#include <moveit/warehouse/constraints_storage.h>
 #include <kinematic_constraints/utils.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <std_msgs/String.h>
@@ -441,6 +442,39 @@ public:
       goal.request.goal_constraints.resize(1);
       goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(end_effector_, pose, goal_tolerance_);
     }
+
+    if (path_constraints_)
+      goal.request.path_constraints = *path_constraints_;
+  }
+
+  bool setPathConstraints(const std::string &constraint)
+  {
+    if (constraints_storage_)
+    {
+      moveit_warehouse::ConstraintsWithMetadata msg_m;
+      if (constraints_storage_->getConstraints(msg_m, constraint, kinematic_model_->getName(), opt_.group_name_))
+      {
+        path_constraints_.reset(new moveit_msgs::Constraints(static_cast<moveit_msgs::Constraints>(*msg_m)));
+        return true;
+      }
+      else
+        return false;
+    }
+    else
+      return false;
+  }
+
+  void clearPathConstraints(void)
+  {
+    path_constraints_.reset();
+  }
+  
+  std::vector<std::string> getKnownConstraints(void) const
+  {
+    std::vector<std::string> c;
+    if (constraints_storage_)
+      constraints_storage_->getKnownConstraints(c, kinematic_model_->getName(), opt_.group_name_);
+    return c;
   }
   
 private:
@@ -453,9 +487,7 @@ private:
   boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > action_client_;
   planning_models::KinematicStatePtr considered_start_state_;
   planning_models::KinematicStatePtr joint_state_target_;
-  ros::Publisher trajectory_event_publisher_;
-  ros::ServiceClient execute_service_;
-  ros::ServiceClient query_service_;
+  boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
   Eigen::Affine3d pose_target_;
   std::string end_effector_;
   std::string pose_reference_frame_; 
@@ -465,6 +497,11 @@ private:
   bool can_replan_;
   
   bool use_joint_state_target_;
+
+  ros::Publisher trajectory_event_publisher_;
+  ros::ServiceClient execute_service_;
+  ros::ServiceClient query_service_;
+  boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
 };
 
 MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
@@ -768,6 +805,21 @@ void MoveGroup::allowLooking(bool flag)
 void MoveGroup::allowReplanning(bool flag)
 {
   impl_->allowReplanning(flag);
+}
+
+std::vector<std::string> MoveGroup::getKnownConstraints(void) const
+{
+  return impl_->getKnownConstraints();
+}
+
+bool MoveGroup::setPathConstraints(const std::string &constraint)
+{
+  return impl_->setPathConstraints(constraint);
+}
+
+void MoveGroup::clearPathConstraints(void)
+{
+  impl_->clearPathConstraints();
 }
 
 }

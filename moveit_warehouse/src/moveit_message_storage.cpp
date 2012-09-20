@@ -32,73 +32,42 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: E. Gil Jones */
+/* Author: Ioan Sucan */
 
-#include <mongo_ros/message_collection.h>
-#include <sys/types.h>
-#include <signal.h>
-#include <unistd.h>
-#include <moveit/warehouse/warehouse_connector.h>
+#include "moveit/warehouse/moveit_message_storage.h"
+#include <ros/ros.h>
 
-namespace moveit_warehouse
+moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string &host, const unsigned int port, double wait_seconds) :
+  db_host_(host), db_port_(port)
 {
-
-WarehouseConnector::WarehouseConnector(const std::string &mongoexec) : mongoexec_(mongoexec), child_pid_(0)
-{
-}
-
-WarehouseConnector::~WarehouseConnector(void)
-{
-  if (child_pid_ != 0)
-    kill(child_pid_, SIGTERM);
-}
-
-bool WarehouseConnector::connectToDatabase(const std::string& dirname)
-{
-  if(child_pid_ != 0)
-    kill(child_pid_, SIGTERM);
-  
-  child_pid_ = fork();
-  if (child_pid_ == -1)
+  // if we are using default values for initialization, attempt to use ROS params for initialization
+  if (db_host_.empty() || db_port_ == 0)
   {
-    ROS_ERROR("Error forking process.");
-    child_pid_ = 0;
-    return false;
-  }
-  
-  if (child_pid_ == 0)
-  {
-    std::size_t exec_file_pos = mongoexec_.find_last_of("/\\");
-    if (exec_file_pos != std::string::npos)
+    ros::NodeHandle nh("~");
+    // search for the warehouse_port parameter in the local name space of the node, and up the tree of namespaces;
+    // if the desired param is not found, make a final attempt to look fro the param in the default namespace defined above
+    if (db_port_ == 0)
     {
-      char** argv = new char*[4];      
-      std::size_t exec_length = 1 + mongoexec_.length() - exec_file_pos;
-      argv[0] = new char[1 + exec_length];
-      snprintf(argv[0], exec_length, "%s", mongoexec_.substr(exec_file_pos + 1).c_str());
-      
-      argv[1] = new char[16];
-      snprintf(argv[1], 15, "--dbpath");
-      
-      argv[2] = new char[1024];
-      snprintf(argv[2], 1023, "%s", dirname.c_str());
-      
-      argv[3] = NULL;
-      
-      int code = execv(mongoexec_.c_str(), argv);
-      delete[] argv[0];
-      delete[] argv[1];
-      delete[] argv[2];
-      delete[] argv;
-      ROS_ERROR_STREAM("execv() returned " << code << ", errno=" << errno << " string errno = " << strerror(errno));
+      std::string paramName;
+      if (!nh.searchParam("warehouse_port", paramName))
+        paramName = "warehouse_port";
+      int param_port;
+      if (nh.getParam(paramName, param_port))
+        db_port_ = param_port;
     }
-    return false;
+    if (db_host_.empty())
+    {
+      std::string paramName;
+      if (!nh.searchParam("warehouse_host", paramName))
+        paramName = "warehouse_host";
+      std::string param_host;
+      if (nh.getParam(paramName, param_host))
+        db_host_ = param_host;
+    }
   }
-  else
-  {
-    //sleep so mongod has time to come up
-    ros::WallDuration(1.0).sleep();
-  }
-  return true;
+  ROS_INFO("Connecting to MongoDB on host '%s' port '%u'...", db_host_.c_str(), db_port_);
 }
 
+moveit_warehouse::MoveItMessageStorage::~MoveItMessageStorage(void)
+{
 }

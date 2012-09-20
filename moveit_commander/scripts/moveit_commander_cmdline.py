@@ -22,24 +22,41 @@ class bcolors:
 class SimpleCompleter(object):
     
     def __init__(self, options):
-        self.options = sorted(options)
-        return
+        self.options = options
+
+    def set_options(self, options):
+        self.options = options
 
     def complete(self, text, state):
         response = None
+        cmds = readline.get_line_buffer().split()
+        prefix = ""
+        if len(cmds) > 0:
+            prefix = cmds[0]
+            if not self.options.has_key(prefix):
+                prefix = ""
+
         if state == 0:
             # This is the first time for this text, so build a match list.
             if text:
-                self.matches = [s 
-                                for s in self.options
-                                if s and s.startswith(text)]
+                if len(prefix) == 0:
+                    self.matches = sorted([s 
+                                           for s in self.options.keys()
+                                           if s and s.startswith(text)])
+                else:
+                    self.matches = sorted([s 
+                                           for s in self.options[prefix]
+                                           if s and s.startswith(text)])
             else:
-                self.matches = self.options[:]
+                if len(prefix) == 0:
+                    self.matches = sorted(self.options.keys())
+                else:
+                    self.matches = self.options[prefix]
         
         # Return the state'th item from the match list,
         # if we have that many.
         try:
-            response = self.matches[state]
+            response = self.matches[state] + " "
         except IndexError:
             response = None
         return response
@@ -56,11 +73,18 @@ def print_message(level, msg):
     else:
         print msg
 
+def get_context_keywords(interpreter):
+    kw = interpreter.get_keywords()            
+    kw["quit"] = []
+    return kw
+
 def run_interactive(group_names):
-    c = MoveGroupCommandInterpreter()   
-    readline.set_completer(SimpleCompleter(c.get_keywords()).complete)
+    c = MoveGroupCommandInterpreter()
     for g in group_names:
         c.execute( "use " + g)
+    completer = SimpleCompleter(get_context_keywords(c))
+    readline.set_completer(completer.complete)
+
     print
     print bcolors.HEADER + "Waiting for commands. Type 'help' to get a list of known commands." + bcolors.ENDC
     print
@@ -69,15 +93,16 @@ def run_interactive(group_names):
     while not rospy.is_shutdown():
         cmd = ""
         try:  
-            cmd = raw_input(bcolors.OKBLUE + c.get_active_group() + '> ' + bcolors.ENDC)
+            name = ""
+            ag = c.get_active_group()
+            if ag != None:
+                name = ag.get_name()
+            cmd = raw_input(bcolors.OKBLUE + name + '> ' + bcolors.ENDC)
         except:
-            print
             break
-        if (cmd == "\n" or cmd == "\r" or cmd == "\r\n" or cmd == "\n\r"):
-            continue
         cmd = cmd.strip()
         if cmd == "":
-            break
+            continue
         cmd = cmd.lower()
 
         if cmd == "q" or cmd == "quit" or cmd == "exit":
@@ -88,7 +113,9 @@ def run_interactive(group_names):
 
         (level, msg) = c.execute(cmd)
         print_message(level, msg)
-
+        # update the set of keywords
+        completer.set_options(get_context_keywords(c))
+            
 def run_service(group_names): 
     c = MoveGroupCommmander()
     for g in group_names:

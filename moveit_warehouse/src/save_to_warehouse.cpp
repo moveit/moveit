@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit_warehouse/warehouse.h>
+#include <moveit/warehouse/planning_scene_storage.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/program_options/cmdline.hpp>

@@ -16,7 +16,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-find_package(Boost REQUIRED thread)
+find_package(Boost REQUIRED signals thread)
 include_directories(${Boost_INCLUDE_DIR})
 
 #common commands for building c++ executables and libraries
