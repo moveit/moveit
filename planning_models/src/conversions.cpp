@@ -342,14 +342,14 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
       ROS_ERROR("Unknown collision object operation: %d", aco.object.operation);
 }
 
-static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_msgs::RobotState &robot_state, KinematicState& state)
+static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_msgs::RobotState &robot_state, KinematicState& state, bool copy_attached_bodies)
 {
   std::set<std::string> missing;
   bool result1 = jointStateToKinematicState(robot_state.joint_state, state, &missing);
   bool result2 = multiDOFJointsToKinematicState(robot_state.multi_dof_joint_state, state, tf);
   state.updateLinkTransforms();
   
-  if (!robot_state.attached_collision_objects.empty())
+  if (copy_attached_bodies && !robot_state.attached_collision_objects.empty())
   {
     for (std::size_t i = 0 ; i < robot_state.attached_collision_objects.size() ; ++i)
       msgToAttachedBody(tf, robot_state.attached_collision_objects[i], state);
@@ -385,26 +385,28 @@ bool planning_models::jointStateToKinematicState(const sensor_msgs::JointState &
   return result;
 }
 
-bool planning_models::robotStateToKinematicState(const moveit_msgs::RobotState &robot_state, KinematicState& state)
+bool planning_models::robotStateToKinematicState(const moveit_msgs::RobotState &robot_state, KinematicState& state, bool copy_attached_bodies)
 {
-  return robotStateToKinematicStateHelper(NULL, robot_state, state);
+  return robotStateToKinematicStateHelper(NULL, robot_state, state, copy_attached_bodies);
 }
 
-bool planning_models::robotStateToKinematicState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, KinematicState& state)
+bool planning_models::robotStateToKinematicState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, KinematicState& state, bool copy_attached_bodies)
 {
-  return robotStateToKinematicStateHelper(&tf, robot_state, state);
+  return robotStateToKinematicStateHelper(&tf, robot_state, state, copy_attached_bodies);
 }
 
-void planning_models::kinematicStateToRobotState(const KinematicState& state, moveit_msgs::RobotState &robot_state)
+void planning_models::kinematicStateToRobotState(const KinematicState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies)
 {
   kinematicStateToJointState(state, robot_state.joint_state);
   kinematicStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
-  robot_state.attached_collision_objects_colors.clear();
-  std::vector<const KinematicState::AttachedBody*> attached_bodies;
-  state.getAttachedBodies(attached_bodies);
-  robot_state.attached_collision_objects.resize(attached_bodies.size());
-  for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
-    attachedBodyToMsg(*attached_bodies[i], robot_state.attached_collision_objects[i]);
+  if (copy_attached_bodies)
+  {
+    std::vector<const KinematicState::AttachedBody*> attached_bodies;
+    state.getAttachedBodies(attached_bodies);
+    robot_state.attached_collision_objects.resize(attached_bodies.size());
+    for (std::size_t i = 0 ; i < attached_bodies.size() ; ++i)
+      attachedBodyToMsg(*attached_bodies[i], robot_state.attached_collision_objects[i]);
+  }
 }
 
 void planning_models::kinematicStateToJointState(const KinematicState& state, sensor_msgs::JointState &joint_state)
