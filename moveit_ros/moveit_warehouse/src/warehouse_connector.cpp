@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
-#include <moveit_warehouse/warehouse_connector.h>
+#include <moveit/warehouse/warehouse_connector.h>
 
 namespace moveit_warehouse
 {
@@ -53,7 +53,7 @@ WarehouseConnector::~WarehouseConnector(void)
     kill(child_pid_, SIGTERM);
 }
 
-bool WarehouseConnector::connectToDatabase(const std::string& dirname, boost::shared_ptr<PlanningSceneStorage>& planning_scene_storage)
+bool WarehouseConnector::connectToDatabase(const std::string& dirname)
 {
   if(child_pid_ != 0)
     kill(child_pid_, SIGTERM);
@@ -97,7 +97,6 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname, boost::sh
   {
     //sleep so mongod has time to come up
     ros::WallDuration(1.0).sleep();
-    planning_scene_storage.reset(new PlanningSceneStorage());
   }
   return true;
 }

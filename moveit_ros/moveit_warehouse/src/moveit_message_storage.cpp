@@ -37,12 +37,6 @@
 #include "moveit/warehouse/moveit_message_storage.h"
 #include <ros/ros.h>
 
-static const std::string DATABASE_NAME = "moveit_planning_scenes";
-
-static const std::string PLANNING_SCENE_ID_NAME = "planning_scene_id";
-static const std::string PLANNING_SCENE_TIME_NAME = "planning_scene_time";
-static const std::string MOTION_PLAN_REQUEST_ID_NAME = "motion_request_id";
-
 moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string &host, const unsigned int port, double wait_seconds) :
   db_host_(host), db_port_(port)
 {
@@ -72,6 +66,8 @@ moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string &
     }
   }
   ROS_INFO("Connecting to MongoDB on host '%s' port '%u'...", db_host_.c_str(), db_port_);
-  initializeCollections();
-  ROS_INFO("Connected to MongoDB on host '%s' port '%u'.", db_host_.c_str(), db_port_);
+}
+
+moveit_warehouse::MoveItMessageStorage::~MoveItMessageStorage(void)
+{
 }

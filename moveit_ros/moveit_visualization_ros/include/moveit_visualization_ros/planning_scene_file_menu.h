@@ -35,7 +35,7 @@
 #include <QString>
 #include <QMenu>
 #include <QAction>
-#include <moveit_warehouse/warehouse_connector.h>
+#include <moveit/warehouse/warehouse_connector.h>
 #include <planning_scene/planning_scene.h>
 #include <moveit_visualization_ros/planning_scene_database_dialog.h>
 
