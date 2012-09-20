@@ -136,6 +136,19 @@ class MoveGroupCommander:
 
     def allow_replanning(self, value):
         self._g.allow_replanning(value)
+        
+    def get_known_constraints(self):
+        return self._g.get_known_constraints()
+
+    def set_path_constraints(self, value):
+        if value == None:
+            self.clear_path_constraints()
+            return True
+        else:
+            return self._g.set_path_constraints(value)
+
+    def clear_path_constraints(self):
+        self._g.clear_path_constraints()
 
     def go(self, joints = None, wait = True):
         """ Set the target of the group and then move the group to the specified target """

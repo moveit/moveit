@@ -187,6 +187,10 @@ public:
     return remembered_joint_values_;
   }
   
+  std::vector<std::string> getKnownConstraints(void) const;
+  bool setPathConstraints(const std::string &constraint);
+  void clearPathConstraints(void);
+  
 private:
 
   std::map<std::string, std::vector<double> > remembered_joint_values_;
