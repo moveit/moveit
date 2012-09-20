@@ -70,6 +70,7 @@ typedef boost::function<bool(const planning_models::KinematicState&, bool)> Stat
     whether the check should be verbose or not. */
 typedef boost::function<bool(const planning_models::KinematicState&, const planning_models::KinematicState&, bool)> MotionFeasibilityFn;
 
+/** \brief A map from object names (e.g., attached bodies, collision objects) to their colors */
 typedef std::map<std::string, std_msgs::ColorRGBA> ColorMap;
 
 /** \brief This class maintains the representation of the
@@ -320,14 +321,17 @@ public:
 
   void processCollisionMapMsg(const moveit_msgs::CollisionMap &map);
   void processOctomapMsg(const octomap_msgs::OctomapBinaryWithPose &map);
-  void processOctomapMsg(const octomap_msgs::OctomapBinary &map);
+  void processOctomapMsg(const octomap_msgs::OctomapBinary &map); 
   void processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t);
-  bool getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& obj) const;
 
-  void getCollisionObjectMarkers(visualization_msgs::MarkerArray& arr,
-                                 const std_msgs::ColorRGBA& default_color,
-                                 const std::string& ns=std::string(""),
-                                 const ros::Duration& lifetime = ros::Duration(0.0)) const;
+  /** \brief This function is not consistent with the rest of the functions in this file. It will be removed */
+  __attribute__((deprecated)) bool getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& obj) const;
+
+  /** \brief Is this really needed? Shapes can be converted to markers;  */
+  __attribute__((deprecated))  void getCollisionObjectMarkers(visualization_msgs::MarkerArray& arr,
+                                                              const std_msgs::ColorRGBA& default_color,
+                                                              const std::string& ns=std::string(""),
+                                                              const ros::Duration& lifetime = ros::Duration(0.0)) const;
   
   /** \brief Set the current robot state to be \e state. If not
       all joint values are specified, the previously maintained
@@ -531,8 +535,7 @@ public:
   
 protected:
 
-  void getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const;
-  void addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
+  void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
