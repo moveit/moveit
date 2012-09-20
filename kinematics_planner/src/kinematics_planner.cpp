@@ -109,7 +109,7 @@ bool KinematicsPlanner::solve(const std::map<std::string,geometry_msgs::PoseStam
                                              solutions[group_names_[j]][i],
                                              error_code))
         {
-          success = false;        
+          success = false;           
           break;                                                                           
         }
         joint_state_groups[j]->setStateValues(solutions[group_names_[j]][i]);        

@@ -457,14 +457,9 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
     scene.fixed_frame_transforms.clear();
 
   if (kstate_)
-  {
     planning_models::kinematicStateToRobotState(*kstate_, scene.robot_state);
-    getPlanningSceneMsgAttachedBodies(scene);
-  }
   else
-  {
     scene.robot_state = moveit_msgs::RobotState();
-  }
 
   if (acm_)
     acm_->getMessage(scene.allowed_collision_matrix);
@@ -501,7 +496,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
         {
           if (changes[i].type_ == collision_detection::CollisionWorld::Change::ADD)
           {
-            addPlanningSceneMsgCollisionObject(scene, changes[i].id_);
+            getPlanningSceneMsgCollisionObject(scene, changes[i].id_);
           }
           else
             if (changes[i].type_ == collision_detection::CollisionWorld::Change::REMOVE)
@@ -561,46 +556,6 @@ private:
   moveit_msgs::CollisionObject *obj_;
   const geometry_msgs::Pose *pose_;
 };
-}
-
-
-void planning_scene::PlanningScene::getPlanningSceneMsgAttachedBodies(moveit_msgs::PlanningScene &scene) const
-{
-  scene.robot_state.attached_collision_objects.clear();
-  std::vector<const planning_models::KinematicState::AttachedBody*> ab;
-  getCurrentState().getAttachedBodies(ab);
-
-  for (std::size_t i = 0 ; i < ab.size() ; ++i)
-  {
-    moveit_msgs::AttachedCollisionObject aco;
-    aco.link_name = ab[i]->getAttachedLinkName();
-    const std::set<std::string> &touch_links = ab[i]->getTouchLinks();
-    for (std::set<std::string>::const_iterator it = touch_links.begin() ; it != touch_links.end() ; ++it)
-      aco.touch_links.push_back(*it);
-    aco.object.header.frame_id = aco.link_name;
-    aco.object.id = ab[i]->getName();
-    aco.object.operation = moveit_msgs::CollisionObject::ADD;
-    const std::vector<shapes::ShapeConstPtr>& ab_shapes = ab[i]->getShapes();
-    const EigenSTL::vector_Affine3d& ab_tf = ab[i]->getFixedTransforms();
-    ShapeVisitorAddToCollisionObject sv(&aco.object);
-    for (std::size_t j = 0 ; j < ab_shapes.size() ; ++j)
-    {
-      shapes::ShapeMsg sm;
-      if (constructMsgFromShape(ab_shapes[j].get(), sm))
-      {
-        geometry_msgs::Pose p;
-        planning_models::msgFromPose(ab_tf[j], p);
-        sv.setPoseMessage(&p);
-        boost::apply_visitor(sv, sm);
-      }
-    }
-    if (!aco.object.primitives.empty() || !aco.object.meshes.empty() || !aco.object.planes.empty())
-    {
-      scene.robot_state.attached_collision_objects.push_back(aco);
-      if (hasColor(aco.object.id))
-        scene.robot_state.attached_collision_objects_colors.push_back(getColor(aco.object.id));
-    }
-  }
 }
 
 bool planning_scene::PlanningScene::getCollisionObjectMsg(const std::string& ns, moveit_msgs::CollisionObject& co) const 
@@ -666,18 +621,29 @@ void planning_scene::PlanningScene::getCollisionObjectMarkers(visualization_msgs
   }
 }
 
-void planning_scene::PlanningScene::addPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const
-{
+void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const
+{ 
   moveit_msgs::CollisionObject co;
-  if (getCollisionObjectMsg(ns, co))
+  co.header.frame_id = getPlanningFrame();
+  co.id = ns;
+  co.operation = moveit_msgs::CollisionObject::ADD;
+  collision_detection::CollisionWorld::ObjectConstPtr obj = getCollisionWorld()->getObject(ns);
+  if (!obj) 
+    return;  
+  ShapeVisitorAddToCollisionObject sv(&co);
+  for (std::size_t j = 0 ; j < obj->shapes_.size() ; ++j)
   {
-    if (!co.primitives.empty() || !co.meshes.empty() || !co.planes.empty())
+    shapes::ShapeMsg sm;
+    if (constructMsgFromShape(obj->shapes_[j].get(), sm))
     {
-      scene.world.collision_objects.push_back(co);
-      if (hasColor(co.id))
-        scene.world.colors.push_back(getColor(co.id));
+      geometry_msgs::Pose p;
+      planning_models::msgFromPose(obj->shape_poses_[j], p);
+      sv.setPoseMessage(&p);
+      boost::apply_visitor(sv, sm);
     }
   }
+  if (!co.primitives.empty() || !co.meshes.empty() || !co.planes.empty())
+    scene.world.collision_objects.push_back(co);
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const
@@ -686,7 +652,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObjects(moveit_m
   const std::vector<std::string> &ns = getCollisionWorld()->getObjectIds();
   for (std::size_t i = 0 ; i < ns.size() ; ++i)
     if (ns[i] != COLLISION_MAP_NS && ns[i] != OCTOMAP_NS)
-      addPlanningSceneMsgCollisionObject(scene, ns[i]);
+      getPlanningSceneMsgCollisionObject(scene, ns[i]);
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsgCollisionMap(moveit_msgs::PlanningScene &scene) const
@@ -734,6 +700,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   scene.robot_model_root = getKinematicModel()->getRootLinkName();
   scene.robot_model_name = getKinematicModel()->getName();
   getTransforms()->getTransforms(scene.fixed_frame_transforms);
+
   planning_models::kinematicStateToRobotState(getCurrentState(), scene.robot_state);
   getAllowedCollisionMatrix().getMessage(scene.allowed_collision_matrix);
   getCollisionRobot()->getPadding(scene.link_padding);
@@ -741,9 +708,6 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 
   // add collision objects
   getPlanningSceneMsgCollisionObjects(scene);
-
-  // add the attached bodies
-  getPlanningSceneMsgAttachedBodies(scene);
 
   // get the octomap
   getPlanningSceneMsgOctomap(scene);
@@ -758,18 +722,14 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
   {
     if (!kstate_)
       kstate_.reset(new planning_models::KinematicState(parent_->getCurrentState()));
-    planning_models::robotStateToKinematicState(*getTransforms(), state, *kstate_);
+    planning_models::robotStateToKinematicState(*getTransforms(), state, *kstate_, false);
   }
   else
-    planning_models::robotStateToKinematicState(*ftf_, state, *kstate_);
-
+    planning_models::robotStateToKinematicState(*ftf_, state, *kstate_, false);
+  
   if (!state.attached_collision_objects.empty())
     for (std::size_t i = 0 ; i < state.attached_collision_objects.size() ; ++i)
-    {
       processAttachedCollisionObjectMsg(state.attached_collision_objects[i]);
-      if (state.attached_collision_objects_colors.size() > i)
-        setColor(state.attached_collision_objects[i].object.id, state.attached_collision_objects_colors[i]);
-    }
 }
 
 void planning_scene::PlanningScene::setCurrentState(const planning_models::KinematicState &state)
@@ -891,13 +851,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   }
   
   for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
-  {
     processCollisionObjectMsg(scene.world.collision_objects[i]);
-    if (scene.world.colors.size() >= scene.world.collision_objects.size() && scene.world.collision_objects[i].operation == moveit_msgs::CollisionObject::ADD)
-      setColor(scene.world.collision_objects[i].id, scene.world.colors[i]);
-    else
-      removeColor(scene.world.collision_objects[i].id);
-  }
   
   processOctomapMsg(scene.world.octomap);
   processCollisionMapMsg(scene.world.collision_map);
@@ -956,13 +910,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   cworld_->clearObjects(); 
   colors_.reset(new std::map<std::string, std_msgs::ColorRGBA>());
   for (std::size_t i = 0 ; i < scene.world.collision_objects.size() ; ++i)
-  {
     processCollisionObjectMsg(scene.world.collision_objects[i]);
-    if (scene.world.colors.size() >= scene.world.collision_objects.size() && scene.world.collision_objects[i].operation == moveit_msgs::CollisionObject::ADD)
-      setColor(scene.world.collision_objects[i].id, scene.world.colors[i]);
-    else
-      removeColor(scene.world.collision_objects[i].id);
-  }
   
   processOctomapMsg(scene.world.octomap);
   processCollisionMapMsg(scene.world.collision_map);
