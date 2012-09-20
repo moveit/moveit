@@ -315,7 +315,7 @@ void KinematicsReachability::findIK(const std::string &group_name,
   {      
     if(!updateFromCache(request))
     {
-      error_code.val = error_code.PLANNING_FAILED;
+      error_code.val = error_code.NO_IK_SOLUTION;
       return;      
     }       
   }        
@@ -557,22 +557,24 @@ void KinematicsReachability::getMarkers(const kinematics_reachability::Workspace
                                         const std::vector<unsigned int> &points,
                                         visualization_msgs::MarkerArray &marker_array)
 {
-  std::vector<moveit_msgs::MoveItErrorCodes> error_codes(3);
-  error_codes[0].val = error_codes[0].SUCCESS;  
-  error_codes[1].val = error_codes[1].PLANNING_FAILED;  
-  error_codes[2].val = error_codes[2].NO_IK_SOLUTION;  
-
   std::vector<unsigned int> marker_ids(3);
   marker_ids[0] = 0;
   marker_ids[1] = 1;
   marker_ids[2] = 2;
+
+  std::map<int, unsigned int> error_code_map;
+  moveit_msgs::MoveItErrorCodes error_code;  
+  error_code_map[error_code.SUCCESS] = marker_ids[0];
+  error_code_map[error_code.PLANNING_FAILED] = marker_ids[1];
+  error_code_map[error_code.NO_IK_SOLUTION] = marker_ids[2];
+  error_code_map[error_code.GOAL_IN_COLLISION] = marker_ids[2];
 
   std::vector<std_msgs::ColorRGBA> colors(3);
   colors[0] = reachable_color_;
   colors[1] = evaluating_color_;
   colors[2] = unreachable_color_;
   
-  std::vector<visualization_msgs::Marker> markers = getSphereMarker(workspace,marker_namespace,points,colors,error_codes,marker_ids);    
+  std::vector<visualization_msgs::Marker> markers = getSphereMarker(workspace,marker_namespace,points,colors,error_code_map,marker_ids);    
   for(unsigned int i=0; i < markers.size(); ++i)
     marker_array.markers.push_back(markers[i]);  
 }
@@ -581,11 +583,11 @@ std::vector<visualization_msgs::Marker> KinematicsReachability::getSphereMarker(
                                                                                 const std::string &marker_namespace,
                                                                                 const std::vector<unsigned int> &indices,
                                                                                 const std::vector<std_msgs::ColorRGBA> &colors,
-                                                                                const std::vector<moveit_msgs::MoveItErrorCodes> &error_codes,
+                                                                                const std::map<int, unsigned int> &error_code_map,
                                                                                 const std::vector<unsigned int> &marker_id)
 {
   std::vector<visualization_msgs::Marker> markers;
-  if(marker_id.size() != error_codes.size() || colors.size() != error_codes.size())
+  if(marker_id.size() != colors.size())
     return markers;
   markers.resize(marker_id.size());
   
@@ -606,14 +608,16 @@ std::vector<visualization_msgs::Marker> KinematicsReachability::getSphereMarker(
     for(unsigned int i=0; i < workspace.points.size(); ++i)
     {
       geometry_msgs::Point point = workspace.points[i].pose.position;
-      for(unsigned int j=0; j < error_codes.size(); ++j)
+      if(error_code_map.find(workspace.points[i].solution_code.val) == error_code_map.end())
       {
-        if(workspace.points[i].solution_code.val == error_codes[j].val)
-        {
-          markers[j].colors.push_back(colors[j]);
-          markers[j].points.push_back(point);        
-        }
-      }      
+        ROS_ERROR("Unknown error code: %d",workspace.points[i].solution_code.val);
+      }
+      else
+      {         
+        unsigned int marker_index = error_code_map.find(workspace.points[i].solution_code.val)->second;          
+        markers[marker_index].colors.push_back(colors[marker_index]);
+        markers[marker_index].points.push_back(point);        
+      }
     }    
   }
   else
@@ -626,14 +630,16 @@ std::vector<visualization_msgs::Marker> KinematicsReachability::getSphereMarker(
         continue;        
       }
       geometry_msgs::Point point = workspace.points[indices[i]].pose.position;
-      for(unsigned int j=0; j < error_codes.size(); ++j)
+      if(error_code_map.find(workspace.points[indices[i]].solution_code.val) == error_code_map.end())
       {
-        if(workspace.points[indices[i]].solution_code.val == error_codes[j].val)
-        {
-          markers[j].colors.push_back(colors[j]);
-          markers[j].points.push_back(point);        
-        }
-      }      
+        ROS_ERROR("Unknown error code: %d",workspace.points[indices[i]].solution_code.val);
+      }
+      else
+      {         
+        unsigned int marker_index = error_code_map.find(workspace.points[indices[i]].solution_code.val)->second;          
+        markers[marker_index].colors.push_back(colors[marker_index]);
+        markers[marker_index].points.push_back(point);        
+      }
     }    
   }  
   return markers;  
@@ -645,7 +651,7 @@ std_msgs::ColorRGBA KinematicsReachability::getMarkerColor(const kinematics_reac
   {
     return reachable_color_;    
   }
-  else if(workspace_point.solution_code.val == workspace_point.solution_code.NO_IK_SOLUTION)
+  else if(workspace_point.solution_code.val == workspace_point.solution_code.NO_IK_SOLUTION || workspace_point.solution_code.val == workspace_point.solution_code.GOAL_IN_COLLISION)
   {
     return unreachable_color_;    
   }

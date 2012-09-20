@@ -202,7 +202,7 @@ private:
                                                           const std::string &marker_namespace,
                                                           const std::vector<unsigned int> &indices,
                                                           const std::vector<std_msgs::ColorRGBA> &color,
-                                                          const std::vector<moveit_msgs::MoveItErrorCodes> &error_codes,
+                                                          const std::map<int, unsigned int> &error_code_map,
                                                           const std::vector<unsigned int> &marker_id);
 
   std_msgs::ColorRGBA getMarkerColor(const kinematics_reachability::WorkspacePoint &workspace_point);
