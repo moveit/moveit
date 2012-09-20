@@ -32,7 +32,7 @@
 #ifndef _PLANNING_SCENE_DATABASE_DIALOG_H_
 #define _PLANNING_SCENE_DATABASE_DIALOG_H_
 
-#include <moveit_warehouse/warehouse.h>
+#include <moveit/warehouse/planning_scene_storage.h>
 #include <planning_scene/planning_scene.h>
 
 #include <QString>

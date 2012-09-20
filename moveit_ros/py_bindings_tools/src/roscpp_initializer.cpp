@@ -32,73 +32,50 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: E. Gil Jones */
+/* Author: Ioan Sucan */
 
-#include <mongo_ros/message_collection.h>
-#include <sys/types.h>
-#include <signal.h>
-#include <unistd.h>
-#include <moveit/warehouse/warehouse_connector.h>
+#include "moveit/py_bindings_tools/roscpp_initializer.h"
+#include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp>
+#include <ros/ros.h>
 
-namespace moveit_warehouse
+struct InitProxy
 {
-
-WarehouseConnector::WarehouseConnector(const std::string &mongoexec) : mongoexec_(mongoexec), child_pid_(0)
-{
-}
-
-WarehouseConnector::~WarehouseConnector(void)
-{
-  if (child_pid_ != 0)
-    kill(child_pid_, SIGTERM);
-}
-
-bool WarehouseConnector::connectToDatabase(const std::string& dirname)
-{
-  if(child_pid_ != 0)
-    kill(child_pid_, SIGTERM);
-  
-  child_pid_ = fork();
-  if (child_pid_ == -1)
+  InitProxy(void)
   {
-    ROS_ERROR("Error forking process.");
-    child_pid_ = 0;
-    return false;
+    char **fake_argv = new char*[1];
+    fake_argv[0] = strdup("moveit_python_wrappers");
+    int fake_argc = 1;
+    ros::init(fake_argc, fake_argv, "moveit_python_wrappers", ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
+    delete[] fake_argv[0];
+    delete[] fake_argv;
   }
   
-  if (child_pid_ == 0)
-  {
-    std::size_t exec_file_pos = mongoexec_.find_last_of("/\\");
-    if (exec_file_pos != std::string::npos)
-    {
-      char** argv = new char*[4];      
-      std::size_t exec_length = 1 + mongoexec_.length() - exec_file_pos;
-      argv[0] = new char[1 + exec_length];
-      snprintf(argv[0], exec_length, "%s", mongoexec_.substr(exec_file_pos + 1).c_str());
-      
-      argv[1] = new char[16];
-      snprintf(argv[1], 15, "--dbpath");
-      
-      argv[2] = new char[1024];
-      snprintf(argv[2], 1023, "%s", dirname.c_str());
-      
-      argv[3] = NULL;
-      
-      int code = execv(mongoexec_.c_str(), argv);
-      delete[] argv[0];
-      delete[] argv[1];
-      delete[] argv[2];
-      delete[] argv;
-      ROS_ERROR_STREAM("execv() returned " << code << ", errno=" << errno << " string errno = " << strerror(errno));
-    }
-    return false;
+  ~InitProxy(void)
+  { 
+    if (ros::isInitialized() && !ros::isShuttingDown())
+      ros::shutdown();
   }
-  else
-  {
-    //sleep so mongod has time to come up
-    ros::WallDuration(1.0).sleep();
-  }
-  return true;
-}
+};
 
+moveit_py_bindings_tools::ROScppInitializer::ROScppInitializer(void)
+{
+  // ensure we do not accidentally initialize ROS multiple times per process
+  static boost::mutex lock;
+  boost::mutex::scoped_lock slock(lock);
+  
+  // once per process, we start a spinner
+  static bool once = true;
+  if (once)
+  {
+    once = false;
+    static boost::shared_ptr<InitProxy> proxy;
+    
+    // if ROS (cpp) is not initialized, we initialize it
+    if (!ros::isInitialized())
+      proxy.reset(new InitProxy());
+    
+    static ros::AsyncSpinner spinner(1);
+    spinner.start();
+  }
 }

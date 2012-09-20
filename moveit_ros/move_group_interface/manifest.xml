@@ -14,12 +14,14 @@
   <depend package="planning_models_loader"/>
   <depend package="constraint_samplers"/>
   <depend package="planning_request_adapter_plugins"/>
+  <depend package="moveit_warehouse"/>
   <depend package="roscpp"/>
   <depend package="std_msgs"/>
   <depend package="moveit_msgs"/>
   <depend package="kinematics_msgs"/>
   <depend package="planning_scene_monitor"/>
   <depend package="eigen_conversions"/>
+  <depend package="py_bindings_tools"/>
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmove_group_interface"/>     

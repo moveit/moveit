@@ -11,29 +11,21 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
 rosbuild_init()
 
-rosbuild_add_boost_directories()
-
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #common commands for building c++ executables and libraries
+rosbuild_add_library(moveit_${PROJECT_NAME} src/roscpp_initializer.cpp)
 rosbuild_add_boost_directories()
-rosbuild_add_library(${PROJECT_NAME} 
-  src/moveit_message_storage.cpp
-  src/planning_scene_storage.cpp
-  src/constraints_storage.cpp
-  src/warehouse_connector.cpp)
-rosbuild_link_boost(${PROJECT_NAME} date_time thread system)
+rosbuild_link_boost(moveit_${PROJECT_NAME} thread)
 
-rosbuild_add_executable(warehouse_connector_test test/warehouse_connector_test.cpp)
-target_link_libraries(warehouse_connector_test ${PROJECT_NAME})
 
-rosbuild_add_executable(broadcast src/broadcast.cpp)
-target_link_libraries(broadcast ${PROJECT_NAME})
-rosbuild_link_boost(broadcast program_options)
+find_package(PythonLibs)
+include_directories (${PYTHON_INCLUDE_DIRS})
 
-rosbuild_add_executable(save_to_warehouse src/save_to_warehouse.cpp)
-target_link_libraries(save_to_warehouse ${PROJECT_NAME})
-rosbuild_link_boost(save_to_warehouse program_options)
+rosbuild_add_library(_moveit_roscpp_initializer src/roscpp_initializer_pymodule.cpp)
+target_link_libraries(_moveit_roscpp_initializer ${PYTHON_LIBRARIES})
+set_target_properties(_moveit_roscpp_initializer PROPERTIES OUTPUT_NAME _moveit_roscpp_initializer PREFIX "")
+rosbuild_link_boost(_moveit_roscpp_initializer thread python)

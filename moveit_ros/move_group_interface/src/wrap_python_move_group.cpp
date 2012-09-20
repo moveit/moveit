@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include "move_group_interface/move_group.h"
-
+#include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <boost/function.hpp>
 #include <boost/python.hpp>
 #include <boost/python/return_value_policy.hpp>
@@ -53,61 +53,13 @@ namespace bp = boost::python;
 namespace move_group_interface
 {
 
-class ROSInitializer
-{
-public:
-  
-  ROSInitializer(void)
-  {
-    // ensure we do not accidentally initialize ROS multiple times per process
-    static boost::mutex lock;
-    boost::mutex::scoped_lock slock(lock);
-    
-    // once per process, we start a spinner
-    static bool once = true;
-    if (once)
-    {
-      once = false;
-      static boost::shared_ptr<InitProxy> proxy;
-      
-      // if ROS (cpp) is not initialized, we initialize it
-      if (!ros::isInitialized())
-        proxy.reset(new InitProxy());
-      
-      static ros::AsyncSpinner spinner(1);
-      spinner.start();
-    }
-  }
-  
-private:
-  
-  struct InitProxy
-  {
-    InitProxy(void)
-    {
-      char **fake_argv = new char*[1];
-      fake_argv[0] = strdup("move_group_python_wrappers");
-      int fake_argc = 1;
-      ros::init(fake_argc, fake_argv, "move_group_python_wrappers", ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
-      delete[] fake_argv[0];
-      delete[] fake_argv;
-    }
-    
-    ~InitProxy(void)
-    { 
-      if (ros::isInitialized() && !ros::isShuttingDown())
-        ros::shutdown();
-    }
-  };
-};
-
-class MoveGroupWrapper : protected ROSInitializer,
+class MoveGroupWrapper : protected moveit_py_bindings_tools::ROScppInitializer,
                          public MoveGroup
 {
 public:
 
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
-  MoveGroupWrapper(const std::string &group_name) : ROSInitializer(),
+  MoveGroupWrapper(const std::string &group_name) : moveit_py_bindings_tools::ROScppInitializer(),
                                                     MoveGroup(group_name, boost::shared_ptr<tf::Transformer>(), ros::Duration(5, 0))
   {
   }
@@ -176,6 +128,11 @@ public:
     return listFromDouble(v);
   }
 
+  bp::list getKnownConstraintsList(void) const
+  {
+    return listFromString(getKnownConstraints());
+  }
+  
   void setPoseTargetPython(bp::list &pose)
   {
     std::vector<double> v = doubleFromList(pose);
@@ -294,7 +251,15 @@ void wrap_move_group_interface()
 
   MoveGroupClass.def("get_goal_tolerance", &MoveGroupWrapper::getGoalTolerance); 
   MoveGroupClass.def("set_goal_tolerance", &MoveGroupWrapper::setGoalTolerance); 
+
+  MoveGroupClass.def("set_path_constraints", &MoveGroupWrapper::setPathConstraints); 
+  MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints); 
+  MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
 }
+
+
+
+
 
 }
 

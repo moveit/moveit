@@ -32,30 +32,23 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: E. Gil Jones */
+/* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
-#define MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
+#ifndef MOVEIT_PY_BINDINGS_TOOLS_ROSCPP_INITIALIZER_
+#define MOVEIT_PY_BINDINGS_TOOLS_ROSCPP_INITIALIZER_
 
-#include <moveit_warehouse/warehouse.h>
-
-namespace moveit_warehouse
+/** \brief Tools for creating python bindings for MoveIt */
+namespace moveit_py_bindings_tools
 {
 
-class WarehouseConnector
+/** \brief The constructor of this class ensures that ros::init() has
+    been called.  Thread safety and multiple initialization is
+    properly handled. When the process terminates, ros::shotdown() is
+    also called, if needed. */
+class ROScppInitializer
 {
 public:
-  
-  WarehouseConnector(const std::string &mongoexec);
-  
-  ~WarehouseConnector(void);
-  
-  bool connectToDatabase(const std::string& db_dirname, boost::shared_ptr<PlanningSceneStorage>& planning_scene_storage);
-  
-private:
-  
-  std::string mongoexec_;
-  int child_pid_;
+  ROScppInitializer(void);
 };
 
 }

@@ -67,7 +67,8 @@ void PlanningSceneFileMenu::connectToNewDatabaseSignalled() {
   dialog.setOption(QFileDialog::ShowDirsOnly, true);
   if(dialog.exec()) {
     QStringList dirnames = dialog.selectedFiles();
-    warehouse_connector_.connectToDatabase(dirnames[0].toStdString(), storage_);
+    warehouse_connector_.connectToDatabase(dirnames[0].toStdString());
+    storage_.reset(new moveit_warehouse::PlanningSceneStorage());
     save_current_scene_->setEnabled(true);
     load_planning_scene_->setEnabled(true);
   }

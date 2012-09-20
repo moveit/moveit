@@ -35,7 +35,7 @@
 #include <QWidget>
 #include <QTreeWidgetItem>
 #include <move_group_interface/move_group.h>
-#include <moveit_warehouse/warehouse.h>
+#include <moveit/warehouse/planning_scene_storage.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 
 namespace rviz
