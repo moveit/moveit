@@ -153,6 +153,16 @@ public:
     return joint_model_;
   }
   
+  const std::string& getLocalVariableName(void) const
+  {
+    return local_variable_name_;
+  }
+
+  const std::string& getJointVariableName(void) const
+  {
+    return joint_variable_name_;
+  }
+  
   double getDesiredJointPosition(void) const
   {
     return joint_position_;
@@ -167,15 +177,13 @@ public:
   {
     return joint_tolerance_below_;
   }
-
-  std::string getConstraintPrintString(const std::string& joint_name,
-                                       double current_joint_position,
-                                       bool result) const;
   
 protected:
   
   const planning_models::KinematicModel::JointModel *joint_model_;
   bool                                               joint_is_continuous_;
+  std::string                                        local_variable_name_;
+  std::string                                        joint_variable_name_;
   double                                             joint_position_, joint_tolerance_above_, joint_tolerance_below_;
 };
 

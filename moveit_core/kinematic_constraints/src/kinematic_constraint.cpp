@@ -71,54 +71,99 @@ kinematic_constraints::KinematicConstraint::~KinematicConstraint(void)
 
 bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointConstraint &jc)
 {
-  joint_model_ = kmodel_->getJointModel(jc.joint_name);
+  joint_variable_name_ = jc.joint_name;
+  local_variable_name_.clear();
+  std::size_t pos = jc.joint_name.find_last_of("/");
+  if (pos != std::string::npos)
+  {
+    joint_model_ = kmodel_->getJointModel(jc.joint_name.substr(0, pos));
+    if (pos + 1 < jc.joint_name.length())
+      local_variable_name_ = jc.joint_name.substr(pos + 1);
+  }
+  else
+    joint_model_ = kmodel_->getJointModel(jc.joint_name);
+  
+  
   if (joint_model_)
   {
-    // check if the joint has 1 DOF (the only kind we can handle)
-    if (joint_model_->getVariableCount() == 0)
+    if (local_variable_name_.empty())
     {
-      ROS_ERROR_STREAM("Joint '" << jc.joint_name << "' has no parameters to constrain");
-      joint_model_ = NULL;
-    }
-    else
-      if (joint_model_->getVariableCount() > 1)
+      // check if the joint has 1 DOF (the only kind we can handle)
+      if (joint_model_->getVariableCount() == 0)
       {
-        ROS_ERROR_STREAM("Joint '" << jc.joint_name << "' has more than one parameter to constrain. This type of constraint is not supported.");
+        ROS_ERROR_STREAM("Joint '" << jc.joint_name << "' has no parameters to constrain");
         joint_model_ = NULL;
       }
+      else
+        if (joint_model_->getVariableCount() > 1)
+        {
+          ROS_ERROR_STREAM("Joint '" << jc.joint_name << "' has more than one parameter to constrain. This type of constraint is not supported.");
+          joint_model_ = NULL;
+        }
+    }
+    else
+    {
+      int found = -1;
+      const std::vector<std::string> &local_var_names = joint_model_->getLocalVariableNames();
+      for (std::size_t i = 0 ; i < local_var_names.size() ; ++i)
+        if (local_var_names[i] == local_variable_name_)
+        {
+          found = i;
+          break;
+        }
+      if (found < 0)
+      {
+        ROS_ERROR("Local variable name '%s' is not known to joint '%s'", local_variable_name_.c_str(), joint_model_->getName().c_str());
+        joint_model_ = NULL;
+      }
+    }
   }
+  
 
   if (joint_model_)
   {
     joint_is_continuous_ = false;
     joint_tolerance_above_ = jc.tolerance_above;
     joint_tolerance_below_ = jc.tolerance_below;
-
+    
     // check if we have to wrap angles when computing distances
-    const planning_models::KinematicModel::RevoluteJointModel *revolute_joint = dynamic_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model_);
-    if (revolute_joint && revolute_joint->isContinuous())
+    joint_is_continuous_ = false;
+    if (joint_model_->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
     {
-      joint_is_continuous_ = true;
+      const planning_models::KinematicModel::RevoluteJointModel *rjoint = static_cast<const planning_models::KinematicModel::RevoluteJointModel*>(joint_model_);
+      if (rjoint->isContinuous())
+        joint_is_continuous_ = true;
+    }
+    else
+      if (joint_model_->getType() == planning_models::KinematicModel::JointModel::PLANAR)
+      {
+        if (local_variable_name_ == "theta") 
+          joint_is_continuous_ = true;
+      }
+    
+    if (joint_is_continuous_)
+    {
       joint_position_ = normalizeAngle(jc.position);
     }
     else
     {
       joint_position_ = jc.position;
-
+      
       std::pair<double, double> bounds;
-      joint_model_->getVariableBounds(joint_model_->getName(), bounds);
+      joint_model_->getVariableBounds(joint_variable_name_, bounds);
+
       if (bounds.first > joint_position_ + joint_tolerance_above_)
       {
 	joint_position_ = bounds.first;
 	joint_tolerance_above_ = std::numeric_limits<double>::epsilon();
-	ROS_WARN("Joint %s is constrained to be below the minimum bounds. Assuming minimum bounds instead.", joint_model_->getName().c_str());
+	ROS_WARN("Joint %s is constrained to be below the minimum bounds. Assuming minimum bounds instead.", jc.joint_name.c_str());
       }
       else
 	if (bounds.second < joint_position_ - joint_tolerance_below_)
 	{
 	  joint_position_ = bounds.second;
 	  joint_tolerance_below_ = std::numeric_limits<double>::epsilon();
-	  ROS_WARN("Joint %s is constrained to be above the maximum bounds. Assuming maximum bounds instead.", joint_model_->getName().c_str());
+	  ROS_WARN("Joint %s is constrained to be above the maximum bounds. Assuming maximum bounds instead.", jc.joint_name.c_str());
 	}
     }
     
@@ -135,7 +180,7 @@ bool kinematic_constraints::JointConstraint::equal(const KinematicConstraint &ot
   if (other.getType() != type_)
     return false;
   const JointConstraint &o = static_cast<const JointConstraint&>(other);
-  if (o.joint_model_ == joint_model_)
+  if (o.joint_model_ == joint_model_ && o.local_variable_name_ == local_variable_name_)
     return fabs(joint_position_ - o.joint_position_) <= margin &&
       fabs(joint_tolerance_above_ - o.joint_tolerance_above_) <= margin &&
       fabs(joint_tolerance_below_ - o.joint_tolerance_below_) <= margin;
@@ -156,6 +201,19 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointCo
   }
   
   double current_joint_position = joint->getVariableValues()[0];
+  if (!local_variable_name_.empty())
+  {
+    const std::map<std::string, unsigned int> &index_map = joint->getVariableIndexMap();
+    std::map<std::string, unsigned int>::const_iterator it = index_map.find(joint_variable_name_);
+    if (it == index_map.end())
+    {   
+      ROS_WARN_STREAM("Local name '" << local_variable_name_ << "' is not known to joint state with name '" << joint_model_->getName() << "'");
+      return ConstraintEvaluationResult(true, 0.0);
+    }
+    else
+      current_joint_position = joint->getVariableValues()[it->second];
+  }
+  
   double dif = 0.0;
   
   // compute signed shortest distance for continuous joints
@@ -179,22 +237,9 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::JointCo
   bool result = dif <= joint_tolerance_above_ && dif >= -joint_tolerance_below_;
   if (verbose)
     ROS_INFO("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: %f, tolerance_below: %f",
-             result ? "satisfied" : "violated", joint->getName().c_str(), current_joint_position, joint_position_, joint_tolerance_above_, joint_tolerance_below_);
-  else if(!result) {
-    ROS_DEBUG_STREAM_NAMED("constraint_violation",getConstraintPrintString(joint->getName(),
-                                                                           current_joint_position,
-                                                                           result));
-  }
+             result ? "satisfied" : "violated", joint_variable_name_.c_str(),
+             current_joint_position, joint_position_, joint_tolerance_above_, joint_tolerance_below_);
   return ConstraintEvaluationResult(result, constraint_weight_ * fabs(dif));
-}
-
-std::string kinematic_constraints::JointConstraint::getConstraintPrintString(const std::string& joint_name,
-                                                                             double current_joint_position,
-                                                                             bool result) const
-{
-  std::stringstream s;
-  s << "Constraint " << (result ? " satisfied " : " violated ") << " :: Joint name: " << joint_name << ", actual value: " << current_joint_position << ", desired value: " << joint_position_ << ", tolerance_above: " << joint_tolerance_above_ << ", tolerance_below: " << joint_tolerance_below_;
-  return s.str();
 }
 
 bool kinematic_constraints::JointConstraint::enabled(void) const
@@ -211,7 +256,7 @@ void kinematic_constraints::JointConstraint::print(std::ostream &out) const
 {
   if (joint_model_)
   {
-    out << "Joint constraint for joint " << joint_model_->getName() << ": " << std::endl;
+    out << "Joint constraint for joint " << joint_variable_name_ << ": " << std::endl;
     out << "  value = ";
     out << joint_position_ << "; ";
     out << "  tolerance below = ";
