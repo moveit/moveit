@@ -37,83 +37,39 @@
 #ifndef MOVEIT_MOVEIT_WAREHOUSE_CONSTRAINTS_STORAGE_
 #define MOVEIT_MOVEIT_WAREHOUSE_CONSTRAINTS_STORAGE_
 
-#include <mongo_ros/message_collection.h>
-#include <moveit_msgs/PlanningScene.h>
-#include <moveit_msgs/MotionPlanRequest.h>
-#include <moveit_msgs/RobotTrajectory.h>
+#include "moveit/warehouse/moveit_message_storage.h"
+#include <moveit_msgs/Constraints.h>
 
 namespace moveit_warehouse
 {
 
-typedef mongo_ros::MessageWithMetadata<moveit_msgs::PlanningScene>::ConstPtr PlanningSceneWithMetadata;
-typedef mongo_ros::MessageWithMetadata<moveit_msgs::MotionPlanRequest>::ConstPtr MotionPlanRequestWithMetadata;
-typedef mongo_ros::MessageWithMetadata<moveit_msgs::RobotTrajectory>::ConstPtr RobotTrajectoryWithMetadata;
+typedef mongo_ros::MessageWithMetadata<moveit_msgs::Constraints>::ConstPtr ConstraintsWithMetadata;
+typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::Constraints> > ConstraintsCollection;
 
-typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::PlanningScene> > PlanningSceneCollection;
-typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::MotionPlanRequest> > MotionPlanRequestCollection;
-typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotTrajectory> > RobotTrajectoryCollection;
-
-class PlanningSceneStorage
+class ConstraintsStorage : public MoveItMessageStorage
 {
 public:
-  /** \brief Initialize the planning scene storage to connect to a specified \e host and \e port for the MongoDB. 
+  /** \brief Initialize the constraints storage to connect to a specified \e host and \e port for the MongoDB. 
       If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying 
       which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
       If these params are not found either, a final attempt is made to look for the param values under /moveit_warehouse/warehouse_*.
       If no values are found, the defaults are left to be the ones MongoDB uses. 
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
-  PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+  ConstraintsStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
   
-  void addPlanningScene(const moveit_msgs::PlanningScene &scene);
-  void addPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");
-  void addPlanningResult(const moveit_msgs::MotionPlanRequest &planning_query, const moveit_msgs::RobotTrajectory &result, const std::string &scene_name);
-  
-  bool hasPlanningScene(const std::string &name) const;
-  void getPlanningSceneNames(std::vector<std::string> &names) const;
-  void getPlanningSceneNamesAndTimes(std::vector<std::string> &names, std::vector<ros::Time>& times) const;
+  void addConstraints(const moveit_msgs::Constraints &msg);
+  bool hasConstraints(const std::string &name) const;
+  void getKnownConstraints(std::vector<std::string> &names) const;
 
-  /** \brief Get the planning scene named \e scene_name and time stamp closest to \e time. If the scene is found but the time difference between its stamp and \e time is larger than \e margin, a warning is issued. */
-  bool getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name, const ros::Time& time, double margin = 1.0) const;
+  /** \brief Get the constraints named \e name. Return false on failure. */
+  bool getConstraints(ConstraintsWithMetadata &msg_m, const std::string &name) const;
 
-  /** \brief Get the latest planning scene named \e scene_name */
-  bool getPlanningScene(PlanningSceneWithMetadata &scene_m, const std::string &scene_name) const;
-
-  bool getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name, const ros::Time& time, double margin = 1.0) const;
-  bool getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world, const std::string &scene_name) const;
-
-  bool getPlanningQuery(MotionPlanRequestWithMetadata &query_m, const std::string &scene_name, const std::string &query_name);
-  void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const;  
-  void getPlanningQueries(std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names, const std::string &scene_name) const;
-
-  void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
-  void getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &query_name, const std::string &scene_name) const;
-  
-  void removePlanningScene(const std::string &scene_name);
-  void removePlanningQuery(const std::string &scene_name, const std::string &query_name);
-  void removePlanningQueries(const std::string &scene_name);
-  void removePlanningResults(const std::string &scene_name);
-  void removePlanningResults(const std::string &scene_name, const std::string &query_name);
-
-  const std::string& getDatabaseHost(void) const
-  {
-    return db_host_;    
-  }
-  
-  unsigned int getDatabasePort(void) const
-  {
-    return db_port_;
-  }
+  void removeConstraints(const std::string &scene_name);
   
 private:
   
-  std::string getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
-  std::string addNewPlanningRequest(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name);
+  ConstraintsCollection constraints_collection_;
   
-  PlanningSceneCollection     planning_scene_collection_;
-  MotionPlanRequestCollection motion_plan_request_collection_;
-  RobotTrajectoryCollection   robot_trajectory_collection_;
-  std::string                 db_host_;
-  unsigned int                db_port_;
 };
 }
 

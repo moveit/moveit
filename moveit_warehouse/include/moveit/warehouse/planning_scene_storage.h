@@ -34,10 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_
-#define MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_
+#ifndef MOVEIT_MOVEIT_WAREHOUSE_PLANNING_SCENE_STORAGE_
+#define MOVEIT_MOVEIT_WAREHOUSE_PLANNING_SCENE_STORAGE_
 
-#include <mongo_ros/message_collection.h>
+#include "moveit/warehouse/moveit_message_storage.h"
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/RobotTrajectory.h>
@@ -53,7 +53,7 @@ typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::PlanningScen
 typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::MotionPlanRequest> > MotionPlanRequestCollection;
 typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotTrajectory> > RobotTrajectoryCollection;
 
-class PlanningSceneStorage
+class PlanningSceneStorage : public MoveItMessageStorage
 {
 public:
   /** \brief Initialize the planning scene storage to connect to a specified \e host and \e port for the MongoDB. 
@@ -94,16 +94,6 @@ public:
   void removePlanningResults(const std::string &scene_name);
   void removePlanningResults(const std::string &scene_name, const std::string &query_name);
 
-  const std::string& getDatabaseHost(void) const
-  {
-    return db_host_;    
-  }
-  
-  unsigned int getDatabasePort(void) const
-  {
-    return db_port_;
-  }
-  
 private:
   
   std::string getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const;
@@ -112,8 +102,6 @@ private:
   PlanningSceneCollection     planning_scene_collection_;
   MotionPlanRequestCollection motion_plan_request_collection_;
   RobotTrajectoryCollection   robot_trajectory_collection_;
-  std::string                 db_host_;
-  unsigned int                db_port_;
 };
 }
 

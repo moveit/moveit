@@ -37,7 +37,7 @@
 #ifndef MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
 #define MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
 
-#include <moveit_warehouse/warehouse.h>
+#include <string>
 
 namespace moveit_warehouse
 {
@@ -50,7 +50,7 @@ public:
   
   ~WarehouseConnector(void);
   
-  bool connectToDatabase(const std::string& db_dirname, boost::shared_ptr<PlanningSceneStorage>& planning_scene_storage);
+  bool connectToDatabase(const std::string& db_dirname);
   
 private:
   

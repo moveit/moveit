@@ -38,6 +38,7 @@
 #define MOVEIT_MOVEIT_WAREHOUSE_MOVEIT_MESSAGE_STORAGE_
 
 #include <mongo_ros/message_collection.h>
+#include <string>
 
 namespace moveit_warehouse
 {
@@ -67,9 +68,6 @@ public:
   }
   
 protected:
-  
-  /** \brief This function constructs the needed collections */
-  virtual void initializeCollections(void) = 0;
   
   std::string  db_host_;
   unsigned int db_port_;

@@ -21,7 +21,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #common commands for building c++ executables and libraries
 rosbuild_add_boost_directories()
 rosbuild_add_library(${PROJECT_NAME} 
-  src/warehouse.cpp
+  src/moveit_message_storage.cpp
+  src/planning_scene_storage.cpp
+  src/constraints_storage.cpp
   src/warehouse_connector.cpp)
 rosbuild_link_boost(${PROJECT_NAME} date_time thread system)
 
