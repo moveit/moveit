@@ -134,6 +134,9 @@ void MainWindow::visualiseWorkspace()
 
 void MainWindow::setUIFromWorkspace(const kinematics_reachability::WorkspacePoints &workspace)
 {
+
+  workspace_.orientations.clear();
+
   int row_count = ui_->table_widget->rowCount();
 
   for (int i=0; i < row_count; i++)
