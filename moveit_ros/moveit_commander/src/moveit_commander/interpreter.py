@@ -248,6 +248,11 @@ class MoveGroupCommandInterpreter:
                     return (MoveGroupInfoLevel.SUCCESS, "OK")
                 except:
                     return (MoveGroupInfoLevel.WARN, "Unable to parse tolerance value '" + clist[1] + "'")
+            elif clist[0] == "constrain":
+                if g.set_path_constraints(clist[1]):
+                    return (MoveGroupInfoLevel.SUCCESS, "OK")
+                else:
+                    return (MoveGroupInfoLevel.WARN, "Constraint " + clist[1] + " is not known")
             elif clist[0] == "wait":
                 try:
                     time.sleep(float(clist[1]))

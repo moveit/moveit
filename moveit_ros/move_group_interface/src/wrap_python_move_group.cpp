@@ -255,6 +255,7 @@ void wrap_move_group_interface()
   MoveGroupClass.def("set_path_constraints", &MoveGroupWrapper::setPathConstraints); 
   MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints); 
   MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
+  MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase);
 }
 
 

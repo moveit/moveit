@@ -48,7 +48,7 @@ moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string &
   planning_scene_collection_.reset(new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene", db_host_, db_port_, wait_seconds));
   motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(DATABASE_NAME, "motion_plan_request", db_host_, db_port_, wait_seconds));
   robot_trajectory_collection_.reset(new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory", db_host_, db_port_, wait_seconds));
-  ROS_INFO("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
+  ROS_DEBUG("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
 }
 
 void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)
@@ -56,7 +56,7 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs:
   mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene.name,
                                PLANNING_SCENE_TIME_NAME, scene.robot_state.joint_state.header.stamp.toSec());
   planning_scene_collection_->insert(scene, metadata); 
-  ROS_INFO("Saved scene '%s'", scene.name.c_str());
+  ROS_DEBUG("Saved scene '%s'", scene.name.c_str());
 }
 
 bool moveit_warehouse::PlanningSceneStorage::hasPlanningScene(const std::string &name) const
@@ -131,7 +131,7 @@ std::string moveit_warehouse::PlanningSceneStorage::addNewPlanningRequest(const 
   mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene_name,
                                MOTION_PLAN_REQUEST_ID_NAME, id);
   motion_plan_request_collection_->insert(planning_query, metadata);
-  ROS_INFO("Saved planning query '%s' for scene '%s'", id.c_str(), scene_name.c_str());
+  ROS_DEBUG("Saved planning query '%s' for scene '%s'", id.c_str(), scene_name.c_str());
   return id;
 }
 

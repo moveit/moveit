@@ -34,6 +34,7 @@
 
 #include <QWidget>
 #include <QTreeWidgetItem>
+#include <QListWidgetItem>
 #include <move_group_interface/move_group.h>
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
@@ -110,6 +111,7 @@ private Q_SLOTS:
   void objectRYValueChanged(double v);
   void objectRZValueChanged(double v);
   void publishSceneButtonClicked(void);
+  void collisionObjectNameChanged(QListWidgetItem *item);
   
 private:
 
@@ -140,6 +142,7 @@ private:
   ros::Publisher planning_scene_publisher_;
   
   collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
+  std::vector<std::string> collision_object_names_;
 };
 
 }

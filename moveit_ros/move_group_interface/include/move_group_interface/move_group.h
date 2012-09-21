@@ -190,6 +190,7 @@ public:
   std::vector<std::string> getKnownConstraints(void) const;
   bool setPathConstraints(const std::string &constraint);
   void clearPathConstraints(void);
+  void setConstraintsDatabase(const std::string &host, unsigned int port);
   
 private:
 
