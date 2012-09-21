@@ -26,20 +26,19 @@ public:
 Q_SIGNALS:
   void currentProgressSignal(int current);
   void maxProgressSignal(int total);
-  //void setLabelsSignal(QString name, QString frame_id);
   void setFrameIdLabel(QString frame_id);
   void setNameLabel(QString name);
-  //void setMinimumProgress(int minimum_progress);
-  //void resetProgressBar();
-  //void setUISignal(tf::Quaternion orientations[], int size, double resolution, double min_x, double min_y, double min_z, double max_x, double max_y, double max_z, double offset_x, double offset_y, double offset_z, double offset_roll, double offset_pitch, double offset_yaw);
   void setUISignal(const kinematics_reachability::WorkspacePoints &workspace);
-  //void addRow(double, double, double);
   void doneComputing();
+  void sendWorkspace(const kinematics_reachability::WorkspacePoints &workspace);
 
 private Q_SLOTS:
   void addOrientation(QString roll, QString pitch, QString yaw);
-  void computeKinematics(double min_x, double min_y, double min_z, double max_x, double max_y, double max_z, double resolution, double offset_roll, double offset_pitch, double offset_yaw, double offset_x, double offset_y, double offset_z);
-  void visualise(double min_x, double min_y, double min_z, double max_x, double max_y, double max_z, double resolution, double offset_roll, double offset_pitch, double offset_yaw, double offset_x, double offset_y, double offset_z);
+  //void computeKinematics(double min_x, double min_y, double min_z, double max_x, double max_y, double max_z, double resolution, double offset_roll, double offset_pitch, double offset_yaw, double offset_x, double offset_y, double offset_z);
+  //void visualise(double min_x, double min_y, double min_z, double max_x, double max_y, double max_z, double resolution, double offset_roll, double offset_pitch, double offset_yaw, double offset_x, double offset_y, double offset_z);
+  void computeKinematics(const kinematics_reachability::WorkspacePoints& workspace);
+  void visualise(const kinematics_reachability::WorkspacePoints& workspace);
+  void computeFK(const kinematics_reachability::WorkspacePoints& workspace, double timeout);
 
 private:
   kinematics_reachability::WorkspacePoints workspace_;
