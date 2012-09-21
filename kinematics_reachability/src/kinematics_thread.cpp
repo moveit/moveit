@@ -1,14 +1,12 @@
 #include <QMainWindow>
 #include <kinematics_reachability/kinematics_reachability.h>
 #include <ros/ros.h>
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+//#include "mainwindow.h"
+//#include "ui_mainwindow.h"
 #include <tf/transform_datatypes.h>
 #include <iostream>
 #include "angles/angles.h"
 #include "kinematics_thread.h"
-
-
 
 namespace kinematics_thread
 {
@@ -90,7 +88,10 @@ void KinematicsThread::setUI(const kinematics_reachability::WorkspacePoints &wor
 void KinematicsThread::bagCallback(const kinematics_reachability::WorkspacePointsConstPtr &msg)
 {
   workspace_ = *msg;
-  setUI(workspace_);  
+  setUI(workspace_); 
+  ROS_INFO("Orientations: %d",workspace_.orientations.size());
+  ROS_INFO("Points: %d",workspace_.points.size());
+  
   reachability_solver_.visualizeWorkspaceSamples(workspace_);
   reachability_solver_.visualize(workspace_,"bag");
   reachability_solver_.animateWorkspace(workspace_);
@@ -110,7 +111,7 @@ void KinematicsThread::updateProgressBar(const kinematics_reachability::Progress
 void KinematicsThread::computeFK(const kinematics_reachability::WorkspacePoints& workspace, double timeout)
 {
   workspace_.points.clear();
-  workspace_ = workspace;
+  workspace_.orientations.clear();
 
   while(!reachability_solver_.isActive())
   {
@@ -118,6 +119,8 @@ void KinematicsThread::computeFK(const kinematics_reachability::WorkspacePoints&
     ROS_INFO("Waiting for planning scene to be set");
   }
   reachability_solver_.computeWorkspaceFK(workspace_, timeout);
+  ROS_INFO("Workspace has %d points",workspace_.points.size());
+  
   reachability_solver_.visualize(workspace_,"solutions");
   reachability_solver_.animateWorkspace(workspace_);
   reachability_solver_.publishWorkspace(workspace_);
