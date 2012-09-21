@@ -174,12 +174,22 @@ public:
       
       execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>("execute_kinematic_path");
       query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>("query_planner_interface");
+      initializeConstraintsStorage();
       ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
     }
     else
       ROS_ERROR("Unable to initialize MoveGroup interface.");
   }
 
+  ~MoveGroupImpl(void)
+  {
+    if (constraints_init_thread_)
+    {
+      constraints_init_thread_->interrupt();
+      constraints_init_thread_->join();
+    }
+  }
+  
   const boost::shared_ptr<tf::Transformer>& getTF(void) const
   {
     return tf_;
@@ -477,7 +487,34 @@ public:
     return c;
   }
   
+  void initializeConstraintsStorage(const std::string &host = "", unsigned int port = 0)
+  {
+    if (constraints_init_thread_)
+    {
+      constraints_init_thread_->interrupt();
+      constraints_init_thread_->join();
+    }
+    constraints_init_thread_.reset(new boost::thread(boost::bind(&MoveGroupImpl::initializeConstraintsStorageThread, this, host, port)));
+  }
+  
 private:
+  
+  void initializeConstraintsStorageThread(const std::string &host, unsigned int port)
+  {
+    // this is interruptible, allows the thread to quickly terminate if the destructor is 
+    // triggered right after the constructor
+    ros::WallDuration(0.1).sleep();
+    
+    try
+    {
+      constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(host, port));
+      ROS_DEBUG("Connected to constraints database");
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_DEBUG("%s", ex.what());
+    }
+  }
   
   Options opt_;
   ros::NodeHandle node_handle_;
@@ -497,11 +534,12 @@ private:
   bool can_replan_;
   
   bool use_joint_state_target_;
-
+  
   ros::Publisher trajectory_event_publisher_;
   ros::ServiceClient execute_service_;
   ros::ServiceClient query_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
+  boost::scoped_ptr<boost::thread> constraints_init_thread_;
 };
 
 MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
@@ -688,7 +726,7 @@ void MoveGroup::setPoseTarget(const geometry_msgs::PoseStamped &target)
   tf::Stamped<tf::Pose> stamped_pose(pose, target.header.stamp, target.header.frame_id);
   tf::Stamped<tf::Pose> stamped_pose_out;
   impl_->getTF()->transformPose(impl_->getPoseReferenceFrame(), stamped_pose, stamped_pose_out);
-
+  
   geometry_msgs::Pose pose_out;
   tf::poseTFToMsg(stamped_pose_out, pose_out);
   setPoseTarget(pose_out);
@@ -729,7 +767,7 @@ double MoveGroup::getGoalTolerance(void) const
 {
   return impl_->getGoalTolerance();
 }
-  
+
 void MoveGroup::setGoalTolerance(double tolerance)
 {
   impl_->setGoalTolerance(tolerance);
@@ -753,11 +791,11 @@ std::vector<double> MoveGroup::getRandomJointValues(void)
 {
   std::vector<double> backup;
   impl_->getJointStateTarget()->getGroupStateValues(backup);
-
+  
   impl_->getJointStateTarget()->setToRandomValues();
   std::vector<double> r;
   impl_->getJointStateTarget()->getGroupStateValues(r);
-
+  
   impl_->getJointStateTarget()->setStateValues(backup);
   return r;
 }
@@ -820,6 +858,11 @@ bool MoveGroup::setPathConstraints(const std::string &constraint)
 void MoveGroup::clearPathConstraints(void)
 {
   impl_->clearPathConstraints();
+}
+
+void MoveGroup::setConstraintsDatabase(const std::string &host, unsigned int port)
+{  
+  impl_->initializeConstraintsStorage(host, port);
 }
 
 }

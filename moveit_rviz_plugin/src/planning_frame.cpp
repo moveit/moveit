@@ -81,6 +81,7 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->object_rz, SIGNAL( valueChanged(double) ), this, SLOT( objectRZValueChanged(double) ));
   connect( ui_->publish_current_scene_button, SIGNAL( clicked() ), this, SLOT( publishSceneButtonClicked() ));
   connect( ui_->collision_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedCollisionObjectChanged() ));
+  connect( ui_->collision_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( collisionObjectNameChanged( QListWidgetItem * ) ));
   
   ui_->tabWidget->setCurrentIndex(0);
 }
@@ -151,13 +152,19 @@ void moveit_rviz_plugin::PlanningFrame::populateCollisionObjectsList(void)
 {
   ui_->collision_objects_list->setUpdatesEnabled(false);
   ui_->collision_objects_list->clear();
+  collision_object_names_.clear();
   
   if (planning_display_->getPlanningSceneMonitor())
   {
     collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
-    const std::vector<std::string>& objects = world->getObjectIds();
-    for (std::size_t i = 0 ; i < objects.size() ; ++i)
-      ui_->collision_objects_list->addItem(QString::fromStdString(objects[i]));
+    collision_object_names_ = world->getObjectIds();
+    for (std::size_t i = 0 ; i < collision_object_names_.size() ; ++i)
+    {
+      QListWidgetItem *item = new QListWidgetItem(QString::fromStdString(collision_object_names_[i]),
+                                                  ui_->collision_objects_list, (int)i);
+      item->setFlags(item->flags() | Qt::ItemIsEditable);
+      ui_->collision_objects_list->addItem(item);
+    }
   }
   ui_->collision_objects_list->setUpdatesEnabled(true);
 }
@@ -197,6 +204,23 @@ void moveit_rviz_plugin::PlanningFrame::removeObjectButtonClicked(void)
       world->removeObject(sel[i]->text().toStdString());
     populateCollisionObjectsList();
     planning_display_->queueRenderSceneGeometry(); 
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::collisionObjectNameChanged(QListWidgetItem *item)
+{
+  if (item->type() < (int)collision_object_names_.size() && 
+      collision_object_names_[item->type()] != item->text().toStdString() && 
+      planning_display_->getPlanningSceneMonitor())
+  {  
+    collision_detection::CollisionWorldPtr world = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getCollisionWorld();
+    collision_detection::CollisionWorld::ObjectConstPtr obj = world->getObject(collision_object_names_[item->type()]);
+    if (obj)
+    {
+      collision_object_names_[item->type()] = item->text().toStdString();
+      world->removeObject(obj->id_);
+      world->addToObject(collision_object_names_[item->type()], obj->shapes_, obj->shape_poses_);
+    }
   }
 }
 
@@ -712,7 +736,8 @@ void moveit_rviz_plugin::PlanningFrame::computeSaveSceneButtonClicked(void)
   {
     moveit_msgs::PlanningScene msg;
     planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningSceneMsg(msg);
-    planning_scene_storage_->addPlanningScene(msg); 
+    planning_scene_storage_->removePlanningScene(msg.name);
+    planning_scene_storage_->addPlanningScene(msg);
     planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlanningSceneTreeView, this));
   }
 }
