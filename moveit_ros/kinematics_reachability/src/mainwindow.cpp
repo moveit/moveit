@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
   QObject::connect(&kinematics_thread_,SIGNAL(setUISignal(const kinematics_reachability::WorkspacePoints&)),this,SLOT(setUIFromWorkspace(kinematics_reachability::WorkspacePoints)));
   QObject::connect(&kinematics_thread_,SIGNAL(doneComputing()),this,SLOT(Success()));
   QObject::connect(&kinematics_thread_,SIGNAL(sendWorkspace(const kinematics_reachability::WorkspacePoints&)),this,SLOT(receiveWorkspace(const kinematics_reachability::WorkspacePoints&)));
-  QObject::connect(this,SIGNAL(addRowSignal(QString, QString, QString)),&kinematics_thread_,SLOT(addOrientation(QString, QString, QString)));
+  //  QObject::connect(this,SIGNAL(addRowSignal(QString, QString, QString)),&kinematics_thread_,SLOT(addOrientation(QString, QString, QString)));
   QObject::connect(this,SIGNAL(startComputation(const kinematics_reachability::WorkspacePoints&)),&kinematics_thread_,SLOT(computeKinematics(const kinematics_reachability::WorkspacePoints&)));
   QObject::connect(this,SIGNAL(startVisualisation(const kinematics_reachability::WorkspacePoints&)),&kinematics_thread_,SLOT(visualise(const kinematics_reachability::WorkspacePoints&)));
   QObject::connect(this,SIGNAL(startFKComputation(const kinematics_reachability::WorkspacePoints&, double)),&kinematics_thread_,SLOT(computeFK(const kinematics_reachability::WorkspacePoints&, double)));
@@ -66,7 +66,7 @@ void MainWindow::addRow()
   QString pitch = ui_->edit_text_pitch->text();
   QString yaw = ui_->edit_text_yaw->text();
 
-  Q_EMIT addRowSignal(roll, pitch, yaw);
+  //  Q_EMIT addRowSignal(roll, pitch, yaw);
 
   MainWindow::addRow(roll, pitch, yaw);
 
@@ -86,8 +86,9 @@ void MainWindow::addRow(QString roll, QString pitch, QString yaw)
   ui_->edit_text_pitch->clear();
   ui_->edit_text_yaw->clear();
 
-
-    
+  geometry_msgs::Quaternion quaternion;
+  quaternion = tf::createQuaternionMsgFromRollPitchYaw(angles::from_degrees(roll.toDouble()),angles::from_degrees(pitch.toDouble()),angles::from_degrees(yaw.toDouble()));
+  workspace_.orientations.push_back(quaternion);
 }
 
 void MainWindow::compute()
@@ -134,7 +135,6 @@ void MainWindow::visualiseWorkspace()
 
 void MainWindow::setUIFromWorkspace(const kinematics_reachability::WorkspacePoints &workspace)
 {
-
   int row_count = ui_->table_widget->rowCount();
 
   for (int i=0; i < row_count; i++)
