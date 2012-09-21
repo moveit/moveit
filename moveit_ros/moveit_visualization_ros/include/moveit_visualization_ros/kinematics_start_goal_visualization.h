@@ -140,6 +140,10 @@ public:
       goal_->setVisible(visible);
   }
 
+  void hideGoalRegularMarkers();
+  void showGoalRegularMarkers();
+
+
   /** brief Activate the controls for the start chain. */
   void startOn();
 

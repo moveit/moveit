@@ -151,4 +151,12 @@ void KinematicsStartGoalVisualization::showAllMarkers() {
   goalOn();
 }
 
+void KinematicsStartGoalVisualization::hideGoalRegularMarkers() {
+  goal_->hideRegularMarkers();
+}
+
+void KinematicsStartGoalVisualization::showGoalRegularMarkers() {
+  goal_->showRegularMarkers();
+}
+
 }

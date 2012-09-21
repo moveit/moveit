@@ -85,8 +85,14 @@ public:
   /** If false, all interactive markers are disabled */
   virtual void setAllStartInteractionModes(bool interaction_enabled);
 
-  /** If false, all interactive markers are disabled */
+  /** If false, all markers are hidden */
   virtual void setAllStartVisibility(bool visible);
+
+  /** If false, all interactive markers are disabled */
+  virtual void setAllGoalInteractionModes(bool interaction_enabled);
+
+  /** If false, all markers are hidden */
+  virtual void setAllGoalVisibility(bool visible);
 
   virtual std::string getCurrentGroup() const {
     return current_group_;
