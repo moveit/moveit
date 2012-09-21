@@ -5,7 +5,7 @@
 #include <kinematics_reachability/kinematics_reachability.h>
 #include <ros/ros.h>
 //#include "mainwindow.h"
-#include "ui_mainwindow.h"
+//#include "mainwindow.h"
 #include <tf/transform_datatypes.h>
 #include <iostream>
 #include "angles/angles.h"
