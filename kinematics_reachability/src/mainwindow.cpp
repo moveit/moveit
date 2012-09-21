@@ -31,7 +31,6 @@ MainWindow::MainWindow(QWidget *parent) :
   QObject::connect(this,SIGNAL(startVisualisation(const kinematics_reachability::WorkspacePoints&)),&kinematics_thread_,SLOT(visualise(const kinematics_reachability::WorkspacePoints&)));
   QObject::connect(this,SIGNAL(startFKComputation(const kinematics_reachability::WorkspacePoints&, double)),&kinematics_thread_,SLOT(computeFK(const kinematics_reachability::WorkspacePoints&, double)));
 
-  //kinematics_thread_.start();
   kinematics_thread_.initialise();
 
 
@@ -268,7 +267,6 @@ void MainWindow::computeFK()
 
   double timeout = ui_->edit_text_timeout->text().toDouble();
 
-  ROS_INFO("COMPUTEFK PRESSED");
 
   Q_EMIT startFKComputation(workspace_, timeout);
 }
@@ -276,6 +274,5 @@ void MainWindow::computeFK()
 void MainWindow::receiveWorkspace(const kinematics_reachability::WorkspacePoints& workspace)
 {
   workspace_ = workspace;
-  ROS_INFO("..................................Updating workspace................................................");
 
 }

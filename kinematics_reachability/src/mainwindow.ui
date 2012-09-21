@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>442</width>
-    <height>860</height>
+    <width>431</width>
+    <height>898</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Moveit! Kinematics Tool</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QWidget" name="layoutWidget">
@@ -129,7 +129,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>760</y>
+      <y>670</y>
       <width>341</width>
       <height>27</height>
      </rect>
@@ -257,7 +257,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>760</y>
+      <y>670</y>
       <width>341</width>
       <height>31</height>
      </rect>
@@ -270,20 +270,20 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>710</y>
+      <y>790</y>
       <width>341</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>Compute with FK</string>
+     <string>Compute FK</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="edit_text_timeout">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>670</y>
+      <x>220</x>
+      <y>750</y>
       <width>101</width>
       <height>27</height>
      </rect>
@@ -292,8 +292,8 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>680</y>
+      <x>60</x>
+      <y>760</y>
       <width>161</width>
       <height>17</height>
      </rect>
@@ -305,14 +305,33 @@
    <widget class="QLabel" name="label_12">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>680</y>
+      <x>330</x>
+      <y>760</y>
       <width>66</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
      <string>s</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_13">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>720</y>
+      <width>151</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Forward Kinematics:</string>
     </property>
    </widget>
    <widget class="QWidget" name="">
@@ -547,17 +566,10 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>442</width>
+     <width>431</width>
      <height>25</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuMoveIt_Kinematics_Tool">
-    <property name="title">
-     <string>MoveIt! Kinematics Tool</string>
-    </property>
-    <addaction name="actionSave_Current"/>
-   </widget>
-   <addaction name="menuMoveIt_Kinematics_Tool"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
