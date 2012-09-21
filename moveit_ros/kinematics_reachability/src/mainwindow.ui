@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>442</width>
-    <height>782</height>
+    <height>860</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -129,7 +129,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>670</y>
+      <y>760</y>
       <width>341</width>
       <height>27</height>
      </rect>
@@ -257,13 +257,62 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>670</y>
+      <y>760</y>
       <width>341</width>
       <height>31</height>
      </rect>
     </property>
     <property name="value">
      <number>24</number>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="compute_fk_button">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>710</y>
+      <width>341</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Compute with FK</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="edit_text_timeout">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>670</y>
+      <width>101</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>680</y>
+      <width>161</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Time for Computation:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>680</y>
+      <width>66</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>s</string>
     </property>
    </widget>
    <widget class="QWidget" name="">
@@ -544,10 +593,12 @@
   <tabstop>edit_text_size_y</tabstop>
   <tabstop>edit_text_size_z</tabstop>
   <tabstop>edit_text_resolution</tabstop>
+  <tabstop>edit_text_timeout</tabstop>
   <tabstop>visualise_button</tabstop>
   <tabstop>compute_button</tabstop>
   <tabstop>tool_offset_enabled</tabstop>
   <tabstop>table_widget</tabstop>
+  <tabstop>compute_fk_button</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -575,7 +626,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>99</x>
-     <y>709</y>
+     <y>799</y>
     </hint>
     <hint type="destinationlabel">
      <x>441</x>
@@ -615,6 +666,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>compute_fk_button</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>computeFK()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>352</x>
+     <y>756</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>410</x>
+     <y>732</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>progress_points()</signal>
@@ -625,5 +692,6 @@
   <slot>showOffset(bool)</slot>
   <slot>visualiseWorkspace()</slot>
   <slot>publish()</slot>
+  <slot>computeFK()</slot>
  </slots>
 </ui>
