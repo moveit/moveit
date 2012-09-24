@@ -131,7 +131,14 @@ void GraspEvaluatorFast::testGrasps(const planning_scene::PlanningSceneConstPtr&
     //                                                pickup_goal.target.potential_models[0].pose.header.frame_id,
     //                                                potential_pose,
     //                                                obj_pose);
-    planning_models::poseFromMsg(co.mesh_poses[0], obj_pose);
+    if(co.mesh_poses.size() > 0) {
+      planning_models::poseFromMsg(co.mesh_poses[0], obj_pose);
+    } else if(co.primitive_poses.size() > 0) {
+      planning_models::poseFromMsg(co.primitive_poses[0], obj_pose);
+    } else {
+      ROS_ERROR_STREAM("No poses for object");
+      return;
+    }
   } 
   
   //assumes that whatever is in there is valid
