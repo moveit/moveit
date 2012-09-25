@@ -239,7 +239,6 @@ void KinematicsThread::setBoundaries(kinematics_reachability::WorkspacePoints &w
   double offset_roll_rad = angles::from_degrees(offset_roll);
   double offset_pitch_rad = angles::from_degrees(offset_pitch);
   double offset_yaw_rad = angles::from_degrees(offset_yaw);
-
   //double offset_x = ui_->edit_text_offset_x->text().toDouble(); 
   //double offset_y = ui_->edit_text_offset_y->text().toDouble();
   //double offset_z = ui_->edit_text_offset_z->text().toDouble();

@@ -87,6 +87,7 @@ bool KinematicsReachability::initialize()
     return false;
   }  
   node_handle_.param<double>("cache_timeout",default_cache_timeout_,60.0);  
+  node_handle_.param<double>("kinematics_solver_timeout",kinematics_solver_timeout_,5.0);  
 
   // Visualization
   node_handle_.param("arrow_marker_scale/x", arrow_marker_scale_.x, 0.10);
@@ -338,7 +339,7 @@ void KinematicsReachability::getDefaultIKRequest(const std::string &group_name,
   planning_models::KinematicState::JointStateGroup joint_state_group(&kinematic_state,(const planning_models::KinematicModel::JointModelGroup*) joint_model_group);
   joint_state_group.setToRandomValues();
   
-  req.timeout = ros::Duration(5.0);
+  req.timeout = ros::Duration(kinematics_solver_timeout_);
   req.ik_request.ik_link_name = joint_model_group->getLinkModelNames().back();
   req.ik_request.ik_seed_state.joint_state.name = joint_model_group->getJointModelNames();
   joint_state_group.getGroupStateValues(req.ik_request.ik_seed_state.joint_state.position);  
