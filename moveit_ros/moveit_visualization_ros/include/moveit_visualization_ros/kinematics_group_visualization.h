@@ -116,7 +116,7 @@ public:
   void setInteractionEnabled(bool enabled) { interaction_enabled_ = enabled; }
   bool getInteractionEnabled() const{ return interaction_enabled_; }
 
-  void setVisible(bool visible) { visible_ = visible; if(!visible_) hideAllMarkers(); }
+  void setVisible(bool visible) { visible_ = visible; if(!visible_) hideRegularMarkers(); }
   bool getVisible() const { return visible_; }
 
   void setGoodBadMode(bool use_good_bad) {

@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>442</width>
-    <height>782</height>
+    <width>431</width>
+    <height>898</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Moveit! Kinematics Tool</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QWidget" name="layoutWidget">
@@ -266,6 +266,74 @@
      <number>24</number>
     </property>
    </widget>
+   <widget class="QPushButton" name="compute_fk_button">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>790</y>
+      <width>341</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Compute FK</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="edit_text_timeout">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>750</y>
+      <width>101</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>760</y>
+      <width>161</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Time for Computation:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>760</y>
+      <width>66</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>s</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_13">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>720</y>
+      <width>151</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Forward Kinematics:</string>
+    </property>
+   </widget>
    <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
@@ -498,17 +566,10 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>442</width>
+     <width>431</width>
      <height>25</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuMoveIt_Kinematics_Tool">
-    <property name="title">
-     <string>MoveIt! Kinematics Tool</string>
-    </property>
-    <addaction name="actionSave_Current"/>
-   </widget>
-   <addaction name="menuMoveIt_Kinematics_Tool"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -544,10 +605,12 @@
   <tabstop>edit_text_size_y</tabstop>
   <tabstop>edit_text_size_z</tabstop>
   <tabstop>edit_text_resolution</tabstop>
+  <tabstop>edit_text_timeout</tabstop>
   <tabstop>visualise_button</tabstop>
   <tabstop>compute_button</tabstop>
   <tabstop>tool_offset_enabled</tabstop>
   <tabstop>table_widget</tabstop>
+  <tabstop>compute_fk_button</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -575,7 +638,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>99</x>
-     <y>709</y>
+     <y>799</y>
     </hint>
     <hint type="destinationlabel">
      <x>441</x>
@@ -615,6 +678,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>compute_fk_button</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>computeFK()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>352</x>
+     <y>756</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>410</x>
+     <y>732</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>progress_points()</signal>
@@ -625,5 +704,6 @@
   <slot>showOffset(bool)</slot>
   <slot>visualiseWorkspace()</slot>
   <slot>publish()</slot>
+  <slot>computeFK()</slot>
  </slots>
 </ui>

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>678</width>
-    <height>309</height>
+    <height>330</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,7 +34,7 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
        <item row="1" column="0">
-        <widget class="QGroupBox" name="">
+        <widget class="QGroupBox" name="groupBox">
          <property name="title">
           <string/>
          </property>
@@ -100,7 +100,7 @@
         </widget>
        </item>
        <item row="0" column="0" colspan="2">
-        <widget class="QGroupBox" name="">
+        <widget class="QGroupBox" name="groupBox">
          <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
            <widget class="QLabel" name="library_label">
@@ -116,7 +116,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QGroupBox" name="">
+        <widget class="QGroupBox" name="groupBox">
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
            <widget class="QPushButton" name="publish_current_scene_button">
@@ -353,7 +353,11 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
-           <widget class="QListWidget" name="collision_objects_list"/>
+           <widget class="QListWidget" name="collision_objects_list">
+            <property name="editTriggers">
+             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="import_scene_button">

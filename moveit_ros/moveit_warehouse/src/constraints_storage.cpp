@@ -46,7 +46,7 @@ moveit_warehouse::ConstraintsStorage::ConstraintsStorage(const std::string &host
   MoveItMessageStorage(host, port, wait_seconds)
 {
   constraints_collection_.reset(new ConstraintsCollection::element_type(DATABASE_NAME, "constraints", db_host_, db_port_, wait_seconds));
-  ROS_INFO("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
+  ROS_DEBUG("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
 }
 
 void moveit_warehouse::ConstraintsStorage::addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot, const std::string &group)
@@ -55,7 +55,7 @@ void moveit_warehouse::ConstraintsStorage::addConstraints(const moveit_msgs::Con
                                CONSTRAINTS_ROBOT_NAME, robot, 
                                CONSTRAINTS_GROUP_NAME, group);
   constraints_collection_->insert(msg, metadata);
-  ROS_INFO("Saved constraints '%s'", msg.name.c_str());
+  ROS_DEBUG("Saved constraints '%s'", msg.name.c_str());
 }
 
 bool moveit_warehouse::ConstraintsStorage::hasConstraints(const std::string &name, const std::string &robot, const std::string &group) const

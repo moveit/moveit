@@ -177,6 +177,22 @@ void PlanningVisualization::setAllStartVisibility(bool visible) {
   }
 }
 
+void PlanningVisualization::setAllGoalInteractionModes(bool interaction_enabled) {
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end();
+      it++) {
+    it->second->setGoalInteractionEnabled(interaction_enabled);
+  }
+}
+
+void PlanningVisualization::setAllGoalVisibility(bool visible) {
+  for(std::map<std::string, boost::shared_ptr<KinematicsStartGoalVisualization> >::iterator it = group_visualization_map_.begin();
+      it != group_visualization_map_.end();
+      it++) {
+    it->second->setGoalVisible(visible);
+  }
+}
+
 void PlanningVisualization::selectGroup(const std::string& group) {
   if(current_group_ == group) return;
   if(group_visualization_map_.find(group) == group_visualization_map_.end()) {
