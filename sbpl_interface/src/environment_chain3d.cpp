@@ -561,10 +561,10 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   }
   std::vector<std::string> goal_dofs = goal_joint_state_group->getJointModelGroup()->getActiveDOFNames();
   for(unsigned int i = 0; i < goal_dofs.size(); i++) {
-    ROS_INFO_STREAM("Start " << goal_dofs[i] << " pos " << start_joint_values[i]);
+    ROS_DEBUG_STREAM("Start " << goal_dofs[i] << " pos " << start_joint_values[i]);
   }
   for(unsigned int i = 0; i < goal_dofs.size(); i++) {
-    ROS_INFO_STREAM("Goal " << goal_dofs[i] << " pos " << goal_joint_values[i]);
+    ROS_DEBUG_STREAM("Goal " << goal_dofs[i] << " pos " << goal_joint_values[i]);
   }
   //std::cerr << "Running bfs with goal " << goal_xyz[0] << " " <<  goal_xyz[1] << " " << goal_xyz[2] << std::endl;
   if(planning_parameters_.use_bfs_) {                                
@@ -855,7 +855,7 @@ bool EnvironmentChain3D::populateTrajectoryFromStateIDSequence(const std::vector
     }
     traj.points.back().positions = angle_vector.back();
     for(unsigned int i = 0; i < traj.points.back().positions.size(); i++) {
-      ROS_INFO_STREAM("Last " << i << " " << traj.points.back().positions[i]);
+      ROS_DEBUG_STREAM("Last " << i << " " << traj.points.back().positions[i]);
     }
     //std::cerr << "Original path " << angle_vector.size() << " end path " << end_points.size() << std::endl;
   } else {
@@ -863,6 +863,7 @@ bool EnvironmentChain3D::populateTrajectoryFromStateIDSequence(const std::vector
     for(unsigned int i = 0; i < state_ids.size()-1; i++) {
       trajectory_msgs::JointTrajectoryPoint statep;
       statep.positions = angle_vector[i];
+      ROS_DEBUG_STREAM("State id " << state_ids[i]);
       //if(traj.points.size() > 0) {
         // std::cerr << "State " << i << " id " << state_ids[i] << " dist " 
         //           <<  getJointDistanceIntegerMax(traj.points.back().positions,
@@ -1033,14 +1034,13 @@ void EnvironmentChain3D::attemptShortcut(const trajectory_msgs::JointTrajectory&
                                   traj_in.points.back().positions,
                                   full_shortcut)) {
     std::cerr << "Full shortcut has " << full_shortcut.size() << " points " << std::endl;
-    traj_out.points.push_back(traj_in.points.front());
     for(unsigned int i = 0; i < full_shortcut.size(); i++) {
       trajectory_msgs::JointTrajectoryPoint jtp;
       jtp.positions = full_shortcut[i];
       traj_out.points.push_back(jtp);
     }
     traj_out.points.push_back(traj_in.points.back());
-    //std::cerr << "Full shortcut worked" << std::endl;
+    std::cerr << "Full shortcut worked" << std::endl;
     return;
   }
  
