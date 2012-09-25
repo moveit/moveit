@@ -173,9 +173,9 @@ void MainWindow::setUIFromWorkspace(const kinematics_reachability::WorkspacePoin
 
 
 
-  if(!((offset_x && offset_y && offset_z && offset_roll && offset_pitch && offset_yaw) == 0.0))
+  //  if(!((offset_x && offset_y && offset_z && offset_roll && offset_pitch && offset_yaw) == 0.0))
+  if(offset_x != 0.0 || offset_y != 0.0 || offset_z != 0.0 || offset_roll !=0.0 || offset_pitch != 0.0 || offset_yaw != 0.0)
   {
-
     ui_->tool_offset_enabled->setChecked(true);
     MainWindow::showOffset(true);
 
