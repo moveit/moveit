@@ -174,6 +174,7 @@ bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::Workspa
 
   planning_models::KinematicState kinematic_state = kinematics_solver_.getPlanningSceneMonitor()->getPlanningScene()->getCurrentState();
   planning_models::KinematicState::JointStateGroup* joint_state_group = kinematic_state.getJointStateGroup(workspace.group_name);  
+
   moveit_msgs::MoveItErrorCodes error_code;
   
   while((ros::WallTime::now()-start_time).toSec() <= timeout)

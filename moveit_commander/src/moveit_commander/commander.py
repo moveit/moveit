@@ -150,6 +150,9 @@ class MoveGroupCommander:
     def clear_path_constraints(self):
         self._g.clear_path_constraints()
 
+    def set_constraints_database(self, host, port):
+        self._g.set_constraints_database(host, port)
+
     def go(self, joints = None, wait = True):
         """ Set the target of the group and then move the group to the specified target """
         if type(joints) is bool:
