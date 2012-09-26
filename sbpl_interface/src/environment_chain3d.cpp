@@ -37,9 +37,6 @@
 static const unsigned int DEBUG_OVER = 1;
 static const unsigned int PRINT_HEURISTIC_UNDER = 1;
 
-static const double INTERPOLATION_DISTANCE=.05;
-static const bool INTERPOLATE_ALL=true;
-static const double LONG_RANGE_JOINT_DIFF=.2;
 static const double JOINT_DIST_MULT=1000.0;
 
 namespace sbpl_interface
@@ -278,7 +275,7 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
     } else {
       dist = getJointDistanceIntegerMax(succ_joint_angles, 
                                         planning_data_.goal_hash_entry_->angles,
-                                        LONG_RANGE_JOINT_DIFF);
+                                        planning_parameters_.joint_motion_primitive_distance_);
     }
 
     EnvChain3DHashEntry* succ_hash_entry = NULL;
@@ -311,10 +308,10 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
     } 
     std::vector<std::vector<double> > interpolated_values;
     if(!succ_is_goal_state) {
-      if(INTERPOLATE_ALL) {
+      if(planning_parameters_.interpolation_distance_ < planning_parameters_.joint_motion_primitive_distance_) {
         if(!interpolateAndCollisionCheck(source_joint_angles,
-                                        succ_joint_angles,
-                                        interpolated_values)) {
+                                         succ_joint_angles,
+                                         interpolated_values)) {
           //std::cerr << "Interpolation failed" << std::endl;
           continue;
         } 
@@ -352,7 +349,8 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
       }
     }
 
-    if(INTERPOLATE_ALL && !succ_is_goal_state) {
+    if(planning_parameters_.interpolation_distance_ < planning_parameters_.joint_motion_primitive_distance_
+       && !succ_is_goal_state) {
       //std::cerr << "Adding segment from " << source_state_ID << " to " << succ_hash_entry->stateID << std::endl;
       generated_interpolations_map_[source_state_ID][succ_hash_entry->stateID] = interpolated_values;
     }
@@ -602,8 +600,8 @@ void EnvironmentChain3D::setMotionPrimitives(const std::string& group_name) {
     joint_motion_wrappers_.push_back(jmw);
     //TODO - figure out which DOFs have something to do with end effector position
     if(!planning_parameters_.use_bfs_ || i < 4) {
-      boost::shared_ptr<SingleJointMotionPrimitive> sing_pos(new SingleJointMotionPrimitive(jmw, i, LONG_RANGE_JOINT_DIFF));
-      boost::shared_ptr<SingleJointMotionPrimitive> sing_neg(new SingleJointMotionPrimitive(jmw, i, -LONG_RANGE_JOINT_DIFF));
+      boost::shared_ptr<SingleJointMotionPrimitive> sing_pos(new SingleJointMotionPrimitive(jmw, i, planning_parameters_.joint_motion_primitive_distance_));
+      boost::shared_ptr<SingleJointMotionPrimitive> sing_neg(new SingleJointMotionPrimitive(jmw, i, -planning_parameters_.joint_motion_primitive_distance_));
       possible_actions_.push_back(sing_pos);
       possible_actions_.push_back(sing_neg);
     }
@@ -796,7 +794,7 @@ int EnvironmentChain3D::getEndEffectorHeuristic(int from_stateID, int to_stateID
   } else {
     return getJointDistanceIntegerSum(from_hash_entry->angles,
                                       to_hash_entry->angles,
-                                      LONG_RANGE_JOINT_DIFF)*JOINT_DIST_MULT;
+                                      planning_parameters_.joint_motion_primitive_distance_)*JOINT_DIST_MULT;
   }
   //return getBFSCostToGoal(from_hash_entry->xyz[0], from_hash_entry->xyz[1], from_hash_entry->xyz[2]);
   //else
@@ -842,7 +840,7 @@ bool EnvironmentChain3D::populateTrajectoryFromStateIDSequence(const std::vector
                                                  angle_vector)) {
     return false;
   }
-  if(!INTERPOLATE_ALL) {
+  if(planning_parameters_.interpolation_distance_ >= planning_parameters_.joint_motion_primitive_distance_) {
     std::map<int, std::map<int, std::vector<std::vector<double> > > >::const_iterator it = generated_interpolations_map_.find(*(state_ids.end()-2));
     std::vector< std::vector<double> > end_points;
     if(it != generated_interpolations_map_.end()) {
@@ -866,9 +864,9 @@ bool EnvironmentChain3D::populateTrajectoryFromStateIDSequence(const std::vector
     for(unsigned int i = 0; i < traj.points.back().positions.size(); i++) {
       ROS_DEBUG_STREAM("Last " << i << " " << traj.points.back().positions[i]);
     }
-    //std::cerr << "Original path " << angle_vector.size() << " end path " << end_points.size() << std::endl;
+    std::cerr << "Original path " << angle_vector.size() << " end path " << end_points.size() << std::endl;
   } else {
-    //std::cerr << "Num states " << state_ids.size() << std::endl;
+    std::cerr << "Num states " << state_ids.size() << std::endl;
     for(unsigned int i = 0; i < state_ids.size()-1; i++) {
       trajectory_msgs::JointTrajectoryPoint statep;
       statep.positions = angle_vector[i];
@@ -910,7 +908,7 @@ bool EnvironmentChain3D::populateTrajectoryFromStateIDSequence(const std::vector
             
     traj.points.push_back(statep);
   }
-  //std::cerr << "Resulting path is " << traj.points.size() << std::endl;
+  std::cerr << "Resulting path is " << traj.points.size() << std::endl;
   return true;
 }
 
@@ -979,7 +977,7 @@ bool EnvironmentChain3D::interpolateAndCollisionCheck(const std::vector<double> 
   collision_detection::CollisionRequest req;
   req.group_name = planning_group_;
 
-  int maximum_moves = getJointDistanceIntegerMax(angles1, angles2, INTERPOLATION_DISTANCE);
+  int maximum_moves = getJointDistanceIntegerMax(angles1, angles2, planning_parameters_.interpolation_distance_);
   if(print_first) {
     std::cerr << "Maximum moves " << maximum_moves << std::endl;
     for(unsigned int i = 0; i < angles1.size(); i++) {
@@ -1037,20 +1035,22 @@ void EnvironmentChain3D::attemptShortcut(const trajectory_msgs::JointTrajectory&
     traj_out = traj_in;
     return;
   }
-  std::vector<std::vector<double> > full_shortcut;
-  //std::cerr << "Checking" << std::endl;
-  if(interpolateAndCollisionCheck(traj_in.points.front().positions,
-                                  traj_in.points.back().positions,
-                                  full_shortcut)) {
-    std::cerr << "Full shortcut has " << full_shortcut.size() << " points " << std::endl;
-    for(unsigned int i = 0; i < full_shortcut.size(); i++) {
-      trajectory_msgs::JointTrajectoryPoint jtp;
-      jtp.positions = full_shortcut[i];
-      traj_out.points.push_back(jtp);
+  if(planning_parameters_.attempt_full_shortcut_) {
+    std::vector<std::vector<double> > full_shortcut;
+    //std::cerr << "Checking" << std::endl;
+    if(interpolateAndCollisionCheck(traj_in.points.front().positions,
+                                    traj_in.points.back().positions,
+                                    full_shortcut)) {
+      std::cerr << "Full shortcut has " << full_shortcut.size() << " points " << std::endl;
+      for(unsigned int i = 0; i < full_shortcut.size(); i++) {
+        trajectory_msgs::JointTrajectoryPoint jtp;
+        jtp.positions = full_shortcut[i];
+        traj_out.points.push_back(jtp);
+      }
+      traj_out.points.push_back(traj_in.points.back());
+      std::cerr << "Full shortcut worked" << std::endl;
+      return;
     }
-    traj_out.points.push_back(traj_in.points.back());
-    std::cerr << "Full shortcut worked" << std::endl;
-    return;
   }
  
   while(1) {
