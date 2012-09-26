@@ -342,8 +342,8 @@ void KinematicsReachability::getDefaultIKRequest(const std::string &group_name,
   
   req.timeout = ros::Duration(kinematics_solver_timeout_);
   req.ik_request.ik_link_name = joint_model_group->getLinkModelNames().back();
-  req.ik_request.ik_seed_state.joint_state.name = joint_model_group->getJointModelNames();
-  joint_state_group.getGroupStateValues(req.ik_request.ik_seed_state.joint_state.position);  
+  req.ik_request.robot_state.joint_state.name = joint_model_group->getJointModelNames();
+  joint_state_group.getGroupStateValues(req.ik_request.robot_state.joint_state.position);  
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -360,7 +360,7 @@ bool KinematicsReachability::updateFromCache(kinematics_msgs::GetConstraintAware
     return false;  
   kinematics_cache_->getSolution(request.ik_request.pose_stamped.pose,
                                  0,
-                                 request.ik_request.ik_seed_state.joint_state.position);
+                                 request.ik_request.robot_state.joint_state.position);
   return true;  
 }
 

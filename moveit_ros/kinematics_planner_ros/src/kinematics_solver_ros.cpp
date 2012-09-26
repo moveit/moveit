@@ -88,7 +88,6 @@ bool KinematicsSolverROS::getIK(kinematics_msgs::GetConstraintAwarePositionIK::R
   planning_scene::PlanningScenePtr planning_scene = planning_scene_monitor_->getPlanningScene();
   kinematic_constraints::KinematicConstraintSet kinematic_constraint_set(planning_scene_monitor_->getKinematicModel(),planning_scene->getTransforms());
   planning_scene->setCurrentState(request.ik_request.robot_state);
-  planning_scene->setCurrentState(request.ik_request.ik_seed_state);
   
   kinematics_solver_.find(request.ik_request.ik_link_name)->second->solve(request.ik_request.pose_stamped,
                                                                           planning_scene,
