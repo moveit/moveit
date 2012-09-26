@@ -52,6 +52,8 @@ EnvironmentChain3D::EnvironmentChain3D(const planning_scene::PlanningSceneConstP
   planning_data_(StateID2IndexMapping), 
   goal_constraint_set_(planning_scene->getKinematicModel(),
                        planning_scene->getTransforms()),
+  path_constraint_set_(planning_scene->getKinematicModel(),
+                       planning_scene->getTransforms()),
   interpolation_state_1_(planning_scene->getCurrentState()),
   interpolation_state_2_(planning_scene->getCurrentState()),
   interpolation_state_temp_(planning_scene->getCurrentState()),
@@ -224,6 +226,11 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID,
     convertJointAnglesToCoord(succ_joint_angles, succ_coord);
     
     joint_state_group_->setStateValues(succ_joint_angles);
+
+    kinematic_constraints::ConstraintEvaluationResult con_res = path_constraint_set_.decide(state_);
+    if(!con_res.satisfied) {
+      ROS_INFO_STREAM("State violates path constraints");
+    }
 
     // if(!joint_state_group_->satisfiesBounds()) {
     //   std::cerr << "ERROR - successor doesn't satisfy bounds" << std::endl;
@@ -578,6 +585,8 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
                                                                 goal_joint_values,
                                                                 goal_xyz,
                                                                 0);
+  path_constraint_set_.clear();
+  path_constraint_set_.add(mreq.motion_plan_request.path_constraints);
   return true;
 }
 

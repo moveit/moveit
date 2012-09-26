@@ -251,6 +251,7 @@ protected:
   const planning_models::KinematicState::LinkState* tip_link_state_;
   EnvChain3DPlanningData planning_data_;
   kinematic_constraints::KinematicConstraintSet goal_constraint_set_;
+  kinematic_constraints::KinematicConstraintSet path_constraint_set_;
   std::string planning_group_;
   Eigen::Affine3d goal_pose_;
   PlanningStatistics planning_statistics_;
