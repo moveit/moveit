@@ -53,6 +53,8 @@
 
 #include <Eigen/Core>
 
+static const double DEFAULT_INTERPOLATION_DISTANCE=.05;
+static const double DEFAULT_JOINT_MOTION_PRIMITIVE_DISTANCE=.2;
 
 namespace sbpl_interface {
 
@@ -75,12 +77,18 @@ struct PlanningParameters {
 
   PlanningParameters() : 
     use_bfs_(true),
-    use_standard_collision_checking_(false)
+    use_standard_collision_checking_(false),
+    attempt_full_shortcut_(true),
+    interpolation_distance_(DEFAULT_INTERPOLATION_DISTANCE),
+    joint_motion_primitive_distance_(DEFAULT_JOINT_MOTION_PRIMITIVE_DISTANCE)
   {
   }
 
   bool use_bfs_;
   bool use_standard_collision_checking_;
+  bool attempt_full_shortcut_;
+  double interpolation_distance_;
+  double joint_motion_primitive_distance_;
 };
 
 /** Environment to be used when planning for a Robotic Arm using the SBPL. */
