@@ -22,6 +22,8 @@ public:
   explicit KinematicsThread();
   ~KinematicsThread();
   void initialise();
+  void stopSolver();
+  void enableSolver();
 
 Q_SIGNALS:
   void currentProgressSignal(int current);
@@ -39,6 +41,7 @@ private Q_SLOTS:
   void computeKinematics(const kinematics_reachability::WorkspacePoints& workspace);
   void visualise(const kinematics_reachability::WorkspacePoints& workspace);
   void computeFK(const kinematics_reachability::WorkspacePoints& workspace, double timeout);
+  //void stopSolver();
 
 private:
   kinematics_reachability::WorkspacePoints workspace_;

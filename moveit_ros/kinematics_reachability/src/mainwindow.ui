@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>431</width>
-    <height>898</height>
+    <height>950</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <rect>
       <x>60</x>
       <y>190</y>
-      <width>321</width>
+      <width>341</width>
       <height>29</height>
      </rect>
     </property>
@@ -94,12 +94,12 @@
      <rect>
       <x>60</x>
       <y>160</y>
-      <width>91</width>
+      <width>151</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>Orientation:</string>
+     <string>Orientation (degrees):</string>
     </property>
    </widget>
    <widget class="QLabel" name="label">
@@ -129,7 +129,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>670</y>
+      <y>660</y>
       <width>341</width>
       <height>27</height>
      </rect>
@@ -161,7 +161,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>480</y>
+      <y>470</y>
       <width>81</width>
       <height>17</height>
      </rect>
@@ -176,11 +176,11 @@
      <string>Workspace</string>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>620</y>
+      <y>610</y>
       <width>171</width>
       <height>29</height>
      </rect>
@@ -202,7 +202,7 @@
     <property name="geometry">
      <rect>
       <x>260</x>
-      <y>620</y>
+      <y>610</y>
       <width>121</width>
       <height>27</height>
      </rect>
@@ -215,7 +215,7 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>440</y>
+      <y>430</y>
       <width>261</width>
       <height>29</height>
      </rect>
@@ -257,7 +257,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>670</y>
+      <y>660</y>
       <width>341</width>
       <height>31</height>
      </rect>
@@ -270,7 +270,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>790</y>
+      <y>810</y>
       <width>341</width>
       <height>27</height>
      </rect>
@@ -283,7 +283,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>750</y>
+      <y>770</y>
       <width>101</width>
       <height>27</height>
      </rect>
@@ -293,7 +293,7 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>760</y>
+      <y>780</y>
       <width>161</width>
       <height>17</height>
      </rect>
@@ -306,7 +306,7 @@
     <property name="geometry">
      <rect>
       <x>330</x>
-      <y>760</y>
+      <y>780</y>
       <width>66</width>
       <height>17</height>
      </rect>
@@ -319,7 +319,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>720</y>
+      <y>740</y>
       <width>151</width>
       <height>17</height>
      </rect>
@@ -334,11 +334,11 @@
      <string>Forward Kinematics:</string>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>380</y>
+      <y>370</y>
       <width>176</width>
       <height>23</height>
      </rect>
@@ -360,11 +360,11 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>410</y>
+      <y>400</y>
       <width>261</width>
       <height>29</height>
      </rect>
@@ -402,11 +402,11 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>110</x>
-      <y>510</y>
+      <y>500</y>
       <width>271</width>
       <height>20</height>
      </rect>
@@ -444,11 +444,11 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>530</y>
+      <y>520</y>
       <width>321</width>
       <height>66</height>
      </rect>
@@ -560,6 +560,19 @@
      <string/>
     </property>
    </widget>
+   <widget class="QPushButton" name="cancel_button">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>700</y>
+      <width>341</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Cancel Computation</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -621,11 +634,11 @@
    <slot>addRow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>379</x>
-     <y>246</y>
+     <x>399</x>
+     <y>245</y>
     </hint>
     <hint type="destinationlabel">
-     <x>441</x>
+     <x>430</x>
      <y>305</y>
     </hint>
    </hints>
@@ -638,10 +651,10 @@
    <hints>
     <hint type="sourcelabel">
      <x>99</x>
-     <y>799</y>
+     <y>724</y>
     </hint>
     <hint type="destinationlabel">
-     <x>441</x>
+     <x>430</x>
      <y>481</y>
     </hint>
    </hints>
@@ -653,8 +666,8 @@
    <slot>showOffset(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>227</x>
-     <y>437</y>
+     <x>234</x>
+     <y>416</y>
     </hint>
     <hint type="destinationlabel">
      <x>370</x>
@@ -670,10 +683,10 @@
    <hints>
     <hint type="sourcelabel">
      <x>368</x>
-     <y>669</y>
+     <y>648</y>
     </hint>
     <hint type="destinationlabel">
-     <x>441</x>
+     <x>430</x>
      <y>634</y>
     </hint>
    </hints>
@@ -686,11 +699,27 @@
    <hints>
     <hint type="sourcelabel">
      <x>352</x>
-     <y>756</y>
+     <y>848</y>
     </hint>
     <hint type="destinationlabel">
      <x>410</x>
      <y>732</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cancel_button</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>cancelComputation()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>192</x>
+     <y>754</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>13</x>
+     <y>752</y>
     </hint>
    </hints>
   </connection>
@@ -705,5 +734,6 @@
   <slot>visualiseWorkspace()</slot>
   <slot>publish()</slot>
   <slot>computeFK()</slot>
+  <slot>cancelComputation()</slot>
  </slots>
 </ui>

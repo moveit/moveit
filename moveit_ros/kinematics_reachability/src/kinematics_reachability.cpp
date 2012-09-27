@@ -257,6 +257,12 @@ void KinematicsReachability::findIKSolutions(kinematics_reachability::WorkspaceP
 {  
   for(unsigned int i=0; i < workspace.points.size(); ++i)
   {
+
+    if (canceled_)
+    {
+      ROS_INFO("Computation canceled.");
+      return;
+    }
     geometry_msgs::PoseStamped ik_pose;
     ik_pose.pose = workspace.points[i].pose;
     ik_pose.header = workspace.header;
