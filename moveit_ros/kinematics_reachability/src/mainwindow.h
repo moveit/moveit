@@ -6,6 +6,7 @@
 #include <kinematics_reachability/kinematics_reachability.h>
 #include "kinematics_thread.h"
 #include <tf/transform_datatypes.h>
+#include <QThread>
 
 //class kinematics_thread::Kinematics_Thread;
 
@@ -30,6 +31,7 @@ private Q_SLOTS:
   void setUIFromWorkspace(const kinematics_reachability::WorkspacePoints &workspace);
   void computeFK();
   void receiveWorkspace(const kinematics_reachability::WorkspacePoints &workspace);
+  void cancelComputation();
 
 Q_SIGNALS:
   void addRowSignal(QString roll, QString pitch, QString yaw);
@@ -38,6 +40,7 @@ Q_SIGNALS:
   void startComputation(const kinematics_reachability::WorkspacePoints& workspace);
   void startVisualisation(const kinematics_reachability::WorkspacePoints& workspace);
   void startFKComputation(const kinematics_reachability::WorkspacePoints& workspace, double timeout);
+  void cancelComputationIK();
 
 private:
   Ui::MainWindow *ui_;
@@ -45,6 +48,7 @@ private:
   kinematics_thread::KinematicsThread kinematics_thread_;
   kinematics_reachability::WorkspacePoints workspace_;
   kinematics_reachability::KinematicsReachability reachability_solver_;
+  QThread thread_;
   //ros::Subscriber workspace_subscriber_;
   //ros::Subscriber progress_subscriber_;
   /*double origin_x_;
