@@ -15,9 +15,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
   qRegisterMetaType<kinematics_reachability::WorkspacePoints>("kinematics_reachability::WorkspacePoints");
 
-  QThread thread;
-  kinematics_thread_.moveToThread(&thread);
-  thread.start();
+  kinematics_thread_.moveToThread(&thread_);
+  thread_.start();
 
   QObject::connect(&kinematics_thread_,SIGNAL(currentProgressSignal(int)),ui_->progress_bar,SLOT(setValue(int)));
   QObject::connect(&kinematics_thread_,SIGNAL(maxProgressSignal(int)),ui_->progress_bar,SLOT(setMaximum(int)));
@@ -30,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
   QObject::connect(this,SIGNAL(startComputation(const kinematics_reachability::WorkspacePoints&)),&kinematics_thread_,SLOT(computeKinematics(const kinematics_reachability::WorkspacePoints&)));
   QObject::connect(this,SIGNAL(startVisualisation(const kinematics_reachability::WorkspacePoints&)),&kinematics_thread_,SLOT(visualise(const kinematics_reachability::WorkspacePoints&)));
   QObject::connect(this,SIGNAL(startFKComputation(const kinematics_reachability::WorkspacePoints&, double)),&kinematics_thread_,SLOT(computeFK(const kinematics_reachability::WorkspacePoints&, double)));
+  //QObject::connect(this,SIGNAL(cancelComputationIK()),&kinematics_thread_,SLOT(stopSolver()));
 
   kinematics_thread_.initialise();
 
@@ -97,6 +97,7 @@ void MainWindow::compute()
  
   MainWindow::setWorkspace();
   //Q_EMIT startComputation(min_x, min_y, min_z, max_x, max_y, max_z, resolution, offset_roll, offset_pitch, offset_yaw, offset_x, offset_y, offset_z);
+  kinematics_thread_.enableSolver();
   Q_EMIT startComputation(workspace_);
 }
 
@@ -278,4 +279,20 @@ void MainWindow::receiveWorkspace(const kinematics_reachability::WorkspacePoints
 {
   workspace_ = workspace;
 
+}
+
+void MainWindow::cancelComputation()
+{
+
+  //thread_.terminate();
+  //thread_.start();
+  //kinematics_thread_.initialise();
+  ui_->progress_bar->setMaximum(100);
+  ui_->progress_bar->setValue(0);
+  ui_->progress_bar->hide();
+  ui_->compute_button->setVisible(true);
+
+  //Q_EMIT cancelComputationIK();
+  kinematics_thread_.stopSolver();
+  //QApplication::processEvents(); 
 }
