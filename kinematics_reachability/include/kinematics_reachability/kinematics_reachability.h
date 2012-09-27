@@ -170,6 +170,11 @@ public:
     return kinematics_solver_.isActive();
   }
 
+  void cancelFindIKSolutions(bool canceled)
+  {
+    canceled_ = canceled;
+  }
+
 protected:
 
   ros::NodeHandle node_handle_;
@@ -254,7 +259,7 @@ private:
   
   bool updateFromCache(kinematics_msgs::GetConstraintAwarePositionIK::Request &request);
   
-  bool first_time_, use_cache_;  
+  bool first_time_, use_cache_, canceled_;  
   std::string cache_filename_;  
   double default_cache_timeout_,kinematics_solver_timeout_;
   kinematics_cache::KinematicsCachePtr kinematics_cache_;

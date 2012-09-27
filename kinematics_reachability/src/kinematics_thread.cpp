@@ -168,6 +168,7 @@ void KinematicsThread::computeFK(const kinematics_reachability::WorkspacePoints&
   workspace_.points.clear();
   workspace_.orientations.clear();
 
+
   while(!reachability_solver_.isActive())
   {
     sleep(1.0);
@@ -184,5 +185,15 @@ void KinematicsThread::computeFK(const kinematics_reachability::WorkspacePoints&
 
 }
 
+void KinematicsThread::stopSolver()
+{
+  reachability_solver_.cancelFindIKSolutions(true);
 }
+
+void KinematicsThread::enableSolver()
+{
+  reachability_solver_.cancelFindIKSolutions(false);  
+}
+
+} //namespace
 
