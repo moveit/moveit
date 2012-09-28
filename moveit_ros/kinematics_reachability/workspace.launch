@@ -5,6 +5,7 @@
  <param name="group" value="arm"/>
  <param name="frame_id" value="arm_base_link"/>
  <param name="kinematics_solver_timeout" value="0.1"/>
+ <param name="max_fk_points" value="5000" />
 </node>
 
 </launch>

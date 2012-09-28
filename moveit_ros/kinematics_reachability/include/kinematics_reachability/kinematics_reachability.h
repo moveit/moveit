@@ -262,6 +262,7 @@ private:
   bool first_time_, use_cache_, canceled_;  
   std::string cache_filename_;  
   double default_cache_timeout_,kinematics_solver_timeout_;
+  int max_fk_points_;
   kinematics_cache::KinematicsCachePtr kinematics_cache_;
   kinematics_planner_ros::KinematicsSolverROS kinematics_solver_;
   kinematics_cache::KinematicsCache::Options default_cache_options_;
