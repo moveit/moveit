@@ -34,6 +34,8 @@
 
 #include <deque>
 #include <boost/thread.hpp>
+#include <boost/function.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace moveit_rviz_plugin
 {
