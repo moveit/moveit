@@ -194,7 +194,7 @@ double IterativeParabolicSmoother::findT2(const double dq1,
 // Takes the time differences, and updates the values in the trajectory.
 void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::vector<double>& time_diff )
 {
-  double time_sum = 0.0;
+  double time_sum = 0.2;
   unsigned int num_joints = trajectory.joint_names.size();
   const unsigned int num_points = trajectory.points.size();
 
@@ -203,7 +203,7 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::v
 		return;
 
   // Times
-  trajectory.points[0].time_from_start = ros::Duration(0);
+  trajectory.points[0].time_from_start = ros::Duration(.2);
   for (unsigned int i=1; i<num_points; ++i)
   {
     time_sum += time_diff[i-1];
