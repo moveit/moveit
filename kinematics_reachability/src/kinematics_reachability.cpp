@@ -88,6 +88,7 @@ bool KinematicsReachability::initialize()
   }  
   node_handle_.param<double>("cache_timeout",default_cache_timeout_,60.0);  
   node_handle_.param<double>("kinematics_solver_timeout",kinematics_solver_timeout_,5.0);  
+  node_handle_.param<int>("max_fk_points",max_fk_points_,5000);
 
   // Visualization
   node_handle_.param("arrow_marker_scale/x", arrow_marker_scale_.x, 0.10);
@@ -177,7 +178,9 @@ bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::Workspa
 
   moveit_msgs::MoveItErrorCodes error_code;
   
-  while((ros::WallTime::now()-start_time).toSec() <= timeout)
+  int points = 0;
+
+  while(((ros::WallTime::now()-start_time).toSec() <= timeout) && (points < max_fk_points_))
   {
     joint_state_group->setToRandomValues();
     joint_state_group->getGroupStateValues(fk_values);    
@@ -195,7 +198,8 @@ bool KinematicsReachability::computeWorkspaceFK(kinematics_reachability::Workspa
     {
       point.solution_code.val = point.solution_code.NO_IK_SOLUTION;
     }    
-    workspace.points.push_back(point);    
+    workspace.points.push_back(point);
+    points++;    
   }
   return true;  
 }
