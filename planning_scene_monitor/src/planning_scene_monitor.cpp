@@ -650,7 +650,7 @@ void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(cons
                scene->getKinematicModel()->getLinkModelNamesWithCollisionGeometry(), false);
   
   // allow collisions for pairs that have been disabled
-  const std::vector<srdf::Model::DisabledCollision> &dc = scene->getSrdfModel()->getDisabledCollisionPairs();
+  const std::vector<srdf::Model::DisabledCollision> &dc = scene->getKinematicModel()->getSRDF()->getDisabledCollisionPairs();
   for (std::size_t i = 0 ; i < dc.size() ; ++i)
     acm.setEntry(dc[i].link1_, dc[i].link2_, true);
   

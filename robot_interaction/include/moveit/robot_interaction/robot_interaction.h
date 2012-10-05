@@ -29,8 +29,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_RVIZ_PLUGIN_ROBOT_INTERACTION_
-#define MOVEIT_RVIZ_PLUGIN_ROBOT_INTERACTION_
+#ifndef MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
+#define MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <planning_models/kinematic_state.h>
@@ -40,16 +40,9 @@ namespace interactive_markers
 class InteractiveMarkerServer;
 }
 
-namespace rviz
+namespace robot_interaction
 {
-class DisplayContext;
-}
-
-
-namespace moveit_rviz_plugin
-{
-class PlanningDisplay;
-
+  
 class RobotInteraction
 {
 public:
@@ -72,24 +65,47 @@ public:
     double scale;
   };
   
-  RobotInteraction(PlanningDisplay *pdisplay, rviz::DisplayContext *context);
+  class InteractionHandler
+  {
+  public:
+    InteractionHandler(void)
+    {
+    }
+    
+    virtual ~InteractionHandler(void)
+    {
+    }
+    
+    virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, int id, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback) = 0;
+    virtual void handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, int id, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback) = 0;
+  };
+
+  typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
+  typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
+  
+  RobotInteraction(const planning_models::KinematicModelConstPtr &kmodel,
+                   const InteractionHandlerPtr &handler = InteractionHandlerPtr());
   ~RobotInteraction(void);
   
+  void setInteractionHandler(const InteractionHandlerPtr &handler)
+  {
+    handler_ = handler;
+  }
 
-  void decideActiveComponents(void);
-  void decideActiveEndEffectors(void);
-  void decideActiveVirtualJoints(void);
+  const InteractionHandlerPtr& getInteractionHandler(void) const
+  {
+    return handler_;
+  }
+  
+  void decideActiveComponents(const std::string &group);
+  void decideActiveEndEffectors(const std::string &group);
+  void decideActiveVirtualJoints(const std::string &group);
   
   void clear(void);
   
+  void addInteractiveMarkers(const planning_models::KinematicState &state, int id, bool error = false);
   void publishInteractiveMarkers(void);
-  void computeMetrics(double payload);
-  void computeMetrics(bool start, const std::string &group, double payload);
-
-  const std::map<std::string, double>& getComputedMetrics(bool start, const std::string &group, double payload)
-  {
-    return computed_metrics_[std::make_pair(start, group)];
-  }
+  void clearInteractiveMarkers(void);
   
   const std::vector<EndEffector>& getActiveEndEffectors(void) const
   {
@@ -101,28 +117,21 @@ public:
     return active_vj_;
   }
   
+  static bool updateState(planning_models::KinematicState &state, const EndEffector &eef, const geometry_msgs::Pose &pose);
+  static bool updateState(planning_models::KinematicState &state, const VirtualJoint &vj, const geometry_msgs::Pose &pose);
+  
 private:
   
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupScale(const std::string &group);    
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);  
-  void computeProcessInteractiveMarkerFeedback(visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback);
   
-  void computeMetricsInternal(std::map<std::string, double> &metrics, const EndEffector &eef, const planning_models::KinematicState &state, double payload);
-  
-  PlanningDisplay *planning_display_;  
-  rviz::DisplayContext* context_;
+  planning_models::KinematicModelConstPtr kmodel_;
+  InteractionHandlerPtr handler_;
   
   std::vector<EndEffector> active_eef_;
   std::vector<VirtualJoint> active_vj_;
-  
-  /// The metrics are pairs of name-value for each of the active end effectors, for both start & goal states.
-  /// computed_metrics_[std::make_pair(IS_START_STATE, GROUP_NAME)] = a map of key-value pairs
-  std::map<std::pair<bool, std::string>, std::map<std::string, double> > computed_metrics_;
-  
-  std::set<std::string> invalid_start_state_;
-  std::set<std::string> invalid_goal_state_;
-  
+
   std::map<std::string, std::size_t> shown_markers_;
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
 };
