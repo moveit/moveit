@@ -91,7 +91,7 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   {
     collision_detection_allocator_.reset(parent_->collision_detection_allocator_->clone());
     if (parent_->isConfigured())
-      configure(parent_->getUrdfModel(), parent_->getSrdfModel());
+      configure(parent_->getKinematicModel()->getURDF(), parent_->getKinematicModel()->getSRDF());
     if (!parent_->getName().empty())
       name_ = parent_->getName() + "+";
   }
@@ -109,7 +109,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
 { 
   if (!parent_)
   {
-    bool same = configured_ && urdf_model_ == urdf_model && srdf_model_ == srdf_model;
+    bool same = configured_ && kmodel_->getURDF() == urdf_model && kmodel_->getSRDF() == srdf_model;
     if (!same || !kmodel_ || kmodel_->getRootLinkName() != root_link)
     {
       planning_models::KinematicModelPtr newModel;
@@ -135,8 +135,6 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
     bool same = configured_ && kmodel_ == kmodel;
     if (!same)
     {
-      urdf_model_ = urdf_model;
-      srdf_model_ = srdf_model;
       kmodel_ = kmodel;
       kmodel_const_ = kmodel_;
       ftf_.reset(new planning_models::Transforms(kmodel_->getModelFrame()));
@@ -183,7 +181,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
   {
     if (parent_->isConfigured())
     {
-      if (srdf_model != parent_->getSrdfModel() || urdf_model != parent_->getUrdfModel())
+      if (srdf_model != parent_->getKinematicModel()->getSRDF() || urdf_model != parent_->getKinematicModel()->getURDF())
         ROS_ERROR("Parent of planning scene is not constructed from the same robot model");
 
       // even if we have a parent, we do maintain a separate world representation, one that records changes
@@ -742,8 +740,6 @@ void planning_scene::PlanningScene::decoupleParent(void)
     return;
   if (parent_->isConfigured())
   {
-    urdf_model_ = parent_->urdf_model_;
-    srdf_model_ = parent_->srdf_model_;
     kmodel_ = parent_->kmodel_;
     kmodel_const_ = kmodel_;
 
@@ -866,8 +862,6 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   {
     // if we have a parent, but we set a new planning scene, then we do not care about the parent any more
     // and we no longer represent the scene as a diff
-    urdf_model_ = parent_->urdf_model_;
-    srdf_model_ = parent_->srdf_model_;
     kmodel_ = parent_->kmodel_;
     kmodel_const_ = kmodel_;
 
@@ -896,7 +890,7 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   }
   // re-parent the robot model if needed
   if (!scene.robot_model_root.empty() && scene.robot_model_root != getKinematicModel()->getRootLinkName())
-    configure(urdf_model_, srdf_model_, scene.robot_model_root);
+    configure(getKinematicModel()->getURDF(), getKinematicModel()->getSRDF(), scene.robot_model_root);
   
   ftf_->setTransforms(scene.fixed_frame_transforms);
   kstate_->clearAttachedBodies();

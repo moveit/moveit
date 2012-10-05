@@ -50,6 +50,8 @@
 planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                                 const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
+  urdf_ = urdf_model;
+  srdf_ = srdf_model;
   if (urdf_model->getRoot())
   {
     const urdf::Link *root = urdf_model->getRoot().get();
@@ -62,7 +64,9 @@ planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const ur
 planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                                                 const boost::shared_ptr<const srdf::Model> &srdf_model,
                                                 const std::string &root_link)
-{ 
+{
+  urdf_ = urdf_model;
+  srdf_ = srdf_model;
   buildModel(urdf_model, srdf_model, root_link);
 }
 

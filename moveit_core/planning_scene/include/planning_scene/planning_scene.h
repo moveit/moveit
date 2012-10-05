@@ -340,18 +340,6 @@ public:
 
   /** \brief Set the current robot state */
   void setCurrentState(const planning_models::KinematicState &state);
-
-  /** \brief Get the URDF model used to construct the kinematic model maintained by this planning scene */
-  const boost::shared_ptr<const urdf::ModelInterface>& getUrdfModel(void) const
-  {
-    return parent_ ? parent_->getUrdfModel() : urdf_model_;
-  }
-
-  /** \brief Get the SRDF model used to construct the kinematic model maintained by this planning scene */
-  const boost::shared_ptr<const srdf::Model>& getSrdfModel(void) const
-  {
-    return parent_ ? parent_->getSrdfModel() : srdf_model_;
-  }
   
   /** \brief Get the colors associated to the various objects in the scene */
   const ColorMap& getObjectColors(void) const
@@ -580,9 +568,6 @@ protected:
   std::string                                    name_;
 	
   PlanningSceneConstPtr                          parent_;
-
-  boost::shared_ptr<const urdf::ModelInterface>  urdf_model_;
-  boost::shared_ptr<const srdf::Model>           srdf_model_;
 
   planning_models::KinematicModelPtr             kmodel_;
   planning_models::KinematicModelConstPtr        kmodel_const_;

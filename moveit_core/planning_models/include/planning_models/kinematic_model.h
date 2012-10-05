@@ -110,7 +110,19 @@ public:
   
   /** \brief Get the model name **/
   const std::string& getName(void) const;
+
+  /** \brief Get the parsed URDF model*/
+  const boost::shared_ptr<const urdf::ModelInterface>& getURDF(void) const
+  {
+    return urdf_;
+  }
   
+  /** \brief Get the parsed SRDF model*/
+  const boost::shared_ptr<const srdf::Model>& getSRDF(void) const
+  {
+    return srdf_;
+  }
+
   /** \brief Get a link by its name */
   const LinkModel* getLinkModel(const std::string &link) const;
   
@@ -372,7 +384,11 @@ protected:
   
   /** \brief A vector of all group names */
   std::map<std::string, srdf::Model::Group> joint_model_group_config_map_;
-  
+
+  boost::shared_ptr<const srdf::Model>      srdf_;
+
+  boost::shared_ptr<const urdf::ModelInterface> urdf_;
+
   /** \brief Given an URDF model and a SRDF model, build a full kinematic model */
   void buildModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
                   const boost::shared_ptr<const srdf::Model> &srdf_model,
