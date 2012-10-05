@@ -27,13 +27,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MOVEIT_RVIZ_PLUGIN_INTERACTIVE_MARKER_HELPERS_
-#define MOVEIT_RVIZ_PLUGIN_INTERACTIVE_MARKER_HELPERS_
+#ifndef MOVEIT_ROBOT_INTERACTION_INTERACTIVE_MARKER_HELPERS_
+#define MOVEIT_ROBOT_INTERACTION_INTERACTIVE_MARKER_HELPERS_
 
 #include <visualization_msgs/InteractiveMarker.h>
 #include <geometry_msgs/PoseStamped.h>
 
-namespace moveit_rviz_plugin
+namespace robot_interaction
 {
 
 visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,

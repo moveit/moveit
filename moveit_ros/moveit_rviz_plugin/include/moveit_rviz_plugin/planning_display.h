@@ -38,7 +38,7 @@
 #include "moveit_rviz_plugin/background_processing.h"
 #include "moveit_rviz_plugin/planning_frame.h"
 #include "moveit_rviz_plugin/planning_scene_render.h"
-#include "moveit_rviz_plugin/robot_interaction.h"
+#include "moveit/robot_interaction/robot_interaction.h"
 
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
@@ -145,16 +145,6 @@ public:
     return planning_scene_monitor_;
   }
 
-  const kinematics_metrics::KinematicsMetricsPtr& getKinematicsMetrics(void)
-  {
-    return kinematics_metrics_;
-  }
-
-  const dynamics_solver::DynamicsSolverPtr& getDynamicsSolver(const std::string &group)
-  {
-    return dynamics_solver_[group];
-  }
-
   void showPlanningFrame(bool show);
   void queueRenderSceneGeometry(void);
   
@@ -229,7 +219,14 @@ protected:
   void displayMetrics(bool start);
   void updateLinkColors(void);
   void executeMainLoopJobs(void);
-  void clearTrajectoryTrail();
+  void clearTrajectoryTrail();  
+  const dynamics_solver::DynamicsSolverPtr& getDynamicsSolver(const std::string &group);
+  void computeMetrics(double payload);
+  void computeMetrics(bool start, const std::string &group, double payload);
+  void computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &eef,
+                              const planning_models::KinematicState &state, double payload);
+
+  void publishInteractiveMarkers(void);
   
 
   // overrides from Display  
@@ -262,7 +259,7 @@ protected:
   // render the planning scene
   boost::scoped_ptr<PlanningSceneRender> planning_scene_render_;
   // robot interaction
-  boost::scoped_ptr<RobotInteraction> robot_interaction_;
+  boost::scoped_ptr<robot_interaction::RobotInteraction> robot_interaction_;
 
   rviz::MovableText *text_to_display_;
   rviz::CollObjectHandle text_coll_object_;
@@ -277,6 +274,13 @@ protected:
   std::vector<std::string> collision_links_start_;
   std::vector<std::string> collision_links_goal_;
 
+  /// The metrics are pairs of name-value for each of the active end effectors, for both start & goal states.
+  /// computed_metrics_[std::make_pair(IS_START_STATE, GROUP_NAME)] = a map of key-value pairs
+  std::map<std::pair<bool, std::string>, std::map<std::string, double> > computed_metrics_;
+  
+  std::set<std::string> invalid_start_state_;
+  std::set<std::string> invalid_goal_state_;
+  
   bool animating_path_;
   int current_state_;
   float current_state_time_;

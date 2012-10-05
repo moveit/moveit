@@ -63,6 +63,34 @@
 namespace moveit_rviz_plugin
 {
 
+class RvizRobotInteractionHandler : public robot_interaction::RobotInteraction::InteractionHandler
+{
+public:
+  RvizRobotInteractionHandler(PlanningDisplay *pdisplay, rviz::DisplayContext *context) :
+    robot_interaction::RobotInteraction::InteractionHandler(),
+    planning_display_(pdisplay),
+    context_(context)
+  {
+  }
+  
+  virtual void handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef, int id,
+                                 const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+  {
+  }
+  
+  virtual void handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint& vj, int id,
+                                  const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+  {
+    //    robot_interaction::RobotInteraction::updateState(vj, pose);
+  }
+  
+private:
+
+  PlanningDisplay *planning_display_;
+  rviz::DisplayContext *context_;
+  
+};
+
 PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message,
                                                                         const planning_scene::PlanningScenePtr &scene)
 {
@@ -320,9 +348,7 @@ void PlanningDisplay::onInitialize(void)
 
   int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
   int_marker_display_->initialize(context_);
-  int_marker_display_->subProp("Update Topic")->setValue(QString::fromStdString(RobotInteraction::INTERACTIVE_MARKER_TOPIC + "/update"));
-
-  robot_interaction_.reset(new RobotInteraction(this, context_));
+  int_marker_display_->subProp("Update Topic")->setValue(QString::fromStdString(robot_interaction::RobotInteraction::INTERACTIVE_MARKER_TOPIC + "/update"));
 
   text_to_display_ = new rviz::MovableText("EMPTY");
   text_to_display_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
@@ -345,10 +371,9 @@ void PlanningDisplay::onInitialize(void)
 void PlanningDisplay::reset(void)
 { 
   clearTrajectoryTrail();
-  robot_interaction_->clear();
   planning_scene_render_.reset();
   text_to_display_->setVisible(false);
-    
+  
   display_path_robot_->clear();
   planning_scene_robot_->clear();
   query_robot_start_->clear();
@@ -373,6 +398,18 @@ void PlanningDisplay::addMainLoopJob(const boost::function<void(void)> &job)
 {
   boost::mutex::scoped_lock slock(main_loop_jobs_lock_);
   main_loop_jobs_.push_back(job);
+}
+
+const dynamics_solver::DynamicsSolverPtr& PlanningDisplay::getDynamicsSolver(const std::string &group)
+{
+  std::map<std::string, dynamics_solver::DynamicsSolverPtr>::const_iterator it = dynamics_solver_.find(group);
+  if (it == dynamics_solver_.end())
+  { 
+    static dynamics_solver::DynamicsSolverPtr empty;
+    return empty;
+  }
+  else
+    return it->second;
 }
 
 void PlanningDisplay::changedAttachedBodyColor(void)
@@ -530,7 +567,7 @@ void PlanningDisplay::changedShowTrail(void)
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
   {  
     rviz::Robot *r = new rviz::Robot(planning_scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), NULL); 
-    r->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
+    r->load(*planning_scene_monitor_->getKinematicModel()->getURDF());
     r->setVisualVisible(display_path_visual_enabled_property_->getBool() );
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool() );
     r->update(PlanningLinkUpdater(t->trajectory_[i]));
@@ -609,6 +646,74 @@ void PlanningDisplay::changedPlanningSceneTopic(void)
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
 }
 
+void PlanningDisplay::computeMetrics(double payload)
+{
+  if (!robot_interaction_)
+    return;
+  const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
+  for (std::size_t i = 0 ; i < eef.size() ; ++i)
+  {
+    computeMetricsInternal(computed_metrics_[std::make_pair(true, eef[i].group)], eef[i], *getQueryStartState(), payload);
+    computeMetricsInternal(computed_metrics_[std::make_pair(false, eef[i].group)], eef[i], *getQueryGoalState(), payload);
+  }
+}
+
+void PlanningDisplay::computeMetrics(bool start, const std::string &group, double payload)
+{ 
+  if (!robot_interaction_)
+    return;
+  const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
+  for (std::size_t i = 0 ; i < eef.size() ; ++i)
+    if (eef[i].group == group)
+      computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], eef[i],
+                             start ? *getQueryStartState() : *getQueryGoalState(), payload);
+  if (start)
+    updateQueryStartState();
+  else
+    updateQueryGoalState();
+}
+
+void PlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &ee,
+                                             const planning_models::KinematicState &state, double payload)
+{ 
+  metrics.clear();
+  dynamics_solver::DynamicsSolverPtr ds = getDynamicsSolver(ee.group);
+  
+  // Max payload
+  if (ds)
+  {
+    double max_payload;
+    unsigned int saturated_joint;
+    std::vector<double> joint_values;
+    state.getJointStateGroup(ee.group)->getGroupStateValues(joint_values);
+    if (ds->getMaxPayload(joint_values, max_payload, saturated_joint))
+    {
+      metrics["max_payload"] = max_payload;      
+      metrics["saturated_joint"] = saturated_joint;      
+    } 
+    std::vector<double> joint_torques;
+    joint_torques.resize(joint_values.size());    
+    if (ds->getPayloadTorques(joint_values, payload, joint_torques))
+    {
+      for (std::size_t i = 0 ; i < joint_torques.size() ; ++i)
+      {
+        std::stringstream stream;
+        stream << "torque[" << i << "]";        
+        metrics[stream.str()] = joint_torques[i];
+      }
+    }
+  }
+  
+  if (kinematics_metrics_)
+  {
+    double manipulability_index, condition_number;
+    if (kinematics_metrics_->getManipulabilityIndex(state, ee.group, manipulability_index))
+      metrics["manipulability_index"] = manipulability_index;
+    if (kinematics_metrics_->getConditionNumber(state, ee.group, condition_number))
+      metrics["condition_number"] = condition_number;
+  }
+}
+
 static void copyItemIfExists(const std::map<std::string, double> &source, std::map<std::string, double> &dest, const std::string &key)
 {
   std::map<std::string, double>::const_iterator it = source.find(key);
@@ -619,16 +724,14 @@ static void copyItemIfExists(const std::map<std::string, double> &source, std::m
 void PlanningDisplay::displayMetrics(bool start)
 {    
   static const Ogre::Quaternion orientation( 1.0, 0.0, 0.0, 0.0 );
-  const std::vector<RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
+  const std::vector<robot_interaction::RobotInteraction::EndEffector> &eef = robot_interaction_->getActiveEndEffectors();
   
   if (planning_scene_monitor_)
     for (std::size_t i = 0 ; i < eef.size() ; ++i)
     {
       Ogre::Vector3 position(0.0, 0.0, 0.0);
       std::map<std::string, double> text_table; 
-      const std::map<std::string, double> &metrics_table = robot_interaction_->getComputedMetrics(start, eef[i].group,
-                                                                                                  metrics_set_payload_property_->getFloat());
-      
+      const std::map<std::string, double> &metrics_table = computed_metrics_[std::make_pair(start, eef[i].group)];
       if (compute_weight_limit_property_->getBool())
       {    
         copyItemIfExists(metrics_table, text_table, "max_payload");
@@ -640,14 +743,14 @@ void PlanningDisplay::displayMetrics(bool start)
         copyItemIfExists(metrics_table, text_table, "condition_number");
       if (show_joint_torques_property_->getBool())
       {
-        for(unsigned int j=0; j < planning_scene_monitor_->getKinematicModel()->getJointModelGroup(eef[i].group)->getJointModelNames().size(); ++j)
+        std::size_t nj = planning_scene_monitor_->getKinematicModel()->getJointModelGroup(eef[i].group)->getJointModelNames().size();
+        for(size_t j = 0 ; j < nj ; ++j)
         {
           std::stringstream stream;
           stream << "torque[" << j << "]";          
           copyItemIfExists(metrics_table, text_table, stream.str());          
         }
       }
-      
       
       const planning_models::KinematicState::LinkState *ls = NULL;
       const planning_models::KinematicModel::JointModelGroup *jmg = planning_scene_monitor_->getKinematicModel()->getJointModelGroup(eef[i].group);
@@ -693,7 +796,17 @@ void PlanningDisplay::changedQueryStartState(void)
   else
     query_robot_start_->setVisible(false);
   context_->queueRender();
-  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
+  addBackgroundJob(boost::bind(&PlanningDisplay::publishInteractiveMarkers, this));
+}
+
+void PlanningDisplay::publishInteractiveMarkers(void)
+{
+  robot_interaction_->clearInteractiveMarkers();
+  if (query_start_state_property_->getBool())
+    robot_interaction_->addInteractiveMarkers(*query_start_state_, 0, false);
+  if (query_goal_state_property_->getBool())
+    robot_interaction_->addInteractiveMarkers(*query_goal_state_, 1, false);
+  robot_interaction_->publishInteractiveMarkers();
 }
 
 void PlanningDisplay::changedQueryStartColor(void)
@@ -729,7 +842,7 @@ void PlanningDisplay::changedQueryGoalState(void)
   else
     query_robot_goal_->setVisible(false);
   context_->queueRender();
-  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
+  addBackgroundJob(boost::bind(&PlanningDisplay::publishInteractiveMarkers, this));
 }
 
 void PlanningDisplay::changedQueryGoalColor(void)
@@ -765,7 +878,7 @@ void PlanningDisplay::setQueryStartState(const planning_models::KinematicStatePt
   query_start_state_ = start; 
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
-    robot_interaction_->computeMetrics(true, group, metrics_set_payload_property_->getFloat());
+    computeMetrics(true, group, metrics_set_payload_property_->getFloat());
   updateQueryStartState();
 }
 
@@ -774,7 +887,7 @@ void PlanningDisplay::setQueryGoalState(const planning_models::KinematicStatePtr
   query_goal_state_ = goal;
   std::string group = planning_group_property_->getStdString();
   if (!group.empty())
-    robot_interaction_->computeMetrics(false, group, metrics_set_payload_property_->getFloat());
+    computeMetrics(false, group, metrics_set_payload_property_->getFloat());
   updateQueryGoalState();
 }
 
@@ -796,10 +909,10 @@ void PlanningDisplay::updateLinkColors(void)
 
 void PlanningDisplay::changedPlanningGroup(void)
 {
-  robot_interaction_->decideActiveComponents();
-  robot_interaction_->computeMetrics(metrics_set_payload_property_->getFloat());
+  robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
+  computeMetrics(metrics_set_payload_property_->getFloat());
   updateLinkColors();
-  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
+  addBackgroundJob(boost::bind(&PlanningDisplay::publishInteractiveMarkers, this));
   frame_->changePlanningGroup();
 }
 
@@ -952,14 +1065,17 @@ void PlanningDisplay::loadRobotModel(void)
 {  
   planning_group_property_->clearOptions();
   planning_scene_monitor_.reset(); // this so that the destructor of the PlanningSceneMonitor gets called before a new instance of a scene monitor is constructed  
+  robot_interaction_.reset();
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(robot_description_property_->getStdString(),
                                                                                  context_->getFrameManager()->getTFClientPtr()));
   if (planning_scene_monitor_->getPlanningScene())
-  {  
-    display_path_robot_->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
-    planning_scene_robot_->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
-    query_robot_start_->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
-    query_robot_goal_->load(*planning_scene_monitor_->getPlanningScene()->getUrdfModel());
+  {   
+    robot_interaction::RobotInteraction::InteractionHandlerPtr ihandler(new RvizRobotInteractionHandler(this, context_));
+    robot_interaction_.reset(new robot_interaction::RobotInteraction(planning_scene_monitor_->getKinematicModel(), ihandler));
+    display_path_robot_->load(*planning_scene_monitor_->getKinematicModel()->getURDF());
+    planning_scene_robot_->load(*planning_scene_monitor_->getKinematicModel()->getURDF());
+    query_robot_start_->load(*planning_scene_monitor_->getKinematicModel()->getURDF());
+    query_robot_goal_->load(*planning_scene_monitor_->getKinematicModel()->getURDF());
 
     planning_scene_monitor_->getPlanningScene()->setName(scene_name_property_->getStdString());
     planning_scene_monitor_->addUpdateCallback(boost::bind(&PlanningDisplay::sceneMonitorReceivedUpdate, this, _1));
@@ -979,8 +1095,8 @@ void PlanningDisplay::loadRobotModel(void)
     planning_scene_robot_->update(PlanningLinkUpdater(ks));
     kinematics_metrics_.reset(new kinematics_metrics::KinematicsMetrics(planning_scene_monitor_->getKinematicModel()));  
     
-    robot_interaction_->decideActiveComponents();
-    robot_interaction_->computeMetrics(metrics_set_payload_property_->getFloat());
+    robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
+    computeMetrics(metrics_set_payload_property_->getFloat());
     
     ///////// should not need this
     std::string content;
@@ -1096,7 +1212,7 @@ void PlanningDisplay::onEnable()
   addMainLoopJob(boost::bind(&PlanningDisplay::calculateOffsetPosition, this));
   
   int_marker_display_->setEnabled(true);
-  addBackgroundJob(boost::bind(&RobotInteraction::publishInteractiveMarkers, robot_interaction_.get()));
+  addBackgroundJob(boost::bind(&PlanningDisplay::publishInteractiveMarkers, this));
 }
 
 // ******************************************************************************************
