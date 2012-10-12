@@ -17,7 +17,7 @@ find_package(catkin COMPONENTS
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
-catkin_project(${PROJECT_NAME}
+catkin_package(
   INCLUDE_DIRS include  
   LIBRARIES ${PROJECT_NAME}
   DEPENDS planning_models
