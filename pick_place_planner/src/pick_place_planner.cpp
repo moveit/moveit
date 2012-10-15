@@ -36,23 +36,29 @@
 *********************************************************************/
 
 #include <pick_place_planner/pick_place_planner.h>
+#include <collision_detection/collision_matrix.h>
+#include <moveit_manipulation_msgs/PickupGoal.h>
+#include <moveit_manipulation_msgs/PlaceGoal.h>
 
 namespace pick_place_planner
 {
 
-void PickPlacePlanner::PickPlacePlanner(const std::string &freespace_planning_plugin_name,
-                                        const std::string &contact_planning_plugin_name)
+PickPlacePlanner::PickPlacePlanner(
+    const planning_models::KinematicModelConstPtr& kinematic_model,
+    const std::string &freespace_planning_plugin_name,
+    const std::string &contact_planning_plugin_name)
 {
-  freespace_planning_pipeline_.reset(new planning_pipeline::PlanningPipeline(kinematic_model_,
-                                                                             freespace_planning_plugin_name,
-                                                                             contact_planning_plugin_name));
-  contact_planner_.reset(new interpolation_planners::InterpolationPlanner(kinematic_model_,
-                                                                          contact_planning_plugin_name));
+  kinematic_model_ = kinematic_model;
+  freespace_planning_pipeline_.reset(new planning_pipeline::PlanningPipeline(
+                                       kinematic_model_, freespace_planning_plugin_name));
+
+  contact_planning_pipeline_.reset(new planning_pipeline::PlanningPipeline(
+                           kinematic_model_, contact_planning_plugin_name));
 }
 
-void PickPlacePlanner::planPick(const moveit_manipulation_msgs::PickupGoal &pickup_goal,
+bool PickPlacePlanner::planPick(const moveit_manipulation_msgs::PickupGoal &pickup_goal,
                                 const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                std::vector<pick_place_planner::Plan> &pick_plans,
+                                std::vector<PickPlacePlanner::Plan> &pick_plans,
                                 bool return_on_first_solution) const
 {
   /**
@@ -68,49 +74,59 @@ void PickPlacePlanner::planPick(const moveit_manipulation_msgs::PickupGoal &pick
   if(manipulation_groups_.find(pickup_goal.arm_name) == manipulation_groups_.end())
   {
     //Need to set error code
-    return;    
+    return false;
   }
 
   pick_place_planner::ManipulationGroupPtr manipulation_group = manipulation_groups_.find(pickup_goal.arm_name)->second;
-  pick_place_planner::PickGoal pick_goal(pickup_goal,manipulation_group);
+  PickPlacePlanner::PickGoal pick_goal(pickup_goal, planning_scene, manipulation_group);
   pick_plans.resize(pick_goal.num_grasps_);  
 
+  bool success = false;
   for(unsigned int i=0; i < pick_goal.num_grasps_; ++i)
   { 
-    pick_place_planner::Plan pick_plan(pickup_goal);    
-    pick_goal.computeGoalsForGrasp(i);
-        
-    if(!pick_goal.checkPoses(i,pick_plans[i]))
+    pick_plans[i].initializeForPick(pickup_goal, planning_scene);
+
+    /* check IK for pre-grasp, grasp, and lift
+    if(!pick_goal.checkPoses(i, pick_plans[i]))
     {     
       continue;
     }
+    */
     
-    if(!planContact(pick_goal.pre_grasp_pose[i],pick_goal.grasp_pose[i],planning_scene,pick_plans[i]))
+    /* Plan from pre-grasp pose to grasp pose using interpolated IK
+    if(!planContact(pick_goal.pre_grasp_pose[i], pick_goal.grasp_pose[i], planning_scene, pick_plans[i]))
     {
       continue;
     }
-        
-    if(!planContact(pick_goal.grasp_pose[i],pick_goal.lift_pose[i],planning_scene,pick_plans[i]))
+    */
+
+    /* Plan from grasp pose to lift pose using interpolated IK
+    if(!planContact(pick_goal.grasp_pose[i], pick_goal.lift_pose[i], planning_scene, pick_plans[i]))
     {
       continue;
     }
-    
+    */
+
+    /* Plan from start pose to pre-grasp pose
+    if(!planFreeSpace(pick_goal,pick_plans[i]))
+      return false;
+    */
+
+    /* if we got this far, then we have a plan for this grasp */
+    success = true;
     if(return_on_first_solution)
       break;
   }
 
-  if(!planFreeSpace(pick_goal,pick_plans[i]))
-    return false;
-
-  return true;        
+  return success;
 }
 
-void PickPlacePlanner::planPlace(const moveit_manipulation_msgs::PlaceGoal &place_goal,
+bool PickPlacePlanner::planPlace(const moveit_manipulation_msgs::PlaceGoal &place_goal,
                                  const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                 pick_place_planner::PlanPtr &place_plan,
+                                 std::vector<PickPlacePlanner::Plan> &pick_plans,
                                  bool return_on_first_solution) const
 {
-
+  return true;
 }
 
 
@@ -118,30 +134,19 @@ PickPlacePlanner::PickGoal::PickGoal(const moveit_manipulation_msgs::PickupGoal 
                                      const planning_scene::PlanningSceneConstPtr &planning_scene,
                                      const pick_place_planner::ManipulationGroupConstPtr &manipulation_group)
 {
+  /*
   num_grasps_ = pickup_goal.desired_grasps.size();  
   
   grasp_pose_.resize(num_grasps_);
   pre_grasp_pose_.resize(num_grasps_);
   lift_pose_.resize(num_grasps_);
-  for(unsigned int i=0; i < grasp_pose_.size(); ++i)
-  {
-    grasp_pose_[i].resize(group_names_.size());
-    pre_grasp_pose_[i].resize(group_names_.size());
-    lift_pose_[i].resize(group_names_.size());    
-  }
-
-  pre_grasp_direction_ = manipulation_group.pre_grasp_direction;
-    
-  Eigen::Translation3d pre_grasp_translation(pre_grasp_direction_*fabs(pickup_goal.desired_grasps[i].desired_approach_distance));
-  Eigen::Affine3d pre_grasp_transform(pre_grasp_translation*Eigen::Quaterniond::Identity());
-  pre_grasp_transform_ = pre_grasp_transform;  
 
   Eigen::Vector3d lift_dir;
   lift_dir.x() = pickup_goal.lift.direction.vector.x;
   lift_dir.y() = pickup_goal.lift.direction.vector.y;
   lift_dir.z() = pickup_goal.lift.direction.vector.z;
   lift_dir.normalize();
-  planning_scene_->getTransforms()->transformVector(planning_scene_->getCurrentState(),
+  planning_scene->getTransforms()->transformVector(planning_scene_->getCurrentState(),
                                                     pickup_goal.target.reference_frame_id,
                                                     lift_dir,
                                                     lift_dir);
@@ -154,38 +159,50 @@ PickPlacePlanner::PickGoal::PickGoal(const moveit_manipulation_msgs::PickupGoal 
   planning_scene_diff_ = planning_scene->diff();  
 
 
-  moveit_msgs::AttachedCollisionObject attached_object = manipulation_group->getAttachedBodyMsg(pickup_goal.collision_object_name)
+  moveit_msgs::AttachedCollisionObject attached_object = manipulation_group->getAttachedBodyMsg(pickup_goal.collision_object_name);
   attached_object_diff_ = planning_scene->diff();  
   attached_object_diff_->processAttachedCollisionObjectMsg(attached_object);
   allow_gripper_support_collision_ = pickup_goal.allow_gripper_support_collision;  
 
   grasp_acm_ = planning_scene_->getAllowedCollisionMatrix();
   lift_acm_ = grasp_acm_;
+  */
 }
 
-void PickPlacePlanner::PickGoal::computeGoalsForGrasp(unsigned int index)
+void PickPlacePlanner::PickGoal::computeGoalsForGrasp(unsigned int grasp_i)
 {
+  /*
   // Convert everything into planning scene frame
   for(unsigned int i=0; i < group_names_.size(); ++i)
   {
     Eigen::Affine3d grasp_pose;
-    planning_models::poseFromMsg(grasps_[index].grasp_poses[i],grasp_pose);    
+    planning_models::poseFromMsg(grasps_[grasp_i].grasp_poses[i], grasp_pose);
     planning_scene_->getTransforms()->transformPose(planning_scene_->getCurrentState(),
                                                     reference_frame_id_,
                                                     grasp_pose,
-                                                    grasp_pose_[index][i]);
+                                                    grasp_pose_[index]);
 
-    pre_grasp_pose_[index][i] = grasp_pose*pre_grasp_transform_; //assume this is in gripper frame
-    lift_pose_[index][i] = lift_transform_*grasp_pose;    
+    // FIXME - pre-grasp direction should be stored in the ManipulationGroup class
+    // for now, i've hardcoded it to x-axis foward, like the PR2 gripper
+    Eigen::Vector3d pre_grasp_direction(1.0, 0.0, 0.0);
+
+    Eigen::Translation3d pre_grasp_translation(pre_grasp_direction * fabs(pickup_goal.desired_grasps[i].desired_approach_distance));
+    Eigen::Affine3d pre_grasp_transform(pre_grasp_translation * Eigen::Quaterniond::Identity());
+    pre_grasp_transform_ = pre_grasp_transform;
+
+    pre_grasp_pose_[grasp_i] = grasp_pose * pre_grasp_transform_; //assume this is in gripper frame
+    lift_pose_[index][i] = lift_transform_ * grasp_pose;
   }  
+*/
 }
 
-bool PickPlacePlanner::checkPoses(pick_place_planner::PickGoal &pick_goal,
+bool PickPlacePlanner::checkPoses(PickGoal &pick_goal,
                                   unsigned int index,
-                                  pick_place_planner::PickPlacePlanner &plan)
+                                  Plan &plan)
 {
+  /*
   //Check the grasp pose
-  collision_detection::CollisionMatrix allowed_collision_matrix_for_grasp = getAllowedCollisionMatrix();  
+  collision_detection::AllowedCollisionMatrix allowed_collision_matrix_for_grasp = grasp_pose_planning_scene_diff_->getAllowedCollisionMatrix();
   if(!checkEndEffectorPose(grasp_pose_planning_scene_diff_,
                            grasp_pose_[index],
                            grasp_posture_[index],
@@ -195,7 +212,7 @@ bool PickPlacePlanner::checkPoses(pick_place_planner::PickGoal &pick_goal,
       return false;      
   }
 
-  collision_detection::CollisionMatrix allowed_collision_matrix_for_pre_grasp = getAllowedCollisionMatrix();  
+  collision_detection::AllowedCollisionMatrix allowed_collision_matrix_for_pre_grasp = grasp_pose_planning_scene_diff_->getAllowedCollisionMatrix();
   if(!checkEndEffectorPose(grasp_pose_planning_scene_diff_,
                            grasp_pose_[index],
                            grasp_posture_[index],
@@ -205,7 +222,7 @@ bool PickPlacePlanner::checkPoses(pick_place_planner::PickGoal &pick_goal,
       return false;      
   }
   
-  collision_detection::CollisionMatrix allowed_collision_matrix_for_lift = getAllowedCollisionMatrix();  
+  collision_detection::AllowedCollisionMatrix allowed_collision_matrix_for_lift = grasp_pose_planning_scene_diff_->getAllowedCollisionMatrix();
   if(!checkEndEffectorPose(grasp_pose_planning_scene_diff_,
                            grasp_pose_[index],
                            grasp_posture_[index],
@@ -214,6 +231,7 @@ bool PickPlacePlanner::checkPoses(pick_place_planner::PickGoal &pick_goal,
       pick_plan.setStatus(pick_place_planner::LIFT_IN_CONTACT);
       return false;      
   }
+  */
   return true;  
 }
 
@@ -222,6 +240,7 @@ bool PickPlacePlanner::PickGoal::checkEndEffectorPose(planning_scene::PlanningSc
                                                       const std::map<std::string, double> &end_effector_posture,
                                                       const collision_detection::AllowedCollisionMatrix &acm)
 {
+  /*
   planning_scene->getCurrentState().setStateValues(end_effector_posture);
   for(unsigned int i=0; i < poses.size(); ++i)
   {
@@ -236,13 +255,26 @@ bool PickPlacePlanner::PickGoal::checkEndEffectorPose(planning_scene::PlanningSc
                                  acm);
   if(collision_response.collision)
     return false;
+    */
 
   return true;  
 }
 
-PickPlacePlanner::Plan::Plan(const moveit_msgs::PickupGoal &pickup_goal,
-                             const planning_scene::PlanningSceneConstPtr &planning_scene):success(false)
+PickPlacePlanner::Plan::Plan()
+  : success_(false)
 {
+  /* do nothing; the real work gets done int initializeForPick or initializeForPlace */
+}
+
+void PickPlacePlanner::Plan::initializeForPick(const moveit_manipulation_msgs::PickupGoal &pickup_goal,
+                             const planning_scene::PlanningSceneConstPtr &planning_scene)
+
+{
+  /* just in case this plan has already been initialized
+  robot_trajectories_.clear();
+  trajectory_types_.clear();
+  control_modes_.clear();
+
   for(unsigned int i=0; i < PICK_NUM_PHASES; ++i)
   {
     robot_trajectories_.push_back(planning_scene->getKinematicModel()->getJointModelGroup(pickup_goal.arm_name)->getRobotTrajectoryMsg());    
@@ -254,12 +286,19 @@ PickPlacePlanner::Plan::Plan(const moveit_msgs::PickupGoal &pickup_goal,
   control_modes_.push_back(pick_place_planner::PickPlacePlanner::FREESPACE_TRAJECTORY);
   control_modes_.push_back(pick_place_planner::PickPlacePlanner::CONTACT_TRAJECTORY);
   control_modes_.push_back(pick_place_planner::PickPlacePlanner::CONTACT_TRAJECTORY);
+  */
 }
 
 
-PickPlacePlanner::Plan::Plan(const moveit_msgs::PlaceGoal &place_goal,
-                             const planning_scene::PlanningSceneConstPtr &planning_scene):success_(false)
+void PickPlacePlanner::Plan::initializeForPlace(const moveit_manipulation_msgs::PlaceGoal &place_goal,
+                             const planning_scene::PlanningSceneConstPtr &planning_scene)
 {
+  /* just in case this plan has already been initialized */
+  /*
+  robot_trajectories_.clear();
+  trajectory_types_.clear();
+  control_modes_.clear();
+
   for(unsigned int i=0; i < PLACE_NUM_PHASES; ++i)
   {
     robot_trajectories_.push_back(planning_scene->getKinematicModel()->getJointModelGroup(place_goal.arm_name)->getRobotTrajectoryMsg());    
@@ -271,6 +310,7 @@ PickPlacePlanner::Plan::Plan(const moveit_msgs::PlaceGoal &place_goal,
   control_modes_.push_back(pick_place_planner::PickPlacePlanner::FREESPACE_TRAJECTORY);
   control_modes_.push_back(pick_place_planner::PickPlacePlanner::CONTACT_TRAJECTORY);
   control_modes_.push_back(pick_place_planner::PickPlacePlanner::CONTACT_TRAJECTORY);
+  */
 }
 
 
