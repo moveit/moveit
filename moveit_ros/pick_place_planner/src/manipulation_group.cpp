@@ -62,7 +62,7 @@ ManipulationGroup::ManipulationGroup(const planning_models::KinematicModelConstP
 
 moveit_msgs::AttachedCollisionObject ManipulationGroup::getAttachedBodyMsg(const std::string &body_name) const
 {
-  moveit_msgs::AttachedCollisionObject attached_object = getAttachedBodyMsg(body_name,arm_names_.front());
+  moveit_msgs::AttachedCollisionObject attached_object = getAttachedBodyMsg(body_name, arm_names_.front());
   return attached_object;
 }
 

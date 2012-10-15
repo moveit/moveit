@@ -16,3 +16,4 @@ msg/_.*\.py$
 srv/_.*\.py$
 \.pcd$
 .pyc$
+qtcreator-*

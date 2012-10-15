@@ -11,6 +11,10 @@
   <depend package="planning_interface"/>
   <depend package="kinematics_planner"/>
   <depend package="planning_models"/>
+  <depend package="planning_scene"/>
+  <depend package="planning_pipeline"/>
+  <depend package="planning_request_adapter"/>
+  <depend package="moveit_manipulation_msgs"/>
 
 </package>
 
