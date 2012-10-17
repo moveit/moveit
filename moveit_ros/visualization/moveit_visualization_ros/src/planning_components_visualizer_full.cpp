@@ -264,7 +264,7 @@ int main(int argc, char **argv)
                    SIGNAL(groupSelected(const QString&)),
                    pv_.get(),
                    SLOT(newGroupSelected(const QString&)));
-  planning_group_selection_menu->init(planning_scene_monitor_->getPlanningScene()->getSrdfModel());
+  planning_group_selection_menu->init(planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getSRDF());
   menu_bar->addMenu(planning_group_selection_menu);
 
   QMenu* coll_object_menu = menu_bar->addMenu("Collision Objects");
