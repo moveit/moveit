@@ -52,7 +52,7 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
 {
   //ompl_interface_.getPlanningContextManager().setMaximumSolutionSegmentLength(.1);
 
-  const std::vector<srdf::Model::Group>& groups = planning_scene_->getSrdfModel()->getGroups();
+  const std::vector<srdf::Model::Group>& groups = planning_scene_->getKinematicModel()->getSRDF()->getGroups();
 
   for(unsigned int i = 0; i < groups.size(); i++) {
     //special for arms for now

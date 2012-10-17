@@ -188,7 +188,7 @@ MoveItVisualizer::MoveItVisualizer() :
                      SIGNAL(groupSelected(const QString&)),
                      planner_selection_menu_,
                      SLOT(newGroupSelected(const QString&)));
-    planning_group_selection_menu_->init(planning_scene_monitor_->getPlanningScene()->getSrdfModel());
+    planning_group_selection_menu_->init(planning_scene_monitor_->getPlanningScene()->getKinematicModel()->getSRDF());
 
     // Initialize planner menu after planning group menu so that we know what planning group to inialize to
     planner_selection_menu_->init(planning_scene_monitor_->getPlanningScene(), pv_->getCurrentGroup());
