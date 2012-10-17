@@ -305,9 +305,6 @@ protected:
   boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionMap> >    collision_map_subscriber_;
   boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionMap> >              collision_map_filter_;
 
-  boost::scoped_ptr<message_filters::Subscriber<octomap_msgs::OctomapBinary> >  octomap_subscriber_;
-  boost::scoped_ptr<tf::MessageFilter<octomap_msgs::OctomapBinary> >            octomap_filter_;
-
   // include the octomap monitor as well
   boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
   
