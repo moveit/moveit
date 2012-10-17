@@ -76,12 +76,71 @@ public:
   virtual void handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef, int id,
                                  const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
   {
+    std::string planning_frame = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningFrame();
+    geometry_msgs::PoseStamped tpose;
+    tpose.header = feedback->header;
+    tpose.pose = feedback->pose;
+    if (feedback->header.frame_id != planning_frame)
+    {
+      try
+      {
+        context_->getTFClient()->transformPose(planning_frame, tpose, tpose);
+      }
+      catch (tf::TransformException& e)
+      {
+        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame.c_str());
+        return;
+      }
+    }
+    
+    bool start = id == 0;
+    if (start)
+    {
+      robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryStartState(), eef, tpose.pose);
+      planning_display_->getQueryStartState()->updateLinkTransforms();
+      planning_display_->updateQueryStartState();
+    }
+    else
+    {
+      robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryGoalState(), eef, tpose.pose);
+      planning_display_->getQueryGoalState()->updateLinkTransforms();
+      planning_display_->updateQueryGoalState();
+    }
   }
   
   virtual void handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint& vj, int id,
                                   const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
   {
-    //    robot_interaction::RobotInteraction::updateState(vj, pose);
+    std::string planning_frame = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningFrame();
+    geometry_msgs::PoseStamped tpose;
+    tpose.header = feedback->header;
+    tpose.pose = feedback->pose;
+    if (feedback->header.frame_id != planning_frame)
+    {
+      try
+      {
+        context_->getTFClient()->transformPose(planning_frame, tpose, tpose);
+      }
+      catch (tf::TransformException& e)
+      {
+        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame.c_str());
+        return;
+      }
+    }
+    
+    bool start = id == 0;
+    if (start)
+    {
+      robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryStartState(), vj, tpose.pose);
+      planning_display_->getQueryStartState()->updateLinkTransforms();
+      planning_display_->updateQueryStartState();
+    }
+    else
+    {
+      robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryGoalState(), vj, tpose.pose);
+      planning_display_->getQueryGoalState()->updateLinkTransforms();
+      planning_display_->updateQueryGoalState();
+    }
   }
   
 private:
