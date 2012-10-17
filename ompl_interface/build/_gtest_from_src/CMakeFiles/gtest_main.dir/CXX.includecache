@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/usr/src/gtest/src/gtest_main.cc
+iostream
+-
+gtest/gtest.h
+/usr/src/gtest/src/gtest/gtest.h
+
