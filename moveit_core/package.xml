@@ -1,0 +1,57 @@
+<package>
+  <name>moveit_core</name>
+  <version>0.1.12</version>
+  <description>Core libraries used by MoveIt!</description>
+  <author email="isucan@willowgarage.edu">Ioan Sucan</author>
+  <author email="sachinc@willowgarage.edu">Sachin Chitta</author>
+  <author email="gjones@willowgarage.edu">Gil Jones</author>
+
+  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+
+  <license>BSD</license>  
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit-core/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit-core</url>
+
+  <build_depend>catkin</build_depend>
+  <build_depend>cmake</build_depend>
+  <build_depend>pkg-config</build_depend>
+  <build_depend>console_bridge</build_depend>
+  <build_depend>random_numbers</build_depend>
+  <build_depend>shape_tools</build_depend>
+  <build_depend>moveit_msgs</build_depend>
+  <build_depend>common_msgs</build_depend>
+  <build_depend>octomap</build_depend>
+  <build_depend>ompl</build_depend>
+  <build_depend>sbpl</build_depend>
+  <build_depend>urdfdom</build_depend>
+  <build_depend>srdfdom</build_depend>
+  <build_depend>libqhull</build_depend>
+  <build_depend>eigen</build_depend>
+  <build_depend>boost</build_depend>
+  <build_depend>assimp</build_depend>
+  <build_depend>libccd</build_depend>
+  <build_depend>fcl</build_depend>
+  <build_depend>eigen_stl_containers</build_depend>
+  <build_depend>geometric_shapes</build_depend>
+
+  <run_depend>console_bridge</run_depend>
+  <run_depend>random_numbers</run_depend>
+  <run_depend>shape_tools</run_depend>
+  <run_depend>moveit_msgs</run_depend> 
+  <run_depend>common_msgs</run_depend>
+  <run_depend>octomap</run_depend>
+  <run_depend>ompl</run_depend>
+  <run_depend>sbpl</run_depend>
+  <run_depend>urdfdom</run_depend>
+  <run_depend>srdfdom</run_depend>
+  <run_depend>libqhull</run_depend>
+  <run_depend>eigen</run_depend>
+  <run_depend>boost</run_depend>
+  <run_depend>assimp</run_depend>
+  <run_depend>libccd</run_depend>
+  <run_depend>fcl</run_depend>
+  <run_depend>eigen_stl_containers</run_depend>
+  <run_depend>geometric_shapes</run_depend>
+
+</package>
