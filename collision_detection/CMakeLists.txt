@@ -1,29 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
-project(collision_detection)
-
-include_directories(include)
-
-find_package(Eigen REQUIRED)
-include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
-
-find_package(Boost REQUIRED thread)
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIRS})
-
-find_package(catkin COMPONENTS 
-  planning_models
-  REQUIRED)
-
-include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-
-catkin_package(
-  INCLUDE_DIRS include  
-  LIBRARIES ${PROJECT_NAME}
-  DEPENDS planning_models
-  )
-
-add_library(${PROJECT_NAME}
+add_library(collision_detection
   src/collision_world.cpp 
   src/collision_robot.cpp
   src/collision_matrix.cpp
@@ -32,9 +7,10 @@ add_library(${PROJECT_NAME}
   src/allvalid/collision_world.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(collision_detection planning_models ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS collision_detection
   LIBRARY DESTINATION lib)
+
 install(DIRECTORY include/
   DESTINATION include)

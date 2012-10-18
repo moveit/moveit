@@ -18,7 +18,7 @@ add_library(planning_models
   src/conversions.cpp)
 target_link_libraries(planning_models ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
+install(TARGETS planning_models LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
 
 # Unit tests
