@@ -40,6 +40,7 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
                                                                    boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                                                    const std::string& group_name, 
                                                                    ros::Publisher& marker_publisher,
+                                                                   boost::shared_ptr<tf::TransformBroadcaster>& broadcaster,
                                                                    bool show) :
   planning_scene_(planning_scene),
   start_chained_(false)
@@ -54,7 +55,8 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
                                                 "start_position",
                                                 makeRandomColor(.2,1.0),
                                                 bad_color,
-                                                marker_publisher));
+                                                marker_publisher,
+                                                broadcaster));
 
   goal_.reset(new KinematicsGroupVisualization(planning_scene,
                                                interactive_marker_server,
@@ -63,7 +65,8 @@ KinematicsStartGoalVisualization::KinematicsStartGoalVisualization(planning_scen
                                                "end_position",
                                                makeRandomColor(.2,1.0),
                                                bad_color,
-                                               marker_publisher));
+                                               marker_publisher,
+                                               broadcaster));
 
   start_->addButtonClickCallback(boost::bind(&KinematicsStartGoalVisualization::startOn, this));
   goal_->addButtonClickCallback(boost::bind(&KinematicsStartGoalVisualization::goalOn, this));

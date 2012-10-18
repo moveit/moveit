@@ -34,6 +34,9 @@
 
 #include <moveit_visualization_ros/kinematics_group_visualization.h>
 #include <planning_models_loader/kinematic_model_loader.h>
+#include <tf/transform_broadcaster.h>
+#include <tf/tf.h>
+
 
 namespace moveit_visualization_ros
 {
@@ -46,6 +49,7 @@ public:
                                    boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
                                    const std::string& group_name, 
                                    ros::Publisher& marker_publisher,
+                                   boost::shared_ptr<tf::TransformBroadcaster>& broadcaster,
                                    bool show = true); 
 
   ~KinematicsStartGoalVisualization() {
@@ -162,6 +166,12 @@ public:
 
   geometry_msgs::PoseStamped getStartInteractiveMarkerPose() const { return start_->getInteractiveMarkerPose(); }
   geometry_msgs::PoseStamped getGoalInteractiveMarkerPose() const { return goal_->getInteractiveMarkerPose(); }
+
+//  void publishEndEffectorTfFrames()
+//  {
+//    start_->publishEndEffectorTfFrame();
+//    goal_->publishEndEffectorTfFrame();
+//  }
 
 protected:
 

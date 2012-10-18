@@ -81,6 +81,8 @@ int main(int argc, char** argv)
   ros::Publisher vis_marker_array_publisher;
   ros::Publisher vis_marker_publisher;
 
+  boost::shared_ptr<tf::TransformBroadcaster> tf_broadcaster;
+
   vis_marker_publisher = nh.advertise<visualization_msgs::Marker> (VIS_TOPIC_NAME, 128);
   vis_marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray> (VIS_TOPIC_NAME + "_array", 128);
 
@@ -127,7 +129,8 @@ int main(int argc, char** argv)
                                                                 "state",
                                                                 good_color,
                                                                 bad_color,
-                                                                vis_marker_array_publisher);
+                                                                vis_marker_array_publisher,
+                                                                tf_broadcaster);
 
   kv.addButtonClickCallback(boost::bind(&simplePrintClick));
   kv.addMenuEntry("monkey1", boost::bind(&simplePrintMenu1, _1));
