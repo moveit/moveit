@@ -1,0 +1,20 @@
+<launch>
+  <!--
+  <node pkg="robot_self_filter" type="self_filter" name="stereo_self_filter" output="screen">
+     <remap from="cloud_in" to="/narrow_stereo_textured/points2" />
+     <remap from="cloud_out" to="/collider/grid" />
+     <param name="sensor_frame" type="string" value="narrow_stereo_optical_frame" />
+     <param name="subsample_value" type="double" value=".02"/>
+     <rosparam command="load" file="$(find pr2_arm_navigation_perception)/config/self_filter.yaml" />
+  </node>
+  -->
+
+  <node pkg="occupancy_map_monitor" type="occupancy_map_server" name="occupancy_map_server" respawn="false" output="screen">
+    <param name="octomap_frame" type="string" value="base_link" />
+    <param name="octomap_resolution" type="double" value="0.1" />
+
+    <!-- sensors used to update the map -->
+    <rosparam command="load" file="$(find pr2_moveit_config)/config/sensors_kinect.yaml" />
+   </node>
+
+</launch>

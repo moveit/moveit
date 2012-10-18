@@ -1,0 +1,25 @@
+<launch>  
+   <include file="$(find pr2_description)/robots/upload_pr2.launch" />
+
+   <node pkg="robot_self_filter" type="self_filter" name="test_self_filter" respawn="true" output="screen">
+
+     <!-- The topic for the input cloud -->
+     <remap from="cloud_in" to="/head_mount_kinect/depth_registered/points" />
+
+     <!-- The topic for the output cloud -->
+     <remap from="cloud_out" to="test_filtered_cloud" />
+
+     <!-- The frame of the sensor used to obtain the data to be
+       filtered; This parameter is optional. If it is not specified,
+       shadow points will be considered outside -->
+     <!--
+     <param name="sensor_frame" type="string" value="laser_tilt_link" /> -->
+
+     <!--<param name="sensor_frame" type="string" value="narrow_stereo_optical_frame" />  -->
+     <param name="sensor_frame" type="string" value="/head_mount_kinect_rgb_optical_frame" />
+     <param name="subsample_value" type="double" value=".01"/>
+
+     <!-- The names of the links the sensor can see -->
+     <rosparam command="load" file="$(find robot_self_filter)/config/pr2_self_filter.yaml" />
+   </node>
+</launch>
