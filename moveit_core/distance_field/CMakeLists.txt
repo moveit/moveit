@@ -1,29 +1,12 @@
-cmake_minimum_required(VERSION 2.8)
-project(distance_field)
-
-include_directories(include)
-
-find_package(Eigen REQUIRED)
-include_directories(${EIGEN_INCLUDE_DIRS})
-
-find_package(catkin COMPONENTS geometric_shapes moveit_msgs visualization_msgs eigen_stl_containers REQUIRED)
-include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-
-catkin_project(${PROJECT_NAME}
-  INCLUDE_DIRS include  
-  LIBRARIES ${PROJECT_NAME}
-  DEPENDS moveit_msgs visualization_msgs
-  )
-
 add_library(distance_field
   src/distance_field.cpp
   src/propagation_distance_field.cpp
   )
-target_link_libraries(distance_field ${catkin_LIBRARIES})
+target_link_libraries(distance_field ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS distance_field
   LIBRARY DESTINATION lib)
+
 install(DIRECTORY include/
   DESTINATION include)
 

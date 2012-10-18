@@ -1,32 +1,15 @@
-cmake_minimum_required(VERSION 2.8)
-project(constraint_samplers)
 
-include_directories(include)
-
-find_package(Boost REQUIRED thread)
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIRS})
-
-find_package(planning_scene REQUIRED)
-include_directories(${planning_scene_INCLUDE_DIRS})
-link_directories(${planning_scene_LIBRARY_DIRS})
-
-catkin_project(${PROJECT_NAME}
-  INCLUDE_DIRS include  
-  LIBRARIES ${PROJECT_NAME}
-  DEPENDS planning_models kinematic_constraints
-  )
-
-add_library(${PROJECT_NAME}
+add_library(constraint_samplers
   src/constraint_sampler.cpp
   src/default_constraint_samplers.cpp
   src/union_constraint_sampler.cpp
   src/constraint_sampler_manager.cpp
   src/constraint_sampler_tools.cpp
 )
-target_link_libraries(${PROJECT_NAME} ${planning_scene_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(constraint_samplers planning_scene ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS constraint_samplers
   LIBRARY DESTINATION lib)
+
 install(DIRECTORY include/
   DESTINATION include)
