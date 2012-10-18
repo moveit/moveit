@@ -194,7 +194,7 @@ double IterativeParabolicSmoother::findT2(const double dq1,
 // Takes the time differences, and updates the values in the trajectory.
 void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::vector<double>& time_diff )
 {
-  double time_sum = 0.0;
+  double time_sum = 0.2;
   unsigned int num_joints = trajectory.joint_names.size();
   const unsigned int num_points = trajectory.points.size();
 
@@ -203,7 +203,7 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::v
 		return;
 
   // Times
-  trajectory.points[0].time_from_start = ros::Duration(0);
+  trajectory.points[0].time_from_start = ros::Duration(.2);
   for (unsigned int i=1; i<num_points; ++i)
   {
     time_sum += time_diff[i-1];
@@ -269,9 +269,17 @@ void updateTrajectory(trajectory_msgs::JointTrajectory& trajectory, const std::v
         dt2 = time_diff[i-1];
       }
 
-      const double v1 = (q2-q1)/dt1;
-      const double v2 = (q3-q2)/dt2;
-      const double a = 2*(v2-v1)/(dt1+dt2);
+      double v1, v2, a;
+
+      if(dt1 == 0.0 || dt2 == 0.0) {
+        v1 = 0.0;
+        v2 = 0.0;
+        a = 0.0;
+      } else {
+        v1 = (q2-q1)/dt1;
+        v2 = (q3-q2)/dt2;
+        a = 2*(v2-v1)/(dt1+dt2);
+      }
       trajectory.points[i].velocities[j] = (v2+v1)/2;
       trajectory.points[i].accelerations[j] = a;
     }
@@ -356,9 +364,15 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
             assert(backwards);
           }
 
-          v1 = (q2-q1)/dt1;
-          v2 = (q3-q2)/dt2;
-          a = 2*(v2-v1)/(dt1+dt2);
+          if(dt1 == 0.0 || dt2 == 0.0) {
+            v1 = 0.0;
+            v2 = 0.0;
+            a = 0.0;
+          } else {
+            v1 = (q2-q1)/dt1;
+            v2 = (q3-q2)/dt2;
+            a = 2*(v2-v1)/(dt1+dt2);
+          }
 
           if( std::abs( a ) > a_max + ROUNDING_THRESHOLD )
           {
@@ -374,9 +388,15 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
             }
             num_updates++;
 
-            v1 = (q2-q1)/dt1;
-            v2 = (q3-q2)/dt2;
-            a = 2*(v2-v1)/(dt1+dt2);
+            if(dt1 == 0.0 || dt2 == 0.0) {
+              v1 = 0.0;
+              v2 = 0.0;
+              a = 0.0;
+            } else {
+              v1 = (q2-q1)/dt1;
+              v2 = (q3-q2)/dt2;
+              a = 2*(v2-v1)/(dt1+dt2);
+            }
           }
         }
         backwards = !backwards;
