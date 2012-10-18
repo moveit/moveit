@@ -41,7 +41,8 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
                                              const boost::shared_ptr<planning_pipeline::PlanningPipeline>& move_group_pipeline,
                                              boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                              boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
-                                             ros::Publisher& marker_publisher)
+                                             ros::Publisher& marker_publisher,
+                                             boost::shared_ptr<tf::TransformBroadcaster>& broadcaster)
   : nh_(""),
     pnh_("~"),
     planning_scene_(planning_scene),
@@ -62,6 +63,7 @@ PlanningVisualization::PlanningVisualization(const planning_scene::PlanningScene
                                                                                            kinematic_model_loader,
                                                                                            groups[i].name_,
                                                                                            marker_publisher,
+                                                                                           broadcaster,
                                                                                            false));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Plan", boost::bind(&PlanningVisualization::generatePlan, this, _1, true));
       group_visualization_map_[groups[i].name_]->addMenuEntry("Plan out and back", boost::bind(&PlanningVisualization::generateOutAndBackPlan, this, _1, true));

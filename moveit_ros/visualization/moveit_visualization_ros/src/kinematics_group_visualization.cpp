@@ -50,7 +50,8 @@ namespace moveit_visualization_ros
                                                                const std::string& suffix_name,
                                                                const std_msgs::ColorRGBA& good_color,
                                                                const std_msgs::ColorRGBA& bad_color,
-                                                               ros::Publisher& marker_publisher) :
+                                                               ros::Publisher& marker_publisher,
+                                                               boost::shared_ptr<tf::TransformBroadcaster>& broadcaster) :
         group_name_(group_name),
         suffix_name_(suffix_name),
         regular_marker_name_(group_name+"_kinematics_"+suffix_name),
@@ -66,6 +67,7 @@ namespace moveit_visualization_ros
         interactive_marker_server_(interactive_marker_server),
         state_(planning_scene_->getCurrentState()),
         marker_publisher_(marker_publisher),
+        tf_broadcaster_(broadcaster),
         dof_marker_enabled_(true),
         interaction_enabled_(true),
         visible_(true)
@@ -445,13 +447,30 @@ namespace moveit_visualization_ros
             last_marker_array_.markers.clear();
             std_msgs::ColorRGBA col = good_color_;
             col.a = stored_alpha_;
+            const std::vector<std::string>& link_names = ik_solver_->getLinkNames();
             state_.getRobotMarkers(col,
                                    regular_marker_name_,
                                    ros::Duration(0.0),
                                    last_marker_array_,
-                                   ik_solver_->getLinkNames());
+                                   link_names);
             if(all_markers_hidden_ || regular_markers_hidden_) return;
             marker_publisher_.publish(last_marker_array_);
+
+            // aleeper: New stuff here
+            std::vector<geometry_msgs::TransformStamped> transforms;
+            for(size_t i = 0; i < last_marker_array_.markers.size(); i++)
+            {
+              visualization_msgs::Marker marker = last_marker_array_.markers[i];
+              geometry_msgs::TransformStamped t;
+              t.transform.translation.x = marker.pose.position.x;
+              t.transform.translation.y = marker.pose.position.y;
+              t.transform.translation.z = marker.pose.position.z;
+              t.transform.rotation = marker.pose.orientation;
+              t.header = marker.header;
+              t.child_frame_id = group_name_ + "_" + suffix_name_ + "_" + link_names[i];
+              transforms.push_back(t);
+            }
+            tf_broadcaster_->sendTransform(transforms);
         } else {
             removeLastMarkers();
             //last_marker_array_.markers.clear();
@@ -653,6 +672,10 @@ namespace moveit_visualization_ros
                                                  .35,
                                                  true,
                                                  relative_transforms_[it->first]);
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
+                // aleeper: HACK to try out the new 3D cursor with force feedback...
+                marker.controls[0].interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE;
+                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
             }
 
             if(add_6dof) {
@@ -671,6 +694,19 @@ namespace moveit_visualization_ros
             //                .3,
             //                false,
             //                false);
+
+            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
+            // aleeper: HACK to try out the new 3D cursor with force feedback...
+            std::string description = "";
+            std::string prefix = group_name_ + "_" + "start_position" + "_";
+            if(group_name_.find("right") != std::string::npos) description = "control_frame: " + prefix + "r_wrist_roll_link";
+            if(group_name_.find("left") != std::string::npos) description =  "control_frame: " + prefix + "l_wrist_roll_link";
+            for(size_t i = 0; i < marker.controls.size(); i++)
+            {
+              marker.controls[i].description = description;
+            }
+            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
+
             interactive_marker_server_->insert(marker);
             interactive_marker_server_->setCallback(marker.name,
                                                     boost::bind(&KinematicsGroupVisualization::processInteractiveMarkerFeedback, this, _1));

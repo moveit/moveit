@@ -66,6 +66,7 @@ MoveItVisualizer::MoveItVisualizer() :
 
     interactive_marker_server_.reset(new interactive_markers::InteractiveMarkerServer("interactive_kinematics_visualization", "", false));
     kinematic_model_loader_.reset(new planning_models_loader::KinematicModelLoader("robot_description"));
+    tf_broadcaster_.reset(new tf::TransformBroadcaster);
 
     if(!monitor_robot_state) {
         ROS_INFO_STREAM("Starting publisher thread");
@@ -116,7 +117,8 @@ MoveItVisualizer::MoveItVisualizer() :
                                                  move_group_pipeline,
                                                  interactive_marker_server_,
                                                  kinematic_model_loader_,
-                                                 vis_marker_array_publisher_));
+                                                 vis_marker_array_publisher_,
+                                                 tf_broadcaster_));
 
     iov_.reset(new InteractiveObjectVisualizationQtWrapper(planning_scene_monitor_->getPlanningScene(),
                                                            interactive_marker_server_,

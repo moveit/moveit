@@ -40,6 +40,7 @@
 #include <interactive_markers/menu_handler.h>
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <planning_models_loader/kinematic_model_loader.h>
+#include <tf/transform_broadcaster.h>
 
 namespace moveit_visualization_ros
 {
@@ -63,6 +64,7 @@ public:
    *  @param good_color                 A color to use for drawing this group in a valid kinematic configuration.
    *  @param bad_color                  A color to use for drawing this group when the kinematic configuration is invalid.
    *  @param marker_publisher           A ros::Publisher to be used for publishing (regular) markers.
+   *  @param broadcaster                A tf::TransformBroadcaster to be used for publishing TF frames.
    */
   KinematicsGroupVisualization(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server, 
@@ -71,7 +73,8 @@ public:
                                const std::string& suffix_name, 
                                const std_msgs::ColorRGBA& good_color,
                                const std_msgs::ColorRGBA& bad_color,
-                               ros::Publisher& marker_publisher);
+                               ros::Publisher& marker_publisher,
+                               boost::shared_ptr<tf::TransformBroadcaster>& broadcaster);
 
   ~KinematicsGroupVisualization() {
     removeLastMarkers();
@@ -152,6 +155,12 @@ public:
     state_changed_callback_ = callback;
   }
 
+//  void publishEndEffectorTfFrame()
+//  {
+//    tf::StampedTransform t;
+//    tf_broadcaster_->sendTransform();
+//  }
+
 protected:
 
   void sendCurrentMarkers();
@@ -206,6 +215,7 @@ protected:
   std::map<std::string, visualization_msgs::InteractiveMarker> saved_markers_;
   planning_models::KinematicState state_;
   ros::Publisher marker_publisher_;
+  boost::shared_ptr<tf::TransformBroadcaster> tf_broadcaster_;
   
   boost::shared_ptr<kinematics_constraint_aware::KinematicsSolverConstraintAware> ik_solver_;
   
