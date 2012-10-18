@@ -769,14 +769,14 @@ void InteractiveObjectVisualization::makeInteractiveMarkerButton(const moveit_ms
       } else if(shape_msg.type == shape_msgs::SolidPrimitive::CYLINDER) { 
         marker = makeButtonCylinder(coll.id,
                                     pose_stamped,
-                                    shape_msg.dimensions[0]*scale,
+                                    shape_msg.dimensions[0]*scale*2,
                                     shape_msg.dimensions[1]*scale,
                                     false, 
                                     false);
       } else if(shape_msg.type == shape_msgs::SolidPrimitive::SPHERE) {
         marker = makeButtonSphere(coll.id,
                                   pose_stamped,
-                                  shape_msg.dimensions[0]*scale,
+                                  shape_msg.dimensions[0]*scale*2,
                                   false, 
                                   false);
       }

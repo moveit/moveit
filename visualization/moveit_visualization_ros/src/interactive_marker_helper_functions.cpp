@@ -187,6 +187,7 @@ void add6DofControl( visualization_msgs::InteractiveMarker &msg, bool fixed )
   if(fixed)
     control.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
 
+
   control.orientation.w = 1;
   control.orientation.x = 1;
   control.orientation.y = 0;

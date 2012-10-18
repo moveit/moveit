@@ -49,7 +49,8 @@ public:
                                  const boost::shared_ptr<planning_pipeline::PlanningPipeline>& move_group_pipeline,
                                  boost::shared_ptr<interactive_markers::InteractiveMarkerServer>& interactive_marker_server,
                                  boost::shared_ptr<planning_models_loader::KinematicModelLoader>& kinematic_model_loader,
-                                 ros::Publisher& marker_publisher);
+                                 ros::Publisher& marker_publisher,
+                                 boost::shared_ptr<tf::TransformBroadcaster>& broadcaster);
 
   ~PlanningVisualizationQtWrapper() {
   }
