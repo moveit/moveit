@@ -1,0 +1,29 @@
+<package>
+  <description brief="dynamics_solver">
+
+     dynamics_solver
+
+  </description>
+  <author>Sachin Chitta</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/dynamics_solver</url>
+  <depend package="kdl"/>
+  <depend package="robot_model_loader"/>
+  <depend package="kdl_parser"/>
+  <depend package="geometry_msgs"/>
+  <depend package="planning_models"/>
+  <depend package="srdf"/>
+
+  <export>
+    <cpp cflags="`pkg-config --cflags eigen3` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -ldynamics_solver"/>
+  </export>
+  
+  <platform os="ubuntu" version="10.04"/>
+  <platform os="ubuntu" version="10.10"/>
+  <platform os="ubuntu" version="11.04"/>
+  <platform os="ubuntu" version="11.10"/>
+
+</package>
+
+
