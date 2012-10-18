@@ -13,6 +13,7 @@
   <depend package="planning_models"/>
   <depend package="planning_scene"/>
   <depend package="planning_pipeline"/>
+  <depend package="plan_execution"/>
   <depend package="planning_request_adapter"/>
   <depend package="moveit_manipulation_msgs"/>
 

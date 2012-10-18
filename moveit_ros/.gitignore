@@ -17,3 +17,4 @@ srv/_.*\.py$
 \.pcd$
 .pyc$
 qtcreator-*
+*.user
