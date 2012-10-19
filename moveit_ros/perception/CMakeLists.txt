@@ -4,26 +4,25 @@ project(moveit_ros_perception)
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
-find_package(Boost REQUIRED thread)
+find_package(Boost REQUIRED thread signals)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin COMPONENTS
   moveit_core
   roscpp
-  dynamic_reconfigure
   message_filters
   tf
   tf_conversions
+  pcl_ros
   REQUIRED)
 
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
-include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
+#include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
 
 catkin_package(
-  LIBRARIES
-  
+  LIBRARIES  
   DEPENDS
     moveit_core)
 
