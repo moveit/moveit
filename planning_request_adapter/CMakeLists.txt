@@ -1,8 +1,9 @@
+set(MOVEIT_LIB_NAME moveit_planning_request_adapter)
 
-add_library(planning_request_adapter src/planning_request_adapter.cpp)
-target_link_libraries(planning_request_adapter planning_scene ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_library(${MOVEIT_LIB_NAME} src/planning_request_adapter.cpp)
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_scene ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS planning_request_adapter
+install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION lib)
 install(DIRECTORY include/
   DESTINATION include)

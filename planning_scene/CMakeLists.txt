@@ -1,6 +1,9 @@
+set(MOVEIT_LIB_NAME moveit_planning_scene)
 
-add_library(planning_scene src/planning_scene.cpp)
-target_link_libraries(planning_scene collision_detection_fcl kinematic_constraints ${OCTOMAP_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_library(${MOVEIT_LIB_NAME} src/planning_scene.cpp)
+target_link_libraries(${MOVEIT_LIB_NAME} 
+  moveit_collision_detection_fcl moveit_kinematic_constraints
+  ${OCTOMAP_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 catkin_add_gtest(test_planning_scene test/test_planning_scene.cpp)
-target_link_libraries(test_planning_scene planning_scene)
+target_link_libraries(test_planning_scene ${MOVEIT_LIB_NAME})
