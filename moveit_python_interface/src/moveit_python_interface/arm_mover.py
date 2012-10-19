@@ -39,6 +39,7 @@ roslib.load_manifest('moveit_python_interface')
 import rospy
 import actionlib
 import actionlib_msgs.msg
+import tf
 #import arm_navigation_msgs.msg
 #from arm_navigation_msgs.msg import ArmNavigationErrorCodes as ArmNavErrorCodes
 #from arm_navigation_msgs.srv import GetStateValidityRequest
@@ -46,7 +47,9 @@ import actionlib_msgs.msg
 #from pr2_controllers_msgs.msg import JointTrajectoryGoal, JointTrajectoryAction
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
-
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+#from moveit_msgs.msg import RobotTrajectory
+#import moveit_msgs_boost as mmb
 #from pr2_python.world_interface import WorldInterface
 #from pr2_python.hand_description import HandDescription
 #from pr2_python.controller_manager_client import ControllerManagerClient
@@ -59,7 +62,7 @@ from sensor_msgs.msg import JointState
 roslib.load_manifest('move_group_interface')
 from move_group_interface import MoveGroup
 
-DEFAULT_PLANNER_SERVICE_NAME = 'ompl_planning/plan_kinematic_path'
+#DEFAULT_PLANNER_SERVICE_NAME = 'ompl_planning/plan_kinematic_path'
 
 class ArmMover:
     def __init__(self, name):
@@ -72,6 +75,14 @@ class ArmMover:
 
         elif type(goal) == PoseStamped:  
             if self.has_end_effector_link():
+                pose = []
+                pose.append(goal.position.x)
+                pose.append(goal.position.y)
+                pose.append(goal.position.z)
+                (r, p, y) = tf.transformations.euler_from_quaternion([goal.orientation.x, goal.orientation.y, goal.orientation.z, goal.orientation.w])
+                pose.append(r)
+                pose.append(p)
+                pose.append(y)
                 self._g.set_pose_target(pose)
             else:
                 raise "There is no end effector to get the pose of"
@@ -95,3 +106,25 @@ class ArmMover:
         """ Stop the current execution, if any """
         self._g.stop()
 
+    def plan(self, goal):
+        if type(goal) == JointState:
+            self._g.set_joint_value_target(goal.position);
+
+        elif type(goal) == PoseStamped:
+            if self.has_end_effector_link():
+                self._g.set_pose_target(pose)
+            else:
+                raise "There is no end effector to get the pose of"
+        plan = self._g.get_plan()
+        plan_msg = JointTrajectory()
+        plan_msg.joint_names = plan["joint_names"]
+        for point in plan["points"]:
+            plan_msg.points.append(JointTrajectoryPoint(
+                positions = point["positions"],
+                velocities = point["velocities"],
+                accelerations = point["accelerations"]))
+        return plan_msg
+
+        
+        
+       
