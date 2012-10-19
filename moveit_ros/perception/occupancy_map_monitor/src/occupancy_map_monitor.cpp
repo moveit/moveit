@@ -56,7 +56,8 @@ OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer
 }
 
 void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shared_ptr<tf::Transformer> &tf)
-{  
+{ 
+  tree_update_thread_running_ = false;
   opt_ = input_opt; // we need to be able to update options
   
   /* load params from param server */
@@ -127,14 +128,14 @@ void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shar
 void OccupancyMapMonitor::treeUpdateThread(void)
 {
   std::set<OccupancyMapUpdater*> ready;
-  while (tree_update_thread_)
+  while (tree_update_thread_running_)
   {
     {
       boost::mutex::scoped_lock update_lock(update_mut_);
       if (update_cond_.timed_wait(update_lock, boost::posix_time::milliseconds(100)))
         updates_available_.swap(ready);
     }
-    if (tree_update_thread_ && !ready.empty())
+    if (tree_update_thread_running_ && !ready.empty())
     {
       ROS_DEBUG("Calling updaters");
       {
@@ -182,9 +183,9 @@ void OccupancyMapMonitor::publish_markers(void)
   //free_marker_pub_.publish(free_nodes_arr);
 }
 
-void OccupancyMapMonitor::startMonitor()
+void OccupancyMapMonitor::startMonitor(void)
 {
-  if (!tree_update_thread_)
+  if (!tree_update_thread_running_)
   {
     /* initialize all of the occupancy map updaters */
     std::vector<boost::shared_ptr<OccupancyMapUpdater> >::iterator it;
@@ -192,17 +193,18 @@ void OccupancyMapMonitor::startMonitor()
       (*it)->initialize();
     
     /* start a dedicated thread for updating the occupancy map */
+    tree_update_thread_running_ = true;
     tree_update_thread_.reset(new boost::thread(&OccupancyMapMonitor::treeUpdateThread, this));
   }
 }
 
-void OccupancyMapMonitor::stopMonitor()
+void OccupancyMapMonitor::stopMonitor(void)
 { 
-  if (tree_update_thread_)
+  if (tree_update_thread_running_)
   {
-    boost::thread *copy = tree_update_thread_.get();
+    tree_update_thread_running_ = false;
+    tree_update_thread_->join();
     tree_update_thread_.reset();
-    copy->join();
   }
 }
 
@@ -210,4 +212,5 @@ OccupancyMapMonitor::~OccupancyMapMonitor(void)
 {
   stopMonitor();
 }
+
 }
