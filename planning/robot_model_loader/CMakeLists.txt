@@ -1,5 +1,7 @@
-add_library(moveit_robot_model_loader src/robot_model_loader.cpp)
-target_link_libraries(moveit_robot_model_loader ${catkin_LIBRARIES})
+set(MOVEIT_LIB_NAME moveit_robot_model_loader)
 
-install(TARGETS moveit_robot_model_loader LIBRARY DESTINATION lib)
+add_library(${MOVEIT_LIB_NAME} src/robot_model_loader.cpp)
+target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES})
+
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)

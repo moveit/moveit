@@ -1,5 +1,7 @@
-add_library(moveit_kinematics_plugin_loader src/kinematics_plugin_loader.cpp)
-target_link_libraries(moveit_kinematics_plugin_loader ${catkin_LIBRARIES})
+set(MOVEIT_LIB_NAME moveit_kinematics_plugin_loader)
 
-install(TARGETS moveit_kinematics_plugin_loader LIBRARY DESTINATION lib)
+add_library(${MOVEIT_LIB_NAME} src/kinematics_plugin_loader.cpp)
+target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES})
+
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
