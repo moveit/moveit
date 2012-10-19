@@ -1,5 +1,7 @@
-add_library(moveit_planning_pipeline src/planning_pipeline.cpp)
-target_link_libraries(moveit_planning_pipeline ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+set(MOVEIT_LIB_NAME moveit_planning_pipeline)
 
-install(TARGETS moveit_planning_pipeline LIBRARY DESTINATION lib)
+add_library(${MOVEIT_LIB_NAME} src/planning_pipeline.cpp)
+target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)

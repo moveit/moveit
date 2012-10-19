@@ -1,5 +1,7 @@
-add_library(moveit_planning_models_loader src/kinematic_model_loader.cpp)
-target_link_libraries(moveit_planning_models_loader moveit_robot_model_loader moveit_kinematics_plugin_loader ${catkin_LIBRARIES})
+set(MOVEIT_LIB_NAME moveit_planning_models_loader)
 
-install(TARGETS moveit_planning_models_loader LIBRARY DESTINATION lib)
+add_library(${MOVEIT_LIB_NAME} src/kinematic_model_loader.cpp)
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_model_loader moveit_kinematics_plugin_loader ${catkin_LIBRARIES})
+
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
