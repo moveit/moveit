@@ -1,0 +1,23 @@
+<package>
+  <name>moveit_ros_planning</name>
+  <version>0.1.0</version>
+  <description>Planning components of MoveIt that use ROS</description>
+  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <author email="isucan@willowgarage.com">Sachin Chitta</author>
+
+  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit-ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit-ros</url>
+
+  <build_depend>catkin</build_depend> 
+  <build_depend>moveit_core</build_depend>
+  <build_depend>pluginlib</build_depend>
+ 
+  <run_depend>moveit_core</run_depend>
+  <run_depend>pluginlib</run_depend>
+
+</package>
