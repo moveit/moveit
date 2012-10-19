@@ -56,8 +56,8 @@ PointCloudOccupancyMapUpdater::PointCloudOccupancyMapUpdater(const boost::shared
 
 PointCloudOccupancyMapUpdater::~PointCloudOccupancyMapUpdater(void)
 {
-  delete point_cloud_subscriber_;
   delete point_cloud_filter_;
+  delete point_cloud_subscriber_;
 }
 
 bool PointCloudOccupancyMapUpdater::setParams(XmlRpc::XmlRpcValue &params)
