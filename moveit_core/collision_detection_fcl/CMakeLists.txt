@@ -1,15 +1,17 @@
-add_library(collision_detection_fcl
+set(MOVEIT_LIB_NAME moveit_collision_detection_fcl)
+
+add_library(${MOVEIT_LIB_NAME}
   src/collision_common.cpp
   src/collision_robot.cpp
   src/collision_world.cpp
 )
 
-target_link_libraries(collision_detection_fcl collision_detection ${catkin_LIBRARIES} ${FCL_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} collision_detection ${catkin_LIBRARIES} ${FCL_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS collision_detection_fcl
+install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION lib)
 install(DIRECTORY include/
   DESTINATION include)
 
 catkin_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
-target_link_libraries(test_fcl_collision_detection collision_detection_fcl ${Boost_LIBRARIES})
+target_link_libraries(test_fcl_collision_detection  ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})

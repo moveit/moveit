@@ -1,4 +1,6 @@
-add_library(collision_detection
+set(MOVEIT_LIB_NAME moveit_collision_detection)
+
+add_library(${MOVEIT_LIB_NAME}
   src/collision_world.cpp 
   src/collision_robot.cpp
   src/collision_matrix.cpp
@@ -7,9 +9,9 @@ add_library(collision_detection
   src/allvalid/collision_world.cpp
 )
 
-target_link_libraries(collision_detection planning_models ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_models ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS collision_detection
+install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION lib)
 
 install(DIRECTORY include/
