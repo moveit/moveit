@@ -1,0 +1,21 @@
+<package>
+  <name>moveit_ompl_planners_ros_plugin</name>
+  <version>0.1.0</version>
+  <description>MoveIt plugin for the OMPL interface</description>
+  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit-planners/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit-planners</url>
+
+  <build_depend>catkin</build_depend> 
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_ompl_planners_core</build_depend>
+ 
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_ompl_planners_core</run_depend>
+
+</package>

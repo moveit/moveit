@@ -1,32 +1,6 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+set(MOVEIT_LIB_NAME moveit_ompl_interface)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE Release)
-
-rosbuild_init()
-
-rosbuild_add_boost_directories()
-
-find_package(Eigen REQUIRED)
-include_directories(${EIGEN_INCLUDE_DIRS})
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(OMPL REQUIRED ompl)
-include_directories(${OMPL_INCLUDE_DIRS})
-link_directories(${OMPL_LIBRARY_DIRS})
-
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-
-rosbuild_add_library(${PROJECT_NAME}
+add_library(moveit_ompl_interface
   src/ompl_interface.cpp
   src/planning_context_manager.cpp
   src/constraints_library.cpp
@@ -47,9 +21,8 @@ rosbuild_add_library(${PROJECT_NAME}
   src/detail/ompl_console.cpp
 )
 
-rosbuild_add_openmp_flags(${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME} ${OMPL_LIBRARIES})
-rosbuild_link_boost(${PROJECT_NAME} thread date_time serialization system filesystem)
+#rosbuild_add_openmp_flags(${PROJECT_NAME})
+target_link_libraries(${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-rosbuild_add_gtest(test_state_space test/test_state_space.cpp) 
-target_link_libraries(test_state_space ${PROJECT_NAME} ompl)
+catkin_add_gtest(test_state_space test/test_state_space.cpp)
+target_link_libraries(test_state_space ${MOVEIT_LIB_NAME})
