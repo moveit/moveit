@@ -159,7 +159,27 @@ public:
   {
     return getName().c_str();
   }
-  
+
+  bp::dict getPlan(void)
+  {
+    MoveGroup::Plan plan = MoveGroup::Plan();
+    MoveGroup::plan(plan);
+    bp::list joint_names = listFromString(plan.trajectory_.joint_trajectory.joint_names);
+    bp::dict plan_dict;
+    plan_dict["joint_names"] = joint_names;
+    bp::list points;
+    bp::dict point;
+    for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator it = plan.trajectory_.joint_trajectory.points.begin() ; it != plan.trajectory_.joint_trajectory.points.end() ; ++it)
+    {
+      point["positions"] = listFromDouble(it->positions);
+      point["velocities"] = listFromDouble(it->velocities);
+      point["accelerations"] = listFromDouble(it->accelerations);
+      points.append(point);
+    }
+    plan_dict["points"] = points;
+    return plan_dict;
+  }
+
 private:
 
   std::vector<double> doubleFromList(bp::list &values) const
@@ -256,6 +276,7 @@ void wrap_move_group_interface()
   MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints); 
   MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
   MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase);
+  MoveGroupClass.def("get_plan", &MoveGroupWrapper::getPlan);
 }
 
 
