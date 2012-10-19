@@ -86,7 +86,11 @@ public:
   
   void status(void)
   {
-    ROS_INFO_STREAM("MoveGroup action running using planning plugin " << plan_execution_.getPlanningPipeline().getPlannerPluginName());
+    const planning_interface::PlannerPtr &planner_interface = plan_execution_.getPlanningPipeline().getPlannerInterface();
+    if (planner_interface)
+      ROS_INFO_STREAM("MoveGroup action running using planning plugin " << plan_execution_.getPlanningPipeline().getPlannerPluginName());
+    else
+      ROS_WARN_STREAM("MoveGroup action running was unable to load " << plan_execution_.getPlanningPipeline().getPlannerPluginName());
   }
   
 private:
