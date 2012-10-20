@@ -11,6 +11,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 find_package(catkin COMPONENTS
   moveit_core
   roscpp
+  rosconsole
+  urdf
   message_filters
   tf
   tf_conversions
