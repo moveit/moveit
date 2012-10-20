@@ -48,6 +48,7 @@ import tf
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
 #from moveit_msgs.msg import RobotTrajectory
 #import moveit_msgs_boost as mmb
 #from pr2_python.world_interface import WorldInterface
@@ -116,13 +117,28 @@ class ArmMover:
             else:
                 raise "There is no end effector to get the pose of"
         plan = self._g.get_plan()
-        plan_msg = JointTrajectory()
-        plan_msg.joint_names = plan["joint_names"]
-        for point in plan["points"]:
-            plan_msg.points.append(JointTrajectoryPoint(
+        plan_msg = RobotTrajectory()
+        joint_traj = JointTrajectory()
+        joint_traj.joint_names = plan["joint_trajectory"]["joint_names"]
+        for point in plan["joint_trajectory"]["points"]:
+            joint_traj.points.append(JointTrajectoryPoint(
                 positions = point["positions"],
                 velocities = point["velocities"],
                 accelerations = point["accelerations"]))
+        multi_dof_joint_traj = MultiDOFJointTrajectory()
+        multi_dof_joint_traj.joint_names = plan["multi_dof_joint_trajectory"]["joint_names"]
+        multi_dof_joint_traj.frame_ids = plan["multi_dof_joint_trajectory"]["frame_ids"]
+        multi_dof_joint_traj.child_frame_ids = plan["multi_dof_joint_trajectory"]["child_frame_ids"]
+        for point in plan["multi_dof_joint_trajectory"]["points"]:
+             multi_dof_joint_traj_point = MultiDOFJointTrajectoryPoint()
+             for pose in point["poses"]:
+                 multi_dof_joint_traj_point.poses.append(Point(
+                     position = Point(x = pose["position"]["x"], y = pose["position"]["y"], z = pose["position"]["z"]), 
+                     orientation = Quaternion(x = pose["orientation"]["x"], y = pose["orientation"]["y"], 
+                         z = pose["orientation"]["z"], w = pose["orientation"]["w"])))
+             multi_dof_joint_traj.points.append(multi_dof_joint_traj_point)
+        plan_msg.joint_trajectory = joint_traj
+        plan_msg.multi_dof_joint_trajectory = multi_dof_joint_traj
         return plan_msg
 
         
