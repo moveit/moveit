@@ -68,7 +68,7 @@ namespace robot_self_filter
 static inline Eigen::Affine3d urdfPose2EigenTransform(const urdf::Pose &pose)
 {
   Eigen::Affine3d trans;
-  tf::TransformTFToEigen(
+  tf::transformTFToEigen(
         tf::Transform(tf::Quaternion(pose.rotation.x, pose.rotation.y, pose.rotation.z, pose.rotation.w), tf::Vector3(pose.position.x, pose.position.y, pose.position.z)),
         trans);
   return trans;
@@ -306,7 +306,7 @@ void robot_self_filter::SelfMask::assumeFrame(const std::string& frame_id, const
   {
     tf::StampedTransform transf;
     tf_.lookupTransform(frame_id, sensor_frame, stamp, transf);
-    tf::VectorTFToEigen(transf.getOrigin(), sensor_pos_);
+    tf::vectorTFToEigen(transf.getOrigin(), sensor_pos_);
   }
   catch(tf::TransformException& ex)
   {
@@ -344,7 +344,7 @@ void robot_self_filter::SelfMask::assumeFrame(const std::string &frame_id, const
     }
 
     Eigen::Affine3d transf;
-    tf::TransformTFToEigen(tf_transf, transf);
+    tf::transformTFToEigen(tf_transf, transf);
 
     //ROS_INFO_STREAM("Transform from " << bodies_[i].name << " to " << frame_id << " is:");
     //ROS_INFO_STREAM(":  " << transf.matrix());
