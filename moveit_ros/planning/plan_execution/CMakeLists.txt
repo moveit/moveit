@@ -7,4 +7,4 @@ install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
 
 #add dynamic reconfigure api
-gencfg()
+#gencfg()
