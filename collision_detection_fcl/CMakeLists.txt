@@ -6,7 +6,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_world.cpp
 )
 
-target_link_libraries(${MOVEIT_LIB_NAME} collision_detection ${catkin_LIBRARIES} ${FCL_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_collision_detection ${catkin_LIBRARIES} ${FCL_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION lib)
