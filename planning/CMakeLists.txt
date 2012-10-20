@@ -13,7 +13,7 @@ find_package(catkin COMPONENTS
   moveit_ros_perception
   pluginlib
   roscpp
-#  dynamic_reconfigure
+  dynamic_reconfigure
   message_filters
   tf
   tf_conversions
@@ -21,7 +21,6 @@ find_package(catkin COMPONENTS
 
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
-#include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
 
 catkin_package(
   LIBRARIES

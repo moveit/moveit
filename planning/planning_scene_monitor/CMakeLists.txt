@@ -10,4 +10,5 @@ add_executable(demo_scene demos/demo_scene.cpp)
 target_link_libraries(demo_scene ${MOVEIT_LIB_NAME})
 
 #add dynamic reconfigure api
+include("/opt/ros/groovy/share/dynamic_reconfigure/cmake/cfgbuild.cmake")
 gencfg()
