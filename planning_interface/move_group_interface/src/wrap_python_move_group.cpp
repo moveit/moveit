@@ -165,18 +165,51 @@ public:
     MoveGroup::Plan plan = MoveGroup::Plan();
     MoveGroup::plan(plan);
     bp::list joint_names = listFromString(plan.trajectory_.joint_trajectory.joint_names);
-    bp::dict plan_dict;
-    plan_dict["joint_names"] = joint_names;
-    bp::list points;
-    bp::dict point;
+    bp::dict plan_dict, joint_trajectory, multi_dof_joint_trajectory;
+    joint_trajectory["joint_names"] = joint_names;
+    multi_dof_joint_trajectory["joint_names"] = joint_names;
+    bp::list joint_traj_points, multi_dof_traj_points, poses;
+    bp::dict joint_traj_point, multi_dof_traj_point, pose, position, orientation;
+
     for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator it = plan.trajectory_.joint_trajectory.points.begin() ; it != plan.trajectory_.joint_trajectory.points.end() ; ++it)
     {
-      point["positions"] = listFromDouble(it->positions);
-      point["velocities"] = listFromDouble(it->velocities);
-      point["accelerations"] = listFromDouble(it->accelerations);
-      points.append(point);
+      joint_traj_point["positions"] = listFromDouble(it->positions);
+      joint_traj_point["velocities"] = listFromDouble(it->velocities);
+      joint_traj_point["accelerations"] = listFromDouble(it->accelerations);
+      joint_traj_points.append(joint_traj_point);
     }
-    plan_dict["points"] = points;
+
+    joint_trajectory["points"] = joint_traj_points;
+ 
+    bp::list frame_ids = listFromString(plan.trajectory_.multi_dof_joint_trajectory.frame_ids);
+    bp::list child_frame_ids = listFromString(plan.trajectory_.multi_dof_joint_trajectory.child_frame_ids);
+    multi_dof_joint_trajectory["frame_ids"] = frame_ids;
+    multi_dof_joint_trajectory["child_frame_ids"] = child_frame_ids;
+
+    for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = plan.trajectory_.multi_dof_joint_trajectory.points.begin() ; it != plan.trajectory_.multi_dof_joint_trajectory.points.end() ; ++it)
+    {
+      for (std::vector<geometry_msgs::Pose>::const_iterator itr = it->poses.begin() ; itr != it->poses.end() ; ++itr)
+      {
+        position["x"] = itr->position.x;
+        position["y"] = itr->position.y;
+        position["z"] = itr->position.z;
+        pose["position"] = position;
+
+        orientation["x"] = itr->orientation.x;
+        orientation["y"] = itr->orientation.y;
+        orientation["z"] = itr->orientation.z;
+        orientation["w"] = itr->orientation.w;
+        pose["orientation"] = orientation;
+        poses.append(pose);
+      }
+      multi_dof_traj_point["poses"] = poses;
+      multi_dof_traj_points.append(multi_dof_traj_point);
+    }
+    
+    multi_dof_joint_trajectory["points"] = multi_dof_traj_points;
+
+    plan_dict["joint_trajectory"] = joint_trajectory;
+    plan_dict["multi_dof_joint_trajectory"] = multi_dof_joint_trajectory;
     return plan_dict;
   }
 
