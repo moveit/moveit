@@ -30,7 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Ioan Sucan
+# Author: Ioan Sucan, Sarah Elliott
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
 import roslib
@@ -77,9 +77,6 @@ class MoveGroupCommander:
         
     def get_random_joint_values(self):
         return self._g.get_random_joint_values()
-
-    #def set_joint_value_target(self, value):
-    #    self._g.set_joint_value_target(value)
 
     def set_joint_value_target(self, name, value = None):
         if value == None:
@@ -175,10 +172,7 @@ class MoveGroupCommander:
             return self._g.async_move()
 
     def plan(self, joints = None):
-        if type(joints) is bool:
-            wait = joints
-            joints = None
-
+        """ Return a motion plan (a RobotTrajectory) to the set goal state (or specified by the joints argument) """
         if not joints == None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
