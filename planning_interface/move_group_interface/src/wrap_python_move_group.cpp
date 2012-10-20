@@ -160,9 +160,9 @@ public:
     return getName().c_str();
   }
 
-  bp::dict getPlan(void)
+  bp::dict getPlanPythonDict(void)
   {
-    MoveGroup::Plan plan = MoveGroup::Plan();
+    MoveGroup::Plan plan;
     MoveGroup::plan(plan);
     bp::list joint_names = listFromString(plan.trajectory_.joint_trajectory.joint_names);
     bp::dict plan_dict, joint_trajectory, multi_dof_joint_trajectory;
@@ -251,7 +251,6 @@ void wrap_move_group_interface()
 
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
   MoveGroupClass.def("move", &MoveGroupWrapper::move);
-  MoveGroupClass.def("plan", &MoveGroupWrapper::plan);
   MoveGroupClass.def("execute", &MoveGroupWrapper::execute);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
@@ -309,11 +308,8 @@ void wrap_move_group_interface()
   MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints); 
   MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
   MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase);
-  MoveGroupClass.def("get_plan", &MoveGroupWrapper::getPlan);
+  MoveGroupClass.def("get_plan", &MoveGroupWrapper::getPlanPythonDict);
 }
-
-
-
 
 
 }
