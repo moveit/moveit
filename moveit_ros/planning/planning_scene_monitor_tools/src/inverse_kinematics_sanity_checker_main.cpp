@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   std::map<std::string, kinematics::KinematicsBasePtr> solver_map = kinematics_model_loader_->generateKinematicsSolversMap();
 
   InverseKinematicsSanityChecker sanity(solver_map,
-                                        planning_scene_monitor_->getPlanningScene()->getKinematicModel());
+                                        planning_scene_monitor_->getPlanningScene());
 
   ros::NodeHandle loc_nh("~");
 
