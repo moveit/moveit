@@ -35,14 +35,14 @@
 
 #include <random_numbers/random_numbers.h>
 #include <kinematics_base/kinematics_base.h>
-#include <planning_models/kinematic_model.h>
+#include <planning_scene/planning_scene.h>
 
 class InverseKinematicsSanityChecker {
 
 public:
 
   InverseKinematicsSanityChecker(const std::map<std::string, kinematics::KinematicsBasePtr>& solver_map,
-                                 const planning_models::KinematicModelConstPtr& kmodel);
+                                 const planning_scene::PlanningSceneConstPtr& scene);
   
   void runTest(const std::string& group,
                std::vector<std::pair<std::vector<double>, std::vector<double> > >& wrong_solutions,
@@ -55,7 +55,7 @@ protected:
 
   mutable random_numbers::RandomNumberGenerator rng_;
   std::map<std::string, kinematics::KinematicsBasePtr>  solver_map_;  
-  planning_models::KinematicModelConstPtr kmodel_;
+  planning_scene::PlanningSceneConstPtr planning_scene_;
 
 };
 
