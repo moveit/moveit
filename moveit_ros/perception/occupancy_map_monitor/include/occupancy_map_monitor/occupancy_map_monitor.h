@@ -117,6 +117,7 @@ private:
   OccMapTreeConstPtr tree_const_;
   boost::mutex tree_mutex_;
   boost::scoped_ptr<boost::thread> tree_update_thread_;
+  bool tree_update_thread_running_;
 
   std::vector<boost::shared_ptr<OccupancyMapUpdater> > map_updaters_;
   std::set<OccupancyMapUpdater*> updates_available_;

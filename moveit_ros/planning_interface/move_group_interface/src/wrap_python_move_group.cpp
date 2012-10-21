@@ -159,7 +159,60 @@ public:
   {
     return getName().c_str();
   }
-  
+
+  bp::dict getPlanPythonDict(void)
+  {
+    MoveGroup::Plan plan;
+    MoveGroup::plan(plan);
+    bp::list joint_names = listFromString(plan.trajectory_.joint_trajectory.joint_names);
+    bp::dict plan_dict, joint_trajectory, multi_dof_joint_trajectory;
+    joint_trajectory["joint_names"] = joint_names;
+    multi_dof_joint_trajectory["joint_names"] = joint_names;
+    bp::list joint_traj_points, multi_dof_traj_points, poses;
+    bp::dict joint_traj_point, multi_dof_traj_point, pose, position, orientation;
+
+    for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator it = plan.trajectory_.joint_trajectory.points.begin() ; it != plan.trajectory_.joint_trajectory.points.end() ; ++it)
+    {
+      joint_traj_point["positions"] = listFromDouble(it->positions);
+      joint_traj_point["velocities"] = listFromDouble(it->velocities);
+      joint_traj_point["accelerations"] = listFromDouble(it->accelerations);
+      joint_traj_points.append(joint_traj_point);
+    }
+
+    joint_trajectory["points"] = joint_traj_points;
+ 
+    bp::list frame_ids = listFromString(plan.trajectory_.multi_dof_joint_trajectory.frame_ids);
+    bp::list child_frame_ids = listFromString(plan.trajectory_.multi_dof_joint_trajectory.child_frame_ids);
+    multi_dof_joint_trajectory["frame_ids"] = frame_ids;
+    multi_dof_joint_trajectory["child_frame_ids"] = child_frame_ids;
+
+    for (std::vector<moveit_msgs::MultiDOFJointTrajectoryPoint>::const_iterator it = plan.trajectory_.multi_dof_joint_trajectory.points.begin() ; it != plan.trajectory_.multi_dof_joint_trajectory.points.end() ; ++it)
+    {
+      for (std::vector<geometry_msgs::Pose>::const_iterator itr = it->poses.begin() ; itr != it->poses.end() ; ++itr)
+      {
+        position["x"] = itr->position.x;
+        position["y"] = itr->position.y;
+        position["z"] = itr->position.z;
+        pose["position"] = position;
+
+        orientation["x"] = itr->orientation.x;
+        orientation["y"] = itr->orientation.y;
+        orientation["z"] = itr->orientation.z;
+        orientation["w"] = itr->orientation.w;
+        pose["orientation"] = orientation;
+        poses.append(pose);
+      }
+      multi_dof_traj_point["poses"] = poses;
+      multi_dof_traj_points.append(multi_dof_traj_point);
+    }
+    
+    multi_dof_joint_trajectory["points"] = multi_dof_traj_points;
+
+    plan_dict["joint_trajectory"] = joint_trajectory;
+    plan_dict["multi_dof_joint_trajectory"] = multi_dof_joint_trajectory;
+    return plan_dict;
+  }
+
 private:
 
   std::vector<double> doubleFromList(bp::list &values) const
@@ -198,7 +251,6 @@ void wrap_move_group_interface()
 
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
   MoveGroupClass.def("move", &MoveGroupWrapper::move);
-  MoveGroupClass.def("plan", &MoveGroupWrapper::plan);
   MoveGroupClass.def("execute", &MoveGroupWrapper::execute);
   MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
 
@@ -256,10 +308,8 @@ void wrap_move_group_interface()
   MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints); 
   MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
   MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase);
+  MoveGroupClass.def("get_plan", &MoveGroupWrapper::getPlanPythonDict);
 }
-
-
-
 
 
 }

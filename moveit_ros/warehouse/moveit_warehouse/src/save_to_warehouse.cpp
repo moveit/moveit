@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/warehouse/planning_scene_storage.h>
+#include <moveit/warehouse/constraints_storage.h>
 #include <planning_scene_monitor/planning_scene_monitor.h>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/program_options/cmdline.hpp>
@@ -61,6 +62,27 @@ void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_war
   }
   else
     ROS_INFO("Scene name is empty. Not saving.");
+}
+
+void onConstraints(const moveit_msgs::ConstraintsConstPtr &msg, moveit_warehouse::ConstraintsStorage *cs)
+{
+  if (msg->name.empty())
+  {
+    ROS_INFO("No name specified for constraints. Not saving.");
+    return;
+  }
+  
+  if (cs->hasConstraints(msg->name))
+  {
+    ROS_INFO("Replacing constraints '%s'", msg->name.c_str());    
+    cs->removeConstraints(msg->name);
+    cs->addConstraints(*msg);
+  }
+  else
+  {
+    ROS_INFO("Adding constraints '%s'", msg->name.c_str());    
+    cs->addConstraints(*msg);
+  }
 }
 
 void onMotionPlanRequest(const moveit_msgs::MotionPlanRequestConstPtr &req,
@@ -117,6 +139,8 @@ int main(int argc, char **argv)
   psm.startWorldGeometryMonitor();
   moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
                                              vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+  moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                          vm.count("port") ? vm["port"].as<std::size_t>() : 0);
   std::vector<std::string> names;
   std::vector<ros::Time> times;
   pss.getPlanningSceneNamesAndTimes(names, times);
@@ -130,13 +154,16 @@ int main(int argc, char **argv)
   }
   
   psm.addUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
-  boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
-  ros::Subscriber mplan_req_sub = nh.subscribe("motion_plan_request", 100, callback);
+  boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback1 = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
+  ros::Subscriber mplan_req_sub = nh.subscribe("motion_plan_request", 100, callback1);
+  boost::function<void(const moveit_msgs::ConstraintsConstPtr&)> callback2 = boost::bind(&onConstraints, _1, &cs);
+  ros::Subscriber constr_sub = nh.subscribe("constraints", 100, callback2);
   std::vector<std::string> topics;
   psm.getMonitoredTopics(topics);
   ROS_INFO_STREAM("Listening for scene updates on topics " << boost::algorithm::join(topics, ", "));
   ROS_INFO_STREAM("Listening for planning requests on topic " << mplan_req_sub.getTopic());
-  
+  ROS_INFO_STREAM("Listening for named constraints on topic " << constr_sub.getTopic());
+
   ros::waitForShutdown();
   return 0;
 }
