@@ -84,9 +84,22 @@ public:
     query_service_ = root_node_handle_.advertiseService(QUERY_SERVICE_NAME, &MoveGroupAction::queryInterface, this);
   }
   
+  ~MoveGroupAction(void)
+  {
+    action_server_.reset();
+    execute_service_.shutdown();
+    plan_service_.shutdown();
+    query_service_.shutdown();
+    planning_scene_monitor_.reset();
+  }
+  
   void status(void)
   {
-    ROS_INFO_STREAM("MoveGroup action running using planning plugin " << plan_execution_.getPlanningPipeline().getPlannerPluginName());
+    const planning_interface::PlannerPtr &planner_interface = plan_execution_.getPlanningPipeline().getPlannerInterface();
+    if (planner_interface)
+      ROS_INFO_STREAM("MoveGroup action running using planning plugin " << plan_execution_.getPlanningPipeline().getPlannerPluginName());
+    else
+      ROS_WARN_STREAM("MoveGroup action running was unable to load " << plan_execution_.getPlanningPipeline().getPlannerPluginName());
   }
   
 private:

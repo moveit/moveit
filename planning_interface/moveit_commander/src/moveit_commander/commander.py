@@ -30,8 +30,9 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Ioan Sucan
-
+# Author: Ioan Sucan, Sarah Elliott
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
 import roslib
 roslib.load_manifest('move_group_interface')
 from move_group_interface import MoveGroup
@@ -77,11 +78,12 @@ class MoveGroupCommander:
     def get_random_joint_values(self):
         return self._g.get_random_joint_values()
 
-    def set_joint_value_target(self, value):
-        self._g.set_joint_value_target(value)
-
-    def set_joint_value_target(self, name, value):
-        self._g.set_joint_value_target(name, value)
+    def set_joint_value_target(self, name, value = None):
+        if value == None:
+            value = name
+            self._g.set_joint_value_target(value)
+        else:
+            self._g.set_joint_value_target(name, value)
 
     def set_orientation_target(self, xyz):
         if self.has_end_effector_link():
@@ -168,3 +170,36 @@ class MoveGroupCommander:
             return self._g.move()
         else:
             return self._g.async_move()
+
+    def plan(self, joints = None):
+        """ Return a motion plan (a RobotTrajectory) to the set goal state (or specified by the joints argument) """
+        if not joints == None:
+            try:
+                self.set_joint_value_target(self.get_remembered_joint_values()[joints])
+            except:
+                self.set_joint_value_target(joints)
+        plan = self._g.get_plan()
+        plan_msg = RobotTrajectory()
+        joint_traj = JointTrajectory()
+        joint_traj.joint_names = plan["joint_trajectory"]["joint_names"]
+        for point in plan["joint_trajectory"]["points"]:
+            joint_traj.points.append(JointTrajectoryPoint(
+                positions = point["positions"],
+                velocities = point["velocities"],
+                accelerations = point["accelerations"]))
+        multi_dof_joint_traj = MultiDOFJointTrajectory()
+        multi_dof_joint_traj.joint_names = plan["multi_dof_joint_trajectory"]["joint_names"]
+        multi_dof_joint_traj.frame_ids = plan["multi_dof_joint_trajectory"]["frame_ids"]
+        multi_dof_joint_traj.child_frame_ids = plan["multi_dof_joint_trajectory"]["child_frame_ids"]
+        for point in plan["multi_dof_joint_trajectory"]["points"]:
+             multi_dof_joint_traj_point = MultiDOFJointTrajectoryPoint()
+             for pose in point["poses"]:
+                 multi_dof_joint_traj_point.poses.append(Point(
+                     position = Point(x = pose["position"]["x"], y = pose["position"]["y"], z = pose["position"]["z"]),
+                     orientation = Quaternion(x = pose["orientation"]["x"], y = pose["orientation"]["y"],
+                         z = pose["orientation"]["z"], w = pose["orientation"]["w"])))
+             multi_dof_joint_traj.points.append(multi_dof_joint_traj_point)
+        plan_msg.joint_trajectory = joint_traj
+        plan_msg.multi_dof_joint_trajectory = multi_dof_joint_traj
+
+        return plan_msg    
