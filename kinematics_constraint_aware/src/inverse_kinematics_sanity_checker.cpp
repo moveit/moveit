@@ -40,9 +40,9 @@
 static const double JOINT_STATE_EPSILON = 1e-2;
 
 InverseKinematicsSanityChecker::InverseKinematicsSanityChecker(const std::map<std::string, kinematics::KinematicsBasePtr>& solver_map,
-                                                               const planning_models::KinematicModelConstPtr& kmodel):
+                                                               const planning_scene::PlanningSceneConstPtr& scene):
   solver_map_(solver_map),
-  kmodel_(kmodel)
+  planning_scene_(scene)
 {
 } 
 
@@ -52,15 +52,18 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
                                              unsigned int samples,
                                              bool normalize) const 
 {
-  const planning_models::KinematicModel::JointModelGroup* joint_model_group = kmodel_->getJointModelGroup(group);
+  const planning_models::KinematicModel::JointModelGroup* joint_model_group = planning_scene_->getKinematicModel()->getJointModelGroup(group);
   if(!joint_model_group) {
     ROS_ERROR_STREAM("Group " << group << "not found");
     return;
   }
+
+  std::map<std::pair<std::string, std::string>, unsigned int> collision_data;
+
   //Eigen::Translation3d max_trans_diff;
   //Eigen::Quaternion3d max_rot_diff = Eigen::Quaterniond::Idenity();
   const kinematics::KinematicsBasePtr& solver = solver_map_.at(group);
-  planning_models::KinematicState state(kmodel_);
+  planning_models::KinematicState state(planning_scene_->getKinematicModel());
   state.setToDefaultValues();
   planning_models::KinematicState::JointStateGroup* jsg = state.getJointStateGroup(group);
   std::vector<moveit_msgs::JointLimits> limits = joint_model_group->getVariableLimits();
@@ -75,6 +78,9 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
   double cartesian_x_max = -DBL_MAX;
   double cartesian_y_max = -DBL_MAX;
   double cartesian_z_max = -DBL_MAX;
+  double tot_x_diff = 0.0;
+  double tot_y_diff = 0.0;
+  double tot_z_diff = 0.0;
   for(unsigned int i = 0; i < samples; i++) {
     std::vector<double> joint_sample = sampleJointValues(limits);
     if(normalize) {
@@ -129,10 +135,31 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
       num_success++;
     }
     jsg->setStateValues(solution);
+ 
+    collision_detection::CollisionRequest req;
+    req.contacts = true;
+    req.max_contacts = 10000;
+    req.max_contacts_per_pair = 1;
+
+    collision_detection::CollisionResult res;
+    planning_scene_->checkSelfCollision(req, res, state);
+
+    if(res.collision) {
+      for(collision_detection::CollisionResult::ContactMap::iterator it = res.contacts.begin();
+          it != res.contacts.end();
+          it++) {
+        collision_data[it->first]++;
+      }
+    }
+    
     Eigen::Affine3d sol_tip_pose_in_world = state.getLinkState(solver->getTipFrame())->getGlobalLinkTransform();
     double xdiff = fabs(tip_pose_in_world.translation().x() - sol_tip_pose_in_world.translation().x());
     double ydiff = fabs(tip_pose_in_world.translation().y() - sol_tip_pose_in_world.translation().y());
     double zdiff = fabs(tip_pose_in_world.translation().z() - sol_tip_pose_in_world.translation().z());
+    tot_x_diff += xdiff;
+    tot_y_diff += ydiff;
+    tot_z_diff += zdiff;
+    
     if(xdiff > xmax) {
       xmax = xdiff;
     }
@@ -143,7 +170,17 @@ void InverseKinematicsSanityChecker::runTest(const std::string& group,
       zmax = zdiff;
     }
   }
+  for(std::map<std::pair<std::string, std::string>, unsigned int>::iterator it = collision_data.begin();
+      it != collision_data.end();
+      it++) {
+    ROS_INFO_STREAM("Pair " << it->first.first << "," << it->first.second 
+                    << " in contact percentage " << (it->second*1.0)/(samples*1.0));
+  }
+
   ROS_INFO_STREAM("Success " << (num_success*1.0)/(samples*1.0) << " diff max " << xmax << " " << ymax << " " << zmax);
+  ROS_INFO_STREAM("Av diff " << tot_x_diff/(samples*1.0) 
+                  << " " << tot_y_diff/(samples*1.0)
+                  << " " << tot_z_diff/(samples*1.0));
   ROS_INFO_STREAM("Wrong solution " << (num_wrong_solution*1.0)/(samples*1.0));
   ROS_INFO_STREAM("Cartesian limits in base frame " 
                   << cartesian_x_min << " "
