@@ -13,6 +13,7 @@ find_package(catkin COMPONENTS
   moveit_ros_perception
   pluginlib
   roscpp
+  rosconsole
   dynamic_reconfigure
   message_filters
   tf
@@ -32,6 +33,11 @@ catkin_package(
     pluginlib
     moveit_core)
 
+#get_filename_component(dynamic_reconfigure_SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+include(/opt/ros/groovy/share/dynamic_reconfigure/cmake/rosbuild2.cmake)
+#generate_cfg("planning_scene_monitor/cfg/PublishSceneDR.cfg")
+
 include_directories(robot_model_loader/include)
 include_directories(kinematics_plugin_loader/include)
 include_directories(planning_models_loader/include)
@@ -41,19 +47,20 @@ include_directories(planning_pipeline/include)
 include_directories(planning_request_adapter_plugins/include)
 include_directories(planning_scene_monitor/include)
 include_directories(trajectory_execution_manager/include)
-include_directories(plan_execution/include)
+#include_directories(plan_execution/include)
 
 add_subdirectory(robot_model_loader)
 add_subdirectory(kinematics_plugin_loader)
 add_subdirectory(planning_models_loader)
+add_subdirectory(moveit_controller_manager)
 add_subdirectory(moveit_sensor_manager)
 add_subdirectory(planning_pipeline)
 add_subdirectory(planning_request_adapter_plugins)
-add_subdirectory(planning_scene_monitor)
-add_subdirectory(planning_scene_monitor_tools)
+#add_subdirectory(planning_scene_monitor)
+#add_subdirectory(planning_scene_monitor_tools)
 add_subdirectory(trajectory_execution_manager)
-add_subdirectory(plan_execution)
-add_subdirectory(move_group)
+#add_subdirectory(plan_execution)
+#add_subdirectory(move_group)
 
 
 
