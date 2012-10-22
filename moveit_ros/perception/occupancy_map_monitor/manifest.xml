@@ -1,0 +1,30 @@
+<package>
+  <description brief="occupancy_map_server">
+
+     occupancy_map_monitor
+
+  </description>
+  <author>Jonathan Binney</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/occupancy_map_server</url>
+
+  <depend package="sensor_msgs"/>
+  <depend package="pcl"/>
+  <depend package="std_msgs"/>
+  <depend package="std_srvs"/>
+  <depend package="visualization_msgs"/>
+  <depend package="tf"/>
+  <depend package="robot_self_filter"/>
+
+  <rosdep name="octomap" />
+  <depend package="octomap_msgs" />
+  <depend package="dynamic_reconfigure"/>
+
+  <export>
+    <cpp cflags="`pkg-config --cflags eigen3` -I${prefix}/include `rosboost-cfg --cflags`" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -loccupancy_map_monitor"/>
+  </export>
+
+</package>
+
+
