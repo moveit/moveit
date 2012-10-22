@@ -16,7 +16,8 @@
   <depend package="sensor_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="visualization_msgs"/>
-  <depend package="arm_navigation_msgs"/>
+  <depend package="tf"/>
+  <!-- <depend package="arm_navigation_msgs"/> -->
   <depend package="std_srvs"/>
 
 
