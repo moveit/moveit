@@ -1,5 +1,8 @@
 set(MOVEIT_LIB_NAME moveit_planning_scene_monitor)
 
+#add dynamic reconfigure api
+#gencfg()
+
 add_library(${MOVEIT_LIB_NAME}
   src/planning_scene_monitor.cpp
   src/current_state_monitor.cpp
@@ -8,7 +11,3 @@ target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(demo_scene demos/demo_scene.cpp)
 target_link_libraries(demo_scene ${MOVEIT_LIB_NAME})
-
-#add dynamic reconfigure api
-include("/opt/ros/groovy/share/dynamic_reconfigure/cmake/cfgbuild.cmake")
-gencfg()

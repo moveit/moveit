@@ -17,7 +17,6 @@ find_package(catkin COMPONENTS
   tf
   tf_conversions
   pcl_ros
-  dynamic_reconfigure
   REQUIRED)
 
 include_directories(${catkin_INCLUDE_DIRS})
