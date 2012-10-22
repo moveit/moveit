@@ -75,34 +75,25 @@ public:
   
   virtual void handleEndEffector(const robot_interaction::RobotInteraction::EndEffector& eef, int id,
                                  const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
-  {
-    std::string planning_frame = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningFrame();
+  { 
     geometry_msgs::PoseStamped tpose;
-    tpose.header = feedback->header;
-    tpose.pose = feedback->pose;
-    if (feedback->header.frame_id != planning_frame)
-    {
-      try
-      {
-        context_->getTFClient()->transformPose(planning_frame, tpose, tpose);
-      }
-      catch (tf::TransformException& e)
-      {
-        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame.c_str());
-        return;
-      }
-    }
+    if (!handleGeneric(feedback, tpose))
+      return;
     
     bool start = id == 0;
     if (start)
     {
-      robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryStartState(), eef, tpose.pose);
+      if (!robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryStartState(), eef, tpose.pose))
+        if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+          error_state_.insert(std::make_pair(eef.group, id));
       planning_display_->getQueryStartState()->updateLinkTransforms();
       planning_display_->updateQueryStartState();
     }
     else
     {
-      robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryGoalState(), eef, tpose.pose);
+      if (!robot_interaction::RobotInteraction::updateState(*planning_display_->getQueryGoalState(), eef, tpose.pose))
+        if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+          error_state_.insert(std::make_pair(eef.group, id));
       planning_display_->getQueryGoalState()->updateLinkTransforms();
       planning_display_->updateQueryGoalState();
     }
@@ -111,22 +102,9 @@ public:
   virtual void handleVirtualJoint(const robot_interaction::RobotInteraction::VirtualJoint& vj, int id,
                                   const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
   {
-    std::string planning_frame = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningFrame();
     geometry_msgs::PoseStamped tpose;
-    tpose.header = feedback->header;
-    tpose.pose = feedback->pose;
-    if (feedback->header.frame_id != planning_frame)
-    {
-      try
-      {
-        context_->getTFClient()->transformPose(planning_frame, tpose, tpose);
-      }
-      catch (tf::TransformException& e)
-      {
-        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame.c_str());
-        return;
-      }
-    }
+    if (!handleGeneric(feedback, tpose))
+      return;
     
     bool start = id == 0;
     if (start)
@@ -143,11 +121,44 @@ public:
     }
   }
   
+  virtual bool inError(const robot_interaction::RobotInteraction::EndEffector& eef, int id)
+  {
+    return error_state_.find(std::make_pair(eef.group, id)) != error_state_.end();
+  }
+  
+  virtual bool inError(const robot_interaction::RobotInteraction::VirtualJoint& vj, int id)
+  {
+    return false;
+  }
+  
 private:
 
+  bool handleGeneric(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback, geometry_msgs::PoseStamped &tpose)
+  {
+    if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+      error_state_.clear();
+    
+    std::string planning_frame = planning_display_->getPlanningSceneMonitor()->getPlanningScene()->getPlanningFrame();
+    tpose.header = feedback->header;
+    tpose.pose = feedback->pose;
+    if (feedback->header.frame_id != planning_frame)
+    {
+      try
+      {
+        context_->getTFClient()->transformPose(planning_frame, tpose, tpose);
+      }
+      catch (tf::TransformException& e)
+      {
+        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame.c_str());
+        return false;
+      }
+    }
+    return true;
+  }
+  
   PlanningDisplay *planning_display_;
   rviz::DisplayContext *context_;
-  
+  std::set<std::pair<std::string, int> > error_state_;
 };
 
 PlanningDisplay::TrajectoryMessageToDisplay::TrajectoryMessageToDisplay(const moveit_msgs::DisplayTrajectory::ConstPtr &message,
@@ -862,9 +873,9 @@ void PlanningDisplay::publishInteractiveMarkers(void)
 {
   robot_interaction_->clearInteractiveMarkers();
   if (query_start_state_property_->getBool())
-    robot_interaction_->addInteractiveMarkers(*query_start_state_, 0, false);
+    robot_interaction_->addInteractiveMarkers(*query_start_state_, 0);
   if (query_goal_state_property_->getBool())
-    robot_interaction_->addInteractiveMarkers(*query_goal_state_, 1, false);
+    robot_interaction_->addInteractiveMarkers(*query_goal_state_, 1);
   robot_interaction_->publishInteractiveMarkers();
 }
 

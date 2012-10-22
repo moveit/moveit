@@ -78,6 +78,8 @@ public:
     
     virtual void handleEndEffector(const RobotInteraction::EndEffector& eef, int id, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback) = 0;
     virtual void handleVirtualJoint(const RobotInteraction::VirtualJoint& vj, int id, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback) = 0;
+    virtual bool inError(const RobotInteraction::EndEffector& eef, int id) = 0;
+    virtual bool inError(const RobotInteraction::VirtualJoint& vj, int id) = 0;
   };
 
   typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
@@ -103,7 +105,7 @@ public:
   
   void clear(void);
   
-  void addInteractiveMarkers(const planning_models::KinematicState &state, int id, bool error = false);
+  void addInteractiveMarkers(const planning_models::KinematicState &state, int id);
   void publishInteractiveMarkers(void);
   void clearInteractiveMarkers(void);
   

@@ -215,7 +215,7 @@ void RobotInteraction::clearInteractiveMarkers(void)
   int_marker_server_->clear();
 }
 
-void RobotInteraction::addInteractiveMarkers(const planning_models::KinematicState &state, int id, bool error)
+void RobotInteraction::addInteractiveMarkers(const planning_models::KinematicState &state, int id)
 { 
   //  ros::WallTime start = ros::WallTime::now();
   
@@ -231,7 +231,7 @@ void RobotInteraction::addInteractiveMarkers(const planning_models::KinematicSta
     std::string marker_name = "IK" + boost::lexical_cast<std::string>(id) + "_" + active_eef_[i].tip_link;
     shown_markers_[marker_name] = i;
     visualization_msgs::InteractiveMarker im = make6DOFMarker(marker_name, pose, active_eef_[i].scale);
-    if (error)
+    if (handler_ && handler_->inError(active_eef_[i], id))
       addErrorMarker(im);
     int_marker_server_->insert(im);
     int_marker_server_->setCallback(im.name, boost::bind(&RobotInteraction::processInteractiveMarkerFeedback, this, _1));
