@@ -1,0 +1,25 @@
+<package>
+  <description brief="moveit_python_interface">
+
+     moveit_python_interface
+
+  </description>
+  <author>Sarah Elliott</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/moveit_python_interface</url>
+
+  <depend package="move_base_msgs"/>
+  <depend package="rospy"/>
+  <depend package="actionlib"/>
+  <depend package="kinematics_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="visualization_msgs"/>
+  <depend package="arm_navigation_msgs"/>
+  <depend package="std_srvs"/>
+
+
+</package>
+
+
