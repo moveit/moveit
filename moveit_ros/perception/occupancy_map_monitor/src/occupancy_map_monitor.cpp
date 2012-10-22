@@ -41,6 +41,8 @@
 #include <occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
 #include <occupancy_map_monitor/octomap_markers.h>
 
+#include <octomap_msgs/conversions.h>
+
 namespace occupancy_map_monitor
 {
 
@@ -123,6 +125,7 @@ void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shar
   }
   occupied_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("occupied_cells", 1);
   free_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("free_cells", 1);
+  octree_binary_pub_ = root_nh_.advertise<octomap_msgs::OctomapBinary>("octomap_binary", 1);
 }
 
 void OccupancyMapMonitor::treeUpdateThread(void)
@@ -146,7 +149,9 @@ void OccupancyMapMonitor::treeUpdateThread(void)
       if (update_callback_)
         update_callback_();
       ready.clear();
+
       publish_markers();
+      publish_octomap_binary();
     }
   }
 }
@@ -181,6 +186,23 @@ void OccupancyMapMonitor::publish_markers(void)
   
   occupied_marker_pub_.publish(occupied_nodes_arr);
   //free_marker_pub_.publish(free_nodes_arr);
+}
+
+void OccupancyMapMonitor::publish_octomap_binary(void)
+{
+  octomap_msgs::OctomapBinary map;
+
+  map.header.frame_id = opt_.map_frame;
+  map.header.stamp = ros::Time::now();
+
+  if (octomap_msgs::binaryMapToMsgData(*tree_, map.data))
+  {
+    octree_binary_pub_.publish(map);
+  }
+  else
+  {
+    ROS_ERROR("Could not generate OctoMap message");
+  }
 }
 
 void OccupancyMapMonitor::startMonitor(void)
