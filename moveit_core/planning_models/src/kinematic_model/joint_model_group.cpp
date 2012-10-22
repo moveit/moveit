@@ -34,11 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_models/kinematic_model.h>
+#include <moveit/planning_models/kinematic_model.h>
 #include <algorithm>
 #include <set>
-
-#include <ros/console.h>
 
 namespace planning_models
 {
@@ -179,7 +177,7 @@ const planning_models::KinematicModel::JointModel* planning_models::KinematicMod
   std::map<std::string, const JointModel*>::const_iterator it = joint_model_map_.find(name);
   if (it == joint_model_map_.end())
   {
-    ROS_ERROR("Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
+    logError("Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
     return NULL;
   }
   else
@@ -240,7 +238,7 @@ void planning_models::KinematicModel::JointModelGroup::setSolverAllocators(const
         std::map<std::string, unsigned int>::const_iterator it = joint_variables_index_map_.find(ik_jnames[i]);
         if (it == joint_variables_index_map_.end())
         {
-          ROS_ERROR_STREAM("IK solver computes joint values for joint '" << ik_jnames[i] << "' but group '" << getName() << "' does not contain such a joint.");
+          logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a joint.", ik_jnames[i].c_str(), getName().c_str());
           solver_instance_.reset();
           return;
         }

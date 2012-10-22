@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_models/kinematic_model.h>
-#include <ros/console.h>
+#include <moveit/planning_models/kinematic_model.h>
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 #include <cmath>
@@ -158,7 +157,7 @@ void planning_models::KinematicModel::FloatingJointModel::normalizeRotation(std:
     double norm = sqrt(normSqr);
     if (norm < std::numeric_limits<double>::epsilon() * 100.0)
     {
-      ROS_WARN("Quaternion is zero in KinematicState representation. Setting to identity");
+      logWarn("Quaternion is zero in KinematicState representation. Setting to identity");
       values[3] = 0.0;
       values[4] = 0.0;
       values[5] = 0.0;

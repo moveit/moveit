@@ -32,11 +32,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Ken Anderson */
+/* Author: Ken Anderson */
 
-#include <trajectory_processing/iterative_smoother.h>
+#include <moveit/trajectory_processing/iterative_smoother.h>
 #include <moveit_msgs/JointLimits.h>
-#include <ros/console.h>
+#include <console_bridge/console.h>
 
 namespace trajectory_processing
 {
@@ -56,20 +56,20 @@ IterativeParabolicSmoother::~IterativeParabolicSmoother()
 
 void IterativeParabolicSmoother::printPoint(const trajectory_msgs::JointTrajectoryPoint& point, unsigned int i) const
 {
-  ROS_DEBUG(  " time   [%i]= %f",i,point.time_from_start.toSec());
+  logDebug(  " time   [%i]= %f",i,point.time_from_start.toSec());
   if(point.positions.size() >= 7 )
   {
-    ROS_DEBUG(" pos_   [%i]= %f %f %f %f %f %f %f",i,
+    logDebug(" pos_   [%i]= %f %f %f %f %f %f %f",i,
               point.positions[0],point.positions[1],point.positions[2],point.positions[3],point.positions[4],point.positions[5],point.positions[6]);
   }
   if(point.velocities.size() >= 7 )
   {
-    ROS_DEBUG("  vel_  [%i]= %f %f %f %f %f %f %f",i,
+    logDebug("  vel_  [%i]= %f %f %f %f %f %f %f",i,
               point.velocities[0],point.velocities[1],point.velocities[2],point.velocities[3],point.velocities[4],point.velocities[5],point.velocities[6]);
   }
   if(point.accelerations.size() >= 7 )
   {
-    ROS_DEBUG("   acc_ [%i]= %f %f %f %f %f %f %f",i,
+    logDebug("   acc_ [%i]= %f %f %f %f %f %f %f",i,
               point.accelerations[0],point.accelerations[1],point.accelerations[2],point.accelerations[3],point.accelerations[4],point.accelerations[5],point.accelerations[6]);
   }
 }
@@ -77,15 +77,15 @@ void IterativeParabolicSmoother::printPoint(const trajectory_msgs::JointTrajecto
 void IterativeParabolicSmoother::printStats(const trajectory_msgs::JointTrajectory& trajectory,
                                             const std::vector<moveit_msgs::JointLimits>& limits) const
 {
-  ROS_DEBUG("jointNames= %s %s %s %s %s %s %s",
+  logDebug("jointNames= %s %s %s %s %s %s %s",
     limits[0].joint_name.c_str(),limits[1].joint_name.c_str(),limits[2].joint_name.c_str(),
     limits[3].joint_name.c_str(),limits[4].joint_name.c_str(),limits[5].joint_name.c_str(),
     limits[6].joint_name.c_str());
-  ROS_DEBUG("maxVelocities= %f %f %f %f %f %f %f",
+  logDebug("maxVelocities= %f %f %f %f %f %f %f",
     limits[0].max_velocity,limits[1].max_velocity,limits[2].max_velocity,
     limits[3].max_velocity,limits[4].max_velocity,limits[5].max_velocity,
     limits[6].max_velocity);
-  ROS_DEBUG("maxAccelerations= %f %f %f %f %f %f %f",
+  logDebug("maxAccelerations= %f %f %f %f %f %f %f",
     limits[0].max_acceleration,limits[1].max_acceleration,limits[2].max_acceleration,
     limits[3].max_acceleration,limits[4].max_acceleration,limits[5].max_acceleration,
     limits[6].max_acceleration);
@@ -318,7 +318,7 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
       // Loop forwards, then backwards
       for( int count=0; count<2; count++)
       {
-        ROS_DEBUG("applyAcceleration: Iteration %i backwards=%i joint=%i", iteration, backwards, j);
+        logDebug("applyAcceleration: Iteration %i backwards=%i joint=%i", iteration, backwards, j);
         //updateTrajectory(trajectory, time_diff);
         //printStats(trajectory);
 
@@ -402,7 +402,7 @@ void IterativeParabolicSmoother::applyAccelerationConstraints(const trajectory_m
         backwards = !backwards;
       }
     }
-    ROS_DEBUG("applyAcceleration: num_updates=%i", num_updates);
+    logDebug("applyAcceleration: num_updates=%i", num_updates);
   } while(num_updates > 0 && iteration < max_iterations_);
 }
 
@@ -418,7 +418,7 @@ bool IterativeParabolicSmoother::smooth(const trajectory_msgs::JointTrajectory& 
   applyVelocityConstraints(trajectory_out, limits, time_diff);
   applyAccelerationConstraints(trajectory_out, limits, time_diff);
 
-  ROS_DEBUG("Velocity & Acceleration-Constrained Trajectory");
+  logDebug("Velocity & Acceleration-Constrained Trajectory");
   updateTrajectory(trajectory_out, time_diff);
   printStats(trajectory_out, limits);
 

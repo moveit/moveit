@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include "planning_models/kinematic_state.h"
-#include <ros/console.h>
+#include <moveit/planning_models/kinematic_state.h>
 
 planning_models::KinematicState::LinkState::LinkState(KinematicState *state, const planning_models::KinematicModel::LinkModel* lm) :
   kinematic_state_(state), link_model_(lm), parent_joint_state_(NULL), parent_link_state_(NULL)
@@ -94,7 +93,7 @@ const planning_models::KinematicState::AttachedBody* planning_models::KinematicS
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
   if (it == attached_body_map_.end())
   {
-    ROS_ERROR("Attached body '%s' not found on link '%s'", id.c_str(), getName().c_str());
+    logError("Attached body '%s' not found on link '%s'", id.c_str(), getName().c_str());
     return NULL;
   }
   else

@@ -39,7 +39,6 @@
 #include <planning_models/conversions.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
-#include <ros/console.h>
 #include <gtest/gtest.h>
 
 class LoadPlanningModelsPr2 : public testing::Test

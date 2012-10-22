@@ -34,10 +34,9 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include <planning_models/kinematic_state.h>
+#include <moveit/planning_models/kinematic_state.h>
 #include <geometric_shapes/shape_operations.h>
-#include <planning_models/transforms.h>
-#include <ros/console.h>
+#include <moveit/planning_models/transforms.h>
 
 planning_models::KinematicState::KinematicState(const KinematicModelConstPtr &kinematic_model) : kinematic_model_(kinematic_model)
 {
@@ -157,8 +156,8 @@ bool planning_models::KinematicState::setStateValues(const std::vector<double>& 
 {
   if (joint_state_values.size() != getVariableCount())
   {
-    ROS_ERROR("Incorrect variable count specified for array of joint values. Expected %u but got %u values",
-              getVariableCount(), (int)joint_state_values.size());
+    logError("Incorrect variable count specified for array of joint values. Expected %u but got %u values",
+             getVariableCount(), (int)joint_state_values.size());
     return false;
   }
   
@@ -315,7 +314,7 @@ bool planning_models::KinematicState::satisfiesBounds(const std::vector<std::str
     const JointState* joint_state = getJointState(*it);
     if(joint_state == NULL)
     {
-      ROS_WARN_STREAM("No joint with name " << *it);
+      logWarn("No joint with name '%s'", it->c_str());
       return false;
     }
     if (!joint_state->satisfiesBounds())
@@ -380,7 +379,7 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::ge
   std::map<std::string, JointState*>::const_iterator it = joint_state_map_.find(name);
   if (it == joint_state_map_.end())
   {
-    ROS_ERROR("Joint state '%s' not found", name.c_str());
+    logError("Joint state '%s' not found", name.c_str());
     return NULL;
   }
   else
@@ -392,7 +391,7 @@ planning_models::KinematicState::LinkState* planning_models::KinematicState::get
   std::map<std::string, LinkState*>::const_iterator it = link_state_map_.find(name);
   if (it == link_state_map_.end())
   {
-    ROS_ERROR("Link state '%s' not found", name.c_str());
+    logError("Link state '%s' not found", name.c_str());
     return NULL; 
   }
   else
@@ -409,7 +408,7 @@ const planning_models::KinematicState::AttachedBody* planning_models::KinematicS
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
   if (it == attached_body_map_.end())
   {
-    ROS_ERROR("Attached body '%s' not found", id.c_str());
+    logError("Attached body '%s' not found", id.c_str());
     return NULL;
   }
   else
@@ -514,18 +513,18 @@ const Eigen::Affine3d* planning_models::KinematicState::getFrameTransform(const 
   std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(id);
   if (jt == attached_body_map_.end())
   {
-    ROS_ERROR("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an attached body id).",
-	      kinematic_model_->getModelFrame().c_str(), id.c_str(), id.c_str());
+    logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an attached body id).",
+             kinematic_model_->getModelFrame().c_str(), id.c_str(), id.c_str());
     return NULL;
   }
   const EigenSTL::vector_Affine3d &tf = jt->second->getGlobalCollisionBodyTransforms();
   if (tf.empty())
   {
-    ROS_ERROR("Attached body '%s' has no geometry associated to it. No transform to return.", id.c_str());
+    logError("Attached body '%s' has no geometry associated to it. No transform to return.", id.c_str());
     return NULL;
   }
   if (tf.size() > 1)
-    ROS_WARN("There are multiple geometries associated to attached body '%s'. Returning the transform for the first one.", id.c_str());
+    logWarn("There are multiple geometries associated to attached body '%s'. Returning the transform for the first one.", id.c_str());
   return &(tf[0]);
 }
 
@@ -574,7 +573,7 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
 {
   for(std::size_t i = 0; i < link_names.size(); ++i)
   {
-    ROS_DEBUG_STREAM("Trying to get marker for link " << link_names[i]);
+    logDebug("Trying to get marker for link '%s'", link_names[i].c_str());
     visualization_msgs::Marker mark;
     const LinkState* ls = getLinkState(link_names[i]);
     if (!ls)
@@ -608,7 +607,7 @@ void planning_models::KinematicState::getRobotMarkers(visualization_msgs::Marker
       } 
       else
         mark.mesh_resource = ls->getLinkModel()->getFilename();
-      ROS_DEBUG_STREAM("Using filename " << mark.mesh_resource);
+      logDebug("Using filename '%s'", mark.mesh_resource.c_str());
       //TODO - deal with scale, potentially get visual markers
       mark.scale.x = mark.scale.y = mark.scale.z = 1.0;
     }

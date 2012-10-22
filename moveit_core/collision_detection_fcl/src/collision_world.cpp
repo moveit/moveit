@@ -34,12 +34,11 @@
 
 /* Author Ioan Sucan */
 
-#include "collision_detection_fcl/collision_world.h"
+#include <moveit/collision_detection_fcl/collision_world.h>
 #include <fcl/shape/geometric_shape_to_BVH_model.h>
 #include <fcl/traversal/traversal_node_bvhs.h>
 #include <fcl/traversal/traversal_node_setup.h>
 #include <fcl/collision_node.h>
-#include <ros/console.h>
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(void) : CollisionWorld()
 {
@@ -76,12 +75,12 @@ void collision_detection::CollisionWorldFCL::checkRobotCollision(const Collision
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2) const
 {
-  ROS_ERROR("FCL continuous collision checking not yet implemented");
+  logError("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state1, const planning_models::KinematicState &state2, const AllowedCollisionMatrix &acm) const
 {
-  ROS_ERROR("FCL continuous collision checking not yet implemented");
+  logError("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const planning_models::KinematicState &state, const AllowedCollisionMatrix *acm) const

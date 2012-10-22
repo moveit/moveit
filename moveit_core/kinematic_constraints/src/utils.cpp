@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "kinematic_constraints/utils.h"
+#include <moveit/kinematic_constraints/utils.h>
 #include <shape_tools/solid_primitive_dims.h>
-#include <ros/console.h>
 
 moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_msgs::Constraints &first, const moveit_msgs::Constraints &second)
 {
@@ -58,7 +57,7 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
         double low = std::max(a.position - a.tolerance_below, b.position - b.tolerance_below);
         double high = std::min(a.position + a.tolerance_above, b.position + b.tolerance_above);
         if (low > high)
-          ROS_ERROR("Attempted to merge incompatible constraints for joint '%s'. Discarding constraint.", a.joint_name.c_str());
+          logError("Attempted to merge incompatible constraints for joint '%s'. Discarding constraint.", a.joint_name.c_str());
         else
         {
           m.joint_name = a.joint_name;

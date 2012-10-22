@@ -34,11 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#include "constraint_samplers/constraint_sampler_manager.h"
-#include "constraint_samplers/default_constraint_samplers.h"
-#include "constraint_samplers/union_constraint_sampler.h"
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/constraint_samplers/default_constraint_samplers.h>
+#include <moveit/constraint_samplers/union_constraint_sampler.h>
 #include <sstream>
-#include <ros/console.h>
 
 constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::selectSampler(const planning_scene::PlanningSceneConstPtr &scene,
                                                                                                        const std::string &group_name,
@@ -60,13 +59,13 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   if (!jmg)
     return constraint_samplers::ConstraintSamplerPtr();
   std::stringstream ss; ss << constr;
-  ROS_DEBUG("Attempting to construct constrained state sampler for group '%s', using constraints:\n%s.\n", jmg->getName().c_str(), ss.str().c_str());
+  logDebug("Attempting to construct constrained state sampler for group '%s', using constraints:\n%s.\n", jmg->getName().c_str(), ss.str().c_str());
   
   ConstraintSamplerPtr joint_sampler;
   // if there are joint constraints, we could possibly get a sampler from those
   if (!constr.joint_constraints.empty())
   {    
-    ROS_DEBUG("There are joint constraints specified. Attempting to construct a JointConstraintSampler for group '%s'", jmg->getName().c_str());
+    logDebug("There are joint constraints specified. Attempting to construct a JointConstraintSampler for group '%s'", jmg->getName().c_str());
     
     // construct the constraints
     std::vector<kinematic_constraints::JointConstraint> jc;
@@ -80,7 +79,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     // if we have constrained every joint, then we just use a sampler using these constraints
     if (jc.size() == jmg->getJointModels().size())
     {
-      ROS_DEBUG("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
+      logDebug("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
       return ConstraintSamplerPtr(new JointConstraintSampler(scene, jmg->getName(), jc));
     }
     // if a smaller set of joints has been specified, keep the constraint sampler around, but use it only if no IK sampler has been specified.
@@ -96,7 +95,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   // if we have a means of computing complete states for the group using IK, then we try to see if any IK constraints should be used
   if (ik_alloc)
   {
-    ROS_DEBUG("There is an IK allocator for '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
+    logDebug("There is an IK allocator for '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
     
     // keep track of which links we constrained
     std::map<std::string, boost::shared_ptr<IKConstraintSampler> > usedL;
@@ -123,8 +122,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
               if (use)
               {
                 usedL[constr.position_constraints[p].link_name] = iks;
-                ROS_DEBUG("Allocated an IK-based sampler for group '%s' satisfying position and orientation constraints on link '%s'",
-                          jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
+                logDebug("Allocated an IK-based sampler for group '%s' satisfying position and orientation constraints on link '%s'",
+                         jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
               }
             }
           }
@@ -152,8 +151,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
           if (use)
           {
             usedL[constr.position_constraints[p].link_name] = iks;
-            ROS_DEBUG("Allocated an IK-based sampler for group '%s' satisfying position constraints on link '%s'", 
-                      jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
+            logDebug("Allocated an IK-based sampler for group '%s' satisfying position constraints on link '%s'", 
+                     jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
           }
         }
       }
@@ -178,8 +177,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
           if (use)
           {
             usedL[constr.orientation_constraints[o].link_name] = iks;
-            ROS_DEBUG("Allocated an IK-based sampler for group '%s' satisfying orientation constraints on link '%s'", 
-                      jmg->getName().c_str(), constr.orientation_constraints[o].link_name.c_str());
+            logDebug("Allocated an IK-based sampler for group '%s' satisfying orientation constraints on link '%s'", 
+                     jmg->getName().c_str(), constr.orientation_constraints[o].link_name.c_str());
           } 
         } 
       }
@@ -190,7 +189,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     
     if (usedL.size() > 1)
     {
-      ROS_DEBUG("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg->getName().c_str());
+      logDebug("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg->getName().c_str());
       // find the sampler with the smallest sampling volume; delete the rest
       boost::shared_ptr<IKConstraintSampler> iks = usedL.begin()->second;
       double msv = iks->getSamplingVolume();
@@ -211,7 +210,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   // we now check to see if we can use samplers from subgroups
   if (!ik_subgroup_alloc.empty())
   {        
-    ROS_DEBUG("There are IK allocators for subgroups of group '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
+    logDebug("There are IK allocators for subgroups of group '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
     
     std::vector<ConstraintSamplerPtr> samplers;
     std::set<std::size_t> usedP, usedO;
@@ -238,30 +237,30 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       // if some matching constraints were found, construct the allocator
       if (!sub_constr.orientation_constraints.empty() || !sub_constr.position_constraints.empty())
       {
-        ROS_DEBUG("Attempting to construct a sampler for the '%s' subgroup of '%s'", it->first->getName().c_str(), jmg->getName().c_str());
+        logDebug("Attempting to construct a sampler for the '%s' subgroup of '%s'", it->first->getName().c_str(), jmg->getName().c_str());
         ConstraintSamplerPtr cs = selectDefaultSampler(scene, it->first->getName(), sub_constr);
         if (cs)
         {
-          ROS_DEBUG("Constructed a sampler for the joints corresponding to group '%s', but part of group '%s'", 
-                    it->first->getName().c_str(), jmg->getName().c_str());
+          logDebug("Constructed a sampler for the joints corresponding to group '%s', but part of group '%s'", 
+                   it->first->getName().c_str(), jmg->getName().c_str());
           samplers.push_back(cs);
         }
       }
     }
     if (!samplers.empty())
     {
-      ROS_DEBUG("Constructing sampler for group '%s' as a union of %u samplers", jmg->getName().c_str(), (unsigned int)samplers.size());
+      logDebug("Constructing sampler for group '%s' as a union of %u samplers", jmg->getName().c_str(), (unsigned int)samplers.size());
       return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
     }
   }
   
   if (joint_sampler)
   {
-    ROS_DEBUG("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
+    logDebug("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
     return joint_sampler;
   }
   
-  ROS_DEBUG("No constraints sampler allocated for group '%s'", jmg->getName().c_str());
+  logDebug("No constraints sampler allocated for group '%s'", jmg->getName().c_str());
   
   return ConstraintSamplerPtr();
 }

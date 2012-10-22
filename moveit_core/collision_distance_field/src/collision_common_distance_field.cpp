@@ -32,9 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author E. Gil Jones */
+/* Author: E. Gil Jones */
 
-#include <collision_distance_field/collision_common_distance_field.h>
+#include <moveit/collision_distance_field/collision_common_distance_field.h>
 #include <boost/thread/mutex.hpp>
 
 namespace collision_detection

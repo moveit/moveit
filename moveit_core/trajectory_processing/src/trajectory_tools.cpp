@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "trajectory_processing/trajectory_tools.h"
-#include <planning_models/conversions.h>
-#include <ros/console.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
+#include <moveit/planning_models/conversions.h>
 
 namespace trajectory_processing
 {
@@ -140,7 +139,7 @@ void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::
         break;
       if (js->getVariableValues().size() != 1)
       {
-        ROS_ERROR("Unexpected number of joint values. Got %u when 1 should have been found", (unsigned int)js->getVariableValues().size());
+        logError("Unexpected number of joint values. Got %u when 1 should have been found", (unsigned int)js->getVariableValues().size());
         break;
       }
       vals.push_back(js->getVariableValues()[0]);
@@ -158,7 +157,7 @@ void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::
         trajectory.joint_trajectory.points[j].time_from_start += dt;
     }
     else
-      ROS_ERROR("The number of joints in the solution reported by the planner does not match with the known set of joints");
+      logError("The number of joints in the solution reported by the planner does not match with the known set of joints");
   }
   
   if (!trajectory.multi_dof_joint_trajectory.points.empty() && !trajectory.multi_dof_joint_trajectory.joint_names.empty())
@@ -173,7 +172,7 @@ void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::
       if (trajectory.multi_dof_joint_trajectory.child_frame_ids.size() <= i ||
           js->getJointModel()->getChildLinkModel()->getName() != trajectory.multi_dof_joint_trajectory.child_frame_ids[i])
       {
-        ROS_ERROR("Unmatched multi-dof joint: '%s'", js->getJointModel()->getChildLinkModel()->getName().c_str());
+        logError("Unmatched multi-dof joint: '%s'", js->getJointModel()->getChildLinkModel()->getName().c_str());
         break;
       }
       const Eigen::Affine3d& t = js->getVariableTransform();
@@ -184,7 +183,7 @@ void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::
           poses.push_back(transforms->getTransform(prefix, trajectory.multi_dof_joint_trajectory.frame_ids[i]) * t);
         else
         {
-          ROS_ERROR("Transform to frame '%s' is not known", trajectory.multi_dof_joint_trajectory.frame_ids[i].c_str());
+          logError("Transform to frame '%s' is not known", trajectory.multi_dof_joint_trajectory.frame_ids[i].c_str());
           break;
         }
       }
@@ -204,7 +203,7 @@ void addPrefixState(const planning_models::KinematicState &prefix, moveit_msgs::
         trajectory.multi_dof_joint_trajectory.points[j].time_from_start += dt;
     }      
     else
-      ROS_ERROR("The number of mulit-dof joints in the solution reported by the planner does not match with the known set of joints");
+      logError("The number of mulit-dof joints in the solution reported by the planner does not match with the known set of joints");
   }
 }
 

@@ -32,22 +32,21 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author Ioan Sucan */
+/* Author: Ioan Sucan */
 
-#include "collision_detection/collision_robot.h"
+#include <moveit/collision_detection/collision_robot.h>
 #include <limits>
-#include <ros/console.h>
 
 static inline bool validateScale(double scale)
 {
   if (scale < std::numeric_limits<double>::epsilon())
   {
-    ROS_ERROR("Scale must be positive");
+    logError("Scale must be positive");
     return false;
   }
   if (scale > std::numeric_limits<double>::max())
   {
-    ROS_ERROR("Scale must be finite");
+    logError("Scale must be finite");
     return false;
   }
   return true;
@@ -57,12 +56,12 @@ static inline bool validatePadding(double padding)
 {
   if (padding < 0.0)
   {
-    ROS_ERROR("Padding cannot be negative");
+    logError("Padding cannot be negative");
     return false;
   }
   if (padding > std::numeric_limits<double>::max())
   {
-    ROS_ERROR("Padding must be finite");
+    logError("Padding must be finite");
     return false;
   }
   return true;

@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "constraint_samplers/constraint_sampler_tools.h"
-#include "constraint_samplers/constraint_sampler_manager.h"
-#include <ros/console.h>
+#include <moveit/constraint_samplers/constraint_sampler_tools.h>
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
 
 void constraint_samplers::visualizeDistribution(const moveit_msgs::Constraints &constr, const planning_scene::PlanningSceneConstPtr &scene, const std::string &group,
                                                 const std::string &link_name, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
@@ -54,7 +53,7 @@ double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sa
 {
   if (!sampler)
   {
-    ROS_ERROR("No sampler specified for counting samples per second");
+    logError("No sampler specified for counting samples per second");
     return 0.0;
   }
   planning_models::KinematicState ks(reference_state); 
@@ -80,7 +79,7 @@ void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &samp
 {
   if (!sampler)
   {
-    ROS_ERROR("No sampler specified for visualizing distribution of samples");
+    logError("No sampler specified for visualizing distribution of samples");
     return;
   }
   

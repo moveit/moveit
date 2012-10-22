@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan, E. Gil Jones, Sachin Chitta */
 
-#include "planning_models/kinematic_state.h"
+#include <moveit/planning_models/kinematic_state.h>
 #include <eigen_conversions/eigen_msg.h>
-#include <ros/console.h>
 
 planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_models::KinematicState *state,
                                                                   const planning_models::KinematicModel::JointModelGroup *jmg) :
@@ -47,7 +46,7 @@ planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_model
   {
     if (!kinematic_state_->hasJointState(joint_model_vector[i]->getName()))
     {
-      ROS_ERROR_STREAM("No joint state for group joint name " << joint_model_vector[i]->getName());
+      logError("No joint state for group joint name '%s'", joint_model_vector[i]->getName().c_str());
       continue;
     }
     JointState* js = kinematic_state_->getJointState(joint_model_vector[i]->getName());
@@ -59,7 +58,7 @@ planning_models::KinematicState::JointStateGroup::JointStateGroup(planning_model
   {
     if (!kinematic_state_->hasLinkState(link_model_vector[i]->getName()))
     {
-      ROS_ERROR_STREAM("No link state for link joint name " << link_model_vector[i]->getName());
+      logError("No link state for link joint name '%s'", link_model_vector[i]->getName().c_str());
       continue;
     }
     LinkState* ls = kinematic_state_->getLinkState(link_model_vector[i]->getName());
@@ -103,8 +102,8 @@ bool planning_models::KinematicState::JointStateGroup::setStateValues(const std:
 {
   if (joint_state_values.size() != getVariableCount())
   {
-    ROS_ERROR("Incorrect variable count specified for array of joint values. Expected %u but got %u values",
-              getVariableCount(), (int)joint_state_values.size());
+    logError("Incorrect variable count specified for array of joint values. Expected %u but got %u values",
+             getVariableCount(), (int)joint_state_values.size());
     return false;
   }
   
@@ -233,7 +232,7 @@ planning_models::KinematicState::JointState* planning_models::KinematicState::Jo
   std::map<std::string, JointState*>::const_iterator it = joint_state_map_.find(name);
   if (it == joint_state_map_.end())
   {
-    ROS_ERROR("Joint '%s' not found", name.c_str());
+    logError("Joint '%s' not found", name.c_str());
     return NULL;
   }
   else
@@ -292,7 +291,7 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
       const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
       if (ab_trans.size() != 1)
       {
-        ROS_ERROR("Cannot use an attached body with multiple geometries as a reference frame.");
+        logError("Cannot use an attached body with multiple geometries as a reference frame.");
         return false;
       }
       tip = ab->getAttachedLinkName();
@@ -316,7 +315,7 @@ bool planning_models::KinematicState::JointStateGroup::setFromIK(const Eigen::Af
   
   if (tip != tip_frame)
   {
-    ROS_ERROR_STREAM("Cannot compute IK for tip reference frame " << tip);
+    logError("Cannot compute IK for tip reference frame '%s'", tip.c_str());
     return false;    
   }
 
@@ -378,17 +377,17 @@ bool planning_models::KinematicState::JointStateGroup::getJacobian(const std::st
 {
   if(!joint_model_group_->isChain())
   {
-    ROS_ERROR("Will compute Jacobian only for a chain");
+    logError("Will compute Jacobian only for a chain");
     return false;
   }
   if(!joint_model_group_->isUpdatedLink(link_name))
   {
-    ROS_ERROR("Link name does not exist in this chain or is not a child for this chain");
+    logError("Link name does not exist in this chain or is not a child for this chain");
     return false;
   }
 
   const planning_models::KinematicModel::JointModel* root_joint_model = (joint_model_group_->getJointRoots())[0];
-  ROS_DEBUG_STREAM("ROOT_LINK" << root_joint_model->getParentLinkModel()->getName());
+  logDebug("ROOT_LINK ", root_joint_model->getParentLinkModel()->getName().c_str());
   const planning_models::KinematicState::LinkState *root_link_state = kinematic_state_->getLinkState(root_joint_model->getParentLinkModel()->getName());
   Eigen::Affine3d reference_transform = root_link_state ? root_link_state->getGlobalLinkTransform() : kinematic_state_->getRootTransform();
   reference_transform = reference_transform.inverse();
@@ -398,23 +397,23 @@ bool planning_models::KinematicState::JointStateGroup::getJacobian(const std::st
   Eigen::Affine3d link_transform = reference_transform*link_state->getGlobalLinkTransform();
   Eigen::Vector3d point_transform = link_transform*reference_point_position;
 
-  ROS_DEBUG("Point from reference origin expressed in world coordinates: %f %f %f",
-            point_transform.x(),
-            point_transform.y(),
-            point_transform.z());
+  logDebug("Point from reference origin expressed in world coordinates: %f %f %f",
+           point_transform.x(),
+           point_transform.y(),
+           point_transform.z());
 
   Eigen::Vector3d joint_axis;
   Eigen::Affine3d joint_transform;
 
   while(link_state)
   {
-    ROS_DEBUG("Link: %s, %f %f %f",link_state->getName().c_str(),
+    logDebug("Link: %s, %f %f %f",link_state->getName().c_str(),
              link_state->getGlobalLinkTransform().translation().x(),
              link_state->getGlobalLinkTransform().translation().y(),
              link_state->getGlobalLinkTransform().translation().z());    
-    ROS_DEBUG("Joint: %s",link_state->getParentJointState()->getName().c_str());
+    logDebug("Joint: %s",link_state->getParentJointState()->getName().c_str());
 
-    if(joint_model_group_->isActiveDOF(link_state->getParentJointState()->getJointModel()->getName()))
+    if (joint_model_group_->isActiveDOF(link_state->getParentJointState()->getJointModel()->getName()))
     {
       if(link_state->getParentJointState()->getJointModel()->getType() == planning_models::KinematicModel::JointModel::REVOLUTE)
 	{

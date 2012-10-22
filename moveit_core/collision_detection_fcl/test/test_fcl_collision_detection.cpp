@@ -50,7 +50,6 @@
 #include <fstream>
 
 #include <boost/filesystem.hpp>
-#include <ros/console.h>
 
 typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
 typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
@@ -261,7 +260,6 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
   for(collision_detection::CollisionResult::ContactMap::const_iterator it = res2.contacts.begin();
       it != res2.contacts.end();
       it++) {
-    ROS_INFO_STREAM("Col x is " << it->second[0].pos.x());
     EXPECT_NEAR(it->second[0].pos.x(), 3.0, 0.33);
   }
 

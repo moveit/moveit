@@ -32,9 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include <planning_request_adapter/planning_request_adapter.h>
-#include <planning_models/conversions.h>
-#include <console_bridge/console.h>
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
+#include <moveit/planning_models/conversions.h>
 #include <boost/bind.hpp>
 #include <algorithm>
 

@@ -32,9 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author E. Gil Jones */
+/* Author: E. Gil Jones */
 
-#include <collision_distance_field/hybrid_collision_world.h>
+#include <moveit/collision_distance_field/hybrid_collision_world.h>
 
 namespace collision_detection 
 {

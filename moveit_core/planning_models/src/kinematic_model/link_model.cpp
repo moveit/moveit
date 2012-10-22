@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_models/kinematic_model.h>
+#include <moveit/planning_models/kinematic_model.h>
 
 planning_models::KinematicModel::LinkModel::LinkModel(void) : parent_joint_model_(NULL), tree_index_(-1)
 {

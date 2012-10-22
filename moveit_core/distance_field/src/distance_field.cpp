@@ -32,9 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Mrinal Kalakrishnan, Ken Anderson, E. Gil Jones */
+/* Author: Mrinal Kalakrishnan, Ken Anderson, E. Gil Jones */
 
-#include <distance_field/distance_field.h>
+#include <moveit/distance_field/distance_field.h>
 
 namespace distance_field
 {
