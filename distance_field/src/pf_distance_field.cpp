@@ -32,9 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Siddhartha Srinivasa */
+/* Author: Siddhartha Srinivasa */
 
-#include <distance_field/pf_distance_field.h>
+#include <moveit/distance_field/pf_distance_field.h>
 #include <limits>
 
 namespace distance_field

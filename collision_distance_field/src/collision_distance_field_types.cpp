@@ -32,9 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author E. Gil Jones */
+/* Author: E. Gil Jones */
 
-#include <collision_distance_field/collision_distance_field_types.h>
+#include <moveit/collision_distance_field/collision_distance_field_types.h>
 #include <geometric_shapes/body_operations.h>
 
 std::vector<collision_detection::CollisionSphere> collision_detection::determineCollisionSpheres(const bodies::Body* body, 
@@ -94,7 +94,7 @@ bool collision_detection::getCollisionSphereGradients(const distance_field::Dist
     bool in_bounds;
     double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz, in_bounds);
     if(!in_bounds) {
-      ROS_ERROR_STREAM("Collision sphere point is out of bounds " << p.x() << " " << p.y() << " " << p.z());
+      logError("Collision sphere point is out of bounds %lf, %lf, %lf", p.x(), p.y(), p.z());
       return true;
     }
     if(dist < maximum_value) {
@@ -132,7 +132,7 @@ bool collision_detection::getCollisionSphereCollision(const distance_field::Dist
     bool in_bounds;
     double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz, in_bounds);
     if(!in_bounds) {
-      ROS_ERROR_STREAM("Collision sphere point is out of bounds");
+      logError("Collision sphere point is out of bounds");
       return true;
     }
     if(maximum_value > dist && dist - sphere_list[i].radius_ < tolerance) {
@@ -159,7 +159,7 @@ bool collision_detection::getCollisionSphereCollision(const distance_field::Dist
     bool in_bounds;
     double dist = distance_field->getDistanceGradient(p.x(), p.y(), p.z(), gx, gy, gz, in_bounds);
     if(!in_bounds) {
-      ROS_ERROR_STREAM("Collision sphere point is out of bounds");
+      logError("Collision sphere point is out of bounds");
       return true;
     }
     if(maximum_value > dist && dist - sphere_list[i].radius_ < tolerance) {
@@ -287,8 +287,8 @@ void collision_detection::getProximityGradientMarkers(const std::string& frame_i
                                                            visualization_msgs::MarkerArray& arr)
 {
   if(gradients.size() != posed_decompositions.size() + posed_vector_decompositions.size()) {
-    ROS_WARN_STREAM("Size mismatch between gradients " << gradients.size() << " and decompositions " 
-                    << posed_decompositions.size() + posed_vector_decompositions.size());
+    logWarn("Size mismatch between gradients %u and decompositions %u" , (unsigned int)gradients.size(), 
+            (unsigned int) (posed_decompositions.size() + posed_vector_decompositions.size()));
     return;
   }
   for(unsigned int i = 0; i < gradients.size(); i++) {
@@ -311,10 +311,10 @@ void collision_detection::getProximityGradientMarkers(const std::string& frame_i
           yscale = gradients[i].gradients[j].y()/gradients[i].gradients[j].norm();
           zscale = gradients[i].gradients[j].z()/gradients[i].gradients[j].norm();
         } else {
-          ROS_DEBUG_STREAM("Negative length for " << i << " " << arrow_mark.id << " " << gradients[i].gradients[j].norm());
+          logDebug("Negative length for %u %d %lf", i, arrow_mark.id, gradients[i].gradients[j].norm());
         }
       } else {
-        ROS_DEBUG_STREAM("Negative dist " << gradients[i].distances[j] << " for " << i << " " << arrow_mark.id);
+        logDebug("Negative dist %lf for %u %d", gradients[i].distances[j], i, arrow_mark.id);
       }
       arrow_mark.points.resize(2);
       if(i < posed_decompositions.size()) {
@@ -364,8 +364,8 @@ void collision_detection::getCollisionMarkers(const std::string& frame_id,
                                                    visualization_msgs::MarkerArray& arr)
 {
   if(gradients.size() != posed_decompositions.size() + posed_vector_decompositions.size()) {
-    ROS_WARN_STREAM("Size mismatch between gradients " << gradients.size() << " and decompositions " 
-                    << posed_decompositions.size() + posed_vector_decompositions.size());
+    logWarn("Size mismatch between gradients %u and decompositions ",  (unsigned int)gradients.size(), 
+            (unsigned int)(posed_decompositions.size() + posed_vector_decompositions.size()));
     return;
   }
   for(unsigned int i = 0; i < gradients.size(); i++) {

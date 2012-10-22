@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include <planning_models/kinematic_model.h>
+#include <moveit/planning_models/kinematic_model.h>
 #include <geometric_shapes/shape_operations.h>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
@@ -42,8 +42,6 @@
 #include <queue>
 #include <cmath>
 #include <set>
-
-#include <ros/console.h>
 
 /* ------------------------ KinematicModel ------------------------ */
 
@@ -58,7 +56,7 @@ planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const ur
     buildModel(urdf_model, srdf_model, root->name);
   }
   else
-    ROS_WARN("No root link found");
+    logWarn("No root link found");
 }
 
 planning_models::KinematicModel::KinematicModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
@@ -188,7 +186,7 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
       buildJointInfo();
       
       if (link_models_with_collision_geometry_vector_.empty())
-        ROS_WARN("No geometry is associated to any robot links");
+        logWarn("No geometry is associated to any robot links");
       
       // build groups
       buildGroups(srdf_model->getGroups());
@@ -197,13 +195,13 @@ void planning_models::KinematicModel::buildModel(const boost::shared_ptr<const u
       
       std::stringstream ss;
       printModelInfo(ss);
-      ROS_DEBUG("%s", ss.str().c_str());
+      logDebug("%s", ss.str().c_str());
     }
     else
-      ROS_ERROR("Link '%s' (to be used as root) was not found in model '%s'. Cannot construct model", root_link.c_str(), model_name_.c_str());
+      logError("Link '%s' (to be used as root) was not found in model '%s'. Cannot construct model", root_link.c_str(), model_name_.c_str());
   }
   else
-    ROS_WARN("No root link found");
+    logWarn("No root link found");
 }
 
 void planning_models::KinematicModel::buildJointInfo(void)
@@ -319,15 +317,15 @@ void planning_models::KinematicModel::buildGroupStates(const boost::shared_ptr<c
             for (std::size_t j = 0 ; j < vn.size() ; ++j)
               it->second->default_states_[ds[i].name_][vn[j]] = jt->second[j];
           else
-            ROS_ERROR("The model for joint '%s' requires %d variable values, but only %d variable values were supplied in default state '%s' for group '%s'",
-                      jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(), it->first.c_str());
+            logError("The model for joint '%s' requires %d variable values, but only %d variable values were supplied in default state '%s' for group '%s'",
+                     jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(), it->first.c_str());
         }
         else
-          ROS_ERROR("Group state '%s' specifies value for joint '%s', but that joint is not part of group '%s'", ds[i].name_.c_str(),
-                    jt->first.c_str(), it->first.c_str());
+          logError("Group state '%s' specifies value for joint '%s', but that joint is not part of group '%s'", ds[i].name_.c_str(),
+                   jt->first.c_str(), it->first.c_str());
       }
     else
-      ROS_ERROR("Group state '%s' specified for group '%s', but that group does not exist", ds[i].name_.c_str(), ds[i].group_.c_str());
+      logError("Group state '%s' specified for group '%s', but that group does not exist", ds[i].name_.c_str(), ds[i].group_.c_str());
   }
 }
 
@@ -348,11 +346,11 @@ void planning_models::KinematicModel::buildMimic(const boost::shared_ptr<const u
           if (joint_model_vector_[i]->getVariableCount() == jit->second->getVariableCount())
             joint_model_vector_[i]->mimic_ = jit->second;
           else
-            ROS_ERROR("Join '%s' cannot mimic joint '%s' because they have different number of DOF",
-                      joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
+            logError("Join '%s' cannot mimic joint '%s' because they have different number of DOF",
+                     joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
         }
         else
-          ROS_ERROR("Joint '%s' cannot mimic unknown joint '%s'", joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
+          logError("Joint '%s' cannot mimic unknown joint '%s'", joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
       }
   }
   // in case we have a joint that mimics a joint that already mimics another joint, we can simplify things:
@@ -375,7 +373,7 @@ void planning_models::KinematicModel::buildMimic(const boost::shared_ptr<const u
     if (joint_model_vector_[i]->mimic_ == joint_model_vector_[i])
     {
       joint_model_vector_[i]->mimic_ = NULL;
-      ROS_ERROR("Joint '%s' mimicks itself. This is not allowed.", joint_model_vector_[i]->getName().c_str());
+      logError("Joint '%s' mimicks itself. This is not allowed.", joint_model_vector_[i]->getName().c_str());
     }
     else
       if (joint_model_vector_[i]->mimic_)
@@ -392,7 +390,7 @@ const planning_models::KinematicModel::JointModelGroup* planning_models::Kinemat
   std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
   {
-    ROS_ERROR_STREAM("Group '" << name << "' not found in model " << model_name_);
+    logError("Group '%s' not found in model %s", name.c_str(), model_name_.c_str());
     return NULL;
   }
   return it->second;
@@ -403,7 +401,7 @@ planning_models::KinematicModel::JointModelGroup* planning_models::KinematicMode
   std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
   {
-    ROS_ERROR_STREAM("Group '" << name << "' not found in model " << model_name_);
+    logError("Group '%s' not found in model %s", name.c_str(), model_name_.c_str());
     return NULL;
   }
   return it->second;
@@ -440,14 +438,14 @@ void planning_models::KinematicModel::buildGroups(const std::vector<srdf::Model:
             added = true;
           }
           else
-            ROS_WARN_STREAM("Failed to add group '" << group_configs[i].name_ << "'");
+            logWarn("Failed to add group '%s'", group_configs[i].name_.c_str());
         }
       }
   }
 
   for (unsigned int i = 0 ; i < processed.size() ; ++i)      
     if (!processed[i])
-      ROS_WARN_STREAM("Could not process group '" << group_configs[i].name_ << "' due to unmet subgroup dependencies");
+      logWarn("Could not process group '%s' due to unmet subgroup dependencies", group_configs[i].name_.c_str());
   
   // compute subgroups  
   for (std::map<std::string, JointModelGroup*>::const_iterator it = joint_model_group_map_.begin() ; it != joint_model_group_map_.end(); ++it)
@@ -477,7 +475,7 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
 {
   if (joint_model_group_map_.find(gc.name_) != joint_model_group_map_.end())
   {
-    ROS_WARN_STREAM("A group named '" << gc.name_ <<"' already exists. Not adding.");
+    logWarn("A group named '%s' already exists. Not adding.",  gc.name_.c_str());
     return false;
   }
 
@@ -574,7 +572,7 @@ bool planning_models::KinematicModel::addJointModelGroup(const srdf::Model::Grou
 
   if (jset.empty())
   {
-    ROS_WARN_STREAM("Group '" << gc.name_ << "' must have at least one valid joint");
+    logWarn("Group '%s' must have at least one valid joint", gc.name_.c_str());
     return false;
   }
 
@@ -716,7 +714,7 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
       result = new FixedJointModel(urdf_joint->name);
       break;
     default:
-      ROS_ERROR("Unknown joint type: %d", (int)urdf_joint->type);
+      logError("Unknown joint type: %d", (int)urdf_joint->type);
       break;
     }
   }
@@ -739,7 +737,7 @@ planning_models::KinematicModel::JointModel* planning_models::KinematicModel::co
       }
     if (!result)
     {
-      ROS_WARN("No root joint specified. Assuming fixed joint");
+      logWarn("No root joint specified. Assuming fixed joint");
       result = new FixedJointModel("ASSUMED_FIXED_ROOT_JOINT");
     }
   }
@@ -865,7 +863,7 @@ shapes::ShapePtr planning_models::KinematicModel::constructShape(const urdf::Geo
     }
     break;
   default:
-    ROS_ERROR("Unknown geometry type: %d", (int)geom->type);
+    logError("Unknown geometry type: %d", (int)geom->type);
     break;
   }
 
@@ -892,7 +890,7 @@ const planning_models::KinematicModel::JointModel* planning_models::KinematicMod
   std::map<std::string, JointModel*>::const_iterator it = joint_model_map_.find(name);
   if (it == joint_model_map_.end())
   {
-    ROS_ERROR("Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+    logError("Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
     return NULL;
   }
   else
@@ -904,7 +902,7 @@ const planning_models::KinematicModel::LinkModel* planning_models::KinematicMode
   std::map<std::string, LinkModel*>::const_iterator it = link_model_map_.find(name);
   if (it == link_model_map_.end())
   {
-    ROS_ERROR("Link '%s' not found", name.c_str());
+    logError("Link '%s' not found", name.c_str());
     return NULL;
   }
   else
@@ -1087,7 +1085,7 @@ void planning_models::KinematicModel::setKinematicsAllocators(const std::map<std
           ss << subs[i]->getName() << " ";
           result.second[subs[i]] = allocators.find(subs[i]->getName())->second;
         }
-        ROS_DEBUG("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
+        logDebug("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
       }
     }
     else

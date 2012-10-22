@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_models/kinematic_model.h>
+#include <moveit/planning_models/kinematic_model.h>
 #include <limits>
 
 planning_models::KinematicModel::PrismaticJointModel::PrismaticJointModel(const std::string& name) : JointModel(name), axis_(0.0, 0.0, 0.0)

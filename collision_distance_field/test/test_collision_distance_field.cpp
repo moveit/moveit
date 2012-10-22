@@ -34,24 +34,23 @@
 
 /** \author E. Gil Jones */
 
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
+#include <moveit/planning_models/kinematic_model.h>
+#include <moveit/planning_models/kinematic_state.h>
 #include <gtest/gtest.h>
 #include <sstream>
 #include <algorithm>
 #include <ctype.h>
-#include <planning_models/kinematic_model.h>
-#include <planning_models/kinematic_state.h>
-#include <planning_models/transforms.h>
-#include <collision_distance_field/collision_distance_field_types.h>
-#include <collision_distance_field/collision_robot_distance_field.h>
-#include <collision_distance_field/collision_world_distance_field.h>
+#include <moveit/planning_models/kinematic_model.h>
+#include <moveit/planning_models/kinematic_state.h>
+#include <moveit/planning_models/transforms.h>
+#include <moveit/collision_distance_field/collision_distance_field_types.h>
+#include <moveit/collision_distance_field/collision_robot_distance_field.h>
+#include <moveit/collision_distance_field/collision_world_distance_field.h>
 #include <geometric_shapes/shape_operations.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 
 #include <boost/filesystem.hpp>
-#include <ros/console.h>
 
 typedef collision_detection::CollisionWorldDistanceField DefaultCWorldType;
 typedef collision_detection::CollisionRobotDistanceField DefaultCRobotType;

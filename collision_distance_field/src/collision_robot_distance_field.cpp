@@ -32,11 +32,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author E. Gil Jones */
+/* Author: E. Gil Jones */
 
-#include <collision_distance_field/collision_robot_distance_field.h>
-#include <collision_distance_field/collision_common_distance_field.h>
-#include <distance_field/propagation_distance_field.h>
+#include <moveit/collision_distance_field/collision_robot_distance_field.h>
+#include <moveit/collision_distance_field/collision_common_distance_field.h>
+#include <moveit/distance_field/propagation_distance_field.h>
 
 namespace collision_detection
 {
@@ -134,7 +134,7 @@ void CollisionRobotDistanceField::generateCollisionCheckingStructures(const std:
   //ros::WallTime n = ros::WallTime::now();
   getGroupStateRepresentation(dfce,state, gsr);
   //ROS_INFO_STREAM("Gsr creation " << (ros::WallTime::now()-n).toSec());
-  ROS_DEBUG_STREAM("Generated group state representation");
+  logDebug("Generated group state representation");
 }
 
 void CollisionRobotDistanceField::checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
@@ -174,13 +174,13 @@ CollisionRobotDistanceField::getDistanceFieldCacheEntry(const std::string& group
   }
   boost::shared_ptr<const DistanceFieldCacheEntry> cur = distance_field_cache_entry_;
   if(group_name != cur->group_name_) {
-    ROS_DEBUG_STREAM("No cache entry as group name changed from " << cur->group_name_ << " to " << group_name);
+    logDebug("No cache entry as group name changed from %s to %s", cur->group_name_.c_str(), group_name.c_str());
     return ret;
   } else if(!compareCacheEntryToState(cur, state)) {
-    ROS_DEBUG_STREAM("Regenerating distance field as state has changed from last time");
+    logDebug("Regenerating distance field as state has changed from last time");
     return ret;
   } else if(acm && !compareCacheEntryToAllowedCollisionMatrix(cur, *acm)) {
-    ROS_DEBUG_STREAM("Regenerating distance field as some relevant part of the acm changed");    
+    logDebug("Regenerating distance field as some relevant part of the acm changed");    
     return ret;
   }
   return cur;
@@ -218,7 +218,7 @@ void CollisionRobotDistanceField::checkSelfCollision(const collision_detection::
                                                      boost::shared_ptr<GroupStateRepresentation>& gsr) const
 {
   if(gsr) {
-    ROS_WARN_STREAM("Shouldn't be calling this function with initialized gsr - ACM will be ignored");
+    logWarn("Shouldn't be calling this function with initialized gsr - ACM will be ignored");
   } 
   checkSelfCollisionHelper(req, res, state, &acm, gsr);
 }
@@ -279,7 +279,7 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
                                               max_propogation_distance_,
                                               0.0);
       if(coll) {
-        ROS_DEBUG_STREAM("Link " << gsr->dfce_->link_names_[i] << " in self collision");
+        logDebug("Link %s in self collision", gsr->dfce_->link_names_[i].c_str());
         //if(is_link) {
         //   std::cerr << "Link " << gsr->dfce_->link_names_[i] << " in self collision" << std::endl;
         // } else {
@@ -422,7 +422,7 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
           double dist = gradient.norm();
           //std::cerr << "Dist is " << dist << " rad " << (*collision_spheres_1)[k].radius_+(*collision_spheres_2)[l].radius_ << std::endl;
           if(dist < (*collision_spheres_1)[k].radius_+(*collision_spheres_2)[l].radius_) {
-            ROS_DEBUG_STREAM("Intra-group contact between " << name_1 << " and " << name_2);
+            logDebug("Intra-group contact between %s and %s", name_1.c_str(), name_2.c_str());
             res.collision = true;
             if(req.contacts) {
               collision_detection::Contact con;
@@ -533,7 +533,7 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
   ros::WallTime n = ros::WallTime::now();
   boost::shared_ptr<DistanceFieldCacheEntry> dfce(new DistanceFieldCacheEntry());
   if(kmodel_->getJointModelGroup(group_name) == NULL) {
-    ROS_WARN_STREAM("No group " << group_name);
+    logWarn("No group %s", group_name.c_str());
     return dfce;
   }
   dfce->group_name_ = group_name;
@@ -564,7 +564,7 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
       }
     }
     if(!found) {
-      ROS_INFO_STREAM("No link state found for link " << dfce->link_names_[i]);
+      logInform("No link state found for link %s", dfce->link_names_[i].c_str());
       return dfce;
     }
     if(link_state->getLinkModel()->getShape()) {
@@ -738,10 +738,10 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution)
   const std::vector<planning_models::KinematicModel::LinkModel*>& link_models = kmodel_->getLinkModelsWithCollisionGeometry();
   for(unsigned int i = 0; i < link_models.size(); i++) {
     if(!link_models[i]->getShape()) {
-      ROS_WARN_STREAM("No collision geometry for link model " << link_models[i]->getName() << " though there should be");
+      logWarn("No collision geometry for link model %s though there should be", link_models[i]->getName().c_str());
       continue;
     }
-    ROS_DEBUG_STREAM("Generating model for " << link_models[i]->getName());
+    logDebug("Generating model for %s", link_models[i]->getName().c_str());
     BodyDecompositionConstPtr bd(new BodyDecomposition(link_models[i]->getShape(), resolution, resolution));
     link_body_decomposition_vector_.push_back(bd);
     link_body_decomposition_index_map_[link_models[i]->getName()] = link_body_decomposition_vector_.size()-1;
@@ -754,10 +754,10 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution,
   const std::vector<planning_models::KinematicModel::LinkModel*>& link_models = kmodel_->getLinkModelsWithCollisionGeometry();
   for(unsigned int i = 0; i < link_models.size(); i++) {
     if(!link_models[i]->getShape()) {
-      ROS_WARN_STREAM("No collision geometry for link model " << link_models[i]->getName() << " though there should be");
+      logWarn("No collision geometry for link model %s though there should be", link_models[i]->getName().c_str());
       continue;
     }
-    ROS_DEBUG_STREAM("Generating model for " << link_models[i]->getName());
+    logDebug("Generating model for %s", link_models[i]->getName().c_str());
     BodyDecompositionPtr bd(new BodyDecomposition(link_models[i]->getShape(), resolution, resolution));
     if(link_spheres.find(link_models[i]->getName()) != link_spheres.end()) {
       bd->replaceCollisionSpheres(link_spheres.find(link_models[i]->getName())->second, Eigen::Affine3d::Identity());
@@ -782,7 +782,7 @@ CollisionRobotDistanceField::getPosedLinkBodyPointDecomposition(const planning_m
   PosedBodyPointDecompositionPtr ret;
   std::map<std::string, unsigned int>::const_iterator it = link_body_decomposition_index_map_.find(ls->getName());
   if(it == link_body_decomposition_index_map_.end()) {
-    ROS_ERROR_STREAM("No link body decomposition for link " << ls->getName());
+    logError("No link body decomposition for link %s", ls->getName().c_str());
     return ret;
   }
   ret.reset(new PosedBodyPointDecomposition(link_body_decomposition_vector_[it->second]));
@@ -810,11 +810,11 @@ void CollisionRobotDistanceField::updateGroupStateRepresentationState(const plan
     ///std::cerr << "Attached " << dfce->attached_body_names_[i] << " index " << dfce->attached_body_link_state_indices_[i] << std::endl;
     const planning_models::KinematicState::AttachedBody* att = ls->getAttachedBody(gsr->dfce_->attached_body_names_[i]);
     if(!att) {
-      ROS_WARN_STREAM("Attached body discrepancy");
+      logWarn("Attached body discrepancy");
       continue;
     }
     if(gsr->attached_body_decompositions_.size() != att->getShapes().size()) {
-      ROS_WARN_STREAM("Attached body size discrepancy");
+      logWarn("Attached body size discrepancy");
       continue;
     }
     for(unsigned int j = 0; j < att->getShapes().size(); j++) {
@@ -892,7 +892,7 @@ bool CollisionRobotDistanceField::compareCacheEntryToState(const boost::shared_p
   std::vector<double> new_state_values;
   state.getStateValues(new_state_values);
   if(dfce->state_values_.size() != new_state_values.size()) {
-    ROS_ERROR_STREAM("State value size mismatch");
+    logError("State value size mismatch");
     return false;
   }
   for(unsigned int i = 0; i < dfce->state_check_indices_.size(); i++) {
@@ -933,7 +933,7 @@ bool CollisionRobotDistanceField::compareCacheEntryToAllowedCollisionMatrix(cons
                                                                             const collision_detection::AllowedCollisionMatrix& acm) const
 {
   if(dfce->acm_.getSize() != acm.getSize()) {
-    ROS_DEBUG_STREAM("Allowed collision matrix size mismatch");
+    logDebug("Allowed collision matrix size mismatch");
     return false;
   }
   std::vector<const planning_models::KinematicState::AttachedBody*> attached_bodies;

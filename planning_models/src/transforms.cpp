@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_models/transforms.h>
-#include <ros/console.h>
+#include <moveit/planning_models/transforms.h>
 
 bool planning_models::quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::Quaterniond &q)
 {
@@ -43,8 +42,8 @@ bool planning_models::quatFromMsg(const geometry_msgs::Quaternion &qmsg, Eigen::
   double error = fabs(q.squaredNorm() - 1.0);
   if (error > 0.05)
   {
-    ROS_ERROR("Quaternion is NOWHERE CLOSE TO NORMALIZED [x,y,z,w], [%.2f, %.2f, %.2f, %.2f]. Can't do much, returning identity.",
-        qmsg.x, qmsg.y, qmsg.z, qmsg.w);
+    logError("Quaternion is NOT NORMALIZED [x,y,z,w], [%.2f, %.2f, %.2f, %.2f]. Returning identity.",
+             qmsg.x, qmsg.y, qmsg.z, qmsg.w);
     q = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
     return false;
   }
@@ -120,7 +119,7 @@ const Eigen::Affine3d& planning_models::Transforms::getTransform(const std::stri
   FixedTransformsMap::const_iterator it = transforms_.find(from_frame);
   if (it != transforms_.end())
     return it->second;
-  ROS_ERROR_STREAM("Unable to transform from frame '" + from_frame + "' to frame '" + target_frame_ + "'");
+  logError("Unable to transform from frame '%s' to frame '%s'", from_frame.c_str(), target_frame_.c_str());
   // return identity
   return transforms_.find(target_frame_)->second;
 }
@@ -131,8 +130,8 @@ const Eigen::Affine3d& planning_models::Transforms::getTransform(const planning_
   if (it != transforms_.end())
     return it->second;
   if (kstate.getKinematicModel()->getModelFrame() != target_frame_)
-    ROS_ERROR("Target frame is assumed to be '%s' but the model of the kinematic state places the robot in frame '%s'",
-              target_frame_.c_str(), kstate.getKinematicModel()->getModelFrame().c_str());
+    logError("Target frame is assumed to be '%s' but the model of the kinematic state places the robot in frame '%s'",
+             target_frame_.c_str(), kstate.getKinematicModel()->getModelFrame().c_str());
   const Eigen::Affine3d *t = kstate.getFrameTransform(from_frame);
   if (t)
     return *t;
@@ -200,7 +199,7 @@ void planning_models::Transforms::setTransform(const geometry_msgs::TransformSta
     quatFromMsg(transform.transform.rotation, q);
     setTransform(Eigen::Affine3d(o*q.toRotationMatrix()), transform.header.frame_id);
   } else {
-    ROS_ERROR("Given transform is to frame '%s', but frame '%s' was expected.", transform.child_frame_id.c_str(), target_frame_.c_str());
+    logError("Given transform is to frame '%s', but frame '%s' was expected.", transform.child_frame_id.c_str(), target_frame_.c_str());
   }
 }
 

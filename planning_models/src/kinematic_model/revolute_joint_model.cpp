@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_models/kinematic_model.h>
+#include <moveit/planning_models/kinematic_model.h>
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 #include <cmath>

@@ -32,11 +32,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Mrinal Kalakrishnan, Ken Anderson */
+/* Author: Mrinal Kalakrishnan, Ken Anderson */
 
-#include <distance_field/propagation_distance_field.h>
+#include <moveit/distance_field/propagation_distance_field.h>
 #include <visualization_msgs/Marker.h>
-#include <ros/console.h>
+#include <console_bridge/console.h>
 
 namespace distance_field
 {
@@ -94,26 +94,26 @@ int PropagationDistanceField::eucDistSq(int3 point1, int3 point2)
 
 void PropagationDistanceField::print(const VoxelSet & set)
 {
-  ROS_DEBUG_STREAM( "[" );
+  logDebug( "[" );
   VoxelSet::const_iterator it;
   for( it=set.begin(); it!=set.end(); ++it)
   {
     int3 loc1 = *it;
-    ROS_DEBUG_STREAM( "" << loc1.x() << "," << loc1.y() << "," << loc1.z() << " " );
+    logDebug( "%s, %s, %s ", loc1.x(), loc1.y(), loc1.z() );
   }
-  ROS_DEBUG_STREAM( "] size=" << set.size() << std::endl );
+  logDebug( "] size=%u\n", (unsigned int)set.size());
 }
 
 void PropagationDistanceField::print(const EigenSTL::vector_Vector3d& points)
 {
-  ROS_DEBUG_STREAM( "[" );
+  logDebug( "[" );
   EigenSTL::vector_Vector3d::const_iterator it;
   for( it=points.begin(); it!=points.end(); ++it)
   {
-    Eigen::Vector3d loc1 = *it;
-    ROS_DEBUG_STREAM( "" << loc1.x() << "," << loc1.y() << "," << loc1.z() << " " );
-  }
-  ROS_DEBUG_STREAM( "] size=" << points.size() << std::endl );
+    Eigen::Vector3d loc1 = *it;  
+    logDebug( "%s, %s, %s ", loc1.x(), loc1.y(), loc1.z() );
+  }  
+  logDebug( "] size=%u\n", (unsigned int)points.size());
 }
 
 
@@ -122,9 +122,9 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
   VoxelSet points_added;
   VoxelSet points_removed(object_voxel_locations_);
 
-  ROS_DEBUG_STREAM( "obstacle_voxel_locations_=" );
+  logDebug( "obstacle_voxel_locations_=" );
   print(object_voxel_locations_);
-  ROS_DEBUG_STREAM( "points=" );
+  logDebug( "points=" );
   print(points);
 
   if( iterative )
@@ -140,11 +140,11 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
                                 voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
       if( valid )
       {
-        ROS_DEBUG_STREAM( " checking for "<<voxel_loc.x()<<","<<voxel_loc.y()<<","<<voxel_loc.z() << std::endl );
+        logDebug( " checking for %s, %s, %s\n", voxel_loc.x(), voxel_loc.y(), voxel_loc.z() );
         bool already_obstacle_voxel = ( object_voxel_locations_.find(voxel_loc) != object_voxel_locations_.end() );
         if( !already_obstacle_voxel )
         {
-          ROS_DEBUG_STREAM( " didn't find it"<<std::endl );
+          logDebug( " didn't find it" );
           // Not already in set of existing obstacles, so add to voxel list
           object_voxel_locations_.insert(voxel_loc);
 
@@ -153,7 +153,7 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
         }
         else
         {
-          ROS_DEBUG_STREAM( " found it"<<std::endl );
+          logDebug( " found it" );
           // Already an existing obstacle, so take off removal list
           points_removed.erase(voxel_loc);
         }
@@ -183,13 +183,13 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
     addNewObstacleVoxels( points_added );
   }
 
-    ROS_DEBUG_STREAM( "new=" );
-    print(points_added);
-    ROS_DEBUG_STREAM( "removed=" );
-    print(points_removed);
-    ROS_DEBUG_STREAM( "obstacle_voxel_locations_=" );
-    print(object_voxel_locations_);
-    ROS_DEBUG_STREAM( std::endl );
+  logDebug( "new=" );
+  print(points_added);
+  logDebug( "removed=" );
+  print(points_removed);
+  logDebug( "obstacle_voxel_locations_=" );
+  print(object_voxel_locations_);
+  logDebug("");  
 }
 
 void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)

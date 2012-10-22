@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "planning_models/kinematic_state.h"
+#include <moveit/planning_models/kinematic_state.h>
 
 planning_models::KinematicState::AttachedBody::AttachedBody(const planning_models::KinematicState::LinkState* parent_link_state,
                                                             const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes,

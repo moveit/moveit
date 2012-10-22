@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include "planning_models/kinematic_state.h"
+#include <moveit/planning_models/kinematic_state.h>
 
 planning_models::KinematicState::JointState::JointState(const planning_models::KinematicModel::JointModel *jm) : joint_model_(jm)
 {

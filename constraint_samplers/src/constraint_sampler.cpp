@@ -34,13 +34,12 @@
 
 /* Author: Ioan Sucan */
 
-#include "constraint_samplers/constraint_sampler.h"
-#include <ros/console.h>
+#include <moveit/constraint_samplers/constraint_sampler.h>
 
 constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name)
 {
   jmg_ = scene->getKinematicModel()->getJointModelGroup(group_name);
   scene_ = scene;
   if (!jmg_)
-    ROS_FATAL("A JointModelGroup should have been specified for the constraint sampler");
+    logError("A JointModelGroup should have been specified for the constraint sampler");
 }

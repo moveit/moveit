@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "constraint_samplers/default_constraint_samplers.h"
-#include <ros/console.h>
+#include <moveit/constraint_samplers/default_constraint_samplers.h>
 #include <set>  
 #include <cassert>
 
@@ -57,7 +56,7 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
 {
   if (!jmg_)
   {
-    ROS_FATAL("NULL group specified for constraint sampler");
+    logError("NULL group specified for constraint sampler");
     return false;
   }
   
@@ -82,7 +81,7 @@ bool constraint_samplers::JointConstraintSampler::setup(const std::vector<kinema
     if (bounds.first > bounds.second)
     {
       std::stringstream cs; jc[i].print(cs);
-      ROS_WARN_STREAM("The constraints for joint '" << jm->getName() << "' are such that there are no possible values for this joint. Ignoring constraint: \n" << cs.str());
+      logWarn("The constraints for joint '%s' are such that there are no possible values for this joint. Ignoring constraint: %s\n", jm->getName().c_str(), cs.str().c_str());
       continue;
     }
     if (jm->getVariableCount() == 1)
@@ -162,7 +161,7 @@ bool constraint_samplers::IKConstraintSampler::setup(const IKSamplingPose &sp)
   if (sampling_pose_.position_constraint_ && sampling_pose_.orientation_constraint_)
     if (sampling_pose_.position_constraint_->getLinkModel()->getName() != sampling_pose_.orientation_constraint_->getLinkModel()->getName())
     {
-      ROS_FATAL("Position and orientation constraints need to be specified for the same link in order to use IK-based sampling");
+      logError("Position and orientation constraints need to be specified for the same link in order to use IK-based sampling");
       return false;
     }
   if (sampling_pose_.position_constraint_ && sampling_pose_.position_constraint_->mobileReferenceFrame())
@@ -233,7 +232,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
 
   if (!ik_alloc_)
   {
-    ROS_ERROR("No IK allocator specified");
+    logError("No IK allocator specified");
     return false;
   }
   
@@ -241,11 +240,11 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
   kb_ = ik_alloc_(jmg_);
   if (!kb_)
   {
-    ROS_ERROR("Failed to allocate IK solver for group '%s'", jmg_->getName().c_str());
+    logError("Failed to allocate IK solver for group '%s'", jmg_->getName().c_str());
     return false;
   }
   else
-    ROS_DEBUG("IKConstraintSampler successfully loaded IK solver");
+    logDebug("IKConstraintSampler successfully loaded IK solver");
   
   // the ik solver must cover the same joints as the group
   const std::vector<std::string> &ik_jnames = kb_->getJointNames();
@@ -253,7 +252,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
   
   if (ik_jnames.size() != g_map.size())
   {
-    ROS_ERROR_STREAM("Group '" << jmg_->getName() << "' does not have the same set of joints as the employed IK solver");
+    logError("Group '%s' does not have the same set of joints as the employed IK solver", jmg_->getName().c_str());
     return false;
   }
   
@@ -264,7 +263,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
     std::map<std::string, unsigned int>::const_iterator it = g_map.find(ik_jnames[i]);
     if (it == g_map.end())
     {
-      ROS_ERROR_STREAM("IK solver computes joint values for joint '" << ik_jnames[i] << "' but group '" << jmg_->getName() << "' does not contain such a joint.");
+      logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a joint.", ik_jnames[i].c_str(), jmg_->getName().c_str());
       return false;
     }
     const planning_models::KinematicModel::JointModel *jm = jmg_->getJointModel(ik_jnames[i]);
@@ -278,7 +277,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
   if (transform_ik_)
     if (!jmg_->getParentModel()->hasLinkModel(ik_frame_))
     {
-      ROS_ERROR_STREAM("The IK solver expects requests in frame '" << ik_frame_ << "' but this frame is not known to the sampler. Ignoring transformation (IK may fail)");
+      logError("The IK solver expects requests in frame '%s' but this frame is not known to the sampler. Ignoring transformation (IK may fail)", ik_frame_.c_str());
       transform_ik_ = false;
     }
   
@@ -294,8 +293,8 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver(void)
       wrong_link = true;
   if (wrong_link)
   {
-    ROS_ERROR("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.", 
-              sampling_pose_.position_constraint_ ? sampling_pose_.position_constraint_->getLinkModel()->getName().c_str() : sampling_pose_.orientation_constraint_->getLinkModel()->getName().c_str(), kb_->getTipFrame().c_str());
+    logError("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.", 
+             sampling_pose_.position_constraint_ ? sampling_pose_.position_constraint_->getLinkModel()->getName().c_str() : sampling_pose_.orientation_constraint_->getLinkModel()->getName().c_str(), kb_->getTipFrame().c_str());
     return false;
   }
   
@@ -321,13 +320,13 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
         }
       if (!found)
       {   
-        ROS_ERROR("Unable to sample a point inside the constraint region");
+        logError("Unable to sample a point inside the constraint region");
         return false;
       }
     }
     else
     {   
-      ROS_ERROR("Unable to sample a point inside the constraint region. Constraint region is empty when it should not be.");
+      logError("Unable to sample a point inside the constraint region. Constraint region is empty when it should not be.");
       return false;
     }
     
@@ -350,7 +349,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
     }
     else
     {
-      ROS_ERROR("Passed a JointStateGroup for a mismatching JointModelGroup");
+      logError("Passed a JointStateGroup for a mismatching JointModelGroup");
       return false;
     }
   }
@@ -468,6 +467,6 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
   }
   else
     if (error.val != moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION)
-      ROS_ERROR("IK solver failed with error %d", error.val);
+      logError("IK solver failed with error %d", error.val);
   return false;
 }

@@ -32,11 +32,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author Ioan Sucan, E. Gil Jones */
+/* Author: Ioan Sucan, E. Gil Jones */
 
-#include "collision_detection/collision_matrix.h"
+#include <moveit/collision_detection/collision_matrix.h>
 #include <boost/bind.hpp>
-#include <ros/console.h>
 #include <iomanip>
 
 collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(void)
@@ -53,12 +52,12 @@ collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const std::v
 collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix &msg)
 {
   if (msg.entry_names.size() != msg.entry_values.size() || msg.default_entry_names.size() != msg.default_entry_values.size())
-    ROS_ERROR("The number of links does not match the number of entries in AllowedCollisionMatrix message");
+    logError("The number of links does not match the number of entries in AllowedCollisionMatrix message");
   else
   {
     for (std::size_t i = 0 ; i < msg.entry_names.size() ; ++i)
       if (msg.entry_values[i].enabled.size() != msg.entry_names.size())
-	ROS_ERROR("Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message", msg.entry_names[i].c_str());
+	logError("Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message", msg.entry_names[i].c_str());
       else
 	for (std::size_t j = i + 1 ; j < msg.entry_values[i].enabled.size() ; ++j)
 	  setEntry(msg.entry_names[i], msg.entry_names[j], msg.entry_values[i].enabled[j]);

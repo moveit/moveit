@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "collision_detection/collision_world.h"
+#include <moveit/collision_detection/collision_world.h>
 #include <geometric_shapes/shape_operations.h>
-#include <ros/console.h>
 
 collision_detection::CollisionWorld::CollisionWorld(void) : record_changes_(false)
 {
@@ -80,7 +79,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
 void collision_detection::CollisionWorld::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &poses)
 {
   if (shapes.size() != poses.size())
-    ROS_ERROR("Number of shapes and number of poses do not match. Not adding this object to collision world.");
+    logError("Number of shapes and number of poses do not match. Not adding this object to collision world.");
   else
   {
     // make sure that if a new object is created, it knows its name

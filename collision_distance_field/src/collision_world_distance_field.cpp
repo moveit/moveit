@@ -32,11 +32,12 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/** \author E. Gil Jones */
+/* Author: E. Gil Jones */
 
-#include <collision_distance_field/collision_world_distance_field.h>
-#include <collision_distance_field/collision_common_distance_field.h>
-#include <distance_field/propagation_distance_field.h>
+#include <moveit/collision_distance_field/collision_world_distance_field.h>
+#include <moveit/collision_distance_field/collision_common_distance_field.h>
+#include <moveit/distance_field/propagation_distance_field.h>
+#include <boost/make_shared.hpp>
 
 namespace collision_detection
 {
@@ -111,7 +112,7 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req,
       getEnvironmentCollisions(req, res, distance_field_cache_entry_->distance_field_, gsr);
     }
   } catch(...) {
-    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
+    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
     return;
   }
 
@@ -159,7 +160,7 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req,
       getEnvironmentCollisions(req, res, distance_field_cache_entry_->distance_field_, gsr);
     }
   } catch(...) {
-    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
+    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
     return;
   }
 
@@ -198,7 +199,7 @@ void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &re
     //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
     //checkRobotCollisionHelper(req, res, robot, state, &acm);
   } catch(...) {
-    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
+    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
     return;
   }
 }
@@ -238,7 +239,7 @@ void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &re
     //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
     //checkRobotCollisionHelper(req, res, robot, state, &acm);
   } catch(...) {
-    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
+    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
     return;
   }
 }
@@ -265,7 +266,7 @@ void CollisionWorldDistanceField::getCollisionGradients(const CollisionRequest &
     cdr.getIntraGroupProximityGradients(gsr);
     getEnvironmentProximityGradients(env_distance_field, gsr);
   } catch(...) {
-    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");
+    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
     return;
   }
 }
@@ -293,7 +294,7 @@ void CollisionWorldDistanceField::getAllCollisions(const CollisionRequest &req,
     boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
     getEnvironmentCollisions(req, res, env_distance_field, gsr);
   } catch(...) {
-    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField");    
+    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");    
     return;
   }  
 }
@@ -407,7 +408,7 @@ void CollisionWorldDistanceField::addToObject(const std::string& id,
   updateDistanceObject(id, distance_field_cache_entry_, add_points, subtract_points);
   distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
   distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
-  ROS_DEBUG_STREAM("Adding " << shapes.size() << " shapes took " << (ros::WallTime::now()-n));
+  logDebug("Adding %u shapes took %lf s", (unsigned int)shapes.size(),  (ros::WallTime::now()-n).toSec());
 }
 
 void CollisionWorldDistanceField::addToObject(const std::string& id,
@@ -421,7 +422,7 @@ void CollisionWorldDistanceField::addToObject(const std::string& id,
   updateDistanceObject(id, distance_field_cache_entry_, add_points, subtract_points);
   distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
   distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
-  ROS_DEBUG_STREAM("Adding took " << (ros::WallTime::now()-n));
+  logDebug("Adding took %lf s", (ros::WallTime::now()-n).toSec());
 }
 
 bool CollisionWorldDistanceField::moveShapeInObject(const std::string &id, 
@@ -436,7 +437,7 @@ bool CollisionWorldDistanceField::moveShapeInObject(const std::string &id,
     updateDistanceObject(id, distance_field_cache_entry_, add_points, subtract_points);
     distance_field_cache_entry_->distance_field_->removePointsFromField(subtract_points);
     distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
-    ROS_DEBUG_STREAM("Moving took " << (ros::WallTime::now()-n));
+    logDebug("Moving took %lf s", (ros::WallTime::now()-n).toSec());
     return true;
   }
   return false;

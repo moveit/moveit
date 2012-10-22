@@ -34,15 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#include "planning_scene/planning_scene.h"
-#include <collision_detection_fcl/collision_world.h>
-#include <collision_detection_fcl/collision_robot.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/collision_detection_fcl/collision_world.h>
+#include <moveit/collision_detection_fcl/collision_robot.h>
 #include <geometric_shapes/shape_operations.h>
-#include <collision_detection/collision_tools.h>
-#include <ros/console.h>
-#include <planning_models/conversions.h>
+#include <moveit/collision_detection/collision_tools.h>
+#include <moveit/planning_models/conversions.h>
 #include <octomap_msgs/conversions.h>
-#include <ros/console.h>
 #include <set>
 
 namespace planning_scene
@@ -98,7 +96,7 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   }
   else
   {
-    ROS_ERROR("NULL parent scene specified. Ignoring.");
+    logError("NULL parent scene specified. Ignoring.");
     name_ = DEFAULT_SCENE_NAME; 
     setCollisionDetectionTypes<collision_detection::CollisionWorldFCL, collision_detection::CollisionRobotFCL>();
   }
@@ -183,7 +181,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
     if (parent_->isConfigured())
     {
       if (srdf_model != parent_->getKinematicModel()->getSRDF() || urdf_model != parent_->getKinematicModel()->getURDF())
-        ROS_ERROR("Parent of planning scene is not constructed from the same robot model");
+        logError("Parent of planning scene is not constructed from the same robot model");
 
       // even if we have a parent, we do maintain a separate world representation, one that records changes
       // this is cheap however, because the worlds share the world representation
@@ -193,7 +191,7 @@ bool planning_scene::PlanningScene::configure(const boost::shared_ptr<const urdf
       configured_ = true;
     }
     else
-      ROS_ERROR("Parent is not configured yet");
+      logError("Parent is not configured yet");
   }
 
   return isConfigured();
@@ -263,7 +261,7 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
             scene->removeColor(changes[i].id_);
           }
           else
-            ROS_ERROR("Unknown change on collision world");
+            logError("Unknown change on collision world");
     }
   }
 }
@@ -506,7 +504,7 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
               scene.world.collision_objects.push_back(co);
             }
             else
-              ROS_ERROR("Unknown change on collision world");
+              logError("Unknown change on collision world");
         }
     if (do_cmap)
       getPlanningSceneMsgCollisionMap(scene);
@@ -686,7 +684,7 @@ void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::Plan
       planning_models::msgFromPose(map->shape_poses_[0], scene.world.octomap.origin);
     }
     else
-      ROS_ERROR("Unexpected number of shapes in octomap collision object");
+      logError("Unexpected number of shapes in octomap collision object");
   }
   */
 }
@@ -803,15 +801,15 @@ void planning_scene::PlanningScene::decoupleParent(void)
 
 void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene)
 {
-  ROS_DEBUG("Adding planning scene diff");
+  logDebug("Adding planning scene diff");
   if (!scene.name.empty())
     name_ = scene.name;
   
   if (!scene.robot_model_name.empty() && scene.robot_model_name != getKinematicModel()->getName())
-    ROS_WARN("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getKinematicModel()->getName().c_str());
+    logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getKinematicModel()->getName().c_str());
   
   if (!scene.robot_model_root.empty() && scene.robot_model_root != getKinematicModel()->getRootLinkName())
-    ROS_WARN("Setting scene with robot model root '%s' but the current planning scene uses link '%s' as root.", scene.robot_model_root.c_str(), getKinematicModel()->getRootLinkName().c_str());
+    logWarn("Setting scene with robot model root '%s' but the current planning scene uses link '%s' as root.", scene.robot_model_root.c_str(), getKinematicModel()->getRootLinkName().c_str());
   
   // there is at least one transform in the list of fixed transform: from model frame to itself;
   // if the list is empty, then nothing has been set
@@ -855,11 +853,11 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
 void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene)
 {
-  ROS_DEBUG("Setting new planning scene");
+  logDebug("Setting new planning scene");
   name_ = scene.name;
   
   if (!scene.robot_model_name.empty() && scene.robot_model_name != getKinematicModel()->getName())
-    ROS_WARN("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getKinematicModel()->getName().c_str());
+    logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene.robot_model_name.c_str(), getKinematicModel()->getName().c_str());
 
   if (parent_)
   {
@@ -930,7 +928,7 @@ void planning_scene::PlanningScene::processCollisionMapMsg(const moveit_msgs::Co
   {
     Eigen::Affine3d p;
     if (!planning_models::poseFromMsg(map.boxes[i].pose, p))
-      ROS_ERROR("Failed to convert from pose message to Eigen Affine3d");
+      logError("Failed to convert from pose message to Eigen Affine3d");
     else
       p.setIdentity();
     
@@ -967,7 +965,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
   if (planning_models::poseFromMsg(map.origin, p))
     p = t * p;
   else
-    ROS_ERROR("Failed to convert origin of Octomap to Eigen Affine3d");
+    logError("Failed to convert origin of Octomap to Eigen Affine3d");
   cworld_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), p);
   */
 }
@@ -1003,19 +1001,19 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
 {
   if (!getKinematicModel()->hasLinkModel(object.link_name))
   {
-    ROS_ERROR("Unable to attach a body to link '%s' (link not found)", object.link_name.c_str());
+    logError("Unable to attach a body to link '%s' (link not found)", object.link_name.c_str());
     return false;
   }
 
   if (object.object.id == COLLISION_MAP_NS)
   {
-    ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", COLLISION_MAP_NS.c_str());
+    logError("The ID '%s' cannot be used for collision objects (name reserved)", COLLISION_MAP_NS.c_str());
     return false;
   }
 
   if (object.object.id == OCTOMAP_NS)
   {
-    ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", OCTOMAP_NS.c_str());
+    logError("The ID '%s' cannot be used for collision objects (name reserved)", OCTOMAP_NS.c_str());
     return false;
   }
 
@@ -1026,19 +1024,19 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
   {
     if (object.object.primitives.size() != object.object.primitive_poses.size())
     {
-      ROS_ERROR("Number of primitive shapes does not match number of poses in attached collision object message");
+      logError("Number of primitive shapes does not match number of poses in attached collision object message");
       return false;
     }
 
     if (object.object.meshes.size() != object.object.mesh_poses.size())
     {
-      ROS_ERROR("Number of meshes does not match number of poses in attached collision object message");
+      logError("Number of meshes does not match number of poses in attached collision object message");
       return false;
     }
 
     if (object.object.planes.size() != object.object.plane_poses.size())
     {
-      ROS_ERROR("Number of planes does not match number of poses in attached collision object message");
+      logError("Number of planes does not match number of poses in attached collision object message");
       return false;
     }
 
@@ -1053,7 +1051,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       {
         if (cworld_->hasObject(object.object.id))
         {
-          ROS_DEBUG("Attaching world object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
+          logDebug("Attaching world object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
 
           // extract the shapes from the world
           collision_detection::CollisionWorld::ObjectConstPtr obj = cworld_->getObject(object.object.id);
@@ -1069,7 +1067,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         }
         else
         {
-          ROS_ERROR("Attempting to attach object '%s' to link '%s' but no geometry specified and such an object does not exist in the collision world",
+          logError("Attempting to attach object '%s' to link '%s' but no geometry specified and such an object does not exist in the collision world",
                     object.object.id.c_str(), object.link_name.c_str());
           return false;
         }
@@ -1079,7 +1077,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         // we clear the world objects with the same name, since we got an update on their geometry
         if (cworld_->hasObject(object.object.id))
         {
-          ROS_DEBUG("Removing wold object with the same name as newly attached object: '%s'", object.object.id.c_str());
+          logDebug("Removing wold object with the same name as newly attached object: '%s'", object.object.id.c_str());
           cworld_->removeObject(object.object.id);
         }
 
@@ -1091,7 +1089,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(object.object.primitive_poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.object.id.c_str());
+              logError("Failed to convert from pose message to Eigen Affine3d for %s", object.object.id.c_str());
               return false;
             }
 
@@ -1107,7 +1105,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(object.object.mesh_poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.object.id.c_str());
+              logError("Failed to convert from pose message to Eigen Affine3d for %s", object.object.id.c_str());
               return false;
             }
 
@@ -1123,7 +1121,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(object.object.plane_poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.object.id.c_str());
+              logError("Failed to convert from pose message to Eigen Affine3d for %s", object.object.id.c_str());
               return false;
             }
 
@@ -1143,20 +1141,20 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
 
       if (shapes.empty())
       {
-        ROS_ERROR("There is no geometry to attach to link '%s' as part of attached body '%s'", object.link_name.c_str(), object.object.id.c_str());
+        logError("There is no geometry to attach to link '%s' as part of attached body '%s'", object.link_name.c_str(), object.object.id.c_str());
         return false;
       }
 
       // there should not exist an attached object with this name
       if (ls->clearAttachedBody(object.object.id))
-        ROS_WARN("The kinematic state already had an object named '%s' attached to link '%s'. The object was replaced.",
+        logWarn("The kinematic state already had an object named '%s' attached to link '%s'. The object was replaced.",
                  object.object.id.c_str(), object.link_name.c_str());
       ls->attachBody(object.object.id, shapes, poses, object.touch_links);      
-      ROS_DEBUG("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
+      logDebug("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       return true;
     }
     else
-      ROS_FATAL("Kinematic state is not compatible with kinematic model");
+      logError("Kinematic state is not compatible with kinematic model. This could be fatal.");
   }
   else
     if (object.object.operation == moveit_msgs::CollisionObject::REMOVE)
@@ -1172,23 +1170,23 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
           ls->clearAttachedBody(object.object.id);
           
           if (cworld_->hasObject(object.object.id))
-            ROS_WARN("The collision world already has an object with the same name as the body about to be detached. NOT adding the detached body '%s' to the collision world.", object.object.id.c_str());
+            logWarn("The collision world already has an object with the same name as the body about to be detached. NOT adding the detached body '%s' to the collision world.", object.object.id.c_str());
           else
           {
             cworld_->addToObject(object.object.id, shapes, poses);
-            ROS_DEBUG("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
+            logDebug("Detached object '%s' from link '%s' and added it back in the collision world", object.object.id.c_str(), object.link_name.c_str());
           }
           
           return true;
         }
         else
-          ROS_ERROR("No object named '%s' is attached to link '%s'", object.object.id.c_str(), object.link_name.c_str());
+          logError("No object named '%s' is attached to link '%s'", object.object.id.c_str(), object.link_name.c_str());
       }
       else
-        ROS_FATAL("Kinematic state is not compatible with kinematic model");
+        logError("Kinematic state is not compatible with kinematic model. This could be fatal.");
     }
     else
-      ROS_ERROR("Unknown collision object operation: %d", object.object.operation);
+      logError("Unknown collision object operation: %d", object.object.operation);
   return false;
 }
 
@@ -1196,12 +1194,12 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
 {
   if (object.id == COLLISION_MAP_NS)
   {
-    ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", COLLISION_MAP_NS.c_str());
+    logError("The ID '%s' cannot be used for collision objects (name reserved)", COLLISION_MAP_NS.c_str());
     return false;
   }
   if (object.id == OCTOMAP_NS)
   {
-    ROS_ERROR("The ID '%s' cannot be used for collision objects (name reserved)", OCTOMAP_NS.c_str());
+    logError("The ID '%s' cannot be used for collision objects (name reserved)", OCTOMAP_NS.c_str());
     return false;
   }
 
@@ -1209,25 +1207,25 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
   {
     if (object.primitives.empty() && object.meshes.empty() && object.planes.empty())
     {
-      ROS_ERROR("There are no shapes specified in the collision object message");
+      logError("There are no shapes specified in the collision object message");
       return false;
     }
     
     if (object.primitives.size() != object.primitive_poses.size())
     {
-      ROS_ERROR("Number of primitive shapes does not match number of poses in collision object message");
+      logError("Number of primitive shapes does not match number of poses in collision object message");
       return false;
     }
 
     if (object.meshes.size() != object.mesh_poses.size())
     {
-      ROS_ERROR("Number of meshes does not match number of poses in collision object message");
+      logError("Number of meshes does not match number of poses in collision object message");
       return false;
     }
 
     if (object.planes.size() != object.plane_poses.size())
     {
-      ROS_ERROR("Number of planes does not match number of poses in collision object message");
+      logError("Number of planes does not match number of poses in collision object message");
       return false;
     }
     
@@ -1240,7 +1238,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         Eigen::Affine3d p; 
         if(!planning_models::poseFromMsg(object.primitive_poses[i], p))
         {
-          ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.id.c_str());
+          logError("Failed to convert from pose message to Eigen Affine3d for %s", object.id.c_str());
           return false;
         }
         cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
@@ -1254,7 +1252,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         Eigen::Affine3d p; 
         if(!planning_models::poseFromMsg(object.mesh_poses[i], p))
         {
-          ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.id.c_str());
+          logError("Failed to convert from pose message to Eigen Affine3d for %s", object.id.c_str());
           return false;
         }
         cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
@@ -1268,7 +1266,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
         Eigen::Affine3d p; 
         if(!planning_models::poseFromMsg(object.plane_poses[i], p))
         {
-          ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", object.id.c_str());
+          logError("Failed to convert from pose message to Eigen Affine3d for %s", object.id.c_str());
           return false;
         }
         cworld_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
@@ -1283,7 +1281,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
       return true;
     }
     else
-      ROS_ERROR("Unknown collision object operation: %d", object.operation);
+      logError("Unknown collision object operation: %d", object.operation);
   return false;
 }
 
@@ -1567,7 +1565,7 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
       if (!found)
       {
         if (verbose)
-          ROS_INFO("Goal not satisfied");
+          logInform("Goal not satisfied");
         if (invalid_index)
           invalid_index->push_back(i);
         result = false;
@@ -1623,7 +1621,7 @@ bool planning_scene::PlanningScene::isPathValid(const planning_models::Kinematic
       if (!found)
       {
         if (verbose)
-          ROS_INFO("Goal not satisfied");
+          logInform("Goal not satisfied");
         if (invalid_index)
           invalid_index->push_back(i);
         result = false;

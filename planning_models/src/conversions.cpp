@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_models/conversions.h>
+#include <moveit/planning_models/conversions.h>
 #include <geometric_shapes/shape_operations.h>
-#include <ros/console.h>
 #include <set>
 
 namespace planning_models
@@ -45,8 +44,8 @@ static bool jointStateToKinematicState(const sensor_msgs::JointState &joint_stat
 {
   if (joint_state.name.size() != joint_state.position.size())
   {
-    ROS_ERROR_STREAM("Different number of names and positions in JointState message: " << joint_state.name.size()
-                     << ", " << joint_state.position.size());
+    logError("Different number of names and positions in JointState message: %u, %u",
+             (unsigned int)joint_state.name.size(), (unsigned int)joint_state.position.size());
     return false;
   }
   
@@ -72,7 +71,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
   if (mjs.joint_names.size() != mjs.frame_ids.size() || mjs.joint_names.size() != mjs.child_frame_ids.size() ||
       mjs.joint_names.size() != mjs.poses.size())
   {
-    ROS_ERROR("Different number of names, values or frames in MultiDOFJointState message.");
+    logError("Different number of names, values or frames in MultiDOFJointState message.");
     return false;
   }
   
@@ -83,7 +82,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
   for (unsigned int i = 0 ; i < mjs.joint_names.size(); ++i)
   {
     if (!poseFromMsg(mjs.poses[i], transf[i]))
-      ROS_WARN("MultiDOFJointState message has incorrect quaternion specification for joint '%s'. Assuming identity.",
+      logError("MultiDOFJointState message has incorrect quaternion specification for joint '%s'. Assuming identity.",
                mjs.joint_names[i].c_str());
     
     // if frames do not mach, attempt to transform
@@ -109,7 +108,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
       if (!ok)
       {
         tf_problem = true;
-        ROS_WARN("The transform for joint '%s' was specified in frame '%s' but it was not possible to update that transform to frame '%s'",
+        logWarn("The transform for joint '%s' was specified in frame '%s' but it was not possible to update that transform to frame '%s'",
                  mjs.joint_names[i].c_str(), mjs.frame_ids[i].c_str(), state.getKinematicModel()->getModelFrame().c_str());
       }
     }
@@ -120,7 +119,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
     const std::string &joint_name = mjs.joint_names[i];
     if (!state.hasJointState(joint_name))
     {
-      ROS_WARN("No joint matching multi-dof joint '%s'", joint_name.c_str());
+      logWarn("No joint matching multi-dof joint '%s'", joint_name.c_str());
       error = true;
       continue;
     }
@@ -128,7 +127,7 @@ static bool multiDOFJointsToKinematicState(const moveit_msgs::MultiDOFJointState
     
     if (mjs.child_frame_ids[i] != joint_state->getJointModel()->getChildLinkModel()->getName())
     {
-      ROS_WARN_STREAM("Robot state msg has bad multi_dof transform - child frame_ids do not match up with joint");
+      logWarn("Robot state msg has bad multi_dof transform - child frame_ids do not match up with joint");
       tf_problem = true;
     }
     
@@ -231,19 +230,19 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
     {
       if (aco.object.primitives.size() != aco.object.primitive_poses.size())
       {
-        ROS_ERROR("Number of primitive shapes does not match number of poses in collision object message");
+        logError("Number of primitive shapes does not match number of poses in collision object message");
         return;
       }
       
       if (aco.object.meshes.size() != aco.object.mesh_poses.size())
       {
-        ROS_ERROR("Number of meshes does not match number of poses in collision object message");
+        logError("Number of meshes does not match number of poses in collision object message");
         return;
       }
       
       if (aco.object.planes.size() != aco.object.plane_poses.size())
       {
-        ROS_ERROR("Number of planes does not match number of poses in collision object message");
+        logError("Number of planes does not match number of poses in collision object message");
         return;
       }
 
@@ -261,7 +260,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(aco.object.primitive_poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", aco.object.id.c_str());
+              logError("Failed to convert from pose message to Eigen Affine3d for %s", aco.object.id.c_str());
               return;
             }
             
@@ -277,7 +276,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(aco.object.mesh_poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", aco.object.id.c_str());
+              logError("Failed to convert from pose message to Eigen Affine3d for %s", aco.object.id.c_str());
               return;
             }
             
@@ -293,7 +292,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
             Eigen::Affine3d p;
             if(!planning_models::poseFromMsg(aco.object.plane_poses[i], p))
             {
-              ROS_ERROR("Failed to convert from pose message to Eigen Affine3d for %s", aco.object.id.c_str());
+              logError("Failed to convert from pose message to Eigen Affine3d for %s", aco.object.id.c_str());
               return;
             }
             
@@ -311,7 +310,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
           else
           {
             t0.setIdentity();
-            ROS_ERROR("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect", aco.object.header.frame_id.c_str());
+            logError("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect", aco.object.header.frame_id.c_str());
           }
           Eigen::Affine3d t = ls->getGlobalLinkTransform().inverse() * t0;
           for (std::size_t i = 0 ; i < poses.size() ; ++i)
@@ -320,7 +319,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
         
         
         if (shapes.empty())
-          ROS_ERROR("There is no geometry to attach to link '%s' as part of attached body '%s'", aco.link_name.c_str(), aco.object.id.c_str());
+          logError("There is no geometry to attach to link '%s' as part of attached body '%s'", aco.link_name.c_str(), aco.object.id.c_str());
         else
         {  
           ls->clearAttachedBody(aco.object.id);
@@ -329,7 +328,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
       }
     }
     else
-      ROS_ERROR("The attached body for link '%s' has no geometry", aco.link_name.c_str());
+      logError("The attached body for link '%s' has no geometry", aco.link_name.c_str());
   }
   else
     if (aco.object.operation == moveit_msgs::CollisionObject::REMOVE)
@@ -339,7 +338,7 @@ static void msgToAttachedBody(const Transforms *tf, const moveit_msgs::AttachedC
         ls->clearAttachedBody(aco.object.id);
     }
     else
-      ROS_ERROR("Unknown collision object operation: %d", aco.object.operation);
+      logError("Unknown collision object operation: %d", aco.object.operation);
 }
 
 static bool robotStateToKinematicStateHelper(const Transforms *tf, const moveit_msgs::RobotState &robot_state, KinematicState& state, bool copy_attached_bodies)

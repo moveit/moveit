@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "collision_detection/collision_tools.h"
+#include <moveit/collision_detection/collision_tools.h>
 
 void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id, std::set<CostSource> &cost_sources)
 {

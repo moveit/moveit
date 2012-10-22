@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_models/kinematic_model.h>
+#include <moveit/planning_models/kinematic_model.h>
 
 planning_models::KinematicModel::FixedJointModel::FixedJointModel(const std::string& name) : JointModel(name)
 {

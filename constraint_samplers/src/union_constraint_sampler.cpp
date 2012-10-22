@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "constraint_samplers/union_constraint_sampler.h"
-#include <ros/console.h>
+#include <moveit/constraint_samplers/union_constraint_sampler.h>
 #include <algorithm>
 
 namespace constraint_samplers
@@ -65,8 +64,8 @@ struct OrderSamplersByFrameDependency
           break;
         }
     if (b_depends_on_a && a_depends_on_b)
-      ROS_WARN("Circular frame dependency! Sampling will likely produce invalid results (sampling for groups '%s' and '%s')",
-               a->getJointModelGroup()->getName().c_str(), b->getJointModelGroup()->getName().c_str());
+      logWarn("Circular frame dependency! Sampling will likely produce invalid results (sampling for groups '%s' and '%s')",
+              a->getJointModelGroup()->getName().c_str(), b->getJointModelGroup()->getName().c_str());
     return b_depends_on_a && !a_depends_on_b;
   }  
 };
@@ -84,7 +83,7 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
     for (std::size_t j = 0 ; j < fd.size() ; ++j)
       frame_depends_.push_back(fd[j]);
     
-    ROS_DEBUG_STREAM("Union sampler for group '" << jmg_->getName() << "' includes sampler for group '" << samplers_[i]->getJointModelGroup()->getName() << "'");
+    logDebug("Union sampler for group '%s' includes sampler for group '%s'", jmg_->getName().c_str(), samplers_[i]->getJointModelGroup()->getName().c_str());
   }
 }
 

@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include <planning_models/kinematic_model.h>
-#include <ros/console.h>
+#include <moveit/planning_models/kinematic_model.h>
 
 planning_models::KinematicModel::JointModel::JointModel(const std::string& name) :
   name_(name), type_(UNKNOWN), max_velocity_(0.0), parent_link_model_(NULL), child_link_model_(NULL),
@@ -52,7 +51,7 @@ bool planning_models::KinematicModel::JointModel::getVariableBounds(const std::s
   std::map<std::string, unsigned int>::const_iterator it = variable_index_.find(variable);
   if (it == variable_index_.end())
   {
-    ROS_WARN_STREAM("Could not find variable '" << variable << "' to get bounds for within joint '" << name_ << "'");
+    logWarn("Could not find variable '%s' to get bounds for within joint '%s'", variable.c_str(), name_.c_str());
     return false;
   }
   bounds = variable_bounds_[it->second];
