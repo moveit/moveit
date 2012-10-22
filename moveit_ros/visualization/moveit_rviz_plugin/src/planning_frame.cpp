@@ -82,7 +82,8 @@ moveit_rviz_plugin::PlanningFrame::PlanningFrame(PlanningDisplay *pdisplay, rviz
   connect( ui_->publish_current_scene_button, SIGNAL( clicked() ), this, SLOT( publishSceneButtonClicked() ));
   connect( ui_->collision_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedCollisionObjectChanged() ));
   connect( ui_->collision_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( collisionObjectNameChanged( QListWidgetItem * ) ));
-  
+  connect( ui_->path_constraints_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( pathConstraintsIndexChanged( int ) ));
+
   ui_->tabWidget->setCurrentIndex(0);
 }
 
@@ -106,6 +107,7 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroupHelper(void)
     try
     {
       move_group_.reset(new move_group_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(5, 0)));
+      move_group_construction_time_ = ros::WallTime::now();
     }
     catch(std::runtime_error &ex)
     {
@@ -118,6 +120,7 @@ void moveit_rviz_plugin::PlanningFrame::changePlanningGroupHelper(void)
       moveit_msgs::PlannerInterfaceDescription desc;
       if (move_group_->getInterfaceDescription(desc))
         planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populatePlannersList, this, desc));
+      planning_display_->addBackgroundJob(boost::bind(&PlanningFrame::populateConstraintsList, this));
     }
   }
 }
@@ -364,6 +367,26 @@ void moveit_rviz_plugin::PlanningFrame::sceneScaleChanged(int value)
   }
 }
 
+void moveit_rviz_plugin::PlanningFrame::populateConstraintsList(void)
+{
+  if (move_group_)
+  {
+    // add some artificial wait time (but in the background) for the constraints DB to connect
+    double dt = (ros::WallTime::now() - move_group_construction_time_).toSec();
+    if (dt < 0.2)
+      ros::WallDuration(0.1).sleep();
+    planning_display_->addMainLoopJob(boost::bind(&PlanningFrame::populateConstraintsList, this, move_group_->getKnownConstraints()));
+  }
+}
+
+void moveit_rviz_plugin::PlanningFrame::populateConstraintsList(const std::vector<std::string> &constr)
+{
+  ui_->path_constraints_combo_box->clear();     
+  ui_->path_constraints_combo_box->addItem("None");
+  for (std::size_t i = 0 ; i < constr.size() ; ++i)
+    ui_->path_constraints_combo_box->addItem(QString::fromStdString(constr[i]));
+}
+
 void moveit_rviz_plugin::PlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
 { 
   std::string group = planning_display_->getCurrentPlanningGroup();
@@ -421,6 +444,17 @@ void moveit_rviz_plugin::PlanningFrame::allowReplanningToggled(bool checked)
 {
   if (move_group_)
     move_group_->allowReplanning(checked);
+}
+
+void moveit_rviz_plugin::PlanningFrame::pathConstraintsIndexChanged(int index)
+{
+  if (move_group_)
+  {
+    if (index > 0)
+      move_group_->setPathConstraints(ui_->path_constraints_combo_box->itemText(index).toStdString());
+    else
+      move_group_->clearPathConstraints();
+  }
 }
 
 void moveit_rviz_plugin::PlanningFrame::planningAlgorithmIndexChanged(int index)
