@@ -75,6 +75,8 @@ protected:
   Ui::MotionPlanningFrame *ui_;
   
   boost::shared_ptr<move_group_interface::MoveGroup> move_group_;
+  ros::WallTime move_group_construction_time_;
+
   boost::shared_ptr<move_group_interface::MoveGroup::Plan> current_plan_;
   boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
 
@@ -112,7 +114,8 @@ private Q_SLOTS:
   void objectRZValueChanged(double v);
   void publishSceneButtonClicked(void);
   void collisionObjectNameChanged(QListWidgetItem *item);
-  
+  void pathConstraintsIndexChanged(int index);
+
 private:
 
   void computePlanButtonClicked(void);  
@@ -137,6 +140,8 @@ private:
   void changePlanningGroupHelper(void);
   void populateCollisionObjectsList(void);
   void objectPoseValueChanged(int index, double value);
+  void populateConstraintsList(void);
+  void populateConstraintsList(const std::vector<std::string> &constr);
   
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
