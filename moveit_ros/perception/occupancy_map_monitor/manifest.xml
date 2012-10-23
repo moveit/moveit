@@ -18,6 +18,7 @@
   <depend package="robot_self_filter"/>
 
   <rosdep name="octomap" />
+  <depend package="octomap_msgs" />
   <depend package="dynamic_reconfigure"/>
 
   <export>
