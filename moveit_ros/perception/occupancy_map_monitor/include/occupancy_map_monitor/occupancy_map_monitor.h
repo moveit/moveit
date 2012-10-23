@@ -110,6 +110,7 @@ private:
   
   void treeUpdateThread(void);
   void publish_markers(void);
+  void publish_octomap_binary(void);
 
   Options opt_;
   
@@ -130,6 +131,7 @@ private:
   ros::NodeHandle nh_;
   ros::Publisher occupied_marker_pub_;
   ros::Publisher free_marker_pub_;
+  ros::Publisher octree_binary_pub_;
 };
 
 }
