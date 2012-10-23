@@ -18,6 +18,7 @@
   <depend package="visualization_msgs"/>
   <depend package="tf"/>
   <!-- <depend package="arm_navigation_msgs"/> -->
+  <depend package="pr2_controllers_msgs"/>
   <depend package="std_srvs"/>
 
 

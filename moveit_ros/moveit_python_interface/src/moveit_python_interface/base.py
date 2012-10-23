@@ -101,10 +101,16 @@ class Base():
         self._ac.wait_for_result()
 
         if self._ac.get_state() != am.GoalStatus.SUCCEEDED:
-            result = {'1':'1',
-                      '2':'2',
-                      '3':'3',
-                      '4':'ABORTED'}.get(str(self._ac.get_state()), str(self._ac.get_state()))
+            result = {'0':'Status: PENDING',
+                      '1':'Status: ACTIVE',
+                      '2':'Status: PREEMPTED',
+                      '3':'Status: SUCCEEDED',
+                      '4':'Status: ABORTED',
+                      '5':'Status: REJECTED',
+                      '6':'Status: PREEMPTING',
+                      '7':'Status: RECALLING',
+                      '8':'Status: RECALLED',
+                      '9':'Status: LOST'}.get(str(self._ac.get_state()), str(self._ac.get_state()))
             rospy.loginfo(result)
             #print "Error is " + str(self._ac.get_state())
             #raise ex.ActionFailedError()
