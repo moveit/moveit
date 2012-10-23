@@ -37,11 +37,11 @@
 #ifndef MOVEIT_PLAN_EXECUTION_PLAN_EXECUTION_
 #define MOVEIT_PLAN_EXECUTION_PLAN_EXECUTION_
 
-#include <planning_pipeline/planning_pipeline.h>
-#include <trajectory_execution_manager/trajectory_execution_manager.h>
-#include <planning_scene_monitor/planning_scene_monitor.h>
-#include <planning_scene_monitor/trajectory_monitor.h>
-#include <moveit_sensor_manager/moveit_sensor_manager.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/planning_scene_monitor/trajectory_monitor.h>
+#include <moveit/sensor_manager/sensor_manager.h>
 #include <pluginlib/class_loader.h>
 #include <boost/scoped_ptr.hpp>
 

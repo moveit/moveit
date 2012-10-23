@@ -10,4 +10,4 @@ add_library(test_controller_manager_plugin test/test_moveit_controller_manager_p
 target_link_libraries(test_controller_manager_plugin ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(test_controller_manager test/test_app.cpp)
-target_link_libraries(test_controller_manager ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(test_controller_manager ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} log4cxx pthread)

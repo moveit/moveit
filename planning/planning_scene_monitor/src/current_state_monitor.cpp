@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "planning_scene_monitor/current_state_monitor.h"
+#include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <tf_conversions/tf_eigen.h>
 #include <limits>
 

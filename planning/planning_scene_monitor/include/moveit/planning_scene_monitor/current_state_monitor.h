@@ -39,7 +39,7 @@
 
 #include <ros/ros.h>
 #include <tf/tf.h>
-#include <planning_models/kinematic_state.h>
+#include <moveit/planning_models/kinematic_state.h>
 #include <sensor_msgs/JointState.h>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
