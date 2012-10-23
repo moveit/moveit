@@ -39,8 +39,8 @@
 
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
-#include <planning_models/kinematic_model.h>
-#include <kinematics_base/kinematics_base.h>
+#include <moveit/planning_models/kinematic_model.h>
+#include <moveit/kinematics_base/kinematics_base.h>
 
 namespace kinematics_plugin_loader
 {

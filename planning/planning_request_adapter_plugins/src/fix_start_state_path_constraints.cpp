@@ -34,10 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_request_adapter/planning_request_adapter.h>
-#include <planning_models/conversions.h>
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
+#include <moveit/planning_models/conversions.h>
 #include <pluginlib/class_list_macros.h>
-#include <trajectory_processing/trajectory_tools.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 #include <ros/ros.h>
 
 namespace default_planner_request_adapters

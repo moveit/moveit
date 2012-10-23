@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_request_adapter/planning_request_adapter.h>
-#include <trajectory_processing/iterative_smoother.h>
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
+#include <moveit/trajectory_processing/iterative_smoother.h>
 #include <pluginlib/class_list_macros.h>
 
 namespace default_planner_request_adapters

@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#include "planning_models_loader/kinematic_model_loader.h"
+#include <moveit/planning_models_loader/kinematic_model_loader.h>
 #include <ros/ros.h>
 
 planning_models_loader::KinematicModelLoader::KinematicModelLoader(const std::string &robot_description)

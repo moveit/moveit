@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <pluginlib/class_loader.h>
-#include <planning_request_adapter/planning_request_adapter.h>
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <ros/ros.h>
 
 int main(int argc, char **argv)

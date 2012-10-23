@@ -37,12 +37,12 @@
 #ifndef MOVEIT_TRAJECTORY_EXECUTION_MANAGER_TRAJECTORY_EXECUTION_MANAGER_
 #define MOVEIT_TRAJECTORY_EXECUTION_MANAGER_TRAJECTORY_EXECUTION_MANAGER_
 
-#include <planning_models/kinematic_model.h>
+#include <moveit/planning_models/kinematic_model.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
 #include <ros/ros.h>
-#include <moveit_controller_manager/moveit_controller_manager.h>
+#include <moveit/controller_manager/controller_manager.h>
 #include <boost/thread.hpp>
 #include <pluginlib/class_loader.h>
 #include <boost/scoped_ptr.hpp>
