@@ -45,7 +45,7 @@ import tf
 #from arm_navigation_msgs.srv import GetStateValidityRequest
 #from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 #from pr2_controllers_msgs.msg import JointTrajectoryGoal, JointTrajectoryAction
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from moveit_msgs.msg import RobotTrajectory, MultiDOFJointTrajectory, MultiDOFJointTrajectoryPoint
@@ -69,12 +69,12 @@ class ArmMover:
     def __init__(self, name):
         self._g = MoveGroup(name)
 
-    def move_arm(self, goal):
+    def move_arm(self, goal = None):
         """ goal (geometry_msgs.msg.PoseStamped or sensor_msgs.msg.JointState) """
         if type(goal) == JointState:
             self._g.set_joint_value_target(goal.position);
 
-        elif type(goal) == PoseStamped:  
+        elif type(goal) == Pose:  
             if self.has_end_effector_link():
                 pose = []
                 pose.append(goal.position.x)
@@ -89,6 +89,37 @@ class ArmMover:
                 raise "There is no end effector to get the pose of"
         return self._g.move()
 
+    def move_relative(self, x, y, z, rot_x, rot_y, rot_z):
+        if self.has_end_effector_link():
+            pose = self.get_current_pose()
+            pose[0] = pose[0] + x
+            pose[1] = pose[1] + y
+            pose[2] = pose[2] + z
+            pose[3] = pose[3] + rot_x
+            pose[4] = pose[4] + rot_y
+            pose[5] = pose[5] + rot_z
+            self.set_pose_target(pose)
+            return self.move_arm()
+        
+    def plan_relative(self, x, y, z, rot_x, rot_y, rot_z):
+        if self.has_end_effector_link():
+            pose = self.get_current_pose()
+            pose[0] = pose[0] + x
+            pose[1] = pose[1] + y
+            pose[2] = pose[2] + z
+            pose[3] = pose[3] + rot_x
+            pose[4] = pose[4] + rot_y
+            pose[5] = pose[5] + rot_z
+            self.set_pose_target(pose)
+            return self.plan()
+
+    def set_pose_target(self, pose):
+        """ Set the pose of the end-effector, if one is available. The expected input is a list of 6 floats: [x, y, z, rot_x, rot_y, rot_z]"""
+        if self.has_end_effector_link():
+            return self._g.set_pose_target(pose)
+        else:
+            raise "There is no end effector to get the pose of"
+
     def get_current_joint_values(self):
         """should return JointState.msg"""
         msg = JointState()
@@ -97,8 +128,25 @@ class ArmMover:
 
     def get_current_pose(self):
         if self.has_end_effector_link():
-            msg = PoseStamped()
             msg = self._g.get_current_pose()
+            return msg
+        else:
+            raise "There is no end effector to get the pose of"
+
+    def get_current_pose_msg(self):
+        if self.has_end_effector_link():
+            msg = Pose()
+            pose = self._g.get_current_pose()
+            msg.position.x = pose[0]
+            msg.position.y = pose[1]
+            msg.position.z = pose[2]
+            q = tf.transformations.quaternion_from_euler(pose[3], pose[4], pose[5])
+            print "Q is :"
+            print q
+            msg.orientation.x = q[0]
+            msg.orientation.y = q[1]
+            msg.orientation.z = q[2]
+            msg.orientation.w = q[3]
             return msg
         else:
             raise "There is no end effector to get the pose of"
@@ -107,12 +155,20 @@ class ArmMover:
         """ Stop the current execution, if any """
         self._g.stop()
 
-    def plan(self, goal):
+    def plan(self, goal = None):
         if type(goal) == JointState:
             self._g.set_joint_value_target(goal.position);
 
         elif type(goal) == PoseStamped:
             if self.has_end_effector_link():
+                pose = []
+                pose.append(goal.position.x)
+                pose.append(goal.position.y)
+                pose.append(goal.position.z)
+                (r, p, y) = tf.transformations.euler_from_quaternion([goal.orientation.x, goal.orientation.y, goal.orientation.z, goal.orientation.w])
+                pose.append(r)
+                pose.append(p)
+                pose.append(y)
                 self._g.set_pose_target(pose)
             else:
                 raise "There is no end effector to get the pose of"
@@ -141,6 +197,7 @@ class ArmMover:
         plan_msg.multi_dof_joint_trajectory = multi_dof_joint_traj
         return plan_msg
 
-        
-        
-       
+    def has_end_effector_link(self):
+        """ Check if this group has a link that is considered to be an end effector """
+        return len(self._g.get_end_effector_link()) > 0
+
