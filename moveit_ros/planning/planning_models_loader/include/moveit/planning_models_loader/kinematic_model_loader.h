@@ -37,9 +37,9 @@
 #ifndef MOVEIT_PLANNING_MODELS_LOADER_KINEMATIC_MODEL_LOADER_
 #define MOVEIT_PLANNING_MODELS_LOADER_KINEMATIC_MODEL_LOADER_
 
-#include <planning_models/kinematic_model.h>
-#include <robot_model_loader/robot_model_loader.h>
-#include <kinematics_plugin_loader/kinematics_plugin_loader.h>
+#include <moveit/planning_models/kinematic_model.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/kinematics_plugin_loader/kinematics_plugin_loader.h>
 
 namespace planning_models_loader
 {

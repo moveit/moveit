@@ -32,9 +32,9 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include "planning_pipeline/planning_pipeline.h"
-#include <planning_models/conversions.h>
-#include <collision_detection/collision_tools.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/planning_models/conversions.h>
+#include <moveit/collision_detection/collision_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <boost/tokenizer.hpp>

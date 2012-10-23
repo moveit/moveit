@@ -35,8 +35,8 @@
 #ifndef MOVEIT_PLANNING_PIPELINE_PLANNING_PIPELINE_
 #define MOVEIT_PLANNING_PIPELINE_PLANNING_PIPELINE_
 
-#include <planning_interface/planning_interface.h>
-#include <planning_request_adapter/planning_request_adapter.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <pluginlib/class_loader.h>
 #include <boost/scoped_ptr.hpp>
 #include <ros/ros.h>

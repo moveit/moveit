@@ -16,6 +16,8 @@ find_package(catkin COMPONENTS
   rosconsole
   dynamic_reconfigure
   message_filters
+  srdfdom
+  urdf
   tf
   tf_conversions
   REQUIRED)
@@ -41,10 +43,9 @@ include(/opt/ros/groovy/share/dynamic_reconfigure/cmake/rosbuild2.cmake)
 include_directories(robot_model_loader/include)
 include_directories(kinematics_plugin_loader/include)
 include_directories(planning_models_loader/include)
-include_directories(moveit_controller_manager/include)
-include_directories(moveit_sensor_manager/include)
+include_directories(controller_manager/include)
+include_directories(sensor_manager/include)
 include_directories(planning_pipeline/include)
-include_directories(planning_request_adapter_plugins/include)
 include_directories(planning_scene_monitor/include)
 include_directories(trajectory_execution_manager/include)
 #include_directories(plan_execution/include)
@@ -52,8 +53,8 @@ include_directories(trajectory_execution_manager/include)
 add_subdirectory(robot_model_loader)
 add_subdirectory(kinematics_plugin_loader)
 add_subdirectory(planning_models_loader)
-add_subdirectory(moveit_controller_manager)
-add_subdirectory(moveit_sensor_manager)
+add_subdirectory(controller_manager)
+add_subdirectory(sensor_manager)
 add_subdirectory(planning_pipeline)
 add_subdirectory(planning_request_adapter_plugins)
 #add_subdirectory(planning_scene_monitor)

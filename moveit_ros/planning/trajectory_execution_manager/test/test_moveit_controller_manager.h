@@ -35,7 +35,7 @@
 #ifndef TEST_MOVEIT_CONTROLLER_MANAGER_
 #define TEST_MOVEIT_CONTROLLER_MANAGER_
 
-#include <moveit_controller_manager/moveit_controller_manager.h>
+#include <moveit/controller_manager/controller_manager.h>
 
 namespace test_moveit_controller_manager
 {

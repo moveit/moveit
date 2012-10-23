@@ -32,8 +32,8 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include <trajectory_execution_manager/trajectory_execution_manager.h>
-#include <planning_models_loader/kinematic_model_loader.h>
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
+#include <moveit/planning_models_loader/kinematic_model_loader.h>
 
 int main(int argc, char **argv)
 {  

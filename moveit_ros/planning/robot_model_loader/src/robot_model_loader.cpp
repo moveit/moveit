@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "robot_model_loader/robot_model_loader.h"
+#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <ros/ros.h>
 
 robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description)

@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_request_adapter/planning_request_adapter.h>
+#include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 

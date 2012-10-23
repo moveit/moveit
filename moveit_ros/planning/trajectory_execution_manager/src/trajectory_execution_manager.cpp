@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include "trajectory_execution_manager/trajectory_execution_manager.h"
+#include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 
 namespace trajectory_execution_manager
 {
