@@ -34,18 +34,20 @@
 
 /* Author: Ioan Sucan */
 
-#include "plan_execution/plan_execution.h"
-#include <kinematic_constraints/utils.h>
-#include <planning_models/conversions.h>
-#include <trajectory_processing/trajectory_tools.h>
-#include <collision_detection/collision_tools.h>
+#include <moveit/plan_execution/plan_execution.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_models/conversions.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
+#include <moveit/collision_detection/collision_tools.h>
 #include <boost/algorithm/string/join.hpp>
 
 #include <dynamic_reconfigure/server.h>
-#include "plan_execution/PlanExecutionDynamicReconfigureConfig.h"
+#include <moveit_ros_planning/PlanExecutionDynamicReconfigureConfig.h>
 
 namespace plan_execution
 {
+using namespace moveit_ros_planning;
+
 struct LockScene
 {
   LockScene(const planning_scene_monitor::PlanningSceneMonitorPtr &monitor) : monitor_(monitor.get())
@@ -500,7 +502,7 @@ bool plan_execution::PlanExecution::lookAt(const std::set<collision_detection::C
   sensor_manager_->getSensorsList(names);
   geometry_msgs::PointStamped point;
   for (std::size_t i = 0 ; i < names.size() ; ++i)
-    if (collision_detection::getSensorPositioning(point.point, cost_sources, sensor_manager_->getSensorInfo(names[i])))
+    if (collision_detection::getSensorPositioning(point.point, cost_sources))
     {      
       point.header.stamp = ros::Time::now();
       point.header.frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();

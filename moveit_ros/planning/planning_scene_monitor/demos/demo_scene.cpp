@@ -34,7 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <shape_tools/solid_primitive_dims.h>
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
@@ -106,7 +107,7 @@ void sendCollisionObject(void)
     co.operation = moveit_msgs::CollisionObject::ADD;
     co.primitives.resize(1);
     co.primitives[0].type = shape_msgs::SolidPrimitive::SPHERE;
-    co.primitives[0].dimensions.resize(shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);
+    co.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);
     co.primitives[0].dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = 0.05;
     co.primitive_poses.resize(1);
     co.primitive_poses[0].position.x = rng.uniformReal(-1.5, 1.5);

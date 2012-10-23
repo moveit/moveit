@@ -38,8 +38,8 @@
 #include <moveit_msgs/QueryPlannerInterfaces.h>
 
 #include <tf/transform_listener.h>
-#include <plan_execution/plan_execution.h>
-#include <trajectory_processing/trajectory_tools.h>
+#include <moveit/plan_execution/plan_execution.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 static const std::string NODE_NAME = "move_group";                   // name of node

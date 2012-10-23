@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include "planning_scene_monitor/trajectory_monitor.h"
-#include <trajectory_processing/trajectory_tools.h>
+#include <moveit/planning_scene_monitor/trajectory_monitor.h>
+#include <moveit/trajectory_processing/trajectory_tools.h>
 #include <ros/rate.h>
 #include <limits>
 

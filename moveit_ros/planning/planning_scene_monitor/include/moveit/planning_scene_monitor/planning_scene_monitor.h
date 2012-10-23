@@ -41,10 +41,10 @@
 #include <tf/tf.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
-#include <planning_scene/planning_scene.h>
-#include <planning_models_loader/kinematic_model_loader.h>
-#include <occupancy_map_monitor/occupancy_map_monitor.h>
-#include "planning_scene_monitor/current_state_monitor.h"
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/planning_models_loader/kinematic_model_loader.h>
+#include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
+#include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <boost/thread.hpp>
 
 namespace planning_scene_monitor

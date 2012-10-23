@@ -12,6 +12,7 @@ find_package(catkin COMPONENTS
   moveit_core
   moveit_ros_perception
   pluginlib
+  actionlib
   roscpp
   rosconsole
   dynamic_reconfigure
@@ -31,15 +32,17 @@ catkin_package(
     moveit_kinematics_plugin_loader
     moveit_kinematics_model_loader
     moveit_default_planning_request_adapter_plugins
+    moveit_planning_pipeline
+    moveit_trajectory_execution_manager
+    moveit_plan_execution
   DEPENDS
     pluginlib
     moveit_core)
 
-#get_filename_component(dynamic_reconfigure_SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+generate_dynamic_reconfigure_options("planning_scene_monitor/cfg/PublishSceneDR.cfg")
+generate_dynamic_reconfigure_options("plan_execution/cfg/PlanExecutionParamsDR.cfg")
 
-include(/opt/ros/groovy/share/dynamic_reconfigure/cmake/rosbuild2.cmake)
-#generate_cfg("planning_scene_monitor/cfg/PublishSceneDR.cfg")
-
+include_directories(cfg/cpp)
 include_directories(robot_model_loader/include)
 include_directories(kinematics_plugin_loader/include)
 include_directories(planning_models_loader/include)
@@ -48,7 +51,7 @@ include_directories(sensor_manager/include)
 include_directories(planning_pipeline/include)
 include_directories(planning_scene_monitor/include)
 include_directories(trajectory_execution_manager/include)
-#include_directories(plan_execution/include)
+include_directories(plan_execution/include)
 
 add_subdirectory(robot_model_loader)
 add_subdirectory(kinematics_plugin_loader)
@@ -57,12 +60,11 @@ add_subdirectory(controller_manager)
 add_subdirectory(sensor_manager)
 add_subdirectory(planning_pipeline)
 add_subdirectory(planning_request_adapter_plugins)
-#add_subdirectory(planning_scene_monitor)
+add_subdirectory(planning_scene_monitor)
 #add_subdirectory(planning_scene_monitor_tools)
 add_subdirectory(trajectory_execution_manager)
-#add_subdirectory(plan_execution)
-#add_subdirectory(move_group)
-
+add_subdirectory(plan_execution)
+add_subdirectory(move_group)
 
 
 #collision_distance_field_ros

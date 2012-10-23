@@ -34,14 +34,16 @@
 
 /* Author: Ioan Sucan */
 
-#include "planning_scene_monitor/planning_scene_monitor.h"
-#include <planning_models_loader/kinematic_model_loader.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/planning_models_loader/kinematic_model_loader.h>
 
 #include <dynamic_reconfigure/server.h>
-#include "planning_scene_monitor/PlanningSceneMonitorDynamicReconfigureConfig.h"
+#include <moveit_ros_planning/PlanningSceneMonitorDynamicReconfigureConfig.h>
 
 namespace planning_scene_monitor
 {
+
+using namespace moveit_ros_planning;
 
 class PlanningSceneMonitor::DynamicReconfigureImpl
 { 
