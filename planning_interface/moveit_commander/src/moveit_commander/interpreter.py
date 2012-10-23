@@ -305,7 +305,7 @@ class MoveGroupCommandInterpreter:
     def command_current(self, g):
         res = "joints = [" + " ".join([str(x) for x in g.get_current_joint_values()]) + "]"
         if len(g.get_end_effector_link()) > 0:
-            res = res + "\n" + g.get_end_effector_link() + " pose = [" + " ".join([str(x) for x in g.get_current_pose()]) + "]"
+            res = res + "\n" + g.get_end_effector_link() + " pose (xyz, rpy) = [" + " ".join([str(x) for x in g.get_current_pose()]) + "]"
         return (MoveGroupInfoLevel.INFO, res)
 
     def command_go_offset(self, g, offset, factor, dimension_index, direction_name):
