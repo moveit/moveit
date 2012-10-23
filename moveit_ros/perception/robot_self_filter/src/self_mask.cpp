@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "robot_self_filter/self_mask.h"
+#include <moveit/robot_self_filter/self_mask.h>
 #include <Eigen/Core>
 #include <urdf/model.h>
 #include <resource_retriever/retriever.h>

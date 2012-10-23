@@ -43,8 +43,8 @@
 #include <boost/thread.hpp>
 #include <ros/ros.h>
 #include <tf/tf.h>
-#include <occupancy_map_monitor/occupancy_map.h>
-#include <occupancy_map_monitor/occupancy_map_updater.h>
+#include <moveit/occupancy_map_monitor/occupancy_map.h>
+#include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 #include <set>
 
 namespace occupancy_map_monitor

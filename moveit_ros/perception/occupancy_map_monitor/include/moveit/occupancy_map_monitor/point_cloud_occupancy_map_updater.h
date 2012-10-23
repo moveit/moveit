@@ -42,9 +42,9 @@
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <robot_self_filter/self_mask.h>
-#include <occupancy_map_monitor/occupancy_map.h>
-#include <occupancy_map_monitor/occupancy_map_updater.h>
+#include <moveit/robot_self_filter/self_mask.h>
+#include <moveit/occupancy_map_monitor/occupancy_map.h>
+#include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 #include <boost/thread.hpp>
 
 namespace occupancy_map_monitor

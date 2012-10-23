@@ -31,7 +31,7 @@
 #define FILTERS_SELF_SEE_H_
 
 #include <filters/filter_base.h>
-#include <robot_self_filter/self_mask.h>
+#include <moveit/robot_self_filter/self_mask.h>
 #include <ros/console.h>
 
 #include <pcl/point_types.h>
