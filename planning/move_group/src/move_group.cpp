@@ -59,7 +59,7 @@ public:
       LOOK
     };
   
-  MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm) : 
+  MoveGroupAction(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) : 
     node_handle_("~"), planning_scene_monitor_(psm), plan_execution_(psm),
     allow_trajectory_execution_(true), state_(IDLE)
   {
@@ -71,8 +71,12 @@ public:
     plan_execution_.getPlanningPipeline().displayComputedMotionPlans(true);
     plan_execution_.getPlanningPipeline().checkSolutionPaths(true);
 
-    plan_execution_.displayCostSources(true);
-
+    if (debug)
+    {
+      plan_execution_.displayCostSources(true);
+      plan_execution_.getPlanningPipeline().publishReceivedRequests(true);
+    }
+    
     // start the action server
     action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_node_handle_, NODE_NAME, boost::bind(&MoveGroupAction::executeCallback, this, _1), false));
     action_server_->registerPreemptCallback(boost::bind(&MoveGroupAction::preemptCallback, this));
@@ -326,7 +330,14 @@ int main(int argc, char **argv)
     planning_scene_monitor->startSceneMonitor();
     planning_scene_monitor->startStateMonitor();
     
-    MoveGroupAction mga(planning_scene_monitor);
+    bool debug = false;
+    for (int i = 1 ; i < argc ; ++i)
+      if (strncmp(argv[i], "--debug", 7) == 0)
+      {
+        debug = true;
+        break;
+      }
+    MoveGroupAction mga(planning_scene_monitor, debug);
     mga.status();
     ros::waitForShutdown();
   }
