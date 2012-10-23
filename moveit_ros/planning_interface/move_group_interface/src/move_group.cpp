@@ -126,8 +126,8 @@ public:
     can_look_ = false;
     can_replan_ = false;
     
-    goal_tolerance_ = std::numeric_limits<double>::epsilon() * 100.0;
-
+    goal_tolerance_ = 1e-4;
+    
     const planning_models::KinematicModel::JointModelGroup *joint_model_group = getKinematicModel()->getJointModelGroup(opt.group_name_);
     if (joint_model_group)
     {
