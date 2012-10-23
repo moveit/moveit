@@ -36,10 +36,10 @@
 
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <occupancy_map_monitor/occupancy_map.h>
-#include <occupancy_map_monitor/occupancy_map_monitor.h>
-#include <occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
-#include <occupancy_map_monitor/octomap_markers.h>
+#include <moveit/occupancy_map_monitor/occupancy_map.h>
+#include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
+#include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
+#include <moveit/occupancy_map_monitor/octomap_markers.h>
 
 #include <octomap_msgs/conversions.h>
 

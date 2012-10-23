@@ -34,14 +34,14 @@
 
 /* Author: Jon Binney */
 
-#include <occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
+#include <moveit/occupancy_map_monitor/point_cloud_occupancy_map_updater.h>
 #include <tf/tf.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/ros/conversions.h>
-#include <robot_self_filter/self_mask.h>
+#include <moveit/robot_self_filter/self_mask.h>
 
 namespace occupancy_map_monitor
 {

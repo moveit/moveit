@@ -31,7 +31,7 @@
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
-#include <occupancy_map_monitor/occupancy_map_monitor.h>
+#include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 
 
 int main(int argc, char **argv)

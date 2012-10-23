@@ -2,7 +2,7 @@
 #define OCCUPANCY_MAP_MONITOR_OCTOMAP_MARKERS_H
 
 #include <visualization_msgs/MarkerArray.h>
-#include <occupancy_map_monitor/occupancy_map.h>
+#include <moveit/occupancy_map_monitor/occupancy_map.h>
 
 namespace occupancy_map_monitor
 {

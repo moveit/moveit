@@ -41,7 +41,7 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 #include <ros/ros.h>
-#include <occupancy_map_monitor/occupancy_map.h>
+#include <moveit/occupancy_map_monitor/occupancy_map.h>
 
 namespace occupancy_map_monitor
 {

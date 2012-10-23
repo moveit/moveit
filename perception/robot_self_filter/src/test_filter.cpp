@@ -38,7 +38,7 @@
 
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
-#include "robot_self_filter/self_mask.h"
+#include <moveit/robot_self_filter/self_mask.h>
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>

@@ -36,7 +36,7 @@
 
 #include <ros/ros.h>
 #include <sstream>
-#include "robot_self_filter/self_see_filter.h"
+#include <moveit/robot_self_filter/self_see_filter.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
 
