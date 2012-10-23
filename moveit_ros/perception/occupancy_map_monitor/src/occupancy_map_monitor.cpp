@@ -125,7 +125,7 @@ void OccupancyMapMonitor::initialize(const Options &input_opt, const boost::shar
   }
   occupied_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("occupied_cells", 1);
   free_marker_pub_ = root_nh_.advertise<visualization_msgs::MarkerArray>("free_cells", 1);
-  octree_binary_pub_ = root_nh_.advertise<octomap_msgs::OctomapBinary>("octomap_binary", 1);
+  octree_binary_pub_ = root_nh_.advertise<octomap_msgs::Octomap>("octomap_binary", 1);
 }
 
 void OccupancyMapMonitor::treeUpdateThread(void)
@@ -190,7 +190,7 @@ void OccupancyMapMonitor::publish_markers(void)
 
 void OccupancyMapMonitor::publish_octomap_binary(void)
 {
-  octomap_msgs::OctomapBinary map;
+  octomap_msgs::Octomap map;
 
   map.header.frame_id = opt_.map_frame;
   map.header.stamp = ros::Time::now();
