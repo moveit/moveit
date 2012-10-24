@@ -114,8 +114,10 @@ class Base():
             rospy.loginfo(result)
             #print "Error is " + str(self._ac.get_state())
             #raise ex.ActionFailedError()
+            return False
         else:
             print "Success."
+            return True
 
     def get_current_pose_stamped(self):
         """

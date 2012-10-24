@@ -201,3 +201,20 @@ class ArmMover:
         """ Check if this group has a link that is considered to be an end effector """
         return len(self._g.get_end_effector_link()) > 0
 
+    def remember_joint_values(self, name, values = None):
+        if values == None:
+            values = self.get_current_joint_values().position
+        self._g.remember_joint_values(name, values)
+
+    def get_remembered_joint_values(self):
+        return self._g.get_remembered_joint_values()
+
+    def forget_joint_values(self, name):
+        self._g.forget_joint_values(name)
+
+    def set_joint_value_target(self, name, value = None):
+        if value == None:
+            value = name
+            self._g.set_joint_value_target(value)
+        else:
+            self._g.set_joint_value_target(name, value)
