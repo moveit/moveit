@@ -35,11 +35,11 @@
 /* Author: Ioan Sucan */
 
 #include <ros/ros.h>
-#include <planning_scene/planning_scene.h>
-#include <robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <pluginlib/class_loader.h>
-#include <planning_interface/planning_interface.h>
-#include <planning_models/conversions.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_models/conversions.h>
 
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit_msgs/ComputePlanningBenchmark.h>
