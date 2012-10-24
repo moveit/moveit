@@ -54,8 +54,6 @@
 #include <rviz/view_manager.h>
 #include <rviz/default_plugin/view_controllers/orbit_view_controller.h>
 #include <moveit_rviz_plugin/planning_display.h>
-// ROS
-#include <ros/master.h> // for checking if roscore is started
 
 namespace moveit_setup_assistant
 {
@@ -66,6 +64,9 @@ namespace moveit_setup_assistant
 SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_options::variables_map args )
   : QWidget( parent )
 {
+  rviz_manager_ = NULL;
+  rviz_render_panel_ = NULL;
+
   // Create object to hold all moveit configuration data
   config_data_.reset( new MoveItConfigData() );
 
@@ -149,15 +150,6 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
 
   // Show screen before message
   QApplication::processEvents();
-
-  // Check that ROS Core is running
-  while (!ros::master::check() )
-  {
-    // roscore is not running
-    QMessageBox::warning( this, "ROS Error",
-                          "ROS Core does not appear to be started. Be sure to run the command 'roscore' at command line before using this application.");
-    ros::WallDuration(0.5).sleep();
-  }
 }
 
 // ******************************************************************************************
@@ -346,8 +338,9 @@ void SetupAssistantWidget::highlightGroup( const std::string& group_name )
 
   const planning_models::KinematicModel::JointModelGroup *joint_model_group =
     config_data_->getKinematicModel()->getJointModelGroup( group_name );
-
-  std::vector<const planning_models::KinematicModel::LinkModel*> link_models = joint_model_group->getLinkModels();
+  assert(joint_model_group);
+  
+  const std::vector<const planning_models::KinematicModel::LinkModel*> &link_models = joint_model_group->getLinkModels();
 
   // Iterate through the links
   for( std::vector<const planning_models::KinematicModel::LinkModel*>::const_iterator link_it = link_models.begin();
