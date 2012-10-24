@@ -29,9 +29,9 @@
 
 /* Author: Ioan Sucan */
 
-#include "moveit/robot_interaction/robot_interaction.h"
-#include "moveit/robot_interaction/interactive_marker_helpers.h"
-#include <planning_models/transforms.h>
+#include <moveit/robot_interaction/robot_interaction.h>
+#include <moveit/robot_interaction/interactive_marker_helpers.h>
+#include <moveit/planning_models/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <boost/lexical_cast.hpp>
 #include <limits>

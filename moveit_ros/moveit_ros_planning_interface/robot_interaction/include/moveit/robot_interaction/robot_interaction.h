@@ -33,7 +33,7 @@
 #define MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
-#include <planning_models/kinematic_state.h>
+#include <moveit/planning_models/kinematic_state.h>
 
 namespace interactive_markers
 {

@@ -16,8 +16,6 @@ include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 catkin_package(
-  LIBRARIES  
-    moveit_warehouse
   DEPENDS
     moveit_ros_planning
     moveit_ros_warehouse

@@ -1,0 +1,26 @@
+<package>
+  <name>moveit_ros_planning_interface</name>
+  <version>0.1.2</version>
+  <description>Components of MoveIt that offer simpler interfaces to planning and execution</description>
+
+  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit-ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit-ros</url>
+
+  <build_depend>catkin</build_depend> 
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_ros_warehouse</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rosconsole</build_depend>
+
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_ros_warehouse</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rosconsole</run_depend>
+
+</package>
