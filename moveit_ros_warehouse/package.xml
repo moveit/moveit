@@ -1,0 +1,29 @@
+<package>
+  <name>moveit_ros_warehouse</name>
+  <version>0.1.2</version>
+  <description>Components of MoveIt connecting to perception</description>
+  <author email="jbinney@willowgarage.com">Jon Binney</author>
+  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+
+  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit-ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit-ros</url>
+
+  <build_depend>catkin</build_depend> 
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rosconsole</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>warehouse_ros</build_depend>
+
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rosconsole</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>warehouse_ros</run_depend>
+
+</package>

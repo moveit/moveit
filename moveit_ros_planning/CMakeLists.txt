@@ -30,11 +30,12 @@ catkin_package(
   LIBRARIES
     moveit_robot_model_loader
     moveit_kinematics_plugin_loader
-    moveit_kinematics_model_loader
+    moveit_planning_models_loader
     moveit_default_planning_request_adapter_plugins
     moveit_planning_pipeline
     moveit_trajectory_execution_manager
     moveit_plan_execution
+    moveit_planning_scene_monitor
   DEPENDS
     pluginlib
     moveit_core)
